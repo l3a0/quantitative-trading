@@ -111,6 +111,36 @@ flags nothing in any of the three saves read here, so nothing is refused.
 4. The run calls the scale-break guard, which the script has no counterpart
    for.
 
+**Chan's Python port** is ``PythonCodesAndData/gapFutures_FSTX.py`` in
+Chan's ``PythonCodesAndData.zip``, the zip ``data/README.md`` names with
+sha256 ``91e3d0d534f465feae31da3f6a19db03e32b190cf70a2470f03cde60617f8317``,
+in EpchanPreview at ``e4bc46f``. The member is 996 bytes, with sha256
+``8b005cee1114fd019ca761c1df7331d5f66ba9a3be8d6dcb2e614b6615a095fc``, dated
+2018-12-23 in the zip's central directory. It reads
+``inputDataDaily_FSTX_20120517.csv``, whose open, high, low and close equal
+the committed file's. It is not committed, and :func:`python_port` carries its
+arithmetic. It differs from the script in four places.
+
+1. **The spread.** ``df['Close'].pct_change().rolling(90).std().shift()``
+   divides by n − 1, and pandas wants all 90 returns in the window, so the
+   first value falls one row later than line 13's, on 2004-11-22.
+2. **The short test.** ``shorts=df['Open'] >= df['Low'].shift()*(1-entryZscore*stdretC2C90d)``
+   flips line 16's ``<=``. Any open that clears the previous high also clears
+   the previous low, so every long day passes it too, and the short is
+   assigned after the long. The port is never long.
+3. **The sign.** ``ret=positions*(df['Close']-df['Open'])/df['Open']`` is the
+   momentum reading, where line 23 writes ``(op-cl)./op``.
+4. **The Sharpe ratio.** ``np.std`` on a series divides by n, where line 26's
+   ``std`` divides by n − 1.
+
+Its comments print ``#APR=0.074864 Sharpe=0.494857`` and
+``#Max DD=-0.233629 Max DDD in days=789``, which :data:`PORT_APR`,
+:data:`PORT_SHARPE`, :data:`PORT_MAX_DRAWDOWN` and
+:data:`PORT_MAX_DRAWDOWN_DAYS` hold. Under pandas 3 the port prints its first
+line and then stops, because ``calculateMaxDD`` indexes the date-indexed
+``cumret`` by position, which pandas 3 refuses. So it no longer runs as
+shipped, and this is its arithmetic.
+
 Every result here is exploratory. Reproducing Chan's figure spends his 2004
 to 2012 sample on his rule, so the run says whether his numbers reproduce on
 his file and nothing about whether an opening jump pays today, under either
@@ -160,6 +190,12 @@ BOOK_SHARPE = "1.4"
 #: Location 2965's window, "from July 16, 2004, to May 17, 2012".
 BOOK_FIRST_DAY = pd.Timestamp("2004-07-16")
 BOOK_LAST_DAY = pd.Timestamp("2012-05-17")
+#: What ``gapFutures_FSTX.py`` prints in its comments, ``#APR=0.074864 Sharpe=0.494857``
+#: and ``#Max DD=-0.233629 Max DDD in days=789``.
+PORT_APR = "0.074864"
+PORT_SHARPE = "0.494857"
+PORT_MAX_DRAWDOWN = "-0.233629"
+PORT_MAX_DRAWDOWN_DAYS = "789"
 
 
 def spread(closes: ArrayLike) -> NDArray[np.float64]:
@@ -397,6 +433,106 @@ def report(
     print("  Exploratory. docs/replication-log.md carries the verdicts.")
 
 
+def python_port_spread(closes: ArrayLike) -> NDArray[np.float64]:
+    """``gapFutures_FSTX.py``'s ``stdretC2C90d``, pandas' rolling deviation one row later.
+
+    ``Close.pct_change().rolling(90).std().shift()`` divides by n − 1 where
+    :func:`spread` divides by n. Pandas also wants all 90 returns in the
+    window, and the first return is NaN, so the first 91 rows are NaN rather
+    than 90.
+    """
+    returns = pd.Series(np.asarray(closes, dtype=float)).pct_change()
+    return returns.rolling(SPREAD_LOOKBACK).std().shift().to_numpy()
+
+
+def python_port_qualifiers(
+    opens: ArrayLike, highs: ArrayLike, lows: ArrayLike, spread: ArrayLike
+) -> tuple[NDArray[np.bool_], NDArray[np.bool_]]:
+    """The port's two tests: line 15's long, and line 16's short with its inequality flipped.
+
+    The port writes ``Open >= Low.shift() · (1 − 0.1 · spread)``, so a short
+    qualifies on every day the open does not jump below the previous low by the margin.
+    """
+    longs, _ = qualifiers(opens, highs, lows, spread)
+    op = np.asarray(opens, dtype=float)
+    lo = np.asarray(lows, dtype=float)
+    sd = np.asarray(spread, dtype=float)
+    with np.errstate(invalid="ignore"):
+        shorts = op >= backshift(1, lo) * (1 - ENTRY_ZSCORE * sd)
+    return longs, shorts
+
+
+def python_port_sharpe(daily: ArrayLike) -> float:
+    """``np.sqrt(252) * np.mean(ret) / np.std(ret)``, where ``np.std`` divides by n."""
+    ret = np.asarray(daily, dtype=float)
+    return float(np.sqrt(TRADING_DAYS) * ret.mean() / ret.std(ddof=0))
+
+
+@dataclass(frozen=True)
+class PythonPort:
+    """``gapFutures_FSTX.py`` on one save of FSTX, row for row."""
+
+    days: pd.DatetimeIndex
+    spread: NDArray[np.float64]
+    longs: NDArray[np.bool_]
+    shorts: NDArray[np.bool_]
+    positions: NDArray[np.float64]
+    returns: NDArray[np.float64]
+
+    @property
+    def figures(self) -> Figures:
+        """The script's figures on the port's returns, so this Sharpe ratio divides by n − 1."""
+        return figures(self.returns)
+
+    @property
+    def sharpe(self) -> float:
+        """The Sharpe ratio the port prints, dividing by n."""
+        return python_port_sharpe(self.returns)
+
+
+def python_port(prices: pd.DataFrame) -> PythonPort:
+    """Run the port's arithmetic on a frame holding FSTX's :data:`FIELDS` as columns.
+
+    The short is assigned after the long, as the port assigns it, and the
+    return is :func:`daily_returns`' momentum reading, which is the port's
+    ``positions * (Close - Open) / Open``.
+    """
+    op, hi, lo, cl = (prices[field].to_numpy(dtype=float) for field in FIELDS)
+    sd = python_port_spread(cl)
+    longs, shorts = python_port_qualifiers(op, hi, lo, sd)
+    held = _held(longs, shorts)
+    return PythonPort(
+        days=prices.index,
+        spread=sd,
+        longs=longs,
+        shorts=shorts,
+        positions=held,
+        returns=daily_returns(held, op, cl, reading="momentum"),
+    )
+
+
+def report_python_port(port: PythonPort) -> None:
+    """Print the port's four figures beside its comments, and the days it holds."""
+    f = port.figures
+    print()
+    print("Chan's Python port, gapFutures_FSTX.py, on the same save")
+    print(f"  {'Figure':<28} {'Computed':>10}  {'Port':>9}  Verdict")
+    for label, value, printed in (
+        ("APR", f.apr, PORT_APR),
+        ("Sharpe ratio, over n", port.sharpe, PORT_SHARPE),
+        ("maximum drawdown", f.max_drawdown, PORT_MAX_DRAWDOWN),
+        ("maximum drawdown days", f.max_drawdown_days, PORT_MAX_DRAWDOWN_DAYS),
+    ):
+        shown = f"{value:>10d}" if isinstance(value, int) else f"{value:>10.6f}"
+        print(f"  {label:<28} {shown}  {printed:>9}  {_verdict(value, printed)}")
+    held = port.positions
+    print(
+        f"  long on {int((held == 1).sum())} days, short on {int((held == -1).sum())}, "
+        f"flat on {int((held == 0).sum())}, both tests passed on "
+        f"{int((port.longs & port.shorts).sum())}"
+    )
+
+
 def run(data_dir: Path | None = None) -> OpeningGap:
     """Read the script's save and the two earlier ones, run each, and print the report."""
     entry, prices = read_sources(data_dir)
@@ -406,6 +542,7 @@ def run(data_dir: Path | None = None) -> OpeningGap:
         earlier_entry, earlier_prices = read_sources(data_dir, source_file=source_file)
         earlier.append((earlier_entry, opening_gap(earlier_prices)))
     report(entry, result, earlier)
+    report_python_port(python_port(prices))
     return result
 
 
