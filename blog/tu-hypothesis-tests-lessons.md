@@ -1,6 +1,6 @@
 # Three hypothesis tests on TU momentum: the book’s count lands, the script’s p-value belongs to another test, and the checks added afterwards point at drift
 
-*Chan asks of one momentum strategy how often chance alone would do as well, three ways. On his own file the book’s count of 1,166 lands, his script’s printed p-value does not, and his third test cannot fail as written. Three checks added after a trial run point at TU’s drift rather than its fat tails.*
+*Chan asks of one momentum strategy how often chance alone would do as well, three ways. On his own file the book’s count of 1,166 lands, his script’s printed p-value does not, and his third test cannot fail as written. Two of three checks added after a trial run point at TU’s drift rather than its fat tails.*
 
 ## Why ask what chance alone would give
 
@@ -18,7 +18,7 @@ This repository reran all three tests on Chan’s own data file. Four results ca
 1. **The Gaussian test lands the script’s 2.93.**
 2. **The second test lands the book’s count and misses the script’s p-value.** It gives 1,221 of 10,000 against the book’s 1,166, and a p-value of 0.122100 against the 0.027500 printed in the script’s comment.
 3. **The third test as printed cannot fail.** Corrected, it still finds no shuffle as good as the real rule.
-4. **Three checks added after a trial run point at TU’s drift, rather than its kurtosis, as what drives the second test.** That is a finding with no verdict.
+4. **Two of three checks added after a trial run point at TU’s drift, rather than its kurtosis, as what drives the second test.** That is a finding with no verdict.
 
 **Every result here is exploratory.** Chan chose the strategy and the three tests, and reproducing his figures spends the 2004 to 2012 sample on his choices. The reproduction can say whether his numbers follow from his file. The three added checks were chosen after a trial run had seen results, so they can motivate a registered test and cannot confirm anything.
 
@@ -140,7 +140,7 @@ The book saw this possibility and set it aside. Location 652 names the mean as o
 
 **The status of this finding.** The two checks came after a trial run had seen results, so the drift reading is exploratory. It is a reason to register a test that names drift as the hypothesis before any number exists, and runs it on data Entry 37 never loaded. It is not a verdict that drift explains momentum on TU.
 
-No false-discovery-rate control appears here either. Such a control limits the share of false passes across a batch of tests, and it applies when many variants are tried and the best is kept, as [the index arbitrage post’s Lesson 2](https://github.com/l3a0/quantitative-trading/blob/main/blog/index-arbitrage-lessons.md#lesson-2-the-screens-98-is-a-count-of-tests-passed-and-random-walks-unrelated-to-spy-pass-more-often) shows. This replication runs the three tests Chan chose and keeps none of them for a better p-value. The three added checks are questions the trial run raised, so what governs them is the exploratory label rather than a correction.
+No false-discovery-rate control appears here. Such a control limits the share of false passes across a batch of tests, and it applies when many variants are tried and the best is kept, as [the index arbitrage post’s Lesson 2](https://github.com/l3a0/quantitative-trading/blob/main/blog/index-arbitrage-lessons.md#lesson-2-the-screens-98-is-a-count-of-tests-passed-and-random-walks-unrelated-to-spy-pass-more-often) shows. This replication runs the three tests Chan chose and keeps none of them for a better p-value. The three added checks are questions the trial run raised, so what governs them is the exploratory label rather than a correction.
 
 A second limit sits under all three p-values. The rule’s lookback and hold were picked from 49 pairs on the same closes, and none of the tests is corrected for that choice. The figures above are what these tests give for the pair Chan chose, not for a rule picked before the data.
 
@@ -159,7 +159,7 @@ Four questions are beyond it.
 
 One habit for each lesson.
 
-1. **Name the null hypothesis before reading a p-value.** A Gaussian null and a moment-matched one give p-values 0.001677 and 0.122100 on the same returns.
+1. **Name the null hypothesis before reading a p-value.** A Gaussian null and a moment-matched one give p-values of 0.001677 and 0.122100 for the same strategy.
 2. **Fix the seed and the band before the draw.** A simulated count lands only within sampling error, and a band chosen afterwards fits anything.
 3. **Check which test printed a figure.** The script’s comment and the book’s paragraph came from different tests.
 4. **Make a test fail once.** A test that returns 0 whatever the data looks exactly like a strong result.
