@@ -742,12 +742,16 @@ class TestWhatThePostMeasured:
 
     @pytest.mark.parametrize(
         ("rule", "total"),
-        [("buy_on_gap", 0.129625), ("literal", 0.018889), ("momentum", -0.018889)],
+        [("buy_on_gap", "0.129625"), ("literal", "0.018889"), ("momentum", "-0.018889")],
     )
     def test_the_daily_returns_summed_over_the_kept_days(self, result, rule, total) -> None:
-        """Each is the rule's 252 · mean times kept / 252, where the figure's curves end."""
+        """Each is the rule's 252 · mean times kept / 252, where the figure's curves end.
+
+        Held as the six decimals the post prints, since a tolerance of one
+        unit in the sixth decimal would let a neighbouring printed value pass.
+        """
         filtered = getattr(result, rule)
-        assert filtered.filtered.sum() == pytest.approx(total, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
+        assert f"{filtered.filtered.sum():.6f}" == total, f"{SPEC}; {AFTER_THE_RUN}"
         assert filtered.summed[-1] == pytest.approx(filtered.filtered.sum(), abs=1e-15)
         assert filtered.summed[-1] == pytest.approx(
             filtered.average_annual_return * filtered.kept / 252, abs=1e-15
