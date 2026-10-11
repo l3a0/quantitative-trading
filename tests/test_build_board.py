@@ -1442,6 +1442,13 @@ def test_a_fetched_board_that_breaks_the_drawing_code_keeps_the_last_board(
     )
     assert text(ids, "source") == ""
 
+    # The same broken file served again is still broken. Only a file the page
+    # drew counts as the last one, so a repeat is not mistaken for it.
+    ids, _ = run_fetch_page(tmp_path, [served(fixture_board()), served(broken), served(broken)])
+    assert text(ids, "source").startswith(
+        "Live updates stopped (a live section could not be drawn)."
+    )
+
 
 @pytest.mark.parametrize(
     "late",

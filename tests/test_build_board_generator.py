@@ -140,8 +140,10 @@ class FakeGitHub:
     def __call__(self, query: str, variables: dict) -> dict:
         self.calls.append(query)
         if "node(id:$id)" in query:
+            # Keyed by the cursor too, so a read that asks for the first page
+            # again finds nothing rather than looping on it.
             field = re.search(r"\{ (\w+)\(", query.split("... on", 1)[1]).group(1)
-            return {"node": {field: self.nested[(variables["id"], field)]}}
+            return {"node": {field: self.nested[(variables["id"], field, variables["after"])]}}
         if "issues(states:OPEN" in query:
             page = self._page(self.issues, 100, variables.get("after"))
             return {"rateLimit": {"cost": 1}, "repository": {"issues": page}}
@@ -208,6 +210,7 @@ def test_a_part_of_line_names_its_issue_and_prose_does_not() -> None:
     """
     body = (
         "- The Entry 27 post merged in PR #488, part of #458.\n"
+        "part of #458 was the earlier post.\n"
         'It merged in #478 as "Part of #459".\n'
         "\n"
         "Part of #462. The draft is created from the merged file.\n"
@@ -249,6 +252,7 @@ def test_a_merged_part_of_pull_request_stays_on_its_open_issue() -> None:
         (490, "merged", True)
     ]
     assert report["other_prs_read"] == 3
+    assert report["open_prs_left_out"] == []
 
 
 def test_a_merged_pull_request_whose_issue_stayed_open_reads_as_merged() -> None:
@@ -333,6 +337,63 @@ def test_a_cross_reference_from_another_repository_reads_nothing_here() -> None:
     assert not any("pullRequest(number:999" in q for q in gh.calls)
 
 
+def test_a_closed_part_of_pull_request_reads_as_closed() -> None:
+    """Protects a card from reading as landed when its branch was abandoned.
+
+    The page frees a card whose pull request closed unmerged, and holds one
+    whose pull request merged with no ``Part of``. So the two states must stay
+    apart.
+    """
+    gh = FakeGitHub([issue(5, mentioned_by=(6,))], [pull(6, state="CLOSED", body="Part of #5")])
+    board, _ = build(gh)
+    assert [(p["pr"], p["state"]) for p in prs_of(board)] == [(6, "closed")]
+
+
+def test_an_open_pull_request_an_issue_also_references_gets_one_item() -> None:
+    """Protects a card from drawing one branch twice.
+
+    An open pull request is read with the open list and is also among the
+    issue's cross-references, so it must not be read a second time by number.
+    """
+    gh = FakeGitHub([issue(5, closed_by=(6,), mentioned_by=(6,))], [pull(6, closes=(5,))])
+    board, report = build(gh)
+    assert [(p["pr"], p["issue"]) for p in prs_of(board)] == [(6, 5)]
+    assert report["other_prs_read"] == 0
+
+
+def test_a_pull_request_closing_one_issue_and_part_of_another_marks_only_the_second() -> None:
+    """Protects the ``Part of`` mark from following whether anything else closes.
+
+    The mark belongs to each issue the pull request names, so one that closes
+    5 and is part of 6 leaves 5 to close on merge and 6 open on purpose.
+    """
+    gh = FakeGitHub([issue(5), issue(6)], [pull(7, closes=(5,), body="Part of #6")])
+    board, _ = build(gh)
+    assert [(p["issue"], p["linked"], p.get("partOf")) for p in prs_of(board)] == [
+        (5, True, None),
+        (6, False, True),
+    ]
+
+
+def test_each_check_is_labelled_with_its_own_name() -> None:
+    """Protects the label of a status context, which carries no ``name``."""
+    contexts = (check("test", "SUCCESS"), status("ci/legacy", "PENDING"))
+    gh = FakeGitHub([issue(5)], [pull(6, closes=(5,), contexts=contexts)])
+    board, _ = build(gh)
+    assert prs_of(board)[0]["rollup"] == [["test", "success"], ["ci/legacy", "running"]]
+
+
+def test_the_tracker_and_the_pull_requests_come_out_in_number_order() -> None:
+    """Protects a board whose order does not depend on how GitHub listed it."""
+    gh = FakeGitHub(
+        [issue(9), issue(3), issue(5)],
+        [pull(40, closes=(9,)), pull(30, closes=(3,)), pull(20, closes=(9,))],
+    )
+    board, _ = build(gh)
+    assert [c["n"] for c in board["tracker"]["items"]] == [3, 5, 9]
+    assert [(p["issue"], p["pr"]) for p in prs_of(board)] == [(3, 30), (9, 20), (9, 40)]
+
+
 def test_a_pull_request_that_cannot_be_read_stops_the_run() -> None:
     """Protects the board from a reference GitHub answers with nothing."""
     gh = FakeGitHub([issue(5, mentioned_by=(77,))], [])
@@ -366,6 +427,8 @@ def test_a_node_that_vanishes_mid_read_stops_the_run() -> None:
         ("OWNER", "\n## Review of the fixes\n", True),
         ("NONE", "## Review\n\nLooks good to me.", False),
         ("CONTRIBUTOR", "## Review\n", False),
+        ("COLLABORATOR", "## Review\n", False),
+        ("MEMBER", "## Review\n", False),
         ("OWNER", "## Reviewer notes\n", False),
         ("OWNER", "The review is below.\n## Review\n", False),
     ],
@@ -463,22 +526,25 @@ def test_a_nested_list_longer_than_a_page_is_read_to_its_end() -> None:
 
     An issue named by more than 100 pull requests, or a pull request with more
     than 100 comments, would otherwise lose the rest silently. Each further
-    page is one more request.
+    page is one more request, and each asks for the page after the last one
+    read. The comments take three pages, so a read that restarts from the
+    first finds no page there and stops.
     """
     first = issue(5)
     first["timelineItems"] = conn([], more=True, cursor="t1")
     pr = pull(6, state="MERGED", body="Part of #5")
     pr["comments"] = conn([], more=True, cursor="k1")
     nested = {
-        ("I5", "timelineItems"): conn(
+        ("I5", "timelineItems", "t1"): conn(
             [{"source": {"number": 6, "repository": {"nameWithOwner": REPO}}}]
         ),
-        ("P6", "comments"): conn([{"authorAssociation": "OWNER", "body": "## Review\n"}]),
+        ("P6", "comments", "k1"): conn([], more=True, cursor="k2"),
+        ("P6", "comments", "k2"): conn([{"authorAssociation": "OWNER", "body": "## Review\n"}]),
     }
     gh = FakeGitHub([first], [pr], nested)
     board, _ = build(gh)
     assert [(p["pr"], p["reviewed"]) for p in prs_of(board)] == [(6, True)]
-    assert sum("node(id:$id)" in q for q in gh.calls) == 2
+    assert sum("node(id:$id)" in q for q in gh.calls) == 3
 
 
 def test_a_count_that_disagrees_with_the_pages_read_stops_the_run() -> None:
@@ -493,6 +559,40 @@ def test_a_count_that_disagrees_with_the_pages_read_stops_the_run() -> None:
 
     with pytest.raises(bb.BoardError, match="read 1 issues against a total of 2"):
         build(Shifting([issue(1)], []))
+
+
+def test_an_issue_read_twice_stops_the_run() -> None:
+    """Protects the count from a page that repeats an issue another dropped."""
+
+    class Repeating(FakeGitHub):
+        def __call__(self, query: str, variables: dict) -> dict:
+            data = super().__call__(query, variables)
+            if "issues(states:OPEN" in query:
+                data["repository"]["issues"]["nodes"] = [issue(1), issue(1)]
+            return data
+
+    with pytest.raises(bb.BoardError, match="read 2 issues against a total of 2"):
+        build(Repeating([issue(1), issue(2)], []))
+
+
+def test_a_variable_with_no_value_is_left_out_of_the_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Protects the first page of every list, which asks for no cursor.
+
+    GraphQL reads a variable left out as null. Sent as text, it would arrive
+    as the cursor "None", which GitHub refuses.
+    """
+    seen: list[list[str]] = []
+
+    def run(args: list[str], **_: object) -> subprocess.CompletedProcess:
+        seen.append(args)
+        return subprocess.CompletedProcess(args, 0, stdout=json.dumps({"data": {}}), stderr="")
+
+    monkeypatch.setattr(bb.subprocess, "run", run)
+    bb.GhGraphql()("query { viewer { login } }", {"owner": "l3a0", "first": 3, "after": None})
+    args = seen[0]
+    assert args[args.index("-f", 4) :] == ["-f", "owner=l3a0", "-F", "first=3"]
 
 
 @pytest.mark.parametrize(
@@ -551,6 +651,7 @@ def test_the_threshold_follows_the_schedule(tmp_path: Path, cron: str, minutes: 
     "lines",
     [
         '    - cron: "0 */2 * * *"\n',
+        '    - cron: "60 * * * *"\n',
         '    - cron: "0 * * * 1"\n',
         '    - cron: "7 * * * *"\n    - cron: "37 * * * *"\n',
         "",
