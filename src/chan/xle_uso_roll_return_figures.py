@@ -82,7 +82,13 @@ def cumulative_return(daily: np.ndarray) -> np.ndarray:
 def held_runs(
     days: pd.DatetimeIndex, held: np.ndarray
 ) -> list[tuple[pd.Timestamp, pd.Timestamp, int]]:
-    """Each run of consecutive ``held`` rows as its first day, its last day and its length."""
+    """Each run of consecutive ``held`` rows as its first day, its last day and its length.
+
+    The figure shades with :func:`chan.roll_momentum_figures.flat_spans` and
+    never calls this. The tests call it to name the backwardation spans the
+    post quotes, and hold it equal to the spans read off the drawn patches,
+    so the 108-day and 20-day pins read the drawing directly.
+    """
     edges = np.flatnonzero(np.diff(np.concatenate([[0], held.astype(int), [0]])))
     return [
         (days[start], days[end - 1], int(end - start))

@@ -22,6 +22,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.colors import to_rgba
 from matplotlib.dates import date2num
 
 from chan import xle_uso_roll_return_figures as module
@@ -99,6 +100,24 @@ def _covered(ax, gid: str, days: pd.DatetimeIndex) -> np.ndarray:
             left = span.get_x()
             covered |= (x >= left) & (x <= left + span.get_width())
     return covered
+
+
+def _drawn_spans(ax, gid: str, days: pd.DatetimeIndex) -> list[tuple]:
+    """Each span drawn with ``gid`` as the first and last day it covers and how many."""
+    x = date2num(days)
+    found = []
+    for span in ax.patches:
+        if span.get_gid() == gid:
+            left = span.get_x()
+            inside = days[(x >= left) & (x <= left + span.get_width())]
+            found.append((inside[0], inside[-1], len(inside)))
+    return found
+
+
+def _labelled_at(ax, gid: str) -> tuple[pd.Timestamp, float]:
+    """Where the annotation ``<gid>-label`` points."""
+    x, y = _by_gid(ax.texts)[f"{gid}-label"].xy
+    return pd.Timestamp(x), float(y)
 
 
 def _point(ax, gid: str) -> tuple[pd.Timestamp, float]:
@@ -179,6 +198,24 @@ class TestTheCumulativeReturns:
         assert labels["drawdown-high-label"].get_text() == "high, 1.272665 on 2009-02-18"
         assert labels["drawdown-trough-label"].get_text() == "trough, 0.835584 on 2009-06-29"
 
+    def test_both_curves_fit_inside_the_panel(self, axes) -> None:
+        low, high = axes["curve"].get_ylim()
+        for gid in ("trade", "fixed"):
+            y = _by_gid(axes["curve"].lines)[gid].get_ydata()
+            assert low <= y.min() and y.max() <= high
+
+    @pytest.mark.parametrize("gid", ["drawdown-high", "drawdown-trough"])
+    def test_each_drawdown_label_points_at_its_marker(self, axes, gid) -> None:
+        assert _labelled_at(axes["curve"], gid) == _point(axes["curve"], gid)
+
+    def test_the_longest_run_label_sits_over_the_middle_of_its_line(self, axes) -> None:
+        line = _by_gid(axes["curve"].lines)["longest-drawdown"]
+        first, last = (pd.Timestamp(x) for x in line.get_xdata())
+        assert _labelled_at(axes["curve"], "longest-drawdown") == (
+            first + (last - first) / 2,
+            float(line.get_ydata()[0]),
+        )
+
     def test_the_longest_run_below_a_high_is_marked_at_that_high(self, axes) -> None:
         line = _by_gid(axes["curve"].lines)["longest-drawdown"]
         assert [pd.Timestamp(x) for x in line.get_xdata()] == [
@@ -227,15 +264,30 @@ class TestTheShading:
         assert covered[:123].all()
         assert not result.positions[:123].any()
 
+    @pytest.mark.parametrize("panel", ["curve", "ratio"])
     def test_nine_backwardation_spans_the_longest_in_2007_and_the_last_in_2011(
-        self, axes, result
+        self, axes, result, panel
     ) -> None:
+        """Read off the drawn patches, and ``held_runs`` agrees with them."""
+        drawn = _drawn_spans(axes[panel], "backwardation", result.days)
+        assert len(drawn) == 9
+        assert max(drawn, key=lambda r: r[2]) == (day("2007-07-13"), day("2007-12-13"), 108), SPEC
+        assert drawn[-1] == (day("2011-10-24"), day("2011-11-18"), 20), SPEC
         held = (result.positions == BACKWARDATION).all(axis=1)
-        runs = held_runs(result.days, held)
-        assert len(runs) == 9
-        assert len([p for p in axes["curve"].patches if p.get_gid() == "backwardation"]) == 9
-        assert max(runs, key=lambda r: r[2]) == (day("2007-07-13"), day("2007-12-13"), 108), SPEC
-        assert runs[-1] == (day("2011-10-24"), day("2011-11-18"), 20), SPEC
+        assert held_runs(result.days, held) == drawn
+
+    @pytest.mark.parametrize("panel", ["curve", "ratio"])
+    def test_the_backwardation_days_are_shaded_in_the_light_accent(self, axes, panel) -> None:
+        color, alpha = module.BACKWARDATION_SHADE
+        assert (color, alpha) == (ACCENT, 0.16)
+        spans = [p for p in axes[panel].patches if p.get_gid() == "backwardation"]
+        assert spans and all(p.get_facecolor() == to_rgba(color, alpha) for p in spans)
+
+    @pytest.mark.parametrize("panel", ["curve", "ratio"])
+    def test_the_days_with_no_ratio_are_hatched_rather_than_shaded(self, axes, panel) -> None:
+        spans = [p for p in axes[panel].patches if p.get_gid() == "no-ratio"]
+        assert spans and all(p.get_hatch() == "///" for p in spans)
+        assert all(p.get_facecolor()[3] == 0 for p in spans)
 
     def test_held_runs_reads_each_run_with_its_ends_and_length(self) -> None:
         days = pd.date_range("2020-01-01", periods=6)
@@ -257,6 +309,13 @@ class TestTheRatioPanel:
         assert (len(days), days[0], days[-1]) == (1375, day("2006-10-20"), day("2012-04-09"))
         defined = np.isfinite(result.ratio)
         np.testing.assert_array_equal(line.get_ydata(), result.ratio[defined])
+
+    def test_the_ratio_is_drawn_in_ink(self, axes) -> None:
+        assert _by_gid(axes["ratio"].lines)["ratio"].get_color() == INK
+
+    @pytest.mark.parametrize("gid", ["ratio-low", "ratio-high"])
+    def test_each_ratio_label_points_at_its_marker(self, axes, gid) -> None:
+        assert _labelled_at(axes["ratio"], gid) == _point(axes["ratio"], gid)
 
     def test_its_low_and_high_are_marked(self, axes) -> None:
         low, high = _point(axes["ratio"], "ratio-low"), _point(axes["ratio"], "ratio-high")
