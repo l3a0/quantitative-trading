@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-three replications run here, seventeen from Chan's *Quantitative Trading*
-and twenty-six from his *Algorithmic Trading*. The first two were ported from the
+Forty-four replications run here, seventeen from Chan's *Quantitative Trading*
+and twenty-seven from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other forty-one were built here.
+where they were first built. The other forty-two were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -546,7 +546,19 @@ where they were first built. The other forty-one were built here.
     backwardation hold 0.308117 of the trade's summed daily return of
     0.946538, and on them USO rose 0.5323 in log terms while the ratio
     implies a roll return of 0.072380. Every figure is exploratory.
-40. VX futures against E-mini S&P 500 futures on VX's roll return, after
+40. The opening gap strategy on FSTX, the STOXX Europe 50 index future on
+    Eurex, which the book calls the Dow Jones STOXX 50. It is Example 7.1 of
+    *Algorithmic Trading*, run on Chan's 2012-05-17 save. A day is
+    long when the open clears the previous high by a tenth of the 90-day
+    standard deviation of daily returns and short when it clears the previous
+    low, held from the open to the close. `gapFutures_FSTX.m`'s return line
+    as written earns a long's fall from the open, which fades the jump. It
+    gives an APR of 0.132733 and a Sharpe ratio of 1.441620, which print as
+    the script's 0.1327 and 1.44 and round to the book's 13 percent and 1.4.
+    The momentum sign the text describes gives −0.124236 and −1.441620, so the
+    claim the figures were printed for does not reproduce. Every figure is
+    exploratory.
+41. VX futures against E-mini S&P 500 futures on VX's roll return, after
     Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
     Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
     trade is short the front VX contract and ES when the front sits above VIX
@@ -561,7 +573,7 @@ where they were first built. The other forty-one were built here.
     0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
     the script traded the printed 0.3906. An entry from flat pays no cost,
     as in the script. Every figure is exploratory.
-41. Example 7.4's own five factors, tested on Chan's S&P 600 file against the
+42. Example 7.4's own five factors, tested on Chan's S&P 600 file against the
     claim at Kindle location 4014 of the revised edition that factor returns
     "often" have stronger serial autocorrelation than single stocks', which
     location 4051 says the example rests on. Each day's factor return is
@@ -579,7 +591,7 @@ where they were first built. The other forty-one were built here.
     two price histories join into one day's return. Without it, PC2 falls to
     −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
     symbol. Every figure is exploratory and about survivors.
-42. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
+43. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
     chosen three ways on Example 5.1's 612 saved returns: by the optimum of
     100,000 returns drawn from a Pearson type IV fitted to their four
     moments, by the optimum of the historical growth rate, and with
@@ -599,7 +611,7 @@ where they were first built. The other forty-one were built here.
     Box 8.6's CPPI loop breaks the 0.5 drawdown floor on every one of the
     200 seeds, and the CPPI location 3426 describes keeps it on every one.
     Every figure is exploratory.
-43. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
+44. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
     leveraged portfolio of low-beta stocks should generate higher long-term
     compounded growth than holding an unleveraged portfolio of high-beta
     stocks", on Chan's S&P 500 file. Each month-end the lowest and highest
@@ -1043,6 +1055,16 @@ return beside the fixed view's. On synthetic frames it holds the split by
 view and the fixed view. The blog post about it is the exception, and what it
 says that nothing here asserts is listed below.
 
+[tests/test_opening_gap.py](tests/test_opening_gap.py) does it for the
+opening gap strategy on FSTX. It pins both readings of the script's return
+line at six decimals. The literal reading is pinned against the script's
+comment and the book's two figures, and the momentum reading against the
+book's two figures alone. It also pins the drawdowns, the days each side
+holds and the literal rule on the two earlier saves. On synthetic days it
+holds both entry tests non-strict, a missing spread qualifying nothing, a
+short overriding a long, and the sign of each reading's open-to-close
+return. It also holds the read guarded.
+
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
 rules at full precision against the script's comments and the book's two,
@@ -1086,7 +1108,7 @@ of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
 
-All forty-three replications reach a verdict in
+All forty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1106,10 +1128,11 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, Entry 41 the roll-return rule's on VX against ES, Entry 42
-Example 7.4's own factors', Entry 43 Chapter 8's leverage boxes', and
-Entry 45 the levered low-beta claim's. Entry 44 carries the reversal on the
-S&P 600, which has no published number to reach a verdict against either.
+trade's, Entry 40 the opening gap strategy's on FSTX, Entry 41 the
+roll-return rule's on VX against ES, Entry 42 Example 7.4's own factors',
+Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
+the S&P 600, which has no published number to reach a verdict against either,
+and Entry 45 the levered low-beta claim's.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1947,6 +1970,18 @@ It prints the two ETF vintages and the strip, the five figures beside the
 script's comment with a verdict, the APR and the Sharpe ratio beside the
 book's with a verdict, and how many days fall in contango, in backwardation
 and with no ratio.
+
+The opening gap strategy on FSTX takes no option, because the script fixes
+the save, the margin and the window:
+
+```bash
+uv run python -m chan.opening_gap
+```
+
+It prints the vintage, both readings of the return line beside the script's
+comment and the book's figures with a verdict, the drawdowns and the days
+each side holds, and the literal reading on the 2012-05-11 and 2012-05-07
+saves.
 
 VX against ES on VX's roll return takes no option either, because the script
 fixes its three files, its threshold, its cost and its test:
