@@ -1,0 +1,134 @@
+name: Board
+
+# Rebuilds the build board from GitHub and publishes it on GitHub Pages, so no
+# session has to measure and write it by hand. scripts/build_board.py reads
+# every figure through the API and writes board.json, and the page is the same
+# board.html the artifact board publishes. Issue 532 is the scope.
+#
+# Every trigger below except workflow_dispatch fires only once this file is on
+# main, and every one of them runs on the default branch, which is the only
+# branch the github-pages environment lets deploy. pull_request_target runs on
+# a pull request's base branch rather than the default one, so its filter
+# admits only pull requests into main. A run for one into another base would
+# have its deploy refused and go red. pull_request and
+# pull_request_review run on a merge ref instead, and check_suite never fires
+# for a suite GitHub Actions created, so neither is here.
+#
+# Two rules keep this workflow inside the ruleset, which refuses a merge while
+# CodeQL reports a high or critical alert, and keep strangers out of it.
+#
+# 1. No step reads the event payload. Anyone can file an issue on a public
+#    repository, so an issue title expanded into a run step would run as
+#    shell. The generator reads everything through gh, which also makes a
+#    run's output independent of the event that started it.
+# 2. pull_request_target runs with a write token on the default branch, so
+#    nothing here checks out a pull request's code. The checkout takes the
+#    default ref.
+on:
+  issues:
+  issue_comment:
+  # Its default types are opened, synchronize and reopened. A merged Part of
+  # pull request closes no issue, so without `closed` it would read as open
+  # until the cron run, and without `edited` so would a corrected closing link.
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed, edited]
+  # The only event that fires when ci.yml's checks settle. CodeQL's default
+  # setup has no workflow file here, so its result reaches the board on the
+  # next run of any kind.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  # The backstop, since GitHub can delay or drop a scheduled run under load and
+  # a change made with a workflow's own token starts no run. The generator reads
+  # this line, and the page calls the board stale at twice the longest gap
+  # between two runs, so changing it here moves that threshold too. Off the hour,
+  # because the top of the hour is when GitHub is busiest.
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+# Runs deploy one at a time, so an older snapshot never replaces a newer one.
+# GitHub keeps only the newest waiting run, which is the one worth deploying.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Declaring any scope sets every unlisted one to none, so each scope the
+    # generator reads is named.
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+      checks: read
+      statuses: read
+    outputs:
+      updated_at: ${{ steps.board.outputs.updated_at }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build board.json from GitHub
+        id: board
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python3 scripts/build_board.py build
+          --repo "$GITHUB_REPOSITORY"
+          --workflow .github/workflows/board.yml
+          --out _site
+
+      # Pages serves index.html at the site's root.
+      - name: Add the page
+        run: cp .claude/skills/update-build-board/board.html _site/index.html
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  # Every successful run deploys, including one whose board matches the last
+  # apart from its stamp. Skipping that deploy would freeze the stamp, and the
+  # page would then call a current board stale.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+      actions: read
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Records how long the board took to be served and whether a plain fetch
+      # gets past Pages' ten-minute cache. It never fails the run. The run holds
+      # the pages concurrency group while it measures, so the next run waits on
+      # it, and --wait caps that at a minute of polling.
+      - name: Measure delivery
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          UPDATED_AT: ${{ needs.build.outputs.updated_at }}
+        run: >-
+          python3 scripts/build_board.py measure
+          --repo "$GITHUB_REPOSITORY"
+          --run-id "$GITHUB_RUN_ID"
+          --page-url "$PAGE_URL"
+          --updated-at "$UPDATED_AT"
+          --wait 60
