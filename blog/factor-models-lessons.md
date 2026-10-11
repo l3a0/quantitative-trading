@@ -1,6 +1,6 @@
 # Three of Chan’s four factor-model printouts reproduce, and the round-off he blames is a second strategy
 
-*Chan’s 2 and 4 percent come from two methods, not round-off. The factor momentum his strategy assumes held for the market factor and not the momentum factor, on too few months to tell either from noise.*
+*Chan’s 2 and 4 percent come from two methods, not round-off. The factor momentum his strategy assumes held for the market factor and not the momentum factor, and for four of its own five factors, none of them clear of noise.*
 
 ## Why a factor model has to persist to trade
 
@@ -99,7 +99,7 @@ So the gap between 2 and 4 percent is method, an **exploratory** verdict on Chan
 
 [Entry 13 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-13-the-pca-factor-model-chans-quantitative-trading) wrote that round-off criterion after measuring the overlap, and Lesson 5 says what that costs.
 
-## Lesson 3: the momentum the strategy assumes held for the market factor and not for the momentum factor
+## Lesson 3: the momentum the strategy assumes held for the market factor and not the momentum factor, and for four of Example 7.4’s own five factors
 
 Chan’s claim is that factor returns “often” autocorrelate more strongly than single stocks. Before any autocorrelation was computed, this repository fixed a criterion for each factor on its own, as [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-14-the-market-and-momentum-factors-chans-quantitative-trading) records. The claim holds for a factor when its lag-1 autocorrelation is above 0 and above the median stock’s. On the same day, still before any autocorrelation was computed, the repository’s owner ruled that each factor carries its own verdict and that no combined verdict is drawn from the two.
 
@@ -121,7 +121,7 @@ Each verdict is **exploratory** and stands on its own.
 
 The quartiles are by linear interpolation between the two nearest stocks.
 
-**Example 7.4’s own factors.** MKT and WML are named factors, on monthly returns, on the S&P 500 file. The five factors Example 7.4 trades on are statistical, re-estimated every day on the S&P 600 file, so this repository tested them too, again under rules fixed before any factor return was computed and with the owner’s same ruling that each factor stands alone. The revised MATLAB’s five are the ones tested. By Lesson 2 the Python never uses its factors, and the first edition fits each day’s returns on weights chosen from a window that includes that same day, which leaves no fair pair of one day and the next.
+**Example 7.4’s own factors.** MKT and WML are named factors, on monthly returns, on the S&P 500 file. The five factors Example 7.4 trades on are statistical, re-estimated every day on the S&P 600 file, so this repository tested them too, again under rules fixed before any factor return was computed and with the owner’s same ruling that each factor stands alone. The revised MATLAB’s five are the ones tested. By Lesson 2 the Python never uses its factors, and by Lesson 1 the R is read rather than run. The first edition fits each day’s returns on weights chosen from a window that includes that same day, which leaves no fair pair of one day and the next.
 
 Each day’s principal component analysis gives each factor a set of weights across the stocks, and the factor’s return is the weighted sum of that day’s stock returns. The analysis fixes each set of weights only up to its sign, so the next day’s may come out flipped, and a series built from each day’s fresh weights would mix those flips into its autocorrelation. So each day’s weights are applied to that day’s returns and to the next day’s, which makes a pair from one analysis, and a flip changes both members of the pair together. The statistic is an uncentred correlation, the correlation of the 752 pairs without subtracting their means first, which a flip cannot move. A factor return that keeps one sign from day to day counts as persistent, which is what “remain constant” asks. The 579 stocks with a return on every day the pairs read get the same statistic, and the claim holds for a factor when its statistic is above 0 and above the median stock’s.
 
@@ -140,8 +140,8 @@ Each day’s principal component analysis gives each factor a set of weights acr
 The claim that factors “often” autocorrelate more strongly holds for four of the five, and does not hold for PC3, which sits above the median stock but below 0. Each of the five verdicts is **exploratory**, and three things say how little they rest on.
 
 1. **The band.** Over 752 pairs, a series with no persistence lands inside ±0.0715 about 95 percent of the time, the band Lesson 4 explains for the monthly factors. PC2’s 0.0778 is outside it and the other four are inside.
-2. **A test across all five.** A Newey-West t-statistic tests each factor’s average daily product against zero while allowing for days of very different size. Testing five factors at once raises the chance that one looks significant by luck, so the Benjamini-Hochberg procedure, which holds the expected share of false findings among those declared significant to 5 percent, runs across all five. None survives, PC2 included, and no factor’s p-value would pass at 5 percent even alone.
-3. **One symbol decides which factor misses.** Without PMC, the symbol Lesson 6 describes whose two price histories join into one day’s return of 1.8654, PC2 falls to −0.0152 and PC3 rises to 0.0139. The claim would then miss PC2 rather than PC3.
+2. **A test across all five.** Each day’s factor return times the next day’s gives one product per pair. A Newey-West t-statistic tests whether those products average above zero. It divides the average by how far it would wander by chance, widened for neighbouring days that move together and for days of different size. Its one-sided p-value is the chance that luck alone would give a t that large. Testing five factors at once raises the chance that one looks significant by luck, so the Benjamini-Hochberg procedure, which holds the expected share of false findings among those declared significant to 5 percent, runs across all five. None survives, PC2 included, and no factor’s p-value would pass at 5 percent even alone.
+3. **One symbol decides which factor misses.** PMC is the symbol Lesson 6 describes, whose two price histories join into one day’s return of 1.8654. Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139. The claim would then miss PC2 rather than PC3.
 
 Every one of these figures is about survivors, as Lesson 6 says of the whole S&P 600 file. None of them says how much of the revised MATLAB’s 2 percent the factors’ momentum earns.
 
@@ -167,9 +167,9 @@ The two factors’ average returns are just as uncertain, and they decide nothin
 
 ## Lesson 5: fix the rule before the number
 
-The order in which a rule and its number arrive decides what a verdict can claim. The two entries arrived in opposite orders.
+The order in which a rule and its number arrive decides what a verdict can claim. Entries 13 and 14 arrived in opposite orders.
 
-1. **Entry 14 fixed every rule first.** The criterion, the monthly frequency, the one-month skip and the comparison set were written down before any autocorrelation was computed, as [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-14-the-market-and-momentum-factors-chans-quantitative-trading) records, and the owner’s ruling that each factor stands alone came before too. So neither verdict can have been chosen to fit the result. The cost is that a daily autocorrelation was never tried after the monthly one was seen.
+1. **Entry 14 fixed every rule first.** The criterion, the monthly frequency, the one-month skip and the comparison set were written down before any autocorrelation was computed, as [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-14-the-market-and-momentum-factors-chans-quantitative-trading) records, and the owner’s ruling that each factor stands alone came before too. So neither verdict can have been chosen to fit the result. The cost is that a daily autocorrelation of MKT and WML was never tried.
 2. **Entry 13 wrote its round-off criterion after measuring.** The rule that round-off would leave books of the same size identical every day was written down after the 0 of 752 was in hand, and the entry names that cost. A rule written after its number cannot show on its own that it was not fitted to that number.
 
 ## Lesson 6: every figure that touches the stocks is about survivors
@@ -178,7 +178,7 @@ Both stock files hold their index as it stood on the last day each file reaches,
 
 1. **Example 7.4’s books, all of them.** Every printout ranks and trades only the 600 stocks still in the S&P 600 on 2008-01-14.
 2. **WML and the median stock.** The loser leg lacks the losers that fell out of the index, which pushes WML down. The winner leg lacks past winners that later collapsed out of it, which pushes WML up. Which of the two dominates is not measured, so this post does not guess a direction.
-3. **Where the median sits.** The median stock’s autocorrelation is −0.0392, below 0, so on this file a factor above 0 is also above the median stock. That is a fact about this panel of survivors, not about single stocks in general.
+3. **Where the median sits.** On the S&P 500 file the median stock’s monthly autocorrelation is −0.0392, and on the S&P 600 file the median daily statistic is −0.0283. Both are below 0, so on either file a factor above 0 is also above the median stock. That is a fact about these panels of survivors, not about single stocks in general.
 4. **One symbol holds two price histories.** PMC in the S&P 600 file closes, goes missing for 851 days, and resumes as a different price history under the same ticker. The three printouts that run fill the gap with the last price, so when the second history begins on 2007-08-01 the file shows one day’s return of 1.8654. Without PMC, the first edition gives −1.8014, the revised MATLAB 0.0180 at a Sharpe ratio of 0.1869, and the revised Python 0.0408 at 0.5851.
 
 MKT is the exception. It reads SPY, which held the index as it stood each day, so it carries no survivorship.

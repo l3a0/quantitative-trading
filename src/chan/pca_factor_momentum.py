@@ -1,8 +1,8 @@
 """Whether Example 7.4's own factor returns have momentum, on Chan's S&P 600 file.
 
-Example 7.4 earns money only if a factor return seen today says something
-about tomorrow's. Chan states the assumption at Kindle location 4051 of the
-revised edition: the strategy is "based on the assumption that factor returns
+Example 7.4's revised MATLAB rests on a factor return seen today saying
+something about tomorrow's. Chan states the assumption at Kindle location
+4051 of the revised edition: the strategy is "based on the assumption that factor returns
 have momentum". Entry 14 tested the general claim at location 4014 on two
 named factors, monthly, on his S&P 500 file. This module tests the five
 statistical factors Example 7.4 itself fits, daily, on the S&P 600 file the

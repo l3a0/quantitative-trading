@@ -552,13 +552,13 @@ where they were first built. The other thirty-eight were built here.
     0.0778, −0.0189, 0.0305 and 0.0710, against a median of −0.0283 across
     the 579 stocks priced on every day the pairs read. The claim holds for
     PC1, PC2, PC4 and PC5, and does not hold for PC3, which is above the
-    median stock but below 0. PC2 alone is outside the 0.0715 band a series
+    median stock but below 0. PC2 alone is outside the ±0.0715 band a series
     with no persistence stays inside 95 percent of the time, and no factor
     survives Benjamini-Hochberg at q = 0.05, a control for false discoveries
-    across the five, so any verdict could be noise. Without PMC, one symbol whose two price histories
-    join into one day's return, PC2 falls to −0.0152 and PC3 rises to 0.0139,
-    so which factor misses rests on one symbol. Every figure is exploratory
-    and about survivors.
+    across the five, so any verdict could be noise. PMC is one symbol whose
+    two price histories join into one day's return. Without it, PC2 falls to
+    −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
+    symbol. Every figure is exploratory and about survivors.
 
 One more result runs here, and it is not a replication. The same passage names
 bonds of one issuer as a place a stationary spread should live without naming
@@ -2514,9 +2514,9 @@ together. Every result in it is exploratory.
    another program's figures.
 2. Chan's round-off is a second strategy, because the revised Python's
    intercept cancels its factors and leaves single-stock momentum.
-3. The momentum the strategy assumes held for the market factor and not for
-   the momentum factor, each verdict standing on its own. It held for four of
-   Example 7.4's own five factors, none of which survives a test across all
+3. The momentum the strategy assumes held for the market factor and not the
+   momentum factor, and for four of Example 7.4's own five factors. Each
+   verdict stands on its own, none of the five survives a test across all
    five, and which one misses moves when PMC is dropped.
 4. A verdict can follow the declared criterion and still rest on almost
    nothing, because both autocorrelations sit inside the range a series with

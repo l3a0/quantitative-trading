@@ -201,9 +201,7 @@ class TestTheVerdicts:
         assert verdict.above_median, SPEC
         assert verdict.holds, SPEC
 
-    def test_pc3_does_not_hold_above_the_median_stock_but_not_above_zero(
-        self, results: Results
-    ) -> None:
+    def test_pc3_misses_below_zero_though_above_the_median_stock(self, results: Results) -> None:
         verdict = self._verdict(results, "PC3")
         assert not verdict.above_zero, SPEC
         assert verdict.above_median, SPEC

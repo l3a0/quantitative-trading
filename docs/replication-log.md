@@ -8103,11 +8103,11 @@ Sixteen rows, all derivable from
 [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py).
 
 **The claim holds for four of Example 7.4's five factors and does not hold
-for the third.** Example 7.4 earns money only if a factor return seen today
-says something about tomorrow's. Location 4051 says the strategy is "based on
-the assumption that factor returns have momentum", and location 4014 states
-the general claim, that factor returns "often" show stronger serial
-autocorrelation than single stocks do. Entry 14 tested that claim on two
+for the third.** Example 7.4's revised MATLAB rests on a factor return seen
+today saying something about tomorrow's. Location 4051 says the strategy is
+"based on the assumption that factor returns have momentum", and location
+4014 states the general claim, that factor returns "often" show stronger
+serial autocorrelation than single stocks do. Entry 14 tested that claim on two
 named factors, monthly, on Chan's S&P 500 file. This entry tests the five
 statistical factors Example 7.4 fits for itself, daily, on the S&P 600 file
 the example loads. Over 752 pairs of one day's factor return and the next,
@@ -8147,9 +8147,10 @@ and seven of the issue's rules, each as the issue fixed it.
    vector u_k of weights across the stocks and a singular value s_k, which
    measures how much of the window's variation the factor carries. The
    program then fits day t's returns r_t on an intercept and five scores, each
-   u_k times s_k, so each fitted slope is u_k · r_t / s_k. The fitted value
-   the strategy ranks on does not depend on s_k, so the factor return tested
-   here is f_t[k] = u_k · r_t, the slope times s_k. Its partner is
+   u_k times s_k, so each fitted slope is u_k · r_t / s_k. Each score times
+   its slope is u_k (u_k · r_t), so the fitted value the strategy ranks on
+   does not depend on s_k. The factor return tested here is therefore
+   f_t[k] = u_k · r_t, the slope times s_k. Its partner is
    f_{t+1}[k] = u_k · r_{t+1}, on the same vectors and the same stocks, so
    each pair comes from one decomposition.
    `TestOnRealDays::test_each_factor_return_is_s_times_the_programs_slope`
@@ -8194,8 +8195,9 @@ and seven of the issue's rules, each as the issue fixed it.
    standard error allows for neighbouring days being correlated and for days
    of different size. Benjamini-Hochberg at q = 0.05 then runs across the
    five p-values. It holds the expected share of false discoveries among the
-   factors it declares significant to 5 percent, so testing five at once
-   does not raise the chance that one passes by luck.
+   factors it declares significant to 5 percent. When no factor has
+   persistence, that also holds the chance that any of the five passes by
+   luck to 5 percent.
 
 **Every figure here is about survivors.** The file holds the S&P 600 as it
 stood on 2008-01-14, carried backwards. The factors are fitted on stocks that
@@ -8234,7 +8236,7 @@ columns have nothing to hold in any row and are dropped, under
 | --- | --- | --- | --- |
 | 1 | PC1's statistic against 0 and against the median stock's, unrounded | 0.0316, above 0 and above −0.0283 | `TestTheVerdicts::test_pc1_pc2_pc4_and_pc5_hold_above_zero_and_above_the_median_stock`, for PC1 |
 | 2 | PC2's statistic against the same two | 0.0778, above 0 and above −0.0283 | the same test, for PC2 |
-| 3 | PC3's statistic against the same two | −0.0189, below 0 and above −0.0283 | `TestTheVerdicts::test_pc3_does_not_hold_above_the_median_stock_but_not_above_zero` |
+| 3 | PC3's statistic against the same two | −0.0189, below 0 and above −0.0283 | `TestTheVerdicts::test_pc3_misses_below_zero_though_above_the_median_stock` |
 | 4 | PC4's statistic against the same two | 0.0305, above 0 and above −0.0283 | the same test as row 1, for PC4 |
 | 5 | PC5's statistic against the same two | 0.0710, above 0 and above −0.0283 | the same test as row 1, for PC5 |
 | 6 | the pairs, and the stocks priced on every row they read | 752 pairs, day t from 2005-01-18 to 2008-01-11, every factor return finite. 579 stocks | `TestThePairs::test_752_pairs_from_the_first_fitting_day`, `::test_every_factor_return_is_finite` and `::test_579_stocks_are_priced_on_every_row_the_pairs_read` |
@@ -8267,8 +8269,8 @@ columns have nothing to hold in any row and are dropped, under
 | 12 | none, not a replication | The intercept is added to every stock's expected return alike, so it moves no position. Both of its figures are negative and inside row 10's band. |
 | 13 | none, not a replication | Without PMC the comparison set keeps the other 578 stocks, and the median is unchanged at four decimals. PC1 and PC4 rise, PC5 falls, PC2 falls below 0 and PC3 rises above it. |
 | 14 | none, not a replication | Every share stays between 0.5053 and 0.5199. The intercept's uncentred figure moves from −0.0395 to −0.0394, and its ordinary one stays at −0.0401. |
-| 15 | none, not a replication | Without PMC, PC1 and PC4 sit outside the band and PC2 returns inside it. PC4's p-value of 0.0319 would pass at 5 percent tested alone. Benjamini-Hochberg still rejects none, because it holds the smallest of five p-values to a fifth of 0.05. |
-| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so this row moves no verdict. It shows that four factors of five holding survives dropping PMC, and which four does not. |
+| 15 | none, not a replication | Without PMC, PC1 and PC4 sit outside the band and PC2 returns inside it. Benjamini-Hochberg still rejects none, because no p-value clears its own threshold. The k-th smallest is held to k fifths of 0.05, so PC4's 0.0319, the smallest, is held to 0.01. |
+| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so this row moves no verdict. |
 
 ### What the entry concludes
 
@@ -8285,8 +8287,7 @@ Three things, and the first is the verdict.
    stays inside 95 percent of the time. PC2 sits outside it and still has a
    one-sided p-value of 0.2046.
 3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
-   0 and PC3 rises above it, so the criterion would miss PC2 instead. Four
-   factors of five holding survives the drop, and which four does not.
+   0 and PC3 rises above it, so the criterion would miss PC2 instead.
 
 ### What this entry cannot say
 
