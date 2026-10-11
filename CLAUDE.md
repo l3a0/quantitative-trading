@@ -347,8 +347,9 @@ the tilde and table sweeps and would have made this one pass on anything a
 person would actually write.
 
 ```bash
-# Every figure embed resolves to a file that exists
-rg -o '\]\((?:\.\./)?docs/figures/[0-9A-Za-z_]+\.png\)' *.md docs/*.md blog/*.md \
+# Every figure embed resolves to a file that exists. Without --no-filename,
+# rg prefixes each match with its file's name, and [ -f ] tests that instead.
+rg -o --no-filename '\]\((?:\.\./)?docs/figures/[0-9A-Za-z_]+\.png\)' *.md docs/*.md blog/*.md \
   | sed -E 's|\]\((\.\./)?||;s|\)||' \
   | while read -r f; do [ -f "$f" ] || echo "MISSING $f"; done
 
