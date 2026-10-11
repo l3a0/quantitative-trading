@@ -182,6 +182,21 @@ class TestTheCumulativeReturns:
             "B2, the front pair's ratio, each pair held in turn, ending at −34.53 percent",
         ], SPEC
 
+    def test_the_book_end_label_sits_left_of_its_marker(self, axes) -> None:
+        label = _by_gid(axes["returns"].texts)["book-end-label"]
+        assert label.xy[0] == pd.Timestamp("2012-04-23") and label.get_ha() == "right"
+
+    def test_b1_and_b2_differ_by_style_and_b3_is_heaviest(self, axes) -> None:
+        """B1 and B2 share the muted colour, so their line style is what tells them apart."""
+        lines = _by_gid(axes["returns"].lines)
+        assert lines["B1"].get_linestyle() != lines["B2"].get_linestyle()
+        assert lines["B3"].get_linewidth() > max(
+            lines[key].get_linewidth() for key in ("S", "B1", "B2")
+        )
+
+    def test_the_returns_panel_draws_a_zero_line(self, axes) -> None:
+        assert list(_by_gid(axes["returns"].lines)["zero"].get_ydata()) == [0, 0]
+
     def test_the_heading_sets_b3_on_the_books_window_beside_the_book(self, axes) -> None:
         assert _title(axes["returns"]) == (
             "Figure 5.8: each row's cumulative return, 2008-10-27 to 2012-05-07. On the book's "
@@ -228,6 +243,29 @@ class TestTheRowsBeforeOctober2008:
             for gid in ("before", "after")
         }
         assert colors["before"] != colors["after"]
+
+    def test_the_legend_names_each_set_of_bars(self, axes) -> None:
+        handles, labels = axes["before"].get_legend_handles_labels()
+        named = {h.patches[0].get_gid(): label for h, label in zip(handles, labels, strict=True)}
+        assert named == {"before": "before October 2008", "after": "from 2008-10-27"}
+
+    def test_the_apr_axis_reads_a_percentage(self, axes) -> None:
+        assert axes["before"].yaxis.get_major_formatter()(0.2) == "20%"
+
+    def test_each_bar_label_sits_on_its_bar_outside_the_bar(self, axes) -> None:
+        """A label above a rising bar and below a falling one, so neither lands inside."""
+        ax = axes["before"]
+        bars = _rects(ax, "before") + _rects(ax, "after")
+        for bar, label in zip(bars, ax.texts, strict=True):
+            height = bar.get_height()
+            assert label.xy == (bar.get_x() + bar.get_width() / 2, height)
+            above = (True, "bottom") if height >= 0 else (False, "top")
+            assert (label.xyann[1] > 0, label.get_va()) == above
+
+    def test_each_bar_sits_inside_its_slot(self, axes) -> None:
+        for gid in ("before", "after"):
+            for slot, bar in enumerate(_rects(axes["before"], gid)):
+                assert slot - 0.5 <= bar.get_x() and bar.get_x() + bar.get_width() <= slot + 0.5
 
     def test_each_bar_is_labelled_with_its_apr_in_percent(self, axes) -> None:
         labels = [t.get_text() for t in axes["before"].texts]
