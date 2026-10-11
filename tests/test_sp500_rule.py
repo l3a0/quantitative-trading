@@ -227,6 +227,7 @@ class TestTheTrustOfTheYearEarlierMonth:
         assert _reason(rows[0], _month("2010-05"), closes, by_key, chain) is None
         failed = {**by_key, ("2009-06-30", 2): _row("2009-06-30", 2, check="price")}
         assert _reason(rows[0], _month("2010-05"), closes, failed, chain) == "rank"
+        assert _reason(rows[0], _month("2010-05"), closes, failed, chain, rank=False) is None
 
     def test_a_failed_first_schedule_row_misses_its_rank_in_november_2009(self) -> None:
         """November 2009 reads December 2008's return, which the first schedule sets."""
