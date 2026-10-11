@@ -7,7 +7,7 @@ to August 2026, and needs to know which members it can rank there. The mapping
 and the check live in :mod:`chan.fund_panel`, which the S&P 600 panel shares.
 This module binds IVV, the ``sp500`` cross-section and the members file at
 ``research/filings/ivv/members.csv``, and holds the month-by-month coverage
-rule, which only Example 7.7 reads.
+rule, which Example 7.7 and issue 526's holdout read.
 
 ```bash
 QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp500_panel fetch'
@@ -60,6 +60,10 @@ A member that misses carries one reason, tested in this order.
 4. ``rank``, when a year-earlier close is missing or untrusted.
 5. ``next``, when its series holds no close at the next month-end and does
    not end between the two month-ends.
+
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
+holdout, :mod:`chan.low_beta_holdout`, reads the rule with ``rank=False``,
+which drops the year-earlier closes of point 2 and so the ``rank`` reason.
 
 **Why a second committed table.** The report runs in CI, where no archive is,
 and it reads month-ends the check never looked at. The manifest's
@@ -321,12 +325,15 @@ def _reason(
     closes: _Closes,
     by_key: Mapping[Key, MemberRow],
     previous: Mapping[Key, Key],
+    rank: bool = True,
 ) -> str | None:
     """Why a member misses at a month-end, or ``None`` when it is covered.
 
     Both year-earlier closes are trusted on one check, the one at the schedule
     that sets the year-earlier month, which is the later of the two. Issue 373
     trusts them that way, because they are the two ends of that month's return.
+    With ``rank`` false the ``rank`` reason is not asked, for a run that does
+    not rank on the year-earlier month.
     """
     if row.check != "pass":
         return row.check
@@ -334,9 +341,9 @@ def _reason(
     if not closes.has(ticker, month):
         return "stopped" if closes.last(ticker) < closes.day(month) else "close"
     earlier = month - LOOKBACK + 1
-    if not (closes.has(ticker, earlier - 1) and closes.has(ticker, earlier)):
+    if rank and not (closes.has(ticker, earlier - 1) and closes.has(ticker, earlier)):
         return "rank"
-    if earlier >= schedule_months()[0][1]:
+    if rank and earlier >= schedule_months()[0][1]:
         wanted = setter(earlier)
         key: Key | None = row.key
         while key is not None and key[0] > wanted:
@@ -362,10 +369,14 @@ def monthly_coverage(
     calendar: pd.DatetimeIndex,
     *,
     previous: Mapping[Key, Key] | None = None,
+    rank: bool = True,
 ) -> list[MonthCoverage]:
     """Each month-end from :data:`FIRST_MONTH` to :data:`LAST_MONTH`, with its coverage.
 
-    ``previous`` is :func:`coverage_rule`'s.
+    ``previous`` is :func:`coverage_rule`'s. With ``rank`` false a member never
+    misses for the ``rank`` reason, which only Example 7.7 asks.
+    [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) leaves
+    it out, because its beta window decides how much history a member needs.
     """
     by_key = {row.key: row for row in rows}
     previous = previous_rows(FUND) if previous is None else previous
@@ -385,7 +396,7 @@ def monthly_coverage(
         for row in mine:
             if not row.check:
                 raise PanelRefused(f"{row.report_date} row {row.row} has not been checked")
-            reason = _reason(row, month, closes, by_key, previous)
+            reason = _reason(row, month, closes, by_key, previous, rank)
             if reason is None:
                 stops += _stops_inside(closes, row.ticker, month)
                 continue

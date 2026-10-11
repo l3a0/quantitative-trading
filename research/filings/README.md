@@ -246,8 +246,8 @@ members file and holes file, including each month-end's coverage.
 the counts that need the run's own tenth: each year-end's ranked covered
 members and which missing members threaten each tenth.
 
-Three runs read this directory so far, two in `chan.equity_seasonals` and one
-in `chan.pead_rerun`.
+Five runs read this directory so far, three in `chan.equity_seasonals`, one
+in `chan.pead_rerun` and one in `chan.low_beta_holdout`.
 
 1. A replication runs Example 7.6 on the members of `ijr/2025-12-31.csv`,
    which Entry 7's rows 30 to 34 in
@@ -255,5 +255,11 @@ in `chan.pead_rerun`.
 2. A registered experiment runs it on the members of every year-end from 2008
    to 2025 through `ijr/members.csv`, placing missing members by the holdings
    files, which Entry 7's rows 35 to 40 record.
-3. An exploratory rerun of Example 7.2 reads `earnings/` for its universes and
+3. A registered experiment runs Example 7.7 on IVV's members at every
+   month-end from 2008-12 to 2026-08 through `ivv/members.csv` and
+   `ivv/holes.csv`, which Entry 7's rows 41 to 49 record.
+4. An exploratory rerun of Example 7.2 reads `earnings/` for its universes and
    its calendars, which Entry 46 records.
+5. A registered holdout runs Chan's levered low-beta rule on IVV's members,
+   formed at every month-end from 2008-12 to 2026-07, through
+   `ivv/members.csv` and `ivv/holes.csv`, which Entry 49 records.

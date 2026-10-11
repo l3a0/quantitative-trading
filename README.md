@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-five replications run here, seventeen from Chan's *Quantitative Trading*
+Forty-six replications run here, eighteen from Chan's *Quantitative Trading*
 and twenty-eight from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other forty-three were built here.
+where they were first built. The other forty-four were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -672,6 +672,29 @@ where they were first built. The other forty-three were built here.
     two that read VIX on the trade's own date look ahead. Buy on gap's
     figures are the same under any alignment that reads the previous day.
     Every figure is exploratory.
+46. Item 44's rule after the book, on the S&P 500 as IVV held it at each
+    month-end from 2008, with SPY's Alpha Vantage closes as the market. It is
+    not decided: "No gap in compounded growth detectable above about 0.2948 a
+    year over 208 months, where the point estimate is -0.0590." Levered to the
+    high fifth's beta, the low fifth trailed the unlevered high fifth at a
+    Newey-West t of −0.4974, and no month was ruined. Four formations, the
+    first 2026-04-30, are skipped, because the low fifth's mean beta there was
+    zero or below and no leverage matches it. Location 4700's caveat, "one
+    should be quite wary of using too much leverage on normally low-beta
+    stocks", stands beside it, and the worst levered month lost 0.8014 of the
+    capital. The result is registered on
+    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526),
+    under [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)'s ruin amendment and
+    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s skip amendment, both of
+    2026-10-11, and the skip rule was ruled after the first skipped formation
+    was visible. Every holding month comes after the book. Membership is the
+    members the monthly coverage rule keeps, which leaves out 6,943 of
+    107,115 member-months. 6,816 of those fail the row check against the
+    filing, and 4,614 of the 6,816 carry a ticker absent from the 2026-06-30
+    schedule, which marks a company that left the index or changed its
+    ticker. Each quarter-end schedule is carried forward, so a change between
+    schedules is dated up to two months late, or five around the missing
+    2013-09-30 schedule.
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1298,7 +1321,16 @@ It also holds the refusal of a ceiling at or below 1, which borrows nothing,
 and the bisection's limit on halvings, which ends the search where the floats
 lie too far apart for its tolerance.
 
-All forty-five replications reach a verdict in
+[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py) does it for
+the same claim on IVV's S&P 500 from 2008. It pins the verdict, the four
+skipped formations, the side figures, the counts, the flagged stock-months
+and the vintage, and those pins skip unless the archive is configured and
+`QT_ARCHIVE_RUN=1`. On frames built by hand it holds membership at t, the
+holding month of a stock that stops, and the skip of a formation with no
+positive low-group beta. On the committed members file it holds the survivor
+gap and how the exclusions that read t + 1 split.
+
+All forty-six replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1322,8 +1354,9 @@ trade's, Entry 40 the opening gap strategy's on FSTX, Entry 41 the
 roll-return rule's on VX against ES, Entry 42 Example 7.4's own factors',
 Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
-Entry 45 the levered low-beta claim's, and Entry 47 the VIX filter's on buy on
-gap and on FSTX.
+Entry 45 the levered low-beta claim's, Entry 47 the VIX filter's on buy on
+gap and on FSTX, and Entry 49 the levered low-beta claim's on IVV's S&P 500
+after the book.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict. Entry 48 carries the
 levered low-beta rule at leverage a broker would lend, which is exploratory
@@ -2284,6 +2317,20 @@ p-values and the detectable gap Y. Beside them it prints the growth, the mean le
 months each ceiling binds, the realised beta, the break-even spread and the
 worst month, none of which decides anything, then location 4700's caveat and
 the five limits. Every line is exploratory.
+
+The levered low-beta claim's run on IVV's S&P 500 takes no option
+either, because
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526)
+registered the panel's changes before it ran:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout
+```
+
+It prints the same report, plus every skipped formation with both groups'
+mean betas, the members, covered members and eligible stocks at each
+formation, and the survivor gap. It reads the archive, so it refuses where
+none is configured.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -6293,12 +6340,17 @@ uv run pytest
 serial run, which is the faster choice for a few tests, because every worker
 starts whatever the selection. `--pdb` runs serially on its own.
 
-A Claude Code session here also runs the archive pins, the 16 of Example 7.1
-and the 17 of the Example 7.2 rerun, because `.claude/settings.json` sets
-`QT_ARCHIVE_RUN=1`. They run only where the owner's archive is configured.
+A Claude Code session here also runs the archive pins, the 16 of Example
+7.1, the 17 of the Example 7.2 rerun and the 25 of
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
+holdout in `tests/test_low_beta_holdout.py`, because `.claude/settings.json`
+sets `QT_ARCHIVE_RUN=1`. They run only where the owner's archive is configured.
 Each test file that reads Example 7.1's run builds it in about six minutes,
-and the rerun's pins take under a minute. `QT_ARCHIVE_RUN=0` skips them for
-one run.
+and the rerun's pins take under a minute. The holdout's pins read 817 member
+series' adjusted closes and volumes plus SPY's line. Its test file took 284
+seconds serially with the pins and 149 seconds without them, measured once on
+one machine at `6da2c3e9`, and no test holds either time. `QT_ARCHIVE_RUN=0`
+skips them for one run.
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.

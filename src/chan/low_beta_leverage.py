@@ -110,9 +110,10 @@ only the case those rules left undefined. Registration rules out a
 specification tuned on this panel by this repo. It does not make 2000 to 2007
 a holdout: Chan wrote the claim in 2008 from "empirical studies", and the
 low-beta literature's own samples cover the span.
-[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs the
-same specification and amendment on IVV's S&P 500 from 2008 to 2026, which is
-a holdout, and
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
+issue 275's registered specification on IVV's S&P 500 from 2008 to 2026, with
+the changes that panel forces and under both amendments of 2026-10-11, the
+ruin amendment and its own skip amendment. That run is a holdout, and
 [issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
 rule on this file at leverage a broker would lend, as an exploratory run,
 because the ruin had been seen.
@@ -215,7 +216,7 @@ class UnreadableStandardError(Exception):
 
 @dataclass(frozen=True)
 class Portfolios:
-    """The 83 holding months of the three portfolios, and what each formation held.
+    """The holding months of the three portfolios, 83 on Chan's file, and what each formation held.
 
     Every tuple runs in formation order, and every series is indexed by
     ``held_to``, month-end t + 1. ``rf`` is that holding month's TB3MS over 12.
@@ -243,6 +244,19 @@ class Portfolios:
     high_members: tuple[tuple[str, ...], ...]
     #: Each eligible stock's beta at each formation, NaN where it has none.
     betas: pd.DataFrame
+    #: Formations left out under ``skip_non_positive``, in none of the per-formation
+    #: fields above. ``month_ends`` still lists every month-end.
+    skipped: tuple[Skipped, ...] = ()
+
+
+@dataclass(frozen=True)
+class Skipped:
+    """A formation whose low group's mean beta is zero or below, so no leverage matches it."""
+
+    formed: pd.Timestamp
+    held_to: pd.Timestamp
+    low_beta: float
+    high_beta: float
 
 
 @dataclass(frozen=True)
@@ -428,11 +442,35 @@ def flagged_days(closes: pd.DataFrame) -> dict[str, list[pd.Timestamp]]:
     return flags
 
 
-def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, float]) -> Portfolios:
+def build_portfolios(
+    closes: pd.DataFrame,
+    spy: pd.Series,
+    bills: dict[str, float],
+    *,
+    members: pd.DataFrame | None = None,
+    skip_non_positive: bool = False,
+) -> Portfolios:
     """The low, high and levered portfolios over the window, from the panel, SPY and the bills.
 
     ``bills`` maps ``YYYY-MM`` to that month's average three-month rate as a
     decimal a year, which is what :func:`chan.bill_rates.monthly_rates` returns.
+
+    ``members`` is for a panel whose stocks come and go, which
+    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs.
+    It is a boolean frame indexed by month-end days, one column per stock, and
+    a stock is eligible at a formation only where its row there is true. Its
+    index replaces :func:`chan.series.row_month_ends` as the month-ends, so the
+    last holding month can end on the frame's last row, and a day the cut
+    calendar lacks is refused. The close at t + 1 is still asked for, so a
+    caller wanting a stopped stock to earn its return to its last close
+    carries that close to the next month-end first, as
+    :func:`chan.equity_seasonals.stopped_closes` does. Left out, every stock is
+    a candidate at every month-end, as on Chan's file.
+
+    ``skip_non_positive`` is issue 526's amendment of 2026-10-11. A formation
+    whose low group's mean beta is not positive then leaves its holding month
+    out of every series and is listed in ``skipped``, rather than refusing the
+    run as :class:`NonPositiveBeta`.
     """
     cut = closes.loc[closes.index.isin(spy.index)]
     market = spy.loc[cut.index]
@@ -445,13 +483,26 @@ def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, floa
     market_excess = daily_excess(market.to_frame(), bills).to_numpy()[:, 0]
     at = cut.to_numpy()
     rows = row_month_ends(cut.index)
-    ends = cut.index[rows]
     symbols = np.array(cut.columns)
+    allowed = np.ones((len(rows), len(symbols)), dtype=bool)
+    if members is not None:
+        outside = members.index.difference(cut.index)
+        if len(outside):
+            raise VintageUnavailable(
+                f"{len(outside)} month-ends in the members frame are not on the panel's "
+                f"calendar, the first {outside[0].date()}"
+            )
+        if not members.index.is_monotonic_increasing or not members.index.is_unique:
+            raise ValueError("the members frame's month-ends are not in increasing date order")
+        rows = cut.index.get_indexer(members.index)
+        allowed = members.reindex(columns=cut.columns, fill_value=False).to_numpy(dtype=bool)
+    ends = cut.index[rows]
 
     formed, held_to, starts = [], [], []
     low, high, levered, rf, spy_month = [], [], [], [], []
     low_beta, high_beta, leverage, eligible = [], [], [], []
     low_members, high_members, beta_rows = [], [], []
+    skipped = []
     for t in range(len(ends) - 1):
         row, next_row = rows[t], rows[t + 1]
         if row < BETA_DAYS:
@@ -459,7 +510,9 @@ def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, floa
         window = slice(row - BETA_DAYS + 1, row + 1)
         y = stock_excess[window]
         x = market_excess[window]
-        beta = np.array([fit_beta(y[:, j], x) for j in range(len(symbols))])
+        beta = np.array(
+            [fit_beta(y[:, j], x) if allowed[t, j] else math.nan for j in range(len(symbols))]
+        )
         ok = np.isfinite(beta) & np.isfinite(at[row]) & np.isfinite(at[next_row])
         count = int(ok.sum())
         size = count // GROUPS
@@ -474,6 +527,9 @@ def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, floa
         lows, highs = order[:size], order[-size:]
         mean_low = float(beta[lows].mean())
         mean_high = float(beta[highs].mean())
+        if not mean_low > 0 and skip_non_positive:
+            skipped.append(Skipped(ends[t], ends[t + 1], mean_low, mean_high))
+            continue
         if not mean_low > 0:
             raise NonPositiveBeta(
                 f"the low group formed {ends[t].date()} has a mean beta of {mean_low:.4f}, so "
@@ -518,6 +574,7 @@ def build_portfolios(closes: pd.DataFrame, spy: pd.Series, bills: dict[str, floa
         low_members=tuple(low_members),
         high_members=tuple(high_members),
         betas=pd.DataFrame(np.vstack(beta_rows), index=pd.DatetimeIndex(formed), columns=symbols),
+        skipped=tuple(skipped),
     )
 
 

@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45, 47 and 48 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45, 47, 48 and 49 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen and seven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven and eleven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5, 44, 46 and 48 are the four entries that are not replications. Chan
@@ -37,16 +37,19 @@ sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 and 48 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48 and 49 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
-and nothing about whether the trade works today. Entry 7's rows 35 to 49 and
-Entry 45's row 1 are the exceptions, and they are **registered**. Entry 7's
-claim, test and verdict wording were written before any return was computed.
-Entry 45's plan and criterion were written before any number was computed, and
-the wording of its ruin outcome after the leverage path and the two ruined
-months had been seen, which that entry states. Entries 2 and 9 spend no
+and nothing about whether the trade works today. Entry 7's rows 35 to 49,
+Entry 45's row 1 and Entry 49's row 1 are the exceptions, and they are
+**registered**. Entry 7's claim, test and verdict wording were written before
+any return was computed. Entry 45's plan and criterion were written before any
+number was computed, and the wording of its ruin outcome after the leverage
+path and the two ruined months had been seen, which that entry states. Entry
+49 runs the same plan on IVV's S&P 500 from 2008, and its rule for a formation
+with no positive low-group beta was written after the first such formation
+had been seen, which that entry states too. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
 states rather than picking one. Entry 20 works arithmetic on inputs the book
 states and is outside both for the same reason, which its first conclusion
@@ -360,6 +363,13 @@ says.
   - [The verdicts](#the-verdicts-44)
   - [What the entry concludes](#what-the-entry-concludes-47)
   - [What this entry cannot say](#what-this-entry-cannot-say-45)
+- [Entry 49: the levered low-beta rule after the book, on IVV's S&P 500](#entry-49-the-levered-low-beta-rule-after-the-book-on-ivvs-sp-500)
+  - [What the book stated](#what-the-book-stated-6)
+  - [What this repo computed](#what-this-repo-computed-48)
+  - [The verdicts](#the-verdicts-45)
+  - [The skipped formations](#the-skipped-formations)
+  - [What the entry concludes](#what-the-entry-concludes-48)
+  - [What this entry cannot say](#what-this-entry-cannot-say-46)
 
 ## How to read an entry
 
@@ -443,11 +453,13 @@ both.
    holds Entry 44,
    [tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py)
    holds Entry 45, [tests/test_pead_rerun.py](../tests/test_pead_rerun.py)
-   holds Entry 46, whose archive pins run only where the owner's data archive
-   is and `QT_ARCHIVE_RUN=1` asks for them,
-   [tests/test_vix_filter.py](../tests/test_vix_filter.py) holds Entry 47, and
+   holds Entry 46,
+   [tests/test_vix_filter.py](../tests/test_vix_filter.py) holds Entry 47,
    [tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py) holds
-   Entry 48.
+   Entry 48, and
+   [tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py) holds
+   Entry 49. The archive pins of Entries 46 and 49 run only where the owner's
+   data archive is and `QT_ARCHIVE_RUN=1` asks for them.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
    nowhere. Chan's 1.6766 is a target the replication chases, and the design
@@ -567,7 +579,8 @@ Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9 and 12 to 16, Entry 41's row 11,
 Entry 42's rows 6 to 16, Entry 43's rows 13 to 17,
-Entry 45's rows 2 to 9, Entry 47's rows 13 to 18, and Entry 48's rows 1 to 7.
+Entry 45's rows 2 to 9, Entry 47's rows 13 to 18, Entry 48's rows 1 to 7,
+and Entry 49's rows 2 to 11.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -841,6 +854,15 @@ signs, and the rounding rule is the one every entry uses, so there was no
 reading or threshold left to choose. The momentum reading misses the return by
 5.2 percentage points and the Sharpe ratio by 0.32, so the verdict does not
 rest on where a line sits.
+
+Entry 49's row 1 takes it for Entry 45's reason, on IVV's S&P 500 from 2008.
+It inherits Entry 45's criterion and amendment, and the changes the panel forces were
+written on [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)
+before any number on that panel was computed. The plan refuses a formation
+whose low group's mean beta is not positive and gave that case no verdict.
+The owner's second amendment of 2026-10-11 skips such a formation, and it
+was written after the first one, 2026-04-30, was visible, which Entry 49
+states beside its label.
 
 Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
 claims and carry no verdict. Location 1726 says the filter's slope
@@ -9833,11 +9855,15 @@ hypothesis rather than a finding.
 
 **Whether the claim holds after the book.** The point-in-time S&P 500 that
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built,
-IVV's members at each month-end from 2008-12 to 2026-08, is a holdout with no
-survivor gap. The plan chose it before any number here was computed, and
-[issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs this
-exact specification and the amendment on it. Its closes sit only in the
-owner's archive, so no pin from it can run in CI.
+IVV's members at each month-end from 2008-12 to 2026-08, is a holdout with a
+smaller survivor gap than this file's. The plan chose it before any number
+here was computed, and
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
+this entry's registered specification on it, with the changes that panel
+forces and under both amendments of 2026-10-11, this entry's and its own.
+Entry 49 carries that result.
+Its closes sit only in the owner's archive, so its figure pins run only where
+the archive is.
 
 **What the model's half of the argument says.** Location 4684's equal average
 returns need market capitalisation and book value at each date, which
@@ -10600,6 +10626,195 @@ Five things, the plan's five limits.
 5. **Whether a margin call came inside a month.** Under Regulation T's 25
    percent maintenance margin, a position levered 2 gets a call after a fall of
    a third within the month, and month-end closes cannot see that.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
+
+## Entry 49: the levered low-beta rule after the book, on IVV's S&P 500
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle locations 4684, 4700
+and 4709, the claim Entry 45 tests on Chan's own file. Shipped under
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526). Entry 45
+cannot say whether the rule held after the book, because Chan's file holds
+only the stocks still in the index in 2007 and its span sits inside the
+samples the low-beta literature used. This entry runs Entry 45's registered
+specification, with the changes the panel forces, on IVV's members at each
+month-end from 2008-12, every holding month after Chan published.
+
+Eleven rows, all derivable from
+[tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py), whose
+pins run only where the owner's data archive is and `QT_ARCHIVE_RUN=1` asks
+for them. Row 11, all but its 6,943, and the calendar's span in row 9 also
+hold on committed files alone, and those tests run everywhere.
+
+**Not decided.** "No gap in compounded growth detectable above about 0.2948 a
+year over 208 months, where the point estimate is -0.0590." That sentence is
+the criterion's fixed wording. Levered to the high fifth's beta, the low
+fifth compounded 0.0590 a year more slowly than the unlevered high fifth, at
+a Newey-West t of −0.4974, and a gap that size is well inside what the test
+cannot tell from zero. Four formations, the first 2026-04-30, are skipped
+under the second amendment named below, because the low fifth's mean beta
+there was zero or below. No month is ruined. Location 4700's caveat stands
+beside the result: "one should be quite wary of using too much leverage on
+normally low-beta stocks", because returns have fat tails. The worst levered
+month, December 2024, lost 0.8014 of the capital.
+
+One row is a claim and ten are not replications. Row 1 takes the claim route
+`### Rows that are not replications` describes. Rows 2 to 11 are the figures
+the issue reports beside the verdict, which decide nothing.
+
+Everything [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)
+registered carries over, and Entry 45 states its five rules.
+[Issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
+section "What the panel forces", written on 2026-10-11 before any number on
+this panel, lists the changes this panel makes necessary. Four of them carry
+the result, so they are stated here.
+
+1. **The vintages.** The members, `research/filings/ivv/members.csv` and its
+   holes file, read from IVV's 70 quarter-end schedules from 2008-12-31 to
+   2026-06-30. The members' closes, the 817 `sp500` Alpha Vantage lines the
+   members file maps to, adjusted and downloaded 2026-10-05. The market, SPY's
+   `sp500` Alpha Vantage line, adjusted and downloaded 2026-10-11 for this run.
+   The calendar, the committed raw SPY vintage downloaded 2026-10-03. FRED's
+   TB3MS, downloaded 2026-09-30. [data/README.md](../data/README.md) says what
+   each holds.
+2. **Membership at t.** A stock is a candidate when it is a member of the
+   schedule that sets month t and that member-month passes the panel's
+   monthly coverage rule, with Example 7.7's year-earlier reason left out.
+   Membership at t + 1 is not asked for.
+3. **The holding month.** Each series stops at its last row that traded and
+   moved. A stock that stops inside the holding month earns its return to its
+   last close and holds cash after it. One whose last row is t, or that has no
+   close at t, or a hole at t + 1, is not eligible at t. The first and the
+   last of those exclusions still read t + 1, which is not known at t. At the
+   208 formations kept they leave out 12 member-months whose last row is t and
+   4 with a hole at t + 1, beside the 97,667 covered there.
+4. **The span.** Formations run from 2008-12-31 to 2026-07-31, 212 of them,
+   because the committed TB3MS ends at 2026-08. A day in the run with no SPY
+   close would have stopped it, and none lacks one.
+
+**Every figure is about the members the monthly rule keeps.** The panel has
+a smaller survivor gap than Chan's file, not none. On the series the run
+reads, each cut at its last row that traded, the monthly rule leaves out
+6,943 of the 107,115 member-months. 6,816 of those fail the row check
+against the filing, and 4,614 of the 6,816 carry a ticker absent from the
+2026-06-30 schedule. Of the 2,187 member rows that fail the row check, only
+697 carry a ticker still in that schedule. So the gap leans toward
+companies that left the index, though a ticker absent from the last schedule
+also marks a company that only changed its ticker. Membership is each
+quarter-end schedule carried forward, so a change between schedules is dated
+up to two months late, or five around the missing 2013-09-30 schedule.
+
+Row 1 is **registered**, under two amendments, both of 2026-10-11. The first
+is [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)'s, which reads a levered month losing more than its capital as
+the claim contradicted, and which this run inherits as part of the
+specification. No month here triggers it. The second is
+[issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s. The
+plan says a low group whose mean beta is not positive refuses rather than
+levers, and it says nothing of the verdict. The one run of the registered
+specification refused at the 2026-04-30 formation, where that mean was
+−0.0037, before anything the criterion reads had been computed. The owner
+then ruled that such a formation is skipped, its holding month leaving every
+series, so the criterion, the ruin rule and every side figure read the same
+remaining months and N counts them. The amendment lists what had been seen.
+So the skip rule was chosen after one such formation was visible, and N is
+208 rather than 212. Every holding month comes after the book, so unlike
+Entry 45 this is a holdout for the claim. Rows 2 to 11 are **exploratory**.
+The plan declared them, and each is a point estimate that nothing tests.
+
+### What the book stated
+
+The book prints no number for this claim, so the published-figure and gap
+columns have nothing to hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | a highly leveraged low-beta portfolio out-compounds an unleveraged high-beta one | the rule, with no figure | location 4709, the leverage matched to beta at location 4684 |
+| 2 | a low-beta portfolio has a higher Sharpe ratio | the premise, from "empirical studies", with no figure | location 4684 |
+| 3 to 11 | the realised growth, the leverage path, the realised betas, the Kelly reading, the counts, the flagged stock-months, the calendar, the skipped formations and the survivor gap | nothing, the book works no example | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | the claim: any levered month at −1 or below, else the Newey-West t of d against 1.645, over the months the skip leaves | no ruined month. Over 208 months, 12 times the mean of d is −0.0590, the Newey-West t is −0.4974 at lag 4, and the detectable gap Y is 0.2948. The worst levered month, December 2024, returned −0.8014, at a k of 12.3588 on the low fifth's −0.0616 | `TestTheVerdict::test_the_claim_is_not_decided`, `::test_the_gap_its_newey_west_t_and_y`, `::test_the_wording`, `::test_no_month_is_ruined` and `::test_the_worst_month_levered_the_low_fifth_by_12_3588` |
+| 2 | each portfolio's Sharpe ratio on its monthly return over the bill, times √12 | levered low 0.5223, low 0.8607, high 0.6770 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` |
+| 3 | realised compounded growth, 12 times the mean monthly log return | levered low 0.1023, low 0.1069, high 0.1613, SPY 0.1378 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` and `::test_spys_growth` |
+| 4 | k over the 208 formations kept, and the low group's mean beta | k mean 3.8247, from 1.8988, formed 2015-12-31, to 27.9727, formed 2025-03-31. Low group 0.0563 to 0.7317 | `TestTheSideFigures::test_the_leverage_path` and `::test_the_low_groups_mean_beta_over_the_formations_kept` |
+| 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's | levered low 1.8316, low 0.5580, high 1.6461, SPY 1 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` |
+| 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 7.3632, Gaussian growth 0.0136 + 0.3704 = 0.3840, against the high portfolio's realised 0.1613 | `TestTheSideFigures::test_the_kelly_reading_labelled_look_ahead` |
+| 7 | member-months, covered members and eligible stocks over the 208 formations, and each portfolio's size. The run prints every formation's row | 104,600 member-months, 97,667 covered, 97,302 eligible with a beta. 389 to 501 eligible per formation, each portfolio 77 to 100, 19,377 stock-months each. The two exclusions that read t + 1 leave out 12 member-months whose last row is t and 4 with a hole at t + 1 | `TestTheSideFigures::test_the_counts` and `::test_the_exclusions_that_read_t_plus_1` |
+| 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 34 low and 321 high. The closes the run reads flag 820 days in 98 stocks | `TestTheScaleBreakDecision::test_34_low_and_321_high_stock_months_carry_a_flag` and `::test_820_flagged_days_in_98_stocks` |
+| 9 | the calendar | 4,695 days from 2008-01-02 to 2026-08-31, the first formation 252 rows in. 212 formations from 2008-12-31 to 2026-07-31. 121 series stop before their file's last row, and no close falls off the calendar | `TestTheRunsHelpers::test_the_frame_starts_252_rows_before_2008_12_31_and_ends_2026_08_31`, `TestTheWindow::test_212_formations_of_which_4_are_skipped_leave_208_months`, `::test_formed_2008_12_31_to_2026_03_31_held_to_2009_01_30_to_2026_04_30` and `TestTheVintages::test_121_series_stop_before_their_files_last_row_and_none_is_off_the_calendar` |
+| 10 | the formations the second amendment skips, with each group's mean beta | four, the last four: formed 2026-04-30, low −0.0037 and high 1.8278. Formed 2026-05-29, low −0.0652 and high 1.8696. Formed 2026-06-30, low −0.1429 and high 1.9202. Formed 2026-07-31, low −0.2083 and high 1.9536 | `TestTheWindow::test_the_four_skipped_formations_are_the_last_four` |
+| 11 | the survivor gap, on the committed members file and on the series the run cuts | 6,816 of 107,115 member-months fail the row check against the filing, and 4,614 of them carry a ticker absent from the 2026-06-30 schedule. 697 of the 2,187 failing member rows carry a ticker in that schedule. The monthly rule leaves out 6,927 member-months on the manifest's spans and 6,943 on the series the run cuts | `TestTheCoverageWithoutRank::test_the_survivor_label_counts` and `TestTheSideFigures::test_the_survivor_label` |
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | did not reproduce | Not decided, which the plan maps to this value: "No gap in compounded growth detectable above about 0.2948 a year over 208 months, where the point estimate is -0.0590." The point estimate favours the unlevered high fifth, and 0.2948 a year is the gap this test finds four times in five. Four formations, the first 2026-04-30, are skipped under [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s amendment of 2026-10-11, which was ruled after the first was visible. Membership is the members the monthly rule keeps, which leans toward companies still in the index. |
+| 2 | none, not a replication | The low fifth's Sharpe ratio is 0.8607 and the high fifth's 0.6770. Nothing tests the difference, so it neither confirms nor refutes location 4684's premise, and it decides nothing because the claim is about growth. |
+| 3 | none, not a replication | Unlevered, the high fifth compounded at 0.1613 a year, the low fifth at 0.1069 and SPY at 0.1378. Levered, the low fifth reached 0.1023, below its own unlevered growth. Nothing tests any of these gaps. |
+| 4 | none, not a replication | Over the formations kept, the low fifth's mean beta at formation bottomed at 0.0563 and k peaked at 27.9727, both at the formation of 2025-03-31, against Entry 45's 69.0762. |
+| 5 | none, not a replication | The levered low's realised beta of 1.8316 is above the high fifth's 1.6461, so after the fact the match overshot the beta it aimed at, as on Chan's file. The low fifth's 0.5580 sits inside the range its formations gave. SPY's is 1 by construction. |
+| 6 | none, not a replication | Look-ahead. The Kelly leverage can only be known from the whole sample, and the 0.3840 is the Gaussian growth r + S²/2, a formula on the sample's moments that no portfolio realised. The reading is reported because location 4709 means it, and it decides nothing. |
+| 7 | none, not a replication | Every formation kept fills both fifths, so the refusal for an empty portfolio never fires. |
+| 8 | none, not a replication | No window is refused, as `tests/test_scale_breaks.py` records for this panel. The high fifth holds 321 flagged stock-months and the low fifth 34. |
+| 9 | none, not a replication | The first formation is the one the registration named, and the 212 formations are the count the audit took from the calendar before the run. |
+| 10 | none, not a replication | The low fifth's mean beta fell through zero in the run's last four formations and kept falling, so the skips end the comparison in April 2026 rather than August. |
+| 11 | none, not a replication | The row check against the filing fails mostly on tickers absent from the last schedule, 4,614 of 6,816 member-months, which marks a company that left the index or changed its ticker. Which fifth that flatters is not measured here. |
+
+### The skipped formations
+
+The registered plan refuses a formation whose low fifth has a mean beta of
+zero or below, because no leverage brings a beta of zero or less to the high
+fifth's. The four that do are the last four the span allows, 2026-04-30 to
+2026-07-31, each lower than the one before. Over each one's 252 days, the
+lowest fifth's stocks moved, on average, against the market. Skipping them
+leaves 208 holding months, from January 2009 to April 2026.
+
+### What the entry concludes
+
+Two things, and the first is the verdict.
+
+1. **After the book, the rule is not decided on IVV's S&P 500.** Levered to
+   the high fifth's beta, the low fifth's compounded growth trailed the
+   unlevered high fifth's by 0.0590 a year, at a Newey-West t of −0.4974. The
+   test finds a gap of 0.2948 a year four times in five, so the run says
+   little either way. That is Not decided, and it maps to
+   `did not reproduce`.
+2. **The beta match did not ruin the portfolio here, and it came closest in
+   December 2024.** Over the formations kept, the low fifth's mean beta at
+   formation bottomed at 0.0563 and k peaked at 27.9727, against Entry 45's
+   69.0762. The worst levered month lost 0.8014 of the capital. In the
+   last four formations the match had no leverage to offer at all. The low
+   fifth's Sharpe ratio of 0.8607 against the high fifth's 0.6770 is an
+   untested point estimate that decides nothing.
+
+### What this entry cannot say
+
+Four things.
+
+**Whether a smaller gap exists.** This test finds a gap below 0.2948 a year
+less than four times in five, and the point estimate of −0.0590 sits well
+inside that. The panel holds no months beyond these.
+
+**What survivorship does to either side.** 6,816 member-months fail the row
+check against the filing, and 4,614 of them carry a ticker absent from the
+2026-06-30 schedule, which marks a company that left the index or changed
+its ticker. Which fifth they would have joined is not measured here.
+
+**Whether fat tails are the cause of the worst month.** In December 2024 a k
+of 12.3588 turned the low fifth's return of −0.0616 into a levered loss of
+0.8014 of the capital. Location 4700's caveat
+names the risk, and how near the run came to ruin depends on that month alone.
+
+**What the model's half of the argument says.** Location 4684's equal average
+returns need market capitalisation and book value at each date, which
+[issue 273](https://github.com/l3a0/quantitative-trading/issues/273) carries.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

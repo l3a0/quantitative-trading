@@ -52,6 +52,10 @@ ROWS = read_members(sp500_panel.MEMBERS_PATH)
 BY_KEY = {row.key: row for row in ROWS}
 COVERAGE = {month.month: month for month in sp500_panel.coverage_from_committed(ROWS)}
 
+#: Lines a later issue recorded into the ``sp500`` cross-section, which this
+#: panel neither fetched nor reads: SPY, issue 526's market series.
+LATER_LINES = frozenset({"SPY"})
+
 
 def _name(report_date: str, row: int) -> str:
     return dict(numbered_members(IVV, report_date))[row].name
@@ -439,13 +443,20 @@ class TestTheHolesFile:
 
 
 class TestTheManifestLines:
-    """The sp500 lines this panel recorded."""
+    """The sp500 lines this panel recorded.
+
+    Issue 526 recorded SPY into the same cross-section on 2026-10-11 as its
+    market series, so that line is left out here and
+    ``tests/test_low_beta_holdout.py`` pins it.
+    """
 
     def _lines(self) -> list[bytes]:
         return [
             line
             for line in archive._manifest_path(None).read_bytes().split(b"\n")
-            if line.strip() and json.loads(line).get("cross_section") == "sp500"
+            if line.strip()
+            and json.loads(line).get("cross_section") == "sp500"
+            and json.loads(line)["symbol"] not in LATER_LINES
         ]
 
     def test_this_panel_recorded_822_lines_on_one_download_date(self) -> None:
