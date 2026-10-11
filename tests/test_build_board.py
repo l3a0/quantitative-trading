@@ -917,6 +917,38 @@ def test_a_board_where_nothing_waits_says_no_depth(tmp_path: Path) -> None:
     assert "No card here is waiting on another" in note
 
 
+@pytest.mark.parametrize("show_all", [False, True], ids=["short view", "full view"])
+def test_a_board_where_nothing_waits_points_at_no_card(tmp_path: Path, show_all: bool) -> None:
+    """Protects the two pointers from naming every card when nothing frees anything.
+
+    With every ``needs`` empty, each card frees no other, so the cards tied at
+    the top are all of them. The note used to say no card was waiting and then
+    point at fixture issue 90501 in flight, and in the short view at 90503,
+    90504 and 90505 as hidden, as though each one freed the most. Neither
+    pointer names a card here, and the freeing clause still speaks.
+    """
+    docs = _with_needs(fixture_docs(), {n: [] for n in (90501, 90502, 90503, 90504, 90505)})
+    page = _show_all_page(tmp_path) if show_all else PAGE
+    note = text(draw(tmp_path, docs, page=page), "boardnote")
+    assert "No card here is waiting on another" in note
+    assert "rather than in a column here" not in note
+    assert "hidden in this view" not in note
+
+
+@pytest.mark.parametrize("show_all", [False, True], ids=["short view", "full view"])
+def test_the_card_freeing_the_most_is_pointed_at_in_flight(tmp_path: Path, show_all: bool) -> None:
+    """Protects the in-flight pointer on a board where something waits.
+
+    In the fixture as shipped, issue 90501 has an open branch and frees 90502,
+    90503 and 90505, so it frees the most while the In flight section draws
+    it. The note names it and says where it is, in either view.
+    """
+    page = _show_all_page(tmp_path) if show_all else PAGE
+    note = text(draw(tmp_path, fixture_docs(), page=page), "boardnote")
+    assert "#90501 is the single card whose landing frees the most" in note
+    assert "#90501 is in the In flight section above rather than in a column here." in note
+
+
 def test_a_shallow_graph_says_when_it_counts_hidden_cards(tmp_path: Path) -> None:
     """Protects the shallow branch's qualifier, which the deep branch already had.
 
