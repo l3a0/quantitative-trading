@@ -111,13 +111,26 @@ PY
 # --- Code scanning -----------------------------------------------------------
 # The ruleset carries a code_scanning rule naming CodeQL, and that rule needs
 # CodeQL to actually run. Without default setup enabled, the rule waits on a
-# tool that never reports. `actions` is in the language list because the
-# workflows are part of the attack surface, not only the Python.
-# `javascript-typescript` is there because the build board's page,
-# .claude/skills/update-build-board/board.html, is JavaScript, and a list
-# without it would stop CodeQL scanning that page. GitHub reports the live
-# setup with `javascript` and `typescript` as well, which are its aliases for
-# the same language.
+# tool that never reports.
+#
+# GitHub's API reads as if the PATCH sets the language list rather than adding
+# to it. Nothing here has tested that, so treat the list as what CodeQL scans
+# after a run, where a language left out stops being scanned. Each of the three
+# is here for its own reason.
+#
+# 1. `python` was detected, and it is most of the code.
+# 2. `actions` is chosen, because the workflows are part of the attack
+#    surface, not only the Python.
+# 3. `javascript-typescript` was detected, from
+#    .claude/skills/update-build-board/dom-stub.js and the build board's page,
+#    board.html, which is JavaScript.
+#
+# GitHub reports the live setup with `javascript` and `typescript` as well,
+# which are its aliases for the third. A run on 2026-10-11 sent these three and
+# GitHub still reported all five afterwards. GitHub adds a language when it
+# detects a new kind of file, and this list does not follow it, so compare it
+# with `gh api repos/<owner>/<repo>/code-scanning/default-setup` before a run.
+# A dry run prints the body it would send.
 #
 # The body goes in as JSON rather than as --raw-field pairs, because the
 # language list is an array and the flag form encodes it as strings.

@@ -7,7 +7,10 @@ name: Board
 #
 # Every trigger below except workflow_dispatch fires only once this file is on
 # main, and every one of them runs on the default branch, which is the only
-# branch the github-pages environment lets deploy. pull_request and
+# branch the github-pages environment lets deploy. pull_request_target runs on
+# a pull request's base branch rather than the default one, so its filter
+# admits only pull requests into main. A run for one into another base would
+# have its deploy refused and go red. pull_request and
 # pull_request_review run on a merge ref instead, and check_suite never fires
 # for a suite GitHub Actions created, so neither is here.
 #
@@ -28,6 +31,7 @@ on:
   # pull request closes no issue, so without `closed` it would read as open
   # until the cron run, and without `edited` so would a corrected closing link.
   pull_request_target:
+    branches: [main]
     types: [opened, synchronize, reopened, closed, edited]
   # The only event that fires when ci.yml's checks settle. CodeQL's default
   # setup has no workflow file here, so its result reaches the board on the
@@ -113,7 +117,9 @@ jobs:
           persist-credentials: false
 
       # Records how long the board took to be served and whether a plain fetch
-      # gets past Pages' ten-minute cache. It never fails the run.
+      # gets past Pages' ten-minute cache. It never fails the run. The run holds
+      # the pages concurrency group while it measures, so the next run waits on
+      # it, and --wait caps that at a minute of polling.
       - name: Measure delivery
         env:
           GH_TOKEN: ${{ github.token }}
@@ -125,3 +131,4 @@ jobs:
           --run-id "$GITHUB_RUN_ID"
           --page-url "$PAGE_URL"
           --updated-at "$UPDATED_AT"
+          --wait 60

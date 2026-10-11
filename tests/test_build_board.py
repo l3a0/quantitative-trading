@@ -169,6 +169,7 @@ var __MARK = "<!--first draw-->";
       __TIMERS.forEach(function (t) { if (t.ms !== 60000) { t.fn(); } });
       await __flush();
     }
+    for (var h = 0; h < __HELD.length; h++) { __HELD[h](); await __flush(); }
   } catch (e) { out.error = String(e && e.stack || e); }
   var __board = document.getElementById("board");
   out.redrawn = __board.innerHTML.indexOf(__MARK) < 0;
@@ -187,7 +188,9 @@ def _fetch_prelude(responses: list[dict], db: bool) -> str:
     """A fake fetch serving ``responses`` in turn, and a timer list to fire.
 
     Each response is ``{"status": n, "body": text}``, or ``{"throw": true}``
-    for a network failure. With ``db`` true the page also gets a database
+    for a network failure. One carrying ``"hold": true`` stays unanswered
+    until every other response has been served, which is a slow answer
+    arriving after a later poll's. With ``db`` true the page also gets a database
     holding no documents, which is how a test shows it never fetches then.
     """
     lines = [
@@ -197,12 +200,18 @@ def _fetch_prelude(responses: list[dict], db: bool) -> str:
         f"var __RESP = {json.dumps(responses)};",
         "var __CUR = 0;",
         "var __FETCHES = [];",
-        "var fetch = function (url, opts) {",
-        "  __FETCHES.push({ url: url, cache: opts && opts.cache });",
-        "  var r = __RESP[__CUR];",
+        "var __HELD = [];",
+        "var __answer = function (r) {",
         "  if (r.throw) { return Promise.reject(new Error('offline')); }",
         "  return Promise.resolve({ ok: r.status >= 200 && r.status < 300, status: r.status,",
         "    text: function () { return Promise.resolve(r.body); } });",
+        "};",
+        "var fetch = function (url, opts) {",
+        "  __FETCHES.push({ url: url, cache: opts && opts.cache });",
+        "  var r = __RESP[__CUR];",
+        "  if (!r.hold) { return __answer(r); }",
+        "  return new Promise(function (ok, no) {",
+        "    __HELD.push(function () { __answer(r).then(ok, no); }); });",
         "};",
     ]
     if db:
@@ -1431,4 +1440,41 @@ def test_a_fetched_board_that_breaks_the_drawing_code_keeps_the_last_board(
     ids, _ = run_fetch_page(
         tmp_path, [served(fixture_board()), served(broken), served(fixture_board())]
     )
+    assert text(ids, "source") == ""
+
+
+@pytest.mark.parametrize(
+    "late",
+    [
+        {"status": 503, "body": "busy", "hold": True},
+        {"throw": True, "hold": True},
+        {**served(fixture_board()), "hold": True},
+    ],
+)
+def test_a_slow_answer_from_an_earlier_poll_changes_nothing(tmp_path: Path, late: dict) -> None:
+    """Protects a newer board from a poll that answers after a later one.
+
+    The page polls every two minutes with nothing stopping a slow answer from
+    outlasting that. Here the second poll answers last. Its failure must not
+    mark the live board stopped, and its board must not draw over the third
+    poll's newer one, whose open count is 6.
+    """
+    newer = fixture_board(updatedAt="2026-10-01T12:30:00Z")
+    newer["state"]["issues"]["open"] = 6
+    ids, fetches = run_fetch_page(tmp_path, [served(fixture_board()), late, served(newer)])
+    assert len(fetches) == 3
+    assert text(ids, "source") == ""
+    assert text(ids, "strip").startswith("6 open issues")
+
+
+def test_a_copy_older_than_the_board_on_screen_is_not_drawn(tmp_path: Path) -> None:
+    """Protects the board from a cache serving an older copy after a newer one.
+
+    The two copies differ in their open count, so the strip shows which one
+    the page drew.
+    """
+    newer = fixture_board(updatedAt="2026-10-01T12:30:00Z")
+    newer["state"]["issues"]["open"] = 6
+    ids, _ = run_fetch_page(tmp_path, [served(newer), served(fixture_board())])
+    assert text(ids, "strip").startswith("6 open issues")
     assert text(ids, "source") == ""

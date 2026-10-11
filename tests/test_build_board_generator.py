@@ -94,12 +94,14 @@ def pull(
     closes: tuple[int, ...] = (),
     comments: tuple[tuple[str, str], ...] = (),
     contexts: tuple[dict, ...] = (check("test", "SUCCESS"),),
+    fork: bool = False,
 ) -> dict:
     return {
         "id": f"P{n}",
         "number": n,
         "state": state,
         "body": body,
+        "isCrossRepository": fork,
         "closingIssuesReferences": conn([{"number": i} for i in closes]),
         "comments": conn([{"authorAssociation": a, "body": b} for a, b in comments]),
         "commits": {
@@ -290,6 +292,68 @@ def test_the_fields_issue_533_owns_are_written_empty_and_named() -> None:
     assert state["staleAfterMinutes"] == 60
     assert state["lacks"] == bb.LACKS
     assert state["source"] == "github"
+
+
+def test_a_pull_request_from_a_fork_gets_no_item() -> None:
+    """Protects the free list from a stranger's branch.
+
+    Anyone can open a pull request on a public repository, and one whose body
+    says ``Part of`` an issue, or closes it, would otherwise draw a branch on
+    that card. Dependabot's branches live here, so they still count.
+    """
+    gh = FakeGitHub(
+        [issue(5), issue(6)],
+        [
+            pull(7, body="Part of #5", fork=True),
+            pull(8, closes=(6,), fork=True),
+            pull(9, closes=(6,)),
+        ],
+    )
+    board, report = build(gh)
+    assert [(p["pr"], p["issue"]) for p in prs_of(board)] == [(9, 6)]
+    assert report["open_prs_left_out"] == [7, 8]
+
+
+def test_a_cross_reference_from_another_repository_reads_nothing_here() -> None:
+    """Protects the run from a sibling repository's pull request number.
+
+    Issue 40 here is cross-referenced from pull requests in
+    ``l3a0/ithildin-core`` and ``l3a0/trading-strategies``. Read by number,
+    such a reference would fetch this repository's pull request of the same
+    number, or stop the run when there is none.
+    """
+    first = issue(40)
+    first["timelineItems"] = conn(
+        [{"source": {"number": 999, "repository": {"nameWithOwner": "other/repo"}}}]
+    )
+    gh = FakeGitHub([first], [])
+    board, report = build(gh)
+    assert prs_of(board) == []
+    assert report["other_prs_read"] == 0
+    assert not any("pullRequest(number:999" in q for q in gh.calls)
+
+
+def test_a_pull_request_that_cannot_be_read_stops_the_run() -> None:
+    """Protects the board from a reference GitHub answers with nothing."""
+    gh = FakeGitHub([issue(5, mentioned_by=(77,))], [])
+    with pytest.raises(bb.BoardError, match="pull request 77 could not be read"):
+        build(gh)
+
+
+def test_a_node_that_vanishes_mid_read_stops_the_run() -> None:
+    """Protects a nested list from being cut short by a node that went away."""
+
+    class Vanishing(FakeGitHub):
+        def __call__(self, query: str, variables: dict) -> dict:
+            if "node(id:$id)" in query:
+                self.calls.append(query)
+                return {"node": None}
+            return super().__call__(query, variables)
+
+    first = issue(5)
+    first["labels"] = conn([], more=True, cursor="l1")
+    with pytest.raises(bb.BoardError, match="Issue I5 vanished while reading its labels"):
+        build(Vanishing([first], []))
 
 
 # ---- Where reviewed comes from ----
@@ -553,8 +617,17 @@ def test_no_step_reads_the_event_payload() -> None:
 
     Anyone can file an issue on a public repository, and CodeQL rates an event
     field expanded into a step as critical, which the ruleset refuses to merge.
+    Fields such as ``github.head_ref`` carry a stranger's text without naming
+    the event, so the workflow may use only the expressions listed here, none
+    of which a stranger writes.
     """
-    assert "github.event" not in _workflow()
+    used = set(re.findall(r"\$\{\{\s*([^}]*?)\s*\}\}", _workflow()))
+    assert used == {
+        "github.token",
+        "steps.board.outputs.updated_at",
+        "steps.deployment.outputs.page_url",
+        "needs.build.outputs.updated_at",
+    }
 
 
 def test_nothing_checks_out_a_pull_requests_code() -> None:
@@ -571,7 +644,8 @@ def test_the_triggers_are_the_ones_that_can_deploy() -> None:
     ``pull_request`` and ``pull_request_review`` run on a merge ref, which the
     github-pages environment refuses. ``pull_request_target`` needs ``closed``
     and ``edited`` listed, or a merged ``Part of`` pull request and a corrected
-    closing link wait for the cron run.
+    closing link wait for the cron run. It runs on a pull request's base
+    branch, so it admits only pull requests into ``main``.
     """
     flow = _workflow()
     on = flow.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
@@ -584,7 +658,9 @@ def test_the_triggers_are_the_ones_that_can_deploy() -> None:
         "schedule",
         "workflow_dispatch",
     ]
-    assert "types: [opened, synchronize, reopened, closed, edited]" in on
+    target = on.split("  pull_request_target:\n", 1)[1].split("\n  # ", 1)[0]
+    assert "branches: [main]" in target
+    assert "types: [opened, synchronize, reopened, closed, edited]" in target
     assert "workflows: [CI]" in on
     assert "types: [completed]" in on
 
@@ -624,6 +700,30 @@ def test_each_job_declares_only_the_scopes_it_uses() -> None:
 def test_runs_deploy_one_at_a_time_and_none_is_cancelled() -> None:
     """Protects a newer board from an older run deploying over it."""
     assert "concurrency:\n  group: pages\n  cancel-in-progress: false\n" in _workflow()
+
+
+def test_every_successful_build_deploys() -> None:
+    """Protects the stale warning from a skipped deploy.
+
+    A deploy skipped because the board matched the last one would freeze its
+    stamp, and the page would then call a current board stale. So the deploy
+    job waits on the build and carries no condition of its own.
+    """
+    deploy = _workflow().split("\n  deploy:\n", 1)[1]
+    assert "    needs: build\n" in deploy
+    assert not re.search(r"^\s+if:", deploy, re.M)
+    assert not re.search(r"^\s+if:", _workflow(), re.M)
+
+
+def test_the_measure_step_holds_the_pages_group_for_a_minute_at_most() -> None:
+    """Protects the next run from waiting on a measurement.
+
+    The whole run holds the ``pages`` concurrency group, so the next board
+    waits for the measure step to finish polling.
+    """
+    measure = _workflow().split("- name: Measure delivery", 1)[1]
+    assert "--wait 60" in measure
+    assert "timeout=10" in SCRIPT.read_text(encoding="utf-8")
 
 
 def test_the_page_published_is_the_checked_in_one() -> None:

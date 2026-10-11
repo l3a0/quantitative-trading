@@ -108,7 +108,7 @@ PAGE_INFO = "pageInfo{hasNextPage endCursor}"
 
 PR_FIELDS = f"""
 fragment pr on PullRequest {{
-  id number state body
+  id number state body isCrossRepository
   closingIssuesReferences(first:100){{{PAGE_INFO} nodes{{number}}}}
   comments(first:100){{{PAGE_INFO} nodes{{authorAssociation body}}}}
   commits(last:1){{nodes{{commit{{statusCheckRollup{{id
@@ -299,7 +299,21 @@ def pr_items(gql: Gql, pr: dict, open_issues: set[int], unknown: set[str]) -> li
     branch with no card has nowhere to be drawn and a null issue would make the
     page refuse the whole section. One that closes two issues gets two items,
     because the page keys pull requests by issue.
+
+    A pull request opened from a fork gets no item either. Anyone can open one
+    on a public repository, and its ``Part of`` line or closing keyword would
+    otherwise draw a branch on the card and take it off the free list. Reading
+    the author's association instead would drop Dependabot, which GitHub marks
+    ``CONTRIBUTOR``, so the test is where the branch lives.
+
+    ``linked`` is always the opposite of ``partOf`` here, because an issue
+    named only by a ``Part of`` line is the one case with no closing link. So
+    the page's warning about a closing link GitHub did not register never
+    fires on this board. A pull request whose keyword sits in a code span names
+    no issue GitHub can see, and gets no item at all.
     """
+    if pr.get("isCrossRepository"):
+        return []
     closing = {
         n["number"]
         for n in _all_nodes(gql, pr["id"], "closingIssuesReferences", pr["closingIssuesReferences"])
@@ -509,7 +523,7 @@ def cmd_build(args: argparse.Namespace) -> None:
 def _get(url: str) -> tuple[int, dict, bytes]:
     req = urllib.request.Request(url, headers={"Cache-Control": "no-cache"})
     try:
-        with urllib.request.urlopen(req, timeout=20) as r:
+        with urllib.request.urlopen(req, timeout=10) as r:
             return r.status, dict(r.headers), r.read()
     except Exception as e:
         return 0, {"error": str(e)}, b""
@@ -587,7 +601,7 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--run-id", required=True)
     m.add_argument("--page-url", required=True)
     m.add_argument("--updated-at", required=True)
-    m.add_argument("--wait", type=int, default=180)
+    m.add_argument("--wait", type=int, default=60)
     m.set_defaults(func=cmd_measure)
     args = parser.parse_args(argv)
     try:

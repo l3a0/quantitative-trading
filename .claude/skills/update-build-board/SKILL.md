@@ -253,8 +253,8 @@ A page that finds no database fetches that file every two minutes instead,
 which is the fetch path
 [issue 532](https://github.com/l3a0/quantitative-trading/issues/532) added
 beside `connect`. It is the only path this skill's harness cannot reach,
-because the harness has no fetch. `tests/test_build_board.py` drives it with a
-fake one.
+because the harness runs under `osascript`, which has no fetch.
+`tests/test_build_board.py` drives it with a fake one.
 
 That board carries only what GitHub already holds: the open count, each card's
 milestone and labels, and each pull request's state, checks, linked issue and

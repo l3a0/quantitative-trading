@@ -1472,7 +1472,12 @@ function buildOrder() {
            than the code-span defect this warning was written for, so it is
            said plainly instead of being warned about. A closed pull request
            will never merge and closes nothing, so neither sentence applies to
-           it and it gets none. */
+           it and it gets none.
+
+           The warning reaches only the artifact board. On the board an Action
+           builds, an entry exists only where GitHub registered a closing link
+           or a `Part of` line names the issue, so `linked` is false exactly
+           when `partOf` is true and the warning never fires there. */
         const loose = p.state === "closed" ? "" : p.partOf
           ? `<span class="nolink">part of #${c.n}, which stays open for what this does not do</span>`
           : p.linked ? "" : `<span class="nolink">${p.state === "merged"
@@ -2362,16 +2367,38 @@ function connectFetch(get) {
                  : { live: false, why: "none" };
     source();
   };
-  const poll = async () => {
-    let text;
+  /* Polls can overlap, since a slow answer can outlast the two minutes until
+     the next one. An answer from an earlier poll than one already handled is
+     dropped, whatever it says, so a late success cannot draw over a newer board
+     and a late failure cannot mark a live board stopped. A fetch that hangs is
+     abandoned after thirty seconds where the browser can time one out. */
+  let issued = 0, handled = 0;
+  const read = async () => {
     try {
-      const r = await get(`board.json?t=${Date.now()}`, { cache: "no-store" });
-      if (!r || !r.ok) return failed(`board.json answered ${r ? r.status : "nothing"}`);
-      text = await r.text();
-    } catch (e) { return failed("board.json could not be fetched"); }
+      const signal = typeof AbortSignal !== "undefined" && AbortSignal.timeout
+        ? AbortSignal.timeout(30000) : undefined;
+      const r = await get(`board.json?t=${Date.now()}`, { cache: "no-store", signal });
+      if (!r || !r.ok) return { code: `board.json answered ${r ? r.status : "nothing"}` };
+      return { text: await r.text() };
+    } catch (e) { return { code: "board.json could not be fetched" }; }
+  };
+  const poll = async () => {
+    const seq = ++issued;
+    const got = await read();
+    if (seq < handled) return;
+    handled = seq;
+    if (got.code) return failed(got.code);
+    const text = got.text;
     if (had && text === lastText) { SOURCE = { live: true }; source(); return; }
     let d;
     try { d = JSON.parse(text); } catch (e) { return failed("board.json is not JSON"); }
+    /* A cache between Pages and the reader can serve a copy older than the
+       one on screen. Drawing it would move the board back in time, so the
+       newer one stays. */
+    if (had && d && d.state && isStr(d.state.updatedAt) &&
+        new Date(d.state.updatedAt) < new Date(STATE.updatedAt)) {
+      SOURCE = { live: true }; source(); return;
+    }
     const gone = SECTIONS.filter(s => !d || d[s] === undefined || d[s] === null);
     if (gone.length) {
       if (had) return failed(`board.json is missing ${andlist(gone)}`);
