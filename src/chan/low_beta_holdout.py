@@ -81,6 +81,9 @@ holdout for the claim.
 ``tests/test_low_beta_holdout.py`` is the single authority for every number
 any prose surface quotes about this run. It first ran here on 2026-10-11.
 
+The write-up, ``blog/low-beta-holdout-lessons.md``, teaches the result beside
+Entry 45's, and :mod:`chan.low_beta_holdout_figures` draws its figure.
+
 Usage:
     QT_ARCHIVE_DIR=/path/to/archive python -m chan.low_beta_holdout
 """

@@ -10817,4 +10817,8 @@ returns need market capitalisation and book value at each date, which
 [issue 273](https://github.com/l3a0/quantitative-trading/issues/273) carries.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/low-beta-holdout-lessons.md](../blog/low-beta-holdout-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one
+figure, which `QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_figures`
+redraws where the archive is.

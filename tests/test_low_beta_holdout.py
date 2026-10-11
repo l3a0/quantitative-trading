@@ -3,6 +3,9 @@
 This file is the single authority for every number any prose surface quotes
 about [issue 526](https://github.com/l3a0/quantitative-trading/issues/526).
 ``docs/replication-log.md`` Entry 49 carries the verdict and points here.
+``blog/low-beta-holdout-lessons.md`` quotes most of these figures, so a change
+to an assertion here moves that post too. ``TestWhatThePostCounted`` and
+``TestWhatThePostMeasured`` hold the numbers it added after the run.
 
 Every archive pin reads one set of vintages under one specification, so both
 are stated once here and carried in every figure's failure message as
@@ -66,11 +69,15 @@ from chan.low_beta_holdout import (
 )
 from chan.low_beta_leverage import (
     BETA_DAYS,
+    CRITICAL,
+    POWER,
     NonPositiveBeta,
     build_portfolios,
     growth,
     kelly,
     realised_beta,
+    ruin_line,
+    ruinous_leverage,
     sharpe,
     verdict,
 )
@@ -498,6 +505,52 @@ class TestTheMarketLine:
         assert dates == {"2026-10-05"}
 
 
+#: The label every number ``blog/low-beta-holdout-lessons.md`` added carries.
+AFTER_THE_RUN = "measured by the write-up after the run, so exploratory, and it decides nothing"
+
+
+class TestWhatThePostCounted:
+    """Counts ``blog/low-beta-holdout-lessons.md`` quotes from committed files alone.
+
+    The write-up counted both after the run, on the members file and holes
+    file whose sha256s :data:`MEMBERS_SHA256` and :data:`HOLES_SHA256` hold,
+    the manifest's spans and the committed SPY calendar, with Example 7.7's
+    ``rank`` reason left out as point 3 of the registration says. Neither
+    decides anything.
+    """
+
+    def test_most_row_check_failures_fall_in_2009_to_2015(self) -> None:
+        """5,891 of the 6,816 member-months failing the row check against the filing."""
+        rows = sp500_panel.load()
+        args = (rows, sp500_panel.spans(), sp500_panel.read_holes(), sp500_panel.calendar())
+        coverage = sp500_panel.monthly_coverage(*args, previous={}, rank=False)
+        years = [
+            month.month[:4]
+            for month in coverage
+            for reason in month.reasons
+            if reason not in sp500_panel.MISSES
+        ]
+        early = sum(1 for year in years if "2009" <= year <= "2015")
+        assert (early, len(years)) == (5891, 6816), AFTER_THE_RUN
+
+    def test_70_schedules_each_carried_two_months_or_five_once(self) -> None:
+        """Each schedule sets its own month and the months up to the next one.
+
+        So a change in the index between two schedules is dated up to two
+        months late, or five after 2013-06-30, because 2013-09-30 has no full
+        schedule.
+        """
+        schedules = sp500_panel.schedule_months()
+        assert len(schedules) == 70
+        assert (schedules[0][0], schedules[-1][0]) == ("2008-12-31", "2026-06-30")
+        carried = {
+            date: (after - first).n - 1
+            for (date, first), (_, after) in zip(schedules[:-1], schedules[1:], strict=True)
+        }
+        assert {date: n for date, n in carried.items() if n != 2} == {"2013-06-30": 5}
+        assert sum(1 for n in carried.values() if n == 2) == 68, AFTER_THE_RUN
+
+
 # --- the archive pins ------------------------------------------------------------
 
 SPEC = (
@@ -723,6 +776,93 @@ class TestTheSideFigures:
             ("2016-02", "PCL"),
             ("2016-03", "CAM"),
         ), SPEC
+
+
+def after(value: float, full: float, printed: str) -> None:
+    """:func:`pin` with the label every number the write-up added carries."""
+    assert value == pytest.approx(full, abs=1e-9), f"{SPEC}; {AFTER_THE_RUN}"
+    assert f"{value:.4f}" == printed, f"{SPEC}; {AFTER_THE_RUN}"
+
+
+class TestWhatThePostMeasured:
+    """Numbers ``blog/low-beta-holdout-lessons.md`` quotes that no row of Entry 49 declared.
+
+    The write-up measured every one of them after the run, on the vintages and
+    the specification in :data:`SPEC`, so each is exploratory and none carries
+    a verdict. The upper bound reads the registered test's own standard error,
+    and the ruin line and the ruinous leverage are the helpers Entry 45's post
+    added after its run. A beta or a leverage is named by its formation date,
+    and a return or a ruin line by its holding month.
+    """
+
+    def test_the_one_sided_upper_bound_on_the_levered_sides_advantage(self, holdout) -> None:
+        """The gap plus 1.645 yearly standard errors, which Y's own error is read from."""
+        result = holdout.verdict
+        error = result.standard_error * 12
+        after(error, 0.11853562090407446, "0.1185")
+        after(result.gap + CRITICAL * error, 0.13602580478470022, "0.1360")
+        assert result.detectable == pytest.approx((CRITICAL + POWER) * error, rel=1e-12)
+
+    def test_unlevered_the_high_fifth_out_compounded_the_low_by_0_0543(self, holdout) -> None:
+        """From the full values, since the rounded 0.1613 and 0.1069 differ by 0.0544."""
+        p = holdout.portfolios
+        after(growth(p.high) - growth(p.low), 0.05434186526149749, "0.0543")
+
+    def test_the_high_fifths_beta_where_k_peaked(self, holdout) -> None:
+        p = holdout.portfolios
+        peak = pd.Timestamp("2025-04-30")
+        assert p.leverage.idxmax() == peak, SPEC
+        after(float(p.high_beta[peak]), 1.573842255950237, "1.5738")
+
+    def test_the_low_fifths_beta_fell_below_0_10_twice_and_never_below_0_05(self, holdout) -> None:
+        p = holdout.portfolios
+        low = pd.Series(p.low_beta.to_numpy(), index=pd.DatetimeIndex(p.formed))
+        below = low[low < 0.10]
+        assert [str(day.date()) for day in below.index] == ["2025-02-28", "2025-03-31"], (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        after(float(below.iloc[0]), 0.0818444983180052, "0.0818")
+        assert not (low < 0.05).any(), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_december_2024_against_its_ruin_line(self, holdout) -> None:
+        """The match asked for 0.80 of the leverage that ruins the month, the most of any month."""
+        p = holdout.portfolios
+        dec = pd.Timestamp("2024-12-31")
+        line = ruin_line(p.rf, p.leverage)
+        needed = ruinous_leverage(p.low, p.rf)
+        after(float(line[dec]), -0.07764335455552938, "-0.0776")
+        after(float(p.low[dec] - line[dec]), 0.016068317733887845, "0.0161")
+        after(float(needed[dec]), 15.40774461609341, "15.4077")
+        share = p.leverage / needed
+        assert round(float(share[dec]), 2) == 0.80, f"{SPEC}; {AFTER_THE_RUN}"
+        assert share.idxmax() == dec, f"{SPEC}; {AFTER_THE_RUN}"
+        assert list(p.low.sort_values().index).index(dec) + 1 == 7, f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_april_2025_at_the_highest_k_came_closest_to_its_line(self, holdout) -> None:
+        p = holdout.portfolios
+        apr = pd.Timestamp("2025-04-30")
+        line = ruin_line(p.rf, p.leverage)
+        after(float(p.low[apr]), -0.01755230845359701, "-0.0176")
+        after(float(p.levered[apr]), -0.5856148693764847, "-0.5856")
+        after(float(line[apr]), -0.03236621623680636, "-0.0324")
+        after(float(ruinous_leverage(p.low, p.rf)[apr]), 47.648516293367805, "47.6485")
+        margin = p.low - line
+        assert margin.idxmin() == apr, f"{SPEC}; {AFTER_THE_RUN}"
+        after(float(margin[apr]), 0.014813907783209353, "0.0148")
+
+    def test_no_month_reached_its_own_ruin_line(self, holdout) -> None:
+        p = holdout.portfolios
+        reached = p.low <= ruin_line(p.rf, p.leverage)
+        assert (int(reached.sum()), len(reached)) == (0, 208), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_march_2020_the_low_fifths_worst_month_came_at_a_low_k(self, holdout) -> None:
+        p = holdout.portfolios
+        mar = pd.Timestamp("2020-03-31")
+        assert p.low.idxmin() == mar, f"{SPEC}; {AFTER_THE_RUN}"
+        after(float(p.low[mar]), -0.12504426728454085, "-0.1250")
+        after(float(p.leverage[mar]), 3.4162225462748657, "3.4162")
+        after(float(ruin_line(p.rf, p.leverage)[mar]), -0.29255005082766206, "-0.2926")
+        after(float(p.levered[mar]), -0.42776296562855215, "-0.4278")
 
 
 class TestTheScaleBreakDecision:

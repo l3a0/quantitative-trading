@@ -6307,6 +6307,111 @@ regime map. It also holds where each label's rule points, and that each
 label's text sits inside its panel, clear of the other labels and of every
 line.
 
+[blog/low-beta-holdout-lessons.md](blog/low-beta-holdout-lessons.md) is a
+forty-fourth post, about the same rule at location 4709 tested after the book,
+on IVV's S&P 500 members at each month-end from 2008-12. Its verdict is
+registered under two amendments and every other figure is exploratory, and
+every figure on IVV's members reads the owner's archive, so a reader cannot
+rerun it. The post links the levered low-beta post for the rule, the beta
+match, the ruin line and June 2001 rather than repeating them, and draws five
+lessons from Entry 49 of the replication log.
+
+1. The test is not decided. The levered low fifth trailed by 0.0590 a year at
+   a Newey-West t of −0.4974, Y is 0.2948, and the one-sided 95 percent upper
+   bound on the levered advantage is 0.1360.
+2. The rule ruined a portfolio on Chan's file and not on the new panel. k
+   peaked at 27.9727 against 69.0762, the low fifth's beta bottomed at 0.0563
+   against 0.0280, and December 2024, the worst levered month, was asked for
+   0.80 of the leverage that ruins it, where June 2001 was asked for 2.50
+   times.
+3. The beta match stops being defined at a low beta of zero or below, which
+   the last four formations reached, and the skip rule was ruled after the
+   first of them was seen.
+4. A point-in-time panel moves the survivor problem. 6,816 of 107,115
+   member-months fail the row check against the filing, 4,614 of them with a
+   ticker absent from the last schedule and 5,891 of them from 2009 to 2015.
+5. Carrying the plan over needed a written list of ten points, five of which
+   change what the run computes, and two exclusions still read the month-end
+   after the formation.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
+   through [its committed notes](research/book-notes/quantitative-trading.md):
+   the rule at 4709, the fat-tail caveat at 4700, and the equal average
+   returns at 4684.
+2. The plan's history rather than the data: that the plan, the panel's
+   changes and the criterion were written before any number on this panel,
+   that the run stopped at the 2026-04-30 formation before computing anything
+   the criterion reads, that the owner then ruled to skip such formations, and
+   that the three later formations were not yet known. Also the sorting of
+   the ten points into five that change the computation, three that restate a
+   rule, one that corrects the survivor label and one that gates the tests.
+   Entry 49 of the replication log and its plan record each.
+3. Readings no test asserts: that a negative k would mean selling the low
+   fifth short, that the peak of 27.9727 above June 2001's ruinous 23.2017
+   means June 2001's month would have ruined this portfolio too, that ruin
+   needs a large k and a bad month at once, that the panel's failures lean
+   toward companies that left, and what the row check compares.
+4. Figures the post states in words, such as a few hundredths a year, and the
+   figure's alt text, which reads its curves approximately.
+5. Its reference, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py), to
+[tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) for the
+figures on Chan's file, or to
+[tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
+for the figure's own numbers. Two classes hold the ones that had no pin
+before the post, all measured after the run.
+`TestWhatThePostCounted` reads committed files and runs everywhere.
+
+1. 5,891 of the 6,816 member-months failing the row check fall in 2009 to
+   2015.
+2. The 70 schedules each carry forward two months, except 2013-06-30, which
+   carries five.
+
+`TestWhatThePostMeasured` reads the archive.
+
+1. The standard error of the gap, 0.1185 a year, and the one-sided upper
+   bound of 0.1360.
+2. The unlevered fifths' gap of 0.0543, from the unrounded growth rates.
+3. The high fifth's beta of 1.5738 where k peaked, and the low fifth's beta
+   below 0.10 at two formations, 0.0818 at 2025-02-28 and 0.0563 at
+   2025-03-31, and below 0.05 at none.
+4. December 2024's ruin line of −0.0776, its margin of 0.0161 above it, its
+   ruinous leverage of 15.4077, the match's 0.80 of it as the largest share of
+   any month, and its rank as the seventh-worst of 208 low-fifth months.
+5. April 2025's low-fifth return of −0.0176, levered return of −0.5856, ruin
+   line of −0.0324 and ruinous leverage of 47.6485, and its margin of 0.0148
+   as the closest of any month.
+6. No month of 208 at or below its own ruin line.
+7. March 2020, the low fifth's worst month at −0.1250, with k at 3.4162, its
+   ruin line at −0.2926 and a levered return of −0.4278.
+
+Its one figure is drawn by
+[src/chan/low_beta_holdout_figures.py](src/chan/low_beta_holdout_figures.py)
+in two columns and two rows. The left column is Chan's file from the committed
+files, and the right is IVV's members from one run of
+`chan.low_beta_holdout.read_holdout`.
+
+1. Each fifth's mean beta at formation, with the low fifth's lowest marked,
+   0.0280 and 0.0563, and the four skipped formations' negative low betas
+   plotted.
+2. k on one log axis for both columns, with the highest of each, Chan's two
+   ruined months and December 2024 marked, and the skipped months shaded.
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_figures
+```
+
+[tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map. Its drawing runs on every clone, with Chan's committed files on
+the left and a synthetic holdout on the right, and only its checks of the
+real right column's marks and labels need the archive. The price is that CI
+never sees the real right column drawn, and a reader cannot redraw it.
+
 ## Where the book's numbers come from
 
 [research/book-notes](research/book-notes/README.md) holds verbatim Kindle
