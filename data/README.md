@@ -498,7 +498,9 @@ after this list, is that later save.
 [`chan.equity_seasonals`](../src/chan/equity_seasonals.py) reads the first
 directory for Example 7.7 and `ijr_20080131/` for Example 7.6.
 [`chan.pca_factor`](../src/chan/pca_factor.py) reads the
-second's closes for Example 7.4. The revised edition's Python for that example
+second's closes for Example 7.4, and
+[`chan.pca_factor_momentum`](../src/chan/pca_factor_momentum.py) reads them
+to test whether that example's own factor returns have momentum. The revised edition's Python for that example
 reads `IJR_20080114.txt` instead, reposted at
 pinhaocheng/epchan-quant_trading_Python_codes `5fcab61` and at
 liujiantong/epchan_books `653cf92` as one git blob. Measured on

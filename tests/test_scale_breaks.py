@@ -382,6 +382,16 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: refused, holds the test's returns unchanged when VIX before then moves, and
 #: holds a planted break in VIX, ES or a contract refused.
 #:
+#: [Issue 286](https://github.com/l3a0/quantitative-trading/issues/286) decided
+#: that ``chan.pca_factor_momentum`` refuses no window either, for the reason
+#: issue 21 gives ``chan.pca_factor``. It tests whether the revised MATLAB's
+#: factor returns persist, so it reads the closes forward-filled as that
+#: program does, and a guard would refuse the computation whose assumption is
+#: being tested. PMC's 2007-08-01, flagged below, enters its windows and its
+#: comparison set through the fill's one-day return of 1.8654, so
+#: ``TestWithoutPMC`` in ``tests/test_pca_factor_momentum.py`` pins every
+#: figure again without PMC, including which factor the criterion would miss.
+#:
 #: [Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) decided
 #: that ``chan.khandani_lo_small_caps`` refuses no window for Khandani and Lo's
 #: reversal on the S&P 600 file, for a reason of its own. Over each member's own

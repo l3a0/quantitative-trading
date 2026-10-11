@@ -116,7 +116,9 @@ Every result here is exploratory. Reproducing Chan's figures spends the 2004
 to 2008 sample on a rule he chose, so the run says whether his numbers
 reproduce on his file and nothing about whether a statistical factor model
 earns money. ``tests/test_pca_factor.py`` is the single authority for every
-number any prose surface quotes about Example 7.4.
+number any prose surface quotes about Example 7.4's printouts.
+``tests/test_pca_factor_momentum.py`` holds the figures on whether its own
+factor returns have momentum.
 
 Usage:
     python -m chan.pca_factor
@@ -228,16 +230,28 @@ def first_edition_expected(window: np.ndarray) -> np.ndarray:
     return average[:, 0] + exposures @ factor_returns
 
 
-def revised_matlab_expected(window: np.ndarray, today: np.ndarray) -> np.ndarray:
-    """The revised MATLAB's ``Rexp``: today's returns fitted on five PCA scores.
+def revised_matlab_components(window: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """The revised MATLAB's first five components, as unit-length vectors and their singular values.
 
     ``window`` is stocks by days ending yesterday, so each stock is an
-    observation. ``pca`` centres each day across the stocks and the scores are
-    the stocks' coordinates on the first five components.
+    observation. ``pca`` centres each day across the stocks, and the scores,
+    the stocks' coordinates on the first five components, are the unit-length
+    left singular vectors returned here times the singular values returned
+    beside them.
     """
     centred = window - window.mean(axis=0, keepdims=True)
     left, singular, _ = np.linalg.svd(centred, full_matrices=False)
-    design = np.column_stack([np.ones(len(window)), left[:, :FACTORS] * singular[:FACTORS]])
+    return left[:, :FACTORS], singular[:FACTORS]
+
+
+def revised_matlab_expected(window: np.ndarray, today: np.ndarray) -> np.ndarray:
+    """The revised MATLAB's ``Rexp``: today's returns fitted on five PCA scores.
+
+    The scores are :func:`revised_matlab_components`' vectors times their
+    singular values, and the fit carries an intercept.
+    """
+    vectors, singular = revised_matlab_components(window)
+    design = np.column_stack([np.ones(len(window)), vectors * singular])
     return design @ np.linalg.lstsq(design, today, rcond=None)[0]
 
 
