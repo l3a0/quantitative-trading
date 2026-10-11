@@ -363,6 +363,26 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: second company starts, because the panel frame holds no close the day
 #: before. ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_leverage.py``
 #: holds the 43 flagged days in 34 stocks, both counts and both restarts.
+#:
+#: [Issue 357](https://github.com/l3a0/quantitative-trading/issues/357) decided
+#: how ``chan.vx_es_roll_return`` guards the three reads its trade takes for
+#: *Algorithmic Trading*'s VX against ES trade on VX's roll return, the first
+#: replication to read ``VIX.csv``. It reads the VX strip through
+#: ``chan.roll_returns.load_strip``, which guards every contract over its own
+#: rows. It guards ES over its own span in the 2012-05-07 save, as
+#: ``chan.vx_es.read_legs`` does. A fourth guarded read serves only the fitted
+#: hedge beside the replication: ``chan.vx_es.read_legs`` reads VX's continuous
+#: close and ES from the same save and guards each over its whole span, so a
+#: break in either refuses the run. It guards VIX from the anchor to the last
+#: common day, 2008-08-04 to 2012-05-07, the span the script's ``idx`` measures
+#: from, rather than over the whole common span from 2006-03-23. VIX flags
+#: 2007-02-27, below, so the whole span would refuse. That day sets a long
+#: position, but a position reads only its own day's VIX and the first test
+#: return earns the position held at the close of 2010-07-28, so no figure
+#: reads it. ``TestTheGuardAndTheReads`` in ``tests/test_vx_es_roll_return.py``
+#: records the calls, holds the guarded spans clean, holds the whole span
+#: refused, holds the test's returns unchanged when VIX before then moves, and
+#: holds a planted break in VIX, ES or a contract refused.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],

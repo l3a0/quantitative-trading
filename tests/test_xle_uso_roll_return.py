@@ -415,6 +415,18 @@ class TestTheRules:
         ):
             front_ratio(self._strip(last, 80, 100))
 
+    def test_a_later_window_before_the_first_row_is_refused(self) -> None:
+        """Expiries out of delivery order give the third contract a start of row −4.
+
+        Its own 40-row start is row −10, and the second contract, expiring at
+        row 5, ends at row −5, so the row after is −4. A negative row would
+        index from the strip's end.
+        """
+        with pytest.raises(
+            ValueError, match="CL-2012F's front window would start before .* at row -4$"
+        ):
+            front_ratio(self._strip(50, 5, 30, 119))
+
     def test_a_first_window_starting_on_the_first_row_is_read(self) -> None:
         r = front_ratio(self._strip(40, 80, 100)).to_numpy()
         assert r[0] == 2
