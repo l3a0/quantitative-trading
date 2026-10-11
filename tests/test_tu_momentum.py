@@ -5,7 +5,9 @@ about this example and the rows beside it. ``docs/replication-log.md`` Entry 33
 carries the verdicts and points here row by row.
 ``blog/usdcad-stationarity-lessons.md`` quotes USD.CAD's H at a ``maxT`` of
 24, which ``TestTheTwoTests`` pins here, so a change to that pin moves that
-post too.
+post too. ``blog/tu-hypothesis-tests-lessons.md`` quotes the 49 pairs of
+lookback and hold the rule was picked from, which ``PERIODS`` and
+``TestTheCorrelationTable`` hold here.
 
 Every pin on the committed files reads one of two vintages and one
 specification, so they are stated once here.
