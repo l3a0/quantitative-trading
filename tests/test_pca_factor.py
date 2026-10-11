@@ -1,8 +1,10 @@
 """The pins for the PCA factor model, Chan's Example 7.4.
 
 This file is the single authority for every number any prose surface quotes
-about Example 7.4. ``docs/replication-log.md`` Entry 13 carries the verdicts and
-points here row by row.
+about Example 7.4's printouts. ``tests/test_pca_factor_momentum.py`` holds the
+figures on whether its own factor returns have momentum.
+``docs/replication-log.md`` Entry 13 carries the verdicts and points here row
+by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in failure messages as :data:`SPEC`.

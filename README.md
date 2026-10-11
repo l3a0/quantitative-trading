@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-one replications run here, sixteen from Chan's *Quantitative Trading*
+Forty-two replications run here, seventeen from Chan's *Quantitative Trading*
 and twenty-five from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-nine were built here.
+where they were first built. The other forty were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -561,7 +561,25 @@ where they were first built. The other thirty-nine were built here.
     0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
     the script traded the printed 0.3906. An entry from flat pays no cost,
     as in the script. Every figure is exploratory.
-41. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
+41. Example 7.4's own five factors, tested on Chan's S&P 600 file against the
+    claim at Kindle location 4014 of the revised edition that factor returns
+    "often" have stronger serial autocorrelation than single stocks', which
+    location 4051 says the example rests on. Each day's factor return is
+    paired with the next day's on that day's decomposition, whose signs are
+    arbitrary, and the statistic is the correlation of the pairs without
+    subtracting their means, which a flipped sign cannot move. Over 752 pairs
+    from 2005-01-18 to 2008-01-11, the statistics of PC1 to PC5 are 0.0316,
+    0.0778, −0.0189, 0.0305 and 0.0710, against a median of −0.0283 across
+    the 579 stocks priced on every day the pairs read. The claim holds for
+    PC1, PC2, PC4 and PC5, and does not hold for PC3, which is above the
+    median stock but below 0. PC2 alone is outside the ±0.0715 band a series
+    with no persistence stays inside 95 percent of the time, and no factor
+    survives Benjamini-Hochberg at q = 0.05, a control for false discoveries
+    across the five, so any verdict could be noise. PMC is one symbol whose
+    two price histories join into one day's return. Without it, PC2 falls to
+    −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
+    symbol. Every figure is exploratory and about survivors.
+42. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
     leveraged portfolio of low-beta stocks should generate higher long-term
     compounded growth than holding an unleveraged portfolio of high-beta
     stocks", on Chan's S&P 500 file. Each month-end the lowest and highest
@@ -1016,6 +1034,16 @@ the strict threshold, both legs signed alike with VX scaled by the hedge, the
 one-day lag, the gross divisor and the cost of an exit. It also holds each
 read guarded and the flagged day in VIX read by no figure.
 
+[tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py) does it
+for Example 7.4's own factors. It pins the 752 pairs and the 579 stocks, each
+factor's statistic, percentile and same-sign share, the stocks' quartiles, the
+band and which factors fall outside it, the Newey-West t and p-values and
+Benjamini-Hochberg, and the intercept, each with and without PMC, and one
+verdict per factor. On three of the file's days it holds each factor return
+equal to the program's fitted slope times its singular value. On synthetic
+returns it holds that a flipped vector moves no statistic, that a steady sign
+counts as persistence, and the Benjamini-Hochberg step-up.
+
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) does it for
 the levered low-beta claim. It pins the calendar, the leverage path, both
 ruined months and the verdict's wording, and beside them the Sharpe ratios,
@@ -1025,7 +1053,7 @@ of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
 
-All forty-one replications reach a verdict in
+All forty-two replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1045,9 +1073,10 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, Entry 41 the VX against ES trade on VX's roll return, and
-Entry 45 the levered low-beta claim's. Entry 44 carries the reversal on the
-S&P 600, which has no published number to reach a verdict against either.
+trade's, Entry 41 the VX against ES trade on VX's roll return, Entry 42
+Example 7.4's own factors', and Entry 45 the levered low-beta claim's. Entry 44
+carries the reversal on the S&P 600, which has no published number to reach a
+verdict against either.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1900,6 +1929,20 @@ the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
 with no verdict, and how many of the test's days are held, short, long and
 entered from flat.
 
+Example 7.4's own factors take no option, because the issue fixed the
+printout, the lookback, the factor count and the statistic before any factor
+return was computed:
+
+```bash
+uv run python -m chan.pca_factor_momentum
+```
+
+It prints the vintage, the rule and the pairs, each factor's statistic beside
+its percentile, same-sign share, Newey-West t, p-value and Benjamini-Hochberg
+result, the stocks' quartiles, the intercept and the band, a verdict per
+factor, and every figure again without PMC. It runs 752 decompositions with
+PMC and 752 without.
+
 The levered low-beta claim takes no option either, because the issue
 registered the universe, the window and every rule:
 
@@ -2606,16 +2649,18 @@ rather than its bytes, for the reason given above for the regime map.
 [blog/factor-models-lessons.md](blog/factor-models-lessons.md) is a tenth
 post, about Chan's factor models: Example 7.4, the PCA factor model, and his
 claim that factor returns have momentum, tested on the market and momentum
-factors. Example 7.4 rests on that claim, so the post draws six lessons from
-Entries 13 and 14 of the replication log together. Every result in it is
-exploratory.
+factors and on Example 7.4's own five. Example 7.4 rests on that claim, so the
+post draws six lessons from Entries 13, 14 and 42 of the replication log
+together. Every result in it is exploratory.
 
 1. Three of the four printouts reproduce, and the fourth, the R, prints
    another program's figures.
 2. Chan's round-off is a second strategy, because the revised Python's
    intercept cancels its factors and leaves single-stock momentum.
-3. The momentum the strategy assumes held for the market factor and not for
-   the momentum factor, each verdict standing on its own.
+3. The momentum the strategy assumes held for the market factor and not the
+   momentum factor, and for four of Example 7.4's own five factors. Each
+   verdict stands on its own, none of the five survives a test across all
+   five, and which one misses moves when PMC is dropped.
 4. A verdict can follow the declared criterion and still rest on almost
    nothing, because both autocorrelations sit inside the range a series with
    no autocorrelation lands in 95 percent of the time.
@@ -2655,8 +2700,9 @@ Four groups of its figures are not pinned here.
 4. Its references. The five citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_pca_factor.py](tests/test_pca_factor.py) or
-[tests/test_momentum_factor.py](tests/test_momentum_factor.py), to
+[tests/test_pca_factor.py](tests/test_pca_factor.py),
+[tests/test_momentum_factor.py](tests/test_momentum_factor.py) or
+[tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py)'s
 `TestTheVintages::test_the_large_cap_panel` for the S&P 500 file's span, or to
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
