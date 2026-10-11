@@ -181,8 +181,9 @@ MUST_BE_SWEPT = frozenset(
         "blog/coin-toss-expected-value-vs-growth.md",
         "blog/commodity-seasonals-lessons.md",
         "blog/conditional-parameter-optimization-lessons.md",
-        "blog/crude-oil-reversal-momentum-lessons.md",
         "blog/cross-sectional-momentum-lessons.md",
+        "blog/crude-oil-calendar-spread-lessons.md",
+        "blog/crude-oil-reversal-momentum-lessons.md",
         "blog/equity-seasonals-lessons.md",
         "blog/factor-models-lessons.md",
         "blog/gld-gdx-cointegration-lessons.md",
@@ -1179,6 +1180,7 @@ class TestTheFigureHasThreeCopies:
             "aud-cad-johansen-lessons.md",
             "roll-returns-lessons.md",
             "tu-hypothesis-tests-lessons.md",
+            "crude-oil-calendar-spread-lessons.md",
             "crude-oil-reversal-momentum-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         for path, embed in embeds:
