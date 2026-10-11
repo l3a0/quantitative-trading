@@ -9477,7 +9477,10 @@ line of 2 standard errors, and the opens' gap at z +0.7603 sits inside it.
 
 ### What the entry concludes
 
-Three things, and the first is the finding.
+Five things, and the first is the finding. The write-up measured the last two
+after the run, and `TestWhatThePostMeasured` in
+[tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
+pins them.
 
 1. **On Chan's S&P 600 file the reversal earns more before costs than on his
    S&P 500 file, at both prices.** That is the direction Chan's explanation
@@ -9490,6 +9493,22 @@ Three things, and the first is the finding.
    Every after-cost gap is positive. The run charges both universes the same
    5 basis points, so these figures overstate what a trader in small caps
    would keep relative to one in large caps.
+4. **Every book trades about the same, so the profit decides what costs
+   leave.** On the specification with the first day charged, the four books
+   trade between 1.4505 and 1.4729 times their mean position a day and pay
+   between 7.2525 and 7.3644 basis points of it. The S&P 600's closes earn
+   6.7197 basis points a day, so their cost is 1.0945 times their profit,
+   against 13.7453 for the S&P 500's closes. The S&P 600's opens earn 11.8569
+   and the S&P 500's 8.9815. The cost a side at which each book breaks even
+   is 4.57 basis points for the S&P 600's closes, 8.05 for its opens, 0.36
+   for the S&P 500's closes and 6.14 for its opens.
+5. **The correlation narrows the closes' standard error, and the open lifts
+   the S&P 500 far more.** With the correlation set to 0, Memmel's standard
+   error on the closes would be 1.4252 rather than 0.9872, and the gap would
+   be 2.2155 standard errors. The term 2(1 − ρ) carries 0.98 of the formula's
+   bracket on the closes and 0.94 on the opens, because a daily Sharpe ratio
+   is small. The open lifts the S&P 500's figure before costs by 4.1693 and
+   the S&P 600's by 1.8966, which is why the gap shrinks at the open.
 
 ### What this entry cannot say
 
@@ -9524,7 +9543,10 @@ nothing about where their returns came from. The report prints 4.47 and judges
 it against nothing.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.khandani_lo_small_caps_figures` redraws.
 
 ## Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*
 

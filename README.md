@@ -682,9 +682,12 @@ closes, +3.1576, is more than three times its standard error of 0.9872, and
 the gap on the opens, +0.8850, is smaller than its 1.1640, so one year of the
 opens cannot tell the two universes apart. The standard error assumes
 independent, normal days, which a reversal's are not, so it is an
-approximation. It is exploratory, both files hold
-only survivors, and it says nothing about microcaps, which the S&P 600 does
-not hold.
+approximation. After 5 basis points a side the S&P 600's closes lose only a
+little. The rule trades about the same amount a day on both files at both
+prices, so the profit decides, and the S&P 600's average day on the closes
+pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
+exploratory, both files hold only survivors, and it says nothing about
+microcaps, which the S&P 600 does not hold.
 
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
@@ -775,7 +778,14 @@ reading. It works Memmel's standard error by hand on a four-day series. It
 also holds that the two files' 2006 calendars are the same 251 days, that
 BCSI's and SCUR's two days past the scale-break bound are weighted, that PMC,
 two companies under one symbol with no 2006 price, carries no weight, and that
-the scale-break guard refuses the window on exactly those two days.
+the scale-break guard refuses the window on exactly those two days. It holds
+what the write-up measured after the run too: the average day of the three
+books `tests/test_khandani_lo.py` does not already pin, the cost a side at
+which each of the four breaks even, the open's lift in each universe, the
+closes' standard error with the correlation set to 0, and the share of
+Memmel's bracket the correlation term carries on each price, with the helper
+behind them worked by hand. The blog post about it is the exception, and what
+it says that nothing here asserts is listed below.
 
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
@@ -5422,6 +5432,109 @@ uv run python -m chan.vx_es_roll_return_figures
 ```
 
 [tests/test_vx_es_roll_return_figures.py](tests/test_vx_es_roll_return_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/khandani-lo-small-caps-lessons.md](blog/khandani-lo-small-caps-lessons.md)
+is a thirty-eighth post, about Khandani and Lo's reversal on Chan's S&P 600
+file, which tests his explanation at Kindle location 2137 of *Quantitative
+Trading* that most of Khandani and Lo's returns came from small and microcap
+stocks. Example 3.8 leaves that run as an exercise at location 2236 and prints
+no figure for it. The post links the survivorship and costs post and the post
+on Chan's 2012 panel rather than repeating them, and draws six lessons from
+Entry 44 of the replication log.
+
+1. At the close the S&P 600 earns 3.4086 before costs against the S&P 500's
+   0.2510, a gap of +3.1576 and 3.1987 standard errors.
+2. At the open the gap is +0.8850 and 0.7603 standard errors, because the
+   open lifts the S&P 500 by 4.1693 and the S&P 600 by 1.8966.
+3. Memmel's test of a gap between two Sharpe ratios uses the correlation of
+   the two books' daily profits. With the correlation set to 0, the closes'
+   standard error would be 1.4252 rather than 0.9872.
+4. After 5 basis points a side the closes lose and the opens keep a profit.
+   Every book trades between 1.4505 and 1.4729 times its position a day, so
+   the profit decides, and the S&P 600's closes break even at 4.57 basis
+   points a side.
+5. The check for split prices flags BCSI on 2006-02-06 and SCUR on
+   2006-07-12, and same-day news shows both were earnings warnings that
+   traded.
+6. The declared reading points the way Chan says, on one year of survivors
+   and no microcaps, and the S&P 400 is the third point, not yet run.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
+   through [its committed notes](research/book-notes/quantitative-trading.md).
+   Khandani and Lo's 4.47 is at 2099, the explanation at 2137, the exercise at
+   2236, the 5 basis points for S&P 500 stocks at 998, low-priced stocks'
+   wider spreads at 2639, small caps being hard to borrow at 2730, and a move
+   without news reverting at 3109.
+2. Facts about the book and the code rather than the data: that Example 7.4
+   reads the same S&P 600 file, that the notebook's rule fills each gap with
+   the last price seen, and that a split halves a price the file may not
+   adjust.
+3. Readings no test asserts: that the open's lift removes most of what
+   separated the two universes at the close, that the rule replaces about the
+   same share of its book in every universe, that one cost on both universes
+   flatters the S&P 600, that the S&P 600 holds no microcaps, that the
+   reversal bought the two flagged stocks on days Chan's reasoning gives no
+   cause to expect a bounce, that the daily profits are neither independent
+   nor normal, that the 2012 panel's rule is a close cousin of this one, that
+   the distance between two running totals says nothing about how much the
+   daily profits swing, that a reversal buys exactly the stocks that fell, and
+   that ignoring the correlation understates the noise in a gap when two
+   books' daily profits move against each other.
+4. Facts from outside the data and figures stated in words: the two news
+   reports on BCSI and SCUR, their dates and what they say, that no source
+   states SCUR's close, the bound written as 0.625 for 1/1.6, and words such
+   as far more, barely past the line and about the same. The prose writes
+   pinned fractions in percent, such as 98 percent for 0.98. The figure's alt
+   text reads its curves approximately too, such as the S&P 500's dashed line
+   on the opens dipping below zero in the middle of the year and the S&P
+   600's on the closes falling below zero in the spring.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_khandani_lo_small_caps.py](tests/test_khandani_lo_small_caps.py),
+or to
+[tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
+for the figure's own numbers, which include the low of the S&P 600's dashed
+line on the closes, −6.3% on 2006-06-30. The S&P 500's average day on the
+closes traces to `TestWhatAnAverageDayCosts` in
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py), and the factor of 1.6
+to [tests/test_scale_breaks.py](tests/test_scale_breaks.py).
+`TestWhatThePostMeasured` holds the ones that had no pin before it, all
+measured after the run.
+
+1. The average day on the charged specification for the S&P 600's closes,
+   6.7197 basis points of profit, 7.3545 of cost, a turnover of 1.4709 and a
+   cost of 1.0945 times the profit, for the S&P 600's opens, 11.8569, 7.3644,
+   1.4729 and 0.6211, and for the S&P 500's opens, 8.9815, 7.3182, 1.4636 and
+   0.8148.
+2. The cost a side at which each book breaks even, 4.57 and 8.05 basis points
+   for the S&P 600's closes and opens, and 0.36 and 6.14 for the S&P 500's.
+3. The open's lift before costs, 4.1693 for the S&P 500 and 1.8966 for the
+   S&P 600.
+4. The closes' standard error with the correlation set to 0, 1.4252, and the
+   gap's 2.2155 standard errors against it, and the share of Memmel's
+   bracket the correlation term carries, 0.98 on the closes and 0.94 on the
+   opens.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/khandani_lo_small_caps_figures.py](src/chan/khandani_lo_small_caps_figures.py),
+which reads them through the same `compare` as
+`python -m chan.khandani_lo_small_caps` and sums each book's days with the
+same `cumulative` the survivorship and costs post's figure uses. It draws two
+panels, the closes above the opens, each with four running totals over 2006
+as a share of each book's mean position: the S&P 600 and the S&P 500, each
+before costs and after 5 basis points a side with the first day charged. Each
+panel's heading states its gap before costs, the gap's standard error and z.
+
+```bash
+uv run python -m chan.khandani_lo_small_caps_figures
+```
+
+[tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
