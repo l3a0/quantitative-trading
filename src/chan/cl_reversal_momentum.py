@@ -33,8 +33,9 @@ Then it runs four rules, each earning
    holds and a short wherever either short condition holds, summed.
 
 Rules 2 to 4 are plotted beside rule 1 and print nothing. The commented-out
-lines are variants on ``lag`` and ``movingAvg`` that do not run, and the plot
-is out of scope here.
+lines are variants on ``lag`` and ``movingAvg`` that do not run. The run
+draws nothing, and :mod:`chan.cl_reversal_momentum_figures` redraws three of
+the four curves, leaving out ComboOR.
 
 **Why ComboOR is the combination under another name.** Call the reversal
 condition "below the 30-day lag" and the momentum condition "above the 40-day

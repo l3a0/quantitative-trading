@@ -6658,7 +6658,10 @@ for those years is committed. So the earlier segment's figures are what the
 rule gives on Chan's series, not what a trader would have earned.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/crude-oil-reversal-momentum-lessons.md](../blog/crude-oil-reversal-momentum-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.cl_reversal_momentum_figures` redraws.
 
 ## Entry 32: a Kalman filter hedge ratio on EWA and EWC, Chan's *Algorithmic Trading*
 
