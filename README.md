@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-four replications run here, seventeen from Chan's *Quantitative Trading*
-and twenty-seven from his *Algorithmic Trading*. The first two were ported from the
+Forty-five replications run here, seventeen from Chan's *Quantitative Trading*
+and twenty-eight from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other forty-two were built here.
+where they were first built. The other forty-three were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -631,6 +631,20 @@ where they were first built. The other forty-two were built here.
     about the stocks still in the index on 2007-11-23. Beside the verdict, the
     low fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457 is an
     untested point estimate, exploratory, and decides nothing.
+45. The VIX filter at location 3509 of *Algorithmic Trading*, which keeps
+    only the days after the VIX closed above 35 and reruns two rules on
+    them: item 18's buy on gap and item 40's opening gap rule on FSTX. Each
+    rule runs unchanged on Chan's own files, its calendar is joined to that
+    of Chan's `VIX.csv`, and the figures are 252 times the mean and the
+    Sharpe ratio over the days kept. Buy on gap keeps 190 days and gives
+    0.171924 and 1.417425, which round to the book's 17.2 percent and 1.4.
+    FSTX keeps 185 and gives 0.025730 and 0.164869 under the script's fading
+    sign, which round to the book's 2.6 percent and 0.16. The momentum sign
+    gives the same numbers negated, so the claim that VIX above 35 warns the
+    gap trader off holds for the fade alone. No script ships for the
+    filter. The FSTX alignment was chosen after six were tried, and only the
+    join lands 2.6 percent, while buy on gap's figures are the same under any
+    alignment. Every figure is exploratory.
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1135,7 +1149,19 @@ of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
 
-All forty-four replications reach a verdict in
+[tests/test_vix_filter.py](tests/test_vix_filter.py) does it for the VIX
+filter. It pins both rules' figures on the days kept at six decimals against
+the book's four, and FSTX's under the momentum sign beside them. It pins each
+reading that misses with the reason it was set aside: the compounded APR, the
+zeroed days, the latest VIX close before each day and a shift on FSTX's own
+calendar. It also pins the days each calendar keeps, the days each rule held
+a position, the unfiltered figures on the joined calendar, and FSTX's rule
+run after the join keeping the same returns on the days kept. On synthetic
+series it holds the strict threshold, the previous joined day's close and a
+missing close qualifying nothing. It also holds VIX guarded from the day after
+its flagged day, and its largest close before that day.
+
+All forty-five replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1159,7 +1185,8 @@ trade's, Entry 40 the opening gap strategy's on FSTX, Entry 41 the
 roll-return rule's on VX against ES, Entry 42 Example 7.4's own factors',
 Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
-and Entry 45 the levered low-beta claim's.
+Entry 45 the levered low-beta claim's, and Entry 47 the VIX filter's on buy on
+gap and on FSTX.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict.
 
@@ -2090,6 +2117,19 @@ It prints the three vintages, the verdict with every ruined month, and beside
 it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
 Gaussian growth, the flagged stock-months and a row for every formation, none
 of which decides anything.
+
+The VIX filter takes no option either, because location 3509 fixes the
+threshold and the two rules, and their scripts fix the files:
+
+```bash
+uv run python -m chan.vix_filter
+```
+
+It prints the three vintages, the days each calendar keeps once joined to
+VIX's, and both rules' figures on the days kept beside the book's with a
+verdict, FSTX under both signs. Then it prints the readings that miss beside
+the book's figures, and the days kept, the days held and the unfiltered
+figures, none of which carries a verdict.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
