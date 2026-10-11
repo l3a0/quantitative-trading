@@ -29,6 +29,8 @@ Each rule on its own reads one lag.
 1. **Reversal alone** buys when the close is below its 30-day lag, because a price that has fallen is expected to come back, and shorts when the close is above it.
 2. **Momentum alone** buys when the close is above its 40-day lag, because a price that has risen is expected to keep rising, and shorts when the close is below it.
 
+Earlier in the same chapter, Chan measures whether two-year Treasury note futures trend before he trades momentum on them, which [the post on TU momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-momentum-lessons.md#why-measure-momentum-before-trading-it) reproduces. For the crude oil rule, the book names its two lags and says nothing about how they were picked.
+
 On one shared lag the two would take opposite sides every day, and joining them would cancel. Chan gives them different lags and trades only where they agree. The join buys when the close is below its 30-day lag and above its 40-day lag, which is a dip inside a rise. It shorts on a bounce inside a fall, and holds nothing on any other day.
 
 Every rule earns yesterday’s position on today’s percentage change in price, with no trading cost. Two figures summarise each run, both over every row, the days with no position included.
