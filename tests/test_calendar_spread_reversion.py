@@ -690,6 +690,13 @@ class TestTheHeldSpread:
         )
         assert held_log_spread(contracts, schedule).isna().tolist() == [True, True, True]
 
+    def test_an_unpriced_contract_the_row_does_not_hold_changes_nothing(self) -> None:
+        contracts = pd.DataFrame(
+            {"near": [100.0], "far": [80.0], "other": [np.nan]}, index=DAYS[:1]
+        )
+        schedule = pd.DataFrame({"near": [-1.0], "far": [1.0], "other": [0.0]}, index=DAYS[:1])
+        assert held_log_spread(contracts, schedule).tolist() == [pytest.approx(np.log(0.8))]
+
 
 class TestTheHeldSpreadZscore:
     """Prices are ``exp`` of round numbers, so each log spread is the number itself."""

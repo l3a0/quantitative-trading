@@ -25,6 +25,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.colors import to_rgba
 from matplotlib.dates import date2num
 
 from chan import calendar_spread_reversion_figures as module
@@ -39,7 +40,7 @@ from chan.calendar_spread_reversion_figures import (
     signed,
 )
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import INK, MUTED
+from chan.regime_figure import ACCENT, INK, MUTED
 from chan.roll_returns import load_strip, roll_returns
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
@@ -161,13 +162,22 @@ class TestTheCumulativeReturn:
         assert flat_tail(pd.Series([0.0, 0.1, 0.0, 0.0, 0.0], index=days)).equals(days[2:])
         assert flat_tail(pd.Series([0.1, 0.1], index=days[:2])).empty
         assert flat_tail(pd.Series([0.0, 0.0], index=days[:2])).equals(days[:2])
+        # A loss earns too, so a negative last return ends the flat rows as a gain does.
+        assert flat_tail(pd.Series([0.1, -0.1, 0.0], index=days[:3])).equals(days[2:3])
 
     def test_the_last_held_day_is_marked(self, axes, s) -> None:
         marker = _by_gid(axes["returns"].lines)["last-held"]
         assert list(marker.get_xdata()) == [pd.Timestamp("2012-05-08")] * 2, SPEC
         assert s.last_held == pd.Timestamp("2012-05-08")
+        assert to_rgba(marker.get_color()) == to_rgba(ACCENT)
+        assert marker.get_linestyle() == "--"
         label = _by_gid(axes["returns"].texts)["last-held-label"]
         assert label.get_text() == "last pair held on 2012-05-08"
+        # The label points at the curve on the last held day, not at its end.
+        assert label.xy == (s.last_held, cumulative_return(s.returns).loc[s.last_held])
+
+    def test_the_axis_names_the_compounded_return(self, axes) -> None:
+        assert axes["returns"].get_ylabel() == "cumulative return, compounded"
 
     def test_the_axis_reads_the_return_as_a_percentage(self, axes) -> None:
         assert axes["returns"].yaxis.get_major_formatter()(0.2) == "20%"
@@ -233,6 +243,16 @@ class TestTheScatter:
         assert held.spread.index.equals(days[[1, 3]])
         assert held.gamma.tolist() == [0.2, 0.2]
         assert held.spread.tolist() == [pytest.approx(np.log(0.9))] * 2
+
+    def test_held_rows_skip_a_row_before_gammas_first_value(self, monkeypatch) -> None:
+        """Every row holds the pair, and γ has no value to carry into row 0."""
+        days = pd.bdate_range("2008-01-01", periods=3)
+        contracts = pd.DataFrame({"near": [100.0] * 3, "far": [90.0] * 3}, index=days)
+        schedule = pd.DataFrame({"near": [-1.0] * 3, "far": [1.0] * 3}, index=days)
+        monkeypatch.setattr(module, "calendar_schedule", lambda _contracts: schedule)
+        held = held_rows(contracts, pd.Series([np.nan, 0.1, np.nan], index=days), days[0])
+        assert held.spread.index.equals(days[1:])
+        assert held.gamma.tolist() == [0.1, 0.1]
 
     def test_signed_prints_a_true_minus_sign(self) -> None:
         assert signed(-0.8839099, 6) == "−0.883910"
