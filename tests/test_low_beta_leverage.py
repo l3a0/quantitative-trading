@@ -434,7 +434,9 @@ class TestWhatThePostMeasured:
         assert (len(below_10), below_10[0], below_10[-1]) == (9, "2001-01-31", "2001-09-28"), (
             f"{SPEC}; {AFTER_THE_RUN}"
         )
-        assert below_10 == dates(low.loc["2001-01-31":"2001-09-28"].index)
+        assert below_10 == dates(low.loc["2001-01-31":"2001-09-28"].index), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
 
     def test_k_above_20_and_above_the_look_ahead_kelly(self, portfolios: Portfolios) -> None:
         k = by_formation(portfolios, portfolios.leverage)
@@ -450,12 +452,20 @@ class TestWhatThePostMeasured:
             "2000-12-29",
             "2001-12-31",
         ), f"{SPEC}; {AFTER_THE_RUN}"
-        assert above_kelly == dates(k.loc["2000-12-29":"2001-12-31"].index)
+        assert above_kelly == dates(k.loc["2000-12-29":"2001-12-31"].index), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
 
     def test_the_levered_wealth_through_may_2001(self, portfolios: Portfolios) -> None:
-        """1 grew to 4.8089 by the end of May 2001, the month before the first ruin."""
+        """1 grew to 4.8089 by the end of May 2001, through levered losses in January and March."""
         wealth = levered_wealth(portfolios.levered)
         assert round(float(wealth.loc["2001-05-31"]), 4) == 4.8089, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(float(portfolios.levered.loc["2001-01-31"]), 4) == -0.5456, (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert round(float(portfolios.levered.loc["2001-03-30"]), 4) == -0.4516, (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
         assert portfolios.held_to[0] == pd.Timestamp("2000-12-29")
         assert wealth.loc["2001-07-31":].isna().all()
 
@@ -474,8 +484,17 @@ class TestWhatThePostMeasured:
         assert round(float(line.max()), 4) == -0.0115, f"{SPEC}; {AFTER_THE_RUN}"
         assert str(line.idxmax().date()) == "2001-05-31", f"{SPEC}; {AFTER_THE_RUN}"
         below = line < -0.10
-        assert str(line.index[below.to_numpy()][0].date()) == "2002-02-28", AFTER_THE_RUN
-        assert below.loc["2002-02-28":].all() and not below.loc[:"2002-01-31"].any()
+        assert str(line.index[below.to_numpy()][0].date()) == "2002-02-28", (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert below.loc["2002-02-28":].all() and not below.loc[:"2002-01-31"].any(), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        low = portfolios.low
+        assert (round(float(low.min()), 4), str(low.idxmin().date())) == (-0.0733, "2002-07-31"), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert line.loc["2002-02-28":].max() < low.min(), f"{SPEC}; {AFTER_THE_RUN}"
 
     def test_the_line_finds_the_same_two_ruined_months(self, portfolios: Portfolios) -> None:
         line = ruin_line(portfolios.rf, portfolios.leverage)
@@ -500,7 +519,11 @@ class TestWhatThePostMeasured:
 
     def test_the_leverage_that_ruins_june_and_september(self, portfolios: Portfolios) -> None:
         needed = ruinous_leverage(portfolios.low, portfolios.rf)
-        assert round(float(needed.loc["2001-06-29"]), 4) == 23.2017, f"{SPEC}; {AFTER_THE_RUN}"
+        june = float(needed.loc["2001-06-29"])
+        assert round(june, 4) == 23.2017, f"{SPEC}; {AFTER_THE_RUN}"
+        assert 23.2017 < june < 23.2018, f"{SPEC}; {AFTER_THE_RUN}"
+        asked = float(portfolios.leverage.loc["2001-06-29"])
+        assert round(asked / june, 2) == 2.50, f"{SPEC}; {AFTER_THE_RUN}"
         assert round(float(needed.loc["2001-09-28"]), 4) == 27.9461, f"{SPEC}; {AFTER_THE_RUN}"
 
     def test_a_normal_month_as_bad_as_junes_line(self, portfolios: Portfolios) -> None:

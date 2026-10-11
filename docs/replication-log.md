@@ -9555,13 +9555,15 @@ columns have nothing to hold in any row and are dropped, under
 
 ### What the entry concludes
 
-Three things, and the first is the verdict. The third was measured by the
-write-up after the run, and `TestWhatThePostMeasured` in
-[tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py) pins it.
+Three things, and the first is the verdict. The third adds figures the
+write-up measured after the run, which `TestWhatThePostMeasured` in
+[tests/test_low_beta_leverage.py](../tests/test_low_beta_leverage.py) pins.
+The run itself pinned June 2001's −0.0403 and its rank.
 
 1. **Location 4684's beta match ruins the levered portfolio on this file.**
    Levered to the high fifth's beta, the low fifth lost more than its capital
-   in June 2001 and again in September 2001. That is the amendment's
+   in June 2001, and a fresh stake levered by the same rule would have lost
+   more than its capital again in September 2001. That is the amendment's
    Contradicted by ruin, and it maps to `did not reproduce`.
 2. **The rule, read at location 4684's beta match, does not hold, and the
    leverage is what breaks it.** The match asks for a leverage of up to
@@ -9576,9 +9578,9 @@ write-up after the run, and `TestWhatThePostMeasured` in
    2001 the line sat at −0.0296 against a return of −0.0337, the
    eighth-worst. Of the 83 months, 13 fell at or below June's line, and a
    normal distribution with the low fifth's monthly mean of 0.0109 and
-   standard deviation of 0.0292 gives 0.1931 for a month that bad. Any
-   leverage from 23.2017 up would have ruined June, and from 27.9461 up
-   September. So location 4700's advice against too much leverage holds,
+   standard deviation of 0.0292 gives 0.1931 for a month at or below that
+   line. The smallest leverage that ruins June is 23.2017 to four places, and
+   for September 27.9461. So location 4700's advice against too much leverage holds,
    while its reason, the fat tails, is not what the run shows. The low
    fifth's beta at formation was below 0.05 at four formations, 2001-03-30
    to 2001-06-29, and k was above 20 at eight, 2001-02-28 to 2001-09-28.

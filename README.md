@@ -620,7 +620,8 @@ where they were first built. The other forty-two were built here.
     contradicted by ruin. The low fifth's beta at formation fell as low as
     0.0280, so the match asked for a leverage of up to 69.0762, and the levered
     portfolio lost more than its capital in the month ending 2001-06-29, at a
-    leverage of 58.0262, and again in September 2001. Location 4700 warns of
+    leverage of 58.0262. A fresh stake levered by the same rule would have
+    lost more than its capital again in September 2001. Location 4700 warns of
     this: "one should be quite wary of using too much leverage on normally
     low-beta stocks". The verdict is registered, because the plan and its
     criterion were written on
@@ -630,10 +631,10 @@ where they were first built. The other forty-two were built here.
     ruined month was visible. The span is not a holdout, and every figure is
     about the stocks still in the index on 2007-11-23. Beside the verdict, the
     low fifth's Sharpe ratio of 1.0132 against the high fifth's 0.4457 is an
-    untested point estimate, exploratory, and decides nothing. Measured after
-    the run, the low fifth's return in June 2001 was −0.0403, below a ruin
-    line of −0.0144 and the sixth-worst of its 83 months, so an ordinary month
-    did the damage.
+    untested point estimate, exploratory, and decides nothing. The low fifth's
+    return in June 2001 was −0.0403, the sixth-worst of its 83 months.
+    Measured after the run, that sat below a ruin line of −0.0144, so an
+    ordinary month did the damage.
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1139,9 +1140,10 @@ holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula. It holds what the write-up measured after the run too: the
 formations whose low-fifth beta fell below 0.05 and 0.10, the formations whose
 leverage passed 20 and the look-ahead Kelly leverage, the levered wealth
-before the first ruin, the ruin line and the leverage that ruins each month,
-and the chance a normal month reaches June 2001's line, with the three
-helpers behind them on synthetic months. The blog post about it is the
+before the first ruin and the two levered losses on the way, the ruin line,
+the low fifth's worst month, the leverage that ruins each month, and the
+chance a normal month reaches June 2001's line, with the three helpers
+behind them on synthetic months. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
 
 All forty-four replications reach a verdict in
@@ -5269,8 +5271,8 @@ and draws six lessons from Entry 45 of the replication log.
    not what the run shows.
 4. The rule names no leverage, and the look-ahead Kelly leverage of 9.9884
    sat below the match at 13 formations.
-5. The plan left the ruined month undefined, and the ruin case was settled
-   after its first instance was seen.
+5. The plan left the ruined month undefined, and the owner settled the ruin
+   case after seeing its first instance.
 6. A registered result on years the claim's source could already read is
    not a holdout, and the file holds only survivors.
 
@@ -5286,12 +5288,15 @@ Five groups of what it says are not pinned here.
    that the build stopped at June 2001, and the four things seen before the
    ruin ruling. Entry 45 of the replication log records each.
 3. Readings no test asserts: that the Fama-French model ties return to beta,
-   size and book value, that growth at the Kelly leverage is the cash rate
-   plus half the Sharpe ratio squared, which the Kelly post derives, that the
-   low fifth's 1.0132 and 0.4457 make the low fifth look better, that the
-   numerator of k moved within a narrow band, that 2000 to 2007 were past
-   prices when the book printed the claim, and that high-beta stocks leaving
-   the index would flatter the high side, which is a hypothesis.
+   size and book-to-price ratio, that growth at the Kelly leverage is the
+   cash rate plus half the Sharpe ratio squared, which the Kelly post
+   derives, that in-sample Kelly leverage gives a portfolio the highest
+   growth the formula allows, that levering a portfolio k times multiplies
+   its beta by k, that the low fifth's 1.0132 and 0.4457 make the low fifth
+   look better, that the numerator of k moved within a narrow band, that
+   2000 to 2007 were past prices when the book printed the claim, and that
+   high-beta stocks leaving the index would flatter the high side, which is
+   a hypothesis.
 4. Figures the post states in words or rounds from pinned ones, such as
    more than twice the high fifth's Sharpe ratio, both 2000 formations near
    0.15, −1.44 percent for the line of −0.0144, and about one month in five
@@ -5311,15 +5316,18 @@ had no pin before it, all measured after the run.
    2001-06-29, and below 0.10 at nine, 2001-01-31 to 2001-09-28.
 2. k above 20 at eight formations, 2001-02-28 to 2001-09-28, and above the
    look-ahead Kelly leverage of 9.9884 at 13, 2000-12-29 to 2001-12-31.
-3. The levered wealth of 4.8089 through 2001-05-31, and May 2001's levered
+3. The levered wealth of 4.8089 through 2001-05-31, after levered returns of
+   −0.5456 in January 2001 and −0.4516 in March, and May 2001's levered
    return of 1.7253 on a low-fifth return of 0.0279.
 4. The ruin line at −0.0144 for June 2001, with that month's bill rate of
    0.0029, and at −0.0296 for September 2001. Its highest value is −0.0115,
-   in May 2001, and it sits below −0.10 from 2002-02-28 on.
+   in May 2001, and it sits below −0.10 from 2002-02-28 on, below the low
+   fifth's worst month, −0.0733 in July 2002.
 5. The low fifth's September 2001 return of −0.0337, the eighth-worst of 83.
 6. The 13 of 83 months at or below June's line, which holding k at 58.0262
    every month would also ruin.
-7. The leverage that ruins June 2001, 23.2017, and September 2001, 27.9461.
+7. The leverage that ruins June 2001, 23.2017, and September 2001, 27.9461,
+   and the match's 58.0262 for June at 2.50 times the first.
 8. The low fifth's monthly mean of 0.0109 and standard deviation of 0.0292,
    and the normal chance of 0.1931 of a month at or below June's line.
 

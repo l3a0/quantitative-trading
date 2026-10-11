@@ -18,8 +18,9 @@ formed 2001-04-30, for example, sits at 2001-05-31.
    marked. The y-axis stops at :data:`RETURN_LIMITS`, so the line leaves the
    panel once it falls below the lower limit.
 
-The ruined months carry the registered verdict. Every path drawn is
-exploratory, and the ruin line and the Kelly line were added after the run.
+The ruined months carry the verdict, registered under an amendment the owner
+made after June 2001 was seen. Every path drawn is exploratory, and the ruin
+line and the Kelly line were added after the run.
 
 Every value comes from :func:`chan.low_beta_leverage.read_sources` and
 :func:`chan.low_beta_leverage.build_portfolios`, the run's own path::
@@ -253,8 +254,9 @@ def make_low_beta_leverage_figure(
         f"Quantitative Trading, locations 4684 and 4709. Stocks from {SOURCE_FILE}, saved "
         f"{members[0].obtained}, survivors only.\nSPY from {spy_entry.path}, saved "
         f"{spy_entry.obtained}, and FRED's TB3MS, downloaded {bill_entry.obtained}. "
-        "Not a holdout.\nThe ruined months carry the registered verdict. The paths are "
-        "exploratory, and the ruin and Kelly lines\nwere added after the run.",
+        "Not a holdout.\nThe ruined months carry the verdict, registered under an amendment "
+        "made after June 2001 was seen.\nThe paths are exploratory, and the ruin and Kelly "
+        "lines were added after the run.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.93, bottom=0.11)
     return _save(fig, out, LOW_BETA_LEVERAGE_FIGURE)

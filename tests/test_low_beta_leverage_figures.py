@@ -11,9 +11,9 @@ gives.
 
 The figure reads the vintages and the specification that
 ``tests/test_low_beta_leverage.py`` states in its module docstring and carries
-as its ``SPEC``. The ruined months carry Entry 45's registered verdict. Every
-path drawn is exploratory, and the ruin line and the Kelly line were added
-after the run.
+as its ``SPEC``. The ruined months carry Entry 45's verdict, registered under
+an amendment the owner made after June 2001 was seen. Every path drawn is
+exploratory, and the ruin line and the Kelly line were added after the run.
 """
 
 from __future__ import annotations
@@ -102,8 +102,8 @@ class TestTheFigure:
             "Quantitative Trading, locations 4684 and 4709. Stocks from SPX_20071123.mat, saved "
             "2007-11-24, survivors only.\nSPY from spy_chan.csv, saved 2008-01-29, and FRED's "
             "TB3MS, downloaded 2026-09-30. Not a holdout.\nThe ruined months carry the "
-            "registered verdict. The paths are exploratory, and the ruin and Kelly lines\nwere "
-            "added after the run."
+            "verdict, registered under an amendment made after June 2001 was seen.\nThe paths "
+            "are exploratory, and the ruin and Kelly lines were added after the run."
         ], SPEC
 
     def test_every_panel_spans_the_83_holding_months(self, axes) -> None:
@@ -232,8 +232,10 @@ class TestTheRuinLine:
         np.testing.assert_allclose(line.get_ydata(), rf - (1 + rf) / k, rtol=1e-12)
         assert (line.get_color(), line.get_linestyle()) == (LOST, "--")
 
-    def test_the_axis_runs_from_minus_0_10_to_0_12(self, axes) -> None:
+    def test_the_axis_runs_from_minus_0_10_to_0_12(self, axes, portfolios) -> None:
         assert RETURN_LIMITS == (-0.10, 0.12)
+        assert RETURN_LIMITS[0] < portfolios.low.min(), SPEC
+        assert portfolios.low.max() < RETURN_LIMITS[1], SPEC
         assert axes["ruin"].get_ylim() == pytest.approx(RETURN_LIMITS)
         assert axes["ruin"].yaxis.get_major_formatter()(-0.05, 0) == "−0.05"
 
