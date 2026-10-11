@@ -170,6 +170,20 @@ class SharpeGap:
         return abs(self.gap) > NOISE_MULTIPLE * self.standard_error
 
 
+def memmel_variance(s_a: float, s_b: float, correlation: float, days: int) -> float:
+    """Memmel's variance of the gap between two daily Sharpe ratios, not annualised.
+
+    ``(1/T) · [2(1 − ρ) + ½(s_a² + s_b² − 2 s_a s_b ρ²)]``, the formula
+    :func:`sharpe_gap` states. It takes the correlation as an argument so a
+    reader can evaluate it at a correlation the two books do not have.
+    ``blog/khandani-lo-small-caps-lessons.md`` sets it at 0 to show how much
+    the measured correlation narrows the standard error, and
+    ``TestWhatThePostMeasured`` in ``tests/test_khandani_lo_small_caps.py``
+    pins what that gives.
+    """
+    return (2 * (1 - correlation) + 0.5 * (s_a**2 + s_b**2 - 2 * s_a * s_b * correlation**2)) / days
+
+
 def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
     """The gap between two Sharpe ratios and its standard error, Memmel's (2003) test.
 
@@ -224,7 +238,7 @@ def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
     s_a = a.mean() / a.std(ddof=1)
     s_b = b.mean() / b.std(ddof=1)
     rho = float(np.clip(np.corrcoef(a, b)[0, 1], -1.0, 1.0))
-    variance = (2 * (1 - rho) + 0.5 * (s_a**2 + s_b**2 - 2 * s_a * s_b * rho**2)) / days
+    variance = memmel_variance(s_a, s_b, rho, days)
     a_sharpe, b_sharpe = plain_sharpe(a), plain_sharpe(b)
     return SharpeGap(
         a_sharpe=a_sharpe,

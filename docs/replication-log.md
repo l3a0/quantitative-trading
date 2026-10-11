@@ -9478,7 +9478,10 @@ line of 2 standard errors, and the opens' gap at z +0.7603 sits inside it.
 
 ### What the entry concludes
 
-Three things, and the first is the finding.
+Five things, and the first is the finding. The write-up measured the last two
+after the run, and `TestWhatThePostMeasured` in
+[tests/test_khandani_lo_small_caps.py](../tests/test_khandani_lo_small_caps.py)
+pins them.
 
 1. **On Chan's S&P 600 file the reversal earns more before costs than on his
    S&P 500 file, at both prices.** That is the direction Chan's explanation
@@ -9491,6 +9494,22 @@ Three things, and the first is the finding.
    Every after-cost gap is positive. The run charges both universes the same
    5 basis points, so these figures overstate what a trader in small caps
    would keep relative to one in large caps.
+4. **Every book trades about the same, so the profit decides what costs
+   leave.** On the specification with the first day charged, the four books
+   trade between 1.4505 and 1.4729 times their mean position a day and pay
+   between 7.2525 and 7.3644 basis points of it. The S&P 600's closes earn
+   6.7197 basis points a day, so their cost is 1.0945 times their profit,
+   against 13.7453 for the S&P 500's closes. The S&P 600's opens earn 11.8569
+   and the S&P 500's 8.9815. The cost a side at which each book breaks even
+   is 4.57 basis points for the S&P 600's closes, 8.05 for its opens, 0.36
+   for the S&P 500's closes and 6.14 for its opens.
+5. **The correlation narrows the closes' standard error, and the open lifts
+   the S&P 500 far more.** With the correlation set to 0, Memmel's standard
+   error on the closes would be 1.4252 rather than 0.9872, and the gap would
+   be 2.2155 standard errors. The term 2(1 − ρ) carries 0.98 of the formula's
+   bracket on the closes and 0.94 on the opens, because a daily Sharpe ratio
+   is small. The open lifts the S&P 500's figure before costs by 4.1693 and
+   the S&P 600's by 1.8966, which is why the gap shrinks at the open.
 
 ### What this entry cannot say
 
@@ -9525,7 +9544,10 @@ nothing about where their returns came from. The report prints 4.47 and judges
 it against nothing.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.khandani_lo_small_caps_figures` redraws.
 
 ## Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*
 
@@ -9931,7 +9953,10 @@ say where the figures above are fragile.
 
 ### What the entry concludes
 
-Three things.
+Four things. The fourth was measured by the write-up after the runs, and
+`TestWhatThePostMeasured` in
+[tests/test_pead_rerun.py](../tests/test_pead_rerun.py) pins it. It decides
+nothing.
 
 1. **On the same stocks, R1 earns more than Chan's flags in this one
    exploratory sample.** On CAL, R1 lifts A_CAL's 0.054481 to 0.071050 and
@@ -9950,9 +9975,9 @@ Three things.
    1.6585 against A_U's 0.043678 and 1.2815. Neither reaches Chan's 0.066743
    on all 497. E1 against A is −0.009254 in return and +0.1677 in Sharpe
    ratio, because the universe moves the return more than anything else.
-2. **The universe moves the figure most, and the vendor and the basis
-   barely move it, as the audit expected.** Dropping the stocks outside U
-   takes 0.023065 off the arithmetic return. The vendor and the basis move it
+2. **The universe moves the arithmetic return most, and the vendor and the
+   basis barely move it, as the audit expected.** Dropping the stocks outside
+   U takes 0.023065 off the arithmetic return. The vendor and the basis move it
    by about a ten-thousandth each. A same-day return from the open to the
    close does not depend on the basis, which moves only the overnight gap and
    its 90-day deviation, so D takes 954 trades where C takes 964 and earns
@@ -9984,6 +10009,31 @@ Three things.
    row 38, and each of them would have flagged a day weeks early. R1 reads
    only the acceptance time, so the cutoff costs it nothing inside the
    window.
+4. **The universe effect is exactly the trades of the 56 stocks outside U.**
+   Each stock trades on its own gap and its own 90-day deviation, so
+   dropping some stocks changes nothing about the trades of the rest. A is
+   therefore A_U's trades plus those of the stocks outside U, and row 18 is
+   their contribution, all of it. It splits three ways.
+   1. The 9 stocks with no checked CIK take 20 trades and add 0.012261,
+      which is exactly A against A_CAL, read from the true value.
+   2. The 4 stocks of CAL whose series holds another company's returns,
+      AGN, CB, JCI and LSI, take 8 trades and add 0.002526.
+   3. The 43 stocks of CAL whose series lacks closes or was never proposed
+      take 95 trades and add 0.008278. 35 of those series start after
+      2012-04-24, EP's lacks the window's first 35 days, and 7 were never
+      proposed, since the `sp500` cross-section holds no series under their
+      tickers.
+
+   The 47 stocks of CAL with no checked series are the last two groups,
+   with 103 trades adding 0.010803. With U's 441 stocks, 949 trades and
+   0.043678, the groups sum to A's 0.066743. The stocks outside U carry 0.35
+   of it. The 13 whose ticker is not tied to the right company, the first two
+   groups, take 28 trades and add 0.014787, 0.64 of the universe effect. On
+   2011-08-04 the stocks outside U add 0.010702 through 8 trades, 0.46 of the
+   universe effect on one day, and the largest of those trades is WFR short
+   at 0.1108. Their mean trade is 0.007367 over 123 against 0.001808 over
+   U's 949, a Welch t of 1.46 that treats every trade as independent, so
+   chance is not ruled out.
 
 ### What this entry cannot say
 
@@ -9995,7 +10045,7 @@ would fix the rule and run it on data after 2012.
 
 **What the stocks outside U would have earned.** Their CIK or their
 series did not pass its check, so nothing here prices them on a second
-source. Most of the universe effect is theirs.
+source. All of the universe effect is theirs, as conclusion 4 shows.
 
 **Whether a filing is an earnings release.** Item 2.02 is the item a release
 is filed under, and nothing here reads the filing's text, so an 8-K that
@@ -10008,9 +10058,18 @@ open. Row 33 finds
 once the closes are put on one scale. GCI's raw open repeats a stale value
 of about 15.378 on five days, each the first after a market holiday, in row
 34. Putting Chan's open in place of each of the 64 moves C and E1 little, in
-rows 35 and 36. It moves E5 by −0.004566 and −0.1039, in row 37, because one
-trade, PNC on 2011-09-12, turns from long to short. That one trade moves E5
-more than the vendor and basis effects of rows 20 and 21 together. Not every
+rows 35 and 36. It moves E5 by −0.004566 and −0.1039, in row 37, through
+three trades.
+
+1. PNC on 2011-09-12 turns from long to short, worth −0.002261.
+2. MCO on 2012-02-08 stays short and earns less, worth −0.001751.
+3. TMK on 2011-10-27 stays long and earns less, worth −0.000554.
+
+The PNC flip alone moves E5 more than the vendor and basis effects of rows
+20 and 21 together. E1's move is the same MCO and TMK trades and CAM on
+2011-10-27, which turns from long to short and gains 0.001766.
+`TestTheArchiveOpens::test_three_trades_make_each_of_e5s_and_e1s_moves`
+holds all six, measured by the write-up after the runs. Not every
 one of the 64 is an error, though. 30 fall on 2011-10-27 and 24 on
 2011-09-12, days on which many stocks disagree at once, which reads more
 like two vendors defining the open differently.
@@ -10020,7 +10079,11 @@ positions on one day against a denominator of 30, and nothing here sizes the
 book by each day's count.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/pead-edgar-rerun-lessons.md](../blog/pead-edgar-rerun-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one
+figure, drawn from committed files only, which
+`uv run python -m chan.pead_rerun_figures` redraws.
 
 ## Entry 47: the VIX filter on buy on gap and the STOXX Europe 50 gap rule, Chan's *Algorithmic Trading*
 

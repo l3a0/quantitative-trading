@@ -680,9 +680,12 @@ closes, +3.1576, is more than three times its standard error of 0.9872, and
 the gap on the opens, +0.8850, is smaller than its 1.1640, so one year of the
 opens cannot tell the two universes apart. The standard error assumes
 independent, normal days, which a reversal's are not, so it is an
-approximation. It is exploratory, both files hold
-only survivors, and it says nothing about microcaps, which the S&P 600 does
-not hold.
+approximation. After 5 basis points a side the S&P 600's closes lose only a
+little. The rule trades about the same amount a day on both files at both
+prices, so the profit decides, and the S&P 600's average day on the closes
+pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
+exploratory, both files hold only survivors, and it says nothing about
+microcaps, which the S&P 600 does not hold.
 
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
@@ -697,9 +700,9 @@ calendar a trader could have built before each open give 0.057489 and 1.6585.
 Most of that rise in return comes from the calendar taking more trades,
 because the rule divides each day by a fixed 30. Each trade earns only about 6
 percent more on average than on Chan's flags. Narrowing the 497 stocks to
-those 441 moves the figure most, by −0.023065, and the vendor and the price
-basis move it by about a ten-thousandth each, judged on the closes. Every
-figure is exploratory, and Entry 46 in
+those 441 moves the arithmetic return most, by −0.023065, and the vendor and
+the price basis move it by about a ten-thousandth each, judged on the closes.
+Every figure is exploratory, and Entry 46 in
 [docs/replication-log.md](docs/replication-log.md) carries them all, with the
 checks on the archive's opens that the series check does not make.
 
@@ -773,7 +776,14 @@ reading. It works Memmel's standard error by hand on a four-day series. It
 also holds that the two files' 2006 calendars are the same 251 days, that
 BCSI's and SCUR's two days past the scale-break bound are weighted, that PMC,
 two companies under one symbol with no 2006 price, carries no weight, and that
-the scale-break guard refuses the window on exactly those two days.
+the scale-break guard refuses the window on exactly those two days. It holds
+what the write-up measured after the run too: the average day of the three
+books `tests/test_khandani_lo.py` does not already pin, the cost a side at
+which each of the four breaks even, the open's lift in each universe, the
+closes' standard error with the correlation set to 0, and the share of
+Memmel's bracket the correlation term carries on each price, with the helper
+behind them worked by hand. The blog post about it is the exception, and what
+it says that nothing here asserts is listed below.
 
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
@@ -798,6 +808,7 @@ first edition's `smartstd` landing on 0.0668, so a port that reaches for the
 helper this repo already held fails a test rather than reading as a near
 miss. The blog post about it is the exception, and what it says that nothing
 here asserts is listed below.
+
 [tests/test_pead_rerun.py](tests/test_pead_rerun.py) does it for the rerun on
 EDGAR's calendar. It pins the figures, trades, busiest day and mean return
 per trade of each run
@@ -805,7 +816,15 @@ per trade of each run
 before it ran, the attribution, and each calendar's cell-by-cell agreement
 with Chan's flags. The pins that read the
 archive's prices skip unless the archive is configured and
-`QT_ARCHIVE_RUN=1`.
+`QT_ARCHIVE_RUN=1`. Its `TestWhatThePostMeasured` holds what the post on the
+rerun measured after the runs: run A split among U and the groups of
+stocks outside it, why each stock outside U failed its check, the day the
+stocks outside U add most, their mean trade against U's, R1's extra trades
+priced at its own mean, and the days B1 and B5 hold more than 30 positions.
+Every one of those reads committed files and decides nothing. The trades
+behind each move of E1 and E5 on Chan's opens are pinned beside the opens, and
+skip with them. The blog post about it is the exception, and what it says that
+nothing here asserts is listed below.
 
 [tests/test_pca_factor.py](tests/test_pca_factor.py) does it for the PCA
 factor model. It pins each printout's figures as the printout formats them and
@@ -5428,6 +5447,236 @@ uv run python -m chan.vx_es_roll_return_figures
 
 [tests/test_vx_es_roll_return_figures.py](tests/test_vx_es_roll_return_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/khandani-lo-small-caps-lessons.md](blog/khandani-lo-small-caps-lessons.md)
+is a thirty-eighth post, about Khandani and Lo's reversal on Chan's S&P 600
+file, which tests his explanation at Kindle location 2137 of *Quantitative
+Trading* that most of Khandani and Lo's returns came from small and microcap
+stocks. Example 3.8 leaves that run as an exercise at location 2236 and prints
+no figure for it. The post links the survivorship and costs post and the post
+on Chan's 2012 panel rather than repeating them, and draws six lessons from
+Entry 44 of the replication log.
+
+1. At the close the S&P 600 earns 3.4086 before costs against the S&P 500's
+   0.2510, a gap of +3.1576 and 3.1987 standard errors.
+2. At the open the gap is +0.8850 and 0.7603 standard errors, because the
+   open lifts the S&P 500 by 4.1693 and the S&P 600 by 1.8966.
+3. Memmel's test of a gap between two Sharpe ratios uses the correlation of
+   the two books' daily profits. With the correlation set to 0, the closes'
+   standard error would be 1.4252 rather than 0.9872.
+4. After 5 basis points a side the closes lose and the opens keep a profit.
+   Every book trades between 1.4505 and 1.4729 times its position a day, so
+   the profit decides, and the S&P 600's closes break even at 4.57 basis
+   points a side.
+5. The check for split prices flags BCSI on 2006-02-06 and SCUR on
+   2006-07-12, and same-day news shows both were earnings warnings that
+   traded.
+6. The declared reading points the way Chan says, on one year of survivors
+   and no microcaps, and the S&P 400 is the third point, not yet run.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
+   through [its committed notes](research/book-notes/quantitative-trading.md).
+   Khandani and Lo's 4.47 is at 2099, the explanation at 2137, the exercise at
+   2236, the 5 basis points for S&P 500 stocks at 998, low-priced stocks'
+   wider spreads at 2639, small caps being hard to borrow at 2730, and a move
+   without news reverting at 3109.
+2. Facts about the book and the code rather than the data: that Example 7.4
+   reads the same S&P 600 file, that the notebook's rule fills each gap with
+   the last price seen, and that a split halves a price the file may not
+   adjust.
+3. Readings no test asserts: that the open's lift removes most of what
+   separated the two universes at the close, that the rule replaces about the
+   same share of its book in every universe, that one cost on both universes
+   flatters the S&P 600, that the S&P 600 holds no microcaps, that the
+   reversal bought the two flagged stocks on days Chan's reasoning gives no
+   cause to expect a bounce, that the daily profits are neither independent
+   nor normal, that the 2012 panel's rule is a close cousin of this one, that
+   the distance between two running totals says nothing about how much the
+   daily profits swing, that a reversal buys exactly the stocks that fell, and
+   that ignoring the correlation understates the noise in a gap when two
+   books' daily profits move against each other.
+4. Facts from outside the data and figures stated in words: the two news
+   reports on BCSI and SCUR, their dates and what they say, that no source
+   states SCUR's close, the bound written as 0.625 for 1/1.6, and words such
+   as far more, barely past the line and about the same. The prose writes
+   pinned fractions in percent, such as 98 percent for 0.98. The figure's alt
+   text reads its curves approximately too, such as the S&P 500's dashed line
+   on the opens dipping below zero in the middle of the year and the S&P
+   600's on the closes falling below zero in the spring.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_khandani_lo_small_caps.py](tests/test_khandani_lo_small_caps.py),
+or to
+[tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
+for the figure's own numbers, which include the low of the S&P 600's dashed
+line on the closes, −6.3% on 2006-06-30. The S&P 500's average day on the
+closes traces to `TestWhatAnAverageDayCosts` in
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py), and the factor of 1.6
+to [tests/test_scale_breaks.py](tests/test_scale_breaks.py).
+`TestWhatThePostMeasured` holds the ones that had no pin before it, all
+measured after the run.
+
+1. The average day on the charged specification for the S&P 600's closes,
+   6.7197 basis points of profit, 7.3545 of cost, a turnover of 1.4709 and a
+   cost of 1.0945 times the profit, for the S&P 600's opens, 11.8569, 7.3644,
+   1.4729 and 0.6211, and for the S&P 500's opens, 8.9815, 7.3182, 1.4636 and
+   0.8148.
+2. The cost a side at which each book breaks even, 4.57 and 8.05 basis points
+   for the S&P 600's closes and opens, and 0.36 and 6.14 for the S&P 500's.
+3. The open's lift before costs, 4.1693 for the S&P 500 and 1.8966 for the
+   S&P 600.
+4. The closes' standard error with the correlation set to 0, 1.4252, and the
+   gap's 2.2155 standard errors against it, and the share of Memmel's
+   bracket the correlation term carries, 0.98 on the closes and 0.94 on the
+   opens.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/khandani_lo_small_caps_figures.py](src/chan/khandani_lo_small_caps_figures.py),
+which reads them through the same `compare` as
+`python -m chan.khandani_lo_small_caps` and sums each book's days with the
+same `cumulative` the survivorship and costs post's figure uses. It draws two
+panels, the closes above the opens, each with four running totals over 2006
+as a share of each book's mean position: the S&P 600 and the S&P 500, each
+before costs and after 5 basis points a side with the first day charged. Each
+panel's heading states its gap before costs, the gap's standard error and z.
+
+```bash
+uv run python -m chan.khandani_lo_small_caps_figures
+```
+
+[tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/pead-edgar-rerun-lessons.md](blog/pead-edgar-rerun-lessons.md) is a
+thirty-ninth post, about Example 7.2 of Chan's *Algorithmic Trading* rerun
+off his own files, on an announcement calendar read from EDGAR's Item 2.02
+filings and on Alpha Vantage prices from the owner's archive. Chan reports an
+APR of 6.7 percent and a Sharpe ratio of 1.5, which the post on post-earnings
+drift reproduces on his files. This post links that one for the rule, the
+fixed 30 and the flag counts rather than repeating them, and draws four
+lessons from Entry 46 of the replication log. Every result in it is
+exploratory, and the runs on the archive's prices cannot be rerun by a reader.
+
+1. A filer check against EDGAR and a price-series check against Alpha
+   Vantage drop 56 stocks, and they carry 0.023065 of A's 0.066743, 0.35 of
+   it, exactly A against A_U. The 13 whose ticker cannot be tied to the right
+   company, the 9 that fail the filer check and 4 reused tickers, carry
+   0.014787 of that, 0.64 of it. The other 43 fail because the archive does
+   not hold their prices for the whole window under the ticker. Close to half
+   of the 0.023065 comes on 2011-08-04.
+2. EDGAR's submissions file reads some filers' acceptance times 4 or 5 hours
+   late, which would move every before-open release of a filer whose time
+   reads late into the session.
+3. R1 lifts A_CAL's 0.054481 to 0.071050, and the extra trades are 0.75 of the
+   gain at A_CAL's mean per trade and 0.79 at R1's own.
+4. The vendor and the price basis move the return by about a ten-thousandth
+   each, and three trades on disputed opens move E5 by −0.004566.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   the earnings.com calendar and its window from the previous close to the
+   open at 3002, the 4:00 p.m. and 9:30 a.m. times at 3010, and the book's
+   6.7 percent and 1.5 at 3024. The figures at 3024 are pinned by
+   [tests/test_pead.py](tests/test_pead.py), and the words are not.
+2. The sample of the submissions file's acceptance times taken while
+   planning the rerun, 175 of 248 filings from 38 filers true UTC and 73 a
+   further 4 or 5 hours late, with Apple among them. It is not committed, and
+   `chan.earnings_filings`'s docstring records it. That the extra shift is 4
+   hours under daylight saving time and 5 under standard time, and that a
+   filer read late was read late on every filing, are readings of it.
+3. Facts about EDGAR, the archive and the code read when the record was
+   built rather than computed from committed files: that today's ticker table
+   sends CB to Chubb Limited, which was ACE in 2012 and filed its own
+   releases in the window, that the archive's CB series holds ACE's history,
+   that the archive files UTX under RTX and adjusts only the close, that
+   DuPont's proposed filer was formed after 2015, that R5 matched Chan's
+   flags best on a sample of 32 stocks, and the check's 3 percent tolerance
+   on price, a constant in `chan.earnings_filings`.
+4. Readings and figures the post states in words or rounds from pinned ones,
+   such as a third, about two thirds, close to half, three quarters and
+   nearer four fifths, Apple's times read after a double conversion as about
+   8:30 p.m. for the four filed under daylight saving time and 9:30 p.m. for
+   the two in January, about a ten-thousandth, the 54 disagreements on the
+   two days, that a filing from 11:00 a.m. in winter or noon in summer
+   onward moves past the close when read late, that two vendors defining the
+   open differently explains the two days, and that a release can precede
+   the filing that reports it. The figure's alt text reads its curves
+   approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py), to
+[tests/test_earnings_filings.py](tests/test_earnings_filings.py) for the
+universes' tickers and filers, the 398 series that pass under Chan's own
+tickers and the 48 companies under a later ticker, the 2 and 72 to 194 days a
+series differs on, ACE's 5.92 percent, and the index's 2,930 filings, 1,460
+before the open and 405 in the session, Apple's times and the earliest and
+latest times of day, to [tests/test_pead_figures.py](tests/test_pead_figures.py)
+for 2011-08-04 as the high A's longest drawdown starts from, or to
+[tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) for the
+figure's own numbers. Eight had no pin before it, and all were measured after
+the runs.
+
+1. That A less A_U is exactly the trades of the 56 stocks outside U, and A
+   less A_CAL exactly those of the 9 outside CAL, 0.012261 rounded from the
+   true value.
+2. The three groups, 441 stocks with 949 trades adding 0.043678, 47 with
+   103 adding 0.010803 and 9 with 20 adding 0.012261, and the 56 carrying
+   0.35 of A.
+3. On 2011-08-04 the stocks outside U add 0.010702 through 8 trades, 0.46 of
+   the universe effect, the largest WFR short at 0.1108. The five largest
+   trades outside U are shorts of stocks outside CAL carrying 0.54 of the
+   outside sum.
+4. The mean trade outside U, 0.007367 over 123, against 0.001808 over 949
+   inside, and a Welch t of 1.46.
+5. R1's extra trades as 0.79 of its gain at its own mean, and B1 and B5
+   holding more than 30 positions on 4 and 10 days.
+6. That no filing was accepted before 06:00:43 or after 21:49:59 Eastern on
+   any day, so a time read 4 or 5 hours late puts every filing accepted
+   before the open inside the session.
+7. When the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set,
+   the trades behind each move on Chan's opens: PNC on 2011-09-12 at
+   −0.002261, MCO on 2012-02-08 at −0.001751 and TMK on 2011-10-27 at
+   −0.000554 for E5, and the same MCO and TMK with CAM on 2011-10-27 at
+   +0.001766 for E1.
+8. Why each of the 47 stocks of CAL outside U has no checked series, and
+   what each cause adds to A. 36 series lack closes and 7 were never
+   proposed, and 4 reused tickers hold another company's returns: AGN, CB,
+   JCI and LSI. 35 of the 36 lack all 330 closes, and the committed manifest
+   of the archive dates each of those series' first row after 2012-04-24,
+   ALTR's on 2017-11-01, DELL's on 2018-12-21 and DOW's on 2019-03-20. EP's
+   starts on 2011-02-23 and lacks 35, and the 7 have no line in the
+   archive's `sp500` cross-section. The 4 take 8 trades adding 0.002526, the
+   43 take 95 adding 0.008278, and the 13 that cannot be tied to the right
+   company, the 4 and the 9 outside CAL, take 28 adding 0.014787, 0.64 of
+   the universe effect.
+
+Its one figure is drawn from committed files only by
+[src/chan/pead_rerun_figures.py](src/chan/pead_rerun_figures.py), which reads
+them through the same `read_committed` and `committed_runs` as
+`python -m chan.pead_rerun`, so the scale-break guard runs for it too. It
+draws two panels and leaves out the four runs on the archive's prices.
+
+1. Run A's arithmetic annual return built up over its 330 days from the
+   stocks of U, those with a checked filer and no checked series, and those
+   with no checked filer, with 2011-08-04 marked.
+2. Each committed run's trades against its mean return per trade, with
+   dashed curves of equal return through A and A_CAL and arrows from A to
+   A_U and from A_CAL to B1 and B5.
+
+```bash
+uv run python -m chan.pead_rerun_figures
+```
+
+[tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the
 regime map.
 
 ## Where the book's numbers come from
