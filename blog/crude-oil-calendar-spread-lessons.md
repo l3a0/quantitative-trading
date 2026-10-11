@@ -101,7 +101,7 @@ What the trade earns tracks the spread rather than γ. The script’s daily retu
 
 Both can be true of one series. The ADF test says γ returns to a long-run level over the 1,941 days from 2004. The trade earns from the spread continuing past the side γ’s recent average puts it on, over the following days.
 
-A few paragraphs later, Chan tries “this same linear mean reversion strategy” on VIX futures, futures on an index of expected stock market volatility, with the ratio of the back contract to the front one as the signal (Chan, 2013, location 2502). The log of that ratio is the spread itself, so on VIX the reversal where the signal is above its average does bet on reversion.
+A few paragraphs later, Chan tries “this same linear mean reversion strategy” on VIX futures, futures on an index of expected stock market volatility, with the ratio of the back contract to the front one as the signal (Chan, 2013, location 2502). The log of that ratio is the spread itself. So on VIX, where the ratio is the one of the pair the trade holds, the reversal where the signal is above its average does bet on reversion. The [post on VIX calendar spreads](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-calendar-spread-lessons.md#lesson-2-the-signal-reads-one-pair-and-the-trade-holds-another) measures that the plainest reading of the book, which takes the ratio of the nearest two contracts, reads a different pair from the one the script holds on most days.
 
 ## Lesson 3: the book’s 61 days and the script’s 63 give different trades
 
