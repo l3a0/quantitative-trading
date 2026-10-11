@@ -451,14 +451,14 @@ The price is throughput. Every write-up edits `README.md`, `docs/replication-log
 
 ## Keep the build board current
 
-The build board is a page that answers what is in flight and what to take next. It reads no disk and polls no API, so every figure on it was measured by hand. A session that changes what it shows and then leaves has made it wrong, and nothing else notices.
+The build board is a page that answers what is in flight and what to take next. It lives on GitHub Pages, and a GitHub Action rebuilds it from GitHub on every issue, comment and pull request change and on a schedule. No session writes it. What the board cannot read from GitHub on its own is judgement: which cards are ranked and in what order, which session holds a card, whether a plan is finished, and what a card waits on. A session that makes one of those calls and does not set it on GitHub has made the board wrong, and nothing else notices.
 
-So a session that changes any of these updates it: a decompose loop's verdict, a pull request's existence, its review or its checks, or an issue's existence, title or labels. The `update-build-board` skill under `.claude/skills/` owns the procedure, the full list of moments and the reasons behind each step. This section says that the rule exists, and the skill says what it covers and how, so neither repeats the other and only one of them goes stale when the page gains a state.
+So a session that starts or ends work on a card, finishes a decompose loop, posts a review, files an issue, or changes an issue's priority or what it waits on sets the matching label, native "blocked by" link or marker line. The `update-build-board` skill under `.claude/skills/` owns the formats, the full list of moments and the reasons behind each step. This section says that the rule exists, and the skill says what it covers and how, so neither repeats the other and only one of them goes stale when the page gains a state.
 
 Two limits are worth stating rather than leaving a reader to infer.
 
-1. The board is a private artifact on the owner's account, and its figures live in that artifact's database. A session without access to it, or without the `ArtifactData` tool that writes the database, cannot do this and should say so in its handover rather than treat the rule as failed.
-2. What argues for the rule is one measured failure rather than a comparison. An update run against figures carried in a session's head shipped 39 open issues when a query said 40, which is why the skill leads with reading the live data and re-measuring. Nothing has yet measured what a stale board costs a reader, so the rule is a convention this repo keeps rather than a cost it has priced.
+1. A "blocked by" link and a sub-issue start no run of the Action, so they reach the board on the next scheduled run rather than at once. Everything else a session sets starts a run.
+2. What argues for the rule is measured cost rather than a failure. Writing the board by hand cost about $51 a day in session turns and still missed every change no session saw, which [issue 531](https://github.com/l3a0/quantitative-trading/issues/531) measured and [issue 533](https://github.com/l3a0/quantitative-trading/issues/533) moved onto GitHub. Nothing has yet measured what a stale label costs a reader, so setting them is a convention this repo keeps rather than a cost it has priced.
 
 ## Keep the main thread free
 
@@ -484,7 +484,7 @@ Two things stay in the foreground.
 1. A step whose result the very next action needs, when nothing else can usefully happen meanwhile. Say in a line what it is waiting on, so the owner knows the thread is busy.
 2. Anything only the owner can answer, which includes every approval, such as publishing a Substack post. That is a conversation, so it happens on the main thread, while the checks before and after it can run anywhere. A background decompose loop that reaches a question only the owner can answer hands back at once, the main thread asks it, and the loop resumes with the ruling.
 
-The price is named rather than hidden. A sub-agent starts with none of the session's context, so its prompt has to carry everything it needs, as a spawned session's prompt already does. Two background workers can also reach the same shared state at once. Each board write names the version it read, so the second writer is refused and has to re-read and redo its write. State with no such check, such as an issue body, gets one writer: background agents report what to change, and the main thread writes it.
+The price is named rather than hidden. A sub-agent starts with none of the session's context, so its prompt has to carry everything it needs, as a spawned session's prompt already does. Two background workers can also reach the same shared state at once. State with no check against a lost update, such as an issue body, gets one writer: background agents report what to change, and the main thread writes it.
 
 ## Research pins
 

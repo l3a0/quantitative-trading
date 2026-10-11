@@ -1,23 +1,23 @@
 """The build board's page, run rather than read.
 
-The board's page is checked in under ``.claude/skills/update-build-board`` so a
-new board can be published from it. Its data lives in the published artifact's
-database, in six documents, and a new board's database starts with none of
-them. So the page carries no copy of the board, and when it has no live data it
-must say so and draw nothing that reads as data. A stale copy drawn as if it
-were current is the failure this file exists to catch.
+The board's page is checked in under ``.claude/skills/update-build-board``, and
+a GitHub Action publishes it on GitHub Pages beside ``board.json``, which the
+same Action builds from GitHub. The page fetches that file on a timer. It
+carries no copy of the board, so when it has no live data it must say so and
+draw nothing that reads as data. A stale copy drawn as if it were current is
+the failure this file exists to catch.
 
 A parse check would not catch it. A page that draws stale cards parses, and a
 banner sentence that renders perfectly can still say something false. So each
 test executes the page's script under a JavaScript engine, with the skill's
-``dom-stub.js`` standing in for the browser and a fake database standing in for
-the platform, and reads what the page rendered.
+``dom-stub.js`` standing in for the browser and a fake fetch serving
+``board.json``, and reads what the page rendered. The driver serves one
+response per poll and fires the page's timer between them.
 
-The same page also serves the board an Action builds on GitHub Pages, where
-there is no database and the page fetches ``board.json`` on a timer instead.
-So the tests drive it two ways. The database driver delivers snapshots, and
-the fetch driver serves responses to a fake fetch and fires the page's timer.
-Both stay until the artifact board is retired, per issue 533.
+Until issue 533 the page also read a claude.ai artifact's database, and these
+tests drove it through a fake one as well. That board retired, so the database
+driver went with it, and a test that once delivered sections one at a time now
+serves a file missing a section.
 
 The engine is ``node`` where it is installed, which it is on GitHub's runners,
 and ``osascript -l JavaScript`` otherwise, which is JavaScriptCore and ships
@@ -31,7 +31,6 @@ import json
 import re
 import shutil
 import subprocess
-import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -41,52 +40,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO_ROOT / ".claude" / "skills" / "update-build-board"
 PAGE = SKILL_DIR / "board.html"
 STUB = SKILL_DIR / "dom-stub.js"
-WITH_DB = SKILL_DIR / "with-db.py"
 FIXTURE = REPO_ROOT / "tests" / "fixtures" / "build_board"
 SECTIONS = ("state", "prs", "working", "planned", "next", "tracker")
 
 # What the page renders into when it has data. With none, all three are hidden.
 CONTENT = ("flightsec", "ordersec", "foot")
-
-# Appended after the page's script. It waits for the page's own database lookup
-# to settle, delivers each step's snapshots, and prints every element the page
-# touched. A step maps a section to its document, or to null for a document that
-# does not exist. The result arrives after the script's last line, so it is
-# printed rather than returned: through `console.log` in node and osascript, and
-# through `print` in a bare JavaScriptCore shell, which has no console. The
-# page's loading banner arms a four-second timer when it has a copy to show, so
-# a no-op timer keeps node from waiting on it. When the prelude names a card in
-# `__CLICK`, the driver clicks it after the last step, which is the only way
-# the chain bar renders anything but its hint.
-DRIVER = """
-var __flush = async function () { for (var i = 0; i < 20; i++) { await null; } };
-(async function () {
-  var out = { error: null, ids: {} };
-  try {
-    await __flush();
-    for (var k = 0; k < __STEPS.length; k++) {
-      var step = __STEPS[k];
-      Object.keys(step).forEach(function (name) {
-        var doc = step[name];
-        var cb = __SUBS["board/" + name];
-        if (!cb) { throw new Error("the page never subscribed to board/" + name); }
-        cb({ exists: doc !== null, data: function () { return doc; } });
-      });
-      await __flush();
-    }
-    if (typeof __CLICK === "number") {
-      store.board.onclick({ target: { closest: function (sel) {
-        return sel === ".tk" ? { dataset: { n: String(__CLICK) } } : null; } } });
-    }
-  } catch (e) { out.error = String(e && e.stack || e); }
-  Object.keys(store).forEach(function (id) {
-    out.ids[id] = { html: store[id].innerHTML, hidden: store[id].hidden === true };
-  });
-  var line = "BOARD_RESULT " + JSON.stringify(out);
-  if (typeof console !== "undefined" && console.log) { console.log(line); } else { print(line); }
-})();
-void 0;
-"""
 
 
 def _engine() -> list[str]:
@@ -111,51 +69,18 @@ def _page_script(page: Path) -> str:
     return text[start:end]
 
 
-def _prelude(db: bool, steps: list[dict], click: int | None = None) -> str:
-    """The fake platform, set up before the page's script runs.
-
-    With ``db`` false there is no ``claude`` global at all, which is what a view
-    with no database sees. Otherwise ``claude.use("db")`` resolves to a database
-    whose ``doc(path).onSnapshot`` records the page's callback for the driver.
-    """
-    # The page fetches board.json when it finds no database and the host has a
-    # fetch. node has one, osascript does not, so the database driver declares
-    # none, and a view with no database behaves the same under either engine.
-    lines = [
-        "var setTimeout = function () { return 0; };",
-        "var fetch = undefined;",
-        "var __SUBS = {};",
-        f"var __STEPS = {json.dumps(steps)};",
-    ]
-    if click is not None:
-        lines.append(f"var __CLICK = {int(click)};")
-    if db:
-        lines.append(
-            "globalThis.claude = { use: function (cap) { return Promise.resolve("
-            "cap === 'db' ? { doc: function (path) { return { onSnapshot: "
-            "function (cb, err) { __SUBS[path] = cb; } }; } } : null); } };"
-        )
-    return "\n".join(lines) + "\n"
-
-
-def run_page(
-    tmp_path: Path, *, db: bool, steps: list[dict], page: Path = PAGE, click: int | None = None
-) -> dict:
-    """Execute the page and return each element's HTML and hidden state."""
-    script = (
-        STUB.read_text(encoding="utf-8") + _prelude(db, steps, click) + _page_script(page) + DRIVER
-    )
-    return _execute(tmp_path, script)["ids"]
-
-
-# The fetch driver, for the board on GitHub Pages, which has no database. The
-# prelude below hands the page a fake fetch answering with the current step's
-# response, and records the page's timers. The page fetches once on load, which
-# takes the first response. The driver then fires the page's fetch timer once
-# per further response, as two minutes passing would, and prints what the page
-# drew and every fetch it made. A comment planted in the build order after the
-# first draw survives only if no later fetch redraws it, which is how a test
-# sees whether the page drew again.
+# The driver. The prelude below hands the page a fake fetch answering with the
+# current step's response, and records the page's timers. The page fetches once
+# on load, which takes the first response. The driver then fires the page's
+# fetch timer once per further response, as two minutes passing would, and
+# prints what the page drew and every fetch it made. A comment planted in the
+# build order after the first draw survives only if no later fetch redraws it,
+# which is how a test sees whether the page drew again. The result arrives after
+# the script's last line, so it is printed rather than returned: through
+# `console.log` in node and osascript, and through `print` in a bare
+# JavaScriptCore shell, which has no console. When the prelude names a card in
+# `__CLICK`, the driver clicks it after the last response, which is the only way
+# the chain bar renders anything but its hint.
 FETCH_DRIVER = """
 var __flush = async function () { for (var i = 0; i < 50; i++) { await null; } };
 var __MARK = "<!--first draw-->";
@@ -170,6 +95,10 @@ var __MARK = "<!--first draw-->";
       await __flush();
     }
     for (var h = 0; h < __HELD.length; h++) { __HELD[h](); await __flush(); }
+    if (typeof __CLICK === "number") {
+      store.board.onclick({ target: { closest: function (sel) {
+        return sel === ".tk" ? { dataset: { n: String(__CLICK) } } : null; } } });
+    }
   } catch (e) { out.error = String(e && e.stack || e); }
   var __board = document.getElementById("board");
   out.redrawn = __board.innerHTML.indexOf(__MARK) < 0;
@@ -184,14 +113,14 @@ void 0;
 """
 
 
-def _fetch_prelude(responses: list[dict], db: bool) -> str:
+def _fetch_prelude(responses: list[dict], click: int | None = None) -> str:
     """A fake fetch serving ``responses`` in turn, and a timer list to fire.
 
     Each response is ``{"status": n, "body": text}``, or ``{"throw": true}``
     for a network failure. One carrying ``"hold": true`` stays unanswered
     until every other response has been served, which is a slow answer
-    arriving after a later poll's. With ``db`` true the page also gets a database
-    holding no documents, which is how a test shows it never fetches then.
+    arriving after a later poll's. One carrying ``"never": true`` is never
+    answered, which is a page still waiting for its first board.
     """
     lines = [
         "var setTimeout = function () { return 0; };",
@@ -209,27 +138,24 @@ def _fetch_prelude(responses: list[dict], db: bool) -> str:
         "var fetch = function (url, opts) {",
         "  __FETCHES.push({ url: url, cache: opts && opts.cache });",
         "  var r = __RESP[__CUR];",
+        "  if (r.never) { return new Promise(function () {}); }",
         "  if (!r.hold) { return __answer(r); }",
         "  return new Promise(function (ok, no) {",
         "    __HELD.push(function () { __answer(r).then(ok, no); }); });",
         "};",
     ]
-    if db:
-        lines.append(
-            "globalThis.claude = { use: function (cap) { return Promise.resolve("
-            "{ doc: function (path) { return { onSnapshot: function (cb) {"
-            " cb({ exists: false, data: function () { return null; } }); } }; } }); } };"
-        )
+    if click is not None:
+        lines.append(f"var __CLICK = {int(click)};")
     return "\n".join(lines) + "\n"
 
 
 def run_fetch_page(
-    tmp_path: Path, responses: list[dict], *, page: Path = PAGE, db: bool = False
+    tmp_path: Path, responses: list[dict], *, page: Path = PAGE, click: int | None = None
 ) -> tuple[dict, list[dict]]:
     """Execute the page on fetched responses, returning what it drew and fetched."""
     script = (
         STUB.read_text(encoding="utf-8")
-        + _fetch_prelude(responses, db)
+        + _fetch_prelude(responses, click)
         + _page_script(page)
         + FETCH_DRIVER
     )
@@ -237,11 +163,28 @@ def run_fetch_page(
     return result["ids"], result["fetches"]
 
 
+def draw(tmp_path: Path, docs: dict, *, page: Path = PAGE, click: int | None = None) -> dict:
+    """What the page draws from one board.json holding ``docs``."""
+    return run_fetch_page(tmp_path, [served(docs)], page=page, click=click)[0]
+
+
+def run_without_fetch(tmp_path: Path) -> dict:
+    """What the page draws on a host with no fetch, such as osascript."""
+    script = (
+        STUB.read_text(encoding="utf-8")
+        + "var setTimeout = function () { return 0; };\nvar fetch = undefined;\n"
+        + "var __RESP = []; var __FETCHES = []; var __HELD = [];\n"
+        + _page_script(PAGE)
+        + FETCH_DRIVER
+    )
+    return _execute(tmp_path, script)["ids"]
+
+
 def fetch_redraws(tmp_path: Path, responses: list[dict]) -> bool:
     """Whether any fetch after the first drew the board again."""
     script = (
         STUB.read_text(encoding="utf-8")
-        + _fetch_prelude(responses, False)
+        + _fetch_prelude(responses)
         + _page_script(PAGE)
         + FETCH_DRIVER
     )
@@ -282,7 +225,7 @@ def cards(ids: dict, element: str) -> set[int]:
 
 
 def fixture_docs() -> dict[str, dict]:
-    """The six hand-built documents, as the database would deliver them."""
+    """The six hand-built sections, as board.json holds them."""
     return {
         name: json.loads((FIXTURE / f"{name}.json").read_text(encoding="utf-8"))
         for name in SECTIONS
@@ -298,14 +241,14 @@ def assert_no_board_data(ids: dict) -> None:
     assert not ids["source"]["hidden"], "the banner is hidden"
 
 
-def test_a_view_with_no_database_says_it_has_no_copy(tmp_path: Path) -> None:
-    """Protects the published page in a view the platform gives no database.
+def test_a_view_with_no_fetch_says_it_has_no_copy(tmp_path: Path) -> None:
+    """Protects the page on a host that cannot fetch the board.
 
     The page used to fall back on a copy of the board built into it. That copy
     is gone, so the banner has to say the page carries none rather than drawing
     an empty board as if it were the live one.
     """
-    ids = run_page(tmp_path, db=False, steps=[])
+    ids = run_without_fetch(tmp_path)
     banner = text(ids, "source")
     assert banner.startswith("Showing no board data.")
     assert "This view cannot reach the live board" in banner
@@ -313,26 +256,26 @@ def test_a_view_with_no_database_says_it_has_no_copy(tmp_path: Path) -> None:
     assert_no_board_data(ids)
 
 
-def test_a_database_with_no_documents_says_the_board_is_empty(tmp_path: Path) -> None:
-    """Protects a newly published board, whose database starts empty.
+def test_a_board_with_no_sections_says_the_board_is_empty(tmp_path: Path) -> None:
+    """Protects the page from a board.json holding none of the six sections.
 
-    Every section reporting no document is the normal first state, so it gets
-    its own sentence rather than a list naming all six as missing.
+    Every section missing gets its own sentence rather than a list naming all
+    six.
     """
-    ids = run_page(tmp_path, db=True, steps=[dict.fromkeys(SECTIONS)])
+    ids = draw(tmp_path, dict.fromkeys(SECTIONS))
     banner = text(ids, "source")
-    assert banner == "Showing no board data. The live board holds no document yet."
+    assert banner == "Showing no board data. The live board holds no section yet."
     assert_no_board_data(ids)
 
 
-def test_six_valid_documents_draw_the_live_board(tmp_path: Path) -> None:
-    """Protects the path every viewer takes once the database holds a board.
+def test_six_valid_sections_draw_the_live_board(tmp_path: Path) -> None:
+    """Protects the path every viewer takes once the file holds a board.
 
     Fixture issue 90501 has an open pull request, so it belongs in flight and nowhere
     else. Fixture issue 90502 is the one card the fixture ranks, so the default view draws
     it in the build order and hides the other three.
     """
-    ids = run_page(tmp_path, db=True, steps=[fixture_docs()])
+    ids = draw(tmp_path, fixture_docs())
     assert ids["source"]["html"] == ""
     assert ids["source"]["hidden"]
     for element in CONTENT:
@@ -388,7 +331,7 @@ def test_a_landed_part_of_pull_request_leaves_its_card_free(tmp_path: Path, stat
                 "rollup": [["test", "success"]],
             }
         )
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
 
     assert cards(ids, "flow") == {90501, 90503}
     assert {90504, 90505} <= cards(ids, "board")
@@ -411,7 +354,7 @@ def test_a_landed_part_of_pull_request_leaves_its_card_free(tmp_path: Path, stat
     # With the fixture's one open branch gone, nothing in flight is carried by a
     # pull request, so that legend's entry has no card to explain.
     docs["prs"]["items"] = [p for p in docs["prs"]["items"] if p["state"] != "open"]
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     assert 90503 in cards(ids, "flow")
     assert "a pull request carries it" not in text(ids, "flowkey")
 
@@ -440,7 +383,7 @@ def test_an_open_branch_beside_a_landed_one_still_holds_its_card(tmp_path: Path)
         "rollup": [["test", "success"]],
     }
     docs["prs"]["items"].insert(0, landed)
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     assert cards(ids, "flow") == {90501}
     tag = _card_tag(ids, "flow", 90501)
     assert "has-pr" in tag
@@ -506,7 +449,7 @@ def test_a_merged_pull_request_with_no_part_of_holds_its_card_for_a_close_by_han
     docs["planned"]["items"].append({"n": 90503, "passes": 2, "ready": "build"})
     for pr, issue in ((90602, 90505), (90603, 90504), (90604, 90503)):
         docs["prs"]["items"].append(_pull(pr, issue, "merged", linked=linked, part_of=False))
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
 
     assert cards(ids, "flow") == {90501}
     assert "free for anyone to pick up" not in text(ids, "flownote")
@@ -539,7 +482,7 @@ def test_a_closed_pull_request_says_closed_and_frees_its_card(
             card["needs"] = []
     docs["next"]["items"].append({"issue": 90505, "band": 3, "ready": "build", "why": "x"})
     docs["prs"]["items"].append(_pull(90602, 90505, "closed", linked=linked, part_of=part_of))
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
 
     line = _pr_line(ids, "board", 90602)
     assert "closed" in line.split()
@@ -564,57 +507,34 @@ def test_a_session_beside_a_landed_part_of_is_not_on_a_branch(tmp_path: Path, ki
         if card["n"] == 90505:
             card["needs"] = []
     docs["prs"]["items"].append(_pull(90602, 90505, "merged", linked=False, part_of=True))
-    docs["working"]["items"].append({"n": 90505, "kind": kind, "what": "writing the remainder"})
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    docs["working"]["items"].append({"n": 90505, "kind": kind})
+    ids = draw(tmp_path, docs)
 
     assert 90505 in cards(ids, "flow")
     tag = _card_tag(ids, "flow", 90505)
-    assert "A session is working it: writing the remainder." in tag
+    session = "build session" if kind == "build" else "decompose loop"
+    assert f"A {session} is working it." in tag
     assert "still on the branch" not in tag
     assert "still revising its plan" not in tag
 
 
-def test_a_spliced_copy_still_draws_as_the_copy_built_into_the_page(tmp_path: Path) -> None:
-    """Protects the skill's harness, which runs the page with no database.
-
-    ``with-db.py`` writes the documents just read into the page's FALLBACK line,
-    and the harness then checks what that copy draws. The page must still draw
-    it, and the banner must still say it is the copy built into the page.
-    """
-    spliced = subprocess.run(
-        [sys.executable, str(WITH_DB), str(PAGE), str(FIXTURE)],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    page = tmp_path / "board.html"
-    page.write_text(spliced, encoding="utf-8")
-    ids = run_page(tmp_path, db=False, steps=[], page=page)
-    banner = text(ids, "source")
-    assert banner.startswith("Showing the copy built into the page, measured ")
-    assert "so anything a session wrote since then is missing here" in banner
-    assert cards(ids, "flow") == {90501}
-    assert cards(ids, "board") == {90502}
-    assert text(ids, "strip").startswith("5 open issues")
-
-
 @pytest.mark.parametrize("missing", SECTIONS)
-def test_one_missing_document_is_named_and_draws_nothing(tmp_path: Path, missing: str) -> None:
-    """Protects a board whose database holds five of the six documents.
+def test_one_missing_section_is_named_and_draws_nothing(tmp_path: Path, missing: str) -> None:
+    """Protects a board whose file holds five of the six sections.
 
     The page goes live only on all six, so a partial set names what is missing
     and draws no board, rather than claiming to show a copy it no longer has.
     """
     docs = fixture_docs()
     docs[missing] = None
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     banner = text(ids, "source")
     assert banner == f"Showing no board data. The live board is missing {missing}."
     assert_no_board_data(ids)
 
 
-def test_every_missing_document_is_named(tmp_path: Path) -> None:
-    """Protects the banner's list when more than one document is missing.
+def test_every_missing_section_is_named(tmp_path: Path) -> None:
+    """Protects the banner's list when more than one section is missing.
 
     An earlier page named only the last section reported absent, so a board
     missing two sections told the reader about one of them.
@@ -622,7 +542,7 @@ def test_every_missing_document_is_named(tmp_path: Path) -> None:
     docs = fixture_docs()
     docs["prs"] = None
     docs["next"] = None
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     banner = text(ids, "source")
     assert banner == "Showing no board data. The live board is missing prs and next."
     assert_no_board_data(ids)
@@ -636,7 +556,7 @@ def test_a_bad_section_before_any_live_data_draws_nothing(tmp_path: Path) -> Non
     """
     docs = fixture_docs()
     del docs["tracker"]["items"][0]["needs"]
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     banner = text(ids, "source")
     assert banner.startswith("Showing no board data.")
     assert "section is missing fields this page needs" in banner
@@ -653,7 +573,7 @@ def test_a_first_draw_that_throws_leaves_no_board_data(tmp_path: Path) -> None:
     """
     docs = fixture_docs()
     docs["tracker"]["items"][0]["after"] = 5
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     banner = text(ids, "source")
     assert banner.startswith("Live updates stopped (a live section could not be drawn).")
     assert text(ids, "strip") == ""
@@ -669,39 +589,27 @@ def test_live_data_lost_afterwards_stays_on_screen(tmp_path: Path) -> None:
     The board stays drawn, and the banner says updates stopped and that what is
     shown is the last live data.
     """
-    ids = run_page(tmp_path, db=True, steps=[fixture_docs(), {"state": None}])
+    lost = fixture_docs()
+    lost["state"] = None
+    ids, _ = run_fetch_page(tmp_path, [served(fixture_docs()), served(lost)])
     banner = text(ids, "source")
-    assert banner.startswith("Live updates stopped (state removed).")
+    assert banner.startswith("Live updates stopped (board.json is missing state).")
     assert "What is shown is the last live data" in banner
     assert cards(ids, "flow") == {90501}
     assert not ids["flightsec"]["hidden"]
 
 
 def test_a_live_board_still_loading_says_so_at_once(tmp_path: Path) -> None:
-    """Protects the view between opening the page and the first snapshot.
+    """Protects the view between opening the page and the first answer.
 
     The page carries no copy, so a viewer would see a blank page until the
-    database answers. The banner says the board has not arrived yet instead.
+    fetch answers. The banner says the board has not arrived yet instead.
     """
-    ids = run_page(tmp_path, db=True, steps=[])
+    ids, _ = run_fetch_page(tmp_path, [{"never": True}])
     assert text(ids, "source") == (
         "Showing no board data. The live board has not arrived yet, "
         "and the page carries no copy of its own."
     )
-    assert_no_board_data(ids)
-
-
-def test_a_document_that_arrives_is_no_longer_named(tmp_path: Path) -> None:
-    """Protects the banner from naming a section that has since arrived.
-
-    A new board's documents land one at a time, and until the sixth lands the
-    banner must name only the sections still missing.
-    """
-    docs = fixture_docs()
-    ids = run_page(
-        tmp_path, db=True, steps=[{"state": None, "prs": None}, {"state": docs["state"]}]
-    )
-    assert text(ids, "source") == "Showing no board data. The live board is missing prs."
     assert_no_board_data(ids)
 
 
@@ -714,61 +622,14 @@ def test_a_draw_that_throws_after_live_data_keeps_the_last_board(tmp_path: Path)
     broken = fixture_docs()["tracker"]
     for item in broken["items"]:
         item["after"] = 7
-    ids = run_page(tmp_path, db=True, steps=[fixture_docs(), {"tracker": broken}])
+    board = fixture_docs()
+    board["tracker"] = broken
+    ids, _ = run_fetch_page(tmp_path, [served(fixture_docs()), served(board)])
     banner = text(ids, "source")
     assert banner.startswith("Live updates stopped (a live section could not be drawn).")
     assert "What is shown is the last live data" in banner
     assert not ids["flightsec"]["hidden"]
     assert cards(ids, "flow") == {90501}
-
-
-def _splice(tmp_path: Path, docs: dict, page: Path = PAGE) -> subprocess.CompletedProcess:
-    """Run ``with-db.py`` on ``page`` with ``docs`` written as its readback."""
-    folder = tmp_path / "readback"
-    folder.mkdir(exist_ok=True)
-    for name, doc in docs.items():
-        (folder / f"{name}.json").write_text(json.dumps(doc), encoding="utf-8")
-    return subprocess.run(
-        [sys.executable, str(WITH_DB), str(page), str(folder)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-
-def test_the_splice_refuses_a_document_the_page_would_refuse(tmp_path: Path) -> None:
-    """Protects the harness from checking a document the page would not draw."""
-    docs = fixture_docs()
-    docs["prs"]["schema"] = 2
-    done = _splice(tmp_path, docs)
-    assert done.returncode != 0
-    assert "prs: schema 2, expected 1" in done.stderr
-
-
-def test_the_splice_survives_a_closing_script_tag_in_the_data(tmp_path: Path) -> None:
-    """Protects the spliced page from data that would end its script early.
-
-    A card label holding a closing script tag must be escaped, and the escape
-    must reach the page unchanged rather than be read as a replacement pattern.
-    """
-    docs = fixture_docs()
-    docs["tracker"]["items"][1]["label"] = "a </script> in a label"
-    done = _splice(tmp_path, docs)
-    assert done.returncode == 0, done.stderr
-    page = tmp_path / "spliced.html"
-    page.write_text(done.stdout, encoding="utf-8")
-    ids = run_page(tmp_path, db=False, steps=[], page=page)
-    assert cards(ids, "board") == {90502}
-
-
-def test_the_splice_refuses_a_page_with_two_copy_lines(tmp_path: Path) -> None:
-    """Protects the splice from filling one copy line and leaving another."""
-    line = "const FALLBACK = { none: true };"
-    page = tmp_path / "two.html"
-    page.write_text(PAGE.read_text(encoding="utf-8").replace(line, f"{line}\n{line}"), "utf-8")
-    done = _splice(tmp_path, fixture_docs(), page=page)
-    assert done.returncode != 0
-    assert "found 2" in done.stderr
 
 
 def test_no_tracked_file_links_to_a_claude_artifact() -> None:
@@ -777,8 +638,8 @@ def test_no_tracked_file_links_to_a_claude_artifact() -> None:
     A claude.ai artifact belongs to one account, so an address written into
     this repository points every machine at a page that a machine signed in
     elsewhere cannot open. That is how the first board, and the three pages it
-    linked to, were lost here on 2026-10-09. A board's address lives in a file
-    on the machine, per the Configuration section of ``docs/design.md``. The
+    linked to, were lost here on 2026-10-09. The board now lives on GitHub
+    Pages, and nothing in the repository needs an artifact's address. The
     pattern is assembled from pieces so this file does not match itself.
     """
     host = re.escape("claude" + ".ai/")
@@ -805,8 +666,8 @@ def test_an_open_branch_still_suppresses_what_it_always_did(tmp_path: Path) -> N
     docs = fixture_docs()
     docs["planned"]["items"].append({"n": 90504, "passes": 2, "ready": "decide"})
     docs["prs"]["items"].append(_pull(90606, 90504, "open", linked=True, part_of=False))
-    docs["working"]["items"].append({"n": 90504, "kind": "build", "what": "writing the ruling"})
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    docs["working"]["items"].append({"n": 90504, "kind": "build"})
+    ids = draw(tmp_path, docs)
 
     assert 90504 in cards(ids, "flow")
     tag = _card_tag(ids, "flow", 90504)
@@ -826,7 +687,7 @@ def test_a_missing_closing_link_names_the_open_branch(tmp_path: Path) -> None:
     docs = fixture_docs()
     docs["prs"]["items"][0]["linked"] = False
     docs["prs"]["items"].insert(0, _pull(90605, 90501, "merged", linked=False, part_of=False))
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
 
     flownote = text(ids, "flownote")
     assert "GitHub registered no closing link for PR #90601" in flownote
@@ -849,9 +710,9 @@ def test_the_flow_legend_explains_a_re_measured_plan_only_where_a_card_draws_it(
     """
     docs = fixture_docs()
     docs["planned"]["items"].append({"n": 90503, "passes": 2, "ready": "build"})
-    docs["working"]["items"].append({"n": 90503, "kind": "decompose", "what": "re-measuring"})
+    docs["working"]["items"].append({"n": 90503, "kind": "decompose"})
     docs["prs"]["items"].append(_pull(90602, 90503, state, linked=False, part_of=False))
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
 
     assert 90503 in cards(ids, "flow")
     assert "plan-" not in _card_tag(ids, "flow", 90503)
@@ -860,7 +721,7 @@ def test_the_flow_legend_explains_a_re_measured_plan_only_where_a_card_draws_it(
     assert "a second loop re-measuring it" not in flowkey
 
     docs["prs"]["items"] = [p for p in docs["prs"]["items"] if p["pr"] != 90602]
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     assert "plan-build" in _card_tag(ids, "flow", 90503)
     assert "a second loop re-measuring it" in text(ids, "flowkey")
 
@@ -885,7 +746,7 @@ def test_the_label_names_the_pull_request_that_holds_the_card(
         _pull(90602, 90505, state, linked=False, part_of=part_of),
         _pull(90603, 90505, "merged", linked=False, part_of=False),
     ]
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
 
     tag = _card_tag(ids, "board", 90505)
     assert "Pull request 90603 is merged against it." in tag
@@ -933,7 +794,7 @@ def test_a_card_held_for_a_close_by_hand_gives_no_kind_reason(
         if card["n"] == 90504:
             card["kind"] = kind
     docs["prs"]["items"].append(_pull(90602, 90504, "merged", linked=False, part_of=False))
-    ids = run_page(tmp_path, db=True, steps=[docs], page=page)
+    ids = draw(tmp_path, docs, page=page)
 
     note = text(ids, "boardnote")
     assert "out of 1 in the first column" in note
@@ -941,7 +802,7 @@ def test_a_card_held_for_a_close_by_hand_gives_no_kind_reason(
     assert reason not in note
 
     docs["prs"]["items"] = [p for p in docs["prs"]["items"] if p["pr"] != 90602]
-    ids = run_page(tmp_path, db=True, steps=[docs], page=page)
+    ids = draw(tmp_path, docs, page=page)
     assert reason in text(ids, "boardnote")
 
 
@@ -966,7 +827,7 @@ def test_a_planned_card_held_for_a_close_by_hand_keeps_its_plan_position(
     ]
     docs["planned"]["items"].append({"n": 90503, "passes": 2, "ready": "build"})
     docs["prs"]["items"].append(_pull(90602, 90503, "merged", linked=False, part_of=False))
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
 
     raw = ids["board"]["html"]
     assert "plan-" not in _card_tag(ids, "board", 90503)
@@ -991,7 +852,7 @@ def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: P
     90503 is cleared so that no chain runs two steps.
     """
     docs = _with_needs(fixture_docs(), {90503: [], 90505: [90501, 90504]})
-    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path))
 
     note = text(ids, "boardnote")
     assert "more than one thing" not in note
@@ -1035,12 +896,12 @@ def test_the_depth_sentence_names_the_longest_chain(
     short view draws only 90502, so it counts the hidden cards and says so.
     """
     docs = _with_needs(fixture_docs(), needs)
-    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path))
     note = text(ids, "boardnote")
     assert sentence in note
     assert "Counting the hidden issues" not in note.split(sentence)[0]
 
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     assert "Counting the hidden issues, " + sentence in text(ids, "boardnote")
 
 
@@ -1051,12 +912,12 @@ def test_several_cards_waiting_on_several_issues_are_each_named(tmp_path: Path) 
     short view draws neither, so the note names both and says they are hidden.
     """
     docs = _with_needs(fixture_docs(), {90503: [90502, 90504], 90505: [90501, 90504]})
-    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path))
     note = text(ids, "boardnote")
     assert "#90503 and #90505 each wait on more than one open issue." in note
     assert "hidden in this view" not in note
 
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     assert "#90503 and #90505 are hidden in this view" in text(ids, "boardnote")
 
 
@@ -1067,7 +928,7 @@ def test_a_board_where_nothing_waits_says_no_depth(tmp_path: Path) -> None:
     all, and the freeing clause is what says nothing waits on anything.
     """
     docs = _with_needs(fixture_docs(), {90502: [], 90503: [], 90505: []})
-    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path))
     note = text(ids, "boardnote")
     assert "behind." not in note
     assert "waits on an issue that waits on another" not in note
@@ -1085,7 +946,7 @@ def test_a_shallow_graph_says_when_it_counts_hidden_cards(tmp_path: Path) -> Non
     the second says which cards it means rather than "them".
     """
     docs = _with_needs(fixture_docs(), {90502: [], 90503: [90501], 90505: []})
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     note = text(ids, "boardnote")
     assert (
         "Counting the hidden issues, no card waits on an issue that waits on another, "
@@ -1093,7 +954,7 @@ def test_a_shallow_graph_says_when_it_counts_hidden_cards(tmp_path: Path) -> Non
     ) in note
     assert "Counting the hidden issues too, #90501" in note
 
-    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path))
     assert "Counting the hidden issues" not in text(ids, "boardnote")
 
 
@@ -1117,7 +978,7 @@ def test_the_chain_bar_tells_direct_blockers_from_the_chain(
     keeps the bare count, since the two numbers agree.
     """
     docs = _with_needs(fixture_docs(), needs)
-    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path), click=card)
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path), click=card)
     assert line in text(ids, "chainbar")
 
 
@@ -1130,7 +991,7 @@ def test_counting_too_names_the_hidden_issues_after_a_named_card(tmp_path: Path)
     90504 rather than the hidden issues.
     """
     docs = _with_needs(fixture_docs(), {90505: [90502, 90504]})
-    note = text(run_page(tmp_path, db=True, steps=[docs]), "boardnote")
+    note = text(draw(tmp_path, docs), "boardnote")
     assert "#90505 waits on 2 open issues at once, #90502 and #90504." in note
     assert "Counting them too" not in note
     assert "Counting the hidden issues too, #90501" in note
@@ -1152,9 +1013,7 @@ def test_only_open_blockers_of_cards_in_the_columns_are_counted(tmp_path: Path) 
     for card in docs["tracker"]["items"]:
         if card["n"] == 90504:
             card["kind"] = "data"
-    note = text(
-        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
-    )
+    note = text(draw(tmp_path, docs, page=_show_all_page(tmp_path)), "boardnote")
     assert "#90505 waits on 2 open issues at once, #90501 and #90502." in note
     assert "#99999" not in note
     assert "#90503 waits on" not in note
@@ -1165,9 +1024,7 @@ def test_only_open_blockers_of_cards_in_the_columns_are_counted(tmp_path: Path) 
 def test_one_deep_card_takes_a_singular_verb(tmp_path: Path) -> None:
     """Protects the verb's agreement when exactly one card is two steps deep."""
     docs = _with_needs(fixture_docs(), {90505: []})
-    note = text(
-        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
-    )
+    note = text(draw(tmp_path, docs, page=_show_all_page(tmp_path)), "boardnote")
     assert (
         "1 card waits on an issue that waits on another, and the deepest is 2 steps behind." in note
     )
@@ -1182,7 +1039,7 @@ def test_the_hidden_pointer_lists_top_cards_and_blocked_cards_in_order(tmp_path:
     issue order rather than in the order the two lists were joined.
     """
     docs = _with_needs(fixture_docs(), {90502: [], 90503: [90505, 90504], 90505: []})
-    note = text(run_page(tmp_path, db=True, steps=[docs]), "boardnote")
+    note = text(draw(tmp_path, docs), "boardnote")
     assert "#90503, #90504 and #90505 are hidden in this view" in note
 
 
@@ -1197,9 +1054,7 @@ def test_a_board_with_nothing_in_the_chain_columns_gives_no_depth(tmp_path: Path
     for card in docs["tracker"]["items"]:
         if card["n"] != 90501:
             card["kind"] = "data"
-    note = text(
-        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
-    )
+    note = text(draw(tmp_path, docs, page=_show_all_page(tmp_path)), "boardnote")
     assert "Infinity" not in note
     assert "behind." not in note
 
@@ -1219,22 +1074,6 @@ def _iso(minutes_ago: float) -> str:
     return stamp.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def test_a_fetched_board_draws_what_the_database_board_draws(tmp_path: Path) -> None:
-    """Protects the fetch path's reading of the six sections.
-
-    The fixture holds no field only the generator writes, so the fetched board
-    must draw exactly what the same documents draw through the database, with
-    an empty banner.
-    """
-    ids, fetches = run_fetch_page(tmp_path, [served(fixture_board())])
-    live = run_page(tmp_path, db=True, steps=[fixture_docs()])
-    assert ids["source"]["hidden"]
-    assert ids["source"]["html"] == ""
-    for element in ("strip", "flow", "board", "more", "flownote", "boardnote"):
-        assert ids[element]["html"] == live[element]["html"], element
-    assert len(fetches) == 1
-
-
 def test_each_fetch_asks_for_a_url_no_cache_has_seen(tmp_path: Path) -> None:
     """Protects the page from reading a copy Pages' cache kept.
 
@@ -1248,38 +1087,23 @@ def test_each_fetch_asks_for_a_url_no_cache_has_seen(tmp_path: Path) -> None:
     assert all(f["cache"] == "no-store" for f in fetches)
 
 
-def test_a_page_with_a_database_never_fetches(tmp_path: Path) -> None:
-    """Protects the artifact board, which publishes this same page.
+def test_a_fresh_board_from_github_has_an_empty_banner(tmp_path: Path) -> None:
+    """Protects a current board from a banner that reads as a warning.
 
-    A view with a database subscribes to it, and a fetch there would read a
-    file the artifact does not have.
-    """
-    ids, fetches = run_fetch_page(tmp_path, [served(fixture_board())], db=True)
-    assert fetches == []
-    assert text(ids, "source") == "Showing no board data. The live board holds no document yet."
-
-
-def test_a_board_from_github_names_what_it_does_not_carry(tmp_path: Path) -> None:
-    """Protects a reader from taking the Pages board for the board of record.
-
-    Until issue 533 moves the judgement fields onto GitHub, the generator
-    writes them empty and lists them in ``lacks``. The banner names them, and
-    the footer says the board is built rather than measured by hand.
+    Until issue 533 the generator listed the fields it did not carry in
+    ``lacks``, and the banner named them. Every field now comes from GitHub,
+    so a ``lacks`` list left in an old file is not read, and the footer says
+    the board is built rather than measured by hand.
     """
     board = fixture_board(
         source="github",
         updatedAt=_iso(1),
         staleAfterMinutes=60,
-        lacks=["the priority order", "decompose verdicts"],
+        lacks=["the priority order"],
     )
     ids, _ = run_fetch_page(tmp_path, [served(board)])
-    banner = text(ids, "source")
-    assert not ids["source"]["hidden"]
-    assert banner == (
-        "Built from GitHub alone. This board does not carry the priority order and "
-        "decompose verdicts yet, so its default view draws no ranked cards. The artifact "
-        "board stays the board of record until it does."
-    )
+    assert ids["source"]["hidden"]
+    assert text(ids, "source") == ""
     foot = text(ids, "foot")
     assert foot.startswith("Built from GitHub by an Action on each change and on a schedule")
     assert "Measured by hand" not in foot
@@ -1307,7 +1131,7 @@ def test_a_board_older_than_its_threshold_says_it_may_be_stale(
 
 
 def test_a_first_fetch_that_fails_says_there_is_no_board(tmp_path: Path) -> None:
-    """Protects a view that can neither reach a database nor fetch the file."""
+    """Protects a view that cannot fetch the file."""
     ids, _ = run_fetch_page(tmp_path, [{"status": 404, "body": "Not Found"}])
     assert text(ids, "source") == (
         "Showing no board data. This view cannot reach the live board, "
@@ -1344,7 +1168,7 @@ def _broken_board(kind: str) -> dict:
 def test_a_failed_fetch_keeps_the_last_board_and_recovers(
     tmp_path: Path, kind: str, code: str
 ) -> None:
-    """Protects the last good board, as a lost database connection does.
+    """Protects the last good board when a fetch fails after it drew.
 
     The board stays drawn, the banner says why updates stopped and that the
     page tries again, and the next good fetch takes the board live again.
@@ -1399,7 +1223,7 @@ def test_only_success_reads_as_green(tmp_path: Path, words: list[str], says: str
     """
     docs = fixture_docs()
     docs["prs"]["items"][0]["rollup"] = [[f"check {i}", w] for i, w in enumerate(words)]
-    ids = run_page(tmp_path, db=True, steps=[docs])
+    ids = draw(tmp_path, docs)
     assert says in _pr_line(ids, "flow", 90601)
 
 
@@ -1425,8 +1249,8 @@ def test_a_fetched_board_that_breaks_the_drawing_code_keeps_the_last_board(
     """Protects the last good board from a file that passes the shape check.
 
     ``usableSection`` leaves ``after`` unchecked, so a number there passes and
-    throws while the build order draws. The fetch path rolls back as the
-    database path does, keeps trying, and the next good file goes live.
+    throws while the build order draws. The page rolls back to the last good
+    board, keeps trying, and the next good file goes live.
     """
     broken = fixture_board()
     for item in broken["tracker"]["items"]:

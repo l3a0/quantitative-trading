@@ -64,13 +64,21 @@ def issue(
     labels: tuple[str, ...] = ("replication",),
     closed_by: tuple[int, ...] = (),
     mentioned_by: tuple[int, ...] = (),
+    body: str = "",
+    blocked_by: tuple[tuple[int, str], ...] = (),
+    sub_issues: int = 0,
+    comments: tuple[tuple[str, str], ...] = (),
 ) -> dict:
     return {
         "id": f"I{n}",
         "number": n,
         "title": title or f"Issue {n}",
+        "body": body,
         "milestone": {"title": milestone} if milestone is not None else None,
         "labels": conn([{"name": x} for x in labels]),
+        "blockedBy": conn([{"number": b, "state": st} for b, st in blocked_by]),
+        "subIssues": {"totalCount": sub_issues},
+        "issueComments": conn([{"authorAssociation": a, "body": b} for a, b in comments]),
         "closedByPullRequestsReferences": conn([{"number": p} for p in closed_by]),
         "timelineItems": conn(
             [{"source": {"number": p, "repository": {"nameWithOwner": REPO}}} for p in mentioned_by]
@@ -142,7 +150,7 @@ class FakeGitHub:
         if "node(id:$id)" in query:
             # Keyed by the cursor too, so a read that asks for the first page
             # again finds nothing rather than looping on it.
-            field = re.search(r"\{ (\w+)\(", query.split("... on", 1)[1]).group(1)
+            field = re.search(r"\{ (\w+): \w+\(", query.split("... on", 1)[1]).group(1)
             return {"node": {field: self.nested[(variables["id"], field, variables["after"])]}}
         if "issues(states:OPEN" in query:
             page = self._page(self.issues, 100, variables.get("after"))
@@ -279,23 +287,242 @@ def test_an_issue_with_no_milestone_gets_an_empty_string() -> None:
     ]
 
 
-def test_the_fields_issue_533_owns_are_written_empty_and_named() -> None:
-    """Protects the page's refusal rules for the fields not on GitHub yet.
+def test_an_issue_with_no_judgement_set_reads_as_a_plain_card() -> None:
+    """Protects the page's refusal rules on an issue nobody has ranked.
 
-    Every card gets ``needs`` empty and ``kind`` ready, the three judgement
-    sections are empty, and ``state`` names what the board does not carry so
-    the banner can say so.
+    A card with no labels, links or lines of the board's own is ready, waits on
+    nothing, and appears in none of the three judgement sections. ``state``
+    carries no list of missing fields, because the board now carries them all.
     """
     board, _ = build(FakeGitHub([issue(1), issue(2)], []))
     for name in ("working", "planned", "next"):
         assert board[name] == {"schema": 1, "items": []}
     assert {c["kind"] for c in board["tracker"]["items"]} == {"ready"}
+    assert all(c["needs"] == [] and "after" not in c for c in board["tracker"]["items"])
     state = board["state"]
     assert state["updatedAt"] == "2026-10-11T15:00:00Z"
     assert state["issues"] == {"open": 2}
     assert state["staleAfterMinutes"] == 60
-    assert state["lacks"] == bb.LACKS
+    assert "lacks" not in state
     assert state["source"] == "github"
+
+
+# ---- The judgement fields, from labels, links and lines ----
+
+
+def card(board: dict, n: int) -> dict:
+    return next(c for c in board["tracker"]["items"] if c["n"] == n)
+
+
+@pytest.mark.parametrize(
+    ("labels", "subs", "kind"),
+    [
+        ((), 0, "ready"),
+        (("question",), 0, "ready"),
+        (("decision",), 0, "decision"),
+        (("deferred",), 0, "deferred"),
+        (("blocked-on-data",), 0, "data"),
+        (("deferred", "decision"), 0, "deferred"),
+        (("blocked-on-data", "deferred"), 0, "data"),
+        (("blocked-on-data",), 3, "parent"),
+        ((), 1, "parent"),
+    ],
+)
+def test_a_cards_kind_comes_from_its_labels_and_sub_issues(
+    labels: tuple[str, ...], subs: int, kind: str
+) -> None:
+    """Protects the kind word and the column a card's kind decides.
+
+    ``question`` is not ``decision``, because an issue can carry it while it
+    waits on research rather than on the owner. Any sub-issue makes a parent,
+    open or closed, which is how issue 16 reads with its three children closed.
+    """
+    board, _ = build(FakeGitHub([issue(1, labels=labels, sub_issues=subs)], []))
+    assert card(board, 1)["kind"] == kind
+
+
+def test_needs_keeps_only_blockers_that_are_open_issues() -> None:
+    """Protects a card from waiting on work that has landed.
+
+    A "blocked by" link outlives its blocker closing, as issues 359 and 365
+    showed on 2026-10-11, and the page draws only open issues. So a closed
+    blocker, or one that is not an open issue here, drops out.
+    """
+    gh = FakeGitHub(
+        [
+            issue(1),
+            issue(2, blocked_by=((1, "OPEN"), (3, "CLOSED"), (9, "OPEN"))),
+        ],
+        [],
+    )
+    board, _ = build(gh)
+    assert card(board, 2)["needs"] == [1]
+    assert card(board, 1)["needs"] == []
+
+
+def test_after_comes_from_its_line_and_keeps_open_issues() -> None:
+    """Protects a measured ordering from prose that only mentions a number."""
+    body = "Waits on nothing.\n\nBoard after: #1, #3 and #2\nSee #4 too.\n"
+    gh = FakeGitHub([issue(1), issue(2), issue(5, body=body)], [])
+    board, _ = build(gh)
+    assert card(board, 5)["after"] == [1, 2]
+    assert "after" not in card(board, 1)
+
+
+def test_a_band_label_puts_the_card_in_the_priority_order() -> None:
+    """Protects the default view, which draws only the cards ``next`` names.
+
+    The order line takes a decimal, because the artifact board ordered cards
+    at 14.05 and 14.85, and an order written as a whole number stays one.
+    """
+    gh = FakeGitHub(
+        [
+            issue(1, labels=("band:3",), body="Board order: 14.05\n"),
+            issue(2, labels=("band:1",), body="Board order: 22\n"),
+            issue(3, labels=("band:5",)),
+            issue(4),
+        ],
+        [],
+    )
+    board, _ = build(gh)
+    assert board["next"]["items"] == [
+        {"issue": 1, "band": 3, "ready": "plan", "order": 14.05},
+        {"issue": 2, "band": 1, "ready": "plan", "order": 22},
+        {"issue": 3, "band": 5, "ready": "plan"},
+    ]
+
+
+def test_the_boards_own_labels_are_left_off_the_cards_chips() -> None:
+    """Protects a card from drawing its rank and its session twice."""
+    labels = ("replication", "band:1", "working:build", "decision")
+    board, _ = build(FakeGitHub([issue(1, labels=labels)], []))
+    assert card(board, 1)["labels"] == ["replication", "decision"]
+
+
+@pytest.mark.parametrize(
+    ("labels", "comments", "ready"),
+    [
+        (("band:1",), (), "plan"),
+        (("band:1", "decision"), (), "decide"),
+        (("band:1",), (("OWNER", "## Verdict\n\nBoard verdict: build after 5 passes\n"),), "build"),
+        (("band:1", "decision"), (("OWNER", "Board verdict: build after 1 pass"),), "build"),
+        (("band:1",), (("OWNER", "Board verdict: decide after 3 passes."),), "decide"),
+        (("band:1",), (("NONE", "Board verdict: build after 5 passes"),), "plan"),
+    ],
+)
+def test_a_ranked_cards_readiness_comes_from_its_verdict_then_its_kind(
+    labels: tuple[str, ...], comments: tuple[tuple[str, str], ...], ready: str
+) -> None:
+    """Protects the sort, which reads ``ready`` after the band and the order."""
+    board, _ = build(FakeGitHub([issue(1, labels=labels, comments=comments)], []))
+    assert board["next"]["items"][0]["ready"] == ready
+
+
+@pytest.mark.parametrize(
+    ("comments", "planned"),
+    [
+        (
+            (("OWNER", "## Decompose verdict\n\nBoard verdict: build after 5 passes\n"),),
+            (5, "build"),
+        ),
+        (
+            (
+                ("OWNER", "Board verdict: build after 5 passes"),
+                ("OWNER", "Board verdict: decide after 7 passes"),
+            ),
+            (7, "decide"),
+        ),
+        ((("CONTRIBUTOR", "Board verdict: build after 5 passes"),), None),
+        ((("OWNER", "The line `Board verdict: build after 5 passes` goes here."),), None),
+        ((("OWNER", "Board verdict: ready after 5 passes"),), None),
+    ],
+)
+def test_only_the_owners_newest_verdict_line_plans_a_card(
+    comments: tuple[tuple[str, str], ...], planned: tuple[int, str] | None
+) -> None:
+    """Protects the plan marker from a stranger's comment and from prose.
+
+    Anyone can comment on a public repository. A loop run again writes a new
+    verdict, so the newest wins, and a line quoted inside a sentence is not one.
+    """
+    board, _ = build(FakeGitHub([issue(1, comments=comments)], []))
+    items = board["planned"]["items"]
+    if planned is None:
+        assert items == []
+    else:
+        assert items == [{"n": 1, "passes": planned[0], "ready": planned[1]}]
+
+
+def test_a_working_label_marks_the_session_on_the_card() -> None:
+    """Protects the columns a session holds a card in, and the review word.
+
+    A build session's open branch reads "review in progress" until its review
+    is posted, as the artifact board wrote it, and a branch nobody holds reads
+    "no review posted".
+    """
+    gh = FakeGitHub(
+        [
+            issue(1, labels=("working:build",)),
+            issue(2, labels=("working:decompose",)),
+            issue(3),
+        ],
+        [pull(10, closes=(1,)), pull(11, closes=(3,))],
+    )
+    board, _ = build(gh)
+    assert board["working"]["items"] == [{"n": 1, "kind": "build"}, {"n": 2, "kind": "decompose"}]
+    assert {p["pr"]: p["review"] for p in prs_of(board)} == {
+        10: "review in progress",
+        11: "no review posted",
+    }
+
+
+def test_labels_that_disagree_take_one_value_and_are_reported() -> None:
+    """Protects the board from freezing on one stray label.
+
+    Two bands take the lower, both session labels take ``build``, and two order
+    lines take the first, and the job summary lists each.
+    """
+    gh = FakeGitHub(
+        [
+            issue(
+                1,
+                labels=("band:3", "band:1", "working:decompose", "working:build"),
+                body="Board order: 4\nBoard order: 9\n",
+            )
+        ],
+        [],
+    )
+    board, report = build(gh)
+    assert board["next"]["items"] == [{"issue": 1, "band": 1, "ready": "plan", "order": 4}]
+    assert board["working"]["items"] == [{"n": 1, "kind": "build"}]
+    assert report["label_conflicts"] == [
+        "#1 carries both working labels, read as build",
+        "#1 carries 2 band labels, read as band:1",
+        "#1 carries 2 order lines, read as 4",
+    ]
+
+
+def test_an_issues_comments_and_blockers_are_read_to_their_end() -> None:
+    """Protects a verdict or a blocker past the first hundred.
+
+    An issue's comments go under an alias, because a pull request's comments
+    share the name, and the further pages must ask for the issue's.
+    """
+    first = issue(5, labels=("band:2",))
+    first["issueComments"] = conn([], more=True, cursor="c1")
+    first["blockedBy"] = conn([], more=True, cursor="b1")
+    nested = {
+        ("I5", "issueComments", "c1"): conn(
+            [{"authorAssociation": "OWNER", "body": "Board verdict: build after 2 passes"}]
+        ),
+        ("I5", "blockedBy", "b1"): conn([{"number": 6, "state": "OPEN"}]),
+    }
+    gh = FakeGitHub([first, issue(6)], [], nested)
+    board, _ = build(gh)
+    assert card(board, 5)["needs"] == [6]
+    assert board["planned"]["items"] == [{"n": 5, "passes": 2, "ready": "build"}]
+    paged = [q for q in gh.calls if "node(id:$id)" in q]
+    assert any("issueComments: comments(" in q for q in paged)
 
 
 def test_a_pull_request_from_a_fork_gets_no_item() -> None:
@@ -680,7 +907,17 @@ def test_the_page_draws_what_the_generator_writes(tmp_path: Path) -> None:
             issue(10, mentioned_by=(20,)),
             issue(11, milestone=None, labels=()),
             issue(12),
-            issue(13),
+            issue(13, labels=("working:build",)),
+            issue(
+                14,
+                labels=("band:1", "decision"),
+                body="Board order: 2.5\nBoard after: #15\n",
+                blocked_by=((10, "OPEN"),),
+            ),
+            issue(
+                15, labels=("band:1",), comments=(("OWNER", "Board verdict: build after 3 passes"),)
+            ),
+            issue(16, sub_issues=2),
         ],
         [
             pull(20, state="MERGED", body="Part of #10"),
@@ -692,10 +929,15 @@ def test_the_page_draws_what_the_generator_writes(tmp_path: Path) -> None:
     board, _ = build(gh)
     board["state"]["updatedAt"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     ids, _ = run_fetch_page(tmp_path, [served(board)])
-    assert text(ids, "strip").startswith("4 open issues")
-    assert text(ids, "source").startswith("Built from GitHub alone. This board does not carry")
-    assert cards(ids, "flow") == {11, 12, 13}
+    assert text(ids, "strip").startswith("7 open issues")
+    assert ids["source"]["hidden"]
+    # Issue 15's plan is finished and nothing blocks it, so it waits in flight
+    # for a builder. Issue 14 is the one ranked card left for the build order.
+    assert cards(ids, "flow") == {11, 12, 13, 15}
     assert "1 check failing" in text(ids, "flow")
+    assert "review in progress" in text(ids, "flow")
+    assert "plan complete, 3 passes" in text(ids, "flow")
+    assert cards(ids, "board") == {14}
 
 
 def test_a_board_with_no_open_issues_draws_nothing(tmp_path: Path) -> None:
