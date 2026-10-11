@@ -16,11 +16,11 @@ the post and chose this figure, with two panels.
    which ``TestWhatThePostMeasured`` pins, so the share at or below a factor
    is the share strictly below, which the percentile counts.
 2. **Why each pair reads one day's vectors.** For each factor, four
-   statistics side by side: on each day's own weights, with sign and rank
-   matched, with tomorrow's weights fitted on the 251 days that leave today's
-   return out, and the paired statistic the test reads. The third is a marker
-   rather than a sentence because it is what closes the gap the first two
-   leave.
+   statistics side by side: on each day's own weights with each sign fixed so
+   the largest weight is positive, with sign and rank matched, with
+   tomorrow's weights fitted on the 251 days that leave today's return out,
+   and the paired statistic the test reads. The third is a marker rather than
+   a sentence because it is what closes the gap the first two leave.
 
 The first panel draws the verdicts' figures, and the second figures measured
 after the run, which decide nothing. Neither uses the green or the red other
@@ -64,7 +64,7 @@ PCA_FACTOR_MOMENTUM_FIGURE = "pca_factor_momentum.png"
 #: :class:`WeightStatistics` it reads, or ``"paired"`` for the test's own, and
 #: its legend entry, colour, marker and whether the marker is filled.
 WAYS = (
-    ("own", "each day's own weights", MUTED, "o", False),
+    ("own", "each day's own weights, largest weight positive", MUTED, "o", False),
     ("matched", "sign and rank matched", MUTED, "s", True),
     ("left_out", "tomorrow's weights on 251 days without today", ACCENT, "D", True),
     ("paired", "both days on today's weights, as tested", INK, "o", True),

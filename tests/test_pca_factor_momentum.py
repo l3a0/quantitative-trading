@@ -94,6 +94,7 @@ from chan.pca_factor_momentum import (
     uncentred,
     weight_statistics,
     windows_holding,
+    with_largest_weight_positive,
     without_the_intercept,
 )
 from chan.series import load_panel
@@ -366,18 +367,24 @@ class TestWhatThePostMeasured:
         assert components[-1].end == components[-2].end + 1
         assert len(days) == len(components) - 1
 
-    def test_each_factors_vector_flips_sign_on_about_half_the_days(self, components) -> None:
-        """Day t's vector against day t + 1's, on the stocks both keep, over 752 pair days."""
-        assert sign_flips(components).tolist() == [391, 376, 414, 387, 355], (
-            f"{SPEC}; {AFTER_THE_RUN}"
-        )
+    def test_with_each_sign_fixed_by_rule_a_vector_still_flips_on_a_few_days(
+        self, components
+    ) -> None:
+        """Day t's vector against day t + 1's, on the stocks both keep, over 752 pair days.
+
+        The library's own signs are not pinned, because they differ between
+        machines. On the two that ran this suite they flipped on about half
+        the days, and PC2's count differed by 2.
+        """
+        fixed = [with_largest_weight_positive(d) for d in components]
+        assert sign_flips(fixed).tolist() == [1, 14, 6, 22, 24], f"{SPEC}; {AFTER_THE_RUN}"
 
     def test_two_factors_swap_rank_on_15_of_752_days(self, components) -> None:
         assert swap_days(components) == 15, f"{SPEC}; {AFTER_THE_RUN}"
 
     def test_on_each_days_own_weights(self, weights) -> None:
-        """A series rebuilt from each day's decomposition, flips and swaps and all."""
-        expected = (0.0624, -0.1643, -0.0369, -0.0577, 0.0593)
+        """A series rebuilt from each day's decomposition, each sign fixed by rule."""
+        expected = (0.0326, -0.1105, -0.0283, -0.0315, 0.0025)
         assert weights.own == pytest.approx(expected, abs=FOUR), f"{SPEC}; {AFTER_THE_RUN}"
 
     def test_with_sign_and_rank_matched(self, weights) -> None:
@@ -797,7 +804,11 @@ class TestThePostsHelpers:
 
     def test_the_three_statistics_by_hand(self, closes) -> None:
         returns = file_returns(closes)
-        components = daily_components(returns)
+        components = []
+        for d in daily_components(returns):
+            columns = np.arange(FACTORS)
+            signs = np.sign(d.vectors[np.abs(d.vectors).argmax(axis=0), columns])
+            components.append(Decomposition(d.end, d.stocks, d.vectors * signs, d.singular))
         today, own, matched, left_out = [], [], [], []
         for d, after in zip(components[:-1], components[1:], strict=True):
             t = d.end
@@ -818,18 +829,41 @@ class TestThePostsHelpers:
             stats.left_out, uncentred(np.array(today), np.array(left_out)), atol=1e-14
         )
 
-    def test_a_flip_tomorrow_moves_the_own_statistic_and_not_the_matched_one(self, closes) -> None:
+    def test_no_statistic_depends_on_the_signs_the_library_returns(self, closes) -> None:
+        """Flip any vectors on any days, and all three statistics come back the same."""
         returns = file_returns(closes)
         components = daily_components(returns)
         before = weight_statistics(returns, components)
-        last = components[-1]
-        flipped = last.vectors.copy()
-        flipped[:, 0] *= -1
-        components[-1] = Decomposition(last.end, last.stocks, flipped, last.singular)
-        after = weight_statistics(returns, components)
-        assert after.own[0] != pytest.approx(before.own[0])
-        np.testing.assert_allclose(after.matched, before.matched, atol=1e-15)
+        flipped = [
+            Decomposition(d.end, d.stocks, d.vectors * signs, d.singular)
+            for d, signs in zip(
+                components,
+                np.random.default_rng(5).choice([-1.0, 1.0], size=(len(components), FACTORS)),
+                strict=True,
+            )
+        ]
+        assert any((f.vectors != d.vectors).any() for f, d in zip(flipped, components, strict=True))
+        after = weight_statistics(returns, flipped)
+        np.testing.assert_array_equal(after.own, before.own)
+        np.testing.assert_array_equal(after.matched, before.matched)
         np.testing.assert_array_equal(after.left_out, before.left_out)
+
+    def test_the_rule_makes_each_vectors_largest_weight_positive(self, unit) -> None:
+        mixed = unit * np.array([1.0, -1.0, 1.0, -1.0, -1.0])
+        fixed = with_largest_weight_positive(_decomposition(mixed)).vectors
+        largest = np.abs(fixed).argmax(axis=0)
+        assert (fixed[largest, np.arange(FACTORS)] > 0).all()
+        np.testing.assert_array_equal(np.abs(fixed), np.abs(mixed))
+        np.testing.assert_array_equal(
+            with_largest_weight_positive(_decomposition(-mixed)).vectors, fixed
+        )
+
+    def test_the_rule_reads_the_largest_weight_by_size(self) -> None:
+        """A vector flips when its largest weight is negative, though most of the others are not."""
+        vectors = np.zeros((4, FACTORS))
+        vectors[:, 0] = [0.3, 0.3, 0.3, -0.85]
+        fixed = with_largest_weight_positive(_decomposition(vectors)).vectors
+        assert fixed[:, 0].tolist() == [-0.3, -0.3, -0.3, 0.85]
 
     def test_a_window_holds_a_row_from_the_day_after_it_for_lookback_days(self, closes) -> None:
         components = daily_components(file_returns(closes))

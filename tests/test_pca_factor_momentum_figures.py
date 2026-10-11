@@ -279,7 +279,7 @@ class TestTheWaysPanel:
     @pytest.mark.parametrize(
         ("field", "expected"),
         [
-            ("own", (0.0624, -0.1643, -0.0369, -0.0577, 0.0593)),
+            ("own", (0.0326, -0.1105, -0.0283, -0.0315, 0.0025)),
             ("matched", (0.0246, -0.0161, -0.0318, -0.0285, 0.0768)),
             ("left_out", (0.0315, 0.0776, -0.0228, 0.0338, 0.0713)),
             ("paired", (0.0316, 0.0778, -0.0189, 0.0305, 0.0710)),
@@ -304,7 +304,7 @@ class TestTheWaysPanel:
     def test_the_legend_names_each_way(self, figure) -> None:
         legend = figure.axes[1].get_legend()
         assert [t.get_text() for t in legend.get_texts()] == [
-            "each day's own weights",
+            "each day's own weights, largest weight positive",
             "sign and rank matched",
             "tomorrow's weights on 251 days without today",
             "both days on today's weights, as tested",

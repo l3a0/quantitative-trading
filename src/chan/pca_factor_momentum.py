@@ -73,12 +73,15 @@ file and nothing about factor momentum today.
 **What the write-up measured after the run.** ``blog/pca-factor-momentum-lessons.md``
 teaches why each pair reads one day's vectors, and the functions after
 :func:`compute_both` measure what the other ways of building a factor's series
-give. They count the days a vector's sign flips and the days two factors
-swap rank, and compute the statistic on each day's own weights, with sign and
-rank matched, and with tomorrow's weights fitted on 251 days that leave
-today's return out. They also read PMC's weight on the days whose window holds
-its one large return, check that the program's ranking moves nowhere when the
-intercept is dropped, and find how close any stock comes to tying a factor.
+give. A singular vector's sign is whatever the numerical library returns, and
+two machines running this suite returned different ones, so every vector's
+sign is first fixed by a rule, its largest weight positive. Then they count
+the days a vector's sign still flips and the days two factors swap rank, and
+compute the statistic on each day's own weights, with sign and rank matched,
+and with tomorrow's weights fitted on 251 days that leave today's return out.
+They also read PMC's weight on the days whose window holds its one large
+return, check that the program's ranking moves nowhere when the intercept is
+dropped, and find how close any stock comes to tying a factor.
 All of it was measured after the verdicts and decides nothing.
 :mod:`chan.pca_factor_momentum_figures` draws the post's figure from them.
 
@@ -414,6 +417,19 @@ def swap_days(components: list[Decomposition]) -> int:
     )
 
 
+def with_largest_weight_positive(d: Decomposition) -> Decomposition:
+    """``d`` with each vector's sign set so its largest weight in size is positive.
+
+    A singular vector's sign is whatever the numerical library returns, and two
+    libraries can return opposite signs for the same window. Fixing the sign by
+    a rule that reads only the vector makes a series built from each day's
+    vectors the same on every machine.
+    """
+    largest = np.abs(d.vectors).argmax(axis=0)
+    signs = np.where(d.vectors[largest, np.arange(d.vectors.shape[1])] < 0, -1.0, 1.0)
+    return Decomposition(end=d.end, stocks=d.stocks, vectors=d.vectors * signs, singular=d.singular)
+
+
 def _on_own_weights(returns: np.ndarray, d: Decomposition, row: int) -> np.ndarray:
     return d.vectors.T @ returns[row, d.stocks]
 
@@ -426,11 +442,15 @@ class WeightStatistics:
     return on today's weights, u_k(t) · r_t, with a return for tomorrow.
 
     - ``own``: tomorrow's on tomorrow's weights, u_k(t + 1) · r_{t+1}, as a
-      series rebuilt from each day's decomposition would read it.
+      series rebuilt from each day's decomposition would read it, with every
+      vector's sign fixed by :func:`with_largest_weight_positive`.
     - ``matched``: the same, with tomorrow's factors put in today's order and
       sign by :func:`match`.
     - ``left_out``: tomorrow's weights fitted on the 251 days before today,
       which leave today's return out, then matched.
+
+    None of the three depends on the signs the library returns. ``own`` fixes
+    them by rule, and the other two match tomorrow's signs to today's.
     """
 
     own: np.ndarray
@@ -440,6 +460,7 @@ class WeightStatistics:
 
 def weight_statistics(returns: np.ndarray, components: list[Decomposition]) -> WeightStatistics:
     """The three statistics, from every decomposition :func:`daily_components` gives."""
+    components = [with_largest_weight_positive(d) for d in components]
     today, own, matched, left_out = [], [], [], []
     for d, after in zip(components[:-1], components[1:], strict=True):
         t = d.end
