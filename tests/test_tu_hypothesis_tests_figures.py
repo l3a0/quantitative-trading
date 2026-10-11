@@ -39,7 +39,6 @@ from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST
 from chan.series import WindowCrossesScaleBreak
 from chan.tu_hypothesis_tests_figures import (
-    BINS,
     TU_HYPOTHESIS_TESTS_FIGURE,
     axis_limits,
     bin_edges,
@@ -124,6 +123,19 @@ class TestThePanels:
             assert low < values.min() and values.max() < high, (name, SPEC)
         assert low < OBSERVED < high
 
+    def test_the_axis_runs_between_its_pinned_limits(self, result) -> None:
+        """Both ends of the shared axis, pinned to the run rather than read back from it.
+
+        The other axis tests compare drawn limits with ``axis_limits`` itself, so a
+        limit that moved would move both sides of the comparison. On the vintage and
+        seeds ``SPEC`` names, the least simulated mean sits above the Gaussian null's
+        −4 spreads, so the left end is that reach padded, and the right end is the
+        greatest simulated mean padded.
+        """
+        low, high = axis_limits(result)
+        assert low == pytest.approx(-9.734871e-05, rel=5e-7), SPEC
+        assert high == pytest.approx(1.493807e-04, rel=5e-7), SPEC
+
     def test_the_observed_mean_is_the_same_line_on_each(self, axes, result) -> None:
         assert result.observed_mean == pytest.approx(OBSERVED, rel=5e-7), SPEC
         for name, ax in axes.items():
@@ -147,7 +159,11 @@ class TestThePanels:
         The legend sits at the upper left, and the top of each panel sits at
         least 1.55 times its tallest value above zero, so the legend covers no
         data. The 1.55 is written here rather than read from the module, so a
-        module that dropped the headroom fails.
+        module that dropped the headroom fails. The top is not exactly 1.55
+        times the tallest value, because the module scales matplotlib's
+        autoscaled top, which already carries a 5% margin, so it lands at
+        1.6275 times. The bound of 1.7 leaves room for that margin and fails a
+        headroom much above it.
         """
         for name, ax in axes.items():
             assert list(ax.get_yticks()) == [], name
@@ -157,6 +173,7 @@ class TestThePanels:
             bottom, top = ax.get_ylim()
             assert bottom == 0, name
             assert top >= 1.55 * max(heights), name
+            assert top <= 1.7 * max(heights), name
             assert ax.get_legend()._loc == 2, name  # matplotlib's code for "upper left"
 
     def test_the_title_carries_the_exploratory_label(self, figure) -> None:
@@ -204,8 +221,9 @@ class TestTheHistograms:
         assert set(_stairs(axes["trades"])) == {"shuffled"}
 
     def test_every_histogram_shares_one_set_of_edges(self, axes, result) -> None:
+        """150 bins, written as a literal so a module with another count fails."""
         edges = bin_edges(result)
-        assert len(edges) == BINS + 1
+        assert len(edges) == 151
         assert (edges[0], edges[-1]) == axis_limits(result)
         for ax in axes.values():
             for gid, stairs in _stairs(ax).items():
@@ -258,7 +276,7 @@ class TestTheGaussianNull:
     def test_it_spans_the_shared_axis(self, axes, result) -> None:
         x = _by_gid(axes["gaussian"].lines)["gaussian"].get_xdata()
         assert (x[0], x[-1]) == axis_limits(result)
-        assert len(x) == figures.CURVE_POINTS
+        assert len(x) == 801
 
 
 class TestTheLabels:
@@ -355,6 +373,17 @@ class TestTheReadPath:
         np.testing.assert_array_equal(values, expected)
         original, _ = np.histogram(result.trades, bins=bin_edges(shifted), density=True)
         assert not np.array_equal(values, original)
+
+    def test_sources_handed_in_are_the_sources_named(self, tmp_path, result, sources) -> None:
+        """The note prints the save date of the entry handed in, not one read again."""
+        entry, closes = sources
+        moved = dataclasses.replace(entry, saved_date="2011-01-03")
+        drawn = make_tu_hypothesis_tests_figure(
+            out=tmp_path / TU_HYPOTHESIS_TESTS_FIGURE, result=result, sources=(moved, closes)
+        )
+        (note,) = [t.get_text() for t in drawn.texts if t is not drawn._suptitle]
+        assert "saved 2011-01-03," in note
+        assert "saved 2012-05-12" not in note
 
     def test_the_guard_runs_even_when_a_result_is_handed_in(
         self, monkeypatch, tmp_path, result
