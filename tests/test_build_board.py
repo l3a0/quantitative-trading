@@ -875,7 +875,7 @@ def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: P
     note = text(ids, "boardnote")
     assert "more than one thing" not in note
     assert (
-        "Nothing waits on an issue that is itself waiting, so no card is more than 1 step behind."
+        "No card waits on an issue that waits on another, so none is more than 1 step behind."
         in note
     )
     assert "#90505 waits on 2 open issues at once, #90501 and #90504." in note
@@ -889,10 +889,10 @@ def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: P
 @pytest.mark.parametrize(
     ("needs", "sentence"),
     [
-        ({}, "2 cards wait on an issue that is itself waiting, and the deepest is 2 steps behind."),
+        ({}, "2 cards wait on an issue that waits on another, and the deepest is 2 steps behind."),
         (
             {90504: [90503]},
-            "3 cards wait on an issue that is itself waiting, and the deepest is 3 steps behind.",
+            "3 cards wait on an issue that waits on another, and the deepest is 3 steps behind.",
         ),
     ],
 )
@@ -942,7 +942,7 @@ def test_a_board_where_nothing_waits_says_no_depth(tmp_path: Path) -> None:
     ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
     note = text(ids, "boardnote")
     assert "behind." not in note
-    assert "waits on an issue that is itself waiting" not in note
+    assert "waits on an issue that waits on another" not in note
     assert "No card here is waiting on another" in note
 
 
@@ -953,15 +953,17 @@ def test_a_shallow_graph_says_when_it_counts_hidden_cards(tmp_path: Path) -> Non
     The short view draws only 90502, so its second column is empty while a
     hidden card sits one step behind. The sentence says it is counting hidden
     cards, and the freeing clause after it then says it is counting them too.
+    The clause naming a card with several blockers can sit between the two, so
+    the second says which cards it means rather than "them".
     """
     docs = _with_needs(fixture_docs(), {90502: [], 90503: [90501], 90505: []})
     ids = run_page(tmp_path, db=True, steps=[docs])
     note = text(ids, "boardnote")
     assert (
-        "Counting the hidden issues, nothing waits on an issue that is itself waiting, "
-        "so no card is more than 1 step behind."
+        "Counting the hidden issues, no card waits on an issue that waits on another, "
+        "so none is more than 1 step behind."
     ) in note
-    assert "Counting them too, #90501" in note
+    assert "Counting the hidden issues too, #90501" in note
 
     ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
     assert "Counting the hidden issues" not in text(ids, "boardnote")
@@ -989,3 +991,18 @@ def test_the_chain_bar_tells_direct_blockers_from_the_chain(
     docs = _with_needs(fixture_docs(), needs)
     ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path), click=card)
     assert line in text(ids, "chainbar")
+
+
+def test_counting_too_names_the_hidden_issues_after_a_named_card(tmp_path: Path) -> None:
+    """Protects the freeing clause's prefix from pointing at the wrong cards.
+
+    Fixture issue 90505 waits on 90502 and 90504 here, so a clause naming it and
+    both blockers sits between the depth sentence and the freeing clause in the
+    short view. A bare "Counting them too" there read as counting 90502 and
+    90504 rather than the hidden issues.
+    """
+    docs = _with_needs(fixture_docs(), {90505: [90502, 90504]})
+    note = text(run_page(tmp_path, db=True, steps=[docs]), "boardnote")
+    assert "#90505 waits on 2 open issues at once, #90502 and #90504." in note
+    assert "Counting them too" not in note
+    assert "Counting the hidden issues too, #90501" in note

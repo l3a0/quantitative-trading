@@ -1157,7 +1157,7 @@ const COLS = [
   /* Steps along a chain rather than things to land. "Behind one" over "one
      thing has to land first" read as a count of blockers, which went false on
      2026-10-11 when issue 303 sat in this column waiting on 249 and 510. */
-  ["One step behind", "what these wait on waits on nothing"],
+  ["One step behind", "what these wait on waits on no open issue"],
   ["Two steps behind or more", "something these wait on is itself waiting"],
   ["Waiting on data", "not a backlog, a purchase"]
 ];
@@ -1872,16 +1872,16 @@ function buildOrder() {
          single card reached the third column. That is defect 8 in a second
          place, so the agreement is written wherever a count leads a verb. */
       ? `${depthHidden ? "Counting the hidden issues, " : ""}` +
-        `${plu(deep, "card")} ${deep === 1 ? "waits" : "wait"} on an issue that is itself ` +
-        `waiting, and the deepest is ${plu(longest, "step")} behind. `
+        `${plu(deep, "card")} ${deep === 1 ? "waits" : "wait"} on an issue that waits on ` +
+        `another, and the deepest is ${plu(longest, "step")} behind. `
       /* No chain at all says nothing here, because the second and third columns
          are then empty in both views and the freeing clause below already says
          when nothing waits on anything. */
       : longest
         /* Steps, the unit the column headings count in, rather than levels,
            which a reader counting columns would put one higher. */
-        ? `${depthHidden ? "Counting the hidden issues, nothing" : "Nothing"} waits on an issue ` +
-          `that is itself waiting, so no card is more than ${plu(longest, "step")} behind. `
+        ? `${depthHidden ? "Counting the hidden issues, no card" : "No card"} waits on an issue ` +
+          `that waits on another, so none is more than ${plu(longest, "step")} behind. `
         : ``) +
     /* Every card named here waits on all of its issues, so "and" and "each" are
        the right words, unlike the reasons above, which are alternatives. */
@@ -1892,7 +1892,7 @@ function buildOrder() {
         ? `${andlist(several.map(x => "#" + x.n))} each wait on more than one open issue. `
         : ``) +
     (most
-      ? (freesHidden ? (depthHidden ? "Counting them too, " : "Counting the hidden issues, ") : "") +
+      ? (freesHidden ? (depthHidden ? "Counting the hidden issues too, " : "Counting the hidden issues, ") : "") +
         (unblocks.length === 1
           ? `<b>#${unblocks[0].n} is the single card whose landing frees the most</b>, at ${plu(most, "other")}. `
           : `<b>${andlist(unblocks.map(x => "#" + x.n))} each free ${plu(most, "other")}</b>, and nothing frees more. `)
