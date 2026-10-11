@@ -50,7 +50,7 @@ script's comment at the decimals it prints and against the book's two at the
 precision Chan printed, through ``matches``.
 
 Exploratory. Reproducing Chan's figures spends his 2008 to 2012 sample on a
-rule and a hedge he chose. A scratch run landed every figure before the
+rule Simon and Campasano proposed and a hedge he chose. A scratch run landed every figure before the
 criterion was written on the issue. It first ran here on 2026-10-10.
 
 Two classes came later, with ``blog/vx-es-roll-return-lessons.md``.

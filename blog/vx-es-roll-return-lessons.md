@@ -6,7 +6,7 @@
 
 A VIX future, which trades as VX, settles at the level of the VIX index on its expiry. So as settlement nears, its price converges on VIX. A contract priced above VIX tends to fall toward it, and one priced below tends to rise. That convergence is VX’s roll return, the part of a future’s return that comes from its price meeting the spot by expiry. The [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#why-split-a-futures-return-in-two) builds up the roll return, the spot return, contango and backwardation. The [post on VX against the E-mini](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#why-trade-volatility-against-the-stock-index) explains what VIX measures, what the E-mini future ES is, and why the two move against each other.
 
-VX usually sits above VIX, a state called contango. Ernest Chan’s *Algorithmic Trading* says VX “has been in contango around three fourths of the time” (Chan, 2013, location 2385), citing Simon and Campasano (2012). On Chan’s own VX file the front contract, defined below, sits above VIX on 1,016 of the 1,369 days it has one, from 2006-11-14 to 2012-04-23. That is close to three in four, over a different span from Simon and Campasano’s.
+VX usually sits above VIX, a state called contango. Ernest Chan’s *Algorithmic Trading* says VX “has been in contango around three fourths of the time” (Chan, 2013, location 2385), citing Simon and Campasano (2012). On Chan’s own VX file the front contract, defined below, sits above VIX on 1,016 of the 1,369 days it has one, from 2006-11-14 to 2012-04-23. That is close to three in four. The book gives no span for Simon and Campasano’s count, so the two cannot be compared.
 
 Collecting a roll return alone means holding the future against something that tracks its underlying, so the underlying’s moves cancel. The [post on long GLD and short gold futures](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gc-lessons.md#why-own-the-metal-and-short-the-future) runs that trade on gold, where a fund holds the metal. Nothing holds VIX. Keeping a basket of options that replicates it is too expensive, and “no ETF sponsors have been foolish enough to do that” (location 2747). Chan argues that a stand-in only needs a high correlation, or anticorrelation, with the spot return. He picks ES, whose roll return is “about 1 percent annualized” (location 2747), so its return is almost the index’s.
 
@@ -20,7 +20,7 @@ The results fall into five groups.
 4. **The window is out of sample for the hedge alone.** The threshold and the window that picks the front contract carry no such statement.
 5. **The hedge leaves the trade mostly in the E-mini.** Under 0.3906 the VX leg is a median 0.119966 of the money held, and the ES leg gives back more than half of what the VX leg earns.
 
-**Every result here is exploratory.** Chan chose the rule, the hedge and the dates, and the reproduction runs them on his own files. It can say whether his numbers follow from those files, and nothing about whether the trade would pay after 2012. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+**Every result here is exploratory.** Simon and Campasano proposed the rule, and Chan chose the hedge and the dates. The reproduction runs them on his own files. It can say whether his numbers follow from those files, and nothing about whether the trade would pay after 2012. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The rule, the script and the files
 
@@ -37,9 +37,9 @@ The files are three of Chan’s, each recorded in the repository’s [data READM
 
 1. **`inputDataDaily_VX_20120507.mat`**, saved 2012-05-08. It holds 72 VX contracts, one for each month from January 2007 to December 2012, over 1,543 days from 2006-03-23 to 2012-05-07, and no spot price. The [post on Chan’s VIX calendar spread](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-calendar-spread-lessons.md#what-changes-from-crude-oil) read the same file.
 2. **`VIX.csv`**, saved 2012-05-09. It holds 5,635 closes of the index from 1990-01-02 to 2012-05-08.
-3. **`inputDataOHLCDaily_20120507.mat`**, saved 2012-05-09. ES holds 2,000 rows from 2004-06-02 to 2012-05-08. The VX against E-mini post calls this file the 2012-05-07 save.
+3. **`inputDataOHLCDaily_20120507.mat`**, saved 2012-05-09. It holds 53 series. The trade reads its ES, 2,000 rows from 2004-06-02 to 2012-05-08. The VX against E-mini post calls this file the 2012-05-07 save.
 
-The three share all 1,543 of the VX file’s days. 948 of them fall on or after 2008-08-04, and the last 448 are the test. VIX jumps from 11.15 to 18.31 on 2007-02-27, which the repository’s check for a change of scale flags. It is a real move, and no figure reads it. A position reads only its own day’s VIX, and the first test day earns the position held at the close of 2010-07-28.
+The three share all 1,543 of the VX file’s days. 948 of them fall on or after 2008-08-04, and the last 448 are the test. VIX jumps from 11.15 to 18.31 on 2007-02-27, which the repository’s check for a change of scale flags. It is a real move. That day the front contract sits far enough below VIX for the rule to hold long, so the day counts among the front rows below VIX in the 1,016 of 1,369 above. It enters no figure of the trade’s. Each day’s position reads only that day’s VIX, and the test’s first day earns the position held at the close of 2010-07-28, more than three years later.
 
 The order of the run was not the one this repository asks for. A scratch run saw all eight of the script’s figures land before the rule for a landing figure was written down. That rule is the one every replication here uses: a figure lands when the computed value rounds to the printed one at the decimals printed. Nothing in it was chosen to fit. [Entry 41 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-41-vx-against-es-on-vxs-roll-return-chans-algorithmic-trading) records each figure beside the test that computes it.
 
@@ -57,13 +57,13 @@ The script carries two position rules. The lines trading 0.3906 VX contracts per
 \end{array}
 ```
 
-All eight land at the precision the comments print, six to six decimals and the two day counts exactly. The book’s two come from the 0.3906 block. Its APR is 6.906464 percent, which rounds to 6.9, and its Sharpe ratio rounds to 1. Neither rule lands the other’s figures. Each misses the other’s APR by 0.224841 and its Sharpe ratio by 2.261932, so the two blocks cannot be read as one run. The two rules hold the same 224 test days with the same signs. The hedge scales the VX leg and changes nothing else.
+All eight land at the precision the comments print. The APRs, Sharpe ratios and maximum drawdowns land to six decimals, and the two day counts exactly. The book’s two come from the 0.3906 block. Its APR is 6.906464 percent, which rounds to 6.9, and its Sharpe ratio rounds to 1. Neither rule lands the other’s figures. Each misses the other’s APR by 0.224841 and its Sharpe ratio by 2.261932, so the two blocks cannot be read as one run. The two rules hold the same 224 test days with the same signs. The hedge scales the VX leg and changes nothing else.
 
 So the live lines are not the rule the book describes. The script’s line 75 plots line 74’s cumulative return for whichever rule is live, so the script as shipped draws the [1, 1] curve, while the text quotes the figures of 0.3906. The book’s notes in this repository hold Figure 6.4’s caption and not its curve, so which rule the printed figure shows cannot be read from anything committed here. The figure below draws both. A reader holding the book can match its Figure 6.4 to one of them. The VX against E-mini post met a cousin of this in its [second lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#lesson-2-the-save-decides-and-the-script-that-ships-is-not-the-run), where the script that ships loads another file and never trades.
 
 ![Two charts on one shared date axis from late July 2010 to early May 2012. The top chart redraws Figure 6.4, the cumulative compounded return over the test. A solid black line trades 0.3906 VX contracts per ES contract. It rises to a marked high of 0.049547 on 2010-08-31, drifts between about 0 and 5 percent through mid 2011, dips to a marked trough of −0.029886 on 2011-08-08, climbs to about 8 percent by October 2011 and about 13 percent in December 2011, and ends at 12.61 percent. A dotted line at the August 2010 high is labelled 259 days below this high, to 2011-09-09. A dashed grey line trades one VX contract per ES contract. It climbs to about 24 percent by mid 2011, jumps to about 37 percent in August and September 2011, and ends at 58.10 percent. Tan bands mark the days held short both legs. They cover most of August and September 2010, much of late 2010, scattered days through mid 2011 and most of December 2011 to April 2012. Green bands mark the days held long both legs, mostly late July to late August 2011. The bottom chart plots the signal, the front VX contract less VIX over the trading days to settlement, with dashed lines at plus and minus 0.1. It sits mostly between 0 and 0.25, plunges below −0.1 in the green stretch to a marked low of −0.574194 on 2011-08-08, peaks at a marked 0.311739 on 2012-03-16, and stops 10 days before the end. The title calls the figure exploratory.](../docs/figures/vx_es_roll_return.png)
 
-*The top panel redraws the book’s Figure 6.4, “Cumulative Returns of VX-ES Roll Returns Strategy”, under both of the script’s rules. The bottom panel is the signal that sets the position, which the book does not draw. Both panels shade the days held short in tan and the days held long in green.*
+*The top panel redraws the book’s Figure 6.4, “Cumulative Returns of VX-ES Roll Returns Strategy” (location 2754), under both of the script’s rules. The bottom panel is the signal that sets the position, which the book does not draw. Both panels shade the days held short in tan and the days held long in green.*
 
 The figure is exploratory like every number here. Both curves reach their ends on 2012-04-24, at 12.61 percent for 0.3906 and 58.10 percent for [1, 1], and stay flat for the 9 rows after. The 0.3906 curve’s highest point is 0.129142, on 2011-12-19. Its deepest drawdown of −0.075683 runs from a high on 2010-08-31 to a trough on 2011-08-08, where the curve reads −0.029886. Its longest run below a high, 259 days from 2010-09-01 to 2011-09-09, is the same episode, and the curve makes a new high on 2011-09-12. Under [1, 1] the two drawdown figures are separate episodes. The deepest, −0.035798, runs from a high on 2012-02-06 to 2012-02-15. The longest, 59 days, runs from a high on 2011-09-23 to 2011-12-16.
 
@@ -88,16 +88,16 @@ That covers every entry in the test. Its held days fall into 32 stretches, 25 sh
 \end{array}
 ```
 
-The middle row sets each of the 32 entry days’ returns to −0.0001, one basis point of the gross just opened. That prints as 6.7 percent against the book’s 6.9, and the Sharpe ratio still rounds to 1. So the book’s 6.9 percent depends on the free entries at the precision it prints.
+The middle row sets each of the 32 entry days’ returns to −0.0001, one basis point of the gross just opened. That prints as 6.7 percent against the book’s 6.9, and the Sharpe ratio still rounds to 1. So, at the script’s own one-basis-point rate, the book’s 6.9 percent depends on the free entries. The bottom row charges no cost at all, not even on held days, and gives an APR of 0.071248 and a Sharpe ratio of 1.030894.
 
-The test ends with ten days holding nothing. Eight contracts are priced on 2012-05-07, the file’s last day, so the script reads each as expiring there. VX-2012K, the May 2012 contract, is the front until 2012-04-23, and its days to settlement count to 2012-05-07 rather than to its real expiry. The six contracts after it in the loop get windows that hold no row, so 65 of the 71 contracts the loop reads are ever the front. The [VIX calendar spread post](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-calendar-spread-lessons.md#lesson-3-one-reading-of-five-lands-and-that-is-a-search) met the same false expiry on the same contract. The first of the ten days, 2012-04-24, earns the position held at the 2012-04-23 close less its exit cost: −0.000500 under 0.3906 and 0.005394 under [1, 1]. The other nine earn 0, which the annual figures count. In the figure’s bottom panel those ten days are blank.
+The test ends with ten days holding nothing. Eight contracts are priced on 2012-05-07, the file’s last day, so the script reads each as expiring there. VX-2012K, the May 2012 contract, is the front until 2012-04-23, and its days to settlement count to 2012-05-07 rather than to its real expiry. The script’s loop stops one short of the last contract, VX-2012Z, so it reads 71 of the 72. The six between VX-2012K and VX-2012Z get windows holding no row, so 65 of the 71 are ever the front. The [VIX calendar spread post](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-calendar-spread-lessons.md#lesson-3-one-reading-of-five-lands-and-that-is-a-search) met the same false expiry on the same contract. The first of the ten days, 2012-04-24, earns the position held at the 2012-04-23 close less its exit cost: −0.000500 under 0.3906 and 0.005394 under [1, 1]. The other nine earn 0, which the annual figures count. In the figure’s bottom panel those ten days are blank.
 
 ## Lesson 4: out of sample for the hedge alone
 
 The book says the test window “was not used for hedge ratio determination” (location 2754). That holds. The fit runs from 2008-08-04 to 2010-07-28, and the test starts the next day. So the window is out of sample for the hedge ratio. Two more facts about the hedge come from the same paragraph and the files.
 
 1. **It fits prices, where the paper fit returns.** Chan says the hedge “is based on the regression fit between the VX versus ES prices”, not “between their returns as in the original paper” (location 2754).
-2. **It fits a continuous future, while the trade holds single contracts.** The fit reads VX’s continuous close from the ES file, stitched from one contract after another. The trade holds one front contract at a time from the VX file.
+2. **It fits a continuous future, while the trade holds single contracts.** The fit reads VX’s continuous close from that same save, stitched from one contract after another. The trade holds one front contract at a time from the VX file.
 
 The rule has two more choices, and neither carries a statement like the hedge’s.
 
@@ -110,7 +110,7 @@ The bottom panel of the figure shows what the rule reads. Of the 438 rows, 196 s
 
 ## Lesson 5: the hedge leaves the trade mostly in the E-mini
 
-The trade is described as collecting VX’s roll return, so the VX leg should carry it. Splitting each day’s return shows how much it does. A day’s return is the VX leg’s dollar profit, plus the ES leg’s, less the cost, each over yesterday’s gross, and the three parts add up to the day’s return. A leg’s share of the gross is what that leg is worth in dollars over the gross.
+The trade is described as collecting VX’s roll return, so the VX leg should carry it. Splitting each day’s return shows how much it does. A day’s return splits into three parts, each over yesterday’s gross. They are the VX leg’s dollar profit, the ES leg’s, and the cost, which comes off. A leg’s share of the gross is what that leg is worth in dollars over the gross.
 
 ```math
 \begin{array}{l|r|r}
@@ -118,7 +118,7 @@ The trade is described as collecting VX’s roll return, so the VX leg should ca
 \text{VX leg's median share of the gross} & 0.119966 & 0.258710 \\
 \text{VX leg, summed over the test} & 0.285954 & 0.605959 \\
 \text{ES leg, summed over the test} & -0.159336 & -0.138046 \\
-\text{Cost, summed over the test} & -0.003634 & -0.003961 \\
+\text{Cost, summed over the test, subtracted} & 0.003634 & 0.003961 \\
 \text{Daily returns, summed} & 0.122984 & 0.463952
 \end{array}
 ```
@@ -129,9 +129,9 @@ One day shows the cost of the hedge. Both rules went into 2011-08-08 long both l
 
 The anticorrelation the hedge rests on holds here. On the 224 test days that earn a position, the front contract’s daily return correlates with ES’s at −0.813746. Chan gives “a correlation coefficient of daily returns reaching −75 percent” (location 2754) and names no span, so the two are not a like-for-like comparison.
 
-The book’s note on the regression suggests a reason without testing one. A fit of dollar levels sizes the hedge to the two contracts’ price levels, not to their daily moves. Nothing here computes a hedge fitted on returns, so nothing here says what one would have earned.
+Nothing here tests why the VX leg is so small. Simon and Campasano fit returns, which would size the legs differently, and nothing here computes that hedge.
 
-**This is a description of one sample, and it is exploratory.** The split was measured after the run was seen. It has no parameter to tune, and it tests no cause.
+**This is a description of one sample, and it is exploratory.** The write-up measured the split after the run. It has no parameter to tune, and it tests no cause.
 
 ## What this replication cannot say
 
@@ -139,9 +139,9 @@ Five questions are beyond it.
 
 1. **What a broker would have charged to enter.** The script charges no entry, and the one basis point in Lesson 3 is a guess at a cost, not a measured one.
 2. **What a hedge fitted on returns would have earned.** Simon and Campasano fit returns, and nothing here does.
-3. **What the script’s entry filter does.** Its commented-out lines 52 to 53 and 60 to 61 add a condition on the front contract’s price before each entry. They print no figure, and nothing here runs them.
+3. **What the script’s entry filter does.** Its commented-out lines 52 to 53 and 60 to 61 form an entry-level filter. It would hold a short only on days the front trades above 21 and a long only on days it trades below 34, once the unconditional lines above them are commented out. It prints no figure, and nothing here runs it.
 4. **ES’s own roll return.** The book puts it at about 1 percent a year. No ES contract strip is committed, so nothing here measures it.
-5. **Anything after 2012-05-07.** The rule, the hedge and the window are Chan’s. A test of the trade would fix the rule in writing first and run it on later prices.
+5. **Anything after 2012-05-07.** The rule is Simon and Campasano’s, and the hedge and the window are Chan’s. A test of the trade would fix the rule in writing first and run it on later prices.
 
 ## What this means for a trader
 
@@ -151,7 +151,7 @@ One habit for each lesson.
 2. **Trade the number that was printed when reproducing.** A rounded hedge in a book can be the one the author traded, and the fitted number behind it can miss at the precision the script prints.
 3. **Find where a backtest stops charging.** A cost formula can skip every entry and still charge every held day. Count the entries and price them.
 4. **Ask what out of sample covers.** A window can be out of sample for one fitted number and not for the rest of the rule. List each choice and say where it came from.
-5. **Split the return by leg.** A hedge sized on price levels can leave the trade mostly in the hedge. Measure each leg’s share before calling it a trade on the other one.
+5. **Split the return by leg.** A hedge ratio fixes the money in each leg, and the leg the trade is named for can end up the smaller one. Measure each leg’s share before calling it a trade on that leg.
 
 ## References
 

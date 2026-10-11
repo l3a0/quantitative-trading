@@ -8487,8 +8487,9 @@ specification is the fitted hedge rather than 0.3906 or [1, 1].
       script reads its last column, `Adj Close`, which equals `Close` on every
       row. This is the first replication to read the file. The scale-break
       guard reads it from 2008-08-04 to 2012-05-07 and refuses nothing. The
-      file flags 2007-02-27, a real move from 11.15 to 18.31, which no figure
-      reads, as
+      file flags 2007-02-27, a real move from 11.15 to 18.31. It counts
+      among the front rows below VIX in conclusion 5, and no figure of the
+      trade's reads it, as
       `TestTheGuardAndTheReads::test_no_figure_reads_vix_before_the_test_s_first_held_close`
       holds.
    3. `data/inputdataohlcdaily_20120507/es.csv`, lifted from
@@ -8525,7 +8526,8 @@ that fits the 0.3906 hedge. Over the test, H and U hold a position on 224 of
 the 448 days, short on 196 and long on 28, with 32 entries from flat.
 
 Every result here is **exploratory**. Reproducing Chan's figures spends his
-2008 to 2012 sample on a rule and a hedge he chose.
+2008 to 2012 sample on a rule Simon and Campasano proposed and a hedge he
+chose.
 
 ### What the book printed
 
@@ -8583,8 +8585,9 @@ Six things. The last three were measured by the write-up after the run, and
 them.
 
 1. **Both of the script's rules reproduce on Chan's own files.** All eight
-   figures its comments print land at the precision printed, six to six
-   decimals and the two day counts exactly.
+   figures its comments print land at the precision printed, the APRs,
+   Sharpe ratios and maximum drawdowns to six decimals and the two day counts
+   exactly.
 2. **The book's figures come from the commented rule.** The script as it
    ships prints the [1, 1] block. The book's 6.9 percent and Sharpe ratio of
    1 round from the 0.3906 block, which is the rule the text describes, and
@@ -8636,9 +8639,10 @@ than to its real expiry, and the test's last 10 rows hold nothing. The
 first of them, 2012-04-24, earns the position held at the 2012-04-23 close
 less its exit cost, and the script counts the other nine as earning 0.
 
-**Whether the trade works out of sample.** The rule, the hedge and the window
-are Chan's, and the sample is the one he reported on. A registered test would
-fix the rule first and run it on data after 2012.
+**Whether the trade works out of sample.** The rule is Simon and
+Campasano's, the hedge and the window are Chan's, and the sample is the one
+he reported on. A registered test would fix the rule first and run it on data
+after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

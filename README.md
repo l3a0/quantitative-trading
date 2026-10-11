@@ -565,9 +565,9 @@ where they were first built. The other forty-two were built here.
     by more than 0.1 point per trading day to settlement, and long both when
     it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
     all eight figures its comments print reproduce at the precision printed,
-    six to six decimals and the two day counts exactly. With 0.3906 VX
-    contracts per ES contract, the commented rule, the APR is
-    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
+    the APRs, Sharpe ratios and maximum drawdowns to six decimals and the two
+    day counts exactly. With 0.3906 VX contracts per ES contract, the
+    commented rule, the APR is 0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
     lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
     of 1. With one VX contract per ES contract, the rule the script ships,
     they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
@@ -1104,7 +1104,7 @@ the free entry from flat and the file's last day read as an expiry. On
 synthetic strips it holds the days to settlement counting one past expiry,
 the strict threshold, both legs signed alike with VX scaled by the hedge, the
 one-day lag, the gross divisor and the cost of an exit. It also holds each
-read guarded and the flagged day in VIX read by no figure. It holds what the
+read guarded and the flagged day in VIX read by no trade figure. It holds what the
 write-up measured after the run too: the stretches held, the APR with each
 entry charged and with no cost, where the front sits among the priced
 contracts, the hedge's 500 days, each leg's share and sum, 2011-08-08, and
@@ -5286,19 +5286,20 @@ Five groups of what it says are not pinned here.
    the window, the figures and Figure 6.4's caption at 2754.
 2. Facts about the script rather than the data: which of its lines are live
    and which commented out, its line 75 plotting line 74's cumulative return
-   for the live rule, and its commented-out entry filter at lines 52 to 53
-   and 60 to 61, all in `VX_ES_rollreturn.m` at `e4bc46f` of
+   for the live rule, its loop stopping one short of the last contract, and
+   its commented-out entry filter at lines 52 to 53 and 60 to 61 with its
+   levels of 21 and 34, all in `VX_ES_rollreturn.m` at `e4bc46f` of
    ericnberwick/EpchanPreview.
 3. Readings no test asserts: that a VX contract converges on VIX by
    settlement, that dividing the gap by the days to settlement gives a pace,
    that a short VX leg and a short ES leg hedge each other, that the old
    front is still priced for the 10 rows after the script moves on, that a
-   price regression sizes the hedge to price levels rather than daily moves,
-   and that [1, 1]'s larger return on this sample comes from holding more VX.
+   hedge fitted on returns would size the legs differently, and that
+   [1, 1]'s larger return on this sample comes from holding more VX.
 4. Figures the post states in words or rounds from pinned ones, such as close
-   to three in four, more than half, about two and a half times, years before
-   the test, 6.7 percent, and the 12.61 and 58.10 percent the legend prints.
-   The figure's alt text reads its curves approximately too.
+   to three in four, more than half, about two and a half times, and years
+   before the test or more than three years after VIX's jump. The figure's
+   alt text reads its curves approximately too.
 5. Its references, cited rather than computed. The paper by Simon and
    Campasano is not in the repository.
 
@@ -5306,7 +5307,9 @@ Every other number in the post traces to an assertion in
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py), or to
 [tests/test_vx_es_roll_return_figures.py](tests/test_vx_es_roll_return_figures.py)
 for the figure's own numbers. The fitted 0.390594 traces to
-[tests/test_vx_es.py](tests/test_vx_es.py) as well. `TestWhatThePostMeasured`
+[tests/test_vx_es.py](tests/test_vx_es.py) as well, and the 53 series of the
+2012-05-07 save to
+[tests/test_continuous_futures.py](tests/test_continuous_futures.py). `TestWhatThePostMeasured`
 holds the ones that had no pin before it, all measured after the run.
 
 1. The front above VIX on 1,016 of the 1,369 front rows from 2006-11-14 to

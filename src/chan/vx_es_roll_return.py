@@ -81,8 +81,9 @@ transcription names them rather than copying them silently.
    2012-05-07, the strip's last row, so each reads as expiring there.
    VX-2012K's window ends on 2012-04-23, its days to settlement count to
    2012-05-07 rather than to its real expiry, and the test's last 10 rows
-   hold nothing. The six contracts after it in the loop get windows that hold
-   no row. Of the 71 contracts the loop reads, 65 hold a row.
+   hold nothing. The loop stops one short of the last contract, VX-2012Z, so
+   it reads 71 of the 72. The six between VX-2012K and VX-2012Z get windows
+   that hold no row, so 65 of the 71 hold a row.
 
 **The data.** Four committed vintages. The trade reads the first three, and
 the fitted hedge beside it reads the fourth.
@@ -130,8 +131,9 @@ fifth lesson. Neither changes a figure the run prints.
 
 ``tests/test_vx_es_roll_return.py`` pins every figure. Every result here is
 exploratory. Reproducing Chan's figures spends his 2008 to 2012 sample on a
-rule and a hedge he chose, so the run says whether his numbers reproduce on
-his files and nothing about whether the trade pays out of sample.
+rule Simon and Campasano proposed and a hedge he chose, so the run says
+whether his numbers reproduce on his files and nothing about whether the
+trade pays out of sample.
 """
 
 from __future__ import annotations
@@ -373,8 +375,8 @@ def leg_returns(held: NDArray[np.float64], values: NDArray[np.float64]) -> LegRe
     traded = smartsum(np.abs(held * values - yesterday), axis=1)
 
     def over_gross(dollars: NDArray[np.float64]) -> NDArray[np.float64]:
-        # A gross of 0 gives 0 / 0, which is NaN, so this is daily_returns'
-        # own rule of a NaN earning 0.
+        # A gross of 0 gives NaN on the legs and +inf on an entry's cost.
+        # Both earn 0, as daily_returns' NaN does.
         with np.errstate(invalid="ignore", divide="ignore"):
             share = dollars / gross
         return np.where(np.isfinite(share), share, 0.0)

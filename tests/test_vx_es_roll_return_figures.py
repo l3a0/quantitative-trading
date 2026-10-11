@@ -34,7 +34,7 @@ from matplotlib.dates import date2num
 from chan import vx_es_roll_return as run_module
 from chan import vx_es_roll_return_figures as module
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, MUTED
+from chan.regime_figure import ACCENT, GOOD, GROUND, INK, MUTED
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from chan.vx_es_roll_return import (
@@ -416,6 +416,39 @@ class TestTheSignalPanel:
     def test_signed_prints_a_true_minus_sign(self) -> None:
         assert signed(-0.574194, 6) == "−0.574194"
         assert signed(58.1024) == "58.10"
+
+
+class TestTheLabels:
+    """A review found the live lines' curve running through the high's label and the
+    signal's December 2011 spike striking the 0.311739 in the signal's own."""
+
+    @pytest.mark.parametrize(
+        "panel, curves", [("curve", ("hedged", "shipped")), ("roll", ("roll",))]
+    )
+    def test_no_curve_runs_through_a_label(self, figure, axes, panel, curves) -> None:
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+        from matplotlib.text import Text
+
+        canvas = FigureCanvasAgg(figure)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        lines = _by_gid(axes[panel].lines)
+        labels = [text for text in axes[panel].texts if text.get_text()]
+        assert len(labels) == {"curve": 3, "roll": 2}[panel]
+        for gid in curves:
+            line = lines[gid]
+            path = line.get_transform().transform_path(line.get_path())
+            for text in labels:
+                # The text's own extent, without the leader line back to its marker.
+                box = Text.get_window_extent(text, renderer)
+                assert not path.intersects_bbox(box, filled=False), (gid, text.get_text())
+
+    @pytest.mark.parametrize("panel", ["curve", "roll"])
+    def test_every_label_sits_on_the_ground(self, axes, panel) -> None:
+        for text in axes[panel].texts:
+            patch = text.get_bbox_patch()
+            assert patch is not None, text.get_text()
+            assert patch.get_facecolor() == to_rgba(GROUND), text.get_text()
 
 
 class TestTheFile:

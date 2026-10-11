@@ -46,7 +46,7 @@ from matplotlib.ticker import PercentFormatter
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.matlab_helpers import drawdown_path
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, MUTED, SURFACE
+from chan.regime_figure import ACCENT, GOOD, GROUND, INK, MUTED, SURFACE
 from chan.roll_momentum_figures import flat_spans
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
@@ -71,6 +71,19 @@ SHORT_SHADE = (ACCENT, 0.16)
 LONG_SHADE = (GOOD, 0.22)
 #: The first panel's vertical range, with room for the legend above both curves.
 CURVE_LIMITS = (-0.1, 0.75)
+#: The second panel's vertical range, with room for the high's label above the signal.
+ROLL_LIMITS = (-0.65, 0.42)
+#: The ground behind every label, so a gridline or a shaded day never runs through its text.
+LABEL_BOX = {"facecolor": GROUND, "edgecolor": "none", "pad": 1.5}
+#: The thin line from a label set away from its marker back to the marker.
+LEADER = {
+    "arrowstyle": "-",
+    "color": ACCENT,
+    "lw": 0.8,
+    "relpos": (0.02, 1.0),
+    "shrinkA": 0,
+    "shrinkB": 3,
+}
 
 
 def cumulative_return(daily: np.ndarray) -> np.ndarray:
@@ -157,9 +170,11 @@ def _curve_panel(ax, hedged: RollReturnTrade, shipped: RollReturnTrade) -> None:
     highs, drawdown, duration = drawdown_path(book)
     trough = int(np.argmin(drawdown))
     high = int(np.argmax(book[: trough + 1]))
-    for row, gid, text, offset in (
-        (high, "drawdown-high", "high", (6, 5)),
-        (trough, "drawdown-trough", "trough", (8, -12)),
+    # The live lines' curve runs just above the high, so its label sits below
+    # the zero line, where no curve runs, with a line back to the marker.
+    for row, gid, text, offset, leader in (
+        (high, "drawdown-high", "high", (0, -34), LEADER),
+        (trough, "drawdown-trough", "trough", (8, -12), None),
     ):
         ax.plot([days[row]], [book[row]], "o", color=ACCENT, ms=5, zorder=4, gid=gid)
         ax.annotate(
@@ -171,6 +186,8 @@ def _curve_panel(ax, hedged: RollReturnTrade, shipped: RollReturnTrade) -> None:
             color=ACCENT,
             fontsize=9,
             gid=f"{gid}-label",
+            bbox=LABEL_BOX,
+            arrowprops=leader,
         )
     last = int(np.argmax(duration))
     first = last - int(duration[last]) + 1
@@ -191,6 +208,7 @@ def _curve_panel(ax, hedged: RollReturnTrade, shipped: RollReturnTrade) -> None:
         color=ACCENT,
         fontsize=9,
         gid="longest-drawdown-label",
+        bbox=LABEL_BOX,
     )
 
     ax.set_ylim(*CURVE_LIMITS)
@@ -213,9 +231,11 @@ def _roll_panel(ax, hedged: RollReturnTrade, roll: pd.Series) -> None:
     for level, gid in ((ENTRY_THRESHOLD, "short-line"), (-ENTRY_THRESHOLD, "long-line")):
         ax.axhline(level, color=MUTED, lw=1.0, ls="--", gid=gid)
     ax.plot(days, roll.to_numpy(), color=INK, lw=1.0, gid="roll")
+    # The signal's December 2011 spike nearly reaches the high, so the high's
+    # label sits above the marker rather than level with it.
     for day, gid, text, offset in (
         (roll.idxmin(), "roll-low", "low", (8, -4)),
-        (roll.idxmax(), "roll-high", "high", (-8, -4)),
+        (roll.idxmax(), "roll-high", "high", (-6, 7)),
     ):
         ax.plot([day], [roll.loc[day]], "o", color=ACCENT, ms=5, zorder=4, gid=gid)
         ax.annotate(
@@ -227,7 +247,9 @@ def _roll_panel(ax, hedged: RollReturnTrade, roll: pd.Series) -> None:
             color=ACCENT,
             fontsize=9,
             gid=f"{gid}-label",
+            bbox=LABEL_BOX,
         )
+    ax.set_ylim(*ROLL_LIMITS)
     ax.set_ylabel("VIX points a day to settlement", color=INK, fontsize=10)
     _heading(
         ax,
