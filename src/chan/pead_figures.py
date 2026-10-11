@@ -88,9 +88,9 @@ class Spell:
 def longest_spell(cumret: np.ndarray) -> Spell:
     """Where ``calculateMaxDD``'s longest duration falls, under its own rules.
 
-    It reads :func:`chan.matlab_helpers.drawdown_path`, the loop
-    :func:`chan.matlab_helpers.calculate_max_dd` runs, so the spell's length is
-    that function's duration. Where two spells tie, the first is taken.
+    It reads :func:`chan.matlab_helpers.drawdown_path`, the per-day arrays
+    :func:`chan.matlab_helpers.calculate_max_dd` reduces, so the spell's length
+    is that function's duration. Where two spells tie, the first is taken.
     """
     _, drawdown, duration = drawdown_path(cumret)
     last = int(np.argmax(duration))

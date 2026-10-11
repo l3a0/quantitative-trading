@@ -204,7 +204,7 @@ class PearsonIV:
     lam: float
 
 
-def _kappa(skewness: float, kurtosis: float) -> float:
+def pearson_kappa(skewness: float, kurtosis: float) -> float:
     """Pearson's κ from β₁ = skewness² and β₂ = kurtosis. Type IV is 0 < κ < 1."""
     b1, b2 = skewness * skewness, kurtosis
     return b1 * (b2 + 3) ** 2 / (4 * (4 * b2 - 3 * b1) * (2 * b2 - 3 * b1 - 6))
@@ -217,7 +217,7 @@ def pearson_iv_parameters(mean: float, std: float, skewness: float, kurtosis: fl
     """
     b1, b2 = skewness * skewness, kurtosis
     denominator = 2 * b2 - 3 * b1 - 6
-    kappa = _kappa(skewness, kurtosis) if denominator and 4 * b2 != 3 * b1 else math.nan
+    kappa = pearson_kappa(skewness, kurtosis) if denominator and 4 * b2 != 3 * b1 else math.nan
     if not 0 < kappa < 1:
         raise ValueError(
             f"a skewness of {skewness:g} and a kurtosis of {kurtosis:g} give a Pearson κ of "

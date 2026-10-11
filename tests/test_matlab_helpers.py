@@ -24,6 +24,7 @@ from chan.matlab_helpers import (
     backshift,
     calculate_max_dd,
     calculate_returns,
+    drawdown_path,
     fwdshift,
     lag1,
     matlab_sort,
@@ -326,6 +327,74 @@ class TestCalculateMaxDD:
         max_dd, max_ddd = calculate_max_dd([0.0, 0.1, math.nan, 0.05])
         assert max_dd == pytest.approx(1.05 / 1.1 - 1, abs=1e-15)
         assert max_ddd == 2
+
+
+def _drawdown_loop(cumret):
+    """``calculateMaxDD.m``'s loop as Chan wrote it, the reference :func:`drawdown_path` is held to.
+
+    It was ``drawdown_path``'s body until
+    [issue 360](https://github.com/l3a0/quantitative-trading/issues/360)
+    computed the same arrays without a loop.
+    """
+    values = np.asarray(cumret, dtype=float)
+    high = np.zeros_like(values)
+    drawdown = np.zeros_like(values)
+    duration = np.zeros(len(values), dtype=int)
+    for t in range(1, len(values)):
+        high[t] = max(high[t - 1], values[t])
+        drawdown[t] = (1 + values[t]) / (1 + high[t]) - 1
+        duration[t] = 0 if drawdown[t] == 0 else duration[t - 1] + 1
+    return high, drawdown, duration
+
+
+def _random_paths():
+    """50 compounded paths, some opening above zero, some holding NaN, some with a flat stretch."""
+    rng = np.random.default_rng(360)
+    paths = []
+    for i in range(50):
+        cumret = np.cumprod(1 + rng.normal(0.0005, 0.02, 300)) - 1
+        if i % 3 == 1:
+            cumret[rng.integers(1, 300, 12)] = NAN
+        if i % 5 == 2:
+            cumret[0] = 0.4
+        if i % 7 == 3:
+            cumret[100:140] = cumret[99]
+        paths.append(cumret)
+    return paths
+
+
+class TestDrawdownPathIsTheLoop:
+    """The arrays without a loop, held to the loop bit for bit."""
+
+    @pytest.mark.parametrize("path", range(50))
+    def test_on_random_paths(self, path) -> None:
+        cumret = _random_paths()[path]
+        for found, loop in zip(drawdown_path(cumret), _drawdown_loop(cumret), strict=True):
+            assert found.dtype == loop.dtype
+            np.testing.assert_array_equal(found, loop)
+
+    @pytest.mark.parametrize(
+        "cumret",
+        [
+            [],
+            [0.3],
+            [-0.5, 0.0],
+            [0.0, NAN, NAN, 0.1, NAN, 0.05],
+            [NAN, -0.1, -0.2, -0.1],
+            [0.0, 0.1, 0.1, 0.1 - 1e-12, 0.1],
+            [0.0, -0.0, 0.0, -0.1],
+        ],
+    )
+    def test_on_edge_cases(self, cumret) -> None:
+        for found, loop in zip(drawdown_path(cumret), _drawdown_loop(cumret), strict=True):
+            np.testing.assert_array_equal(found, loop)
+
+    def test_the_paths_hold_what_they_claim(self) -> None:
+        """Without these the random cases would not reach the NaN or the opening-high branches."""
+        paths = _random_paths()
+        assert sum(np.isnan(p).any() for p in paths) >= 10
+        assert sum(p[0] > 0 for p in paths) >= 5
+        assert sum((_drawdown_loop(p)[1] == 0).sum() > 5 for p in paths) >= 25
 
 
 class TestShifts:
