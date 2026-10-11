@@ -8,14 +8,16 @@ figure's labels are prose and the suite is the authority for every number
 prose quotes. No test compares bytes, for the reason
 ``tests/test_regime_figure.py`` gives.
 
-The figure reads three of the four vintages that
+The figure draws three of the four vintages that
 ``tests/test_vx_es_roll_return.py`` states in its module docstring:
 ``data/inputdatadaily_vx_20120507/``, vendor chan-mat, basis raw, saved
 2012-05-08, ``data/vix/vix.csv``, vendor chan-csv, basis raw, saved
 2012-05-09, and ``data/inputdataohlcdaily_20120507/es.csv``, vendor chan-mat,
-basis adjusted, saved 2012-05-09. Its specifications are that file's H, the
-hedge 0.3906, and U, the hedge [1, 1], over the 448 test days from 2010-07-29
-to 2012-05-07.
+basis adjusted, saved 2012-05-09. Loading ES also checks the fourth,
+``data/inputdataohlcdaily_20120507/vx.csv``, against its checksum, since it
+belongs to the same save, and the figure draws nothing from it. Its
+specifications are that file's H, the hedge 0.3906, and U, the hedge [1, 1],
+over the 448 test days from 2010-07-29 to 2012-05-07.
 
 The curve's ends, the drawdown's marks and the signal's extremes were
 measured after the run, for the post, and pinning them here is what keeps the
@@ -31,6 +33,7 @@ import pytest
 from matplotlib.colors import to_rgba
 from matplotlib.dates import date2num
 
+from chan import vx_es as vx_es_module
 from chan import vx_es_roll_return as run_module
 from chan import vx_es_roll_return_figures as module
 from chan.paths import FIGURES_DIR
@@ -169,10 +172,16 @@ class TestTheFigure:
         line = _by_gid(drawn.axes[0].lines)["hedged"]
         np.testing.assert_array_equal(line.get_ydata(), cumulative_return(hedged.test_daily))
 
-    def test_it_reads_the_three_vintages_once_and_never_the_fourth(
+    def test_it_reads_the_sources_once_and_never_computes_the_fitted_hedge(
         self, tmp_path, monkeypatch
     ) -> None:
-        """VX's continuous close feeds only the fitted hedge, which the figure does not draw."""
+        """Only the fitted hedge uses VX's continuous close as data, and the figure omits it.
+
+        Loading ES still checks that file against its checksum, as a member of
+        the same save, so what this holds is that no route reaches the fit.
+        Each name is patched where it is defined and where it is imported, so
+        a call through ``chan.vx_es`` fails as well as one through the run.
+        """
         calls = []
         real = module.read_sources
 
@@ -181,11 +190,13 @@ class TestTheFigure:
             return real(*args, **kwargs)
 
         def refuse(*_a, **_k):
-            raise AssertionError("the figure read the fourth vintage")
+            raise AssertionError("the figure reached the fitted hedge")
 
         monkeypatch.setattr(module, "read_sources", record)
-        monkeypatch.setattr(run_module, "read_legs", refuse)
-        monkeypatch.setattr(run_module, "fitted_hedge", refuse)
+        for owner in (vx_es_module, run_module, module):
+            for name in ("read_legs", "fit_hedge", "fitted_hedge"):
+                if hasattr(owner, name):
+                    monkeypatch.setattr(owner, name, refuse)
         make_vx_es_roll_return_figure(out=tmp_path / FIGURE)
         assert calls == [()]
 

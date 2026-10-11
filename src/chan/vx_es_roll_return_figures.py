@@ -27,8 +27,11 @@ so one set of shading serves both curves.
 Every value comes from :func:`chan.vx_es_roll_return.read_sources`,
 :func:`~chan.vx_es_roll_return.roll_return_trade` and
 :func:`~chan.vx_es_roll_return.front_roll`, the run's own path, so the
-scale-break guard runs here too. The figure never reads VX's continuous
-close, which only the fitted hedge needs::
+scale-break guard runs here too. Loading ES checks every member of its save
+against its checksum, VX's continuous close among them, so a changed or
+missing copy of that file refuses the figure as it refuses the run. The figure
+never computes the fitted hedge, the only computation that uses VX's continuous
+close as data::
 
     uv run python -m chan.vx_es_roll_return_figures
 """

@@ -85,8 +85,11 @@ transcription names them rather than copying them silently.
    it reads 71 of the 72. The six between VX-2012K and VX-2012Z get windows
    that hold no row, so 65 of the 71 hold a row.
 
-**The data.** Four committed vintages. The trade reads the first three, and
-the fitted hedge beside it reads the fourth.
+**The data.** Four committed vintages. The trade uses the first three as
+data. Loading ES reads every member of its 53-series save, VX's continuous
+close among them, and hashes each against its manifest entry. So all four must
+match their checksums before the trade runs, and a changed or missing fourth
+refuses it. Only the fitted hedge beside the trade uses the fourth as data.
 
 1. **The VX strip** from ``inputDataDaily_VX_20120507.mat``, vendor
    chan-mat, basis ``raw``, saved 2012-05-08, 72 contracts from VX-2007F
@@ -103,7 +106,7 @@ the fitted hedge beside it reads the fourth.
    chan-mat, basis ``adjusted``, saved 2012-05-09, 2,000 rows from 2004-06-01
    to 2012-05-08. :func:`fitted_hedge` reads it with ES through
    :func:`chan.vx_es.read_legs` to fit the hedge the log's row 11 trades in
-   place of 0.3906. No figure under 0.3906 or [1, 1] reads it.
+   place of 0.3906. No figure under 0.3906 or [1, 1] uses its prices.
 
 The trade's three calendars share all 1,543 of the strip's days, so every expiry is
 the strip's own. 2008-08-04 is the first of 948 days from the anchor.
@@ -120,7 +123,9 @@ return earns the position held at the close of 2010-07-28. Nothing flags
 over the guarded spans, so nothing is refused. :func:`chan.vx_es.read_legs`
 guards VX's continuous close and ES over their whole spans for the fitted
 hedge, and :func:`run` fits that hedge before it prints, so a break in either
-refuses the whole run. Neither flags a day.
+refuses the whole run. Neither flags a day. The trade's own load of the ES
+save checks VX's continuous close against its checksum and guards only ES, so
+the scale-break guard on VX's continuous close is the fitted hedge's.
 
 **What the post reads.** :func:`front_roll` is line 46's roll on its own,
 and :func:`positions` signs the rule from it, so the figure that
@@ -211,10 +216,10 @@ BOOK_SHARPE = "1"
 
 @dataclass(frozen=True)
 class Sources:
-    """The trade's three reads, each a vintage and its series.
+    """The trade's three series, each with its vintage.
 
-    The fitted hedge's read of VX's continuous close is the fourth, and
-    :func:`fitted_hedge` takes it.
+    Loading ES hashes VX's continuous close too, as a member of the same save,
+    and keeps no series of it. :func:`fitted_hedge` is what uses it as data.
     """
 
     strip: Strip
@@ -453,7 +458,7 @@ def report(
     """Print the vintages, both rules beside their comments, the text's two, and the counts.
 
     ``fitted_member`` is the vintage of VX's continuous close, which only the
-    fitted hedge reads.
+    fitted hedge uses as data.
     """
     days, test = hedged.days, hedged.test_days
     print("VX against ES on VX's roll return, Algorithmic Trading location 2754")
@@ -514,7 +519,7 @@ def report(
 
 
 def run(data_dir: Path | None = None) -> tuple[RollReturnTrade, RollReturnTrade]:
-    """Read the trade's three vintages and the fitted hedge's fourth, run both rules, and print."""
+    """Read the trade's three series and the fitted hedge's fourth, run both rules, and print."""
     sources = read_sources(data_dir)
     hedged = roll_return_trade(sources, HEDGE)
     shipped = roll_return_trade(sources, SHIPPED_HEDGE)

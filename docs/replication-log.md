@@ -8470,12 +8470,14 @@ string at the decimals the string carries, which is
 `chan.khandani_lo_book_two.matches`. Nothing in it was chosen to fit the
 run.
 
-Rows 1 to 10 read three vintages and one of two specifications, so they are
-stated once here. Row 11 also reads the fourth vintage below, and its
+Rows 1 to 10 use three vintages as data and one of two specifications, so
+they are stated once here. Row 11 also uses the fourth vintage below, and its
 specification is the fitted hedge rather than 0.3906 or [1, 1].
 
-1. **The vintages.** Four of Chan's book-two files, the fourth read for row
-   11 alone.
+1. **The vintages.** Four of Chan's book-two files, the fourth used as data
+   for row 11 alone. Every row still checks all four against their checksums,
+   because loading ES reads every member of its 53-series save, the fourth
+   among them, so a changed or missing fourth refuses rows 1 to 10 too.
    1. `data/inputdatadaily_vx_20120507/`, lifted from
       `inputDataDaily_VX_20120507.mat`, vendor `chan-mat`, basis `raw`, saved
       2012-05-08. It is one vintage per contract, 72 of them from VX-2007F to
@@ -8498,10 +8500,11 @@ specification is the fitted hedge rather than 0.3906 or [1, 1].
       rewritten between saves, so this save is part of the specification.
    4. `data/inputdataohlcdaily_20120507/vx.csv`, VX's continuous close from
       the same save as ES, vendor `chan-mat`, basis `adjusted`, saved
-      2012-05-09, 2,000 rows from 2004-06-01 to 2012-05-08. It serves only
-      row 11. `chan.vx_es.read_legs` reads it with ES to fit the hedge, and
-      guards each over its whole span and refuses nothing. The run fits that
-      hedge before it prints, so a flagged day in either would stop the run.
+      2012-05-09, 2,000 rows from 2004-06-01 to 2012-05-08. Only row 11 uses
+      its prices. `chan.vx_es.read_legs` reads it with ES to fit the
+      hedge, and guards each over its whole span and refuses nothing.
+      The run fits that hedge before it prints, so a flagged day in
+      either would stop the run.
 2. **The specifications.** `VX_ES_rollreturn.m` as
    `chan.vx_es_roll_return` transcribes it, with one of two hedges: H, the
    0.3906 of lines 47 and 55, and U, the [1, 1] of the live lines. The three

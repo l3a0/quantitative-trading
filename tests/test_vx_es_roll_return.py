@@ -4,10 +4,12 @@ This file is the single authority for every number a prose surface quotes
 about this replication. ``docs/replication-log.md`` Entry 41 carries the
 verdicts and points here row by row.
 
-Every pin but ``TestTheFittedHedge``'s reads three vintages and one of two
-specifications, so they are stated once here. ``TestTheFittedHedge`` reads
-the fourth vintage below as well, and its specification trades the fitted
-hedge in place of 0.3906 or [1, 1].
+Every pin but ``TestTheFittedHedge``'s uses three vintages as data and one
+of two specifications, so they are stated once here. ``TestTheFittedHedge``
+uses the fourth vintage below as well, and its specification trades the fitted
+hedge in place of 0.3906 or [1, 1]. Every pin still checks all four against
+their checksums, because loading ES reads every member of its save, the
+fourth among them.
 
 - **Vintages.** Four of Chan's book-two files. Each one's identity is its
   row of ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``.

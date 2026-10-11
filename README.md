@@ -2055,11 +2055,12 @@ uv run python -m chan.vx_es_roll_return
 ```
 
 It prints the strip, the VIX and ES vintages, and the vintage of VX's
-continuous close that only the fitted hedge reads. Then it prints the four
-figures of each rule beside the script's comment with a verdict, the APR and
-the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
-with no verdict, and how many of the test's days are held, short, long and
-entered from flat.
+continuous close. Loading ES checks that file against its checksum, since it
+belongs to the same save, and only the fitted hedge uses it as data. Then it
+prints the four figures of each rule beside the script's comment with a
+verdict, the APR and the Sharpe ratio beside the book's with a verdict, the
+fitted hedge's figures with no verdict, and how many of the test's days are
+held, short, long and entered from flat.
 
 Example 7.4's own factors take no option, because the issue fixed the
 printout, the lookback, the factor count and the statistic before any factor
@@ -5347,10 +5348,11 @@ Its one figure is drawn from the committed vintages by
 [src/chan/vx_es_roll_return_figures.py](src/chan/vx_es_roll_return_figures.py),
 which reads them through the same `read_sources`, `roll_return_trade` and
 `front_roll` as `python -m chan.vx_es_roll_return`, so the scale-break guard
-runs for it too. It never reads VX's continuous close, which only the fitted
-hedge needs. It draws two panels on one date axis over the 448 test days,
-both shading the days held short in one tint and the days held long in
-another.
+runs for it too. Loading ES checks VX's continuous close against its
+checksum, as a member of the same save, but the figure never computes the
+fitted hedge, the only computation that uses it as data. It draws two panels
+on one date axis over the 448 test days, both shading the days held short in
+one tint and the days held long in another.
 
 1. The book's Figure 6.4, the cumulative compounded return, under 0.3906 in
    ink and [1, 1] muted, with 0.3906's deepest drawdown's high, trough and
