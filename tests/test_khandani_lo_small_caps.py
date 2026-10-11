@@ -792,9 +792,9 @@ class TestTheReport:
             "so the after-cost figures flatter the S&P 600."
         ) in printed
         assert (
-            "  Chan's sentence names microcaps beside small caps, and the file holds no market "
-            "values to say which S&P 600 members were microcaps, so no figure here speaks for "
-            "them."
+            "  Chan's sentence names microcaps beside small caps. The file holds no market "
+            "values, so it cannot say how many S&P 600 members were microcaps, and no figure "
+            "speaks for them."
         ) in printed
 
     def test_the_reading_line_prints_the_comparisons_reading(

@@ -59,9 +59,9 @@ where the returns come from. The after-cost figures are printed and read the
 same way. They flatter the small caps, because the run charges both
 universes the same 5 basis points while a trader pays more to trade small
 caps. Chan's sentence names microcaps too. The S&P 600 adds a company only
-above a size floor and keeps a member that later shrinks, and the file holds
-prices and volumes without market values, so nothing here measures how many
-of its members were microcaps.
+above a minimum size and does not drop a member just because it later shrank.
+The file holds prices and volumes but no market values, so nothing here
+measures how many S&P 600 members were microcaps.
 
 **Two flagged days stay in.** :func:`chan.series.scale_breaks` flags BCSI's
 close on 2006-02-06 and SCUR's on 2006-07-12, each just past the factor-of-1.6
@@ -428,8 +428,8 @@ def report(small_members, large_members, result: Comparison) -> None:
         "so the after-cost figures flatter the S&P 600."
     )
     print(
-        "  Chan's sentence names microcaps beside small caps, and the file holds no market "
-        "values to say which S&P 600 members were microcaps, so no figure here speaks for them."
+        "  Chan's sentence names microcaps beside small caps. The file holds no market values, "
+        "so it cannot say how many S&P 600 members were microcaps, and no figure speaks for them."
     )
     print(
         "  EXPLORATORY. A rule Chan published, run on data he left as an exercise, "

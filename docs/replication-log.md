@@ -625,11 +625,12 @@ found, and one pair that fails does not refute that.
 
 Entry 44's claim does not take it either. Chan's explanation is about where
 Khandani and Lo's returns came from, on their own universe, which this repo
-does not hold, and it names microcaps, which the S&P 600 file cannot pick
-out, since it holds prices and no market values. So the run can say which way
-the gap between two of Chan's files points, and not whether his sentence about
-their returns is true. Its reading was declared
-on [issue 249](https://github.com/l3a0/quantitative-trading/issues/249) before
+does not hold. It also names microcaps, and the S&P 600 file holds prices and
+volumes but no market values, so nothing here measures how many of its members
+were microcaps. The run can say which way the gap between two of Chan's files
+points, and not whether his sentence about their returns is true. Its reading
+was declared on
+[issue 249](https://github.com/l3a0/quantitative-trading/issues/249) before
 any S&P 600 figure was computed, and it adds no verdict.
 
 Entry 6's row 1 does take it. The same passage gives the CAD/AUD cross rate as
@@ -2905,9 +2906,9 @@ the S&P 600 file under `ijr_20080114/`, and Entry 44 carries the finding, with
 no published figure to check, like Entry 5. Before costs the rule earns more
 on the S&P 600 than on the S&P 500 at both prices, the closes this entry
 reports and the opens Entry 10 reports, which is the direction Chan's
-explanation predicts. Nothing here measures which S&P 600 members were
-microcaps, and the S&P 600 is not Khandani and Lo's universe, so even that
-finding leaves this question open.
+explanation predicts. Nothing in Entry 44 measures how many S&P 600 members
+were microcaps, and the S&P 600 is not Khandani and Lo's universe, so even
+that finding leaves this question open.
 
 **What survivorship cost.** Neither its size nor its sign is measured.
 
@@ -9633,13 +9634,13 @@ pins them.
 Five things.
 
 **Anything about microcaps.** Chan's sentence names "small and microcap
-stocks". The S&P 600 adds a company only above a size floor, but it does not
-drop a member only because the member later shrank, so some of its members
-may have sat below the line usually drawn for microcaps. The file holds prices
-and volumes without shares outstanding or market values, so nothing here
-measures how many. So the finding says the S&P 600's small caps carry more of
-the reversal's return than the S&P 500's large caps, and nothing about
-microcaps.
+stocks". The S&P 600 adds a company only above a minimum size, but it does
+not drop a member just because it later shrank, so some of its members may
+have sat below the line usually drawn for microcaps. The file holds prices and
+volumes but no shares outstanding or market values, so nothing here measures
+how many. The finding says the S&P 600's small caps carry more of the
+reversal's return than the S&P 500's large caps, and nothing about microcaps
+or the stocks outside the index.
 
 **What survivorship did.** Both files are survivors, the S&P 600 as of
 2008-01-14 and the S&P 500 as of 2007-11-23. A small cap that failed in 2006
