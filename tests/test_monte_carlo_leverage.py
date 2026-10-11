@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import io
 import math
+import re
 from contextlib import redirect_stdout
 from dataclasses import replace
 
@@ -822,11 +823,29 @@ class TestTheReport:
         assert "within 2% on the declared seed, and on 200 of 200 seeds" in printed
 
     def test_it_keeps_row_3_s_declared_band_beside_the_new_one(self, printed) -> None:
-        assert "uncapped optimum, ruin > 30.2 on 40 seeds, band 22.969856 to 25.374220" in printed
-        assert (
-            "row 3 under the declared rule, every seed's uncapped optimum, "
-            "band 16.622019 to 24.865122: 19 and 19.2 land"
-        ) in printed
+        """Each band's ends at the 1e-6 the optima are pinned to, since a sixth decimal can flip.
+
+        The search stops within about 3e-7 of an optimum, and 25.374220 sits
+        less than 1e-7 from a rounding boundary, so the printed digits are
+        parsed rather than matched.
+        """
+        number = r"(-?\d+\.\d{6})"
+        found = re.search(
+            rf"uncapped optimum, ruin > 30\.2 on 40 seeds, band {number} to {number}", printed
+        )
+        assert found is not None
+        assert tuple(map(float, found.groups())) == pytest.approx(
+            (22.969856, 25.374220), abs=1.5e-6
+        )
+        found = re.search(
+            r"row 3 under the declared rule, every seed's uncapped optimum, "
+            rf"band {number} to {number}: 19 and 19\.2 land",
+            printed,
+        )
+        assert found is not None
+        assert tuple(map(float, found.groups())) == pytest.approx(
+            (16.622019, 24.865122), abs=1.5e-6
+        )
 
     @pytest.mark.parametrize(
         ("name", "printed", "expected"),
