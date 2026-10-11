@@ -121,6 +121,13 @@ guards VX's continuous close and ES over their whole spans for the fitted
 hedge, and :func:`run` fits that hedge before it prints, so a break in either
 refuses the whole run. Neither flags a day.
 
+**What the post reads.** :func:`front_roll` is line 46's roll on its own,
+and :func:`positions` signs the rule from it, so the figure that
+:mod:`chan.vx_es_roll_return_figures` draws and the rule read one
+computation. :func:`leg_returns` splits each day's return into the VX legs'
+profit, ES's profit and the cost, each over the same gross, for the post's
+fifth lesson. Neither changes a figure the run prints.
+
 ``tests/test_vx_es_roll_return.py`` pins every figure. Every result here is
 exploratory. Reproducing Chan's figures spends his 2008 to 2012 sample on a
 rule and a hedge he chose, so the run says whether his numbers reproduce on
@@ -135,7 +142,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from chan.khandani_lo import TRADING_DAYS, plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, gap, matches
@@ -272,26 +279,42 @@ def common_days(contracts: pd.DataFrame, vix: pd.Series, es: pd.Series) -> pd.Da
     return days.intersection(es.index).sort_values()
 
 
+def front_roll(contracts: pd.DataFrame, vix: ArrayLike) -> pd.Series:
+    """Line 46's roll, ``(VX − VIX) / (expiry − row + 1)``, on each front row and NaN elsewhere.
+
+    ``contracts`` and ``vix`` run over the same days. The front rows are the
+    ones :func:`chan.xle_uso_roll_return.front_windows` gives, and the divisor
+    is the trading days to settlement, counting the expiry row itself.
+    :func:`positions` signs the rule from this series, and
+    :mod:`chan.vx_es_roll_return_figures` draws it, so the two share one
+    computation.
+    """
+    prices = contracts.to_numpy(dtype=float)
+    vix = np.asarray(vix, dtype=float)
+    roll = np.full(len(prices), np.nan)
+    for window in front_windows(contracts):
+        rows = window.rows
+        roll[rows] = (prices[rows, window.column] - vix[rows]) / (window.expiry - rows + 1)
+    return pd.Series(roll, index=contracts.index, name="front_roll")
+
+
 def positions(
     contracts: pd.DataFrame, vix: NDArray[np.float64], hedge: float
 ) -> NDArray[np.float64]:
     """Steps 3 and 4: one row per day, a column per contract and ES's last.
 
     ``contracts`` and ``vix`` run over the same days. On each front row the
-    roll is ``(VX − VIX) / (expiry − row + 1)``. Above
-    :data:`ENTRY_THRESHOLD` the front holds ``−hedge`` and ES −1, below its
-    negative ``hedge`` and +1, and otherwise nothing. A NaN roll holds
-    nothing.
+    roll is :func:`front_roll`'s. Above :data:`ENTRY_THRESHOLD` the front
+    holds ``−hedge`` and ES −1, below its negative ``hedge`` and +1, and
+    otherwise nothing. A NaN roll holds nothing.
     """
-    prices = contracts.to_numpy(dtype=float)
-    vix = np.asarray(vix, dtype=float)
-    held = np.zeros((len(prices), prices.shape[1] + 1))
+    roll = front_roll(contracts, vix).to_numpy()
+    held = np.zeros((len(roll), contracts.shape[1] + 1))
     for window in front_windows(contracts):
         rows = window.rows
-        roll = (prices[rows, window.column] - vix[rows]) / (window.expiry - rows + 1)
         with np.errstate(invalid="ignore"):
-            short = rows[roll > ENTRY_THRESHOLD]
-            long = rows[roll < -ENTRY_THRESHOLD]
+            short = rows[roll[rows] > ENTRY_THRESHOLD]
+            long = rows[roll[rows] < -ENTRY_THRESHOLD]
         held[short, window.column] = -hedge
         held[short, -1] = -1
         held[long, window.column] = hedge
@@ -321,6 +344,46 @@ def daily_returns(held: NDArray[np.float64], values: NDArray[np.float64]) -> NDA
     with np.errstate(invalid="ignore", divide="ignore"):
         ret = profit / gross - ONE_WAY_COST * traded / gross
     return np.where(np.isnan(ret), 0.0, ret)
+
+
+@dataclass(frozen=True)
+class LegReturns:
+    """Each row's return split three ways, each over yesterday's gross market value.
+
+    ``vx`` is the dollar profit of every VX column, ``es`` that of the ES
+    column, and ``cost`` the :data:`ONE_WAY_COST` :func:`daily_returns`
+    subtracts. All three are 0 on a row whose yesterday held nothing, so
+    ``vx + es − cost`` is :func:`daily_returns` on every row.
+    """
+
+    vx: NDArray[np.float64]
+    es: NDArray[np.float64]
+    cost: NDArray[np.float64]
+
+
+def leg_returns(held: NDArray[np.float64], values: NDArray[np.float64]) -> LegReturns:
+    """:func:`daily_returns` split into the VX legs' profit, ES's profit and the cost.
+
+    Each part divides by the same gross :func:`daily_returns` does, with
+    ``smartsum`` skipping a NaN the same way, and is 0 where that gross is 0.
+    """
+    yesterday = backshift(1, held * values)
+    gross = smartsum(np.abs(yesterday), axis=1)
+    pnl = backshift(1, held) * (values - backshift(1, values))
+    traded = smartsum(np.abs(held * values - yesterday), axis=1)
+
+    def over_gross(dollars: NDArray[np.float64]) -> NDArray[np.float64]:
+        # A gross of 0 gives 0 / 0, which is NaN, so this is daily_returns'
+        # own rule of a NaN earning 0.
+        with np.errstate(invalid="ignore", divide="ignore"):
+            share = dollars / gross
+        return np.where(np.isfinite(share), share, 0.0)
+
+    return LegReturns(
+        vx=over_gross(smartsum(pnl[:, :-1], axis=1)),
+        es=over_gross(smartsum(pnl[:, -1:], axis=1)),
+        cost=over_gross(ONE_WAY_COST * traded),
+    )
 
 
 def measured_rows(days: pd.DatetimeIndex) -> NDArray[np.intp]:

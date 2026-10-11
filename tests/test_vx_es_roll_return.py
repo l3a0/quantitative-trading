@@ -52,6 +52,14 @@ precision Chan printed, through ``matches``.
 Exploratory. Reproducing Chan's figures spends his 2008 to 2012 sample on a
 rule and a hedge he chose. A scratch run landed every figure before the
 criterion was written on the issue. It first ran here on 2026-10-10.
+
+Two classes came later, with ``blog/vx-es-roll-return-lessons.md``.
+``TestThePostsHelpers`` holds ``front_roll`` and ``leg_returns`` to rule
+cases on synthetic frames, and holds the three legs equal to the daily return
+on every row of the real run. ``TestWhatThePostMeasured`` pins every number
+the post quotes that no class above pins, on the same vintages and the same
+specifications. Those were measured after the run, so they describe one
+sample and test nothing.
 """
 
 from __future__ import annotations
@@ -67,10 +75,12 @@ import pytest
 
 from chan import paths, roll_returns
 from chan import vx_es_roll_return as module
-from chan.khandani_lo_book_two import gap, matches
+from chan.khandani_lo import plain_sharpe
+from chan.khandani_lo_book_two import compounded_apr, gap, matches
+from chan.matlab_helpers import drawdown_path
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, scale_breaks
 from chan.vintage import VintageUnavailable
-from chan.vx_es import ANCHOR, SOURCE_FILE, TRAINING_DAYS
+from chan.vx_es import ANCHOR, SOURCE_FILE, TRAINING_DAYS, anchored, read_legs
 from chan.vx_es_roll_return import (
     BOOK_APR_PERCENT,
     BOOK_SHARPE,
@@ -85,6 +95,8 @@ from chan.vx_es_roll_return import (
     common_days,
     daily_returns,
     fitted_hedge,
+    front_roll,
+    leg_returns,
     main,
     market_values,
     positions,
@@ -721,3 +733,247 @@ class TestTheReport:
         with pytest.raises(SystemExit) as refused:
             main()
         assert refused.value.code == 2
+
+
+class TestThePostsHelpers:
+    """``front_roll`` and ``leg_returns`` on frames built so the answer is known."""
+
+    @staticmethod
+    def _strip() -> pd.DataFrame:
+        """``TestTheRules``' three contracts, priced at 1, 2 and 3 so each column reads apart."""
+        return TestTheRules._strip() + np.array([1.0, 2.0, 3.0])
+
+    def test_the_roll_is_the_front_less_vix_over_the_days_to_settlement(self) -> None:
+        """The first contract is the front on rows 10 to 40 and expires on row 50."""
+        strip = self._strip()
+        roll = front_roll(strip, np.full(len(strip), 0.5))
+        assert roll.index.equals(strip.index)
+        rows = np.arange(10, 41)
+        np.testing.assert_array_equal(roll.to_numpy()[rows], (1.0 - 0.5) / (50 - rows + 1))
+
+    def test_the_next_front_starts_after_the_last_ended_and_counts_to_its_own_expiry(
+        self,
+    ) -> None:
+        """The second contract expires on row 100, so its window runs rows 60 to 90."""
+        strip = self._strip()
+        roll = front_roll(strip, np.zeros(len(strip))).to_numpy()
+        rows = np.arange(60, 91)
+        np.testing.assert_array_equal(roll[rows], 2.0 / (100 - rows + 1))
+
+    def test_every_row_off_a_window_is_nan(self) -> None:
+        strip = self._strip()
+        roll = front_roll(strip, np.zeros(len(strip))).to_numpy()
+        on = np.zeros(len(strip), bool)
+        on[10:41] = True
+        on[60:91] = True
+        assert np.isnan(roll[~on]).all()
+        assert np.isfinite(roll[on]).all()
+
+    def test_positions_signs_the_rule_from_the_same_roll(self) -> None:
+        """A front 2 points above VIX is short from the row where 2 over the days passes 0.1."""
+        strip = self._strip()
+        vix = np.full(len(strip), -1.0)
+        roll = front_roll(strip, vix).to_numpy()
+        held = positions(strip, vix, 0.5)
+        with np.errstate(invalid="ignore"):
+            np.testing.assert_array_equal(held[:, -1] == -1, roll > ENTRY_THRESHOLD)
+        assert not (held[:, -1] == 1).any()
+
+    def test_positions_reads_front_roll_and_nothing_else(self, monkeypatch) -> None:
+        """A roll handed in just past each threshold signs the row, whatever the prices say."""
+        strip = self._strip()
+        roll = np.full(len(strip), np.nan)
+        roll[20], roll[25], roll[30] = 0.1 + 1e-9, -0.1 - 1e-9, 0.1
+        monkeypatch.setattr(module, "front_roll", lambda *_a: pd.Series(roll, index=strip.index))
+        held = positions(strip, np.zeros(len(strip)), 0.5)
+        assert held[20].tolist() == [-0.5, 0, 0, -1]
+        assert held[25].tolist() == [0.5, 0, 0, 1]
+        assert np.count_nonzero(held) == 4
+
+    @staticmethod
+    def _values(vx, es) -> np.ndarray:
+        return np.column_stack([1000 * np.asarray(vx, float), 50 * np.asarray(es, float)])
+
+    def test_each_leg_earns_its_own_profit_over_yesterday_s_gross(self) -> None:
+        # Short 0.5 VX at 20 and short 1 ES at 1,000, a gross of 60,000. VX
+        # rises 1 and ES falls 20, so the VX leg loses 500 and the ES leg
+        # makes 1,000, and the position's value moves by 500 + 1,000.
+        legs = leg_returns(np.array([[-0.5, -1], [-0.5, -1]]), self._values([20, 21], [1000, 980]))
+        assert legs.vx.tolist() == [0.0, -500 / 60000]
+        assert legs.es.tolist() == [0.0, 1000 / 60000]
+        assert legs.cost.tolist() == [0.0, ONE_WAY_COST * 1500 / 60000]
+
+    def test_every_vx_column_counts_toward_the_vx_leg(self) -> None:
+        held = np.array([[-0.5, -0.5, -1], [-0.5, -0.5, -1]])
+        values = np.array([[20000.0, 30000.0, 50000.0], [22000.0, 30000.0, 50000.0]])
+        legs = leg_returns(held, values)
+        assert legs.vx[1] == pytest.approx(-1000 / 75000, abs=1e-18)
+        assert legs.es[1] == 0
+
+    def test_a_row_after_a_flat_row_is_0_in_all_three(self) -> None:
+        legs = leg_returns(
+            np.array([[0, 0], [-0.5, -1], [-0.5, -1]]),
+            self._values([20, 25, 25], [1000, 900, 900]),
+        )
+        for part in (legs.vx, legs.es, legs.cost):
+            assert part[:2].tolist() == [0.0, 0.0]
+
+    def test_the_three_legs_rebuild_daily_returns_on_every_row(self, sources, hedged) -> None:
+        """Summed in a different order, so equal to within rounding rather than bit for bit."""
+        values = market_values(
+            sources.strip.contracts, sources.es.loc[hedged.days].to_numpy(dtype=float)
+        )
+        legs = leg_returns(hedged.positions, values)
+        np.testing.assert_allclose(legs.vx + legs.es - legs.cost, hedged.daily, rtol=0, atol=1e-15)
+
+
+class TestWhatThePostMeasured:
+    """The numbers ``blog/vx-es-roll-return-lessons.md`` quotes that no earlier class pins.
+
+    Measured after the run, for the post, so each one describes this one
+    sample and tests nothing. They read the vintages and the specifications H
+    and U this file's module docstring states, over the same 448 test days
+    from 2010-07-29 to 2012-05-07, except where a test names a wider span.
+    ``tests/test_vx_es_roll_return_figures.py`` pins the curve's ends and
+    marks and the signal's extremes, because those are what the figure draws.
+    """
+
+    @staticmethod
+    def _legs(sources, trade):
+        es = sources.es.loc[trade.days].to_numpy(dtype=float)
+        values = market_values(sources.strip.contracts, es)
+        return values, leg_returns(trade.positions, values)
+
+    def test_the_test_holds_32_stretches_25_short_and_7_long(self, hedged) -> None:
+        leg = hedged.es_leg[hedged.test]
+        edges = np.flatnonzero(np.diff(np.concatenate([[0], (leg != 0).astype(int), [0]])))
+        stretches = [leg[a:b] for a, b in zip(edges[::2], edges[1::2], strict=True)]
+        assert len(stretches) == 32
+        assert sum(bool((s == -1).all()) for s in stretches) == 25
+        assert sum(bool((s == 1).all()) for s in stretches) == 7
+
+    def test_no_position_flips_sign_without_a_flat_day_between(self, hedged) -> None:
+        """So every stretch opens from flat, and every one of the 32 opens free."""
+        leg = hedged.es_leg
+        assert not (leg[1:] * leg[:-1] < 0).any()
+
+    def test_charging_each_entry_one_basis_point_lowers_the_apr_to_0_067142(self, hedged) -> None:
+        charged = hedged.daily.copy()
+        charged[hedged.entries_from_flat] = -ONE_WAY_COST
+        apr = compounded_apr(charged[hedged.test])
+        sharpe = plain_sharpe(charged[hedged.test])
+        assert apr == pytest.approx(0.06714195378677479, abs=TIGHT)
+        assert sharpe == pytest.approx(0.9758298054832168, abs=TIGHT)
+        assert (f"{apr:.6f}", f"{sharpe:.6f}") == ("0.067142", "0.975830")
+        assert (f"{100 * apr:.1f}", f"{sharpe:.0f}") == ("6.7", "1")
+
+    def test_with_no_cost_at_all_the_apr_is_0_071248(self, sources, hedged) -> None:
+        _, legs = self._legs(sources, hedged)
+        free = (legs.vx + legs.es)[hedged.test]
+        assert compounded_apr(free) == pytest.approx(0.07124782748759317, abs=TIGHT)
+        assert plain_sharpe(free) == pytest.approx(1.0308937152675743, abs=TIGHT)
+
+    def test_the_hedge_s_500_days_are_the_trade_s_first_500_from_the_anchor(self, hedged) -> None:
+        _, legs = read_legs(SOURCE_FILE)
+        fit = anchored(legs).iloc[:TRAINING_DAYS].index
+        assert fit.equals(hedged.days[hedged.days >= ANCHOR][:TRAINING_DAYS])
+        assert (fit[0], fit[-1]) == (ANCHOR, day("2010-07-28"))
+
+    def test_the_40_row_start_decides_only_vx_2007f_s_window(self, sources, windows) -> None:
+        contracts = sources.strip.contracts
+        bound = [w for w in windows if len(w.rows) and w.first == w.expiry - 40]
+        assert [contracts.columns[w.column] for w in bound] == ["VX-2007F"]
+        assert contracts.index[bound[0].first] == day("2006-11-14")
+
+    def test_the_front_is_the_nearest_contract_on_228_test_rows_and_the_second_on_210(
+        self, sources, hedged, windows
+    ) -> None:
+        priced = np.isfinite(sources.strip.contracts.to_numpy(dtype=float))
+        test = set(hedged.test.tolist())
+        places = [
+            int(priced[row, : w.column].sum()) for w in windows for row in w.rows if row in test
+        ]
+        assert len(places) == 438
+        assert (places.count(0), places.count(1)) == (228, 210)
+
+    def test_the_front_sits_above_vix_on_1016_of_1369_front_rows(self, sources, hedged) -> None:
+        front = front_roll(sources.strip.contracts, sources.vix.loc[hedged.days]).dropna()
+        assert len(front) == 1369
+        assert (front.index[0], front.index[-1]) == (day("2006-11-14"), day("2012-04-23"))
+        assert int((front > 0).sum()) == 1016
+
+    @pytest.mark.parametrize(
+        ("rule", "share"), [("hedged", 0.11996635960898955), ("shipped", 0.25870950189312353)]
+    )
+    def test_the_vx_leg_s_median_share_of_the_gross(self, sources, request, rule, share) -> None:
+        trade = request.getfixturevalue(rule)
+        values, _ = self._legs(sources, trade)
+        held = np.zeros(len(trade.days), bool)
+        held[trade.test] = (trade.positions[trade.test] != 0).any(axis=1)
+        dollars = np.abs(trade.positions * values)
+        vx = np.nansum(dollars[:, :-1], axis=1)[held]
+        gross = np.nansum(dollars, axis=1)[held]
+        assert held.sum() == 224
+        assert float(np.median(vx / gross)) == pytest.approx(share, abs=TIGHT)
+
+    @pytest.mark.parametrize(
+        ("rule", "printed"),
+        [
+            ("hedged", ("0.285954", "-0.159336", "0.003634", "0.122984")),
+            ("shipped", ("0.605959", "-0.138046", "0.003961", "0.463952")),
+        ],
+    )
+    def test_the_legs_summed_over_the_test(self, sources, request, rule, printed) -> None:
+        trade = request.getfixturevalue(rule)
+        _, legs = self._legs(sources, trade)
+        t = trade.test
+        sums = (legs.vx[t].sum(), legs.es[t].sum(), legs.cost[t].sum(), trade.test_daily.sum())
+        assert tuple(f"{x:.6f}" for x in sums) == printed
+        assert sums[0] + sums[1] - sums[2] == pytest.approx(sums[3], abs=1e-12)
+
+    def test_on_2011_08_08_both_rules_held_long_and_the_book_s_had_its_worst_day(
+        self, sources, hedged, shipped
+    ) -> None:
+        row = hedged.days.get_loc(day("2011-08-08"))
+        assert hedged.es_leg[row - 1] == shipped.es_leg[row - 1] == 1
+        column = int(np.flatnonzero(hedged.positions[row - 1, :-1])[0])
+        contracts = sources.strip.contracts
+        es = sources.es.loc[hedged.days].to_numpy(dtype=float)
+        assert contracts.columns[column] == "VX-2011U"
+        vx_move = contracts.iloc[row, column] / contracts.iloc[row - 1, column] - 1
+        es_move = es[row] / es[row - 1] - 1
+        assert (f"{100 * vx_move:.4f}", f"{100 * es_move:.4f}") == ("15.2672", "-7.3259")
+        assert f"{100 * hedged.daily[row]:.4f}" == "-3.9889"
+        assert f"{100 * shipped.daily[row]:.4f}" == "-0.3823"
+        assert hedged.test_days[np.argmin(hedged.test_daily)] == day("2011-08-08")
+
+    def test_2011_08_08_is_the_book_s_rule_s_trough(self, hedged) -> None:
+        _, drawdown, _ = drawdown_path(np.cumprod(1 + hedged.test_daily) - 1)
+        assert hedged.test_days[np.argmin(drawdown)] == day("2011-08-08")
+
+    def test_the_front_s_return_correlates_with_es_s_at_minus_0_813746(
+        self, sources, hedged
+    ) -> None:
+        """On the 224 test days that earn a position, the contract held against ES's move."""
+        held = (hedged.positions != 0).any(axis=1)
+        earning = np.flatnonzero(np.append(False, held[:-1]))
+        earning = earning[np.isin(earning, hedged.test)]
+        assert len(earning) == 224
+        prices = sources.strip.contracts.to_numpy(dtype=float)
+        column = np.argmax(hedged.positions[earning - 1, :-1] != 0, axis=1)
+        vx = prices[earning, column] / prices[earning - 1, column] - 1
+        es = sources.es.loc[hedged.days].to_numpy(dtype=float)
+        es = es[earning] / es[earning - 1] - 1
+        assert np.corrcoef(vx, es)[0, 1] == pytest.approx(-0.8137460305806108, abs=TIGHT)
+
+    def test_the_live_rule_s_two_drawdowns_are_separate_episodes(self, shipped) -> None:
+        cumret = np.cumprod(1 + shipped.test_daily) - 1
+        _, drawdown, duration = drawdown_path(cumret)
+        days = shipped.test_days
+        trough = int(np.argmin(drawdown))
+        high = int(np.argmax(cumret[: trough + 1]))
+        assert (days[high], days[trough]) == (day("2012-02-06"), day("2012-02-15"))
+        last = int(np.argmax(duration))
+        first = last - int(duration[last]) + 1
+        assert duration[last] == 59
+        assert (days[first - 1], days[last]) == (day("2011-09-23"), day("2011-12-16"))
