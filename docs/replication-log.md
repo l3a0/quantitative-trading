@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 41, 42 and 45 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42 and 45 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, one, eleven and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven and nine, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5 and 44 are the two entries that are not replications. Chan states
@@ -32,7 +32,7 @@ sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 44 and 45 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 44 and 45 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -295,36 +295,42 @@ says.
   - [The verdicts](#the-verdicts-37)
   - [What the entry concludes](#what-the-entry-concludes-38)
   - [What this entry cannot say](#what-this-entry-cannot-say-36)
-- [Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*](#entry-41-vx-against-es-on-vxs-roll-return-chans-algorithmic-trading)
+- [Entry 40: the opening gap strategy on STOXX Europe 50 futures, Chan's *Algorithmic Trading*](#entry-40-the-opening-gap-strategy-on-stoxx-europe-50-futures-chans-algorithmic-trading)
   - [What the book printed](#what-the-book-printed-37)
   - [What this repo computed](#what-this-repo-computed-39)
   - [The verdicts](#the-verdicts-38)
   - [What the entry concludes](#what-the-entry-concludes-39)
   - [What this entry cannot say](#what-this-entry-cannot-say-37)
-- [Entry 42: whether Example 7.4's own factor returns have momentum, Chan's *Quantitative Trading*](#entry-42-whether-example-74s-own-factor-returns-have-momentum-chans-quantitative-trading)
-  - [What the book stated](#what-the-book-stated-2)
+- [Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*](#entry-41-vx-against-es-on-vxs-roll-return-chans-algorithmic-trading)
+  - [What the book printed](#what-the-book-printed-38)
   - [What this repo computed](#what-this-repo-computed-40)
   - [The verdicts](#the-verdicts-39)
   - [What the entry concludes](#what-the-entry-concludes-40)
   - [What this entry cannot say](#what-this-entry-cannot-say-38)
+- [Entry 42: whether Example 7.4's own factor returns have momentum, Chan's *Quantitative Trading*](#entry-42-whether-example-74s-own-factor-returns-have-momentum-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-2)
+  - [What this repo computed](#what-this-repo-computed-41)
+  - [The verdicts](#the-verdicts-40)
+  - [What the entry concludes](#what-the-entry-concludes-41)
+  - [What this entry cannot say](#what-this-entry-cannot-say-39)
 - [Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*](#entry-44-the-khandani-lo-reversal-on-the-sp-600-chans-quantitative-trading)
   - [What the book stated](#what-the-book-stated-3)
-  - [What this repo computed](#what-this-repo-computed-41)
+  - [What this repo computed](#what-this-repo-computed-42)
   - [What each row says](#what-each-row-says-1)
   - [The two flagged days](#the-two-flagged-days)
   - [The stocks with a missing price](#the-stocks-with-a-missing-price)
   - [What the size reading says](#what-the-size-reading-says)
-  - [What the entry concludes](#what-the-entry-concludes-41)
-  - [What this entry cannot say](#what-this-entry-cannot-say-39)
-- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
-  - [What the book stated](#what-the-book-stated-4)
-  - [What this repo computed](#what-this-repo-computed-42)
-  - [The verdicts](#the-verdicts-40)
   - [What the entry concludes](#what-the-entry-concludes-42)
   - [What this entry cannot say](#what-this-entry-cannot-say-40)
+- [Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*](#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-4)
+  - [What this repo computed](#what-this-repo-computed-43)
+  - [The verdicts](#the-verdicts-41)
+  - [What the entry concludes](#what-the-entry-concludes-43)
+  - [What this entry cannot say](#what-this-entry-cannot-say-41)
 - [Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*](#entry-46-post-earnings-drift-on-edgars-calendar-and-the-archives-prices-chans-algorithmic-trading)
   - [The registration](#the-registration)
-  - [What this repo computed](#what-this-repo-computed-43)
+  - [What this repo computed](#what-this-repo-computed-44)
   - [The attribution](#the-attribution)
   - [Checks run after the figures were seen](#checks-run-after-the-figures-were-seen)
 
@@ -399,6 +405,7 @@ both.
    Entry 38,
    [tests/test_xle_uso_roll_return.py](../tests/test_xle_uso_roll_return.py)
    holds Entry 39,
+   [tests/test_opening_gap.py](../tests/test_opening_gap.py) holds Entry 40,
    [tests/test_vx_es_roll_return.py](../tests/test_vx_es_roll_return.py)
    holds Entry 41,
    [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
@@ -526,9 +533,10 @@ Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
-Entry 38's rows 8 to 11, Entry 41's row 11, Entry 42's rows 6 to 16, and
-Entry 45's rows 2 to 9. Every row of Entry 46 is in that position too, so
-that entry drops the verdict column as Entry 5 does.
+Entry 38's rows 8 to 11, Entry 40's rows 6 to 9, Entry 41's row 11, Entry 42's rows 6 to 16, and
+Entry 45's rows 2 to 9.
+Every row of Entry 46 is in that position too, so that entry drops the
+verdict column as Entry 5 does.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -737,6 +745,19 @@ size of the rebuild's own error. All three claims also hold on Chan's own
 2012-05-11 close over the rows it covers, under row 10. Rows 1 to 3 of the same entry are
 replications of printed figures under a rule declared after the scratch
 runs, so their verdicts name that rule.
+
+Entry 40's row 5 takes it too. Location 2965 says the rule that buys FSTX
+"when the instrument gaps up" and shorts it "when it gaps down" generates an
+APR of 13 percent and a Sharpe ratio of 1.4, a definite claim about one
+strategy it names. Its criterion, the momentum reading's APR and Sharpe ratio
+each rounding to the book's figure through `matches`, was written on
+[issue 358](https://github.com/l3a0/quantitative-trading/issues/358) after a
+scratch run had computed both readings, though before the build, the order
+Entry 13's row 10 allows when it is stated. Line 23 of `gapFutures_FSTX.m`
+can take only two signs, and the rounding rule is the one every entry uses,
+so there was no reading or threshold left to choose. The momentum reading misses the APR by 25
+percentage points in the wrong direction, so the verdict does not rest on
+where a line sits.
 
 Entry 42's rows 1 to 5 take it too, one per factor, as Entry 14's rows 1 and
 2 do. Location 4014's claim is about factor returns, and location 4051 says
@@ -8201,6 +8222,174 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/xle-uso-roll-return-lessons.md](../blog/xle-uso-roll-return-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.xle_uso_roll_return_figures` redraws.
+
+## Entry 40: the opening gap strategy on STOXX Europe 50 futures, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 7.1, Kindle locations 2965 to 2971, with
+location 3509 quoting the same figures. Shipped under
+[issue 358](https://github.com/l3a0/quantitative-trading/issues/358). The
+script is `gapFutures_FSTX.m`, in ericnberwick/EpchanPreview at `e4bc46f`
+under `public/img/book2/`, git blob `02db940`, and the line numbers below are
+that blob's. Every location in this entry is in
+[research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
+
+Nine rows, all derivable from
+[tests/test_opening_gap.py](../tests/test_opening_gap.py) except two figures
+that [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
+derives. Row 8's 45 agreeing days of 1,996 come from
+`tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences`,
+and row 9's equal closes from
+`tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`.
+Six rows do not match one printed figure to one computation, and each says so
+in its own cells. Row 3 checks one printed figure against two computations,
+because location 3509 calls its figure of around 13 percent an "annualized
+average return" and the script prints a compounded one. Row 5 checks the
+book's two figures against a second reading of the script, and rows 6 to 9
+carry no published figure.
+
+A stop order rests until the price reaches it, so a market that opens far
+outside the previous day's range can set off many at once and carry the move
+through the day. Chapter 7 names that as one cause of short-term momentum.
+Location 2965 calls Example 7.1 "the opposite momentum strategy" to Example
+4.1's buy on gap, "buying when the instrument gaps up, and shorting when it
+gaps down". It reports that on FSTX, the STOXX Europe 50 index future on
+Eurex, which the book calls the Dow Jones STOXX 50, the rule "generates an
+annual percentage rate (APR) of 13 percent and a Sharpe ratio of 1.4 from
+July 16, 2004, to May 17, 2012". The script goes
+long when the open clears the previous high by a tenth of the 90-day standard
+deviation of daily returns, short when it clears the previous low by the same
+margin, and holds the position from the open to the close.
+
+**The script's figures reproduce, and they come from fading the jump rather
+than following it.** Line 23 earns `positions .* (op - cl) ./ op`, so a long
+profits when the price falls from the open. As written it gives the comment's
+0.1327 and 1.44, and the book's 13 percent and 1.4. With the sign location
+2965 describes, the same positions earn the same returns negated, an APR of
+−0.124236 and a Sharpe ratio of −1.441620.
+
+**A scratch run came before the criterion.** The order was not the one this
+repo asks for. The plan on
+[issue 358](https://github.com/l3a0/quantitative-trading/issues/358) ran both
+readings of line 23 and saw every figure before it wrote down what a landing
+figure is and what row 5 asks. The criterion it then fixed is the rule every
+earlier entry uses: a figure lands when the computed value rounds to the
+printed string at the decimals the string carries, which is
+`chan.khandani_lo_book_two.matches`. Line 23 can take only two signs, and
+both are pinned, so nothing in the criterion was chosen to fit the run.
+
+Every row reads one vintage and one specification unless it names another,
+so both are stated once here.
+
+1. **The vintage.** `data/inputdataohlcdaily_20120517/fstx.csv`, vendor
+   `chan-mat`, basis `adjusted`, saved 2012-05-18, FSTX's column of Chan's
+   `inputDataOHLCDaily_20120517.mat`. Each of its open, high, low and close
+   holds 2,000 days from 2004-07-16 to 2012-05-17, the book's window exactly,
+   read through `chan.series.load_panel` with the column's NaN dropped. The
+   scale-break guard runs on its closes over that span and refuses nothing.
+2. **The specification.** `gapFutures_FSTX.m` as `chan.opening_gap`
+   transcribes it. The spread is
+   `backshift(1, smartMovingStd(calculateReturns(cl, 1), 90))`, with book
+   two's `smartstd` dividing by n, so the first 90 rows carry none. A day is
+   long when `op >= backshift(1, hi) · (1 + 0.1 · spread)` and short when
+   `op <= backshift(1, lo) · (1 − 0.1 · spread)`. Both tests are non-strict,
+   and line 21 assigns the short after the long. The literal reading is line
+   23 as written, `positions · (op − cl) / op`. The momentum reading changes
+   that line alone, to `positions · (cl − op) / op`. Line 24 sets NaN to 0 in
+   both. The APR is `prod(1 + ret)^(252 / 2000) − 1` and the Sharpe ratio
+   `mean(ret) · √252 / std(ret)` with MATLAB's n − 1 `std`, with no risk-free
+   rate and no cost.
+
+Every result here is **exploratory**. Reproducing Chan's figure spends his
+2004 to 2012 sample on his rule, and neither reading is evidence that an
+opening jump pays today.
+
+### What the book printed
+
+| # | Row | Published figure | Where |
+| --- | --- | --- | --- |
+| 1 | The APR, script | 0.1327 | script line 27, the comment recording what line 26 printed |
+| 2 | The Sharpe ratio, script | 1.44 | the same comment |
+| 3 | The APR, book | 13 percent at location 2965, and around 13 percent at location 3509, which calls it an "annualized average return" | locations 2965 and 3509 |
+| 4 | The Sharpe ratio, book | 1.4 | locations 2965 and 3509 |
+| 5 | The rule that buys an upward jump and shorts a downward one earns rows 3 and 4 | a claim | location 2965 |
+| 6 to 9 | The drawdowns, the days each side holds, and the rule on two earlier saves | none, as each row says | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | `prod(1 + ret)^(252 / 2000) − 1`, literal reading | 0.132733 | `TestTheSpecification::test_the_apr` |
+| 2 | `mean(ret) · √252 / std(ret)`, literal reading | 1.441620 | `TestTheSpecification::test_the_sharpe_ratio` |
+| 3 | Row 1 in percent, and `252 · mean(ret)` in percent | 13.2733 and 12.8622 percent | `TestTheSpecification::test_both_reproduce_the_book_s_figures` and `::test_252_times_the_mean_also_rounds_to_13_percent` |
+| 4 | Row 2 | 1.441620 | `TestTheSpecification::test_both_reproduce_the_book_s_figures` |
+| 5 | The APR and the Sharpe ratio under the momentum reading | −0.124236 and −1.441620 | `TestTheClaim::test_the_momentum_reading_s_figures` and `::test_neither_lands_the_book` |
+| 6 | `calculateMaxDD(cumprod(1 + ret) − 1)` under each reading | literal −0.190023 over 287 days, momentum −0.651056 over 1,909 days | `TestBesideTheReplication::test_the_literal_reading_s_drawdown` and `::test_the_momentum_reading_s_drawdown` |
+| 7 | The days each test qualifies, and the first day holding a position | long on 278, short on 191, both on 0, flat on 1,531, first position 2004-11-22 | `TestBesideTheReplication::test_the_days_each_side_qualifies` and `::test_the_first_position_is_on_2004_11_22` |
+| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 agreeing days of 1,996, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` |
+| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, and for the equal closes, `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair` |
+
+### The verdicts
+
+| # | Gap, computed minus published | Verdict | Why |
+| --- | --- | --- | --- |
+| 1 | +0.0000 | reproduced | 0.132733 rounds to the script's 0.1327. |
+| 2 | +0.00 | reproduced | 1.441620 rounds to the script's 1.44. |
+| 3 | +0 percent on the compounded APR, −0 percent on the arithmetic one | reproduced | The compounded APR and the arithmetic one both round to 13 percent, so the text's figure does not have to be assigned to one of them. |
+| 4 | +0.0 | reproduced | 1.441620 rounds to the book's 1.4. Rows 1 to 4 say the number lands on the script as shipped, and row 5 asks whether the claim behind it survives. |
+| 5 | −25 percent on the APR, −2.8 on the Sharpe ratio | did not reproduce | The rule location 2965 describes loses on Chan's own file under his own script, so the vintage explanation is spent. Its daily returns are the literal reading's negated, so the figures the text prints belong to the literal sign alone. |
+| 6 | none | none, not a replication | Line 34 prints a drawdown, and no comment records a value for it. |
+| 7 | none | none, not a replication | No day qualifies both tests, so line 21's order decides nothing here. No open sits exactly on either threshold, so the tests being non-strict decides nothing either. `TestTheRules` holds both on synthetic days. |
+| 8 | none | none, not a replication | FSTX's close in this save agrees with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
+| 9 | none | none, not a replication | FSTX's close in this save equals the 2012-05-11 save's on every day they share, over a window that starts three trading days earlier still. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
+
+### What the entry concludes
+
+Two things.
+
+1. **The script reproduces on Chan's own file, and the figure is the fade's.**
+   Its two printed figures land at the decimals printed, and the book's two
+   land at the precision Chan printed them. The return line that earns them
+   sells an upward jump during the day and buys a downward one.
+2. **The text's momentum rule loses what the fade earns.** Under the sign
+   location 2965 describes, the same positions give an APR of −0.124236 and a
+   Sharpe ratio of −1.441620. The 13 percent and 1.4 do not support the claim
+   they were printed beside.
+
+### What this entry cannot say
+
+Four things.
+
+**What Chan's Python port prints.** `gapFutures_FSTX.py` in
+`PythonCodesAndData.zip` is a second transcription of the rule.
+[Issue 505](https://github.com/l3a0/quantitative-trading/issues/505) records
+that it is said to print 7.5 percent and 0.49, far from both readings here.
+This entry does not read the port, because the zip was not fetched for it.
+[Issue 505](https://github.com/l3a0/quantitative-trading/issues/505) carries
+reading it and pinning what it prints beside this entry.
+
+**Whether the rule works on GBPUSD.** Location 2971 reports an APR of 7.2
+percent and a Sharpe ratio of 1.3 on GBPUSD, with the open at 5:00 a.m. ET
+and the close at 5:00 p.m. ET. No such series is committed here, and neither
+is the code that ran it.
+[Issue 365](https://github.com/l3a0/quantitative-trading/issues/365) carries
+running it.
+
+**What the VIX filter does to the rule.** Location 3509 measures the same
+rule on the days after the VIX closed above 35, and reports an annualized
+average return of 2.6 percent and a Sharpe ratio of 0.16 there. This entry
+does not run the filter. Running it needs both readings too, since the
+figure of around 13 percent that location 3509 sets beside them belongs to
+the literal sign.
+[Issue 359](https://github.com/l3a0/quantitative-trading/issues/359) carries
+running it.
+
+**Whether either reading works out of sample.** The rule, the save and the
+window are Chan's, and the sample is the one he reported on. A registered
+test would fix one sign first and run it on data after 2012.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
 
 ## Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*
 
