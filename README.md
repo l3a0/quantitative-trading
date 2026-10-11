@@ -596,7 +596,12 @@ where they were first built. The other forty-two were built here.
     across the five, so any verdict could be noise. PMC is one symbol whose
     two price histories join into one day's return. Without it, PC2 falls to
     −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
-    symbol. Every figure is exploratory and about survivors.
+    symbol. Measured after the run, a series rebuilt from each day's own
+    weights, with each vector's sign set so its largest weight is positive,
+    would read PC2 at −0.1105, and −0.0161 with sign and rank matched
+    to today's. Fitting tomorrow's weights on a window that leaves today's
+    return out brings it to 0.0776.
+    Every figure is exploratory and about survivors.
 43. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
     chosen three ways on Example 5.1's 612 saved returns: by the optimum of
     100,000 returns drawn from a Pearson type IV fitted to their four
@@ -689,6 +694,26 @@ the price basis move it by about a ten-thousandth each, judged on the closes.
 Every figure is exploratory, and Entry 46 in
 [docs/replication-log.md](docs/replication-log.md) carries them all, with the
 checks on the archive's opens that the series check does not make.
+
+Item 44's rule also runs at leverage a broker would lend, and that run reaches
+no verdict either.
+[Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) caps
+location 4684's beta match at 2, the overnight leverage Regulation T allows,
+and at 5, the most location 814 says portfolio margin lends on stocks held
+overnight. Neither ceiling ruins the portfolio. In point estimate the capped
+low fifth out-compounded the unlevered high fifth, by 0.0934 a year at a
+ceiling of 2 and 0.1659 at 5, with Newey-West t of 1.0715 and 1.2111.
+Benjamini-Hochberg across the two ceilings rejects neither in either
+direction, so neither ceiling is decided. Every figure is exploratory, because
+the ceilings were chosen after item 44's calendar, leverage path and ruin had
+been seen, along with eight months of both groups' returns and its Sharpe
+ratios, growths, betas and Kelly leverage. As in item 44, the span is not a
+holdout and every figure is about the stocks still in the index on
+2007-11-23. The run borrows at the bill rate, which flatters the levered side,
+and month-end closes cannot see a margin call inside a month. Entry 48 in
+[docs/replication-log.md](docs/replication-log.md) carries them, with the
+break-even borrowing spread, the worst month and location 4700's caveat
+beside them.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -1164,7 +1189,19 @@ Benjamini-Hochberg, and the intercept, each with and without PMC, and one
 verdict per factor. On three of the file's days it holds each factor return
 equal to the program's fitted slope times its singular value. On synthetic
 returns it holds that a flipped vector moves no statistic, that a steady sign
-counts as persistence, and the Benjamini-Hochberg step-up.
+counts as persistence, and the Benjamini-Hochberg step-up. It holds what the
+write-up measured after the run too. Those pins count how often each factor's
+weights flip sign once each vector's largest weight is made positive, check
+that every flip left falls on a day the largest weight moves to another stock
+or two factors swap rank, and count how often they swap rank. They give the
+statistic when tomorrow's return is read on tomorrow's own weights, matched,
+fitted on 251 days that leave today out, and fitted on the 251 days ending
+today as the control. They read PMC's weight on the days whose window holds
+its one large return and which factor carries it, the ranking left unchanged
+without the intercept, and the two days that carry PC2's statistic, which
+carry PC1's without PMC. Synthetic data checks the helpers behind them. The
+blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 [tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py) does
 it for Chapter 8's leverage boxes. It pins the deterministic rows exactly, each
@@ -1195,6 +1232,20 @@ chance a normal month reaches June 2001's line, with the three helpers
 behind them on synthetic months. The blog post about it is the
 exception, and what it says that nothing here asserts is listed below.
 
+[tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) does it for
+the same rule at leverage a broker would lend. It pins each ceiling's
+outcome, gap, t, both p-values, both decisions of the Benjamini-Hochberg
+control and the detectable gap Y, the gap a 5 percent test finds four times
+in five. Beside them it pins the growth, the mean leverage, the months each
+ceiling binds, the worst month, the realised beta and the break-even spread.
+On portfolios built by hand it holds the cap, the replacement of both the
+return and the leverage, a ruined ceiling at p = 1 in both families, both
+Benjamini-Hochberg families, each outcome's wording, and the break-even
+spread's bisection, and its "none" when the gap is 0 or below with no spread.
+It also holds the refusal of a ceiling at or below 1, which borrows nothing,
+and the bisection's limit on halvings, which ends the search where the floats
+lie too far apart for its tolerance.
+
 All forty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
@@ -1221,7 +1272,9 @@ Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
 and Entry 45 the levered low-beta claim's.
 Entry 46 carries the rerun of Example 7.2 described above, which
-chases no published figure and so reaches no verdict.
+chases no published figure and so reaches no verdict. Entry 48 carries the
+levered low-beta rule at leverage a broker would lend, which is exploratory
+and reaches no verdict either.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -2152,6 +2205,19 @@ It prints the three vintages, the verdict with every ruined month, and beside
 it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
 Gaussian growth, the flagged stock-months and a row for every formation, none
 of which decides anything.
+
+The same rule at leverage a broker would lend takes no option either, because
+the issue's plan fixed both ceilings and every rule before any capped number:
+
+```bash
+uv run python -m chan.low_beta_capped
+```
+
+It prints the three vintages and each ceiling's outcome with its gap, t, both
+p-values and the detectable gap Y. Beside them it prints the growth, the mean leverage, the
+months each ceiling binds, the realised beta, the break-even spread and the
+worst month, none of which decides anything, then location 4700's caveat and
+the five limits. Every line is exploratory.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
@@ -5771,8 +5837,118 @@ uv run python -m chan.opening_gap_figures
 what it draws rather than its bytes, for the reason given above for the regime
 map.
 
+[blog/pca-factor-momentum-lessons.md](blog/pca-factor-momentum-lessons.md) is
+a forty-first post, about whether the five statistical factors Example 7.4
+of Chan's *Quantitative Trading* fits for itself have the momentum the
+strategy assumes, on Chan's S&P 600 file. The factor models post already
+reports the result, and this post teaches the method. It links the factor
+models post for what Example 7.4 does rather than repeating it, and draws five
+lessons from Entry 42 of the replication log.
+
+1. A factor re-estimated every day has no fixed sign, and tomorrow's weights
+   have already seen today's return. With each sign fixed by a rule, signs
+   still flip on 1, 14, 6, 22 and 24 of 752 days, all but three where the
+   largest weight moves to another stock, and ranks swap on 15. On tomorrow's
+   own weights PC2 reads −0.1105, matched −0.0161, and on weights fitted
+   without today 0.0776, beside the test's 0.0778. A 251-day window that
+   still holds today reads −0.0158, like the matched row.
+2. Leaving the mean in is a choice with a reason, because "remain constant"
+   describes a steady value. The price is that two days carry 97.04 percent
+   of PC2's squared products.
+3. The factor return the forecast reads is the slope times the day's singular
+   value, and dropping the intercept leaves the ranking unchanged on all 752
+   days t.
+4. Four of five passing says little. Only PC2 is outside the ±0.0715 band,
+   its t is 0.8254, and none survives Benjamini-Hochberg.
+5. One spliced symbol decides which factor misses. A top-five factor weighs
+   PMC at 0.5939 or more on each of the 113 days whose window holds its one
+   large return and that have a next day. PMC takes PC1 through 2007-08-10,
+   so PC2's two large days belong to the factor that is PC1 without PMC, and
+   without PMC the miss moves from PC3 to PC2.
+
+Four groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its page in the revised edition, as the
+   factor models post's block above records. "Based on the assumption that
+   factor returns have momentum" and "remain constant from the current time
+   period to the next" (location 4051) are cited at p. 164, and "often" and
+   "stronger serial autocorrelations than individual stock's returns"
+   (location 4014) at p. 162, through
+   [its committed notes](research/book-notes/quantitative-trading.md).
+2. Facts outside the committed data: that 2007-08-09 and 2007-08-10 fall in
+   the week Khandani and Lo studied, and that the revised MATLAB prints
+   Chan's 2 percent a year before costs.
+3. Readings and arithmetic no test asserts: that the library's own signs
+   flipped on about half the days on the two machines that ran the checks
+   and disagreed about which, which no test pins because it depends on the
+   library, that a principal component's rank can change from day to day in
+   general, the closed form of
+   the slope and intercept written out in Lesson 3, that the positions chosen
+   on day t earn day t + 1's return, 5/√70 written as positive, 1.8654 written
+   as 186.54 percent, a fifth of 5 percent written as 0.01, the same-sign
+   shares called close to a coin toss, that PC1 is the factor that moves the
+   whole market, that 2007-08-09 and 2007-08-10 are what put PC2 outside the
+   band, and that the window's effect on PC2 is not explained. The figure's alt text reads its curve approximately too.
+4. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
+`TestTheSplice` in [tests/test_pca_factor.py](tests/test_pca_factor.py) for
+PMC's 1.8654 and its 851 days, or to
+[tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
+for the figure's own labels. `TestWhatThePostMeasured` holds the ones that had
+no pin before it, all measured after the run.
+
+1. Each factor's sign flips once every vector's largest weight is made
+   positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
+   factors swap rank, over 753 decompositions. The stock holding the largest
+   weight moves on 1, 14, 6, 20 and 23 of those flips, and the three left,
+   PC4 on 2005-06-15 and 2007-06-29 and PC5 on 2007-08-01, fall on days two
+   or more factors swap rank.
+2. The statistic on tomorrow's own weights under the same rule, 0.0326,
+   −0.1105, −0.0283, −0.0315 and 0.0025, matched, 0.0246, −0.0161, −0.0318,
+   −0.0285 and 0.0768, and on weights fitted on the 251 days that leave today
+   out, 0.0315, 0.0776, −0.0228, 0.0338 and 0.0713. The largest gap to the
+   test's own figure is PC2's 0.0938 matched and PC3's 0.0039 left out. The
+   control, on the 251 days ending today, reads 0.0252, −0.0158, −0.0307,
+   −0.0350 and 0.0810.
+3. The 114 days whose window holds PMC's return, and the 113 of them from
+   2007-08-02 to 2008-01-11 with a next day, PMC's largest weight of at least
+   0.5939 on each, and PC2 carrying it on 103, PC1 on 7 and PC3 on 3. PC1
+   carries it on the first seven, through 2007-08-10, at a weight between
+   0.9144 and 0.9223, and PC2 from 2007-08-13. Without PMC, 2007-08-09 and
+   2007-08-10 hold 0.9461 of the sum of PC1's squared products, and on both
+   days PC2 with PMC overlaps PC1 without it at 0.98 or more in size.
+4. The ranking without the intercept agreeing on all 752 days t.
+5. No stock tying any factor, the nearest 1.06e-04 away with PMC and 3.85e-05
+   without.
+6. The two days, 2007-08-09 and 2007-08-10, holding 0.9704 of the sum of
+   PC2's squared products.
+7. The steady series' 0.9798 uncentred against −0.8 centred.
+
+Its one figure is drawn from the committed file by
+[src/chan/pca_factor_momentum_figures.py](src/chan/pca_factor_momentum_figures.py),
+which reads it through the same `load_panel`, `compute_both` and
+`daily_components` as the pins. It draws two panels.
+
+1. The 579 stocks' statistics as their cumulative curve, with the ±0.0715
+   band, zero and the median stock, each factor's statistic as a filled dot
+   at its percentile, and a hollow dot for the same factor without PMC.
+2. For each factor, the statistic on tomorrow's own weights with the sign
+   rule, matched, on
+   weights fitted without today, and as the test reads it, over the same
+   band.
+
+```bash
+uv run python -m chan.pca_factor_momentum_figures
+```
+
+[tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map.
+
 [blog/levered-low-beta-lessons.md](blog/levered-low-beta-lessons.md) is a
-forty-first post, about Chan's rule at Kindle location 4709 of
+forty-second post, about Chan's rule at Kindle location 4709 of
 *Quantitative Trading* that a highly levered portfolio of low-beta stocks
 should out-compound an unlevered portfolio of high-beta stocks, with the beta
 match of location 4684 and the fat-tail caveat of location 4700. It is the
