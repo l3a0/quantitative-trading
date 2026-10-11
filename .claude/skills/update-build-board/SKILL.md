@@ -932,6 +932,28 @@ the script beside it. Each row after them says how it was found.
     kind word and the "Planned, no builder" column. The same reading found a
     closed entry's line repeating its old review text and, with no closing
     link, saying what merging would do. It now says closed.
+19. **One sentence carrying two facts.** Caught by the owner reading the
+    published page. On 2026-10-11
+    [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)
+    gained `needs` of 249 and 510, both open and neither waiting on anything.
+    The board note's branch for a graph with no third column was fixed text
+    saying nothing sat "behind more than one thing", which meant no chain ran
+    two steps and read as no card waiting on two issues. The second column's
+    subtitle, "one thing has to land first", made the same claim about the card
+    under it. That is defect 1 surviving inside a computed sentence, because
+    only its other branch read the data. The deep branch had its own version,
+    calling two steps "the deepest the graph goes" without measuring it.
+
+    The note now reads the longest chain from the depth map, names any card
+    waiting on several open issues in a clause of its own, and says nothing
+    about depth when no card waits on anything. The columns are headed by steps
+    along a chain rather than by things to land, and the note counts in the
+    same steps. The review of that fix found the class in two more places. The
+    shallow branch never said when it was counting cards the short view hid,
+    which the deep branch already did. The chain bar said "waits on 2" for a
+    card whose own line named one issue, because it counted the whole chain.
+    So when a phrase can be read as either of two quantities, check it against
+    data where the two differ.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
