@@ -17,7 +17,9 @@ both are stated once here and carried in every figure's failure message as
   the rows of ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``,
   which ``TestTheVintages`` holds the members to. ``SOURCE_FILES`` also names
   the VX strip, saved 2012-05-08 with no spot, which ``TestTheVxStrip`` reads
-  and which no figure here uses.
+  and which no figure here uses. ``OTHER_SAVES`` names CL's 2012-05-02 save,
+  saved 2012-05-03 with no spot, which ``TestTheOtherSaves`` reads and which
+  no figure here uses either.
 - **Specification.** ``estimateFuturesReturns.m`` at the mirror commit
   :mod:`chan.roll_returns` names. α is 252 times the OLS slope of the log spot
   on the strip's row number, counted before the rows with no spot are dropped.
@@ -53,7 +55,8 @@ import pytest
 from chan import roll_returns as module
 from chan.roll_returns import (
     BOOK_TABLE_5_1,
-    NO_SPOT_ROOTS,
+    NO_SPOT_FILES,
+    OTHER_SAVES,
     PORT_C2,
     ROOTS,
     SOURCE_FILES,
@@ -150,9 +153,15 @@ class TestTheSpecification:
             "VX": "inputDataDaily_VX_20120507.mat",
         }
 
-    def test_vx_alone_is_read_without_a_spot(self) -> None:
-        assert NO_SPOT_ROOTS == frozenset({"VX"})
-        assert not NO_SPOT_ROOTS & set(ROOTS)
+    def test_vx_s_file_and_cl_s_2012_05_02_save_alone_are_read_without_a_spot(self) -> None:
+        assert NO_SPOT_FILES == frozenset(
+            {"inputDataDaily_VX_20120507.mat", "inputDataDaily_CL_20120502.mat"}
+        )
+        assert not NO_SPOT_FILES & {SOURCE_FILES[root] for root in ROOTS}
+
+    def test_cl_s_2012_05_02_save_is_the_one_other_save(self) -> None:
+        """``XLE_CL_rollReturn.m``'s second load line reads ``inputDataDaily_CL_20120502``."""
+        assert OTHER_SAVES == {"CL": ("inputDataDaily_CL_20120502.mat",)}
 
     def test_the_book_table_is_the_recovered_text_of_location_2399(self) -> None:
         text = BOOK_NOTES.read_text(encoding="utf-8")
@@ -664,6 +673,85 @@ class TestTheVxStrip:
         columns = list(strip.contracts.columns)
         assert (columns[0], columns[-1]) == ("VX-2007F", "VX-2012Z")
         assert sorted(guarded) == sorted(columns)
+
+
+class TestTheOtherSaves:
+    """CL's 2012-05-02 save through the same read path, which issue 356 widened to it."""
+
+    CL_20120502 = "inputDataDaily_CL_20120502.mat"
+
+    def test_it_loads_89_contracts_and_no_spot_after_the_guard_reads_each(
+        self, monkeypatch
+    ) -> None:
+        guarded = []
+        guard = module.refuse_window_crossing_a_break
+
+        def record(legs, *, start, end):
+            guarded.append(legs[0][0].symbol)
+            return guard(legs, start=start, end=end)
+
+        monkeypatch.setattr(module, "refuse_window_crossing_a_break", record)
+        strip = load_strip("CL", source_file=self.CL_20120502)
+        assert LIFTED_SOURCES[self.CL_20120502] == (
+            "chan-mat",
+            "raw",
+            "2012-05-03",
+            "inputdatadaily_cl_20120502",
+            89,
+        )
+        assert {m.path.split("/")[0] for m in strip.members} == {"inputdatadaily_cl_20120502"}
+        assert (strip.root, strip.spot, len(strip.members)) == ("CL", None, 89)
+        assert strip.contracts.shape == (2867, 89)
+        columns = list(strip.contracts.columns)
+        assert (columns[0], columns[-1]) == ("CL-2007F", "CL-2014K")
+        assert sorted(guarded) == sorted(columns)
+
+    def test_naming_the_default_file_reads_what_leaving_it_out_reads(self, strips) -> None:
+        named = load_strip("CL", source_file=SOURCE_FILES["CL"])
+        assert named.contracts.equals(strips["CL"].contracts)
+        assert named.spot.equals(strips["CL"].spot)
+
+    @pytest.mark.parametrize(
+        ("root", "source_file"),
+        [
+            ("CL", "inputDataDaily_CL_20120501.mat"),
+            ("CL", "inputDataDaily_VX_20120507.mat"),
+            ("VX", "inputDataDaily_CL_20120502.mat"),
+        ],
+    )
+    def test_a_save_nobody_declared_for_the_root_is_refused(self, root, source_file) -> None:
+        with pytest.raises(ValueError, match=f"and not {source_file}$"):
+            load_strip(root, source_file=source_file)
+
+    def test_cl_s_2012_08_13_save_without_its_spot_is_still_refused(
+        self, panels, monkeypatch
+    ) -> None:
+        """The declaration names the 2012-05-02 file, so it does not reach CL's other save."""
+        members, closes = panels["CL"]
+        monkeypatch.setattr(
+            module,
+            "load_panel",
+            lambda *_a, **_k: (
+                [m for m in members if m.symbol != "CL-SPOT"],
+                closes.drop(columns="CL-SPOT"),
+            ),
+        )
+        with pytest.raises(
+            VintageUnavailable, match="inputDataDaily_CL_20120813.mat holds no CL-SPOT column"
+        ):
+            load_strip("CL")
+
+    def test_the_named_file_is_the_one_read(self, monkeypatch) -> None:
+        seen = []
+        real = module.load_panel
+
+        def record(source_file, data_dir=None):
+            seen.append(source_file)
+            return real(source_file, data_dir=data_dir)
+
+        monkeypatch.setattr(module, "load_panel", record)
+        load_strip("CL", source_file=self.CL_20120502)
+        assert seen == [self.CL_20120502]
 
 
 class TestTheRefusals:
