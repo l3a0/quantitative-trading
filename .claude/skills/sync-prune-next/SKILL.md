@@ -1,6 +1,6 @@
 ---
 name: sync-prune-next
-description: Sync with origin, prune the worktrees and branches whose work is finished, refresh the build board, and recommend what to take next. Use when asked to "git sync prune", to clean up worktrees or branches, to "update the build board and say what's next", or for any status round of this repo's sessions and pull requests.
+description: Sync with origin, prune the worktrees and branches whose work is finished, check the build board, and recommend what to take next. Use when asked to "git sync prune", to clean up worktrees or branches, to "update the build board and say what's next", or for any status round of this repo's sessions and pull requests.
 ---
 
 # Sync, prune, and say what's next
@@ -16,7 +16,7 @@ next.
 
 1. Fetch and prune, so every later check reads the current `main`.
 2. Remove what is finished, and only that.
-3. Update the build board.
+3. Check the build board.
 4. Recommend what to take next.
 
 ## 1. Fetch and prune
@@ -232,51 +232,51 @@ stash entries from `git stash list`, which survive every removal above and
 which nothing else surfaces. The kept list is where the owner learns about work
 in progress that nothing else announces, such as the worktree above.
 
-## 3. Update the build board
+## 3. Check the build board
 
-The `update-build-board` skill owns the procedure, the data blocks and the
-checks, including the reconcile check on the totals. This step
-only names what a round usually changes.
+A GitHub Action rebuilds the board from GitHub on every change, so a round
+writes nothing to it. The `update-build-board` skill says what a session sets
+on GitHub for the board to read, and this step checks that what the round
+found agrees with it.
 
-- `PRS` takes each open pull request's checks at its current head and its
-  `## Review` count. A pull request that merged or closed keeps its entry, with
-  `state` set to `merged` or `closed`, while its issue stays open, because the
-  card still reads it. The entry drops once the issue closes. Moments 2 and 5
-  of `update-build-board` say what each kind of entry does to its card.
-- `TRACKER` and `STATE.issues.open` take issues filed or closed since the last
-  round. `PLANNED` and `NEXT` drop entries for closed issues.
-- `WORKING` entries are owed a removal by whoever added them, so report a stale
-  one rather than deleting another session's entry. A build session keeps its
-  entry until it hands its pull request over, so an entry on a card with an
-  open pull request keeps that card out of the owner's queue whatever its
-  `kind`. Ask whoever added it before calling it stale.
+- A `working:build` or `working:decompose` label is owed its removal by the
+  session that set it, so report a stale one rather than removing another
+  session's label. A build session keeps its label until it hands its pull
+  request over, so a label on a card with an open pull request keeps that card
+  out of the owner's queue. Ask whoever set it before calling it stale.
+- A decompose loop that exited since the last round owes its issue a
+  `Board verdict:` line, and a filed issue owes its kind label and, if it is
+  ranked, a `band:N` label. Report any that is missing.
+- The board's last run says when it read GitHub. Report a run that failed, or
+  a stamp older than the page's stale threshold, with a link to the run.
 
-That skill reads the board's URL from a file on this machine. When the file
-names no single URL, or names a board this account cannot reach, it skips the
-board and the round says so. Steps 1, 2 and 4
-still run. Step 4 then reads the open pull requests, their checks and their
-reviews straight from GitHub, ranks by `CLAUDE.md`'s directive rather than by
-`NEXT`, and says it had no `WORKING` or `PLANNED` entries to read.
+```bash
+gh run list --workflow board.yml --limit 3 --json databaseId,event,conclusion,createdAt
+```
+
+Then build the board from GitHub into a scratch directory, as the skill's
+"Where the board lives" says, so step 4 reads GitHub as it stands rather than
+as the last run saw it.
 
 Nothing in a round waits on a suite run. The board stopped carrying the commit,
-the test count and the vintage counts on 2026-10-05 UTC, so every section is
-written as soon as it is measured.
+the test count and the vintage counts on 2026-10-05 UTC.
 
 ## 4. Recommend what to take next
 
-The ranking directive in `CLAUDE.md` decides the order, and the board's `NEXT`
-block stores it, so read `NEXT` rather than re-deriving it. Collect candidates
+The ranking directive in `CLAUDE.md` decides the order, and the board's `next`
+section in the `board.json` step 3 built stores it, from each issue's `band:N`
+label and `Board order:` line, so read it rather than re-deriving it. Collect candidates
 from four places, and give the evidence for each one.
 
 1. **The owner's queue.** Nothing moves until the owner answers, so these come
    first.
-   - Pull requests that are reviewed, green at the current head, and carry no
-     `WORKING` entry on their card. Green does not count when the base moved
+   - Pull requests that are reviewed, green at the current head, and whose
+     card carries no `working:` label. Green does not count when the base moved
      after the last push, as the paragraph after this list explains.
-   - `PLANNED` entries with `ready` of `decide`.
+   - `planned` entries with `ready` of `decide`.
    - Questions a session handed back.
-2. **Plans ready to build with no builder.** These are `PLANNED` entries with
-   `ready` of `build`, with no `WORKING` entry, no open pull request, nothing
+2. **Plans ready to build with no builder.** These are `planned` entries with
+   `ready` of `build`, with no `working:` label, no open pull request, nothing
    open in `needs`, and no pull request merged with no `Part of`. That last one
    leaves the card only a close by hand, so it is not a candidate.
 3. **Blog drafts.** List the Substack drafts and their schedule. A merged or open
@@ -292,7 +292,7 @@ from four places, and give the evidence for each one.
    goes out. Publishing, scheduling and sending stay there too. The draft ids
    and the recorded copies live outside this repo, in Claude's local memory for
    it. The `sync-substack` skill carries the procedure for a sync.
-4. **The replication backlog**, in `NEXT`'s order, for when nothing above is
+4. **The replication backlog**, in `next`'s order, for when nothing above is
    waiting.
 
 A stacked pull request is the usual way a base moves without a push. It is one

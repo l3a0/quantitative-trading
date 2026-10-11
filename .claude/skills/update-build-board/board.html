@@ -371,33 +371,24 @@
 const ISS = "https://github.com/l3a0/quantitative-trading/issues/";
 const PRU = "https://github.com/l3a0/quantitative-trading/pull/";
 
-/* The board's data lives in the artifact's database, one document per section
-   in the `board` collection: board/state, board/prs, board/working,
-   board/planned, board/next and board/tracker. A session updates a section with
-   a write pinned to the version it read, so two sessions writing at once cannot
-   overwrite each other. The later write is refused, re-reads and redoes its
-   edit. Splitting by section is what keeps that rare: a session marking a
-   decompose loop touches board/working and nothing else, so it never collides
-   with one recording a pull request. The update-build-board skill carries the
-   procedure, and publishing this page is now only for changes to the code and
-   for starting a new board.
+/* The board's data is one file, board.json, beside this page on GitHub Pages.
+   A GitHub Action, .github/workflows/board.yml, rebuilds it from GitHub on
+   every issue, comment and pull request change and on a schedule, by running
+   scripts/build_board.py. No session writes it. A session sets the labels,
+   links and marker lines the script reads, and the update-build-board skill
+   says which. Until issue 533 the data lived in a claude.ai artifact's
+   database, written by hand, and this page subscribed to it.
 
-   Each document is { schema: 1, items: [...] }, except board/state, which is
-   { schema: 1, updatedAt, issues: { open } }. The page subscribes to all six and
-   redraws on every write.
+   The file holds six sections, state, prs, working, planned, next and tracker.
+   Each is { schema: 1, items: [...] }, except state, which is
+   { schema: 1, updatedAt, issues: { open }, source, staleAfterMinutes }.
 
-   FALLBACK carries no board data. A copy of the six documents used to sit
+   FALLBACK carries no board data. A copy of the six sections used to sit
    here, and a copy goes stale silently, because nothing refreshes it once the
-   page is checked in. So until the live documents arrive, or when the database
-   cannot be reached, the page draws only the banner under the strip, which
-   says why there is nothing to show. That is the arrangement the Marketlake
-   Build Board uses, split into sections here.
-
-   The skill's harness has no database, so `with-db.py` splices the documents it
-   just read into this line of a scratch copy. A spliced FALLBACK has no `none`,
-   and the page draws it as before, with the banner saying it shows the copy
-   built into the page and how old that copy is. */
-const DB_COLLECTION = "board";
+   page is checked in. So until the file arrives, or when it cannot be fetched,
+   the page draws only the banner under the strip, which says why there is
+   nothing to show. That is the arrangement the Marketlake Build Board uses,
+   split into sections here. */
 const SECTIONS = ["state", "prs", "working", "planned", "next", "tracker"];
 /* How often the board on GitHub Pages fetches board.json again. Pages tells a
    browser to cache the file for ten minutes, so each fetch asks for a URL no
@@ -446,7 +437,7 @@ function usableSection(name, d) {
 
 /* A delivered snapshot is frozen, so the page works on a clone. */
 function adopt(src) {
-  NONE = !!src.none; /* only an unspliced FALLBACK carries it */
+  NONE = !!src.none; /* only FALLBACK carries it */
   if (NONE) return;
   const d = JSON.parse(JSON.stringify(src));
   STATE = d.state; PRS = d.prs; WORKING = d.working; PLANNED = d.planned;
@@ -458,9 +449,8 @@ function adopt(src) {
     a.issue - b.issue);
 }
 
-/* What the banner says over a live board. A database board carries neither
-   field read here, so its banner stays empty while it is live. The board an
-   Action builds on GitHub Pages carries both.
+/* What the banner says over a live board, which is nothing unless the board
+   is stale.
 
    The stale warning exists because a failed run leaves the last board up, and
    a board an hour stale looks like a fresh one. The stamp already says its
@@ -469,9 +459,9 @@ function adopt(src) {
    workflow's schedule, and a second copy written here would drift the first
    time the schedule changed.
 
-   `lacks` names the fields the Action does not build yet. Until issue 533
-   moves them onto GitHub, the default view draws no ranked cards, and a reader
-   who took that board for the one of record would read an empty plan. */
+   Until issue 533 the board also named the fields it did not carry yet, from
+   a `lacks` list in the state, while the artifact board stayed the board of
+   record. Every field now comes from GitHub, so that note is gone. */
 function liveNotes() {
   const s = STATE || {};
   const out = [];
@@ -482,16 +472,11 @@ function liveNotes() {
       `while a scheduled rebuild runs at least every ${s.staleAfterMinutes / 2} minutes, ` +
       `so the Action that rebuilds it may be failing.`);
   }
-  if (Array.isArray(s.lacks) && s.lacks.length) out.push(
-    `<b>Built from GitHub alone.</b> This board does not carry ${esc(andlist(s.lacks))} yet, ` +
-    `so its default view draws no ranked cards. The artifact board stays the board of record ` +
-    `until it does.`);
   return out;
 }
 
 /* The banner is empty while the page shows live data, apart from the notes
-   above, and says what it is showing otherwise. It never guesses at why a view
-   cannot reach the database, because the platform deliberately does not say. */
+   above, and says what it is showing otherwise. */
 function source() {
   const el = document.getElementById("source");
   if (!el) return;
@@ -499,41 +484,33 @@ function source() {
     const notes = liveNotes();
     el.hidden = !notes.length; el.innerHTML = notes.join(" "); return;
   }
-  /* A function, because STATE is unset while the page has no data. */
+  /* A function, because STATE is unset while the page has no data. Only the
+     stopped line with a board on screen reads it.
+
+     A page that is not live has no board on screen unless it drew one and then
+     stopped, because nothing else puts data on it. The page once carried a copy
+     of the board, and later a copy spliced in for the skill's harness, and the
+     lines here said which copy was showing and how old it was. The harness now
+     serves a board.json through a fake fetch instead, so every other line says
+     there is no board data and that the page carries no copy. */
   const age = () => `measured ${esc(ago(STATE.updatedAt))}`;
-  const copy = NONE ? `no board data` : `the copy built into the page, ${age()}`;
-  /* With no data there is no copy to fall back on, so the lines say so rather
-     than what a copy would be missing. */
-  const own = NONE ? `, and the page carries no copy of its own` : ``;
+  const none = `<b>Showing no board data.</b> `;
   const lines = {
-    loading: `<b>Showing ${copy}.</b> The live board has not arrived yet${own}.`,
-    none: `<b>Showing ${copy}.</b> This view cannot reach the live board` +
-      (NONE ? `${own}.` : `, so anything a session wrote since then is missing here.`),
-    empty: `<b>Showing ${copy}.</b> ` + (SOURCE.missing
+    loading: none + `The live board has not arrived yet, and the page carries no copy of its own.`,
+    none: none + `This view cannot reach the live board, and the page carries no copy of its own.`,
+    empty: none + (SOURCE.missing
       ? `The live board is missing ${esc(SOURCE.missing)}.`
-      : `The live board holds no document yet.`),
-    shape: `<b>Showing ${copy}.</b> The live board's ${esc(SOURCE.missing || "")} section is missing fields this page needs, so it was not used.`,
-    /* A fetched board retries on its own timer, so it says so rather than
-       asking for a reload a database subscription needs. */
+      : `The live board holds no section yet.`),
+    shape: none + `The live board's ${esc(SOURCE.missing || "")} section is missing fields this page needs, so it was not used.`,
+    /* The page retries on its own timer, so it says so rather than asking for
+       a reload. */
     stopped: `<b>Live updates stopped${SOURCE.code ? ` (${esc(SOURCE.code)})` : ""}.</b> ` +
       (SOURCE.had ? `What is shown is the last live data, ${age()}. ` +
-                    (SOURCE.retry ? `The page tries again every ${FETCH_EVERY / 60000} minutes.`
-                                  : `Reload to reconnect.`)
-                  : `Showing ${copy}.`)
+                    `The page tries again every ${FETCH_EVERY / 60000} minutes.`
+                  : `Showing no board data.`)
   };
   el.innerHTML = lines[SOURCE.why] || lines.none;
-  /* The loading line waits a few seconds before it shows, so a normal load that
-     connects at once never flashes a warning. That wait suits a page with a
-     copy to show meanwhile. With no data it would leave a blank page with no
-     word of why, so then the line shows at once. */
-  if (SOURCE.why === "loading" && !NONE) {
-    el.hidden = true;
-    if (typeof setTimeout === "function") {
-      setTimeout(() => { if (!SOURCE.live && SOURCE.why === "loading") el.hidden = false; }, 4000);
-    }
-  } else {
-    el.hidden = false;
-  }
+  el.hidden = false;
 }
 
 /* The strip carries two things: the open issue count and the stamp. It used to
@@ -547,8 +524,9 @@ function source() {
    question this page answers. */
 
 /* One entry per open branch, plus a merged or closed one while its issue stays
-   open, because the card still says what became of it. Moments 2 and 5 of the
-   skill keep both kinds. The array is the whole account of the pull requests
+   open, because the card still says what became of it. The generator keeps
+   both kinds, finding the merged and closed ones through each open issue's
+   links. The array is the whole account of the pull requests
    against open issues, so this comment carries the rules for reading it rather
    than a sentence naming today's branches, which is the first defect on the
    skill's list in the one place a reader cannot see it render.
@@ -572,21 +550,21 @@ function source() {
    built from the tracker. That happened once, and the fix was to file the
    issue rather than to give the page a second source of truth.
 
-   `linked` is GitHub's own closingIssuesReferences, and it is kept because the
-   failure it records is cheap to repeat. It was empty on both PR 34 and PR 35,
-   because both bodies wrote the closing keyword inside a code span, where
-   GitHub does not read it. Reading a body back cannot tell the two spellings
-   apart. `gh pr view <n> --json closingIssuesReferences` can, and it also
-   catches the opposite slip: a sentence written to say a pull request closes
-   nothing registered a link anyway, because the keyword parses wherever it
-   sits.
+   `linked` is GitHub's own closingIssuesReferences. The page once warned when
+   an entry had no closing link and no `Part of`, because PR 34 and PR 35 both
+   wrote the closing keyword inside a code span, where GitHub does not read it.
+   That warning went with the hand-kept board under issue 533. The Action
+   writes an entry only for an issue GitHub links or a `Part of` line names, so
+   `linked` is false exactly when `partOf` is true, and the page no longer reads
+   it. A keyword in a code span now gives the branch no entry at all, and
+   `gh pr view <n> --json closingIssuesReferences` remains the check on a body.
 
    One branch closing two issues takes one entry per issue, because the map
    that feeds the cards is keyed by issue and a single entry would leave the
    other card showing no branch at all. PR 94 was the first, against issues 95
    and 100, and both entries left with it when it merged as d8bb4e7. */
-/* History once kept inside `PRS`. The data itself now lives in the
-   board database, so these notes are a record rather than a description. */
+/* History once kept inside `PRS`. The data itself now comes from
+   GitHub, so these notes are a record rather than a description. */
 /* PR 158 merged as cb31f1d, closing issue 15 and landing the sixth
      replication. It moved four strip figures at once, which nothing had done
      before: a vintage to eleven, the rows to 59,285, the suite from 476 to 570,
@@ -712,9 +690,9 @@ function source() {
 /* Cards a session is already working, which the key's five states do not cover.
    An empty array reads as no information rather than as nobody working. Only a
    running session can add an entry, and only whoever added one can take it out,
-   so the entries are the one part of this page the update moments maintain only
-   in part. The skill's eighth moment, the hand-over, is the one that takes a build
-   session's entry out. An entry shapes three columns: the two session columns,
+   so the entries are the one part of this page that sessions maintain by hand,
+   as `working:` labels. The skill's hand-over moment is the one that takes a
+   build session's label off. An entry shapes three columns: the two session columns,
    and "Waiting on my review", where it holds a branch its session has not handed
    over.
 
@@ -736,8 +714,8 @@ function source() {
    It used to come out when the pull request opened, which let a reviewed and
    green branch read as the owner's while its session was still pushing to it.
    `handedOver` carries that measurement. */
-/* History once kept inside `WORKING`. The data itself now lives in the
-   board database, so these notes are a record rather than a description. */
+/* History once kept inside `WORKING`. The data itself now comes from
+   GitHub, so these notes are a record rather than a description. */
 /* The build session on issue 15 ended in PR 158, so the branch is what says
      where that card is and the session entry came out with it. That is the
      handover this array exists to cover: it is right at the stamp above and
@@ -792,8 +770,8 @@ function source() {
    tracker. The twenty-five-pass run reached pass 22 before anyone read a linked
    issue rather than its title, and found there a second deliverable recording
    the same vintage and a reader that breaks the moment the second one lands. */
-/* History once kept inside `PLANNED`. The data itself now lives in the
-   board database, so these notes are a record rather than a description. */
+/* History once kept inside `PLANNED`. The data itself now comes from
+   GitHub, so these notes are a record rather than a description. */
 /* Issue 15's entry left with PR 158, which merged as cb31f1d. Its loop ran
      eighteen passes, the longest any card here carried, and what it bought is
      worth one line now that the card is gone: it corrected the book's leverage
@@ -975,13 +953,11 @@ function stamped() {
   if (WORKING.length) decay.push("a session that has ended since then still reads as running");
   if (open.length) decay.push("a check that has gone green or red since then still reads here as it read then");
   if (open.some(p => !p.reviewed)) decay.push("a review posted since then still reads as owed");
-  /* The board an Action builds is not measured by hand, so it says how it is
-     built instead. Its figures still date from the stamp rather than from the
-     moment of reading, so the decay clause holds for both. */
-  const how = STATE.source === "github"
-    ? `Built from GitHub by an Action on each change and on a schedule, and fetched ` +
-      `again every ${FETCH_EVERY / 60000} minutes`
-    : `Measured by hand. The page cannot read the disk or poll GitHub`;
+  /* The board is no longer measured by hand, so the footer says how it is
+     built. Its figures still date from the stamp rather than from the moment of
+     reading, so the decay clause still holds. */
+  const how = `Built from GitHub by an Action on each change and on a schedule, and fetched ` +
+    `again every ${FETCH_EVERY / 60000} minutes`;
   document.getElementById("foot").innerHTML =
     `<p>${how}, so every figure on it is current as of the stamp above rather than live.` +
     (decay.length ? ` The In flight section decays fastest: ${andlist(decay)}.` : ``) +
@@ -998,8 +974,8 @@ function stamped() {
    something nobody should start: deferred under the ranking rule, or a decision
    that needs the owner rather than a session. Collapsing the two would put
    "read the book" and "write the recorder" in the same bucket. */
-/* History once kept inside `TRACKER`. The data itself now lives in the
-   board database, so these notes are a record rather than a description. */
+/* History once kept inside `TRACKER`. The data itself now comes from
+   GitHub, so these notes are a record rather than a description. */
 /* One blocker now. Its remaining half records a second download of GLD or
      GDX, which at 270bf42 gave 10 failed and 1 error for GDX and 11 failed and
      1 error for GLD. Three of those were issue 51, which merged as 0162df1, and
@@ -1229,7 +1205,7 @@ const COLS = [
 const LABEL_HUE = {
   bug: "#d73a4a", documentation: "#0075ca", enhancement: "#2F7F86",
   test: "#5319e7", deferred: "#6E7A85", replication: "#0E8A16",
-  "blocked-on-data": "#B60205", question: "#9B3BA8"
+  "blocked-on-data": "#B60205", question: "#9B3BA8", decision: "#8A5A00"
 };
 
 /* A fifth kind. Issue 16 was split into three and its body now says it builds
@@ -1468,21 +1444,14 @@ function buildOrder() {
           ? `<span class="rv">${esc(p.review)}</span>`
           : `<span class="rv">${esc(p.state)}</span>`;
         /* `Part of` registers no closing link on purpose, because the issue
-           keeps what the branch does not do. That is the rule working rather
-           than the code-span defect this warning was written for, so it is
-           said plainly instead of being warned about. A closed pull request
-           will never merge and closes nothing, so neither sentence applies to
-           it and it gets none.
-
-           The warning reaches only the artifact board. On the board an Action
-           builds, an entry exists only where GitHub registered a closing link
-           or a `Part of` line names the issue, so `linked` is false exactly
-           when `partOf` is true and the warning never fires there. */
-        const loose = p.state === "closed" ? "" : p.partOf
+           keeps what the branch does not do, so the line says so plainly. A
+           closed pull request will never merge and closes nothing, so it gets
+           no such sentence. The page once also warned about an entry with no
+           closing link and no `Part of`, which the Action never writes, so
+           that warning went under issue 533. */
+        const loose = p.state !== "closed" && p.partOf
           ? `<span class="nolink">part of #${c.n}, which stays open for what this does not do</span>`
-          : p.linked ? "" : `<span class="nolink">${p.state === "merged"
-          ? `merged with no closing link, so #${c.n} is still open and has to be closed by hand`
-          : `no closing link registered, so merging will leave #${c.n} open`}</span>`;
+          : "";
         prline += `<div class="pr">
           <a href="${PRU}${p.pr}" target="_blank" rel="noopener">PR #${p.pr}</a>
           <span class="sep">&middot;</span><span class="ck ${ck[0]}">${esc(ck[1])}</span>
@@ -1501,13 +1470,15 @@ function buildOrder() {
          replaced. The `busy` stripe and its legend entry say a session still
          holds the card, and the flow note says what the branch still owes.
 
-         The screen-reader label keeps the phrase only while no branch is open,
-         where it can add a detail the title lacks, such as the MATLAB file a
-         build is transcribing. Once a branch is open the label says which kind of
-         session still holds the card, because the stripe looks the same for
-         both: a build session is still on the branch, and a decompose loop,
-         which never touches the branch, is still revising the plan. An entry
-         with no `kind` counts as a loop, as it does everywhere else. The same open-branch test
+         The screen-reader label kept the phrase while no branch was open. Since
+         issue 533 a session marks its card with a `working:` label, which has
+         no room for a phrase, so the label names the kind of session instead,
+         after the title it already opens with. Once a branch is open the label
+         says which kind of session still holds the card, because the stripe
+         looks the same for both: a build session is still on the branch, and a
+         decompose loop, which never touches the branch, is still revising the
+         plan. An entry with no `kind` counts as a loop, as it does everywhere
+         else. The same open-branch test
          `flightCols` uses decides it, so the label and the column cannot
          disagree. */
       const onBranch = wk && !!live;
@@ -1534,7 +1505,7 @@ function buildOrder() {
       return `<div class="tk k-${c.kind}${live ? " has-pr" : ""}${wk ? " busy" : ""}${
         pn ? " plan-" + pn.ready : ""}" data-n="${c.n}" tabindex="0" role="button"
         aria-label="Issue ${c.n}. ${esc(c.label)}.${says.length ? " " + esc(says.join(" ")) : ""}${p ? ` Pull request ${p.pr} is ${p.state} against it.` : ""}${onBranch ? (wk.kind === "build" ? ` Its build session is still on the branch.`
-          : ` A decompose loop is still revising its plan.`) : wk ? ` A session is working it: ${esc(wk.what)}.` : ""}${
+          : ` A decompose loop is still revising its plan.`) : wk ? ` A ${wk.kind === "build" ? "build session" : "decompose loop"} is working it.` : ""}${
           pn ? ` Its plan is complete after ${plu(pn.passes, "pass")}.` +
             /* The label says what the visible line says. It used to read "ready
                to decide", which is not a state, while the line under the card
@@ -2213,14 +2184,11 @@ function inFlight(ctx) {
     .map((col, k) => col.length ? say[FLOW[k].tone](col) : "")
     .filter(Boolean);
 
-  /* A missing closing link is a fact about a branch, so it is reported where the
-     branches are rather than under a board that no longer draws them. */
+  /* A second open branch on one card is a fact about branches, so it is
+     reported where the branches are rather than under a board that no longer
+     draws them. */
   const withPr = cols.filter((_, k) => FLOW[k].tone === "owner" || FLOW[k].tone === "mine").flat();
   const openPrs = c => openBranches(ctx.prOf, c.n);
-  const loose = withPr.filter(c => openPrs(c).some(x => !x.linked && !x.partOf));
-  if (loose.length) bits.push(`<b>GitHub registered no closing link for ` +
-    `${andlist(loose.map(c => "PR #" + openPrs(c)[0].pr))}</b>, so merging would leave ` +
-    `${ns2(loose)} open`);
   const contested = withPr.filter(c => openPrs(c).length > 1);
   if (contested.length) bits.push(`<b>${ns2(contested)} carries more than one open branch</b>, ` +
     `and merge order decides which lands while neither body can know it`);
@@ -2267,11 +2235,10 @@ adopt(FALLBACK);
 render();
 
 /* Draws a complete set of live sections, and rolls back to the last good
-   board when the draw throws. Both paths call it, the database subscription
-   and the fetch, so a section that breaks the drawing code is handled one way
-   whichever path delivered it. With no data on screen, a failed first draw goes
-   back to drawing none. */
-function drawLive(live, had, retry) {
+   board when the draw throws, so a section that breaks the drawing code keeps
+   the board on screen. With no data on screen, a failed first draw goes back
+   to drawing none. */
+function drawLive(live, had) {
   const last = NONE ? FALLBACK
     : { state: STATE, prs: PRS, working: WORKING, planned: PLANNED,
         next: NEXT, tracker: TRACKER };
@@ -2279,91 +2246,33 @@ function drawLive(live, had, retry) {
     adopt(live); SOURCE = { live: true }; render(); return true;
   } catch (e) {
     adopt(last);
-    SOURCE = { live: false, why: "stopped", had, retry, code: "a live section could not be drawn" };
+    SOURCE = { live: false, why: "stopped", had, code: "a live section could not be drawn" };
     try { render(); } catch (e2) { source(); }
     return false;
   }
 }
 
-/* Subscribe once per section. The page goes live when all six sections have
-   arrived and passed `usableSection`, and from then on each write replaces its
-   own section and redraws. Nothing draws until the sixth arrives, so the six
-   snapshots of a fresh load draw once without any batching. `connect` is
-   separate from the lookup below so the skill's harness can hand it a fake
-   database and watch what a bad write does. */
-function connect(db) {
-  const live = {};
-  const absent = {};
-  let had = false;
-  const redraw = () => {
-    if (!SECTIONS.every(s => s in live)) {
-      /* A section arriving while others are still absent would otherwise leave
-         the banner naming it, so the banner is rebuilt from what is absent now. */
-      const gone = SECTIONS.filter(s => absent[s]);
-      if (!had && gone.length) {
-        SOURCE = { live: false, why: "empty", missing: andlist(gone) };
-        source();
-      }
-      return;
-    }
-    if (drawLive(live, had, false)) had = true;
-  };
-  SECTIONS.forEach(name => {
-    try {
-      db.doc(`${DB_COLLECTION}/${name}`).onSnapshot(snap => {
-        if (!snap || !snap.exists) {
-          /* A new board's database starts with no documents, and once every
-             section has reported none, the line says so rather than naming one. */
-          absent[name] = true;
-          const gone = SECTIONS.filter(s => absent[s]);
-          SOURCE = had ? { live: false, why: "stopped", had, code: `${name} removed` }
-                       : { live: false, why: "empty",
-                           missing: gone.length === SECTIONS.length ? "" : andlist(gone) };
-          source(); return;
-        }
-        delete absent[name];
-        const d = snap.data();
-        if (!usableSection(name, d)) {
-          SOURCE = had ? { live: false, why: "stopped", had, code: `unreadable ${name}` }
-                       : { live: false, why: "shape", missing: name };
-          source(); return;
-        }
-        live[name] = name === "state" ? d : d.items;
-        redraw();
-      }, err => {
-        SOURCE = { live: false, why: "stopped", had, code: err && err.code };
-        source();
-      });
-    } catch (e) {
-      SOURCE = { live: false, why: "stopped", had, code: e && e.code };
-      source();
-    }
-  });
-}
+/* A GitHub Action rebuilds board.json beside this page on every change and on
+   a schedule, holding the six sections, so the page fetches it on a timer.
+   Issue 532 built this path beside a subscription to the artifact board's
+   database, and issue 533 removed the subscription when that board retired.
 
-/* The board on GitHub Pages has no database. A GitHub Action rebuilds
-   board.json beside this page on every change and on a schedule, holding the
-   same six sections, so the page fetches it on a timer instead of subscribing.
-   Issue 532 built this path beside `connect` rather than in its place, because
-   the artifact board publishes this same file and stays the board of record
-   until every section it draws comes from GitHub.
+   Every section must be present and pass `usableSection`, and a draw that
+   throws keeps the last good board. The page tries again on its own, so a
+   fetch that fails after a board has drawn keeps that board on screen and says
+   when it tries next, and the next good fetch goes live again. A file
+   identical to the last one is not drawn again, which keeps a picked card
+   picked between fetches, while the banner is still rebuilt so the stale
+   warning can appear.
 
-   It reads the file the way `connect` reads a write. Every section must be
-   present and pass `usableSection`, and a draw that throws keeps the last good
-   board. Unlike a subscription it tries again on its own, so a fetch that
-   fails after a board has drawn keeps that board on screen and says when it
-   tries next, and the next good fetch goes live again. A file identical to the
-   last one is not drawn again, which keeps a picked card picked between
-   fetches, while the banner is still rebuilt so the stale warning can appear.
-
-   A first fetch that fails says what a view with no database says, because to
-   the reader it is the same thing: there is no board here to show. `get` is
-   the browser's fetch, and the tests hand it a fake. */
+   A first fetch that fails says what a view with no fetch says, because to the
+   reader it is the same thing: there is no board here to show. `get` is the
+   browser's fetch, and the tests hand it a fake. */
 function connectFetch(get) {
   let had = false;
   let lastText = null;
   const failed = code => {
-    SOURCE = had ? { live: false, why: "stopped", had, retry: true, code }
+    SOURCE = had ? { live: false, why: "stopped", had, code }
                  : { live: false, why: "none" };
     source();
   };
@@ -2414,26 +2323,18 @@ function connectFetch(get) {
     }
     const live = {};
     SECTIONS.forEach(s => { live[s] = s === "state" ? d[s] : d[s].items; });
-    if (drawLive(live, had, true)) { had = true; lastText = text; }
+    if (drawLive(live, had)) { had = true; lastText = text; }
   };
   poll();
   setInterval(poll, FETCH_EVERY);
 }
 
-(async () => {
-  let db = null;
-  try {
-    const host = typeof globalThis !== "undefined" ? globalThis : {};
-    db = host.claude && host.claude.use ? await host.claude.use("db") : null;
-  } catch (e) { db = null; }
-  if (db) { connect(db); return; }
-  if (typeof fetch === "function") {
-    SOURCE = { live: false, why: "loading" }; source();
-    connectFetch((url, opts) => fetch(url, opts));
-    return;
-  }
+if (typeof fetch === "function") {
+  SOURCE = { live: false, why: "loading" }; source();
+  connectFetch((url, opts) => fetch(url, opts));
+} else {
   SOURCE = { live: false, why: "none" }; source();
-})();
+}
 
 /* The stamp ages by the minute, and so can the stale warning over a live
    board, so the banner is rebuilt with it. */
