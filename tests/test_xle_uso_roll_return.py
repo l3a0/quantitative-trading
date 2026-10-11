@@ -310,7 +310,11 @@ class TestWhatThePostMeasures:
         assert bound == []
 
     def test_the_2012_08_13_save_gives_the_same_ratio_on_all_1375_days(self, result) -> None:
-        later = front_ratio(roll_returns.load_strip("CL").contracts)
+        strip = roll_returns.load_strip("CL")
+        # A different save: it holds a spot and runs to 2012-08-13.
+        assert {m.obtained for m in strip.members} == {"2012-08-14"}
+        assert strip.spot is not None and strip.contracts.index[-1] == day("2012-08-13")
+        later = front_ratio(strip.contracts)
         defined = np.isfinite(result.ratio)
         assert int(defined.sum()) == 1375
         assert (later.loc[result.days[defined]].to_numpy() == result.ratio[defined]).all()
