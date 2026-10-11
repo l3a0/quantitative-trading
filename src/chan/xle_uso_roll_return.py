@@ -40,8 +40,9 @@ no band, and the two legs are equal and fixed.
    ``isfinite(cl) & ~isfinite(fwdshift(1, cl))``. Each contract is the front
    from :data:`FRONT_START` to :data:`FRONT_END` rows before its expiry, and a
    later contract starts no earlier than the row after the previous one ends,
-   ``max(endIdx+1, expireIdx-40)``. The ratio is the front's on its rows and
-   NaN on every other row. :func:`front_ratio` runs that loop too.
+   ``max(endIdx+1, expireIdx-40)``. :func:`front_windows` runs that loop.
+   The ratio is the front's on its rows and NaN on every other row, which
+   :func:`front_ratio` reads off the windows.
 4. ``intersect`` keeps the days both calendars hold, which :func:`arbitrage`
    does with :meth:`pandas.Index.intersection`.
 5. A ratio above 1 is contango, and the position is short USO and long XLE.
@@ -69,7 +70,9 @@ row both define. It differs in three ways.
 The first difference leaves CL-2007F's 31 front rows, 2006-10-20 to
 2006-12-05, unheld, and those sit inside the window. Bending the schedule to
 this script would add a fourth branch to code written for Example 5.4, so
-:func:`front_ratio` carries its own loop.
+the loop lives in :func:`front_windows`. ``VX_ES_rollreturn.m`` runs the same
+loop on the VX strip, so :mod:`chan.vx_es_roll_return` takes it from here
+rather than carrying a second copy.
 
 **Two quirks of the loop that do not fire on this strip.** The transcription
 names them rather than copying them silently.
@@ -79,15 +82,17 @@ names them rather than copying them silently.
    ``max(endIdx+1, ...)`` is then empty too, so it assigns nothing. A
    contract whose prices stop and restart marks two expiries, and MATLAB's
    colon reads the first. No contract in this strip is all NaN or carries two
-   marks, so :func:`front_ratio` refuses either rather than guess at which
+   marks, so :func:`front_windows` refuses either rather than guess at which
    reading Chan's run would have taken. The function is read on this strip
-   alone, and other committed strips carry contracts it would refuse.
+   and on the VX strip, where no contract does either, and other committed
+   strips carry contracts it would refuse.
 2. **The contracts still trading on the file's last day.** 24 contracts are
    priced on 2012-05-02, the strip's last row, so each reads as expiring
    there. The front from 2012-04-09 is CL-2012M, the first of them. Its
    window starts on the row after CL-2012K's ends, so its own 40-row start
    does not bind, and its window stops at 2012-04-18. The last 10 rows get no
-   ratio, all after the trade's last day of 2012-04-09.
+   ratio, all after the trade's last day of 2012-04-09. The quirk does fire
+   on the VX strip, where :mod:`chan.vx_es_roll_return` names it.
 
 **The data.** Two committed vintages, both chan-mat.
 
@@ -192,6 +197,26 @@ BOOK_SHARPE = "1"
 
 
 @dataclass(frozen=True)
+class FrontWindow:
+    """One contract's turn as the front, as row positions in its strip.
+
+    ``column`` is the contract's position among the strip's columns, ``first``
+    and ``last`` the window's first and last rows, both included, and
+    ``expiry`` the contract's last priced row.
+    """
+
+    column: int
+    first: int
+    last: int
+    expiry: int
+
+    @property
+    def rows(self) -> NDArray[np.intp]:
+        """The window's rows, none when its start passes its end."""
+        return np.arange(self.first, self.last + 1)
+
+
+@dataclass(frozen=True)
 class Arbitrage:
     """The trade on the days both calendars hold, row for row."""
 
@@ -221,34 +246,46 @@ def _expiry(priced: NDArray[np.bool_], column: str) -> int:
     return int(marks[0])
 
 
-def front_ratio(contracts: pd.DataFrame) -> pd.Series:
-    """The back contract over the front on each front row, NaN on every other row.
+def front_windows(contracts: pd.DataFrame) -> list[FrontWindow]:
+    """Each contract's front window but the last's, in delivery order, with its expiry row.
 
     ``contracts`` holds the strip's contracts in delivery order. Each contract
     but the last is the front from :data:`FRONT_START` to :data:`FRONT_END`
     rows before its last priced row, starting no earlier than the row after
-    the previous front ended. A contract marking no expiry or two is refused,
-    for the reason the module docstring gives, and so is a first front window
-    that would start before the strip's first row.
+    the previous front ended. A window whose start passes its end holds no
+    row, and it is kept, because the next window starts after its end. A
+    contract marking no expiry or two is refused, for the reason the module
+    docstring gives, and so is any front window that would start before the
+    strip's first row, which a strip whose expiries run out of delivery order
+    can give a later contract.
     """
-    prices = contracts.to_numpy(dtype=float)
-    back_over_front = fwdshift(1, prices.T).T / prices
-    priced = np.isfinite(prices)
-    ratio = np.full(len(prices), np.nan)
+    priced = np.isfinite(contracts.to_numpy(dtype=float))
+    windows = []
     end = None
     for c, column in enumerate(contracts.columns[:-1]):
         expiry = _expiry(priced[:, c], column)
-        if end is None:
-            start = expiry - FRONT_START
-            if start < 0:
-                raise ValueError(
-                    f"{column}'s front window would start before the strip's first row, "
-                    f"at row {start}"
-                )
-        else:
-            start = max(end + 1, expiry - FRONT_START)
+        start = expiry - FRONT_START if end is None else max(end + 1, expiry - FRONT_START)
+        if start < 0:
+            raise ValueError(
+                f"{column}'s front window would start before the strip's first row, at row {start}"
+            )
         end = expiry - FRONT_END
-        ratio[start : end + 1] = back_over_front[start : end + 1, c]
+        windows.append(FrontWindow(column=c, first=start, last=end, expiry=expiry))
+    return windows
+
+
+def front_ratio(contracts: pd.DataFrame) -> pd.Series:
+    """The back contract over the front on each front row, NaN on every other row.
+
+    The front rows are the ones :func:`front_windows` gives, and the ratio on
+    each is the next contract in the strip over the front.
+    """
+    prices = contracts.to_numpy(dtype=float)
+    back_over_front = fwdshift(1, prices.T).T / prices
+    ratio = np.full(len(prices), np.nan)
+    for window in front_windows(contracts):
+        rows = window.rows
+        ratio[rows] = back_over_front[rows, window.column]
     return pd.Series(ratio, index=contracts.index, name="front_ratio")
 
 
