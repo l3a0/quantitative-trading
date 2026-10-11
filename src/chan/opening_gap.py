@@ -105,7 +105,8 @@ flags nothing in any of the three saves read here, so nothing is refused.
 
 1. FSTX is read as a committed vintage through :func:`chan.series.load_panel`
    rather than loaded from the ``.mat``.
-2. ``plot(cumret)`` is not carried. The run draws nothing.
+2. ``plot(cumret)`` is not carried. The run draws nothing, and
+   :mod:`chan.opening_gap_figures` draws the plot for the post.
 3. The return line takes a ``reading``, and the momentum reading is computed
    beside the script's.
 4. The run calls the scale-break guard, which the script has no counterpart
@@ -140,6 +141,15 @@ Its comments print ``#APR=0.074864 Sharpe=0.494857`` and
 line and then stops, because ``calculateMaxDD`` indexes the date-indexed
 ``cumret`` by position, which pandas 3 refuses. So it no longer runs as
 shipped, and this is its arithmetic.
+
+**What each side earned.** Three functions measure the rule beyond the
+script's printout, for ``blog/opening-gap-lessons.md``. :func:`by_side`
+keeps one reading's returns on the long days only and on the short days
+only. :func:`open_to_close` measures FSTX's own move from the open to the
+close on the long, short and flat days. :func:`on_shared_days` runs two saves
+from the same first day and keeps the days both hold, so a save's restated
+prices and its window can be told apart. :mod:`chan.opening_gap_figures`
+draws the two readings and the two sides.
 
 Every result here is exploratory. Reproducing Chan's figure spends his 2004
 to 2012 sample on his rule, so the run says whether his numbers reproduce on
@@ -180,6 +190,8 @@ FIELDS = ("Open", "High", "Low", "Close")
 ENTRY_ZSCORE = 0.1
 #: The two signs line 23 can take. The first is the script's.
 READINGS = ("literal", "momentum")
+#: The two sides a day can hold, by the position lines 18 to 21 give it.
+SIDES = {"long": 1.0, "short": -1.0}
 
 #: The script's closing comment, ``APR=    0.1327 Sharpe=1.44``.
 SCRIPT_APR = "0.1327"
@@ -324,6 +336,12 @@ class OpeningGap:
     def first_position(self) -> pd.Timestamp:
         return self.days[int(np.argmax(self.positions != 0))]
 
+    def returns(self, reading: str = "literal") -> NDArray[np.float64]:
+        """One reading's daily returns, refusing any reading not in :data:`READINGS`."""
+        if reading not in READINGS:
+            raise ValueError(f"reading is one of {READINGS}, not {reading!r}")
+        return self.literal if reading == "literal" else self.momentum
+
 
 def opening_gap(prices: pd.DataFrame) -> OpeningGap:
     """Run the script on a frame holding FSTX's :data:`FIELDS` as columns."""
@@ -339,6 +357,125 @@ def opening_gap(prices: pd.DataFrame) -> OpeningGap:
         positions=held,
         literal=daily_returns(held, op, cl, reading="literal"),
         momentum=daily_returns(held, op, cl, reading="momentum"),
+    )
+
+
+@dataclass(frozen=True)
+class SideEarnings:
+    """What one reading earned on the days one side was held, and nothing on any other day.
+
+    ``daily`` keeps the reading's return on this side's days and holds 0 on
+    every other row, so it runs over the same days as the whole curve and
+    :func:`figures` annualises it the way line 26 annualises the whole.
+    ``summed`` adds the side's returns up and ``compounded`` is
+    ``prod(1 + ret) − 1`` over them.
+    """
+
+    days: int
+    summed: float
+    compounded: float
+    daily: NDArray[np.float64]
+
+    @property
+    def figures(self) -> Figures:
+        return figures(self.daily)
+
+
+def by_side(result: OpeningGap, reading: str = "literal") -> dict[str, SideEarnings]:
+    """One reading's returns split by the side held, in the order of :data:`SIDES`.
+
+    The two sides hold on different days, so one plus each side's compounded
+    return, multiplied, is one plus the whole curve's.
+    """
+    ret = result.returns(reading)
+    found = {}
+    for name, held in SIDES.items():
+        on = result.positions == held
+        found[name] = SideEarnings(
+            days=int(on.sum()),
+            summed=float(ret[on].sum()),
+            compounded=float(np.prod(1 + ret[on]) - 1),
+            daily=np.where(on, ret, 0.0),
+        )
+    return found
+
+
+@dataclass(frozen=True)
+class MoveFromOpen:
+    """FSTX's own move from the open to the close, ``cl / op − 1``, on one kind of day.
+
+    The move is the instrument's and carries no position, so a positive mean
+    is a rise during the day whichever side was held. ``below`` and ``above``
+    count the days the close sits below and above the open. A kind with no
+    day has a mean of NaN.
+    """
+
+    days: int
+    mean: float
+    below: int
+    above: int
+
+
+def open_to_close(prices: pd.DataFrame, result: OpeningGap) -> dict[str, MoveFromOpen]:
+    """The move from the open on long days, short days, and flat days that carry a spread.
+
+    A flat day counts only once the spread exists, so the first
+    :data:`SPREAD_LOOKBACK` rows, where the rule could not have entered,
+    stay out of it.
+    """
+    op = prices["Open"].to_numpy(dtype=float)
+    cl = prices["Close"].to_numpy(dtype=float)
+    move = cl / op - 1
+    kinds = {
+        "long": result.positions == SIDES["long"],
+        "short": result.positions == SIDES["short"],
+        "flat": (result.positions == 0) & np.isfinite(result.spread),
+    }
+    return {
+        name: MoveFromOpen(
+            days=int(on.sum()),
+            mean=float(move[on].mean()) if on.any() else float("nan"),
+            below=int((cl[on] < op[on]).sum()),
+            above=int((cl[on] > op[on]).sum()),
+        )
+        for name, on in kinds.items()
+    }
+
+
+@dataclass(frozen=True)
+class SharedDays:
+    """Two saves run from the same first day and held to the days both price.
+
+    ``differ`` counts the shared days the two runs hold different positions.
+    ``one`` and ``other`` are each run's :class:`Figures` on its own returns
+    over the shared days alone. Both runs start on the same row, so their
+    spreads warm up on the same days, and only the prices differ.
+    """
+
+    days: pd.DatetimeIndex
+    differ: int
+    one: Figures
+    other: Figures
+
+
+def on_shared_days(one: pd.DataFrame, other: pd.DataFrame, reading: str = "literal") -> SharedDays:
+    """Run the rule on two saves' prices from the later of their first days, then share days.
+
+    A save whose history starts earlier has its spread set sooner, so it can
+    hold a position on a day the other cannot. Cutting the longer history to
+    the shorter one's first day removes that, which leaves the restated
+    prices as the only difference between the two runs.
+    """
+    start = max(one.index[0], other.index[0])
+    run_one, run_other = opening_gap(one.loc[start:]), opening_gap(other.loc[start:])
+    shared = run_one.days.intersection(run_other.days)
+    at_one = run_one.days.get_indexer(shared)
+    at_other = run_other.days.get_indexer(shared)
+    return SharedDays(
+        days=shared,
+        differ=int((run_one.positions[at_one] != run_other.positions[at_other]).sum()),
+        one=figures(run_one.returns(reading)[at_one]),
+        other=figures(run_other.returns(reading)[at_other]),
     )
 
 

@@ -558,8 +558,9 @@ where they were first built. The other forty-two were built here.
     The momentum sign the text describes gives −0.124236 and −1.441620, so the
     claim the figures were printed for does not reproduce. Chan's Python port
     flips the short test and so is never long, and its rule lands the port's
-    printed APR of 0.074864 and Sharpe ratio of 0.494857. Every figure is
-    exploratory.
+    printed APR of 0.074864 and Sharpe ratio of 0.494857. The 278 long days
+    hold 0.749529 of the summed daily return of 1.020809, and on them FSTX
+    fell 0.002696 from the open on average. Every figure is exploratory.
 41. VX futures against E-mini S&P 500 futures on VX's roll return, after
     Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
     Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
@@ -595,7 +596,12 @@ where they were first built. The other forty-two were built here.
     across the five, so any verdict could be noise. PMC is one symbol whose
     two price histories join into one day's return. Without it, PC2 falls to
     −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
-    symbol. Every figure is exploratory and about survivors.
+    symbol. Measured after the run, a series rebuilt from each day's own
+    weights, with each vector's sign set so its largest weight is positive,
+    would read PC2 at −0.1105, and −0.0161 with sign and rank matched
+    to today's. Fitting tomorrow's weights on a window that leaves today's
+    return out brings it to 0.0776.
+    Every figure is exploratory and about survivors.
 43. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
     chosen three ways on Example 5.1's 612 saved returns: by the optimum of
     100,000 returns drawn from a Pearson type IV fitted to their four
@@ -684,6 +690,26 @@ the price basis move it by about a ten-thousandth each, judged on the closes.
 Every figure is exploratory, and Entry 46 in
 [docs/replication-log.md](docs/replication-log.md) carries them all, with the
 checks on the archive's opens that the series check does not make.
+
+Item 44's rule also runs at leverage a broker would lend, and that run reaches
+no verdict either.
+[Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) caps
+location 4684's beta match at 2, the overnight leverage Regulation T allows,
+and at 5, the most location 814 says portfolio margin lends on stocks held
+overnight. Neither ceiling ruins the portfolio. In point estimate the capped
+low fifth out-compounded the unlevered high fifth, by 0.0934 a year at a
+ceiling of 2 and 0.1659 at 5, with Newey-West t of 1.0715 and 1.2111.
+Benjamini-Hochberg across the two ceilings rejects neither in either
+direction, so neither ceiling is decided. Every figure is exploratory, because
+the ceilings were chosen after item 44's calendar, leverage path and ruin had
+been seen, along with eight months of both groups' returns and its Sharpe
+ratios, growths, betas and Kelly leverage. As in item 44, the span is not a
+holdout and every figure is about the stocks still in the index on
+2007-11-23. The run borrows at the bill rate, which flatters the levered side,
+and month-end closes cannot see a margin call inside a month. Entry 48 in
+[docs/replication-log.md](docs/replication-log.md) carries them, with the
+break-even borrowing spread, the worst month and location 4700's caveat
+beside them.
 
 [tests/test_pair_cointegration.py](tests/test_pair_cointegration.py) freezes
 every number this repo quotes about either pair, and it is the only place any of
@@ -1122,7 +1148,17 @@ row later, its short test flipped and non-strict, an open above the
 previous high being short, a missing spread qualifying nothing, and its
 Sharpe ratio dividing by n with either sign of mean. It also holds the
 Experiments page's figures as the port's comment rounded, and the run's
-port block reporting a figure off the comment as a gap.
+port block reporting a figure off the comment as a gap. It holds what the
+write-up measured too: the first edition's `smartstd` changing no position,
+each curve keeping to its side of zero from the first trade, all four fields
+equal across the two earlier saves and restated between the later two, the
+APR on the 1,996 days those two share with both run from the same first day,
+the mean return on a held day, each side's returns and FSTX's move from the
+open on long, short and flat days, and the port earning the script's returns
+on every upward jump. On synthetic days it holds the split by side, the move
+from the open, and two saves run from the same first day so their windows
+cannot differ. The blog post about it is the exception, and what it says
+that nothing here asserts is listed below.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
@@ -1149,7 +1185,19 @@ Benjamini-Hochberg, and the intercept, each with and without PMC, and one
 verdict per factor. On three of the file's days it holds each factor return
 equal to the program's fitted slope times its singular value. On synthetic
 returns it holds that a flipped vector moves no statistic, that a steady sign
-counts as persistence, and the Benjamini-Hochberg step-up.
+counts as persistence, and the Benjamini-Hochberg step-up. It holds what the
+write-up measured after the run too. Those pins count how often each factor's
+weights flip sign once each vector's largest weight is made positive, check
+that every flip left falls on a day the largest weight moves to another stock
+or two factors swap rank, and count how often they swap rank. They give the
+statistic when tomorrow's return is read on tomorrow's own weights, matched,
+fitted on 251 days that leave today out, and fitted on the 251 days ending
+today as the control. They read PMC's weight on the days whose window holds
+its one large return and which factor carries it, the ranking left unchanged
+without the intercept, and the two days that carry PC2's statistic, which
+carry PC1's without PMC. Synthetic data checks the helpers behind them. The
+blog post about it is the exception, and what it says that nothing
+here asserts is listed below.
 
 [tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py) does
 it for Chapter 8's leverage boxes. It pins the deterministic rows exactly, each
@@ -1172,6 +1220,20 @@ formation table and the flagged stock-months. On synthetic panels it holds the b
 of 200 days, the tie-break by symbol, the leverage formula, the bill of the
 holding month, the ruin threshold, the 1.645 threshold and the detectable
 gap's formula.
+
+[tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) does it for
+the same rule at leverage a broker would lend. It pins each ceiling's
+outcome, gap, t, both p-values, both decisions of the Benjamini-Hochberg
+control and the detectable gap Y, the gap a 5 percent test finds four times
+in five. Beside them it pins the growth, the mean leverage, the months each
+ceiling binds, the worst month, the realised beta and the break-even spread.
+On portfolios built by hand it holds the cap, the replacement of both the
+return and the leverage, a ruined ceiling at p = 1 in both families, both
+Benjamini-Hochberg families, each outcome's wording, and the break-even
+spread's bisection, and its "none" when the gap is 0 or below with no spread.
+It also holds the refusal of a ceiling at or below 1, which borrows nothing,
+and the bisection's limit on halvings, which ends the search where the floats
+lie too far apart for its tolerance.
 
 All forty-four replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -1199,7 +1261,9 @@ Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
 and Entry 45 the levered low-beta claim's.
 Entry 46 carries the rerun of Example 7.2 described above, which
-chases no published figure and so reaches no verdict.
+chases no published figure and so reaches no verdict. Entry 48 carries the
+levered low-beta rule at leverage a broker would lend, which is exploratory
+and reaches no verdict either.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -2131,6 +2195,19 @@ it the growth, the Sharpe ratios, the realised betas, the Kelly reading's
 Gaussian growth, the flagged stock-months and a row for every formation, none
 of which decides anything.
 
+The same rule at leverage a broker would lend takes no option either, because
+the issue's plan fixed both ceilings and every rule before any capped number:
+
+```bash
+uv run python -m chan.low_beta_capped
+```
+
+It prints the three vintages and each ceiling's outcome with its gap, t, both
+p-values and the detectable gap Y. Beside them it prints the growth, the mean leverage, the
+months each ceiling binds, the realised beta, the break-even spread and the
+worst month, none of which decides anything, then location 4700's caveat and
+the five limits. Every line is exploratory.
+
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about
 a number rather than a run someone would repeat, so
@@ -3011,7 +3088,9 @@ Five groups of its figures are not pinned here.
    from the previous high, and that the name `bog.m` loads is the same bytes as
    the committed file in both public mirrors, which `src/chan/buy_on_gap.py`'s
    docstring and [data/README.md](data/README.md) record. That MS, the stock
-   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker.
+   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That the same
+   script's return line sells the upward jump is not among them, since
+   [tests/test_opening_gap.py](tests/test_opening_gap.py) holds that sign.
 3. Arithmetic no test asserts: that ln(1 + r) ≤ r for every daily return,
    which the floor rests on, and the steps from it to the floor.
 4. The book's Figures 4.1 and 4.2, which the post's figure redraws from
@@ -5626,6 +5705,235 @@ uv run python -m chan.pead_rerun_figures
 
 [tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the
+regime map.
+
+[blog/opening-gap-lessons.md](blog/opening-gap-lessons.md) is a
+fortieth post, about the opening gap strategy on FSTX, the STOXX Europe
+50 index future, Example 7.1 of Chan's *Algorithmic Trading*. The book
+describes a rule that buys when the open jumps above the previous day's high
+and shorts when it drops below the previous low, holding to the close, and
+reports an APR of 13 percent and a Sharpe ratio of 1.4. The post links the buy
+on gap post, the volatility against the stock index post, the crude oil
+reversal and momentum post, the TU momentum post and the cross-sectional
+momentum post rather than repeating them, and draws six lessons from Entry 40
+of the replication log.
+
+1. The script's return line pays a long when the price falls from the open,
+   so it sells an upward jump and buys a downward one, against the text's
+   description. Chan's Python port takes the text's sign, and a flipped short
+   test has it sell every upward jump all the same.
+2. Both printed figures land on the script as written, 252 times the mean
+   also rounds to 13 percent, and the first edition's `smartstd` changes no
+   position.
+3. The momentum sign the text describes gives an APR of −0.124236 and a
+   Sharpe ratio of −1.441620, and neither curve crosses its starting capital
+   after the first trade.
+4. The save and its window each move the APR by more than ten times the
+   comment's last digit: 0.002017 for the window alone and 0.002655 for the
+   restated prices alone.
+5. The rule holds a position on 469 of 2,000 days, and the mean return on
+   those days is 0.002177.
+6. The long days hold 0.749529 of the summed daily return of 1.020809, and on
+   them FSTX fell 0.002696 from the open on average.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   "the triggering of stops" at 2954, the rule's sentence, FSTX on Eurex, the
+   13 percent and 1.4 and "the gap momentum code" at 2965, the example's and
+   Figure 7.1's captions and GBPUSD's 7.2 percent and 1.3 at 2971, the stop
+   orders triggered at the open at 2985, "a breakout strategy" at 3170, and
+   the annualized average return and the VIX filter's threshold of 35, 2.6
+   percent and 0.16 at 3509.
+2. Facts about the scripts and the instrument rather than the data: line 23's
+   text and the closing comment in `gapFutures_FSTX.m` at `e4bc46f` of
+   ericnberwick/EpchanPreview, the name and source text of the Python port
+   `gapFutures_FSTX.py`, which `chan.opening_gap.python_port` transcribes,
+   that the STOXX Europe 50 is fifty large European companies once named the
+   Dow Jones STOXX 50, and GBPUSD's open and close in Eastern time.
+3. Readings no test asserts: that triggered stops carry a move through the
+   day, that the literal reading trades in buy on gap's direction, that a
+   roll between the 2012-05-11 and 2012-05-17 saves would shift the history
+   the way it moved, where [data/README.md](data/README.md) records only that
+   FSTX moves between them, that a round trip costing 0.002177 of the price
+   would erase the mean, and that a split by year was measured and left out.
+4. Figures the post states in words or rounds from pinned ones, such as 12
+   percent a year, about three quarters, fewer than a quarter and about a
+   quarter of the days, the upward jumps reversing more strongly, and Chan
+   saving at least three dated versions of the file. The figure's alt text
+   reads its curves approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_opening_gap.py](tests/test_opening_gap.py), or to
+[tests/test_opening_gap_figures.py](tests/test_opening_gap_figures.py) for the
+figure's own numbers. The 100, 90 and 120 of its worked day are the synthetic
+day `TestTheRules::test_the_literal_return_fades_the_jump` holds. The port's
+figures, its 1,718 short days and its never holding a long trace to
+`TestChansPythonPort`. Eleven had no pin before the post.
+
+1. The first edition's `smartstd` moves the standard deviation and changes
+   no position, so the APR and the Sharpe ratio hold at six decimals.
+2. From 2004-11-22, over 1,909 days, the literal curve's lowest value is
+   0.002878 and the momentum curve's highest is −0.002878.
+3. The 2012-05-07 and 2012-05-11 saves price all four fields alike on the
+   1,997 days they share, and the window alone moves the APR by 0.002017.
+4. The 2012-05-11 save differs from the 2012-05-17 save on each of the four
+   fields on all but 45 of 1,996 days, by 24 distinct amounts.
+5. With the 2012-05-11 save run from 2004-07-16, the 2012-05-17 save's first
+   day, the two runs hold a different position on 6 of those 1,996 days,
+   with an APR of 0.133016 and a Sharpe ratio of 1.443075 against 0.130360
+   and 1.435907, a move of 0.002655, and both moves exceed ten times 0.0001.
+6. The mean return on the 469 held days is 0.002177.
+7. The long and short days sum to 0.749529 and 0.271280 of 1.020809 and
+   compound to 1.084422 and 0.290022, which multiply to one plus 1.688951.
+8. Each side alone gives an APR of 0.096964 and a Sharpe ratio of 1.534735
+   for the long days, and 0.032607 and 0.527473 for the short days.
+9. FSTX moves −0.002696, +0.001420 and +0.000025 from the open on the long,
+   short and 1,441 flat days after the first 90, and closes below the open on
+   163 long days and above it on 108 short days.
+10. Chan's Python port is short on all 278 upward jumps and earns the
+    script's returns on them day for day, which sum to 0.749529, and its
+    other 1,440 short days sum to −0.050957.
+11. The figure's own: the literal curve's end of 1.688951 and the momentum
+    curve's of −0.651056, both first reached on 2012-05-07, which its legend
+    prints as 168.90 and −65.11 percent, the drawdown's high of 0.573901 on
+    2008-07-08 and trough of 0.274823 on 2008-10-13, the longest run below a
+    high from 2008-07-15 to 2009-08-31, the first 90 days ending on
+    2004-11-18, the long days' end of 1.084422 first reached on 2012-05-02,
+    and the short days' end of 0.290022 on 2012-05-07 after a high of
+    0.176401 on 2008-07-08 and a low of −0.038153 on 2009-02-20.
+
+Its one figure is drawn from the committed vintage by
+[src/chan/opening_gap_figures.py](src/chan/opening_gap_figures.py), which
+reads it through the same `read_sources` and `opening_gap` as
+`python -m chan.opening_gap`, so the scale-break guard runs for it too. It
+draws two panels on one date axis, both shading the first 90 days, which
+have no standard deviation.
+
+1. The script's cumulative compounded return as written, the book's Figure
+   7.1, with the sign the text describes beside it and the drawdown's high,
+   trough and longest run marked.
+2. The script's returns kept on the long days only and on the short days
+   only, with the short days' low marked.
+
+```bash
+uv run python -m chan.opening_gap_figures
+```
+
+[tests/test_opening_gap_figures.py](tests/test_opening_gap_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the regime
+map.
+
+[blog/pca-factor-momentum-lessons.md](blog/pca-factor-momentum-lessons.md) is
+a forty-first post, about whether the five statistical factors Example 7.4
+of Chan's *Quantitative Trading* fits for itself have the momentum the
+strategy assumes, on Chan's S&P 600 file. The factor models post already
+reports the result, and this post teaches the method. It links the factor
+models post for what Example 7.4 does rather than repeating it, and draws five
+lessons from Entry 42 of the replication log.
+
+1. A factor re-estimated every day has no fixed sign, and tomorrow's weights
+   have already seen today's return. With each sign fixed by a rule, signs
+   still flip on 1, 14, 6, 22 and 24 of 752 days, all but three where the
+   largest weight moves to another stock, and ranks swap on 15. On tomorrow's
+   own weights PC2 reads −0.1105, matched −0.0161, and on weights fitted
+   without today 0.0776, beside the test's 0.0778. A 251-day window that
+   still holds today reads −0.0158, like the matched row.
+2. Leaving the mean in is a choice with a reason, because "remain constant"
+   describes a steady value. The price is that two days carry 97.04 percent
+   of PC2's squared products.
+3. The factor return the forecast reads is the slope times the day's singular
+   value, and dropping the intercept leaves the ranking unchanged on all 752
+   days t.
+4. Four of five passing says little. Only PC2 is outside the ±0.0715 band,
+   its t is 0.8254, and none survives Benjamini-Hochberg.
+5. One spliced symbol decides which factor misses. A top-five factor weighs
+   PMC at 0.5939 or more on each of the 113 days whose window holds its one
+   large return and that have a next day. PMC takes PC1 through 2007-08-10,
+   so PC2's two large days belong to the factor that is PC1 without PMC, and
+   without PMC the miss moves from PC3 to PC2.
+
+Four groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its page in the revised edition, as the
+   factor models post's block above records. "Based on the assumption that
+   factor returns have momentum" and "remain constant from the current time
+   period to the next" (location 4051) are cited at p. 164, and "often" and
+   "stronger serial autocorrelations than individual stock's returns"
+   (location 4014) at p. 162, through
+   [its committed notes](research/book-notes/quantitative-trading.md).
+2. Facts outside the committed data: that 2007-08-09 and 2007-08-10 fall in
+   the week Khandani and Lo studied, and that the revised MATLAB prints
+   Chan's 2 percent a year before costs.
+3. Readings and arithmetic no test asserts: that the library's own signs
+   flipped on about half the days on the two machines that ran the checks
+   and disagreed about which, which no test pins because it depends on the
+   library, that a principal component's rank can change from day to day in
+   general, the closed form of
+   the slope and intercept written out in Lesson 3, that the positions chosen
+   on day t earn day t + 1's return, 5/√70 written as positive, 1.8654 written
+   as 186.54 percent, a fifth of 5 percent written as 0.01, the same-sign
+   shares called close to a coin toss, that PC1 is the factor that moves the
+   whole market, that 2007-08-09 and 2007-08-10 are what put PC2 outside the
+   band, and that the window's effect on PC2 is not explained. The figure's alt text reads its curve approximately too.
+4. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
+`TestTheSplice` in [tests/test_pca_factor.py](tests/test_pca_factor.py) for
+PMC's 1.8654 and its 851 days, or to
+[tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
+for the figure's own labels. `TestWhatThePostMeasured` holds the ones that had
+no pin before it, all measured after the run.
+
+1. Each factor's sign flips once every vector's largest weight is made
+   positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
+   factors swap rank, over 753 decompositions. The stock holding the largest
+   weight moves on 1, 14, 6, 20 and 23 of those flips, and the three left,
+   PC4 on 2005-06-15 and 2007-06-29 and PC5 on 2007-08-01, fall on days two
+   or more factors swap rank.
+2. The statistic on tomorrow's own weights under the same rule, 0.0326,
+   −0.1105, −0.0283, −0.0315 and 0.0025, matched, 0.0246, −0.0161, −0.0318,
+   −0.0285 and 0.0768, and on weights fitted on the 251 days that leave today
+   out, 0.0315, 0.0776, −0.0228, 0.0338 and 0.0713. The largest gap to the
+   test's own figure is PC2's 0.0938 matched and PC3's 0.0039 left out. The
+   control, on the 251 days ending today, reads 0.0252, −0.0158, −0.0307,
+   −0.0350 and 0.0810.
+3. The 114 days whose window holds PMC's return, and the 113 of them from
+   2007-08-02 to 2008-01-11 with a next day, PMC's largest weight of at least
+   0.5939 on each, and PC2 carrying it on 103, PC1 on 7 and PC3 on 3. PC1
+   carries it on the first seven, through 2007-08-10, at a weight between
+   0.9144 and 0.9223, and PC2 from 2007-08-13. Without PMC, 2007-08-09 and
+   2007-08-10 hold 0.9461 of the sum of PC1's squared products, and on both
+   days PC2 with PMC overlaps PC1 without it at 0.98 or more in size.
+4. The ranking without the intercept agreeing on all 752 days t.
+5. No stock tying any factor, the nearest 1.06e-04 away with PMC and 3.85e-05
+   without.
+6. The two days, 2007-08-09 and 2007-08-10, holding 0.9704 of the sum of
+   PC2's squared products.
+7. The steady series' 0.9798 uncentred against −0.8 centred.
+
+Its one figure is drawn from the committed file by
+[src/chan/pca_factor_momentum_figures.py](src/chan/pca_factor_momentum_figures.py),
+which reads it through the same `load_panel`, `compute_both` and
+`daily_components` as the pins. It draws two panels.
+
+1. The 579 stocks' statistics as their cumulative curve, with the ±0.0715
+   band, zero and the median stock, each factor's statistic as a filled dot
+   at its percentile, and a hollow dot for the same factor without PMC.
+2. For each factor, the statistic on tomorrow's own weights with the sign
+   rule, matched, on
+   weights fitted without today, and as the test reads it, over the same
+   band.
+
+```bash
+uv run python -m chan.pca_factor_momentum_figures
+```
+
+[tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
 ## Where the book's numbers come from
