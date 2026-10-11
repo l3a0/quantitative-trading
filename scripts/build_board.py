@@ -1,36 +1,52 @@
-"""Build the build board's data from GitHub, for the copy of the page on Pages.
+"""Build the build board's data from GitHub, for the page on GitHub Pages.
 
 The build board is a page answering what is in flight and what to take next.
-Until now every figure on it was measured by hand and written into a claude.ai
-artifact's database, which costs session turns on every change and misses any
-change no session sees. This script reads the figures GitHub already holds and
-writes them as one ``board.json`` beside the page, and
+Until issue 532 every figure on it was measured by hand and written into a
+claude.ai artifact's database, which cost session turns on every change and
+missed any change no session saw. This script reads every figure from GitHub
+and writes them as one ``board.json`` beside the page, and
 ``.github/workflows/board.yml`` runs it on every change and publishes both on
-GitHub Pages. No Claude runs at any step. Issue 532 is the scope.
+GitHub Pages. No Claude runs at any step. Issue 532 built it for the figures
+GitHub already held. Issue 533 moved the judgement the artifact board held onto
+labels, links and marker lines, and retired that board.
 
-It writes the six sections the page reads, in the shape the artifact database
-holds them, so one ``board.html`` serves both boards.
+It writes the six sections the page reads.
 
-1. ``state``, with the open issue count, the time GitHub was read, the age
-   after which the page calls the board stale, and the fields this board does
-   not carry yet.
-2. ``tracker``, one card per open issue, from its title, milestone and labels.
+1. ``state``, with the open issue count, the time GitHub was read, and the age
+   after which the page calls the board stale.
+2. ``tracker``, one card per open issue. Its title, milestone and labels come
+   from the issue. ``kind`` comes from labels and sub-issues, ``needs`` from
+   native "blocked by" links, and ``after`` from a ``Board after:`` line in the
+   body.
 3. ``prs``, one item per pull request and issue it names, with its state, its
    checks at the current head, whether GitHub registered the closing link, and
    whether the owner posted a review.
-4. ``working``, ``planned`` and ``next``, empty. They are judgement that lives
-   only in the artifact board's database, and issue 533 moves each onto GitHub.
+4. ``working``, one item per issue carrying a ``working:build`` or
+   ``working:decompose`` label, which a session sets while it holds the card.
+5. ``planned``, one item per issue with an owner comment carrying a
+   ``Board verdict:`` line, which a decompose loop writes when it exits.
+6. ``next``, one item per issue carrying a ``band:N`` label, ordered within its
+   band by a ``Board order:`` line in the body.
+
+The ``update-build-board`` skill states each format and when a session sets it.
 
 The page refuses a whole section when one item lacks a field it reads, so
-every item carries every such field, including the ones issue 533 owns. A
-missing milestone is an empty string rather than a null, and a pull request
-that names no open issue gets no item rather than a null issue.
+every item carries every such field. A missing milestone is an empty string
+rather than a null, and a pull request that names no open issue gets no item
+rather than a null issue.
+
+Two labels can disagree, such as two ``band:N`` labels on one issue. The run
+takes the lowest band, or ``build`` for both ``working:`` labels, and lists the
+conflict in the job summary rather than failing, because one stray label would
+otherwise freeze the whole board.
 
 Two of its rules exist because the repository is public.
 
-1. ``reviewed`` reads a comment opening with ``## Review`` only when its
-   author association is ``OWNER``. Anyone can comment, and a stranger's
-   heading would otherwise move a pull request into the owner's queue.
+1. ``reviewed`` reads a comment opening with ``## Review``, and ``planned`` a
+   comment carrying a ``Board verdict:`` line, only when its author
+   association is ``OWNER``. Anyone can comment, and a stranger's comment would
+   otherwise move a card. Labels and links need triage access, so they need no
+   such filter.
 2. Nothing here reads the event that started the run. Every fact comes from
    the API, so an issue title never reaches a shell, and two runs started by
    different events build the same board from the same state.
@@ -72,6 +88,35 @@ PART_OF = re.compile(r"^[ \t]*Part of #(\d+)\b", re.MULTILINE)
 # update-build-board skill states as the convention. "## Reviewer" is not one.
 REVIEW = re.compile(r"## Review\b")
 
+# The lines and labels a session sets for the judgement the page draws. Each
+# line is anchored at the start of a line, so prose quoting one mid-sentence is
+# not one. A verdict reads "Board verdict: build after 5 passes", or "decide"
+# for a loop that ended on a question only the owner can answer.
+VERDICT = re.compile(
+    r"^[ \t]*Board verdict: (build|decide) after (\d+) pass(?:es)?\.?[ \t]*$", re.MULTILINE
+)
+ORDER = re.compile(r"^[ \t]*Board order: (-?\d+(?:\.\d+)?)[ \t]*$", re.MULTILINE)
+AFTER = re.compile(r"^[ \t]*Board after:(.*)$", re.MULTILINE)
+BAND = re.compile(r"^band:(\d+)$")
+WORKING = {"working:build": "build", "working:decompose": "decompose"}
+
+# A fenced code block, opened by three or more backticks or tildes and closed
+# by the same run, or left open to the end of the text. A comment quoting the
+# verdict format inside a fence would otherwise read as a verdict.
+FENCE = re.compile(
+    r"^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?(?:^[ \t]*\1[ \t]*$|\Z)", re.MULTILINE | re.DOTALL
+)
+
+
+def unfenced(text: str) -> str:
+    """The text with every fenced code block removed, so no line in one is read."""
+    return FENCE.sub("", text)
+
+
+# Which label sets a card's kind, in the order that wins when an issue carries
+# more than one. A parent is read from sub-issues instead, ahead of all three.
+KIND_LABELS = (("blocked-on-data", "data"), ("deferred", "deferred"), ("decision", "decision"))
+
 # GitHub reports a check as an uppercase enum, and the page knows four
 # lowercase words. Passed through as they come, every state reads as green,
 # because the page counted only `failure`, `running` and `neutral`. So each
@@ -94,16 +139,6 @@ CHECK_WORD = {
     "EXPECTED": "running",
 }
 
-# The fields the page draws that this board does not carry yet, as the banner
-# names them. Issue 533 moves each onto GitHub and takes its phrase out.
-LACKS = [
-    "the priority order",
-    "decompose verdicts",
-    "the sessions at work",
-    "what each card waits on",
-    "each card's kind",
-]
-
 PAGE_INFO = "pageInfo{hasNextPage endCursor}"
 
 PR_FIELDS = f"""
@@ -125,9 +160,12 @@ query($owner:String!, $name:String!, $after:String) {{
     issues(states:OPEN, first:100, after:$after, orderBy:{{field:CREATED_AT, direction:ASC}}) {{
       totalCount {PAGE_INFO}
       nodes {{
-        id number title
+        id number title body
         milestone{{title}}
         labels(first:100){{{PAGE_INFO} nodes{{name}}}}
+        blockedBy(first:100){{{PAGE_INFO} nodes{{number state repository{{nameWithOwner}}}}}}
+        subIssues{{totalCount}}
+        issueComments: comments(first:100){{{PAGE_INFO} nodes{{authorAssociation body}}}}
         closedByPullRequestsReferences(first:100, includeClosedPrs:true){{
           {PAGE_INFO} nodes{{number}}}}
         timelineItems(itemTypes:[CROSS_REFERENCED_EVENT], first:100){{{PAGE_INFO} nodes{{
@@ -157,20 +195,32 @@ query($owner:String!, $name:String!, $after:String) {{
 BATCH = 50
 
 # How the nested lists that can outgrow one page are read again from where the
-# first page stopped. Each names the type that holds the list, the list's
-# arguments and what to select from each entry.
+# first page stopped. Each is keyed by the name the response carries it under,
+# and names the type that holds the list, the field that name stands for, the
+# list's arguments and what to select from each entry. An issue's comments and
+# a pull request's are both `comments` on GitHub, so the issue's go under an
+# alias to keep the two apart.
 NESTED = {
-    "labels": ("Issue", "", "name"),
-    "closedByPullRequestsReferences": ("Issue", "includeClosedPrs:true", "number"),
+    "labels": ("Issue", "labels", "", "name"),
+    "blockedBy": ("Issue", "blockedBy", "", "number state repository{nameWithOwner}"),
+    "issueComments": ("Issue", "comments", "", "authorAssociation body"),
+    "closedByPullRequestsReferences": (
+        "Issue",
+        "closedByPullRequestsReferences",
+        "includeClosedPrs:true",
+        "number",
+    ),
     "timelineItems": (
         "Issue",
+        "timelineItems",
         "itemTypes:[CROSS_REFERENCED_EVENT]",
         "... on CrossReferencedEvent{source{... on PullRequest{number repository{nameWithOwner}}}}",
     ),
-    "closingIssuesReferences": ("PullRequest", "", "number"),
-    "comments": ("PullRequest", "", "authorAssociation body"),
+    "closingIssuesReferences": ("PullRequest", "closingIssuesReferences", "", "number"),
+    "comments": ("PullRequest", "comments", "", "authorAssociation body"),
     "contexts": (
         "StatusCheckRollup",
+        "contexts",
         "",
         "__typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}",
     ),
@@ -222,12 +272,12 @@ def _all_nodes(gql: Gql, node_id: str, field: str, conn: dict) -> list:
     """Every entry of a nested list, reading further pages where there are any."""
     nodes = list(conn["nodes"])
     page = conn["pageInfo"]
-    typename, args, selection = NESTED[field]
+    typename, real, args, selection = NESTED[field]
     head = f"{args}, " if args else ""
     while page["hasNextPage"]:
         query = (
             "query($id:ID!, $after:String) { node(id:$id) { ... on "
-            f"{typename} {{ {field}({head}first:100, after:$after) "
+            f"{typename} {{ {field}: {real}({head}first:100, after:$after) "
             f"{{ {PAGE_INFO} nodes{{ {selection} }} }} }} }} }}"
         )
         data = gql(query, {"id": node_id, "after": page["endCursor"]})
@@ -261,6 +311,22 @@ def _top_pages(gql: Gql, query: str, owner: str, name: str, field: str) -> list[
     return nodes
 
 
+def card_kinds(labels: list[str], sub_issues: int) -> list[str]:
+    """Every kind an issue's sub-issues and labels claim, the winning one first.
+
+    An issue with any sub-issue is a parent, whether or not its children have
+    closed, because they carry its work. After that the kind labels follow in
+    ``KIND_LABELS`` order. More than one entry is a conflict the run reports.
+    """
+    kinds = ["parent"] if sub_issues else []
+    return kinds + [kind for label, kind in KIND_LABELS if label in labels]
+
+
+def card_kind(labels: list[str], sub_issues: int) -> str:
+    """A card's kind, the first that ``card_kinds`` finds, or ready for none."""
+    return (card_kinds(labels, sub_issues) or ["ready"])[0]
+
+
 def check_word(context: dict, unknown: set[str]) -> str:
     """The page's word for one check run or status context."""
     if context.get("__typename") == "CheckRun":
@@ -291,7 +357,13 @@ def _rollup(gql: Gql, pr: dict, unknown: set[str]) -> list[list[str]]:
     return out
 
 
-def pr_items(gql: Gql, pr: dict, open_issues: set[int], unknown: set[str]) -> list[dict]:
+def pr_items(
+    gql: Gql,
+    pr: dict,
+    open_issues: set[int],
+    unknown: set[str],
+    working: frozenset[int] = frozenset(),
+) -> list[dict]:
     """One item per open issue the pull request names, or none at all.
 
     A pull request names an issue through GitHub's closing link or through a
@@ -308,9 +380,13 @@ def pr_items(gql: Gql, pr: dict, open_issues: set[int], unknown: set[str]) -> li
 
     ``linked`` is always the opposite of ``partOf`` here, because an issue
     named only by a ``Part of`` line is the one case with no closing link. So
-    the page's warning about a closing link GitHub did not register never
-    fires on this board. A pull request whose keyword sits in a code span names
+    the page's warning about a closing link GitHub did not register could never
+    fire, and issue 533 removed it. A pull request whose keyword sits in a code span names
     no issue GitHub can see, and gets no item at all.
+
+    ``review`` is the word the card's line prints. With no review posted it
+    says one is in progress while a session holds the card, which ``working``
+    names, and that none is posted otherwise.
     """
     if pr.get("isCrossRepository"):
         return []
@@ -335,9 +411,14 @@ def pr_items(gql: Gql, pr: dict, open_issues: set[int], unknown: set[str]) -> li
             "pr": pr["number"],
             "issue": issue,
             "state": state,
+            # Never false without `partOf`, so the page no longer reads it, as
+            # the docstring says. It is still written for the backfill's
+            # `compare` and for anyone reading board.json.
             "linked": issue in closing,
             "reviewed": reviewed,
-            "review": "review posted" if reviewed else "no review posted",
+            "review": "review posted"
+            if reviewed
+            else ("review in progress" if issue in working else "no review posted"),
             "rollup": rollup,
         }
         if issue not in closing:
@@ -382,6 +463,100 @@ def _prs_by_number(gql: Gql, owner: str, name: str, numbers: list[int]) -> list[
     return found
 
 
+def tracker_card(
+    gql: Gql,
+    issue: dict,
+    names: list[str],
+    open_issues: set[int],
+    repo: str,
+    conflicts: list[str],
+) -> dict:
+    """One open issue as the card the page draws.
+
+    A blocker that has closed no longer holds the card, and a number that is
+    no open issue has no card to draw, so ``needs`` and ``after`` keep only open
+    issues. A "blocked by" link can name an issue in another repository, whose
+    number means nothing here, so it is dropped too. ``after`` is left out when
+    it names none, as the page reads it as optional. The board's own labels are
+    drawn as the rank chip and the busy stripe, so they are left off the card's
+    label chips. An issue claiming two kinds takes the first and is reported.
+    """
+    n = issue["number"]
+    blockers = _all_nodes(gql, issue["id"], "blockedBy", issue["blockedBy"])
+    kinds = card_kinds(names, issue["subIssues"]["totalCount"])
+    if len(kinds) > 1:
+        conflicts.append(f"#{n} reads as {' and '.join(kinds)}, read as {kinds[0]}")
+    card = {
+        "n": n,
+        "ms": (issue.get("milestone") or {}).get("title") or "",
+        "label": issue["title"],
+        "kind": (kinds or ["ready"])[0],
+        "needs": sorted(
+            {
+                b["number"]
+                for b in blockers
+                if b["state"] == "OPEN" and (b.get("repository") or {}).get("nameWithOwner") == repo
+            }
+            & open_issues
+        ),
+        "labels": [x for x in names if not BAND.match(x) and x not in WORKING],
+    }
+    lines = AFTER.findall(unfenced(issue.get("body") or ""))
+    after = {int(m) for line in lines for m in re.findall(r"#(\d+)\b", line)}
+    after = sorted((after & open_issues) - {n})
+    if after:
+        card["after"] = after
+    return card
+
+
+def latest_verdict(comments: list[dict]) -> tuple[str, int] | None:
+    """The newest decompose verdict among the owner's comments on an issue.
+
+    A loop run again on the same issue writes a new verdict, so the last one
+    wins. GitHub lists comments oldest first.
+    """
+    found = None
+    for c in comments:
+        if c.get("authorAssociation") != "OWNER":
+            continue
+        for ready, passes in VERDICT.findall(unfenced(c.get("body") or "")):
+            found = (ready, int(passes))
+    return found
+
+
+def rank_entry(
+    n: int,
+    names: list[str],
+    body: str,
+    kind: str,
+    verdict: tuple[str, int] | None,
+    conflicts: list[str],
+) -> dict | None:
+    """The card's place in the priority order, or None when it has none.
+
+    ``ready`` has no home of its own. A finished plan says whether it is ready
+    to build or waits on the owner, a card whose kind is a decision waits on
+    the owner, and any other card still needs a plan.
+    """
+    bands = sorted(int(m.group(1)) for x in names if (m := BAND.match(x)))
+    if not bands:
+        return None
+    if len(bands) > 1:
+        conflicts.append(f"#{n} carries {len(bands)} band labels, read as band:{bands[0]}")
+    entry: dict = {
+        "issue": n,
+        "band": bands[0],
+        "ready": verdict[0] if verdict else ("decide" if kind == "decision" else "plan"),
+    }
+    orders = ORDER.findall(unfenced(body))
+    if orders:
+        if len(set(orders)) > 1:
+            conflicts.append(f"#{n} carries {len(orders)} order lines, read as {orders[0]}")
+        value = float(orders[0])
+        entry["order"] = int(value) if value.is_integer() else value
+    return entry
+
+
 def stale_after_minutes(workflow: Path) -> int:
     """Twice the longest gap between two scheduled runs, from the workflow.
 
@@ -416,19 +591,32 @@ def build(gql: Gql, repo: str, stale_after: int, now: datetime) -> tuple[dict, d
     open_issues = {i["number"] for i in issues}
 
     tracker = []
+    working = []
+    planned = []
+    ranked = []
+    conflicts: list[str] = []
     referenced: set[int] = set()
     for issue in sorted(issues, key=lambda i: i["number"]):
-        labels = _all_nodes(gql, issue["id"], "labels", issue["labels"])
-        tracker.append(
-            {
-                "n": issue["number"],
-                "ms": (issue.get("milestone") or {}).get("title") or "",
-                "label": issue["title"],
-                "kind": "ready",
-                "needs": [],
-                "labels": [lb["name"] for lb in labels],
-            }
-        )
+        n = issue["number"]
+        names = [lb["name"] for lb in _all_nodes(gql, issue["id"], "labels", issue["labels"])]
+        card = tracker_card(gql, issue, names, open_issues, repo, conflicts)
+        tracker.append(card)
+
+        held = [WORKING[x] for x in names if x in WORKING]
+        if held:
+            if len(held) > 1:
+                conflicts.append(f"#{n} carries both working labels, read as build")
+            working.append({"n": n, "kind": "build" if "build" in held else held[0]})
+
+        comments = _all_nodes(gql, issue["id"], "issueComments", issue["issueComments"])
+        verdict = latest_verdict(comments)
+        if verdict:
+            planned.append({"n": n, "passes": verdict[1], "ready": verdict[0]})
+
+        entry = rank_entry(n, names, issue.get("body") or "", card["kind"], verdict, conflicts)
+        if entry:
+            ranked.append(entry)
+
         referenced |= _referenced_prs(gql, issue, repo)
 
     open_prs = _top_pages(gql, OPEN_PRS_QUERY, owner, name, "pullRequests")
@@ -438,8 +626,9 @@ def build(gql: Gql, repo: str, stale_after: int, now: datetime) -> tuple[dict, d
     unknown: set[str] = set()
     prs = []
     left_out = []
+    busy = frozenset(w["n"] for w in working)
     for pr in open_prs + others:
-        items = pr_items(gql, pr, open_issues, unknown)
+        items = pr_items(gql, pr, open_issues, unknown, busy)
         if not items and pr["state"] == "OPEN":
             left_out.append(pr["number"])
         prs += items
@@ -452,12 +641,11 @@ def build(gql: Gql, repo: str, stale_after: int, now: datetime) -> tuple[dict, d
             "issues": {"open": len(issues)},
             "source": "github",
             "staleAfterMinutes": stale_after,
-            "lacks": list(LACKS),
         },
         "prs": {"schema": SCHEMA, "items": prs},
-        "working": {"schema": SCHEMA, "items": []},
-        "planned": {"schema": SCHEMA, "items": []},
-        "next": {"schema": SCHEMA, "items": []},
+        "working": {"schema": SCHEMA, "items": working},
+        "planned": {"schema": SCHEMA, "items": planned},
+        "next": {"schema": SCHEMA, "items": ranked},
         "tracker": {"schema": SCHEMA, "items": tracker},
     }
     report = {
@@ -467,6 +655,7 @@ def build(gql: Gql, repo: str, stale_after: int, now: datetime) -> tuple[dict, d
         "pr_items": len(prs),
         "open_prs_left_out": sorted(left_out),
         "unknown_check_states": sorted(unknown),
+        "label_conflicts": conflicts,
     }
     return board, report
 
@@ -516,6 +705,7 @@ def cmd_build(args: argparse.Namespace) -> None:
             f"{', '.join(f'#{n}' for n in report['open_prs_left_out']) or 'none'} |",
             "| Check states mapped to neither way | "
             f"{', '.join(report['unknown_check_states']) or 'none'} |",
+            f"| Labels or lines that disagree | {'; '.join(report['label_conflicts']) or 'none'} |",
         ]
     )
 
