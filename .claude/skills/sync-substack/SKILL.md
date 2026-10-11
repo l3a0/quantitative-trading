@@ -107,10 +107,11 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
    `$math$`, and that is part of the price the owner accepted. Read the
    converted table before sending it, since a cell that relied on a link
    loses it. A shape the docstring does not list,
-   such as a block quote or a horizontal rule, comes out as a paragraph of
-   literal Markdown. A new shape needs the converter to learn it first, in
-   both languages and with the fixtures extended. The test suite fails when a
-   committed post leaves a paragraph opening `|`, `#` or `![`.
+   such as a block quote, a horizontal rule, or a fence or second paragraph
+   indented under a list item, comes out as a paragraph of literal Markdown.
+   A new shape needs the converter to learn it first, in both languages and
+   with the fixtures extended. The test suite fails when a committed post
+   leaves a paragraph opening `|`, `#`, `![` or a space.
 
 To check an equation the way Substack draws it, open any published post page,
 where `window.MathJax` exists, and run `MathJax.tex2mml(expr, {display: true})`.
