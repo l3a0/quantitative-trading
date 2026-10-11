@@ -5628,7 +5628,10 @@ data. It says whether his numbers reproduce on his files and nothing about the
 two currencies since.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/aud-cad-johansen-lessons.md](../blog/aud-cad-johansen-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.aud_cad_johansen_figures` redraws.
 
 ## Entry 26: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*
 

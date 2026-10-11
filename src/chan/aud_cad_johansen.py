@@ -50,7 +50,8 @@ numbers are the script's.
 
 1. The two series are read as committed vintages through
    :func:`chan.series.load_port_close` rather than from the ``.mat`` files.
-2. The ``plot`` on line 57 is not carried. The run draws nothing.
+2. The ``plot`` on line 57 is not carried. The run draws nothing, and
+   :mod:`chan.aud_cad_johansen_figures` draws it.
 3. The run calls the scale-break guard, which the script has no counterpart
    for, and compares its returns with Chan's saved ones.
 
@@ -253,6 +254,20 @@ class AudCad:
         each weight times its quote, which is the last row of ``positions``.
         """
         return self.hedge[-1] / self.hedge[-1, 0]
+
+    @property
+    def dollar_split(self) -> NDArray[np.float64]:
+        """Each test day's hedge in dollars, as CAD.USD's signed share of the gross.
+
+        The hedge times the day's quotes is the dollars one unit holds in each
+        leg. Its sign is the eigenvector's and moves no return, so the share is
+        taken with AUD.USD held long. That makes −0.5 equal dollars held against
+        each other, and a positive share a day the hedge held both legs the same
+        way, long both or short both.
+        """
+        dollars = self.hedge[self.training :] * self.prices[self.training :]
+        dollars = dollars * np.sign(dollars[:, [0]])
+        return dollars[:, 1] / np.abs(dollars).sum(axis=1)
 
 
 def aud_cad(
