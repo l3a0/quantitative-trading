@@ -351,6 +351,19 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``TestTheGuardAndTheReads`` in ``tests/test_xle_uso_roll_return.py`` records
 #: the call, holds both legs clean, and holds a planted break in a leg or a
 #: contract refused.
+#:
+#: [Issue 249](https://github.com/l3a0/quantitative-trading/issues/249) decided
+#: that ``chan.khandani_lo_small_caps`` refuses no window for Khandani and Lo's
+#: reversal on the S&P 600 file, for a reason of its own. Over each member's own
+#: closes the guard refuses 2006-01-03 to 2006-12-29 on BCSI's 2006-02-06 and
+#: SCUR's 2006-07-12, both pinned below, and over each member's own opens it
+#: passes. Both days were classified on the issue before the run, from each
+#: stock's own prices and from outside reports, as earnings warnings recorded at
+#: the prices that traded, so the run keeps them. Rule B weights a return that
+#: is not finite at 0, so PMC's gap, which spans all of 2006, and the other
+#: seven stocks missing a 2006 price reach no weight.
+#: ``TestTheScaleBreakDecision`` in ``tests/test_khandani_lo_small_caps.py``
+#: runs both refusals and holds that the two days are the pinned flags.
 FLAGGED_IN_CHANS_MAT_FILES = {
     "ijr_20080114/agp.csv": ["2005-09-29"],
     "ijr_20080114/bbx.csv": ["2007-10-26"],
