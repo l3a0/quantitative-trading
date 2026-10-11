@@ -844,7 +844,8 @@ too: the specification's near leg is the front contract on 126 of its 847
 held rows from 2008-10-27, and under `holddays=0` on 459 of 879. On synthetic
 frames it holds the two signals' rules and the near leg's place: a row whose
 nearest two contracts skip one, the held pair across a roll, and the fill
-across days nothing is held.
+across days nothing is held. The blog post about it is the exception, and what
+it says that nothing here asserts is listed below.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) does it for TU's
 momentum on the roll return. It pins the three figures at six decimals and
@@ -3885,8 +3886,8 @@ them, and draws four lessons from Entry 35 of the replication log.
    book's text loses, with an APR of −0.040454 and a Sharpe ratio of −0.563912.
 2. The specification's signal reads the front pair while the script holds a
    pair further out, so its near leg is the front contract on 126 of its 847
-   held rows, and the two rows whose signal reads the held pair are the two
-   that earn.
+   held rows. The two readings whose signal reads the held pair are the two
+   that earn, a pattern rather than a cause, and B2 cuts against it.
 3. B3 lands the book's figures on its window and alone does worse before
    October 2008, but it was picked out among five rows after the run, and the
    book's end date does not single it out.
@@ -3900,15 +3901,21 @@ Five groups of what it says are not pinned here.
    All of them, and Figure 5.8's caption, are at 2502.
 2. Facts about the script rather than the data: its commented-out load of the
    VX file, its pairs 12 months apart, its flip where the z-score is above 0,
-   and its return summed over the legs that have one and halved, all at
-   `e4bc46f` of ericnberwick/EpchanPreview.
-3. Readings no test asserts: that the ratio rises with the spread because its
-   log is the spread's log value, that crude oil's spread falls as γ rises,
-   that four rows show a pattern rather than a cause, and that a rule selling
-   one spread on another's z-score bets on the two moving together.
+   its return summed over the legs that have one and halved, its roll 10 days
+   before expiry, its expiry marked on a contract's last priced day, and four
+   contracts traded at each roll, all at `e4bc46f` of
+   ericnberwick/EpchanPreview.
+3. Readings no test asserts: that the ratio moves with the spread's log value,
+   that crude oil's spread mostly falls as γ rises so its flip mostly bets on
+   the spread moving away from its average, that B2's 420 days are the 10
+   after each roll, that four readings show a pattern rather than a cause, and
+   that a rule selling one spread on another's z-score bets on the two moving
+   together.
 4. Figures the post states in words or rounded from pinned ones, such as 4.0
-   percent, −0.56, six days in seven, three or four months between pairs, and
-   at least 73 days. The figure's alt text reads its curves approximately too.
+   percent, −0.56, six days in seven, three or four months between pairs,
+   three or four earlier contracts still trading, at least 73 days, and B2's
+   share of days reading its held pair against S's. The figure's alt text
+   reads its curves approximately too.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -3921,8 +3928,8 @@ for the figure's own numbers. Four had no pin before it.
    over 11 pairs from VX-2009G's to VX-2012H's.
 2. Under `holddays=0` the near leg is the front contract on 459 of 879 held
    rows and the second on the other 420.
-3. Of the four rows that run to the file's last row, B1 and B3 earn and S and
-   B2 lose.
+3. Of the four readings that run to the file's last day, B1 and B3 earn and
+   S and B2 lose.
 4. Each curve's end, 0.758213 for B3, −0.135565 for S, 0.123003 for B1 and
    −0.345330 for B2, and B3's 0.765276 on 2012-04-23.
 

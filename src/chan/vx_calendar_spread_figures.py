@@ -1,7 +1,8 @@
-"""The figure for the post on VIX futures calendar spreads, *Algorithmic Trading* at location 2502.
+"""The figure for ``blog/vx-calendar-spread-lessons.md``, *Algorithmic Trading* at location 2502.
 
-:mod:`chan.vx_calendar_spread` prints Entry 35's figures and draws nothing, so
-this module draws what the run does not.
+That post is on VIX futures calendar spreads. :mod:`chan.vx_calendar_spread`
+prints Entry 35's figures and draws nothing, so this module draws what the run
+does not.
 [issue 465](https://github.com/l3a0/quantitative-trading/issues/465) asked for
 the post, and its plan set the two panels.
 

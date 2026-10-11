@@ -32,7 +32,9 @@ failure message.
 
 Two measurements were taken after seeing the five rows, and their pins say so:
 B3 on the book's window, and each of S, B1, B2 and B3 from the first row its
-flipped positions hold anything to 2008-10-24.
+flipped positions hold anything to 2008-10-24. The write-up measured three
+more after the run, in ``TestWhichPairTheSignalReads``, and their pins say so
+too.
 
 Each computed figure is held at six decimals, so a change cannot move it
 inside the published rounding unnoticed, and each published figure at the
@@ -404,16 +406,18 @@ class TestWhichPairTheSignalReads:
         signal reads the front two."""
         schedule = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH)
         rank = near_leg_rank(strip.contracts, schedule).loc[START:].dropna()
-        assert len(rank) == 847, S_SPEC
+        assert len(rank) == 847, f"{S_SPEC}; {AFTER_THE_RUN}"
         assert rank.value_counts().sort_index().to_dict() == {
             1.0: 126,
             2.0: 229,
             3.0: 221,
             4.0: 201,
             5.0: 70,
-        }, S_SPEC
+        }, f"{S_SPEC}; {AFTER_THE_RUN}"
         near = schedule.columns[(schedule.loc[START:] == -1).any(axis=0).to_numpy()]
-        assert (len(near), near[0], near[-1]) == (11, "VX-2009G", "VX-2012H"), S_SPEC
+        assert (len(near), near[0], near[-1]) == (11, "VX-2009G", "VX-2012H"), (
+            f"{S_SPEC}; {AFTER_THE_RUN}"
+        )
 
     def test_under_holddays_0_the_near_leg_is_the_front_or_the_second(self, strip) -> None:
         """Each pair starts the row after the last one ended, 10 rows before the old near
@@ -422,14 +426,19 @@ class TestWhichPairTheSignalReads:
             strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
         )
         rank = near_leg_rank(strip.contracts, schedule).loc[START:].dropna()
-        assert len(rank) == 879, SPECS["B2"]
-        assert rank.value_counts().sort_index().to_dict() == {1.0: 459, 2.0: 420}, SPECS["B2"]
+        assert len(rank) == 879, f"{SPECS['B2']}; {AFTER_THE_RUN}"
+        assert rank.value_counts().sort_index().to_dict() == {1.0: 459, 2.0: 420}, (
+            f"{SPECS['B2']}; {AFTER_THE_RUN}"
+        )
 
-    def test_the_rows_reading_the_held_pair_are_the_rows_that_earn(self, result) -> None:
+    def test_b1_and_b3_earn_and_s_and_b2_lose(self, result) -> None:
         """B1 and B3 read the held pair's own ratio and S and B2 the front pair's. Four
-        rows chosen in advance show the pattern, which is not a cause."""
+        rows chosen in advance show the pattern, which is not a cause, and B2 reads its
+        held pair more often than S and still loses more."""
         earns = {key: result.rows[key].apr > 0 for key in ("S", "B1", "B2", "B3")}
-        assert earns == {"S": False, "B1": True, "B2": False, "B3": True}
+        assert earns == {"S": False, "B1": True, "B2": False, "B3": True}, (
+            f"{VINTAGE}; S and B1 to B3 to 2012-05-07; {AFTER_THE_RUN}"
+        )
 
 
 # --- the rules on synthetic frames ---------------------------------------------

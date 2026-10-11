@@ -7304,9 +7304,11 @@ Three things.
    contract on 126 of its 847 held rows from 2008-10-27, and the second to the
    fifth on the rest. Under `holddays=0` it is the front on 459 of 879 and the
    second on the other 420. B1 and B3, which read the held pair's own ratio,
-   are the two rows of the four running to the file's last row that earn. Four
-   rows show a pattern rather than a cause. `TestWhichPairTheSignalReads` pins
-   all three, and the write-up found this.
+   are the two of the four rows running to the file's last day that earn. Four
+   rows show a pattern rather than a cause, and B2 cuts against reading it as
+   one: its signal reads the pair it holds on 459 of 879 days against S's 126
+   of 847, and it loses more than S. `TestWhichPairTheSignalReads` pins all
+   three, and the write-up found this.
 
 ### What this entry cannot say
 
