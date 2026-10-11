@@ -528,7 +528,9 @@ where they were first built. The other thirty-seven were built here.
     the book describes. It holds 9 US exchange holidays, so it is not a
     settlement series, and its ratio to GLD barely moves from one day to the
     next, which a gap of two and a half hours between the closes would not
-    allow. Every figure is exploratory.
+    allow. The negative Sharpe ratio comes from the script's constant 2
+    percent, which is more than the return, and at the window's bill rate the
+    Sharpe ratio is 0.599257. Every figure is exploratory.
 39. XLE, the energy producers' ETF, held against USO, the crude oil futures
     ETF, in whichever direction crude's roll return favours, location 2734 of
     *Algorithmic Trading*, on Chan's own ETF file and his 2012-05-02 CL strip.
@@ -915,7 +917,12 @@ text's two at six decimals and at the precision Chan printed, the financing
 row beside them, and the measurements that say the GC file is read at GLD's
 close. It also holds every step of the script on synthetic legs whose
 figures are worked out by hand, and the scale-break guard on each series it
-reads.
+reads. It holds what the write-up measured after the run too: the Sharpe
+ratio at no rate and at the window's bill rate, the two drawdowns, the
+return against the bill rate by calendar year, and the daily change in
+log(GC / GLD) on both GC series, with the three helpers behind them on
+synthetic legs. The blog post about it is the exception, and what it says
+that nothing here asserts is listed below.
 
 [tests/test_xle_uso_roll_return.py](tests/test_xle_uso_roll_return.py) does it
 for the XLE against USO trade. It pins the five figures at full precision
@@ -4699,6 +4706,102 @@ uv run python -m chan.cl_reversal_momentum_figures
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+[blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
+holding GLD long and gold futures short at Kindle locations 2718 and 2730 of
+Chan's *Algorithmic Trading*, which collects gold's negative roll return.
+Chan reports an annualized return of 1.9 percent and a maximum drawdown of 0.8
+percent from 2007-08-03 to 2010-08-02, and says GLD's financing cost leaves
+an excess return close to zero. The post links the spot and roll returns post,
+the VX against E-mini post, the crude oil reversal and momentum post, the
+factor models post, the Kelly leverage on SPY post and the GLD/GDX post rather
+than repeating them, and draws four lessons from Entry 38 of the replication
+log.
+
+1. Every figure lands, and the 0.8 percent and the 91 days are two
+   drawdowns. The deepest is mostly 2007-11-12, and the longest runs from
+   2009-08-28 to 2010-01-08 and reaches only −0.40907 percent.
+2. The negative Sharpe ratio comes from the script's constant 2 percent,
+   105.18 percent of the return. With no rate subtracted it is 1.284060, and
+   at the window's bill rate 0.599257.
+3. The bill rate takes 0.533311 of the return, and the return fell with the
+   bill rate year by year, a split chosen after the run.
+4. The 16:00 series lines up with GLD's close within a bound the suite pins,
+   though the book's reason for dismissing the timing caveat does not fit a
+   script with no signal.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md).
+   The trade, its figures, GLD owning physical gold, the −4.9 percent roll
+   return from 1982 to 2004, the leverage of 5 or 6, the financing claim and
+   "close to zero" are at 2718. The 1:30 p.m. and 4:00 p.m. times and the
+   reason about signals are at 2730, the settlement price as a vendor's usual
+   close at 561, and the spread between a future and an ETF at 583.
+2. Facts about the script rather than the data: its five steps, its
+   `riskFreeRate=0.02/252` line, and that it holds the pair every day with
+   no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
+3. Readings no test asserts: that the bill rate is a floor on financing
+   because a broker lends above it, that a gap's share of a day carries
+   roughly that share of the day's variance in a market trading nearly
+   around the clock, that a small reading error or a gap of minutes makes a
+   daily change reverse, and the cost of carry, cited from Hull as the usual
+   explanation and not tested.
+4. Figures the post states in words or rounded from pinned ones, such as
+   about half, about 0.89 percentage points, ten times as large, a tenth of a
+   day, the 91-day stretch about half as deep as the November 2007 fall, the
+   OHLC save moving most of the way back on 2008-09-19, and S rising by less
+   than a percentage point from 2008-12-31 to its high. The figure's alt text
+   reads its curves approximately too.
+5. Its references, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_gld_gc.py](tests/test_gld_gc.py), or to
+[tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) for the
+figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
+before it, all measured after the run.
+
+1. The Sharpe ratio of 1.284060 with no rate subtracted and 0.599257 at the
+   window's bill rate over 252, the break-even rate at the mean return of
+   1.9014 percent, and the script's 2 percent as 105.18 percent of the return.
+2. The bill rate's share of the return, 0.533311.
+3. S's average annual return against the bill rate by calendar year, 101,
+   253, 251 and 146 rows, 0.052235 against 0.036520, 0.027315 against
+   0.013650, 0.005822 against 0.001500 and 0.004458 against 0.001350, a margin
+   shrinking from 1.57 percentage points to 0.31, and the 22 of 37 months
+   below 0.5 percent, from 2008-11 to 2010-08.
+4. The deepest drawdown's high on 2007-10-12, trough on 2007-11-12 and
+   recovery on 2007-11-14, that day's −0.6771 percent for the trade, −4.7213
+   for GLD and −4.0442 for GC, and the longest stretch from 2009-08-28 to
+   2010-01-08 at worst −0.40907 percent.
+5. The 16:00 series' largest move falling on 2007-11-12, its minimum of
+   −0.006626 and its lag-1 autocorrelation of −0.437059. The OHLC save's
+   largest move falling on 2008-09-18, its minimum of −0.075146 on 2008-09-19,
+   and its 8 moves past 0.02 up and 12 down.
+6. The three curves' ends, 0.058033 for S, 0.031057 for bills and 0.061413
+   for 2 percent a year, S at 0.049260 and bills at 0.028733 on 2008-12-31,
+   S's high of 0.058415 on 2010-07-27, and 2010-05-21 as the last day S stands
+   above the 2 percent line.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/gld_gc_figures.py](src/chan/gld_gc_figures.py), which reads them
+through the same `read_sources`, `gld_gc` and `identity` as
+`python -m chan.gld_gc`, so the scale-break guard runs for it too. It draws
+two panels.
+
+1. S's cumulative return beside bills accrued at each month's TB3MS over 252
+   and the script's 2 percent a year, compounded, with the 91 days shaded and
+   the deepest trough marked.
+2. The daily change in log(GC / GLD) on the 16:00 series and on the OHLC
+   save's GC, with dashed lines at plus and minus 0.02.
+
+```bash
+uv run python -m chan.gld_gc_figures
+```
+
+[tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) holds what it
+draws rather than its bytes, for the reason given above for the regime map.
 
 ## Where the book's numbers come from
 

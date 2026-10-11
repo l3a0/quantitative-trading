@@ -85,6 +85,15 @@ chan-mat, adjusted, saved 2012-05-09, is read for the identity alone. Each is
 guarded by :func:`chan.series.refuse_window_crossing_a_break` over the
 window, on its own calendar.
 
+**What the post added.** The post on these lessons,
+``blog/gld-gc-lessons.md``, measured three things after the run, through three
+helpers. :func:`log_ratio_changes` is the daily change in log(GC / GLD) that
+:func:`ratio_steps` summarises, so the post's figure and the pins read one
+computation. :func:`bill_accrual` is what three-month bills earn on each kept
+day. :func:`by_year` sets S's return against the bill rate one calendar year at
+a time, a split chosen after the run. :mod:`chan.gld_gc_figures` draws the
+post's figure, since the run prints its figures and draws nothing.
+
 Every result here is exploratory. The window was the book's, so reproducing
 its figures spends no fresh sample, and nothing here tests the trade on later
 data.
@@ -175,6 +184,11 @@ def read_sources(data_dir: Path | None = None) -> Sources:
     gc_entry, gc = _column(GC_SOURCE_FILE, GC, data_dir)
     gld_entry, gld = _column(GLD_SOURCE_FILE, GLD, data_dir)
     return Sources(gc_entry=gc_entry, gc=gc, gld_entry=gld_entry, gld=gld)
+
+
+def read_ohlc_gc(data_dir: Path | None = None) -> tuple[VintageEntry, pd.Series]:
+    """The OHLC save's continuous GC close, guarded over the window, for contrast alone."""
+    return _column(OHLC_SOURCE_FILE, GC, data_dir)
 
 
 def common_days(gc: pd.Series, gld: pd.Series) -> pd.DatetimeIndex:
@@ -273,6 +287,71 @@ def financing(result: GldGc, data_dir: Path | None = None) -> Financing:
     )
 
 
+def bill_accrual(days: pd.DatetimeIndex, data_dir: Path | None = None) -> pd.Series:
+    """What three-month bills earn on each of ``days``: its month's TB3MS over 252.
+
+    The first row is 0, as S's first row is, so compounding the two starts
+    both on the same day. A day whose month the bill series does not hold is
+    refused rather than read as earning nothing.
+    """
+    rates = dict(bill_rates.monthly_rates(data_dir=data_dir))
+    months = [day.strftime("%Y-%m") for day in days]
+    missing = sorted(set(months) - set(rates))
+    if missing:
+        raise ValueError(
+            f"bill_accrual needs a bill rate for every month it is handed, and the series "
+            f"holds none for {', '.join(missing)}"
+        )
+    accrual = np.array([rates[month] / TRADING_DAYS for month in months])
+    accrual[:1] = 0.0
+    return pd.Series(accrual, index=days, name="bill_accrual")
+
+
+@dataclass(frozen=True)
+class Year:
+    """One calendar year of S beside the bill rate over the same months."""
+
+    year: int
+    #: S's rows in the year, leaving out the zeroed first row of the window.
+    rows: int
+    #: 252 times the mean of those rows' returns.
+    average_annual_return: float
+    #: TB3MS averaged over the months from the year's first kept day to its last.
+    bill_rate: float
+
+    @property
+    def excess(self) -> float:
+        return self.average_annual_return - self.bill_rate
+
+
+def by_year(result: GldGc, data_dir: Path | None = None) -> list[Year]:
+    """S's average annual return against the bill rate, one calendar year at a time.
+
+    The window's first row is left out, because the script sets its return to
+    0 rather than measuring it. Each year's bill rate is the monthly average
+    over the months its kept days span, the same rule B1 applies to the whole
+    window, so a part year is set against its own months only.
+    """
+    keep = np.ones(len(result.days), dtype=bool)
+    keep[:1] = False
+    years = []
+    for year in sorted(set(result.days.year)):
+        in_year = result.days.year == year
+        spanned = result.days[in_year]
+        rows = result.daily[in_year & keep]
+        years.append(
+            Year(
+                year=int(year),
+                rows=len(rows),
+                average_annual_return=TRADING_DAYS * float(smartmean(rows)),
+                bill_rate=bill_rates.average(
+                    spanned[0].strftime("%Y-%m"), spanned[-1].strftime("%Y-%m"), data_dir=data_dir
+                ),
+            )
+        )
+    return years
+
+
 @dataclass(frozen=True)
 class RatioSteps:
     """The daily change in log(GC / GLD) on the kept days, for one GC series."""
@@ -283,14 +362,26 @@ class RatioSteps:
     steps: int
 
 
+def log_ratio_changes(gc: pd.Series, gld: pd.Series, days: pd.DatetimeIndex) -> pd.Series:
+    """The daily change in log(GC / GLD) from one of ``days`` to the next.
+
+    Each change is dated on the later of its two days, so ``days[0]`` carries
+    none and the result is one shorter than ``days``. When GC and GLD are read
+    at the same moment, the change is what moves gold's future against the
+    metal over a day. A gap in timing adds the gold return over the gap.
+    """
+    ratio = gc.loc[days].to_numpy(dtype=float) / gld.loc[days].to_numpy(dtype=float)
+    return pd.Series(np.diff(np.log(ratio)), index=days[1:], name="log_ratio_change")
+
+
 def ratio_steps(gc: pd.Series, gld: pd.Series, days: pd.DatetimeIndex) -> RatioSteps:
     """Measure the daily change in log(GC / GLD) from one of ``days`` to the next.
 
     ``spread`` is its standard deviation over n, ``largest`` its biggest move
     in size, and ``steps`` counts the moves larger than :data:`STEP`.
+    :func:`log_ratio_changes` computes the changes.
     """
-    ratio = gc.loc[days].to_numpy(dtype=float) / gld.loc[days].to_numpy(dtype=float)
-    change = np.diff(np.log(ratio))
+    change = log_ratio_changes(gc, gld, days).to_numpy()
     return RatioSteps(
         days=len(days),
         spread=float(np.std(change)),
@@ -335,7 +426,7 @@ class Identity:
 
 def identity(sources: Sources, result: GldGc, data_dir: Path | None = None) -> Identity:
     """Set the 16:00 GC series beside GLD's calendar and beside the OHLC save's GC."""
-    ohlc_entry, ohlc = _column(OHLC_SOURCE_FILE, GC, data_dir)
+    ohlc_entry, ohlc = read_ohlc_gc(data_dir)
     gld_window = sources.gld.loc[WINDOW_START:WINDOW_END]
     shared = result.days.intersection(ohlc.index)
     ours = sources.gc.loc[shared].to_numpy(dtype=float)
