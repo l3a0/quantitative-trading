@@ -758,6 +758,22 @@ class TestThePostsHelpers:
         days = [_decomposition(unit), _decomposition(flipped), _decomposition(flipped)]
         assert sign_flips(days).tolist() == [0, 0, 0, 1, 0]
 
+    def test_any_negative_overlap_is_a_flip_however_far_the_vector_moved(self, unit) -> None:
+        """Tomorrow's vector is rarely today's exactly reversed, so only the sign counts."""
+        tilted = unit.copy()
+        tilted[:, 2] = -0.6 * unit[:, 2] + 0.8 * unit[:, 4]
+        tilted[:, 4] = 0.8 * unit[:, 2] + 0.6 * unit[:, 4]
+        assert np.diag(overlaps(_decomposition(unit), _decomposition(tilted)))[2] == pytest.approx(
+            -0.6
+        )
+        assert sign_flips([_decomposition(unit), _decomposition(tilted)]).tolist() == [
+            0,
+            0,
+            1,
+            0,
+            0,
+        ]
+
     def test_match_finds_a_swap_and_a_flip(self, unit) -> None:
         later = unit[:, [0, 2, 1, 3, 4]].copy()
         later[:, 0] *= -1
