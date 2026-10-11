@@ -48,7 +48,9 @@ CONTENT = ("flightsec", "ordersec", "foot")
 # printed rather than returned: through `console.log` in node and osascript, and
 # through `print` in a bare JavaScriptCore shell, which has no console. The
 # page's loading banner arms a four-second timer when it has a copy to show, so
-# a no-op timer keeps node from waiting on it.
+# a no-op timer keeps node from waiting on it. When the prelude names a card in
+# `__CLICK`, the driver clicks it after the last step, which is the only way
+# the chain bar renders anything but its hint.
 DRIVER = """
 var __flush = async function () { for (var i = 0; i < 20; i++) { await null; } };
 (async function () {
@@ -64,6 +66,10 @@ var __flush = async function () { for (var i = 0; i < 20; i++) { await null; } }
         cb({ exists: doc !== null, data: function () { return doc; } });
       });
       await __flush();
+    }
+    if (typeof __CLICK === "number") {
+      store.board.onclick({ target: { closest: function (sel) {
+        return sel === ".tk" ? { dataset: { n: String(__CLICK) } } : null; } } });
     }
   } catch (e) { out.error = String(e && e.stack || e); }
   Object.keys(store).forEach(function (id) {
@@ -98,7 +104,7 @@ def _page_script(page: Path) -> str:
     return text[start:end]
 
 
-def _prelude(db: bool, steps: list[dict]) -> str:
+def _prelude(db: bool, steps: list[dict], click: int | None = None) -> str:
     """The fake platform, set up before the page's script runs.
 
     With ``db`` false there is no ``claude`` global at all, which is what a view
@@ -110,6 +116,8 @@ def _prelude(db: bool, steps: list[dict]) -> str:
         "var __SUBS = {};",
         f"var __STEPS = {json.dumps(steps)};",
     ]
+    if click is not None:
+        lines.append(f"var __CLICK = {int(click)};")
     if db:
         lines.append(
             "globalThis.claude = { use: function (cap) { return Promise.resolve("
@@ -119,9 +127,13 @@ def _prelude(db: bool, steps: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def run_page(tmp_path: Path, *, db: bool, steps: list[dict], page: Path = PAGE) -> dict:
+def run_page(
+    tmp_path: Path, *, db: bool, steps: list[dict], page: Path = PAGE, click: int | None = None
+) -> dict:
     """Execute the page and return each element's HTML and hidden state."""
-    script = STUB.read_text(encoding="utf-8") + _prelude(db, steps) + _page_script(page) + DRIVER
+    script = (
+        STUB.read_text(encoding="utf-8") + _prelude(db, steps, click) + _page_script(page) + DRIVER
+    )
     runner = tmp_path / "run.js"
     runner.write_text(script, encoding="utf-8")
     done = subprocess.run(
@@ -838,3 +850,234 @@ def test_a_planned_card_held_for_a_close_by_hand_keeps_its_plan_position(
     raw = ids["board"]["html"]
     assert "plan-" not in _card_tag(ids, "board", 90503)
     assert raw.index('data-n="90503"') < raw.index('data-n="90505"')
+
+
+def _with_needs(docs: dict, needs: dict[int, list[int]]) -> dict:
+    """The fixture with some cards' ``needs`` replaced."""
+    for card in docs["tracker"]["items"]:
+        if card["n"] in needs:
+            card["needs"] = needs[card["n"]]
+    return docs
+
+
+def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: Path) -> None:
+    """Protects the depth sentence from reading as a count of blockers.
+
+    On 2026-10-11 issue 303 gained needs of 249 and 510, both open and neither
+    waiting on anything. The note still said nothing sat behind more than one
+    thing, and the column it sat in said one thing had to land first. Fixture
+    issue 90505 is given the same shape here, waiting on 90501 and 90504, and
+    90503 is cleared so that no chain runs two steps.
+    """
+    docs = _with_needs(fixture_docs(), {90503: [], 90505: [90501, 90504]})
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+
+    note = text(ids, "boardnote")
+    assert "more than one thing" not in note
+    assert (
+        "No card waits on an issue that waits on another, so none is more than 1 step behind."
+        in note
+    )
+    assert "#90505 waits on 2 open issues at once, #90501 and #90504." in note
+    board = text(ids, "board")
+    assert "one thing has to land first" not in board
+    for phrase in (
+        "One step behind",
+        "what these wait on waits on no open issue",
+        "Two steps behind or more",
+        "something these wait on waits on another",
+    ):
+        assert phrase in board
+    raw = ids["board"]["html"]
+    second = raw.split('<div class="col k1')[1].split('<div class="col k2')[0]
+    assert 'data-n="90505"' in second
+
+
+@pytest.mark.parametrize(
+    ("needs", "sentence"),
+    [
+        ({}, "2 cards wait on an issue that waits on another, and the deepest is 2 steps behind."),
+        (
+            {90504: [90503]},
+            "3 cards wait on an issue that waits on another, and the deepest is 3 steps behind.",
+        ),
+    ],
+)
+def test_the_depth_sentence_names_the_longest_chain(
+    tmp_path: Path, needs: dict, sentence: str
+) -> None:
+    """Protects the deep branch from calling two steps the deepest there is.
+
+    The fixture chains 90503 and 90505 behind 90502, which waits on 90501, so
+    its longest chain is two steps. Putting 90504 behind 90503 makes it three,
+    which the sentence used to call "the deepest the graph goes" at two. The
+    short view draws only 90502, so it counts the hidden cards and says so.
+    """
+    docs = _with_needs(fixture_docs(), needs)
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    note = text(ids, "boardnote")
+    assert sentence in note
+    assert "Counting the hidden issues" not in note.split(sentence)[0]
+
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert "Counting the hidden issues, " + sentence in text(ids, "boardnote")
+
+
+def test_several_cards_waiting_on_several_issues_are_each_named(tmp_path: Path) -> None:
+    """Protects the plural branch and the pointer at cards the short view hides.
+
+    Fixture issues 90503 and 90505 each wait on two open issues here, and the
+    short view draws neither, so the note names both and says they are hidden.
+    """
+    docs = _with_needs(fixture_docs(), {90503: [90502, 90504], 90505: [90501, 90504]})
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    note = text(ids, "boardnote")
+    assert "#90503 and #90505 each wait on more than one open issue." in note
+    assert "hidden in this view" not in note
+
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    assert "#90503 and #90505 are hidden in this view" in text(ids, "boardnote")
+
+
+def test_a_board_where_nothing_waits_says_no_depth(tmp_path: Path) -> None:
+    """Protects the empty branch, where no card waits on any open issue.
+
+    The second and third columns are then empty, so the note gives no depth at
+    all, and the freeing clause is what says nothing waits on anything.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [], 90505: []})
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    note = text(ids, "boardnote")
+    assert "behind." not in note
+    assert "waits on an issue that waits on another" not in note
+    assert "No card here is waiting on another" in note
+
+
+def test_a_shallow_graph_says_when_it_counts_hidden_cards(tmp_path: Path) -> None:
+    """Protects the shallow branch's qualifier, which the deep branch already had.
+
+    Fixture issue 90503 waits on 90501 here and nothing else waits on anything.
+    The short view draws only 90502, so its second column is empty while a
+    hidden card sits one step behind. The sentence says it is counting hidden
+    cards, and the freeing clause after it then says it is counting them too.
+    The clause naming a card with several blockers can sit between the two, so
+    the second says which cards it means rather than "them".
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90501], 90505: []})
+    ids = run_page(tmp_path, db=True, steps=[docs])
+    note = text(ids, "boardnote")
+    assert (
+        "Counting the hidden issues, no card waits on an issue that waits on another, "
+        "so none is more than 1 step behind."
+    ) in note
+    assert "Counting the hidden issues too, #90501" in note
+
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path))
+    assert "Counting the hidden issues" not in text(ids, "boardnote")
+
+
+@pytest.mark.parametrize(
+    ("needs", "card", "line"),
+    [
+        ({}, 90503, "#90503 · waits on 1 directly and 2 along the whole chain"),
+        ({}, 90501, "#90501 · 1 waiting on it directly and 3 along the whole chain"),
+        ({90505: [90501, 90504]}, 90505, "#90505 · waits on 2 Clear"),
+    ],
+)
+def test_the_chain_bar_tells_direct_blockers_from_the_chain(
+    tmp_path: Path, needs: dict, card: int, line: str
+) -> None:
+    """Protects the chain bar from counting a whole chain as blockers.
+
+    The fixture chains 90503 behind 90502 behind 90501, so 90503 waits on one
+    issue directly and two along the chain, and 90501 has one card waiting on
+    it directly and three in all. The bar used to say "waits on 2" for 90503,
+    while its own card named one issue. A card whose blockers wait on nothing
+    keeps the bare count, since the two numbers agree.
+    """
+    docs = _with_needs(fixture_docs(), needs)
+    ids = run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path), click=card)
+    assert line in text(ids, "chainbar")
+
+
+def test_counting_too_names_the_hidden_issues_after_a_named_card(tmp_path: Path) -> None:
+    """Protects the freeing clause's prefix from pointing at the wrong cards.
+
+    Fixture issue 90505 waits on 90502 and 90504 here, so a clause naming it and
+    both blockers sits between the depth sentence and the freeing clause in the
+    short view. A bare "Counting them too" there read as counting 90502 and
+    90504 rather than the hidden issues.
+    """
+    docs = _with_needs(fixture_docs(), {90505: [90502, 90504]})
+    note = text(run_page(tmp_path, db=True, steps=[docs]), "boardnote")
+    assert "#90505 waits on 2 open issues at once, #90502 and #90504." in note
+    assert "Counting them too" not in note
+    assert "Counting the hidden issues too, #90501" in note
+
+
+def test_only_open_blockers_of_cards_in_the_columns_are_counted(tmp_path: Path) -> None:
+    """Protects which blockers and which cards the depth and blocker clauses read.
+
+    Issue numbers 99998 and 99999 are not in the tracker, so they stand for
+    closed issues, and neither counts. Fixture issue 90504 becomes a data card
+    waiting on two open issues and sitting three steps deep. A data card sits in
+    the fourth column, outside the chain the sentence measures, so it is neither
+    named nor allowed to deepen the chain past 90503's two steps.
+    """
+    docs = _with_needs(
+        fixture_docs(),
+        {90503: [90502, 99998], 90505: [90501, 90502, 99999], 90504: [90503, 90505]},
+    )
+    for card in docs["tracker"]["items"]:
+        if card["n"] == 90504:
+            card["kind"] = "data"
+    note = text(
+        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
+    )
+    assert "#90505 waits on 2 open issues at once, #90501 and #90502." in note
+    assert "#99999" not in note
+    assert "#90503 waits on" not in note
+    assert "#90504" not in note.split("free for a session")[1].split("frees the most")[0]
+    assert "and the deepest is 2 steps behind." in note
+
+
+def test_one_deep_card_takes_a_singular_verb(tmp_path: Path) -> None:
+    """Protects the verb's agreement when exactly one card is two steps deep."""
+    docs = _with_needs(fixture_docs(), {90505: []})
+    note = text(
+        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
+    )
+    assert (
+        "1 card waits on an issue that waits on another, and the deepest is 2 steps behind." in note
+    )
+
+
+def test_the_hidden_pointer_lists_top_cards_and_blocked_cards_in_order(tmp_path: Path) -> None:
+    """Protects the pointer when it names both kinds of hidden card.
+
+    Fixture issues 90504 and 90505 each free 90503, which waits on both of
+    them, and the short view draws none of the three. The pointer names the
+    cards that free the most and the card with several blockers together, in
+    issue order rather than in the order the two lists were joined.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90505, 90504], 90505: []})
+    note = text(run_page(tmp_path, db=True, steps=[docs]), "boardnote")
+    assert "#90503, #90504 and #90505 are hidden in this view" in note
+
+
+def test_a_board_with_nothing_in_the_chain_columns_gives_no_depth(tmp_path: Path) -> None:
+    """Protects the longest chain's floor when no card is in the first three columns.
+
+    Every card but the one in flight becomes a data card, so the chain the
+    sentence measures holds no card at all and its longest is zero rather than
+    an empty maximum.
+    """
+    docs = fixture_docs()
+    for card in docs["tracker"]["items"]:
+        if card["n"] != 90501:
+            card["kind"] = "data"
+    note = text(
+        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
+    )
+    assert "Infinity" not in note
+    assert "behind." not in note
