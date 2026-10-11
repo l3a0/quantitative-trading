@@ -1865,9 +1865,10 @@ function buildOrder() {
      which is what it would say the moment the graph flattens. */
   /* At zero no card frees anything, so no card is tied at the top, and the
      list is empty rather than every card on the board. The freeing clause
-     checks `most` itself. The two pointers below read only this list, so with
-     every `needs` empty the note said nothing was waiting and then named every
-     card as in flight or hidden, which issue 523 recorded. A card waiting on
+     checks `most` itself. The two pointers below take their top cards from
+     this list rather than checking `most`, so with every `needs` empty the
+     note said nothing was waiting and then named every card as in flight or
+     hidden, which issue 523 recorded. A card waiting on
      two open issues makes each of them free at least one, so `several` is
      always empty at zero and the pointer loses nothing it should name. */
   const reachable = TRACKER.map(c => ({ n: c.n, k: reach(c.n, feeds).size }));
