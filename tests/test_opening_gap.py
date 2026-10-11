@@ -18,8 +18,9 @@ unless it names another, so they are stated once here.
   ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``.
 - **The two earlier saves.** ``inputdataohlcdaily_20120511/fstx.csv``, saved
   2012-05-12, and ``inputdataohlcdaily_20120507/fstx.csv``, saved
-  2012-05-09, both chan-mat and adjusted. ``TestTheEarlierSaves`` alone reads
-  them.
+  2012-05-09, both chan-mat and adjusted. ``TestTheEarlierSaves``,
+  ``TestWhatThePostMeasures``, ``TestTheGuardAndTheReads`` and
+  ``TestTheReport`` read them.
 - **Specification.** ``gapFutures_FSTX.m``, git blob ``02db940`` at
   EpchanPreview ``e4bc46f``, as ``chan.opening_gap`` transcribes it. The
   spread is ``backshift(1, smartMovingStd(calculateReturns(cl, 1), 90))``. A
@@ -430,27 +431,36 @@ class TestWhatThePostMeasures:
         moved = (prices.loc[shared, field] - older.loc[shared, field]).to_numpy()
         assert len(shared) == 1996
         assert int((moved == 0).sum()) == 45
-        assert len(set(np.round(moved, 6))) == 25
+        distinct = set(np.round(moved, 6))
+        assert len(distinct) == 25
+        assert len(distinct - {0.0}) == 24
 
-    def test_at_a_fixed_window_the_restated_prices_move_the_apr(self, result, earlier) -> None:
-        shared = on_shared_days(result, opening_gap(earlier["20120511"]))
-        assert (len(shared.days), shared.differ) == (1996, 7)
+    def test_at_a_fixed_window_the_restated_prices_move_the_apr(self, prices, earlier) -> None:
+        """The 2012-05-11 save is cut to start on 2004-07-16, the 2012-05-17 save's first day.
+
+        Both spreads then warm up on the same rows, so the two runs differ by
+        the restated prices alone. Each move is held to half a unit in its
+        sixth decimal, so a wrong last digit fails.
+        """
+        shared = on_shared_days(prices, earlier["20120511"])
+        assert shared.days[0] == day("2004-07-16") == prices.index[0]
+        assert (len(shared.days), shared.differ) == (1996, 6)
         assert shared.one.apr == pytest.approx(0.133016, abs=SIX)
         assert shared.one.sharpe == pytest.approx(1.443075, abs=SIX)
-        assert shared.other.apr == pytest.approx(0.131823, abs=SIX)
-        assert shared.other.sharpe == pytest.approx(1.449543, abs=SIX)
-        assert shared.one.apr - shared.other.apr == pytest.approx(0.001193, abs=SIX)
+        assert shared.other.apr == pytest.approx(0.130360, abs=SIX)
+        assert shared.other.sharpe == pytest.approx(1.435907, abs=SIX)
+        assert shared.one.apr - shared.other.apr == pytest.approx(0.002655, abs=5e-7)
 
     def test_at_fixed_prices_the_window_moves_the_apr(self, earlier) -> None:
         """The 2012-05-07 and 2012-05-11 saves price alike, so only their windows differ."""
         apr = {save: opening_gap(earlier[save]).literal_figures.apr for save in earlier}
-        assert apr["20120507"] - apr["20120511"] == pytest.approx(0.002018, abs=SIX)
+        assert apr["20120507"] - apr["20120511"] == pytest.approx(0.002017, abs=5e-7)
 
-    def test_each_move_is_over_ten_times_the_comment_s_last_digit(self, result, earlier) -> None:
+    def test_each_move_is_over_ten_times_the_comment_s_last_digit(self, prices, earlier) -> None:
         """The comment prints four decimals, so its last digit is 0.0001."""
         last_digit = 10.0 ** -len(SCRIPT_APR.split(".")[1])
         assert last_digit == pytest.approx(0.0001)
-        shared = on_shared_days(result, opening_gap(earlier["20120511"]))
+        shared = on_shared_days(prices, earlier["20120511"])
         apr = {save: opening_gap(earlier[save]).literal_figures.apr for save in earlier}
         assert shared.one.apr - shared.other.apr > 10 * last_digit
         assert apr["20120507"] - apr["20120511"] > 10 * last_digit
@@ -499,6 +509,29 @@ class TestWhatThePostMeasures:
     def test_the_closes_below_and_above_the_open(self, prices, result) -> None:
         moves = open_to_close(prices, result)
         assert (moves["long"].below, moves["short"].above) == (163, 108)
+
+    def test_the_port_earns_the_script_s_long_returns_on_every_upward_jump(
+        self, result, port
+    ) -> None:
+        """The port takes the momentum sign, and still sells every upward jump.
+
+        Its flipped short test makes it short on each of the 278 days the
+        script is long, and short times the momentum sign is the script's long
+        times the literal sign. Its other 1,440 short days are the script's
+        flat days with a spread, less 2004-11-19, where the port's spread is
+        not yet set.
+        """
+        up = result.positions == SIDES["long"]
+        assert int(up.sum()) == 278
+        assert (port.positions[up] == SIDES["short"]).all()
+        assert (port.returns[up] == result.literal[up]).all()
+        assert port.returns[up].sum() == pytest.approx(0.749529, abs=SIX)
+        rest = (port.positions == SIDES["short"]) & ~up
+        flat = (result.positions == 0) & np.isfinite(result.spread)
+        assert int(rest.sum()) == 1440
+        assert list(result.days[flat & ~rest]) == [day("2004-11-19")]
+        assert not (rest & ~flat).any()
+        assert port.returns[rest].sum() == pytest.approx(-0.050957, abs=SIX)
 
 
 class TestTheRules:
@@ -695,26 +728,54 @@ class TestTheRules:
         assert np.isnan(open_to_close(prices, run_on)["short"].mean)
         assert open_to_close(prices, run_on)["flat"].days == 0
 
-    def test_on_shared_days_keeps_each_run_s_own_rows(self) -> None:
-        _, one = self._held_days([1, 1, -1, 0], [100] * 4, [90, 110, 120, 100])
-        _, other = self._held_days([1, 1, -1], [100] * 3, [90, 110, 130])
-        other = OpeningGap(
-            days=one.days[1:],
-            spread=other.spread,
-            longs=other.longs,
-            shorts=other.shorts,
-            positions=other.positions,
-            literal=other.literal,
-            momentum=other.momentum,
+    @staticmethod
+    def _two_histories(extra: int = 5) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """One series, and the same series with its first ``extra`` rows cut off.
+
+        The longer history's spread is set ``extra`` rows sooner, and an open
+        jumps far above the previous high on a row where only the longer
+        history has a spread, so a run on the uncut history is long there.
+        """
+        rng = np.random.default_rng(7)
+        rows = SPREAD_LOOKBACK + 20
+        closes = 100 * np.cumprod(1 + rng.normal(0, 0.01, rows))
+        opens = np.roll(closes, 1)
+        opens[0] = closes[0]
+        jump = SPREAD_LOOKBACK + 2
+        # A second jump, where both histories have a spread, so neither run is all flat.
+        for row in (jump, jump + 10):
+            opens[row] = 1.2 * closes[row - 1]
+        frame = pd.DataFrame(
+            {
+                "Open": opens,
+                "High": np.maximum(opens, closes) * 1.001,
+                "Low": np.minimum(opens, closes) * 0.999,
+                "Close": closes,
+            },
+            index=pd.date_range("2020-01-01", periods=rows),
         )
-        shared = on_shared_days(one, other)
-        assert shared.days.equals(one.days[1:])
-        # On the first shared day both are long. On the next, one is short and
-        # the other long, and on the last, one is flat and the other short.
-        assert shared.differ == 2
-        assert shared.one == figures(one.literal[1:])
-        assert shared.other == figures(other.literal)
-        assert on_shared_days(one, other, "momentum").one == figures(one.momentum[1:])
+        assert opening_gap(frame).positions[jump] == 1
+        assert opening_gap(frame.iloc[extra:]).positions[jump - extra] == 0
+        return frame, frame.iloc[extra:]
+
+    def test_on_shared_days_starts_both_runs_on_the_same_row(self) -> None:
+        """With the prices equal, the only thing left to differ is the window, and it is cut."""
+        longer, shorter = self._two_histories()
+        for one, other in ((longer, shorter), (shorter, longer)):
+            shared = on_shared_days(one, other)
+            assert shared.days.equals(shorter.index)
+            assert shared.differ == 0
+            assert shared.one == shared.other
+
+    def test_on_shared_days_keeps_each_run_s_own_rows(self) -> None:
+        longer, shorter = self._two_histories()
+        restated = shorter.assign(Close=shorter["Close"] * 1.01)
+        shared = on_shared_days(longer, restated)
+        cut = opening_gap(longer.loc[restated.index[0] :])
+        assert shared.days.equals(restated.index)
+        assert shared.one == figures(cut.literal)
+        assert shared.other == figures(opening_gap(restated).literal)
+        assert on_shared_days(longer, restated, "momentum").one == figures(cut.momentum)
 
 
 class TestTheGuardAndTheReads:

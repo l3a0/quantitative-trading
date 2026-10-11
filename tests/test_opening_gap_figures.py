@@ -224,7 +224,7 @@ class TestTheReadings:
     def test_the_legend_names_each_line_and_its_end(self, axes) -> None:
         legend = [t.get_text() for t in axes["readings"].get_legend().get_texts()]
         assert legend == [
-            "the first 90 days, no spread and nothing held",
+            "the first 90 days, no standard deviation and nothing held",
             "the sign the text describes, ending at −65.11 percent",
             "the script as written, ending at 168.90 percent",
         ], SPEC
@@ -262,6 +262,13 @@ class TestTheSides:
         assert days[int(np.argmax(y))] == day("2012-05-07"), SPEC
         assert (days[int(np.argmin(y))], f"{y.min():.6f}") == (day("2009-02-20"), "-0.038153")
 
+    def test_the_short_curve_s_high_before_its_low_is_in_july_2008(self, axes) -> None:
+        """The post's alt text reads it as about 18 percent."""
+        days, y = _line(axes["sides"], "short")
+        before = days < day("2009-01-01")
+        peak = int(np.argmax(y[before]))
+        assert (days[peak], f"{y[peak]:.6f}") == (day("2008-07-08"), "0.176401")
+
     def test_the_short_curve_s_low_is_marked(self, axes) -> None:
         low = _point(axes["sides"], "short-low")
         assert (low[0], f"{low[1]:.6f}") == (day("2009-02-20"), "-0.038153"), SPEC
@@ -285,7 +292,7 @@ class TestTheSides:
     def test_the_legend_names_each_side_its_days_and_its_end(self, axes) -> None:
         legend = [t.get_text() for t in axes["sides"].get_legend().get_texts()]
         assert legend == [
-            "the first 90 days, no spread and nothing held",
+            "the first 90 days, no standard deviation and nothing held",
             "the 191 short days alone, ending at 29.00 percent",
             "the 278 long days alone, ending at 108.44 percent",
         ], SPEC

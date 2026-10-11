@@ -105,7 +105,8 @@ flags nothing in any of the three saves read here, so nothing is refused.
 
 1. FSTX is read as a committed vintage through :func:`chan.series.load_panel`
    rather than loaded from the ``.mat``.
-2. ``plot(cumret)`` is not carried. The run draws nothing.
+2. ``plot(cumret)`` is not carried. The run draws nothing, and
+   :mod:`chan.opening_gap_figures` draws the plot for the post.
 3. The return line takes a ``reading``, and the momentum reading is computed
    beside the script's.
 4. The run calls the scale-break guard, which the script has no counterpart
@@ -140,14 +141,15 @@ Its comments print ``#APR=0.074864 Sharpe=0.494857`` and
 line and then stops, because ``calculateMaxDD`` indexes the date-indexed
 ``cumret`` by position, which pandas 3 refuses. So it no longer runs as
 shipped, and this is its arithmetic.
+
 **What each side earned.** Three functions measure the rule beyond the
 script's printout, for ``blog/opening-gap-lessons.md``. :func:`by_side`
 keeps one reading's returns on the long days only and on the short days
 only. :func:`open_to_close` measures FSTX's own move from the open to the
-close on the long, short and flat days. :func:`on_shared_days` sets two runs
-on the days both saves hold, so a save's restated prices and its window can
-be told apart. :mod:`chan.opening_gap_figures` draws the two readings and the
-two sides.
+close on the long, short and flat days. :func:`on_shared_days` runs two saves
+from the same first day and keeps the days both hold, so a save's restated
+prices and its window can be told apart. :mod:`chan.opening_gap_figures`
+draws the two readings and the two sides.
 
 Every result here is exploratory. Reproducing Chan's figure spends his 2004
 to 2012 sample on his rule, so the run says whether his numbers reproduce on
@@ -442,12 +444,12 @@ def open_to_close(prices: pd.DataFrame, result: OpeningGap) -> dict[str, MoveFro
 
 @dataclass(frozen=True)
 class SharedDays:
-    """Two runs of the rule held to the days both saves price.
+    """Two saves run from the same first day and held to the days both price.
 
     ``differ`` counts the shared days the two runs hold different positions.
     ``one`` and ``other`` are each run's :class:`Figures` on its own returns
-    over the shared days alone, so the window is the same and only the prices
-    differ.
+    over the shared days alone. Both runs start on the same row, so their
+    spreads warm up on the same days, and only the prices differ.
     """
 
     days: pd.DatetimeIndex
@@ -456,16 +458,24 @@ class SharedDays:
     other: Figures
 
 
-def on_shared_days(one: OpeningGap, other: OpeningGap, reading: str = "literal") -> SharedDays:
-    """Both runs on the days they share, with each run's own positions and returns."""
-    shared = one.days.intersection(other.days)
-    at_one = one.days.get_indexer(shared)
-    at_other = other.days.get_indexer(shared)
+def on_shared_days(one: pd.DataFrame, other: pd.DataFrame, reading: str = "literal") -> SharedDays:
+    """Run the rule on two saves' prices from the later of their first days, then share days.
+
+    A save whose history starts earlier has its spread set sooner, so it can
+    hold a position on a day the other cannot. Cutting the longer history to
+    the shorter one's first day removes that, which leaves the restated
+    prices as the only difference between the two runs.
+    """
+    start = max(one.index[0], other.index[0])
+    run_one, run_other = opening_gap(one.loc[start:]), opening_gap(other.loc[start:])
+    shared = run_one.days.intersection(run_other.days)
+    at_one = run_one.days.get_indexer(shared)
+    at_other = run_other.days.get_indexer(shared)
     return SharedDays(
         days=shared,
-        differ=int((one.positions[at_one] != other.positions[at_other]).sum()),
-        one=figures(one.returns(reading)[at_one]),
-        other=figures(other.returns(reading)[at_other]),
+        differ=int((run_one.positions[at_one] != run_other.positions[at_other]).sum()),
+        one=figures(run_one.returns(reading)[at_one]),
+        other=figures(run_other.returns(reading)[at_other]),
     )
 
 

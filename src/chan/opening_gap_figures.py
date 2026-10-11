@@ -17,7 +17,8 @@ the post, and its plan set the two panels on one date axis.
    each compounded with nothing earned on the other days. The book prints
    only the whole curve, while the post's last lesson turns on the two sides.
 
-Both panels shade the first 90 rows, which carry no spread and hold nothing.
+Both panels shade the first 90 rows, which have no standard deviation and hold
+nothing.
 Nothing compares the redraw with the chart the book prints, so it is a redraw
 of the script's plot rather than a checked copy.
 
@@ -56,7 +57,7 @@ from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageEntry, VintageUnavailable
 
 FIGURE = "opening_gap.png"
-#: The shading for the first rows, which carry no spread, in both panels.
+#: The shading for the first rows, which have no standard deviation, in both panels.
 NO_SPREAD_SHADE = (RULE, 0.45)
 #: The first panel's vertical range, wide enough that the legend sits above
 #: both curves in the upper left.
@@ -80,7 +81,7 @@ def _heading(ax, text: str) -> None:
 
 
 def _shade(ax, days: pd.DatetimeIndex) -> None:
-    """The first rows, before the spread exists, the same in both panels."""
+    """The first rows, before the standard deviation exists, the same in both panels."""
     color, alpha = NO_SPREAD_SHADE
     ax.axvspan(
         date2num(days[0]),
@@ -89,7 +90,7 @@ def _shade(ax, days: pd.DatetimeIndex) -> None:
         alpha=alpha,
         lw=0,
         gid="no-spread",
-        label=f"the first {SPREAD_LOOKBACK} days, no spread and nothing held",
+        label=f"the first {SPREAD_LOOKBACK} days, no standard deviation and nothing held",
     )
 
 

@@ -1105,14 +1105,16 @@ previous high being short, a missing spread qualifying nothing, and its
 Sharpe ratio dividing by n with either sign of mean. It also holds the
 Experiments page's figures as the port's comment rounded, and the run's
 port block reporting a figure off the comment as a gap. It holds what the
-write-up measured too: the first edition's `smartstd` changing no position, each curve keeping
-to its side of zero from the first trade, all four fields equal across the
-two earlier saves and restated between the later two, the APR on the 1,996
-days those two share, the mean return on a held day, and each side's returns
-and FSTX's move from the open on long, short and flat days. On synthetic days
-it holds the split by side, the move from the open and the shared days. The
-blog post about it is the exception, and what it says that nothing here
-asserts is listed below.
+write-up measured too: the first edition's `smartstd` changing no position,
+each curve keeping to its side of zero from the first trade, all four fields
+equal across the two earlier saves and restated between the later two, the
+APR on the 1,996 days those two share with both run from the same first day,
+the mean return on a held day, each side's returns and FSTX's move from the
+open on long, short and flat days, and the port earning the script's returns
+on every upward jump. On synthetic days it holds the split by side, the move
+from the open, and two saves run from the same first day so their windows
+cannot differ. The blog post about it is the exception, and what it says
+that nothing here asserts is listed below.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
@@ -5401,8 +5403,10 @@ reversal and momentum post, the TU momentum post and the cross-sectional
 momentum post rather than repeating them, and draws six lessons from Entry 40
 of the replication log.
 
-1. The script's return line earns a long's fall from the open, so it sells an
-   upward jump and buys a downward one, against the text's description.
+1. The script's return line pays a long when the price falls from the open,
+   so it sells an upward jump and buys a downward one, against the text's
+   description. Chan's Python port takes the text's sign, and a flipped short
+   test has it sell every upward jump all the same.
 2. Both printed figures land on the script as written, 252 times the mean
    also rounds to 13 percent, and the first edition's `smartstd` changes no
    position.
@@ -5410,7 +5414,7 @@ of the replication log.
    Sharpe ratio of −1.441620, and neither curve crosses its starting capital
    after the first trade.
 4. The save and its window each move the APR by more than ten times the
-   comment's last digit: 0.002018 for the window alone and 0.001193 for the
+   comment's last digit: 0.002017 for the window alone and 0.002655 for the
    restated prices alone.
 5. The rule holds a position on 469 of 2,000 days, and the mean return on
    those days is 0.002177.
@@ -5425,67 +5429,73 @@ Five groups of what it says are not pinned here.
    13 percent and 1.4 and "the gap momentum code" at 2965, the example's and
    Figure 7.1's captions and GBPUSD's 7.2 percent and 1.3 at 2971, the stop
    orders triggered at the open at 2985, "a breakout strategy" at 3170, and
-   the annualized average return and the VIX filter's 2.6 percent and 0.16 at
-   3509.
-2. Facts about the script and the instrument rather than the data: line 23's
+   the annualized average return and the VIX filter's threshold of 35, 2.6
+   percent and 0.16 at 3509.
+2. Facts about the scripts and the instrument rather than the data: line 23's
    text and the closing comment in `gapFutures_FSTX.m` at `e4bc46f` of
-   ericnberwick/EpchanPreview, that the STOXX Europe 50 is fifty large
-   European companies once named the Dow Jones STOXX 50, GBPUSD's open and
-   close in Eastern time, and that a Python port of the script exists.
+   ericnberwick/EpchanPreview, the name and source text of the Python port
+   `gapFutures_FSTX.py`, which `chan.opening_gap.python_port` transcribes,
+   that the STOXX Europe 50 is fifty large European companies once named the
+   Dow Jones STOXX 50, and GBPUSD's open and close in Eastern time.
 3. Readings no test asserts: that triggered stops carry a move through the
-   day, that the literal reading trades in buy on gap's direction, that FSTX
-   rolled between the 2012-05-11 and 2012-05-17 saves, which
-   [data/README.md](data/README.md) records, that a round trip costing 0.002177
-   of the price would erase the mean, and that a split by year was measured
-   and left out.
+   day, that the literal reading trades in buy on gap's direction, that a
+   roll between the 2012-05-11 and 2012-05-17 saves would shift the history
+   the way it moved, where [data/README.md](data/README.md) records only that
+   FSTX moves between them, that a round trip costing 0.002177 of the price
+   would erase the mean, and that a split by year was measured and left out.
 4. Figures the post states in words or rounds from pinned ones, such as 12
    percent a year, about three quarters, fewer than a quarter and about a
    quarter of the days, the upward jumps reversing more strongly, and Chan
-   saving the file at least three times. The figure's alt text reads its
-   curves approximately too.
+   saving at least three dated versions of the file. The figure's alt text
+   reads its curves approximately too.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_opening_gap.py](tests/test_opening_gap.py), or to
 [tests/test_opening_gap_figures.py](tests/test_opening_gap_figures.py) for the
 figure's own numbers. The 100, 90 and 120 of its worked day are the synthetic
-day `TestTheRules::test_the_literal_return_fades_the_jump` holds. Ten had no
-pin before it.
+day `TestTheRules::test_the_literal_return_fades_the_jump` holds. The port's
+figures, its 1,718 short days and its never holding a long trace to
+`TestChansPythonPort`. Eleven had no pin before the post.
 
-1. The first edition's `smartstd` moves the spread and changes no position,
-   so the APR and the Sharpe ratio hold at six decimals.
+1. The first edition's `smartstd` moves the standard deviation and changes
+   no position, so the APR and the Sharpe ratio hold at six decimals.
 2. From 2004-11-22, over 1,909 days, the literal curve's lowest value is
    0.002878 and the momentum curve's highest is −0.002878.
 3. The 2012-05-07 and 2012-05-11 saves price all four fields alike on the
-   1,997 days they share, and the window alone moves the APR by 0.002018.
+   1,997 days they share, and the window alone moves the APR by 0.002017.
 4. The 2012-05-11 save differs from the 2012-05-17 save on each of the four
-   fields on all but 45 of 1,996 days, by 25 distinct amounts.
-5. On those 1,996 days the two runs hold a different position on 7, with an
-   APR of 0.133016 and a Sharpe ratio of 1.443075 against 0.131823 and
-   1.449543, a move of 0.001193, and both moves exceed ten times 0.0001.
+   fields on all but 45 of 1,996 days, by 24 distinct amounts.
+5. With the 2012-05-11 save run from 2004-07-16, the 2012-05-17 save's first
+   day, the two runs hold a different position on 6 of those 1,996 days,
+   with an APR of 0.133016 and a Sharpe ratio of 1.443075 against 0.130360
+   and 1.435907, a move of 0.002655, and both moves exceed ten times 0.0001.
 6. The mean return on the 469 held days is 0.002177.
 7. The long and short days sum to 0.749529 and 0.271280 of 1.020809 and
    compound to 1.084422 and 0.290022, which multiply to one plus 1.688951.
 8. Each side alone gives an APR of 0.096964 and a Sharpe ratio of 1.534735
    for the long days, and 0.032607 and 0.527473 for the short days.
 9. FSTX moves −0.002696, +0.001420 and +0.000025 from the open on the long,
-   short and 1,441 flat days with a spread, and closes below the open on 163
-   long days and above it on 108 short days.
-10. The figure's own: the literal curve's end of 1.688951 and the momentum
+   short and 1,441 flat days after the first 90, and closes below the open on
+   163 long days and above it on 108 short days.
+10. Chan's Python port is short on all 278 upward jumps and earns the
+    script's returns on them day for day, which sum to 0.749529, and its
+    other 1,440 short days sum to −0.050957.
+11. The figure's own: the literal curve's end of 1.688951 and the momentum
     curve's of −0.651056, both first reached on 2012-05-07, which its legend
     prints as 168.90 and −65.11 percent, the drawdown's high of 0.573901 on
     2008-07-08 and trough of 0.274823 on 2008-10-13, the longest run below a
     high from 2008-07-15 to 2009-08-31, the first 90 days ending on
     2004-11-18, the long days' end of 1.084422 first reached on 2012-05-02,
-    and the short days' end of 0.290022 on 2012-05-07 after a low of
-    −0.038153 on 2009-02-20.
+    and the short days' end of 0.290022 on 2012-05-07 after a high of
+    0.176401 on 2008-07-08 and a low of −0.038153 on 2009-02-20.
 
 Its one figure is drawn from the committed vintage by
 [src/chan/opening_gap_figures.py](src/chan/opening_gap_figures.py), which
 reads it through the same `read_sources` and `opening_gap` as
 `python -m chan.opening_gap`, so the scale-break guard runs for it too. It
 draws two panels on one date axis, both shading the first 90 days, which
-carry no spread.
+have no standard deviation.
 
 1. The script's cumulative compounded return as written, the book's Figure
    7.1, with the sign the text describes beside it and the drawdown's high,
