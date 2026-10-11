@@ -256,6 +256,59 @@ class TestTheReturnPerTrade:
         assert pead_rerun.per_trade(drift) == pytest.approx(0.01)
 
 
+class TestTheTradeReturns:
+    """Each stock-day's signed return from the open to the close, on three stocks and two days."""
+
+    INDEX = pd.DatetimeIndex(DAYS[:3])
+
+    def toy(self) -> tuple[Drift, pd.DataFrame, pd.DataFrame]:
+        """The first day is outside the run, so its prices must not be read."""
+        opens = pd.DataFrame(
+            {"X": [1.0, 100.0, 50.0], "Y": [1.0, 20.0, np.nan], "Z": [1.0, 10.0, 10.0]},
+            index=self.INDEX,
+        )
+        closes = pd.DataFrame(
+            {"X": [9.0, 103.0, 49.0], "Y": [9.0, 21.0, 30.0], "Z": [9.0, 11.0, 12.0]},
+            index=self.INDEX,
+        )
+        positions = np.array([[1.0, -1.0, 0.0], [-1.0, 1.0, 0.0]])
+        days = self.INDEX[1:]
+        return Drift(days, positions, np.zeros(2), 0.0, 0.0, 0.0, 0.0, 0), opens, closes
+
+    def test_a_long_earns_the_move_and_a_short_its_negative(self) -> None:
+        drift, opens, closes = self.toy()
+        returns = pead_rerun.trade_returns(drift, opens, closes)
+        assert returns.at[DAYS[1], "X"] == pytest.approx(0.03)
+        assert returns.at[DAYS[1], "Y"] == pytest.approx(-0.05)
+        assert returns.at[DAYS[2], "X"] == pytest.approx(0.02)
+
+    def test_a_stock_not_held_and_a_missing_price_count_as_0(self) -> None:
+        """``smartsum`` reads a missing return as 0, so the run does too."""
+        drift, opens, closes = self.toy()
+        returns = pead_rerun.trade_returns(drift, opens, closes)
+        assert (returns["Z"] == 0).all()
+        assert returns.at[DAYS[2], "Y"] == 0.0
+
+    def test_it_has_the_runs_days_and_the_frames_stocks(self) -> None:
+        drift, opens, closes = self.toy()
+        returns = pead_rerun.trade_returns(drift, opens, closes)
+        assert returns.index.equals(drift.days)
+        assert list(returns.columns) == ["X", "Y", "Z"]
+
+    def test_each_row_over_30_is_the_runs_daily_return(self) -> None:
+        """On a real run, which is the identity the post's split of A rests on."""
+        opens = pd.DataFrame({"X": np.linspace(10, 12, 120), "Y": np.linspace(20, 15, 120)})
+        opens.index = pd.bdate_range("2011-01-03", periods=120)
+        wiggle = np.sin(np.arange(120)) / 50
+        closes = opens * (1 + wiggle[:, None])
+        closes["Y"] = opens["Y"] * (1 - wiggle)
+        flags = pd.DataFrame(1.0, index=opens.index, columns=opens.columns)
+        drift = pead(opens, closes, flags)
+        assert drift.trades > 0
+        returns = pead_rerun.trade_returns(drift, opens, closes)
+        np.testing.assert_allclose(returns.sum(axis=1) / DENOMINATOR, drift.daily, atol=1e-15)
+
+
 SPEC = (
     "chan.pead.pead on the flag file's 330 days, 90-day lookback, entry at 0.5 moving std, "
     "each day's return over 30; universes from research/filings/earnings/tickers.csv and "
@@ -402,13 +455,19 @@ def opens_off_chans(sources, prices) -> tuple[pd.DataFrame, pd.DataFrame]:
     return off.abs(), scale
 
 
-def runs_on_chans_opens(sources, prices) -> dict[str, Drift]:
-    """C, E1 and E5 with every open off by more than the tolerance replaced by Chan's."""
+def opens_with_chans(sources, prices) -> pd.DataFrame:
+    """The archive's adjusted opens with every one off by more than the tolerance replaced."""
     off, scale = opens_off_chans(sources, prices)
     stocks = sources.universe("PX")
     chans = sources.opens.loc[sources.window, stocks] / scale
     opens = prices.adjusted_open.copy()
     opens[stocks] = prices.adjusted_open[stocks].where(off <= OPEN_TOLERANCE, chans)
+    return opens
+
+
+def runs_on_chans_opens(sources, prices) -> dict[str, Drift]:
+    """C, E1 and E5 with every open off by more than the tolerance replaced by Chan's."""
+    opens = opens_with_chans(sources, prices)
     runs = {}
     for name, universe, flags in (
         ("C", "PX", sources.flags),
@@ -477,6 +536,153 @@ class TestTheCommittedRuns:
             "no late rule": (0.064813, 1.2880),
             "dropped": (0.059903, 1.2407),
         }, SPEC
+
+
+#: Said in every failure message of :class:`TestWhatThePostMeasured`.
+AFTER_THE_RUNS = (
+    "measured for blog/pead-edgar-rerun-lessons.md after the runs' figures were seen, "
+    "so it decides nothing"
+)
+
+
+def a_trades(sources, runs) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Run A's signed return on each stock-day, and its position there."""
+    a = runs["A"]
+    stocks = sources.universe("ALL")
+    returns = pead_rerun.trade_returns(a, sources.opens[stocks], sources.closes[stocks])
+    return returns, pd.DataFrame(a.positions, index=a.days, columns=stocks)
+
+
+def to_annual(drift: Drift) -> float:
+    """What one unit of summed trade return adds to a run's arithmetic annual return."""
+    return TRADING_DAYS / (DENOMINATOR * len(drift.days))
+
+
+class TestWhatThePostMeasured:
+    """Numbers ``blog/pead-edgar-rerun-lessons.md`` quotes that no row of Entry 46 declared.
+
+    Every number here was measured after the runs' figures were seen, on the
+    same committed vintages and specification as :class:`TestTheCommittedRuns`.
+    Each is exploratory and decides nothing. The split of A's stocks into
+    three groups, the day singled out, and the comparison of means in
+    particular were all chosen after reading the runs.
+    """
+
+    def test_a_less_a_u_is_exactly_the_trades_of_the_56_stocks_outside_u(
+        self, sources, runs
+    ) -> None:
+        """Each stock trades on its own gap and deviation, so dropping others changes nothing."""
+        returns, _ = a_trades(sources, runs)
+        outside = [s for s in returns.columns if s not in set(sources.universe("U"))]
+        summed = float(returns[outside].to_numpy().sum()) * to_annual(runs["A"])
+        effect = runs["A"].arithmetic_annual - runs["A_U"].arithmetic_annual
+        assert len(outside) == 56
+        assert summed == pytest.approx(effect, rel=1e-12), f"{SPEC}; {AFTER_THE_RUNS}"
+        assert round(summed, 6) == 0.023065
+
+    def test_a_less_a_cal_is_exactly_the_trades_of_the_9_stocks_outside_cal(
+        self, sources, runs
+    ) -> None:
+        """Rounded from the true value. Subtracting the two rounded pins gives 0.012262."""
+        returns, _ = a_trades(sources, runs)
+        outside = [s for s in returns.columns if s not in set(sources.universe("CAL"))]
+        summed = float(returns[outside].to_numpy().sum()) * to_annual(runs["A"])
+        effect = runs["A"].arithmetic_annual - runs["A_CAL"].arithmetic_annual
+        assert summed == pytest.approx(effect, rel=1e-12), f"{SPEC}; {AFTER_THE_RUNS}"
+        assert round(effect, 6) == 0.012261
+        assert round(FIGURES["A"][0] - FIGURES["A_CAL"][0], 6) == 0.012262
+
+    def test_the_three_groups_stocks_trades_and_contributions(self, sources, runs) -> None:
+        returns, positions = a_trades(sources, runs)
+        u, cal = set(sources.universe("U")), set(sources.universe("CAL"))
+        groups = {
+            "U": [s for s in returns.columns if s in u],
+            "CAL, no checked series": [s for s in returns.columns if s in cal and s not in u],
+            "no checked CIK": [s for s in returns.columns if s not in cal],
+        }
+        measured = {
+            name: (
+                len(stocks),
+                int((positions[stocks] != 0).to_numpy().sum()),
+                round(float(returns[stocks].to_numpy().sum()) * to_annual(runs["A"]), 6),
+            )
+            for name, stocks in groups.items()
+        }
+        assert measured == {
+            "U": (441, 949, 0.043678),
+            "CAL, no checked series": (47, 103, 0.010803),
+            "no checked CIK": (9, 20, 0.012261),
+        }, f"{SPEC}; {AFTER_THE_RUNS}"
+
+    def test_the_stocks_outside_u_carry_0_35_of_a(self, runs) -> None:
+        effect = runs["A"].arithmetic_annual - runs["A_U"].arithmetic_annual
+        assert round(effect / runs["A"].arithmetic_annual, 2) == 0.35, AFTER_THE_RUNS
+
+    def test_on_2011_08_04_the_stocks_outside_u_add_0_010702(self, sources, runs) -> None:
+        """About half the universe effect, on one day, and WFR's short is the largest trade."""
+        returns, positions = a_trades(sources, runs)
+        outside = [s for s in returns.columns if s not in set(sources.universe("U"))]
+        day = pd.Timestamp("2011-08-04")
+        added = float(returns.loc[day, outside].sum()) * to_annual(runs["A"])
+        assert round(added, 6) == 0.010702, f"{SPEC}; {AFTER_THE_RUNS}"
+        effect = runs["A"].arithmetic_annual - runs["A_U"].arithmetic_annual
+        assert round(added / effect, 2) == 0.46
+        assert int((positions.loc[day, outside] != 0).sum()) == 8
+        assert (positions.at[day, "WFR"], round(returns.at[day, "WFR"], 4)) == (-1.0, 0.1108)
+
+    def test_the_five_largest_trades_outside_u_are_shorts_outside_cal(self, sources, runs) -> None:
+        returns, positions = a_trades(sources, runs)
+        outside = [s for s in returns.columns if s not in set(sources.universe("U"))]
+        held = positions[outside].stack()
+        trades = returns[outside].stack()[held != 0]
+        top = trades.sort_values(ascending=False).head(5)
+        assert [
+            (str(day.date()), stock, positions.at[day, stock], round(float(value), 4))
+            for (day, stock), value in top.items()
+        ] == [
+            ("2011-08-04", "WFR", -1.0, 0.1108),
+            ("2011-10-28", "CVC", -1.0, 0.1093),
+            ("2011-11-09", "LUK", -1.0, 0.0915),
+            ("2012-01-26", "MWW", -1.0, 0.0915),
+            ("2011-10-25", "AKS", -1.0, 0.0866),
+        ], f"{SPEC}; {AFTER_THE_RUNS}"
+        cal = set(sources.universe("CAL"))
+        assert not any(stock in cal for _, stock in top.index)
+        assert round(float(top.sum() / trades.sum()), 2) == 0.54
+
+    def test_the_mean_trade_outside_u_and_inside_and_the_welch_t(self, sources, runs) -> None:
+        """A t of 1.46 that treats every trade as independent, so chance is not ruled out.
+
+        Welch's t compares two means without assuming the two spreads are
+        equal: the difference of the means over the square root of each
+        sample's variance over its count, summed.
+        """
+        returns, positions = a_trades(sources, runs)
+        u = set(sources.universe("U"))
+        held = positions.stack() != 0
+        trades = returns.stack()[held]
+        is_inside = np.array([stock in u for _, stock in trades.index])
+        inside, outside = trades[is_inside], trades[~is_inside]
+        assert (len(outside), round(float(outside.mean()), 6)) == (123, 0.007367), AFTER_THE_RUNS
+        assert (len(inside), round(float(inside.mean()), 6)) == (949, PER_TRADE["A_U"])
+        t = (outside.mean() - inside.mean()) / np.sqrt(
+            outside.var(ddof=1) / len(outside) + inside.var(ddof=1) / len(inside)
+        )
+        assert round(float(t), 2) == 1.46, f"{SPEC}; {AFTER_THE_RUNS}"
+
+    def test_at_r1s_own_mean_the_extra_trades_are_0_79_of_its_rise(self, runs) -> None:
+        """At A_CAL's mean the share is 0.75, which ``TestTheCommittedRuns`` pins."""
+        a_cal, b1 = runs["A_CAL"], runs["B1"]
+        whole = b1.trades * pead_rerun.per_trade(b1) - a_cal.trades * pead_rerun.per_trade(a_cal)
+        from_trades = (b1.trades - a_cal.trades) * pead_rerun.per_trade(b1)
+        assert round(from_trades / whole, 2) == 0.79, f"{SPEC}; {AFTER_THE_RUNS}"
+
+    def test_the_days_b1_and_b5_hold_more_than_30_positions(self, runs) -> None:
+        past = {
+            name: int((np.count_nonzero(runs[name].positions, axis=1) > DENOMINATOR).sum())
+            for name in ("B1", "B5")
+        }
+        assert past == {"B1": 4, "B5": 10}, f"{SPEC}; {AFTER_THE_RUNS}"
 
 
 def stand_in_prices(sources) -> pead_rerun.ArchivePrices:
@@ -729,3 +935,52 @@ class TestTheArchiveOpens:
         assert (before.at["2011-09-12", "PNC"], after.at["2011-09-12", "PNC"]) == (1.0, -1.0)
         vendor_and_basis = EFFECTS["vendor"][0] + EFFECTS["basis"][0]
         assert abs(moves["E5"][0]) > abs(vendor_and_basis)
+
+    def test_three_trades_make_each_of_e5s_and_e1s_moves(self, sources, archive_runs) -> None:
+        """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
+
+        Each trade's change in signed return, over 30 and times 252 over the
+        330 days, is its share of the move in the arithmetic annual return.
+        In E5, PNC on 2011-09-12 turns from long to short. MCO on 2012-02-08
+        and TMK on 2011-10-27 keep their side and earn less from Chan's open.
+        In E1, CAM on 2011-10-27 turns from long to short and gains.
+        """
+        runs, prices = archive_runs
+        fixed = runs_on_chans_opens(sources, prices)
+        opens = opens_with_chans(sources, prices)
+        u = sources.universe("U")
+        closes = prices.adjusted_close[u]
+        moved = {}
+        for name in ("E1", "E5"):
+            before = pead_rerun.trade_returns(runs[name], prices.adjusted_open[u], closes)
+            after = pead_rerun.trade_returns(fixed[name], opens[u], closes)
+            share = (after - before) * TRADING_DAYS / (DENOMINATOR * len(runs[name].days))
+            changed = share.stack()
+            changed = changed[changed.abs() > 1e-12]
+            moved[name] = {
+                (str(day.date()), stock): round(float(value), 6)
+                for (day, stock), value in changed.items()
+            }
+            total = fixed[name].arithmetic_annual - runs[name].arithmetic_annual
+            assert float(changed.sum()) == pytest.approx(total, rel=1e-9), ARCHIVE_SPEC
+        assert moved == {
+            "E1": {
+                ("2011-10-27", "CAM"): 0.001766,
+                ("2011-10-27", "TMK"): -0.000554,
+                ("2012-02-08", "MCO"): -0.001751,
+            },
+            "E5": {
+                ("2011-09-12", "PNC"): -0.002261,
+                ("2011-10-27", "TMK"): -0.000554,
+                ("2012-02-08", "MCO"): -0.001751,
+            },
+        }, ARCHIVE_SPEC
+        e1_before = pd.DataFrame(runs["E1"].positions, index=runs["E1"].days, columns=u)
+        e1_after = pd.DataFrame(fixed["E1"].positions, index=fixed["E1"].days, columns=u)
+        changed = (e1_before != e1_after).stack()
+        assert list(changed[changed].index) == [(pd.Timestamp("2011-10-27"), "CAM")]
+        assert (e1_before.at["2011-10-27", "CAM"], e1_after.at["2011-10-27", "CAM"]) == (1.0, -1.0)
+        # The PNC flip alone moves E5 more than the vendor and basis effects together.
+        assert abs(moved["E5"][("2011-09-12", "PNC")]) > abs(
+            EFFECTS["vendor"][0] + EFFECTS["basis"][0]
+        )

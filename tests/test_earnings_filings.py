@@ -665,6 +665,21 @@ class TestTheCommittedIndex:
         after = sum(t >= "16:00:00" for t in times)
         assert (before, len(times) - before - after, after) == (1460, 405, 1065)
 
+    def test_the_earliest_and_latest_times_of_day_any_filing_was_accepted(self, index) -> None:
+        """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
+
+        No filing was accepted before 06:00:43 Eastern on any day. So a time
+        read 4 or 5 hours late, as the plan audit found the submissions JSON
+        reads some filers, would put every filing accepted before the open
+        inside the session, where R1 flags nothing for it.
+        """
+        times = sorted(release.accepted[11:] for release in index)
+        assert (times[0], times[-1]) == ("06:00:43", "21:49:59")
+        shifted = [pd.Timestamp(f"2011-01-03 {t}") + pd.Timedelta(hours=4) for t in times]
+        before_open = [s for s, t in zip(shifted, times, strict=True) if t < "09:30:00"]
+        assert min(before_open).time() >= pd.Timestamp("09:30").time()
+        assert max(before_open) + pd.Timedelta(hours=1) < pd.Timestamp("2011-01-03 16:00")
+
     def test_343_were_accepted_after_the_date_they_report(self, index) -> None:
         late = [r for r in index if r.report_date and r.accepted[:10] > r.report_date]
         assert len(late) == 343
