@@ -881,6 +881,13 @@ def test_a_card_waiting_on_two_issues_is_not_called_behind_one_thing(tmp_path: P
     assert "#90505 waits on 2 open issues at once, #90501 and #90504." in note
     board = text(ids, "board")
     assert "one thing has to land first" not in board
+    for phrase in (
+        "One step behind",
+        "what these wait on waits on no open issue",
+        "Two steps behind or more",
+        "something these wait on waits on another",
+    ):
+        assert phrase in board
     raw = ids["board"]["html"]
     second = raw.split('<div class="col k1')[1].split('<div class="col k2')[0]
     assert 'data-n="90505"' in second
@@ -1006,3 +1013,71 @@ def test_counting_too_names_the_hidden_issues_after_a_named_card(tmp_path: Path)
     assert "#90505 waits on 2 open issues at once, #90502 and #90504." in note
     assert "Counting them too" not in note
     assert "Counting the hidden issues too, #90501" in note
+
+
+def test_only_open_blockers_of_cards_in_the_columns_are_counted(tmp_path: Path) -> None:
+    """Protects which blockers and which cards the depth and blocker clauses read.
+
+    Issue numbers 99998 and 99999 are not in the tracker, so they stand for
+    closed issues, and neither counts. Fixture issue 90504 becomes a data card
+    waiting on two open issues and sitting three steps deep. A data card sits in
+    the fourth column, outside the chain the sentence measures, so it is neither
+    named nor allowed to deepen the chain past 90503's two steps.
+    """
+    docs = _with_needs(
+        fixture_docs(),
+        {90503: [90502, 99998], 90505: [90501, 90502, 99999], 90504: [90503, 90505]},
+    )
+    for card in docs["tracker"]["items"]:
+        if card["n"] == 90504:
+            card["kind"] = "data"
+    note = text(
+        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
+    )
+    assert "#90505 waits on 2 open issues at once, #90501 and #90502." in note
+    assert "#99999" not in note
+    assert "#90503 waits on" not in note
+    assert "#90504" not in note.split("free for a session")[1].split("frees the most")[0]
+    assert "and the deepest is 2 steps behind." in note
+
+
+def test_one_deep_card_takes_a_singular_verb(tmp_path: Path) -> None:
+    """Protects the verb's agreement when exactly one card is two steps deep."""
+    docs = _with_needs(fixture_docs(), {90505: []})
+    note = text(
+        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
+    )
+    assert (
+        "1 card waits on an issue that waits on another, and the deepest is 2 steps behind." in note
+    )
+
+
+def test_the_hidden_pointer_lists_top_cards_and_blocked_cards_in_order(tmp_path: Path) -> None:
+    """Protects the pointer when it names both kinds of hidden card.
+
+    Fixture issues 90504 and 90505 each free 90503, which waits on both of
+    them, and the short view draws none of the three. The pointer names the
+    cards that free the most and the card with several blockers together, in
+    issue order rather than in the order the two lists were joined.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90505, 90504], 90505: []})
+    note = text(run_page(tmp_path, db=True, steps=[docs]), "boardnote")
+    assert "#90503, #90504 and #90505 are hidden in this view" in note
+
+
+def test_a_board_with_nothing_in_the_chain_columns_gives_no_depth(tmp_path: Path) -> None:
+    """Protects the longest chain's floor when no card is in the first three columns.
+
+    Every card but the one in flight becomes a data card, so the chain the
+    sentence measures holds no card at all and its longest is zero rather than
+    an empty maximum.
+    """
+    docs = fixture_docs()
+    for card in docs["tracker"]["items"]:
+        if card["n"] != 90501:
+            card["kind"] = "data"
+    note = text(
+        run_page(tmp_path, db=True, steps=[docs], page=_show_all_page(tmp_path)), "boardnote"
+    )
+    assert "Infinity" not in note
+    assert "behind." not in note
