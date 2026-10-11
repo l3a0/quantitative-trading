@@ -1055,7 +1055,8 @@ as the stock files. Nine of his book-two scripts load it, and each reads only
 its days, its symbols and its closes. They cover the cointegration tests and
 mean-reversion portfolio of Examples 2.6 to 2.8 on EWA, EWC and IGE, the
 price spread, ratio, Bollinger band and Kalman filter examples of Chapter 3
-on GLD, USO, EWA and EWC, and the SPY leg of Example 4.2. Example 3.1 is
+on GLD, USO, EWA and EWC, the SPY leg of Example 4.2, and the XLE and USO
+legs of Chapter 6's roll-return trade. Example 3.1 is
 the first run to read it, GLD and USO alone, under
 [issue 340](https://github.com/l3a0/quantitative-trading/issues/340).
 Examples 2.6 to 2.8 read EWA, EWC and IGE from it through
