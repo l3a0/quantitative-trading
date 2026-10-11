@@ -70,6 +70,23 @@ Every result here is exploratory. Testing a claim someone else chose spends
 the 2004 to 2008 sample on it, so the run says whether the claim holds on this
 file and nothing about factor momentum today.
 
+**What the write-up measured after the run.** ``blog/pca-factor-momentum-lessons.md``
+teaches why each pair reads one day's vectors, and the functions after
+:func:`compute_both` measure what the other ways of building a factor's series
+give. A singular vector's sign is whatever the numerical library returns, and
+two machines running this suite returned different ones, so every vector's
+sign is first fixed by a rule, its largest weight positive. Then they count
+the days a vector's sign still flips and the days two factors swap rank, and
+compute the statistic on each day's own weights, with sign and rank matched,
+and with tomorrow's weights fitted on 251 days that leave today's return out.
+A control fits tomorrow's weights on the 251 days ending today, the same
+length with today's return kept in. They also read PMC's weight on the days
+whose window holds its one large return and which factor carries it, check
+that the program's ranking moves nowhere when the intercept is dropped, and
+find how close any stock comes to tying a factor. All of it was measured
+after the verdicts and decides nothing.
+:mod:`chan.pca_factor_momentum_figures` draws the post's figure from them.
+
 ``tests/test_pca_factor_momentum.py`` is the single authority for every
 number any prose surface quotes about this experiment.
 
@@ -87,7 +104,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from ithildincore.stats import newey_west_summary
+from scipy.optimize import linear_sum_assignment
 
+from chan.matlab_helpers import matlab_sort
 from chan.pca_factor import (
     FACTORS,
     LOOKBACK,
@@ -95,6 +114,7 @@ from chan.pca_factor import (
     SPLICED,
     matlab_returns,
     revised_matlab_components,
+    revised_matlab_expected,
 )
 from chan.series import load_panel, panel_line
 from chan.vintage import VintageEntry, VintageUnavailable
@@ -144,18 +164,53 @@ def uncentred(first: np.ndarray, second: np.ndarray) -> np.ndarray:
     return (first * second).sum(axis=0) / np.sqrt((first**2).sum(axis=0) * (second**2).sum(axis=0))
 
 
+def file_returns(closes: pd.DataFrame) -> np.ndarray:
+    """Each day's return on the closes after the program's forward fill, days by stocks."""
+    return matlab_returns(closes.ffill().to_numpy(dtype=float))  # fillMissingData(cl)
+
+
+@dataclass(frozen=True)
+class Decomposition:
+    """One window's five components, on the stocks priced on every day of it.
+
+    The window is the ``lookback`` rows of returns ending the row before
+    ``end``. ``stocks`` are the column indices it keeps, and ``vectors`` holds
+    one unit-length column of weights across them per factor.
+    """
+
+    end: int
+    stocks: np.ndarray
+    vectors: np.ndarray
+    singular: np.ndarray
+
+
+def decompose(returns: np.ndarray, end: int, lookback: int = LOOKBACK) -> Decomposition:
+    """The revised MATLAB's components on the ``lookback`` returns before row ``end``."""
+    window = returns[end - lookback : end].T  # dailyret(t-lookback:t-1,:)'
+    has = np.flatnonzero(np.isfinite(window).all(axis=1))
+    vectors, singular = revised_matlab_components(window[has])
+    return Decomposition(end=end, stocks=has, vectors=vectors, singular=singular)
+
+
+def daily_components(returns: np.ndarray) -> list[Decomposition]:
+    """Every fitting day's decomposition, from the revised MATLAB's first to the last row.
+
+    Day t's window ends on day t − 1, so one more decomposition exists than
+    there are pairs. :func:`factor_pairs` reads all but the last, and
+    :func:`weight_statistics` reads the last as the day after the last pair.
+    """
+    return [decompose(returns, t) for t in range(LOOKBACK + 1, len(returns))]
+
+
 def factor_pairs(closes: pd.DataFrame) -> Pairs:
     """Every fitting day's five factor returns and the next day's, on that day's vectors."""
-    prices = closes.ffill().to_numpy(dtype=float)  # fillMissingData(cl)
-    returns = matlab_returns(prices)
+    returns = file_returns(closes)
     days, today, tomorrow, mean_today, mean_tomorrow = [], [], [], [], []
-    for t in range(LOOKBACK + 1, len(prices) - 1):  # the revised MATLAB's days with a next row
-        window = returns[t - LOOKBACK : t].T  # dailyret(t-lookback:t-1,:)'
-        has = np.flatnonzero(np.isfinite(window).all(axis=1))
-        vectors, _ = revised_matlab_components(window[has])
+    for d in daily_components(returns)[:-1]:  # the revised MATLAB's days with a next row
+        t, has = d.end, d.stocks
         days.append(closes.index[t])
-        today.append(vectors.T @ returns[t, has])
-        tomorrow.append(vectors.T @ returns[t + 1, has])
+        today.append(d.vectors.T @ returns[t, has])
+        tomorrow.append(d.vectors.T @ returns[t + 1, has])
         mean_today.append(returns[t, has].mean())
         mean_tomorrow.append(returns[t + 1, has].mean())
     return Pairs(
@@ -169,7 +224,7 @@ def factor_pairs(closes: pd.DataFrame) -> Pairs:
 
 def stock_statistics(closes: pd.DataFrame) -> pd.Series:
     """The uncentred statistic of each stock priced on every row the pairs read."""
-    returns = matlab_returns(closes.ffill().to_numpy(dtype=float))[LOOKBACK + 1 :]
+    returns = file_returns(closes)[LOOKBACK + 1 :]
     complete = np.isfinite(returns).all(axis=0)
     values = uncentred(returns[:-1, complete], returns[1:, complete])
     return pd.Series(values, index=closes.columns[complete])
@@ -314,6 +369,181 @@ class Results:
 
 def compute_both(closes: pd.DataFrame) -> Results:
     return Results(spliced=compute(closes), unspliced=compute(closes.drop(columns=[SPLICED])))
+
+
+# --- what the write-up measured after the run ------------------------------------
+#
+# ``blog/pca-factor-momentum-lessons.md`` explains why each pair reads one
+# day's vectors by measuring what the other ways of building a factor's series
+# give. Everything below was measured after the verdicts and decides nothing.
+
+
+def overlaps(earlier: Decomposition, later: Decomposition) -> np.ndarray:
+    """Each of ``earlier``'s vectors against each of ``later``'s, on the stocks both keep.
+
+    Row k, column j is the dot product of ``earlier``'s factor k with
+    ``later``'s factor j. Near ±1 on the diagonal means the two days found the
+    same factor in the same place, up to its sign.
+    """
+    _, mine, theirs = np.intersect1d(earlier.stocks, later.stocks, return_indices=True)
+    return earlier.vectors[mine].T @ later.vectors[theirs]
+
+
+def sign_flips(components: list[Decomposition]) -> np.ndarray:
+    """For each factor, how many consecutive decompositions point its vector the other way."""
+    flips = np.zeros(FACTORS, dtype=int)
+    for earlier, later in zip(components[:-1], components[1:], strict=True):
+        flips += np.diag(overlaps(earlier, later)) < 0
+    return flips
+
+
+def match(earlier: Decomposition, later: Decomposition) -> tuple[np.ndarray, np.ndarray]:
+    """Which of ``later``'s factors is each of ``earlier``'s, and the sign that lines it up.
+
+    The assignment maximises the summed size of the matched overlaps, through
+    :func:`scipy.optimize.linear_sum_assignment`, so each of ``later``'s
+    factors is used once. ``order[k]`` is the factor matched to factor k, and
+    ``signs[k]`` is +1 or −1, whichever makes that overlap positive.
+    """
+    overlap = overlaps(earlier, later)
+    rows, order = linear_sum_assignment(-np.abs(overlap))
+    return order, np.where(overlap[rows, order] < 0, -1.0, 1.0)
+
+
+def swap_days(components: list[Decomposition]) -> int:
+    """How many consecutive decompositions rank two or more factors in a different order."""
+    identity = np.arange(FACTORS)
+    return sum(
+        bool((match(earlier, later)[0] != identity).any())
+        for earlier, later in zip(components[:-1], components[1:], strict=True)
+    )
+
+
+def with_largest_weight_positive(d: Decomposition) -> Decomposition:
+    """``d`` with each vector's sign set so its largest weight in size is positive.
+
+    A singular vector's sign is whatever the numerical library returns, and two
+    libraries can return opposite signs for the same window. Fixing the sign by
+    a rule that reads only the vector makes a series built from each day's
+    vectors the same on every machine.
+    """
+    largest = np.abs(d.vectors).argmax(axis=0)
+    signs = np.where(d.vectors[largest, np.arange(d.vectors.shape[1])] < 0, -1.0, 1.0)
+    return Decomposition(end=d.end, stocks=d.stocks, vectors=d.vectors * signs, singular=d.singular)
+
+
+def _on_own_weights(returns: np.ndarray, d: Decomposition, row: int) -> np.ndarray:
+    return d.vectors.T @ returns[row, d.stocks]
+
+
+@dataclass(frozen=True)
+class WeightStatistics:
+    """Each factor's uncentred statistic when tomorrow's return reads other weights.
+
+    Every one runs over the same days as the pairs, and pairs today's factor
+    return on today's weights, u_k(t) · r_t, with a return for tomorrow.
+
+    - ``own``: tomorrow's on tomorrow's weights, u_k(t + 1) · r_{t+1}, as a
+      series rebuilt from each day's decomposition would read it, with every
+      vector's sign fixed by :func:`with_largest_weight_positive`.
+    - ``matched``: the same, with tomorrow's factors put in today's order and
+      sign by :func:`match`.
+    - ``left_out``: tomorrow's weights fitted on the 251 days before today,
+      which leave today's return out, then matched.
+    - ``shortened``: tomorrow's weights fitted on the 251 days ending today,
+      which still hold today's return, then matched. It is the control for
+      ``left_out``, with the same window length and today's return kept in.
+
+    None of the four depends on the signs the library returns. ``own`` fixes
+    them by rule, and the other three match tomorrow's signs to today's.
+    """
+
+    own: np.ndarray
+    matched: np.ndarray
+    left_out: np.ndarray
+    shortened: np.ndarray
+
+
+def weight_statistics(returns: np.ndarray, components: list[Decomposition]) -> WeightStatistics:
+    """The four statistics, from every decomposition :func:`daily_components` gives."""
+    components = [with_largest_weight_positive(d) for d in components]
+    today, own, matched, left_out, shortened = [], [], [], [], []
+    for d, after in zip(components[:-1], components[1:], strict=True):
+        t = d.end
+        today.append(_on_own_weights(returns, d, t))
+        tomorrow = _on_own_weights(returns, after, t + 1)
+        own.append(tomorrow)
+        order, signs = match(d, after)
+        matched.append(signs * tomorrow[order])
+        unseen = decompose(returns, t, LOOKBACK - 1)  # rows t − 251 to t − 1
+        order, signs = match(d, unseen)
+        left_out.append(signs * _on_own_weights(returns, unseen, t + 1)[order])
+        seen = decompose(returns, t + 1, LOOKBACK - 1)  # rows t − 250 to t
+        order, signs = match(d, seen)
+        shortened.append(signs * _on_own_weights(returns, seen, t + 1)[order])
+    today = np.array(today)
+    return WeightStatistics(
+        own=uncentred(today, np.array(own)),
+        matched=uncentred(today, np.array(matched)),
+        left_out=uncentred(today, np.array(left_out)),
+        shortened=uncentred(today, np.array(shortened)),
+    )
+
+
+def windows_holding(components: list[Decomposition], row: int) -> list[Decomposition]:
+    """The decompositions whose window holds the return on ``row``."""
+    return [d for d in components if d.end - LOOKBACK <= row < d.end]
+
+
+def largest_loading(d: Decomposition, column: int) -> tuple[float, int]:
+    """The largest absolute weight any factor puts on one stock, and which factor puts it."""
+    (position,) = np.flatnonzero(d.stocks == column)
+    sizes = np.abs(d.vectors[position])
+    return float(sizes.max()), int(sizes.argmax())
+
+
+def without_the_intercept(window: np.ndarray, today: np.ndarray) -> np.ndarray:
+    """The revised MATLAB's fitted values less the intercept, Σ u_k (u_k · r_t).
+
+    The vectors sum to zero across the stocks, because each day of the window
+    is centred across them first, so the intercept is the day's mean return
+    and the slopes carry everything else.
+    """
+    vectors, _ = revised_matlab_components(window)
+    return vectors @ (vectors.T @ today)
+
+
+def rankings_agree(returns: np.ndarray, components: list[Decomposition]) -> np.ndarray:
+    """Whether the program's ranking and the ranking without the intercept agree, per pair day."""
+    agree = []
+    for d in components[:-1]:
+        window = returns[d.end - LOOKBACK : d.end].T[d.stocks]
+        today = returns[d.end, d.stocks]
+        agree.append(
+            np.array_equal(
+                matlab_sort(revised_matlab_expected(window, today)),
+                matlab_sort(without_the_intercept(window, today)),
+            )
+        )
+    return np.array(agree)
+
+
+def smallest_gap(comparison: Comparison) -> float:
+    """The closest any stock's statistic comes to any factor's.
+
+    A gap above zero means no stock ties a factor, so the share of stocks at
+    or below a factor equals the share strictly below, which
+    :meth:`Comparison.percentile` counts.
+    """
+    stocks = comparison.stocks.to_numpy()
+    return float(np.abs(stocks[:, None] - comparison.factors[None, :]).min())
+
+
+def share_of_largest(values: np.ndarray, count: int) -> tuple[float, np.ndarray]:
+    """The share of Σ values² that the ``count`` largest squares hold, and their positions."""
+    squares = np.asarray(values, dtype=float) ** 2
+    largest = np.argsort(squares, kind="stable")[::-1][:count]
+    return float(squares[largest].sum() / squares.sum()), np.sort(largest)
 
 
 def _figures(result: Result) -> None:
