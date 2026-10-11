@@ -27,7 +27,10 @@ here.
   on ``cumprod(1 + a) − 1``. D is 0.5, and every leverage on the draws is a
   multiple of the capped optimum on the same draws. The declared seed is
   20261012 and the ensemble is the 200 seeds 20261013 to 20261212. A simulated
-  figure lands inside the ensemble's 5th to 95th percentile.
+  figure lands inside the ensemble's 5th to 95th percentile. Row 3 reads that
+  band on the seeds whose ruin leverage is above the book's 30.2, a rule
+  chosen after the ensemble was seen, and the declared band across all 200 is
+  pinned beside it.
 
 A seeded figure is pinned at six decimals, or six significant figures where it
 is smaller than 0.01, so a change to the draw method cannot move it inside the
@@ -44,6 +47,7 @@ from __future__ import annotations
 import io
 import math
 from contextlib import redirect_stdout
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -51,8 +55,9 @@ from scipy import integrate, optimize
 
 from chan import monte_carlo_leverage as module
 from chan.aud_cad_johansen import SCRIPT_KELLY
-from chan.khandani_lo_book_two import matches
+from chan.khandani_lo_book_two import gap, matches
 from chan.monte_carlo_leverage import (
+    APR_BAND,
     BAND,
     BOOK_CPPI_GROWTH,
     BOOK_DRAWDOWN_HALF,
@@ -73,10 +78,12 @@ from chan.monte_carlo_leverage import (
     ENSEMBLE_SEEDS,
     EQUAL_WITHIN,
     SEED,
+    SHARPE_BAND,
     SIMILAR_WITHIN,
     XATOL,
     Band,
     D,
+    Ensemble,
     MonteCarloLeverage,
     cppi_as_described,
     cppi_as_described_loop,
@@ -91,6 +98,7 @@ from chan.monte_carlo_leverage import (
     max_drawdown,
     minimum_below,
     optimal_leverage,
+    optimum_band,
     read_returns,
     rounding_band,
     rows,
@@ -361,18 +369,75 @@ class TestRows3And4TheSimulatedOptimum:
         assert np.all(capped < CAP)
         assert np.count_nonzero(capped > CAP - 1e-6) == 158
 
-    def test_row_3_both_figures_land_and_the_seed_explains_the_gap(self, verdicts) -> None:
-        assert verdicts[("3", BOOK_OPTIMUM_FMINBND)] == "reproduced with a gap, the seed"
-        assert verdicts[("3", BOOK_OPTIMUM)] == "reproduced with a gap, the seed"
-
-    def test_the_capped_band_would_reach_the_book_only_through_clamped_seeds(self, result) -> None:
-        """Why row 3 reads the uncapped band: below 19.2 every capped optimum was cut by ruin."""
+    def test_the_declared_band_shares_the_capped_band_s_lower_tail(self, result) -> None:
+        """Why row 3's rule changed: both bands' 5th percentiles are one clamped seed's optimum."""
         ens = result.ensemble
-        capped, ruin = ens.values("optimum"), ens.values("ruin")
-        below = capped < float(BOOK_OPTIMUM)
-        assert np.all(ruin[below] < CAP)
+        uncapped, capped = ens.band("uncapped"), ens.band("optimum")
+        assert uncapped.low == capped.low
+        assert uncapped.low == pytest.approx(16.622019, abs=1e-6)
+        ruin = ens.values("ruin")
+        assert np.all(ruin[ens.values("uncapped") <= uncapped.low] < CAP)
 
-    def test_row_4_the_kelly_lies_inside_the_uncapped_band(self, result, verdicts) -> None:
+    def test_under_the_declared_band_both_figures_land(self, result) -> None:
+        """The declared rule's verdict, kept beside the one row 3 now reads."""
+        found = result.ensemble.band("uncapped")
+        assert found.holds(float(BOOK_OPTIMUM_FMINBND)) and found.holds(float(BOOK_OPTIMUM))
+
+    def test_the_band_row_3_reads(self, result) -> None:
+        """The uncapped optimum on the seeds whose ruin leverage is above the book's 30.2.
+
+        Their count is within four binomial standard errors of the exact chance
+        that the least of 100,000 draws is above −1 / 30.2.
+        """
+        kept = result.ensemble.ruin_above(float(BOOK_RUIN))
+        assert len(kept.runs) == 40
+        p = 1 - minimum_below(result.params, -1 / float(BOOK_RUIN))
+        assert abs(40 - 200 * p) < 4 * math.sqrt(200 * p * (1 - p))
+        found = optimum_band(result.ensemble)
+        assert found == kept.band("uncapped")
+        assert found.low == pytest.approx(22.969856, abs=1e-6)
+        assert found.median == pytest.approx(24.024213, abs=1e-6)
+        assert found.high == pytest.approx(25.374220, abs=1e-6)
+
+    def test_row_3_reads_the_declared_seed_s_uncapped_optimum(self, result) -> None:
+        """The gap and the verdict read the same quantity, so the gap is to 22.295382, not 20."""
+        printed = [row.computed for row in rows(result) if row.number == "3"]
+        assert printed == ["22.295382", "22.295382"]
+        assert gap(result.declared.uncapped, BOOK_OPTIMUM_FMINBND) == 3.0
+        assert gap(result.declared.uncapped, BOOK_OPTIMUM) == pytest.approx(3.1, abs=1e-12)
+
+    def test_row_3_neither_figure_lands(self, verdicts) -> None:
+        assert verdicts[("3", BOOK_OPTIMUM_FMINBND)] == "did not reproduce"
+        assert verdicts[("3", BOOK_OPTIMUM)] == "did not reproduce"
+
+    def test_row_3_follows_only_the_conditioned_band(self, result) -> None:
+        """Every other seed moved to 18 lands the book under the other bands and changes nothing.
+
+        Moving the conditioned seeds instead, to straddle 19 and 19.2, lands both.
+        """
+        moved = tuple(
+            run if run.ruin > float(BOOK_RUIN) else replace(run, uncapped=18.0, optimum=18.0)
+            for run in result.ensemble.runs
+        )
+        other = replace(result, ensemble=Ensemble(moved))
+        assert other.ensemble.band("uncapped").holds(float(BOOK_OPTIMUM_FMINBND))
+        assert other.ensemble.band("optimum").holds(float(BOOK_OPTIMUM))
+        assert {(r.number, r.verdict) for r in rows(other) if r.number in ("3", "4")} == {
+            ("3", "did not reproduce"),
+            ("4", "reproduced"),
+        }
+        spread = iter(np.linspace(18.5, 19.5, 40))
+        straddled = tuple(
+            replace(run, uncapped=next(spread)) if run.ruin > float(BOOK_RUIN) else run
+            for run in result.ensemble.runs
+        )
+        landed = replace(result, ensemble=Ensemble(straddled))
+        assert [r.verdict for r in rows(landed) if r.number == "3"] == [
+            "reproduced with a gap, the seed"
+        ] * 2
+
+    def test_row_4_the_kelly_lies_inside_row_3_s_band(self, result, verdicts) -> None:
+        assert optimum_band(result.ensemble).holds(result.kelly)
         assert result.ensemble.band("uncapped").holds(result.kelly)
         assert verdicts[("4", "a claim")] == "reproduced"
 
@@ -511,6 +576,16 @@ class TestRow12TheDrawdownCppiCaps:
         values = result.ensemble.values("described_drawdown")
         assert np.all(values > -D)
         assert result.declared.described_drawdown == pytest.approx(-0.495638, abs=5e-7)
+        found = result.ensemble.band("described_drawdown")
+        assert (found.low, found.high) == pytest.approx((-0.499628, -0.489965), abs=5e-7)
+
+    def test_one_seed_below_the_floor_fails_each_claim(self, result) -> None:
+        """A claim on every seed fails when one seed breaks the floor."""
+        first, *rest = result.ensemble.runs
+        broken = replace(first, described_drawdown=-0.6, cppi_drawdown=-0.6)
+        other = replace(result, ensemble=Ensemble((broken, *rest)))
+        claims = [row.verdict for row in rows(other) if row.number == "12" and "CPPI" in row.label]
+        assert claims == ["did not reproduce", "did not reproduce"]
 
 
 class TestBesideTheReplication:
@@ -555,6 +630,31 @@ class TestRowGroup13TheEighteenPointFourGap:
         assert implied_kelly(1.65, 0.11) > implied_kelly(1.6, 0.11) > implied_kelly(1.55, 0.11)
         assert implied_kelly(1.6, 0.105) > implied_kelly(1.6, 0.11) > implied_kelly(1.6, 0.115)
 
+    @pytest.mark.parametrize(
+        ("compounding", "low", "high"),
+        [("exact", 22.065999, 27.261771), ("simple", 20.891304, 25.928571)],
+    )
+    def test_other_compoundings_move_the_edge_but_not_to_18_4(self, compounding, low, high) -> None:
+        """``(1 + m)^252 − 1`` or ``252·m`` for the log growth, each giving ``S² / (252·m)``."""
+
+        def kelly(sharpe: float, apr: float) -> float:
+            m = math.expm1(math.log1p(apr) / 252) if compounding == "exact" else apr / 252
+            return sharpe * sharpe / (252 * m)
+
+        corners = [kelly(s, a) for s in SHARPE_BAND for a in APR_BAND]
+        assert (min(corners), max(corners)) == pytest.approx((low, high), abs=5e-7)
+        assert min(corners) > float(BOOK_KELLY)
+
+    def test_the_apr_a_kelly_of_18_4_needs_at_a_sharpe_ratio_of_1_6(self) -> None:
+        """13.9 percent taken simply, 14.5 under the log growth, 14.9 compounded exactly."""
+        sharpe, kelly = 1.6, float(BOOK_KELLY)
+        m = sharpe * sharpe / (252 * kelly)
+        sigma = sharpe / (math.sqrt(252) * kelly)
+        assert 252 * m == pytest.approx(0.139130, abs=5e-7)
+        assert math.expm1(252 * (m - sigma**2 / 2)) == pytest.approx(0.144937, abs=5e-7)
+        assert math.expm1(252 * math.log1p(m)) == pytest.approx(0.149230, abs=5e-7)
+        assert implied_kelly(sharpe, math.expm1(252 * (m - sigma**2 / 2))) == pytest.approx(kelly)
+
     def test_the_shifted_ensemble_s_median_optimum(self, result) -> None:
         assert result.shifted_params.lam == pytest.approx(-1.222510e-03, rel=5e-7)
         assert result.shifted.band("uncapped").median == pytest.approx(18.470198, abs=1e-6)
@@ -575,6 +675,18 @@ class TestRowGroup13TheEighteenPointFourGap:
         }
         half = result.shifted.band("drawdown_half")
         assert (half.low, half.high) == pytest.approx((-0.953551, -0.823942), abs=5e-7)
+        row_3 = [found for number, _, found, _ in shifted_landings(result) if number == "3"]
+        assert row_3 == [optimum_band(result.shifted)] * 2
+
+    def test_row_3_s_band_under_it(self, result) -> None:
+        """The rule row 3 reads, on the 39 shifted seeds whose ruin leverage is above 30.2."""
+        assert len(result.shifted.ruin_above(float(BOOK_RUIN)).runs) == 39
+        found = optimum_band(result.shifted)
+        assert (found.low, found.high) == pytest.approx((17.514982, 20.017014), abs=1e-6)
+        declared = result.shifted.band("uncapped")
+        assert (declared.low, declared.high) == pytest.approx((16.339353, 19.905622), abs=1e-6)
+        for printed in (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM):
+            assert found.holds(float(printed)) and declared.holds(float(printed))
 
     def test_the_shifted_draws_are_the_declared_draws_moved(self, result) -> None:
         moved = draws(result.shifted_params, ENSEMBLE_SEEDS[0])
@@ -660,8 +772,29 @@ class TestOnSyntheticReturns:
         np.testing.assert_allclose(cppi_as_described(values, 3.0), full, rtol=1e-12)
 
     def test_cppi_as_described_refuses_a_leverage_that_empties_the_subaccount(self) -> None:
-        with pytest.raises(ValueError, match="empties the subaccount"):
-            cppi_as_described(np.array([0.1, -0.25]), 4.0)
+        for form in (cppi_as_described, cppi_as_described_loop):
+            with pytest.raises(ValueError, match="empties the subaccount"):
+                form(np.array([0.1, -0.25]), 4.0)
+
+    def test_cppi_as_scripted_is_its_loop_on_a_path_that_opens_on_a_loss(self) -> None:
+        """The unlevered drawdown is floored at the opening level of 0, not the first day's."""
+        values = np.array([-0.1, 0.05, 0.02, -0.03, 0.04])
+        found = cppi_as_scripted(values, 2.0)
+        np.testing.assert_allclose(found, cppi_as_scripted_loop(values, 2.0), rtol=1e-12)
+        assert found[1] == pytest.approx(0.05 * D * 2.0 * 0.9, rel=1e-12)
+
+    @pytest.mark.parametrize("bad", [math.nan, -1.0, -1.5])
+    def test_cppi_as_scripted_refuses_a_nan_or_a_total_loss(self, bad) -> None:
+        """Past −1 the vectorised form takes the log of a negative, and the loop carries on."""
+        values = np.array([0.01, bad, 0.02])
+        for form in (cppi_as_scripted, cppi_as_scripted_loop):
+            with pytest.raises(ValueError, match="NaN return|at or below -1"):
+                form(values, 2.0)
+
+    def test_cppi_as_described_refuses_a_nan(self) -> None:
+        for form in (cppi_as_described, cppi_as_described_loop):
+            with pytest.raises(ValueError, match="NaN return"):
+                form(np.array([0.01, math.nan, 0.02]), 2.0)
 
 
 class TestTheReport:
@@ -684,3 +817,30 @@ class TestTheReport:
     def test_it_names_how_many_seeds_the_ruin_leverage_cut(self, printed) -> None:
         assert "seeds on the cap 158 of 200" in printed
         assert "below 20: 42, against 29.8 expected exactly" in printed
+
+    def test_it_counts_the_seeds_row_11_s_claim_holds_on(self, printed) -> None:
+        assert "within 2% on the declared seed, and on 200 of 200 seeds" in printed
+
+    def test_it_keeps_row_3_s_declared_band_beside_the_new_one(self, printed) -> None:
+        assert "uncapped optimum, ruin > 30.2 on 40 seeds, band 22.969856 to 25.374220" in printed
+        assert (
+            "row 3 under the declared rule, every seed's uncapped optimum, "
+            "band 16.622019 to 24.865122: 19 and 19.2 land"
+        ) in printed
+
+    @pytest.mark.parametrize(
+        ("name", "printed", "expected"),
+        [
+            ("minimum", BOOK_MINIMUM, -0.01),
+            ("ruin", BOOK_RUIN, -7.0),
+            ("drawdown_optimum", BOOK_DRAWDOWN_OPTIMUM, 0.008),
+            ("drawdown_half", BOOK_DRAWDOWN_HALF, 0.092),
+            ("drawdown_seventh", BOOK_DRAWDOWN_SEVENTH, 0.1),
+            ("cppi_growth", BOOK_CPPI_GROWTH, 0.00074),
+            ("full_growth", BOOK_FULL_GROWTH, 0.000746),
+            ("full_drawdown", BOOK_FULL_DRAWDOWN, 0.0),
+        ],
+    )
+    def test_each_seeded_row_s_gap(self, result, name, printed, expected) -> None:
+        """The gaps Entry 40's verdict table prints, at the book's precision."""
+        assert gap(getattr(result.declared, name), printed) == pytest.approx(expected, abs=1e-12)

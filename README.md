@@ -548,12 +548,16 @@ where they were first built. The other thirty-eight were built here.
     constant proportion portfolio insurance (CPPI). The simulated figures
     run on a declared seed and are judged against 200 more. The book's Kelly
     and historical optimum of 18.4 do not reproduce, since Chan's own returns
-    give 23.845328 and 23.721773, and no series matching Example 5.1's
-    printed Sharpe ratio and APR has a Kelly below 21.56. The simulated
-    optimum, the minimum draw and the drawdown at the optimum land, while
-    the drawdowns at half and a seventh of the optimum and both growth rates
-    of location 3438 fall outside their bands. Moving the draws' mean so the
-    Kelly is 18.4 lands all of those but the drawdown at half the optimum.
+    give 23.845328 and 23.721773. A series matching Example 5.1's printed
+    Sharpe ratio and APR has a Kelly of at least 21.56 when the APR compounds
+    the log growth, and at least 20.89 under the simplest compounding, so
+    none reaches 18.4. The minimum draw and the drawdown at the optimum land.
+    The simulated optimum, the drawdowns at half and a seventh of the
+    optimum, and both growth rates of location 3438 fall outside their bands.
+    The simulated optimum landed under the band the issue declared, and the
+    band chosen after the ensemble was seen excludes it, for a reason the log
+    entry gives. Moving the draws' mean so the Kelly is 18.4 lands all of
+    those but the drawdown at half the optimum.
     Box 8.6's CPPI loop breaks the 0.5 drawdown floor on every one of the
     200 seeds, and the CPPI location 3426 describes keeps it on every one.
     Every figure is exploratory.
@@ -952,7 +956,9 @@ minimum, and the declared draws' mean and standard deviation. It holds both
 CPPI forms equal to their loops, the search to the root of the growth rate's
 derivative, and both CPPI forms on a path worked by hand. It also holds the
 evidence on the book's 18.4: the Kelly band Example 5.1's printed figures
-allow, and the ensemble rerun with the Kelly set to 18.4.
+allow under three compoundings, and the ensemble rerun with the Kelly set to
+18.4. It holds which band row 3 reads, and both CPPI forms refusing a NaN
+return.
 
 All forty replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -1808,7 +1814,7 @@ It prints the vintage and the seeds, every row beside the book's figure with
 its band and a verdict, then the rows beside them, which carry none: the
 fitted parameters, the CPPI location 3426 describes, and the script's lines on
 the historical returns. It ends with the evidence on the book's 18.4. The run
-takes under a minute, most of it in the two searches for an optimum on each of 401 seeds.
+takes under a minute, about half of it in the two searches for an optimum on each of 401 seeds.
 
 Chan's own archived GLD/GDX files have no CLI mode on purpose. They exist to
 show that even his saved data misses his printed hedge, which is a claim about

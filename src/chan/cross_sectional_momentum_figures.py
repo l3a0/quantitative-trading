@@ -123,8 +123,8 @@ class Panel:
 def deepest_drawdown(cumret: np.ndarray) -> Drawdown:
     """Where ``calculateMaxDD``'s deepest drawdown falls, under its own rules.
 
-    It reads :func:`chan.matlab_helpers.drawdown_path`, the loop
-    :func:`chan.matlab_helpers.calculate_max_dd` runs, so the depth is that
+    It reads :func:`chan.matlab_helpers.drawdown_path`, the per-day arrays
+    :func:`chan.matlab_helpers.calculate_max_dd` reduces, so the depth is that
     function's. The high is the trough's row less its duration below the high,
     which is the last row the drawdown was 0. Where two rows tie, the first is
     taken.

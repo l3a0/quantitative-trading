@@ -78,11 +78,20 @@ Scratch runs on other seeds had seen results.
    whose seeded value differs is reproduced with a gap, and the gap's cause is
    the seed, since location 3399 says the draws are not reproducible.
 
-Row 3 is judged against the uncapped optimum's band. Chan's 19.2 sits below his
-cap of 20, so his uncapped optimum was 19.2 as well. On these returns most
-capped optima sit on the cap, so the capped band's lower tail is made of seeds
-whose ruin leverage cut the search short, and a figure could land there for
-that reason alone.
+**Row 3's rule changed after the ensemble was seen.** The declaration judged
+row 3 against the uncapped optimum's band across all 200 seeds. Chan's 19.2
+sits below his cap of 20, so his uncapped optimum was 19.2 as well, and the
+declaration set the capped band aside because its lower tail is made of seeds
+whose low ruin leverage holds the optimum down. The uncapped band shares those
+seeds. A seed whose most negative draw is deep has a low ruin leverage, and
+the growth rate falls to minus infinity at the ruin leverage, so the uncapped
+optimum sits below it too. The two bands' 5th percentiles are the same seed's
+optimum. So the declared rule applies the clamping objection to one band and
+not the other. Row 3 is now judged against :func:`optimum_band`, the uncapped
+optimum across the seeds whose ruin leverage is above the book's 30.2, which
+are the seeds whose most negative draw is no deeper than Chan's. The report
+prints the declared band and its verdict beside it, and the change is
+exploratory like everything else here.
 
 **Two CPPI forms run, because the script's loop is not the prose's scheme.**
 Location 3426 sets aside D of the account, trades that subaccount at leverage
@@ -94,7 +103,11 @@ less than 0.5, and only the prose's form guarantees that.
 :func:`cppi_as_scripted` and :func:`cppi_as_described` compute each without a
 loop, because each reduces to a random walk reflected at zero, and
 :func:`cppi_as_scripted_loop` and :func:`cppi_as_described_loop` are the loops
-the tests hold them to.
+the tests hold them to. All four refuse a NaN return. The scripted pair also
+refuses a return at or below −1, and the described pair a leverage that turns
+the worst return into a loss of the whole subaccount. Past those points
+neither form computes an account, and the scripted loop and its twin give
+different answers.
 
 **The 18.4 gap.** Location 3342 gives a Kelly leverage of 18.4 for these
 returns and location 3379 the same historical optimum. On Chan's own saved
@@ -104,12 +117,15 @@ holds the evidence for where 18.4 came from.
 
 1. :func:`implied_kelly_band` puts the Kelly of any daily series matching
    Example 5.1's printed Sharpe ratio of 1.6 and APR of 11 percent, across
-   their rounding, between 21.56 and 26.76. So no series the book's Example
-   5.1 describes reaches 18.4.
+   their rounding, between 21.56 and 26.76, when the APR compounds the log
+   growth ``m − σ²/2``. Compounding ``1 + m`` exactly moves the lower edge to
+   22.07, and the simple ``252·m`` moves it to 20.89, so the edge depends on
+   how the book annualized. None of the three reaches 18.4.
 2. The ensemble rerun with the draws' mean moved so that the Kelly is 18.4,
    which moves only λ, puts the median uncapped optimum at 18.470198 and
-   lands four of the five simulated rows it reruns. Only the drawdown at
-   half the optimum still misses.
+   lands four of the five simulated rows it reruns, row 3 under both its
+   declared band and :func:`optimum_band`. Only the drawdown at half the
+   optimum still misses.
 
 The evidence favors Chapter 8 having run on an older ``ret`` whose Kelly was
 near 18.4, which neither mirror holds and which disagrees with Example 5.1's
@@ -128,7 +144,7 @@ from __future__ import annotations
 
 import argparse
 import math
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -252,6 +268,28 @@ def max_drawdown(account: ArrayLike) -> float:
     return calculate_max_dd(np.cumprod(1 + np.asarray(account, dtype=float)) - 1)[0]
 
 
+def _cppi_returns(returns: ArrayLike, scale: float, empties: str) -> NDArray[np.float64]:
+    """The returns as floats, refused when one is NaN or when ``scale·R`` reaches −1 on some day."""
+    values = np.asarray(returns, dtype=float)
+    if np.isnan(values).any():
+        raise ValueError("a NaN return leaves the CPPI account undefined from that day on")
+    if values.size and scale * float(np.min(values)) <= -1:
+        raise ValueError(empties)
+    return values
+
+
+def _scripted_returns(returns: ArrayLike) -> NDArray[np.float64]:
+    return _cppi_returns(
+        returns, 1.0, "a return at or below -1 empties the unlevered drawdown Box 8.6 tracks"
+    )
+
+
+def _described_returns(returns: ArrayLike, leverage: float) -> NDArray[np.float64]:
+    return _cppi_returns(
+        returns, leverage, f"a leverage of {leverage:g} empties the subaccount on its worst day"
+    )
+
+
 def cppi_as_scripted(returns: ArrayLike, leverage: float, d: float = D) -> NDArray[np.float64]:
     """Box 8.6's loop, as the account's daily returns, computed without the loop.
 
@@ -260,8 +298,12 @@ def cppi_as_scripted(returns: ArrayLike, leverage: float, d: float = D) -> NDArr
     ``log(1 + dd)`` is the running sum of ``log(1 + R)`` less its running
     maximum, floored at zero, which is a random walk reflected at zero, so the
     loop needs no loop. :func:`cppi_as_scripted_loop` is the loop it is held to.
+
+    A NaN return, or one at or below −1, is refused. Past −1 the logarithm has
+    no real value while the loop carries a drawdown below −1, so the two would
+    disagree.
     """
-    values = np.asarray(returns, dtype=float)
+    values = _scripted_returns(returns)
     walk = np.cumsum(np.log1p(values))
     level = walk - np.maximum.accumulate(np.maximum(walk, 0.0))
     before = np.concatenate([[0.0], level[:-1]])
@@ -269,8 +311,11 @@ def cppi_as_scripted(returns: ArrayLike, leverage: float, d: float = D) -> NDArr
 
 
 def cppi_as_scripted_loop(returns: ArrayLike, leverage: float, d: float = D) -> NDArray[np.float64]:
-    """Box 8.6's loop as the script writes it, lines 46 to 59, one day at a time."""
-    values = np.asarray(returns, dtype=float)
+    """Box 8.6's loop as the script writes it, lines 46 to 59, one day at a time.
+
+    It refuses what :func:`cppi_as_scripted` refuses.
+    """
+    values = _scripted_returns(returns)
     account = np.empty_like(values)
     drawdown = 0.0
     for t, r in enumerate(values):
@@ -293,11 +338,10 @@ def cppi_as_described(returns: ArrayLike, leverage: float, d: float = D) -> NDAr
     :func:`cppi_as_described_loop` is the loop it is held to.
 
     While ``f·min R > −1`` the subaccount never reaches zero, so the account's
-    drawdown stays above ``−D``. At or past that this refuses.
+    drawdown stays above ``−D``. At or past that this refuses, and so it does
+    on a NaN return.
     """
-    values = np.asarray(returns, dtype=float)
-    if leverage * float(np.min(values)) <= -1:
-        raise ValueError(f"a leverage of {leverage:g} empties the subaccount on its worst day")
+    values = _described_returns(returns, leverage)
     walk = np.cumsum(np.log1p(leverage * values))
     peak_before = np.maximum.accumulate(np.concatenate([[0.0], walk]))[:-1]
     excess = walk - peak_before
@@ -310,8 +354,11 @@ def cppi_as_described(returns: ArrayLike, leverage: float, d: float = D) -> NDAr
 def cppi_as_described_loop(
     returns: ArrayLike, leverage: float, d: float = D
 ) -> NDArray[np.float64]:
-    """Location 3426's CPPI one day at a time: cash, a subaccount, and a reset at each new high."""
-    values = np.asarray(returns, dtype=float)
+    """Location 3426's CPPI one day at a time: cash, a subaccount, and a reset at each new high.
+
+    It refuses what :func:`cppi_as_described` refuses.
+    """
+    values = _described_returns(returns, leverage)
     account = np.empty_like(values)
     equity = high = 1.0
     sub = d * equity
@@ -338,6 +385,11 @@ def implied_kelly(sharpe: float, apr: float, days: int = TRADING_DAYS) -> float:
     ``exp(days·(m − σ²/2)) − 1``, the compounded growth of a series with these
     moments. Together they give a quadratic in σ, whose smaller root is the
     daily σ of a strategy like Example 5.1's, and the Kelly is then ``S / (√days·σ)``.
+
+    The compounding is a choice the book does not state, and it moves the
+    result. Compounding ``1 + m`` exactly, or taking the simple ``days·m``,
+    gives the Kelly ``S² / (days·m)`` with a different ``m``, and the tests
+    measure how far each moves :func:`implied_kelly_band`.
     """
     per_bar = sharpe / math.sqrt(days)
     log_growth = math.log1p(apr) / days
@@ -391,7 +443,6 @@ class Simulated:
     ruin: float
     optimum: float
     uncapped: float
-    growth_at_optimum: float
     drawdown_optimum: float
     drawdown_half: float
     drawdown_seventh: float
@@ -436,7 +487,6 @@ def simulate(params: PearsonIV, seed: int, d: float = D) -> Simulated:
         ruin=ruin_leverage(sim),
         optimum=optimum,
         uncapped=optimal_leverage(sim),
-        growth_at_optimum=growth(optimum, sim),
         drawdown_optimum=max_drawdown(optimum * sim),
         drawdown_half=max_drawdown(optimum / 2 * sim),
         drawdown_seventh=max_drawdown(optimum / 7 * sim),
@@ -447,10 +497,6 @@ def simulate(params: PearsonIV, seed: int, d: float = D) -> Simulated:
         described_growth=account_growth(described),
         described_drawdown=max_drawdown(described),
     )
-
-
-#: The fields of :class:`Simulated` that carry a band.
-BANDED = tuple(f.name for f in fields(Simulated) if f.name != "seed")
 
 
 @dataclass(frozen=True)
@@ -483,12 +529,24 @@ class Ensemble:
     def band(self, name: str) -> Band:
         return band(self.values(name))
 
-    def share(self, holds: NDArray[np.bool_]) -> float:
-        return float(np.mean(holds))
+    def ruin_above(self, threshold: float) -> Ensemble:
+        """The seeds whose ruin leverage is above ``threshold``."""
+        return Ensemble(tuple(run for run in self.runs if run.ruin > threshold))
 
 
 def ensemble(params: PearsonIV, seeds: tuple[int, ...] = ENSEMBLE_SEEDS) -> Ensemble:
     return Ensemble(tuple(simulate(params, seed) for seed in seeds))
+
+
+def optimum_band(found: Ensemble) -> Band:
+    """Row 3's band: the uncapped optimum across the seeds whose ruin leverage is above the book's.
+
+    Chan's run printed a ruin leverage of 30.2, so no draw of his was deeper
+    than −0.0331 and nothing held his optimum down. A seed with a deeper draw
+    has a lower ruin leverage, and its optimum sits below that, so these are
+    the seeds whose optimum the same can be said of.
+    """
+    return found.ruin_above(float(BOOK_RUIN)).band("uncapped")
 
 
 @dataclass(frozen=True)
@@ -637,7 +695,8 @@ SIMULATED_ROWS = (
 def rows(result: MonteCarloLeverage) -> list[Row]:
     """Rows 1 to 12 as the report prints them, each with its verdict."""
     seeded, ens = result.declared, result.ensemble
-    uncapped = ens.band("uncapped")
+    optimum = optimum_band(ens)
+    conditioned = len(ens.ruin_above(float(BOOK_RUIN)).runs)
     out = [
         Row(
             "1",
@@ -658,19 +717,20 @@ def rows(result: MonteCarloLeverage) -> list[Row]:
         out.append(
             Row(
                 "3",
-                f"simulated optimum capped at {CAP:g}, uncapped {_band_text(uncapped)}",
-                f"{seeded.optimum:.6f}",
+                f"uncapped optimum, ruin > {BOOK_RUIN} on {conditioned} seeds, "
+                f"{_band_text(optimum)}",
+                f"{seeded.uncapped:.6f}",
                 printed,
-                simulated_verdict(seeded.optimum, printed, uncapped.holds(float(printed))),
+                simulated_verdict(seeded.uncapped, printed, optimum.holds(float(printed))),
             )
         )
     out.append(
         Row(
             "4",
-            "the Kelly lies inside the uncapped optimum's band",
+            "the Kelly lies inside row 3's band",
             f"{result.kelly:.6f}",
             "a claim",
-            claim_verdict(uncapped.holds(result.kelly)),
+            claim_verdict(optimum.holds(result.kelly)),
         )
     )
     ruin_book = minimum_below(result.params, -1 / float(BOOK_RUIN))
@@ -756,10 +816,8 @@ def rows(result: MonteCarloLeverage) -> list[Row]:
     return out
 
 
-#: Row group 13 reruns these rows under the ensemble whose Kelly is 18.4.
+#: Row group 13 reruns these rows under the ensemble whose Kelly is 18.4, after row 3.
 SHIFTED_ROWS = (
-    ("3", "uncapped", BOOK_OPTIMUM_FMINBND),
-    ("3", "uncapped", BOOK_OPTIMUM),
     ("8", "drawdown_optimum", BOOK_DRAWDOWN_OPTIMUM),
     ("9", "drawdown_half", BOOK_DRAWDOWN_HALF),
     ("10", "drawdown_seventh", BOOK_DRAWDOWN_SEVENTH),
@@ -769,8 +827,15 @@ SHIFTED_ROWS = (
 
 
 def shifted_landings(result: MonteCarloLeverage) -> list[tuple[str, str, Band, bool]]:
-    """Row group 13: each row's band under the shifted ensemble, and whether the book's lands."""
-    out = []
+    """Row group 13: each row's band under the shifted ensemble, and whether the book's lands.
+
+    Row 3 reads :func:`optimum_band`, as it does in :func:`rows`.
+    """
+    optimum = optimum_band(result.shifted)
+    out = [
+        ("3", printed, optimum, optimum.holds(float(printed)))
+        for printed in (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM)
+    ]
     for number, name, printed in SHIFTED_ROWS:
         found = result.shifted.band(name)
         out.append((number, printed, found, found.holds(float(printed))))
@@ -808,14 +873,21 @@ def report(result: MonteCarloLeverage) -> None:
         f"moments exist below order {2 * p.m - 1:.2f}"
     )
     print(
-        f"  uncapped optimum, declared seed {seeded.uncapped:.6f}, "
-        f"{_band_text(ens.band('uncapped'))}"
+        f"  optimum capped at {CAP:g} as the script searches, declared seed "
+        f"{seeded.optimum:.6f}, {_band_text(ens.band('optimum'))}"
     )
-    on_cap = ens.values("uncapped") >= CAP
-    below = ens.values("ruin") < CAP
+    declared_band = ens.band("uncapped")
+    declared_lands = [declared_band.holds(float(p)) for p in (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM)]
     print(
-        f"  seeds on the cap {on_cap.sum()} of {len(on_cap)}. Seeds whose ruin leverage is "
-        f"below {CAP:g}: {below.sum()}, against {result.ruin_below_cap_exact * len(below):.1f} "
+        f"  row 3 under the declared rule, every seed's uncapped optimum, "
+        f"{_band_text(declared_band)}: {BOOK_OPTIMUM_FMINBND} and {BOOK_OPTIMUM} "
+        f"{'land' if all(declared_lands) else 'do not both land'}"
+    )
+    on_cap = sum(run.on_the_cap for run in ens.runs)
+    below = sum(run.ruin_below_cap for run in ens.runs)
+    print(
+        f"  seeds on the cap {on_cap} of {len(ens.runs)}. Seeds whose ruin leverage is "
+        f"below {CAP:g}: {below}, against {result.ruin_below_cap_exact * len(ens.runs):.1f} "
         "expected exactly"
     )
     for name, label in (
