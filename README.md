@@ -556,7 +556,9 @@ where they were first built. The other forty-two were built here.
     gives an APR of 0.132733 and a Sharpe ratio of 1.441620, which print as
     the script's 0.1327 and 1.44 and round to the book's 13 percent and 1.4.
     The momentum sign the text describes gives −0.124236 and −1.441620, so the
-    claim the figures were printed for does not reproduce. Every figure is
+    claim the figures were printed for does not reproduce. Chan's Python port
+    flips the short test and so is never long, and its rule lands the port's
+    printed APR of 0.074864 and Sharpe ratio of 0.494857. Every figure is
     exploratory.
 41. VX futures against E-mini S&P 500 futures on VX's roll return, after
     Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
@@ -1093,7 +1095,15 @@ book's two figures alone. It also pins the drawdowns, the days each side
 holds and the literal rule on the two earlier saves. On synthetic days it
 holds both entry tests non-strict, a missing spread qualifying nothing, a
 short overriding a long, and the sign of each reading's open-to-close
-return. It also holds the read guarded.
+return. It also holds the read guarded. For Chan's Python port it pins the
+four figures the port's comments print, the days it holds each side, and
+three variants that each swap one difference between the two programs. On
+synthetic days it holds the port's spread dividing by n − 1 and starting a
+row later, its short test flipped and non-strict, an open above the
+previous high being short, a missing spread qualifying nothing, and its
+Sharpe ratio dividing by n with either sign of mean. It also holds the
+Experiments page's figures as the port's comment rounded, and the run's
+port block reporting a figure off the comment as a gap.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
@@ -2045,7 +2055,8 @@ uv run python -m chan.opening_gap
 It prints the vintage, both readings of the return line beside the script's
 comment and the book's figures with a verdict, the drawdowns and the days
 each side holds, and the literal reading on the 2012-05-11 and 2012-05-07
-saves.
+saves. It then prints the Python port's four figures beside the port's
+comments with a verdict, and the days the port holds each side.
 
 VX against ES on VX's roll return takes no option either, because the script
 fixes its three files, its threshold, its cost and its test:
