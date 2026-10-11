@@ -1006,6 +1006,34 @@ class TestThePostsHelpers:
         agree = rankings_agree(returns, daily_components(returns))
         assert agree.tolist() == [True] * 4
 
+    def test_rankings_read_each_pair_days_window_and_return(self, closes, monkeypatch) -> None:
+        """Both rankings read the 252 rows before the day and that day's returns.
+
+        Neither agreement pin can show this. Dropping the intercept leaves
+        the fitted values less the day's mean for any window and any day, so the
+        two rankings agree whichever rows they read. Recording the arguments is
+        what fails when a ranking reads the next day or a window shifted by one.
+        """
+        returns = file_returns(closes)
+        components = daily_components(returns)
+        seen = {"revised_matlab_expected": [], "without_the_intercept": []}
+
+        def recorder(name):
+            def record(window, today):
+                seen[name].append((window.copy(), today.copy()))
+                return today
+
+            return record
+
+        for name in seen:
+            monkeypatch.setattr(pca_factor_momentum, name, recorder(name))
+        rankings_agree(returns, components)
+        for calls in seen.values():
+            assert len(calls) == len(components) - 1
+            for (window, today), d in zip(calls, components[:-1], strict=True):
+                np.testing.assert_array_equal(window, returns[d.end - LOOKBACK : d.end].T[d.stocks])
+                np.testing.assert_array_equal(today, returns[d.end, d.stocks])
+
     def test_a_ranking_on_another_key_disagrees(self, closes, monkeypatch) -> None:
         """The check can fail: the fitted values reversed give the opposite order."""
         returns = file_returns(closes)

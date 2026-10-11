@@ -312,6 +312,16 @@ class TestTheWaysPanel:
         ]
         assert legend.get_title().get_text() == "tomorrow's factor return read on"
 
+    def test_each_way_carries_its_own_legend_entry(self, figure) -> None:
+        """Read by series rather than in the legend's order, so a label on another series fails."""
+        drawn = _by_gid(figure, 1)
+        assert {field: drawn[field].get_label() for field, *_ in WAYS} == {
+            "own": "each day's own weights, largest weight positive",
+            "matched": "sign and rank matched",
+            "left_out": "tomorrow's weights on 251 days without today",
+            "paired": "both days on today's weights, as tested",
+        }
+
     def test_the_four_are_drawn_apart(self, figure) -> None:
         drawn = _by_gid(figure, 1)
         looks = {
