@@ -7678,4 +7678,7 @@ strategy and one future. A registered test would declare the drift reading
 first and run it on data this entry never loaded.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/tu-hypothesis-tests-lessons.md](../blog/tu-hypothesis-tests-lessons.md)
+moves with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.tu_hypothesis_tests_figures` redraws.
