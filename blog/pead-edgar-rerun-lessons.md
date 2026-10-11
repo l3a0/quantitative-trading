@@ -35,11 +35,9 @@ Four things can differ from Chan’s files: the stocks, the calendar, the vendor
 **The calendar.** Both calendars read the time each filing was accepted, in Eastern time. Several filings on one day make one flag, and an amended filing is skipped.
 
 1. **R1** is the calendar a trader could have built before each open. A filing accepted before 9:30 a.m. on a trading day flags that day. One accepted at 4:00 p.m. or later, or on a day the market was shut, flags the next trading day. One accepted during the session flags nothing, because the gap from the close to the open came before it.
-2. **R5** is the calendar nearest Chan’s flags, chosen because it matched them best on a sample of 32 stocks. It differs from R1 in two ways.
+2. **R5** is the calendar nearest Chan’s flags, chosen because it matched them best on a sample of 32 stocks. It differs from R1 in two ways, and each reads what a trader did not have before the open, so no figure on R5 is a tradable one.
    1. A filing accepted during the session flags that same day.
    2. A filing accepted after the date of the event it reports flags the trading day after that event.
-
-   Each of those reads what a trader did not have before the open, so no figure on R5 is a tradable one.
 
 **The vendor and the price basis.** The second vendor is Alpha Vantage, whose daily prices for the S&P 500 sit in a private archive, downloaded on 2026-10-05. The vendor’s terms allow personal use only, so the prices stay out of the repository. The adjusted prices, corrected for splits and dividends, are the like-for-like comparison, because Chan’s file is adjusted too. The raw prices are what traded on the day.
 
@@ -84,9 +82,9 @@ So each tie has a check that reads only what 2012 recorded.
    2. Its name in EDGAR on that day matches exactly one holding in the iShares S&P 500 fund’s schedule of 2012-03-31.
    3. That holding’s price is within 3 percent of Chan’s close that day.
    4. It released earnings under Item 2.02 in the window.
-
-   ACE’s holding sits 5.92 percent above the old Chubb’s close, so ACE’s filer fails for CB, and the filer that passes is the old Chubb’s.
 2. **The price-series check, against the second vendor.** A series passes when it holds a close on every day of the window on which Chan’s file holds one, and its daily returns agree with those of Chan’s closes on all but a few days. Every series of the same company differs on at most 2 days. The four reused tickers that fail, CB among them, differ on 72 to 194. Under Chan’s own tickers, 398 series pass. Searching the archive by returns rather than by ticker finds 48 more, companies filed under a later ticker, which makes PX’s 446.
+
+ACE’s holding sits 5.92 percent above the old Chubb’s close, so ACE’s filer fails the filer check for CB, and the filer that passes is the old Chubb’s.
 
 Nine stocks fail the filer check, in five ways.
 
