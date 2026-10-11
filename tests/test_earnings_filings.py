@@ -675,10 +675,11 @@ class TestTheCommittedIndex:
         """
         times = sorted(release.accepted[11:] for release in index)
         assert (times[0], times[-1]) == ("06:00:43", "21:49:59")
-        shifted = [pd.Timestamp(f"2011-01-03 {t}") + pd.Timedelta(hours=4) for t in times]
-        before_open = [s for s, t in zip(shifted, times, strict=True) if t < "09:30:00"]
-        assert min(before_open).time() >= pd.Timestamp("09:30").time()
-        assert max(before_open) + pd.Timedelta(hours=1) < pd.Timestamp("2011-01-03 16:00")
+        early = [pd.Timestamp(f"2011-01-03 {t}") for t in times if t < "09:30:00"]
+        for hours in (4, 5):
+            shifted = [stamp + pd.Timedelta(hours=hours) for stamp in early]
+            assert min(shifted) >= pd.Timestamp("2011-01-03 09:30"), hours
+            assert max(shifted) < pd.Timestamp("2011-01-03 16:00"), hours
 
     def test_343_were_accepted_after_the_date_they_report(self, index) -> None:
         late = [r for r in index if r.report_date and r.accepted[:10] > r.report_date]

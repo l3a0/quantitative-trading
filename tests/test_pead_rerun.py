@@ -304,6 +304,18 @@ class TestTheTradeReturns:
         assert returns.at[DAYS[2], "X"] == 0.0
         assert np.isfinite(returns.to_numpy()).all()
 
+    def test_a_day_after_the_run_is_not_read_either(self) -> None:
+        """The run's days are picked by date, not by counting back from the last row."""
+        drift, opens, closes = self.toy()
+        before = pead_rerun.trade_returns(drift, opens, closes)
+        later = DAYS[3:4]
+        opens = pd.concat([opens, pd.DataFrame({"X": [7.0], "Y": [7.0], "Z": [7.0]}, index=later)])
+        closes = pd.concat(
+            [closes, pd.DataFrame({"X": [8.0], "Y": [8.0], "Z": [8.0]}, index=later)]
+        )
+        after = pead_rerun.trade_returns(drift, opens, closes)
+        pd.testing.assert_frame_equal(after, before)
+
     def test_it_has_the_runs_days_and_the_frames_stocks(self) -> None:
         drift, opens, closes = self.toy()
         returns = pead_rerun.trade_returns(drift, opens, closes)

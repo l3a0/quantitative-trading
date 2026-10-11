@@ -23,11 +23,14 @@ nothing.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import pandas as pd
 import pytest
 from matplotlib.dates import num2date
 
+from chan import coin_flip_figures
 from chan import pead_rerun_figures as module
 from chan.paths import FIGURES_DIR
 from chan.pead import DENOMINATOR, TRADING_DAYS
@@ -279,6 +282,14 @@ class TestTheHelpers:
         scale = TRADING_DAYS / len(runs["A"].days)
         np.testing.assert_allclose(total, np.cumsum(runs["A"].daily) * scale, atol=1e-15)
 
+    def test_the_contributions_scale_by_the_runs_own_days(self, sources, runs) -> None:
+        """A run cut to its first 100 days builds up to 252 over 100 of its daily mean."""
+        a = runs["A"]
+        short = replace(a, days=a.days[:100], positions=a.positions[:100], daily=a.daily[:100])
+        total = sum(contributions(sources, short).values())
+        scale = TRADING_DAYS / 100
+        np.testing.assert_allclose(total, np.cumsum(short.daily) * scale, atol=1e-15)
+
     def test_signed_prints_a_true_minus_sign(self) -> None:
         assert signed(-0.023065) == "−0.023065"
         assert signed(0.0107021) == "0.010702"
@@ -310,6 +321,19 @@ class TestTheFile:
         monkeypatch.setattr(module, "read_committed", lambda: read.append(1) or sources)
         make_rerun_figure(out=tmp_path / RERUN_FIGURE)
         assert read == [1]
+
+    def test_given_sources_it_reads_nothing_else(self, monkeypatch, tmp_path, sources) -> None:
+        def refuse():
+            raise AssertionError("the committed files were read although sources were given")
+
+        monkeypatch.setattr(module, "read_committed", refuse)
+        make_rerun_figure(out=tmp_path / RERUN_FIGURE, sources=sources)
+
+    def test_with_no_out_it_writes_the_committed_name(self, monkeypatch, tmp_path, sources):
+        """The figures directory is moved first, so the committed PNG is never written."""
+        monkeypatch.setattr(coin_flip_figures, "FIGURES_DIR", tmp_path)
+        make_rerun_figure(sources=sources)
+        assert [path.name for path in tmp_path.iterdir()] == [RERUN_FIGURE]
 
     def test_the_committed_runs_call_the_scale_break_guard(self, monkeypatch, tmp_path, sources):
         from chan import pead_rerun
