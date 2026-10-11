@@ -158,7 +158,10 @@ columns placed by hand, and the third is a raw download described below.
 The Kelly run reads `spy_chan.csv` under `--chan`,
 [src/chan/momentum_factor.py](../src/chan/momentum_factor.py) reads it as the
 market factor of
-[issue 22](https://github.com/l3a0/quantitative-trading/issues/22), and
+[issue 22](https://github.com/l3a0/quantitative-trading/issues/22),
+[src/chan/low_beta_leverage.py](../src/chan/low_beta_leverage.py) reads it as
+the market each stock's beta is fitted on for
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275), and
 `tests/test_kelly_leverage.py` reads `spy_unadjusted_chan.csv` to pin what the
 price basis is worth on Chan's own data.
 
@@ -250,6 +253,10 @@ cannot be read that way, and
 it skips the series. [src/chan/bill_rates.py](../src/chan/bill_rates.py) reads
 it, and the risk parity post's bill-rate averages trace to
 [tests/test_bill_rates.py](../tests/test_bill_rates.py).
+[src/chan/low_beta_leverage.py](../src/chan/low_beta_leverage.py) reads it
+through that module as the rate the levered low-beta portfolio borrows at and
+every excess return subtracts, for
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275).
 [Issue 187](https://github.com/l3a0/quantitative-trading/issues/187) is where
 storing it was decided.
 
@@ -508,6 +515,9 @@ either is a figure about survivors.
 [`chan.momentum_factor`](../src/chan/momentum_factor.py) reads the first's
 closes to build the momentum factor and the stocks it is compared against, for
 [issue 22](https://github.com/l3a0/quantitative-trading/issues/22).
+[`chan.low_beta_leverage`](../src/chan/low_beta_leverage.py) reads the same
+closes to sort the stocks by beta and hold the lowest and highest fifths, for
+[issue 275](https://github.com/l3a0/quantitative-trading/issues/275).
 [Issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carries the
 measurements below and the decision behind the shape.
 
