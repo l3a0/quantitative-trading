@@ -52,10 +52,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty replications run here, sixteen from Chan's *Quantitative Trading*
-and twenty-four from his *Algorithmic Trading*. The first two were ported from the
+Forty-one replications run here, sixteen from Chan's *Quantitative Trading*
+and twenty-five from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other thirty-eight were built here.
+where they were first built. The other thirty-nine were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -541,7 +541,22 @@ where they were first built. The other thirty-eight were built here.
     strip's first front window opens on 2006-10-20, so the window's first 123
     days hold nothing. The ETF file subtracts dividends in dollars, so the
     returns are not what a holder of XLE earned. Every figure is exploratory.
-40. Example 7.4's own five factors, tested on Chan's S&P 600 file against the
+40. VX futures against E-mini S&P 500 futures on VX's roll return, after
+    Simon and Campasano, locations 2747 to 2754 of *Algorithmic Trading*, on
+    Chan's own VX strip, his `VIX.csv` and the ES of his 2012-05-07 save. The
+    trade is short the front VX contract and ES when the front sits above VIX
+    by more than 0.1 point per trading day to settlement, and long both when
+    it sits below by that much. `VX_ES_rollreturn.m` carries two rules, and
+    all eight figures its comments print reproduce at six decimals. With
+    0.3906 VX contracts per ES contract, the commented rule, the APR is
+    0.069065, the Sharpe ratio 1.002020, and the maximum drawdown −0.075683
+    lasting 259 days. Those round to the book's 6.9 percent and Sharpe ratio
+    of 1. With one VX contract per ES contract, the rule the script ships,
+    they are 0.293906, 3.263952, −0.035798 and 59 days. Trading the fitted
+    0.390594 misses the APR and the Sharpe ratio at their sixth decimal, so
+    the script traded the printed 0.3906. An entry from flat pays no cost,
+    as in the script. Every figure is exploratory.
+41. Example 7.4's own five factors, tested on Chan's S&P 600 file against the
     claim at Kindle location 4014 of the revised edition that factor returns
     "often" have stronger serial autocorrelation than single stocks', which
     location 4051 says the example rests on. Each day's factor return is
@@ -945,6 +960,17 @@ On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded.
 
+[tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
+for VX against ES on VX's roll return. It pins the eight figures of both
+rules at full precision against the script's comments and the book's two,
+the fitted hedge's miss beside them, and the counts of the test's days held,
+short, long and entered from flat. It holds the two quirks the run keeps,
+the free entry from flat and the file's last day read as an expiry. On
+synthetic strips it holds the days to settlement counting one past expiry,
+the strict threshold, both legs signed alike with VX scaled by the hedge, the
+one-day lag, the gross divisor and the cost of an exit. It also holds each
+read guarded and the flagged day in VIX read by no figure.
+
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py) does it
 for Example 7.4's own factors. It pins the 752 pairs and the 579 stocks, each
 factor's statistic, percentile and same-sign share, the stocks' quartiles, the
@@ -955,7 +981,7 @@ equal to the program's fitted slope times its singular value. On synthetic
 returns it holds that a flipped vector moves no statistic, that a steady sign
 counts as persistence, and the Benjamini-Hochberg step-up.
 
-All forty replications reach a verdict in
+All forty-one replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -975,7 +1001,8 @@ EWA and EWC, Entry 33 TU momentum's, Entry 34 the crude oil calendar
 spread's, Entry 35 the VX calendar spread's, Entry 36 the roll-return
 rule's on TU, Entry 37 Example 1.1's hypothesis tests, Entry 38 the
 trade of GLD against gold futures, Entry 39 the XLE against USO
-trade's, and Entry 40 Example 7.4's own factors'.
+trade's, Entry 41 the VX against ES trade on VX's roll return, and Entry 42
+Example 7.4's own factors'.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1798,6 +1825,20 @@ script's comment with a verdict, the APR and the Sharpe ratio beside the
 book's with a verdict, and how many days fall in contango, in backwardation
 and with no ratio.
 
+VX against ES on VX's roll return takes no option either, because the script
+fixes its three files, its threshold, its cost and its test:
+
+```bash
+uv run python -m chan.vx_es_roll_return
+```
+
+It prints the strip, the VIX and ES vintages, and the vintage of VX's
+continuous close that only the fitted hedge reads. Then it prints the four
+figures of each rule beside the script's comment with a verdict, the APR and
+the Sharpe ratio beside the book's with a verdict, the fitted hedge's figures
+with no verdict, and how many of the test's days are held, short, long and
+entered from flat.
+
 Example 7.4's own factors take no option, because the issue fixed the
 printout, the lookback, the factor count and the statistic before any factor
 return was computed:
@@ -2507,7 +2548,7 @@ rather than its bytes, for the reason given above for the regime map.
 post, about Chan's factor models: Example 7.4, the PCA factor model, and his
 claim that factor returns have momentum, tested on the market and momentum
 factors and on Example 7.4's own five. Example 7.4 rests on that claim, so the
-post draws six lessons from Entries 13, 14 and 40 of the replication log
+post draws six lessons from Entries 13, 14 and 42 of the replication log
 together. Every result in it is exploratory.
 
 1. Three of the four printouts reproduce, and the fourth, the R, prints

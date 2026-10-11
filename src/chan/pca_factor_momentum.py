@@ -393,7 +393,7 @@ def report(members: list[VintageEntry], closes: pd.DataFrame, results: Results) 
     )
     print(
         "  the claim holds on this file and nothing about factor momentum today. "
-        "docs/replication-log.md Entry 40 carries the verdicts."
+        "docs/replication-log.md Entry 42 carries the verdicts."
     )
 
 

@@ -2,7 +2,7 @@
 
 This file is the single authority for every number any prose surface quotes
 about [issue 286](https://github.com/l3a0/quantitative-trading/issues/286).
-``docs/replication-log.md`` Entry 40 carries the verdicts and points here.
+``docs/replication-log.md`` Entry 42 carries the verdicts and points here.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -379,7 +379,7 @@ class TestTheReport:
             "  Exploratory. Testing a claim someone else chose spends the 2004 to 2008 sample "
             "on it, so this says whether",
             "  the claim holds on this file and nothing about factor momentum today. "
-            "docs/replication-log.md Entry 40 carries the verdicts.",
+            "docs/replication-log.md Entry 42 carries the verdicts.",
         ):
             assert line in lines, line
 
