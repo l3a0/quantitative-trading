@@ -47,9 +47,9 @@ below are this repo's own, so the owner's copy of this skill does not carry them
 2. **When the loop exits,** clear that mark and post the verdict comment, whether the loop
    ended ready to build or on a question only the owner can answer.
 
-Moments 1 and 2 of "What a session sets, and when" in the
-[update-build-board skill](../update-build-board/SKILL.md) give the label, the verdict line's
-exact form and the commands. Read them there rather than from a copy here, so a change to the
+The moments "A decompose loop starts" and "A decompose loop exits", under "What a session
+sets, and when" in the [update-build-board skill](../update-build-board/SKILL.md), give the
+label, the verdict line's exact form and the commands. Read them there rather than from a copy here, so a change to the
 format reaches every loop.
 
 ## What makes a pass find something

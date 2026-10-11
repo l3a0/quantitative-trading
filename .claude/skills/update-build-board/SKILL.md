@@ -91,7 +91,7 @@ board wrong, and nothing else notices.
    line reads `## Review`. A review headed anything else counts as none, and
    its card sits in "Waiting on my review" until somebody notices.
 6. **An issue is filed.** Add `blocked-on-data`, `deferred` or `decision`
-   where one applies. Those three are the labels the board reads for a card's
+   where one applies. These are the labels the board reads for a card's
    `kind`, as the table below says. They are separate from the label
    `CLAUDE.md`'s `## Pull requests` asks every filed issue for, saying what
    kind of work it is, such as `bug` or `documentation`. The card prints
