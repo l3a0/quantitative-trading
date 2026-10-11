@@ -90,11 +90,16 @@ board wrong, and nothing else notices.
 5. **A review lands on a pull request.** Post it as a comment whose first
    line reads `## Review`. A review headed anything else counts as none, and
    its card sits in "Waiting on my review" until somebody notices.
-6. **An issue is filed.** Give it its kind label where one applies, as the
-   table below says. Add a `band:N` label if it joins the priority order,
-   because a card with no band is left out of the board's default view. Add a
-   native "blocked by" link for each open issue it cannot start before, and a
-   `Board after:` line for an ordering nothing enforces.
+6. **An issue is filed.** Add `blocked-on-data`, `deferred` or `decision`
+   where one applies. Those three are the labels the board reads for a card's
+   `kind`, as the table below says. They are separate from the label
+   `CLAUDE.md`'s `## Pull requests` asks every filed issue for, saying what
+   kind of work it is, such as `bug` or `documentation`. The card prints
+   that one among its labels and decides nothing by it. Add a `band:N` label
+   if it joins the priority order, because a card with no band is left out of
+   the board's default view. Add a native "blocked by" link for each open
+   issue it cannot start before, and a `Board after:` line for an ordering
+   nothing enforces.
 7. **A card's priority changes.** Move its `band:N` label, and add, change or
    remove its `Board order:` line.
 8. **What a card waits on changes.** Add or remove its "blocked by" link.
