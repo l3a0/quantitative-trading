@@ -113,6 +113,13 @@ USO over the ETF file's whole span, 2006-04-26 to 2012-04-09, as
 :mod:`chan.kalman_hedge` does for EWA and EWC. Nothing flags in either read,
 so nothing is refused.
 
+**What each view earned.** Two functions measure the trade beyond the
+script's printout, for ``blog/xle-uso-roll-return-lessons.md``.
+:func:`by_view` splits the days the trade earns by the view it held the day
+before, and :func:`fixed_view` holds contango's position on every day the
+trade holds anything. :mod:`chan.xle_uso_roll_return_figures` draws both
+beside Figure 6.3.
+
 ``tests/test_xle_uso_roll_return.py`` pins every figure. Every result here is
 exploratory. Reproducing Chan's figures spends his 2006 to 2012 sample on a
 rule he chose, so the run says whether his numbers reproduce on his files and
@@ -161,6 +168,13 @@ FRONT_END = 10
 CONTANGO = (-1.0, 1.0)
 #: Long USO and short XLE.
 BACKWARDATION = (1.0, -1.0)
+#: The two views by name, in the order :func:`by_view` reports them.
+VIEWS = {"contango": CONTANGO, "backwardation": BACKWARDATION}
+#: Months a year. The front and the back are adjacent CL months, so
+#: ``12 · ln(front / back)`` reads one day's ratio as an annual roll return.
+MONTHS_PER_YEAR = 12
+#: Days a year, as :func:`chan.tu_momentum.figures` annualises.
+DAYS_PER_YEAR = 252
 
 #: The ETF file's first and last day, the span location 2734 names.
 WINDOW_START = pd.Timestamp("2006-04-26")
@@ -264,6 +278,58 @@ def arbitrage(closes: pd.DataFrame, ratio: pd.Series) -> Arbitrage:
     return Arbitrage(
         days=days, ratio=on_days, positions=held, daily=daily_returns(closes.loc[days], held)
     )
+
+
+@dataclass(frozen=True)
+class ViewEarnings:
+    """What the days earning on one view returned.
+
+    A day earns on the view held the row before, as :func:`daily_returns`
+    lags it. ``trade``, ``uso`` and ``xle`` are compounded over those days,
+    each leg as its own close moved, unsigned. ``summed`` is the trade's
+    daily returns added up. ``roll`` adds ``12 · ln(front / back) / 252``
+    over the same days, on the ratio that set the view, so it reads each
+    day's ratio as an annual roll return with the two contracts a month
+    apart, which approximates the roll return the view collected in log
+    terms.
+    """
+
+    days: int
+    trade: float
+    summed: float
+    uso: float
+    xle: float
+    roll: float
+
+
+def by_view(closes: pd.DataFrame, result: Arbitrage) -> dict[str, ViewEarnings]:
+    """The trade's and each leg's return on the days earning on each view in :data:`VIEWS`."""
+    held = backshift(1, result.positions)
+    prices = closes.loc[result.days, list(LEGS)].to_numpy(dtype=float)
+    moves = prices / backshift(1, prices) - 1
+    moves = np.where(np.isnan(moves), 0.0, moves)
+    with np.errstate(invalid="ignore"):
+        roll = MONTHS_PER_YEAR * np.log(1 / backshift(1, result.ratio.reshape(-1, 1)).ravel())
+    found = {}
+    for name, view in VIEWS.items():
+        on = (held == view).all(axis=1)
+        legs = np.prod(1 + moves[on], axis=0) - 1
+        found[name] = ViewEarnings(
+            days=int(on.sum()),
+            trade=float(np.prod(1 + result.daily[on]) - 1),
+            summed=float(result.daily[on].sum()),
+            uso=float(legs[0]),
+            xle=float(legs[1]),
+            roll=float(roll[on].sum() / DAYS_PER_YEAR),
+        )
+    return found
+
+
+def fixed_view(closes: pd.DataFrame, result: Arbitrage) -> NDArray[np.float64]:
+    """Contango's position on every day the trade holds anything, earned as the trade earns."""
+    holding = (result.positions != 0).any(axis=1)
+    held = np.where(holding[:, None], np.array(CONTANGO), 0.0)
+    return daily_returns(closes.loc[result.days], held)
 
 
 def read_sources(
