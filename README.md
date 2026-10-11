@@ -721,8 +721,9 @@ Every figure is exploratory, and Entry 46 in
 [docs/replication-log.md](docs/replication-log.md) carries them all, with the
 checks on the archive's opens that the series check does not make.
 
-Item 44's rule also runs at leverage a broker would lend, and that run reaches
-no verdict either.
+Item 44's own run reaches a registered verdict: ruin contradicts the claim.
+The same rule also runs at leverage a broker would lend, and that capped run
+reaches no verdict.
 [Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) caps
 location 4684's beta match at 2, the overnight leverage Regulation T allows,
 and at 5, the most location 814 says portfolio margin lends on stocks held
@@ -1326,7 +1327,7 @@ gap and on FSTX.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict. Entry 48 carries the
 levered low-beta rule at leverage a broker would lend, which is exploratory
-and reaches no verdict either.
+and, like Entry 46, reaches no verdict.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
