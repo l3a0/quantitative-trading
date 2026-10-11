@@ -44,7 +44,8 @@ precision Chan printed, through ``matches``.
 change to any of them moves that post too. ``TestWhichPairTheSignalReads`` holds
 the numbers the post added, and ``tests/test_vx_calendar_spread_figures.py``
 holds what its figure draws. ``blog/crude-oil-calendar-spread-lessons.md``
-quotes the 126 of 847 that the class pins too.
+also quotes one of the class's numbers, the 126 of 847 held days whose near
+leg is the front contract.
 
 Exploratory. Reproducing Chan's figures spends his 2006 to 2012 strip on a rule
 he chose, S is a reading of the book's text, and B3 was picked out after the
