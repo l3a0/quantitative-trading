@@ -126,8 +126,8 @@ arithmetic. It differs from the script in four places.
    first value falls one row later than line 13's, on 2004-11-22.
 2. **The short test.** ``shorts=df['Open'] >= df['Low'].shift()*(1-entryZscore*stdretC2C90d)``
    flips line 16's ``<=``. Any open that clears the previous high also clears
-   the previous low, so every long day passes it too, and the short is
-   assigned after the long. The port is never long.
+   the previous low, so every long day passes it too, and the port assigns
+   the short after the long. The port is never long.
 3. **The sign.** ``ret=positions*(df['Close']-df['Open'])/df['Open']`` is the
    momentum reading, where line 23 writes ``(op-cl)./op``.
 4. **The Sharpe ratio.** ``np.std`` on a series divides by n, where line 26's
@@ -531,10 +531,15 @@ def report_python_port(port: PythonPort) -> None:
         f"flat on {int((held == 0).sum())}, both tests passed on "
         f"{int((port.longs & port.shorts).sum())}"
     )
+    print("  Exploratory. docs/replication-log.md carries the verdicts.")
 
 
 def run(data_dir: Path | None = None) -> OpeningGap:
-    """Read the script's save and the two earlier ones, run each, and print the report."""
+    """Read the script's save and the two earlier ones, run each, and print the report.
+
+    It also runs Chan's Python port on the script's save and prints its report
+    after the script's.
+    """
     entry, prices = read_sources(data_dir)
     result = opening_gap(prices)
     earlier = []

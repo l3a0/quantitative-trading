@@ -8344,18 +8344,19 @@ arithmetic. Against the script, line by line:
 
 | Script line | `gapFutures_FSTX.m` | `gapFutures_FSTX.py` | What differs |
 | --- | --- | --- | --- |
+| 3 | `entryZscore=0.1;` | `entryZscore=0.1;`, the port's line 7 | The same threshold, a tenth of the spread. |
 | 13 | `stdretC2C90d=backshift(1, smartMovingStd(calculateReturns(cl, 1), 90));` | `stdretC2C90d=df['Close'].pct_change().rolling(90).std().shift()` | The port divides by n − 1 rather than n. Pandas also wants all 90 returns in the window, so the port's first spread falls on 2004-11-22, one row after the script's 2004-11-19. |
 | 15 | `longs= op >= backshift(1, hi).*(1+entryZscore*stdretC2C90d);` | `longs= df['Open'] >= df['High'].shift()*(1+entryZscore*stdretC2C90d)` | The same test. |
 | 16 | `shorts=op <= backshift(1, lo).*(1-entryZscore*stdretC2C90d);` | `shorts=df['Open'] >= df['Low'].shift()*(1-entryZscore*stdretC2C90d)` | The port flips `<=` to `>=`, so a short qualifies on every day the open does not jump below the previous low by the margin. |
-| 18 to 21 | `positions(longs)=1;` then `positions(shorts)=-1;` | `positions[longs]=1` then `positions[shorts]=-1` | The same order, the short after the long. An open that clears the previous high also clears the previous low, so every long day passes the port's short test and is assigned short. The port never holds a long position. |
+| 18 to 21 | `positions(longs)=1;` then `positions(shorts)=-1;` | `positions[longs]=1` then `positions[shorts]=-1` | The same order, the short after the long. An open that clears the previous high also clears the previous low, so every long day passes the port's short test too, and the port's line 22 makes it short. The port never holds a long position. |
 | 23 | `ret=positions.*(op-cl)./op;` | `ret=positions*(df['Close']-df['Open'])/df['Open']` | The port takes the momentum sign, the one location 2965 describes. |
 | 24 | `ret(isnan(ret))=0;` | none | No return is NaN on this file, so the missing line moves nothing. |
 | 26 | `prod(1+ret).^(252/length(ret))-1` and `mean(ret)*sqrt(252)/std(ret)` | `np.prod(1+ret)**(252/len(ret))-1` and `np.sqrt(252)*np.mean(ret)/np.std(ret)` | The APR is the same. `np.std` on a series divides by n, where MATLAB's `std` divides by n − 1. |
 | 33 | `calculateMaxDD(cumret)` | `calculateMaxDD(cumret.fillna(0))` | The port's `calculateMaxDD` is the script's loop. Under pandas 3 the port stops here, because the loop indexes the date-indexed `cumret` by position, so it no longer runs as shipped. |
 
 Every result here is **exploratory**. Reproducing Chan's figure spends his
-2004 to 2012 sample on his rule, and neither reading is evidence that an
-opening jump pays today.
+2004 to 2012 sample on his rule, and no rule here, neither reading of the
+script nor the port's, is evidence that an opening jump pays today.
 
 ### What the book printed
 
@@ -8406,9 +8407,9 @@ opening jump pays today.
 | 7 | none | none, not a replication | No day qualifies both tests, so line 21's order decides nothing here. No open sits exactly on either threshold, so the tests being non-strict decides nothing either. `TestTheRules` holds both on synthetic days. |
 | 8 | none | none, not a replication | FSTX's close in this save agrees with the 2012-05-17 save's on 45 of the 1,996 days they share, as [data/README.md](../data/README.md) records, and the window starts and ends four trading days earlier. Its APR rounds to 0.1315 rather than 0.1327, so the save is part of the specification. |
 | 9 | none | none, not a replication | FSTX's close in this save equals the 2012-05-11 save's on every day they share, over a window that starts three trading days earlier still. Its APR rounds to 0.1336. Both earlier saves still round to the book's 13 percent. |
-| 10 | +0.000000 on the APR, +0.000000 on the Sharpe ratio | reproduced | Both land on the comment at its six decimals, on the file the port reads, with the Sharpe ratio dividing by n as `np.std` does. Dividing by n − 1 gives 0.4947335873, which misses by −0.000123, so the divisor is part of the port's specification. That n − 1 figure is the 0.494734 the probe on [issue 505](https://github.com/l3a0/quantitative-trading/issues/505) found. |
+| 10 | +0.000000 on the APR, +0.000000 on the Sharpe ratio | reproduced | Both land on the comment at its six decimals, on the file the port reads, with the Sharpe ratio dividing by n as `np.std` does. Dividing by n − 1 gives 0.4947335873, which misses by −0.000123, so the divisor is part of the port's specification. That n − 1 figure is the 0.494734 that [issue 505](https://github.com/l3a0/quantitative-trading/issues/505) recorded from a scratch run guessing at the port's rule before the port was read. |
 | 11 | −0.000000 on the drawdown, 0 on its days | reproduced | The port's comment comes from the rule its text states, on Chan's own file. |
-| 12 | none | none, not a replication | Every one of the 278 days passing the long test also passes the port's short test, which is assigned after it, so the port never holds a long position. It sells the open and buys the close on the 1,718 days the open does not jump below the previous low by the margin. |
+| 12 | none | none, not a replication | Every one of the 278 days passing the long test also passes the port's short test, and the port assigns the short after the long, so it never holds a long position. It sells the open and buys the close on the 1,718 days the open does not jump below the previous low by the margin. |
 | 13 | none | none, not a replication | The two spreads qualify the same days except 2004-11-19, the one row where the script's spread is set and the port's is not. Under the port's short test that day is short, and it alone moves the APR from row 10's to 0.076926. The divisor decides no day of this file. |
 | 14 | none | none, not a replication | Under the script's tests 2004-11-19 qualifies nothing on either spread, so the port's spread leaves the script's figures where rows 1 and 2 put them. |
 | 15 | none | none, not a replication | Changing the sign alone negates every one of the port's returns, so the Sharpe ratio dividing by n − 1 is row 10's negated. The APR is not, because it compounds. |
@@ -8454,9 +8455,11 @@ the literal sign.
 [Issue 359](https://github.com/l3a0/quantitative-trading/issues/359) carries
 running it.
 
-**Whether either reading works out of sample.** The rule, the save and the
-window are Chan's, and the sample is the one he reported on. A registered
-test would fix one sign first and run it on data after 2012.
+**Whether any of the three rules works out of sample.** Neither reading of
+the script and not the port's rule has been run past Chan's window. The
+rules, the save and the window are Chan's, and the sample is the one he
+reported on. A registered test would fix one rule first and run it on data
+after 2012.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.

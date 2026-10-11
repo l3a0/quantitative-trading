@@ -28,18 +28,21 @@ unless it names another, so they are stated once here.
   ``prod(1 + ret)^(252 / 2000) − 1`` and the Sharpe ratio
   ``mean · √252 / std`` with the std dividing by n − 1, with no risk-free
   rate and no cost.
-- **The Python port.** ``TestChansPythonPort`` alone reads
-  ``gapFutures_FSTX.py`` from Chan's ``PythonCodesAndData.zip``, member
-  sha256 ``8b005cee1114fd019ca761c1df7331d5f66ba9a3be8d6dcb2e614b6615a095fc``,
-  as ``chan.opening_gap.python_port`` carries it, and its docstring names
-  where the port's rule differs from the script's.
+- **The Python port.** ``TestChansPythonPort`` runs the arithmetic of
+  ``gapFutures_FSTX.py``, as ``chan.opening_gap.python_port`` carries it, on
+  the vintage above. The port itself, member sha256
+  ``8b005cee1114fd019ca761c1df7331d5f66ba9a3be8d6dcb2e614b6615a095fc`` in
+  Chan's ``PythonCodesAndData.zip``, is not committed, and no test reads it.
+  The class docstring names where the port's rule differs from the script's.
 
-Each computed figure is held at six decimals, so a change cannot move it
-inside the published rounding unnoticed, and each published figure at the
-precision Chan printed it, through ``matches``.
+Each computed figure is held at six decimals or more, ten for Entry 40's
+rows 10 and 11, so a change cannot move it inside the published rounding
+unnoticed, and each published figure at the precision Chan printed it,
+through ``matches``.
 
 Exploratory. Reproducing Chan's figure spends his 2004 to 2012 sample on his
-rule. The run first ran here on 2026-10-10.
+rule. The run first ran here on 2026-10-10, and the port's rows on
+2026-10-11.
 """
 
 from __future__ import annotations
@@ -867,3 +870,4 @@ class TestChansPythonPort:
             "reproduced",
         ]
         assert "long on 0 days, short on 1718, flat on 282, both tests passed on 278" in tail
+        assert tail.rstrip().endswith("Exploratory. docs/replication-log.md carries the verdicts.")

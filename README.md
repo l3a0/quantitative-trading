@@ -1094,7 +1094,12 @@ holds both entry tests non-strict, a missing spread qualifying nothing, a
 short overriding a long, and the sign of each reading's open-to-close
 return. It also holds the read guarded. For Chan's Python port it pins the
 four figures the port's comments print, the days it holds each side, and
-three variants that each change one difference from the script.
+three variants that each swap one difference between the two programs. On
+synthetic days it holds the port's spread dividing by n − 1 and starting a
+row later, its short test flipped and non-strict, an open above the
+previous high being short, a missing spread qualifying nothing, and its
+Sharpe ratio dividing by n. It also holds the Experiments page's figures as
+the port's comment rounded.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
