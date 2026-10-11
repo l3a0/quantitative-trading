@@ -117,6 +117,30 @@ class TestPastTheCap:
     def test_the_axis_ends_where_the_dashed_curve_does(self, ax) -> None:
         assert ax.get_xlim() == (0.0, BEYOND_CAP)
 
+    def test_the_shading_is_the_colour_of_a_loss_and_leaves_the_curve_visible(self, ax) -> None:
+        from matplotlib.colors import to_rgb
+
+        shade = _by_gid(ax.patches)["over_cap"]
+        assert shade.get_facecolor()[:3] == pytest.approx(to_rgb(LOST))
+        assert shade.get_alpha() < 0.3
+
+    def test_the_label_sits_inside_the_axes(self, ax) -> None:
+        low, high = ax.get_ylim()
+        assert low < _by_gid(ax.texts)["over_cap_label"].get_position()[1] < high
+
+    def test_the_vertical_axis_clips_nothing(self, ax) -> None:
+        """The curve starts at 0.4648 and the peak reaches 0.962956, so both ends must fit."""
+        low, high = ax.get_ylim()
+        for line in ax.lines:
+            assert low < np.min(line.get_ydata()) and np.max(line.get_ydata()) < high
+
+    def test_both_curves_take_one_point_every_0_001_of_f2(self, ax) -> None:
+        """The constants' comments promise this spacing."""
+        for gid in ("inside", "beyond"):
+            np.testing.assert_allclose(
+                np.diff(_by_gid(ax.lines)[gid].get_xdata()), 0.001, atol=1e-12
+            )
+
 
 class TestTheMarkers:
     def test_the_proportional_split(self, ax) -> None:
@@ -147,6 +171,19 @@ class TestTheMarkers:
             "everything on strategy 2, F2 = 2\ng = 0.955",
             "unbounded peak, F2 = 2.289321\ng = 0.962956, not allowed",
         ]
+
+    def test_each_marker_is_drawn(self, ax) -> None:
+        """A face colour survives on a marker that draws nothing, so check the marker itself."""
+        lines = _by_gid(ax.lines)
+        for gid in ("proportional", "corner", "peak"):
+            assert lines[gid].get_marker() == "o"
+            assert lines[gid].get_markersize() > 0
+
+    def test_each_label_points_at_its_marker(self, ax) -> None:
+        lines = _by_gid(ax.lines)
+        arrows = [t for t in ax.texts if not t.get_gid()]
+        for arrow, gid in zip(arrows, ("proportional", "corner", "peak"), strict=True):
+            assert arrow.xy == pytest.approx(_point(lines[gid]), abs=1e-12)
 
     def test_the_markers_come_from_the_runs_functions(self) -> None:
         curve = allocation_curve()
