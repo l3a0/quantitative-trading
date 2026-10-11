@@ -242,6 +242,16 @@ Gaussian statistic of 2.93 and the randomized-returns p-value of 0.027500 sit
 in the comments of `TU_mom_hypothesisTest.m` and nowhere in the book. The
 replication log's Entry 37 traces each figure to one or the other.
 
+The trade of GLD against gold futures splits the way Example 6.1 does. The
+book's figures are here: gold futures' roll return of −4.9 percent annualized
+from December 1982 to May 2004, the annualized return of 1.9 percent and the
+maximum drawdown of 0.8 percent from August 3, 2007, to August 2, 2010, and
+the financing cost "not very different from 1.9 percent", all at location 2718,
+and the caveat about GC's 1:30 p.m. settlement at location 2730. The figures
+the closing comment of `GLD_GC.m` prints, 0.0190, −.07, 0.0191, −0.008247 and
+91 days, sit in the script and nowhere in the book. The replication log's
+Entry 38 traces each figure to one or the other.
+
 *Algorithmic Trading*'s XLE against USO trade splits the same way as its
 Example 6.1. The book's figures are here: the APR of "a very respectable 16
 percent" from April 26, 2006, to April 9, 2012, and the Sharpe ratio of
@@ -251,7 +261,7 @@ spot price and USO its futures. The figures `XLE_CL_rollReturn.m`'s comment
 prints, an average annual return of 0.1592, a Sharpe ratio of 1.05, an APR
 of 0.1591, a maximum drawdown of −0.192321 and a longest drawdown of 487
 days, sit in the script and nowhere in the book. The replication log's
-Entry 38 traces each figure to one or the other.
+Entry 39 traces each figure to one or the other.
 
 *Algorithmic Trading*'s Examples 8.1 and 8.2 are absent the second way
 described below. Every figure their prose prints is here, at locations 3216

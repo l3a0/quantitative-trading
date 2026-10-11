@@ -1,7 +1,7 @@
 """The pins for XLE against USO signed by crude oil's contango, *Algorithmic Trading* location 2734.
 
 This file is the single authority for every number a prose surface quotes
-about this replication. ``docs/replication-log.md`` Entry 38 carries the
+about this replication. ``docs/replication-log.md`` Entry 39 carries the
 verdicts and points here row by row.
 
 Every pin reads two vintages and one specification, so they are stated once
