@@ -1,6 +1,6 @@
 # Chan’s reversal earns more on his S&P 600 file than on his S&P 500 file, and one year tells them apart only at the close
 
-*Chan explains why the reversal he reproduces has a Sharpe ratio of 0.25 where Khandani and Lo report 4.47: most of their returns came from small and microcap stocks. He leaves the small-cap run as an exercise. On his own S&P 600 file over 2006, the rule’s Sharpe ratio is 3.4086 at the close against the S&P 500’s 0.2510, a gap more than three times its standard error. At the open the gap is +0.8850, inside one year’s noise. The result is exploratory, the file holds only survivors, and it holds no microcaps.*
+*Chan explains why the reversal he reproduces has a Sharpe ratio of 0.25 where Khandani and Lo report 4.47: most of their returns came from small and microcap stocks. He leaves the small-cap run as an exercise. On his own S&P 600 file over 2006, the rule’s Sharpe ratio is 3.4086 at the close against the S&P 500’s 0.2510, a gap more than three times its standard error. At the open the gap is +0.8850, inside one year’s noise. The result is exploratory, the file holds only survivors, and nothing in it says which members were microcaps.*
 
 ## Why run the reversal on small caps
 
@@ -147,7 +147,7 @@ Before costs, the S&P 600 earns more than the S&P 500 at both prices. Under the 
 
 1. **One year.** The run reads 2006 only, the year of Chan’s S&P 500 figures. The standard error says what one year can resolve, and on the opens one year cannot resolve the gap. The [post on Chan’s 2012 panel](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md#lesson-3-most-of-the-rise-from-025-to-13-is-the-data-and-the-window) found that a change of data and window moved a close cousin of this rule more than the change of rule did.
 2. **Survivors.** The S&P 600 file holds the index as it stood on 2008-01-14. A small company that failed in 2006 or 2007 is missing, and a reversal buys exactly the stocks that fell. The [earlier post’s Lesson 5](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md#lesson-5-the-toy-cannot-measure-survivorships-effect-on-the-reversal) explains why the missing stocks can push a long and short rule either way. Neither the size nor the sign of the effect is measured here.
-3. **No microcaps.** Chan’s sentence names small and microcap stocks. The S&P 600 admits only companies above a minimum size, so it holds small caps and no microcaps, and the result speaks for the S&P 600’s small caps against the S&P 500’s large caps, and for nothing below the index.
+3. **Nothing measured about microcaps.** Chan’s sentence names small and microcap stocks. The S&P 600 admits a company only above a minimum size, but it does not drop a member only because the member later shrank, so some of its members may have been microcaps. The file holds prices and volumes without market values, so this run cannot say how many. The result speaks for the S&P 600’s small caps against the S&P 500’s large caps, and for nothing about microcaps.
 4. **4.47 is judged against nothing**, as the declared reading set out. A figure here landing above or below theirs says nothing about where their returns came from.
 
 Chan’s exercise also names the S&P 400, the mid-cap index. It is the third point, between the other two, and it has not been run here. A reading that points Chan’s way earns a test registered in advance, on data this run has not seen.
@@ -156,7 +156,7 @@ Chan’s exercise also names the S&P 400, the mid-cap index. It is the third poi
 
 Five questions are beyond it.
 
-1. **Anything about microcaps.** The S&P 600 holds none.
+1. **Anything about microcaps.** The file holds no market values, so nothing here says which S&P 600 members were microcaps.
 2. **What survivorship did to either universe.** Both files hold only survivors, the S&P 600 as of 2008-01-14 and the S&P 500 as of 2007-11-23.
 3. **Whether the gap holds in another year.** The run reads 2006 alone.
 4. **What a small-cap trader would keep after costs.** Both universes pay the same 5 basis points a side, while small caps cost more to trade, and nothing here prices by how much.

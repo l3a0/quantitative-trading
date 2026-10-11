@@ -723,7 +723,8 @@ little. The rule trades about the same amount a day on both files at both
 prices, so the profit decides, and the S&P 600's average day on the closes
 pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
 exploratory, both files hold only survivors, and it says nothing about
-microcaps, which the S&P 600 does not hold.
+microcaps, because the file holds no market values to say which S&P 600
+members were microcaps.
 
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
@@ -5633,7 +5634,8 @@ Entry 44 of the replication log.
    2006-07-12, and same-day news shows both were earnings warnings that
    traded.
 6. The declared reading points the way Chan says, on one year of survivors
-   and no microcaps, and the S&P 400 is the third point, not yet run.
+   and with nothing measured about microcaps, and the S&P 400 is the third
+   point, not yet run.
 
 Five groups of what it says are not pinned here.
 
@@ -5650,7 +5652,8 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the open's lift removes most of what
    separated the two universes at the close, that the rule replaces about the
    same share of its book in every universe, that one cost on both universes
-   flatters the S&P 600, that the S&P 600 holds no microcaps, that the
+   flatters the S&P 600, that the S&P 600 adds a company only above a size
+   floor and keeps a member that later shrinks, that the
    reversal bought the two flagged stocks on days Chan's reasoning gives no
    cause to expect a bounce, that the daily profits are neither independent
    nor normal, that the 2012 panel's rule is a close cousin of this one, that
