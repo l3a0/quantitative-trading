@@ -71,7 +71,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from chan import archive, khandani_lo_small_caps, sp400_panel
+from chan import archive, khandani_lo, khandani_lo_small_caps, sp400_panel
 from chan import khandani_lo_mid_caps as mid_caps
 from chan.fund_panel import numbered_members
 from chan.khandani_lo import daily_returns, reversal, reversal_weights
@@ -597,6 +597,46 @@ class TestTheControl:
             approx(z),
         )
         assert g.beyond_noise is beyond
+
+    @pytest.mark.parametrize(
+        ("price", "figures"),
+        [("closes", (3.5194, 0.0657, 0.0577)), ("opens", (4.5808, 1.6775, 1.6904))],
+    )
+    def test_a_literal_nan_return_on_the_split_days_moves_only_the_after_cost_figures(
+        self, frames, monkeypatch, price, figures
+    ) -> None:
+        """What the split treatment's charge for closing and reopening costs.
+
+        Same vintage and specification as the primary control, with MAG's bad
+        print excluded as declared, but each split day's return set to NaN in
+        ``chan.khandani_lo.daily_returns`` instead of carrying the member
+        under two columns. The member's weight on that day is then NaN rather
+        than 0, so the cost charges no close and no reopening. Before costs
+        the two treatments agree, and after costs this one sits above the
+        primary figures.
+        """
+        raw = getattr(frames, f"control_{price}")
+        primary = reversal(exclude(raw))
+        frame = without_bad_prints(raw, BAD_PRINTS)
+        cells = [
+            (frame.index.get_loc(pd.Timestamp(day)), frame.columns.get_loc(symbol))
+            for symbol, day in SPLIT_DAYS.items()
+        ]
+
+        def with_nan_returns(prices: np.ndarray) -> np.ndarray:
+            returns = daily_returns(prices)
+            for row, column in cells:
+                returns[row, column] = math.nan
+            return returns
+
+        monkeypatch.setattr(khandani_lo, "daily_returns", with_nan_returns)
+        run = khandani_lo.reversal(frame)
+        assert (run.before_costs, run.after_costs, run.after_costs_charged) == tuple(
+            approx(f) for f in figures
+        )
+        assert run.before_costs == pytest.approx(primary.before_costs, abs=1e-12)
+        assert run.after_costs > primary.after_costs
+        assert run.after_costs_charged > primary.after_costs_charged
 
     def test_the_s_and_p_400s_step_to_its_nearer_neighbour(self, result) -> None:
         """On the closes the S&P 600 is nearer, and on the opens the S&P 500 is."""

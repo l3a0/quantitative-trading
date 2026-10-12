@@ -38,10 +38,11 @@ into one of :data:`HISTORIES`.
 2. ``partial``: a first row on or before the day before the window, with a
    close or an open missing on some day.
 3. ``listed``: a first row inside the window, before :data:`VENDOR_START`.
-4. ``cut``: a first row on :data:`VENDOR_START`. Fifteen of the series issue
-   332 recorded into the ``sp600`` cross-section on 2026-10-05 also begin that
-   day, for companies that listed before it, so the date is the vendor's
-   cut-off rather than a listing.
+4. ``cut``: a first row on or after :data:`VENDOR_START`, which inside the
+   window means 2006-12-28 or 2006-12-29. Fifteen of the series issue 332 recorded into
+   the ``sp600`` cross-section on 2026-10-05 begin on 2006-12-28, and Chan's
+   ``IJR_20080114.mat`` holds a close for 13 of those 15 on every trading day
+   of 2006, so the date is the vendor's cut-off rather than a listing.
 5. ``absent``: no row inside the window.
 
 A run holds ``full``, ``partial`` and ``listed`` members, which is
@@ -243,7 +244,9 @@ def history(
     ``adjusted`` and ``opens`` are date-by-ticker frames of the adjusted close
     and the raw open, and ``days`` is the calendar. A day counts for a member
     when its frame holds a number there, so a missing open makes the history
-    ``partial`` even where the close is whole.
+    ``partial`` even where the close is whole. A series with a row inside the
+    window whose first row falls on or after :data:`VENDOR_START` is ``cut``,
+    so a series the vendor starts a day late is not taken for a listing.
     """
     inside = window_days(days)
     wanted = pd.DatetimeIndex([pd.Timestamp(BEFORE_WINDOW), *inside])
@@ -258,7 +261,7 @@ def history(
         on_open = opened.index.intersection(inside)
         if len(on_close) == 0:
             kind = "absent"
-        elif first == pd.Timestamp(VENDOR_START):
+        elif first >= pd.Timestamp(VENDOR_START):
             kind = "cut"
         elif first > pd.Timestamp(BEFORE_WINDOW):
             kind = "listed"

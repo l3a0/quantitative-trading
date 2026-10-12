@@ -734,6 +734,25 @@ exploratory, both files hold only survivors, and it says nothing about
 microcaps. The S&P 600 file holds prices and volumes but no market values, so
 nothing here measures how many of its members were microcaps.
 
+A third result runs the S&P 400 half of the same exercise, and it is not a
+replication either.
+[Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) runs the
+reversal on IJH's holdings in iShares Trust's N-Q for 2007-12-31, priced from
+the owner's archive of Alpha Vantage files, and reads the three indexes as one
+ladder. Before costs the S&P 400 earns 2.0338 on the closes, between its two
+neighbours, and 3.4533 on the opens, below both. So the order Chan's
+explanation predicts holds on the closes and is partial on the opens, which
+the reading declared before the run calls mixed. One of the four steps is
+beyond one year's noise, the closes' step from the S&P 500 to the S&P 400, at
+a z of +2.1973. The S&P 400's prices come from another vendor and another
+decade than Chan's files, so an S&P 600 control built the same way is read
+against Chan's S&P 600 file. It lands +0.1108 from that file on the closes and
+−0.7244 on the opens, inside the S&P 400's steps to its nearer neighbour of
+1.3748 and 0.9669, so under the declared rule the ordering is separable from
+how the panel was built. Every figure is exploratory and about survivors, and
+Entry 50 in [docs/replication-log.md](docs/replication-log.md) carries them
+all.
+
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
 [issue 251](https://github.com/l3a0/quantitative-trading/issues/251) asks what
@@ -1587,6 +1606,12 @@ December 2008 to August 2026, which
 [tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
 between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
 September 2012.
+IJH's 2007-12-31 holdings sit in `research/filings/ijh/2007-12-31.csv`, and
+`research/filings/ijh/members.csv` maps and checks them the same way.
+`research/filings/ijr/members_2007-12-31.csv` does the same for all of IJR's
+holdings that day, as the control beside them, which
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303) built and
+[tests/test_sp400_panel.py](tests/test_sp400_panel.py) pins.
 `chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing as a replication, and on the members of every
 year-end from 2008 to 2025 through that members file as a registered
@@ -2024,6 +2049,22 @@ the next month, and the misses by reason. A line per missing member
 follows with its reason. `check` also writes `research/filings/ivv/holes.csv`,
 which names every month-end a series' span covers with no row on it, so the
 report can run with no archive.
+
+The S&P 400 panel does the same for IJH's 2007-12-31 holdings, into the
+`sp400` cross-section, and its control does it for all of IJR's holdings that
+day. Each command takes `ijh` or `control`:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp400_panel fetch ijh'
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp400_panel check ijh
+uv run python -m chan.sp400_panel report ijh
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp400_panel history ijh
+```
+
+`report` reads only committed tables and prints each check's members and
+value, then every member that did not pass. `history` reads the archive and
+sorts each passing member by its 2006 rows, then lists those a run over 2006
+leaves out.
 
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any

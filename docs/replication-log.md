@@ -10924,12 +10924,12 @@ columns, as Entry 44's do.
 
 Sixteen rows, all derivable from
 [tests/test_khandani_lo_mid_caps.py](../tests/test_khandani_lo_mid_caps.py).
-The module is `chan.khandani_lo_mid_caps`. Its S&P 500 and S&P 600 runs land
-on the figures Entries 8, 10 and 44 report, to the last bit, which
-`TestChansTwoFiles` holds.
+The module is `chan.khandani_lo_mid_caps`. Its S&P 500 and S&P 600 runs give
+the same floats as `chan.khandani_lo_small_caps`, and land on the figures
+Entries 8, 10 and 44 report, which `TestChansTwoFiles` holds.
 
-**Before costs the order holds on the closes and breaks on the opens, so the
-reading is mixed.** On the closes the S&P 400 earns 2.0338, between the
+**Before costs the order holds on the closes and is partial on the opens, so
+the reading is mixed.** On the closes the S&P 400 earns 2.0338, between the
 S&P 500's 0.2510 and the S&P 600's 3.4086. On the opens it earns 3.4533, below
 both the S&P 500's 4.4202 and the S&P 600's 5.3052. So the step from the
 S&P 500 to the S&P 400 rises on the closes and falls on the opens, and the
@@ -10945,7 +10945,7 @@ way the S&P 400 panel is built and reads it against Chan's S&P 600 file. That
 control lands 0.1108 above Chan's file on the closes and 0.7244 below it on
 the opens. Both gaps are smaller than the S&P 400 figure's distance to its
 nearer neighbour, 1.3748 on the closes and 0.9669 on the opens, so the
-reading stands.
+declared reading applies.
 
 **Every reading was declared before any figure was computed.** Three texts on
 the tracker fix it.
@@ -11129,12 +11129,20 @@ day's return NaN by carrying the member under two columns, one holding its
 prices before the day and one from the day on. Every price and every other
 return stays what it was, and so does each day's count of priced members.
 Rule B weights a return that is not finite at 0, so the member closes its
-position on the split day and opens it again the next.
+position on the split day and opens it again the next. After costs this
+charges closing the position and reopening it, which a NaN return alone would
+not, so the control's after-cost rows include that charge. A literal NaN
+return on the two split days gives 0.0657 and 0.0577 on the closes and 1.6775
+and 1.6904 on the opens, against rows 11 and 12's 0.0655, 0.0575, 1.6774 and
+1.6903.
+`TestTheControl::test_a_literal_nan_return_on_the_split_days_moves_only_the_after_cost_figures`
+holds those four, and that the before-cost figures do not move, so neither
+does the reading.
 `TestTheControl::test_the_exclusion_changes_the_returns_on_exactly_the_declared_cells`
 holds that on both prices the control's returns change on exactly the four
 cells above, and `TestTheExclusions` holds the same on frames built by hand.
 
-The exclusions matter more than any other choice in the run. Without them the
+The exclusions decide whether the control passes its rule. Without them the
 control lands 1.5124 below Chan's file on the closes and 2.7050 below on the
 opens, rows 13 and 14, which would put both outside the S&P 400's steps. The
 S&P 400 panel has nothing excluded, so it has one set of figures.
@@ -11152,8 +11160,9 @@ and 74.8% by value, and leaves out 116 in three groups.
 1. **103 fail the price check.** The check asks whether Alpha Vantage's raw
    close on 2007-12-31 times the filing's share count equals the filing's
    value, within half a dollar plus half a share. Seven fail on the price,
-   62 have a series with no row on 2007-12-31, mostly a reused ticker or a
-   history cut off, and 34 have no series at all.
+   62 have a series whose first row comes after 2007-12-31, such as DRS's,
+   which starts in 2022, and LEA's, which starts in 2009, and 34 have no
+   series at all.
 2. **10 start on 2006-12-28, the vendor's cut-off.** Alpha Vantage starts
    many histories that day whatever the company's age, so two rows in 2006
    are the vendor's cut-off rather than a listing.
@@ -11164,18 +11173,21 @@ and 74.8% by value, and leaves out 116 in three groups.
 A passing member with only part of 2006 is held, as on Chan's files, since
 rule B weights a return that is not finite at 0. That covers 10 members with
 1 to 7 missing days and HBI, KBR and CMG, which listed during 2006.
-`tests/test_sp400_panel.py` pins every count here,
+`tests/test_sp400_panel.py` pins every count and ticker here, and
+`TestTheManifestLines` pins where the 62 series start,
 `TestThePanels::test_the_share_of_each_filing_a_run_holds` pins the two
 shares, and
 `uv run python -m chan.sp400_panel report ijh` and `history ijh` print the
 list below.
 
-The left-out names are not random. Most are companies acquired from 2008 to
-2012, such as Cephalon, Sybase and Foundry Networks, utilities acquired in the
-same years, and failures such as IndyMac, Colonial BancGroup and YRC
-Worldwide. All of them traded in 2006, so the selection is on what happened
-after 2008. The control is built by the same rule and keeps 385 of IJR's 602,
-64.0% by count, so it carries the same kind of selection.
+Every left-out name was in IJH on 2007-12-31. All but EXH and BR are left out
+by how Alpha Vantage serves their tickers today rather than by anything in
+2006. The members file's notes record what became of some of the companies,
+such as Cephalon, which Teva bought in 2011, Foundry Networks, which Brocade
+bought in 2008, and IndyMac and Colonial BancGroup, whose banks failed in 2008
+and 2009. Nothing here counts those fates across the 116. The control is built
+by the same rule and keeps 385 of IJR's 602, 64.0% by count, so it carries the
+same kind of selection.
 
 | Filing row | Ticker | Holding | Why the run leaves it out |
 | --- | --- | --- | --- |
@@ -11338,14 +11350,19 @@ Four things, and the first is the finding.
 3. **Building the panel from the archive moves the S&P 600 by less than the
    S&P 400's nearer step.** With the declared exclusions the control lands
    within one year's noise of Chan's file at both prices, and inside both
-   steps, so the reading does not rest on how the panel was built. Without
-   the three excluded days it would land outside both, which is why those
-   days were classified before the run rather than after it.
+   steps. Under the declared rule that makes the ordering separable from how
+   the panel was built. The rule assumes the construction moves the S&P 400
+   about as much as it moved the S&P 600, which this entry cannot measure.
+   Without the three exclusions the control would land outside both steps,
+   which is why those days were classified before the run rather than after
+   it.
 4. **After costs the closes keep the order and the opens keep the break.**
-   After Chan's costs the S&P 400 loses 1.4444 on the closes, between the
+   After Chan's costs the S&P 400 earns −1.4444 on the closes, between the
    S&P 500's −3.1884 and the S&P 600's −0.3702. On the opens it keeps 0.4589,
-   below both neighbours. The run charges all three universes 5 basis points
-   a side, so these figures flatter the smaller indexes.
+   below both neighbours. Nothing was declared for an order after costs, and
+   no standard error sizes these gaps, so this describes the figures rather
+   than reading them. The run charges all three universes 5 basis points a
+   side, so these figures flatter the smaller indexes.
 
 ### What this entry cannot say
 
@@ -11356,12 +11373,15 @@ stocks". The S&P 400 holds mid caps and the S&P 600 small caps above an index
 floor, and none of the four panels holds market values, so nothing here
 speaks for microcaps or for stocks outside the three indexes.
 
-**What survivorship after 2008 did.** The S&P 400 panel holds 285 of IJH's
-401 holdings, and the 116 it leaves out are mostly companies acquired or
-failed after 2008, whose tickers the vendor no longer serves. Chan's two files
-are survivors too, as of 2007-11-23 and 2008-01-14. A reversal buys the stocks
-that fell, so the missing stocks could move it either way, and neither the
-size nor the sign is measured here.
+**What survivorship after 2007 did.** The S&P 400 panel holds 285 of IJH's
+401 holdings. Every one of the 116 it leaves out but EXH and BR is left out by
+how the vendor serves its ticker today, and they include companies bought or
+failed after 2007, such as Cephalon and IndyMac. Chan's two files are
+survivors too, as of 2007-11-23 and 2008-01-14. A reversal buys the stocks
+that fell, so the missing stocks could move it either way. Nothing here
+measures the size or the sign of that on the S&P 400. The control's gap holds
+the same selection's effect on the S&P 600 only, mixed with the change of
+vendor and download decade.
 [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) and
 [issue 213](https://github.com/l3a0/quantitative-trading/issues/213) are where
 survivorship is priced.

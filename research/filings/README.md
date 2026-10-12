@@ -4,9 +4,10 @@ Example 7.6 ranks the S&P 600 as it stood at each December year-end, Example
 7.7 ranks the S&P 500 at each month-end, and nothing Chan saved says which
 companies those were. IJR and IVV, the iShares funds that track the two
 indices, print their whole schedule of investments in the filings iShares
-Trust makes with the SEC. This directory holds what those filings say the two
-funds held, so a panel can be built from the membership the fund reported
-rather than from today's list carried backwards.
+Trust makes with the SEC, and so does IJH, the fund that tracks the S&P 400.
+This directory holds what those filings say the three funds held, so a panel
+can be built from the membership the fund reported rather than from today's
+list carried backwards.
 [Issue 361](https://github.com/l3a0/quantitative-trading/issues/361) built it
 for IJR at every December 31 from 2007 to 2025, and
 [issue 372](https://github.com/l3a0/quantitative-trading/issues/372) added IVV
@@ -315,13 +316,14 @@ for every count about IJR's members file, including each year-end's coverage,
 and [tests/test_sp500_panel.py](../../tests/test_sp500_panel.py) for IVV's
 members file and holes file, including each month-end's coverage.
 [tests/test_sp400_panel.py](../../tests/test_sp400_panel.py) holds IJH's filing,
-its members file and the control's, none of which a run reads yet.
+its members file and the control's.
 [tests/test_equity_seasonals.py](../../tests/test_equity_seasonals.py) holds
 the counts that need the run's own tenth: each year-end's ranked covered
 members and which missing members threaten each tenth.
 
-Five runs read this directory so far, three in `chan.equity_seasonals`, one
-in `chan.pead_rerun` and one in `chan.low_beta_holdout`.
+Six runs read this directory so far, three in `chan.equity_seasonals`, one
+in `chan.pead_rerun`, one in `chan.low_beta_holdout` and one in
+`chan.khandani_lo_mid_caps`.
 
 1. A replication runs Example 7.6 on the members of `ijr/2025-12-31.csv`,
    which Entry 7's rows 30 to 34 in
@@ -337,3 +339,7 @@ in `chan.pead_rerun` and one in `chan.low_beta_holdout`.
 5. A registered holdout runs Chan's levered low-beta rule on IVV's members,
    formed at every month-end from 2008-12 to 2026-07, through
    `ivv/members.csv` and `ivv/holes.csv`, which Entry 49 records.
+6. An exploratory run of the reversal exercise at the end of Example 3.8
+   reads `ijh/members.csv` for its S&P 400 panel and
+   `ijr/members_2007-12-31.csv` for its S&P 600 control, which Entry 50
+   records.

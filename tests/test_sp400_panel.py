@@ -248,6 +248,21 @@ class TestTheManifestLines:
         assert mapped - recorded == {row.ticker for row in IJH_ROWS if row.check == "no-series"}
         assert len(mapped - recorded) == 34
 
+    def test_every_ijh_series_with_no_row_on_2007_12_31_starts_after_it(self) -> None:
+        """So each of the 62 is a later series under the ticker, not a gap in an older one.
+
+        Read from the ``sp400`` lines of 2026-10-11 alone, with no archive.
+        DRS and LEA are the two examples Entry 50 names.
+        """
+        first = {
+            json.loads(line)["symbol"]: json.loads(line)["first_date"]
+            for line in _lines("sp400", "2026-10-11")
+        }
+        no_row = [row.ticker for row in IJH_ROWS if row.check == "no-row"]
+        assert len(no_row) == 62
+        assert all(first[ticker] > sp400_panel.REPORT_DATE for ticker in no_row)
+        assert (first["DRS"], first["LEA"]) == ("2022-11-29", "2009-11-09")
+
     def test_sp600_gained_lines_only_for_tickers_the_controls_93_rows_map(self) -> None:
         recorded = {json.loads(line)["symbol"] for line in _lines("sp600", "2026-10-11")}
         assert recorded <= set(sp400_panel.fetch_symbols(CONTROL, CONTROL_ROWS))
@@ -290,6 +305,10 @@ class TestHistory:
     def test_a_first_row_on_the_vendors_start_is_cut(self) -> None:
         assert self._kind([self.NAN] * 4 + [1.0] * 3) == "cut"
 
+    def test_a_first_row_after_the_vendors_start_is_cut_rather_than_listed(self) -> None:
+        """A series the vendor starts on 2006-12-29 is cut too, not a listing."""
+        assert self._kind([self.NAN] * 5 + [1.0] * 2) == "cut"
+
     def test_no_row_inside_the_window_is_absent(self) -> None:
         assert self._kind([self.NAN] * 6 + [1.0]) == "absent"
 
@@ -304,6 +323,42 @@ class TestHistory:
             for n, kind in enumerate(sp400_panel.HISTORIES, start=1)
         ]
         assert sp400_panel.panel_keys(entries) == [("2007-12-31", n) for n in (1, 2, 3)]
+
+
+class TestTheVendorsStart:
+    """Why a series starting on 2006-12-28 is read as the vendor's cut-off.
+
+    The vintage is ``data/archive_vintages.jsonl``'s ``sp600`` lines that
+    issue 332 downloaded from Alpha Vantage with ``TIME_SERIES_DAILY_ADJUSTED``
+    on 2026-10-05, and Chan's ``IJR_20080114.mat`` as committed under
+    ``data/ijr_20080114/``. The specification is a line whose ``first_date``
+    is :data:`chan.sp400_panel.VENDOR_START`, and a close in Chan's file on
+    every one of 2006's 251 trading days. Neither needs the archive.
+    """
+
+    def test_fifteen_sp600_series_recorded_on_2026_10_05_begin_on_it(self) -> None:
+        symbols = sorted(
+            json.loads(line)["symbol"]
+            for line in _lines("sp600", "2026-10-05")
+            if json.loads(line)["first_date"] == sp400_panel.VENDOR_START
+        )
+        assert symbols == [
+            "AGP", "CGX", "CHB", "HOTT", "JAS", "JDAS", "MFB", "OMX",
+            "PEET", "PLFE", "PMTI", "PRX", "TGX", "TWB", "WBSN",
+        ]  # fmt: skip
+
+    def test_chans_file_prices_13_of_them_on_every_day_of_2006(self) -> None:
+        symbols = {
+            json.loads(line)["symbol"]
+            for line in _lines("sp600", "2026-10-05")
+            if json.loads(line)["first_date"] == sp400_panel.VENDOR_START
+        }
+        _, chan = load_panel("IJR_20080114.mat")
+        year = chan.loc["2006-01-01":"2006-12-31"]
+        assert len(year) == 251
+        whole = sorted(s for s in symbols if s in year and year[s].notna().all())
+        assert len(whole) == 13
+        assert sorted(symbols - set(whole)) == ["OMX", "PRX"]
 
 
 class TestTheBindings:
@@ -367,6 +422,34 @@ HISTORY_COUNTS = {
     "control": ({"full": 370, "partial": 14, "listed": 1, "cut": 17, "absent": 4}, 385),
 }
 
+#: Per panel, every passing member a run leaves out, as ticker and first row,
+#: by history: ``cut`` on the vendor's start and ``absent`` with no 2006 row.
+LEFT_OUT = {
+    "ijh": {
+        "cut": dict.fromkeys("TBL VCI JEF-1 MFE BLC PXP NTY PRX NDN SKS".split(), "2006-12-28"),
+        "absent": {"PALM": "2007-10-25", "EXH": "2007-08-21", "BR": "2007-04-02"},
+    },
+    "control": {
+        "cut": dict.fromkeys(
+            "MFB PEET CGX SHAW RAH PMTI AGP CHB MNC PLFE WBSN TGX HOTT JAS TWB JDAS DITC".split(),
+            "2006-12-28",
+        ),
+        "absent": {
+            "ZEP": "2007-11-01",
+            "SUG": "2007-09-26",
+            "CENTA": "2007-02-06",
+            "FOR": "2007-12-13",
+        },
+    },
+}
+
+#: Per panel, the members listed during 2006, which a run holds.
+LISTED = {"ijh": ["CMG", "HBI", "KBR"], "control": ["CROX"]}
+
+#: Per panel, the fewest and most of the window's 251 days a partial member
+#: holds, on the close and on the open alike.
+PARTIAL_DAYS = {"ijh": (244, 250), "control": (247, 250)}
+
 #: Per panel, every flagged day, as ticker and day, the same on both prices.
 FLAGGED = {
     "ijh": [("KCI", "2006-08-04")],
@@ -407,6 +490,26 @@ class TestTheArchive:
         kinds, held = HISTORY_COUNTS[name]
         assert Counter(entry.kind for entry in entries) == Counter(kinds)
         assert len(sp400_panel.panel_keys(entries)) == held
+
+    def test_the_passing_members_a_run_leaves_out(self, name: str) -> None:
+        """The tickers and first rows ``history`` prints, on the vintage above."""
+        _, _, entries = self._read(name)
+        for kind, wanted in LEFT_OUT[name].items():
+            found = {e.ticker: e.first.date().isoformat() for e in entries if e.kind == kind}
+            assert found == wanted, kind
+
+    def test_the_members_listed_during_2006(self, name: str) -> None:
+        _, _, entries = self._read(name)
+        assert sorted(e.ticker for e in entries if e.kind == "listed") == LISTED[name]
+
+    def test_the_partial_members_fewest_and_most_days(self, name: str) -> None:
+        """Out of the window's 251, so IJH's partial members miss 1 to 7 days."""
+        _, _, entries = self._read(name)
+        partial = [e for e in entries if e.kind == "partial"]
+        assert all(e.closes == e.opens for e in partial)
+        assert (min(e.closes for e in partial), max(e.closes for e in partial)) == (
+            PARTIAL_DAYS[name]
+        )
 
     def test_the_flagged_days_on_both_prices(self, name: str) -> None:
         adjusted, adjusted_opens, entries = self._read(name)

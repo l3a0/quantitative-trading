@@ -42,10 +42,14 @@ reads it against Chan's S&P 600 file.
 
 **Every figure is about survivors.** Chan's files hold the stocks still in
 each index on their dates. The archive panels hold 71.1% of IJH's holdings by
-count and 64.0% of IJR's, and what they leave out is mostly companies acquired
-or failed after 2008, whose tickers Alpha Vantage no longer serves. Which way
-that moves a reversal is untested, and the control is the only measure here
-of how big it is.
+count and 64.0% of IJR's. They leave out a holding that fails the price check,
+whose series starts on Alpha Vantage's 2006-12-28 cut-off, or that has no 2006
+row, so what they leave out follows how the vendor serves each ticker today.
+It includes companies bought or failed after 2007, such as Cephalon and
+IndyMac, and :mod:`chan.sp400_panel` says which group each member falls in.
+Which way that moves a reversal is untested, and nothing here measures how big
+it is on the S&P 400. The control's gap holds the same selection's effect on
+the S&P 600 only, mixed with the change of vendor and download decade.
 
 **The reading was declared before any figure was computed.** Issue 249's
 [comparison declaration](https://github.com/l3a0/quantitative-trading/issues/249#issuecomment-6104832067)
