@@ -1301,6 +1301,27 @@ def test_a_planned_card_blocked_on_data_is_not_called_free_in_flight(tmp_path: P
     assert FREE_CLAIM not in _picked(tmp_path, docs, 90504)
 
 
+def test_planned_cards_held_for_one_reason_share_a_sentence(tmp_path: Path) -> None:
+    """Protects the grouping of held planned cards by the reasons that hold them.
+
+    Fixture issue 90504 is a decision, and 90503 and 90505 are deferred. All
+    three get a plan ready to build and nothing open ahead of them, so none is
+    free. The two deferred cards share one sentence, which says each of them is
+    deferred, and that sentence says "too" because the one before it already
+    said a card was planned.
+    """
+    docs = _with_needs(fixture_docs(), {90503: [], 90505: []})
+    docs = _with_fields(docs, 90503, kind="deferred")
+    docs = _with_fields(docs, 90505, kind="deferred")
+    for n in (90503, 90504, 90505):
+        docs = _planned(docs, n, "build")
+    flownote = text(draw(tmp_path, docs), "flownote")
+    assert (
+        "#90504 is planned, and needs a decision rather than a session. "
+        "#90503 and #90505 are planned too, and each is deferred on purpose." in flownote
+    )
+
+
 def test_two_planned_cards_held_for_no_named_reason_share_one_sentence(tmp_path: Path) -> None:
     """Protects the plural of the sentence that gives no reason.
 
