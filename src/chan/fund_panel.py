@@ -11,6 +11,9 @@ scope, for IJR and the S&P 600, and
 the record, the mapping and the check for IVV's quarter-ends, so each takes the
 fund, its members file and its cross-section as arguments.
 :mod:`chan.sp600_panel` binds IJR's and :mod:`chan.sp500_panel` binds IVV's.
+:mod:`chan.sp400_panel` binds IJH's one filing for
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303), and a
+control holding every IJR member of the same date.
 :func:`coverage`, :func:`threats` and :func:`year_end_returns` are the year-end
 panel's alone, and the S&P 500 panel counts its coverage month by month in its
 own module.

@@ -11,6 +11,8 @@ rather than from today's list carried backwards.
 for IJR at every December 31 from 2007 to 2025, and
 [issue 372](https://github.com/l3a0/quantitative-trading/issues/372) added IVV
 at every quarter-end from 2008-12-31 to 2026-06-30.
+[Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) added
+IJH, iShares' S&P 400 fund, at 2007-12-31 alone.
 [src/chan/fund_holdings.py](../../src/chan/fund_holdings.py) reads and writes
 it. The directory `earnings/` holds a second record, the Item 2.02 8-Ks of
 Chan's 497 stocks, which the section "The earnings filings" below describes.
@@ -42,7 +44,7 @@ not list these files, and the size cap on `data/` does not count them.
    document and its sha256, the holdings file and its sha256 and row count, and
    for an HTML schedule the "Total Common Stocks" it prints. One N-Q holds every
    fund in the trust, so IJR's and IVV's December N-Q are one accession with a
-   line for each fund.
+   line for each fund, and the 2007-12-31 N-Q has a line for IJR and for IJH.
 2. **One CSV per fund and filing**, at `<fund>/<report date>.csv`, holding
    the rows under common stocks in the filing's order. The columns are
    `name,shares,value,cusip,isin,ticker`.
@@ -208,6 +210,41 @@ QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp500_panel check
 uv run python -m chan.sp500_panel report
 ```
 
+### IJH's members file and the S&P 600 control
+
+`ijh/2007-12-31.csv` holds IJH's 401 holdings on 2007-12-31, read from the
+same N-Q and document as IJR's, and its rows sum to the 4,880,171,927 the
+schedule prints. `ijh/members.csv` maps each of them, with the same columns as
+IJR's file, for [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)'s run of Example 3.8 on the S&P 400. Its one report
+date holds every holding, because the run is over 2006 and no later filing
+filters the universe. The closes live in the owner's archive as the `sp400`
+cross-section.
+
+`ijr/members_2007-12-31.csv` is the control the same issue runs beside it: all
+602 of IJR's holdings on 2007-12-31, mapped and checked the same way and priced
+from the `sp600` cross-section. `ijr/members.csv` holds only the 509 that link
+into 2008-12-31, because Example 7.6 ranks those, so a control read from it
+would hold only members still in the index a year later. The control's 509
+shared rows are exactly that file's, and the other 93 are its own.
+
+Neither file is a filing, so the index does not name them. A `name` row's note
+says which lookup answered: a passing row of another fund's members file under
+the same name, or an Alpha Vantage listing. A `hand` row's note names its
+evidence, and for the control's 93 that includes whether Chan's
+`IJR_20080114.mat` lists the ticker.
+[src/chan/sp400_panel.py](../../src/chan/sp400_panel.py) binds both, and
+[tests/test_sp400_panel.py](../../tests/test_sp400_panel.py) is the authority
+for every count about them.
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp400_panel fetch ijh
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp400_panel check ijh
+uv run python -m chan.sp400_panel report ijh
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp400_panel history ijh
+```
+
+Each command takes `control` in place of `ijh` for the S&P 600 control.
+
 ## The earnings filings
 
 `earnings/` holds a second kind of record. Example 7.2 trades a stock on the
@@ -277,6 +314,8 @@ filing before.
 for every count about IJR's members file, including each year-end's coverage,
 and [tests/test_sp500_panel.py](../../tests/test_sp500_panel.py) for IVV's
 members file and holes file, including each month-end's coverage.
+[tests/test_sp400_panel.py](../../tests/test_sp400_panel.py) holds IJH's filing,
+its members file and the control's, none of which a run reads yet.
 [tests/test_equity_seasonals.py](../../tests/test_equity_seasonals.py) holds
 the counts that need the run's own tenth: each year-end's ranked covered
 members and which missing members threaten each tenth.

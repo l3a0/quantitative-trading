@@ -1,0 +1,603 @@
+report_date,row,ticker,source,note,check,gap,exit
+2007-12-31,1,VTIV,link,,no-series,,
+2007-12-31,2,AIR,link,,pass,,close
+2007-12-31,3,CW,link,,pass,,close
+2007-12-31,4,ESL,link,,pass,,close
+2007-12-31,5,GY,link,,pass,,close
+2007-12-31,6,KAMN,link,,pass,,close
+2007-12-31,7,MOG-A,link,,pass,,close
+2007-12-31,8,TDY,link,,pass,,close
+2007-12-31,9,TGI,link,,pass,,close
+2007-12-31,10,PYX,link,,pass,,close
+2007-12-31,11,ANDE,link,,pass,,close
+2007-12-31,12,FRNT,hand,"Chan's IJR_20080114.mat lists FRNT. Frontier Airlines traded as FRNT on NASDAQ until its 2008 bankruptcy, and Republic Airways bought it in 2009.",no-row,,
+2007-12-31,13,RJET,name,Alpha Vantage active listing: Mesa Air Group Inc,no-row,,
+2007-12-31,14,SKYW,link,,pass,,close
+2007-12-31,15,CROX,link,,pass,,close
+2007-12-31,16,DECK,link,,pass,,close
+2007-12-31,17,GYMB,link,,no-series,,
+2007-12-31,18,ICON,link,,no-row,,
+2007-12-31,19,KWD,hand,Chan's IJR_20080114.mat lists KWD. Kellwood traded as KWD on NYSE until Sun Capital took it private in February 2008.,no-series,,
+2007-12-31,20,KSWS,link,,pass,,close
+2007-12-31,21,MFB,link,,pass,,close
+2007-12-31,22,OXM,link,,pass,,close
+2007-12-31,23,ZQK,link,,pass,,close
+2007-12-31,24,SKX,link,,pass,,close
+2007-12-31,25,VLCM,link,,no-series,,
+2007-12-31,26,WWW,link,,pass,,close
+2007-12-31,27,ASV,name,Alpha Vantage active listing as of 2018-01-02: ASV Holdings Inc,no-row,,
+2007-12-31,28,WNC,link,,pass,,close
+2007-12-31,29,SHYF,link,,pass,,close
+2007-12-31,30,SMP,link,,pass,,close
+2007-12-31,31,SUP,link,,pass,,close
+2007-12-31,32,ALAB,hand,Chan's IJR_20080114.mat lists ALAB. Alabama National BanCorporation traded as ALAB on NASDAQ until RBC bought it in February 2008.,no-row,,
+2007-12-31,33,BKMU,link,,pass,,close
+2007-12-31,34,BPFH,link,,pass,,close
+2007-12-31,35,CACB,link,,pass,,close
+2007-12-31,36,CPF,link,,pass,,close
+2007-12-31,37,CHZ,hand,Chan's IJR_20080114.mat does not list it. Chittenden traded as CHZ on NYSE until People's United bought it on 2008-01-01.,no-series,,
+2007-12-31,38,COLB,link,,pass,,close
+2007-12-31,39,CBU,link,,pass,,close
+2007-12-31,40,CORSQ,link,,pass,,close
+2007-12-31,41,EWBC,link,,pass,,close
+2007-12-31,42,FBP,link,,pass,,close
+2007-12-31,43,FCF,link,,pass,,close
+2007-12-31,44,FFBC,link,,pass,,close
+2007-12-31,45,FINB,hand,Chan's IJR_20080114.mat does not list it. First Indiana traded as FINB on NASDAQ until Marshall & Ilsley bought it in January 2008.,no-series,,
+2007-12-31,46,FMBI,link,,pass,,close
+2007-12-31,47,FMT,hand,Chan's IJR_20080114.mat lists FMT. Fremont General traded as FMT on NYSE until its 2008 bankruptcy.,no-series,,
+2007-12-31,48,FTBK,link,,no-row,,
+2007-12-31,49,GBCI,link,,pass,,close
+2007-12-31,50,HBHC,link,,pass,,close
+2007-12-31,51,HAFC,link,,pass,,close
+2007-12-31,52,IBCP,link,,pass,,close
+2007-12-31,53,IFC,link,,no-row,,
+2007-12-31,54,HOPE,link,,pass,,close
+2007-12-31,55,PVTB,link,,pass,,close
+2007-12-31,56,PB,link,,pass,,close
+2007-12-31,57,PBKS,link,,no-series,,
+2007-12-31,58,SBNY,link,,pass,,close
+2007-12-31,59,TSFG,link,,no-series,,
+2007-12-31,60,STL,link,,price,-72.00,
+2007-12-31,61,SBIB,link,,no-series,,
+2007-12-31,62,STSA,link,,no-row,,
+2007-12-31,63,SUSQ,link,,pass,,close
+2007-12-31,64,TRST,link,,pass,,close
+2007-12-31,65,UCBH,link,,no-series,,
+2007-12-31,66,UMBF,link,,pass,,close
+2007-12-31,67,UMPQ,link,,pass,,close
+2007-12-31,68,UBSI,link,,pass,,close
+2007-12-31,69,UCB,link,,pass,,close
+2007-12-31,70,WTNY,link,,no-series,,
+2007-12-31,71,WIBC,link,,no-row,,
+2007-12-31,72,WTFC,link,,pass,,close
+2007-12-31,73,SAM,link,,pass,,close
+2007-12-31,74,PEET,link,,pass,,close
+2007-12-31,75,ARQL,link,,pass,,close
+2007-12-31,76,CBM,link,,pass,,close
+2007-12-31,77,AORT,link,,pass,,close
+2007-12-31,78,ENZ,link,,pass,,close
+2007-12-31,79,IART,link,,pass,,close
+2007-12-31,80,LIFC,hand,Chan's IJR_20080114.mat lists LIFC. LifeCell traded as LIFC on NASDAQ until Kinetic Concepts bought it in May 2008.,no-series,,
+2007-12-31,81,MATK,link,,no-series,,
+2007-12-31,82,REGN,link,,pass,,close
+2007-12-31,83,SVNTQ,link,,pass,,close
+2007-12-31,84,APOG,link,,pass,,close
+2007-12-31,85,LCII,link,,pass,,close
+2007-12-31,86,LII,link,,pass,,close
+2007-12-31,87,CNR,link,,no-row,,
+2007-12-31,88,SSD,link,,pass,,close
+2007-12-31,89,TXI,link,,pass,,close
+2007-12-31,90,UFPI,link,,pass,,close
+2007-12-31,91,SHLM,link,,pass,,close
+2007-12-31,92,ARJ,link,,no-series,,
+2007-12-31,93,AXLL,link,,no-row,,
+2007-12-31,94,FUL,link,,pass,,close
+2007-12-31,95,OMG,link,,pass,,close
+2007-12-31,96,OMN,name,Alpha Vantage active listing as of 2010-01-04: OMNOVA Solutions Inc,pass,,close
+2007-12-31,97,PENX,link,,no-series,,
+2007-12-31,98,AVNT,link,,pass,,close
+2007-12-31,99,KWR,link,,pass,,close
+2007-12-31,100,TROX,name,Alpha Vantage active listing as of 2014-01-02: Tronox Holdings plc - Class A,no-row,,
+2007-12-31,101,ZEP,link,,pass,,close
+2007-12-31,102,MEE,hand,Chan's IJR_20080114.mat lists MEE. Massey Energy traded as MEE on NYSE until Alpha Natural Resources bought it in June 2011.,no-series,,
+2007-12-31,103,PCX,hand,Chan's IJR_20080114.mat lists PCX. Patriot Coal traded as PCX on NYSE until its 2012 bankruptcy.,no-row,,
+2007-12-31,104,PRG,link,,price,-198.00,
+2007-12-31,105,ABM,link,,pass,,close
+2007-12-31,106,NSP,link,,pass,,close
+2007-12-31,107,AMN,link,,pass,,close
+2007-12-31,108,ARB,link,,no-row,,
+2007-12-31,109,RATE,link,,no-row,,
+2007-12-31,110,BNE,link,,no-row,,
+2007-12-31,111,BFAM,name,Alpha Vantage active listing as of 2014-01-02: Bright Horizons Family Solutions Inc,no-row,,
+2007-12-31,112,CDI,link,,pass,,close
+2007-12-31,113,CHE,link,,pass,,close
+2007-12-31,114,OUTR,link,,no-row,,
+2007-12-31,115,CGX,link,,pass,,close
+2007-12-31,116,CPY,hand,Chan's IJR_20080114.mat lists CPY. CPI Corp traded as CPY on NYSE until it wound down in 2013.,no-series,,
+2007-12-31,117,CCRN,link,,pass,,close
+2007-12-31,118,GVHR,link,,no-series,,
+2007-12-31,119,HCSG,link,,pass,,close
+2007-12-31,120,HSII,link,,pass,,close
+2007-12-31,121,HH,name,Alpha Vantage active listing as of 2010-01-04: Hooper Holmes Inc,pass,,close
+2007-12-31,122,KNDL,link,,pass,,close
+2007-12-31,123,LYV,link,,pass,,close
+2007-12-31,124,MMS,link,,pass,,close
+2007-12-31,125,MDS,link,,no-series,,
+2007-12-31,126,EFOR,link,,pass,,close
+2007-12-31,127,PRXL,link,,pass,,close
+2007-12-31,128,PDGI,hand,Chan's IJR_20080114.mat lists PDGI. PharmaNet Development traded as PDGI on NASDAQ until JLL Partners took it private in 2009.,no-series,,
+2007-12-31,129,PPD,link,,no-row,,
+2007-12-31,130,DINE,link,,no-row,,
+2007-12-31,131,SFN,link,,no-row,,
+2007-12-31,132,SRT,link,,pass,,close
+2007-12-31,133,TBI,link,,pass,,close
+2007-12-31,134,UTI,link,,pass,,close
+2007-12-31,135,PRSU,link,,pass,,close
+2007-12-31,136,VISI,link,,no-series,,
+2007-12-31,137,WTW,link,,no-row,,
+2007-12-31,138,WEX,link,,pass,,close
+2007-12-31,139,AGYS,link,,pass,,close
+2007-12-31,140,ANST,hand,Chan's IJR_20080114.mat lists ANST. Ansoft traded as ANST on NASDAQ until ANSYS bought it in July 2008.,no-series,,
+2007-12-31,141,CACI,link,,pass,,close
+2007-12-31,142,CATT,link,,no-series,,
+2007-12-31,143,CBR,link,,pass,,close
+2007-12-31,144,FDS,name,"same name in ivv/members.csv, 2021-12-31 row 329, which passes on FDS",pass,,close
+2007-12-31,145,HTCH,link,,no-row,,
+2007-12-31,146,MANH,link,,pass,,close
+2007-12-31,147,MRCY,link,,pass,,close
+2007-12-31,148,MCRS,link,,pass,,close
+2007-12-31,149,MTSC,link,,pass,,close
+2007-12-31,150,RADS,link,,no-series,,
+2007-12-31,151,RSYS,link,,pass,,close
+2007-12-31,152,SINT,hand,Chan's IJR_20080114.mat lists SINT. SI International traded as SINT on NASDAQ until Serco bought it in December 2008.,no-row,,
+2007-12-31,153,SSYS,link,,pass,,close
+2007-12-31,154,SYKE,link,,pass,,close
+2007-12-31,155,SYNA,link,,pass,,close
+2007-12-31,156,TYL,link,,pass,,close
+2007-12-31,157,CHTT,link,,pass,,close
+2007-12-31,158,BELM,hand,Chan's IJR_20080114.mat lists BELM. Bell Microproducts traded as BELM until Avnet bought it in July 2010.,no-series,,
+2007-12-31,159,CELL,link,,no-row,,
+2007-12-31,160,BLG,hand,Chan's IJR_20080114.mat lists BLG. Building Materials Holding traded as BLG on NYSE until its 2009 bankruptcy.,no-series,,
+2007-12-31,161,LKQ,name,"same name in ivv/members.csv, 2016-06-30 row 120, which passes on LKQ",pass,,close
+2007-12-31,162,OMI,link,,no-series,,
+2007-12-31,163,POOL,link,,pass,,close
+2007-12-31,164,SCSC,link,,pass,,close
+2007-12-31,165,USTR,link,,pass,,close
+2007-12-31,166,WSO,link,,pass,,close
+2007-12-31,167,FIF,link,,no-series,,
+2007-12-31,168,ITG,link,,no-row,,
+2007-12-31,169,LAB,link,,pass,,close
+2007-12-31,170,OXPS,link,,pass,,close
+2007-12-31,171,PJC,link,,pass,,close
+2007-12-31,172,PRAA,link,,pass,,close
+2007-12-31,173,SWS,link,,pass,,close
+2007-12-31,174,TRAD,link,,no-row,,
+2007-12-31,175,WRLD,link,,pass,,close
+2007-12-31,176,ALE,link,,pass,,close
+2007-12-31,177,AVA,link,,pass,,close
+2007-12-31,178,CV,link,,no-row,,
+2007-12-31,179,CHG,link,,no-row,,
+2007-12-31,180,CNL,link,,no-row,,
+2007-12-31,181,EE,link,,no-row,,
+2007-12-31,182,UIL,link,,pass,,close
+2007-12-31,183,UNS,link,,pass,,close
+2007-12-31,184,AEIS,link,,pass,,close
+2007-12-31,185,BDC,link,,pass,,close
+2007-12-31,186,CHP,link,,no-series,,
+2007-12-31,187,ITGR,link,,pass,,close
+2007-12-31,188,LFUS,link,,pass,,close
+2007-12-31,189,MAG,link,,pass,,close
+2007-12-31,190,VICR,link,,pass,,close
+2007-12-31,191,ALOG,link,,pass,,close
+2007-12-31,192,BELFB,link,,pass,,close
+2007-12-31,193,BHE,link,,pass,,close
+2007-12-31,194,BRC,link,,pass,,close
+2007-12-31,195,CKP,link,,pass,,close
+2007-12-31,196,CTS,link,,pass,,close
+2007-12-31,197,CUB,link,,no-row,,
+2007-12-31,198,CYMI,link,,no-series,,
+2007-12-31,199,DAKT,link,,pass,,close
+2007-12-31,200,DNEX,link,,no-series,,
+2007-12-31,201,ESIO,link,,pass,,close
+2007-12-31,202,FARO,link,,pass,,close
+2007-12-31,203,FEIC,link,,pass,,close
+2007-12-31,204,FLIR,name,"same name in ivv/members.csv, 2008-12-31 row 163, which passes on FLIR",pass,,close
+2007-12-31,205,ITRI,link,,pass,,close
+2007-12-31,206,KEI,link,,pass,,close
+2007-12-31,207,LOJN,link,,pass,,close
+2007-12-31,208,MEI,link,,pass,,close
+2007-12-31,209,PKE,link,,pass,,close
+2007-12-31,210,PHTN,hand,Chan's IJR_20080114.mat lists PHTN. Photon Dynamics traded as PHTN on NASDAQ until Orbotech bought it in October 2008.,no-series,,
+2007-12-31,211,PLNR,name,Alpha Vantage active listing as of 2010-01-04: Planar Systems Inc,pass,,close
+2007-12-31,212,PLXS,link,,pass,,close
+2007-12-31,213,ROG,link,,pass,,close
+2007-12-31,214,SNIC,link,,no-series,,
+2007-12-31,215,TNL,link,,price,-502.00,
+2007-12-31,216,TRMB,hand,"Chan's IJR_20080114.mat lists TRMB. Trimble Navigation traded as TRMB and renamed itself Trimble Inc in 2016, keeping the ticker.",pass,,close
+2007-12-31,217,TTMI,link,,pass,,close
+2007-12-31,218,WTS,link,,pass,,close
+2007-12-31,219,WWD,hand,Chan's IJR_20080114.mat lists WGOV. Woodward Governor renamed itself Woodward Inc (WWD) in 2011.,pass,,close
+2007-12-31,220,XRIT,hand,Chan's IJR_20080114.mat lists XRIT. X-Rite traded as XRIT on NASDAQ until Danaher bought it in May 2012.,no-series,,
+2007-12-31,221,HW,link,,pass,,close
+2007-12-31,222,EME,link,,pass,,close
+2007-12-31,223,AEGN,link,,pass,,close
+2007-12-31,224,SHAW,name,Alpha Vantage active listing as of 2010-01-04: Shaw Group Inc,pass,,close
+2007-12-31,225,PNK,link,,pass,,close
+2007-12-31,226,SHFL,link,,no-series,,
+2007-12-31,227,TTEK,link,,pass,,close
+2007-12-31,228,WCN,name,Alpha Vantage active listing as of 2010-01-04: Waste Connections Inc,pass,,close
+2007-12-31,229,FLO,name,Alpha Vantage active listing as of 2010-01-04: Flowers Foods Inc,pass,,close
+2007-12-31,230,GAP,link,,price,-1005.00,
+2007-12-31,231,HAIN,link,,pass,,close
+2007-12-31,232,JJSF,link,,pass,,close
+2007-12-31,233,LNCE,link,,pass,,close
+2007-12-31,234,NAFC,link,,no-series,,
+2007-12-31,235,PFGC,name,Alpha Vantage active listing as of 2018-01-02: Performance Food Group Company,no-row,,
+2007-12-31,236,RAH,name,Alpha Vantage active listing as of 2010-01-04: Ralcorp Holdings,pass,,close
+2007-12-31,237,SAFM,link,,pass,,close
+2007-12-31,238,SPTN,link,,pass,,close
+2007-12-31,239,THS,link,,pass,,close
+2007-12-31,240,UNFI,link,,pass,,close
+2007-12-31,241,BKI,link,,no-row,,
+2007-12-31,242,CSAR,hand,Chan's IJR_20080114.mat lists CSAR. Caraustar traded as CSAR until its 2009 bankruptcy.,no-series,,
+2007-12-31,243,DEL,link,,pass,,close
+2007-12-31,244,NP,link,,no-row,,
+2007-12-31,245,WRK,link,,no-row,,
+2007-12-31,246,MATV,link,,pass,,close
+2007-12-31,247,WPP,link,,price,5530.00,
+2007-12-31,248,ATO,link,,pass,,close
+2007-12-31,249,SR,link,,pass,,close
+2007-12-31,250,NJR,link,,pass,,close
+2007-12-31,251,NWN,link,,pass,,close
+2007-12-31,252,PNY,link,,pass,,close
+2007-12-31,253,SJI,link,,pass,,close
+2007-12-31,254,SUG,name,Alpha Vantage active listing as of 2010-01-04: SOUTHERN UNION CO,pass,,close
+2007-12-31,255,SWX,link,,pass,,close
+2007-12-31,256,UGI,hand,Chan's IJR_20080114.mat lists UGI. UGI trades as UGI on NYSE. UGIC was one of its equity units.,pass,,close
+2007-12-31,257,BEZ,link,,no-row,,
+2007-12-31,258,RRX,link,,pass,,close
+2007-12-31,259,AMMD,link,,no-series,,
+2007-12-31,260,ARTC,link,,no-row,,
+2007-12-31,261,BIOL,hand,Chan's IJR_20080114.mat lists BLTI. BioLase traded as BLTI and moved to the BIOL ticker in 2012.,pass,,close
+2007-12-31,262,CNMD,link,,pass,,close
+2007-12-31,263,COO,link,,pass,,close
+2007-12-31,264,CYBX,link,,pass,,close
+2007-12-31,265,DSCP,link,,no-series,,
+2007-12-31,266,HAE,link,,pass,,close
+2007-12-31,267,ICUI,link,,pass,,close
+2007-12-31,268,IDXX,name,"same name in ivv/members.csv, 2017-03-31 row 222, which passes on IDXX",pass,,close
+2007-12-31,269,BLUD,link,,pass,,close
+2007-12-31,270,IVCRQ,link,,pass,,close
+2007-12-31,271,KNSY,link,,no-row,,
+2007-12-31,272,LCAV,link,,no-series,,
+2007-12-31,273,MNT,link,,no-series,,
+2007-12-31,274,VIVO,link,,no-row,,
+2007-12-31,275,MMSI,link,,pass,,close
+2007-12-31,276,OSTE,link,,no-row,,
+2007-12-31,277,PMTI,link,,pass,,close
+2007-12-31,278,POSS,hand,Chan's IJR_20080114.mat lists POSS. Possis Medical traded as POSS on NASDAQ until Medrad bought it in February 2008.,no-series,,
+2007-12-31,279,PSSI,link,,no-series,,
+2007-12-31,280,RESP,hand,Chan's IJR_20080114.mat lists RESP. Respironics traded as RESP on NASDAQ until Philips bought it in March 2008.,price,-1548.00,
+2007-12-31,281,SRDX,link,,pass,,close
+2007-12-31,282,SMA,link,,no-row,,
+2007-12-31,283,VITL,hand,Chan's IJR_20080114.mat lists VITL. Vital Signs traded as VITL on NASDAQ until General Electric bought it in October 2008.,no-row,,
+2007-12-31,284,AMED,link,,pass,,close
+2007-12-31,285,AGP,link,,pass,,close
+2007-12-31,286,AMSG,link,,no-row,,
+2007-12-31,287,CNC,link,,pass,,close
+2007-12-31,288,GTIV,link,,pass,,close
+2007-12-31,289,TVTY,link,,pass,,close
+2007-12-31,290,LHCG,link,,pass,,close
+2007-12-31,291,MATR,hand,Chan's IJR_20080114.mat lists MATR. Matria Healthcare traded as MATR on NASDAQ until Inverness Medical bought it in May 2008.,no-row,,
+2007-12-31,292,MDTH,link,,no-series,,
+2007-12-31,293,MOH,link,,pass,,close
+2007-12-31,294,ODSY,link,,pass,,close
+2007-12-31,295,MD,link,,pass,,close
+2007-12-31,296,RHB,link,,no-row,,
+2007-12-31,297,RSCR,link,,no-series,,
+2007-12-31,298,SIE,hand,Chan's IJR_20080114.mat lists SIE. Sierra Health Services traded as SIE on NYSE until UnitedHealth bought it in February 2008.,no-series,,
+2007-12-31,299,SRZ,name,Alpha Vantage delisted listing: Sunrise Senior Living,no-row,,
+2007-12-31,300,CHB,link,,pass,,close
+2007-12-31,301,COA,hand,Chan's IJR_20080114.mat lists COA. Coachmen Industries traded as COA on NYSE until its 2010 delisting.,no-series,,
+2007-12-31,302,FLE,hand,Chan's IJR_20080114.mat lists FLE. Fleetwood Enterprises traded as FLE on NYSE until its 2009 bankruptcy.,no-series,,
+2007-12-31,303,MHO,link,,pass,,close
+2007-12-31,304,MTH,link,,pass,,close
+2007-12-31,305,MNC,name,Alpha Vantage delisted listing as of 2010-01-04: MONACO COACH CORP,pass,,close
+2007-12-31,306,SKY,link,,pass,,close
+2007-12-31,307,SPF,link,,pass,,close
+2007-12-31,308,WGO,link,,pass,,close
+2007-12-31,309,VOXX,link,,pass,,close
+2007-12-31,310,BSET,link,,pass,,close
+2007-12-31,311,ETD,link,,pass,,close
+2007-12-31,312,LZB,link,,pass,,close
+2007-12-31,313,UEIC,link,,pass,,close
+2007-12-31,314,CENTA,link,,pass,,close
+2007-12-31,315,FOSL,link,,pass,,close
+2007-12-31,316,KID,link,,no-series,,
+2007-12-31,317,SPB,name,Alpha Vantage active listing as of 2010-01-04: Spectrum Brands Holdings Inc,no-row,,
+2007-12-31,318,SR,link,,price,2258.00,
+2007-12-31,319,WDFC,link,,pass,,close
+2007-12-31,320,LBY,name,Alpha Vantage active listing as of 2010-01-04: Libbey Inc,no-row,,
+2007-12-31,321,NPK,link,,pass,,close
+2007-12-31,322,TTC,link,,pass,,close
+2007-12-31,323,DFG,link,,no-series,,
+2007-12-31,324,HRH,hand,Chan's IJR_20080114.mat lists HRH. Hilb Rogal & Hobbs traded as HRH on NYSE until Willis bought it in October 2008.,no-series,,
+2007-12-31,325,IPCC,link,,pass,,close
+2007-12-31,326,LFG,name,Alpha Vantage active listing as of 2010-01-04: LANDAMERICA FINANCIAL GROUP INC,no-row,,
+2007-12-31,327,NAVG,link,,pass,,close
+2007-12-31,328,PHLY,hand,Chan's IJR_20080114.mat lists PHLY. Philadelphia Consolidated traded as PHLY on NASDAQ until Tokio Marine bought it in December 2008.,no-series,,
+2007-12-31,329,PLFE,link,,pass,,close
+2007-12-31,330,PRA,link,,pass,,close
+2007-12-31,331,RLI,link,,pass,,close
+2007-12-31,332,SAFT,link,,pass,,close
+2007-12-31,333,SKP,name,Alpha Vantage active listing as of 2010-01-04: SCPIE HOLDINGS INC,pass,,close
+2007-12-31,334,SIGI,link,,pass,,close
+2007-12-31,335,STC,link,,pass,,close
+2007-12-31,336,TWGP,link,,pass,,close
+2007-12-31,337,TGICQ,name,Alpha Vantage active listing as of 2010-01-04: Triad Guaranty Inc,pass,,close
+2007-12-31,338,UFCS,link,,pass,,close
+2007-12-31,339,ZNT,link,,no-series,,
+2007-12-31,340,BCSI,link,,no-series,,
+2007-12-31,341,NILE,link,,no-row,,
+2007-12-31,342,CYBS,link,,no-series,,
+2007-12-31,343,TRAK,link,,pass,,close
+2007-12-31,344,AVTA,link,,pass,,close
+2007-12-31,345,ZD,link,,pass,,close
+2007-12-31,346,XOXO,link,,pass,,close
+2007-12-31,347,NAPS,hand,Chan's IJR_20080114.mat lists NAPS. Napster traded as NAPS on NASDAQ until Best Buy bought it in October 2008.,no-series,,
+2007-12-31,348,PCTI,link,,pass,,close
+2007-12-31,349,PRFT,link,,pass,,close
+2007-12-31,350,SCUR,hand,Chan's IJR_20080114.mat lists SCUR. Secure Computing traded as SCUR on NASDAQ until McAfee bought it in November 2008.,no-series,,
+2007-12-31,351,STMP,link,,pass,,close
+2007-12-31,352,UNTD,link,,no-row,,
+2007-12-31,353,WBSN,link,,pass,,close
+2007-12-31,354,ROCK,link,,pass,,close
+2007-12-31,355,MSC,hand,Chan's IJR_20080114.mat lists MSC. Material Sciences traded as MSC until Insight Equity took it private in 2014.,no-row,,
+2007-12-31,356,ACAT,link,,no-row,,
+2007-12-31,357,MGAM,link,,no-row,,
+2007-12-31,358,NLS,link,,no-series,,
+2007-12-31,359,PII,link,,pass,,close
+2007-12-31,360,WMS,link,,no-row,,
+2007-12-31,361,MCS,link,,pass,,close
+2007-12-31,362,MCRI,link,,pass,,close
+2007-12-31,363,AIN,link,,pass,,close
+2007-12-31,364,AIT,link,,pass,,close
+2007-12-31,365,ASTE,link,,pass,,close
+2007-12-31,366,BGG,link,,pass,,close
+2007-12-31,367,CASC,link,,price,-4423.00,
+2007-12-31,368,CGNX,link,,pass,,close
+2007-12-31,369,GDI,link,,no-series,,
+2007-12-31,370,GRB,link,,pass,,close
+2007-12-31,371,IVAC,link,,pass,,close
+2007-12-31,372,LNN,link,,pass,,close
+2007-12-31,373,RBN,link,,no-series,,
+2007-12-31,374,AOS,link,,pass,,close
+2007-12-31,375,AYI,link,,pass,,close
+2007-12-31,376,ATR,name,Alpha Vantage active listing as of 2010-01-04: Aptargroup Inc,pass,,close
+2007-12-31,377,B,link,,price,866.00,
+2007-12-31,378,CRDN,link,,no-series,,
+2007-12-31,379,CLC,link,,pass,,close
+2007-12-31,380,NPO,link,,pass,,close
+2007-12-31,381,GFF,link,,pass,,close
+2007-12-31,382,LDL,link,,pass,,close
+2007-12-31,383,MYE,link,,pass,,close
+2007-12-31,384,SXI,link,,pass,,close
+2007-12-31,385,RGR,link,,pass,,close
+2007-12-31,386,TG,link,,pass,,close
+2007-12-31,387,KIDE,link,,no-series,,
+2007-12-31,388,UONEK,hand,Chan's IJR_20080114.mat lists ROIAK. Radio One's class D shares traded as ROIAK and moved to UONEK when the company renamed itself Urban One in 2017.,pass,,close
+2007-12-31,389,CASL,link,,no-row,,
+2007-12-31,390,KDN,link,,pass,,close
+2007-12-31,391,DSGR,link,,pass,,close
+2007-12-31,392,MLI,link,,pass,,close
+2007-12-31,393,NX,hand,"Chan's IJR_20080114.mat lists NX. Quanex Corp traded as NX until Gerdau bought it in April 2008, after it spun off Quanex Building Products, which took the NX ticker.",pass,,close
+2007-12-31,394,VMI,link,,pass,,close
+2007-12-31,395,ACO,link,,pass,,close
+2007-12-31,396,MTRN,link,,pass,,close
+2007-12-31,397,CENX,link,,pass,,close
+2007-12-31,398,RTI,link,,pass,,close
+2007-12-31,399,TILE,link,,pass,,close
+2007-12-31,400,ATW,link,,pass,,close
+2007-12-31,401,CTRA,name,"same name in ivv/members.csv, 2008-12-31 row 325, which passes on CTRA",pass,,close
+2007-12-31,402,PVA,link,,pass,,close
+2007-12-31,403,PDCE,link,,pass,,close
+2007-12-31,404,PES,link,,pass,,close
+2007-12-31,405,SM,link,,pass,,close
+2007-12-31,406,SGY,link,,pass,,close
+2007-12-31,407,SBOW,link,,no-row,,
+2007-12-31,408,UNT,name,"same name in ijr/members.csv, 2015-12-31 row 231, which passes on UNT",pass,,close
+2007-12-31,409,BAS,link,,pass,,close
+2007-12-31,410,CRR,link,,pass,,close
+2007-12-31,411,INVX,link,,pass,,close
+2007-12-31,412,GIFI,link,,pass,,close
+2007-12-31,413,HLX,name,"same name in ijr/members.csv, 2015-12-31 row 221, which passes on HLX",pass,,close
+2007-12-31,414,HOS,link,,no-row,,
+2007-12-31,415,IO,link,,no-series,,
+2007-12-31,416,LUFK,link,,no-series,,
+2007-12-31,417,MTRX,link,,pass,,close
+2007-12-31,418,NTG,link,,no-row,,
+2007-12-31,419,OII,name,"same name in ijr/members.csv, 2019-12-31 row 439, which passes on OII",pass,,close
+2007-12-31,420,CKH,link,,no-row,,
+2007-12-31,421,SWSI,link,,pass,,close
+2007-12-31,422,TTI,link,,pass,,close
+2007-12-31,423,WHQ,hand,Chan's IJR_20080114.mat lists WHQ. W-H Energy Services traded as WHQ on NYSE until Smith International bought it in August 2008.,no-series,,
+2007-12-31,424,CSK,hand,Chan's IJR_20080114.mat lists CSK. Chesapeake Corp traded as CSK on NYSE until its 2009 bankruptcy.,no-series,,
+2007-12-31,425,ALO,hand,Chan's IJR_20080114.mat lists ALO. Alpharma traded as ALO on NYSE until King Pharmaceuticals bought it in December 2008.,price,-1929.00,
+2007-12-31,426,BDY,hand,Chan's IJR_20080114.mat lists BDY. Bradley Pharmaceuticals traded as BDY on NYSE until Nycomed bought it in February 2008.,no-series,,
+2007-12-31,427,CHSI,hand,"Chan's IJR_20080114.mat lists HLEX. HealthExtras renamed itself Catalyst Health Solutions (CHSI) in 2008, and SXC Health Solutions bought it in 2012.",no-row,,
+2007-12-31,428,MTEX,link,,pass,,close
+2007-12-31,429,MOGN,hand,Chan's IJR_20080114.mat lists MOGN. MGI Pharma traded as MOGN on NASDAQ until Eisai bought it in January 2008.,no-series,,
+2007-12-31,430,NOVN,link,,no-series,,
+2007-12-31,431,PETS,link,,pass,,close
+2007-12-31,432,PMC,link,,no-series,,
+2007-12-31,433,SLXP,link,,pass,,close
+2007-12-31,434,SCRX,hand,Chan's IJR_20080114.mat lists SCRX. Sciele Pharma traded as SCRX on NASDAQ until Shionogi bought it in October 2008.,no-series,,
+2007-12-31,435,TGX,link,,pass,,close
+2007-12-31,436,USNA,name,"same name in ijr/members.csv, 2019-12-31 row 473, which passes on USNA",pass,,close
+2007-12-31,437,VPHM,link,,no-series,,
+2007-12-31,438,FOR,hand,"Chan's IJR_20080114.mat lists FOR. Forestar Real Estate Group traded as FOR and renamed itself Forestar Group in 2008, keeping the ticker.",pass,,close
+2007-12-31,439,AKR,link,,pass,,close
+2007-12-31,440,BMR,link,,no-row,,
+2007-12-31,441,CLP,link,,pass,,close
+2007-12-31,442,DRH,link,,pass,,close
+2007-12-31,443,EGP,link,,pass,,close
+2007-12-31,444,EPR,link,,pass,,close
+2007-12-31,445,ESS,name,"same name in ivv/members.csv, 2014-06-30 row 423, which passes on ESS",pass,,close
+2007-12-31,446,EXR,link,,pass,,close
+2007-12-31,447,IRC,link,,pass,,close
+2007-12-31,448,KRC,link,,pass,,close
+2007-12-31,449,KRG,link,,pass,,close
+2007-12-31,450,LXP,link,,pass,,close
+2007-12-31,451,LTC,link,,pass,,close
+2007-12-31,452,MPT,link,,pass,,close
+2007-12-31,453,MAA,link,,pass,,close
+2007-12-31,454,NNN,link,,pass,,close
+2007-12-31,455,PKY,link,,pass,,close
+2007-12-31,456,PSB,link,,pass,,close
+2007-12-31,457,SNH,link,,pass,,close
+2007-12-31,458,LSI,link,,pass,,close
+2007-12-31,459,SKT,link,,pass,,close
+2007-12-31,460,BGFV,link,,pass,,close
+2007-12-31,461,BWS,link,,pass,,close
+2007-12-31,462,BWLD,link,,pass,,close
+2007-12-31,463,CAB,link,,price,-1142.00,
+2007-12-31,464,CPKI,link,,no-series,,
+2007-12-31,465,CASY,hand,Chan's IJR_20080114.mat lists CASY. Casey's General Stores trades as CASY on NASDAQ.,pass,,close
+2007-12-31,466,CSH,link,,no-row,,
+2007-12-31,467,CATO,link,,pass,,close
+2007-12-31,468,CEC,link,,no-series,,
+2007-12-31,469,CHIC,link,,pass,,close
+2007-12-31,470,PLCE,link,,pass,,close
+2007-12-31,471,CBK,link,,no-row,,
+2007-12-31,472,CKR,link,,pass,,close
+2007-12-31,473,ASNA,link,,no-series,,
+2007-12-31,474,FINL,link,,pass,,close
+2007-12-31,475,FCFS,link,,pass,,close
+2007-12-31,476,FRED,link,,no-row,,
+2007-12-31,477,GCO,link,,pass,,close
+2007-12-31,478,GPI,link,,pass,,close
+2007-12-31,479,HVT,link,,pass,,close
+2007-12-31,480,HIBB,link,,pass,,close
+2007-12-31,481,HOTT,link,,pass,,close
+2007-12-31,482,DIN,hand,"Chan's IJR_20080114.mat lists IHP. IHOP Corp renamed itself DineEquity (DIN) in 2008, and later Dine Brands Global.",pass,,close
+2007-12-31,483,NSIT,link,,pass,,close
+2007-12-31,484,JACK,link,,pass,,close
+2007-12-31,485,JAS,link,,pass,,close
+2007-12-31,486,JOSB,link,,pass,,close
+2007-12-31,487,LNY,link,,no-series,,
+2007-12-31,488,LAD,link,,pass,,close
+2007-12-31,489,LDG,hand,Chan's IJR_20080114.mat lists LDG. Longs Drug Stores traded as LDG on NYSE until CVS bought it in October 2008.,no-series,,
+2007-12-31,490,HZO,link,,pass,,close
+2007-12-31,491,TLRD,link,,no-series,,
+2007-12-31,492,MOV,link,,pass,,close
+2007-12-31,493,CHUX,link,,no-row,,
+2007-12-31,494,PFCB,link,,no-series,,
+2007-12-31,495,PNRA,link,,pass,,close
+2007-12-31,496,PZZA,link,,pass,,close
+2007-12-31,497,PBY,link,,no-row,,
+2007-12-31,498,RRGB,link,,pass,,close
+2007-12-31,499,RUTH,hand,"Chan's IJR_20080114.mat lists RUTH. Ruth's Chris Steak House renamed itself Ruth's Hospitality Group in 2010, keeping RUTH, and Darden bought it in 2023.",pass,,close
+2007-12-31,500,SCHS,link,,no-row,,
+2007-12-31,501,SNBR,name,"same name in ijr/members.csv, 2011-12-31 row 299, which passes on SNBR",pass,,close
+2007-12-31,502,SAH,link,,pass,,close
+2007-12-31,503,SONC,link,,pass,,close
+2007-12-31,504,SSI,link,,no-row,,
+2007-12-31,505,BH,link,,pass,,close
+2007-12-31,506,SMRTQ,link,,no-row,,
+2007-12-31,507,TXRH,link,,pass,,close
+2007-12-31,508,TSCO,link,,pass,,close
+2007-12-31,509,WEN,hand,"Chan's IJR_20080114.mat lists TRY.B. Triarc's class B shares became Wendy's/Arby's Group common stock (WEN) on the 2008 merger with Wendy's, later The Wendy's Company.",price,-3.00,
+2007-12-31,510,TUES,link,,no-series,,
+2007-12-31,511,TWB,link,,pass,,close
+2007-12-31,512,WKC,link,,pass,,close
+2007-12-31,513,ZLC,link,,pass,,close
+2007-12-31,514,ZUMZ,link,,pass,,close
+2007-12-31,515,ABCW,link,,no-row,,
+2007-12-31,516,BBX,link,,no-series,,
+2007-12-31,517,BKUNA,hand,Chan's IJR_20080114.mat lists BKUNA. BankUnited Financial traded as BKUNA on NASDAQ until its bank failed in May 2009.,no-series,,
+2007-12-31,518,BRKL,link,,no-row,,
+2007-12-31,519,DCOM,link,,price,1153.00,
+2007-12-31,520,DSL,hand,Chan's IJR_20080114.mat lists DSL. Downey Financial traded as DSL on NYSE until its bank failed in November 2008.,no-row,,
+2007-12-31,521,FED,hand,Chan's IJR_20080114.mat lists FED. FirstFed Financial traded as FED on NYSE until its bank failed in December 2009.,no-series,,
+2007-12-31,522,FBC,link,,pass,,close
+2007-12-31,523,FBTXQ,name,Alpha Vantage active listing as of 2010-01-04: Franklin Bank Corp,no-row,,
+2007-12-31,524,GFG,link,,no-series,,
+2007-12-31,525,ACTL,link,,no-row,,
+2007-12-31,526,AMIS,hand,Chan's IJR_20080114.mat lists AMIS. AMIS Holdings traded as AMIS on NASDAQ until ON Semiconductor bought it in March 2008.,no-series,,
+2007-12-31,527,ATMI,link,,no-series,,
+2007-12-31,528,ACLS,link,,pass,,close
+2007-12-31,529,AZTA,link,,pass,,close
+2007-12-31,530,CCMP,link,,pass,,close
+2007-12-31,531,COHU,link,,pass,,close
+2007-12-31,532,DIOD,link,,pass,,close
+2007-12-31,533,DSPG,link,,pass,,close
+2007-12-31,534,EXAR,link,,pass,,close
+2007-12-31,535,KOPN,link,,pass,,close
+2007-12-31,536,KLIC,link,,pass,,close
+2007-12-31,537,MCRL,link,,pass,,close
+2007-12-31,538,MSCC,link,,pass,,close
+2007-12-31,539,MKSI,link,,pass,,close
+2007-12-31,540,PSEM,link,,pass,,close
+2007-12-31,541,PLAB,name,"same name in ijr/members.csv, 2017-12-31 row 515, which passes on PLAB",pass,,close
+2007-12-31,542,RTEC,link,,pass,,close
+2007-12-31,543,SWKS,link,,pass,,close
+2007-12-31,544,SMSC,link,,no-series,,
+2007-12-31,545,SUPX,link,,no-row,,
+2007-12-31,546,UTEK,link,,pass,,close
+2007-12-31,547,VSEA,link,,no-series,,
+2007-12-31,548,VECO,link,,pass,,close
+2007-12-31,549,MDRX,name,"same name in ijr/members.csv, 2020-12-31 row 421, which passes on MDRX",pass,,close
+2007-12-31,550,ANSS,name,"same name in ivv/members.csv, 2017-06-30 row 452, which passes on ANSS",pass,,close
+2007-12-31,551,AVID,link,,pass,,close
+2007-12-31,552,BLKB,link,,pass,,close
+2007-12-31,553,CAPA,hand,Chan's IJR_20080114.mat lists CAPA. Captaris traded as CAPA on NASDAQ until Open Text bought it in October 2008.,no-row,,
+2007-12-31,554,CNQR,link,,pass,,close
+2007-12-31,555,DGII,link,,pass,,close
+2007-12-31,556,EPIC,link,,no-series,,
+2007-12-31,557,EPIQ,link,,no-row,,
+2007-12-31,558,INFA,link,,no-row,,
+2007-12-31,559,JDAS,link,,pass,,close
+2007-12-31,560,MANT,name,"same name in ijr/members.csv, 2014-12-31 row 368, which passes on MANT",pass,,close
+2007-12-31,561,OMCL,link,,pass,,close
+2007-12-31,562,PFWD,link,,no-series,,
+2007-12-31,563,PTEC,link,,no-row,,
+2007-12-31,564,PRGS,link,,pass,,close
+2007-12-31,565,QSII,link,,pass,,close
+2007-12-31,566,SMSI,link,,pass,,close
+2007-12-31,567,SPSS,link,,no-series,,
+2007-12-31,568,SNX,link,,pass,,close
+2007-12-31,569,TTWO,link,,pass,,close
+2007-12-31,570,THQI,link,,no-series,,
+2007-12-31,571,MINI,link,,pass,,close
+2007-12-31,572,ADPT,link,,no-row,,
+2007-12-31,573,AXE,link,,pass,,close
+2007-12-31,574,APSG,link,,no-series,,
+2007-12-31,575,ARRS,link,,pass,,close
+2007-12-31,576,BBOX,link,,pass,,close
+2007-12-31,577,CMTL,link,,pass,,close
+2007-12-31,578,DITC,name,Alpha Vantage active listing as of 2010-01-04: Ditech Networks Inc,pass,,close
+2007-12-31,579,GNCMA,link,,pass,,close
+2007-12-31,580,HLIT,link,,pass,,close
+2007-12-31,581,NTGR,link,,pass,,close
+2007-12-31,582,NWK,link,,no-row,,
+2007-12-31,583,NEWP,link,,no-row,,
+2007-12-31,584,MIFI,link,,pass,,close
+2007-12-31,585,SYMM,link,,no-series,,
+2007-12-31,586,TLGD,link,,no-series,,
+2007-12-31,587,VSAT,link,,pass,,close
+2007-12-31,588,AGL,hand,Chan's IJR_20080114.mat lists AGL. Angelica traded as AGL on NYSE until Lehman Brothers Merchant Banking took it private in August 2008.,no-row,,
+2007-12-31,589,GK,link,,no-row,,
+2007-12-31,590,UNF,link,,pass,,close
+2007-12-31,591,JAKK,link,,pass,,close
+2007-12-31,592,RCRC,link,,no-series,,
+2007-12-31,593,ABFS,link,,pass,,close
+2007-12-31,594,BRSWQ,link,,pass,,close
+2007-12-31,595,FWRD,link,,pass,,close
+2007-12-31,596,HTLD,link,,pass,,close
+2007-12-31,597,HUBG,link,,pass,,close
+2007-12-31,598,KEX,link,,pass,,close
+2007-12-31,599,KNX,link,,pass,,close
+2007-12-31,600,LSTR,link,,pass,,close
+2007-12-31,601,ODFL,link,,pass,,close
+2007-12-31,602,AWR,link,,pass,,close

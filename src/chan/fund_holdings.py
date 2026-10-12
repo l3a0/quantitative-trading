@@ -10,6 +10,11 @@ scope and [issue 372](https://github.com/l3a0/quantitative-trading/issues/372)
 is IVV's. [docs/design.md](../../docs/design.md)'s section "A record that
 reads a fund's filings" is the reasoning.
 
+A third fund, IJH, tracks the S&P 400, and its list holds one filing.
+[Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) runs
+Example 3.8's reversal on the S&P 400 as it stood on 2007-12-31, so it reads
+IJH's schedule at that date alone, from the same N-Q that holds IJR's.
+
 The record lives under ``research/filings/`` rather than in ``data/``, because
 a filing is pinned by its accession rather than kept as a vintage. The design
 doc's section says why.
@@ -440,8 +445,21 @@ IVV = Fund(
     ),
 )
 
+# IJH's one filing, read for issue 303's mid-cap universe. The S&P 400 is read
+# only as it stood on 2007-12-31, so the list holds that one date. One N-Q holds
+# every fund in the trust, so the accession and document are the ones IJR's
+# 2007-12-31 filing names, and a fetch checks the document against IJR's line.
+
+IJH = Fund(
+    symbol="IJH",
+    series_id="S000004307",
+    schedule_names=("S&P MIDCAP 400 INDEX FUND",),
+    filings=(Filing("2007-12-31", "N-Q", "0001193125-08-043324", "2008-02-29", "dnq.htm"),),
+    not_stocks=(),
+)
+
 #: Every fund the reader knows, by the symbol ``fetch`` takes.
-FUNDS: Mapping[str, Fund] = {IJR.symbol: IJR, IVV.symbol: IVV}
+FUNDS: Mapping[str, Fund] = {IJR.symbol: IJR, IVV.symbol: IVV, IJH.symbol: IJH}
 
 
 # --- Reading an N-Q's HTML ---------------------------------------------------

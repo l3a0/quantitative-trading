@@ -150,6 +150,17 @@ class TestTheCoverage:
         assert dict(sorted(Counter(row.check for row in ROWS).items())) == CHECKS
 
 
+#: Lines issue 303 recorded into the ``sp600`` cross-section on 2026-10-11 for
+#: its control, which this panel neither fetched nor reads.
+#: ``tests/test_sp400_panel.py`` pins them.
+LATER_LINES = frozenset({
+    "AGL", "ALAB", "ALO", "ANSS", "ASV", "ATR", "BFAM", "BIOL", "CAPA", "CTRA", "DITC",
+    "DSL", "ESS", "FBTXQ", "FDS", "FLIR", "FLO", "FRNT", "HH", "IDXX", "LBY", "LFG",
+    "MATR", "MNC", "MSC", "OMN", "PCX", "PFGC", "PLNR", "RAH", "RESP", "SHAW", "SINT",
+    "SKP", "SPB", "SRZ", "SUG", "TGICQ", "TRMB", "TROX", "UGI", "UONEK", "WCN", "WWD",
+})  # fmt: skip
+
+
 class TestTheManifestLines:
     """The ``sp600`` lines this panel recorded, beside issue 333's for the 2025-12-31 members."""
 
@@ -158,7 +169,9 @@ class TestTheManifestLines:
         lines = [
             line
             for line in (archive._manifest_path(None)).read_bytes().split(b"\n")
-            if line.strip() and json.loads(line).get("cross_section") == "sp600"
+            if line.strip()
+            and json.loads(line).get("cross_section") == "sp600"
+            and json.loads(line)["symbol"] not in LATER_LINES
         ]
         theirs = [line for line in lines if json.loads(line)["symbol"] in current]
         mine = [line for line in lines if json.loads(line)["symbol"] not in current]

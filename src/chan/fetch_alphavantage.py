@@ -6,7 +6,10 @@ lives here, reading ``ALPHAVANTAGE_API_KEY`` from the environment of one run.
 [Issue 335](https://github.com/l3a0/quantitative-trading/issues/335) records
 both. A second ruling that day extended the exception to the S&P 500's members,
 which [issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
-records, so the fetch writes to either cross-section the archive names. Each
+records, and a ruling of 2026-10-11 extended it to the S&P 400's members as
+IJH held them on 2007-12-31, which
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303) records.
+So the fetch writes to any cross-section the archive names. Each
 symbol is one ``TIME_SERIES_DAILY_ADJUSTED`` request with ``outputsize=full``
 and ``datatype=csv``, and its response is written to the
 archive unchanged, because one response carries the raw close beside the
