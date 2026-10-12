@@ -43,9 +43,10 @@ computes.
    pointing against it. :func:`direction` holds those words, and it takes
    exactly two universes at each price. :func:`points_chans_way` reads one
    price as an order from the largest capitalisation to the smallest.
-   [Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) calls
-   :func:`points_chans_way` with three figures and declares its own words for
-   an order that fails.
+   [Issue 303](https://github.com/l3a0/quantitative-trading/issues/303)
+   declares its own words for an order that fails, and
+   :mod:`chan.khandani_lo_mid_caps` calls :func:`points_chans_way` with three
+   figures to read them.
 2. **Size.** Each before-cost gap is read against its own sampling noise,
    the standard error of a difference between two Sharpe ratios measured on
    the same days, which :func:`sharpe_gap` computes. A gap more than twice its
