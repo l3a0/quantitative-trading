@@ -1,4 +1,4 @@
-"""The pins for the figure in the post on Chan's low-beta rule after the book, Entry 49.
+"""The pins for the figure in the post on Chan's low-beta rule on IVV's S&P 500, Entry 49.
 
 ``tests/test_low_beta_holdout.py`` holds what the holdout computes, and
 ``tests/test_low_beta_leverage.py`` what the run on Chan's file computes. This
@@ -187,8 +187,8 @@ class TestTheFigure:
 
     def test_the_title_carries_both_labels_and_the_note_names_each_vintage(self, figure) -> None:
         assert figure._suptitle.get_text() == (
-            "Registered verdicts, exploratory paths: the beta match on Chan's file and after the "
-            "book"
+            "Registered verdicts, exploratory paths: the beta match on Chan's file and on IVV's "
+            "members from 2009"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
             "Quantitative Trading, locations 4684 and 4709. Left: stocks from SPX_20071123.mat, "

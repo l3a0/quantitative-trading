@@ -10640,7 +10640,8 @@ cannot say whether the rule held after the book, because Chan's file holds
 only the stocks still in the index in 2007 and its span sits inside the
 samples the low-beta literature used. This entry runs Entry 45's registered
 specification, with the changes the panel forces, on IVV's members at each
-month-end from 2008-12, every holding month after Chan published.
+month-end from 2008-12, every holding month after the first edition's
+release in November 2008.
 
 Eleven rows, all derivable from
 [tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py), whose
@@ -10667,8 +10668,9 @@ the issue reports beside the verdict, which decide nothing.
 Everything [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)
 registered carries over, and Entry 45 states its five rules.
 [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
-section "What the panel forces", written on 2026-10-11 before any number on
-this panel, lists the changes this panel makes necessary. Four of them carry
+section "What the panel forces", written on 2026-10-11 before any beta or
+return was computed on this panel, lists the changes this panel makes
+necessary. Four of them carry
 the result, so they are stated here.
 
 1. **The vintages.** The members, `research/filings/ivv/members.csv` and its
@@ -10719,8 +10721,10 @@ then ruled that such a formation is skipped, its holding month leaving every
 series, so the criterion, the ruin rule and every side figure read the same
 remaining months and N counts them. The amendment lists what had been seen.
 So the skip rule was chosen after one such formation was visible, and N is
-208 rather than 212. Every holding month comes after the book, so unlike
-Entry 45 this is a holdout for the claim. Rows 2 to 11 are **exploratory**.
+208 rather than 212. Every holding month comes after the first edition's
+release in November 2008, so unlike Entry 45 this is a holdout for the claim,
+as long as that edition prints it. This repository has read the rule only in
+the 2021 revised edition. Rows 2 to 11 are **exploratory**.
 The plan declared them, and each is a point estimate that nothing tests.
 
 ### What the book stated
@@ -10778,9 +10782,12 @@ leaves 208 holding months, from January 2009 to April 2026.
 
 ### What the entry concludes
 
-Two things, and the first is the verdict.
+Three things, and the first is the verdict. The third adds figures the
+write-up measured after the run, which `TestWhatThePostCounted` and
+`TestWhatThePostMeasured` in
+[tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py) pin.
 
-1. **After the book, the rule is not decided on IVV's S&P 500.** Levered to
+1. **On IVV's S&P 500 from 2009, the rule is not decided.** Levered to
    the high fifth's beta, the low fifth's compounded growth trailed the
    unlevered high fifth's by 0.0590 a year, at a Newey-West t of −0.4974. The
    test finds a gap of 0.2948 a year four times in five, so the run says
@@ -10793,6 +10800,20 @@ Two things, and the first is the verdict.
    last four formations the match had no leverage to offer at all. The low
    fifth's Sharpe ratio of 0.8607 against the high fifth's 0.6770 is an
    untested point estimate that decides nothing.
+3. **The data reject only a large levered advantage, and one month sets the
+   estimate's sign.** The gap's standard error is 0.1185 a year, so a
+   one-sided test at 5 percent rejects every levered advantage above 0.1360
+   a year. December 2024's d of −1.5624 is the lowest of the 208. Without it,
+   twelve times the mean of d is +0.0313, and without it and March 2026's
+   −1.1582 it is +0.0989. No month reached its own ruin line, and the match
+   asked December 2024 for 0.80 of the leverage that ruins it, the largest
+   share of any month. The 2,187 member rows failing the row check against
+   the filing split 1,186 with no close, 697 with a wrong price and 304 with
+   no series. 26,353 of all 35,205 member rows carry a ticker still in the
+   2026-06-30 schedule, against 697 of the 2,187 failing rows. On Chan's
+   file the close at t + 1 removed no company that left, only 17 stocks
+   missing a month-end close at six formations. Measured after the run, so
+   exploratory, and it decides nothing.
 
 ### What this entry cannot say
 

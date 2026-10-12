@@ -1,4 +1,4 @@
-"""The figure for ``blog/low-beta-holdout-lessons.md``, Chan's low-beta rule after the book.
+"""The figure for ``blog/low-beta-holdout-lessons.md``, Chan's low-beta rule on IVV's S&P 500.
 
 That post is on Entry 49 of ``docs/replication-log.md``, which runs the rule
 at location 4709 of *Quantitative Trading* on IVV's S&P 500 members from
@@ -12,9 +12,10 @@ two rows and two columns.
    October 2007, read from the committed files through
    :func:`chan.low_beta_leverage.read_sources`, as
    :mod:`chan.low_beta_leverage_figures` reads them.
-2. **The right column** is IVV's members, holding months January 2009 to
-   April 2026, from :func:`chan.low_beta_holdout.read_holdout`, which needs
-   the owner's archive of Alpha Vantage prices.
+2. **The right column** is IVV's members, with kept holding months January
+   2009 to April 2026 and the four skipped months, May to August 2026,
+   shaded. It comes from :func:`chan.low_beta_holdout.read_holdout`, which
+   needs the owner's archive of Alpha Vantage prices.
 3. **The top row** is each fifth's mean beta at formation, with the low
    fifth's lowest marked and every formation the skip amendment left out
    plotted at its negative low beta. A muted line marks zero, below which no
@@ -320,7 +321,8 @@ def make_low_beta_holdout_figure(
 
     _title(
         fig,
-        "Registered verdicts, exploratory paths: the beta match on Chan's file and after the book",
+        "Registered verdicts, exploratory paths: the beta match on Chan's file and on IVV's "
+        "members from 2009",
         f"Quantitative Trading, locations 4684 and 4709. Left: stocks from {SOURCE_FILE}, saved "
         f"{members[0].obtained}, survivors only, and SPY from {spy_entry.path}. Not a holdout.\n"
         f"{_ivv_note()}\nBoth borrow at FRED's TB3MS, downloaded {bill_entry.obtained}. Each "

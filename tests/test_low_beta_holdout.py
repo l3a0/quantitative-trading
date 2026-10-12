@@ -22,12 +22,12 @@ are stated once here and carried in every figure's failure message as
   2026-09-30. The bytes of the Alpha Vantage lines sit in the owner's archive.
 - **Specification.** Issue 275's plan, registered 2026-10-11, with its ruin
   amendment, as :mod:`chan.low_beta_leverage` computes it, and the changes
-  issue 526 registered the same day before any number on this panel: IVV's
-  covered members at t without Example 7.7's ``rank`` reason, each series cut
-  at its last row that traded and earning its return to its last close, SPY
-  from the archive on the committed calendar, and formations from 2008-12-31
-  to 2026-07-31. Issue 526's second amendment of 2026-10-11 skips a formation
-  whose low group's mean beta is zero or below.
+  issue 526 registered the same day before any beta or return was computed on
+  this panel: IVV's covered members at t without Example 7.7's ``rank``
+  reason, each series cut at its last row that traded and earning its return
+  to its last close, SPY from the archive on the committed calendar, and
+  formations from 2008-12-31 to 2026-07-31. Issue 526's second amendment of
+  2026-10-11 skips a formation whose low group's mean beta is zero or below.
 
 The result is **registered**, under both amendments of 2026-10-11. The skip
 rule was chosen after the first non-positive formation, 2026-04-30, was
@@ -49,6 +49,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -73,8 +74,12 @@ from chan.low_beta_leverage import (
     POWER,
     NonPositiveBeta,
     build_portfolios,
+    daily_excess,
+    differences,
+    fit_beta,
     growth,
     kelly,
+    read_sources,
     realised_beta,
     ruin_line,
     ruinous_leverage,
@@ -512,10 +517,12 @@ AFTER_THE_RUN = "measured by the write-up after the run, so exploratory, and it 
 class TestWhatThePostCounted:
     """Counts ``blog/low-beta-holdout-lessons.md`` quotes from committed files alone.
 
-    The write-up counted both after the run, on the members file and holes
-    file whose sha256s :data:`MEMBERS_SHA256` and :data:`HOLES_SHA256` hold,
-    the manifest's spans and the committed SPY calendar, with Example 7.7's
-    ``rank`` reason left out as point 3 of the registration says. Neither
+    The write-up counted every one of them after the run. Those on IVV's
+    members read the members file and holes file whose sha256s
+    :data:`MEMBERS_SHA256` and :data:`HOLES_SHA256` hold, the manifest's spans
+    and the committed SPY calendar, with Example 7.7's ``rank`` reason left out
+    as point 3 of the registration says. The one on Chan's file reads his
+    committed files through :func:`chan.low_beta_leverage.read_sources`. None
     decides anything.
     """
 
@@ -549,6 +556,73 @@ class TestWhatThePostCounted:
         }
         assert {date: n for date, n in carried.items() if n != 2} == {"2013-06-30": 5}
         assert sum(1 for n in carried.values() if n == 2) == 68, AFTER_THE_RUN
+        last, first = schedules[-1]
+        assert (last, (sp500_panel.LAST_MONTH - first).n) == ("2026-06-30", 2), AFTER_THE_RUN
+
+    def test_the_failing_rows_split_by_the_row_checks_three_outcomes(self) -> None:
+        """No close on the price date, a close the filing disagrees with, or no series.
+
+        The 6,816 failing member-months split 3,654, 2,229 and 933 the same
+        way, which ``TestTheCoverageWithoutRank`` holds from the audit.
+        """
+        failing = Counter(row.check for row in sp500_panel.load() if row.check != "pass")
+        assert failing == {"no-row": 1186, "price": 697, "no-series": 304}, AFTER_THE_RUN
+        assert failing.total() == 2187
+
+    def test_three_member_rows_in_four_carry_a_ticker_still_listed_against_one_failing_in_three(
+        self,
+    ) -> None:
+        """The base rate the failing rows' 697 of 2,187 is read against.
+
+        A ticker absent from the 2026-06-30 schedule marks a company that left
+        the index or one that only changed its ticker, and the count cannot
+        tell the two apart.
+        """
+        rows = sp500_panel.load()
+        last = sp500_panel.schedule_months()[-1][0]
+        listed = {row.ticker for row in rows if row.report_date == last and row.ticker}
+        failing = [row for row in rows if row.check != "pass"]
+        every = (sum(1 for row in rows if row.ticker in listed), len(rows))
+        failed = (sum(1 for row in failing if row.ticker in listed), len(failing))
+        assert (every, failed) == ((26353, 35205), (697, 2187)), AFTER_THE_RUN
+        assert [f"{100 * n / of:.1f}" for n, of in (every, failed)] == ["74.9", "31.9"]
+
+    def test_on_chans_file_the_close_at_t_plus_1_left_out_only_missing_closes(self) -> None:
+        """17 stocks at 6 formations, each with closes after the month-end it lacks.
+
+        Issue 275's rule asks for a close at the formation and at the next
+        month-end. No series in Chan's file ends before the file's last day, so
+        the rule never removed a company that left. It removed only a stock
+        with a hole at the next month-end, which is still a look ahead.
+        """
+        _, closes, _, spy, _, bills = read_sources()
+        p = build_portfolios(closes, spy, bills)
+        cut = closes.loc[closes.index.isin(spy.index)]
+        assert (cut.apply(pd.Series.last_valid_index) == cut.index[-1]).all(), AFTER_THE_RUN
+        stock = daily_excess(cut, bills).to_numpy()
+        market = daily_excess(spy.loc[cut.index].to_frame(), bills).to_numpy()[:, 0]
+        left_out = {}
+        for formed, held_to, eligible in zip(p.formed, p.held_to, p.eligible, strict=True):
+            end = cut.index.get_loc(formed)
+            window = slice(end - BETA_DAYS + 1, end + 1)
+            gone = [
+                j
+                for j in np.flatnonzero(cut.loc[formed].notna() & cut.loc[held_to].isna())
+                if np.isfinite(fit_beta(stock[window, j], market[window]))
+            ]
+            if gone:
+                after_it = cut.iloc[cut.index.get_loc(held_to) + 1 :, gone]
+                assert after_it.notna().any().all(), formed
+                left_out[str(formed.date())] = (eligible + len(gone), eligible)
+        assert left_out == {
+            "2000-11-30": (454, 453),
+            "2001-01-31": (455, 444),
+            "2001-11-30": (464, 463),
+            "2002-09-30": (475, 474),
+            "2004-09-30": (481, 480),
+            "2005-10-31": (488, 486),
+        }, AFTER_THE_RUN
+        assert sum(before - kept for before, kept in left_out.values()) == 17, AFTER_THE_RUN
 
 
 # --- the archive pins ------------------------------------------------------------
@@ -854,6 +928,29 @@ class TestWhatThePostMeasured:
         p = holdout.portfolios
         reached = p.low <= ruin_line(p.rf, p.leverage)
         assert (int(reached.sum()), len(reached)) == (0, 208), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_december_2024_alone_sets_the_sign_of_the_gap(self, holdout) -> None:
+        """Twelve times the mean of d over the months left when one or two are dropped.
+
+        Dropping a month is not a test. It shows that the point estimate's sign
+        rests on December 2024, the month whose d is furthest below zero.
+        """
+        d = differences(holdout.portfolios)
+        dec, mar = pd.Timestamp("2024-12-31"), pd.Timestamp("2026-03-31")
+        assert list(d.sort_values().index[:2]) == [dec, mar], f"{SPEC}; {AFTER_THE_RUN}"
+        after(float(d[dec]), -1.562445940052367, "-1.5624")
+        after(float(d[mar]), -1.1581706211023435, "-1.1582")
+        after(float(d.drop(dec).mean() * 12), 0.03132642815124604, "0.0313")
+        after(float(d.drop([dec, mar]).mean() * 12), 0.09894474796376723, "0.0989")
+
+    def test_march_2026_was_the_second_worst_levered_month(self, holdout) -> None:
+        p = holdout.portfolios
+        mar = pd.Timestamp("2026-03-31")
+        assert p.levered.sort_values().index[1] == mar, f"{SPEC}; {AFTER_THE_RUN}"
+        after(float(p.levered[mar]), -0.7004677356362444, "-0.7005")
+        after(float(p.leverage[mar]), 9.434203067644063, "9.4342")
+        after(float(p.low[mar]), -0.07155822665330175, "-0.0716")
+        after(float(p.high[mar]), -0.046258414248779016, "-0.0463")
 
     def test_march_2020_the_low_fifths_worst_month_came_at_a_low_k(self, holdout) -> None:
         p = holdout.portfolios
