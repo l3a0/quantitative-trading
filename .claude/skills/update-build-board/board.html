@@ -237,9 +237,11 @@
      card under "Waiting on my review" can carry both. */
   .tk.busy { box-shadow: inset 3px 0 0 0 var(--wait); }
   /* A card whose plan has been executed against the code is a different thing
-     from a card whose body is still a hypothesis, and the difference is what
-     decides whether it can be handed to a builder. It is drawn as a filled
-     corner rather than another border, because the borders are spoken for. */
+     from a card whose body is still a hypothesis. The difference is one half
+     of whether it can be handed to a builder, and `buildable` in the script
+     reads the other half, which is whether anything holds the card. It is
+     drawn as a filled corner rather than another border, because the borders
+     are spoken for. */
   .tk.plan-build { box-shadow: inset 0 3px 0 0 var(--exact); }
   .tk.plan-decide { box-shadow: inset 0 3px 0 0 var(--gap); }
   .tk .pl { font-family: var(--mono); font-size: 0.6875rem; }
@@ -1304,13 +1306,20 @@ function buildOrder() {
      data plus one suppression rule, so the only safe arrangement is that the
      rule exists once.
 
-     What the rule says is that the marker answers one question, whether the
-     card can be handed to a builder, and it goes the moment that answer stops
-     being the reader's to act on. A branch is that. So is a build session,
-     which is the same handover an hour earlier and was leaving the card saying
-     it was ready to build directly above a line saying somebody was building
-     it. A decompose loop is not, because it revises the plan rather than
-     carrying it out, so a card under one is still waiting for a builder. An
+     What the rule says is that the marker reports a finished plan nobody is
+     carrying out yet, and it goes the moment somebody is. Whether the card can
+     be handed to a builder is a separate question, which `takeable` and
+     `HOLDS` answer, and `buildable` below is what lets the marker's suffix,
+     its label sentence and the legend say "ready to build" only where they
+     agree. This comment once said the marker answered that question itself,
+     and the suffix was written to match, so a deferred card read "deferred on
+     purpose" above "ready to build". Issue 583 recorded it.
+
+     A branch carries the plan out. So does a build session, which is the same
+     handover an hour earlier and was leaving the card saying it was ready to
+     build directly above a line saying somebody was building it. A decompose
+     loop does not, because it revises the plan rather than carrying it out, so
+     a card under one keeps its marker. An
      entry with no kind is a decompose loop, which is the default this array has
      always carried. Only an open pull request is a branch. A merged `Part of`
      leaves the rest of its issue for a builder, and a closed one carried
@@ -1334,9 +1343,10 @@ function buildOrder() {
   /* One table says why a card is not free for a session to take, and the test
      for a free card is ordinary work that no row of it holds. The board note's
      free list, the chain bar and the In flight note's planned sentence all read
-     them. The bar used to read only `needs`, so a card with none either way was
-     called free to take on its own whatever its kind word, its session, its
-     branch or its plan said. That is
+     them, and so does `buildable`, which decides the plan marker's "ready to
+     build" and the legend's gloss for it. The bar used to read only `needs`,
+     so a card with none either way was called free to take on its own
+     whatever its kind word, its session, its branch or its plan said. That is
      the free list and the bar giving two answers to one question, which is
      defect 5 in the skill's record, and issue 521 is where it was found.
 
@@ -1386,6 +1396,15 @@ function buildOrder() {
   ];
   const takeable = c => c.kind === "ready" && !HOLDS.some(h => h.held(c));
   const holding = (cards, form) => HOLDS.filter(h => cards.some(h.held)).map(h => h[form]);
+  /* Whether a planned card may be called ready to build. That is a free card
+     with nothing open in its `needs`, so the plan line's suffix, the label's
+     sentence and the build marker's gloss all ask `takeable`, the test the
+     notes and the chain bar ask. They read only `needs` until issue 583, so a
+     deferred, decision, parent or data card with a `build` verdict read
+     "ready to build" directly under a kind word saying not to start it, which
+     is check 6 on one card. `takeable` reads no `needs`, because the bar and
+     the notes say a blocker in their own words, so the blocker is added here. */
+  const buildable = c => takeable(c) && !c.needs.some(b => by.has(b));
   /* The same arrangement as `planMarker`, for the same reason. The card and the
      legend have to agree about whether a position is drawn, and the way they
      stay agreed is that the rule exists once. It is short enough to look safe
@@ -1590,7 +1609,7 @@ function buildOrder() {
                records. */
             (remeasuring(c) ? ` A second loop is re-measuring that plan.`
               : pn.ready === "decide" ? ` It waits on a question only the owner can answer.`
-              : waits.length ? "" : ` It is ready to build.`) : ""
+              : buildable(c) ? ` It is ready to build.` : "") : ""
         }${rank ? ` It is number ${rankPos.get(c.n) + 1} in the priority order.` : ""} Show what this connects to.">
         <div class="r1">
           <a class="id" href="${ISS}${c.n}" target="_blank" rel="noopener">#${c.n}</a>
@@ -1607,7 +1626,7 @@ function buildOrder() {
         ${pn ? `<div class="pl ${pn.ready}">plan complete, ${plu(pn.passes, "pass")}${
           remeasuring(c) ? ", being re-measured"
             : pn.ready === "decide" ? ", waits on an owner call"
-            : waits.length ? "" : ", ready to build"}</div>` : ""}
+            : buildable(c) ? ", ready to build" : ""}</div>` : ""}
 
         ${prline}
       </div>`;
@@ -1754,13 +1773,30 @@ function buildOrder() {
      harness caught it on #138, planned at eleven passes and waiting on #124,
      under a legend offering it to a builder. The card had never said that,
      because the visible line drops the phrase when a blocker is named above
-     it, so the legend was the only surface making the claim. */
+     it, so the legend was the only surface making the claim.
+
+     It asks `buildable`, the test the card's own suffix asks, rather than
+     reading `needs` alone. Reading `needs` alone offered a deferred card with
+     a `build` verdict to a builder while its kind word said not to start it,
+     which issue 583 recorded. The gloss offers the marker to a builder only
+     when every card drawing it is free, because a held card can sit beside a
+     free one under "Planned, no builder", and one gloss for both would hand
+     the held one over. A set mixing the two is sent to each card's own line,
+     which is where the suffix appears or does not. A set with no free card
+     names a blocker when every card has one, and otherwise says only that the
+     card is not free. It gives no reason, because a card blocked on data is
+     held by no row of `HOLDS` and draws no kind word, so a gloss pointing at
+     the card's own reason would point at nothing there. */
   const buildWord = set => {
     const cs = set.filter(marked("build"));
     if (!cs.length) return null;
-    return ["plan-build", cs.some(c => !c.needs.some(b => by.has(b)))
+    const free = cs.filter(buildable).length;
+    return ["plan-build", free === cs.length
       ? "plan run against the code, ready to hand to a builder"
-      : "plan run against the code, with a blocker still in front of it"];
+      : free ? "plan run against the code, ready to build where its card says so"
+      : cs.every(c => c.needs.some(b => by.has(b)))
+        ? "plan run against the code, with a blocker still in front of it"
+        : "plan run against the code, on a card that is not free to take"];
   };
   /* The swatch is read off the card that drew it rather than fixed here, so a
      re-measured `decide` card would not be advertised with the `build` colour.
@@ -2081,7 +2117,7 @@ const FLOW = [
     has: (c, s) => s.pr && !handedOver(s.pr, s.busy) },
   { t: "Building", tone: "building", d: "a build session is on it and no branch has appeared",
     has: (c, s) => !s.pr && s.busy && s.busy.kind === "build" },
-  { t: "Planned, no builder", tone: "planned", d: "a plan run against the code, nothing blocking it, and nobody on it",
+  { t: "Planned, no builder", tone: "planned", d: "a plan run against the code, no open issue in front of it, and nobody on it",
     has: (c, s) => s.plan && !s.pr && !s.busy && !s.blocked && !s.landed },
   { t: "Being planned", tone: "planning", d: "a decompose loop is running, so the plan is still being written",
     has: (c, s) => !s.pr && s.busy && s.busy.kind !== "build" }
@@ -2208,9 +2244,32 @@ function inFlight(ctx) {
        every card here has green checks by construction and the second half could
        only ever be empty. A note working around a wrong test is a second place
        for the rule to live, which is defect 5. */
-    owner: col => `<b>${ns2(col)} ${col.length === 1 ? "is" : "are"} yours</b>, reviewed, ` +
-      `checks green, no session listed on ${col.length === 1 ? "it" : "them"}, ` +
-      `and waiting on nothing else`,
+    /* "Waiting on nothing else" is said only of a card whose own line names
+       nothing it waits on. It was fixed text until issue 584, so a reviewed,
+       green card reading "waits on #N" was told here that it waited on
+       nothing, in the sentence the owner reads before merging. Such a card
+       still sits in this column, because the column says whose move it is and
+       nothing is left for a session: waiting for the blocker, or merging in
+       the order an `after` line asks, is the owner's call. So the sentence
+       names what the card waits on, read from `needs` and `after` the way the
+       card's own line reads them, and in the card's own words. */
+    owner: col => {
+      const open = ns => ns.filter(b => ctx.by.has(b));
+      const links = ns => andlist(ns.map(b => "#" + b));
+      const clear = col.filter(c => !open(c.needs).length && !open(c.after || []).length);
+      const parts = [];
+      if (clear.length) parts.push(`<b>${ns2(clear)} ${clear.length === 1 ? "is" : "are"} yours</b>, ` +
+        `reviewed, checks green, no session listed on ${clear.length === 1 ? "it" : "them"}, ` +
+        `and waiting on nothing else`);
+      col.filter(c => !clear.includes(c)).forEach(c => {
+        const hard = open(c.needs), soft = open(c.after || []);
+        parts.push(`<b>#${c.n} is yours${parts.length ? " too" : ""}</b>, reviewed, checks green and ` +
+          `no session listed on it, but ${hard.length
+            ? `it waits on ${links(hard)}${soft.length ? ` and should also land after ${links(soft)}` : ""}`
+            : `it should land after ${links(soft)}`}`);
+      });
+      return parts.join(". ");
+    },
     /* Three different things keep a card here, and calling them all "unreviewed"
        is the note contradicting the card above it, which reports the checks and
        the session. So the reason is read per card from `owed`, the same rule

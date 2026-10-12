@@ -274,13 +274,19 @@ from four places, and give the evidence for each one.
    first.
    - Pull requests that are reviewed, green at the current head, and whose
      card carries no `working:` label. Green does not count when the base moved
-     after the last push, as the paragraph after this list explains.
+     after the last push, as the paragraph after this list explains. Name any
+     open issue the card waits on or should land after, as the board's In
+     flight note does, because the merge may have to wait for it.
    - `planned` entries with `ready` of `decide`.
    - Questions a session handed back.
 2. **Plans ready to build with no builder.** These are `planned` entries with
    `ready` of `build`, with no `working:` label, no open pull request, nothing
    open in `needs`, and no pull request merged with no `Part of`. That last one
-   leaves the card only a close by hand, so it is not a candidate.
+   leaves the card only a close by hand, so it is not a candidate. Take only
+   cards the board calls free, which means a `kind` of `ready`. A `deferred`,
+   `decision`, `parent` or `data` card can carry a `build` verdict and still
+   not be one to start, and its plan marker says so by dropping "ready to
+   build".
 3. **Blog drafts.** List the Substack drafts and their schedule. A merged or open
    pull request that touches `blog/` can leave its draft stale. A stale draft
    that is neither published nor scheduled is synced rather than asked about,
