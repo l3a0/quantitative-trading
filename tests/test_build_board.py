@@ -1751,9 +1751,9 @@ def _rank(docs: dict, *issues: int) -> dict:
 def test_two_cards_tied_at_the_top_each_free_one_other(tmp_path: Path) -> None:
     """Protects the tie sentence and the singular count inside it.
 
-    The Show all view draws every card, so nothing is hidden and neither tied
-    card is in flight. A tie read as a single card would call one of the two
-    "the single card", and a fixed plural would read "1 others".
+    The Show all view draws every card, so nothing is hidden, and no pull
+    request is open on either tied card. A tie read as a single card would call
+    one of the two "the single card", and a fixed plural would read "1 others".
     """
     docs = _tied_at_one(fixture_docs())
     note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
@@ -1763,15 +1763,29 @@ def test_two_cards_tied_at_the_top_each_free_one_other(tmp_path: Path) -> None:
     assert "hidden in this view" not in note
 
 
-def test_a_single_card_freeing_one_other_takes_a_singular_count(tmp_path: Path) -> None:
-    """Protects the singular count in the sentence naming one card at the top.
+@pytest.mark.parametrize(
+    ("needs", "sentence"),
+    [
+        (
+            {90502: [], 90503: [90504], 90505: []},
+            "#90504 is the single card whose landing frees the most, at 1 other.",
+        ),
+        ({}, "#90501 is the single card whose landing frees the most, at 3 others."),
+    ],
+    ids=["one other", "three others"],
+)
+def test_the_single_card_sentence_counts_what_it_frees(
+    tmp_path: Path, needs: dict, sentence: str
+) -> None:
+    """Protects the count in the sentence naming one card at the top, in both forms.
 
-    Fixture issue 90504 frees 90503 and no other card frees anything, so 90504
-    stands alone at one.
+    With 90504 freeing only 90503 and no other card freeing anything, 90504
+    stands alone at one. The fixture as shipped has 90501 freeing 90502, 90503
+    and 90505, so it stands alone at three.
     """
-    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90504], 90505: []})
+    docs = _with_needs(fixture_docs(), needs)
     note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
-    assert "#90504 is the single card whose landing frees the most, at 1 other." in note
+    assert sentence in note
 
 
 def test_a_tie_where_one_top_card_frees_a_hidden_card_counts_the_hidden_issues(
@@ -1798,8 +1812,9 @@ def test_two_hidden_top_cards_are_pointed_at_in_the_plural(tmp_path: Path) -> No
     """Protects the hidden pointer's plural verb and pronoun.
 
     Nothing is ranked, so the short view draws no column card and hides both
-    tied cards. The depth sentence counts hidden cards first, so the freeing
-    clause after it says it is counting them too.
+    tied cards. Its second column is then empty while a card sits one step
+    behind, so the depth sentence already says it counts the hidden issues, and
+    the freeing clause after it says it counts them too.
     """
     docs = _rank(_tied_at_one(fixture_docs()))
     note = _note(draw(tmp_path, docs))
@@ -1827,6 +1842,20 @@ def test_two_tied_top_cards_in_flight_are_both_pointed_at(tmp_path: Path) -> Non
     assert (
         "#90502 and #90504 are in the In flight section above rather than in a column here." in note
     )
+
+
+def test_a_tie_with_one_card_in_flight_points_at_that_card_alone(tmp_path: Path) -> None:
+    """Protects the plural count in the tie sentence and the in-flight pointer's choice of card.
+
+    90501 and 90504 each free 90503 and 90505, so they tie at two. 90501 has
+    the fixture's open pull request, so the In flight section draws it, while
+    90504 sits in a column. The pointer names 90501 alone rather than every
+    tied card.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90501, 90504], 90505: [90501, 90504]})
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert "#90501 and #90504 each free 2 others, and nothing frees more." in note
+    assert "#90501 is in the In flight section above rather than in a column here." in note
 
 
 # ---- The fetch path, for the board on GitHub Pages ----
