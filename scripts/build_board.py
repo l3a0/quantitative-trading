@@ -134,7 +134,7 @@ PARAGRAPH = re.compile(r"\n[ \t]*\n")
 
 
 def _spans_out(paragraph: str) -> str:
-    """One paragraph with each code span replaced by a space."""
+    """One paragraph with each code span replaced by a NUL character."""
     kept, start, pos = [], 0, 0
     while opener := TICKS.search(paragraph, pos):
         width = len(opener.group())
@@ -147,9 +147,12 @@ def _spans_out(paragraph: str) -> str:
         kept.append(paragraph[start : opener.start()])
         start = pos = closer.end()
     kept.append(paragraph[start:])
-    # A space rather than nothing, so the text either side of a span does not
-    # join into a phrase GitHub never shows.
-    return " ".join(kept)
+    # A NUL rather than nothing or a space. Nothing would join the text either
+    # side of a span, so "Part`x`of #482" would read as the phrase although
+    # GitHub shows code between the words, and a space would do the same. A
+    # NUL is no word character, so `\b` still matches beside it, and it is not
+    # the space the phrase needs, so it can never complete "Part of #".
+    return "\0".join(kept)
 
 
 def outside_code(text: str) -> str:

@@ -225,8 +225,25 @@ def test_a_pull_request_closing_two_issues_gets_an_item_for_each() -> None:
         # Inside a fenced code block. The blank line in it ends a paragraph, so
         # only the fence rule, and not the code span rule, keeps it out.
         ("The form reads:\n\n```text\nA body:\n\nPart of #482\n```\n", False),
+        # A backtick inside a fence and one after it. Fences come out before
+        # spans, so the two never pair and swallow the reference between them.
+        ("~~~\na ` b\n~~~\nPart of #482 and a ` tick.\n", True),
+        # A paragraph ahead of the reference. Paragraphs rejoin with a
+        # separator, so the reference does not run into the word before it.
+        ("First paragraph\n\nPart of #482", True),
+        # A span on each side. Scanning resumes after a span's closing run, so
+        # that run does not open a second span reaching the reference.
+        ("`x` Part of #482 `y`", True),
     ],
-    ids=["line-start", "mid-paragraph", "code-span", "fence"],
+    ids=[
+        "line-start",
+        "mid-paragraph",
+        "code-span",
+        "fence",
+        "fence-then-tick",
+        "paragraphs",
+        "two-spans",
+    ],
 )
 def test_a_part_of_reference_counts_anywhere_outside_code(body: str, credited: bool) -> None:
     """Protects the ``Part of`` rule the owner chose on issue 559.
@@ -269,11 +286,19 @@ def test_a_part_of_reference_after_a_fence_counts_in_a_crlf_body() -> None:
         # A code span ends with its paragraph, so a backtick in each of two
         # paragraphs opens no span between them.
         ("A stray ` here.\n\nPart of #482, and another ` there.\n", True),
-        # A span removed leaves a space, so the words either side of it do not
-        # join into the phrase.
+        # A span removed leaves a separator, so the words either side of it do
+        # not join into the phrase.
         ("Part `x`of #482", False),
+        # The same with no space on either side. GitHub shows code between the
+        # words, so the separator must not be the space the phrase needs.
+        ("Part`x`of #482", False),
+        # A run of two nothing closes. Scanning goes on past it, and not from
+        # inside it, so the span after it still holds the reference.
+        ("A `` stray pair, then `Part of #482`.", False),
+        # A line of only spaces ends a paragraph as an empty line does.
+        ("A stray ` here.\n \nPart of #482, and another ` there.\n", True),
     ],
-    ids=["width", "unclosed", "paragraph", "joined"],
+    ids=["width", "unclosed", "paragraph", "joined", "no-space", "stray-pair", "spaces-line"],
 )
 def test_a_code_span_closes_only_on_a_run_of_its_own_width(body: str, credited: bool) -> None:
     """Protects the reference from a span read wider or narrower than GitHub reads it.
@@ -286,6 +311,24 @@ def test_a_code_span_closes_only_on_a_run_of_its_own_width(body: str, credited: 
     gh = FakeGitHub([issue(482)], [pull(481, body=body)])
     board, _ = build(gh)
     assert [(p["pr"], p["issue"]) for p in prs_of(board)] == ([(481, 482)] if credited else [])
+
+
+@pytest.mark.parametrize(
+    "body",
+    ["XPart of #482", "Part of #482abc", "Part of 482", "Part of # 482"],
+    ids=["word-before", "word-after", "no-hash", "hash-space"],
+)
+def test_a_part_of_reference_is_the_whole_phrase_and_nothing_between(body: str) -> None:
+    """Protects the ``Part of`` rule from text that only contains the phrase.
+
+    The phrase starts and ends on a word boundary, and the number follows its
+    ``#`` with nothing between. Text joining a word to either end, or dropping
+    the ``#`` or spacing it from the number, is not the reference GitHub
+    renders as a link.
+    """
+    gh = FakeGitHub([issue(482)], [pull(481, body=body)])
+    board, _ = build(gh)
+    assert prs_of(board) == []
 
 
 def test_lowercase_prose_naming_an_issue_is_no_part_of_reference() -> None:
