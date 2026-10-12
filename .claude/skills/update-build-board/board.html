@@ -1916,9 +1916,17 @@ function buildOrder() {
      freeing two apiece, and the sentence went on claiming one of them was
      alone. A count of zero drops the clause instead of reading "at 0 others",
      which is what it would say the moment the graph flattens. */
+  /* At zero no card frees anything, so no card is tied at the top, and the
+     list is empty rather than every card on the board. The freeing clause
+     checks `most` itself. The two pointers below take their top cards from
+     this list rather than checking `most`, so with every `needs` empty the
+     note said nothing was waiting and then named every card as in flight or
+     hidden, which issue 523 recorded. A card waiting on
+     two open issues makes each of them free at least one, so `several` is
+     always empty at zero and the pointer loses nothing it should name. */
   const reachable = TRACKER.map(c => ({ n: c.n, k: reach(c.n, feeds).size }));
   const most = Math.max(0, ...reachable.map(x => x.k));
-  const unblocks = reachable.filter(x => x.k === most);
+  const unblocks = most ? reachable.filter(x => x.k === most) : [];
   /* The card that frees the most can be one the In flight section drew rather
      than one of the columns this sentence sits under, because the depth graph
      counts every blocker while the board draws only what nothing is carrying.

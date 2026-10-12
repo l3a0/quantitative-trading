@@ -696,6 +696,24 @@ the script beside it. Each row after them says how it was found.
     one open question is the owner's was called free while the In flight note
     said it waited on the owner. A row for it now reads `planMarker`, so it
     fires only where the card draws that marker.
+21. **Two pointers reading a list that ties at zero.** Found by the over-reach
+    lens of the review of
+    [pull request 518](https://github.com/l3a0/quantitative-trading/pull/518),
+    and `main`'s page before that pull request did the same.
+    [Issue 523](https://github.com/l3a0/quantitative-trading/issues/523)
+    recorded it. `most` is the largest number of cards any one card frees, and
+    `unblocks` held every card that freed that many. When nothing waits on
+    anything, `most` is 0 and every card ties at it, so the list held the whole
+    board. The freeing clause read `most` and said nothing was freed by landing
+    anything. The two pointers after it, `flownTop` and `hiddenNamed`, took
+    their cards from the list. So the note named every card in flight, and in
+    the short view every hidden card, as though each one freed the most.
+
+    That is defect 1's lesson in a list of maxima. Such a list is never empty
+    while the board holds a card, so the branch to compute is the one where it
+    ties at zero. `unblocks` is now empty when `most` is 0. The cards waiting
+    on several open issues still feed the hidden pointer, so the guard sits on
+    the list rather than on the whole pointer.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
