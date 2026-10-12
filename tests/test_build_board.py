@@ -1356,6 +1356,208 @@ def test_the_in_flight_note_joins_free_and_held_planned_cards(tmp_path: Path) ->
     )
 
 
+def _card_text(ids: dict, element: str, n: int) -> str:
+    """The rendered text of one card, from its opening tag to the next card or column."""
+    raw = ids.get(element, {}).get("html", "")
+    start = raw.index(f'data-n="{n}"')
+    marks = (raw.find('<div class="tk', start), raw.find('<div class="col', start))
+    ends = [i for i in marks if i >= 0]
+    return text({"c": {"html": raw[start : min(ends, default=len(raw))]}}, "c")
+
+
+@pytest.mark.parametrize(
+    ("kind", "says"),
+    [
+        ("ready", "is planned and free for anyone to pick up"),
+        ("decision", "is planned, and needs a decision rather than a session"),
+        ("deferred", "is planned, and is deferred on purpose"),
+        ("parent", "is planned, and is a parent whose children carry the work"),
+        ("data", "is planned, and is not free to take"),
+    ],
+)
+def test_a_planned_card_of_a_held_kind_is_not_called_ready_to_build(
+    tmp_path: Path, kind: str, says: str
+) -> None:
+    """Protects the plan marker and its legend from calling a held card ready to build.
+
+    Fixture issue 90504 gets a finished plan with a ``build`` verdict, nothing
+    open ahead of it and nobody on it, so it sits under "Planned, no builder".
+    Given a kind that holds it, the In flight note and the chain bar said it
+    was not free while the marker under the kind word read "ready to build",
+    its label said "It is ready to build." and the legend offered it to a
+    builder. Issue 583 recorded it. The card, its label, the legend and the
+    note are pinned together here, so none of them can answer the question
+    differently from the others. Ordinary work is the control, where all four
+    say the card is free.
+    """
+    docs = _planned(_with_fields(fixture_docs(), 90504, kind=kind), 90504, "build")
+    ids = draw(tmp_path, docs)
+    assert 90504 in cards(ids, "flow")
+    shown = _card_text(ids, "flow", 90504)
+    label = _card_tag(ids, "flow", 90504)
+    legend = text(ids, "flowkey")
+    flownote = text(ids, "flownote")
+    assert "plan complete, 2 passes" in shown
+    assert f"#90504 {says}." in flownote
+    if kind == "ready":
+        assert "plan complete, 2 passes, ready to build" in shown
+        assert "It is ready to build." in label
+        assert "plan run against the code, ready to hand to a builder" in legend
+        assert FREE_CLAIM in _picked(tmp_path, docs, 90504)
+    else:
+        assert "ready to build" not in shown
+        assert "ready to build" not in label
+        assert "ready to hand to a builder" not in legend
+        assert "plan run against the code, on a card that is not free to take" in legend
+        assert FREE_CLAIM not in _picked(tmp_path, docs, 90504)
+
+
+@pytest.mark.parametrize("kind", ["ready", "deferred"])
+def test_a_blocked_planned_card_is_glossed_by_its_blocker(tmp_path: Path, kind: str) -> None:
+    """Protects the legend's blocker gloss from the held gloss added beside it.
+
+    Fixture issue 90503 waits on 90502, which is open, so with a finished plan
+    it stays on the depth board under its "waits on" line. Every card drawing
+    the marker there is blocked, so the legend says a blocker is in front of
+    it, whether or not its kind holds it as well, and offers it to no builder.
+    """
+    docs = _planned(_with_fields(fixture_docs(), 90503, kind=kind), 90503, "build")
+    ids = draw(tmp_path, docs, page=_show_all_page(tmp_path))
+    assert 90503 in cards(ids, "board")
+    legend = text(ids, "key")
+    assert "plan run against the code, with a blocker still in front of it" in legend
+    assert "work a session can take" not in legend.replace("which a session can take once", "")
+    assert "ready to hand to a builder" not in legend
+    assert "ready to build" not in _card_text(ids, "board", 90503)
+
+
+def test_a_free_and_a_held_planned_card_send_the_legend_to_each_card(tmp_path: Path) -> None:
+    """Protects the legend's gloss when free and held planned cards share a column.
+
+    Fixture issue 90503 is ordinary work and 90504 is deferred, both with a
+    finished plan, a ``build`` verdict and nothing open ahead of them, so both
+    sit under "Planned, no builder" and draw the same marker. Offering the
+    marker to a builder would hand over the deferred card, and calling it not
+    free would withhold the other, so the legend sends the reader to each
+    card's own line, where only 90503 reads "ready to build".
+    """
+    docs = _with_needs(fixture_docs(), {90503: []})
+    docs = _with_fields(docs, 90503, kind="ready")
+    docs = _with_fields(docs, 90504, kind="deferred")
+    for n in (90503, 90504):
+        docs = _planned(docs, n, "build")
+    ids = draw(tmp_path, docs)
+    assert {90503, 90504} <= cards(ids, "flow")
+    legend = text(ids, "flowkey")
+    assert "plan run against the code, ready to build where its card says so" in legend
+    assert "ready to hand to a builder" not in legend
+    assert "plan complete, 2 passes, ready to build" in _card_text(ids, "flow", 90503)
+    assert "ready to build" not in _card_text(ids, "flow", 90504)
+
+
+def _owner_card(**fields: object) -> dict:
+    """Fixture issue 90501 with its pull request reviewed and green, and ``fields`` set.
+
+    With 90502's blocker removed, 90501 is a card in flight with nothing
+    waiting on it, and its branch has nothing left to owe, so it sits under
+    "Waiting on your review".
+    """
+    docs = _with_needs(fixture_docs(), {90502: []})
+    docs["prs"]["items"] = [_pull(90601, 90501, "open", linked=True, part_of=False)]
+    return _with_fields(docs, 90501, **fields)
+
+
+@pytest.mark.parametrize(
+    ("fields", "line", "says"),
+    [
+        ({}, None, "and waiting on nothing else."),
+        ({"needs": [90504]}, "waits on #90504", "but it waits on #90504."),
+        (
+            {"after": [90504]},
+            "nothing blocks it, and it should land after #90504",
+            "but it should land after #90504.",
+        ),
+        (
+            {"needs": [90504], "after": [90503]},
+            "waits on #90504 it should also land after #90503",
+            "but it waits on #90504 and should also land after #90503.",
+        ),
+    ],
+    ids=["nothing", "needs", "after", "both"],
+)
+def test_the_owner_sentence_names_what_the_card_waits_on(
+    tmp_path: Path, fields: dict, line: str | None, says: str
+) -> None:
+    """Protects the "Waiting on your review" sentence from contradicting the card above it.
+
+    Fixture issue 90501's pull request is reviewed and green with no session
+    on it, so the card is the owner's to merge. The note used to say it was
+    "waiting on nothing else" whatever the card said, so a card reading "waits
+    on #90504" or "it should land after #90504" was invited to merge. Issue
+    584 recorded it. The card stays in the owner's column, because nothing is
+    left for a session, and the note names what the card's own line names. A
+    card waiting on nothing is the control, where both say so.
+    """
+    ids = draw(tmp_path, _owner_card(**fields))
+    assert cards(ids, "flow") == {90501}
+    flownote = text(ids, "flownote")
+    shown = _card_text(ids, "flow", 90501)
+    assert "#90501 is yours" in flownote
+    assert says in flownote
+    if line is None:
+        assert "waits on" not in shown and "land after" not in shown
+    else:
+        assert line in shown
+        assert "waiting on nothing else" not in flownote
+
+
+def test_the_owner_sentence_joins_a_free_card_and_a_waiting_one(tmp_path: Path) -> None:
+    """Protects the join when the owner's column holds both kinds of card.
+
+    Fixture issue 90501 waits on nothing and 90504 should land after 90503,
+    and both carry a reviewed, green pull request. The card waiting on nothing
+    keeps the sentence saying so, and the other follows it with "too".
+    """
+    docs = _owner_card()
+    docs["prs"]["items"].append(_pull(90602, 90504, "open", linked=True, part_of=False))
+    docs = _with_fields(docs, 90504, after=[90503])
+    flownote = text(draw(tmp_path, docs), "flownote")
+    assert (
+        "#90501 is yours , reviewed, checks green, no session listed on it, and waiting on "
+        "nothing else. #90504 is yours too , reviewed, checks green and no session listed on "
+        "it, but it should land after #90503." in flownote
+    )
+
+
+def test_the_planned_column_subtitle_names_only_what_its_test_reads(tmp_path: Path) -> None:
+    """Protects the "Planned, no builder" subtitle from claiming more than its test.
+
+    The column's test reads only ``needs``, so a card with an open ``after`` or
+    a held kind can sit under it. "Nothing blocking it" read as a free claim
+    over a deferred card, and "no open issue in front of it" over a card that
+    should land after an open issue. The subtitle names the open issues the
+    card waits on, which is the word its own line uses for ``needs``.
+    """
+    docs = _with_fields(fixture_docs(), 90504, kind="deferred", after=[90503])
+    shown = text(draw(tmp_path, _planned(docs, 90504, "build")), "flow")
+    assert "a plan run against the code, nothing open that it waits on, and nobody on it" in shown
+    assert "nothing blocking it" not in shown
+    assert "no open issue in front of it" not in shown
+
+
+def test_the_owner_sentence_ignores_an_issue_that_is_not_open(tmp_path: Path) -> None:
+    """Protects the owner sentence from naming a blocker the card's line drops.
+
+    Issues 1 and 2 are not open issues on the fixture board, so the card's own
+    line names neither, and the note says the card waits on nothing else.
+    """
+    flownote = text(draw(tmp_path, _owner_card(needs=[1], after=[2])), "flownote")
+    assert "#90501 is yours" in flownote
+    assert "and waiting on nothing else." in flownote
+    assert "#1 " not in flownote and "#2 " not in flownote
+    assert "#1." not in flownote and "#2." not in flownote
+
+
 @pytest.mark.parametrize(
     ("after", "card", "line"),
     [
@@ -1512,6 +1714,148 @@ def test_a_board_with_nothing_in_the_chain_columns_gives_no_depth(tmp_path: Path
     note = text(draw(tmp_path, docs, page=_show_all_page(tmp_path)), "boardnote")
     assert "Infinity" not in note
     assert "behind." not in note
+
+
+# ---- The board note's pointers when the top cards tie, and their counts of one ----
+
+
+def _tied_at_one(docs: dict) -> dict:
+    """The fixture with 90502 and 90504 each freeing one card and nothing freeing more.
+
+    90502 stops waiting on 90501 and frees 90505, and 90504 frees 90503. The
+    live board reached this shape on 2026-10-11, when issues 69 and 510 each
+    freed one other.
+    """
+    return _with_needs(docs, {90502: [], 90503: [90504], 90505: [90502]})
+
+
+def _note(ids: dict) -> str:
+    """The board note as a reader sees it, tags dropped without leaving a space.
+
+    ``text`` puts a space where each tag was, which reads a bold sentence as
+    "1 other , and". These tests assert whole sentences, so they read the note
+    without those spaces.
+    """
+    raw = ids.get("boardnote", {}).get("html", "")
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", raw))).strip()
+
+
+def _rank(docs: dict, *issues: int) -> dict:
+    """The fixture ranking exactly these issues, so the short view draws only them."""
+    docs["next"]["items"] = [
+        {"issue": n, "band": 1, "ready": "build", "why": "Ranked for this test."} for n in issues
+    ]
+    return docs
+
+
+def test_two_cards_tied_at_the_top_each_free_one_other(tmp_path: Path) -> None:
+    """Protects the tie sentence and the singular count inside it.
+
+    The Show all view draws every card, so nothing is hidden, and no pull
+    request is open on either tied card. A tie read as a single card would call
+    one of the two "the single card", and a fixed plural would read "1 others".
+    """
+    docs = _tied_at_one(fixture_docs())
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert "#90502 and #90504 each free 1 other, and nothing frees more." in note
+    assert "single card" not in note
+    assert "Counting the hidden issues" not in note
+    assert "hidden in this view" not in note
+
+
+@pytest.mark.parametrize(
+    ("needs", "sentence"),
+    [
+        (
+            {90502: [], 90503: [90504], 90505: []},
+            "#90504 is the single card whose landing frees the most, at 1 other.",
+        ),
+        ({}, "#90501 is the single card whose landing frees the most, at 3 others."),
+    ],
+    ids=["one other", "three others"],
+)
+def test_the_single_card_sentence_counts_what_it_frees(
+    tmp_path: Path, needs: dict, sentence: str
+) -> None:
+    """Protects the count in the sentence naming one card at the top, in both forms.
+
+    With 90504 freeing only 90503 and no other card freeing anything, 90504
+    stands alone at one. The fixture as shipped has 90501 freeing 90502, 90503
+    and 90505, so it stands alone at three.
+    """
+    docs = _with_needs(fixture_docs(), needs)
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert sentence in note
+
+
+def test_a_tie_where_one_top_card_frees_a_hidden_card_counts_the_hidden_issues(
+    tmp_path: Path,
+) -> None:
+    """Protects the hidden prefix when only some of the tied cards free a hidden card.
+
+    The short view draws 90502 and 90505, the two ranked cards. 90502 frees
+    90505, which the view draws, while 90504 frees 90503, which it hides. One
+    tied card freeing a hidden card is enough for the count to include cards
+    the reader cannot see, so the prefix speaks. 90504 is the one top card the
+    view hides, so the pointer names it alone, in the singular.
+    """
+    docs = _rank(_tied_at_one(fixture_docs()), 90502, 90505)
+    note = _note(draw(tmp_path, docs))
+    assert (
+        "Counting the hidden issues, #90502 and #90504 each free 1 other, and nothing frees more."
+        in note
+    )
+    assert "#90504 is hidden in this view, so press Show all to see it." in note
+
+
+def test_two_hidden_top_cards_are_pointed_at_in_the_plural(tmp_path: Path) -> None:
+    """Protects the hidden pointer's plural verb and pronoun.
+
+    Nothing is ranked, so the short view draws no column card and hides both
+    tied cards. Its second column is then empty while a card sits one step
+    behind, so the depth sentence already says it counts the hidden issues, and
+    the freeing clause after it says it counts them too.
+    """
+    docs = _rank(_tied_at_one(fixture_docs()))
+    note = _note(draw(tmp_path, docs))
+    assert (
+        "Counting the hidden issues too, #90502 and #90504 each free 1 other, "
+        "and nothing frees more." in note
+    )
+    assert "#90502 and #90504 are hidden in this view, so press Show all to see them." in note
+
+
+def test_two_tied_top_cards_in_flight_are_both_pointed_at(tmp_path: Path) -> None:
+    """Protects the in-flight pointer's naming of every tied card and its plural verb.
+
+    Open pull requests carry 90502 and 90504, so the In flight section draws
+    both while they tie at the top. The pointer names the two of them rather
+    than whichever sorted first.
+    """
+    docs = _tied_at_one(fixture_docs())
+    docs["prs"]["items"] += [
+        _pull(90602, 90502, "open", linked=True, part_of=False),
+        _pull(90603, 90504, "open", linked=True, part_of=False),
+    ]
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert "#90502 and #90504 each free 1 other, and nothing frees more." in note
+    assert (
+        "#90502 and #90504 are in the In flight section above rather than in a column here." in note
+    )
+
+
+def test_a_tie_with_one_card_in_flight_points_at_that_card_alone(tmp_path: Path) -> None:
+    """Protects the plural count in the tie sentence and the in-flight pointer's choice of card.
+
+    90501 and 90504 each free 90503 and 90505, so they tie at two. 90501 has
+    the fixture's open pull request, so the In flight section draws it, while
+    90504 sits in a column. The pointer names 90501 alone rather than every
+    tied card.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90501, 90504], 90505: [90501, 90504]})
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert "#90501 and #90504 each free 2 others, and nothing frees more." in note
+    assert "#90501 is in the In flight section above rather than in a column here." in note
 
 
 # ---- The fetch path, for the board on GitHub Pages ----

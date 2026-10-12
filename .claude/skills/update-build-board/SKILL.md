@@ -729,6 +729,32 @@ the script beside it. Each row after them says how it was found.
     on several open issues still feed the hidden pointer, so the guard sits on
     the list rather than on the whole pointer.
 
+22. **Two more places deciding on their own whether a card is free.** Caught by
+    the completeness lens of the review of
+    [pull request 580](https://github.com/l3a0/quantitative-trading/pull/580),
+    which fixed the In flight note's planned sentence under defect 20. Two
+    places still read less than `takeable` does.
+
+    1. [Issue 583](https://github.com/l3a0/quantitative-trading/issues/583)
+       recorded the first. The plan marker's suffix, its label sentence and
+       the legend's gloss read only `needs`. So a deferred card with a `build`
+       verdict read "deferred on purpose" directly above "ready to build", and
+       the legend offered it to a builder. `buildable` now asks `takeable` and
+       an open `needs` together, and all three call it. When a free and a held
+       card share a column, the legend sends the reader to each card's own
+       line rather than giving one answer for both.
+    2. [Issue 584](https://github.com/l3a0/quantitative-trading/issues/584)
+       recorded the second. The "Waiting on your review" sentence was fixed
+       text ending "waiting on nothing else", read beside a card whose own line
+       said "waits on" an open issue. The sentence now names what the card's
+       `needs` and `after` name, in the card's words.
+
+    Both cards keep their columns. A held card with a finished plan still sits
+    under "Planned, no builder", because both halves of that heading are true
+    of it and the note beside it says why it is held. A reviewed, green card
+    that waits on an open issue still sits under "Waiting on your review",
+    because nothing is left for a session and waiting is the owner's call.
+
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old
 pull request look like it shipped a number it did not, and an issue count

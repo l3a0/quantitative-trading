@@ -6908,8 +6908,12 @@ Each test file that reads Example 7.1's run builds it in about six minutes,
 and the rerun's pins take under a minute. The holdout's pins read 817 member
 series' adjusted closes and volumes plus SPY's line. Its test file took 284
 seconds serially with the pins and 149 seconds without them, measured once on
-one machine at `6da2c3e9`, and no test holds either time. `QT_ARCHIVE_RUN=0`
-skips them for one run.
+one machine at `6da2c3e9`, and no test holds either time. The pins of
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303)'s run read
+the `sp400` and `sp600` cross-sections beside Chan's two files.
+Their test file took 54 seconds serially with the pins and 9 seconds without
+them, measured once on one machine at `f5806ff7` at a load average of 25 to
+31, and no test holds either time. `QT_ARCHIVE_RUN=0` skips them for one run.
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.
