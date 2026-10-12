@@ -326,9 +326,9 @@ issue beside it, linked, with how the two relate, as in
 [#457](https://github.com/l3a0/quantitative-trading/issues/457)". A pull request
 that tracks no issue says "closes no issue". A table of pull requests gets an
 issue column. Read the relation from GitHub at report time, from
-`closingIssuesReferences` and any `Part of #NN` line in the body, rather than
-from memory. This holds in step 2's kept list too, wherever it names a pull
-request. `CLAUDE.md`'s `## Writing style` carries the rule.
+`closingIssuesReferences` and any `Part of #NN` reference in the body outside
+code, rather than from memory. This holds in step 2's kept list too, wherever it
+names a pull request. `CLAUDE.md`'s `## Writing style` carries the rule.
 
 Say which candidates only the owner can act on, and which a new session can
 start without them.

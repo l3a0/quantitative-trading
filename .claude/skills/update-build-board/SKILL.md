@@ -169,7 +169,7 @@ a number the data already carries, because that sentence outlives the number.
 | `TRACKER` | `kind` | `parent` for an issue with any sub-issue, then `data` for `blocked-on-data`, `deferred` for `deferred` and `decision` for `decision`, in that order where an issue carries more than one, and `ready` otherwise |
 | `TRACKER` | `needs` | the issue's native "blocked by" links, keeping only blockers that are open issues in this repository |
 | `TRACKER` | `after` | the issue's `Board after:` line, keeping only open issues |
-| `PRS` | `pr`, `issue`, `state`, `linked`, `partOf`, `rollup` | each pull request naming an open issue through a closing link or a line opening with `Part of #N`, with its checks at the current head |
+| `PRS` | `pr`, `issue`, `state`, `linked`, `partOf`, `rollup` | each pull request naming an open issue through a closing link or a `Part of #N` reference anywhere in its body outside code, with its checks at the current head |
 | `PRS` | `reviewed`, `review` | an owner's comment opening with `## Review`. Without one, `review` reads "review in progress" while the card carries a `working:` label, and "no review posted" otherwise |
 | `WORKING` | `n`, `kind` | the `working:build` and `working:decompose` labels |
 | `PLANNED` | `n`, `passes`, `ready` | the newest owner comment carrying a `Board verdict:` line |
