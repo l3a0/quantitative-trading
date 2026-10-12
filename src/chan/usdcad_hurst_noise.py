@@ -11,10 +11,15 @@ It measures two things.
 
 1. **Each estimator on random walks of the same length.**
    :func:`random_walk_hurst` draws ``paths`` Gaussian random walks of 1,216
-   log prices from one seeded generator and computes both estimators on each.
-   The spread of those values is how far H moves when nothing but chance
-   moves it. Both estimators ignore a series' scale and its drift, so the
-   walks take standard normal steps rather than USD.CAD's own mean and
+   log prices from one seeded generator and computes both estimators on each,
+   through :func:`genhurst_rows` and :func:`python_port_hurst_rows`, which run
+   the two estimators' arithmetic on many walks at once so that 40,000 walks
+   take seconds. The spread of those values is how far H moves when nothing
+   but chance moves it. The theoretical H of a random walk is 0.5, and at
+   this length the port's estimator does not reach it, so each estimate is
+   compared with its own estimator's random-walk average. Both estimators
+   ignore a series' scale and its drift, so the walks take standard normal
+   steps rather than USD.CAD's own mean and
    standard deviation, and ``tests/test_usdcad_mean_reversion.py`` checks that
    indifference rather than assuming it.
 2. **``genhurst`` across start days.** ``genhurst`` samples every ``tt``-th
@@ -70,7 +75,7 @@ from chan.vintage import VintageUnavailable
 #: The generator's seed, the date the measurement was first run.
 SEED = 20261011
 #: Random walks drawn. The tests say what precision this many supports.
-PATHS = 1000
+PATHS = 40_000
 #: Closes dropped from the start of the sample, 0 being the script's own start.
 START_OFFSETS = tuple(range(11))
 
@@ -116,25 +121,90 @@ class StartOffset:
         )
 
 
-def random_walk(length: int, rng: np.random.Generator) -> np.ndarray:
-    """``length`` log prices of a Gaussian random walk from 0, with standard normal steps."""
-    return np.concatenate([[0.0], np.cumsum(rng.standard_normal(length - 1))])
+def random_walks(paths: int, length: int, rng: np.random.Generator) -> np.ndarray:
+    """``paths`` Gaussian random walks of ``length`` log prices from 0, in standard normal steps."""
+    steps = rng.standard_normal((paths, length - 1))
+    return np.concatenate([np.zeros((paths, 1)), np.cumsum(steps, axis=1)], axis=1)
 
 
-def random_walk_hurst(length: int, paths: int = PATHS, seed: int = SEED) -> RandomWalkHurst:
-    """``genhurst(z, 2)`` and :func:`python_port_hurst` on ``paths`` seeded random walks.
+def genhurst_rows(walks: np.ndarray, q: float = HURST_Q, max_t: int = 19) -> np.ndarray:
+    """:func:`chan.stationarity_tests.genhurst` on each row of ``walks`` at once.
 
-    Every walk comes from one ``numpy.random.default_rng(seed)`` in order, and
-    both estimators read the same walk, so the two arrays pair up by position.
+    The arithmetic is ``genhurst``'s, step for step, with each sum taken along
+    a row. The moment ratio for a step ``tt`` does not depend on the window
+    length, so it is computed once for each ``tt`` rather than once per window,
+    which changes no value. ``tests/test_usdcad_mean_reversion.py`` checks the
+    rows against the scalar function.
+    """
+    z = np.asarray(walks, dtype=float)
+    length = z.shape[1]
+    moments = np.empty((z.shape[0], max_t))
+    for tt in range(1, max_t + 1):
+        ends = np.arange(tt, length, tt)
+        changes = z[:, ends] - z[:, ends - tt]
+        levels = z[:, np.arange(0, length, tt)]
+        n = changes.shape[1] + 1
+        x = np.arange(1, n + 1, dtype=float)
+        mean_x = x.sum() / n
+        ss_xx = (x**2).sum() - n * mean_x**2
+        mean_y = levels.sum(axis=1) / n
+        ss_xy = (x * levels).sum(axis=1) - n * mean_x * mean_y
+        slope = ss_xy / ss_xx
+        intercept = mean_y - slope * mean_x
+        detrended_changes = changes - slope[:, None]
+        detrended_levels = levels - slope[:, None] * x - intercept[:, None]
+        moments[:, tt - 1] = np.mean(np.abs(detrended_changes) ** q, axis=1) / np.mean(
+            np.abs(detrended_levels) ** q, axis=1
+        )
+    log_m_all = np.log10(moments)
+    estimates = []
+    for t_max in range(5, max_t + 1):
+        log_x = np.log10(np.arange(1, t_max + 1))
+        mean_log_x = log_x.mean()
+        ss_xx = (log_x**2).sum() - t_max * mean_log_x**2
+        log_m = log_m_all[:, :t_max]
+        ss_xy = (log_x * log_m).sum(axis=1) - t_max * mean_log_x * log_m.mean(axis=1)
+        estimates.append(ss_xy / ss_xx)
+    return np.mean(estimates, axis=0) / q
+
+
+def python_port_hurst_rows(walks: np.ndarray) -> np.ndarray:
+    """:func:`chan.usdcad_mean_reversion.python_port_hurst` on each row of ``walks`` at once.
+
+    The same fit: the log population variance of the τ-row differences on
+    log τ, with a constant, for τ from 1 to ``np.round(len / 10) − 1``, and H
+    half the slope. τ = 0 is left out rather than dropped as non-finite, which
+    is the same set of points. The slope is the closed form of that one-variable
+    regression rather than a call to ``ols``, so a row can differ from the
+    scalar function in its last bits, and the tests bound that difference.
+    """
+    z = np.asarray(walks, dtype=float)
+    taus = np.arange(1, int(np.round(z.shape[1] / 10)))
+    log_var = np.column_stack([np.log(np.var(z[:, t:] - z[:, :-t], axis=1)) for t in taus])
+    log_tau = np.log(taus.astype(float))
+    centred_tau = log_tau - log_tau.mean()
+    centred_var = log_var - log_var.mean(axis=1, keepdims=True)
+    return (centred_var @ centred_tau) / (centred_tau @ centred_tau) / 2
+
+
+def random_walk_hurst(
+    length: int, paths: int = PATHS, seed: int = SEED, chunk: int = 250
+) -> RandomWalkHurst:
+    """``genhurst(z, 2)`` and the port's estimator on ``paths`` seeded random walks.
+
+    Every walk comes from one ``numpy.random.default_rng(seed)``, drawn in
+    blocks of ``chunk`` walks to bound memory, and both estimators read the
+    same walk, so the two arrays pair up by position.
     """
     rng = np.random.default_rng(seed)
-    gen = np.empty(paths)
-    port = np.empty(paths)
-    for i in range(paths):
-        z = random_walk(length, rng)
-        gen[i] = genhurst(z, HURST_Q)
-        port[i] = python_port_hurst(z)
-    return RandomWalkHurst(genhurst=gen, port=port, length=length, seed=seed)
+    gen, port = [], []
+    for start in range(0, paths, chunk):
+        walks = random_walks(min(chunk, paths - start), length, rng)
+        gen.append(genhurst_rows(walks, HURST_Q))
+        port.append(python_port_hurst_rows(walks))
+    return RandomWalkHurst(
+        genhurst=np.concatenate(gen), port=np.concatenate(port), length=length, seed=seed
+    )
 
 
 def start_offset_hurst(
@@ -197,11 +267,16 @@ def report(noise: HurstNoise) -> None:
     print("How far USD.CAD's Hurst exponent moves by chance and by its start day, Example 2.2")
     print(f"  {len(w.genhurst):,} Gaussian random walks of {w.length:,} log prices, seed {w.seed}")
     print()
-    print(f"  {'':<34} {'genhurst':>10} {'port':>10}")
+    print(f"  {'':<40} {'genhurst':>10} {'port':>10}")
     for label, gen, port in (
         ("observed H, from the first close", noise.observed_genhurst, noise.observed_port),
         ("random-walk mean", w.genhurst.mean(), w.port.mean()),
         ("random-walk SD", w.genhurst.std(ddof=1), w.port.std(ddof=1)),
+        (
+            "random-walk mean minus observed, in SDs",
+            in_standard_deviations(w.genhurst, w.genhurst.mean() - noise.observed_genhurst),
+            in_standard_deviations(w.port, w.port.mean() - noise.observed_port),
+        ),
         (
             "percentile of the observed H",
             percentile(w.genhurst, noise.observed_genhurst),
@@ -218,14 +293,14 @@ def report(noise: HurstNoise) -> None:
             in_standard_deviations(w.port, 0.5 - noise.observed_port),
         ),
     ):
-        print(f"  {label:<34} {gen:>10.4f} {port:>10.4f}")
+        print(f"  {label:<40} {gen:>10.6f} {port:>10.6f}")
     print()
     print("  Start day, closes dropped from the first")
     print(f"  {'k':>3} {'first day':>12} {'genhurst':>10} {'port':>10} {'ADF':>10} {'lands':>6}")
     for row in noise.offsets:
         print(
-            f"  {row.offset:>3} {str(row.first_day.date()):>12} {row.genhurst:>10.4f} "
-            f"{row.port:>10.4f} {row.adf_statistic:>10.6f} "
+            f"  {row.offset:>3} {str(row.first_day.date()):>12} {row.genhurst:>10.6f} "
+            f"{row.port:>10.6f} {row.adf_statistic:>10.6f} "
             f"{'yes' if row.lands_the_script else 'no':>6}"
         )
     hits = sum(row.prints_as_book for row in noise.offsets)

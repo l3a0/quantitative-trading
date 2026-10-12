@@ -5270,11 +5270,11 @@ Four things.
 3. **H is the one figure that does not land, and it misses under both
    implementations Chan's code uses.** Aste's `genhurst` gives 0.47 and Chan's
    2018 Python port gives 0.48, so the book's 0.49 is not what either computes on
-   these closes. Every reading of H here sits below 0.5, as the book's does,
-   and none sits further from a random walk than chance puts it, which the
-   section below measures. So H alone cannot tell weak reversion from a random
-   walk at this length, and the variance ratio test says the same thing more
-   carefully.
+   these closes. Every reading of H here sits below 0.5, as the book's does.
+   The two estimators the section below measures each sit within about one SD
+   of their own random-walk average. So an H this close to 0.5 cannot be told
+   from a random walk on 1,216 days, and the variance ratio test says the same
+   thing more carefully.
 4. **Example 2.5's claim survives, and it carries the look-ahead Chan names.**
    The lookback of 115 days is the half-life of the same 1,216 closes the
    strategy trades. Its P&L is positive by 0.1141 after a fall of 0.6425, and
@@ -5295,52 +5295,62 @@ it reads the miss rather than testing a claim written down before it.
 [src/chan/usdcad_hurst_noise.py](../src/chan/usdcad_hurst_noise.py) measures
 two things on the vintage every row reads.
 
-1. **Each estimator on random walks of the same length.** 1,000 Gaussian
+1. **Each estimator on random walks of the same length.** 40,000 Gaussian
    random walks of 1,216 log prices, from `numpy.random.default_rng(20261011)`,
    with `genhurst(z, 2)` at `maxT` 19 and the Python port's estimator on each.
    Both ignore a series' scale and drift, which a test checks, so the walks
-   take standard normal steps.
+   take standard normal steps. A random walk's theoretical H is 0.5, and the
+   port's estimator does not average that at 1,216 points, so each observed
+   H is set against its own estimator's random-walk mean.
 2. **Both estimators with the first 0 to 10 closes dropped.** `genhurst`
    samples every `tt`-th close counting from the first, so the start day
    changes which closes it reads. The port's estimator uses every overlapping
-   change.
+   change. At each start the ADF statistic at trend order 0 and 1 lag, the
+   variance ratio test at period 2 and the half-life are computed too.
 
 | Measurement | Computed | Assertion |
 | --- | --- | --- |
-| `genhurst` on the random walks, mean and SD | 0.4974213851 and 0.0234642842 | `TestExample22HowFarHMovesByChance::test_genhurst_on_a_random_walk_centres_near_a_half_with_an_sd_of_0_023` |
-| The port's estimator on the random walks, mean and SD | 0.4794000008 and 0.0598003738 | `TestExample22HowFarHMovesByChance::test_the_port_estimator_on_a_random_walk_runs_low_at_0_48_with_an_sd_of_0_06` |
-| Walks below the observed H, `genhurst` and the port | 155 and 459 of 1,000 | `TestExample22HowFarHMovesByChance::test_where_each_observed_h_falls_among_the_walks` |
-| 0.49 minus the observed H, in random-walk SDs | 0.7 and 0.2 | `TestExample22HowFarHMovesByChance::test_the_gap_to_the_books_0_49_is_under_one_sd` |
-| 0.5 minus the observed H, in random-walk SDs | 1.1 and 0.4 | `TestExample22HowFarHMovesByChance::test_the_gap_to_a_half_is_about_one_sd_or_less` |
+| `genhurst` on the random walks, mean and SD | 0.49622344 and 0.02314563 | `TestExample22HowFarHMovesByChance::test_genhurst_on_a_random_walk_averages_0_496_with_an_sd_of_0_023` |
+| The port's estimator on the random walks, mean and SD | 0.47534832 and 0.05767276 | `TestExample22HowFarHMovesByChance::test_the_port_estimator_on_a_random_walk_runs_low_between_0_47_and_0_48` |
+| Walks below the observed H, `genhurst` and the port | 6,434 and 19,575 of 40,000 | `TestExample22HowFarHMovesByChance::test_where_each_observed_h_falls_among_the_walks` |
+| Random-walk mean minus the observed H, in SDs | 0.993309 and −0.008597 | `TestExample22HowFarHMovesByChance::test_each_estimate_against_its_own_estimators_random_walks` |
+| 0.49 minus the observed H, in SDs | 0.724428 and 0.245452 | `TestExample22HowFarHMovesByChance::test_the_gap_to_the_books_0_49_is_under_one_sd` |
 | `genhurst` from the first close and from the second | 0.4732326652 and 0.4890716563 | `TestExample22HowFarHMovesByChance::test_genhurst_moves_to_0_49_when_the_first_close_is_dropped` |
 | Start offsets of 0 to 10 whose `genhurst` prints as 0.49 | 6, at offsets 1, 3, 4, 6, 8 and 9 | `TestExample22HowFarHMovesByChance::test_six_of_eleven_start_days_print_as_0_49` |
 | The highest `genhurst` of the eleven, at offset 5 | 0.5061926171 | `TestExample22HowFarHMovesByChance::test_the_first_close_gives_the_lowest_genhurst_and_one_start_day_tops_a_half` |
 | The port's estimator across the eleven, lowest and highest | 0.4741152609 and 0.4758441244 | `TestExample22HowFarHMovesByChance::test_the_port_estimator_barely_moves_with_the_start_day` |
-| The ADF statistic from the second close | −1.8361499805 | `TestExample22HowFarHMovesByChance::test_only_the_first_close_lands_the_scripts_other_figures` |
+| The ADF statistic from the second close | −1.83614998 | `TestExample22HowFarHMovesByChance::test_only_the_first_close_lands_the_scripts_other_figures` |
 
-1,000 walks put a standard error of 0.0007 on `genhurst`'s mean and 0.0019 on
-the port's, so the means are quoted at two decimals, `genhurst`'s SD at three,
-the port's at two, and the distances in SDs at one. The test class's
-docstring states the same.
+The table holds what seed 20261011 gives, which the tests pin exactly. What
+40,000 walks support is narrower, and
+`TestExample22HowFarHMovesByChance::test_the_standard_errors_of_40_000_walks`
+pins the standard errors behind it. A mean's is 0.00012 for `genhurst` and
+0.00029 for the port, an SD's is 0.00008 and 0.00020, and a share below the
+observed H's is 0.18 and 0.25 percentage points. Each figure below is quoted
+only where it and two standard errors either side round to the same digits,
+which the tests check. `genhurst`'s distance from 0.5, 1.156 SDs, is pinned
+and quoted nowhere, since two standard errors reach the 1.15 rounding
+boundary.
 
 Four findings.
 
-1. **Neither estimate can be told apart from a random walk.** `genhurst`'s
-   0.4732 is 1.1 SDs below 0.5, with 155 of 1,000 walks below it. The port's
-   0.4758 is 0.4 SDs below 0.5, and its estimator averages about 0.48 on a
-   random walk at this length rather than 0.5, so its reading sits near the
-   middle of what a random walk gives it.
-2. **The miss is smaller than one random-walk SD.** The book's 0.49 is 0.7
+1. **Neither estimate can be told apart from a random walk.** `genhurst`
+   averages 0.496 on the random walks, with an SD of 0.023, and its 0.4732 is
+   1.0 SD below that, with 16 percent of walks lower. The port's estimator
+   averages between 0.47 and 0.48, with an SD of 0.06, and its 0.4758 is
+   within 0.1 SD of that, with about half the walks lower.
+2. **The misses are smaller than one random-walk SD.** The book's 0.49 is 0.7
    `genhurst` SDs above 0.4732 and 0.2 port SDs above 0.4758.
-3. **One day of start is enough to print 0.49.** Dropping the first close
-   moves `genhurst` to 0.4891, and six of the eleven start days print as 0.49.
-   The script's own start gives the lowest of the eleven, and offset 5 gives
-   0.5062, above 0.5. The port's estimator stays between 0.4741 and 0.4758.
-4. **The start day the comments match is the first.** Only offset 0 lands the
-   ADF statistic, the variance ratio's p-value and the half-life the script's
-   comments print. From the second close the ADF statistic is −1.836150. So a
-   later start would explain the 0.49 only if the book's H came from a
-   different run than the one the comments record, and with no public copy of
+3. **One day of start is enough to print 0.49 for `genhurst`.** Dropping the
+   first close moves it to 0.4891, and six of the eleven start days print as
+   0.49. The script's own start gives the lowest of the eleven, and offset 5
+   gives 0.5062, above 0.5. The port's estimator stays between 0.4741 and
+   0.4758, so no start explains its miss.
+4. **The run the script's comments record starts on the first close.** Only
+   offset 0 lands the ADF statistic, the variance ratio's p-value and the
+   half-life those comments print. From the second close the ADF statistic is
+   −1.836150. So a later start would explain `genhurst`'s 0.49 only if the
+   book's H came from another run, and with no public copy of
    `inputData_USDCAD.mat` that cannot be checked.
 
 Row 4's verdict stands. A later start is a cause outside the method, but the

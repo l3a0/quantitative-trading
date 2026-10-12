@@ -303,9 +303,10 @@ where they were first built. The other forty-four were built here.
     days. The ADF figure needs jplv7's regression, which fits one row fewer
     than `adfuller`, whose −1.843018 misses. The Hurst exponent does not land:
     0.4732 against the book's 0.49, and Chan's own Python port gives 0.4758.
-    Neither can be told apart from a random walk of the same length, and
-    starting the sample one day later moves `genhurst` to 0.4891, which prints
-    as 0.49. Example 2.5's P&L ends positive at
+    Neither can be told apart from a random walk of the same length. Starting
+    the sample one day later moves `genhurst` to 0.4891, which prints as 0.49,
+    but the script's other figures place its own run at the first close.
+    Example 2.5's P&L ends positive at
     0.1141 after a fall of 0.6425, which is the claim the issue declared
     before any P&L was computed. Its lookback comes from the closes it trades,
     as the book says. Every figure is exploratory.
@@ -991,8 +992,9 @@ prints at the precision that is real and at the script's, H as a miss against
 the book's 0.49, and the ADF statistic `adfuller` gives beside jplv7's, so a
 port that reaches for the ADF this repo already held fails a test. It also
 recomputes Example 2.5's daily P&L with plain pandas, and pins how far H moves
-on 1,000 seeded random walks and with the sample's start day, stating the
-precision that number of walks supports.
+on 40,000 seeded random walks and with the sample's start day. It pins the
+standard errors 40,000 walks carry and checks that every quoted digit holds
+with two of them to spare.
 [tests/test_stationarity_tests.py](tests/test_stationarity_tests.py) holds the
 three toolbox tests' rules on synthetic series: the row jplv7 drops, the bins
 of its critical values, `genhurst`'s indifference to level and scale, and the
@@ -2080,10 +2082,10 @@ a second run on the same closes, seeded so it gives the same numbers each time:
 uv run python -m chan.usdcad_hurst_noise
 ```
 
-It prints each estimator's mean and standard deviation on 1,000 Gaussian random
-walks of 1,216 log prices, where the observed H falls among them, and
-`genhurst` with the first 0 to 10 closes dropped, beside whether the script's
-other figures still land. It was designed after the miss was seen, so it is
+It prints each estimator's mean and standard deviation on 40,000 Gaussian
+random walks of 1,216 log prices and where the observed H falls among them. It
+then prints both estimators with the first 0 to 10 closes dropped, beside
+whether the script's other figures still land. It was designed after the miss was seen, so it is
 exploratory.
 
 The ETF cointegration examples, Examples 2.6 to 2.8 of *Algorithmic Trading*,
@@ -4313,9 +4315,10 @@ lessons from Entry 22 of the replication log.
    fewer than `adfuller` at the same lag.
 3. H misses 0.49 by less than chance moves it. Under both implementations
    Chan's code uses, each estimate sits within about one standard deviation of
-   what a random walk of the same length gives, and starting the sample a day
-   later moves `genhurst` to 0.49. So H cannot separate weak reversion from a
-   random walk here, and the variance ratio test cannot reject one either.
+   its own estimator's average on random walks of the same length, and
+   starting the sample a day later moves `genhurst` to 0.49. So an H this
+   close to 0.5 cannot be told from a random walk on 1,216 days, and the
+   variance ratio test cannot reject one either.
 4. The trade ends positive after a fall more than five times its final P&L,
    short on every day of that fall and at its largest short inside it.
 5. The lookback came from the closes the rule traded, so the result checks the
@@ -4349,8 +4352,8 @@ Five groups of what it says are not pinned here.
    [src/chan/usdcad_hurst_noise.py](src/chan/usdcad_hurst_noise.py) record each
    in their docstrings.
 3. Readings no test asserts: that about two-thirds of a bell-shaped spread
-   lands within one standard deviation of its average, that 155 of 1,000 is
-   about one in six, that each day keeps roughly 99.41 percent of its
+   lands within one standard deviation of its average, that each day keeps
+   roughly 99.41 percent of its
    distance from the mean, that a p-value of 0.367 means a random walk gives a
    ratio this far from 1 more than a third of the time, that none of the four
    statistics depends on the units of the closes, that a random walk has no
