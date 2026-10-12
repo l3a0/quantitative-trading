@@ -11409,4 +11409,7 @@ window are not these panels', so nothing here says where their returns came
 from. The report prints 4.47 and judges it against nothing.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
+moves with it, since that post's closing paragraphs quote most of these
+figures.
