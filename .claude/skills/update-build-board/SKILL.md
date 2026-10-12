@@ -90,11 +90,16 @@ board wrong, and nothing else notices.
 5. **A review lands on a pull request.** Post it as a comment whose first
    line reads `## Review`. A review headed anything else counts as none, and
    its card sits in "Waiting on my review" until somebody notices.
-6. **An issue is filed.** Give it its kind label where one applies, as the
-   table below says. Add a `band:N` label if it joins the priority order,
-   because a card with no band is left out of the board's default view. Add a
-   native "blocked by" link for each open issue it cannot start before, and a
-   `Board after:` line for an ordering nothing enforces.
+6. **An issue is filed.** Add `blocked-on-data`, `deferred` or `decision`
+   where one applies. These are the labels the board reads for a card's
+   `kind`, as the table below says. They are separate from the label
+   `CLAUDE.md`'s `## Pull requests` asks every filed issue for, saying what
+   kind of work it is, such as `bug` or `documentation`. The card prints
+   that one among its labels and decides nothing by it. Add a `band:N` label
+   if it joins the priority order, because a card with no band is left out of
+   the board's default view. Add a native "blocked by" link for each open
+   issue it cannot start before, and a `Board after:` line for an ordering
+   nothing enforces.
 7. **A card's priority changes.** Move its `band:N` label, and add, change or
    remove its `Board order:` line.
 8. **What a card waits on changes.** Add or remove its "blocked by" link.
@@ -643,9 +648,9 @@ the script beside it. Each row after them says how it was found.
     merged with no `Part of` was meant to close its issue, so the owner ruled
     on 2026-10-10 that its card is held back as needing only closing by hand,
     and `closesByHand` decides that for the free list, the plan marker, the
-    kind word and the "Planned, no builder" column. The same reading found a
-    closed entry's line repeating its old review text and, with no closing
-    link, saying what merging would do. It now says closed.
+    kind word, the "Planned, no builder" column and the chain bar. The same
+    reading found a closed entry's line repeating its old review text and,
+    with no closing link, saying what merging would do. It now says closed.
 19. **One sentence carrying two facts.** Caught by the owner reading the
     published page. On 2026-10-11
     [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)
@@ -668,6 +673,29 @@ the script beside it. Each row after them says how it was found.
     card whose own line named one issue, because it counted the whole chain.
     So when a phrase can be read as either of two quantities, check it against
     data where the two differ.
+20. **A free claim that read only the links.** Caught by the completeness lens
+    of the review of
+    [pull request 518](https://github.com/l3a0/quantitative-trading/pull/518),
+    and filed as
+    [issue 521](https://github.com/l3a0/quantitative-trading/issues/521).
+    Picking a card with no open `needs` either way gave fixed text saying it
+    could be taken on its own. That read only `needs`. So the bar called a
+    card free whose kind word said not to start it, or whose session or open
+    branch said somebody was carrying it. The board note's free list held
+    those cards back, so the bar and the note answered one question in two
+    places. That is defect 5 again. A card whose `after` line tied it to
+    another issue was also called linked to nothing.
+
+    One table, `HOLDS`, now lists the reasons a card is not free, and
+    `takeable` passes ordinary work that no row of it holds. The free list and
+    the bar both read them. The bar names the reasons a card is held, says
+    only what the links show for a card blocked on data, and names an `after`
+    tie in either direction. The review of that fix found two more places the
+    bar disagreed with the card. A kind reason ignored the open branch that
+    hides the card's kind word, so `kindShown` now decides both. A plan whose
+    one open question is the owner's was called free while the In flight note
+    said it waited on the owner. A row for it now reads `planMarker`, so it
+    fires only where the card draws that marker.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old

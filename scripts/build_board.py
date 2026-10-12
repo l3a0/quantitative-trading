@@ -52,9 +52,9 @@ Two of its rules exist because the repository is public.
    different events build the same board from the same state.
 
 It fails closed. A failed call, a GraphQL error, or a count that disagrees
-with the pages read stops the run, and the last good board stays up. Treating
-an error as an empty list would publish a board with no pull requests that
-reads as correct.
+with the pages read on every one of ``LIST_READS`` reads stops the run, and
+the last good board stays up. Treating an error as an empty list would publish
+a board with no pull requests that reads as correct.
 
 It reads through a few nested GraphQL queries rather than one REST call per
 issue. ``GITHUB_TOKEN`` allows 1,000 REST requests an hour per repository, and
@@ -228,6 +228,13 @@ NESTED = {
 
 Gql = Callable[[str, dict], dict]
 
+# How many reads of one list, each from its first page, it takes for a count that
+# disagrees to stop the run. An issue filed or a pull request opened between two
+# pages makes one read disagree, and the next read usually finds it unchanged.
+# Each read starts at once, because the list need only hold still while one
+# read runs.
+LIST_READS = 3
+
 
 class BoardError(RuntimeError):
     """A read that cannot be trusted, which stops the run."""
@@ -292,23 +299,34 @@ def _all_nodes(gql: Gql, node_id: str, field: str, conn: dict) -> list:
 
 def _top_pages(gql: Gql, query: str, owner: str, name: str, field: str) -> list[dict]:
     """Every node of a repository-level list, checked against its total."""
-    nodes: list[dict] = []
-    after = None
-    total = None
-    while True:
-        data = gql(query, {"owner": owner, "name": name, "after": after})
-        conn = data["repository"][field]
-        if total is None:
-            total = conn["totalCount"]
-        nodes += conn["nodes"]
-        if not conn["pageInfo"]["hasNextPage"]:
-            break
-        after = conn["pageInfo"]["endCursor"]
-    # A list that changed between pages can skip or repeat an entry, and the
-    # count is the only sign of it. The next run reads a settled list.
-    if len(nodes) != total or len({n["number"] for n in nodes}) != total:
-        raise BoardError(f"read {len(nodes)} {field} against a total of {total}")
-    return nodes
+    for attempt in range(1, LIST_READS + 1):
+        nodes: list[dict] = []
+        after = None
+        total = None
+        while True:
+            data = gql(query, {"owner": owner, "name": name, "after": after})
+            conn = data["repository"][field]
+            if total is None:
+                total = conn["totalCount"]
+            nodes += conn["nodes"]
+            if not conn["pageInfo"]["hasNextPage"]:
+                break
+            after = conn["pageInfo"]["endCursor"]
+        # A list that changed between pages reads more or fewer entries than its
+        # count, and the count is the only sign of it. So the loop reads the whole
+        # list again from its first page, and a list that disagrees on every read
+        # stops the run. GitHub's pages continue after the last entry read, so a
+        # change cannot repeat one, and the check on distinct numbers guards
+        # against a page that repeats one anyway.
+        if len(nodes) == total and len({n["number"] for n in nodes}) == total:
+            return nodes
+        if attempt < LIST_READS:
+            print(
+                f"build_board: read {len(nodes)} {field} against a total of {total}, "
+                f"reading the list again (read {attempt + 1} of {LIST_READS})",
+                file=sys.stderr,
+            )
+    raise BoardError(f"read {len(nodes)} {field} against a total of {total} on {LIST_READS} reads")
 
 
 def card_kinds(labels: list[str], sub_issues: int) -> list[str]:

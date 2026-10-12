@@ -165,7 +165,7 @@ def make_khandani_lo_small_caps_figure(
         f"the S&P 500 from {LARGE_CAP_FILE}, saved {saved(LARGE_CAP_FILE)}. Each line sums the "
         "day's profit over\nits own book's mean gross position for the year. The cost lines "
         "charge the first day too, which Chan's code does not.\nBoth files hold only survivors, "
-        "and the S&P 600 holds no microcaps.",
+        "and nothing here measures how many S&P 600 members were microcaps.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.125)
     return _save(fig, out, KHANDANI_LO_SMALL_CAPS_FIGURE)
