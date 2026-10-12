@@ -12,8 +12,9 @@ labels, links and marker lines, and retired that board.
 
 It writes the six sections the page reads.
 
-1. ``state``, with the open issue count, the time GitHub was read, and the age
-   after which the page calls the board stale.
+1. ``state``, with the open issue count, the time GitHub was read, the longest
+   gap between two scheduled runs, and the age after which the page calls the
+   board stale.
 2. ``tracker``, one card per open issue. Its title, milestone and labels come
    from the issue. ``kind`` comes from labels and sub-issues, ``needs`` from
    native "blocked by" links, and ``after`` from a ``Board after:`` line in the
@@ -630,13 +631,22 @@ def rank_entry(
     return entry
 
 
-def stale_after_minutes(workflow: Path) -> int:
-    """Twice the longest gap between two scheduled runs, from the workflow.
+# Minutes added to the longest gap between two scheduled runs before the page
+# calls the board stale. It is an allowance chosen for a scheduled run that
+# starts up to an hour late. GitHub's documentation says only that such a run
+# "can be delayed during periods of high loads", and neither confirms a delay
+# of that size nor bounds it. The threshold was twice the gap until issue 563,
+# which assumed the schedule runs on time.
+SCHEDULE_DELAY_ALLOWANCE = 60
 
-    The threshold is read from the cron line rather than written beside it,
-    because a second copy of the interval drifts the first time the schedule
-    changes. Only the forms the workflow uses are understood: a minute list or
-    step, with every other field ``*``. Anything else stops the run rather than
+
+def longest_gap_minutes(workflow: Path) -> int:
+    """The longest gap between two scheduled runs, read from the workflow.
+
+    It is read from the cron line rather than written beside it, because a
+    second copy of the interval drifts the first time the schedule changes.
+    Only the forms the workflow uses are understood: a minute list or step,
+    with every other field ``*``. Anything else stops the run rather than
     guessing.
     """
     crons = re.findall(r"""^\s*-\s*cron:\s*["']([^"']+)["']""", workflow.read_text(), re.M)
@@ -654,11 +664,25 @@ def stale_after_minutes(workflow: Path) -> int:
         raise BoardError(f"cron {crons[0]!r} has no usable minutes")
     gaps = [(b - a) for a, b in zip(minutes, minutes[1:], strict=False)]
     gaps.append(minutes[0] + 60 - minutes[-1])
-    return 2 * max(gaps)
+    return max(gaps)
 
 
-def build(gql: Gql, repo: str, stale_after: int, now: datetime) -> tuple[dict, dict]:
-    """The board, and what the job summary reports about the read."""
+def stale_after_minutes(longest_gap: int) -> int:
+    """The age in minutes past which the page calls the board stale.
+
+    ``longest_gap`` is the longest gap between two scheduled runs. The
+    threshold adds ``SCHEDULE_DELAY_ALLOWANCE`` to it, so a run GitHub starts
+    late does not read as a failing Action.
+    """
+    return longest_gap + SCHEDULE_DELAY_ALLOWANCE
+
+
+def build(gql: Gql, repo: str, longest_gap: int, now: datetime) -> tuple[dict, dict]:
+    """The board, and what the job summary reports about the read.
+
+    ``longest_gap`` is the longest gap in minutes between two scheduled runs,
+    which ``longest_gap_minutes`` reads from the workflow.
+    """
     owner, name = repo.split("/", 1)
     issues = _top_pages(gql, ISSUES_QUERY, owner, name, "issues")
     open_issues = {i["number"] for i in issues}
@@ -713,7 +737,8 @@ def build(gql: Gql, repo: str, stale_after: int, now: datetime) -> tuple[dict, d
             "updatedAt": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "issues": {"open": len(issues)},
             "source": "github",
-            "staleAfterMinutes": stale_after,
+            "longestGapMinutes": longest_gap,
+            "staleAfterMinutes": stale_after_minutes(longest_gap),
         },
         "prs": {"schema": SCHEMA, "items": prs},
         "working": {"schema": SCHEMA, "items": working},
@@ -753,7 +778,7 @@ def _output(key: str, value: str) -> None:
 def cmd_build(args: argparse.Namespace) -> None:
     gql = GhGraphql()
     now = datetime.now(UTC)
-    board, report = build(gql, args.repo, stale_after_minutes(Path(args.workflow)), now)
+    board, report = build(gql, args.repo, longest_gap_minutes(Path(args.workflow)), now)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "board.json").write_text(

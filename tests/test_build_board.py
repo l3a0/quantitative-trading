@@ -1553,7 +1553,8 @@ def test_a_fresh_board_from_github_has_an_empty_banner(tmp_path: Path) -> None:
     board = fixture_board(
         source="github",
         updatedAt=_iso(1),
-        staleAfterMinutes=60,
+        longestGapMinutes=30,
+        staleAfterMinutes=90,
         lacks=["the priority order"],
     )
     ids, _ = run_fetch_page(tmp_path, [served(board)])
@@ -1564,25 +1565,55 @@ def test_a_fresh_board_from_github_has_an_empty_banner(tmp_path: Path) -> None:
     assert "Measured by hand" not in foot
 
 
-@pytest.mark.parametrize(("minutes_ago", "stale"), [(59, False), (61, True)])
+@pytest.mark.parametrize(("minutes_ago", "stale"), [(89, False), (91, True)])
 def test_a_board_older_than_its_threshold_says_it_may_be_stale(
     tmp_path: Path, minutes_ago: int, stale: bool
 ) -> None:
     """Protects the one warning a failed run leaves the reader.
 
-    A failed run leaves the last board up, and a board an hour stale looks
+    A failed run leaves the last board up, and a board hours stale looks
     like a fresh one. The threshold comes from the board, which takes it from
-    the workflow's schedule, so the page carries no second copy of it.
+    the workflow's schedule, so the page carries no second copy of it. The
+    banner names the gap between scheduled runs and says GitHub can start one
+    late, because GitHub promises no cadence the page could quote as a bound.
     """
-    board = fixture_board(source="github", updatedAt=_iso(minutes_ago), staleAfterMinutes=60)
+    board = fixture_board(
+        source="github",
+        updatedAt=_iso(minutes_ago),
+        longestGapMinutes=30,
+        staleAfterMinutes=90,
+    )
     ids, _ = run_fetch_page(tmp_path, [served(board)])
     banner = text(ids, "source")
     if stale:
-        assert banner.startswith("This board may be stale. It was built from GitHub 1h ago,")
-        assert "a scheduled rebuild runs at least every 30 minutes" in banner
+        assert banner == (
+            "This board may be stale. It was built from GitHub 1h ago. "
+            "Scheduled rebuilds are due at most 30 minutes apart, and it is older than that "
+            "plus an allowance for GitHub starting one late, "
+            "so the Action that rebuilds it may be failing."
+        )
     else:
         assert banner == ""
         assert ids["source"]["hidden"]
+
+
+def test_the_banner_names_the_gap_it_was_given(tmp_path: Path) -> None:
+    """Protects the banner from working the gap out from the threshold."""
+    board = fixture_board(
+        source="github", updatedAt=_iso(101), longestGapMinutes=20, staleAfterMinutes=100
+    )
+    ids, _ = run_fetch_page(tmp_path, [served(board)])
+    assert "Scheduled rebuilds are due at most 20 minutes apart," in text(ids, "source")
+
+
+def test_a_stale_board_with_no_gap_names_no_cadence(tmp_path: Path) -> None:
+    """Protects the banner from quoting a cadence the board does not carry."""
+    board = fixture_board(source="github", updatedAt=_iso(91), staleAfterMinutes=90)
+    ids, _ = run_fetch_page(tmp_path, [served(board)])
+    assert text(ids, "source") == (
+        "This board may be stale. It was built from GitHub 1h ago. "
+        "The Action that rebuilds it may be failing."
+    )
 
 
 def test_a_first_fetch_that_fails_says_there_is_no_board(tmp_path: Path) -> None:
