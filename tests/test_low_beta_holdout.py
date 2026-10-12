@@ -71,7 +71,6 @@ from chan.low_beta_holdout import (
 from chan.low_beta_leverage import (
     BETA_DAYS,
     CRITICAL,
-    POWER,
     NonPositiveBeta,
     build_portfolios,
     daily_excess,
@@ -875,7 +874,9 @@ class TestWhatThePostMeasured:
         error = result.standard_error * 12
         after(error, 0.11853562090407446, "0.1185")
         after(result.gap + CRITICAL * error, 0.13602580478470022, "0.1360")
-        assert result.detectable == pytest.approx((CRITICAL + POWER) * error, rel=1e-12)
+        # Y is 1.645 + 0.8416 of the same yearly error, written out rather than
+        # read from the module's constants, so a wrong constant there fails.
+        assert f"{(1.645 + 0.8416) * error:.4f}" == f"{result.detectable:.4f}" == "0.2948"
 
     def test_unlevered_the_high_fifth_out_compounded_the_low_by_0_0543(self, holdout) -> None:
         """From the full values, since the rounded 0.1613 and 0.1069 differ by 0.0544."""

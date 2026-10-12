@@ -326,12 +326,19 @@ class TestTheLeftColumn:
             pd.Timestamp("2001-09-28"),
         ], CHAN_SPEC
         assert [f"{k:.4f}" for k in marker.get_ydata()] == ["58.0262", "31.5098"], CHAN_SPEC
+        assert marker.get_color() == LOST
         texts = _by_gid(ax.texts)
         assert [texts[f"ruined-label-{n}"].get_text() for n in (0, 1)] == [
             "ruined 2001-06-29: k 58.0262",
             "ruined 2001-09-28: k 31.5098",
         ], CHAN_SPEC
         assert "worst" not in _by_gid(ax.lines) and "worst-label" not in texts
+
+    def test_the_beta_panels_draw_zero_and_the_left_one_names_both_lines(self, axes) -> None:
+        for side in ("chan", "ivv"):
+            assert list(_by_gid(axes[(side, "beta")].lines)["zero"].get_ydata()) == [0, 0], side
+        legend = axes[("chan", "beta")].get_legend()
+        assert [t.get_text() for t in legend.get_texts()] == ["highest fifth", "lowest fifth"]
 
     def test_nothing_is_skipped_or_shaded(self, axes) -> None:
         for row in ("beta", "k"):
@@ -386,6 +393,9 @@ class TestTheRightColumn:
         line = _by_gid(ax.lines)["k"]
         assert _months(line).equals(pd.DatetimeIndex(ivv.held_to))
         np.testing.assert_array_equal(line.get_ydata(), ivv.leverage.to_numpy())
+        marker = _by_gid(ax.lines)["highest"]
+        assert list(marker.get_xdata()) == [LOWEST]
+        assert list(marker.get_ydata()) == pytest.approx([20.0])
         label = _by_gid(ax.texts)["highest-label"]
         assert label.xy[0] == LOWEST
         assert label.xy[1] == pytest.approx(20.0)
@@ -442,6 +452,53 @@ class TestTheRightColumn:
         assert "skipped" not in _by_gid(_axes(drawn)[("ivv", "beta")].lines)
         assert _title(_axes(drawn)[("ivv", "beta")]).endswith("fell to 0.5000.")
         assert _axes(drawn)[("ivv", "k")].get_legend() is None
+
+
+#: A second skipped formation for :class:`TestTwoSkips`, after the last kept
+#: holding month, with a beta and months unlike the first's.
+LATE_FORMED, LATE_HELD = pd.Timestamp("2001-11-30"), pd.Timestamp("2001-12-31")
+
+
+@pytest.fixture(scope="module")
+def two_skips(sources, chan, ivv, tmp_path_factory):
+    """The figure's panels with the synthetic holdout's skip and a second, later one."""
+    late = dataclasses.replace(
+        ivv.skipped[0], formed=LATE_FORMED, held_to=LATE_HELD, low_beta=-0.2, high_beta=1.7
+    )
+    two = dataclasses.replace(ivv, skipped=(ivv.skipped[0], late))
+    out = tmp_path_factory.mktemp("two_skips") / LOW_BETA_HOLDOUT_FIGURE
+    return _axes(make_low_beta_holdout_figure(out=out, chan=chan, ivv=two, sources=sources))
+
+
+class TestTwoSkips:
+    """With one skip, its first and last are the same formation, so these tell them apart.
+
+    The real holdout skips four formations, but its checks need the archive, so
+    without these CI could not see the shading, the count or the arrow read
+    the first skip where they should read the last.
+    """
+
+    def test_the_shading_runs_from_the_first_skipped_formation_to_the_last_held_month(
+        self, two_skips
+    ) -> None:
+        for row in ("beta", "k"):
+            assert _shaded(two_skips[("ivv", row)]) == (date2num(SKIP_FORMED), date2num(LATE_HELD))
+
+    def test_the_label_counts_both_and_names_the_first_and_the_last(self, two_skips) -> None:
+        label = _by_gid(two_skips[("ivv", "beta")].texts)["skipped-label"]
+        assert label.get_text() == (
+            "2 skipped, formed 2001-01-31 to 2001-11-30, low fifth's beta −0.3000 to −0.2000"
+        )
+        assert _title(two_skips[("ivv", "beta")]).endswith(
+            "and 2 formations at or below zero are skipped."
+        )
+
+    def test_the_arrow_points_at_the_last_skip(self, two_skips) -> None:
+        label = _by_gid(two_skips[("ivv", "beta")].texts)["skipped-label"]
+        assert label.xy[0] == LATE_HELD
+        assert label.xy[1] == pytest.approx(-0.2)
+        marker = _by_gid(two_skips[("ivv", "beta")].lines)["skipped"]
+        assert list(marker.get_xdata()) == [SKIP_HELD, LATE_HELD]
 
 
 class TestTheSpan:
@@ -524,14 +581,15 @@ class TestTheFile:
         assert committed.read_bytes() == before
         assert committed.stat().st_mtime_ns == touched
 
-    def test_a_refusal_reaches_the_operator_as_one_line(self, monkeypatch) -> None:
+    @pytest.mark.parametrize("refusal", [HoldoutRefused, module.ArchiveUnavailable])
+    def test_a_refusal_reaches_the_operator_as_one_line(self, monkeypatch, refusal) -> None:
         def refuse(*_a, **_k):
-            raise HoldoutRefused("no archive here")
+            raise refusal("no archive here")
 
         monkeypatch.setattr(module, "make_low_beta_holdout_figure", refuse)
         with pytest.raises(SystemExit, match="^no archive here$") as stopped:
             main()
-        assert isinstance(stopped.value.__cause__, HoldoutRefused)
+        assert isinstance(stopped.value.__cause__, refusal)
 
     def test_main_lets_any_other_error_through_as_itself(self, monkeypatch) -> None:
         def fail(*_a, **_k):
@@ -604,6 +662,8 @@ class TestTheRealRightColumn:
         assert label.get_text() == (
             "4 skipped, formed 2026-04-30 to 2026-07-31, low fifth's beta −0.0037 to −0.2083"
         ), HOLDOUT_SPEC
+        assert label.xy[0] == pd.Timestamp("2026-08-31"), HOLDOUT_SPEC
+        assert label.xy[1] == pytest.approx(-0.2083, abs=5e-5), HOLDOUT_SPEC
         shaded = (date2num(pd.Timestamp("2026-04-30")), date2num(pd.Timestamp("2026-08-31")))
         for row in ("beta", "k"):
             assert _shaded(panels[("ivv", row)]) == shaded, HOLDOUT_SPEC
