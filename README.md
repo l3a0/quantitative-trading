@@ -4303,17 +4303,20 @@ lessons from Entry 22 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
-   Most prices as random walks is at 1036, the variance growing like τ²ᴴ at
-   1063, the critical value and its table at 1076, the reading of the
-   statistic and of λ at 1114, H's meaning and the 0.49 at 1119, the variance
-   ratio test as H's significance test at 1149, the half-life and the warning
-   about round trips at 1164, the case for trading below 90 percent certainty
-   at 1193, the linear rule at 1205, the claim and its three cautions at 1225,
-   the case for testing before a backtest at 1237, the 23-day half-life at 1347
-   and the lookback with no parameters to optimize at 1350. The book's figures
-   are pinned, and its words are not.
+1. Chan's words, each cited by its page in the 2013 print edition of
+   *Algorithmic Trading* and recorded by Kindle location in
+   [its committed notes](research/book-notes/algorithmic-trading.md). Most
+   prices as random walks is on page 39, the variance growing like τ²ᴴ on 41,
+   the critical value and its table on 42, the reading of the statistic and of
+   λ on 44, H's meaning on 44 and 45 and the 0.49 on 45, the variance ratio
+   test as H's significance test on 45, the half-life on 46 and 47 and the
+   warning about round trips on 47, the case for trading below 90 percent
+   certainty on 47, the linear rule on 48, the claim on 49 and its three
+   cautions on 49 and 50, the case for testing before a backtest on 50, the
+   23-day half-life on 58 and the lookback with no parameters to optimize on
+   60. Each page came from searching the quoted sentence in Google Books'
+   preview of that edition, and no test checks it. The book's figures are
+   pinned, and its words are not.
 2. Facts about the code rather than the data: that jplv7 trims one more row
    when it lines up the lagged close, that `genhurst` averages over windows of
    5 to 19 days, that every copy of it a search found is dated 2013-01-30 and
