@@ -20,6 +20,10 @@ for the S&P 600 cross-section, which
 [issue 335](https://github.com/l3a0/quantitative-trading/issues/335) records,
 and the same day to the S&P 500's members on the same terms, which
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) records.
+On 2026-10-11 the owner extended it on the same terms to an ``sp400``
+cross-section, the S&P 400's members as IJH held them on 2007-12-31, which
+[the ruling on issue 303](https://github.com/l3a0/quantitative-trading/issues/303#issuecomment-6109893334)
+records.
 A cross-section is a set of daily files fetched under one name, one file and one
 manifest line per symbol, because the design doc's register cut one vintage per
 cross-section on
@@ -87,11 +91,13 @@ ARCHIVE_DIR_CONFIG = Path("~/.config/quantitative-trading/archive_dir")
 
 #: The cross-sections the owner has ruled into the archive exception.
 #:
-#: The rulings of 2026-10-04 cover the S&P 600 and the S&P 500's members and
-#: nothing wider, and the premise says a later licensed series needs its own
-#: decision. So a new name joins this tuple in the pull request that writes its
-#: ruling into the design doc, where a reviewer sees the two side by side.
-CROSS_SECTIONS = ("sp600", "sp500")
+#: The rulings of 2026-10-04 cover the S&P 600 and the S&P 500's members, and
+#: the ruling of 2026-10-11 covers the S&P 400's members as IJH held them on
+#: 2007-12-31. Nothing wider is covered, and the premise says a later licensed
+#: series needs its own decision. So a new name joins this tuple in the pull
+#: request that writes its ruling into the design doc, where a reviewer sees
+#: the two side by side.
+CROSS_SECTIONS = ("sp600", "sp500", "sp400")
 
 #: The first line of Alpha Vantage's ``TIME_SERIES_DAILY_ADJUSTED`` as CSV, from
 #: the vendor's documentation. It was not measured when this was written,

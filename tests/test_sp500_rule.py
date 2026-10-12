@@ -198,7 +198,8 @@ class TestTheCrossSection:
         from chan.archive import CROSS_SECTIONS
 
         assert sp500_panel.CROSS_SECTION == "sp500"
-        assert CROSS_SECTIONS == ("sp600", "sp500")
+        # sp400 joined on 2026-10-11, on issue 303's ruling, after this panel's.
+        assert CROSS_SECTIONS == ("sp600", "sp500", "sp400")
 
 
 class TestTheTrustOfTheYearEarlierMonth:

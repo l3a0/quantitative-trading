@@ -120,6 +120,8 @@ class TestTheCommittedRecord:
         named = {entry.path for entry in read_index()}
         panel_files = {f"{symbol.lower()}/members.csv" for symbol in fund_holdings.FUNDS}
         panel_files.add("ivv/holes.csv")
+        # Issue 303's control, every IJR member of 2007-12-31, sits beside IJR's.
+        panel_files.add("ijr/members_2007-12-31.csv")
         on_disk = {
             path.relative_to(fund_holdings.FILINGS_DIR).as_posix()
             for path in fund_holdings.FILINGS_DIR.rglob("*.csv")
@@ -147,7 +149,7 @@ class TestTheCommittedRecord:
         report_date, _, _, rows, member_count, *_ = row
         filing = _filing(report_date)
         held = read_holdings(fund_holdings.holdings_path(IJR, filing))
-        entry = next(e for e in read_index() if e.report_date == report_date)
+        entry = next(e for e in read_index() if (e.fund, e.report_date) == ("IJR", report_date))
         assert len(held) == entry.row_count == rows
         assert len(members(IJR, filing)) == member_count
 
@@ -156,22 +158,24 @@ class TestTheCommittedRecord:
         report_date, *_, printed = row
         filing = _filing(report_date)
         held = read_holdings(fund_holdings.holdings_path(IJR, filing))
-        entry = next(e for e in read_index() if e.report_date == report_date)
+        entry = next(e for e in read_index() if (e.fund, e.report_date) == ("IJR", report_date))
         assert entry.printed_total == printed
         assert sum(int(holding.value) for holding in held) == printed
 
     def test_the_record_takes_the_bytes_the_design_doc_quotes(self) -> None:
         files = [fund_holdings.FILINGS_DIR / fund_holdings.INDEX_NAME]
         files += [fund_holdings.FILINGS_DIR / entry.path for entry in read_index()]
-        assert sum(path.stat().st_size for path in files) == 2_672_010
+        # IJH's one file and index line, recorded for issue 303, took it from 2,672,010.
+        assert sum(path.stat().st_size for path in files) == 2_688_614
 
-    def test_the_index_pins_43_html_documents_on_54_lines_and_35_xml(self) -> None:
-        # The counts research/filings/README.md quotes for the re-pin of
-        # issue 510. IJR and IVV share each December N-Q, so 54 lines name 43.
+    def test_the_index_pins_43_html_documents_on_55_lines_and_35_xml(self) -> None:
+        # Issue 510 re-pinned 43 documents on 54 lines, the counts
+        # research/filings/README.md quotes. IJR and IVV share each December
+        # N-Q, and IJH's line for issue 303 names the 2007 N-Q a third time.
         index = read_index()
         html = [e for e in index if not e.document.endswith(".xml")]
         xml = [e for e in index if e.document.endswith(".xml")]
-        assert (len(html), len({e.accession for e in html})) == (54, 43)
+        assert (len(html), len({e.accession for e in html})) == (55, 43)
         assert (len(xml), len({e.accession for e in xml})) == (35, 35)
 
     def test_nport_years_print_no_total(self) -> None:

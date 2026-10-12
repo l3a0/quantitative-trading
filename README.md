@@ -16,7 +16,7 @@ is what makes the problem easy to miss.
 So a result computed from a series is committed next to the exact series it was
 computed from, and a result computed from none says so. Licensed data is the
 one exception. Example 7.1's two series of minute bars, and Alpha Vantage's
-daily closes for the S&P 600 and S&P 500 cross-sections, stay in the owner's data archive
+daily closes for the S&P 600, S&P 500 and S&P 400 cross-sections, stay in the owner's data archive
 and only their hashes are committed, as `docs/design.md`'s premise records. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
@@ -734,6 +734,25 @@ exploratory, both files hold only survivors, and it says nothing about
 microcaps. The S&P 600 file holds prices and volumes but no market values, so
 nothing here measures how many of its members were microcaps.
 
+A third result runs the S&P 400 half of the same exercise, and it is not a
+replication either.
+[Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) runs the
+reversal on IJH's holdings in iShares Trust's N-Q for 2007-12-31, priced from
+the owner's archive of Alpha Vantage files, and reads the three indexes as one
+ladder. Before costs the S&P 400 earns 2.0338 on the closes, between its two
+neighbours, and 3.4533 on the opens, below both. So the order Chan's
+explanation predicts holds on the closes and is partial on the opens, which
+the reading declared before the run calls mixed. One of the four steps is
+beyond one year's noise, the closes' step from the S&P 500 to the S&P 400, at
+a z of +2.1973. The S&P 400's prices come from another vendor and another
+decade than Chan's files, so an S&P 600 control built the same way is read
+against Chan's S&P 600 file. It lands +0.1108 from that file on the closes and
+−0.7244 on the opens, inside the S&P 400's steps to its nearer neighbour of
+1.3748 and 0.9669, so under the declared rule the ordering is separable from
+how the panel was built. Every figure is exploratory and about survivors, and
+Entry 50 in [docs/replication-log.md](docs/replication-log.md) carries them
+all.
+
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
 [issue 251](https://github.com/l3a0/quantitative-trading/issues/251) asks what
@@ -854,6 +873,18 @@ closes' standard error with the correlation set to 0, and the share of
 Memmel's bracket the correlation term carries on each price, with the helper
 behind them worked by hand. The blog post about it is the exception, and what
 it says that nothing here asserts is listed below.
+
+[tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py) does
+it for the reversal on the S&P 400, between Chan's two files. It pins the
+S&P 400's six figures, each step to both neighbours with its standard error,
+correlation and z value, the S&P 600 control built the way the S&P 400 panel
+is, with and without its three exclusions, the control's gap to Chan's S&P 600
+file with its standard error, and the declared reading. It holds that the
+S&P 500 and S&P 600 runs give the same floats as
+`chan.khandani_lo_small_caps`. Those pins skip unless the archive is
+configured and `QT_ARCHIVE_RUN=1`. On figures and frames built by hand it
+holds the three-universe reading, the control's rule, and that the exclusions
+change the returns on exactly the declared cells.
 
 [tests/test_survivorship_bias.py](tests/test_survivorship_bias.py) does it for
 the survivorship toy, and pins equal shares beside the book's equal capital,
@@ -1391,8 +1422,9 @@ roll-return rule's on VX against ES, Entry 42 Example 7.4's own factors',
 Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
 Entry 45 the levered low-beta claim's, Entry 47 the VIX filter's on buy on
-gap and on FSTX, and Entry 49 the levered low-beta claim's on IVV's S&P 500
-after the book.
+gap and on FSTX, Entry 49 the levered low-beta claim's on IVV's S&P 500
+after the book, and Entry 50 the finding on the reversal on the S&P 400
+beside Chan's two files, which has no published number either.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict. Entry 48 carries the
 levered low-beta rule at leverage a broker would lend, which is exploratory
@@ -1434,8 +1466,10 @@ without it. The reversal on the S&P 600 file does not call the guard either.
 Over each stock's own closes the guard refuses its 2006 window on BCSI's
 2006-02-06 and SCUR's 2006-07-12. Before the run both were classified as
 earnings warnings recorded at the prices that traded, so the run keeps them
-and Entry 44 says what each was. The reversal on the 2012 panel does not call
-it. Its 2007 to 2011 window spans all
+and Entry 44 says what each was. The reversal on the S&P 400 does not call it
+either. The five days flagged on its archive panels were classified before the
+run, one kept and four excluded, and Entry 50 says what each was. The
+reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
 30 of that file's flagged days, Chan's script computes across them, and his
 figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
 2009-09-02 does not. The
@@ -1572,6 +1606,12 @@ December 2008 to August 2026, which
 [tests/test_sp500_panel.py](tests/test_sp500_panel.py) pins. The panel covers
 between 364 and 501 of the 499 to 507 members a month-end holds, the fewest in
 September 2012.
+IJH's 2007-12-31 holdings sit in `research/filings/ijh/2007-12-31.csv`, and
+`research/filings/ijh/members.csv` maps and checks them the same way.
+`research/filings/ijr/members_2007-12-31.csv` does the same for all of IJR's
+holdings that day, as the control beside them, which
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303) built and
+[tests/test_sp400_panel.py](tests/test_sp400_panel.py) pins.
 `chan.equity_seasonals` runs Example 7.6 on the members of
 IJR's 2025-12-31 filing as a replication, and on the members of every
 year-end from 2008 to 2025 through that members file as a registered
@@ -1836,6 +1876,19 @@ S&P 500's and the gap, each before-cost gap's standard error and whether it is
 beyond one year's noise, the declared reading, Khandani and Lo's 4.47 judged
 against nothing, and the exploratory label.
 
+The same rule on the S&P 400 reads IJH's 2007-12-31 holdings from the owner's
+archive, beside Chan's two files and an S&P 600 control built the same way,
+and takes no option either:
+
+```bash
+uv run python -m chan.khandani_lo_mid_caps
+```
+
+It prints the four panels, every figure for the S&P 500, S&P 400, S&P 600 and
+the control with and without its exclusions, each step's standard error, the
+control's gap to Chan's S&P 600 file, the order at each price, the declared
+reading, and the exploratory label.
+
 Chan's survivorship toy reads the two tables the book prints and takes no
 option:
 
@@ -1996,6 +2049,22 @@ the next month, and the misses by reason. A line per missing member
 follows with its reason. `check` also writes `research/filings/ivv/holes.csv`,
 which names every month-end a series' span covers with no row on it, so the
 report can run with no archive.
+
+The S&P 400 panel does the same for IJH's 2007-12-31 holdings, into the
+`sp400` cross-section, and its control does it for all of IJR's holdings that
+day. Each command takes `ijh` or `control`:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive zsh -i -c 'uv run python -m chan.sp400_panel fetch ijh'
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp400_panel check ijh
+uv run python -m chan.sp400_panel report ijh
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.sp400_panel history ijh
+```
+
+`report` reads only committed tables and prints each check's members and
+value, then every member that did not pass. `history` reads the archive and
+sorts each passing member by its 2006 rows, then lists those a run over 2006
+leaves out.
 
 Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
 because the issue fixed the rule, the windows and the readings before any

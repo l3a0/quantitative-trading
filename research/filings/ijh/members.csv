@@ -1,0 +1,402 @@
+report_date,row,ticker,source,note,check,gap,exit
+2007-12-31,1,GYI,hand,Getty Images traded as GYI on NYSE until Hellman & Friedman took it private in July 2008.,no-series,,
+2007-12-31,2,HHS,name,"same name in ijr/members.csv, 2011-12-31 row 1, which passes on HHS",pass,,close
+2007-12-31,3,LAMR,name,Alpha Vantage active listing as of 2010-01-04: Lamar Advertising Co - Class A,pass,,close
+2007-12-31,4,ATK,name,Alpha Vantage active listing as of 2010-01-04: Alliant Techsystems Inc,pass,,close
+2007-12-31,5,BEAV,name,Alpha Vantage active listing as of 2010-01-04: BE Aerospace Inc,pass,,close
+2007-12-31,6,DRS,name,Alpha Vantage delisted listing as of 2010-01-04: DRS TECHNOLOGIES INC,no-row,,
+2007-12-31,7,UVV,name,"same name in ijr/members.csv, 2014-12-31 row 594, which passes on UVV",pass,,close
+2007-12-31,8,AAI,name,Alpha Vantage active listing as of 2010-01-04: AIRTRAN HOLDINGS INC,pass,,close
+2007-12-31,9,ALK,name,"same name in ivv/members.csv, 2016-06-30 row 16, which passes on ALK",pass,,close
+2007-12-31,10,JBLU,name,"same name in ijr/members.csv, 2023-12-31 row 120, which passes on JBLU",pass,,close
+2007-12-31,11,GES,name,"same name in ijr/members.csv, 2016-12-31 row 553, which passes on GES",pass,,close
+2007-12-31,12,HBI,name,"same name in ivv/members.csv, 2015-03-31 row 487, which passes on HBI",pass,,close
+2007-12-31,13,PVH,hand,"Phillips-Van Heusen traded as PVH and renamed itself PVH Corp in 2011, keeping the ticker.",pass,,close
+2007-12-31,14,TBL,name,Alpha Vantage active listing as of 2010-01-04: TIMBERLAND CO,pass,,close
+2007-12-31,15,WRC,name,Alpha Vantage active listing as of 2010-01-04: Warnaco Group Inc,no-row,,
+2007-12-31,16,OSK,hand,"Oshkosh Truck traded as OSK and renamed itself Oshkosh Corp in 2008, keeping the ticker.",pass,,close
+2007-12-31,17,MTOR,hand,"ArvinMeritor traded as ARM, renamed itself Meritor (MTOR) in 2011, and Cummins bought it in 2022.",pass,,close
+2007-12-31,18,BWA,name,"same name in ivv/members.csv, 2011-12-31 row 24, which passes on BWA",pass,,close
+2007-12-31,19,LEA,name,Alpha Vantage active listing as of 2010-01-04: Lear Corp,no-row,,
+2007-12-31,20,MOD,name,Alpha Vantage active listing as of 2010-01-04: Modine Manufacturing Company,pass,,close
+2007-12-31,21,ASB,name,Alpha Vantage active listing as of 2010-01-04: Associated Banc-Corp,pass,,close
+2007-12-31,22,BOH,name,"same name in ijr/members.csv, 2023-12-31 row 465, which passes on BOH",pass,,close
+2007-12-31,23,CATY,name,"same name in ijr/members.csv, 2023-12-31 row 373, which passes on CATY",pass,,close
+2007-12-31,24,CYN,name,Alpha Vantage active listing as of 2010-01-04: City National Corp,no-row,,
+2007-12-31,25,CNB,hand,Colonial BancGroup traded as CNB on NYSE until its bank failed in August 2009.,no-series,,
+2007-12-31,26,CFR,name,Alpha Vantage active listing as of 2010-01-04: Cullen Frost Bankers Inc,pass,,close
+2007-12-31,27,PACW,hand,"First Community Bancorp traded as FCBP and renamed itself PacWest Bancorp (PACW) in 2008, which merged into Banc of California in 2023.",pass,,close
+2007-12-31,28,FMER,name,Alpha Vantage delisted listing: Firstmerit Corp,no-row,,
+2007-12-31,29,SIVBQ,name,"same name in ivv/members.csv, 2018-03-31 row 43, which passes on SIVBQ",pass,,close
+2007-12-31,30,SNV,name,Alpha Vantage active listing as of 2010-01-04: Synovus Financial Corp,price,1389.00,
+2007-12-31,31,TCF,hand,"TCF Financial traded as TCF on NYSE until its 2019 merger with Chemical Financial, whose combined company took the TCF ticker.",price,586.00,
+2007-12-31,32,WBS,name,Alpha Vantage active listing as of 2010-01-04: Webster Financial Corp,pass,,close
+2007-12-31,33,WABC,name,"same name in ijr/members.csv, 2019-12-31 row 489, which passes on WABC",pass,,close
+2007-12-31,34,WL,hand,Wilmington Trust traded as WL on NYSE until M&T Bank bought it in 2011.,no-series,,
+2007-12-31,35,MNST,hand,Hansen Natural traded as HANS and renamed itself Monster Beverage (MNST) in 2012.,pass,,close
+2007-12-31,36,PAS,hand,PepsiAmericas traded as PAS on NYSE until PepsiCo bought it in February 2010.,pass,,close
+2007-12-31,37,AFFX,name,Alpha Vantage delisted listing: Affymetrix Inc,no-row,,
+2007-12-31,38,CRL,name,"same name in ivv/members.csv, 2021-06-30 row 4, which passes on CRL",pass,,close
+2007-12-31,39,LIFE,hand,"Invitrogen traded as IVGN, became Life Technologies (LIFE) on buying Applied Biosystems in 2008, and Thermo Fisher bought it in 2014.",no-row,,
+2007-12-31,40,MLNM,hand,Millennium Pharmaceuticals traded as MLNM on NASDAQ until Takeda bought it in May 2008.,no-series,,
+2007-12-31,41,PDLI,name,Alpha Vantage active listing as of 2010-01-04: PDL Biopharma Inc,pass,,close
+2007-12-31,42,VRTX,name,"same name in ivv/members.csv, 2013-12-31 row 40, which passes on VRTX",pass,,close
+2007-12-31,43,MLM,name,"same name in ivv/members.csv, 2014-09-30 row 111, which passes on MLM",pass,,close
+2007-12-31,44,ARG,name,"same name in ivv/members.csv, 2009-09-30 row 62, which passes on ARG",pass,,close
+2007-12-31,45,ALB,name,"same name in ivv/members.csv, 2016-06-30 row 78, which passes on ALB",pass,,close
+2007-12-31,46,CBT,name,Alpha Vantage active listing as of 2010-01-04: Cabot Corp,pass,,close
+2007-12-31,47,CF,name,"same name in ivv/members.csv, 2008-12-31 row 65, which passes on CF",pass,,close
+2007-12-31,48,CHMT,name,Alpha Vantage active listing as of 2014-01-02: Chemtura Corp,no-row,,
+2007-12-31,49,CYT,name,Alpha Vantage active listing as of 2010-01-04: Cytec Industries Inc,pass,,close
+2007-12-31,50,FOE,name,"same name in ijr/members.csv, 2019-12-31 row 527, which passes on FOE",pass,,close
+2007-12-31,51,FMC,name,"same name in ivv/members.csv, 2009-09-30 row 68, which passes on FMC",pass,,close
+2007-12-31,52,LZ,name,Alpha Vantage active listing as of 2010-01-04: LUBRIZOL Corp,no-row,,
+2007-12-31,53,MTX,name,"same name in ijr/members.csv, 2022-12-30 row 220, which passes on MTX",pass,,close
+2007-12-31,54,OLN,name,Alpha Vantage active listing as of 2010-01-04: Olin Corp,pass,,close
+2007-12-31,55,RPM,name,Alpha Vantage active listing as of 2010-01-04: RPM International Inc,pass,,close
+2007-12-31,56,SXT,name,"same name in ijr/members.csv, 2023-12-31 row 555, which passes on SXT",pass,,close
+2007-12-31,57,TRA,name,Alpha Vantage active listing as of 2010-01-04: TERRA INDUSTRIES INC,pass,,close
+2007-12-31,58,VAL,name,Alpha Vantage active listing as of 2010-01-04: Valspar Corporation,no-row,,
+2007-12-31,59,ACI,name,Alpha Vantage active listing as of 2010-01-04: Arch Coal Inc,no-row,,
+2007-12-31,60,BFH,name,"same name in ivv/members.csv, 2013-12-31 row 288, which passes on BFH",pass,,close
+2007-12-31,61,CAR,name,Alpha Vantage active listing as of 2010-01-04: Avis Budget Group Inc,pass,,close
+2007-12-31,62,PRDO,name,"same name in ijr/members.csv, 2011-12-31 row 103, which passes on PRDO",pass,,close
+2007-12-31,63,CPS,hand,ChoicePoint traded as CPS on NYSE until Reed Elsevier bought it in September 2008.,no-row,,
+2007-12-31,64,COCO,name,Alpha Vantage active listing as of 2010-01-04: Corinthian Colleges Inc,no-row,,
+2007-12-31,65,CEB,name,Alpha Vantage active listing as of 2010-01-04: The Corporate Executive Board Company,pass,,close
+2007-12-31,66,DLX,name,"same name in ijr/members.csv, 2020-12-31 row 297, which passes on DLX",pass,,close
+2007-12-31,67,CVSA,name,"same name in ivv/members.csv, 2009-06-30 row 77, which passes on CVSA",pass,,close
+2007-12-31,68,IT,name,"same name in ivv/members.csv, 2017-06-30 row 318, which passes on IT",pass,,close
+2007-12-31,69,ESI,name,Alpha Vantage delisted listing: ITT Educational Services Inc,no-row,,
+2007-12-31,70,KELYA,name,"same name in ijr/members.csv, 2009-12-31 row 129, which passes on KELYA",pass,,close
+2007-12-31,71,KFY,name,"same name in ijr/members.csv, 2012-12-31 row 127, which passes on KFY",pass,,close
+2007-12-31,72,MAN,hand,"Manpower traded as MAN and renamed itself ManpowerGroup in 2011, keeping the ticker.",pass,,close
+2007-12-31,73,MPS,hand,MPS Group traded as MPS on NYSE until Adecco bought it in January 2010.,no-series,,
+2007-12-31,74,NCI,name,Alpha Vantage active listing as of 2010-01-04: Navigant Consulting Inc,no-row,,
+2007-12-31,75,PPDI,hand,Pharmaceutical Product Development traded as PPDI on NASDAQ until Carlyle and Hellman & Friedman took it private in December 2011.,no-series,,
+2007-12-31,76,PWR,name,"same name in ivv/members.csv, 2009-06-30 row 84, which passes on PWR",pass,,close
+2007-12-31,77,UPBD,name,"same name in ijr/members.csv, 2016-12-31 row 561, which passes on UPBD",pass,,close
+2007-12-31,78,ROL,name,"same name in ivv/members.csv, 2018-09-30 row 104, which passes on ROL",pass,,close
+2007-12-31,79,SCI,name,Alpha Vantage active listing as of 2010-01-04: Service Corp International,pass,,close
+2007-12-31,80,BID,hand,Sotheby's traded as BID on NYSE until BidFair took it private in 2019.,no-row,,
+2007-12-31,81,STRA,name,"same name in ijr/members.csv, 2013-12-31 row 158, which passes on STRA",pass,,close
+2007-12-31,82,URI,name,"same name in ivv/members.csv, 2014-09-30 row 501, which passes on URI",pass,,close
+2007-12-31,83,VCI,name,Alpha Vantage active listing as of 2010-01-04: Valassis Communications Inc,pass,,close
+2007-12-31,84,CDNS,name,"same name in ivv/members.csv, 2017-09-30 row 458, which passes on CDNS",pass,,close
+2007-12-31,85,DBD,hand,"Diebold traded as DBD and renamed itself Diebold Nixdorf in 2016, keeping the ticker.",no-row,,
+2007-12-31,86,DST,name,Alpha Vantage active listing as of 2010-01-04: DST Systems Inc,pass,,close
+2007-12-31,87,GLAE,hand,Imation traded as IMN and renamed itself GlassBridge Enterprises (GLAE) in 2017.,pass,,close
+2007-12-31,88,JKHY,name,"same name in ivv/members.csv, 2018-12-31 row 333, which passes on JKHY",pass,,close
+2007-12-31,89,MENT,name,Alpha Vantage delisted listing: Mentor Graphics Corp,no-row,,
+2007-12-31,90,VYX,hand,NCR traded as NCR and renamed itself NCR Voyix (VYX) in 2023 when it spun off NCR Atleos.,pass,,close
+2007-12-31,91,PALM,name,Alpha Vantage active listing as of 2010-01-04: PALM INC,pass,,close
+2007-12-31,92,SRX,name,Alpha Vantage delisted listing: SRA INTERNATIONAL INC,no-row,,
+2007-12-31,93,SNPS,name,"same name in ivv/members.csv, 2017-03-31 row 463, which passes on SNPS",pass,,close
+2007-12-31,94,WDC,name,"same name in ivv/members.csv, 2009-06-30 row 101, which passes on WDC",pass,,close
+2007-12-31,95,ACV,hand,Alberto-Culver traded as ACV on NYSE until Unilever bought it in May 2011.,no-row,,
+2007-12-31,96,FAST,name,"same name in ivv/members.csv, 2008-12-31 row 106, which passes on FAST",pass,,close
+2007-12-31,97,IM,hand,Ingram Micro traded as IM on NYSE until HNA Group bought it in December 2016.,no-row,,
+2007-12-31,98,TECD,name,Alpha Vantage active listing as of 2010-01-04: Tech Data Corp,pass,,close
+2007-12-31,99,ACF,name,Alpha Vantage delisted listing: AMERICREDIT CORP,no-row,,
+2007-12-31,100,EV,hand,Eaton Vance traded as EV on NYSE until Morgan Stanley bought it in March 2021.,no-row,,
+2007-12-31,101,IMB,hand,IndyMac Bancorp traded as IMB on NYSE until its bank failed in July 2008.,no-series,,
+2007-12-31,102,JEF-1,name,Alpha Vantage active listing as of 2010-01-04: Jefferies Group,pass,,close
+2007-12-31,103,RJF,name,"same name in ivv/members.csv, 2017-03-31 row 80, which passes on RJF",pass,,close
+2007-12-31,104,WDR,name,"same name in ijr/members.csv, 2017-12-31 row 98, which passes on WDR",pass,,close
+2007-12-31,105,LNT,name,"same name in ivv/members.csv, 2016-06-30 row 134, which passes on LNT",pass,,close
+2007-12-31,106,ILA,hand,Aquila traded as ILA on NYSE until Great Plains Energy bought it in July 2008.,no-series,,
+2007-12-31,107,BKH,name,Alpha Vantage active listing as of 2010-01-04: Black Hills Corporation,pass,,close
+2007-12-31,108,DPL,name,Alpha Vantage active listing as of 2010-01-04: DPL INC,pass,,close
+2007-12-31,109,EAS,hand,Energy East traded as EAS on NYSE until Iberdrola bought it in September 2008.,no-series,,
+2007-12-31,110,GXP,name,Alpha Vantage active listing as of 2010-01-04: Great Plains Energy Inc,pass,,close
+2007-12-31,111,HE,name,"same name in ijr/members.csv, 2025-12-31 row 300, which passes on HE",pass,,close
+2007-12-31,112,IDA,name,Alpha Vantage active listing as of 2010-01-04: Idacorp Inc,pass,,close
+2007-12-31,113,MDU,name,"same name in ijr/members.csv, 2024-12-31 row 69, which passes on MDU",pass,,close
+2007-12-31,114,ES,name,"same name in ivv/members.csv, 2009-03-31 row 147, which passes on ES",pass,,close
+2007-12-31,115,NST,hand,NSTAR traded as NST on NYSE until it merged into Northeast Utilities in April 2012.,no-series,,
+2007-12-31,116,OGE,name,Alpha Vantage active listing as of 2010-01-04: Oge Energy Corp,pass,,close
+2007-12-31,117,TXNM,name,Alpha Vantage active listing as of 2010-01-04: PNM Resources Inc,pass,,close
+2007-12-31,118,PSD,hand,Puget Energy traded as PSD on NYSE until a Macquarie-led group took it private in February 2009.,no-series,,
+2007-12-31,119,SCG,name,"same name in ivv/members.csv, 2008-12-31 row 154, which passes on SCG",pass,,close
+2007-12-31,120,NVE,hand,"Sierra Pacific Resources traded as SRP, renamed itself NV Energy (NVE) in 2008, and Berkshire Hathaway Energy bought it in 2013.",no-series,,
+2007-12-31,121,WR,name,Alpha Vantage active listing as of 2010-01-04: Westar Energy Inc.,no-row,,
+2007-12-31,122,WEC,name,"same name in ivv/members.csv, 2008-12-31 row 157, which passes on WEC",pass,,close
+2007-12-31,123,AME,name,"same name in ivv/members.csv, 2013-12-31 row 150, which passes on AME",pass,,close
+2007-12-31,124,ENR,name,"same name in ijr/members.csv, 2023-12-31 row 464, which passes on ENR",pass,,close
+2007-12-31,125,HUBB,name,"same name in ivv/members.csv, 2026-06-30 row 353, which passes on HUBB",no-row,,
+2007-12-31,126,APH,name,"same name in ivv/members.csv, 2008-12-31 row 162, which passes on APH",pass,,close
+2007-12-31,127,ARW,name,Alpha Vantage active listing as of 2010-01-04: Arrow Electronics Inc,pass,,close
+2007-12-31,128,AVT,name,Alpha Vantage active listing as of 2010-01-04: Avnet Inc,pass,,close
+2007-12-31,129,GNTX,name,Alpha Vantage active listing as of 2010-01-04: Gentex Corp,pass,,close
+2007-12-31,130,KEM,name,Alpha Vantage active listing as of 2010-01-04: KEMET Corp,no-row,,
+2007-12-31,131,NATI,name,Alpha Vantage active listing as of 2010-01-04: National Instruments Corp,pass,,close
+2007-12-31,132,TNB,hand,Thomas & Betts traded as TNB on NYSE until ABB bought it in May 2012.,no-series,,
+2007-12-31,133,VARI,hand,Varian Inc traded as VARI on NASDAQ until Agilent bought it in May 2010.,no-series,,
+2007-12-31,134,VSH,name,"same name in ijr/members.csv, 2024-12-31 row 364, which passes on VSH",pass,,close
+2007-12-31,135,DY,name,"same name in ijr/members.csv, 2009-12-31 row 226, which passes on DY",pass,,close
+2007-12-31,136,GVA,name,"same name in ijr/members.csv, 2019-12-31 row 321, which passes on GVA",pass,,close
+2007-12-31,137,KBR,name,Alpha Vantage active listing as of 2010-01-04: KBR Inc,pass,,close
+2007-12-31,138,URS,name,Alpha Vantage active listing as of 2010-01-04: URS Corp,pass,,close
+2007-12-31,139,ISCA,name,Alpha Vantage active listing as of 2010-01-04: International Speedway Corp,pass,,close
+2007-12-31,140,TIVO,hand,"Macrovision traded as MVSN, became Rovi (ROVI) in 2009 and TiVo Corp (TIVO) in 2016, and merged into Xperi in 2020.",pass,,close
+2007-12-31,141,LNW,name,"same name in ijr/members.csv, 2014-12-31 row 310, which passes on LNW",pass,,close
+2007-12-31,142,MSA,hand,"Mine Safety Appliances traded as MSA and renamed itself MSA Safety in 2014, keeping the ticker.",pass,,close
+2007-12-31,143,RSG,name,"same name in ivv/members.csv, 2008-12-31 row 172, which passes on RSG",pass,,close
+2007-12-31,144,SRCL,name,"same name in ivv/members.csv, 2008-12-31 row 173, which passes on SRCL",pass,,close
+2007-12-31,145,INGR,hand,Corn Products International traded as CPO and renamed itself Ingredion (INGR) in 2012.,pass,,close
+2007-12-31,146,HRL,name,"same name in ivv/members.csv, 2009-03-31 row 181, which passes on HRL",pass,,close
+2007-12-31,147,SJM,name,"same name in ivv/members.csv, 2008-12-31 row 181, which passes on SJM",pass,,close
+2007-12-31,148,HTSI,hand,"Ruddick traded as RDK, renamed itself Harris Teeter Supermarkets (HTSI) in 2012, and Kroger bought it in 2014.",no-series,,
+2007-12-31,149,SFD,name,Alpha Vantage active listing: Smithfield Foods Inc,no-row,,
+2007-12-31,150,TR,name,"same name in ijr/members.csv, 2021-12-31 row 143, which passes on TR",pass,,close
+2007-12-31,151,LPX,name,Alpha Vantage active listing as of 2010-01-04: Louisiana-Pacific Corp,pass,,close
+2007-12-31,152,PCH,hand,"Potlatch traded as PCH and became PotlatchDeltic in 2018, keeping the ticker.",pass,,close
+2007-12-31,153,RYN,name,Alpha Vantage active listing as of 2010-01-04: Rayonier Inc,pass,,close
+2007-12-31,154,TIN,hand,Temple-Inland traded as TIN on NYSE until International Paper bought it in February 2012.,no-row,,
+2007-12-31,155,GAS,name,"same name in ivv/members.csv, 2011-12-31 row 199, which passes on GAS",pass,,close
+2007-12-31,156,EGN,name,Alpha Vantage active listing as of 2010-01-04: Energen Corp,pass,,close
+2007-12-31,157,VVC,name,Alpha Vantage active listing as of 2010-01-04: Vectren Corp,pass,,close
+2007-12-31,158,WGL,name,Alpha Vantage active listing as of 2010-01-04: WGL Holdings Inc,pass,,close
+2007-12-31,159,KMT,name,"same name in ijr/members.csv, 2023-12-31 row 436, which passes on KMT",pass,,close
+2007-12-31,160,LECO,name,Alpha Vantage active listing as of 2010-01-04: Lincoln Electric Holdings Inc,pass,,close
+2007-12-31,161,EYE,hand,Advanced Medical Optics traded as EYE on NYSE until Abbott bought it in February 2009.,no-row,,
+2007-12-31,162,BEC,hand,Beckman Coulter traded as BEC on NYSE until Danaher bought it in June 2011.,no-row,,
+2007-12-31,163,XRAY,name,"same name in ivv/members.csv, 2008-12-31 row 207, which passes on XRAY",pass,,close
+2007-12-31,164,EW,name,"same name in ivv/members.csv, 2011-03-31 row 208, which passes on EW",pass,,close
+2007-12-31,165,GPRO,hand,Gen-Probe traded as GPRO on NASDAQ until Hologic bought it in August 2012.,no-row,,
+2007-12-31,166,HSIC,name,"same name in ivv/members.csv, 2015-03-31 row 205, which passes on HSIC",pass,,close
+2007-12-31,167,HRC,hand,"Hillenbrand Industries traded as HB, spun off Hillenbrand Inc in 2008 and renamed itself Hill-Rom Holdings (HRC), and Baxter bought it in December 2021.",pass,,close
+2007-12-31,168,HOLX,name,"same name in ivv/members.csv, 2016-03-31 row 191, which passes on HOLX",pass,,close
+2007-12-31,169,ISRG,name,"same name in ivv/members.csv, 2008-12-31 row 208, which passes on ISRG",price,-150.00,
+2007-12-31,170,KCI,name,Alpha Vantage active listing as of 2010-01-04: KINETIC CONCEPTS INC,pass,,close
+2007-12-31,171,RMD,name,"same name in ivv/members.csv, 2017-09-30 row 226, which passes on RMD",pass,,close
+2007-12-31,172,STE,name,"same name in ivv/members.csv, 2019-12-31 row 393, which passes on STE",pass,,close
+2007-12-31,173,TECH,hand,"TECHNE traded as TECH and renamed itself Bio-Techne in 2014, keeping the ticker.",pass,,close
+2007-12-31,174,VMSI,hand,Ventana Medical Systems traded as VMSI on NASDAQ until Roche bought it in February 2008.,no-row,,
+2007-12-31,175,AHG,hand,Apria Healthcare traded as AHG on NYSE until Blackstone took it private in October 2008.,price,-1895.00,
+2007-12-31,176,CYH,name,"same name in ijr/members.csv, 2016-12-31 row 297, which passes on CYH",pass,,close
+2007-12-31,177,CVD,name,Alpha Vantage active listing as of 2010-01-04: Covance Inc,pass,,close
+2007-12-31,178,HMA,name,Alpha Vantage active listing as of 2010-01-04: Health Management Associates Inc,no-row,,
+2007-12-31,179,HNT,name,Alpha Vantage active listing as of 2010-01-04: Health Net Inc,pass,,close
+2007-12-31,180,KND,name,"same name in ijr/members.csv, 2011-12-31 row 286, which passes on KND",pass,,close
+2007-12-31,181,LPNT,name,Alpha Vantage active listing as of 2010-01-04: Lifepoint Hospitals Inc,pass,,close
+2007-12-31,182,LNCR,hand,Lincare traded as LNCR on NASDAQ until Linde bought it in August 2012.,no-series,,
+2007-12-31,183,PSYS,hand,Psychiatric Solutions traded as PSYS on NASDAQ until Universal Health Services bought it in November 2010.,no-row,,
+2007-12-31,184,UHS,name,"same name in ivv/members.csv, 2014-09-30 row 222, which passes on UHS",pass,,close
+2007-12-31,185,WCG,name,"same name in ivv/members.csv, 2018-09-30 row 257, which passes on WCG",pass,,close
+2007-12-31,186,HOV,name,Alpha Vantage active listing as of 2010-01-04: Hovnanian Enterprises Inc - Class A,pass,,close
+2007-12-31,187,MDC,name,"same name in ijr/members.csv, 2016-12-31 row 348, which passes on MDC",pass,,close
+2007-12-31,188,NVR,name,"same name in ivv/members.csv, 2019-09-30 row 213, which passes on NVR",pass,,close
+2007-12-31,189,RYL,name,"same name in ijr/members.csv, 2011-12-31 row 293, which passes on RYL",pass,,close
+2007-12-31,190,THO,name,Alpha Vantage active listing as of 2010-01-04: Thor Industries Inc,pass,,close
+2007-12-31,191,TOL,name,Alpha Vantage active listing as of 2010-01-04: Toll Brothers Inc,pass,,close
+2007-12-31,192,FBN,hand,Furniture Brands traded as FBN on NYSE until its 2013 bankruptcy.,price,1.00,
+2007-12-31,193,AM,hand,American Greetings traded as AM on NYSE until the Weiss family took it private in August 2013.,no-row,,
+2007-12-31,194,BTH,name,"same name in ijr/members.csv, 2009-12-31 row 313, which passes on BTH",pass,,close
+2007-12-31,195,CHD,name,"same name in ivv/members.csv, 2015-12-31 row 238, which passes on CHD",pass,,close
+2007-12-31,196,SMG,name,Alpha Vantage active listing as of 2010-01-04: Scotts Miracle-Gro Company - Class A,pass,,close
+2007-12-31,197,TUPBQ,name,"same name in ijr/members.csv, 2019-12-31 row 572, which passes on TUPBQ",pass,,close
+2007-12-31,198,AFG,hand,American Financial Group trades as AFG on NYSE. AFA was one of its exchange-traded debentures.,pass,,close
+2007-12-31,199,AJG,name,"same name in ivv/members.csv, 2016-06-30 row 253, which passes on AJG",pass,,close
+2007-12-31,200,BRO,name,"same name in ivv/members.csv, 2021-09-30 row 362, which passes on BRO",pass,,close
+2007-12-31,201,CGI,hand,Commerce Group traded as CGI on NYSE until Mapfre bought it in April 2008.,price,-2682.00,
+2007-12-31,202,EG,name,"same name in ivv/members.csv, 2017-06-30 row 285, which passes on EG",pass,,close
+2007-12-31,203,FNF,name,Alpha Vantage active listing as of 2010-01-04: Fidelity National Financial Inc,pass,,close
+2007-12-31,204,CLGX,hand,"First American Corp traded as FAF and in June 2010 spun off First American Financial under that ticker, renaming itself CoreLogic (CLGX), which Stone Point and Insight took private in 2021.",pass,,close
+2007-12-31,205,THG,hand,Hanover Insurance Group trades as THG on NYSE. THGA was one of its exchange-traded debentures.,pass,,close
+2007-12-31,206,HCC,name,Alpha Vantage active listing as of 2010-01-04: HCC Insurance Holdings Inc,no-row,,
+2007-12-31,207,HMN,name,"same name in ijr/members.csv, 2010-12-31 row 319, which passes on HMN",pass,,close
+2007-12-31,208,MCY,name,"same name in ijr/members.csv, 2022-12-30 row 205, which passes on MCY",pass,,close
+2007-12-31,209,ORI,name,Alpha Vantage active listing as of 2010-01-04: Old Republic International Corp,pass,,close
+2007-12-31,210,PMI,hand,PMI Group traded as PMI on NYSE until its delisting in 2011 and bankruptcy that November.,no-row,,
+2007-12-31,211,PL,name,Alpha Vantage active listing as of 2010-01-04: Protective Life Corp,no-row,,
+2007-12-31,212,RDN,name,"same name in ijr/members.csv, 2023-12-31 row 481, which passes on RDN",pass,,close
+2007-12-31,213,SFG,name,Alpha Vantage active listing as of 2010-01-04: StanCorp Financial Group Inc,pass,,close
+2007-12-31,214,KMPR,hand,Unitrin traded as UTR and renamed itself Kemper (KMPR) in 2011.,pass,,close
+2007-12-31,215,WRB,name,"same name in ivv/members.csv, 2019-12-31 row 391, which passes on WRB",pass,,close
+2007-12-31,216,AVCT,hand,Avocent traded as AVCT on NASDAQ until Emerson bought it in December 2009.,no-row,,
+2007-12-31,217,DRIV,hand,Digital River traded as DRIV on NASDAQ until Siris Capital took it private in February 2015.,no-row,,
+2007-12-31,218,FFIV,name,"same name in ivv/members.csv, 2010-12-31 row 263, which passes on FFIV",pass,,close
+2007-12-31,219,MFE,name,"same name in ivv/members.csv, 2008-12-31 row 265, which passes on MFE",pass,,close
+2007-12-31,220,NFLX,name,"same name in ivv/members.csv, 2010-12-31 row 266, which passes on NFLX",pass,,close
+2007-12-31,221,CNVR,hand,"ValueClick traded as VCLK, renamed itself Conversant (CNVR) in February 2014, and Alliance Data bought it that December.",pass,,close
+2007-12-31,222,CRS,name,"same name in ijr/members.csv, 2020-12-31 row 12, which passes on CRS",pass,,close
+2007-12-31,223,CLF,name,"same name in ijr/members.csv, 2019-12-31 row 64, which passes on CLF",pass,,close
+2007-12-31,224,RS,name,Alpha Vantage active listing as of 2010-01-04: Reliance Steel & Aluminum Company,pass,,close
+2007-12-31,225,STLD,name,"same name in ivv/members.csv, 2022-12-31 row 118, which passes on STLD",pass,,close
+2007-12-31,226,CALY,name,"same name in ijr/members.csv, 2009-12-31 row 356, which passes on CALY",pass,,close
+2007-12-31,227,LTM1,name,Alpha Vantage active listing as of 2010-01-04: Life Time Fitness Inc,pass,,close
+2007-12-31,228,BYD,name,"same name in ijr/members.csv, 2011-12-31 row 346, which passes on BYD",pass,,close
+2007-12-31,229,AGCO,name,Alpha Vantage active listing as of 2010-01-04: AGCO Corp,pass,,close
+2007-12-31,230,FLS,name,"same name in ivv/members.csv, 2008-12-31 row 283, which passes on FLS",pass,,close
+2007-12-31,231,GGG,name,Alpha Vantage active listing as of 2010-01-04: Graco Inc,pass,,close
+2007-12-31,232,IEX,name,"same name in ivv/members.csv, 2019-09-30 row 476, which passes on IEX",pass,,close
+2007-12-31,233,JOY,name,"same name in ivv/members.csv, 2011-03-31 row 286, which passes on JOY",pass,,close
+2007-12-31,234,NDSN,name,"same name in ivv/members.csv, 2022-03-31 row 4, which passes on NDSN",pass,,close
+2007-12-31,235,WAB,name,"same name in ivv/members.csv, 2019-03-31 row 361, which passes on WAB",pass,,close
+2007-12-31,236,ZBRA,name,"same name in ivv/members.csv, 2022-09-30 row 330, which passes on ZBRA",pass,,close
+2007-12-31,237,BCO,name,"same name in ijr/members.csv, 2014-12-31 row 113, which passes on BCO",pass,,close
+2007-12-31,238,CSL,name,Alpha Vantage active listing as of 2010-01-04: Carlisle Companies Inc,pass,,close
+2007-12-31,239,CXT,hand,"Crane Co traded as CR until its 2023 separation, when the old company renamed itself Crane NXT (CXT) and spun off a new Crane Co under CR, whose series starts in 2023.",pass,,close
+2007-12-31,240,DCI,name,Alpha Vantage active listing as of 2010-01-04: Donaldson Co. Inc,pass,,close
+2007-12-31,241,FSS,name,"same name in ijr/members.csv, 2010-12-31 row 375, which passes on FSS",pass,,close
+2007-12-31,242,NVRI,hand,Harsco traded as HSC and renamed itself Enviri (NVRI) in 2023.,no-row,,
+2007-12-31,243,LANC,hand,Lancaster Colony trades as LANC on NASDAQ.,no-series,,
+2007-12-31,244,MATW,name,"same name in ijr/members.csv, 2014-12-31 row 117, which passes on MATW",pass,,close
+2007-12-31,245,PNR,name,"same name in ivv/members.csv, 2014-06-30 row 319, which passes on PNR",pass,,close
+2007-12-31,246,ROP,name,"same name in ivv/members.csv, 2009-12-31 row 298, which passes on ROP",pass,,close
+2007-12-31,247,SPXC,name,"same name in ijr/members.csv, 2015-12-31 row 399, which passes on SPXC",pass,,close
+2007-12-31,248,TFX,name,"same name in ivv/members.csv, 2019-03-31 row 236, which passes on TFX",pass,,close
+2007-12-31,249,TRN,name,"same name in ijr/members.csv, 2022-12-30 row 354, which passes on TRN",pass,,close
+2007-12-31,250,BLC,name,Alpha Vantage active listing as of 2010-01-04: Belo Corp,pass,,close
+2007-12-31,251,AUD,hand,Entercom traded as ETM and renamed itself Audacy (AUD) in 2021.,no-series,,
+2007-12-31,252,WLY,name,"same name in ijr/members.csv, 2023-12-31 row 198, which passes on WLY",pass,,close
+2007-12-31,253,LEE,name,Alpha Vantage active listing as of 2010-01-04: Lee Enterprises Inc,pass,,close
+2007-12-31,254,MEG,name,Alpha Vantage delisted listing: Media General Inc,no-row,,
+2007-12-31,255,SCHL,name,"same name in ijr/members.csv, 2013-12-31 row 404, which passes on SCHL",pass,,close
+2007-12-31,256,CMC,name,Alpha Vantage active listing as of 2010-01-04: Commercial Metals Company,pass,,close
+2007-12-31,257,TKR,name,Alpha Vantage active listing as of 2010-01-04: Timken Company,pass,,close
+2007-12-31,258,WOR,hand,"Worthington Industries traded as WOR and became Worthington Enterprises in 2023, keeping the ticker.",pass,,close
+2007-12-31,259,MLKN,hand,Herman Miller traded as MLHR and renamed itself MillerKnoll (MLKN) in 2021.,pass,,close
+2007-12-31,260,HNI,name,"same name in ijr/members.csv, 2021-12-31 row 578, which passes on HNI",pass,,close
+2007-12-31,261,BBG,name,"same name in ijr/members.csv, 2014-12-31 row 423, which passes on BBG",pass,,close
+2007-12-31,262,XEC,name,"same name in ivv/members.csv, 2014-06-30 row 370, which passes on XEC",pass,,close
+2007-12-31,263,DNR,name,"same name in ivv/members.csv, 2009-06-30 row 328, which passes on DNR",pass,,close
+2007-12-31,264,EAC,hand,Encore Acquisition traded as EAC on NYSE until Denbury bought it in March 2010.,no-row,,
+2007-12-31,265,FST,hand,Forest Oil traded as FST on NYSE until its 2014 combination with Sabine Oil & Gas.,no-row,,
+2007-12-31,266,FTO,name,Alpha Vantage active listing as of 2010-01-04: FRONTIER OIL CORP,pass,,close
+2007-12-31,267,HP,name,"same name in ivv/members.csv, 2010-03-31 row 334, which passes on HP",pass,,close
+2007-12-31,268,NFX,name,Alpha Vantage active listing as of 2010-01-04: Newfield Exploration Company,no-row,,
+2007-12-31,269,PTEN,name,"same name in ijr/members.csv, 2020-12-31 row 202, which passes on PTEN",pass,,close
+2007-12-31,270,PXD,name,"same name in ivv/members.csv, 2008-12-31 row 340, which passes on PXD",pass,,close
+2007-12-31,271,PXP,name,Alpha Vantage active listing as of 2010-01-04: Plains Exploration & Production Company,pass,,close
+2007-12-31,272,PDE,hand,Pride International traded as PDE on NYSE until Ensco bought it in May 2011.,no-series,,
+2007-12-31,273,KWKAQ,name,Alpha Vantage delisted listing: Quicksilver Resources Inc,no-row,,
+2007-12-31,274,SWN,name,"same name in ivv/members.csv, 2008-12-31 row 343, which passes on SWN",pass,,close
+2007-12-31,275,CAM,name,"same name in ivv/members.csv, 2008-12-31 row 350, which passes on CAM",pass,,close
+2007-12-31,276,EXH,name,"same name in ijr/members.csv, 2011-12-31 row 406, which passes on EXH",pass,,close
+2007-12-31,277,FTI,name,"same name in ivv/members.csv, 2009-06-30 row 352, which passes on FTI",pass,,close
+2007-12-31,278,GRP,hand,Grant Prideco traded as GRP on NYSE until National Oilwell Varco bought it in April 2008.,no-series,,
+2007-12-31,279,SPNX,name,"same name in ijr/members.csv, 2018-12-31 row 227, which passes on SPNX",pass,,close
+2007-12-31,280,TDW,name,"same name in ijr/members.csv, 2015-12-31 row 229, which passes on TDW",pass,,close
+2007-12-31,281,PKG,name,"same name in ivv/members.csv, 2017-09-30 row 121, which passes on PKG",pass,,close
+2007-12-31,282,SON,name,Alpha Vantage active listing as of 2010-01-04: Sonoco Products Company,pass,,close
+2007-12-31,283,CEPH,hand,Cephalon traded as CEPH on NASDAQ until Teva bought it in October 2011.,no-series,,
+2007-12-31,284,ENDP,hand,"Endo Pharmaceuticals traded as ENDP, became Endo International in 2014 keeping the ticker, and went bankrupt in 2022.",no-series,,
+2007-12-31,285,MRX,name,Alpha Vantage active listing as of 2010-01-04: Medicis Pharmaceutical Corp,no-row,,
+2007-12-31,286,NTY,name,Alpha Vantage active listing as of 2010-01-04: NBTY INC,pass,,close
+2007-12-31,287,OCR,name,Alpha Vantage active listing as of 2010-01-04: Omnicare Inc,pass,,close
+2007-12-31,288,PRX,name,"same name in ijr/members.csv, 2008-12-31 row 425, which passes on PRX",pass,,close
+2007-12-31,289,PRGO,name,"same name in ivv/members.csv, 2011-12-31 row 380, which passes on PRGO",pass,,close
+2007-12-31,290,SEPR,hand,Sepracor traded as SEPR on NASDAQ until Dainippon Sumitomo bought it in October 2009.,no-series,,
+2007-12-31,291,VRX,name,Alpha Vantage active listing as of 2010-01-04: Valeant Pharmaceuticals Intl Inc,price,149.00,
+2007-12-31,292,WOOF,name,Alpha Vantage active listing as of 2010-01-04: VCA Antech Inc,no-row,,
+2007-12-31,293,EQT,name,"same name in ivv/members.csv, 2008-12-31 row 381, which passes on EQT",pass,,close
+2007-12-31,294,NFG,name,Alpha Vantage active listing as of 2010-01-04: National Fuel Gas Company,pass,,close
+2007-12-31,295,OKE,name,"same name in ivv/members.csv, 2010-03-31 row 381, which passes on OKE",pass,,close
+2007-12-31,296,JLL,name,Alpha Vantage active listing as of 2010-01-04: Jones Lang Lasalle Inc,pass,,close
+2007-12-31,297,ARE,name,"same name in ivv/members.csv, 2017-03-31 row 162, which passes on ARE",pass,,close
+2007-12-31,298,PLD,hand,"AMB Property traded as AMB and was the legal acquirer in its June 2011 merger with ProLogis, renaming itself Prologis (PLD).",pass,,close
+2007-12-31,299,BRE,hand,BRE Properties traded as BRE on NYSE until Essex Property Trust bought it in April 2014.,no-series,,
+2007-12-31,300,CPT,name,"same name in ivv/members.csv, 2022-06-30 row 297, which passes on CPT",pass,,close
+2007-12-31,301,CUZ,name,"same name in ijr/members.csv, 2011-12-31 row 431, which passes on CUZ",pass,,close
+2007-12-31,302,DRE,name,"same name in ivv/members.csv, 2017-09-30 row 169, which passes on DRE",pass,,close
+2007-12-31,303,EQY,name,Alpha Vantage delisted listing: Equity One Inc,no-row,,
+2007-12-31,304,FRT,name,"same name in ivv/members.csv, 2016-03-31 row 411, which passes on FRT",pass,,close
+2007-12-31,305,HCN,name,"same name in ivv/members.csv, 2009-03-31 row 390, which passes on HCN",pass,,close
+2007-12-31,306,HIW,name,"same name in ijr/members.csv, 2023-12-31 row 212, which passes on HIW",pass,,close
+2007-12-31,307,SVC,hand,Hospitality Properties Trust traded as HPT and renamed itself Service Properties Trust (SVC) in 2019.,pass,,close
+2007-12-31,308,LPT,name,Alpha Vantage active listing as of 2010-01-04: Liberty Property Trust,pass,,close
+2007-12-31,309,MAC,name,"same name in ivv/members.csv, 2013-06-30 row 396, which passes on MAC",pass,,close
+2007-12-31,310,VRE,name,"same name in ijr/members.csv, 2020-12-31 row 530, which passes on VRE",pass,,close
+2007-12-31,311,NHP,name,Alpha Vantage active listing as of 2010-01-04: Nationwide Health Properties,no-row,,
+2007-12-31,312,O,name,"same name in ivv/members.csv, 2015-06-30 row 422, which passes on O",pass,,close
+2007-12-31,313,REG,name,"same name in ivv/members.csv, 2017-03-31 row 184, which passes on REG",pass,,close
+2007-12-31,314,UDR,name,"same name in ivv/members.csv, 2016-03-31 row 423, which passes on UDR",pass,,close
+2007-12-31,315,WRI,hand,Weingarten Realty traded as WRI on NYSE until Kimco bought it in August 2021. WRD was a preferred share.,pass,,close
+2007-12-31,316,AAP,name,"same name in ivv/members.csv, 2015-09-30 row 464, which passes on AAP",pass,,close
+2007-12-31,317,ARO,name,"same name in ijr/members.csv, 2013-12-31 row 547, which passes on ARO",pass,,close
+2007-12-31,318,AEO,name,"same name in ijr/members.csv, 2022-12-30 row 525, which passes on AEO",pass,,close
+2007-12-31,319,ANN,hand,"AnnTaylor Stores traded as ANN, renamed itself ANN Inc in 2011, and Ascena bought it in August 2015.",pass,,close
+2007-12-31,320,BKS,name,"same name in ijr/members.csv, 2013-12-31 row 548, which passes on BKS",pass,,close
+2007-12-31,321,BJ,name,Alpha Vantage active listing: BJ`s Wholesale Club Holdings Inc,no-row,,
+2007-12-31,322,BOBE,name,"same name in ijr/members.csv, 2014-12-31 row 295, which passes on BOBE",pass,,close
+2007-12-31,323,BGP,hand,Borders Group traded as BGP on NYSE until its 2011 bankruptcy.,no-series,,
+2007-12-31,324,EAT,name,"same name in ijr/members.csv, 2020-12-31 row 601, which passes on EAT",pass,,close
+2007-12-31,325,KMX,name,"same name in ivv/members.csv, 2010-06-30 row 403, which passes on KMX",pass,,close
+2007-12-31,326,CBRL,hand,"CBRL Group traded as CBRL and renamed itself Cracker Barrel Old Country Store in 2008, keeping the ticker.",pass,,close
+2007-12-31,327,CHRS,hand,Charming Shoppes traded as CHRS on NASDAQ until Ascena bought it in June 2012.,no-row,,
+2007-12-31,328,CAKE,name,"same name in ijr/members.csv, 2020-12-31 row 183, which passes on CAKE",pass,,close
+2007-12-31,329,CHS,name,"same name in ijr/members.csv, 2017-12-31 row 544, which passes on CHS",pass,,close
+2007-12-31,330,CMG,name,"same name in ivv/members.csv, 2026-06-30 row 160, which passes on CMG",pass,,close
+2007-12-31,331,CWTR,hand,Coldwater Creek traded as CWTR on NASDAQ until its 2014 bankruptcy.,no-series,,
+2007-12-31,332,PSS,hand,Collective Brands traded as PSS on NYSE until Wolverine and a buyout group bought it in October 2012.,no-series,,
+2007-12-31,333,CPRT,name,"same name in ivv/members.csv, 2018-06-30 row 102, which passes on CPRT",pass,,close
+2007-12-31,334,DKS,hand,Dick's Sporting Goods trades as DKS on NYSE.,pass,,close
+2007-12-31,335,DLTR,hand,"Dollar Tree Stores traded as DLTR and renamed itself Dollar Tree Inc in 2008, keeping the ticker.",pass,,close
+2007-12-31,336,FL,name,"same name in ivv/members.csv, 2016-06-30 row 471, which passes on FL",pass,,close
+2007-12-31,337,MSM,name,Alpha Vantage active listing as of 2010-01-04: MSC Industrial Direct Co. Inc - Class A,pass,,close
+2007-12-31,338,NDN,name,Alpha Vantage active listing as of 2010-01-04: 99 CENTS ONLY STORES LLC,pass,,close
+2007-12-31,339,ORLY,name,"same name in ivv/members.csv, 2009-03-31 row 419, which passes on ORLY",pass,,close
+2007-12-31,340,PSUN,hand,Pacific Sunwear traded as PSUN on NASDAQ until its 2016 bankruptcy.,no-series,,
+2007-12-31,341,PETM,name,"same name in ivv/members.csv, 2012-12-31 row 429, which passes on PETM",pass,,close
+2007-12-31,342,RGS,name,"same name in ijr/members.csv, 2013-12-31 row 157, which passes on RGS",pass,,close
+2007-12-31,343,ROST,name,"same name in ivv/members.csv, 2009-12-31 row 421, which passes on ROST",pass,,close
+2007-12-31,344,RT,name,"same name in ijr/members.csv, 2008-12-31 row 501, which passes on RT",pass,,close
+2007-12-31,345,SKS,name,Alpha Vantage active listing as of 2010-01-04: Saks Inc,pass,,close
+2007-12-31,346,URBN,name,"same name in ivv/members.csv, 2010-06-30 row 428, which passes on URBN",pass,,close
+2007-12-31,347,WSM,name,"same name in ivv/members.csv, 2025-03-31 row 195, which passes on WSM",pass,,close
+2007-12-31,348,AF,name,"same name in ijr/members.csv, 2015-12-31 row 585, which passes on AF",pass,,close
+2007-12-31,349,FNFG,name,Alpha Vantage active listing as of 2010-01-04: First Niagara Financial Group Inc,pass,,close
+2007-12-31,350,FLG,name,Alpha Vantage active listing as of 2010-01-04: New York Community Bancorp Inc,pass,,close
+2007-12-31,351,WAFD,hand,Washington Federal traded as WFSL and moved to the WAFD ticker in 2024.,pass,,close
+2007-12-31,352,ATML,name,Alpha Vantage delisted listing: Atmel Corp,no-row,,
+2007-12-31,353,CREE,hand,Cree traded as CREE and renamed itself Wolfspeed (WOLF) in 2021. Alpha Vantage's WOLF series starts after the 2025 bankruptcy.,pass,,close
+2007-12-31,354,CY,name,"same name in ijr/members.csv, 2008-12-31 row 528, which passes on CY",pass,,close
+2007-12-31,355,FCS,name,Alpha Vantage delisted listing: Fairchild Semiconductor Intl Inc,no-row,,
+2007-12-31,356,IDTI,name,Alpha Vantage active listing as of 2010-01-04: Integrated Device Technology Inc,pass,,close
+2007-12-31,357,IRF,name,Alpha Vantage active listing as of 2010-01-04: International Rectifier Corp,pass,,close
+2007-12-31,358,ISIL,name,Alpha Vantage active listing as of 2010-01-04: Intersil Corp,pass,,close
+2007-12-31,359,LRCX,name,"same name in ivv/members.csv, 2012-06-30 row 451, which passes on LRCX",pass,,close
+2007-12-31,360,SMTC,name,"same name in ijr/members.csv, 2015-12-31 row 527, which passes on SMTC",pass,,close
+2007-12-31,361,SLAB,name,Alpha Vantage active listing as of 2010-01-04: Silicon Laboratories Inc,pass,,close
+2007-12-31,362,TQNT,name,"same name in ijr/members.csv, 2008-12-31 row 543, which passes on TQNT",pass,,close
+2007-12-31,363,ACIW,name,"same name in ijr/members.csv, 2023-12-31 row 421, which passes on ACIW",pass,,close
+2007-12-31,364,ATVI,hand,"Activision traded as ATVI, became Activision Blizzard in July 2008 keeping the ticker, and Microsoft bought it in October 2023.",pass,,close
+2007-12-31,365,ACXM,name,Alpha Vantage active listing as of 2010-01-04: Acxiom Corp,pass,,close
+2007-12-31,366,ADVS,name,Alpha Vantage active listing as of 2010-01-04: Advent Software Inc,pass,,close
+2007-12-31,367,BR,name,"same name in ivv/members.csv, 2018-06-30 row 318, which passes on BR",pass,,close
+2007-12-31,368,CERN,name,"same name in ivv/members.csv, 2010-06-30 row 458, which passes on CERN",pass,,close
+2007-12-31,369,CSGS,name,"same name in ijr/members.csv, 2008-12-31 row 550, which passes on CSGS",pass,,close
+2007-12-31,370,DNB,name,Alpha Vantage active listing as of 2010-01-04: Dun & Bradstreet Holdings Inc,no-row,,
+2007-12-31,371,FICO,name,"same name in ivv/members.csv, 2023-03-31 row 83, which passes on FICO",pass,,close
+2007-12-31,372,GPN,name,"same name in ivv/members.csv, 2016-06-30 row 289, which passes on GPN",pass,,close
+2007-12-31,373,MV,hand,Metavante traded as MV on NYSE until Fidelity National Information Services bought it in October 2009.,no-series,,
+2007-12-31,374,MGI,name,Alpha Vantage active listing as of 2010-01-04: Moneygram International Inc,pass,,close
+2007-12-31,375,PTC,hand,Parametric Technology traded as PMTC and renamed itself PTC (PTC) in 2013.,pass,,close
+2007-12-31,376,SEIC,name,Alpha Vantage active listing as of 2010-01-04: SEI Investments Company,pass,,close
+2007-12-31,377,SY,hand,Sybase traded as SY on NYSE until SAP bought it in July 2010.,no-row,,
+2007-12-31,378,WIND,hand,Wind River Systems traded as WIND on NASDAQ until Intel bought it in July 2009.,no-series,,
+2007-12-31,379,ADCT,name,Alpha Vantage active listing as of 2010-01-04: ADC TELECOMMUNICATIONS INC,no-row,,
+2007-12-31,380,ADTN,name,"same name in ijr/members.csv, 2014-12-31 row 124, which passes on ADTN",pass,,close
+2007-12-31,381,CBB,hand,Cincinnati Bell traded as CBB on NYSE until Macquarie bought it in September 2021. CBB-P-B was its preferred share.,no-series,,
+2007-12-31,382,CTV,hand,CommScope traded as CTV on NYSE until Carlyle took it private in January 2011.,no-row,,
+2007-12-31,383,FDRY,hand,Foundry Networks traded as FDRY on NASDAQ until Brocade bought it in December 2008.,no-series,,
+2007-12-31,384,LHX,name,"same name in ivv/members.csv, 2008-12-31 row 479, which passes on LHX",pass,,close
+2007-12-31,385,NSR,name,Alpha Vantage active listing as of 2010-01-04: NeuStar Inc,no-row,,
+2007-12-31,386,POLY,name,Alpha Vantage active listing as of 2010-01-04: Plantronics Inc,no-row,,
+2007-12-31,387,PLCM,name,Alpha Vantage active listing as of 2010-01-04: Polycom Inc,pass,,close
+2007-12-31,388,PWAV,hand,Powerwave Technologies traded as PWAV on NASDAQ until its 2013 bankruptcy.,no-series,,
+2007-12-31,389,RFMD,name,Alpha Vantage active listing as of 2010-01-04: RF Micro Devices Inc,pass,,close
+2007-12-31,390,TDS,name,"same name in ijr/members.csv, 2021-12-31 row 164, which passes on TDS",pass,,close
+2007-12-31,391,COMS,hand,3Com traded as COMS on NASDAQ until Hewlett-Packard bought it in April 2010.,no-row,,
+2007-12-31,392,MHK,name,"same name in ivv/members.csv, 2013-12-31 row 242, which passes on MHK",pass,,close
+2007-12-31,393,MATX,hand,"Alexander & Baldwin traded as ALEX until its 2012 separation, when the old company renamed itself Matson (MATX) and spun off the land business as a new Alexander & Baldwin under ALEX, whose series starts in 2012.",pass,,close
+2007-12-31,394,CNW,hand,Con-way traded as CNW on NYSE until XPO Logistics bought it in October 2015.,pass,,close
+2007-12-31,395,JBHT,name,"same name in ivv/members.csv, 2015-06-30 row 430, which passes on JBHT",pass,,close
+2007-12-31,396,KSU,name,"same name in ivv/members.csv, 2013-06-30 row 496, which passes on KSU",pass,,close
+2007-12-31,397,OSGB,name,Alpha Vantage delisted listing: Overseas Shipholding Group Inc,no-row,,
+2007-12-31,398,WERN,name,"same name in ijr/members.csv, 2024-12-31 row 286, which passes on WERN",pass,,close
+2007-12-31,399,YELL,hand,YRC Worldwide traded as YRCW and renamed itself Yellow Corp (YELL) in 2021.,no-series,,
+2007-12-31,400,GATX,hand,GATX trades as GATX on NYSE. GMTA was one of its exchange-traded notes.,pass,,close
+2007-12-31,401,WTRG,hand,Aqua America traded as WTR and renamed itself Essential Utilities (WTRG) in 2020.,pass,,close

@@ -5,7 +5,7 @@ a reproduced experiment, which is a number sitting next to another number with
 nobody saying what the pair means.
 
 This file is where the verdicts live. One entry per replication, apart from
-the four exceptions the paragraphs below name, and one row per published result, carrying the five parts
+the five exceptions the paragraphs below name, and one row per published result, carrying the five parts
 [docs/design.md](design.md#vocabulary) defines: the published figure, the
 vintage, what this repo computed, the gap, and the verdict. A row usually
 matches one published figure to one computation. Four of Entry 1's rows do not,
@@ -24,8 +24,8 @@ six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
 three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven and eleven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
-Entries 5, 44, 46 and 48 are the four entries that are not replications. Chan
-states the claim Entries 5 and 44 test without printing a number, so each
+Entries 5, 44, 46, 48 and 50 are the five entries that are not replications.
+Chan states the claim Entries 5, 44 and 50 test without printing a number, so each
 carries a finding rather than a verdict, and its tables drop the columns that
 would hold a published figure, a gap and a verdict. Entry 46 reruns Example
 7.2, which Entry 12 reproduces, on a calendar and prices Chan never used, so
@@ -37,7 +37,7 @@ sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48 and 49 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 and 50 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
@@ -370,6 +370,15 @@ says.
   - [The skipped formations](#the-skipped-formations)
   - [What the entry concludes](#what-the-entry-concludes-48)
   - [What this entry cannot say](#what-this-entry-cannot-say-46)
+- [Entry 50: the Khandani-Lo reversal on the S&P 400, Chan's *Quantitative Trading*](#entry-50-the-khandani-lo-reversal-on-the-sp-400-chans-quantitative-trading)
+  - [What the book stated](#what-the-book-stated-7)
+  - [What this repo computed](#what-this-repo-computed-49)
+  - [What each row says](#what-each-row-says-2)
+  - [The flagged days](#the-flagged-days)
+  - [The holdings the run leaves out](#the-holdings-the-run-leaves-out)
+  - [The control](#the-control)
+  - [What the entry concludes](#what-the-entry-concludes-49)
+  - [What this entry cannot say](#what-this-entry-cannot-say-47)
 
 ## How to read an entry
 
@@ -458,7 +467,10 @@ both.
    [tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py) holds
    Entry 48, and
    [tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py) holds
-   Entry 49. The archive pins of Entries 46 and 49 run only where the owner's
+   Entry 49, and
+   [tests/test_khandani_lo_mid_caps.py](../tests/test_khandani_lo_mid_caps.py)
+   holds Entry 50. The archive pins of Entries 46, 49 and 50 run only where
+   the owner's
    data archive is and `QT_ARCHIVE_RUN=1` asks for them.
 2. **Every published figure names where the source prints it, or says it has no
    citation.** A published figure is quoted from the book and is asserted
@@ -565,7 +577,7 @@ replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
-Entries 5, 44 and 46 is in that position too, so those entries drop the
+Entries 5, 44, 46 and 50 is in that position too, so those entries drop the
 verdict column rather than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
@@ -631,7 +643,11 @@ were microcaps. The run can say which way the gap between two of Chan's files
 points, and not whether his sentence about their returns is true. Its reading
 was declared on
 [issue 249](https://github.com/l3a0/quantitative-trading/issues/249) before
-any S&P 600 figure was computed, and it adds no verdict.
+any S&P 600 figure was computed, and it adds no verdict. Entry 50's claim is
+the same sentence read on the S&P 400 beside both of Chan's files, and it does
+not take the route for the same reasons. Its reading was declared on
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303) before any
+S&P 400 figure was computed, and it adds no verdict either.
 
 Entry 6's row 1 does take it. The same passage gives the CAD/AUD cross rate as
 its example and says the rate "is quite stationary", which is a definite claim
@@ -2808,8 +2824,8 @@ two.
 2. **Chan's explanation**, that most of their returns came from small and
    microcap stocks. It is a claim about a universe this run does not read.
    Location 2236, at the end of Example 3.8, leaves rerunning the strategy on
-   the S&P 400 and S&P 600 as an exercise, which would test it, and Entry 44
-   runs the S&P 600 half.
+   the S&P 400 and S&P 600 as an exercise, which would test it. Entry 44
+   runs the S&P 600 half and Entry 50 the S&P 400 half.
 
 Every row reads the same vintage, window and specification, so the three are
 stated once here.
@@ -9428,10 +9444,10 @@ It fixes three things.
    twice its standard error reads as larger than one year's noise. The size
    reading adds no verdict.
 
-[Issue 303](https://github.com/l3a0/quantitative-trading/issues/303) is where
-the S&P 400 half runs, under the same declaration, which already says how a
-third universe extends it: before costs the S&P 500 below the S&P 400 below
-the S&P 600 at both prices.
+Entry 50 runs the S&P 400 half under
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303), with the
+same declaration, which already says how a third universe extends it: before
+costs the S&P 500 below the S&P 400 below the S&P 600 at both prices.
 
 Every row reads the same two vintages, window and specification, so they are
 stated once here.
@@ -10888,3 +10904,509 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one
 figure, which `QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_figures`
 redraws where the archive is.
+
+## Entry 50: the Khandani-Lo reversal on the S&P 400, Chan's *Quantitative Trading*
+
+Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
+Algorithmic Trading Business*, revised edition, Kindle location 2137 for the
+explanation and location 2236, at the end of Example 3.8 on p. 78, for the
+exercise. Shipped under
+[issue 303](https://github.com/l3a0/quantitative-trading/issues/303).
+
+This entry is not a replication, for Entry 44's reason. Chan explains the
+reversal's collapse on the S&P 500 by saying "most of the returns are
+generated by small and microcap stocks", and leaves rerunning the strategy on
+the S&P 400 and S&P 600 as an exercise with no figure for either. Entry 44 ran
+the S&P 600 half on Chan's own file. This entry runs the S&P 400 half and
+reads the three universes as one ladder, so the explanation is tested on three
+points rather than two. Its tables drop the published-figure, gap and verdict
+columns, as Entry 44's do.
+
+Sixteen rows, all derivable from
+[tests/test_khandani_lo_mid_caps.py](../tests/test_khandani_lo_mid_caps.py).
+The module is `chan.khandani_lo_mid_caps`. Its S&P 500 and S&P 600 runs give
+the same floats as `chan.khandani_lo_small_caps`, and land on the figures
+Entries 8, 10 and 44 report, which `TestChansTwoFiles` holds.
+
+**Before costs the order holds on the closes and is partial on the opens, so
+the reading is mixed.** On the closes the S&P 400 earns 2.0338, between the
+S&P 500's 0.2510 and the S&P 600's 3.4086. On the opens it earns 3.4533, below
+both the S&P 500's 4.4202 and the S&P 600's 5.3052. So the step from the
+S&P 500 to the S&P 400 rises on the closes and falls on the opens, and the
+step from the S&P 400 to the S&P 600 rises on both. One of the four steps is
+more than twice its standard error, the closes' step from the S&P 500 to the
+S&P 400.
+
+**The control finds the ordering separable from how the panel was built.**
+The S&P 400 figure
+comes from Alpha Vantage, downloaded in 2026, while both neighbours come from
+Chan's vendor files of 2007 and 2008. So the run also builds the S&P 600 the
+way the S&P 400 panel is built and reads it against Chan's S&P 600 file. That
+control lands 0.1108 above Chan's file on the closes and 0.7244 below it on
+the opens. Both gaps are smaller than the S&P 400 figure's distance to its
+nearer neighbour, 1.3748 on the closes and 0.9669 on the opens, so the
+declared reading applies.
+
+**Every reading was declared before any figure was computed.** Three texts on
+the tracker fix it.
+
+1. [Issue 249's comparison declaration](https://github.com/l3a0/quantitative-trading/issues/249#issuecomment-6104832067)
+   reads each figure against its neighbours at the same price, cost treatment
+   and specification, and sizes each gap with Memmel's (2003) correction of
+   Jobson and Korkie (1981). A gap more than twice its standard error reads
+   as larger than one year's noise. Its section for
+   [issue 303](https://github.com/l3a0/quantitative-trading/issues/303) extends the
+   direction reading to an order.
+2. [The body of issue 303](https://github.com/l3a0/quantitative-trading/issues/303)
+   declares the words for three universes. Before costs, the order holds
+   when the S&P 500 sits below the S&P 400 and the S&P 400 below the S&P 600.
+   It is fully reversed when both steps fall, and partial otherwise. Holding
+   at both prices points the way Chan says, fully reversed at both points
+   against it, and anything else is mixed, with each step reported. The body
+   also adds the control and its rule. If the control's gap exceeds, in
+   absolute value, the S&P 400 figure's distance to its nearer neighbour at
+   either price, the ordering is not separable from how the panel was built
+   and no direction is read.
+3. [The declarations before the run](https://github.com/l3a0/quantitative-trading/issues/303#issuecomment-6116653928)
+   fix the two panels, the common days and the flagged days, from prices
+   and outside evidence alone, before any return was computed on either
+   panel.
+
+Every row reads the same vintages, window and specification, so they are
+stated once here.
+
+1. **The vintages.** The S&P 500 is Entry 8's `spx_20071123/`, the index as
+   it stood on 2007-11-23. The S&P 600 is Entry 44's `ijr_20080114/`, the
+   index as it stood on 2008-01-14. The S&P 400 is IJH's 401 holdings in
+   iShares Trust's N-Q for 2007-12-31, accession `0001193125-08-043324`,
+   mapped and checked in `research/filings/ijh/members.csv`, and priced from
+   the `sp400` cross-section of the owner's archive, Alpha Vantage's
+   `TIME_SERIES_DAILY_ADJUSTED` downloaded on 2026-10-11. A run holds the 285
+   holdings that pass the price check and have a 2006 row before the vendor's
+   cut-off. The control is IJR's 602 holdings in the same N-Q, in
+   `research/filings/ijr/members_2007-12-31.csv`, held by the same rule, which
+   keeps 385, and priced from the `sp600` cross-section, downloaded on
+   2026-10-05 and 2026-10-11. `tests/test_sp400_panel.py` pins both members
+   files and every count. **Every figure here is about survivors**, on all
+   four panels.
+2. **The window.** 2006-01-03 to 2006-12-29, 251 trading days, the same days
+   in all four panels at both prices, which `TestThePanels` holds. So the gaps
+   pair two daily profit series day by day through `same_days` as written,
+   and nothing is intersected.
+3. **The specification.** Rule B, `chan.khandani_lo.reversal` run unchanged,
+   on the closes and on the opens. On the archive panels a close is the
+   vendor's `adjusted_close`, and an open is `open × adjusted_close / close`
+   on the same day, because the vendor adjusts only the close. Chan's files
+   are read as Entry 44 reads them. The cost is 5 basis points on each side of
+   a change in weight, and the Sharpe ratio is √252 times the mean over the
+   standard deviation with no risk-free rate. Each run gives Entry 8's three
+   figures: before costs, after costs with Chan's two quirks kept, and after
+   costs with the first day charged.
+
+Every result here is **EXPLORATORY**. The run varies a published rule on data
+Chan left as an exercise, so it says which way each step points on one year
+of survivors and how each compares with that year's noise. It confirms
+nothing about Chan's explanation, and a reading that pointed his way would
+earn a registered test on data the run has not seen.
+
+### What the book stated
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | The S&P 400 on the closes, before costs | nothing, the exercise asks for the run and prints no figure | location 2236, p. 78 |
+| 2 to 6 | The S&P 400's other five figures | nothing | n/a |
+| 7 to 10 | Each before-cost step against its standard error | nothing | n/a |
+| 11 to 15 | The control | nothing, the control is this issue's own | n/a |
+| 16 | Where the returns come from | "most of the returns are generated by small and microcap stocks", a claim rather than a figure | Kindle location 2137 |
+
+Khandani and Lo's 4.47 for 2006, at location 2099, takes no row, for Entry
+44's reason. The report prints it and the entry judges nothing against it.
+
+### What this repo computed
+
+| # | Price and specification | S&P 500 | S&P 400 | S&P 600 | Assertion |
+| --- | --- | --- | --- | --- | --- |
+| 1 | closes, before costs | 0.2510 | 2.0338 | 3.4086 | `TestTheMidCapFigures::test_closes` and `TestChansTwoFiles::test_the_pinned_figures` |
+| 2 | closes, after costs, first day uncharged and its NaN counted as 0 | −3.1884 | −1.4444 | −0.3702 | the same |
+| 3 | closes, after costs, first day charged | −3.2337 | −1.4524 | −0.3255 | the same |
+| 4 | opens, before costs | 4.4202 | 3.4533 | 5.3052 | `TestTheMidCapFigures::test_opens` and `TestChansTwoFiles::test_the_pinned_figures` |
+| 5 | opens, after costs, first day uncharged and its NaN counted as 0 | 0.7834 | 0.4589 | 2.0147 | the same |
+| 6 | opens, after costs, first day charged | 0.8293 | 0.4884 | 2.0257 | the same |
+
+Each step is the smaller index's figure less the larger's, so a positive
+step rises as capitalisation falls.
+
+| # | Step before costs | Gap | Standard error | Correlation | z | One year's noise | Assertion |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 7 | closes, S&P 400 less S&P 500 | +1.7828 | 0.8114 | 0.6758 | +2.1973 | beyond | `TestTheGapsToBothNeighbours::test_the_gap` |
+| 8 | closes, S&P 600 less S&P 400 | +1.3748 | 1.0113 | 0.5028 | +1.3593 | within | the same |
+| 9 | opens, S&P 400 less S&P 500 | −0.9669 | 0.8972 | 0.6188 | −1.0777 | within | the same |
+| 10 | opens, S&P 600 less S&P 400 | +1.8519 | 1.1948 | 0.3250 | +1.5500 | within | the same |
+
+The control is read with its three exclusions, which is primary, and
+without them. Its gap is its figure less Chan's S&P 600 file's, before costs.
+
+| # | Specification | With the exclusions | Without them | Assertion |
+| --- | --- | --- | --- | --- |
+| 11 | closes, before costs, after costs uncharged, after costs charged | 3.5194, 0.0655, 0.0575 | 1.8962, 0.9858, 0.9798 | `TestTheControl::test_the_figures_with_and_without_the_exclusions` |
+| 12 | opens, the same three | 4.5808, 1.6774, 1.6903 | 2.6002, 1.5671, 1.5679 | the same |
+| 13 | closes, gap to Chan's file, standard error, correlation, z | +0.1108, 0.4943, 0.8836, +0.2241, within one year's noise | −1.5124, 1.2979, 0.1758, −1.1653, within | `TestTheControl::test_the_gap_to_chans_file` and `::test_the_gap_without_the_exclusions` |
+| 14 | opens, the same | −0.7244, 0.5768, 0.8484, −1.2559, within | −2.7050, 1.2882, 0.2070, −2.0998, beyond | the same |
+| 15 | each gap against the S&P 400's distance to its nearer neighbour, 1.3748 on the closes and 0.9669 on the opens | inside at both prices, so separable | outside at both | `TestTheControl::test_the_ordering_is_separable_with_the_exclusions_and_not_without` |
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 16 | rows 1 and 4 read against the declaration | the order holds on the closes and is partial on the opens, where the step from the S&P 500 to the S&P 400 does not rise, so mixed | `TestTheRunsReading::test_it_reads_mixed` |
+
+The S&P 500 and S&P 600 columns are Entry 8's rows 1 to 3, Entry 10's rows 6
+to 8 and Entry 44's rows 1 to 6.
+`TestChansTwoFiles::test_they_are_the_small_cap_modules_runs_to_the_bit`
+holds that this module's runs give the same floats as
+`chan.khandani_lo_small_caps`, and `TestChansTwoFiles::test_the_pinned_figures`
+holds them at the four decimals those entries quote.
+
+### What each row says
+
+| # | Why it is here |
+| --- | --- |
+| 1 | The primary reading on the closes. The S&P 400 sits between its neighbours. |
+| 2 | After Chan's costs the S&P 400 still loses on the closes, by less than the S&P 500 and more than the S&P 600. |
+| 3 | The same, with the first day charged. |
+| 4 | The primary reading on the opens. The S&P 400 sits below both neighbours, so the order breaks at its first step. |
+| 5 | After costs the S&P 400 keeps a profit on the opens, below both neighbours. The run charges all three universes 5 basis points, so these rows flatter the smaller indexes. |
+| 6 | The same, with the first day charged. |
+| 7 | The one step beyond one year's noise. |
+| 8 | The closes' second step rises and sits within noise. |
+| 9 | The step that breaks the order is about one standard error, so one year cannot tell it from noise. |
+| 10 | The opens' second step rises and sits within noise. |
+| 11 | Built the way the S&P 400 panel is, the S&P 600 lands near Chan's file on the closes. Without the exclusions it lands far below. |
+| 12 | On the opens it lands lower than Chan's file, and without the exclusions further below still. |
+| 13 | The closes' control gap is about a fifth of a standard error. |
+| 14 | The opens' control gap is the larger, and it is still inside the step it is read against. |
+| 15 | The control rule. With the exclusions, how the panel was built moves the S&P 600 less than the S&P 400's nearer step at both prices. Without them it would move it more at both. |
+| 16 | The declared reading. It rests on rows 1 and 4, and rows 7 to 10 say three of its four steps are within noise. |
+
+### The flagged days
+
+`chan.series.scale_breaks` flags a day when a stock's price moves past the
+factor-of-1.6 bound. Over 2005-12-01 to 2006-12-31, on each held member's own
+adjusted close and adjusted open, it flags five days, each on both prices.
+They were classified before any strategy figure was computed, in
+[the declarations before the run](https://github.com/l3a0/quantitative-trading/issues/303#issuecomment-6116653928),
+under [issue 249](https://github.com/l3a0/quantitative-trading/issues/249)'s
+rule. A real traded move stays in, and an unadjusted split
+or a splice has the member's return on that day set to NaN.
+
+1. **KCI on 2006-08-04, in the S&P 400, stays in.** The close went from
+   42.58 to 24.95, on 13.6 million shares against 1.5 million the day
+   before. Kinetic Concepts'
+   [8-K of 2006-08-03](https://www.sec.gov/Archives/edgar/data/0000831967/000134100406002101/pal211033.txt)
+   reports a jury verdict that a competitor's device did not infringe its
+   patents. `TestTheFlaggedDayKept` holds that its return is finite and
+   weighted on both prices.
+2. **CORSQ on 2006-05-19, in the control, is excluded.** The raw close went
+   from 59.21 to 30.00, an unadjusted 2-for-1 split. Corus Bankshares'
+   [8-K](https://www.sec.gov/Archives/edgar/data/51939/000127528706002929/cb5932.htm)
+   records the distribution on 2006-05-18.
+3. **ZD on 2006-05-25, in the control, is excluded.** The raw close went from
+   51.67 to 28.15, another unadjusted 2-for-1 split. An
+   [ISE circular](https://iseoptions.com/marketplace/files/adjustments/2006/2006-103-J2_Global_Communications-_Inc._(JCOM)_2_for_1_Stock_Split-20060522.pdf)
+   gives the ex-date as 2006-05-25.
+4. **MAG on 2006-01-10, in the control, is excluded.** One day prints 1.295
+   between closes of 3.32 and 3.38, on 56,800 shares against 1.9 million the
+   day before, and the open prints the same 1.295. `scale_breaks` flags that
+   day and the next.
+   [Issue 249](https://github.com/l3a0/quantitative-trading/issues/249)'s
+   rule names splits and splices, and a one-day
+   bad print is neither, so the declarations extended the rule to it: its
+   price on 2006-01-10 is NaN on both prices, which makes the returns on
+   2006-01-10 and 2006-01-11 NaN.
+
+`TestTheFlaggedDaysRawRows` pins each raw close and volume quoted above.
+
+Rule B reads prices, so `chan.khandani_lo_mid_caps.exclude` makes a split
+day's return NaN by carrying the member under two columns, one holding its
+prices before the day and one from the day on. Every price and every other
+return stays what it was, and so does each day's count of priced members.
+Rule B weights a return that is not finite at 0, so the member closes its
+position on the split day and opens it again the next. After costs this
+charges closing the position and reopening it, which a NaN return alone would
+not, so the control's after-cost rows include that charge. A literal NaN
+return on the two split days gives 0.0657 and 0.0577 on the closes and 1.6775
+and 1.6904 on the opens, against rows 11 and 12's 0.0655, 0.0575, 1.6774 and
+1.6903.
+`TestTheControl::test_a_literal_nan_return_on_the_split_days_moves_only_the_after_cost_figures`
+holds those four, and that the before-cost figures do not move, so neither
+does the reading.
+`TestTheControl::test_the_exclusion_changes_the_returns_on_exactly_the_declared_cells`
+holds that on both prices the control's returns change on exactly the four
+cells above, and `TestTheExclusions` holds the same on frames built by hand.
+
+The exclusions decide whether the control passes its rule. Without them the
+control lands 1.5124 below Chan's file on the closes and 2.7050 below on the
+opens, rows 13 and 14, which would put both outside the S&P 400's steps. The
+S&P 400 panel has nothing excluded, so it has one set of figures.
+
+The module does not call the scale-break guard,
+`chan.series.refuse_window_crossing_a_break`, and its docstring says why. The
+guard would stop the run over these five days, and their treatment was
+decided in writing before the run.
+
+### The holdings the run leaves out
+
+IJH held 401 stocks on 2007-12-31. The run holds 285 of them, 71.1% by count
+and 74.8% by value, and leaves out 116 in three groups.
+
+1. **103 fail the price check.** The check asks whether Alpha Vantage's raw
+   close on 2007-12-31 times the filing's share count equals the filing's
+   value, within half a dollar plus half a share. Seven fail on the price,
+   62 have a series whose first row comes after 2007-12-31, such as DRS's,
+   which starts in 2022, and LEA's, which starts in 2009, and 34 have no
+   series at all.
+2. **10 start on 2006-12-28, the vendor's cut-off.** Alpha Vantage starts
+   many histories that day whatever the company's age, so two rows in 2006
+   are the vendor's cut-off rather than a listing.
+3. **3 have no 2006 row.** EXH and BR did not trade in 2006. PALM did, and
+   its series starts on 2007-10-25, so its absence is a gap in the vendor's
+   data rather than a late listing.
+
+A passing member with only part of 2006 is held, as on Chan's files, since
+rule B weights a return that is not finite at 0. That covers 10 members with
+1 to 7 missing days and HBI, KBR and CMG, which listed during 2006.
+`tests/test_sp400_panel.py` pins every count and ticker here, and
+`TestTheManifestLines` pins where the 62 series start,
+`TestThePanels::test_the_share_of_each_filing_a_run_holds` pins the two
+shares, and
+`uv run python -m chan.sp400_panel report ijh` and `history ijh` print the
+list below.
+
+Every left-out name was in IJH on 2007-12-31. All but EXH and BR are left out
+by how Alpha Vantage serves their tickers today rather than by anything in
+2006. The members file's notes record what became of some of the companies,
+such as Cephalon, which Teva bought in 2011, Foundry Networks, which Brocade
+bought in 2008, and IndyMac and Colonial BancGroup, whose banks failed in 2008
+and 2009. Nothing here counts those fates across the 116. The control is built
+by the same rule and keeps 385 of IJR's 602, 64.0% by count, so it carries the
+same kind of selection.
+
+| Filing row | Ticker | Holding | Why the run leaves it out |
+| --- | --- | --- | --- |
+| 1 | GYI | Getty Images Inc. | price check: no series |
+| 6 | DRS | DRS Technologies Inc. | price check: no row on 2007-12-31 |
+| 14 | TBL | Timberland Co. Class A | first row on 2006-12-28, the vendor's cut-off |
+| 15 | WRC | Warnaco Group Inc. (The) | price check: no row on 2007-12-31 |
+| 19 | LEA | Lear Corp. | price check: no row on 2007-12-31 |
+| 24 | CYN | City National Corp. | price check: no row on 2007-12-31 |
+| 25 | CNB | Colonial BancGroup Inc. (The) | price check: no series |
+| 28 | FMER | FirstMerit Corp. | price check: no row on 2007-12-31 |
+| 30 | SNV | Synovus Financial Corp. | price check: the close disagrees with the filing |
+| 31 | TCF | TCF Financial Corp. | price check: the close disagrees with the filing |
+| 34 | WL | Wilmington Trust Corp. | price check: no series |
+| 37 | AFFX | Affymetrix Inc. | price check: no row on 2007-12-31 |
+| 39 | LIFE | Invitrogen Corp. | price check: no row on 2007-12-31 |
+| 40 | MLNM | Millennium Pharmaceuticals Inc. | price check: no series |
+| 48 | CHMT | Chemtura Corp. | price check: no row on 2007-12-31 |
+| 52 | LZ | Lubrizol Corp. | price check: no row on 2007-12-31 |
+| 58 | VAL | Valspar Corp. (The) | price check: no row on 2007-12-31 |
+| 59 | ACI | Arch Coal Inc. | price check: no row on 2007-12-31 |
+| 63 | CPS | ChoicePoint Inc. | price check: no row on 2007-12-31 |
+| 64 | COCO | Corinthian Colleges Inc. | price check: no row on 2007-12-31 |
+| 69 | ESI | ITT Educational Services Inc. | price check: no row on 2007-12-31 |
+| 73 | MPS | MPS Group Inc. | price check: no series |
+| 74 | NCI | Navigant Consulting Inc. | price check: no row on 2007-12-31 |
+| 75 | PPDI | Pharmaceutical Product Development Inc. | price check: no series |
+| 80 | BID | Sotheby’s Holdings Inc. Class A | price check: no row on 2007-12-31 |
+| 83 | VCI | Valassis Communications Inc. | first row on 2006-12-28, the vendor's cut-off |
+| 85 | DBD | Diebold Inc. | price check: no row on 2007-12-31 |
+| 89 | MENT | Mentor Graphics Corp. | price check: no row on 2007-12-31 |
+| 91 | PALM | Palm Inc. | no 2006 row, first row 2007-10-25 |
+| 92 | SRX | SRA International Inc. Class A | price check: no row on 2007-12-31 |
+| 95 | ACV | Alberto-Culver Co. | price check: no row on 2007-12-31 |
+| 97 | IM | Ingram Micro Inc. Class A | price check: no row on 2007-12-31 |
+| 99 | ACF | AmeriCredit Corp. | price check: no row on 2007-12-31 |
+| 100 | EV | Eaton Vance Corp. | price check: no row on 2007-12-31 |
+| 101 | IMB | IndyMac Bancorp Inc. | price check: no series |
+| 102 | JEF-1 | Jefferies Group Inc. | first row on 2006-12-28, the vendor's cut-off |
+| 106 | ILA | Aquila Inc. | price check: no series |
+| 109 | EAS | Energy East Corp. | price check: no series |
+| 115 | NST | NSTAR | price check: no series |
+| 118 | PSD | Puget Energy Inc. | price check: no series |
+| 120 | NVE | Sierra Pacific Resources Corp. | price check: no series |
+| 121 | WR | Westar Energy Inc. | price check: no row on 2007-12-31 |
+| 125 | HUBB | Hubbell Inc. Class B | price check: no row on 2007-12-31 |
+| 130 | KEM | KEMET Corp. | price check: no row on 2007-12-31 |
+| 132 | TNB | Thomas & Betts Corp. | price check: no series |
+| 133 | VARI | Varian Inc. | price check: no series |
+| 148 | HTSI | Ruddick Corp. | price check: no series |
+| 149 | SFD | Smithfield Foods Inc. | price check: no row on 2007-12-31 |
+| 154 | TIN | Temple-Inland Inc. | price check: no row on 2007-12-31 |
+| 161 | EYE | Advanced Medical Optics Inc. | price check: no row on 2007-12-31 |
+| 162 | BEC | Beckman Coulter Inc. | price check: no row on 2007-12-31 |
+| 165 | GPRO | Gen-Probe Inc. | price check: no row on 2007-12-31 |
+| 169 | ISRG | Intuitive Surgical Inc. | price check: the close disagrees with the filing |
+| 174 | VMSI | Ventana Medical Systems Inc. | price check: no row on 2007-12-31 |
+| 175 | AHG | Apria Healthcare Group Inc. | price check: the close disagrees with the filing |
+| 178 | HMA | Health Management Associates Inc. Class A | price check: no row on 2007-12-31 |
+| 182 | LNCR | Lincare Holdings Inc. | price check: no series |
+| 183 | PSYS | Psychiatric Solutions Inc. | price check: no row on 2007-12-31 |
+| 192 | FBN | Furniture Brands International Inc. | price check: the close disagrees with the filing |
+| 193 | AM | American Greetings Corp. Class A | price check: no row on 2007-12-31 |
+| 201 | CGI | Commerce Group Inc. | price check: the close disagrees with the filing |
+| 206 | HCC | HCC Insurance Holdings Inc. | price check: no row on 2007-12-31 |
+| 210 | PMI | PMI Group Inc. (The) | price check: no row on 2007-12-31 |
+| 211 | PL | Protective Life Corp. | price check: no row on 2007-12-31 |
+| 216 | AVCT | Avocent Corp. | price check: no row on 2007-12-31 |
+| 217 | DRIV | Digital River Inc. | price check: no row on 2007-12-31 |
+| 219 | MFE | McAfee Inc. | first row on 2006-12-28, the vendor's cut-off |
+| 242 | NVRI | Harsco Corp. | price check: no row on 2007-12-31 |
+| 243 | LANC | Lancaster Colony Corp. | price check: no series |
+| 250 | BLC | Belo Corp. | first row on 2006-12-28, the vendor's cut-off |
+| 251 | AUD | Entercom Communications Corp. | price check: no series |
+| 254 | MEG | Media General Inc. Class A | price check: no row on 2007-12-31 |
+| 264 | EAC | Encore Acquisition Co. | price check: no row on 2007-12-31 |
+| 265 | FST | Forest Oil Corp. | price check: no row on 2007-12-31 |
+| 268 | NFX | Newfield Exploration Co. | price check: no row on 2007-12-31 |
+| 271 | PXP | Plains Exploration & Production Co. | first row on 2006-12-28, the vendor's cut-off |
+| 272 | PDE | Pride International Inc. | price check: no series |
+| 273 | KWKAQ | Quicksilver Resources Inc. | price check: no row on 2007-12-31 |
+| 276 | EXH | Exterran Holdings Inc. | no 2006 row, first row 2007-08-21 |
+| 278 | GRP | Grant Prideco Inc. | price check: no series |
+| 283 | CEPH | Cephalon Inc. | price check: no series |
+| 284 | ENDP | Endo Pharmaceuticals Holdings Inc. | price check: no series |
+| 285 | MRX | Medicis Pharmaceutical Corp. Class A | price check: no row on 2007-12-31 |
+| 286 | NTY | NBTY Inc. | first row on 2006-12-28, the vendor's cut-off |
+| 288 | PRX | Par Pharmaceutical Companies Inc. | first row on 2006-12-28, the vendor's cut-off |
+| 290 | SEPR | Sepracor Inc. | price check: no series |
+| 291 | VRX | Valeant Pharmaceuticals International | price check: the close disagrees with the filing |
+| 292 | WOOF | VCA Antech Inc. | price check: no row on 2007-12-31 |
+| 299 | BRE | BRE Properties Inc. Class A | price check: no series |
+| 303 | EQY | Equity One Inc. | price check: no row on 2007-12-31 |
+| 311 | NHP | Nationwide Health Properties Inc. | price check: no row on 2007-12-31 |
+| 321 | BJ | BJ’s Wholesale Club Inc. | price check: no row on 2007-12-31 |
+| 323 | BGP | Borders Group Inc. | price check: no series |
+| 327 | CHRS | Charming Shoppes Inc. | price check: no row on 2007-12-31 |
+| 331 | CWTR | Coldwater Creek Inc. | price check: no series |
+| 332 | PSS | Collective Brands Inc. | price check: no series |
+| 338 | NDN | 99 Cents Only Stores | first row on 2006-12-28, the vendor's cut-off |
+| 340 | PSUN | Pacific Sunwear of California Inc. | price check: no series |
+| 345 | SKS | Saks Inc. | first row on 2006-12-28, the vendor's cut-off |
+| 352 | ATML | Atmel Corp. | price check: no row on 2007-12-31 |
+| 355 | FCS | Fairchild Semiconductor International Inc. Class A | price check: no row on 2007-12-31 |
+| 367 | BR | Broadridge Financial Solutions Inc. | no 2006 row, first row 2007-04-02 |
+| 370 | DNB | Dun & Bradstreet Corp. (The) | price check: no row on 2007-12-31 |
+| 373 | MV | Metavante Technologies Inc. | price check: no series |
+| 377 | SY | Sybase Inc. | price check: no row on 2007-12-31 |
+| 378 | WIND | Wind River Systems Inc. | price check: no series |
+| 379 | ADCT | ADC Telecommunications Inc. | price check: no row on 2007-12-31 |
+| 381 | CBB | Cincinnati Bell Inc. | price check: no series |
+| 382 | CTV | CommScope Inc. | price check: no row on 2007-12-31 |
+| 383 | FDRY | Foundry Networks Inc. | price check: no series |
+| 385 | NSR | NeuStar Inc. Class A | price check: no row on 2007-12-31 |
+| 386 | POLY | Plantronics Inc. | price check: no row on 2007-12-31 |
+| 388 | PWAV | Powerwave Technologies Inc. | price check: no series |
+| 391 | COMS | 3Com Corp. | price check: no row on 2007-12-31 |
+| 397 | OSGB | Overseas Shipholding Group Inc. | price check: no row on 2007-12-31 |
+| 399 | YELL | YRC Worldwide Inc. | price check: no series |
+
+### The control
+
+The S&P 400 figure comes from another vendor, another download decade and
+71.1% of its index by count, while both neighbours come from Chan's files. A
+gap between the S&P 400 and either neighbour could come from any of those as
+easily as from capitalisation. The control asks how far the same construction
+moves a universe whose figure on Chan's file is known. It is the S&P 600,
+built from IJR's 2007-12-31 schedule by the S&P 400 panel's rule and priced
+from the `sp600` cross-section with the same open adjustment.
+
+IJR's own members file, `research/filings/ijr/members.csv`, records only the
+509 of IJR's 602 holdings that link into the 2008-12-31 schedule, so a control
+read from it would hold only stocks still in the index a year later. The
+control file holds all 602 instead, and its 509 shared rows are byte for byte
+IJR's file's, which `tests/test_sp400_panel.py` holds. So the control carries
+no survival filter the S&P 400 panel lacks.
+
+The rule reads the control's gap against the S&P 400's distance to its nearer
+neighbour, at each price. On the closes the nearer neighbour is the S&P 600,
+1.3748 away, and the control's gap is 0.1108. On the opens it is the S&P 500,
+0.9669 away, and the control's gap is −0.7244. Both are inside, so the
+ordering is separable from how the panel was built and the declared reading
+applies. The opens' margin is the narrower one.
+
+### What the entry concludes
+
+Four things, and the first is the finding.
+
+1. **The reading is mixed.** On the closes the S&P 500, the S&P 400 and the
+   S&P 600 rise in that order before costs, the way Chan's explanation says.
+   On the opens the S&P 400 sits below the S&P 500, so the first step of the
+   ladder breaks, while the second still rises. Under the words declared
+   before the run, an order that holds at one price and is partial at the
+   other is mixed.
+2. **One year resolves one step of the four.** The closes' step from the
+   S&P 500 to the S&P 400 is 2.1973 standard errors. The other three,
+   including the opens' step that breaks the order, are within one year's
+   noise. So the break on the opens is a reading of a gap one year cannot
+   resolve, and so is the rise from the S&P 400 to the S&P 600 at both prices.
+3. **Building the panel from the archive moves the S&P 600 by less than the
+   S&P 400's nearer step.** With the declared exclusions the control lands
+   within one year's noise of Chan's file at both prices, and inside both
+   steps. Under the declared rule that makes the ordering separable from how
+   the panel was built. The rule assumes the construction moves the S&P 400
+   about as much as it moved the S&P 600, which this entry cannot measure.
+   Without the three exclusions the control would land outside both steps,
+   which is why those days were classified before the run rather than after
+   it.
+4. **After costs the closes keep the order and the opens keep the break.**
+   After Chan's costs the S&P 400 earns −1.4444 on the closes, between the
+   S&P 500's −3.1884 and the S&P 600's −0.3702. On the opens it keeps 0.4589,
+   below both neighbours. Nothing was declared for an order after costs, and
+   no standard error sizes these gaps, so this describes the figures rather
+   than reading them. The run charges all three universes 5 basis points a
+   side, so these figures flatter the smaller indexes.
+
+### What this entry cannot say
+
+Six things.
+
+**Anything about microcaps.** Chan's sentence names "small and microcap
+stocks". The S&P 400 holds mid caps and the S&P 600 small caps above an index
+floor, and none of the four panels holds market values, so nothing here
+speaks for microcaps or for stocks outside the three indexes.
+
+**What survivorship after 2007 did.** The S&P 400 panel holds 285 of IJH's
+401 holdings. Every one of the 116 it leaves out but EXH and BR is left out by
+how the vendor serves its ticker today, and they include companies bought or
+failed after 2007, such as Cephalon and IndyMac. Chan's two files are
+survivors too, as of 2007-11-23 and 2008-01-14. A reversal buys the stocks
+that fell, so the missing stocks could move it either way. Nothing here
+measures the size or the sign of that on the S&P 400. The control's gap holds
+the same selection's effect on the S&P 600 only, mixed with the change of
+vendor and download decade.
+[Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) and
+[issue 213](https://github.com/l3a0/quantitative-trading/issues/213) are where
+survivorship is priced.
+
+**Whether the construction moves the S&P 400 as it moved the S&P 600.** The
+control measures what another vendor, another download decade and the same
+selection rule do to the S&P 600 in 2006. The S&P 400 panel keeps a larger
+share of its index than the control does, 71.1% by count against 64.0%, and
+nothing here measures how a mid-cap panel built this way differs from one
+Chan's vendor would have given. The control measures the construction's
+effect on one universe, and the reading assumes it is similar on the other.
+
+**What a trader would keep after costs.** The run charges all three
+universes 5 basis points a side, while smaller stocks cost more to trade. So
+the after-cost figures flatter the S&P 400 against the S&P 500 and the
+S&P 600 against both, and nothing here prices by how much.
+
+**Whether the order holds in another year.** The run reads 2006 only, the
+year of Chan's S&P 500 figures, and three of its four steps are within that
+year's noise. An order that held across years would be a different and
+stronger result.
+
+**Whether Khandani and Lo's 4.47 came from small caps.** Their universe and
+window are not these panels', so nothing here says where their returns came
+from. The report prints 4.47 and judges it against nothing.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.
