@@ -46,13 +46,20 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-  # The backstop, since GitHub can delay or drop a scheduled run under load and
-  # a change made with a workflow's own token starts no run. The generator reads
-  # this line, and the page calls the board stale at twice the longest gap
-  # between two runs, so changing it here moves that threshold too. Off the hour,
-  # because the top of the hour is when GitHub is busiest.
+  # The backstop, since a change made with a workflow's own token starts no run.
+  # GitHub can also delay or drop a scheduled run under load, and it documents
+  # no bound on the delay. The generator reads this line, and the page calls the
+  # board stale once it is older than the longest gap between two runs plus a
+  # 60-minute allowance for a late run, so changing the line here moves that
+  # threshold too. Off the hour, because the top of the hour is when GitHub is
+  # busiest.
+  #
+  # The minutes were 7 and 37 until issue 563. That schedule fired once in the
+  # five and a half hours after it reached main, out of about 11 slots due. The
+  # minutes moved to 8 and 38 because a changed cron line makes GitHub register
+  # the schedule anew.
   schedule:
-    - cron: "7,37 * * * *"
+    - cron: "8,38 * * * *"
   workflow_dispatch:
 
 permissions: {}

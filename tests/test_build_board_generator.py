@@ -171,7 +171,7 @@ class FakeGitHub:
 
 
 def build(gh: FakeGitHub) -> tuple[dict, dict]:
-    return bb.build(gh, REPO, 60, NOW)
+    return bb.build(gh, REPO, 30, NOW)
 
 
 def prs_of(board: dict) -> list[dict]:
@@ -307,7 +307,8 @@ def test_an_issue_with_no_judgement_set_reads_as_a_plain_card() -> None:
     state = board["state"]
     assert state["updatedAt"] == "2026-10-11T15:00:00Z"
     assert state["issues"] == {"open": 2}
-    assert state["staleAfterMinutes"] == 60
+    assert state["rebuildEveryMinutes"] == 30
+    assert state["staleAfterMinutes"] == 90
     assert "lacks" not in state
     assert state["source"] == "github"
 
@@ -1131,19 +1132,30 @@ def test_the_cli_exits_non_zero_when_github_cannot_be_read(
 # ---- The stale threshold ----
 
 
-def test_the_stale_threshold_is_twice_the_workflows_longest_gap() -> None:
-    """Protects the page's stale warning from a second copy of the schedule."""
-    assert bb.stale_after_minutes(WORKFLOW) == 60
+def test_the_stale_threshold_is_the_longest_gap_plus_an_hour_for_a_late_run() -> None:
+    """Protects the page's stale warning from a second copy of the schedule.
+
+    The workflow's ``8,38 * * * *`` leaves 30 minutes between runs. GitHub can
+    start a scheduled run late and documents no bound, so the threshold adds a
+    60-minute allowance rather than doubling the gap. At twice the gap, one run
+    an hour late in a stretch with no other events read as a failing Action.
+    """
+    assert bb.SCHEDULE_DELAY_ALLOWANCE == 60
+    assert bb.longest_gap_minutes(WORKFLOW) == 30
+    assert bb.stale_after_minutes(bb.longest_gap_minutes(WORKFLOW)) == 90
 
 
 @pytest.mark.parametrize(
-    ("cron", "minutes"),
-    [("*/15 * * * *", 30), ("0 * * * *", 120), ("5,15 * * * *", 100)],
+    ("cron", "gap", "stale_after"),
+    [("*/15 * * * *", 15, 75), ("0 * * * *", 60, 120), ("5,15 * * * *", 50, 110)],
 )
-def test_the_threshold_follows_the_schedule(tmp_path: Path, cron: str, minutes: int) -> None:
+def test_the_threshold_follows_the_schedule(
+    tmp_path: Path, cron: str, gap: int, stale_after: int
+) -> None:
     workflow = tmp_path / "board.yml"
     workflow.write_text(f'on:\n  schedule:\n    - cron: "{cron}"\n')
-    assert bb.stale_after_minutes(workflow) == minutes
+    assert bb.longest_gap_minutes(workflow) == gap
+    assert bb.stale_after_minutes(gap) == stale_after
 
 
 @pytest.mark.parametrize(
@@ -1160,7 +1172,7 @@ def test_a_schedule_it_cannot_read_stops_the_run(tmp_path: Path, lines: str) -> 
     workflow = tmp_path / "board.yml"
     workflow.write_text("on:\n  schedule:\n" + lines)
     with pytest.raises(bb.BoardError):
-        bb.stale_after_minutes(workflow)
+        bb.longest_gap_minutes(workflow)
 
 
 # ---- The page, on what the generator wrote ----

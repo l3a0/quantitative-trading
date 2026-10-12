@@ -381,7 +381,8 @@ const PRU = "https://github.com/l3a0/quantitative-trading/pull/";
 
    The file holds six sections, state, prs, working, planned, next and tracker.
    Each is { schema: 1, items: [...] }, except state, which is
-   { schema: 1, updatedAt, issues: { open }, source, staleAfterMinutes }.
+   { schema: 1, updatedAt, issues: { open }, source, rebuildEveryMinutes,
+   staleAfterMinutes }.
 
    FALLBACK carries no board data. A copy of the six sections used to sit
    here, and a copy goes stale silently, because nothing refreshes it once the
@@ -459,6 +460,12 @@ function adopt(src) {
    workflow's schedule, and a second copy written here would drift the first
    time the schedule changed.
 
+   The threshold is the longest gap between two scheduled runs plus an
+   allowance for a run GitHub starts late, so the banner names the gap rather
+   than promising a rebuild by any time. GitHub documents no bound on the
+   delay. Until issue 563 the threshold was twice the gap, which would call a
+   healthy board stale whenever one run came an hour late in a quiet stretch.
+
    Until issue 533 the board also named the fields it did not carry yet, from
    a `lacks` list in the state, while the artifact board stayed the board of
    record. Every field now comes from GitHub, so that note is gone. */
@@ -467,10 +474,12 @@ function liveNotes() {
   const out = [];
   if (isNum(s.staleAfterMinutes)) {
     const age = (Date.now() - new Date(s.updatedAt).getTime()) / 60000;
+    const due = isNum(s.rebuildEveryMinutes)
+      ? `A scheduled rebuild is due every ${s.rebuildEveryMinutes} minutes, ` +
+        `though GitHub can start one late, so the Action that rebuilds it may be failing.`
+      : `The Action that rebuilds it may be failing.`;
     if (age > s.staleAfterMinutes) out.push(
-      `<b>This board may be stale.</b> It was built from GitHub ${esc(ago(s.updatedAt))}, ` +
-      `while a scheduled rebuild runs at least every ${s.staleAfterMinutes / 2} minutes, ` +
-      `so the Action that rebuilds it may be failing.`);
+      `<b>This board may be stale.</b> It was built from GitHub ${esc(ago(s.updatedAt))}. ` + due);
   }
   return out;
 }
