@@ -307,8 +307,8 @@ where they were first built. The other forty-four were built here.
     the sample one day later moves `genhurst` to 0.4891, which prints as 0.49,
     but the script's other figures place its own run at the first close.
     Example 2.5's P&L ends positive at
-    0.1141 after a fall of 0.6425, which is the claim the issue declared
-    before any P&L was computed. Its lookback comes from the closes it trades,
+    0.1141, which is the claim the issue declared before any P&L was
+    computed. On the way it falls 0.6425 from a high of 0.1321. Its lookback comes from the closes it trades,
     as the book says. Every figure is exploratory.
 23. The cointegration tests and mean-reverting portfolio of *Algorithmic
     Trading*'s Examples 2.6 to 2.8, on the ETFs EWA, EWC and IGE in Chan's own
