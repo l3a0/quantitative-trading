@@ -7,9 +7,12 @@ no network. Every pin reads the committed record, and every parser test reads a
 few rows cut from the real document, under ``tests/fixtures/filings/``.
 
 **What pins a number here is the accession rather than a vintage.** An SEC
-filing is never restated, so the accession names fixed bytes, and the index's
-``document_sha256`` says which bytes were parsed. The record was written on
-2026-10-04 from the documents the survey on
+filing is never restated, so the submission an accession names is fixed, and
+the index's ``document_sha256`` says which of its bytes were parsed. Those are
+the document as the submission text file stores it, because EDGAR's front end
+rewrites an HTML document at its own URL, as
+[issue 510](https://github.com/l3a0/quantitative-trading/issues/510) measured.
+The record was written on 2026-10-04 from the documents the survey on
 [issue 361](https://github.com/l3a0/quantitative-trading/issues/361)
 downloaded that day.
 
@@ -161,6 +164,15 @@ class TestTheCommittedRecord:
         files = [fund_holdings.FILINGS_DIR / fund_holdings.INDEX_NAME]
         files += [fund_holdings.FILINGS_DIR / entry.path for entry in read_index()]
         assert sum(path.stat().st_size for path in files) == 2_672_010
+
+    def test_the_index_pins_43_html_documents_on_54_lines_and_35_xml(self) -> None:
+        # The counts research/filings/README.md quotes for the re-pin of
+        # issue 510. IJR and IVV share each December N-Q, so 54 lines name 43.
+        index = read_index()
+        html = [e for e in index if not e.document.endswith(".xml")]
+        xml = [e for e in index if e.document.endswith(".xml")]
+        assert (len(html), len({e.accession for e in html})) == (54, 43)
+        assert (len(xml), len({e.accession for e in xml})) == (35, 35)
 
     def test_nport_years_print_no_total(self) -> None:
         nport = [e.printed_total for e in read_index() if e.fund == "IJR" and e.form != "N-Q"]
@@ -539,6 +551,38 @@ _NQ_FILING = Filing("2018-12-31", "N-Q", "0001193125-19-059323", "2019-03-01", "
 _FUND = Fund("IJR", "S000004313", IJR.schedule_names, (_NPORT_FILING,), ())
 
 
+def _block(name: str, text: bytes, *, xml: bool = False) -> bytes:
+    """One ``<DOCUMENT>`` block as a submission text file carries it."""
+    body = b"<XML>\n" + text + b"</XML>\n" if xml else text
+    return (
+        b"<DOCUMENT>\n<TYPE>N-Q\n<SEQUENCE>1\n<FILENAME>"
+        + name.encode()
+        + b"\n<DESCRIPTION>FORM\n<TEXT>\n"
+        + body
+        + b"</TEXT>\n</DOCUMENT>\n"
+    )
+
+
+def _submission(*blocks: bytes) -> bytes:
+    """A submission text file holding the blocks, with a header before them."""
+    return (
+        b"<SEC-DOCUMENT>0000000000-00-000000.txt : 20080229\n"
+        b"<SEC-HEADER>0000000000-00-000000.hdr.sgml : 20080229\n"
+        b"<FILENAME>header-only.htm\n</SEC-HEADER>\n" + b"".join(blocks) + b"</SEC-DOCUMENT>\n"
+    )
+
+
+def _nport_submission(document: bytes) -> bytes:
+    """A submission whose ``primary_doc.xml`` is ``document``, beside an exhibit."""
+    return _submission(
+        _block("primary_doc.xml", document, xml=True),
+        _block("NPORT_exhibit.htm", b"<HTML><BODY>exhibit</BODY></HTML>\n"),
+    )
+
+
+_HTML = b"<HTML><HEAD>\n<TITLE>Form N-Q</TITLE>\n</HEAD>\n <BODY>\nschedule\n</BODY></HTML>\n"
+
+
 class TestRecord:
     def test_a_parse_writes_its_file_and_index_line(self, tmp_path: Path) -> None:
         document = _fixture("nport-2022-title-and-cusip.xml")
@@ -618,6 +662,94 @@ class TestRecord:
         assert not any(tmp_path.iterdir())
 
 
+class TestSubmittedDocument:
+    def test_an_html_document_is_its_whole_block(self) -> None:
+        block = _block(_NQ_FILING.document, _HTML)
+        submission = _submission(
+            _block("dex99cert.htm", b"<HTML><BODY>before</BODY></HTML>\n"),
+            block,
+            _block("dex99cert2.htm", b"<HTML><BODY>after</BODY></HTML>\n"),
+        )
+        cut = fund_holdings.submitted_document(submission, _NQ_FILING)
+        assert cut == block
+        assert cut.startswith(b"<DOCUMENT>\n<TYPE>") and cut.endswith(b"</DOCUMENT>\n")
+
+    def test_a_closing_tag_inside_a_line_of_text_does_not_end_the_block(self) -> None:
+        # The wrapper's tags open their own lines, so text quoting one mid-line
+        # stays inside the document.
+        block = _block(_NQ_FILING.document, b"<P>quotes x</DOCUMENT>\n here</P>\n" + _HTML)
+        assert fund_holdings.submitted_document(_submission(block), _NQ_FILING) == block
+
+    def test_an_xml_document_drops_the_first_newline_and_keeps_the_last(self) -> None:
+        document = b'<?xml version="1.0"?><edgarSubmission>\n</edgarSubmission>\n'
+        cut = fund_holdings.submitted_document(_nport_submission(document), _NPORT_FILING)
+        assert cut == document
+        assert cut.startswith(b"<?xml") and cut.endswith(b"</edgarSubmission>\n")
+
+    def test_the_format_is_read_from_the_block_rather_than_the_name(self) -> None:
+        # An .xml name whose text holds no <XML> wrapper is cut as a whole block.
+        block = _block("primary_doc.xml", b"<edgarSubmission/>\n")
+        cut = fund_holdings.submitted_document(_submission(block), _NPORT_FILING)
+        assert cut == block
+
+    def test_a_filename_line_inside_another_documents_text_is_not_a_name(self) -> None:
+        quoting = _block("dex99.htm", b"<FILENAME>d655820dnq.htm\n")
+        block = _block(_NQ_FILING.document, _HTML)
+        assert fund_holdings.submitted_document(_submission(quoting, block), _NQ_FILING) == block
+
+    def test_a_filename_line_in_a_blocks_own_text_is_not_its_name(self) -> None:
+        # A block's name sits in its header, ahead of its first <TEXT> line, so
+        # a block whose header names nothing is not named by its own text.
+        unnamed = (
+            b"<DOCUMENT>\n<TYPE>N-Q\n<SEQUENCE>1\n<DESCRIPTION>FORM\n<TEXT>\n"
+            b"<FILENAME>d655820dnq.htm\n" + _HTML + b"</TEXT>\n</DOCUMENT>\n"
+        )
+        with pytest.raises(FilingRefused, match="holds 0 documents named d655820dnq.htm"):
+            fund_holdings.submitted_document(_submission(unnamed), _NQ_FILING)
+
+    def test_an_html_block_quoting_an_xml_wrapper_is_still_whole(self) -> None:
+        # The format is read from the header's <TEXT> line, so a wrapper the
+        # document's own text quotes does not make the block XML.
+        block = _block(_NQ_FILING.document, _HTML + b"<TEXT>\n<XML>\n<a/>\n</XML>\n")
+        assert fund_holdings.submitted_document(_submission(block), _NQ_FILING) == block
+
+    def test_a_text_tag_inside_a_header_line_does_not_start_the_text(self) -> None:
+        # The <TEXT> that ends the header opens its own line, so a header line
+        # quoting the tag mid-line neither ends the header nor sets the format.
+        document = b"<edgarSubmission/>\n"
+        block = _block("primary_doc.xml", document, xml=True).replace(
+            b"<DESCRIPTION>FORM\n", b"<DESCRIPTION>see <TEXT>\n"
+        )
+        cut = fund_holdings.submitted_document(_submission(block), _NPORT_FILING)
+        assert cut == document
+
+    def test_a_name_that_only_ends_with_the_documents_name_is_refused(self) -> None:
+        submission = _submission(_block("x" + _NQ_FILING.document, _HTML))
+        with pytest.raises(FilingRefused, match="holds 0 documents named d655820dnq.htm"):
+            fund_holdings.submitted_document(submission, _NQ_FILING)
+
+    def test_trailing_spaces_on_the_name_line_still_match(self) -> None:
+        block = _block(_NQ_FILING.document + "   ", _HTML)
+        assert fund_holdings.submitted_document(_submission(block), _NQ_FILING) == block
+
+    def test_a_document_the_submission_does_not_hold_is_refused(self) -> None:
+        submission = _submission(_block("dnq.htm", _HTML))
+        with pytest.raises(FilingRefused, match="holds 0 documents named d655820dnq.htm"):
+            fund_holdings.submitted_document(submission, _NQ_FILING)
+
+    def test_two_documents_sharing_the_name_are_refused(self) -> None:
+        block = _block(_NQ_FILING.document, _HTML)
+        with pytest.raises(FilingRefused) as refusal:
+            fund_holdings.submitted_document(_submission(block, block), _NQ_FILING)
+        assert "holds 2 documents named d655820dnq.htm" in str(refusal.value)
+        assert "\n" not in str(refusal.value)
+
+    def test_an_xml_wrapper_that_never_closes_is_refused(self) -> None:
+        block = _block("primary_doc.xml", b"<XML>\n<edgarSubmission/>\n")
+        with pytest.raises(FilingRefused, match="opens <XML> and never closes it"):
+            fund_holdings.submitted_document(_submission(block), _NPORT_FILING)
+
+
 class TestFetch:
     def test_the_contact_comes_from_the_environment_before_the_config(self, tmp_path: Path) -> None:
         config = tmp_path / "sec_user_agent"
@@ -632,10 +764,14 @@ class TestFetch:
         assert "QT_SEC_USER_AGENT" in str(refusal.value)
         assert "sec_user_agent" in str(refusal.value)
 
-    def test_the_document_url(self) -> None:
-        assert fund_holdings.document_url(_filing("2018-12-31")) == (
-            "https://www.sec.gov/Archives/edgar/data/1100663/000119312519059323/d655820dnq.htm"
+    def test_the_submission_url(self) -> None:
+        assert fund_holdings.submission_url(_filing("2018-12-31")) == (
+            "https://www.sec.gov/Archives/edgar/data/1100663/000119312519059323/"
+            "0001193125-19-059323.txt"
         )
+
+    def test_the_submission_url_takes_the_cik(self) -> None:
+        assert "/data/42/" in fund_holdings.submission_url(_filing("2018-12-31"), cik=42)
 
     def test_a_fetch_downloads_records_and_paces(self, tmp_path: Path) -> None:
         second = Filing(
@@ -646,7 +782,7 @@ class TestFetch:
 
         def download(url: str, contact: str) -> bytes:
             asked.append((url, contact))
-            return _fixture("nport-2022-title-and-cusip.xml")
+            return _nport_submission(_fixture("nport-2022-title-and-cusip.xml"))
 
         entries = fund_holdings.fetch(
             fund,
@@ -657,6 +793,9 @@ class TestFetch:
         )
         assert [e.report_date for e in entries] == ["2022-12-30", "2023-12-31"]
         assert [contact for _, contact in asked] == ["Name n@example.com"] * 2
+        assert [url for url, _ in asked] == [
+            fund_holdings.submission_url(filing) for filing in fund.filings
+        ]
         assert pauses == [fund_holdings.REQUEST_SPACING_SECONDS]
         assert fund_holdings.REQUEST_SPACING_SECONDS > 0.1
 
@@ -685,7 +824,7 @@ class TestFetch:
         with pytest.raises(FilingRefused, match="could not be read"):
             fund_holdings._download("https://www.sec.gov/x", "n@example.com")
 
-    def test_a_download_the_index_does_not_recognise_is_refused(self, tmp_path: Path) -> None:
+    def test_a_document_the_index_does_not_recognise_is_refused(self, tmp_path: Path) -> None:
         document = _fixture("nport-2022-title-and-cusip.xml")
         record(_FUND, _NPORT_FILING, document, tmp_path)
         with pytest.raises(FilingRefused, match="the index records"):
@@ -693,22 +832,23 @@ class TestFetch:
                 _FUND,
                 filings_dir=tmp_path,
                 contact="n@example.com",
-                download=lambda url, contact: document + b"\n",
+                download=lambda url, contact: _nport_submission(document + b"\n"),
                 pause=lambda s: None,
             )
 
-    def test_a_download_is_checked_against_another_funds_line(self, tmp_path: Path) -> None:
-        # One N-Q is one set of bytes for every fund in it, so IVV's download
-        # of an accession IJR's line names must be the bytes IJR's line hashed.
+    def test_a_document_is_checked_against_another_funds_line(self, tmp_path: Path) -> None:
+        # One N-Q is one set of bytes for every fund in it, so the document IVV
+        # cuts from an accession IJR's line names must be the bytes IJR's line
+        # hashed.
         document = _fixture("nport-2022-title-and-cusip.xml")
         record(_FUND, _NPORT_FILING, document, tmp_path)
         other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
-        with pytest.raises(FilingRefused, match="downloaded with sha256"):
+        with pytest.raises(FilingRefused, match="primary_doc.xml hashes to sha256"):
             fund_holdings.fetch(
                 other,
                 filings_dir=tmp_path,
                 contact="n@example.com",
-                download=lambda url, contact: document + b"\n",
+                download=lambda url, contact: _nport_submission(document + b"\n"),
                 pause=lambda s: None,
             )
         assert not (tmp_path / "ivv").exists()
@@ -721,10 +861,70 @@ class TestFetch:
             _FUND,
             filings_dir=tmp_path / "record",
             contact="n@example.com",
-            download=lambda url, contact: _fixture("nport-2022-title-and-cusip.xml"),
+            download=lambda url, contact: _nport_submission(
+                _fixture("nport-2022-title-and-cusip.xml")
+            ),
             pause=lambda s: None,
         )
         assert list(scratch.iterdir()) == []
+
+    def test_an_injected_script_at_the_documents_url_is_never_read(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        # EDGAR's front end inserts a script tag before an HTML document's last
+        # </BODY> at its own URL, with a path that changes about daily. The text
+        # file carries the document without it, so the fetch reads only that.
+        schedule = fund_holdings.Schedule((Holding("Acme Inc.", "10", "100"),), 100)
+        monkeypatch.setattr(fund_holdings, "parse", lambda *arguments: schedule)
+        block = _block(_NQ_FILING.document, _HTML)
+        fund = Fund("IJR", "S000004313", (), (_NQ_FILING,), ())
+        record(fund, _NQ_FILING, block, tmp_path)
+        served = block.replace(
+            b"</BODY>", b'<script type="text/javascript"  src="/rotating/path"></script></BODY>'
+        )
+        archive = "https://www.sec.gov/Archives/edgar/data/1100663/000119312519059323/"
+        pages = {
+            archive + "0001193125-19-059323.txt": _submission(block),
+            archive + "d655820dnq.htm": served,
+        }
+        asked = []
+
+        def download(url: str, contact: str) -> bytes:
+            asked.append(url)
+            return pages[url]
+
+        fund_holdings.fetch(
+            fund,
+            filings_dir=tmp_path,
+            contact="n@example.com",
+            download=download,
+            pause=lambda s: None,
+        )
+        assert asked == [archive + "0001193125-19-059323.txt"]
+
+    def test_a_changed_byte_inside_the_document_is_still_refused(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        schedule = fund_holdings.Schedule((Holding("Acme Inc.", "10", "100"),), 100)
+        monkeypatch.setattr(fund_holdings, "parse", lambda *arguments: schedule)
+        block = _block(_NQ_FILING.document, _HTML)
+        fund = Fund("IJR", "S000004313", (), (_NQ_FILING,), ())
+        record(fund, _NQ_FILING, block, tmp_path)
+        exhibit = _block("dex99cert.htm", b"<HTML><BODY>certification</BODY></HTML>\n")
+
+        def fetch(submission: bytes) -> None:
+            fund_holdings.fetch(
+                fund,
+                filings_dir=tmp_path,
+                contact="n@example.com",
+                download=lambda url, contact: submission,
+                pause=lambda s: None,
+            )
+
+        # Another document in the submission is not what the index pins.
+        fetch(_submission(block, exhibit.replace(b"certification", b"Certification")))
+        with pytest.raises(FilingRefused, match="the index records"):
+            fetch(_submission(block.replace(b"schedule", b"Schedule"), exhibit))
 
     def test_a_refusal_reaches_the_command_line_as_one_line(self, monkeypatch) -> None:
         monkeypatch.delenv("QT_SEC_USER_AGENT", raising=False)

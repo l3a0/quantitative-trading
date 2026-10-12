@@ -84,6 +84,9 @@ The fetch needs a contact for SEC's User-Agent rule, which
 :data:`chan.fund_holdings.REQUEST_SPACING_SECONDS` between requests. The
 downloaded documents are not committed. Each index line carries the sha256 of
 the header file it read, so a rerun that downloads different bytes is refused.
+The header is read as EDGAR serves it, which the fund record no longer does for
+its documents, and the design doc's section "A record that reads a company's
+earnings filings" says why that holds for a header.
 
 ```bash
 uv run python -m chan.earnings_filings fetch
