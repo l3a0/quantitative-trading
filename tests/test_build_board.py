@@ -664,7 +664,9 @@ def test_the_page_links_its_icon_and_the_icon_is_one() -> None:
     file beside the page has to be an icon a browser can read at tab size.
     An ICO file opens with a six-byte header, reserved zero then type 1 then
     a count, and a sixteen-byte directory entry per image whose first byte is
-    the width, with 0 meaning 256.
+    the width, with 0 meaning 256. Each entry ends with the image's size and
+    its offset, and a file cut short keeps a whole directory, so each image is
+    checked to lie inside the file.
     """
     page = PAGE.read_text(encoding="utf-8")
     head = page.split("</head>", 1)[0]
@@ -672,8 +674,11 @@ def test_the_page_links_its_icon_and_the_icon_is_one() -> None:
     icon = (SKILL_DIR / "favicon.ico").read_bytes()
     reserved, kind, count = struct.unpack_from("<HHH", icon, 0)
     assert (reserved, kind) == (0, 1)
-    widths = sorted(icon[6 + 16 * i] or 256 for i in range(count))
-    assert widths == [16, 32, 48, 256]
+    entries = [icon[6 + 16 * i : 22 + 16 * i] for i in range(count)]
+    assert sorted(entry[0] or 256 for entry in entries) == [16, 32, 48, 256]
+    for entry in entries:
+        size, offset = struct.unpack_from("<II", entry, 8)
+        assert offset + size <= len(icon)
 
 
 def test_an_open_branch_still_suppresses_what_it_always_did(tmp_path: Path) -> None:

@@ -1531,13 +1531,19 @@ def test_the_icon_is_published_where_the_page_links_it() -> None:
     The page links its icon by a relative address, so Pages serves it only
     when the step that adds the page puts the icon in the same folder under
     that name. A step that dropped the copy, or a page that renamed the link,
-    would leave a browser asking for a file that is not there.
+    would leave a browser asking for a file that is not there. The copy runs
+    only after the page's copy succeeds, so joining the two with ``||`` would
+    skip it on every run that works.
     """
     href = re.search(r'<link rel="icon" href="([^"]+)"', PAGE.read_text(encoding="utf-8"))
     assert href, "the page links no icon"
     href = href.group(1)
     step = _workflow().split("- name: Add the page", 1)[1].split("\n      - ", 1)[0]
-    assert f"cp .claude/skills/update-build-board/{href} _site/{href}" in step
+    assert re.search(
+        r"_site/index\.html &&\s+"
+        + re.escape(f"cp .claude/skills/update-build-board/{href} _site/{href}"),
+        step,
+    )
     assert (SKILL_DIR / href).is_file()
 
 
