@@ -293,11 +293,29 @@ class TestHistory:
     def test_every_day_with_a_close_and_an_open_is_full(self) -> None:
         assert self._kind([1.0] * 7) == "full"
 
+    def test_a_first_row_on_the_day_before_the_window_is_full(self) -> None:
+        """A series starting on 2005-12-30 holds every day a run reads, so it is no listing."""
+        assert self._kind([self.NAN] + [1.0] * 6) == "full"
+
     def test_a_missing_open_inside_the_window_is_partial(self) -> None:
         assert self._kind([1.0] * 7, [1, 1, 1, self.NAN, 1, 1, 1]) == "partial"
 
     def test_a_missing_close_on_the_day_before_the_window_is_partial(self) -> None:
         assert self._kind([1, self.NAN, 1, 1, 1, 1, 1]) == "partial"
+
+    def test_a_missing_close_on_the_windows_first_day_is_partial(self) -> None:
+        """2006-01-03 is inside the window, so a gap there is a gap a run reads."""
+        assert self._kind([1, 1, self.NAN, 1, 1, 1, 1]) == "partial"
+
+    def test_a_missing_close_on_the_windows_last_day_is_partial(self) -> None:
+        """2006-12-29 is inside the window too, while 2007-01-03 after it is not read."""
+        assert self._kind([1, 1, 1, 1, 1, self.NAN, 1]) == "partial"
+
+    def test_closes_in_the_window_with_no_opens_there_is_partial_rather_than_absent(
+        self,
+    ) -> None:
+        """Absent means no close inside the window, whatever the opens hold."""
+        assert self._kind([1.0] * 7, [self.NAN] * 6 + [1.0]) == "partial"
 
     def test_a_first_row_inside_the_window_is_listed(self) -> None:
         assert self._kind([self.NAN] * 3 + [1.0] * 4) == "listed"
@@ -368,6 +386,15 @@ class TestTheBindings:
         with pytest.raises(PanelRefused, match="lacks 1 it does"):
             sp400_panel.load(IJH_PANEL, short)
 
+    def test_load_refuses_a_file_naming_every_member_in_another_order(self, tmp_path) -> None:
+        """The first two members swapped, so no row is stray or missing and only the order is."""
+        swapped = tmp_path / "members.csv"
+        lines = serialize_members(IJH_ROWS).split(b"\n")
+        lines[1], lines[2] = lines[2], lines[1]
+        swapped.write_bytes(b"\n".join(lines))
+        with pytest.raises(PanelRefused, match="names 0 rows .* lacks 0 it does"):
+            sp400_panel.load(IJH_PANEL, swapped)
+
     def test_an_unchecked_row_is_refused_by_the_verdicts(self) -> None:
         rows = [MemberRow("2007-12-31", 1, "GYI", "hand", "x")]
         with pytest.raises(PanelRefused, match="row 1 has not been checked"):
@@ -390,6 +417,23 @@ class TestTheBindings:
         assert handed == {"cross_section": "sp400", "symbols": sp400_panel.tickers(IJH_ROWS)}
         out = capsys.readouterr().out
         assert "SECRETKEY" not in out and "X<key>" in out
+
+    def test_fetch_control_hands_on_only_the_tickers_of_the_93(self, monkeypatch) -> None:
+        """Not every ticker the control maps, which would ask again for IJR's 509 rows."""
+        handed = {}
+
+        def fake_fetch(cross_section, symbols, *, key):
+            handed.update(cross_section=cross_section, symbols=list(symbols))
+            return fetch_alphavantage.Tally(recorded=["AAA"], failed=[])
+
+        monkeypatch.setenv("ALPHAVANTAGE_API_KEY", "SECRETKEY")
+        monkeypatch.setattr(fetch_alphavantage, "fetch", fake_fetch)
+        sp400_panel.main(["fetch", "control"])
+        assert handed == {
+            "cross_section": "sp600",
+            "symbols": sp400_panel.fetch_symbols(CONTROL, CONTROL_ROWS),
+        }
+        assert len(handed["symbols"]) < len(sp400_panel.tickers(CONTROL_ROWS))
 
     def test_fetch_with_no_key_makes_no_request(self, monkeypatch) -> None:
         monkeypatch.delenv("ALPHAVANTAGE_API_KEY", raising=False)

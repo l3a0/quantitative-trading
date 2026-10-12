@@ -173,9 +173,15 @@ class TestTheReading:
 class TestTheControlRule:
     @pytest.mark.parametrize(
         ("figures", "step"),
-        [((0.25, 2.03, 3.41), 1.38), ((4.42, 3.45, 5.31), 0.97), ((1.0, 5.0, 5.5), 0.5)],
+        [
+            ((0.25, 2.03, 3.41), 1.38),
+            ((4.42, 3.45, 5.31), 0.97),
+            ((1.0, 5.0, 5.5), 0.5),
+            ((1.0, 5.0, 4.5), 0.5),
+        ],
     )
     def test_the_nearer_step(self, figures, step) -> None:
+        """A distance, so the S&P 600 below the S&P 400 counts the same as above it."""
         assert nearer_step(figures) == pytest.approx(step)
 
     @pytest.mark.parametrize(
@@ -375,6 +381,39 @@ class TestTheExclusions:
     def test_a_split_with_no_return_to_exclude_is_refused(self, splits) -> None:
         with pytest.raises(ValueError, match="BBB|DDD"):
             split_at(_frame(), splits)
+
+    def test_a_split_on_a_day_with_no_price_is_refused(self) -> None:
+        """With no price on the day there is no return to exclude, only one already missing."""
+        frame = _frame()
+        frame.iloc[4, 1] = NAN
+        with pytest.raises(ValueError, match="BBB has no return on 2006-01-06"):
+            split_at(frame, self.SPLIT)
+
+
+class TestTheLadderRefusesMismatchedDays:
+    """Rule B on stand-in frames of 2005-12-01 to 2006-12-31 business days, six members.
+
+    The prices are a seeded random walk. The one mismatch is 2006-06-01, dropped
+    from one frame, so a gap would otherwise pair profits from different days.
+    """
+
+    @staticmethod
+    def _prices() -> pd.DataFrame:
+        days = pd.bdate_range("2005-12-01", "2006-12-31")
+        steps = np.random.default_rng(0).normal(0, 0.01, (len(days), 6))
+        return pd.DataFrame(
+            100 * np.exp(np.cumsum(steps, axis=0)),
+            index=days,
+            columns=["AAA", "CORSQ", "MAG", "ZD", "EEE", "FFF"],
+        )
+
+    @pytest.mark.parametrize("short", ["mid", "control"])
+    def test_a_frame_missing_a_day_is_refused(self, short) -> None:
+        prices = self._prices()
+        frames = dict.fromkeys(("large", "mid", "small", "control"), prices)
+        frames[short] = prices.drop(index=pd.Timestamp("2006-06-01"))
+        with pytest.raises(ValueError, match="different trading days"):
+            mid_caps.ladder(**frames)
 
 
 # --- the run, on the owner's archive and Chan's files ---------------------------------
@@ -762,6 +801,11 @@ class TestTheReport:
             "correlation 0.6758, z +2.1973, beyond one year's noise" in printed
         )
         assert "control less Chan's S&P 600        gap -0.7244, standard error 0.5768" in printed
+        # The step line prints the control's gaps unsigned, as separable reads them.
+        assert (
+            "S&P 400's step to its nearer neighbour 0.9669, "
+            "control's gap 0.7244, 2.7050 unexcluded" in printed
+        )
         assert "Closes  order holds, S&P 500 to S&P 400 rises, S&P 400 to S&P 600 rises" in printed
         assert (
             "Opens   order partial, S&P 500 to S&P 400 does not rise, S&P 400 to S&P 600 rises"
