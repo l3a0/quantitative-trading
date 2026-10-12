@@ -10414,7 +10414,9 @@ rule today.
 
 ### What the entry concludes
 
-Three things.
+Four things. The fourth adds figures the write-up measured after the run,
+which `TestWhatThePostMeasured` in
+[tests/test_vix_filter.py](../tests/test_vix_filter.py) pins.
 
 1. **Location 3509's four figures reproduce on Chan's own files.** Buy on
    gap's do so under any alignment that reads the previous day's close,
@@ -10438,6 +10440,19 @@ Three things.
    as Entry 18 found, and the filtered 17.2 percent is the arithmetic
    `252 · mean`, as rows 1 and 6 show. Reading the label alone would pin one
    of them against the wrong formula.
+4. **The kept days are few and bunched.** Inside FSTX's window, from
+   2004-07-16 to 2012-05-08, VIX closed above 35 on 190 days in 15 runs, the
+   highest 80.86 on 2008-11-20. Buy on gap's kept days number 68, 83, 9 and
+   30 in 2008 to 2011, and FSTX's 65, 81, 9 and 30, so 151 of 190 and 146 of
+   185 fall in 2008 and 2009. Each rule's kept days form 15 runs of
+   consecutive joined days, the longest from 2008-09-30 to 2009-04-17. Buy on
+   gap's daily returns sum to 0.129625 over its kept days, and one day,
+   2009-04-21, returned 0.093601 of it. Without that day the other 189 give
+   0.048032 and a Sharpe ratio of 0.855003. FSTX's sum to 0.018889 under the
+   fade and −0.018889 under momentum. `VIX.csv` also closes above 35 on 100
+   days before 2004-07-15, the first on 1990-08-06, so 2008-09-17 is the first
+   close above 35 inside either window and not in the file. Measured after
+   the run, so exploratory, and it decides nothing.
 
 ### What this entry cannot say
 
@@ -10463,7 +10478,12 @@ print would move a figure only if the true close were above 35, more than
 three times the 11.15 of the day before.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/vix-filter-lessons.md](../blog/vix-filter-lessons.md) moves with it,
+since that post quotes most of these figures. So does its one figure, which
+`uv run python -m chan.vix_filter_figures` redraws, and the third open
+question of [blog/opening-gap-lessons.md](../blog/opening-gap-lessons.md),
+which points at the post.
 
 ## Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*
 
