@@ -34,6 +34,15 @@ both are stated once here and carried in every figure's failure message as
   is the one issue 338 declared before any P&L was computed: the sum of the
   daily P&L over all 1,216 rows is greater than 0.
 
+``TestExample22HowFarHMovesByChance`` reads the same vintage under a second
+specification, :data:`NOISE_SPEC`. It sets the observed H beside each
+estimator's values on 1,000 Gaussian random walks of 1,216 log prices drawn
+from ``numpy.random.default_rng(20261011)``, and beside ``genhurst`` with the
+first 0 to 10 closes dropped. :mod:`chan.usdcad_hurst_noise` computes both.
+That measurement was designed after the miss was seen, so it is exploratory
+in the same sense, a reading of the miss rather than a test registered before
+it.
+
 Each figure Chan printed is pinned twice, at the precision he printed it and
 at the precision that is real, so a change cannot move it inside his rounding
 unnoticed. H is pinned against the book's 0.49 as a miss.
@@ -49,10 +58,22 @@ import pandas as pd
 import pytest
 from ithildincore.timeseries import adf_tstat
 
-from chan import usdcad_mean_reversion
+from chan import usdcad_hurst_noise, usdcad_mean_reversion
 from chan.matlab_helpers import moving_avg, moving_std
 from chan.series import WindowCrossesScaleBreak, scale_breaks
-from chan.stationarity_tests import ZTCRIT_CONSTANT, vratiotest
+from chan.stationarity_tests import ZTCRIT_CONSTANT, genhurst, vratiotest
+from chan.usdcad_hurst_noise import (
+    PATHS,
+    SEED,
+    START_OFFSETS,
+    HurstNoise,
+    in_standard_deviations,
+    measure,
+    percentile,
+    random_walk,
+    random_walk_hurst,
+    report,
+)
 from chan.usdcad_mean_reversion import (
     ADF_LAGS,
     ADF_ORDER,
@@ -73,6 +94,7 @@ from chan.usdcad_mean_reversion import (
     main,
     market_value,
     pnl_drawdown,
+    python_port_hurst,
     read_sources,
     run,
     stationarity_tests,
@@ -84,6 +106,11 @@ SPEC = (
     "inputData_USDCAD.csv saved 2018-10-13, 16:59 closes, jplv7 adf(y, 0, 1), "
     "genhurst(log(y), 2), vratiotest(log(y)), half-life from ols(dy, [ylag 1]), "
     "Example 2.5 over the rounded half-life"
+)
+NOISE_SPEC = (
+    "inputData_USDCAD.csv saved 2018-10-13, 16:59 closes, genhurst(z, 2) at maxT 19 and the "
+    "Python port's estimator, on the log closes from start offsets 0 to 10 and on 1,000 "
+    "Gaussian random walks of 1,216 log prices from default_rng(20261011)"
 )
 MINUTE_FILE = "pythoncodesanddata/inputData_USDCAD.csv"
 
@@ -200,12 +227,174 @@ class TestExample22TheHurstExponent:
         assert round(result.hurst, 2) == 0.47 != BOOK_HURST
 
     def test_h_is_still_below_a_half(self, result: StationarityRun) -> None:
-        """Location 1119's reading, weakly mean reverting, survives the miss."""
+        """Location 1119's reading, weakly mean reverting, survives the miss as a side of 0.5.
+
+        Below 0.5 is not evidence of reversion here, because a random walk of
+        the same length gives a lower ``genhurst`` about one time in six, which
+        ``TestExample22HowFarHMovesByChance`` measures.
+        """
         assert result.hurst < 0.5
 
     def test_the_python_ports_own_genhurst_misses_too(self, result: StationarityRun) -> None:
         assert result.python_port_hurst == pytest.approx(0.4758441244, abs=5e-11)
         assert round(result.python_port_hurst, 2) == 0.48 != BOOK_HURST
+
+
+@pytest.fixture(scope="module")
+def noise(sources) -> HurstNoise:
+    """About six seconds: 1,000 walks at about 6 ms for the two estimators together."""
+    _, closes = sources
+    return measure(closes)
+
+
+class TestExample22HowFarHMovesByChance:
+    """How far H moves on a random walk of the same length, and with the sample's start day.
+
+    The precision 1,000 walks support comes from each statistic's sampling
+    error rather than from its pinned digits. A mean's standard error is the
+    SD over √1,000, so 0.0007 for ``genhurst`` and 0.0019 for the port's
+    estimator. An SD's is about the SD over √2,000, so 0.0005 and 0.0013. A
+    percentile's is about 1.1 points for ``genhurst`` and 1.6 for the port. So
+    the means hold at two decimals, ``genhurst``'s SD at three and the port's
+    at two, the percentiles to within 2 to 3 points, and the distances in SDs
+    at one decimal, and prose quotes them at that precision. The exact pins
+    are what this seed gives. They catch a change to the walks or to the
+    estimators, and they claim no more digits than 1,000 walks carry.
+    """
+
+    def test_the_walks_are_the_stated_number_and_length(self, noise: HurstNoise) -> None:
+        assert (PATHS, SEED, START_OFFSETS) == (1000, 20261011, tuple(range(11)))
+        assert len(noise.walks.genhurst) == len(noise.walks.port) == 1000
+        assert (noise.walks.length, noise.walks.seed) == (1216, 20261011)
+
+    def test_the_observed_h_is_the_runs(self, noise: HurstNoise, result) -> None:
+        assert noise.observed_genhurst == result.hurst
+        assert noise.observed_port == result.python_port_hurst
+
+    def test_neither_estimator_reads_scale_or_drift(self) -> None:
+        """Why standard normal steps can stand in for USD.CAD's own mean and SD."""
+        z = random_walk(1216, np.random.default_rng(3))
+        moved = 0.006 * z + 2e-4 * np.arange(1216) + 0.1
+        assert genhurst(moved, 2) == pytest.approx(genhurst(z, 2), abs=1e-9)
+        assert python_port_hurst(moved) == pytest.approx(python_port_hurst(z), abs=1e-9)
+
+    def test_the_walks_are_seeded(self) -> None:
+        first, again = random_walk_hurst(1216, paths=3), random_walk_hurst(1216, paths=3)
+        np.testing.assert_array_equal(first.genhurst, again.genhurst)
+        other = random_walk_hurst(1216, paths=3, seed=SEED + 1)
+        assert not np.array_equal(first.genhurst, other.genhurst)
+
+    def test_genhurst_on_a_random_walk_centres_near_a_half_with_an_sd_of_0_023(
+        self, noise: HurstNoise
+    ) -> None:
+        g = noise.walks.genhurst
+        assert g.mean() == pytest.approx(0.4974213851, abs=5e-9), NOISE_SPEC
+        assert g.std(ddof=1) == pytest.approx(0.0234642842, abs=5e-9), NOISE_SPEC
+        assert (round(g.mean(), 2), round(g.std(ddof=1), 3)) == (0.50, 0.023)
+        assert g.std(ddof=1) / np.sqrt(len(g)) < 0.001
+
+    def test_the_port_estimator_on_a_random_walk_runs_low_at_0_48_with_an_sd_of_0_06(
+        self, noise: HurstNoise
+    ) -> None:
+        """At 1,216 points the port's estimator sits below 0.5 on a random walk."""
+        p = noise.walks.port
+        assert p.mean() == pytest.approx(0.4794000008, abs=5e-9), NOISE_SPEC
+        assert p.std(ddof=1) == pytest.approx(0.0598003738, abs=5e-9), NOISE_SPEC
+        assert (round(p.mean(), 2), round(p.std(ddof=1), 2)) == (0.48, 0.06)
+        assert 0.5 - p.mean() > 5 * p.std(ddof=1) / np.sqrt(len(p))
+
+    def test_where_each_observed_h_falls_among_the_walks(self, noise: HurstNoise) -> None:
+        """155 of 1,000 walks give a ``genhurst`` below 0.4732, and 459 a port H below 0.4758."""
+        w = noise.walks
+        assert percentile(w.genhurst, noise.observed_genhurst) == 15.5, NOISE_SPEC
+        assert percentile(w.port, noise.observed_port) == 45.9, NOISE_SPEC
+
+    def test_the_gap_to_the_books_0_49_is_under_one_sd(self, noise: HurstNoise) -> None:
+        w = noise.walks
+        to_book_g = in_standard_deviations(w.genhurst, BOOK_HURST - noise.observed_genhurst)
+        to_book_p = in_standard_deviations(w.port, BOOK_HURST - noise.observed_port)
+        assert to_book_g == pytest.approx(0.7145896573, abs=5e-7), NOISE_SPEC
+        assert to_book_p == pytest.approx(0.2367188487, abs=5e-7), NOISE_SPEC
+        assert (round(to_book_g, 1), round(to_book_p, 1)) == (0.7, 0.2)
+
+    def test_the_gap_to_a_half_is_about_one_sd_or_less(self, noise: HurstNoise) -> None:
+        w = noise.walks
+        to_half_g = in_standard_deviations(w.genhurst, 0.5 - noise.observed_genhurst)
+        to_half_p = in_standard_deviations(w.port, 0.5 - noise.observed_port)
+        assert to_half_g == pytest.approx(1.1407692884, abs=5e-7), NOISE_SPEC
+        assert to_half_p == pytest.approx(0.4039418838, abs=5e-7), NOISE_SPEC
+        assert (round(to_half_g, 1), round(to_half_p, 1)) == (1.1, 0.4)
+
+    def test_each_estimate_is_within_about_one_sd_of_its_random_walks(
+        self, noise: HurstNoise
+    ) -> None:
+        """The port's spread is more than twice ``genhurst``'s."""
+        g, p = noise.walks.genhurst, noise.walks.port
+        from_mean_g = in_standard_deviations(g, g.mean() - noise.observed_genhurst)
+        from_mean_p = in_standard_deviations(p, p.mean() - noise.observed_port)
+        assert from_mean_g == pytest.approx(1.0308739729, abs=5e-7), NOISE_SPEC
+        assert from_mean_p == pytest.approx(0.0594624454, abs=5e-7), NOISE_SPEC
+        assert (round(from_mean_g, 1), round(from_mean_p, 1)) == (1.0, 0.1)
+        assert p.std(ddof=1) > 2 * g.std(ddof=1)
+
+    def test_genhurst_moves_to_0_49_when_the_first_close_is_dropped(
+        self, noise: HurstNoise
+    ) -> None:
+        first, second = noise.offsets[0], noise.offsets[1]
+        assert (first.offset, str(first.first_day.date())) == (0, "2007-07-23")
+        assert (second.offset, str(second.first_day.date())) == (1, "2007-07-24")
+        assert first.genhurst == pytest.approx(0.4732326652, abs=5e-11), NOISE_SPEC
+        assert second.genhurst == pytest.approx(0.4890716563, abs=5e-11), NOISE_SPEC
+        assert (first.prints_as_book, second.prints_as_book) == (False, True)
+        last = noise.offsets[-1]
+        assert (last.offset, str(last.first_day.date())) == (10, "2007-08-06")
+
+    def test_six_of_eleven_start_days_print_as_0_49(self, noise: HurstNoise) -> None:
+        """Offsets 1, 3, 4, 6, 8 and 9. Offset 7 gives 0.48488, which prints as 0.48."""
+        landed = [row.offset for row in noise.offsets if row.prints_as_book]
+        assert landed == [1, 3, 4, 6, 8, 9], NOISE_SPEC
+        assert noise.offsets[7].genhurst == pytest.approx(0.4848758154, abs=5e-11)
+
+    def test_the_first_close_gives_the_lowest_genhurst_and_one_start_day_tops_a_half(
+        self, noise: HurstNoise
+    ) -> None:
+        values = [row.genhurst for row in noise.offsets]
+        assert min(values) == noise.offsets[0].genhurst
+        assert max(values) == noise.offsets[5].genhurst
+        assert noise.offsets[5].genhurst == pytest.approx(0.5061926171, abs=5e-11), NOISE_SPEC
+        assert round(noise.offsets[5].genhurst, 2) == 0.51
+
+    def test_the_port_estimator_barely_moves_with_the_start_day(self, noise: HurstNoise) -> None:
+        values = [row.port for row in noise.offsets]
+        assert noise.offsets[0].port == pytest.approx(0.4758441244, abs=5e-11)
+        assert max(values) == noise.offsets[0].port
+        assert min(values) == pytest.approx(0.4741152609, abs=5e-11), NOISE_SPEC
+        assert max(values) - min(values) < 0.002
+
+    def test_only_the_first_close_lands_the_scripts_other_figures(self, noise: HurstNoise) -> None:
+        """A start a day later gives 0.49 only on a run other than the one the comments record."""
+        assert [row.lands_the_script for row in noise.offsets] == [True] + [False] * 10
+        second = noise.offsets[1]
+        assert second.adf_statistic == pytest.approx(-1.8361499805, abs=5e-9), NOISE_SPEC
+        assert round(second.adf_statistic, 6) != SCRIPT_ADF
+
+    def test_the_report_prints_the_tables_and_the_count(self, noise, capsys) -> None:
+        report(noise)
+        out = capsys.readouterr().out
+        assert "1,000 Gaussian random walks of 1,216 log prices, seed 20261011" in out
+        (sd_row,) = [each for each in out.splitlines() if "random-walk SD" in each]
+        assert sd_row.split()[-2:] == ["0.0235", "0.0598"], sd_row
+        assert "6 of 11 start days give a genhurst that prints as 0.49." in out
+        assert "Exploratory." in out
+
+    def test_main_prints_a_refusal_as_one_line(self, monkeypatch) -> None:
+        def refuse(data_dir=None):
+            raise VintageUnavailable(f"no committed vintage of {SYMBOL} saved {MINUTES_DATED}")
+
+        monkeypatch.setattr(usdcad_hurst_noise, "run", refuse)
+        monkeypatch.setattr("sys.argv", ["usdcad_hurst_noise"])
+        with pytest.raises(SystemExit, match="no committed vintage of USDCAD saved 2018-10-13"):
+            usdcad_hurst_noise.main()
 
 
 class TestExample23TheVarianceRatio:

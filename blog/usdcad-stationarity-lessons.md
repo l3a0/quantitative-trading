@@ -11,7 +11,7 @@ So Chan tests a series before he backtests a trade on it. A test reads every day
 Chan’s Examples 2.1 to 2.4 run four such tests on USD.CAD, the price of a US dollar in Canadian dollars. None of them can show that it reverts, and Example 2.5 trades it anyway. This repository transcribed his script, `stationarityTests.m`, and ran it on the same closes. It found three things.
 
 1. **Three tests land every digit the script prints.** The ADF test, the variance ratio test and the half-life give four statistics between them, and all four match. So the closes here are the closes Chan ran.
-2. **The Hurst exponent misses.** The book prints 0.49. The function Chan’s script calls gives 0.47, and his own Python port gives 0.48.
+2. **The Hurst exponent misses.** The book prints 0.49. The function Chan’s script calls gives 0.47, and his own Python port gives 0.48. Both misses are smaller than the spread H shows on a random walk of the same length.
 3. **The trade ends positive.** Chan says its profit and loss, or P&L, “manages to be positive, albeit with a large drawdown” (Chan, 2013, p. 49). It ends at 0.1141 after a drawdown of 0.6425, a fall from its high.
 
 **Every result here is exploratory.** The reproduction runs Chan’s tests on Chan’s days, so it says whether his numbers follow from his closes and nothing about whether USD.CAD reverts today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
@@ -76,7 +76,7 @@ The difference is one row of the sample. A regression on one lagged change canno
 
 Two other copies of this test show why that row matters. Chan’s own 2018 Python port of the script calls `adfuller`, so it would print −1.843018 where the script’s comment records −1.840744. This repository’s shared library of statistics runs `adfuller` too, so a transcription that reached for it would have missed the script’s figure. This repository’s test suite holds both numbers, so a port that swaps one toolbox for the other fails a test. On these closes the test’s conclusion does not change, since both statistics are far above −2.594. On a series sitting near a critical value, it could.
 
-## Lesson 3: H misses under both implementations Chan’s code uses
+## Lesson 3: H misses 0.49 by less than chance moves it
 
 The book reports an H of 0.49 from the MATLAB code, “which suggests that the price series is weakly mean reverting” (Chan, 2013, p. 45). It is the one figure in the chapter’s script that does not land. Three readings of H on the same closes all miss it.
 
@@ -86,7 +86,23 @@ The book reports an H of 0.49 from the MATLAB code, “which suggests that the p
 
 Every copy of Aste’s function that a search of public code found carries the same date, 2013-01-30, and runs the same algorithm, so no earlier version is available to try. Searching for a variant that lands 0.49 would mean choosing a method after seeing its number. A method chosen that way proves nothing about the closes, so this replication did not run that search.
 
-All three readings fall on the same side of 0.5 as the book’s, the reverting side, and none suggests a trend. How far below 0.5 an estimate has to sit to mean anything is the question H alone cannot answer.
+Whether a miss of 0.02 matters depends on how far H moves by chance. H is an estimate from one sample, so even a series with no pull at all gives a value that wanders from sample to sample. A random walk has nothing to find, so the spread of its H is what chance alone does. To measure that spread, this repository drew 1,000 random walks of 1,216 days each, the length of Chan’s sample, and computed both estimators on every one. The measurement was designed after the miss was seen, so it is exploratory like everything else here.
+
+The usual measure of a spread is the standard deviation, or SD. About two-thirds of the values in a bell-shaped spread land within one SD of their average. On the random walks, the two estimators spread differently.
+
+1. **`genhurst`** averages about 0.50, with an SD of 0.023.
+2. **The port’s estimator** averages about 0.48, with an SD of 0.06, more than twice as wide. At this length it runs low, so a random walk does not give it 0.5.
+
+Measured in those SDs, each estimate sits close to both the book’s figure and a random walk.
+
+1. **`genhurst`’s 0.4732** is 0.7 SDs below the book’s 0.49 and 1.1 SDs below 0.5. Of the 1,000 random walks, 155 give a lower value, about one in six.
+2. **The port’s 0.4758** is 0.2 SDs below 0.49 and 0.4 SDs below 0.5. Of the random walks, 459 give a lower value, so 0.476 sits near the middle of what a random walk gives this estimator.
+
+The day the sample starts moves `genhurst` too. `genhurst` reads every second close, every third and so on, counting from the first, so dropping one close changes which closes it reads. Starting the sample on 2007-07-24, one day later, moves `genhurst` from 0.4732 to 0.4891, which prints as 0.49. Of the eleven start days from 2007-07-23 to 2007-08-06, six print as 0.49 and one gives 0.506, above 0.5. The script’s own start gives the lowest value of the eleven. The port’s estimator uses every overlapping change and barely moves, staying between 0.474 and 0.476.
+
+So a one-day difference in the data would explain the miss, and there is no way to check whether one exists. The same one-day shift moves the ADF statistic from −1.840744 to −1.836150, so the closes that land the script’s comments start on 2007-07-23. A later start would explain the 0.49 only if the book’s H came from a different run than the one those comments record, and Chan’s MATLAB file is not public. This replication keeps the script’s start. Taking the start day that lands 0.49 would mean choosing the data after seeing its number, which proves no more than choosing a method that way.
+
+All three readings fall below 0.5, as the book’s does, and that is not evidence of reversion. On 1,216 days, H cannot tell weak mean reversion from a random walk. Each estimate sits within about one SD of what a random walk gives, and a one-day change of start is enough to carry `genhurst` to the book’s figure.
 
 Then the variance ratio test says what H cannot. The ratio is 0.964745, below 1, as a reverting series would give. Its statistic is −0.901577, and its p-value of 0.367281 means a random walk would give a ratio this far from 1 more than a third of the time. The test does not reject. So the ADF test, H and the variance ratio test agree: each estimate falls on the reverting side, and none can tell USD.CAD from 2007 to 2012 apart from a random walk.
 
@@ -130,7 +146,7 @@ So the result is exploratory. The reproduction checks the arithmetic and not whe
 
 Three questions are beyond it.
 
-1. **What computed the book’s 0.49.** No copy of `genhurst` found gives it, and the script’s comments record no value for it.
+1. **What computed the book’s 0.49.** No copy of `genhurst` found gives it on the closes the script’s comments match, and those comments record no value for it. Six of the ten later start days give it, and nothing public shows which run the book’s figure came from.
 2. **Whether Example 2.5 would pay.** It carries the look-ahead, charges no transaction cost, and holds a position that grows without limit as the close strays, all of which Chan names. Its P&L is not a return on capital, so it has no annual return or Sharpe ratio to judge it by.
 3. **Anything about USD.CAD after March 2012.** Every figure is exploratory, on a sample Chan chose.
 
@@ -140,7 +156,7 @@ One habit for each lesson.
 
 1. **Match the script before trusting the data.** When the original data file cannot be compared, several statistics from separate calculations landing every digit are the next best check that the data is the same.
 2. **Name the toolbox.** Two implementations of one test can differ by a row of sample, so a port should say which one produced a figure.
-3. **Do not chase a figure that misses.** When every available implementation misses a printed number, record the miss and check whether the conclusion still stands.
+3. **Measure the noise before chasing a figure that misses.** When every available implementation misses a printed number, record the miss, measure how far the statistic moves by chance, and check whether the conclusion still stands.
 4. **Read the drawdown beside the P&L.** A positive total can hide a fall more than five times its size, and an uncapped position can be at its largest inside the move against it.
 5. **Fit the lookback on earlier days than the trade.** A half-life measured on the traded sample is a look-ahead, however principled the choice.
 
