@@ -723,7 +723,8 @@ little. The rule trades about the same amount a day on both files at both
 prices, so the profit decides, and the S&P 600's average day on the closes
 pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
 exploratory, both files hold only survivors, and it says nothing about
-microcaps, which the S&P 600 does not hold.
+microcaps. The S&P 600 file holds prices and volumes but no market values, so
+nothing here measures how many of its members were microcaps.
 
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
@@ -5632,8 +5633,9 @@ Entry 44 of the replication log.
 5. The check for split prices flags BCSI on 2006-02-06 and SCUR on
    2006-07-12, and same-day news shows both were earnings warnings that
    traded.
-6. The declared reading points the way Chan says, on one year of survivors
-   and no microcaps, and the S&P 400 is the third point, not yet run.
+6. The declared reading points the way Chan says, on one year of survivors.
+   Nothing here measures how many S&P 600 members were microcaps, and the
+   S&P 400 is the third point, not yet run.
 
 Five groups of what it says are not pinned here.
 
@@ -5650,9 +5652,10 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the open's lift removes most of what
    separated the two universes at the close, that the rule replaces about the
    same share of its book in every universe, that one cost on both universes
-   flatters the S&P 600, that the S&P 600 holds no microcaps, that the
-   reversal bought the two flagged stocks on days Chan's reasoning gives no
-   cause to expect a bounce, that the daily profits are neither independent
+   flatters the S&P 600, that the S&P 600 adds a company only above a
+   minimum size and does not drop a member just because it later shrank, that
+   the reversal bought the two flagged stocks on days Chan's reasoning gives
+   no cause to expect a bounce, that the daily profits are neither independent
    nor normal, that the 2012 panel's rule is a close cousin of this one, that
    the distance between two running totals says nothing about how much the
    daily profits swing, that a reversal buys exactly the stocks that fell, and

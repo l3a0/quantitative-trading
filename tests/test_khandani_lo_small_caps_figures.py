@@ -101,8 +101,8 @@ class TestTheFigure:
             "S&P 600 from IJR_20080114.mat,\nsaved 2008-01-15, and the S&P 500 from "
             "SPX_20071123.mat, saved 2007-11-24. Each line sums the day's profit over\nits own "
             "book's mean gross position for the year. The cost lines charge the first day too, "
-            "which Chan's code does not.\nBoth files hold only survivors, and the S&P 600 holds "
-            "no microcaps."
+            "which Chan's code does not.\nBoth files hold only survivors, and nothing here "
+            "measures how many S&P 600 members were microcaps."
         ]
 
     def test_the_saved_dates_come_from_the_manifest(self) -> None:
