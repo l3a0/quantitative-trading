@@ -918,17 +918,20 @@ def submission_url(filing: Filing, cik: int = TRUST_CIK) -> str:
 
 _DOCUMENT_BLOCK = re.compile(rb"^<DOCUMENT>\n.*?^</DOCUMENT>\n", re.MULTILINE | re.DOTALL)
 _FILENAME = re.compile(rb"^<FILENAME>(.*)$", re.MULTILINE)
-_XML_OPEN = b"<TEXT>\n<XML>\n"
+_TEXT_LINE = re.compile(rb"^<TEXT>\n", re.MULTILINE)
+_XML_OPEN = b"<XML>\n"
 _XML_CLOSE = b"</XML>"
 
 
 def submitted_document(submission: bytes, filing: Filing) -> bytes:
     """The filing's document as EDGAR stores it, cut from the submission text file.
 
-    The block is the one whose first ``<FILENAME>`` line names
-    ``filing.document``. That line sits in the block's header, ahead of any
-    text the document itself holds. What is cut depends on what the block
-    holds, not on the document's name.
+    A block's header is everything before its first line reading ``<TEXT>``.
+    The block is the one whose header's first ``<FILENAME>`` line names
+    ``filing.document``, and its header's ``<TEXT>`` line is where the format
+    is read. Neither is looked for in the text after it, because that text is
+    the document itself and may quote either tag. What is cut depends on what
+    the block holds, not on the document's name.
 
     1. **XML**, a block whose text opens with an ``<XML>`` line, as every
        N-PORT's ``primary_doc.xml`` does. The document is what lies between
@@ -945,20 +948,22 @@ def submitted_document(submission: bytes, filing: Filing) -> bytes:
     """
     name = filing.document.encode()
     found = []
-    for block in _DOCUMENT_BLOCK.finditer(submission):
-        named = _FILENAME.search(block.group(0))
+    for match in _DOCUMENT_BLOCK.finditer(submission):
+        block = match.group(0)
+        text = _TEXT_LINE.search(block)
+        text_at = len(block) if text is None else text.start()
+        named = _FILENAME.search(block, 0, text_at)
         if named is not None and named.group(1).strip() == name:
-            found.append(block.group(0))
+            found.append((block, text))
     if len(found) != 1:
         raise FilingRefused(
             f"{filing.accession}'s submission holds {len(found)} documents named "
             f"{filing.document}, where one was expected"
         )
-    block = found[0]
-    text_at = block.find(b"<TEXT>")
-    if text_at < 0 or not block.startswith(_XML_OPEN, text_at):
+    block, text = found[0]
+    if text is None or not block.startswith(_XML_OPEN, text.end()):
         return block
-    start = text_at + len(_XML_OPEN)
+    start = text.end() + len(_XML_OPEN)
     end = block.rfind(_XML_CLOSE)
     if end < start:
         raise FilingRefused(

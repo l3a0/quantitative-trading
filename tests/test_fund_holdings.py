@@ -697,6 +697,41 @@ class TestSubmittedDocument:
         block = _block(_NQ_FILING.document, _HTML)
         assert fund_holdings.submitted_document(_submission(quoting, block), _NQ_FILING) == block
 
+    def test_a_filename_line_in_a_blocks_own_text_is_not_its_name(self) -> None:
+        # A block's name sits in its header, ahead of its first <TEXT> line, so
+        # a block whose header names nothing is not named by its own text.
+        unnamed = (
+            b"<DOCUMENT>\n<TYPE>N-Q\n<SEQUENCE>1\n<DESCRIPTION>FORM\n<TEXT>\n"
+            b"<FILENAME>d655820dnq.htm\n" + _HTML + b"</TEXT>\n</DOCUMENT>\n"
+        )
+        with pytest.raises(FilingRefused, match="holds 0 documents named d655820dnq.htm"):
+            fund_holdings.submitted_document(_submission(unnamed), _NQ_FILING)
+
+    def test_an_html_block_quoting_an_xml_wrapper_is_still_whole(self) -> None:
+        # The format is read from the header's <TEXT> line, so a wrapper the
+        # document's own text quotes does not make the block XML.
+        block = _block(_NQ_FILING.document, _HTML + b"<TEXT>\n<XML>\n<a/>\n</XML>\n")
+        assert fund_holdings.submitted_document(_submission(block), _NQ_FILING) == block
+
+    def test_a_text_tag_inside_a_header_line_does_not_start_the_text(self) -> None:
+        # The <TEXT> that ends the header opens its own line, so a header line
+        # quoting the tag mid-line neither ends the header nor sets the format.
+        document = b"<edgarSubmission/>\n"
+        block = _block("primary_doc.xml", document, xml=True).replace(
+            b"<DESCRIPTION>FORM\n", b"<DESCRIPTION>see <TEXT>\n"
+        )
+        cut = fund_holdings.submitted_document(_submission(block), _NPORT_FILING)
+        assert cut == document
+
+    def test_a_name_that_only_ends_with_the_documents_name_is_refused(self) -> None:
+        submission = _submission(_block("x" + _NQ_FILING.document, _HTML))
+        with pytest.raises(FilingRefused, match="holds 0 documents named d655820dnq.htm"):
+            fund_holdings.submitted_document(submission, _NQ_FILING)
+
+    def test_trailing_spaces_on_the_name_line_still_match(self) -> None:
+        block = _block(_NQ_FILING.document + "   ", _HTML)
+        assert fund_holdings.submitted_document(_submission(block), _NQ_FILING) == block
+
     def test_a_document_the_submission_does_not_hold_is_refused(self) -> None:
         submission = _submission(_block("dnq.htm", _HTML))
         with pytest.raises(FilingRefused, match="holds 0 documents named d655820dnq.htm"):
@@ -734,6 +769,9 @@ class TestFetch:
             "https://www.sec.gov/Archives/edgar/data/1100663/000119312519059323/"
             "0001193125-19-059323.txt"
         )
+
+    def test_the_submission_url_takes_the_cik(self) -> None:
+        assert "/data/42/" in fund_holdings.submission_url(_filing("2018-12-31"), cik=42)
 
     def test_a_fetch_downloads_records_and_paces(self, tmp_path: Path) -> None:
         second = Filing(
