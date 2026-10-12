@@ -752,6 +752,22 @@ new.
    and `chan.pead_rerun` turns it into a 0 or 1 for each of the flag file's
    330 days, cell for cell against Chan's.
 
+The header file is pinned as EDGAR serves it at its own URL. The register row
+"Pinning a filing's document as EDGAR serves it" rejects that practice for a
+fund's documents, and four points say why it holds for a header.
+
+1. EDGAR's front end inserts its script tag into HTML documents only.
+2. A header file is served as `text/sgml`, and the front end does not rewrite
+   it.
+3. Five headers spread across the index's 2,930 lines hashed as recorded on
+   2026-10-11, which
+   [issue 510](https://github.com/l3a0/quantitative-trading/issues/510)
+   measured.
+4. If the front end ever rewrites headers, a rerun refuses them rather than
+   recording wrong bytes, because each line pins its header's sha256. The fix
+   would then be the fund record's: read the header from the accession's
+   submission text file.
+
 The price of the IVV link is named rather than hidden. Five of Chan's stocks
 are not in IVV's schedule at 2012-03-31 even though his file holds them, so no
 CIK of theirs can pass and they leave the calendar: AK Steel, Compuware,

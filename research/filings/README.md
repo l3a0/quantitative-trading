@@ -109,26 +109,28 @@ byte, because every parse reproduced the committed file.
 
 ### Why the HTML pins changed on 2026-10-11
 
-EDGAR's front end inserts a script tag,
-`<script type="text/javascript"  src="/...">`, with two spaces before `src`,
-before the last `</BODY>` of every HTML document it serves at the document's
-own URL. The path in the tag changes about daily. The 43 HTML documents the
-index names were pinned when the record was built, on 2026-10-04 and
-2026-10-05, from the bytes served then. So every pin hashed the same tag, with
-the path `/bza873MR/E2m/zqp/8B8bcz6E7z/9mYhGmGbtzQ4DQ/NGVhcQ/cGR9/AxF7PnE`,
-and every one was refused once the path changed.
+EDGAR's front end inserts a script tag into every HTML document it serves at
+the document's own URL. The tag is
+`<script type="text/javascript"  src="PATH"></script>`, with two spaces before
+`src`, and it goes immediately before the document's last `</BODY>`, matched
+whatever its case. The path in the tag changes about daily. The 43 HTML
+documents the index names were pinned when the record was built, on 2026-10-04
+and 2026-10-05, from the bytes served then. So every pin hashed the same tag,
+with `PATH` being
+`/bza873MR/E2m/zqp/8B8bcz6E7z/9mYhGmGbtzQ4DQ/NGVhcQ/cGR9/AxF7PnE`, and every
+one was refused once the path changed.
 [Issue 510](https://github.com/l3a0/quantitative-trading/issues/510) found
 this and re-pinned them on 2026-10-11 to each document's `<DOCUMENT>` block in
 the submission text file, from `<DOCUMENT>` through `</DOCUMENT>` and the
 newline after it. EDGAR serves these HTML documents with that wrapper on, so
 the block is what the URL serves less the tag.
 
-One check tied each new pin to the old one. The block, with that tag inserted
-before its last `</BODY>` whatever its case, had to hash to the sha256 the
-index already recorded, and all 43 did. The script that ran it was not
+One check tied each new pin to the old one. The block, with that whole tag
+inserted immediately before its last `</BODY>` whatever its case, had to hash
+to the sha256 the index already recorded, and all 43 did. The script that ran it was not
 committed. Anyone holding a submission text file can repeat the check with the
 path above. Only `document_sha256` changed, on the 54 lines that name those 43
-documents, since IJR and IVV share each December N-Q. The 35 N-PORT documents
+documents, since IJR and IVV share each December N-Q. The 35 XML documents
 carry no tag, so their pins did not change.
 
 `fetch` then ran against EDGAR for each fund on 2026-10-11, reading the
