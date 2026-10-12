@@ -1360,7 +1360,8 @@ def _card_text(ids: dict, element: str, n: int) -> str:
     """The rendered text of one card, from its opening tag to the next card or column."""
     raw = ids.get(element, {}).get("html", "")
     start = raw.index(f'data-n="{n}"')
-    ends = [i for i in (raw.find('<div class="tk', start), raw.find('<div class="col', start)) if i >= 0]
+    marks = (raw.find('<div class="tk', start), raw.find('<div class="col', start))
+    ends = [i for i in marks if i >= 0]
     return text({"c": {"html": raw[start : min(ends, default=len(raw))]}}, "c")
 
 
