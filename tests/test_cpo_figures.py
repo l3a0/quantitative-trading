@@ -43,6 +43,7 @@ from chan.cpo_figures import (
     make_cells_figure,
 )
 from chan.paths import FIGURES_DIR
+from tests.support.figure_pixels import assert_same_pixels
 
 #: Where the synthetic run puts the three cells the figure must find, and a
 #: decoy that would be nearest if the line were measured against 1.95.
@@ -248,3 +249,12 @@ class TestOnTheArchive:
 
     def test_it_draws_nothing_after_2020_12_31(self, cpo_result) -> None:
         assert cpo_result.test_days[-1] == pd.Timestamp("2020-12-31")
+
+    def test_the_committed_figure_is_what_the_run_draws(self, cpo_result, tmp_path) -> None:
+        """``tests/test_figures_match_code.py`` compares every other figure. This
+        one sits here so the comparison reads the run this file already builds."""
+        out = tmp_path / CELLS_FIGURE
+
+        make_cells_figure(cpo_result, out=out)
+
+        assert_same_pixels(out, FIGURES_DIR / CELLS_FIGURE)

@@ -7,11 +7,13 @@ is regenerable again, and this file is what says the regenerated picture is the
 one the write-up describes.
 
 What it does not do is compare bytes. A PNG carries the matplotlib version that
-rendered it, so a fresh draw of an unchanged figure differs from the committed
-file while looking identical. The committed image and a fresh draw here are the
-same size to the byte and differ in their hash, which is exactly that. So the
+rendered it, in its ``Software`` text chunk, so a draw under another release
+can paint the same picture and still differ from the committed file. So the
 assertions below hold the data behind the picture and the picture's shape, and
 an upgrade that changes nothing a reader sees does not turn the suite red.
+``tests/test_figures_match_code.py`` compares the picture itself, by decoding a
+fresh draw and the committed file and comparing their pixels, which the
+version tag does not reach.
 
 The numbers are the ones ``TestRollingRegime`` already pins. Repeating them
 here is deliberate rather than duplication: that class holds what the engine

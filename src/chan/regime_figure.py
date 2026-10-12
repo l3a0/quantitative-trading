@@ -20,12 +20,13 @@ Regenerate after any such change::
 
     uv run python -m chan.regime_figure
 
-The committed PNG was drawn in the sibling repository the essay came from, and
-this module is the port of the code that drew it. Redrawing it here produces a
-visually identical figure and a different file, because a PNG carries the
-matplotlib version that rendered it. So the test asserts the data behind the
-picture rather than the bytes of it: a byte comparison would fail on a
-matplotlib upgrade that changed nothing a reader can see.
+The PNG was first drawn in the sibling repository the essay came from, and
+this module is the port of the code that drew it. A PNG carries the matplotlib
+version that rendered it, so a redraw under another release can show the same
+picture in a different file. So ``tests/test_regime_figure.py`` asserts the
+data behind the picture rather than the bytes of it, and
+``tests/test_figures_match_code.py`` compares a fresh draw's decoded pixels
+with the committed file, which the version does not reach.
 
 Colours match the essay's palette, so the picture reads as part of it.
 
