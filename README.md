@@ -2501,11 +2501,19 @@ vintages:
 uv run python -m chan.regime_figure
 ```
 
-Redrawing it produces the same picture and a different file, because a PNG
-carries the matplotlib version that rendered it.
+A redraw under another matplotlib release can produce the same picture in a
+different file, because a PNG carries the matplotlib version that rendered it.
 [tests/test_regime_figure.py](tests/test_regime_figure.py) therefore holds the
 data behind the picture rather than its bytes, and asserts that the figure
 plots the same scan `TestRollingRegime` computes.
+[tests/test_figures_match_code.py](tests/test_figures_match_code.py) compares
+the picture itself. It draws every committed figure but `cpo_cells.png`, which
+[tests/test_cpo_figures.py](tests/test_cpo_figures.py) compares, and checks
+each fresh draw's decoded pixels exactly against the committed file. So a
+figure whose code moved without a redraw fails the suite. The comparison runs
+only on macOS arm64, where the committed figures are drawn. CI's Linux runner
+draws some figures slightly differently, so CI skips it, and only a run on
+the owner's machine catches a stale figure.
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3539,10 +3547,11 @@ QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo_figures
 
 [tests/test_cpo_figures.py](tests/test_cpo_figures.py) holds what it draws
 rather than its bytes, for the reason given above for the regime map. Its
-drawing runs on every clone against a synthetic run of 400 cells, and only its
-check that the three labels are the cells Entry 16 names needs the archive. A
-public clone can check what the code draws but cannot redraw the committed
-figure.
+drawing runs on every clone against a synthetic run of 400 cells. Its three
+checks on the real run need the archive: that the three labels are the cells
+Entry 16 names, that the run ends on 2020-12-31, and that a fresh draw matches
+the committed file. A public clone can check what the code draws but cannot
+redraw the committed figure.
 
 [blog/cross-sectional-momentum-lessons.md](blog/cross-sectional-momentum-lessons.md)
 is a fifteenth post, about cross-sectional momentum, Example 6.2 of Chan's
@@ -6847,8 +6856,11 @@ QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map. Its drawing runs on every clone, with Chan's committed files on
 the left and a synthetic holdout on the right, and only its checks of the
-real right column's marks and labels need the archive. The price is that CI
-never sees the real right column drawn, and a reader cannot redraw it.
+real right column's marks and labels need the archive. So does the comparison
+of a fresh draw with the committed file in
+[tests/test_figures_match_code.py](tests/test_figures_match_code.py). The
+price is that CI never sees the real right column drawn, and a reader cannot
+redraw it.
 
 ## Where the book's numbers come from
 
@@ -6883,11 +6895,12 @@ uv run pytest
 serial run, which is the faster choice for a few tests, because every worker
 starts whatever the selection. `--pdb` runs serially on its own.
 
-A Claude Code session here also runs the archive pins, the 16 of Example
+A Claude Code session here also runs the archive pins, the 17 of Example
 7.1, the 18 of the Example 7.2 rerun, the 35 of
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
 holdout in `tests/test_low_beta_holdout.py`, the 7 of its figure in
-`tests/test_low_beta_holdout_figures.py` and the 46 of
+`tests/test_low_beta_holdout_figures.py`, the comparison of that figure with
+its committed file in `tests/test_figures_match_code.py`, and the 46 of
 [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)'s run in
 `tests/test_khandani_lo_mid_caps.py`, because `.claude/settings.json` sets
 `QT_ARCHIVE_RUN=1`. They run only where the owner's archive is configured.
@@ -6904,6 +6917,7 @@ them, measured once on one machine at `f5806ff7` at a load average of 25 to
 
 `matplotlib` is a dev dependency rather than a runtime one. No replication
 needs it. It is there so the committed figures can be redrawn and checked.
+Pillow, which matplotlib installs, decodes them for that check.
 
 `uv sync` fetches `ithildincore` from GitHub, so the first sync needs a
 network. Every run after that reads the cache, and no replication reaches a
