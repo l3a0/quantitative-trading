@@ -1322,9 +1322,10 @@ function buildOrder() {
   const kindShown = c => !branched(c) && !handClose(c);
   /* One table says why a card is not free for a session to take, and the test
      for a free card is ordinary work that no row of it holds. The board note's
-     free list and the chain bar both read them. The bar used to read only
-     `needs`, so a card with none either way was called free to take on its own
-     whatever its kind word, its session, its branch or its plan said. That is
+     free list, the chain bar and the In flight note's planned sentence all read
+     them. The bar used to read only `needs`, so a card with none either way was
+     called free to take on its own whatever its kind word, its session, its
+     branch or its plan said. That is
      the free list and the bar giving two answers to one question, which is
      defect 5 in the skill's record, and issue 521 is where it was found.
 
@@ -1354,7 +1355,8 @@ function buildOrder() {
      on it is held for that already, and its marker says the plan is being
      re-measured instead. The free list never meets this row either, because a
      planned card in the first column is one held for a close by hand, which
-     draws no marker. */
+     draws no marker. The In flight note does, under "Planned, no builder",
+     where it gives this row's words for a card waiting on the owner. */
   const HOLDS = [
     { held: c => kindShown(c) && c.kind === "decision",
       can: "need a decision rather than a session", is: "needs a decision rather than a session" },
@@ -1709,7 +1711,7 @@ function buildOrder() {
   document.addEventListener("keydown", CHAIN_ESC);
   clear();
 
-  inFlight({ by, planOf, workOn, prOf, card });
+  inFlight({ by, planOf, workOn, prOf, card, takeable, holding });
 
   /* Each key lists what its own section actually drew. A fixed list would
      describe cards that are not under it, which is what happened the moment
@@ -2228,17 +2230,30 @@ function inFlight(ctx) {
       `${col.length === 1 ? "it" : "them"} and no branch yet`,
     planning: col => `${ns2(col)} ${col.length === 1 ? "is" : "are"} under a decompose loop, so what ` +
       `comes back is a sharper plan and possibly new cards rather than a branch`,
+    /* The free claim reads `takeable`, the test the board note's free list and
+       the chain bar read, and a held card is given the reasons `HOLDS` names
+       for it in the bar's own words. This sentence once asked only whether the
+       plan waited on the owner, so a deferred, decision or parent card with a
+       finished plan was called free here while the bar said it was not, which
+       is defect 5 again and issue 573. A card held for a reason no row names,
+       such as one blocked on data, is told only that it is not free. Cards held
+       for the same reasons share a sentence, and every reason in one applies to
+       each of its cards, so they take "and" as the bar's do. */
     planned: col => {
-      const owed = col.filter(c => (ctx.planOf.get(c.n) || {}).ready === "decide");
-      const free = col.filter(c => !owed.includes(c));
+      const free = col.filter(ctx.takeable);
+      const held = new Map();
+      col.filter(c => !free.includes(c)).forEach(c => {
+        const why = andlist(ctx.holding([c], "is"));
+        held.set(why, (held.get(why) || []).concat([c]));
+      });
       const parts = [];
       if (free.length) parts.push(`${ns2(free)} ${free.length === 1 ? "is" : "are"} planned and ` +
         `free for anyone to pick up`);
-      /* "too" only reads if the free sentence went first, and that one drops out
-         whenever every planned card is waiting on the owner. */
-      if (owed.length) parts.push(`${ns2(owed)} ${owed.length === 1 ? "is" : "are"} planned` +
-        `${free.length ? " too" : ""}, and ${owed.length === 1 ? "waits" : "wait"} on a question ` +
-        `only the owner can answer`);
+      /* "too" only reads after a sentence saying another card is planned, and
+         the free one drops out whenever no planned card is free. */
+      held.forEach((cs, why) => parts.push(`${ns2(cs)} ${cs.length === 1 ? "is" : "are"} planned` +
+        `${parts.length ? " too" : ""}, and ${cs.length === 1 ? why || "is not free to take"
+          : why ? `each ${why}` : "none of them is free to take"}`));
       return parts.join(". ");
     }
   };
