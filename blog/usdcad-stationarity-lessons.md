@@ -1,18 +1,18 @@
-# Trading a currency pair that doesn’t mean revert.
+# Trading a currency pair that doesn’t mean revert
 
 *The trade ends positive after a fall more than five times its profit.*
 
 ## Why test a price before trading it
 
-A mean-reversion trade bets that a price will come back to its average, so it pays only on a series that does come back. Such a series is called stationary, and most prices are not. Ernest Chan opens the chapter on mean reversion in his second book, *Algorithmic Trading*, by saying that most price series “are not mean reverting, but are geometric random walks” (Chan, 2013, p. 39). A random walk has no average to return to, because each day’s change is a fresh draw.
+A mean-reversion trade bets that a price will come back to its average. A series that does come back is called stationary, and most prices are not. Ernest Chan opens the chapter on mean reversion in his second book, *Algorithmic Trading*, by saying that most price series “are not mean reverting, but are geometric random walks” (Chan, 2013, p. 39). A random walk has no average to return to, because each day’s change is a fresh draw.
 
 So Chan tests a series before he backtests a trade on it. A test reads every day’s price, while a backtest sees only the round trips, each an entry and its exit, that one set of rules happened to make. That is why the test’s significance “is usually higher than a direct backtest” (Chan, 2013, p. 50).
 
-Chan’s Examples 2.1 to 2.4 run four such tests on USD.CAD, the price of a US dollar in Canadian dollars, and Example 2.5 trades it anyway. This repository transcribed his script, `stationarityTests.m`, and ran it on the same closes.
+Chan’s Examples 2.1 to 2.4 run four such tests on USD.CAD, the price of a US dollar in Canadian dollars. None of them can show that it reverts, and Example 2.5 trades it anyway. This repository transcribed his script, `stationarityTests.m`, and ran it on the same closes. It found three things.
 
 1. **Three tests land every digit the script prints.** The ADF test, the variance ratio test and the half-life give four statistics between them, and all four match. So the closes here are the closes Chan ran.
 2. **The Hurst exponent misses.** The book prints 0.49. The function Chan’s script calls gives 0.47, and his own Python port gives 0.48.
-3. **The trade ends positive anyway.** Chan says its profit and loss, or P&L, “manages to be positive, albeit with a large drawdown” (Chan, 2013, p. 49). It ends at 0.1141 after a drawdown, a fall from its high, of 0.6425.
+3. **The trade ends positive.** Chan says its profit and loss, or P&L, “manages to be positive, albeit with a large drawdown” (Chan, 2013, p. 49). It ends at 0.1141 after a drawdown of 0.6425, a fall from its high.
 
 **Every result here is exploratory.** The reproduction runs Chan’s tests on Chan’s days, so it says whether his numbers follow from his closes and nothing about whether USD.CAD reverts today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -21,7 +21,7 @@ Chan’s Examples 2.1 to 2.4 run four such tests on USD.CAD, the price of a US d
 Each test asks the same question from a different side: does this series behave like a random walk, or is something pulling it back?
 
 1. **The augmented Dickey-Fuller (ADF) test**, Example 2.1. It regresses each day’s change on the previous day’s close. If the series is pulled back toward a mean, a high close tends to be followed by a fall, so the coefficient on the previous close, called λ, is negative. The test divides λ by its standard error and compares the result with a critical value, the threshold the statistic must fall below for the test to reject a random walk at a chosen level of confidence (Chan, 2013, p. 42). The [post on Chan’s stationary candidates](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md) explains how the test reads, what its lags do and where its critical values come from. Chan runs it with a constant, so the mean need not be zero. He also adds one lagged change, the previous day’s change, which is what makes the test augmented.
-2. **The Hurst exponent H**, Example 2.2. Chan describes it through how fast a price spreads out (Chan, 2013, p. 41). A random walk drifts from where it started by a distance that grows like the square root of the time elapsed. So the variance of the change in the log price over τ days grows in proportion to τ, and changes over twice as many days have twice the variance. A reverting series spreads more slowly, and H measures how much: the variance grows like τ²ᴴ, which the book prints as “τ2H”. A random walk has H = 0.5, a reverting series less, and a trending series more (Chan, 2013, pp. 44–45).
+2. **The Hurst exponent H**, Example 2.2. Chan describes it through how fast a price spreads out (Chan, 2013, p. 41). A random walk drifts from where it started by a distance that grows like the square root of the time elapsed. So the variance of the change in the log price over τ days grows in proportion to τ, and changes over twice as many days have twice the variance. A reverting series spreads more slowly, and H measures how much: the variance grows like τ²ᴴ, which the book prints as “τ2H”. A random walk has H = 0.5, a reverting series less, and a trending series more (Chan, 2013, p. 45).
 3. **The variance ratio test**, Example 2.3. H is an estimate, and on a finite sample it could sit below 0.5 by chance. The variance ratio test supplies the missing significance test (Chan, 2013, p. 45). For a random walk the variance of two-day changes is exactly twice the variance of one-day changes. The test divides the first by twice the second and asks whether the ratio differs from 1 by more than chance would give (Lo and MacKinlay, 1988). A reverting series gives a ratio below 1. Chan runs it with MATLAB’s `vratiotest`.
 4. **The half-life**, Example 2.4. A λ like the ADF test’s also says how fast the pull works. When the series is written as a continuous process, its expected distance from the mean decays exponentially and halves in −ln 2 / λ days (Chan, 2013, pp. 46–47). For the half-life, Chan fits λ in a second regression of each day’s change on the previous close (Chan, 2013, p. 47). The script adds a constant and leaves out the lagged change, as the book’s regression does.
 
@@ -31,7 +31,7 @@ The script calls the position its market value. Each day’s P&L is yesterday’
 
 The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) of minute bars from Chan’s 2018 Python port of his book’s code, saved 2018-10-13. The script loads a MATLAB file of the same bars, which neither public copy of his code includes. The script keeps the bar stamped 16:59 New York time on each day, which gives 1,216 closes from 2007-07-23 to 2012-03-28. This repository transcribed the script from `ericnberwick/EpchanPreview` at commit `e4bc46f`. It also transcribed jplv7’s `adf` and Aste’s `genhurst` from another public copy, and rebuilt `vratiotest` from Lo and MacKinlay’s paper rather than copying MathWorks’ code.
 
-## Lesson 1: 4 tests reproduced
+## Lesson 1: 4 statistics reproduced
 
 Here is each figure, computed, beside the value the script’s comments record and the one the book prints.
 
@@ -146,7 +146,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 2.1 to 2.5 at pp. 39 to 60, with pages 39, 41, 42, 44, 45, 46, 47, 48, 49, 50, 58 and 60 cited. The page numbers are the 2013 print edition’s, ISBN 9781118460146, found by searching each quoted sentence in Google Books’ preview on 2026-10-11.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 2.1 to 2.5, with pages 39, 41, 42, 44, 45, 46, 47, 48, 49, 50, 58 and 60 cited. The page numbers are the 2013 print edition’s, ISBN 9781118460146, found by searching each quoted sentence in Google Books’ preview on 2026-10-11.
 2. `stationarityTests.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. LeSage, J. P. The jplv7 Econometrics Toolbox for MATLAB, `adf.m` and `ztcrit.m`.
 4. Aste, T. `genhurst.m`, the generalized Hurst exponent, MATLAB File Exchange, dated 2013-01-30.
