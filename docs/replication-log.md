@@ -10531,8 +10531,9 @@ Five of the rules carry the result, so they are stated here.
    at the bill rate with no trading cost. C = 2 is Regulation T's overnight
    leverage, which location 814 gives and location 2836 repeats for a retail
    account. Because k never falls below 2.1826, it is a constant leverage of 2
-   here. C = 5 is location 814's portfolio margin of "20 percent or less", the
-   most the book says any broker lends on stocks held overnight.
+   here. C = 5 is location 814's portfolio margin of "20 percent or less". That
+   is the highest leverage the book puts a number on for stocks held
+   overnight, and its "or less" leaves room for more.
 3. **The statistic.** d = ln(1 + r_capped) − ln(1 + r_high) over the 83
    months, with its Newey-West t at the default lag. Twelve times the mean of d
    is the gap in realised compounded growth a year.
@@ -10594,7 +10595,9 @@ These are the case `### What precision a number is quoted at` describes.
 
 ### What the entry concludes
 
-Two things, and neither confirms anything.
+Three things, and none confirms anything. The third adds figures the
+write-up measured after the run, which `TestWhatThePostMeasured` in
+[tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py) pins.
 
 1. **Capped at what a broker would lend, the rule is not decided on this
    file.** Neither ceiling ruined the portfolio, and both point estimates
@@ -10608,6 +10611,16 @@ Two things, and neither confirms anything.
    though its worst month lost 37 percent of it. Location 4700's caveat stands
    beside the result: "one should be quite wary of using too much leverage on
    normally low-beta stocks".
+3. **Each point estimate sits short of the line a 5 percent test draws, and
+   no leverage up to 5 could have ruined a month.** The yearly Newey-West
+   standard error of the gap is 0.0872 at a ceiling of 2 and 0.1370 at 5, so
+   the one-sided 5 percent line, 1.645 times it, sits at 0.1434 and 0.2254.
+   The gaps of 0.0934 and 0.1659 fall short of those lines, and each is under
+   half of its own Y. June 2001, which ruined the beta match, returned
+   −0.0835 at a ceiling of 2 and −0.2132 at 5. The smallest leverage that
+   would have ruined any of the 83 months is 13.4118, for July 2002, above
+   both ceilings. The write-up measured these after the run, so they are
+   exploratory and decide nothing.
 
 ### What this entry cannot say
 
@@ -10631,12 +10644,16 @@ Five things, the plan's five limits.
    flatters the levered side. Row 7's break-even spread says how far the cost
    could rise before the point estimate reaches 0, and nothing about what a
    broker charged.
-5. **Whether a margin call came inside a month.** Under Regulation T's 25
+5. **Whether a margin call came inside a month.** Under FINRA Rule 4210's 25
    percent maintenance margin, a position levered 2 gets a call after a fall of
-   a third within the month, and month-end closes cannot see that.
+   a third within the month, and month-end closes cannot see that. Regulation
+   T sets only the 50 percent needed to open the position.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/capped-low-beta-lessons.md](../blog/capped-low-beta-lessons.md) moves
+with it, since that post quotes most of these figures. So does its one
+figure, which `uv run python -m chan.low_beta_capped_figures` redraws.
 
 ## Entry 49: the levered low-beta rule after the book, on IVV's S&P 500
 

@@ -20,7 +20,8 @@ Chan's 497 stocks, which the section "The earnings filings" below describes.
 A vendor restates a price series, so the repo keeps a vintage's bytes in
 `data/`, because a result computed from a series nobody kept cannot be checked.
 The SEC never restates a filing. Each filing has an accession number, which
-names fixed bytes, and a correction is filed as a new accession. So the
+names a submission EDGAR stores unchanged, and a correction is filed as a new
+accession. So the
 accession pins what was read, the way the edition pins a table printed in a
 book, and these files are a record of what a filing says rather than a
 vintage.
@@ -71,7 +72,9 @@ and reading its members refuses and says why.
 
 The source documents are not committed, because each N-Q or shareholder report
 runs to 15 to 59 MB.
-The index's `document_sha256` says which bytes were parsed.
+The index's `document_sha256` says which bytes were parsed. They are the
+document as the accession's submission text file stores it, which the section
+"Why the HTML pins changed on 2026-10-11" below explains.
 
 ## Regenerating a file
 
@@ -86,21 +89,53 @@ uv run python -m chan.fund_holdings fetch IJR
 
 The same command with `IVV` regenerates IVV's files.
 
-The run downloads each filing in the fund's committed list into a temporary
-directory, parses it, and deletes it. Where the index already names a document,
-a download with a different sha256 is refused. Where a file already exists, a
-parse that would write the same bytes changes nothing and one that would write
-different bytes is refused, naming both hashes. So to regenerate one file,
-delete it and run again. The index line stays, and the run refuses if the new
-parse disagrees with it.
+For each filing in the fund's committed list, the run downloads the
+accession's submission text file, `<accession>.txt`, which holds every
+document the filer submitted. It cuts out the document the list names, writes
+it to a temporary directory, parses it, and deletes it. Where the index
+already names a document, one with a different sha256 is refused. Where a
+file already exists, a parse that would write the same bytes changes nothing
+and one that would write different bytes is refused, naming both hashes. So to
+regenerate one file, delete it and run again. The index line stays, and the
+run refuses if the new parse disagrees with it.
 
 IJR's files were written on 2026-10-04 by `record` in that module, from the
 documents the survey on its issue downloaded that day. IVV's were written on
 2026-10-05 the same way. `fetch` wraps the same call around a download, and it
-has run against EDGAR once for each fund, on 2026-10-05. IJR's run downloaded
-all 19 documents and IVV's all 70. Each document's sha256 equalled the
-index's, and neither run wrote a byte, because every parse reproduced the
-committed file.
+first ran against EDGAR once for each fund, on 2026-10-05, reading each
+document from its own URL. IJR's run downloaded all 19 documents and IVV's
+all 70. Each document's sha256 equalled the index's, and neither run wrote a
+byte, because every parse reproduced the committed file.
+
+### Why the HTML pins changed on 2026-10-11
+
+EDGAR's front end inserts a script tag into every HTML document it serves at
+the document's own URL. The tag is
+`<script type="text/javascript"  src="PATH"></script>`, with two spaces before
+`src`, and it goes immediately before the document's last `</BODY>`, matched
+whatever its case. The path in the tag changes about daily. The 43 HTML
+documents the index names were pinned when the record was built, on 2026-10-04
+and 2026-10-05, from the bytes served then. So every pin hashed the same tag,
+with `PATH` being
+`/bza873MR/E2m/zqp/8B8bcz6E7z/9mYhGmGbtzQ4DQ/NGVhcQ/cGR9/AxF7PnE`, and every
+one was refused once the path changed.
+[Issue 510](https://github.com/l3a0/quantitative-trading/issues/510) found
+this and re-pinned them on 2026-10-11 to each document's `<DOCUMENT>` block in
+the submission text file, from `<DOCUMENT>` through `</DOCUMENT>` and the
+newline after it. EDGAR serves these HTML documents with that wrapper on, so
+the block is what the URL serves less the tag.
+
+One check tied each new pin to the old one. The block, with that whole tag
+inserted immediately before its last `</BODY>` whatever its case, had to hash
+to the sha256 the index already recorded, and all 43 did. The script that ran it was not
+committed. Anyone holding a submission text file can repeat the check with the
+path above. Only `document_sha256` changed, on the 54 lines that name those 43
+documents, since IJR and IVV share each December N-Q. The 35 XML documents
+carry no tag, so their pins did not change.
+
+`fetch` then ran against EDGAR for each fund on 2026-10-11, reading the
+submission text files. IJR's run recorded all 19 filings and IVV's all 70,
+with no refusal, and neither run changed a holdings file or the index.
 
 ## The members file
 
