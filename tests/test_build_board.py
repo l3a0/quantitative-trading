@@ -1251,6 +1251,77 @@ def test_a_planned_card_waiting_on_the_owner_is_not_called_free(
 
 
 @pytest.mark.parametrize(
+    ("kind", "ready", "reason"),
+    [
+        ("decision", "build", "needs a decision rather than a session"),
+        ("deferred", "build", "is deferred on purpose"),
+        ("parent", "build", "is a parent whose children carry the work"),
+        (
+            "deferred",
+            "decide",
+            "is deferred on purpose and waits on a question only the owner can answer",
+        ),
+    ],
+    ids=["decision", "deferred", "parent", "deferred-and-owner"],
+)
+def test_a_planned_card_of_a_held_kind_is_not_called_free_in_flight(
+    tmp_path: Path, kind: str, ready: str, reason: str
+) -> None:
+    """Protects the In flight note from calling a planned card free that its kind holds back.
+
+    Fixture issue 90504 gets a finished plan and nothing on it, so it sits under
+    "Planned, no builder", and a kind word saying not to start it. The note
+    used to read only whether the plan waited on the owner, so it called the
+    card "planned and free for anyone to pick up" while the chain bar said it
+    was not free to take. Issue 573 recorded it. The note now gives the reasons
+    the bar gives, in the same words, and both are pinned here so neither can
+    drift from the other.
+    """
+    docs = _planned(_with_fields(fixture_docs(), 90504, kind=kind), 90504, ready)
+    flownote = text(draw(tmp_path, docs), "flownote")
+    assert "free for anyone to pick up" not in flownote
+    assert f"#90504 is planned, and {reason}." in flownote
+    said = _picked(tmp_path, docs, 90504)
+    assert FREE_CLAIM not in said
+    assert f"but it is not free to take, because it {reason}." in said
+
+
+def test_a_planned_card_blocked_on_data_is_not_called_free_in_flight(tmp_path: Path) -> None:
+    """Protects the note for a kind no row of the board's reasons names.
+
+    A card blocked on data with a finished plan and no open blocker sits under
+    "Planned, no builder" as well. `takeable` turns it down while no reason
+    holds it, so the chain bar says only what its links show. The note says it
+    is not free and gives no reason, rather than calling it free.
+    """
+    docs = _planned(_with_fields(fixture_docs(), 90504, kind="data"), 90504, "build")
+    flownote = text(draw(tmp_path, docs), "flownote")
+    assert "free for anyone to pick up" not in flownote
+    assert "#90504 is planned, and is not free to take." in flownote
+    assert FREE_CLAIM not in _picked(tmp_path, docs, 90504)
+
+
+def test_the_in_flight_note_joins_free_and_held_planned_cards(tmp_path: Path) -> None:
+    """Protects the joins when free and held planned cards share the column.
+
+    Fixture issues 90503 and 90505 are ordinary work, and 90504 is deferred,
+    and all three get a plan ready to build. The free sentence comes first,
+    so the held one says "too", and two free cards take the plural.
+    """
+    docs = _with_needs(fixture_docs(), {90503: [], 90505: []})
+    docs = _with_fields(docs, 90503, kind="ready")
+    docs = _with_fields(docs, 90505, kind="ready")
+    docs = _with_fields(docs, 90504, kind="deferred")
+    for n in (90503, 90504, 90505):
+        docs = _planned(docs, n, "build")
+    flownote = text(draw(tmp_path, docs), "flownote")
+    assert (
+        "#90503 and #90505 are planned and free for anyone to pick up. "
+        "#90504 is planned too, and is deferred on purpose." in flownote
+    )
+
+
+@pytest.mark.parametrize(
     ("after", "card", "line"),
     [
         (
