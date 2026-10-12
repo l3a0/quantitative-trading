@@ -671,7 +671,10 @@ where they were first built. The other forty-four were built here.
     before each day lands the Sharpe ratio but prints 2.5 percent, and the
     two that read VIX on the trade's own date look ahead. Buy on gap's
     figures are the same under any alignment that reads the previous day.
-    Every figure is exploratory.
+    Measured after the run, 151 of buy on gap's 190 kept days and 146 of
+    FSTX's 185 fall in 2008 and 2009, and one day, 2009-04-21, returned
+    0.093601 of the 0.129625 buy on gap's kept days sum to. Every figure is
+    exploratory.
 46. Item 44's rule after the book, on the S&P 500 as IVV held it at each
     month-end from 2008, with SPY's Alpha Vantage closes as the market. It is
     not decided: "No gap in compounded growth detectable above about 0.2948 a
@@ -1313,7 +1316,13 @@ for the days kept against the rest. On synthetic
 series it holds the strict threshold, the previous joined day's close and a
 missing close qualifying nothing. It also holds VIX guarded on both sides of
 its flagged day, a planted doubling before that day refused, and a planted
-rescale under 1.6 times passing the guard and moving a figure.
+rescale under 1.6 times passing the guard and moving a figure. It holds what
+the write-up measured after the run too: the kept days by year and in runs,
+VIX's closes above 35 inside FSTX's window and before it, its highest close,
+each rule's returns summed over its kept days, and buy on gap's largest kept
+day, with the two helpers behind them on synthetic series. The blog post
+about it is the exception, and what it says that nothing here asserts is
+listed below.
 
 [tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) does it for
 the same rule at leverage a broker would lend. It pins each ceiling's
@@ -5877,7 +5886,9 @@ reports an APR of 13 percent and a Sharpe ratio of 1.4. The post links the buy
 on gap post, the volatility against the stock index post, the crude oil
 reversal and momentum post, the TU momentum post and the cross-sectional
 momentum post rather than repeating them, and draws six lessons from Entry 40
-of the replication log.
+of the replication log. Its third open question points at the VIX filter post
+below, whose figures [tests/test_vix_filter.py](tests/test_vix_filter.py)
+pins.
 
 1. The script's return line pays a long when the price falls from the open,
    so it sells an upward jump and buys a downward one, against the text's
@@ -5906,7 +5917,10 @@ Five groups of what it says are not pinned here.
    Figure 7.1's captions and GBPUSD's 7.2 percent and 1.3 at 2971, the stop
    orders triggered at the open at 2985, "a breakout strategy" at 3170, and
    the annualized average return and the VIX filter's threshold of 35, 2.6
-   percent and 0.16 at 3509.
+   percent and 0.16 at 3509. The threshold, 2.6 percent and 0.16 are pinned,
+   as book targets in `TestTheSpecification` in
+   [tests/test_vix_filter.py](tests/test_vix_filter.py), and its words are
+   not.
 2. Facts about the scripts and the instrument rather than the data: line 23's
    text and the closing comment in `gapFutures_FSTX.m` at `e4bc46f` of
    ericnberwick/EpchanPreview, the name and source text of the Python port
@@ -6496,8 +6510,106 @@ label's text sits inside its panel, clear of the other labels, the legend and
 every line. Each panel's heading clears the title or the tick labels above it,
 and the gap axis's label clears the note below it.
 
+[blog/vix-filter-lessons.md](blog/vix-filter-lessons.md) is a forty-sixth
+post, about the VIX filter at Kindle location 3509 of Chan's *Algorithmic
+Trading*, which keeps only the days after VIX closed above 35 and reruns
+Example 4.1's buy on gap and Example 7.1's opening gap rule on FSTX on them.
+The post links the buy on gap post and the opening gap post rather than
+repeating them, and draws five lessons from Entry 47 of the replication log.
+
+1. The filtered figure is 252 times the mean, 0.171924 and a Sharpe ratio of
+   1.417425 on buy on gap's 190 kept days, while the 8.7 percent set beside
+   it is the compounded APR. Like for like, 252 times the mean over every day
+   is 0.085279.
+2. FSTX's 0.025730 and 0.164869 on 185 kept days belong to the script's
+   fading sign, the momentum sign gives them negated, and the book's
+   unfiltered and filtered FSTX figures come from different calendars.
+3. Six ways of reading VIX on FSTX's days were tried, only the join lands
+   both figures, and buy on gap's figures do not move under any reading of
+   the previous day.
+4. The kept days are few and bunched: 151 of buy on gap's 190 and 146 of
+   FSTX's 185 fall in 2008 and 2009, in 15 runs, and buy on gap held a
+   position on 20 of its kept days, one of which, 2009-04-21, returned
+   0.093601 of the 0.129625 its kept days sum to.
+5. Welch's t on mean daily return cannot tell the kept days from the rest,
+   with p of 0.481405 for buy on gap and 0.494679 for FSTX.
+
+Five groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
+   through [its committed notes](research/book-notes/algorithmic-trading.md):
+   the momentum rule at 2965, the sentence that no one risk indicator suits
+   every strategy, the threshold of 35, "a common threshold for highly risky
+   periods", the four unfiltered and four filtered figures and both of
+   Chan's conclusions at 3509, and the warning about data snooping at 3541.
+   The threshold and the four filtered figures are pinned, as book targets
+   in `TestTheSpecification` in
+   [tests/test_vix_filter.py](tests/test_vix_filter.py), and Chan's words are
+   not.
+2. Facts about the index and the scripts rather than the data: that the
+   Chicago Board Options Exchange computes VIX from the prices of options on
+   the S&P 500 and that it measures the swings they imply for the next month,
+   that it closes at 16:15 New York time, after FSTX opens, and
+   that no script in either public copy of Chan's code applies the filter.
+3. Readings no test asserts: that the kept days earned more per day and
+   swung more for it, that 15 runs are fewer separate episodes than 190 days
+   suggest, that the alignment found by search makes the 2.6 percent a
+   fit rather than a test, that neighbouring days' returns can move together
+   and the test then counts more independent days than the sample holds,
+   and that a filter keeping few traded days leaves each cost a larger share
+   of the return.
+4. Readings the post rounds from pinned figures, most of the 17.2 and about
+   half the time for p near one half. The figure's alt text reads its curves
+   approximately too. The 8.5 percent it quotes from the buy on gap post is
+   pinned in [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) rather than
+   in this post's tests.
+5. Its reference, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_vix_filter.py](tests/test_vix_filter.py), or to
+[tests/test_vix_filter_figures.py](tests/test_vix_filter_figures.py) for the
+figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
+before it, all measured after the run.
+
+1. Buy on gap's kept days by year, 68, 83, 9 and 30 for 2008 to 2011, and
+   FSTX's, 65, 81, 9 and 30, so 151 of 190 and 146 of 185 fall in 2008 and
+   2009.
+2. Each rule's 15 runs of kept days, on the same dates for both, the longest
+   from 2008-09-30 to 2009-04-17, holding 138 of buy on gap's days and 134
+   of FSTX's.
+3. VIX's 190 closes above 35 in 15 runs from 2004-07-16 to 2012-05-08, its
+   highest close of 80.86 on 2008-11-20, and its last above 35, 36.16 on
+   2011-11-09.
+4. The 100 closes above 35 in `VIX.csv` before 2004-07-15, the first on
+   1990-08-06.
+5. Each rule's daily returns summed over its kept days, 0.129625 for buy on
+   gap and 0.018889 and −0.018889 for FSTX under the two signs.
+6. Buy on gap's largest kept day, 2009-04-21, which returned 0.093601, or
+   0.722090 of the sum, its 8 gaining and 12 losing held days, and the other
+   189 kept days' 0.048032 and Sharpe ratio of 0.855003.
+
+Its one figure is drawn from the committed vintages by
+[src/chan/vix_filter_figures.py](src/chan/vix_filter_figures.py), which reads
+them through the same `read_sources` and `vix_filters` as
+`python -m chan.vix_filter`, so the scale-break guard runs for it too. It
+draws two panels on one date axis from 2004-07-16 to 2012-05-08, both shading
+the span from 2008-09-18 to 2011-11-10 that holds every kept day.
+
+1. VIX's close with a dashed line at 35, the closes above it marked, and the
+   first, highest and last close above 35 inside the window labelled.
+2. Each rule's daily returns summed over its kept days, with nothing earned on
+   the other days, and buy on gap's largest kept day marked.
+
+```bash
+uv run python -m chan.vix_filter_figures
+```
+
+[tests/test_vix_filter_figures.py](tests/test_vix_filter_figures.py) holds
+what it draws rather than its bytes, for the reason given above for the regime
+map.
+
 [blog/low-beta-holdout-lessons.md](blog/low-beta-holdout-lessons.md) is a
-forty-sixth post, about the same rule at location 4709 tested on IVV's S&P
+forty-seventh post, about the same rule at location 4709 tested on IVV's S&P
 500 members at each month-end from 2008-12, every holding month after the
 first edition's release in November 2008. Its verdict is registered under two
 amendments and every other figure is exploratory. Every figure computed from
