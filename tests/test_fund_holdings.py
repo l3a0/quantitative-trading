@@ -824,7 +824,7 @@ class TestFetch:
         with pytest.raises(FilingRefused, match="could not be read"):
             fund_holdings._download("https://www.sec.gov/x", "n@example.com")
 
-    def test_a_download_the_index_does_not_recognise_is_refused(self, tmp_path: Path) -> None:
+    def test_a_document_the_index_does_not_recognise_is_refused(self, tmp_path: Path) -> None:
         document = _fixture("nport-2022-title-and-cusip.xml")
         record(_FUND, _NPORT_FILING, document, tmp_path)
         with pytest.raises(FilingRefused, match="the index records"):
@@ -836,13 +836,14 @@ class TestFetch:
                 pause=lambda s: None,
             )
 
-    def test_a_download_is_checked_against_another_funds_line(self, tmp_path: Path) -> None:
-        # One N-Q is one set of bytes for every fund in it, so IVV's download
-        # of an accession IJR's line names must be the bytes IJR's line hashed.
+    def test_a_document_is_checked_against_another_funds_line(self, tmp_path: Path) -> None:
+        # One N-Q is one set of bytes for every fund in it, so the document IVV
+        # cuts from an accession IJR's line names must be the bytes IJR's line
+        # hashed.
         document = _fixture("nport-2022-title-and-cusip.xml")
         record(_FUND, _NPORT_FILING, document, tmp_path)
         other = Fund("IVV", "S000004313", (), (_NPORT_FILING,), ())
-        with pytest.raises(FilingRefused, match="downloaded with sha256"):
+        with pytest.raises(FilingRefused, match="primary_doc.xml hashes to sha256"):
             fund_holdings.fetch(
                 other,
                 filings_dir=tmp_path,

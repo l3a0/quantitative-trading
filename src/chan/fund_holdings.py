@@ -24,8 +24,8 @@ The record has two parts.
 
 The source documents are not committed, because each N-Q or shareholder
 report runs to 15 to 59 MB.
-The index's sha256 says which bytes were parsed, so a fetch refuses a download
-that differs from them.
+The index's sha256 says which bytes were parsed. A fetch cuts the document out
+of what it downloads, and refuses that document when it differs from them.
 
 Those bytes are the document as EDGAR stores it, cut from the accession's
 submission text file by :func:`submitted_document`, and not the bytes EDGAR
@@ -1013,7 +1013,7 @@ def fetch(
             known = sorted({e.document_sha256 for e in held if e.accession == filing.accession})
             if known and known != [_sha256(content)]:
                 raise FilingRefused(
-                    f"{filing.accession} downloaded with sha256 {_sha256(content)}, "
+                    f"{filing.accession}'s {filing.document} hashes to sha256 {_sha256(content)}, "
                     f"and the index records {', '.join(known)}"
                 )
             saved = Path(scratch) / f"{filing.report_date}_{Path(filing.document).name}"
