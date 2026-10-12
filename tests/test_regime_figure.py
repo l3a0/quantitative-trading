@@ -10,10 +10,11 @@ What it does not do is compare bytes. A PNG carries the matplotlib version that
 rendered it, in its ``Software`` text chunk, so a draw under another release
 can paint the same picture and still differ from the committed file. So the
 assertions below hold the data behind the picture and the picture's shape, and
-an upgrade that changes nothing a reader sees does not turn the suite red.
+an upgrade that changes nothing a reader sees does not turn them red.
 ``tests/test_figures_match_code.py`` compares the picture itself, by decoding a
 fresh draw and the committed file and comparing their pixels, which the
-version tag does not reach.
+version tag does not reach. An upgrade that moves even one pixel fails that
+comparison, and the fix there is a redraw.
 
 The numbers are the ones ``TestRollingRegime`` already pins. Repeating them
 here is deliberate rather than duplication: that class holds what the engine
@@ -42,8 +43,9 @@ COMMITTED = FIGURES_DIR / "reproduction_regime_map.png"
 def png_size(path: Path) -> tuple[int, int]:
     """Width and height straight out of the PNG header.
 
-    Reading IHDR by hand keeps this test off an image library the project does
-    not otherwise need. Bytes 0-7 are the signature, 8-15 the IHDR chunk header,
+    It reads IHDR by hand, which needs no image library. The pixel comparison in
+    ``tests/support/figure_pixels.py`` decodes through Pillow, because comparing
+    pixels needs one. Bytes 0-7 are the signature, 8-15 the IHDR chunk header,
     and 16-23 the two big-endian dimensions.
     """
     header = path.read_bytes()[:24]

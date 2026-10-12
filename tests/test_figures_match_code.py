@@ -5,21 +5,27 @@ row "The regime-map figure and its generator, cut then reversed" rests on it
 being regenerable: an image nothing regenerates is an artifact nobody can
 check. The figure tests check the code, by reading the artists each ``make_*``
 function returns. Until issue 581 nothing checked that the file on disk was
-what that code draws. Two committed figures had drifted that way without a
-test noticing, ``risk_parity_cash_rate.png`` by 569 pixels and
-``reproduction_regime_map.png`` by 19, and this change redrew both.
+what that code draws. Measured on macOS arm64 at ``ddc5dc57``, two committed
+figures had drifted that way without a test noticing:
+``risk_parity_cash_rate.png`` by 569 pixels and ``reproduction_regime_map.png``
+by 19. The change that added this file redrew both.
 
 So each figure here is drawn fresh into ``tmp_path`` and compared with its
 committed file, pixel for pixel, through :mod:`tests.support.figure_pixels`.
 The comparison is exact. A failure names how many pixels differ and by how
 much, and the fix is to redraw the figure, as ``CLAUDE.md`` asks under
-"Regenerating is the second half of an edit".
+"Regenerating is the second half of an edit". That includes an upgrade of
+matplotlib or numpy that moves a pixel nobody can see.
+
+The comparison runs only on macOS arm64, where the committed figures are
+drawn, and skips elsewhere with a reason naming the platform. CI's Linux runner
+draws some figures differently, and that module's docstring gives the numbers.
 
 Every ``make_*`` function writes to ``docs/figures`` when ``out`` is None, so
 each draw here passes a path under ``tmp_path``. Drawing without one would
 overwrite the file being checked.
 
-Three cases need more than a call with ``out``.
+Three figures need more than a call with ``out``.
 
 1. Two makers take an input their module's ``main()`` computes, and the draws
    below compute it the way ``main()`` does.
@@ -102,7 +108,12 @@ from chan.pca_factor_momentum import (
 from chan.series import load_panel
 from tests import test_cpo_figures as cpo_figure_tests
 from tests.conftest import archive_skip_reason
-from tests.support.figure_pixels import assert_same_pixels, pixel_difference
+from tests.support.figure_pixels import (
+    assert_same_pixels,
+    pixel_difference,
+    platform_skip_reason,
+    rgba,
+)
 
 
 def _factor_momentum(out: Path) -> object:
@@ -225,7 +236,9 @@ DRAWS: dict[str, Callable[[Path], object]] = {
 #: where the archive pins skip.
 ON_THE_ARCHIVE = {"low_beta_holdout.png"}
 
-#: The figure compared in another file, with the test there that compares it.
+#: The figure compared in another file, with the test there that compares it,
+#: so renaming that test fails this file rather than leaving the figure
+#: unchecked.
 COMPARED_ELSEWHERE = {
     CELLS_FIGURE: cpo_figure_tests.TestOnTheArchive.test_the_committed_figure_is_what_the_run_draws,
 }
@@ -280,28 +293,134 @@ class TestThePixelComparison:
             "committed.png: a fresh draw is 3 by 2 pixels and the committed file is 3 by 3"
         )
 
+    def test_the_size_message_gives_width_then_height(self, tmp_path: Path) -> None:
+        drawn = _png(tmp_path / "drawn.png", self.PIXELS)
+        committed = _png(tmp_path / "committed.png", np.full((3, 4, 4), 200, dtype=np.uint8))
+
+        assert pixel_difference(drawn, committed) == (
+            "committed.png: a fresh draw is 3 by 2 pixels and the committed file is 4 by 3"
+        )
+
+    def test_a_transposed_image_is_a_different_size(self, tmp_path: Path) -> None:
+        """Same pixel count, different shape, so a check on the count alone
+        would reach the subtraction and fail there instead."""
+        drawn = _png(tmp_path / "drawn.png", self.PIXELS)
+        committed = _png(tmp_path / "committed.png", np.full((3, 2, 4), 200, dtype=np.uint8))
+
+        assert pixel_difference(drawn, committed) == (
+            "committed.png: a fresh draw is 3 by 2 pixels and the committed file is 2 by 3"
+        )
+
+    def test_an_opaque_rgb_file_equals_its_rgba_twin(self, tmp_path: Path) -> None:
+        """A PNG optimiser may drop an alpha channel that is opaque everywhere."""
+        opaque = self.PIXELS.copy()
+        opaque[..., 3] = 255
+        drawn = _png(tmp_path / "drawn.png", opaque)
+        committed = tmp_path / "committed.png"
+        Image.fromarray(opaque[..., :3], "RGB").save(committed)
+
+        assert pixel_difference(drawn, committed) is None
+
+    def test_assert_same_pixels_fails_with_the_difference(self, tmp_path: Path) -> None:
+        """Every comparison in the suite goes through this one assertion."""
+        moved = self.PIXELS.copy()
+        moved[1, 2, 0] = 199
+        drawn = _png(tmp_path / "drawn.png", self.PIXELS)
+        committed = _png(tmp_path / "committed.png", moved)
+
+        with pytest.raises(AssertionError, match="1 of 6 pixels differ"):
+            assert_same_pixels(drawn, committed)
+
 
 class TestEveryCommittedFigureIsCompared:
-    def test_each_file_in_docs_figures_has_a_draw(self) -> None:
-        """A figure committed without an entry here would go unchecked, which
-        is how the two stale ones went unnoticed."""
-        committed = {path.name for path in FIGURES_DIR.iterdir()}
+    def test_each_png_in_docs_figures_has_a_draw(self) -> None:
+        """A figure committed without an entry here would go unchecked.
+
+        It reads ``*.png`` rather than every file, so a ``.DS_Store`` that
+        Finder leaves there does not fail it, and an untracked new figure
+        still does.
+        """
+        committed = {path.name for path in FIGURES_DIR.glob("*.png")}
 
         assert committed == set(DRAWS) | set(COMPARED_ELSEWHERE)
 
-    def test_no_figure_is_drawn_in_two_places(self) -> None:
-        assert not set(DRAWS) & set(COMPARED_ELSEWHERE)
 
-    def test_the_archive_figures_are_ones_this_file_draws(self) -> None:
-        assert ON_THE_ARCHIVE <= set(DRAWS)
+class TestTheComparisonRunsWhereTheFiguresAreDrawn:
+    def test_it_runs_on_macos_arm64(self) -> None:
+        assert platform_skip_reason("darwin", "arm64") is None
+
+    @pytest.mark.parametrize(
+        ("system", "machine"), [("linux", "x86_64"), ("darwin", "x86_64"), ("linux", "arm64")]
+    )
+    def test_it_skips_elsewhere_naming_the_platform(self, system: str, machine: str) -> None:
+        reason = platform_skip_reason(system, machine)
+
+        assert reason is not None
+        assert f"this is {system} {machine}" in reason
+
+
+def skip_reason(name: str, platform: str | None, archive: str | None) -> str | None:
+    """Why ``name``'s comparison skips, given the platform's and the archive's
+    reasons, or None when it runs."""
+    if platform is not None:
+        return platform
+    if name in ON_THE_ARCHIVE:
+        return archive
+    return None
+
+
+def draw_and_compare(name: str, out: Path) -> None:
+    """Draw ``name`` to ``out`` and fail unless it has the committed pixels."""
+    DRAWS[name](out)
+    assert_same_pixels(out, FIGURES_DIR / name)
+
+
+class TestTheComparisonIsWiredToTheDraw:
+    """What each parametrized case below runs, held on every platform."""
+
+    def test_a_draw_that_moved_one_level_fails(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Fails if the comparison read the committed file against itself, or
+        if it dropped the draw, which would leave nothing at ``out``."""
+        name = "gld_gc.png"
+
+        def stale(out: Path) -> None:
+            pixels = rgba(FIGURES_DIR / name).copy()
+            pixels[0, 0, 0] ^= 1
+            Image.fromarray(pixels, "RGBA").save(out)
+
+        monkeypatch.setitem(DRAWS, name, stale)
+
+        with pytest.raises(AssertionError, match="gld_gc.png: 1 of "):
+            draw_and_compare(name, tmp_path / name)
+
+    def test_every_draw_is_a_case(self) -> None:
+        """A filter on the parametrize list would drop comparisons while the
+        check that every figure has a draw stayed green."""
+        (mark,) = [
+            mark
+            for mark in test_a_fresh_draw_has_the_committed_pixels.pytestmark
+            if mark.name == "parametrize"
+        ]
+
+        assert sorted(mark.args[1]) == sorted(DRAWS)
+
+    def test_the_archive_figure_runs_where_the_archive_pins_run(self) -> None:
+        assert skip_reason("low_beta_holdout.png", None, None) is None
+        assert skip_reason("low_beta_holdout.png", None, "no archive") == "no archive"
+
+    def test_other_figures_ignore_the_archive(self) -> None:
+        assert skip_reason("gld_gc.png", None, "no archive") is None
+
+    def test_the_platform_skips_every_figure(self) -> None:
+        for name in ("gld_gc.png", "low_beta_holdout.png"):
+            assert skip_reason(name, "not macOS arm64", None) == "not macOS arm64"
 
 
 @pytest.mark.parametrize("name", sorted(DRAWS))
 def test_a_fresh_draw_has_the_committed_pixels(name: str, tmp_path: Path) -> None:
-    if name in ON_THE_ARCHIVE and (reason := archive_skip_reason()) is not None:
+    if (reason := skip_reason(name, platform_skip_reason(), archive_skip_reason())) is not None:
         pytest.skip(reason)
-    out = tmp_path / name
 
-    DRAWS[name](out)
-
-    assert_same_pixels(out, FIGURES_DIR / name)
+    draw_and_compare(name, tmp_path / name)

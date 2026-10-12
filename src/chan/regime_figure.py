@@ -26,7 +26,7 @@ version that rendered it, so a redraw under another release can show the same
 picture in a different file. So ``tests/test_regime_figure.py`` asserts the
 data behind the picture rather than the bytes of it, and
 ``tests/test_figures_match_code.py`` compares a fresh draw's decoded pixels
-with the committed file, which the version does not reach.
+with the committed file, which the version tag does not reach.
 
 Colours match the essay's palette, so the picture reads as part of it.
 
