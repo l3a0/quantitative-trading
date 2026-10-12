@@ -213,35 +213,97 @@ def test_a_pull_request_closing_two_issues_gets_an_item_for_each() -> None:
     assert all("partOf" not in p for p in prs_of(board))
 
 
-def test_a_part_of_line_names_its_issue_and_prose_does_not() -> None:
-    """Protects the ``Part of`` convention from prose that mentions one.
+@pytest.mark.parametrize(
+    ("body", "credited"),
+    [
+        # Line start, as most bodies write it.
+        ("Part of #482. The rest of the issue stays open.\n", True),
+        # Mid-paragraph, as PR 481 wrote it for 482.
+        ("This writes the post. Part of #482. The draft follows it.\n", True),
+        # Inside a code span that crosses a line, so the phrase opens a line.
+        ("The form reads `a body writes\nPart of #482 on a line`, as shown.\n", False),
+        # Inside a fenced code block. The blank line in it ends a paragraph, so
+        # only the fence rule, and not the code span rule, keeps it out.
+        ("The form reads:\n\n```text\nA body:\n\nPart of #482\n```\n", False),
+    ],
+    ids=["line-start", "mid-paragraph", "code-span", "fence"],
+)
+def test_a_part_of_reference_counts_anywhere_outside_code(body: str, credited: bool) -> None:
+    """Protects the ``Part of`` rule the owner chose on issue 559.
 
-    PR 491's body named 462 on a line of its own and three other issues in
-    sentences such as "merged in PR 488, part of 458". PR 485 quoted another
-    pull request's line mid-sentence. Only a line opening with ``Part of``
-    counts.
+    A reference counts anywhere in a body outside a code span or a fenced code
+    block, the way GitHub reads a closing keyword. PR 481 wrote the phrase
+    mid-paragraph for 482, and a rule reading only a line opening with it gave
+    that branch no item. The code span here crosses a line, and the fence holds
+    the phrase on a line of its own, so the earlier rule would have credited
+    both.
+    """
+    gh = FakeGitHub([issue(482)], [pull(481, body=body)])
+    board, _ = build(gh)
+    expected = [(481, 482, False, True)] if credited else []
+    assert [(p["pr"], p["issue"], p["linked"], p.get("partOf")) for p in prs_of(board)] == expected
+
+
+@pytest.mark.parametrize(
+    ("body", "credited"),
+    [
+        # A run of one backtick closes only at a run of one, so the two runs of
+        # two inside it are code and the reference with them.
+        ("`a`` Part of #482 ``b`", False),
+        # A run nothing closes is literal text.
+        ("A stray ` backtick, then Part of #482.", True),
+        # A code span ends with its paragraph, so a backtick in each of two
+        # paragraphs opens no span between them.
+        ("A stray ` here.\n\nPart of #482, and another ` there.\n", True),
+        # A span removed leaves a space, so the words either side of it do not
+        # join into the phrase.
+        ("Part `x`of #482", False),
+    ],
+    ids=["width", "unclosed", "paragraph", "joined"],
+)
+def test_a_code_span_closes_only_on_a_run_of_its_own_width(body: str, credited: bool) -> None:
+    """Protects the reference from a span read wider or narrower than GitHub reads it.
+
+    CommonMark closes a code span at the next run of exactly as many backticks
+    in the same paragraph, and leaves a run nothing closes as literal text.
+    Reading any run as a closer, or a lone backtick as opening to the end of
+    the body, would drop a reference GitHub shows as plain text.
+    """
+    gh = FakeGitHub([issue(482)], [pull(481, body=body)])
+    board, _ = build(gh)
+    assert [(p["pr"], p["issue"]) for p in prs_of(board)] == ([(481, 482)] if credited else [])
+
+
+def test_lowercase_prose_naming_an_issue_is_no_part_of_reference() -> None:
+    """Protects the ``Part of`` rule from prose that names another issue.
+
+    PR 491's body named 462 with the phrase and three other issues in
+    sentences such as "merged in PR 488, part of 458". Lowercase prose is not
+    a reference. A capitalised quotation of another pull request's line is
+    one, as PR 485's was, and that is the price the owner accepted on issue
+    559: a sentence mentioning the phrase counts unless a code span holds it.
     """
     body = (
         "- The Entry 27 post merged in PR #488, part of #458.\n"
         "part of #458 was the earlier post.\n"
         'It merged in #478 as "Part of #459".\n'
+        "It also merged in #479 as `Part of #460`.\n"
         "\n"
         "Part of #462. The draft is created from the merged file.\n"
     )
-    gh = FakeGitHub([issue(458), issue(459), issue(462)], [pull(491, body=body)])
+    gh = FakeGitHub([issue(458), issue(459), issue(460), issue(462)], [pull(491, body=body)])
     board, _ = build(gh)
-    assert prs_of(board) == [
-        {
-            "pr": 491,
-            "issue": 462,
-            "state": "open",
-            "linked": False,
-            "reviewed": False,
-            "review": "no review posted",
-            "rollup": [["test", "success"]],
-            "partOf": True,
-        }
-    ]
+    assert [p["issue"] for p in prs_of(board)] == [459, 462]
+    assert prs_of(board)[1] == {
+        "pr": 491,
+        "issue": 462,
+        "state": "open",
+        "linked": False,
+        "reviewed": False,
+        "review": "no review posted",
+        "rollup": [["test", "success"]],
+        "partOf": True,
+    }
 
 
 def test_a_merged_part_of_pull_request_stays_on_its_open_issue() -> None:

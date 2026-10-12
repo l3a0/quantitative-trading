@@ -78,11 +78,16 @@ from pathlib import Path
 
 SCHEMA = 1
 
-# A `Part of` line, as the repository's pull request bodies write it: at the
-# start of a line, capitalised, with the number right after it. Prose such as
-# "merged in PR 488, part of 458" names another pull request's issue, and the
-# line form is what keeps that from becoming an item here.
-PART_OF = re.compile(r"^[ \t]*Part of #(\d+)\b", re.MULTILINE)
+# A `Part of` reference, read the way GitHub reads a closing keyword: anywhere
+# in a pull request's body, capitalised, with `#` and the number right after
+# it, and never inside a code span or a fenced code block. Sessions write the
+# phrase mid-paragraph, as PR 481 did for issue 482, and a rule that read only
+# a line opening with it dropped those without saying so. Lowercase prose such
+# as "merged in PR 488, part of 458" names another pull request's issue and is
+# not one. The owner ruled on issue 559 that a sentence mentioning the phrase in
+# passing counts unless a code span holds it, as a closing keyword does.
+# `pr_items` strips the code before matching.
+PART_OF = re.compile(r"\bPart of #(\d+)\b")
 
 # A review comment opens with a line reading `## Review`, which the
 # update-build-board skill states as the convention. "## Reviewer" is not one.
@@ -111,6 +116,42 @@ FENCE = re.compile(
 def unfenced(text: str) -> str:
     """The text with every fenced code block removed, so no line in one is read."""
     return FENCE.sub("", text)
+
+
+# A run of backticks, which opens an inline code span, and the blank line that
+# ends a paragraph. A span closes only at the next run of exactly as many
+# backticks inside the same paragraph, as CommonMark has it, and a run nothing
+# closes is literal text.
+TICKS = re.compile(r"`+")
+PARAGRAPH = re.compile(r"\n[ \t]*\n")
+
+
+def _spans_out(paragraph: str) -> str:
+    """One paragraph with each code span replaced by a space."""
+    kept, start, pos = [], 0, 0
+    while opener := TICKS.search(paragraph, pos):
+        width = len(opener.group())
+        closer = next(
+            (m for m in TICKS.finditer(paragraph, opener.end()) if len(m.group()) == width), None
+        )
+        if closer is None:
+            pos = opener.end()
+            continue
+        kept.append(paragraph[start : opener.start()])
+        start = pos = closer.end()
+    kept.append(paragraph[start:])
+    # A space rather than nothing, so the text either side of a span does not
+    # join into a phrase GitHub never shows.
+    return " ".join(kept)
+
+
+def outside_code(text: str) -> str:
+    """The text with every fenced code block and inline code span removed.
+
+    GitHub does not read a closing keyword written inside either, so a ``Part
+    of`` reference written inside one does not count here either.
+    """
+    return "\n\n".join(_spans_out(p) for p in PARAGRAPH.split(unfenced(text)))
 
 
 # Which label sets a card's kind, in the order that wins when an issue carries
@@ -385,22 +426,23 @@ def pr_items(
     """One item per open issue the pull request names, or none at all.
 
     A pull request names an issue through GitHub's closing link or through a
-    ``Part of`` line. One that names no open issue gets no item, because a
-    branch with no card has nowhere to be drawn and a null issue would make the
-    page refuse the whole section. One that closes two issues gets two items,
+    ``Part of`` reference anywhere in its body outside a code span or a fenced
+    code block. One that names no open issue gets no item, because a branch
+    with no card has nowhere to be drawn and a null issue would make the page
+    refuse the whole section. One that closes two issues gets two items,
     because the page keys pull requests by issue.
 
     A pull request opened from a fork gets no item either. Anyone can open one
-    on a public repository, and its ``Part of`` line or closing keyword would
-    otherwise draw a branch on the card and take it off the free list. Reading
-    the author's association instead would drop Dependabot, which GitHub marks
-    ``CONTRIBUTOR``, so the test is where the branch lives.
+    on a public repository, and its ``Part of`` reference or closing keyword
+    would otherwise draw a branch on the card and take it off the free list.
+    Reading the author's association instead would drop Dependabot, which
+    GitHub marks ``CONTRIBUTOR``, so the test is where the branch lives.
 
     ``linked`` is always the opposite of ``partOf`` here, because an issue
-    named only by a ``Part of`` line is the one case with no closing link. So
-    the page's warning about a closing link GitHub did not register could never
-    fire, and issue 533 removed it. A pull request whose keyword sits in a code span names
-    no issue GitHub can see, and gets no item at all.
+    named only by a ``Part of`` reference is the one case with no closing link.
+    So the page's warning about a closing link GitHub did not register could
+    never fire, and issue 533 removed it. A pull request whose keyword sits in
+    a code span names no issue GitHub can see, and gets no item at all.
 
     ``review`` is the word the card's line prints. With no review posted it
     says one is in progress while a session holds the card, which ``working``
@@ -412,7 +454,7 @@ def pr_items(
         n["number"]
         for n in _all_nodes(gql, pr["id"], "closingIssuesReferences", pr["closingIssuesReferences"])
     }
-    part_of = {int(m) for m in PART_OF.findall(pr.get("body") or "")}
+    part_of = {int(m) for m in PART_OF.findall(outside_code(pr.get("body") or ""))}
     named = sorted((closing | part_of) & open_issues)
     if not named:
         return []
