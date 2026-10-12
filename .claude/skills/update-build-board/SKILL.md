@@ -36,6 +36,7 @@ publish this page to it.
 | Its data | `board.json` beside the page |
 | What builds the data | `scripts/build_board.py`, run by `.github/workflows/board.yml` |
 | The page's source | `board.html` beside this skill |
+| The page's tab icon | `favicon.ico` beside this skill |
 
 The address is public and the same for every machine, so it lives here rather
 than in a file on the machine.
@@ -300,6 +301,11 @@ skill, run `tests/test_build_board.py` and `tests/test_build_board_generator.py`
 and the harness below, and open the pull request. The run of the Action that
 the merge starts publishes `main`'s `board.html`, so there is nothing to
 publish by hand.
+
+The page links its tab icon as `favicon.ico`, and the step that adds the page
+copies `favicon.ico` beside this skill into the same folder. Renaming the icon
+means changing the page's link, that copy and the two tests that check them
+together.
 
 A change to what the page reads is a change to the script as well. Add the
 field to `scripts/build_board.py`, and to `ITEM_OK` in the page if the renderer

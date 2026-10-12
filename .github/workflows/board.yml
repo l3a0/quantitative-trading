@@ -103,9 +103,12 @@ jobs:
           --workflow .github/workflows/board.yml
           --out _site
 
-      # Pages serves index.html at the site's root.
+      # Pages serves index.html at the site's root. The page links its icon
+      # as favicon.ico beside it, so the icon goes in the same folder.
       - name: Add the page
-        run: cp .claude/skills/update-build-board/board.html _site/index.html
+        run: >-
+          cp .claude/skills/update-build-board/board.html _site/index.html &&
+          cp .claude/skills/update-build-board/favicon.ico _site/favicon.ico
 
       - uses: actions/upload-pages-artifact@v5
         with:
