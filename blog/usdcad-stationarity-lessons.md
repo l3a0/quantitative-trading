@@ -12,7 +12,7 @@ Chan’s Examples 2.1 to 2.4 run four such tests on USD.CAD, the price of a US d
 
 1. **Three tests land every digit the script prints.** The ADF test, the variance ratio test and the half-life give four statistics between them, and all four match. So the closes here are the closes Chan ran.
 2. **The Hurst exponent misses.** The book prints 0.49. The function Chan’s script calls gives 0.47, and his own Python port gives 0.48. Both misses are smaller than the spread H shows on a random walk of the same length.
-3. **The trade ends positive.** Chan says its profit and loss, or P&L, “manages to be positive, albeit with a large drawdown” (Chan, 2013, p. 49). It ends at 0.1141 after a drawdown of 0.6425, a fall from its high.
+3. **The trade ends positive.** Chan says its profit and loss, or P&L, “manages to be positive, albeit with a large drawdown” (Chan, 2013, p. 49). It ends at 0.1141. On the way it peaks at 0.1321 in July 2008, then falls 0.6425 to −0.5104 by October. That fall from the peak is the drawdown.
 
 **Every result here is exploratory.** The reproduction runs Chan’s tests on Chan’s days, so it says whether his numbers follow from his closes and nothing about whether USD.CAD reverts today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
