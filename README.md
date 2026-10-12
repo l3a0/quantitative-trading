@@ -5891,7 +5891,10 @@ Five groups of what it says are not pinned here.
    Figure 7.1's captions and GBPUSD's 7.2 percent and 1.3 at 2971, the stop
    orders triggered at the open at 2985, "a breakout strategy" at 3170, and
    the annualized average return and the VIX filter's threshold of 35, 2.6
-   percent and 0.16 at 3509.
+   percent and 0.16 at 3509. The threshold, 2.6 percent and 0.16 are pinned,
+   as book targets in `TestTheSpecification` in
+   [tests/test_vix_filter.py](tests/test_vix_filter.py), and its words are
+   not.
 2. Facts about the scripts and the instrument rather than the data: line 23's
    text and the closing comment in `gapFutures_FSTX.m` at `e4bc46f` of
    ericnberwick/EpchanPreview, the name and source text of the Python port
@@ -6402,6 +6405,10 @@ Five groups of what it says are not pinned here.
    every strategy, the threshold of 35, "a common threshold for highly risky
    periods", the four unfiltered and four filtered figures and both of
    Chan's conclusions at 3509, and the warning about data snooping at 3541.
+   The threshold and the four filtered figures are pinned, as book targets
+   in `TestTheSpecification` in
+   [tests/test_vix_filter.py](tests/test_vix_filter.py), and Chan's words are
+   not.
 2. Facts about the index and the scripts rather than the data: that the
    Chicago Board Options Exchange computes VIX from the prices of options on
    the S&P 500 and that it measures the swings they imply for the next month,
@@ -6414,10 +6421,11 @@ Five groups of what it says are not pinned here.
    and the test then counts more independent days than the sample holds,
    and that a filter keeping few traded days leaves each cost a larger share
    of the return.
-4. Figures the post states in words or rounds from pinned ones, such as 17.9
-   percent, 2.2 percent, 8.5 percent, 14 percent and 1.6, 2.5 percent, 4.8
-   percent and 0.86, most of the 17.2, and about half the time for p near one
-   half. The figure's alt text reads its curves approximately too.
+4. Readings the post rounds from pinned figures, most of the 17.2 and about
+   half the time for p near one half. The figure's alt text reads its curves
+   approximately too. The 8.5 percent it quotes from the buy on gap post is
+   pinned in [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) rather than
+   in this post's tests.
 5. Its reference, cited rather than computed.
 
 Every other number in the post traces to an assertion in
