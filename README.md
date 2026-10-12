@@ -6884,7 +6884,7 @@ serial run, which is the faster choice for a few tests, because every worker
 starts whatever the selection. `--pdb` runs serially on its own.
 
 A Claude Code session here also runs the archive pins, the 16 of Example
-7.1, the 17 of the Example 7.2 rerun, the 35 of
+7.1, the 18 of the Example 7.2 rerun, the 35 of
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
 holdout in `tests/test_low_beta_holdout.py` and the 7 of its figure in
 `tests/test_low_beta_holdout_figures.py`, because `.claude/settings.json`
