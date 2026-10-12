@@ -239,7 +239,8 @@
   /* A card whose plan has been executed against the code is a different thing
      from a card whose body is still a hypothesis. The difference is one half
      of whether it can be handed to a builder, and `buildable` in the script
-     reads the other half, which is whether anything holds the card. It is
+     reads the other half, which is whether a blocker or a reason in `HOLDS`
+     keeps the card back. It is
      drawn as a filled corner rather than another border, because the borders
      are spoken for. */
   .tk.plan-build { box-shadow: inset 0 3px 0 0 var(--exact); }
@@ -1309,9 +1310,9 @@ function buildOrder() {
      What the rule says is that the marker reports a finished plan nobody is
      carrying out yet, and it goes the moment somebody is. Whether the card can
      be handed to a builder is a separate question, which `takeable` and
-     `HOLDS` answer, and `buildable` below is what lets the marker's suffix,
-     its label sentence and the legend say "ready to build" only where they
-     agree. This comment once said the marker answered that question itself,
+     `HOLDS` answer. `buildable` below asks it for the marker's suffix, its
+     label sentence and the legend's gloss, so none of the three offers the
+     card to a builder while the notes and the chain bar hold it back. This comment once said the marker answered that question itself,
      and the suffix was written to match, so a deferred card read "deferred on
      purpose" above "ready to build". Issue 583 recorded it.
 
@@ -1817,7 +1818,13 @@ function buildOrder() {
        showing 4. Both are this entry. */
     ...(drew(rest, c => rankMark(c))
       ? [["rk", "where it sits in the order work should land, so a blocker ranks ahead of what it frees"]] : []),
-    ...(drew(rest, c => c.kind === "ready") ? [["ready", "work a session can take"]] : []),
+    /* The border says what kind of work a card is, and nothing more. "Work a
+       session can take" read as a free claim under a ready card that waits on
+       an open issue or that `HOLDS` keeps back, which is the same disagreement
+       as issue 583. The card's own lines and the chain bar say whether it is
+       free, so the gloss says only what the border shows. */
+    ...(drew(rest, c => c.kind === "ready")
+      ? [["ready", "ordinary work, which a session can take once nothing blocks or holds it"]] : []),
     ...(drew(rest, c => c.kind === "decision") ? [["decision", "needs the owner, not a session"]] : []),
     ...(drew(rest, c => c.kind === "deferred")
       ? [["deferred", "deferred on purpose, under the ranking rule"]] : []),
@@ -2117,7 +2124,7 @@ const FLOW = [
     has: (c, s) => s.pr && !handedOver(s.pr, s.busy) },
   { t: "Building", tone: "building", d: "a build session is on it and no branch has appeared",
     has: (c, s) => !s.pr && s.busy && s.busy.kind === "build" },
-  { t: "Planned, no builder", tone: "planned", d: "a plan run against the code, no open issue in front of it, and nobody on it",
+  { t: "Planned, no builder", tone: "planned", d: "a plan run against the code, nothing open that it waits on, and nobody on it",
     has: (c, s) => s.plan && !s.pr && !s.busy && !s.blocked && !s.landed },
   { t: "Being planned", tone: "planning", d: "a decompose loop is running, so the plan is still being written",
     has: (c, s) => !s.pr && s.busy && s.busy.kind !== "build" }
@@ -2238,13 +2245,14 @@ function inFlight(ctx) {
      is an index that outlives the arrangement it was counted from. */
   const ns2 = cs => andlist(cs.map(c => "#" + c.n));
   const say = {
-    /* One sentence again. This split into settled and still-running for a while,
-       which was the note coping with a column that should not have held an
-       unsettled branch in the first place. `handedOver` fixed that above, so
+    /* No split into settled and still-running. The note split that way for a
+       while, which was the note coping with a column that should not have held
+       an unsettled branch in the first place. `handedOver` fixed that above, so
        every card here has green checks by construction and the second half could
        only ever be empty. A note working around a wrong test is a second place
-       for the rule to live, which is defect 5. */
-    /* "Waiting on nothing else" is said only of a card whose own line names
+       for the rule to live, which is defect 5.
+
+       "Waiting on nothing else" is said only of a card whose own line names
        nothing it waits on. It was fixed text until issue 584, so a reviewed,
        green card reading "waits on #N" was told here that it waited on
        nothing, in the sentence the owner reads before merging. Such a card

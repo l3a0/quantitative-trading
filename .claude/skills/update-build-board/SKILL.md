@@ -729,11 +729,11 @@ the script beside it. Each row after them says how it was found.
     on several open issues still feed the hidden pointer, so the guard sits on
     the list rather than on the whole pointer.
 
-22. **Two more surfaces answering the free question on their own.** Caught by
+22. **Two more places deciding on their own whether a card is free.** Caught by
     the completeness lens of the review of
     [pull request 580](https://github.com/l3a0/quantitative-trading/pull/580),
-    which fixed defect 20's third place. Two places still read less than
-    `takeable` does.
+    which fixed the In flight note's planned sentence under defect 20. Two
+    places still read less than `takeable` does.
 
     1. [Issue 583](https://github.com/l3a0/quantitative-trading/issues/583)
        recorded the first. The plan marker's suffix, its label sentence and

@@ -1357,11 +1357,11 @@ def test_the_in_flight_note_joins_free_and_held_planned_cards(tmp_path: Path) ->
 
 
 def _card_text(ids: dict, element: str, n: int) -> str:
-    """The rendered text of one card, from its opening tag to the next card's."""
+    """The rendered text of one card, from its opening tag to the next card or column."""
     raw = ids.get(element, {}).get("html", "")
     start = raw.index(f'data-n="{n}"')
-    end = raw.find('<div class="tk', start)
-    return text({"c": {"html": raw[start : end if end >= 0 else len(raw)]}}, "c")
+    ends = [i for i in (raw.find('<div class="tk', start), raw.find('<div class="col', start)) if i >= 0]
+    return text({"c": {"html": raw[start : min(ends, default=len(raw))]}}, "c")
 
 
 @pytest.mark.parametrize(
@@ -1425,6 +1425,7 @@ def test_a_blocked_planned_card_is_glossed_by_its_blocker(tmp_path: Path, kind: 
     assert 90503 in cards(ids, "board")
     legend = text(ids, "key")
     assert "plan run against the code, with a blocker still in front of it" in legend
+    assert "work a session can take" not in legend.replace("which a session can take once", "")
     assert "ready to hand to a builder" not in legend
     assert "ready to build" not in _card_text(ids, "board", 90503)
 
