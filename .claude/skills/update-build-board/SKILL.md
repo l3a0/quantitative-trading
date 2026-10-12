@@ -700,10 +700,12 @@ the script beside it. Each row after them says how it was found.
     The completeness lens of that review found a third place, filed as
     [issue 573](https://github.com/l3a0/quantitative-trading/issues/573). The
     In flight note's sentence for "Planned, no builder" asked only whether a
-    plan waited on the owner. So a deferred, decision or parent card with a
-    finished plan was "planned and free for anyone to pick up" there while the
-    bar said it was not free to take. That sentence now reads `takeable` and
-    gives the reasons `HOLDS` names, in the bar's words. The column's own test
+    plan waited on the owner. So a deferred, decision, parent or data card with
+    a finished plan was "planned and free for anyone to pick up" there while
+    the bar said it was not free to take. That sentence now reads `takeable`
+    and gives the reasons `HOLDS` names, in the bar's words. No row names data,
+    so a card blocked on data is told only that it is not free, as the bar
+    tells it only what its links show. The column's own test
     still reads no kind, so such a card stays under that heading, and the note
     beside it is what says the card is held.
 21. **Two pointers reading a list that ties at zero.** Found by the over-reach

@@ -1323,9 +1323,9 @@ function buildOrder() {
   /* One table says why a card is not free for a session to take, and the test
      for a free card is ordinary work that no row of it holds. The board note's
      free list, the chain bar and the In flight note's planned sentence all read
-     them. The bar used to read only
-     `needs`, so a card with none either way was called free to take on its own
-     whatever its kind word, its session, its branch or its plan said. That is
+     them. The bar used to read only `needs`, so a card with none either way was
+     called free to take on its own whatever its kind word, its session, its
+     branch or its plan said. That is
      the free list and the bar giving two answers to one question, which is
      defect 5 in the skill's record, and issue 521 is where it was found.
 
@@ -2243,7 +2243,7 @@ function inFlight(ctx) {
       const free = col.filter(ctx.takeable);
       const held = new Map();
       col.filter(c => !free.includes(c)).forEach(c => {
-        const why = andlist(ctx.holding([c], "is")) || "is not free to take";
+        const why = andlist(ctx.holding([c], "is"));
         held.set(why, (held.get(why) || []).concat([c]));
       });
       const parts = [];
@@ -2252,7 +2252,8 @@ function inFlight(ctx) {
       /* "too" only reads after a sentence saying another card is planned, and
          the free one drops out whenever no planned card is free. */
       held.forEach((cs, why) => parts.push(`${ns2(cs)} ${cs.length === 1 ? "is" : "are"} planned` +
-        `${parts.length ? " too" : ""}, and ${cs.length === 1 ? "" : "each "}${why}`));
+        `${parts.length ? " too" : ""}, and ${cs.length === 1 ? why || "is not free to take"
+          : why ? `each ${why}` : "none of them is free to take"}`));
       return parts.join(". ");
     }
   };
