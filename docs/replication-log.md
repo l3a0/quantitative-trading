@@ -11411,5 +11411,5 @@ from. The report prints 4.47 and judges it against nothing.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
-moves with it, since that post's closing paragraphs quote most of these
-figures.
+moves with it, since the closing paragraphs of that post's Lesson 6 quote
+its before-cost figures, its one step beyond noise and the control's gaps.

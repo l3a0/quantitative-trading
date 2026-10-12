@@ -5724,8 +5724,8 @@ Trading* that most of Khandani and Lo's returns came from small and microcap
 stocks. Example 3.8 leaves that run as an exercise at location 2236 and prints
 no figure for it. The post links the survivorship and costs post and the post
 on Chan's 2012 panel rather than repeating them, and draws six lessons from
-Entry 44 of the replication log. Its closing paragraphs report what Entry 50
-found on the S&P 400.
+Entry 44 of the replication log. Lesson 6's closing paragraphs report what
+Entry 50 found on the S&P 400.
 
 1. At the close the S&P 600 earns 3.4086 before costs against the S&P 500's
    0.2510, a gap of +3.1576 and 3.1987 standard errors.
@@ -5746,8 +5746,8 @@ found on the S&P 400.
    400 is the third point, and its run sits between the other two on the
    closes and below both on the opens. The reading written down before that
    run calls this mixed. The S&P 600 rebuilt the same way, as a check on the
-   change of vendor, passes its rule only with three days set aside in
-   advance.
+   change of vendor, passes its rule only with one stock set aside on each
+   of three days, decided in advance.
 
 Five groups of what it says are not pinned here.
 
@@ -5776,8 +5776,9 @@ Five groups of what it says are not pinned here.
 4. Facts from outside the data and figures stated in words: the two news
    reports on BCSI and SCUR, their dates and what they say, that no source
    states SCUR's close, the bound written as 0.625 for 1/1.6, and words such
-   as far more, barely past the line, about the same and about one standard
-   error. The prose writes
+   as far more, barely past the line, about the same, about one standard
+   error, most of the 116 left out, and many of the vendor's histories. The
+   prose writes
    pinned fractions in percent, such as 98 percent for 0.98. The figure's alt
    text reads its curves approximately too, such as the S&P 500's dashed line
    on the opens dipping below zero in the middle of the year and the S&P
@@ -5794,7 +5795,7 @@ closes traces to `TestWhatAnAverageDayCosts` in
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py), and the factor of 1.6
 to [tests/test_scale_breaks.py](tests/test_scale_breaks.py). The S&P 400's
 figures, its steps to both neighbours, the control's gaps with and without
-the three days set aside, and the reading of mixed trace to
+the three stocks set aside, and the reading of mixed trace to
 [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py). Its
 fund, filing date, vendor and download date, its 401 holdings, the rule a run
 keeps them by, the vendor's 2006-12-28 start and the 285 a run keeps trace to
