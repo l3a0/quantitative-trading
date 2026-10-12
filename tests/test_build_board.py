@@ -1716,6 +1716,119 @@ def test_a_board_with_nothing_in_the_chain_columns_gives_no_depth(tmp_path: Path
     assert "behind." not in note
 
 
+# ---- The board note's pointers when the top cards tie, and their counts of one ----
+
+
+def _tied_at_one(docs: dict) -> dict:
+    """The fixture with 90502 and 90504 each freeing one card and nothing freeing more.
+
+    90502 stops waiting on 90501 and frees 90505, and 90504 frees 90503. The
+    live board reached this shape on 2026-10-11, when issues 69 and 510 each
+    freed one other.
+    """
+    return _with_needs(docs, {90502: [], 90503: [90504], 90505: [90502]})
+
+
+def _note(ids: dict) -> str:
+    """The board note as a reader sees it, tags dropped without leaving a space.
+
+    ``text`` puts a space where each tag was, which reads a bold sentence as
+    "1 other , and". These tests assert whole sentences, so they read the note
+    without those spaces.
+    """
+    raw = ids.get("boardnote", {}).get("html", "")
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", raw))).strip()
+
+
+def _rank(docs: dict, *issues: int) -> dict:
+    """The fixture ranking exactly these issues, so the short view draws only them."""
+    docs["next"]["items"] = [
+        {"issue": n, "band": 1, "ready": "build", "why": "Ranked for this test."} for n in issues
+    ]
+    return docs
+
+
+def test_two_cards_tied_at_the_top_each_free_one_other(tmp_path: Path) -> None:
+    """Protects the tie sentence and the singular count inside it.
+
+    The Show all view draws every card, so nothing is hidden and neither tied
+    card is in flight. A tie read as a single card would call one of the two
+    "the single card", and a fixed plural would read "1 others".
+    """
+    docs = _tied_at_one(fixture_docs())
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert "#90502 and #90504 each free 1 other, and nothing frees more." in note
+    assert "single card" not in note
+    assert "Counting the hidden issues" not in note
+    assert "hidden in this view" not in note
+
+
+def test_a_single_card_freeing_one_other_takes_a_singular_count(tmp_path: Path) -> None:
+    """Protects the singular count in the sentence naming one card at the top.
+
+    Fixture issue 90504 frees 90503 and no other card frees anything, so 90504
+    stands alone at one.
+    """
+    docs = _with_needs(fixture_docs(), {90502: [], 90503: [90504], 90505: []})
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert "#90504 is the single card whose landing frees the most, at 1 other." in note
+
+
+def test_a_tie_where_one_top_card_frees_a_hidden_card_counts_the_hidden_issues(
+    tmp_path: Path,
+) -> None:
+    """Protects the hidden prefix when only some of the tied cards free a hidden card.
+
+    The short view draws 90502 and 90505, the two ranked cards. 90502 frees
+    90505, which the view draws, while 90504 frees 90503, which it hides. One
+    tied card freeing a hidden card is enough for the count to include cards
+    the reader cannot see, so the prefix speaks. 90504 is the one top card the
+    view hides, so the pointer names it alone, in the singular.
+    """
+    docs = _rank(_tied_at_one(fixture_docs()), 90502, 90505)
+    note = _note(draw(tmp_path, docs))
+    assert (
+        "Counting the hidden issues, #90502 and #90504 each free 1 other, and nothing frees more."
+        in note
+    )
+    assert "#90504 is hidden in this view, so press Show all to see it." in note
+
+
+def test_two_hidden_top_cards_are_pointed_at_in_the_plural(tmp_path: Path) -> None:
+    """Protects the hidden pointer's plural verb and pronoun.
+
+    Nothing is ranked, so the short view draws no column card and hides both
+    tied cards. The depth sentence counts hidden cards first, so the freeing
+    clause after it says it is counting them too.
+    """
+    docs = _rank(_tied_at_one(fixture_docs()))
+    note = _note(draw(tmp_path, docs))
+    assert (
+        "Counting the hidden issues too, #90502 and #90504 each free 1 other, "
+        "and nothing frees more." in note
+    )
+    assert "#90502 and #90504 are hidden in this view, so press Show all to see them." in note
+
+
+def test_two_tied_top_cards_in_flight_are_both_pointed_at(tmp_path: Path) -> None:
+    """Protects the in-flight pointer's naming of every tied card and its plural verb.
+
+    Open pull requests carry 90502 and 90504, so the In flight section draws
+    both while they tie at the top. The pointer names the two of them rather
+    than whichever sorted first.
+    """
+    docs = _tied_at_one(fixture_docs())
+    docs["prs"]["items"] += [
+        _pull(90602, 90502, "open", linked=True, part_of=False),
+        _pull(90603, 90504, "open", linked=True, part_of=False),
+    ]
+    note = _note(draw(tmp_path, docs, page=_show_all_page(tmp_path)))
+    assert "#90502 and #90504 each free 1 other, and nothing frees more." in note
+    assert (
+        "#90502 and #90504 are in the In flight section above rather than in a column here." in note
+    )
+
+
 # ---- The fetch path, for the board on GitHub Pages ----
 
 
