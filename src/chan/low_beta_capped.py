@@ -48,8 +48,9 @@ cost is charged. Two ceilings are tried, and both come from Chan's text.
    account to 2 overnight. k never falls below 2 on this panel, so this
    ceiling is a constant leverage of 2.
 2. **C = 5.** Location 814's portfolio margin "may require only 20 percent or
-   less of overnight margin", a leverage of 5, the most the book says any
-   broker lends on stocks held overnight.
+   less of overnight margin", a leverage of 5. That is the highest leverage
+   the book puts a number on for stocks held overnight, and its "or less"
+   leaves room for more.
 
 A :class:`chan.low_beta_leverage.Portfolios` whose ``levered`` and ``leverage``
 are both replaced carries each ceiling, so
@@ -115,9 +116,10 @@ quite wary of using too much leverage on normally low-beta stocks".
    2007.
 4. **Borrowing at the bill rate flatters the levered side.** The break-even
    spread measures by how much.
-5. **No margin call inside a month is modelled.** Under Regulation T's 25
+5. **No margin call inside a month is modelled.** Under FINRA Rule 4210's 25
    percent maintenance margin, a position levered 2 gets a call after a fall
    of a third within the month, and month-end closes cannot see that.
+   Regulation T sets only the 50 percent needed to open the position.
 
 If either ceiling holds, the plan's follow-up registers both, unchanged, on
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
@@ -126,6 +128,12 @@ point-in-time panel from 2008 to 2026, which is a holdout.
 ``tests/test_low_beta_capped.py`` is the single authority for every number any
 prose surface quotes about this run. ``docs/replication-log.md`` Entry 48
 carries the result. It first ran here on 2026-10-11.
+
+:func:`yearly_standard_error` and :func:`five_percent_line` were added by the
+write-up, ``blog/capped-low-beta-lessons.md``, after the run. They measure how
+far each point estimate sat from the line a one-sided 5 percent test draws,
+and decide nothing. :mod:`chan.low_beta_capped_figures` draws that post's
+figure.
 
 Usage:
     python -m chan.low_beta_capped
@@ -415,6 +423,28 @@ def assess(portfolios: Portfolios, ceilings: Sequence[float] | None = None) -> t
     return decide([capped(portfolios, ceiling) for ceiling in chosen])
 
 
+def yearly_standard_error(result: Capped) -> float:
+    """The Newey-West standard error of the yearly gap, 12 times that of the mean of d.
+
+    Read through Entry 45's :attr:`chan.low_beta_leverage.Verdict.standard_error`,
+    the same path :attr:`Capped.detectable` takes, so Y is exactly
+    (1.645 + 0.8416) times this. ``blog/capped-low-beta-lessons.md`` added it
+    after the run, so it decides nothing, and
+    :mod:`chan.low_beta_capped_figures` draws each sampling curve with it.
+    """
+    return Verdict(months=result.months, summary=result._tested()).standard_error * MONTHS
+
+
+def five_percent_line(result: Capped) -> float:
+    """The yearly gap at which the one-sided t reaches 1.645, 1.645 times the standard error.
+
+    A point estimate past this line is what a one-sided 5 percent test calls
+    a gap, before any correction across ceilings. Added after the run by the
+    write-up, like :func:`yearly_standard_error`.
+    """
+    return CRITICAL * yearly_standard_error(result)
+
+
 def charged_gap(portfolios: Portfolios, spread: float) -> float:
     """Twelve times the mean of d once a yearly spread s is charged on the borrowed L − 1.
 
@@ -580,7 +610,7 @@ def report(
     print("  3. Not a holdout. The low-beta literature's own samples cover 1999 to 2007.")
     print("  4. Borrowing at the bill rate flatters the levered side, by the spread above.")
     print(
-        "  5. No margin call inside a month is modelled. Under Regulation T's 25 percent "
+        "  5. No margin call inside a month is modelled. Under FINRA Rule 4210's 25 percent "
         "maintenance margin, a position levered 2"
     )
     print(
