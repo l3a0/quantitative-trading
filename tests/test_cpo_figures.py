@@ -4,7 +4,9 @@
 figure draws those numbers, so a generator that plotted the wrong array, put
 Chan's line at the wrong height or labelled the wrong cell fails even when the
 run is right. No test compares bytes, for the reason
-``tests/test_regime_figure.py`` gives.
+``tests/test_regime_figure.py`` gives. One test here compares a fresh draw's
+decoded pixels with the committed file, as ``tests/test_figures_match_code.py``
+does for every other figure.
 
 The figure reads a run of Example 7.1, and the real run needs the owner's
 archive of minute bars, so the file splits in two.
@@ -13,8 +15,10 @@ archive of minute bars, so the file splits in two.
    here, runs on every clone. Its vintages come from
    ``data/archive_vintages.jsonl`` through
    :func:`chan.archive.read_archive_manifest`, which needs no archive.
-2. **The labels on the real run** read the session's one run from
-   ``tests/conftest.py``, so they skip where ``tests/test_cpo.py``'s pins skip.
+2. **The labels on the real run, and the committed file,** read the session's
+   one run from ``tests/conftest.py``, so they skip where
+   ``tests/test_cpo.py``'s pins skip. The comparison with the committed file
+   also skips off macOS arm64, where the figures are drawn.
    The vintages are the archive's ``gld_intraday_1min.csv.gz``, sha256
    ``3611a8f7…0de7a``, and ``gdx_intraday_1min.csv.gz``, sha256
    ``c47f5890…711c``, and the specification is the 19 readings declared on
@@ -43,6 +47,7 @@ from chan.cpo_figures import (
     make_cells_figure,
 )
 from chan.paths import FIGURES_DIR
+from tests.support.figure_pixels import assert_same_pixels, platform_skip_reason
 
 #: Where the synthetic run puts the three cells the figure must find, and a
 #: decoy that would be nearest if the line were measured against 1.95.
@@ -240,7 +245,8 @@ class TestWritingIt:
 
 
 class TestOnTheArchive:
-    """The labels on the real run, which skip unless the archive pins run."""
+    """The labels on the real run and the committed file it draws, which skip
+    unless the archive pins run."""
 
     def test_the_three_labels_are_the_cells_entry_16_names(self, cpo_result) -> None:
         names = {key: cpo.cells()[at].label for key, at in labelled_cells(cpo_result).items()}
@@ -248,3 +254,14 @@ class TestOnTheArchive:
 
     def test_it_draws_nothing_after_2020_12_31(self, cpo_result) -> None:
         assert cpo_result.test_days[-1] == pd.Timestamp("2020-12-31")
+
+    def test_the_committed_figure_is_what_the_run_draws(self, cpo_result, tmp_path) -> None:
+        """``tests/test_figures_match_code.py`` compares every other figure. This
+        one sits here so the comparison reads the run this file already builds."""
+        if (reason := platform_skip_reason()) is not None:
+            pytest.skip(reason)
+        out = tmp_path / CELLS_FIGURE
+
+        make_cells_figure(cpo_result, out=out)
+
+        assert_same_pixels(out, FIGURES_DIR / CELLS_FIGURE)
