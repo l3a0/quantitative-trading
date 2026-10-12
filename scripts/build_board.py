@@ -576,15 +576,12 @@ def rank_entry(
     return entry
 
 
-# How late a scheduled run may start before the page calls the board stale, on
-# top of the longest gap between two scheduled runs. GitHub's documentation says
-# a scheduled run "can be delayed during periods of high loads" and gives no
-# bound, so 60 is an allowance chosen here rather than a documented figure. The
-# threshold used to be twice the gap, which assumed the schedule runs on time.
-# With a 30-minute gap, one run an hour late during a quiet stretch with no issue
-# or pull request events would have left the board 90 minutes old and called it
-# stale while nothing was failing. Issue 563 is where the schedule was found
-# firing far less often than its cron line says.
+# Minutes added to the longest gap between two scheduled runs before the page
+# calls the board stale. It is an allowance chosen for a scheduled run that
+# starts up to an hour late. GitHub's documentation says only that such a run
+# "can be delayed during periods of high loads", and neither confirms a delay
+# of that size nor bounds it. The threshold was twice the gap until issue 563,
+# which assumed the schedule runs on time.
 SCHEDULE_DELAY_ALLOWANCE = 60
 
 
@@ -615,21 +612,21 @@ def longest_gap_minutes(workflow: Path) -> int:
     return max(gaps)
 
 
-def stale_after_minutes(every: int) -> int:
+def stale_after_minutes(longest_gap: int) -> int:
     """The age in minutes past which the page calls the board stale.
 
-    ``every`` is the longest gap between two scheduled runs. The threshold adds
-    ``SCHEDULE_DELAY_ALLOWANCE`` to it, so a run GitHub starts late does not
-    read as a failing Action.
+    ``longest_gap`` is the longest gap between two scheduled runs. The
+    threshold adds ``SCHEDULE_DELAY_ALLOWANCE`` to it, so a run GitHub starts
+    late does not read as a failing Action.
     """
-    return every + SCHEDULE_DELAY_ALLOWANCE
+    return longest_gap + SCHEDULE_DELAY_ALLOWANCE
 
 
-def build(gql: Gql, repo: str, every: int, now: datetime) -> tuple[dict, dict]:
+def build(gql: Gql, repo: str, longest_gap: int, now: datetime) -> tuple[dict, dict]:
     """The board, and what the job summary reports about the read.
 
-    ``every`` is the longest gap in minutes between two scheduled runs, which
-    ``longest_gap_minutes`` reads from the workflow.
+    ``longest_gap`` is the longest gap in minutes between two scheduled runs,
+    which ``longest_gap_minutes`` reads from the workflow.
     """
     owner, name = repo.split("/", 1)
     issues = _top_pages(gql, ISSUES_QUERY, owner, name, "issues")
@@ -685,8 +682,8 @@ def build(gql: Gql, repo: str, every: int, now: datetime) -> tuple[dict, dict]:
             "updatedAt": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "issues": {"open": len(issues)},
             "source": "github",
-            "rebuildEveryMinutes": every,
-            "staleAfterMinutes": stale_after_minutes(every),
+            "longestGapMinutes": longest_gap,
+            "staleAfterMinutes": stale_after_minutes(longest_gap),
         },
         "prs": {"schema": SCHEMA, "items": prs},
         "working": {"schema": SCHEMA, "items": working},

@@ -307,7 +307,7 @@ def test_an_issue_with_no_judgement_set_reads_as_a_plain_card() -> None:
     state = board["state"]
     assert state["updatedAt"] == "2026-10-11T15:00:00Z"
     assert state["issues"] == {"open": 2}
-    assert state["rebuildEveryMinutes"] == 30
+    assert state["longestGapMinutes"] == 30
     assert state["staleAfterMinutes"] == 90
     assert "lacks" not in state
     assert state["source"] == "github"
@@ -1135,14 +1135,43 @@ def test_the_cli_exits_non_zero_when_github_cannot_be_read(
 def test_the_stale_threshold_is_the_longest_gap_plus_an_hour_for_a_late_run() -> None:
     """Protects the page's stale warning from a second copy of the schedule.
 
-    The workflow's ``8,38 * * * *`` leaves 30 minutes between runs. GitHub can
-    start a scheduled run late and documents no bound, so the threshold adds a
+    The workflow's cron line leaves 30 minutes between runs. GitHub can start
+    a scheduled run late and documents no bound, so the threshold adds a
     60-minute allowance rather than doubling the gap. At twice the gap, one run
-    an hour late in a stretch with no other events read as a failing Action.
+    an hour late in a stretch with no other events would have read as a
+    failing Action.
     """
     assert bb.SCHEDULE_DELAY_ALLOWANCE == 60
     assert bb.longest_gap_minutes(WORKFLOW) == 30
     assert bb.stale_after_minutes(bb.longest_gap_minutes(WORKFLOW)) == 90
+
+
+def test_the_threshold_adds_the_named_allowance(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Protects the allowance from a second copy of 60 inside the formula."""
+    monkeypatch.setattr(bb, "SCHEDULE_DELAY_ALLOWANCE", 7)
+    assert bb.stale_after_minutes(30) == 37
+
+
+def test_the_cli_writes_the_workflows_gap_and_threshold(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Protects the board from carrying the threshold where the gap belongs.
+
+    ``5,15`` puts runs 10 and 50 minutes apart, so the longest gap differs from
+    any even split of the hour, and the threshold differs from the gap.
+    """
+    fake = FakeGitHub([issue(1)], [])
+    fake.requests, fake.cost = 1, 1
+    monkeypatch.setattr(bb, "GhGraphql", lambda: fake)
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+    monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
+    workflow = tmp_path / "board.yml"
+    workflow.write_text('on:\n  schedule:\n    - cron: "5,15 * * * *"\n')
+    out = tmp_path / "site"
+    assert bb.main(["build", "--repo", REPO, "--workflow", str(workflow), "--out", str(out)]) == 0
+    state = json.loads((out / "board.json").read_text())["state"]
+    assert state["longestGapMinutes"] == 50
+    assert state["staleAfterMinutes"] == 110
 
 
 @pytest.mark.parametrize(
@@ -1237,6 +1266,21 @@ def test_a_board_with_no_open_issues_draws_nothing(tmp_path: Path) -> None:
 
 def _workflow() -> str:
     return WORKFLOW.read_text(encoding="utf-8")
+
+
+def test_the_schedule_stays_off_the_hour() -> None:
+    """Protects the scheduled runs from the top of the hour.
+
+    The workflow's comment keeps the schedule off minute 0, because GitHub's
+    documentation names the start of every hour as its busiest time. The test
+    reads the minutes rather than pinning the line, so the minutes can move
+    again without editing it.
+    """
+    crons = re.findall(r"""^\s*-\s*cron:\s*"([^"]+)"\s*$""", _workflow(), re.M)
+    assert len(crons) == 1
+    minute = crons[0].split()[0]
+    assert not minute.startswith("*"), minute
+    assert 0 not in {int(m) for m in minute.split(",")}
 
 
 def test_no_step_reads_the_event_payload() -> None:

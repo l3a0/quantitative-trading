@@ -43,8 +43,9 @@ than in a file on the machine.
 A change reaches the page once a run of the Action finishes. A label, a body
 edit and a comment each start a run. A "blocked by" link and a sub-issue start
 none, because GitHub Actions lists no trigger for either, so they wait for the
-next scheduled run. One is due at minutes 8 and 38 of each hour, and GitHub
-can start it late or drop it under load. Pages also tells a browser to cache
+next scheduled run. The `cron` line in `.github/workflows/board.yml` sets
+when those are due, and GitHub can start one late or drop it under load. Pages
+also tells a browser to cache
 `board.json` for ten minutes, and the page asks for a fresh copy every two
 minutes to get round it.
 
@@ -165,7 +166,7 @@ a number the data already carries, because that sentence outlives the number.
 
 | Section | Field | Comes from |
 | --- | --- | --- |
-| `STATE` | `updatedAt`, `issues.open`, `rebuildEveryMinutes`, `staleAfterMinutes` | the time GitHub was read, the open issue count, the longest gap in the workflow's schedule, and that gap plus a 60-minute allowance for a scheduled run GitHub starts late |
+| `STATE` | `updatedAt`, `issues.open`, `longestGapMinutes`, `staleAfterMinutes` | the time GitHub was read, the open issue count, the longest gap in the workflow's schedule, and that gap plus a 60-minute allowance for a scheduled run GitHub starts late |
 | `TRACKER` | `n`, `ms`, `label`, `labels` | each open issue's number, milestone, title and labels, less the board's own `band:N` and `working:` labels, which the page draws as the rank chip and the busy stripe |
 | `TRACKER` | `kind` | `parent` for an issue with any sub-issue, then `data` for `blocked-on-data`, `deferred` for `deferred` and `decision` for `decision`, in that order where an issue carries more than one, and `ready` otherwise |
 | `TRACKER` | `needs` | the issue's native "blocked by" links, keeping only blockers that are open issues in this repository |
@@ -286,7 +287,7 @@ The sections are these.
 
 Between the strip and the first section sits a banner. Over a current board it
 is empty. It warns when the stamp is older than `staleAfterMinutes`, because a
-failed run leaves the last board up and a board an hour stale looks like a
+failed run leaves the last board up and a board hours stale looks like a
 fresh one. It also speaks when the page has no board to show, or has stopped
 taking fresh copies, and says which and how old any data on screen is. With no
 board data the page hides both sections and the footer and draws only the
