@@ -200,6 +200,7 @@ says.
   - [What this repo computed](#what-this-repo-computed-21)
   - [The verdicts](#the-verdicts-20)
   - [What the entry concludes](#what-the-entry-concludes-21)
+  - [How far H moves by chance and by its start day](#how-far-h-moves-by-chance-and-by-its-start-day)
   - [What this entry cannot say](#what-this-entry-cannot-say-19)
 - [Entry 23: EWA, EWC and IGE, Chan's *Algorithmic Trading*](#entry-23-ewa-ewc-and-ige-chans-algorithmic-trading)
   - [What the book printed](#what-the-book-printed-20)
@@ -5260,7 +5261,7 @@ and decides nothing.
 | 1 | −0.000000 at six decimals | reproduced | Exact at the six decimals the script prints. Location 1114's reading survives: the statistic sits above the 10 percent value of −2.594, so a unit root is not rejected. |
 | 2 | −0.000000 at six decimals | reproduced | Exact at that precision. λ, the estimate less 1, is negative, which is location 1114's second reading. |
 | 3 | −0.000, −0.000 and +0.000 at three decimals | reproduced | Exact at that precision. 1,216 observations fall in the table's last bin, which every series of 425 or more reads. |
-| 4 | −0.02 at two decimals | did not reproduce | 0.4732 prints as 0.47 against the book's 0.49, on the closes every other test lands. The claim the figure was printed for survives: H is below 0.5, which location 1119 reads as weakly mean reverting. No cause outside the method is available. The only candidate is a `genhurst` older than the one every surviving copy carries, and that would be a different method rather than a different vintage. |
+| 4 | −0.02 at two decimals | did not reproduce | 0.4732 prints as 0.47 against the book's 0.49, on the closes every other test lands. The claim the figure was printed for survives as far as H can carry it: H is below 0.5, which location 1119 reads as weakly mean reverting, though no estimate here can be told apart from a random walk of the same length. No cause outside the method is shown to apply. A `genhurst` older than the one every surviving copy carries would be a different method rather than a different vintage. A sample starting one day later prints 0.49, and the closes the script's comments match rule that out for the run those comments record. The section on how far H moves by chance measures both. |
 | 5 | +0.000000 at six decimals | reproduced | The decision is exact and the p-value is exact at six decimals. The variance ratio is 0.9647, below 1, as a reverting series gives, and not significantly so. |
 | 6 | +0.000000 at six decimals, and 0 days | reproduced | Exact at the six decimals the script prints, and at the whole days the book prints. |
 | 7 | none, a claim | reproduced | The criterion written on [issue 338](https://github.com/l3a0/quantitative-trading/issues/338) before any P&L existed holds. The P&L ends at 0.1141, above 0. |
@@ -5285,22 +5286,109 @@ Four things.
 3. **H is the one figure that does not land, and it misses under both
    implementations Chan's code uses.** Aste's `genhurst` gives 0.47 and Chan's
    2018 Python port gives 0.48, so the book's 0.49 is not what either computes on
-   these closes. Every reading of H here agrees with the book's conclusion,
-   that USD.CAD is at most weakly mean reverting, and the variance ratio test
-   says the same thing more carefully: not distinguishable from a random walk.
+   these closes. Every reading of H here sits below 0.5, as the book's does.
+   The two estimators the section below measures each sit within about one SD
+   of their own random-walk average. So an H this close to 0.5 cannot be told
+   from a random walk on 1,216 days, and the variance ratio test says the same
+   thing more carefully.
 4. **Example 2.5's claim survives, and it carries the look-ahead Chan names.**
    The lookback of 115 days is the half-life of the same 1,216 closes the
    strategy trades. Its P&L is positive by 0.1141 after a fall of 0.6425, and
    whether that survives a lookback chosen without seeing the closes is a
    question this entry does not ask.
 
+### How far H moves by chance and by its start day
+
+Row 4 says H misses. It does not say whether a miss of 0.02 means anything,
+which depends on how far H moves when nothing but chance moves it. The owner
+asked how significant the miss is, and
+[issue 590](https://github.com/l3a0/quantitative-trading/issues/590) set out
+the measurement.
+
+This check is exploratory. It was designed after the miss had been seen, so
+it reads the miss rather than testing a claim written down before it.
+
+[src/chan/usdcad_hurst_noise.py](../src/chan/usdcad_hurst_noise.py) measures
+two things on the vintage every row reads.
+
+1. **Each estimator on random walks of the same length.** 40,000 Gaussian
+   random walks of 1,216 log prices, from `numpy.random.default_rng(20261011)`,
+   with `genhurst(z, 2)` at `maxT` 19 and the Python port's estimator on each.
+   Both ignore a series' scale and drift, which a test checks, so the walks
+   take standard normal steps. A random walk's theoretical H is 0.5, and the
+   port's estimator does not average that at 1,216 points, so each observed
+   H is set against its own estimator's random-walk mean.
+2. **Both estimators with the first 0 to 10 closes dropped.** `genhurst`
+   samples every `tt`-th close counting from the first, so the start day
+   changes which closes it reads. The port's estimator uses every overlapping
+   change. At each start the ADF statistic at trend order 0 and 1 lag, the
+   variance ratio test at period 2 and the half-life are computed too.
+
+| Measurement | Computed | Assertion |
+| --- | --- | --- |
+| `genhurst` on the random walks, mean and SD | 0.49622344 and 0.02314563 | `TestExample22HowFarHMovesByChance::test_genhurst_on_a_random_walk_averages_0_496_with_an_sd_of_0_023` |
+| The port's estimator on the random walks, mean and SD | 0.47534832 and 0.05767276 | `TestExample22HowFarHMovesByChance::test_the_port_estimator_on_a_random_walk_runs_low_between_0_47_and_0_48` |
+| Walks below the observed H, `genhurst` and the port | 6,434 and 19,575 of 40,000 | `TestExample22HowFarHMovesByChance::test_where_each_observed_h_falls_among_the_walks` |
+| Random-walk mean minus the observed H, in SDs | 0.993309 and −0.008597 | `TestExample22HowFarHMovesByChance::test_each_estimate_against_its_own_estimators_random_walks` |
+| 0.49 minus the observed H, in SDs | 0.724428 and 0.245452 | `TestExample22HowFarHMovesByChance::test_the_gap_to_the_books_0_49_is_under_one_sd` |
+| `genhurst` from the first close and from the second | 0.4732326652 and 0.4890716563 | `TestExample22HowFarHMovesByChance::test_genhurst_moves_to_0_49_when_the_first_close_is_dropped` |
+| Start offsets of 0 to 10 whose `genhurst` prints as 0.49 | 6, at offsets 1, 3, 4, 6, 8 and 9 | `TestExample22HowFarHMovesByChance::test_six_of_eleven_start_days_print_as_0_49` |
+| The highest `genhurst` of the eleven, at offset 5 | 0.5061926171 | `TestExample22HowFarHMovesByChance::test_the_first_close_gives_the_lowest_genhurst_and_one_start_day_tops_a_half` |
+| The port's estimator across the eleven, lowest and highest | 0.4741152609 and 0.4758441244 | `TestExample22HowFarHMovesByChance::test_the_port_estimator_barely_moves_with_the_start_day` |
+| The ADF statistic from the second close | −1.83614998 | `TestExample22HowFarHMovesByChance::test_only_the_first_close_lands_the_scripts_other_figures` |
+
+The table holds what seed 20261011 gives, which the tests pin exactly. What
+40,000 walks support is narrower, and
+`TestExample22HowFarHMovesByChance::test_the_standard_errors_of_40_000_walks`
+pins the standard errors behind it. A mean's is 0.00012 for `genhurst` and
+0.00029 for the port, an SD's is 0.00008 and 0.00020, and a share below the
+observed H's is 0.18 and 0.25 percentage points. Each figure below is quoted
+only where it and two standard errors either side round to the same digits,
+which the tests check. `genhurst`'s distance from 0.5, 1.156 SDs, is pinned
+and quoted nowhere, since two standard errors reach the 1.15 rounding
+boundary.
+
+Four findings.
+
+1. **Neither estimate can be told apart from a random walk.** `genhurst`
+   averages 0.496 on the random walks, with an SD of 0.023, and its 0.4732 is
+   1.0 SD below that, with 16 percent of walks lower. The port's estimator
+   averages between 0.47 and 0.48, with an SD of 0.06, and its 0.4758 is
+   within 0.1 SD of that, with about half the walks lower.
+2. **The misses are smaller than one random-walk SD.** The book's 0.49 is 0.7
+   `genhurst` SDs above 0.4732 and 0.2 port SDs above 0.4758.
+3. **One day of start is enough to print 0.49 for `genhurst`.** Dropping the
+   first close moves it to 0.4891, and six of the eleven start days print as
+   0.49. The script's own start gives the lowest of the eleven, and offset 5
+   gives 0.5062, above 0.5. The port's estimator stays between 0.4741 and
+   0.4758, so no start explains its miss.
+4. **The run the script's comments record starts on the first close.** Only
+   offset 0 lands the ADF statistic, the variance ratio's p-value and the
+   half-life those comments print. From the second close the ADF statistic is
+   −1.836150. So a later start would explain `genhurst`'s 0.49 only if the
+   book's H came from another run, and with no public copy of
+   `inputData_USDCAD.mat` that cannot be checked.
+
+Row 4's verdict stands. A later start is a cause outside the method, but the
+closes the script's comments match rule it out for that run, and nothing shows
+the book's H came from another. Nothing here adopts a start day either. The
+headline H stays the script's, from the first close, because taking the start
+that lands 0.49 would choose the data after seeing its number. No block
+bootstrap of USD.CAD's own returns was run. Resampling returns keeps their
+short-range structure and breaks any reversion longer than a block, so it asks
+a different question. Entry 33's miss on TU runs through the same `genhurst`,
+so the same start-day sensitivity may apply there, and nothing here measures
+it.
+
 ### What this entry cannot say
 
 Three things.
 
-**What computed the book's 0.49.** No surviving copy of `genhurst` gives it,
-and the script that printed it records no value. Searching for the variant
-that lands it would be choosing a reading after its number is seen.
+**What computed the book's 0.49.** No surviving copy of `genhurst` gives it on
+the closes the script's comments match, and the script that printed it
+records no value. Six of the ten later start days give it, and nothing public
+shows which run the book's figure came from. Searching for the variant that
+lands it would be choosing a reading after its number is seen.
 
 **Whether Example 2.5 would pay.** The look-ahead above, no transaction cost,
 and a position that grows without limit as the deviation does, all of which
