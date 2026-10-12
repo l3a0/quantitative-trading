@@ -1,4 +1,4 @@
-# Trading a currency pair that doesn’t mean revert
+# Trading a mean reversion strategy on a currency pair that isn’t stationary
 
 *The trade ends positive after a fall more than five times its profit.*
 
