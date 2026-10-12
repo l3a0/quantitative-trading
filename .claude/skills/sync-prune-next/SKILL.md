@@ -245,8 +245,10 @@ found agrees with it.
   request over, so a label on a card with an open pull request keeps that card
   out of the owner's queue. Ask whoever set it before calling it stale.
 - A decompose loop that exited since the last round owes its issue a
-  `Board verdict:` line, and a filed issue owes its kind label and, if it is
-  ranked, a `band:N` label. Report any that is missing.
+  `Board verdict:` line, and a filed issue that is ranked owes a `band:N`
+  label. Report any that is missing. The board's kind labels are owed only
+  where one applies, per "An issue is filed" in the `update-build-board`
+  skill, so a card without one is not missing anything.
 - The board's last run says when it read GitHub. Report a run that failed, or
   a stamp older than the page's stale threshold, with a link to the run.
 

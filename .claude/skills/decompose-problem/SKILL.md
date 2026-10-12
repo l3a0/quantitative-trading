@@ -37,6 +37,21 @@ Run this against one tracked issue. Each pass is a full cycle.
 it for the exit verdict. A ruling changes what the remaining passes are for, so every pass
 run before it is a pass spent planning work that may be cut.
 
+## Tell the build board when the loop starts and exits
+
+This repo's build board learns about a loop only from GitHub, so a loop that sets nothing
+there leaves its card looking idle while it runs and unplanned after it exits. Both moments
+below are this repo's own, so the owner's copy of this skill does not carry them.
+
+1. **When the loop starts,** before the first pass, mark the issue as being planned.
+2. **When the loop exits,** clear that mark and post the verdict comment, whether the loop
+   ended ready to build or on a question only the owner can answer.
+
+The moments "A decompose loop starts" and "A decompose loop exits", under "What a session
+sets, and when" in the [update-build-board skill](../update-build-board/SKILL.md), give the
+label, the verdict line's exact form and the commands. Read them there rather than from a copy here, so a change to the
+format reaches every loop.
+
 ## What makes a pass find something
 
 A pass that re-reads the plan finds nothing. Two questions return almost everything, and they
@@ -98,6 +113,8 @@ terminate while the loop edits its own artifact. One run reached 109 passes and 
 in a row.
 
 Record the stop with the pass count, because a pass count is a cost rather than a depth.
+The same count goes in the board's verdict comment, per the exit moment
+[above](#tell-the-build-board-when-the-loop-starts-and-exits).
 
 ## Splitting
 

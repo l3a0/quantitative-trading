@@ -1310,6 +1310,69 @@ function buildOrder() {
   const handClose = c => closesByHand(prOf, c.n);
   const carriedOut = c => branched(c) || handClose(c) || (workOn.get(c.n) || {}).kind === "build";
   const planMarker = c => carriedOut(c) ? null : (planOf.get(c.n) || null);
+  /* Whether a card draws its kind word. An open pull request hides it, because
+     a card saying it needs a decision, under a branch that already made one, is
+     two answers to one question. A merged one with no `Part of` hides it for
+     the same reason, since only the close by hand is left. `card()` asks this
+     for the word and for the sentence its label reads, and `HOLDS` asks it
+     before giving a kind as a reason, so the bar cannot give a reason the card
+     itself withholds. The note's reasons once skipped this, and a decision
+     card whose pull request merged with no `Part of` made the note say a card
+     "can need a decision" while no card in the column said so. */
+  const kindShown = c => !branched(c) && !handClose(c);
+  /* One table says why a card is not free for a session to take, and the test
+     for a free card is ordinary work that no row of it holds. The board note's
+     free list and the chain bar both read them. The bar used to read only
+     `needs`, so a card with none either way was called free to take on its own
+     whatever its kind word, its session, its branch or its plan said. That is
+     the free list and the bar giving two answers to one question, which is
+     defect 5 in the skill's record, and issue 521 is where it was found.
+
+     Each reason carries two forms. The board note says what a card can be,
+     across several cards, so it takes the bare verb. The bar says what one
+     card is, so it takes the third person. They sit side by side so the pair
+     moves together when a reason is added, as `KINDWORD` and `KINDSAYS` do.
+
+     Anything already carried is subtracted, not only a session, and a loop
+     counts as much as a build. An open pull request says the work is written,
+     which is a stronger reason not to start it than a session that may still
+     end in nothing. A merged `Part of` says nothing of the kind, because its
+     issue is open for the part it did not do, and a closed one did nothing, so
+     either card is as free as one no branch ever touched. A merged one with no
+     `Part of` is held, because its work has landed and the owner ruled on
+     2026-10-10 that only a close by hand is left. The free list read the bare
+     `prOf` entry until that day, which held issues 431 and 432 back as waiting
+     on a review after each one's `Part of` had merged. The two "Waiting on"
+     columns take every card with an open branch, so the free list never meets
+     one. The chain bar does, because a card in flight can be picked, and the
+     row also stops a change to `FLOW` putting a written card back in the free
+     list, which is defect 4.
+
+     A plan whose one open question is the owner's holds its card the way the
+     In flight note says, in the same words. It reads `planMarker`, so it fires
+     only where the card draws "waits on an owner call". A card with a session
+     on it is held for that already, and its marker says the plan is being
+     re-measured instead. The free list never meets this row either, because a
+     planned card in the first column is one held for a close by hand, which
+     draws no marker. */
+  const HOLDS = [
+    { held: c => kindShown(c) && c.kind === "decision",
+      can: "need a decision rather than a session", is: "needs a decision rather than a session" },
+    { held: c => kindShown(c) && c.kind === "deferred",
+      can: "be deferred on purpose", is: "is deferred on purpose" },
+    { held: c => kindShown(c) && c.kind === "parent",
+      can: "be a parent whose children carry the work", is: "is a parent whose children carry the work" },
+    { held: c => workOn.has(c.n),
+      can: "already have somebody on it", is: "already has somebody on it" },
+    { held: branched,
+      can: "already be written and waiting on a review", is: "is already written and waiting on a review" },
+    { held: handClose,
+      can: "have merged and need only closing by hand", is: "has merged and needs only closing by hand" },
+    { held: c => !workOn.has(c.n) && (planMarker(c) || {}).ready === "decide",
+      can: "wait on a question only the owner can answer", is: "waits on a question only the owner can answer" }
+  ];
+  const takeable = c => c.kind === "ready" && !HOLDS.some(h => h.held(c));
+  const holding = (cards, form) => HOLDS.filter(h => cards.some(h.held)).map(h => h[form]);
   /* The same arrangement as `planMarker`, for the same reason. The card and the
      legend have to agree about whether a position is drawn, and the way they
      stay agreed is that the rule exists once. It is short enough to look safe
@@ -1414,13 +1477,11 @@ function buildOrder() {
          and nothing else, so a reader would take it for work that frees up when
          they land, which is the opposite of what it is.
 
-         An open pull request still suppresses it, because a card saying it
-         needs a decision, under a branch that already made one, is two answers
-         to one question. A pull request merged with no `Part of` suppresses it
-         for the same reason, since it was meant to close the issue and only the
-         close by hand is left. A blocker is not an answer to what kind of thing
-         the card is. */
-      const kindword = live || handClose(c) ? "" : (KINDWORD[c.kind] || "");
+         An open pull request still suppresses it, and so does one merged with
+         no `Part of`, which `kindShown` decides and explains. The chain bar
+         asks the same function before giving a kind as a reason. A blocker is
+         not an answer to what kind of thing the card is. */
+      const kindword = kindShown(c) ? (KINDWORD[c.kind] || "") : "";
       /* "nothing blocks it" is only true when nothing does. The clause was
          written when `after` and `needs` had never appeared on one card, so it
          asserted the absence of a blocker as part of announcing an ordering.
@@ -1501,7 +1562,7 @@ function buildOrder() {
       if (soft.length) says.push((waits.length ? `It should also land after ` :
         `Nothing blocks it, and it should land after `) +
         `${andlist(soft.map(b => "issue " + b))}.`);
-      if (!live && !handClose(c) && KINDSAYS[c.kind]) says.push(KINDSAYS[c.kind]);
+      if (kindShown(c) && KINDSAYS[c.kind]) says.push(KINDSAYS[c.kind]);
       return `<div class="tk k-${c.kind}${live ? " has-pr" : ""}${wk ? " busy" : ""}${
         pn ? " plan-" + pn.ready : ""}" data-n="${c.n}" tabindex="0" role="button"
         aria-label="Issue ${c.n}. ${esc(c.label)}.${says.length ? " " + esc(says.join(" ")) : ""}${p ? ` Pull request ${p.pr} is ${p.state} against it.` : ""}${onBranch ? (wk.kind === "build" ? ` Its build session is still on the branch.`
@@ -1573,7 +1634,26 @@ function buildOrder() {
   const pick = n => {
     const up = reach(n, needsMap), down = reach(n, feeds);
     if (!up.size && !down.size) {
-      say(`<span><b>#${n}</b> is linked to nothing else here, so it can be taken on its own.</span>` +
+      /* No `needs` either way, which says nothing about whether the card can be
+         started, so that half of the sentence reads `takeable` and `HOLDS`, the
+         tests the board note's free list reads. A card held for a reason no
+         table row names, such as one blocked on data, is told only what its
+         links show. Every reason in the list holds for this one card, so they
+         take "and", unlike the board note's alternatives.
+
+         `after` is a link too, and the card itself says it should land after
+         what it names, so a card tied by one either way is not called linked
+         to nothing. Nothing enforces it, so it leaves the free claim alone. */
+      const c = by.get(n);
+      const before = (c.after || []).filter(b => by.has(b));
+      const later = TRACKER.filter(x => (x.after || []).includes(n)).map(x => "#" + x.n);
+      const reasons = holding([c], "is");
+      const lead = before.length || later.length
+        ? `Nothing here blocks <b>#${n}</b> or waits on it` : `<b>#${n}</b> is linked to nothing else here`;
+      say(`<span>${lead}${takeable(c) ? ", so it can be taken on its own."
+          : reasons.length ? `, but it is not free to take, because it ${andlist(reasons)}.` : "."}` +
+        `${before.length ? ` It should land after ${andlist(before.map(b => "#" + b))}.` : ""}` +
+        `${later.length ? ` ${andlist(later)} should land after it.` : ""}</span>` +
         `<button type="button" data-clear>Clear</button>`);
       unpick();
       return;
@@ -1700,7 +1780,7 @@ function buildOrder() {
       ? [["plan-decide", "plan finished, one question left for the owner"]] : []),
     ...(remeasured(rest) ? [remeasured(rest)] : []),
     /* Never drawn today, because the In flight section takes every card with
-       an open branch, which the comment on `free` explains. It stays so this
+       an open branch, which the comment on `HOLDS` explains. It stays so this
        legend keeps explaining the border if a change to `FLOW` lets one back. */
     ...(drew(rest, branched) ? [["has-pr", "a pull request carries it"]] : []),
     ...(drew(rest, c => workOn.has(c.n))
@@ -1822,41 +1902,14 @@ function buildOrder() {
   const depthHidden = deep ? deepHidden : longest === 1 && !bucket[1].length;
   /* Subtracted rather than listed alongside, because a card somebody is already
      on is not work this reader can take, and a count that includes it is the
-     sentence disagreeing with the one under it. */
-  /* Anything already carried is subtracted, not only a session. An open pull
-     request says the work is written, which is a stronger reason not to start
-     it than a session that may still end in nothing. A merged `Part of` says
-     nothing of the kind, because its issue is open for the part it did not
-     do, and a closed one did nothing, so either card is as free as one no
-     branch ever touched. A merged one with no `Part of` is held, because its
-     work has landed and the owner ruled on 2026-10-10 that only a close by
-     hand is left. This read the bare `prOf` entry until that day, which held
-     issues 431 and 432 back as waiting on a review after each one's `Part of`
-     had merged. Today the two "Waiting on" columns take every card with an
-     open branch, so no card here has one and the open-branch half of this
-     condition never fires. It stays so that a change to `FLOW` cannot put a
-     written card back in the free list, which is defect 4. */
-  const free = ready.filter(c => !workOn.has(c.n) && !branched(c) && !handClose(c));
+     sentence disagreeing with the one under it. `HOLDS` says what else is
+     subtracted and why, and the chain bar reads the same test. */
+  const free = ready.filter(takeable);
   /* The reasons a first-column card is not free are listed from the cards that
      are actually there, because a fixed list of three keeps offering reasons
      after the cards carrying them have gone. */
   const held = bucket[0].filter(c => !free.includes(c));
-  const why = [];
-  /* A card held for a close by hand draws no kind word, so its kind gives no
-     reason here either. Otherwise a decision card whose pull request merged
-     with no `Part of` made the note say a card "can need a decision" while no
-     card in the column said so. */
-  const kinded = held.filter(c => !handClose(c));
-  if (kinded.some(c => c.kind === "decision")) why.push("need a decision rather than a session");
-  if (kinded.some(c => c.kind === "deferred")) why.push("be deferred on purpose");
-  if (kinded.some(c => c.kind === "parent")) why.push("be a parent whose children carry the work");
-  if (held.some(c => workOn.has(c.n))) why.push("already have somebody on it");
-  /* Never fires today, for the reason given on `free`: no card on this board
-     has an open branch. It stays beside `free`'s open-branch condition, so a
-     change to `FLOW` that let such a card back here would still be given its
-     reason. */
-  if (held.some(branched)) why.push("already be written and waiting on a review");
-  if (held.some(handClose)) why.push("have merged and need only closing by hand");
+  const why = holding(held, "can");
   /* Every card tied at the top rather than whichever one sorted first. Taking
      [0] off a descending sort names one card and calls it "the single card",
      which is true only while nothing ties it. Closing issue 51 left #69 and #88
@@ -2048,7 +2101,7 @@ function cardOrder(by, planOf) {
    it. Every reader asking whether a branch carries the card asks this, never
    whether `prOf` holds anything. Asking the second question is what
    held two cards back from the free list on 2026-10-10, as the comment on
-   `free` records. It is one function rather than a filter at each site,
+   `HOLDS` records. It is one function rather than a filter at each site,
    because one condition written out in two places is what let two sections
    disagree about one card in defect 5. */
 function openBranches(prOf, n) {
@@ -2061,7 +2114,8 @@ function openBranches(prOf, n) {
    link, since a linked one whose card is still drawn means the tracker has not
    caught up with the close. The owner ruled on 2026-10-10 that such a card is
    neither free nor waiting for a builder, which is why the free list, the plan
-   marker, the kind word and the "Planned, no builder" column all ask this. */
+   marker, the kind word, the "Planned, no builder" column and the chain bar
+   all ask this. */
 function closesByHand(prOf, n) {
   return (prOf.get(n) || []).some(p => p.state === "merged" && !p.partOf);
 }

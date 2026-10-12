@@ -625,10 +625,12 @@ found, and one pair that fails does not refute that.
 
 Entry 44's claim does not take it either. Chan's explanation is about where
 Khandani and Lo's returns came from, on their own universe, which this repo
-does not hold, and it names microcaps, which the S&P 600 file does not hold.
-So the run can say which way the gap between two of Chan's files points, and
-not whether his sentence about their returns is true. Its reading was declared
-on [issue 249](https://github.com/l3a0/quantitative-trading/issues/249) before
+does not hold. It also names microcaps, and the S&P 600 file holds prices and
+volumes but no market values, so nothing here measures how many of its members
+were microcaps. The run can say which way the gap between two of Chan's files
+points, and not whether his sentence about their returns is true. Its reading
+was declared on
+[issue 249](https://github.com/l3a0/quantitative-trading/issues/249) before
 any S&P 600 figure was computed, and it adds no verdict.
 
 Entry 6's row 1 does take it. The same passage gives the CAD/AUD cross rate as
@@ -1707,12 +1709,14 @@ Five things, and the first is what makes the other four worth reading.
 Two things, and both are the absence of a second series rather than an
 oversight.
 
-The 20.47 percent of row 12 is checked against nothing. Checking it needs an
+**What checks row 12's 20.47 percent.** Nothing does. Checking it needs an
 S&P 500 index vintage, which is a different symbol and a different deliverable,
 so it is cut and pinned in the design doc's register rather than left as
-something a later reader might think was forgotten. The same applies to the 4
-percent risk-free rate: a Treasury-bill series would move two inputs at once
-and leave every gap above unattributable to either.
+something a later reader might think was forgotten.
+
+**What checks the 4 percent risk-free rate.** The same applies to it. A
+Treasury-bill series would move two inputs at once and leave every gap above
+unattributable to either.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -2173,7 +2177,7 @@ Three things, and the first is the finding.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether individual bonds behave the way the funds do.** Each fund is a
 rolling basket held near a constant maturity, while a bond's own maturity
@@ -2228,7 +2232,7 @@ had to clear it under the criterion
 before any statistic was computed, and both do. The half-life is 141.6 trading
 days, a little over half a year.
 
-One row is a replication and seven are not. Row 1 is the claim, and it takes
+One row is a replication and eight are not. Row 1 is the claim, and it takes
 the claim route `### Rows that are not replications` describes. Rows 2 and 3
 are the two statistics the criterion reads, rows 4 to 6 say what the verdict
 rests on, row 7 measures what row 6 can see, and row 8 measures what dropping the
@@ -2339,7 +2343,7 @@ Three things, and the first is the verdict.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the rate behaved the same before August 2007.** The vendor's history
 starts in July 2005, and the 454 rows before its gap are kept in the vintage
@@ -2904,8 +2908,9 @@ the S&P 600 file under `ijr_20080114/`, and Entry 44 carries the finding, with
 no published figure to check, like Entry 5. Before costs the rule earns more
 on the S&P 600 than on the S&P 500 at both prices, the closes this entry
 reports and the opens Entry 10 reports, which is the direction Chan's
-explanation predicts. The S&P 600 holds no microcaps and is not Khandani and
-Lo's universe, so even that finding leaves this question open.
+explanation predicts. Nothing in Entry 44 measures how many S&P 600 members
+were microcaps, and the S&P 600 is not Khandani and Lo's universe, so even
+that finding leaves this question open.
 
 **What survivorship cost.** Neither its size nor its sign is measured.
 
@@ -3034,7 +3039,7 @@ different number, cited from the note and not reproduced.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the picks are right.** The universe of 1,000 stocks is not printed,
 so the selection step cannot be re-run. Re-running it would need the 1,000
@@ -3657,7 +3662,7 @@ Two things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **What the strategy earned on the index as it stood each day.** Every stock
 here was in the S&P 600 on 2008-01-14.
@@ -5275,7 +5280,7 @@ Four things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **What computed the book's 0.49.** No surviving copy of `genhurst` gives it,
 and the script that printed it records no value. Searching for the variant
@@ -5470,7 +5475,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the portfolio works out of sample.** No row refits the eigenvector
 on one window and trades it on the next. That is the experiment that would
@@ -5832,7 +5837,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Anything about costs or rollover interest.** The rule trades every day, and
 no cost is charged, as none is in the script. Location 2205 sets rollover
@@ -5960,7 +5965,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the reversion is real.** Entry 21's "What this entry cannot say"
 holds unchanged, because this run trades the same spread. GLD and USO do not
@@ -6148,7 +6153,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether returns are constant.** The model is the book's simplification, and
 location 2399 already says the fitted γ drifts from day to day. A mean of a
@@ -6314,7 +6319,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the portfolio is stationary.** The book argues it from a plot,
 Figure 5.11, and prints no statistic, and this run takes no test. The z-score
@@ -6848,7 +6853,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the lookbacks were chosen on this window.** The book names 30 and
 40 days and nothing about how they were picked. A search over other lookbacks
@@ -7005,7 +7010,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **What other values of `delta` or `Ve` give.** The script's comment invites
 tuning `delta`. Varying it is a search over a hypothesis space, which needs
@@ -7161,7 +7166,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether 250/25 would be chosen without hindsight.** The pair was picked from
 a table of 49 computed on the 2004 to 2012 closes it then trades, so its
@@ -7766,7 +7771,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Whether the signal works out of sample.** The rule was declared after about
 90 readings on the same strip, so its margins are not a test. A registered
@@ -7945,7 +7950,7 @@ Three things.
 
 ### What this entry cannot say
 
-Four things.
+Three things.
 
 **Which Pearson type `pearsrnd` drew from.** The type IV choice is inferred
 from the standard criterion rather than read from MathWorks' code. If
@@ -9631,10 +9636,13 @@ pins them.
 Five things.
 
 **Anything about microcaps.** Chan's sentence names "small and microcap
-stocks". The S&P 600 holds small caps above an index floor and no
-microcaps. So the finding says the S&P 600's
-small caps carry more of the reversal's return than the S&P 500's large caps,
-and nothing about the stocks below the index.
+stocks". The S&P 600 adds a company only above a minimum size, but it does
+not drop a member just because it later shrank, so some of its members may
+have sat below the line usually drawn for microcaps. The file holds prices and
+volumes but no shares outstanding or market values, so nothing here measures
+how many. The finding says the S&P 600's small caps carry more of the
+reversal's return than the S&P 500's large caps, and nothing about microcaps
+or the stocks outside the index.
 
 **What survivorship did.** Both files are survivors, the S&P 600 as of
 2008-01-14 and the S&P 500 as of 2007-11-23. A small cap that failed in 2006
