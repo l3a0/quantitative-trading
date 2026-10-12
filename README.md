@@ -690,14 +690,19 @@ where they were first built. The other forty-four were built here.
     under [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)'s ruin amendment and
     [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s skip amendment, both of
     2026-10-11, and the skip rule was ruled after the first skipped formation
-    was visible. Every holding month comes after the book. Membership is the
+    was visible. Every holding month comes after the first edition's release
+    in November 2008, and this repository has read the rule only in the 2021
+    revised edition. Membership is the
     members the monthly coverage rule keeps, which leaves out 6,943 of
     107,115 member-months. 6,816 of those fail the row check against the
     filing, and 4,614 of the 6,816 carry a ticker absent from the 2026-06-30
     schedule, which marks a company that left the index or changed its
     ticker. Each quarter-end schedule is carried forward, so a change between
     schedules is dated up to two months late, or five around the missing
-    2013-09-30 schedule.
+    2013-09-30 schedule. Measured after the run, a one-sided test at 5
+    percent rejects every levered advantage above 0.1360 a year, and
+    December 2024 alone sets the gap's sign, since without it the gap is
+    +0.0313.
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1343,11 +1348,23 @@ asserts is listed below.
 [tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py) does it for
 the same claim on IVV's S&P 500 from 2008. It pins the verdict, the four
 skipped formations, the side figures, the counts, the flagged stock-months
-and the vintage, and those pins skip unless the archive is configured and
-`QT_ARCHIVE_RUN=1`. On frames built by hand it holds membership at t, the
-holding month of a stock that stops, and the skip of a formation with no
-positive low-group beta. On the committed members file it holds the survivor
-gap and how the exclusions that read t + 1 split.
+and the archive half of the vintage, and those pins skip unless the archive
+is configured and `QT_ARCHIVE_RUN=1`. Every other test in it runs everywhere.
+That covers the committed half of the vintage, the members and holes files'
+hashes and SPY's manifest line. On frames built by hand it holds membership
+at t, the holding month of a stock that stops, and the skip of a formation
+with no positive low-group beta. On the committed members file it holds the
+survivor gap and how the exclusions that read t + 1 split. It holds what the
+write-up measured after the run too. `TestWhatThePostCounted` reads committed
+files and runs everywhere: the row check's failures by year and by outcome,
+the share of member rows still in the last schedule, each schedule's carry,
+and the stocks the earlier test's close at the next month-end left out on
+Chan's file. `TestWhatThePostMeasured` reads the archive: the upper bound on
+the levered advantage, the unlevered fifths' gap, the formations with the
+lowest low-fifth betas, December 2024, April 2025 and March 2020 against
+their ruin lines, March 2026's levered loss, and the gap with one or two
+months dropped. The blog post about it is the exception, and what it says that
+nothing here asserts is listed below.
 
 All forty-six replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
@@ -6591,6 +6608,133 @@ uv run python -m chan.vix_filter_figures
 what it draws rather than its bytes, for the reason given above for the regime
 map.
 
+[blog/low-beta-holdout-lessons.md](blog/low-beta-holdout-lessons.md) is a
+forty-seventh post, about the same rule at location 4709 tested on IVV's S&P
+500 members at each month-end from 2008-12, every holding month after the
+first edition's release in November 2008. Its verdict is registered under two
+amendments and every other figure is exploratory. Every figure computed from
+the prices of IVV's members reads the owner's archive, so a reader cannot
+rerun it, while the membership and coverage counts read committed files. The
+post links the levered low-beta post for the rule, the beta match, the ruin
+line and June 2001 rather than repeating them, and draws five lessons from
+Entry 49 of the replication log.
+
+1. The test is not decided. The levered low fifth trailed by 0.0590 a year at
+   a Newey-West t of −0.4974, and Y is 0.2948. Measured after the run, a
+   one-sided test at 5 percent rejects every levered advantage above 0.1360 a
+   year, and dropping December 2024 alone turns the gap to +0.0313.
+2. The rule ruined a portfolio on Chan's file and not on the new panel. k
+   peaked at 27.9727 against 69.0762, the low fifth's beta bottomed at 0.0563
+   against 0.0280, and December 2024, the worst levered month, was asked for
+   0.80 of the leverage that ruins it, where June 2001 was asked for 2.50
+   times.
+3. The beta match stops being defined at a low beta of zero or below, which
+   the last four formations reached, and the skip rule was ruled after the
+   first of them was seen.
+4. A point-in-time panel moves the survivor problem. 6,816 of 107,115
+   member-months fail the row check against the filing, 3,654 with no close,
+   933 with no series and 2,229 with a wrong price. 4,614 of them carry a
+   ticker absent from the last schedule and 5,891 fall from 2009 to 2015.
+5. Carrying the plan over needed a written list of ten points, five of which
+   change what the run computes, and two exclusions still read the month-end
+   after the formation.
+
+Six groups of what it says are not pinned here.
+
+1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
+   through [its committed notes](research/book-notes/quantitative-trading.md):
+   the rule at 4709, the fat-tail caveat at 4700, and the equal average
+   returns at 4684.
+2. The plan's history rather than the data: that the plan, the panel's
+   changes and the criterion were written before any beta or return was
+   computed on this panel, that the run stopped at the 2026-04-30 formation
+   before computing anything the criterion reads, that no earlier formation's
+   beta had been printed or read, that the owner then ruled to skip such
+   formations, and that the three later formations were not yet known. Also
+   the sorting of the ten points into five that change the computation, three
+   that restate a rule, one that corrects the survivor label and one that
+   gates the tests. Entry 49 of the replication log and its plan record each.
+3. Readings no test asserts: that a negative k would mean selling the low
+   fifth short, that the peak of 27.9727 above June 2001's ruinous 23.2017
+   means Chan's June 2001, levered that far, would still have lost the whole
+   capital, that ruin needs a large k and a bad month at once, that the
+   panel's failures lean toward companies that left, that the Newey-West t
+   and the bound treat the monthly gaps as roughly normal, and what the row
+   check compares.
+4. Figures the post states in words, such as a few hundredths a year, and the
+   figure's alt text, which reads its curves approximately.
+5. Facts outside the committed data: the first edition's release in November
+   2008, and that this repository has read the rule only in the 2021 revised
+   edition and has not checked that the first edition prints it.
+6. Its reference, cited rather than computed.
+
+Every other number in the post traces to an assertion in
+[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py), to
+[tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) for the
+figures on Chan's file, or to
+[tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
+for the figure's own numbers. Two classes hold the ones that had no pin
+before the post, all measured after the run.
+`TestWhatThePostCounted` reads committed files and runs everywhere.
+
+1. 5,891 of the 6,816 member-months failing the row check fall in 2009 to
+   2015.
+2. The 70 schedules each carry forward two months, except 2013-06-30, which
+   carries five. The last, 2026-06-30, carries two, to 2026-08.
+3. The 2,187 failing member rows split 1,186 with no close, 697 with a wrong
+   price and 304 with no series.
+4. 26,353 of all 35,205 member rows carry a ticker still in the 2026-06-30
+   schedule, 74.9 percent, against 697 of the 2,187 failing rows, 31.9
+   percent.
+5. On Chan's file, the close the earlier test asks for at the next month-end
+   left out 17 stocks at six formations, each with closes after the gap, and
+   no series ends before the file's last day.
+
+`TestWhatThePostMeasured` reads the archive.
+
+1. The standard error of the gap, 0.1185 a year, and the one-sided upper
+   bound of 0.1360.
+2. The unlevered fifths' gap of 0.0543, from the unrounded growth rates.
+3. The high fifth's beta of 1.5738 where k peaked, and the low fifth's beta
+   below 0.10 at two formations, 0.0818 at 2025-02-28 and 0.0563 at
+   2025-03-31, and below 0.05 at none.
+4. December 2024's ruin line of −0.0776, its margin of 0.0161 above it, its
+   ruinous leverage of 15.4077, the match's 0.80 of it as the largest share of
+   any month, and its rank as the seventh-worst of 208 low-fifth months.
+5. April 2025's low-fifth return of −0.0176, levered return of −0.5856, ruin
+   line of −0.0324 and ruinous leverage of 47.6485, and its margin of 0.0148
+   as the closest of any month.
+6. No month of 208 at or below its own ruin line.
+7. March 2020, the low fifth's worst month at −0.1250, with k at 3.4162, its
+   ruin line at −0.2926 and a levered return of −0.4278.
+8. December 2024's d of −1.5624 and March 2026's of −1.1582, the two lowest,
+   and the gap of +0.0313 without December 2024 and +0.0989 without both.
+9. March 2026, the second-worst levered month at −0.7005, with k at 9.4342,
+   the low fifth at −0.0716 and the high fifth at −0.0463.
+
+Its one figure is drawn by
+[src/chan/low_beta_holdout_figures.py](src/chan/low_beta_holdout_figures.py)
+in two columns and two rows. The left column is Chan's file from the committed
+files, and the right is IVV's members from one run of
+`chan.low_beta_holdout.read_holdout`.
+
+1. Each fifth's mean beta at formation, with the low fifth's lowest marked,
+   0.0280 and 0.0563, and the four skipped formations' negative low betas
+   plotted.
+2. k on one log axis for both columns, with the highest of each, Chan's two
+   ruined months and December 2024 marked, and the skipped months shaded.
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_figures
+```
+
+[tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
+holds what it draws rather than its bytes, for the reason given above for the
+regime map. Its drawing runs on every clone, with Chan's committed files on
+the left and a synthetic holdout on the right, and only its checks of the
+real right column's marks and labels need the archive. The price is that CI
+never sees the real right column drawn, and a reader cannot redraw it.
+
 ## Where the book's numbers come from
 
 [research/book-notes](research/book-notes/README.md) holds verbatim Kindle
@@ -6625,9 +6769,10 @@ serial run, which is the faster choice for a few tests, because every worker
 starts whatever the selection. `--pdb` runs serially on its own.
 
 A Claude Code session here also runs the archive pins, the 16 of Example
-7.1, the 17 of the Example 7.2 rerun and the 25 of
+7.1, the 17 of the Example 7.2 rerun, the 35 of
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
-holdout in `tests/test_low_beta_holdout.py`, because `.claude/settings.json`
+holdout in `tests/test_low_beta_holdout.py` and the 7 of its figure in
+`tests/test_low_beta_holdout_figures.py`, because `.claude/settings.json`
 sets `QT_ARCHIVE_RUN=1`. They run only where the owner's archive is configured.
 Each test file that reads Example 7.1's run builds it in about six minutes,
 and the rerun's pins take under a minute. The holdout's pins read 817 member

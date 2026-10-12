@@ -18,8 +18,8 @@ published.
 Everything issue 275 registered carries over, its amendment of 2026-10-11
 reading a ruined month as the claim contradicted included, and
 :mod:`chan.low_beta_leverage` computes it. Issue 526's section "What the panel
-forces", registered on 2026-10-11 before any number on this panel, states
-what changes and why. In short:
+forces", registered on 2026-10-11 before any beta or return was computed on
+this panel, states what changes and why. In short:
 
 1. **The market** is SPY's ``adjusted_close`` from Alpha Vantage, recorded
    into the archive's ``sp500`` cross-section on 2026-10-11 for this run.
@@ -73,13 +73,16 @@ or five around the missing 2013-09-30 schedule.
 
 The result is **registered**, under issue 275's ruin amendment and issue 526's
 skip amendment, both of 2026-10-11. Issue 275's plan and issue 526's panel
-changes were written before any number on this panel was computed. The skip
-rule was chosen after one non-positive formation was visible, and N is smaller
-by however many it skips. Every holding month comes after the book, so it is a
+changes were written before any beta or return on this panel was computed.
+The skip rule was chosen after one non-positive formation was visible, and N is
+smaller by however many it skips. Every holding month comes after the book, so it is a
 holdout for the claim.
 
 ``tests/test_low_beta_holdout.py`` is the single authority for every number
 any prose surface quotes about this run. It first ran here on 2026-10-11.
+
+The write-up, ``blog/low-beta-holdout-lessons.md``, teaches the result beside
+Entry 45's, and :mod:`chan.low_beta_holdout_figures` draws its figure.
 
 Usage:
     QT_ARCHIVE_DIR=/path/to/archive python -m chan.low_beta_holdout
@@ -569,8 +572,8 @@ def report(holdout: Holdout) -> None:
         "schedules is dated up to two months late, or five around the missing 2013-09-30."
     )
     print(
-        "  Registered on issue 526 before any number on this panel, with issue 275's plan, its "
-        "ruin amendment and issue 526's skip amendment, both of 2026-10-11."
+        "  Registered on issue 526 before any beta or return was computed on this panel, with "
+        "issue 275's plan, its ruin amendment and issue 526's skip amendment, both of 2026-10-11."
     )
     print(
         "  Every holding month comes after the book, so this is a holdout. "
