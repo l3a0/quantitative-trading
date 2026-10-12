@@ -726,7 +726,8 @@ little. The rule trades about the same amount a day on both files at both
 prices, so the profit decides, and the S&P 600's average day on the closes
 pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
 exploratory, both files hold only survivors, and it says nothing about
-microcaps, which the S&P 600 does not hold.
+microcaps. The S&P 600 file holds prices and volumes but no market values, so
+nothing here measures how many of its members were microcaps.
 
 A rerun of item 12 runs here too, and it is not a replication either. Item 12
 reproduces Chan's post-earnings drift on his own prices and flags, and
@@ -5641,8 +5642,9 @@ Entry 44 of the replication log.
 5. The check for split prices flags BCSI on 2006-02-06 and SCUR on
    2006-07-12, and same-day news shows both were earnings warnings that
    traded.
-6. The declared reading points the way Chan says, on one year of survivors
-   and no microcaps, and the S&P 400 is the third point, not yet run.
+6. The declared reading points the way Chan says, on one year of survivors.
+   Nothing here measures how many S&P 600 members were microcaps, and the
+   S&P 400 is the third point, not yet run.
 
 Five groups of what it says are not pinned here.
 
@@ -5659,9 +5661,10 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the open's lift removes most of what
    separated the two universes at the close, that the rule replaces about the
    same share of its book in every universe, that one cost on both universes
-   flatters the S&P 600, that the S&P 600 holds no microcaps, that the
-   reversal bought the two flagged stocks on days Chan's reasoning gives no
-   cause to expect a bounce, that the daily profits are neither independent
+   flatters the S&P 600, that the S&P 600 adds a company only above a
+   minimum size and does not drop a member just because it later shrank, that
+   the reversal bought the two flagged stocks on days Chan's reasoning gives
+   no cause to expect a bounce, that the daily profits are neither independent
    nor normal, that the 2012 panel's rule is a close cousin of this one, that
    the distance between two running totals says nothing about how much the
    daily profits swing, that a reversal buys exactly the stocks that fell, and
@@ -6318,7 +6321,56 @@ regime map. It also holds where each label's rule points, and that each
 label's text sits inside its panel, clear of the other labels and of every
 line.
 
-[blog/vix-filter-lessons.md](blog/vix-filter-lessons.md) is a forty-fourth
+[blog/build-board-on-github-lessons.md](blog/build-board-on-github-lessons.md)
+is a forty-fourth post, and the first about how the repository runs rather
+than about one of Chan's books. It reports the build board's move on
+2026-10-11 from a claude.ai artifact that every session wrote by hand to a
+GitHub Pages page that `.github/workflows/board.yml` rebuilds with
+`scripts/build_board.py`. It replicates nothing, so the replication log has no
+entry for it. It draws six lessons.
+
+1. Writing the page by hand cost a turn for every change, 240 updates in
+   1.887 days at about \$111 a day.
+2. The version check refused 77 writes across 57 of the 240 updates.
+3. 87 of 146 sub-agent reports ended with something still stale, a count from
+   the transcripts alone, and some events, such as a merge from GitHub's web
+   page, reached no session.
+4. The owner's ranking lived only in the artifact until a backfill moved it
+   onto labels, links and issue lines.
+5. The move cost \$101.80, and on an estimate, it pays back in about a day
+   and a third, at an estimated \$33.5 a day after it.
+6. The move added five costs of its own, among them 2,903 new lines of script
+   and tests and a page that trails GitHub by a minute or more.
+
+Seven groups of what it says are not pinned here, and none of its figures
+traces to a test. The cost figures come from Claude Code transcripts, which
+are private and machine-local, so no test can read them, and the post states
+each one's window, date and method where it first appears.
+
+1. Figures before the move, from board-update turns over 2026-10-10 00:00Z to
+   2026-10-11 21:17Z priced at Claude Opus 5.5 list prices: the 240 updates,
+   the \$185.22 and \$24.41 that make \$209.63, \$111.09 a day, the medians,
+   times and cost range by kind of update, the token counts, the in-session
+   counts under each grouping cutoff, and the 77 refused writes across 57
+   updates.
+2. The after estimate, from one label edit and one board check, and the
+   return table computed from it.
+3. The cost of the move, \$101.80 in five parts, and the earlier measurement
+   of about \$51 a day with its counts, quoted from
+   [issue 531](https://github.com/l3a0/quantitative-trading/issues/531).
+4. Counts from transcripts alone: the 87 stale reports of 146 and the two
+   incidents.
+5. Facts read from GitHub while the post was written: the merge times, the
+   board runs and their timings, the backfill's planned and landed writes,
+   the `band:N` labels and `Board order:` lines, the line counts of the skill,
+   the script and the tests, and the cron runs not yet seen.
+6. Readings and rounding no test asserts: about one in four, about a day and
+   a third, and that each refused write could have overwritten another
+   session's change.
+7. Its references, cited rather than computed, which include the list prices
+   and the Pages and Actions behaviour.
+
+[blog/vix-filter-lessons.md](blog/vix-filter-lessons.md) is a forty-fifth
 post, about the VIX filter at Kindle location 3509 of Chan's *Algorithmic
 Trading*, which keeps only the days after VIX closed above 35 and reruns
 Example 4.1's buy on gap and Example 7.1's opening gap rule on FSTX on them.

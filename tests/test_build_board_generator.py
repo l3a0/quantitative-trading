@@ -891,8 +891,15 @@ def test_a_nested_list_longer_than_a_page_is_read_to_its_end() -> None:
     assert sum("node(id:$id)" in q for q in gh.calls) == 3
 
 
-def test_a_count_that_disagrees_with_the_pages_read_stops_the_run() -> None:
-    """Protects the board from a list that changed while it was read."""
+def test_a_count_that_disagrees_with_the_pages_read_stops_the_run(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Protects the board from a read that disagrees with its count on every read.
+
+    A list GitHub cut short would disagree this way on every read. The list is
+    read three times, and each of the first two reads prints one line saying
+    what it saw.
+    """
 
     class Shifting(FakeGitHub):
         def __call__(self, query: str, variables: dict) -> dict:
@@ -901,8 +908,53 @@ def test_a_count_that_disagrees_with_the_pages_read_stops_the_run() -> None:
                 data["repository"]["issues"]["totalCount"] += 1
             return data
 
-    with pytest.raises(bb.BoardError, match="read 1 issues against a total of 2"):
-        build(Shifting([issue(1)], []))
+    gh = Shifting([issue(1)], [])
+    with pytest.raises(bb.BoardError, match="read 1 issues against a total of 2 on 3 reads"):
+        build(gh)
+    assert sum("issues(states:OPEN" in q for q in gh.calls) == 3
+    assert capsys.readouterr().err.count("reading the list again") == 2
+
+
+def test_a_pull_request_count_that_disagrees_on_every_read_stops_the_run() -> None:
+    """Protects the board from a pull request list it cannot trust.
+
+    The pull request list is read by the same loop as the issue list, so a
+    read that disagrees with its count on every read stops the run here too,
+    rather than publishing the pull requests it did read.
+    """
+
+    class Shifting(FakeGitHub):
+        def __call__(self, query: str, variables: dict) -> dict:
+            data = super().__call__(query, variables)
+            if "pullRequests(states:OPEN" in query:
+                data["repository"]["pullRequests"]["totalCount"] += 1
+            return data
+
+    gh = Shifting([issue(1)], [pull(2000, closes=(1,))])
+    with pytest.raises(bb.BoardError, match="read 1 pullRequests against a total of 2 on 3 reads"):
+        build(gh)
+    assert sum("pullRequests(states:OPEN" in q for q in gh.calls) == 3
+
+
+def test_an_issue_repeated_beside_the_right_count_of_others_stops_the_run() -> None:
+    """Protects the board from a page that repeats an issue.
+
+    GitHub's pages continue after the last issue read, so a close or a filing
+    cannot repeat one, and the generator keeps a guard against a page that
+    repeats one anyway. Here issues 1 and 2 are two distinct numbers against a
+    total of 2, so only the count of entries read, three, catches the repeat.
+    A read accepted on its distinct numbers alone would draw issue 2 twice.
+    """
+
+    class Padded(FakeGitHub):
+        def __call__(self, query: str, variables: dict) -> dict:
+            data = super().__call__(query, variables)
+            if "issues(states:OPEN" in query:
+                data["repository"]["issues"]["nodes"] = [issue(1), issue(2), issue(2)]
+            return data
+
+    with pytest.raises(bb.BoardError, match="read 3 issues against a total of 2 on 3 reads"):
+        build(Padded([issue(1), issue(2)], []))
 
 
 def test_an_issue_read_twice_stops_the_run() -> None:
@@ -915,8 +967,111 @@ def test_an_issue_read_twice_stops_the_run() -> None:
                 data["repository"]["issues"]["nodes"] = [issue(1), issue(1)]
             return data
 
-    with pytest.raises(bb.BoardError, match="read 2 issues against a total of 2"):
-        build(Repeating([issue(1), issue(2)], []))
+    gh = Repeating([issue(1), issue(2)], [])
+    with pytest.raises(bb.BoardError, match="read 2 issues against a total of 2 on 3 reads"):
+        build(gh)
+    assert sum("issues(states:OPEN" in q for q in gh.calls) == 3
+
+
+class Growing(FakeGitHub):
+    """Opens one more issue or pull request partway through the first read.
+
+    The entry lands between the first and second page of the list's first
+    read, the way an issue filed while the run reads does. ``reads`` counts
+    each time the list is asked for from its first page.
+    """
+
+    def __init__(self, issues: list[dict], prs: list[dict], field: str, extra: dict):
+        super().__init__(issues, prs)
+        self.field = field
+        self.extra: dict | None = extra
+        self.reads = 0
+
+    def __call__(self, query: str, variables: dict) -> dict:
+        if f"{self.field}(states:OPEN" in query:
+            if variables.get("after") is None:
+                self.reads += 1
+            elif self.extra is not None:
+                if self.field == "issues":
+                    self.issues.append(self.extra)
+                else:
+                    self.prs[self.extra["number"]] = self.extra
+                self.extra = None
+        return super().__call__(query, variables)
+
+
+def test_an_issue_filed_while_the_list_is_read_is_read_again(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Protects the board from an issue filed between two pages of one read.
+
+    Run 38167738593 failed on 2026-10-11 reading 119 issues against a total of
+    118. The first read here disagrees with its own count, so the whole list is
+    read again from its first page, and the second read holds every issue,
+    the new one included.
+    """
+    gh = Growing([issue(n) for n in range(101)], [], "issues", issue(101))
+    board, _ = build(gh)
+    assert [c["n"] for c in board["tracker"]["items"]] == list(range(102))
+    assert gh.reads == 2
+    assert (
+        "build_board: read 102 issues against a total of 101, reading the list again (read 2 of 3)"
+    ) in capsys.readouterr().err
+
+
+def test_a_pull_request_opened_while_the_list_is_read_is_read_again(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Protects the open pull request list, which pages the same way."""
+    prs = [pull(2000 + n, closes=(1,)) for n in range(51)]
+    gh = Growing([issue(1)], prs, "pullRequests", pull(2051, closes=(1,)))
+    board, _ = build(gh)
+    assert [p["pr"] for p in prs_of(board)] == list(range(2000, 2052))
+    assert gh.reads == 2
+    assert (
+        "build_board: read 52 pullRequests against a total of 51, "
+        "reading the list again (read 2 of 3)"
+    ) in capsys.readouterr().err
+
+
+def test_an_issue_closed_after_its_page_was_read_is_left_off_the_board() -> None:
+    """Protects the board from carrying an entry only the first read held.
+
+    Issue 50 is closed after the first page of the first read, and issue 101
+    is filed before its second page. Pages continue after the last issue read,
+    the way GitHub's cursors do, so the close moves nothing onto or off the
+    second page. The first read holds issue 50 and 102 issues against a total
+    of 101, and the second read holds the 101 issues still open. The board
+    is the second read exactly, without issue 50.
+    """
+
+    class ClosedAndFiled(FakeGitHub):
+        def __init__(self, issues: list[dict]):
+            super().__init__(issues, [])
+            self.changed = False
+
+        def _page(self, nodes: list[dict], size: int, after: str | None) -> dict:
+            rest = [n for n in nodes if after is None or n["number"] > int(after)]
+            chunk = rest[:size]
+            return {
+                "totalCount": len(nodes),
+                "nodes": chunk,
+                "pageInfo": {
+                    "hasNextPage": len(rest) > size,
+                    "endCursor": str(chunk[-1]["number"]) if chunk else after,
+                },
+            }
+
+        def __call__(self, query: str, variables: dict) -> dict:
+            if "issues(states:OPEN" in query and variables.get("after") and not self.changed:
+                self.issues = [i for i in self.issues if i["number"] != 50] + [issue(101)]
+                self.changed = True
+            return super().__call__(query, variables)
+
+    gh = ClosedAndFiled([issue(n) for n in range(101)])
+    board, _ = build(gh)
+    assert [c["n"] for c in board["tracker"]["items"]] == [n for n in range(102) if n != 50]
+    assert sum("issues(states:OPEN" in q for q in gh.calls) == 4
 
 
 def test_a_variable_with_no_value_is_left_out_of_the_call(
