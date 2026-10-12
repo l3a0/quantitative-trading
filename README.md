@@ -5741,8 +5741,10 @@ Entry 44 of the replication log.
    2006-07-12, and same-day news shows both were earnings warnings that
    traded.
 6. The declared reading points the way Chan says, on one year of survivors.
-   Nothing here measures how many S&P 600 members were microcaps, and the
-   S&P 400 is the third point, not yet run.
+   Nothing here measures how many S&P 600 members were microcaps. The S&P
+   400 is the third point, and its run sits between the other two on the
+   closes and below both on the opens, which the reading declared before
+   that run calls mixed.
 
 Five groups of what it says are not pinned here.
 
@@ -5786,7 +5788,11 @@ for the figure's own numbers, which include the low of the S&P 600's dashed
 line on the closes, −6.3% on 2006-06-30. The S&P 500's average day on the
 closes traces to `TestWhatAnAverageDayCosts` in
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py), and the factor of 1.6
-to [tests/test_scale_breaks.py](tests/test_scale_breaks.py).
+to [tests/test_scale_breaks.py](tests/test_scale_breaks.py). The S&P 400's
+figures, its steps to both neighbours and the control's gaps trace to
+[tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py), and
+its 401 holdings and the 285 a run keeps to
+[tests/test_sp400_panel.py](tests/test_sp400_panel.py).
 `TestWhatThePostMeasured` holds the ones that had no pin before it, all
 measured after the run.
 
