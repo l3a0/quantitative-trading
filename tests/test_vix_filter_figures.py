@@ -19,18 +19,21 @@ Exploratory, like everything Entry 47 computes here.
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pandas as pd
 import pytest
 from matplotlib.colors import to_rgba
-from matplotlib.dates import YearLocator, date2num
+from matplotlib.dates import YearLocator, date2num, num2date
+from matplotlib.figure import Figure
 
 from chan import vix_filter_figures as module
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, INK, LOST, MUTED, RULE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
-from chan.vix_filter import read_sources, vix_filters
+from chan.vix_filter import Filtered, read_sources, vix_filters
 from chan.vix_filter_figures import FIGURE, main, make_vix_filter_figure, vix_window
 from tests.test_regime_figure import png_size
 
@@ -134,6 +137,13 @@ class TestTheFigure:
         xaxis = axes["earned"].xaxis
         assert isinstance(xaxis.get_major_locator(), YearLocator)
         assert xaxis.get_major_formatter()(date2num(day("2008-06-30"))) == "2008"
+        # Every year's first of January inside the window, and nothing else,
+        # so a locator that skipped a year or ticked mid-year fails here.
+        low, high = axes["earned"].get_xlim()
+        inside = [
+            num2date(x).date().isoformat() for x in xaxis.get_majorticklocs() if low <= x <= high
+        ]
+        assert inside == [f"{year}-01-01" for year in range(2005, 2013)], SPEC
 
 
 class TestTheVixPanel:
@@ -189,6 +199,13 @@ class TestTheVixPanel:
         assert label.get_text() == text
         assert label.get_color() == ACCENT
         assert _by_gid(ax.lines)[gid].get_color() == ACCENT
+
+    @pytest.mark.parametrize(
+        ("gid", "side"), [("first", "right"), ("highest", "left"), ("last", "right")]
+    )
+    def test_each_label_sits_on_the_side_its_offset_points_to(self, axes, gid, side) -> None:
+        """A label pushed left ends at its arrow, and one pushed right starts there."""
+        assert _by_gid(axes["vix"].texts)[f"{gid}-label"].get_ha() == side
 
     def test_the_labelled_closes_are_the_first_highest_and_last_above_35(
         self, axes, sources
@@ -270,6 +287,7 @@ class TestTheEarnedPanel:
         label = _by_gid(ax.texts)["best-label"]
         assert label.get_text() == "2009-04-21 alone adds 0.093601"
         assert label.get_color() == ACCENT
+        assert label.get_ha() == "left"
 
     def test_the_lines_carry_their_colours_and_weights(self, axes) -> None:
         lines = _by_gid(axes["earned"].lines)
@@ -339,6 +357,127 @@ class TestBothPanels:
     def test_each_panel_names_its_vertical_axis(self, axes, panel) -> None:
         expected = {"vix": "VIX close", "earned": "daily returns summed"}[panel]
         assert axes[panel].get_ylabel() == expected
+
+
+#: Twelve made-up joined days across three calendar years, for the panels drawn
+#: on synthetic inputs below.
+MADE_UP_DAYS = pd.DatetimeIndex(
+    [
+        "2019-11-04",
+        "2019-11-05",
+        "2019-11-06",
+        "2019-12-02",
+        "2019-12-03",
+        "2020-01-06",
+        "2020-01-07",
+        "2020-02-03",
+        "2020-03-02",
+        "2020-03-03",
+        "2021-01-04",
+        "2021-01-05",
+    ]
+)
+
+
+#: VIX on the made-up days, above 35 on 2019-11-05, 2019-11-06 and 2019-12-03.
+MADE_UP_VIX = pd.Series(
+    [20, 40, 45, 20, 38, 20, 20, 20, 20, 20, 20, 20], index=MADE_UP_DAYS, dtype=float
+)
+
+
+def _made_up(name: str, daily, kept_rows) -> Filtered:
+    qualifies = np.zeros(len(MADE_UP_DAYS), dtype=bool)
+    qualifies[list(kept_rows)] = True
+    return Filtered(
+        name=name,
+        days=MADE_UP_DAYS,
+        daily=np.asarray(daily, dtype=float),
+        held=np.ones(len(MADE_UP_DAYS), dtype=bool),
+        qualifies=qualifies,
+        calendar_days=len(MADE_UP_DAYS),
+    )
+
+
+@pytest.fixture(scope="module")
+def made_up(result):
+    """The run's result with all three rules replaced by made-up ones on ``MADE_UP_DAYS``."""
+    long = _made_up(
+        "Buy on gap",
+        [0, 0, 0, 0.5, 0, 0.02, -0.3, 0, 0.05, 0, 0.01, 0],
+        (5, 6, 8, 10),
+    )
+    gap = [0, 0, 0, 0, 0, 0, 0, 0.01, 0, -0.02, 0, 0]
+    return dataclasses.replace(
+        result,
+        buy_on_gap=long,
+        literal=_made_up("FSTX, literal", gap, (7, 9)),
+        momentum=_made_up("FSTX, momentum", -np.asarray(gap), (7, 9)),
+    )
+
+
+@pytest.fixture(scope="module")
+def made_up_panels(made_up):
+    vix_ax, earned_ax = Figure().subplots(2, 1)
+    module._vix_panel(vix_ax, made_up, MADE_UP_VIX)
+    module._earned_panel(earned_ax, made_up)
+    return {"vix": vix_ax, "earned": earned_ax}
+
+
+class TestEachPanelReadsItsOwnSource:
+    """Each panel drawn on made-up inputs where every source it could misread differs.
+
+    On the committed data several quantities coincide, so a panel reading the
+    wrong one draws the same figure. The closes above 35 number 190 in 15 runs
+    and so do buy on gap's kept days, both rules' kept spans share their first
+    and last days, buy on gap's largest return over every joined day and its
+    largest kept return in absolute size both fall on 2009-04-21, and the
+    closes above 35 and the kept days fall in the same years. Here none of
+    them do.
+
+    1. VIX closes above 35 on 3 days in 2 runs, all in 2019, while buy on gap
+       keeps 4 days in 3 runs, in 2020 and 2021.
+    2. Buy on gap keeps 2020-01-06 to 2021-01-04, and FSTX keeps 2020-02-03
+       to 2020-03-03.
+    3. Buy on gap's largest return, 0.5, falls on 2019-12-02, a day it does
+       not keep. Its largest kept loss, 0.3, outweighs its largest kept gain,
+       0.05 on 2020-03-02.
+    """
+
+    def test_the_inputs_differ_where_the_committed_data_coincides(self, made_up) -> None:
+        long, literal = made_up.buy_on_gap, made_up.literal
+        assert (long.kept, len(module.runs(long.qualifies))) == (4, 3)
+        assert (long.kept_days[0], long.kept_days[-1]) != (
+            literal.kept_days[0],
+            literal.kept_days[-1],
+        )
+        assert long.days[np.argmax(long.daily)] == day("2019-12-02")
+        assert long.days[np.flatnonzero(long.qualifies)[np.argmax(np.abs(long.filtered))]] == day(
+            "2020-01-07"
+        )
+
+    def test_the_legend_counts_the_closes_above_35_not_the_kept_days(self, made_up_panels) -> None:
+        legend = [t.get_text() for t in made_up_panels["vix"].get_legend().get_texts()]
+        assert legend[-1] == "a close above 35, on 3 days in 2 runs"
+
+    @pytest.mark.parametrize("panel", ["vix", "earned"])
+    def test_the_shading_runs_over_buy_on_gap_s_kept_days(self, made_up_panels, panel) -> None:
+        (span,) = [p for p in made_up_panels[panel].patches if p.get_gid() == "kept-span"]
+        left, width = span.get_x(), span.get_width()
+        assert (left, left + width) == pytest.approx(
+            (date2num(day("2020-01-06")), date2num(day("2021-01-04")))
+        )
+        legend = [t.get_text() for t in made_up_panels[panel].get_legend().get_texts()]
+        assert legend[0] == "every kept day falls from 2020-01-06 to 2021-01-04"
+
+    def test_the_marked_day_is_buy_on_gap_s_largest_kept_gain(self, made_up_panels) -> None:
+        ax = made_up_panels["earned"]
+        assert _point(ax, "best") == (day("2020-03-02"), pytest.approx(-0.23))
+        assert _by_gid(ax.texts)["best-label"].get_text() == "2020-03-02 alone adds 0.050000"
+
+    def test_the_heading_takes_its_years_from_the_closes_above_35(self, made_up_panels) -> None:
+        assert _title(made_up_panels["vix"]).startswith(
+            "Inside the window, VIX closed above 35 only from 2019 to 2019. "
+        )
 
 
 class TestTheFile:
