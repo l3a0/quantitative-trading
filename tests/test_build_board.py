@@ -1529,6 +1529,35 @@ def test_the_owner_sentence_joins_a_free_card_and_a_waiting_one(tmp_path: Path) 
     )
 
 
+def test_the_planned_column_subtitle_names_only_what_its_test_reads(tmp_path: Path) -> None:
+    """Protects the "Planned, no builder" subtitle from claiming more than its test.
+
+    The column's test reads only ``needs``, so a card with an open ``after`` or
+    a held kind can sit under it. "Nothing blocking it" read as a free claim
+    over a deferred card, and "no open issue in front of it" over a card that
+    should land after an open issue. The subtitle names the open issues the
+    card waits on, which is the word its own line uses for ``needs``.
+    """
+    docs = _with_fields(fixture_docs(), 90504, kind="deferred", after=[90503])
+    shown = text(draw(tmp_path, _planned(docs, 90504, "build")), "flow")
+    assert "a plan run against the code, nothing open that it waits on, and nobody on it" in shown
+    assert "nothing blocking it" not in shown
+    assert "no open issue in front of it" not in shown
+
+
+def test_the_owner_sentence_ignores_an_issue_that_is_not_open(tmp_path: Path) -> None:
+    """Protects the owner sentence from naming a blocker the card's line drops.
+
+    Issues 1 and 2 are not open issues on the fixture board, so the card's own
+    line names neither, and the note says the card waits on nothing else.
+    """
+    flownote = text(draw(tmp_path, _owner_card(needs=[1], after=[2])), "flownote")
+    assert "#90501 is yours" in flownote
+    assert "and waiting on nothing else." in flownote
+    assert "#1 " not in flownote and "#2 " not in flownote
+    assert "#1." not in flownote and "#2." not in flownote
+
+
 @pytest.mark.parametrize(
     ("after", "card", "line"),
     [
