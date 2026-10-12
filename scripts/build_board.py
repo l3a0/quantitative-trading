@@ -79,14 +79,16 @@ from pathlib import Path
 SCHEMA = 1
 
 # A `Part of` reference, read the way GitHub reads a closing keyword: anywhere
-# in a pull request's body, capitalised, with `#` and the number right after
-# it, and never inside a code span or a fenced code block. Sessions write the
-# phrase mid-paragraph, as PR 481 did for issue 482, and a rule that read only
-# a line opening with it dropped those without saying so. Lowercase prose such
-# as "merged in PR 488, part of 458" names another pull request's issue and is
-# not one. The owner ruled on issue 559 that a sentence mentioning the phrase in
-# passing counts unless a code span holds it, as a closing keyword does.
-# `pr_items` strips the code before matching.
+# in a pull request's body, with `#` and the number right after it, and never
+# inside a code span or a fenced code block. Sessions write the phrase
+# mid-paragraph, as PR 481 did for issue 482, and a rule that read only a line
+# opening with it dropped those without saying so. The one difference from
+# GitHub, which reads a keyword in any case, is that the reference has to be
+# capitalised, because lowercase prose such as "merged in PR 488, part of 458"
+# names another pull request's issue and is not one. The owner ruled on issue
+# 559 that a sentence mentioning the phrase in passing counts unless a code
+# span holds it, as a closing keyword does. `pr_items` strips the code before
+# matching.
 PART_OF = re.compile(r"\bPart of #(\d+)\b")
 
 # A review comment opens with a line reading `## Review`, which the
@@ -120,8 +122,13 @@ def unfenced(text: str) -> str:
 
 # A run of backticks, which opens an inline code span, and the blank line that
 # ends a paragraph. A span closes only at the next run of exactly as many
-# backticks inside the same paragraph, as CommonMark has it, and a run nothing
-# closes is literal text.
+# backticks inside the same paragraph, and a run nothing closes is literal
+# text. That approximates CommonMark rather than implementing it. Only a blank
+# line ends a paragraph here, so a heading or a list item with no blank line
+# after it is no boundary, and a backslash-escaped backtick still opens a span.
+# In those rare shapes a stray backtick pairs with the wrong partner. A span
+# can then run on and swallow a reference, or close early and leave a quoted
+# one outside code, so the approximation can drop a reference or credit one.
 TICKS = re.compile(r"`+")
 PARAGRAPH = re.compile(r"\n[ \t]*\n")
 
@@ -151,6 +158,9 @@ def outside_code(text: str) -> str:
     GitHub does not read a closing keyword written inside either, so a ``Part
     of`` reference written inside one does not count here either.
     """
+    # GitHub's web editor saves `\r\n`, which the fence's `$` and the blank
+    # line between paragraphs would otherwise never match.
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     return "\n\n".join(_spans_out(p) for p in PARAGRAPH.split(unfenced(text)))
 
 

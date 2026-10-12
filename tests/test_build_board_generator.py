@@ -244,6 +244,20 @@ def test_a_part_of_reference_counts_anywhere_outside_code(body: str, credited: b
     assert [(p["pr"], p["issue"], p["linked"], p.get("partOf")) for p in prs_of(board)] == expected
 
 
+def test_a_part_of_reference_after_a_fence_counts_in_a_crlf_body() -> None:
+    """Protects the ``Part of`` rule on a body saved from GitHub's web editor.
+
+    That editor ends each line with ``\\r\\n``. Read as it comes, the closing
+    fence never matches, so the fence runs on to the end of the body and takes
+    the reference below it, and no blank line ends a paragraph either. The body
+    here holds a fence ahead of a reference outside it, which must count.
+    """
+    body = "## What\r\n\r\n```\r\ncode\r\n```\r\n\r\nPart of #482\r\n"
+    gh = FakeGitHub([issue(482)], [pull(481, body=body)])
+    board, _ = build(gh)
+    assert [(p["pr"], p["issue"], p.get("partOf")) for p in prs_of(board)] == [(481, 482, True)]
+
+
 @pytest.mark.parametrize(
     ("body", "credited"),
     [

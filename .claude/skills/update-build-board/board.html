@@ -554,10 +554,11 @@ function source() {
    an entry had no closing link and no `Part of`, because PR 34 and PR 35 both
    wrote the closing keyword inside a code span, where GitHub does not read it.
    That warning went with the hand-kept board under issue 533. The Action
-   writes an entry only for an issue GitHub links or a `Part of` reference names, so
-   `linked` is false exactly when `partOf` is true, and the page no longer reads
-   it. A keyword in a code span now gives the branch no entry at all, and
-   `gh pr view <n> --json closingIssuesReferences` remains the check on a body.
+   writes an entry only for an issue GitHub links or a `Part of` reference
+   names, so `linked` is false exactly when `partOf` is true, and the page no
+   longer reads it. A keyword in a code span now gives the branch no entry at
+   all, and `gh pr view <n> --json closingIssuesReferences` remains the check
+   on a body.
 
    One branch closing two issues takes one entry per issue, because the map
    that feeds the cards is keyed by issue and a single entry would leave the
