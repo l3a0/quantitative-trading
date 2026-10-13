@@ -45,7 +45,7 @@ from chan.fetch_alphavantage import (
     read_symbols,
     request_url,
 )
-from chan.vintage import MANIFEST_NAME, read_manifest
+from chan.vintage import MANIFEST_NAME, read_manifest, record_vintage
 
 KEY = "SECRETKEY123"
 
@@ -581,9 +581,9 @@ class TestTheFxDaily:
         )
         entry = fx_run(data_dir, FxVendor(body))
         assert (entry.row_count, entry.last_date) == (1, "2026-10-12")
-        assert "2 dated on or after 2026-10-13 dropped (2026-10-13, 2026-10-14)" in (
-            capsys.readouterr().out
-        )
+        out = capsys.readouterr().out
+        assert "2 dated on or after 2026-10-13 dropped (2026-10-13, 2026-10-14)" in out
+        assert "USDCAD: 3 rows received, 2 dated" in out
 
     def test_the_manifest_holding_the_pair_refuses_before_any_request(self, data_dir):
         fx_run(data_dir, FxVendor(FX_GOOD))
@@ -592,6 +592,23 @@ class TestTheFxDaily:
             fx_run(data_dir, vendor, day=date(2026, 10, 14))
         assert vendor.calls == 0
         assert len(read_manifest(data_dir)) == 1
+
+    @pytest.mark.parametrize(
+        ("vendor", "basis"), [("yfinance", "raw"), ("alphavantage", "adjusted")]
+    )
+    def test_a_usdcad_vintage_from_another_vendor_or_basis_does_not_refuse(
+        self, data_dir, vendor, basis
+    ):
+        record_vintage(
+            [("2026-10-08", 1.4)],
+            vendor=vendor,
+            symbol="USDCAD",
+            price_basis=basis,
+            download_date="2026-10-10",
+            data_dir=data_dir,
+        )
+        assert fx_run(data_dir, FxVendor(FX_GOOD)).row_count == 3
+        assert len(read_manifest(data_dir)) == 2
 
     @pytest.mark.parametrize(
         ("body", "words"),
@@ -604,6 +621,8 @@ class TestTheFxDaily:
             (fx_body("2026-10-12,1,1,1,1,1"), "line 2 holds 6 fields"),
             (fx_body("2026-10-12,1,1,1,1", ""), "line 3 holds 1 fields"),
             (fx_body("2026-13-12,1,1,1,1"), "not an ISO calendar date"),
+            (fx_body("20261009,1,1,1,1"), "not an ISO calendar date"),
+            (fx_body("2026-W41-5,1,1,1,1"), "not an ISO calendar date"),
             (fx_body("2026-10-11,1,1,1,1", "2026-10-09,1,1,1,1"), "Saturday or a Sunday"),
             (fx_body("2026-10-10,1,1,1,1"), "the first 2026-10-10"),
             (fx_body("2026-10-13,1,1,1,1"), "no row dated before 2026-10-13"),
@@ -625,8 +644,9 @@ class TestTheFxDaily:
 
     def test_a_throttle_that_persists_stops_the_fetch(self, data_dir):
         vendor = FxVendor(INFORMATION)
-        with pytest.raises(RunStopped, match="Thank you for using Alpha Vantage"):
+        with pytest.raises(RunStopped, match="Thank you for using Alpha Vantage") as stopped:
             fx_run(data_dir, vendor)
+        assert str(stopped.value).startswith(f"USDCAD, after {ATTEMPTS} attempts: ")
         assert vendor.calls == ATTEMPTS
         assert nothing_written(data_dir)
 

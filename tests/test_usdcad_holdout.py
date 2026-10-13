@@ -206,6 +206,16 @@ class TestTheRowsTheRunReads:
         with pytest.raises(HoldoutRefused, match=re.escape(words)):
             parse_closes(body)
 
+    @pytest.mark.parametrize(
+        "body",
+        [
+            b"Date,Close\r\n2012-03-29,1.0\r\n2012-03-30,1.1\r\n",
+            b"Date,Close\n2012-03-29,1.0\n2012-03-30,1.1",
+        ],
+    )
+    def test_crlf_line_ends_and_a_missing_last_newline_lose_no_close(self, body) -> None:
+        assert parse_closes(body).tolist() == [1.0, 1.1]
+
     def test_a_nan_or_a_zero_close_is_parsed_and_left_to_the_guard(self) -> None:
         closes = parse_closes(payload("2012-03-29,nan", "2012-03-30,0"))
         assert np.isnan(closes.iloc[0]) and closes.iloc[1] == 0.0
@@ -226,6 +236,11 @@ class TestTheWindow:
         with pytest.raises(HoldoutRefused, match=f"holds {LOOKBACK - 1} closes before"):
             compute(entry, closes, start=str(start.date()))
         assert compute(entry, closes, start=str(closes.index[LOOKBACK].date())).lookback == LOOKBACK
+
+    def test_a_holdout_of_one_close_is_refused(self, recorded) -> None:
+        _, entry, closes = recorded
+        with pytest.raises(HoldoutRefused, match="holds 1 closes from 2012-03-29 on"):
+            compute(entry, closes, start=START, end=START)
 
     def test_the_end_is_a_parameter(self, recorded) -> None:
         _, entry, closes = recorded
@@ -277,6 +292,28 @@ class TestTheSlicing:
         assert h.long_share + h.short_share == pytest.approx(1.0, abs=1e-12)
         assert h.largest_position == pytest.approx(np.max(np.abs(h.held)), abs=0)
 
+    def test_the_largest_position_ignores_the_last_day_s_which_earns_nothing(
+        self, recorded
+    ) -> None:
+        _, entry, closes = recorded
+        h = compute(entry, closes, start=START)
+        late = replace(h, positions=np.concatenate([h.positions[:-1], [1e6]]))
+        assert late.largest_position == h.largest_position
+
+    def test_a_loss_from_the_first_traded_day_puts_the_peak_on_no_warm_up_day(
+        self, recorded
+    ) -> None:
+        _, entry, _ = recorded
+        rng = np.random.default_rng(3)
+        level = np.empty(len(DAYS))
+        level[0] = 1.2
+        for t in range(1, len(DAYS)):
+            level[t] = level[t - 1] * 1.003 + rng.normal(0.0, 0.0002)
+        h = compute(entry, pd.Series(level, index=DAYS), start=START)
+        assert h.traded.iloc[0] < 0
+        assert h.drawdown == pnl_drawdown(h.traded)
+        assert h.drawdown.peak >= pd.Timestamp(START)
+
 
 class TestTheGuard:
     @pytest.mark.parametrize("value", [0.0, -1.2, float("nan"), float("inf"), 1.2 * 1.7])
@@ -292,6 +329,13 @@ class TestTheGuard:
         h = compute(entry, closes, start=START)
         bad = closes.copy()
         bad.loc[h.warm_up.index[0]] = 0.0
+        with pytest.raises(WindowCrossesScaleBreak):
+            compute(entry, bad, start=START)
+
+    def test_a_bad_close_on_the_last_traded_day_is_refused(self, recorded) -> None:
+        _, entry, closes = recorded
+        bad = closes.copy()
+        bad.iloc[-1] = 0.0
         with pytest.raises(WindowCrossesScaleBreak):
             compute(entry, bad, start=START)
 
@@ -368,6 +412,12 @@ class TestTheGaps:
         assert h.weekdays == len(pd.bdate_range(START, closes.index[-1]))
         assert h.longest_gap == Gap(2, pd.Timestamp("2012-05-01"), pd.Timestamp("2012-05-04"))
 
+    def test_a_missing_warm_up_day_is_not_counted_as_a_holdout_gap(self, recorded) -> None:
+        _, entry, closes = recorded
+        h = compute(entry, closes.drop(pd.Timestamp("2012-02-01")), start=START)
+        assert h.weekdays == len(pd.bdate_range(START, closes.index[-1]))
+        assert h.missing_weekdays == 0
+
 
 class TestTheReportAndTheCommand:
     def test_the_report_names_every_prediction_and_the_label(self, recorded, capsys) -> None:
@@ -379,6 +429,28 @@ class TestTheReportAndTheCommand:
             assert f"  {label}" in out
         assert "Registered on issue 607" in out and "chan.aud_cad_johansen" in out
         assert "Entry 51" in out
+
+    def test_a_band_the_hurst_falls_outside_reads_against_the_registration(
+        self, recorded, capsys
+    ) -> None:
+        _, entry, closes = recorded
+        h = compute(entry, closes, start=START)
+        report(h, Band(mean=-5.0, sd=1e-6, length=len(h.tested), paths=10, seed=1))
+        h6 = capsys.readouterr().out.split("  H6 ", 1)[1].split("\n", 1)[0]
+        assert h6.endswith(": does not hold, against the registration.")
+
+    def test_the_run_passes_its_window_and_lookback_through_and_prints_the_report(
+        self, recorded, capsys
+    ) -> None:
+        data_dir, _, _ = recorded
+        h, band = usdcad_holdout.run(
+            data_dir=data_dir, start="2012-04-02", end="2012-06-29", lookback=20
+        )
+        assert h.lookback == 20 and len(h.warm_up) == 20
+        assert h.tested.index[0] == pd.Timestamp("2012-04-02")
+        assert h.tested.index[-1] == pd.Timestamp("2012-06-29")
+        assert band.length == len(h.tested)
+        assert f"over 40,000 walks of {len(h.tested)}: " in capsys.readouterr().out
 
     def test_the_run_reads_the_vintage_named_by_its_download_date(self, recorded) -> None:
         data_dir, entry, closes = recorded
@@ -563,7 +635,7 @@ class TestTheReport:
         assert "H3 Newey-West t 0.2670 at lag 8 over 3791 days" in out, SPEC
         assert "> 1.645: does not hold, as registered." in out, SPEC
         assert "H4 jplv7 ADF -2.0814, against the 10% value -2.5937" in out, SPEC
-        assert "adfuller beside it -2.0243" in out, SPEC
+        assert "-2.5937: does not hold, as registered. adfuller beside it -2.0243" in out, SPEC
         assert (
             "H5 variance ratio p-value 0.4343, rejects at 5%: does not hold, as registered." in out
         ), SPEC
