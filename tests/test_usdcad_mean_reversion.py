@@ -65,7 +65,7 @@ from ithildincore.timeseries import adf_tstat
 from chan import usdcad_hurst_noise, usdcad_mean_reversion
 from chan.matlab_helpers import moving_avg, moving_std
 from chan.series import WindowCrossesScaleBreak, scale_breaks
-from chan.stationarity_tests import ZTCRIT_CONSTANT, genhurst, vratiotest
+from chan.stationarity_tests import ZTCRIT_CONSTANT, genhurst, jplv7_adf, vratiotest
 from chan.usdcad_hurst_noise import (
     PATHS,
     SEED,
@@ -96,6 +96,7 @@ from chan.usdcad_mean_reversion import (
     SCRIPT_VRATIO_P,
     SYMBOL,
     StationarityRun,
+    adfuller_at_one_lag,
     linear_mean_reversion,
     main,
     market_value,
@@ -227,6 +228,39 @@ class TestExample21TheAdfTest:
         assert result.adfuller_ar1 == pytest.approx(0.9941138113, abs=5e-11)
         assert round(result.adfuller_statistic, 6) != SCRIPT_ADF
         assert adf_tstat(result.closes.to_numpy(), 1)[1] == 1214
+
+    def test_adfuller_fits_1214_rows_from_day_3_and_jplv7_1213_from_day_4(
+        self, result: StationarityRun
+    ) -> None:
+        """Lesson 2's one row, counting the first of the 1,216 closes as day 1."""
+        assert (result.adfuller_nobs, result.adf.nobs) == (1214, 1213), SPEC
+        assert result.adfuller_nobs == adf_tstat(result.closes.to_numpy(), 1)[1]
+        assert (result.adfuller_first_day, result.adf_first_day) == (3, 4), SPEC
+
+    def test_each_regression_reads_the_closes_from_two_days_before_its_first_day(
+        self, result: StationarityRun
+    ) -> None:
+        """The first row fitted pairs a day's close with the change into the day
+        before, so it reads two earlier closes. Moving one close shows which
+        closes each regression reads, without trusting either function's row
+        count. Both read the last close, so the rows each drops are the first."""
+        y = result.closes.to_numpy(dtype=float)
+
+        def moved(day: int) -> tuple[bool, bool]:
+            shifted = y.copy()
+            shifted[day - 1] *= 1.01
+            return (
+                adfuller_at_one_lag(shifted)[0] != result.adfuller_statistic,
+                jplv7_adf(shifted, ADF_ORDER, ADF_LAGS).statistic != result.adf.statistic,
+            )
+
+        reads = {day: moved(day) for day in (1, 2, 3, len(y))}
+        assert reads == {1: (True, False), 2: (True, True), 3: (True, True), len(y): (True, True)}
+        first_read = [min(day for day in reads if reads[day][k]) for k in (0, 1)]
+        assert [day + 2 for day in first_read] == [
+            result.adfuller_first_day,
+            result.adf_first_day,
+        ]
 
 
 class TestExample22TheHurstExponent:

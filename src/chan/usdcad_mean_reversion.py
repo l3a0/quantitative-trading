@@ -150,6 +150,7 @@ class StationarityRun:
     drawdown: Drawdown
     adfuller_statistic: float
     adfuller_ar1: float
+    adfuller_nobs: int
     python_port_hurst: float
 
     @property
@@ -182,6 +183,22 @@ class StationarityRun:
         return depends on the account, so it stays undefined.
         """
         return plain_sharpe(self.pnl.to_numpy()[self.lookback :])
+
+    @property
+    def adf_first_day(self) -> int:
+        """The day, counting the first close as day 1, of the first row jplv7's ``adf`` fits."""
+        return self._first_fitted_day(self.adf.nobs)
+
+    @property
+    def adfuller_first_day(self) -> int:
+        """The day, counting the first close as day 1, of the first row ``adfuller`` fits."""
+        return self._first_fitted_day(self.adfuller_nobs)
+
+    def _first_fitted_day(self, nobs: int) -> int:
+        """Both regressions fit every day from their first through the last
+        close, so the rows they drop are the first days, and the first day fitted
+        follows them."""
+        return len(self.closes) - nobs + 1
 
 
 def market_value(closes: np.ndarray, lookback: int) -> np.ndarray:
@@ -224,8 +241,9 @@ def pnl_drawdown(pnl: pd.Series) -> Drawdown:
     return Drawdown(depth=float(fall[trough]), peak=pnl.index[peak], trough=pnl.index[trough])
 
 
-def adfuller_at_one_lag(closes: np.ndarray) -> tuple[float, float]:
-    """``adfuller(y, maxlag=1, regression='c', autolag=None)``: its statistic and AR(1) estimate.
+def adfuller_at_one_lag(closes: np.ndarray) -> tuple[float, float, int]:
+    """``adfuller(y, maxlag=1, regression='c', autolag=None)``: its statistic,
+    AR(1) estimate and the rows it fits.
 
     It is the line in Chan's 2018 Python port and what
     :func:`ithildincore.timeseries.adf_tstat` runs. The AR(1) estimate is its
@@ -234,7 +252,8 @@ def adfuller_at_one_lag(closes: np.ndarray) -> tuple[float, float]:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FutureWarning)
         result = adfuller(closes, maxlag=ADF_LAGS, regression="c", autolag=None, regresults=True)
-    return float(result[0]), float(result[3].resols.params[0]) + 1
+    store = result[3]
+    return float(result[0]), float(store.resols.params[0]) + 1, int(store.nobs)
 
 
 def python_port_hurst(log_closes: np.ndarray) -> float:
@@ -272,7 +291,7 @@ def stationarity_tests(entry: VintageEntry, closes: pd.Series) -> StationarityRu
         raise ValueError("the closes do not revert, so Example 2.5 has no lookback to use")
     lookback = int(round_half_away(half_life))
     pnl = pd.Series(linear_mean_reversion(y, lookback), index=closes.index)
-    statistic, ar1 = adfuller_at_one_lag(y)
+    statistic, ar1, nobs = adfuller_at_one_lag(y)
     return StationarityRun(
         closes=closes,
         adf=jplv7_adf(y, ADF_ORDER, ADF_LAGS),
@@ -284,6 +303,7 @@ def stationarity_tests(entry: VintageEntry, closes: pd.Series) -> StationarityRu
         drawdown=pnl_drawdown(pnl),
         adfuller_statistic=statistic,
         adfuller_ar1=ar1,
+        adfuller_nobs=nobs,
         python_port_hurst=python_port_hurst(np.log(y)),
     )
 

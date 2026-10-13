@@ -1,19 +1,22 @@
-"""The pins for the eight whiteboard GIFs in the post on mean reversion on USD.CAD.
+"""The pins for the nine whiteboard GIFs in the post on mean reversion on USD.CAD.
 
-Six GIFs sketch the scenes of the post's section "The tests and the file", and
-two sketch its Lesson 1. Each sits right after the text it draws. The first
+Six GIFs sketch the scenes of the post's section "The tests and the file", two
+sketch its Lesson 1 and one its Lesson 2. Each sits right after the text it
+draws. The first
 six are schematic, so what is pinned for every GIF is what a reader takes from
 it: which scenes there are and in which order the post reads them, what each
 one says and draws, that a label never appears before the stroke it names,
 that no label touches a line, how long each GIF shows before it loops, and
 each file's size, frame count and loop.
 
-Labels in four scenes quote the run. The half-life scene and the linear rule's
+Labels in five scenes quote the run. The half-life scene and the linear rule's
 warning print the lookback, the half-life rounded, and the count of closes.
 Chan's reading prints the three critical values and the ADF statistic, and
 places each on a line drawn to scale. The fingerprint prints the count of
 closes, the ADF statistic, the AR(1) estimate, the variance ratio's p-value
-and the half-life. All of them are read from the run rather than written in,
+and the half-life. One row apart prints the count of closes and each toolbox's
+row count and ADF statistic, and starts each bar at the cell of the first day
+its regression fits. All of them are read from the run rather than written in,
 and the tests below hand the scenes a run with other figures to prove it. The
 numbers come from the vintage and the specification
 ``tests/test_usdcad_mean_reversion.py`` names as its ``SPEC``, which failure
@@ -22,7 +25,9 @@ messages here carry:
 ``raw``, saved 2018-10-13, its 16:59 bar of each day, 1,216 closes, a
 lookback of 115 days, an ADF statistic of −1.840744 against critical values of
 −3.458, −2.871 and −2.594, an AR(1) estimate of 0.994120, a variance ratio
-p-value of 0.367281 and a half-life of 115.209794 days.
+p-value of 0.367281 and a half-life of 115.209794 days. ``adfuller`` at the
+same lag fits 1,214 rows from day 3, counting the first close as day 1, and
+gives −1.843018, where jplv7's ``adf`` fits 1,213 from day 4.
 
 Two draws on one machine give the same bytes, and a test holds that. Whether a
 committed GIF equals a fresh draw depends on the font, because the hand font
@@ -42,6 +47,7 @@ import platform
 import re
 import warnings
 
+import matplotlib
 import numpy as np
 import pytest
 from PIL import Image
@@ -53,9 +59,11 @@ from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_mean_reversion import read_sources, stationarity_tests
 from chan.usdcad_tests_whiteboard import (
     FRAME_MS,
+    HEIGHT,
     HOLD_MS,
     LABEL_MS,
     TITLE_MS,
+    WIDTH,
     Label,
     Stroke,
     clearances,
@@ -79,6 +87,7 @@ TITLES = [
     "The linear rule",
     "Chan’s reading",
     "The fingerprint",
+    "One row apart",
 ]
 
 GIFS = [
@@ -90,6 +99,7 @@ GIFS = [
     "usdcad_tests_linear_rule.gif",
     "usdcad_tests_no_rejection.gif",
     "usdcad_tests_fingerprint.gif",
+    "usdcad_tests_one_row.gif",
 ]
 
 #: Each scene's strokes, by their ids, in the order they are drawn.
@@ -121,6 +131,7 @@ STROKES = [
         "half-life-out",
         "check-half-life-0",
     ],
+    ["days", "last", "grey", "adfuller", "jplv7", "one-row"],
 ]
 
 LABELS = [
@@ -157,11 +168,28 @@ LABELS = [
         "115.209794",
         "closes × a constant would match too",
     ],
+    [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "…",
+        "1,216",
+        "no earlier\nchange\nto lag",
+        "adfuller, 1,214 rows",
+        "−1.843018",
+        "jplv7 adf, 1,213 rows",
+        "−1.840744",
+        "the script’s figure",
+        "the one row",
+    ],
 ]
 
 #: The frames each GIF takes, and how long one pass shows, in milliseconds.
-FRAMES = [29, 31, 29, 30, 29, 32, 44, 77]
-MS = [7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900]
+FRAMES = [29, 31, 29, 30, 29, 32, 44, 77, 58]
+MS = [7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900, 13500]
 
 #: How far, in pixels, every label and title must sit from the nearest stroke.
 #: The sketch's wobble moves a line a pixel or two off its points, so this
@@ -175,6 +203,8 @@ CLEAR_PX = 10
 #: the four values together, so it stands apart from the last check mark.
 STATEMENTS = {"λ < 0", r"variance $\sim \tau^{2H}$", "closes × a constant would match too"}
 APART_PX = 25
+#: How far, in pixels, every label and title must sit inside the frame's edge.
+INSIDE_PX = 5
 
 
 @pytest.fixture(scope="module")
@@ -226,7 +256,7 @@ def _inked(image: Image.Image) -> int:
 
 
 class TestTheScenes:
-    def test_there_are_eight_in_the_order_the_post_reads_them(self, drawn) -> None:
+    def test_there_are_nine_in_the_order_the_post_reads_them(self, drawn) -> None:
         assert [scene.title for scene in drawn] == TITLES
 
     def test_no_title_carries_a_scene_number(self, drawn) -> None:
@@ -289,6 +319,22 @@ class TestTheLabelsStayClearOfTheLines:
         assert formula.x <= start.x[0]
         assert formula.y < min(float(s.y.min()) for s in hurst.strokes)
 
+    def test_every_label_and_title_sits_inside_the_board(self, drawn) -> None:
+        """Clearance from the strokes says nothing about the frame's edge, and a
+        wider font can push a label at the right end off the GIF."""
+        for scene in drawn:
+            with matplotlib.rc_context(whiteboard._style()):
+                canvas, artists = whiteboard._board(scene)
+                whiteboard._show(scene, artists, whiteboard.Frame(len(scene.steps), 0, 0))
+                canvas.draw()
+                renderer = canvas.get_renderer()
+                for artist in artists:
+                    if not hasattr(artist, "get_text") or not artist.get_visible():
+                        continue
+                    box = artist.get_window_extent(renderer)
+                    inside = min(box.x0, box.y0, WIDTH - box.x1, HEIGHT - box.y1)
+                    assert inside >= INSIDE_PX, (scene.title, artist.get_text(), round(inside, 1))
+
     def test_the_measure_sees_a_label_on_a_line(self, drawn) -> None:
         """A label moved onto its own stroke reads as touching, so the two
         tests above can fail."""
@@ -312,7 +358,7 @@ class TestTheNumbersComeFromTheRun:
         assert "≈ 115 days" not in scenes(other)[4].labels
 
     def test_the_warning_prints_the_runs_lookback_and_closes(self, run) -> None:
-        other = dataclasses.replace(run, lookback=100, closes=run.closes.iloc[:1000])
+        other = dataclasses.replace(_shortened(run, 1000), lookback=100)
         assert scenes(other)[5].labels[-1] == "100 days measured on all 1,000 closes"
 
     def test_the_gifs_are_drawn_from_the_sources_handed_in(
@@ -334,16 +380,30 @@ class TestTheNumbersComeFromTheRun:
         assert seen == [(100, 800)]
 
 
-def _altered(run, statistic: float = -2.2):
-    """``run`` with every figure Lesson 1's scenes print moved to another value."""
+def _shortened(run, closes: int, drops: tuple[int, int] = (2, 3)):
+    """``run`` cut to its first ``closes`` closes, with ``adfuller`` and jplv7
+    dropping ``drops`` rows, so each regression's first day stays a day the
+    closes hold."""
     return dataclasses.replace(
         run,
-        closes=run.closes.iloc[:1000],
+        closes=run.closes.iloc[:closes],
+        adfuller_nobs=closes - drops[0],
+        adf=dataclasses.replace(run.adf, nobs=closes - drops[1]),
+    )
+
+
+def _altered(run, statistic: float = -2.2):
+    """``run`` with every figure Lesson 1's and Lesson 2's scenes print moved
+    to another value."""
+    short = _shortened(run, 1000)
+    return dataclasses.replace(
+        short,
         adf=dataclasses.replace(
-            run.adf, statistic=statistic, ar1=0.98765, critical=(-3.9, -3.1, -2.7)
+            short.adf, statistic=statistic, ar1=0.98765, critical=(-3.9, -3.1, -2.7)
         ),
         vratio=dataclasses.replace(run.vratio, p_value=0.05),
         half_life=80.123456,
+        adfuller_statistic=-2.5,
     )
 
 
@@ -496,6 +556,122 @@ class TestTheFingerprint:
         ]
 
 
+def _cells(scene) -> list[float]:
+    """The edges of the row's cells, read off the vertical sides of the
+    ``days`` stroke, so cell ``d`` runs from ``edges[d - 1]`` to ``edges[d]``."""
+    days = next(s for s in scene.strokes if s.gid == "days")
+    sides = {
+        round(float(x0), 9)
+        for x0, x1, y0, y1 in zip(days.x, days.x[1:], days.y, days.y[1:], strict=False)
+        if x0 == x1 and y0 != y1
+    }
+    return sorted(sides)
+
+
+def _stroke(scene, gid: str) -> Stroke:
+    return next(s for s in scene.strokes if s.gid == gid)
+
+
+class TestOneRowApart:
+    """Lesson 2's point: jplv7's ``adf`` starts a day later than ``adfuller``,
+    so it fits one row fewer and lands the script's statistic. The bars are
+    placed from the run's first days, so a run that starts them elsewhere moves
+    them, which the altered run below shows."""
+
+    def test_the_run_fits_one_row_fewer_from_one_day_later(self, run) -> None:
+        assert (run.adfuller_nobs, run.adf.nobs) == (1214, 1213), SPEC
+        assert (run.adfuller_first_day, run.adf_first_day) == (3, 4), SPEC
+        assert f"{run.adfuller_statistic:.6f}" == "-1.843018", SPEC
+        assert f"{run.adf.statistic:.6f}" == "-1.840744", SPEC
+
+    def test_the_row_shows_six_days_and_the_last(self, drawn) -> None:
+        one_row = drawn[8]
+        assert len(_cells(one_row)) == 7
+        assert one_row.labels[:8] == ["1", "2", "3", "4", "5", "6", "…", "1,216"], SPEC
+        last = _stroke(one_row, "last")
+        assert last.x.min() > _cells(one_row)[-1]
+
+    @pytest.mark.parametrize("moved", [False, True])
+    def test_each_bar_starts_at_the_cell_of_its_first_day(self, run, moved) -> None:
+        """The moved run drops three and four rows, so its bars start on days 4
+        and 5 and three days are greyed."""
+        run = _shortened(run, 1000, (3, 4)) if moved else run
+        one_row = scenes(run)[8]
+        edges = _cells(one_row)
+        early, late = run.adfuller_first_day, run.adf_first_day
+        assert (early, late) == ((4, 5) if moved else (3, 4))
+        adfuller, jplv7 = _stroke(one_row, "adfuller"), _stroke(one_row, "jplv7")
+        assert adfuller.x[0] == pytest.approx(edges[early - 1])
+        assert jplv7.x[0] == pytest.approx(edges[late - 1])
+        width = edges[1] - edges[0]
+        assert jplv7.x[0] - adfuller.x[0] == pytest.approx(width), "one cell apart"
+        assert adfuller.x[0] == adfuller.x.min() and jplv7.x[0] == jplv7.x.min()
+        grey = _stroke(one_row, "grey")
+        assert (grey.x.min(), grey.x.max()) == pytest.approx((edges[0], edges[early - 1]))
+        assert round((grey.x.max() - grey.x.min()) / width) == early - 1
+        assert grey.x.max() <= adfuller.x.min() < jplv7.x.min()
+
+    def test_two_days_are_greyed_on_the_runs_closes(self, drawn) -> None:
+        one_row = drawn[8]
+        edges = _cells(one_row)
+        grey = _stroke(one_row, "grey")
+        assert grey.x.max() == pytest.approx(edges[2]), "days 1 and 2"
+        assert grey.color == whiteboard.MUTED
+
+    def test_both_bars_end_at_the_last_cell_and_adfuller_runs_above(self, drawn) -> None:
+        one_row = drawn[8]
+        last = _stroke(one_row, "last")
+        adfuller, jplv7 = _stroke(one_row, "adfuller"), _stroke(one_row, "jplv7")
+        assert adfuller.x.max() == jplv7.x.max() == last.x.max()
+        assert np.median(adfuller.y) > np.median(jplv7.y)
+        assert last.y.min() > adfuller.y.max()
+
+    def test_each_value_sits_at_the_end_of_its_bar(self, drawn) -> None:
+        one_row = drawn[8]
+        for gid, name, value in (
+            ("adfuller", "adfuller, 1,214 rows", "−1.843018"),
+            ("jplv7", "jplv7 adf, 1,213 rows", "−1.840744"),
+        ):
+            bar = _stroke(one_row, gid)
+            named = {s.text: s for s in one_row.steps if isinstance(s, Label) and s.names == gid}
+            assert name in named and value in named, SPEC
+            assert named[value].x > bar.x.max()
+            assert named[value].y == pytest.approx(np.median(bar.y))
+            assert bar.x.min() < named[name].x < bar.x.max()
+        script = next(s for s in one_row.steps if isinstance(s, Label) and "script" in s.text)
+        assert script.names == "jplv7"
+
+    def test_the_one_row_is_adfullers_first_day_marked_last(self, run, drawn) -> None:
+        one_row = drawn[8]
+        edges = _cells(one_row)
+        mark = one_row.steps[-2]
+        assert mark.gid == "one-row" and mark.color == whiteboard.ACCENT
+        day = run.adfuller_first_day
+        assert (mark.x.min(), mark.x.max()) == pytest.approx((edges[day - 1], edges[day]))
+        note = one_row.steps[-1]
+        assert (note.text, note.names, note.color) == ("the one row", "one-row", mark.color)
+        assert note.x == pytest.approx((edges[day - 1] + edges[day]) / 2)
+
+    def test_the_labels_follow_the_runs_figures(self, run) -> None:
+        labels = scenes(_altered(run))[8].labels
+        assert labels[7] == "1,000"
+        assert labels[9:13] == [
+            "adfuller, 998 rows",
+            "−2.500000",
+            "jplv7 adf, 997 rows",
+            "−2.200000",
+        ]
+
+    @pytest.mark.parametrize(
+        "drops",
+        [(2, 4), (3, 3), (4, 3), (0, 1), (6, 7)],
+        ids=["two apart", "together", "swapped", "from day 1", "past the row"],
+    )
+    def test_a_run_the_words_would_misdescribe_is_refused(self, run, drops) -> None:
+        with pytest.raises(ValueError, match="one day later"):
+            scenes(_shortened(run, 1000, drops))
+
+
 class TestTheTimeline:
     def test_each_gif_takes_the_frames_and_time_it_should(self, frames) -> None:
         assert [len(f) for f in frames] == FRAMES
@@ -586,7 +762,7 @@ class TestTheDrawing:
 
 
 class TestTheGifs:
-    def test_there_are_eight_named_for_their_scenes(self, gifs) -> None:
+    def test_there_are_nine_named_for_their_scenes(self, gifs) -> None:
         assert [path.name for path in gifs] == GIFS
 
     def test_each_is_680_by_320_with_its_frames(self, gifs) -> None:

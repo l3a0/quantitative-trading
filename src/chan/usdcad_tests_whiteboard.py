@@ -1,13 +1,13 @@
-"""Whiteboard sketches of the tests, the rule and Lesson 1 in the USD.CAD post.
+"""Whiteboard sketches of the tests, the rule and Lessons 1 and 2 in the USD.CAD post.
 
 The post's section "The tests and the file" explains four ways of asking one
 question, whether USD.CAD wanders like a random walk or is pulled back to a
 mean, and then the linear rule that trades the answer. Each test is a short
 paragraph of regression terms. A reader who has not met them gets more from a
 picture of what each one looks for than from the terms, so this module draws
-those as six scenes, and two more for the post's Lesson 1. Each scene is
-sketched stroke by stroke as if on a whiteboard, and each is its own looping
-GIF, so the post can place it right after the text it draws.
+those as six scenes, two more for the post's Lesson 1 and one for its Lesson 2.
+Each scene is sketched stroke by stroke as if on a whiteboard, and each is its
+own looping GIF, so the post can place it right after the text it draws.
 
 1. The question: a wiggly price around a dashed mean.
 2. ADF: a high close followed by a fall, which is what a negative λ means.
@@ -24,6 +24,9 @@ GIF, so the post can place it right after the text it draws.
 8. The fingerprint: Chan's MATLAB file cannot be compared with the CSV here,
    so the CSV goes through the three calculations and each lands the values
    the script printed, which no change of units would alter.
+9. One row apart: ``adfuller`` fits the closes from day 3 to the last, and
+   jplv7's ``adf`` from day 4, so the script's statistic rests on one row
+   fewer.
 
 The numbers above order this list and nothing else. A GIF stands alone, so its
 title is the scene's name with no number, and its file is named for the scene,
@@ -35,7 +38,9 @@ reading is drawn to scale, so the position of each tick and of the statistic's
 dot is an affine function of its value, and it prints the three critical
 values and the statistic. The fingerprint prints the count of closes, the ADF
 statistic, the AR(1) estimate, the variance ratio's p-value and the half-life.
-Every one of these comes from the
+One row apart prints the count of closes, each toolbox's row count and
+statistic, and places each bar's start at the cell of the first day its
+regression fits. Every one of these comes from the
 :class:`chan.usdcad_mean_reversion.StationarityRun` that
 :func:`chan.usdcad_mean_reversion.stationarity_tests` returns, read through the
 run's own path, so the scale-break guard runs here too. A change to the
@@ -59,7 +64,7 @@ GIFs, and it arrives as a dependency of matplotlib rather than as an entry of
 its own in ``pyproject.toml``.
 Another machine can differ, because the hand-drawn font is whichever of
 :data:`HAND_FONTS` is installed, with matplotlib's own DejaVu Sans as the
-fallback, and font rasterising varies across platforms. Redraw all eight with::
+fallback, and font rasterising varies across platforms. Redraw all nine with::
 
     uv run python -m chan.usdcad_tests_whiteboard
 """
@@ -498,11 +503,117 @@ def _fingerprint(run: StationarityRun) -> Scene:
     return Scene("The fingerprint", "fingerprint", tuple(steps))
 
 
+#: The days the row of cells in Lesson 2's scene shows before its ellipsis.
+SHOWN_DAYS = 6
+
+
+def _one_row(run: StationarityRun) -> Scene:
+    """Lesson 2's point: jplv7's ``adf`` fits one row fewer than ``adfuller``.
+
+    A row of cells stands for the closes, days 1 to :data:`SHOWN_DAYS`, an
+    ellipsis and the last day. The days before ``adfuller``'s first row are
+    shaded, because no regression on one lagged change can use them. Under the
+    row, one bar for each toolbox runs from the cell of its first day to the
+    last cell, so the jplv7 bar starts one cell to the right, and the cell
+    between them is marked as the one row.
+
+    The title and the note say one row, so a run whose two regressions start
+    other than one day apart, or after the days the row shows, is refused
+    rather than drawn under words it contradicts.
+    """
+    early, late = run.adfuller_first_day, run.adf_first_day
+    if late - early != 1 or not 1 < early < late <= SHOWN_DAYS:
+        raise ValueError(
+            f"Lesson 2's scene draws adfuller starting on a day from 2 to {SHOWN_DAYS - 1} and "
+            f"jplv7 one day later, and this run starts them on days {early} and {late}"
+        )
+    width, left, bottom, top = 0.9, 0.3, 2.85, 3.4
+
+    def at(day: int) -> float:
+        """The left edge of the cell of ``day``, from 1 to :data:`SHOWN_DAYS`."""
+        return left + (day - 1) * width
+
+    right = at(SHOWN_DAYS + 1)
+    last = (right + 0.7, right + 1.7)
+    row = [(left, bottom), (right, bottom), (right, top), (left, top), (left, bottom)]
+    for k in range(1, SHOWN_DAYS):
+        edge = at(k + 1)
+        row += [(edge, bottom), (edge, top)] if k % 2 else [(edge, top), (edge, bottom)]
+    numbers = [
+        Label(str(day), at(day) + width / 2, 3.8, names="days", ha="center", size=12)
+        for day in range(1, SHOWN_DAYS + 1)
+    ]
+
+    def bar(gid: str, day: int, y: float, color: str) -> Stroke:
+        x0, x1, tick = at(day), last[1], 0.13
+        points = [(x0, y + tick), (x0, y - tick), (x0, y), (x1, y), (x1, y + tick), (x1, y - tick)]
+        return _stroke(gid, _line(points), color=color, width=3.0, frames=8)
+
+    middle = (at(early) + last[1]) / 2
+    end = last[1] + 0.25
+    return Scene(
+        "One row apart",
+        "one_row",
+        (
+            _stroke("days", _line(row), frames=10),
+            *numbers,
+            _stroke("last", _box(last[0], bottom, last[1], top), frames=4),
+            Label("…", right + 0.35, (bottom + top) / 2, names="last", ha="center"),
+            Label(f"{len(run.closes):,}", sum(last) / 2, 3.8, names="last", ha="center", size=12),
+            _stroke("grey", _hatched(left, bottom, at(early), top), color=MUTED, width=1.4),
+            Label(
+                "no earlier\nchange\nto lag",
+                (left + at(early)) / 2,
+                2.2,
+                names="grey",
+                ha="center",
+                color=MUTED,
+                size=11,
+            ),
+            bar("adfuller", early, 2.15, INK),
+            Label(
+                f"adfuller, {run.adfuller_nobs:,} rows",
+                middle,
+                1.65,
+                names="adfuller",
+                ha="center",
+                size=12,
+            ),
+            Label(_signed(run.adfuller_statistic, 6), end, 2.15, names="adfuller"),
+            bar("jplv7", late, 1.1, GOOD),
+            Label(
+                f"jplv7 adf, {run.adf.nobs:,} rows",
+                (at(late) + last[1]) / 2,
+                0.68,
+                names="jplv7",
+                ha="center",
+                color=GOOD,
+                size=12,
+            ),
+            Label(_signed(run.adf.statistic, 6), end, 1.1, names="jplv7", color=GOOD),
+            Label("the script’s figure", end, 0.68, names="jplv7", color=GOOD, size=12),
+            _stroke(
+                "one-row", _box(at(early), bottom, at(late), top), color=ACCENT, width=3.2, frames=4
+            ),
+            Label(
+                "the one row",
+                (at(early) + at(late)) / 2,
+                1.65,
+                names="one-row",
+                ha="center",
+                color=ACCENT,
+                size=12,
+            ),
+        ),
+    )
+
+
 def scenes(run: StationarityRun) -> tuple[Scene, ...]:
-    """The eight scenes in the order the post reads them, every number drawn
+    """The nine scenes in the order the post reads them, every number drawn
     read from ``run``.
 
-    The first six sketch the section on the tests, and the last two Lesson 1.
+    The first six sketch the section on the tests, the next two Lesson 1, and
+    the last Lesson 2.
     """
     return (
         _the_question(),
@@ -513,6 +624,7 @@ def scenes(run: StationarityRun) -> tuple[Scene, ...]:
         _linear_rule(run.lookback, len(run.closes)),
         _no_rejection(run.adf.statistic, run.adf.critical),
         _fingerprint(run),
+        _one_row(run),
     )
 
 
@@ -699,7 +811,7 @@ def make_usdcad_tests_whiteboards(
     out_dir: Path | None = None,
     sources: tuple[VintageEntry, pd.Series] | None = None,
 ) -> list[Path]:
-    """Write one looping GIF for each of the eight scenes and return their
+    """Write one looping GIF for each of the nine scenes and return their
     paths, in the order the post reads them."""
     entry, closes = sources if sources is not None else read_sources()
     folder = out_dir if out_dir is not None else FIGURES_DIR

@@ -113,6 +113,10 @@ Chan’s script calls `adf` from jplv7, James LeSage’s free MATLAB toolbox for
 1. **jplv7’s `adf`** fits 1,213 rows and gives −1.840744, the script’s figure.
 2. **`adfuller`** fits 1,214 rows and gives −1.843018.
 
+![An animated whiteboard sketch titled “One row apart”, drawn stroke by stroke. A row of cells stands for the closes, days 1 to 6, an ellipsis and day 1,216. Days 1 and 2 are hatched in grey, with the words “no earlier change to lag” beneath them. Under the row, a black bar runs from day 3 to the last day, labelled “adfuller, 1,214 rows”, and ends at −1.843018. A green bar below it starts a day later, at day 4, labelled “jplv7 adf, 1,213 rows”, and ends at −1.840744, “the script’s figure”. Last, day 3 is outlined in brown and marked “the one row”. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_one_row.gif)
+
+*The row counts, the two statistics, the last day and the day each bar starts on all come from the run.*
+
 The difference is one row of the sample. A regression on one lagged change cannot use the first two days, because they have no earlier change to lag. jplv7 then trims one more row when it lines up the lagged close, so it starts a day later than `adfuller` does.
 
 Two other copies of this test show why that row matters. Chan’s own 2018 Python port of the script calls `adfuller`, so it would print −1.843018 where the script’s comment records −1.840744. This repository’s shared library of statistics runs `adfuller` too, so a transcription that reached for it would have missed the script’s figure. This repository’s test suite holds both numbers, so a port that swaps one toolbox for the other fails a test. On these closes the test’s conclusion does not change, since both statistics are far above −2.594. On a series sitting near a critical value, it could.
