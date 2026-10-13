@@ -191,9 +191,11 @@ BLOCK_START = re.compile(r"#{2,6} |```|[0-9]+\. |- ")
 DELIMITER_CELL = re.compile(r":?-+:?")
 SPACE_RUN = re.compile(r"[ \t]+")
 
-# The media type each figure's file extension names, as Substack's upload
-# endpoint returns it and its editor writes it. The match is exact, so a
-# capitalised extension raises like any other one missing here.
+# The media type each figure's file extension names. Substack's upload endpoint
+# returned ``image/gif`` for a GIF on 2026-10-13, and its editor writes that
+# type for a source ending ``.gif``. Nothing has measured a JPEG there, so its
+# entries are the standard type. The match is exact, so a capitalised
+# extension raises like any other one missing here.
 IMAGE_TYPES = {"png": "image/png", "gif": "image/gif", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
 
 # Inside a table cell: an image, a link whose text may hold an image, strong
