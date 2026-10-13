@@ -516,9 +516,18 @@ def test_each_image_takes_the_type_its_extension_names() -> None:
 
 
 # Figure names whose extension names no type the converter knows. The match is
-# exact, so a capital PNG raises too. ``x.constructor`` is a key every
-# JavaScript object inherits, which a bare lookup would read as a type.
-UNKNOWN_IMAGE_NAMES = ["figure.webp", "figure.PNG", "figure", "figure.", "x.constructor"]
+# exact, so a capital PNG raises too. A name with no dot has no extension, even
+# when it is spelled ``png``. ``x.constructor`` is a key every JavaScript object
+# inherits, which a bare lookup would read as a type.
+UNKNOWN_IMAGE_NAMES = ["figure.webp", "figure.PNG", "figure", "figure.", "png", "x.constructor"]
+
+# Names whose extension is what follows the last dot, wherever the first one sits.
+TYPED_IMAGE_NAMES = {"chart.2026.gif": "image/gif", ".gif": "image/gif"}
+
+
+def _unknown_message(name: str) -> str:
+    """The whole error both converters give for a figure they cannot type."""
+    return f"no image type for {name}: name it .png, .gif, .jpg or .jpeg"
 
 
 def _with_figure(name: str) -> tuple[str, dict]:
@@ -531,8 +540,16 @@ def _with_figure(name: str) -> tuple[str, dict]:
 def test_an_unknown_image_extension_raises(name: str) -> None:
     """A figure the converter cannot type stops the conversion rather than calling it a PNG."""
     md, images = _with_figure(name)
-    with pytest.raises(ValueError, match=f"no image type for {re.escape(name)}: "):
+    with pytest.raises(ValueError, match=f"^{re.escape(_unknown_message(name))}$"):
         m2s.convert(md, images)
+
+
+@pytest.mark.parametrize("name", TYPED_IMAGE_NAMES)
+def test_the_extension_follows_the_last_dot(name: str) -> None:
+    """A second dot in a name, or a dot that opens it, leaves the type to the last one."""
+    md, images = _with_figure(name)
+    figure = m2s.convert(md, images)["body"]["content"][0]
+    assert figure["content"][0]["attrs"]["type"] == TYPED_IMAGE_NAMES[name]
 
 
 def test_lines_at_the_edges_of_a_shape_read_as_github_reads_them() -> None:
@@ -1233,7 +1250,16 @@ def test_the_javascript_raises_on_an_unknown_image_extension(tmp_path: Path) -> 
     )
     for name in UNKNOWN_IMAGE_NAMES:
         error = results[name]["error"] or ""
-        assert f"no image type for {name}: " in error, name
+        assert _unknown_message(name) in error, name
+
+
+def test_the_javascript_finds_the_extension_after_the_last_dot(tmp_path: Path) -> None:
+    """The in-page copy types the names with more dots as the Python types them."""
+    cases = [(name, *_with_figure(name)) for name in TYPED_IMAGE_NAMES]
+    results = _run_javascript(cases, tmp_path)
+    for name, md, images in cases:
+        assert results[name]["error"] is None, results[name]["error"]
+        assert results[name]["canon"] == m2s.canonical(m2s.convert(md, images)), name
 
 
 def test_the_javascript_raises_on_an_unterminated_fence(tmp_path: Path) -> None:
