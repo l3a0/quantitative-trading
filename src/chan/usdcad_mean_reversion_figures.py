@@ -24,8 +24,7 @@ crosses all three on the day of the largest short.
    average in that unit, and the rungs let the eye count it. They spread apart
    as the deviation widens, so a close higher in price can sit below a rung an
    earlier close stood above, which is why the largest short is not where the
-   gap in price is widest. ``guide="band"`` draws the earlier version instead,
-   a shaded band of one moving deviation either side of the average.
+   gap in price is widest.
 2. The position the rule holds at each close, which is
    :func:`chan.usdcad_mean_reversion.market_value`, with the largest short and
    the position on the trough day marked. The script never plots it.
@@ -48,7 +47,6 @@ the run. Redraw both with::
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
 
 import pandas as pd
 from matplotlib.dates import DateFormatter, MonthLocator, YearLocator
@@ -277,21 +275,16 @@ def _draw_ladder(ax, run, days, average, deviation, held, further) -> str:
 def make_usdcad_fall_figure(
     out: Path | None = None,
     sources: tuple[VintageEntry, pd.Series] | None = None,
-    guide: Literal["ladder", "band"] = "ladder",
 ) -> Figure:
     """The closes, the position held and the cumulative P&L from the fall's peak to its trough.
 
-    ``guide`` picks what the top panel draws around the average to show the
-    unit the position counts in. ``"ladder"``, the committed figure, draws a
-    dashed rung at the average plus ``k`` moving deviations for each ``k`` from
-    1 to :func:`rung_count`, labelled at its right end. It draws no rungs below
-    the average, because the rule is short at every close of the committed
-    fall, so no close sits below it. ``"band"`` shades one moving deviation
-    either side of the average instead, which shows the unit but not how many
-    of them a gap spans.
+    The top panel draws a dashed rung at the average plus ``k`` moving
+    deviations for each ``k`` from 1 to :func:`rung_count`, labelled at its
+    right end. It draws no rungs below the average, because the rule is short
+    at every close of the committed fall, so no close sits below it. The rungs
+    replaced a shaded band of one deviation either side of the average, which
+    showed the unit but did not let the eye count how many of them a gap spans.
     """
-    if guide not in ("ladder", "band"):
-        raise ValueError(f"guide must be 'ladder' or 'band', not {guide!r}")
     entry, closes = sources if sources is not None else read_sources()
     run = stationarity_tests(entry, closes)
     days = fall_days(run)
@@ -327,25 +320,7 @@ def make_usdcad_fall_figure(
         f"USD.CAD rose from {run.closes[peak]:.5f} on {peak.date()} to "
         f"{run.closes[trough]:.5f} on {trough.date()}, {100 * rise:.1f} percent.\n"
     )
-    if guide == "ladder":
-        heading = rose + _draw_ladder(close_ax, run, days, average, deviation, held, further)
-    else:
-        close_ax.fill_between(
-            days,
-            average - deviation,
-            average + deviation,
-            color=ACCENT,
-            alpha=0.16,
-            lw=0,
-            gid="deviation-band",
-            label="average ± one moving deviation",
-        )
-        heading = (
-            rose + f"It closed at {run.closes[deepest]:.5f} on {deepest.date()}, the dashed "
-            f"line, and rose another {100 * further:.1f} percent after it.\nThe band is one "
-            "moving standard deviation either side of the average, the unit the position "
-            "counts in."
-        )
+    heading = rose + _draw_ladder(close_ax, run, days, average, deviation, held, further)
     close_ax.set_ylabel("Canadian dollars per US dollar", color=INK, fontsize=10)
     close_ax.legend(loc="upper left", frameon=False, fontsize=9.5, labelcolor=INK)
     _heading(close_ax, heading)
