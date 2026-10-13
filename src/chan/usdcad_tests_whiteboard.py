@@ -77,7 +77,16 @@ but the book's 0.49, a random walk's 0.5 and the gauges' 0 comes from the
 :func:`chan.usdcad_mean_reversion.stationarity_tests` returns, read through the
 run's own path, so the scale-break guard runs here too, or from the
 measurement. A change to the vintage, to how the half-life rounds or to any of
-those figures moves the labels with the run.
+those figures moves the labels with the run, except where the words would turn
+false. Four scenes refuse such a run rather than draw it.
+
+1. Chan's reading, whose arrow says the statistic sits right of the 10 percent
+   value.
+2. The fingerprint, whose check marks say each value is the one the script
+   printed.
+3. One row apart, whose title says the two regressions start one day apart.
+4. Leaning, not crossing, whose title says each statistic sits on the
+   reverting side of a random walk short of the line that would reject.
 
 :func:`scenes` describes every stroke, tint and label as data,
 :func:`timeline` orders one scene's steps into frames, and :func:`render`
@@ -134,6 +143,10 @@ from chan.usdcad_hurst_noise import (
 )
 from chan.usdcad_mean_reversion import (
     BOOK_HURST,
+    SCRIPT_ADF,
+    SCRIPT_AR1,
+    SCRIPT_HALF_LIFE,
+    SCRIPT_VRATIO_P,
     StationarityRun,
     read_sources,
     stationarity_tests,
@@ -223,7 +236,6 @@ class Label:
     names: str
     color: str = INK
     ha: str = "left"
-    va: str = "center"
     size: float = 13
     math: bool = False
 
@@ -282,9 +294,9 @@ def _curve(x: np.ndarray, y: np.ndarray) -> tuple:
     return np.asarray(x, dtype=float), np.asarray(y, dtype=float)
 
 
-def _arrow(x0: float, y0: float, x1: float, y1: float, head: float = 0.22) -> tuple:
+def _arrow(x0: float, y0: float, x1: float, y1: float) -> tuple:
     """A shaft from (x0, y0) to (x1, y1) with a two-stroke head at the end."""
-    angle = math.atan2(y1 - y0, x1 - x0)
+    angle, head = math.atan2(y1 - y0, x1 - x0), 0.22
     left = (x1 - head * math.cos(angle - 0.5), y1 - head * math.sin(angle - 0.5))
     right = (x1 - head * math.cos(angle + 0.5), y1 - head * math.sin(angle + 0.5))
     return _line([(x0, y0), (x1, y1), left, (x1, y1), right])
@@ -526,19 +538,24 @@ def _box(x0: float, y0: float, x1: float, y1: float) -> tuple:
     return _line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)])
 
 
+def _span(x0: float, x1: float, y: float, tick: float = 0.13) -> tuple:
+    """A bar from ``x0`` to ``x1`` at height ``y``, with an upright tick at each end."""
+    return _line([(x0, y + tick), (x0, y - tick), (x0, y), (x1, y), (x1, y + tick), (x1, y - tick)])
+
+
 def _check(x: float, y: float) -> tuple:
     """A check mark whose short stroke starts at (x, y)."""
     return _line([(x, y), (x + 0.1, y - 0.13), (x + 0.32, y + 0.2)], per_unit=10)
 
 
-def _hatched(x0: float, y0: float, x1: float, y1: float, gap: float = 0.3) -> tuple:
+def _hatched(x0: float, y0: float, x1: float, y1: float) -> tuple:
     """A rectangle shaded with parallel diagonals, drawn as one stroke.
 
     After the outline, the pen climbs one diagonal, steps along the top edge,
     comes down the next diagonal parallel to the first, and steps along the
     bottom edge, so every move between diagonals retraces the outline.
     """
-    rise = (y1 - y0) / 2
+    rise, gap = (y1 - y0) / 2, 0.3
     points = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
     feet = np.arange(x0 + gap, x1 - rise, gap)
     for k, foot in enumerate(feet):
@@ -560,7 +577,16 @@ def _no_rejection(statistic: float, critical: Sequence[float]) -> Scene:
     scale. The line maps the span from the lowest of the four values to the
     highest, with a quarter of that span added at each end, onto the board, so
     every position on it is an affine function of the value it marks.
+
+    The arrow and its words say the statistic must move left to reject, so a
+    statistic at or left of the 10 percent value is refused rather than drawn
+    under words it contradicts.
     """
+    if statistic <= critical[2]:
+        raise ValueError(
+            f"Chan's reading draws the ADF statistic right of its 10 percent critical value of "
+            f"{_signed(critical[2], 3)}, and this run's is {_signed(statistic, 6)}"
+        )
     marks = [*critical, statistic]
     span = max(marks) - min(marks)
     low, high = min(marks) - span / 4, max(marks) + span / 4
@@ -575,8 +601,10 @@ def _no_rejection(statistic: float, critical: Sequence[float]) -> Scene:
         top = 2.95 if gid == "tick-10" else level + 0.18
         ticks += [
             _stroke(gid, _line([(at(value), level - 0.18), (at(value), top)]), frames=3),
-            Label(_signed(value, 3), at(value), 1.35, names=gid, ha="center", size=12),
-            Label(name, at(value), 0.9, names=gid, ha="center", color=MUTED, size=12),
+            # The 5 and 10 percent values sit close on this run. At 11 points
+            # their labels stay apart in the wider DejaVu Sans too.
+            Label(_signed(value, 3), at(value), 1.35, names=gid, ha="center", size=11),
+            Label(name, at(value), 0.9, names=gid, ha="center", color=MUTED, size=11),
         ]
     edge = at(critical[2])
     dot = at(statistic)
@@ -605,7 +633,24 @@ def _fingerprint(run: StationarityRun) -> Scene:
     Chan's MATLAB file is not public, so the closes here are compared with his
     only through what the script printed. Each calculation leads to the values it
     gives, at the six decimals the script prints, each with a check mark.
+
+    A check mark says the value matches the script's, so a run any of whose
+    four values prints otherwise at six decimals is refused rather than
+    checked off.
     """
+    printed = (
+        ("an ADF statistic", run.adf.statistic, SCRIPT_ADF),
+        ("an AR(1) estimate", run.adf.ar1, SCRIPT_AR1),
+        ("a variance ratio p-value", run.vratio.p_value, SCRIPT_VRATIO_P),
+        ("a half-life", run.half_life, SCRIPT_HALF_LIFE),
+    )
+    for name, value, script in printed:
+        if f"{value:.6f}" != f"{script:.6f}":
+            raise ValueError(
+                f"Lesson 1's scene checks each value off as the one the script printed, and "
+                f"this run gives {name} of {_signed(value, 6)} where the script printed "
+                f"{_signed(script, 6)}"
+            )
     calculations = (
         ("adf", "ADF regression", 3.4, (run.adf.statistic, run.adf.ar1)),
         ("vratio", "variance ratio", 2.3, (run.vratio.p_value,)),
@@ -691,11 +736,6 @@ def _one_row(run: StationarityRun) -> Scene:
         for day in range(1, SHOWN_DAYS + 1)
     ]
 
-    def bar(gid: str, day: int, y: float, color: str) -> Stroke:
-        x0, x1, tick = at(day), last[1], 0.13
-        points = [(x0, y + tick), (x0, y - tick), (x0, y), (x1, y), (x1, y + tick), (x1, y - tick)]
-        return _stroke(gid, _line(points), color=color, width=3.0, frames=8)
-
     middle = (at(early) + last[1]) / 2
     end = last[1] + 0.25
     return Scene(
@@ -717,7 +757,7 @@ def _one_row(run: StationarityRun) -> Scene:
                 color=MUTED,
                 size=11,
             ),
-            bar("adfuller", early, 2.15, INK),
+            _stroke("adfuller", _span(at(early), last[1], 2.15), width=3.0, frames=8),
             Label(
                 f"adfuller, {run.adfuller_nobs:,} rows",
                 middle,
@@ -727,7 +767,7 @@ def _one_row(run: StationarityRun) -> Scene:
                 size=12,
             ),
             Label(_signed(run.adfuller_statistic, 6), end, 2.15, names="adfuller"),
-            bar("jplv7", late, 1.1, GOOD),
+            _stroke("jplv7", _span(at(late), last[1], 1.1), color=GOOD, width=3.0, frames=8),
             Label(
                 f"jplv7 adf, {run.adf.nobs:,} rows",
                 (at(late) + last[1]) / 2,
@@ -970,8 +1010,8 @@ def _gauge_map(values: Sequence[float], past_high: float = 0.0):
     return at
 
 
-def _tick(gid: str, x: float, y: float, color: str = INK, reach: float = 0.1) -> Stroke:
-    return _stroke(gid, _line([(x, y - reach), (x, y + reach)], per_unit=10), color=color, frames=2)
+def _tick(gid: str, x: float, y: float, color: str = INK) -> Stroke:
+    return _stroke(gid, _line([(x, y - 0.1), (x, y + 0.1)], per_unit=10), color=color, frames=2)
 
 
 def _lean_not_cross(run: StationarityRun, measured: Spread) -> Scene:
@@ -994,10 +1034,29 @@ def _lean_not_cross(run: StationarityRun, measured: Spread) -> Scene:
        zone below the negative one. The test also rejects above the positive
        one, which lies on the side a trending series gives, beyond the
        random-walk end this gauge stops at.
+
+    The title says each statistic leans toward reversion without crossing, so
+    a run whose ADF or variance ratio statistic sits at or past its critical
+    value, or at or right of 0, or whose H sits at or above 0.5, is refused
+    rather than drawn under words it contradicts.
     """
     mean, sd = float(measured.walks.mean()), float(measured.walks.std(ddof=1))
     adf_critical, vr_critical = run.adf.critical[2], _vratio_critical()
     adf, vr = run.adf.statistic, run.vratio.statistic
+    for name, value, critical in (
+        ("ADF statistic", adf, adf_critical),
+        ("variance ratio's statistic", vr, vr_critical),
+    ):
+        if not critical < value < 0:
+            raise ValueError(
+                f"Lesson 3's gauges draw the {name} between its critical value of "
+                f"{_signed(critical, 3)} and 0, and this run's is {_signed(value, 6)}"
+            )
+    if not run.hurst < RANDOM_WALK_H:
+        raise ValueError(
+            f"Lesson 3's gauges draw H below a random walk's {RANDOM_WALK_H}, and this run's "
+            f"is {run.hurst:.6f}"
+        )
     at_adf = _gauge_map((0.0, adf_critical, adf))
     at_h = _gauge_map((RANDOM_WALK_H, mean - sd, mean + sd, run.hurst), past_high=H_PAST)
     at_vr = _gauge_map((0.0, vr_critical, vr))
@@ -1081,11 +1140,6 @@ def _lean_not_cross(run: StationarityRun, measured: Spread) -> Scene:
             *dot("vr", at_vr(vr), _signed(vr, 2)),
         ),
     )
-
-
-def _span(x0: float, x1: float, y: float, tick: float = 0.13) -> tuple:
-    """A bar from ``x0`` to ``x1`` at height ``y``, with an upright tick at each end."""
-    return _line([(x0, y + tick), (x0, y - tick), (x0, y), (x1, y), (x1, y + tick), (x1, y - tick)])
 
 
 def _look_ahead(run: StationarityRun) -> Scene:
@@ -1406,7 +1460,7 @@ def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
                 color=step.color,
                 fontsize=step.size,
                 ha=step.ha,
-                va=step.va,
+                va="center",
                 parse_math=step.math,
                 visible=False,
             )

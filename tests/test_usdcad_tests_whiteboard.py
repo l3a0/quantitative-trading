@@ -27,7 +27,10 @@ the first close, the first position and the last close and places its bars by
 date, and its count of half-lives prints the closes over the half-life and
 ticks the line every lookback. All of them are read from the run or the
 measurement rather than written in, and the tests below hand the scenes a run
-and a measurement with other figures to prove it. The
+and a measurement with other figures to prove it. Where other figures would
+make a scene's words false, as a statistic past its critical value would in
+Chan's reading or the gauges, or a value the script did not print would in the
+fingerprint, the tests hold that the scene refuses the run instead. The
 numbers come from the vintage and the specification
 ``tests/test_usdcad_mean_reversion.py`` names as its ``SPEC``, which failure
 messages here carry:
@@ -319,6 +322,10 @@ STATEMENTS = {"λ < 0", r"variance $\sim \tau^{2H}$", "closes × a constant woul
 APART_PX = 25
 #: How far, in pixels, every label and title must sit inside the frame's edge.
 INSIDE_PX = 5
+#: How far apart, in pixels, any two labels or a label and the title must sit.
+#: In DejaVu Sans two critical values of Chan's reading once sat 1.5 pixels
+#: apart and read as one number.
+APART_LABELS_PX = 4
 
 
 @pytest.fixture(scope="module")
@@ -468,6 +475,29 @@ class TestTheLabelsStayClearOfTheLines:
                     inside = min(box.x0, box.y0, WIDTH - box.x1, HEIGHT - box.y1)
                     assert inside >= INSIDE_PX, (scene.title, artist.get_text(), round(inside, 1))
 
+    @pytest.mark.parametrize("fallback", [False, True], ids=["installed font", "fallback font"])
+    def test_no_two_labels_touch(self, drawn, monkeypatch, fallback) -> None:
+        """Clearance from the strokes says nothing about two labels side by
+        side, which a wider font pushes together."""
+        _font(monkeypatch, fallback)
+        for scene in drawn:
+            with matplotlib.rc_context(whiteboard._style()):
+                canvas, artists = whiteboard._board(scene)
+                whiteboard._show(scene, artists, whiteboard.Frame(len(scene.steps), 0, 0))
+                canvas.draw()
+                renderer = canvas.get_renderer()
+                boxes = [
+                    (artist.get_text(), artist.get_window_extent(renderer))
+                    for artist in artists
+                    if hasattr(artist, "get_text") and artist.get_visible()
+                ]
+            for k, (one, a) in enumerate(boxes):
+                for other, b in boxes[k + 1 :]:
+                    dx = max(a.x0 - b.x1, b.x0 - a.x1, 0.0)
+                    dy = max(a.y0 - b.y1, b.y0 - a.y1, 0.0)
+                    gap = math.hypot(dx, dy)
+                    assert gap >= APART_LABELS_PX, (scene.title, one, other, round(gap, 1))
+
     def test_the_measure_sees_a_label_on_a_line(self, drawn) -> None:
         """A label moved onto its own stroke reads as touching, so the two
         tests above can fail."""
@@ -523,11 +553,10 @@ class TestTheNumbersComeFromTheRun:
         read the file or wrote 115 in would fail here. The random walks are
         measured on those closes too, so they are 800 long."""
         seen = []
-        original = whiteboard.scenes
 
         def record(run, measured):
             seen.append((run.lookback, len(run.closes), measured.length))
-            return original(run, measured)[5:6]
+            return (whiteboard._half_life(run.lookback),)
 
         monkeypatch.setattr(whiteboard, "scenes", record)
         entry, closes = sources
@@ -561,7 +590,8 @@ def _shortened(run, closes: int, drops: tuple[int, int] = (2, 3)):
 
 def _altered(run, statistic: float = -2.2):
     """``run`` with every figure Lesson 1's and Lesson 2's scenes print moved
-    to another value."""
+    to another value. The fingerprint refuses such a run, so a test hands it
+    to one scene rather than to :func:`scenes`."""
     short = _shortened(run, 1000)
     return dataclasses.replace(
         short,
@@ -572,6 +602,11 @@ def _altered(run, statistic: float = -2.2):
         half_life=80.123456,
         adfuller_statistic=-2.5,
     )
+
+
+def _reading(run):
+    """Chan's reading of ``run``, drawn on its own."""
+    return whiteboard._no_rejection(run.adf.statistic, run.adf.critical)
 
 
 def _x(scene, gid: str) -> float:
@@ -596,7 +631,7 @@ class TestChansReading:
         """The board distance between any two marks over the gap between their
         values is one number, so the line is a ruler rather than a sketch."""
         run = _altered(run) if altered else run
-        scene = _scenes(run)[7]
+        scene = _reading(run)
         values = [*run.adf.critical, run.adf.statistic]
         xs = [_x(scene, gid) for gid in ("tick-1", "tick-5", "tick-10", "statistic")]
         slopes = [
@@ -613,9 +648,12 @@ class TestChansReading:
         reading = drawn[7]
         assert _x(reading, "statistic") > _x(reading, "tick-10")
 
-    def test_a_statistic_below_the_10_percent_value_moves_the_dot_left_of_it(self, run) -> None:
-        reading = _scenes(_altered(run, statistic=-3.0))[7]
-        assert _x(reading, "tick-5") < _x(reading, "statistic") < _x(reading, "tick-10")
+    @pytest.mark.parametrize("statistic", [-3.0, -2.7], ids=["left of it", "on it"])
+    def test_a_statistic_not_right_of_the_10_percent_value_is_refused(self, run, statistic) -> None:
+        """The arrow says the statistic must move left to reject, which would
+        be false of a statistic already there."""
+        with pytest.raises(ValueError, match="right of its 10 percent critical value"):
+            _reading(_altered(run, statistic=statistic))
 
     def test_the_shaded_zone_runs_from_the_line_start_to_the_10_percent_tick(self, drawn) -> None:
         reading = drawn[7]
@@ -646,7 +684,7 @@ class TestChansReading:
             assert all(s.x == pytest.approx(_x(reading, gid)) for s in named)
 
     def test_the_labels_follow_the_runs_figures(self, run) -> None:
-        assert _scenes(_altered(run))[7].labels == [
+        assert _reading(_altered(run)).labels == [
             "−3.900",
             "1%",
             "−3.100",
@@ -711,16 +749,41 @@ class TestTheFingerprint:
             assert arrow.x[0] > csv.x.max()
             assert csv.y.min() < arrow.y[0] < csv.y.max()
 
-    def test_the_labels_follow_the_runs_figures(self, run) -> None:
-        labels = _scenes(_altered(run))[8].labels
-        assert [t for t in labels if self.VALUE.match(t) or "closes" in t] == [
-            "1,000 closes",
-            "−2.200000",
-            "0.987650",
-            "0.050000",
-            "80.123456",
-            "closes × a constant would match too",
-        ]
+    def test_the_runs_four_values_are_the_scripts(self, run) -> None:
+        """The check marks are true of the committed run, so it is drawn."""
+        assert [t for t in whiteboard._fingerprint(run).labels if self.VALUE.match(t)] == [
+            "−1.840744",
+            "0.994120",
+            "0.367281",
+            "115.209794",
+        ], SPEC
+
+    def test_the_count_of_closes_follows_the_run(self, run) -> None:
+        assert "1,000 closes" in whiteboard._fingerprint(_shortened(run, 1000)).labels
+
+    @pytest.mark.parametrize(
+        "moved",
+        [
+            {"adf": {"statistic": -1.840741}},
+            {"adf": {"ar1": 0.98765}},
+            {"vratio": {"p_value": 0.05}},
+            {"half_life": 115.209791},
+        ],
+        ids=["ADF statistic", "AR(1) estimate", "p-value", "half-life"],
+    )
+    def test_a_value_the_script_did_not_print_is_refused(self, run, moved) -> None:
+        """A check mark beside a value the script did not print would claim a
+        match that is not there. Each value is moved alone. The ADF statistic
+        and the half-life move in the sixth decimal only, so a check at five
+        decimals would pass them."""
+        changes = {
+            key: dataclasses.replace(getattr(run, key), **value)
+            if isinstance(value, dict)
+            else value
+            for key, value in moved.items()
+        }
+        with pytest.raises(ValueError, match="where the script printed"):
+            whiteboard._fingerprint(dataclasses.replace(run, **changes))
 
 
 def _cells(scene) -> list[float]:
@@ -822,7 +885,7 @@ class TestOneRowApart:
         assert note.x == pytest.approx((edges[day - 1] + edges[day]) / 2)
 
     def test_the_labels_follow_the_runs_figures(self, run) -> None:
-        labels = _scenes(_altered(run))[9].labels
+        labels = whiteboard._one_row(_altered(run)).labels
         assert labels[7] == "1,000"
         assert labels[9:13] == [
             "adfuller, 998 rows",
@@ -1143,7 +1206,10 @@ def _gauges(scene, run, measured) -> dict[str, dict[str, tuple[float, float]]]:
 
 
 def _leaning(run, measured=None):
-    return _scenes(run, measured)[11]
+    """The gauges of ``run``, drawn on their own, with the walks measured on
+    its closes from :data:`FEW_PATHS` walks unless handed in."""
+    walks = measured if measured is not None else spread(run.closes, paths=FEW_PATHS)
+    return whiteboard._lean_not_cross(run, walks)
 
 
 def _altered_lean(run):
@@ -1236,16 +1302,40 @@ class TestLeaningNotCrossing:
         assert _fill(scene, "h-band").x0 <= _x(scene, "h-dot") < _x(scene, "h-half")
         assert _x(scene, "vr-critical") < _x(scene, "vr-dot") < _x(scene, "vr-zero")
 
-    def test_a_statistic_past_its_threshold_moves_its_dot_into_the_zone(self, run) -> None:
-        crossed = dataclasses.replace(
-            run,
-            adf=dataclasses.replace(run.adf, statistic=-3.0),
-            vratio=dataclasses.replace(run.vratio, statistic=-2.5),
-        )
-        scene = _leaning(crossed)
-        for name in ("adf", "vr"):
-            assert _fill(scene, f"{name}-zone").x0 < _x(scene, f"{name}-dot")
-            assert _x(scene, f"{name}-dot") < _x(scene, f"{name}-critical"), name
+    @pytest.mark.parametrize(
+        ("moved", "says"),
+        [
+            ({"adf": {"statistic": -3.0}}, "ADF statistic"),
+            ({"adf": {"statistic": -10.0}}, "ADF statistic"),
+            ({"adf": {"statistic": 0.5}}, "ADF statistic"),
+            ({"vratio": {"statistic": -2.5}}, "variance ratio's statistic"),
+            ({"vratio": {"statistic": -10.0}}, "variance ratio's statistic"),
+            ({"vratio": {"statistic": 0.5}}, "variance ratio's statistic"),
+            ({"hurst": 0.5}, "H below"),
+        ],
+        ids=[
+            "ADF past its critical value",
+            "ADF far past it",
+            "ADF right of 0",
+            "variance ratio past its critical value",
+            "variance ratio far past it",
+            "variance ratio right of 0",
+            "H at 0.5",
+        ],
+    )
+    def test_a_run_that_crosses_or_does_not_lean_is_refused(
+        self, run, measured, moved, says
+    ) -> None:
+        """The title says each statistic leans toward reversion without
+        crossing, which would be false of any of these."""
+        changes = {
+            key: dataclasses.replace(getattr(run, key), **value)
+            if isinstance(value, dict)
+            else value
+            for key, value in moved.items()
+        }
+        with pytest.raises(ValueError, match=f"Lesson 3's gauges draw .*{re.escape(says)}"):
+            _leaning(dataclasses.replace(run, **changes), measured)
 
     def test_each_gauge_is_drawn_whole_before_the_next_and_its_dot_comes_last(self, drawn) -> None:
         steps = drawn[11].steps
@@ -1317,7 +1407,7 @@ class TestTheLookAhead:
         trading bar starts elsewhere."""
         entry, every = sources
         run = stationarity_tests(entry, every[:closes])
-        scene = _scenes(run)[12]
+        scene = whiteboard._look_ahead(run)
         timeline, measure, trade = (_stroke(scene, g) for g in ("timeline", "measure", "trade"))
         left, right = timeline.x.min(), timeline.x.max()
         assert (measure.x.min(), measure.x.max()) == (left, right)
@@ -1361,9 +1451,9 @@ class TestTenHalfLives:
 
     def test_the_label_divides_the_closes_by_the_unrounded_half_life(self, run, drawn) -> None:
         assert "10.6 half-lives" in drawn[13].labels, SPEC
-        other = dataclasses.replace(run, half_life=100.0)
-        assert "12.2 half-lives" in _scenes(other)[13].labels
-        assert _scenes(other)[13].title == "Ten half-lives", "the ticks follow the lookback"
+        other = whiteboard._half_lives(dataclasses.replace(run, half_life=100.0))
+        assert "12.2 half-lives" in other.labels
+        assert other.title == "Ten half-lives", "the ticks follow the lookback"
 
     @pytest.mark.parametrize("lookback", [115, 100])
     def test_a_tick_falls_every_lookback(self, run, lookback) -> None:
