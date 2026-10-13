@@ -6,8 +6,8 @@ and two its Lesson 5. Each sits right after the text it draws. The first seven
 are schematic, so what is pinned for every GIF is what a reader takes from
 it: which scenes there are and in which order the post reads them, what each
 one says and draws, that a label never appears before the stroke it names,
-that no label touches a line, how long each GIF shows before it loops, and
-each file's size, frame count and loop.
+that no label touches a line or sits on Lesson 3's tint, how long each GIF
+shows before it loops, and each file's size, frame count and loop.
 
 Labels in ten scenes quote the run. The opening scene prints the count of
 closes. The half-life scene and the linear rule's
@@ -73,6 +73,7 @@ from chan.usdcad_tests_whiteboard import (
     LABEL_MS,
     TITLE_MS,
     WIDTH,
+    Fill,
     Label,
     Stroke,
     clearances,
@@ -151,7 +152,7 @@ STROKES = [
         "check-half-life-0",
     ],
     ["days", "last", "grey", "adfuller", "jplv7", "one-row"],
-    ["axis", "walks", "band", "half", "run", "book", *[f"start-{k}" for k in range(11)]],
+    ["axis", "walks", "half", "run", "book", *[f"start-{k}" for k in range(11)]],
     ["timeline", "measure", "trade", "earlier", "after"],
     ["sample", *[f"tick-{k}" for k in range(1, 11)]],
 ]
@@ -246,8 +247,8 @@ LABELS = [
 ]
 
 #: The frames each GIF takes, and how long one pass shows, in milliseconds.
-FRAMES = [55, 29, 31, 29, 30, 29, 32, 44, 77, 58, 62, 44, 34]
-MS = [10700, 7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900, 13500, 12400, 10600, 8600]
+FRAMES = [55, 29, 31, 29, 30, 29, 32, 44, 77, 58, 53, 44, 34]
+MS = [10700, 7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900, 13500, 11750, 10600, 8600]
 
 #: How far, in pixels, every label and title must sit from the nearest stroke.
 #: The sketch's wobble moves a line a pixel or two off its points, so this
@@ -340,11 +341,11 @@ class TestTheScenes:
     def test_each_scene_says_what_it_should(self, drawn) -> None:
         assert [scene.labels for scene in drawn] == LABELS, SPEC
 
-    def test_every_label_names_a_stroke_drawn_before_it(self, drawn) -> None:
+    def test_every_label_names_a_stroke_or_tint_drawn_before_it(self, drawn) -> None:
         for scene in drawn:
             for index, step in enumerate(scene.steps):
                 if isinstance(step, Label):
-                    earlier = [s.gid for s in scene.steps[:index] if isinstance(s, Stroke)]
+                    earlier = [s.gid for s in scene.steps[:index] if not isinstance(s, Label)]
                     assert step.names in earlier, (scene.title, step.text)
 
     def test_only_the_hurst_formula_is_parsed_as_math(self, drawn) -> None:
@@ -422,6 +423,19 @@ class TestTheLabelsStayClearOfTheLines:
         )
         moved = dataclasses.replace(hurst, steps=steps)
         assert clearances(moved)[r"variance $\sim \tau^{2H}$"] < 0
+
+    def test_the_measure_sees_a_label_on_the_tint(self, drawn) -> None:
+        """Labels stay off Lesson 3's tint rather than sit on it, so a label
+        moved into the band reads zero, and one beside it reads its gap."""
+        (band,) = drawn[10].fills
+        label = next(s for s in drawn[10].steps if isinstance(s, Label) and s.text == "±1 SD")
+        middle = ((band.x0 + band.x1) / 2, (band.y0 + band.y1) / 2)
+        on = dataclasses.replace(label, x=middle[0], y=middle[1], ha="center")
+        assert clearances(whiteboard.Scene("", "", (band, on)))["±1 SD"] == 0
+        beside = dataclasses.replace(label, x=band.x1 + 1, y=middle[1])
+        gap = clearances(whiteboard.Scene("", "", (band, beside)))["±1 SD"]
+        # One board unit is a tenth of the frame's width, 68 pixels.
+        assert gap == pytest.approx(WIDTH / 10, abs=3)
 
 
 class TestTheNumbersComeFromTheRun:
@@ -826,6 +840,12 @@ def _bins(measured) -> tuple[np.ndarray, np.ndarray]:
     return edges, np.histogram(measured.walks, bins=edges)[0]
 
 
+def _palette_rgbs() -> list[list[int]]:
+    """The palette's colours as RGB triples, in palette order."""
+    flat = palette().getpalette()
+    return [flat[k : k + 3] for k in range(0, len(flat), 3)]
+
+
 def _altered_spread(measured) -> whiteboard.Spread:
     """The measurement with every figure Lesson 3's scene prints moved: fewer
     walks with another mean and SD, and every start day printing as 0.49."""
@@ -904,20 +924,74 @@ class TestChanceAndTheStartDay:
         ]
         assert slopes == pytest.approx([slopes[0]] * len(slopes), rel=1e-9)
 
-    def test_the_band_spans_one_sd_either_side_under_the_outline(self, drawn, measured) -> None:
-        scene = drawn[10]
+    @pytest.mark.parametrize("altered", [False, True])
+    def test_the_band_is_a_tint_one_sd_either_side_up_to_the_tallest_bar(
+        self, run, measured, altered
+    ) -> None:
+        """The band is one flat rectangle from the walks' mean less one SD to
+        their mean plus one SD, on the same map that places every line and
+        dot, and from the axis up to the tallest bar."""
+        measured = _altered_spread(measured) if altered else measured
+        scene = _scenes(run, measured)[10]
         edges, _ = _bins(measured)
         left, right = _axis(scene)
-        band, walks = _stroke(scene, "band"), _stroke(scene, "walks")
         mean, sd = measured.walks.mean(), measured.walks.std(ddof=1)
         span = [
             left + (v - edges[0]) / (edges[-1] - edges[0]) * (right - left)
             for v in (mean - sd, mean + sd)
         ]
-        assert (band.x.min(), band.x.max()) == pytest.approx(tuple(span))
-        order = np.argsort(walks.x, kind="stable")
-        for x, y in zip(band.x, band.y, strict=True):
-            assert y <= walks.y[order][np.searchsorted(walks.x[order], x, side="right") - 1] + 1e-9
+        (band,) = scene.fills
+        assert band.gid == "band"
+        assert (band.x0, band.x1) == pytest.approx(tuple(span), abs=1e-12)
+        base, walks = float(_stroke(scene, "axis").y[0]), _stroke(scene, "walks")
+        assert (band.y0, band.y1) == pytest.approx((base, float(walks.y.max())), abs=1e-12)
+        label = next(s for s in scene.steps if isinstance(s, Label) and s.text == "±1 SD")
+        assert (label.names, label.color) == ("band", whiteboard.GOOD)
+
+    def test_the_tint_is_a_pale_green_the_palette_already_holds(self) -> None:
+        """The band's green at the lightest blend, so the tint adds no colour
+        to the palette every GIF shares."""
+        tint = [round(255 * c) for c in matplotlib.colors.to_rgb(whiteboard.TINT)]
+        good = np.array(matplotlib.colors.to_rgb(whiteboard.GOOD))
+        assert tint == [round(255 * (0.2 * c + 0.8)) for c in good]
+        assert tint in _palette_rgbs()
+
+    def test_the_tint_lies_beneath_every_stroke(self, drawn) -> None:
+        """On the finished drawing, each line through the band, and the walks'
+        outline, shows in its own full ink inside the tint, which it would not
+        if the tint were laid over it."""
+        scene = drawn[10]
+        (band,) = scene.fills
+        (image,) = render(scene, timeline(scene)[-1:])
+        with matplotlib.rc_context(whiteboard._style()):
+            _, artists = whiteboard._board(scene)
+            (x0, y0), (x1, y1) = artists[0].axes.transData.transform(
+                [(band.x0, band.y0), (band.x1, band.y1)]
+            )
+        # Pixel rows run down from the top, and 3 pixels in from each edge
+        # leaves the axis and the tint's own rim out.
+        inside = np.asarray(image)[
+            round(HEIGHT - y1) + 3 : round(HEIGHT - y0) - 3, round(x0) + 3 : round(x1) - 3
+        ]
+        rgbs = _palette_rgbs()
+        found = {tuple(rgbs[k]) for k in np.unique(inside)}
+        tint = tuple(round(255 * c) for c in matplotlib.colors.to_rgb(whiteboard.TINT))
+        assert tint in found
+        for gid in ("walks", "half", "run", "book"):
+            ink = tuple(round(255 * c) for c in matplotlib.colors.to_rgb(_stroke(scene, gid).color))
+            assert ink in found, gid
+
+    def test_the_tint_appears_after_the_outline_and_before_the_lines(self, drawn, frames) -> None:
+        """It arrives whole on one frame, once the outline and its label are
+        drawn and before 0.5, the run's H and the book's 0.49."""
+        scene, steps = drawn[10], frames[10]
+        order = [getattr(step, "gid", None) for step in scene.steps]
+        band = order.index("band")
+        assert isinstance(scene.steps[band], Fill)
+        assert order.index("walks") < band < min(order.index(g) for g in ("half", "run", "book"))
+        assert not [f for f in steps if f.done == band and f.partial]
+        arrives = [f for f in steps if f.done == band + 1]
+        assert [(f.partial, f.ms) for f in arrives] == [(0, LABEL_MS)]
 
     def test_the_dots_that_print_as_the_book_take_its_colour(self, drawn, measured) -> None:
         scene = drawn[10]
@@ -1066,20 +1140,21 @@ class TestTheTimeline:
 
     def test_strokes_draw_at_ten_frames_a_second_and_labels_pop_in(self, drawn, frames) -> None:
         """Every frame between a GIF's title and its held last frame is a
-        stroke's frame of 100 ms or a label's single frame of 350 ms."""
+        stroke's frame of 100 ms or a label's or a tint's single frame of
+        350 ms."""
         for scene, steps in zip(drawn, frames, strict=True):
             for frame in steps[1:-1]:
                 if frame.partial:
                     assert frame.ms == FRAME_MS
                     continue
                 latest = scene.steps[frame.done - 1]
-                assert frame.ms == (LABEL_MS if isinstance(latest, Label) else FRAME_MS)
+                assert frame.ms == (FRAME_MS if isinstance(latest, Stroke) else LABEL_MS)
         assert FRAME_MS == 100
 
     def test_a_label_appears_only_once_its_stroke_is_complete(self, drawn, frames) -> None:
         for scene, steps in zip(drawn, frames, strict=True):
             for frame in steps:
-                complete = {s.gid for s in scene.steps[: frame.done] if isinstance(s, Stroke)}
+                complete = {s.gid for s in scene.steps[: frame.done] if not isinstance(s, Label)}
                 for step in scene.steps[: frame.done]:
                     if isinstance(step, Label):
                         assert step.names in complete, step.text

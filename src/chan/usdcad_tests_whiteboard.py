@@ -69,13 +69,15 @@ run's own path, so the scale-break guard runs here too, or from the
 measurement. A change to the vintage, to how the half-life rounds or to any of
 those figures moves the labels with the run.
 
-:func:`scenes` describes every stroke and label as data, :func:`timeline`
-orders one scene's steps into frames, and :func:`render` draws them. A test
-reads the first two without drawing anything. A label always appears after the
-stroke it names, and each GIF holds on its finished drawing for
-:data:`HOLD_MS` before it loops. :func:`clearances` measures how far each
-label and title sits from the nearest stroke on the finished drawing, so a
-test can hold that no label touches a line it does not name.
+:func:`scenes` describes every stroke, tint and label as data,
+:func:`timeline` orders one scene's steps into frames, and :func:`render`
+draws them. A test reads the first two without drawing anything. Lesson 3's
+±1 SD band is the one tint, a flat rectangle drawn beneath every stroke. A
+label always appears after the stroke or tint it names, and each GIF holds on
+its finished drawing for :data:`HOLD_MS` before it loops. :func:`clearances`
+measures how far each label and title sits from the nearest stroke or tint on
+the finished drawing, so a test can hold that no label touches a line it does
+not name and none sits on the tint.
 
 The sketch is deterministic. Matplotlib's path sketch adds the same wobble on
 every draw, which two draws in separate processes confirmed byte for byte when
@@ -104,6 +106,7 @@ import pandas as pd
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties, findfont
+from matplotlib.patches import Rectangle
 from PIL import Image
 
 from chan.paths import FIGURES_DIR
@@ -135,7 +138,7 @@ DPI = 100
 FRAME_MS = 100
 #: A scene's title shows alone for this long before its first stroke.
 TITLE_MS = 400
-#: A label pops in on one frame that lasts this long.
+#: A label, or a tint, pops in on one frame that lasts this long.
 LABEL_MS = 350
 #: The finished drawing shows this long before the GIF loops back to its title.
 HOLD_MS = 4000
@@ -181,8 +184,25 @@ class Stroke:
 
 
 @dataclass(frozen=True)
+class Fill:
+    """A flat rectangle of ``color`` from (x0, y0) to (x1, y1), a tint that
+    shades a region rather than a line that draws one.
+
+    It appears whole on one frame, like a label, and it sits beneath every
+    stroke, so a line drawn across it stays on top.
+    """
+
+    gid: str
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+    color: str
+
+
+@dataclass(frozen=True)
 class Label:
-    """Text that appears once the stroke it names, ``names``, is drawn."""
+    """Text that appears once the stroke or tint it names, ``names``, is drawn."""
 
     text: str
     x: float
@@ -197,12 +217,12 @@ class Label:
 
 @dataclass(frozen=True)
 class Scene:
-    """One scene: its title, the slug its GIF is named for, and its strokes
-    and labels in drawing order."""
+    """One scene: its title, the slug its GIF is named for, and its strokes,
+    tints and labels in drawing order."""
 
     title: str
     slug: str
-    steps: tuple[Stroke | Label, ...]
+    steps: tuple[Stroke | Fill | Label, ...]
 
     @property
     def gif(self) -> str:
@@ -216,6 +236,10 @@ class Scene:
     @property
     def strokes(self) -> list[Stroke]:
         return [step for step in self.steps if isinstance(step, Stroke)]
+
+    @property
+    def fills(self) -> list[Fill]:
+        return [step for step in self.steps if isinstance(step, Fill)]
 
 
 @dataclass(frozen=True)
@@ -834,18 +858,11 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
         outline += [(at(edges[k]), top(count)), (at(edges[k + 1]), top(count))]
     outline.append((at(edges[-1]), base))
 
-    # The band is shaded with a zigzag whose peaks touch the outline, so the
-    # shading fills the bins within one SD and stays under the walks' outline.
+    # The band is a flat tint behind the outline and the lines, from the axis
+    # to the tallest bar, so it reads as a shaded region rather than as more
+    # data drawn over the bins.
     low, high = mean - sd, mean + sd
-    teeth = 2 * round((at(high) - at(low)) / 0.4)
-    zigzag = []
-    for k in range(teeth + 1):
-        value = low + (high - low) * k / teeth
-        if k % 2:
-            inside = int(np.searchsorted(edges, value, side="right")) - 1
-            zigzag.append((at(value), top(counts[inside])))
-        else:
-            zigzag.append((at(value), base))
+    band = Fill("band", at(low), base, at(high), top(counts.max()), color=TINT)
 
     xs = [at(row.genhurst) for row in measured.offsets]
     levels = _levels(xs, 0.2)
@@ -881,7 +898,7 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
             _stroke("axis", _line([(left, base), (right, base)]), color=MUTED, frames=5),
             _stroke("walks", _line(outline, per_unit=10), frames=14),
             Label(f"{len(measured.walks):,} random walks", left, 3.62, names="walks", size=12),
-            _stroke("band", _line(zigzag), color=GOOD, width=1.4, frames=10),
+            band,
             Label("±1 SD", at(high) + 0.4, 3.62, names="band", color=GOOD, size=12),
             *lines,
             *dots,
@@ -1104,13 +1121,13 @@ def timeline(scene: Scene) -> list[Frame]:
     """Every frame of one scene's GIF in order, with how long each one shows.
 
     The GIF opens on the scene's title alone. A stroke takes its ``frames``
-    frames, each showing a longer prefix of its points, and a label takes one
-    frame of :data:`LABEL_MS`. The last frame, the finished drawing, shows for
-    :data:`HOLD_MS`, and then the GIF loops.
+    frames, each showing a longer prefix of its points, and a tint or a label
+    takes one frame of :data:`LABEL_MS`. The last frame, the finished drawing,
+    shows for :data:`HOLD_MS`, and then the GIF loops.
     """
     frames = [Frame(0, 0, TITLE_MS)]
     for done, step in enumerate(scene.steps):
-        if isinstance(step, Label):
+        if not isinstance(step, Stroke):
             frames.append(Frame(done + 1, 0, LABEL_MS))
             continue
         for k in range(1, step.frames + 1):
@@ -1153,23 +1170,37 @@ def _style() -> dict:
     }
 
 
+def _blend(ink: str, blend: float) -> np.ndarray:
+    """``ink`` laid on the white board at ``blend``, as RGB from 0 to 1."""
+    board = np.array(matplotlib.colors.to_rgb(BOARD))
+    return blend * np.array(matplotlib.colors.to_rgb(ink)) + (1 - blend) * board
+
+
 def palette() -> Image.Image:
     """The GIF's palette as an image Pillow can quantize against: white, then
     each ink at each blend with white."""
-    board = np.array(matplotlib.colors.to_rgb(BOARD))
-    colours = [board]
+    colours = [np.array(matplotlib.colors.to_rgb(BOARD))]
     for ink in INKS:
-        rgb = np.array(matplotlib.colors.to_rgb(ink))
-        colours += [blend * rgb + (1 - blend) * board for blend in BLENDS]
+        colours += [_blend(ink, blend) for blend in BLENDS]
     flat = [round(255 * channel) for colour in colours for channel in colour]
     holder = Image.new("P", (1, 1))
     holder.putpalette(flat + flat[:3] * (256 - len(colours)))
     return holder
 
 
+#: Lesson 3's ±1 SD tint: the band's green at the palette's lightest blend
+#: with the board. Being a colour the palette already holds, it adds none, so
+#: the other GIFs' palettes, and their bytes, stay as they were.
+TINT = matplotlib.colors.to_hex(_blend(GOOD, BLENDS[-1]))
+
+
 def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
     """A canvas holding the scene's title, and one artist for each step, every
-    stroke empty and every label hidden. The title is the last artist."""
+    stroke empty and every tint and label hidden. The title is the last artist.
+
+    A tint is a rectangle at zorder 1, beneath the strokes' 2, so it is drawn
+    first whatever order the steps come in.
+    """
     fig = Figure(figsize=(WIDTH / DPI, HEIGHT / DPI), dpi=DPI)
     fig.patch.set_facecolor(BOARD)
     canvas = FigureCanvasAgg(fig)
@@ -1188,6 +1219,21 @@ def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
                 line.set_marker("o")
                 line.set_markersize(step.dots or 9)
             artists.append(line)
+        elif isinstance(step, Fill):
+            artists.append(
+                ax.add_patch(
+                    Rectangle(
+                        (step.x0, step.y0),
+                        step.x1 - step.x0,
+                        step.y1 - step.y0,
+                        facecolor=step.color,
+                        edgecolor="none",
+                        zorder=1,
+                        gid=step.gid,
+                        visible=False,
+                    )
+                )
+            )
         else:
             text = ax.text(
                 step.x,
@@ -1207,7 +1253,7 @@ def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
 
 def _show(scene: Scene, artists: Sequence, frame: Frame) -> None:
     for index, (step, artist) in enumerate(zip(scene.steps, artists, strict=False)):
-        if isinstance(step, Label):
+        if not isinstance(step, Stroke):
             artist.set_visible(index < frame.done)
             continue
         shown = step.points if index < frame.done else 0
@@ -1231,15 +1277,21 @@ def render(scene: Scene, frames: Sequence[Frame]) -> list[Image.Image]:
 
 
 def clearances(scene: Scene) -> dict[str, float]:
-    """How far each label, and the title, sits from the nearest stroke on the
-    finished drawing, in pixels. A text that appears more than once, such as
-    each "round trip" of the opening scene, reports its nearest copy.
+    """How far each label, and the title, sits from the nearest stroke or
+    tint on the finished drawing, in pixels. A text that appears more than
+    once, such as each "round trip" of the opening scene, reports its nearest
+    copy.
 
     A text's box is the one matplotlib lays it out in. A stroke is its points
     with each segment filled in every pixel or so, and the distance is measured
     to the edge of its ink, half its line width out from the line, or the
     dot's radius for a dot. The wobble the sketch adds is not in the points,
     so a label needs a few pixels to spare to stay clear of it on the board.
+
+    A tint counts the same as a stroke, measured to its rectangle's edge, and
+    a label over it reads zero. A label could stay readable over a pale tint,
+    but this keeps every label off it, so the tint never has to be checked
+    against the text it would sit behind.
     """
     with matplotlib.rc_context(_style()):
         canvas, artists = _board(scene)
@@ -1265,6 +1317,9 @@ def clearances(scene: Scene) -> dict[str, float]:
             else:
                 reach = 9 * DPI / 72 / 2
             inks.append((xy, reach))
+        tints = [
+            to_pixels.transform([(fill.x0, fill.y0), (fill.x1, fill.y1)]) for fill in scene.fills
+        ]
         texts = [
             (step.text, artist)
             for step, artist in zip(scene.steps, artists, strict=False)
@@ -1278,6 +1333,10 @@ def clearances(scene: Scene) -> dict[str, float]:
                 dx = np.maximum.reduce([box.x0 - xy[:, 0], xy[:, 0] - box.x1, np.zeros(len(xy))])
                 dy = np.maximum.reduce([box.y0 - xy[:, 1], xy[:, 1] - box.y1, np.zeros(len(xy))])
                 nearest = min(nearest, float(np.hypot(dx, dy).min()) - reach)
+            for (x0, y0), (x1, y1) in tints:
+                dx = max(box.x0 - x1, x0 - box.x1, 0.0)
+                dy = max(box.y0 - y1, y0 - box.y1, 0.0)
+                nearest = min(nearest, math.hypot(dx, dy))
             found[text] = min(nearest, found.get(text, math.inf))
     return found
 
