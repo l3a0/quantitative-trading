@@ -76,6 +76,7 @@ from chan.usdcad_hurst_noise import (
     measure,
     percentile,
     python_port_hurst_rows,
+    random_walk_genhurst,
     random_walk_hurst,
     random_walks,
     report,
@@ -394,6 +395,11 @@ class TestExample22HowFarHMovesByChance:
         np.testing.assert_array_equal(first.genhurst, again.genhurst)
         other = random_walk_hurst(1216, paths=3, seed=SEED + 1)
         assert not np.array_equal(first.genhurst, other.genhurst)
+
+    def test_genhurst_alone_gives_the_measurements_values(self, noise: HurstNoise) -> None:
+        """The whiteboard's histogram of Lesson 3 draws these without the
+        port's estimator, so they must be the same walks, value for value."""
+        np.testing.assert_array_equal(random_walk_genhurst(1216), noise.walks.genhurst)
 
     def test_the_standard_errors_of_40_000_walks(self, noise: HurstNoise) -> None:
         """Pinned so prose can quote them. Each is a property of the count, not of the seed."""
@@ -727,8 +733,13 @@ class TestBesideTheClaim:
         assert result.total_pnl - end_of_2008 == pytest.approx(0.3693474000, abs=5e-11), SPEC
 
     def test_the_closes_span_10_6_half_lives(self, result: StationarityRun) -> None:
-        assert len(result.closes) / result.half_life == pytest.approx(10.5546581819, abs=5e-11)
-        assert round(len(result.closes) / result.half_life, 1) == 10.6
+        """The count of closes over the unrounded half-life, which the post
+        prints and Lesson 5's whiteboard sketch labels. Over the 115-day
+        lookback the count would be 10.57, which prints the same."""
+        spans = len(result.closes) / result.half_life
+        assert spans == pytest.approx(10.5546581819, abs=5e-11), SPEC
+        assert round(spans, 1) == 10.6, SPEC
+        assert round(len(result.closes) / result.lookback, 1) == 10.6, SPEC
 
 
 class TestTheRun:

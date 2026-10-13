@@ -5410,9 +5410,15 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So do its two
 charts in Lesson 4, the whole run and the fall alone with the position the
 rule held, which `uv run python -m chan.usdcad_mean_reversion_figures`
-redraws, and its nine whiteboard sketches, six of the tests, two of Lesson 1
-and one of Lesson 2, which `uv run python -m chan.usdcad_tests_whiteboard`
-redraws.
+redraws, and its thirteen whiteboard sketches, which
+`uv run python -m chan.usdcad_tests_whiteboard` redraws.
+
+1. One of its opening section.
+2. Six of the tests.
+3. Two of Lesson 1.
+4. One of Lesson 2.
+5. One of Lesson 3.
+6. Two of Lesson 5.
 
 ## Entry 23: EWA, EWC and IGE, Chan's *Algorithmic Trading*
 

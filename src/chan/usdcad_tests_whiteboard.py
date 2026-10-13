@@ -1,51 +1,73 @@
-"""Whiteboard sketches of the tests, the rule and Lessons 1 and 2 in the USD.CAD post.
+"""Whiteboard sketches of the tests, the rule and the lessons in the USD.CAD post.
 
 The post's section "The tests and the file" explains four ways of asking one
 question, whether USD.CAD wanders like a random walk or is pulled back to a
 mean, and then the linear rule that trades the answer. Each test is a short
 paragraph of regression terms. A reader who has not met them gets more from a
 picture of what each one looks for than from the terms, so this module draws
-those as six scenes, two more for the post's Lesson 1 and one for its Lesson 2.
-Each scene is sketched stroke by stroke as if on a whiteboard, and each is its
-own looping GIF, so the post can place it right after the text it draws.
+those as six scenes. One more comes before them, for the post's opening
+section, two after them for its Lesson 1, one for Lesson 2, one for Lesson 3
+and two for Lesson 5. Each scene is sketched stroke by stroke as if on a
+whiteboard, and each is its own looping GIF, so the post can place it right
+after the text it draws.
 
-1. The question: a wiggly price around a dashed mean.
-2. ADF: a high close followed by a fall, which is what a negative λ means.
-3. Hurst: two pairs of curves spreading from one point, the narrower pair a
+1. Every day or a few round trips: a dot on every point of a price path, and
+   the same path with a few round trips under it, because a test reads every
+   close and a backtest sees only the round trips its rule made.
+2. The question: a wiggly price around a dashed mean.
+3. ADF: a high close followed by a fall, which is what a negative λ means.
+4. Hurst: two pairs of curves spreading from one point, the narrower pair a
    reverting series whose variance grows like τ²ᴴ with H below 0.5.
-4. Variance ratio: the 2-day variance shorter than twice the 1-day variance.
-5. Half-life: the distance from the mean decaying, halved after −ln 2 / λ
+5. Variance ratio: the 2-day variance shorter than twice the 1-day variance.
+6. Half-life: the distance from the mean decaying, halved after −ln 2 / λ
    days, which the run measures at its lookback.
-6. The linear rule: a z-score of +2 sold short and one of −1.5 bought, with a
+7. The linear rule: a z-score of +2 sold short and one of −1.5 bought, with a
    warning that the lookback was measured on every close the rule trades.
-7. Chan's reading: the ADF statistic on a number line with the three critical
+8. Chan's reading: the ADF statistic on a number line with the three critical
    values, right of the 10 percent value it would have to pass to reject a
    random walk.
-8. The fingerprint: Chan's MATLAB file cannot be compared with the CSV here,
+9. The fingerprint: Chan's MATLAB file cannot be compared with the CSV here,
    so the CSV goes through the three calculations and each lands the values
    the script printed, which no change of units would alter.
-9. One row apart: ``adfuller`` fits the closes from day 3 to the last, and
-   jplv7's ``adf`` from day 4, so the script's statistic rests on one row
-   fewer.
+10. One row apart: ``adfuller`` fits the closes from day 3 to the last, and
+    jplv7's ``adf`` from day 4, so the script's statistic rests on one row
+    fewer.
+11. Chance and the start day: a histogram of ``genhurst``'s H on random walks
+    of the same length, with its ±1 SD band, lines at 0.5, the run's H and the
+    book's 0.49, and a dot for each of the eleven start days.
+12. The look-ahead: the half-life measured on every close, and the rule
+    trading from its first position inside that window, above a schematic of
+    measuring on earlier days and trading after.
+13. Ten half-lives: the closes on a line with a tick every lookback, and the
+    count of half-lives they span.
 
 The numbers above order this list and nothing else. A GIF stands alone, so its
 title is the scene's name with no number, and its file is named for the scene,
-such as ``usdcad_tests_hurst.gif``.
+such as ``usdcad_tests_hurst.gif``. The last scene's title counts its ticks,
+and that count is read from the run, so it is spelled out rather than written.
 
-The first six scenes' shapes are schematic and carry no data. Two numbers in
-them do: the lookback the half-life rounds to and the count of closes. Chan's
+The first seven scenes' shapes are schematic and carry no data. Two numbers in
+them do: the lookback the half-life rounds to and the count of closes. The
+opening scene's round trips stand for a generic rule that enters and exits,
+not the post's linear rule, which holds a position every day. Chan's
 reading is drawn to scale, so the position of each tick and of the statistic's
 dot is an affine function of its value, and it prints the three critical
 values and the statistic. The fingerprint prints the count of closes, the ADF
 statistic, the AR(1) estimate, the variance ratio's p-value and the half-life.
 One row apart prints the count of closes, each toolbox's row count and
 statistic, and places each bar's start at the cell of the first day its
-regression fits. Every one of these comes from the
+regression fits. Chance and the start day is drawn to scale along its axis,
+with its bins, its band and its dots from :mod:`chan.usdcad_hurst_noise`
+through :func:`spread`. The look-ahead places its bars to scale by date and
+prints the first close, the first position, the last close, the count of
+closes and the lookback. Ten half-lives prints the dates of the first and last
+close, the lookback, and the closes over the unrounded half-life. Every number
+but the book's 0.49 and a random walk's 0.5 comes from the
 :class:`chan.usdcad_mean_reversion.StationarityRun` that
 :func:`chan.usdcad_mean_reversion.stationarity_tests` returns, read through the
-run's own path, so the scale-break guard runs here too. A change to the
-vintage, to how the half-life rounds or to any of those figures moves the
-labels with the run.
+run's own path, so the scale-break guard runs here too, or from the
+measurement. A change to the vintage, to how the half-life rounds or to any of
+those figures moves the labels with the run.
 
 :func:`scenes` describes every stroke and label as data, :func:`timeline`
 orders one scene's steps into frames, and :func:`render` draws them. A test
@@ -64,7 +86,7 @@ GIFs, and it arrives as a dependency of matplotlib rather than as an entry of
 its own in ``pyproject.toml``.
 Another machine can differ, because the hand-drawn font is whichever of
 :data:`HAND_FONTS` is installed, with matplotlib's own DejaVu Sans as the
-fallback, and font rasterising varies across platforms. Redraw all nine with::
+fallback, and font rasterising varies across platforms. Redraw all thirteen with::
 
     uv run python -m chan.usdcad_tests_whiteboard
 """
@@ -87,7 +109,19 @@ from PIL import Image
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.series import WindowCrossesScaleBreak
-from chan.usdcad_mean_reversion import StationarityRun, read_sources, stationarity_tests
+from chan.usdcad_hurst_noise import (
+    PATHS,
+    SEED,
+    StartOffset,
+    random_walk_genhurst,
+    start_offset_hurst,
+)
+from chan.usdcad_mean_reversion import (
+    BOOK_HURST,
+    StationarityRun,
+    read_sources,
+    stationarity_tests,
+)
 from chan.vintage import VintageEntry, VintageUnavailable
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
@@ -127,7 +161,9 @@ XLIM, YLIM = (0.0, 10.0), (0.0, 4.7)
 class Stroke:
     """A line drawn from its first point to its last over ``frames`` frames.
 
-    A stroke of one point is a dot, drawn in a single frame.
+    A stroke of one point is a dot, drawn in a single frame. A stroke with a
+    ``dots`` size is a row of dots of that size in points, one on each of its
+    points and no line between them, revealed a few more on each frame.
     """
 
     gid: str
@@ -137,6 +173,7 @@ class Stroke:
     width: float = 2.2
     dashed: bool = False
     frames: int = 8
+    dots: float = 0.0
 
     @property
     def points(self) -> int:
@@ -222,6 +259,78 @@ def _stroke(gid: str, xy: tuple, **style) -> Stroke:
 
 def _dot(gid: str, x: float, y: float, color: str = ACCENT) -> Stroke:
     return Stroke(gid, np.array([x]), np.array([y]), color=color, frames=1)
+
+
+def _path(x: np.ndarray) -> np.ndarray:
+    """The schematic price the opening scene draws twice, around zero."""
+    return 0.32 * np.sin(1.5 * x) + 0.14 * np.sin(3.9 * x + 1) + 0.06 * np.sin(8.3 * x)
+
+
+#: Where the opening scene's two copies of the path sit, and its round trips
+#: on the lower copy, each from entry to exit along the board.
+TOP, BOTTOM = 3.15, 1.4
+ROUND_TRIPS = ((1.0, 2.4), (4.3, 5.6), (7.3, 8.8))
+
+
+def _every_day(closes: int) -> Scene:
+    """The opening section's point: a test reads every close, a backtest its round trips.
+
+    One schematic path is drawn twice. On the upper copy a dot lands on every
+    point, and the label prints the run's count of closes. The lower copy is
+    the same path in a fainter ink, with a bracket under each of a few round
+    trips from entry to exit. The round trips stand for a generic rule that
+    enters and exits. They are not the post's linear rule, which holds a
+    position every day and only changes its size.
+    """
+    x = np.linspace(0.5, 9.5, 180)
+    marks = np.linspace(0.5, 9.5, 46)
+    steps: list[Stroke | Label] = [
+        _stroke("top-path", _curve(x, TOP + _path(x)), frames=12),
+        Stroke("closes", marks, TOP + _path(marks), color=ACCENT, frames=12, dots=5.0),
+        Label(
+            f"a test reads all {closes:,} closes",
+            9.6,
+            3.95,
+            names="closes",
+            ha="right",
+            color=ACCENT,
+            size=12,
+        ),
+        _stroke("bottom-path", _curve(x, BOTTOM + _path(x)), color=MUTED, frames=10),
+    ]
+    for k, (entry, exit_) in enumerate(ROUND_TRIPS, start=1):
+        level = 0.72
+        bracket = _line(
+            [
+                (entry, BOTTOM + float(_path(np.array([entry]))[0]) - 0.14),
+                (entry, level),
+                (exit_, level),
+                (exit_, BOTTOM + float(_path(np.array([exit_]))[0]) - 0.14),
+            ]
+        )
+        steps += [
+            _stroke(f"trip-{k}", bracket, color=ACCENT, frames=5),
+            Label(
+                "round trip",
+                (entry + exit_) / 2,
+                0.36,
+                names=f"trip-{k}",
+                ha="center",
+                color=ACCENT,
+                size=12,
+            ),
+        ]
+    steps.append(
+        Label(
+            "a backtest sees only its round trips",
+            9.6,
+            2.2,
+            names=f"trip-{len(ROUND_TRIPS)}",
+            ha="right",
+            size=12,
+        )
+    )
+    return Scene("Every day or a few round trips", "every_day", tuple(steps))
 
 
 def _the_question() -> Scene:
@@ -608,14 +717,374 @@ def _one_row(run: StationarityRun) -> Scene:
     )
 
 
-def scenes(run: StationarityRun) -> tuple[Scene, ...]:
-    """The nine scenes in the order the post reads them, every number drawn
-    read from ``run``.
+#: The theoretical H of a random walk, which Lesson 3's scene marks with a
+#: dashed line. It is a property of the model rather than a figure of the run.
+RANDOM_WALK_H = 0.5
+#: Lesson 3's histogram spans this many SDs of the random walks' H either side
+#: of their mean, in bins a third of an SD wide, so the ±1 SD band starts and
+#: ends on a bin edge.
+SPREAD_SDS, BINS_PER_SD = 3, 3
 
-    The first six sketch the section on the tests, the next two Lesson 1, and
-    the last Lesson 2.
+#: Counts spelled out, as the post spells them, for the words that print one.
+WORDS = (
+    "no",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+)
+
+
+def _word(count: int) -> str:
+    """``count`` in words up to twelve, and in digits past it."""
+    return WORDS[count] if 0 <= count < len(WORDS) else f"{count:,}"
+
+
+@dataclass(frozen=True)
+class Spread:
+    """What Lesson 3's scene reads from :mod:`chan.usdcad_hurst_noise`.
+
+    ``walks`` holds ``genhurst``'s H on each seeded random walk of ``length``
+    log prices, and ``offsets`` the start-day sweep on the closes, its first
+    row being the closes from their first day.
+    """
+
+    walks: np.ndarray
+    length: int
+    offsets: tuple[StartOffset, ...]
+
+
+def spread(closes: pd.Series, paths: int = PATHS, seed: int = SEED) -> Spread:
+    """The random walks and the start days of :func:`chan.usdcad_hurst_noise.measure`.
+
+    The walks are :func:`chan.usdcad_hurst_noise.random_walk_genhurst`, the
+    same walks and the same values as the measurement's ``genhurst``, without
+    the port's estimator, which the scene does not draw. ``paths`` and
+    ``seed`` default to the measurement's own.
+    """
+    return Spread(
+        walks=random_walk_genhurst(len(closes), paths=paths, seed=seed),
+        length=len(closes),
+        offsets=tuple(start_offset_hurst(closes)),
+    )
+
+
+def _levels(xs: Sequence[float], apart: float) -> list[int]:
+    """A row for each dot at ``xs``, the lowest whose dots all sit ``apart`` or
+    more from it. The dots are placed in order of ``x``, so they stack like a
+    swarm rather than in the order they are drawn."""
+    rows: list[list[float]] = []
+    level = [0] * len(xs)
+    for k in sorted(range(len(xs)), key=lambda k: xs[k]):
+        free = [r for r, row in enumerate(rows) if all(abs(xs[k] - x) >= apart for x in row)]
+        if not free:
+            rows.append([])
+            free = [len(rows) - 1]
+        rows[free[0]].append(xs[k])
+        level[k] = free[0]
+    return level
+
+
+def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
+    """Lesson 3's point: H misses 0.49 by less than chance moves it.
+
+    The scene is drawn to scale along its axis, which maps the random walks'
+    mean less and plus :data:`SPREAD_SDS` SDs onto the board. Each bar of the
+    histogram is a real bin of ``genhurst``'s values on the walks, a third of
+    an SD wide, and its height is in proportion to its count. The walks beyond
+    the axis are left out rather than piled into the end bins. The run's H,
+    the book's 0.49 and 0.5 are lines at their values, and each start day's
+    ``genhurst`` is a dot at its value under the axis, stacked where two would
+    touch. The dots that print as the book's 0.49 at two decimals are drawn in
+    the book's colour.
+
+    A spread measured on walks of another length, or on closes starting on
+    another day, is refused rather than drawn beside a run it does not
+    describe.
+    """
+    first_day = measured.offsets[0].first_day
+    if measured.length != len(run.closes) or first_day != run.closes.index[0]:
+        raise ValueError(
+            f"Lesson 3's scene needs walks as long as the run's {len(run.closes):,} closes and "
+            f"start days counted from {run.closes.index[0].date()}, and these walks are "
+            f"{measured.length:,} long with start days counted from {first_day.date()}"
+        )
+    mean, sd = float(measured.walks.mean()), float(measured.walks.std(ddof=1))
+    reach = SPREAD_SDS * BINS_PER_SD
+    edges = mean + sd * np.arange(-reach, reach + 1) / BINS_PER_SD
+    counts, _ = np.histogram(measured.walks, bins=edges)
+    left, right, base, tall = 0.6, 9.4, 2.55, 1.3
+
+    def at(value: float) -> float:
+        return left + (value - edges[0]) / (edges[-1] - edges[0]) * (right - left)
+
+    def top(count: float) -> float:
+        return base + count / counts.max() * tall
+
+    outline = [(at(edges[0]), base)]
+    for k, count in enumerate(counts):
+        outline += [(at(edges[k]), top(count)), (at(edges[k + 1]), top(count))]
+    outline.append((at(edges[-1]), base))
+
+    # The band is shaded with a zigzag whose peaks touch the outline, so the
+    # shading fills the bins within one SD and stays under the walks' outline.
+    low, high = mean - sd, mean + sd
+    teeth = 2 * round((at(high) - at(low)) / 0.4)
+    zigzag = []
+    for k in range(teeth + 1):
+        value = low + (high - low) * k / teeth
+        if k % 2:
+            inside = int(np.searchsorted(edges, value, side="right")) - 1
+            zigzag.append((at(value), top(counts[inside])))
+        else:
+            zigzag.append((at(value), base))
+
+    xs = [at(row.genhurst) for row in measured.offsets]
+    levels = _levels(xs, 0.2)
+    dots = [
+        _dot(f"start-{row.offset}", x, 0.7 + 0.19 * level, LOST if row.prints_as_book else ACCENT)
+        for row, x, level in zip(measured.offsets, xs, levels, strict=True)
+    ]
+    hits = sum(row.prints_as_book for row in measured.offsets)
+    # Under its number, the run's name ends and the book's begins, so the two
+    # names read apart rather than as one phrase.
+    marks = (
+        ("half", RANDOM_WALK_H, MUTED, f"{RANDOM_WALK_H:.1f}", None, "center"),
+        ("run", run.hurst, ACCENT, f"{run.hurst:.4f}", "this run", "right"),
+        ("book", BOOK_HURST, LOST, f"{BOOK_HURST:.2f}", "the book", "left"),
+    )
+    lines: list[Stroke | Label] = []
+    for gid, value, color, number, words, ha in marks:
+        line = _line([(at(value), base), (at(value), 3.9)])
+        lines += [
+            _stroke(gid, line, color=color, dashed=gid == "half", frames=4),
+            Label(number, at(value), 2.15, names=gid, ha="center", color=color, size=12),
+        ]
+        if words:
+            shift = {"right": 0.3, "left": -0.3}[ha]
+            lines.append(
+                Label(words, at(value) + shift, 1.8, names=gid, ha=ha, color=color, size=12)
+            )
+    last = dots[-1].gid
+    return Scene(
+        "Chance and the start day",
+        "noise_band",
+        (
+            _stroke("axis", _line([(left, base), (right, base)]), color=MUTED, frames=5),
+            _stroke("walks", _line(outline, per_unit=10), frames=14),
+            Label(f"{len(measured.walks):,} random walks", left, 3.62, names="walks", size=12),
+            _stroke("band", _line(zigzag), color=GOOD, width=1.4, frames=10),
+            Label("±1 SD", at(high) + 0.4, 3.62, names="band", color=GOOD, size=12),
+            *lines,
+            *dots,
+            Label(
+                f"{_word(len(dots))} start days",
+                min(xs) - 0.35,
+                0.7,
+                names=last,
+                ha="right",
+                color=ACCENT,
+                size=12,
+            ),
+            Label(
+                f"{_word(hits)} print as {BOOK_HURST:.2f}",
+                max(xs) + 0.35,
+                0.7,
+                names=last,
+                color=LOST,
+                size=12,
+            ),
+        ),
+    )
+
+
+def _span(x0: float, x1: float, y: float, tick: float = 0.13) -> tuple:
+    """A bar from ``x0`` to ``x1`` at height ``y``, with an upright tick at each end."""
+    return _line([(x0, y + tick), (x0, y - tick), (x0, y), (x1, y), (x1, y + tick), (x1, y - tick)])
+
+
+def _look_ahead(run: StationarityRun) -> Scene:
+    """Lesson 5's look-ahead: the half-life is measured on every close the rule trades.
+
+    The top three rows are the run, drawn to scale by date. The timeline runs
+    from the first close to the last, the measuring bar spans all of it, and
+    the trading bar starts on the run's first position. The bottom pair is a
+    schematic of what avoiding the look-ahead needs, drawn dashed, because no
+    run here measures on earlier days and trades after. So it carries no dates
+    and no numbers, and where it splits the sample means nothing.
+    """
+    first, last, start = run.closes.index[0], run.closes.index[-1], run.first_position
+    left, right = 1.95, 8.05
+    middle = (left + right) / 2
+    # The schematic pair middles the sample a little right of the middle, so
+    # the label under the measuring bar clears the trading bar's first tick.
+    cut = left + 0.6 * (right - left)
+
+    def at(day: pd.Timestamp) -> float:
+        return left + (day - first) / (last - first) * (right - left)
+
+    return Scene(
+        "The look-ahead",
+        "look_ahead",
+        (
+            _stroke("timeline", _span(left, right, 3.7, tick=0.1), color=MUTED, frames=6),
+            Label(
+                str(first.date()),
+                left - 0.22,
+                3.7,
+                names="timeline",
+                ha="right",
+                color=MUTED,
+                size=12,
+            ),
+            Label(str(last.date()), right + 0.22, 3.7, names="timeline", color=MUTED, size=12),
+            _stroke("measure", _span(left, right, 3.2), color=ACCENT, width=3.0, frames=8),
+            Label(
+                f"measure the half-life: all {len(run.closes):,} closes",
+                middle,
+                2.84,
+                names="measure",
+                ha="center",
+                color=ACCENT,
+                size=12,
+            ),
+            _stroke("trade", _span(at(start), right, 2.45), width=3.0, frames=8),
+            Label(str(start.date()), at(start) - 0.22, 2.45, names="trade", ha="right", size=12),
+            Label(
+                f"trade with a {run.lookback}-day lookback",
+                (at(start) + right) / 2,
+                2.09,
+                names="trade",
+                ha="center",
+                size=12,
+            ),
+            Label(
+                "every day traded sits inside the days measured",
+                middle,
+                1.72,
+                names="trade",
+                ha="center",
+                color=LOST,
+                size=12,
+            ),
+            _stroke(
+                "earlier", _span(left, cut, 1.2), color=ACCENT, width=3.0, dashed=True, frames=6
+            ),
+            Label(
+                "measure on earlier days",
+                (left + cut) / 2,
+                0.8,
+                names="earlier",
+                ha="center",
+                color=ACCENT,
+                size=12,
+            ),
+            _stroke("after", _span(cut, right, 0.6), width=3.0, dashed=True, frames=6),
+            Label("trade only after", (cut + right) / 2, 0.24, names="after", ha="center", size=12),
+            Label(
+                "a sketch of the fix, not a run",
+                cut + 0.3,
+                1.2,
+                names="after",
+                color=MUTED,
+                size=12,
+            ),
+        ),
+    )
+
+
+def _half_lives(run: StationarityRun) -> Scene:
+    """Lesson 5's other limit: the sample spans few half-lives.
+
+    The line stands for the closes, drawn to scale by count rather than by
+    date, because the half-life counts closes. A tick falls every
+    ``run.lookback`` closes, the half-life rounded, and the title counts the
+    ticks, the stretches long enough for a distance from the mean to halve.
+    The larger label divides the count of closes by the unrounded half-life,
+    the figure the post prints.
+    """
+    closes, lookback = len(run.closes), run.lookback
+    left, right, level = 0.8, 9.2, 2.4
+
+    def at(close: int) -> float:
+        return left + close / closes * (right - left)
+
+    ticks = [
+        _stroke(
+            f"tick-{k}",
+            _line([(at(k * lookback), level - 0.15), (at(k * lookback), level + 0.15)]),
+            color=ACCENT,
+            frames=2,
+        )
+        for k in range(1, closes // lookback + 1)
+    ]
+    whole = len(ticks)
+    title = f"{_word(whole).capitalize()} half-li{'fe' if whole == 1 else 'ves'}"
+    return Scene(
+        title,
+        "half_lives",
+        (
+            _stroke("sample", _span(left, right, level, tick=0.15), frames=8),
+            Label(str(run.closes.index[0].date()), left, 1.9, names="sample", color=MUTED, size=12),
+            Label(
+                str(run.closes.index[-1].date()),
+                right,
+                1.9,
+                names="sample",
+                ha="right",
+                color=MUTED,
+                size=12,
+            ),
+            ticks[0],
+            Label(
+                f"{lookback} days",
+                (left + at(lookback)) / 2,
+                2.95,
+                names=ticks[0].gid,
+                ha="center",
+                color=ACCENT,
+                size=12,
+            ),
+            *ticks[1:],
+            Label(
+                f"{closes / run.half_life:.1f} half-lives",
+                (left + right) / 2,
+                3.45,
+                names=ticks[-1].gid,
+                ha="center",
+                size=15,
+            ),
+            Label(
+                "only a few stretches for a distance from the mean to halve",
+                (left + right) / 2,
+                1.3,
+                names=ticks[-1].gid,
+                ha="center",
+                color=MUTED,
+                size=12,
+            ),
+        ),
+    )
+
+
+def scenes(run: StationarityRun, measured: Spread) -> tuple[Scene, ...]:
+    """The thirteen scenes in the order the post reads them, every number drawn
+    read from ``run`` or, for Lesson 3's, from ``measured``.
+
+    The first sketches the post's opening section, the next six the section on
+    the tests, two Lesson 1, one Lesson 2, one Lesson 3, and the last two
+    Lesson 5.
     """
     return (
+        _every_day(len(run.closes)),
         _the_question(),
         _adf(),
         _hurst(),
@@ -625,6 +1094,9 @@ def scenes(run: StationarityRun) -> tuple[Scene, ...]:
         _no_rejection(run.adf.statistic, run.adf.critical),
         _fingerprint(run),
         _one_row(run),
+        _noise_band(run, measured),
+        _look_ahead(run),
+        _half_lives(run),
     )
 
 
@@ -711,10 +1183,10 @@ def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
             (line,) = ax.plot([], [], color=step.color, lw=step.width, gid=step.gid)
             if step.dashed:
                 line.set_linestyle((0, (4, 3)))
-            if step.points == 1:
+            if step.points == 1 or step.dots:
                 line.set_linestyle("none")
                 line.set_marker("o")
-                line.set_markersize(9)
+                line.set_markersize(step.dots or 9)
             artists.append(line)
         else:
             text = ax.text(
@@ -760,7 +1232,8 @@ def render(scene: Scene, frames: Sequence[Frame]) -> list[Image.Image]:
 
 def clearances(scene: Scene) -> dict[str, float]:
     """How far each label, and the title, sits from the nearest stroke on the
-    finished drawing, in pixels.
+    finished drawing, in pixels. A text that appears more than once, such as
+    each "round trip" of the opening scene, reports its nearest copy.
 
     A text's box is the one matplotlib lays it out in. A stroke is its points
     with each segment filled in every pixel or so, and the distance is measured
@@ -777,7 +1250,9 @@ def clearances(scene: Scene) -> dict[str, float]:
         inks = []
         for step in scene.strokes:
             xy = to_pixels.transform(np.column_stack([step.x, step.y]))
-            if step.points > 1:
+            if step.dots:
+                reach = step.dots * DPI / 72 / 2
+            elif step.points > 1:
                 gaps = np.hypot(*np.diff(xy, axis=0).T)
                 xy = np.vstack(
                     [
@@ -803,20 +1278,27 @@ def clearances(scene: Scene) -> dict[str, float]:
                 dx = np.maximum.reduce([box.x0 - xy[:, 0], xy[:, 0] - box.x1, np.zeros(len(xy))])
                 dy = np.maximum.reduce([box.y0 - xy[:, 1], xy[:, 1] - box.y1, np.zeros(len(xy))])
                 nearest = min(nearest, float(np.hypot(dx, dy).min()) - reach)
-            found[text] = nearest
+            found[text] = min(nearest, found.get(text, math.inf))
     return found
 
 
 def make_usdcad_tests_whiteboards(
     out_dir: Path | None = None,
     sources: tuple[VintageEntry, pd.Series] | None = None,
+    measured: Spread | None = None,
 ) -> list[Path]:
-    """Write one looping GIF for each of the nine scenes and return their
-    paths, in the order the post reads them."""
+    """Write one looping GIF for each of the thirteen scenes and return their
+    paths, in the order the post reads them.
+
+    ``measured`` is the :func:`spread` of the closes, measured from them when
+    it is not handed in. The run comes first, so its scale-break guard refuses
+    a flagged window before the walks are drawn.
+    """
     entry, closes = sources if sources is not None else read_sources()
     folder = out_dir if out_dir is not None else FIGURES_DIR
+    run = stationarity_tests(entry, closes)
     paths = []
-    for scene in scenes(stationarity_tests(entry, closes)):
+    for scene in scenes(run, measured if measured is not None else spread(closes)):
         frames = timeline(scene)
         first, *rest = render(scene, frames)
         path = folder / scene.gif

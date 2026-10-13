@@ -4504,11 +4504,19 @@ uv run python -m chan.usdcad_mean_reversion_figures
 holds what both draw rather than their bytes, for the reason given above for
 the regime map.
 
-The post carries nine looping whiteboard sketches, drawn by
+The post carries thirteen looping whiteboard sketches, drawn by
 [src/chan/usdcad_tests_whiteboard.py](src/chan/usdcad_tests_whiteboard.py).
 Each sits after the text it draws, and each holds on its finished drawing for
-four seconds before it loops. All nine live in `docs/figures/`. Six sit in
-the section on the tests.
+four seconds before it loops. All thirteen live in `docs/figures/`.
+
+The first, `usdcad_tests_every_day.gif`, sits in the opening section. It draws
+one schematic price path twice, with a dot on every point of the upper copy
+and a few round trips under the lower one, because a test reads every close
+and a backtest sees only its round trips. Only the count of closes comes from
+the run. The round trips stand for a generic rule that enters and exits, not
+the post's linear rule, which holds a position every day.
+
+Six sit in the section on the tests.
 
 1. `usdcad_tests_question.gif`, the question the tests ask.
 2. `usdcad_tests_adf.gif`, the ADF test.
@@ -4520,7 +4528,7 @@ the section on the tests.
 Their shapes are schematic. The last two print the 115-day lookback, and the
 last prints the 1,216 closes too, both from the same `stationarity_tests` run.
 
-The other two sit in Lesson 1, and every number they print comes from that run
+Two sit in Lesson 1, and every number they print comes from that run
 too.
 
 1. `usdcad_tests_no_rejection.gif`, Chan's reading of the ADF test, draws the
@@ -4530,11 +4538,31 @@ too.
    MATLAB file, which is not public. Three calculations on the CSV give four
    statistics, each to the six decimals the script prints.
 
-The last, `usdcad_tests_one_row.gif`, sits in Lesson 2. It draws the closes as
+One, `usdcad_tests_one_row.gif`, sits in Lesson 2. It draws the closes as
 a row of days and two bars under it, `adfuller`'s from day 3 and jplv7's from
 day 4, each with its row count and statistic. Each bar starts at the day the
 run's own row count puts its first row on, so the start days come from the run
 as well.
+
+One, `usdcad_tests_noise_band.gif`, sits in Lesson 3. It draws a histogram of
+`genhurst`'s H on the 40,000 random walks of
+[src/chan/usdcad_hurst_noise.py](src/chan/usdcad_hurst_noise.py), shades one
+SD either side of their mean, marks 0.5, the run's 0.4732 and the book's 0.49,
+and puts a dot under the axis for each of the eleven start days. All of it is
+to scale. The walks are drawn again without the port's estimator, which the
+sketch does not draw, so the redraw takes seconds rather than the whole
+measurement's time, and
+[tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
+holds that they are the measurement's walks value for value.
+
+The last two sit in Lesson 5.
+
+1. `usdcad_tests_look_ahead.gif` draws the half-life measured on all 1,216
+   closes and the rule trading from 2008-01-02, to scale by date, above a
+   dashed schematic of measuring on earlier days and trading after, which no
+   run here has made.
+2. `usdcad_tests_half_lives.gif` draws the closes on a line with a tick every
+   115 closes, and the 10.6 half-lives they span.
 
 ```bash
 uv run python -m chan.usdcad_tests_whiteboard
@@ -4543,13 +4571,21 @@ uv run python -m chan.usdcad_tests_whiteboard
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 holds each scene's labels and stroke order, that a label appears only after
 the stroke it names, that every label clears every line and sits inside the
-frame, each GIF's frame count, size, timing and loop, and that two draws give
-the same bytes. For the Lesson 1 pair it also holds that every number drawn
-follows a run with other figures, and that the line in Chan's reading is drawn
-to scale. For Lesson 2's sketch it holds the same of its numbers, and that each
-bar starts at the cell of its regression's first day, one cell apart and after
-the greyed days. A run that would start them otherwise is refused, because the
-title and the note say one row. It compares each committed GIF with a fresh
+frame in both the installed hand font and the wider DejaVu Sans that CI falls
+back to, each GIF's frame count, size, timing and loop, and that two draws give
+the same bytes. For the opening sketch it holds that both copies are one path
+and that the count of closes follows the run. For the Lesson 1 pair it also
+holds that every number drawn follows a run with other figures, and that the
+line in Chan's reading is drawn to scale. For Lesson 2's sketch it holds the
+same of its numbers, and that each bar starts at the cell of its regression's
+first day, one cell apart and after the greyed days. A run that would start
+them otherwise is refused, because the title and the note say one row. For
+Lesson 3's it holds that each bar is a bin of the walks with its height in
+proportion to its count, and that every line and dot sits at its value. For
+Lesson 5's pair it holds that the bars are to scale by date, that trading
+starts on the run's first position, and that a tick falls every lookback. Each
+of those numbers follows a run or a measurement with other figures. It
+compares each committed GIF with a fresh
 draw byte for byte only on macOS arm64 in Comic Sans MS, where the files were
 drawn, because the hand font is whichever one is installed.
 

@@ -1,23 +1,30 @@
-"""The pins for the nine whiteboard GIFs in the post on mean reversion on USD.CAD.
+"""The pins for the thirteen whiteboard GIFs in the post on mean reversion on USD.CAD.
 
-Six GIFs sketch the scenes of the post's section "The tests and the file", two
-sketch its Lesson 1 and one its Lesson 2. Each sits right after the text it
-draws. The first
-six are schematic, so what is pinned for every GIF is what a reader takes from
+One GIF sketches the post's opening section, six the scenes of its section
+"The tests and the file", two its Lesson 1, one its Lesson 2, one its Lesson 3
+and two its Lesson 5. Each sits right after the text it draws. The first seven
+are schematic, so what is pinned for every GIF is what a reader takes from
 it: which scenes there are and in which order the post reads them, what each
 one says and draws, that a label never appears before the stroke it names,
 that no label touches a line, how long each GIF shows before it loops, and
 each file's size, frame count and loop.
 
-Labels in five scenes quote the run. The half-life scene and the linear rule's
+Labels in ten scenes quote the run. The opening scene prints the count of
+closes. The half-life scene and the linear rule's
 warning print the lookback, the half-life rounded, and the count of closes.
 Chan's reading prints the three critical values and the ADF statistic, and
 places each on a line drawn to scale. The fingerprint prints the count of
 closes, the ADF statistic, the AR(1) estimate, the variance ratio's p-value
 and the half-life. One row apart prints the count of closes and each toolbox's
 row count and ADF statistic, and starts each bar at the cell of the first day
-its regression fits. All of them are read from the run rather than written in,
-and the tests below hand the scenes a run with other figures to prove it. The
+its regression fits. Lesson 3's scene prints the run's H and draws a
+histogram of ``genhurst`` on the random walks and a dot for each start day, all
+from :mod:`chan.usdcad_hurst_noise`, to scale. Lesson 5's look-ahead prints
+the first close, the first position and the last close and places its bars by
+date, and its count of half-lives prints the closes over the half-life and
+ticks the line every lookback. All of them are read from the run or the
+measurement rather than written in, and the tests below hand the scenes a run
+and a measurement with other figures to prove it. The
 numbers come from the vintage and the specification
 ``tests/test_usdcad_mean_reversion.py`` names as its ``SPEC``, which failure
 messages here carry:
@@ -27,7 +34,8 @@ lookback of 115 days, an ADF statistic of −1.840744 against critical values of
 −3.458, −2.871 and −2.594, an AR(1) estimate of 0.994120, a variance ratio
 p-value of 0.367281 and a half-life of 115.209794 days. ``adfuller`` at the
 same lag fits 1,214 rows from day 3, counting the first close as day 1, and
-gives −1.843018, where jplv7's ``adf`` fits 1,213 from day 4.
+gives −1.843018, where jplv7's ``adf`` fits 1,213 from day 4. The walks and
+start days are the ones ``NOISE_SPEC`` there names.
 
 Two draws on one machine give the same bytes, and a test holds that. Whether a
 committed GIF equals a fresh draw depends on the font, because the hand font
@@ -43,6 +51,7 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import logging
+import math
 import platform
 import re
 import warnings
@@ -73,12 +82,14 @@ from chan.usdcad_tests_whiteboard import (
     palette,
     render,
     scenes,
+    spread,
     timeline,
 )
 from chan.vintage import VintageUnavailable
-from tests.test_usdcad_mean_reversion import SPEC
+from tests.test_usdcad_mean_reversion import NOISE_SPEC, SPEC
 
 TITLES = [
+    "Every day or a few round trips",
     "The question",
     "ADF",
     "Hurst",
@@ -88,9 +99,13 @@ TITLES = [
     "Chan’s reading",
     "The fingerprint",
     "One row apart",
+    "Chance and the start day",
+    "The look-ahead",
+    "Ten half-lives",
 ]
 
 GIFS = [
+    "usdcad_tests_every_day.gif",
     "usdcad_tests_question.gif",
     "usdcad_tests_adf.gif",
     "usdcad_tests_hurst.gif",
@@ -100,10 +115,14 @@ GIFS = [
     "usdcad_tests_no_rejection.gif",
     "usdcad_tests_fingerprint.gif",
     "usdcad_tests_one_row.gif",
+    "usdcad_tests_noise_band.gif",
+    "usdcad_tests_look_ahead.gif",
+    "usdcad_tests_half_lives.gif",
 ]
 
 #: Each scene's strokes, by their ids, in the order they are drawn.
 STROKES = [
+    ["top-path", "closes", "bottom-path", "trip-1", "trip-2", "trip-3"],
     ["mean", "price", "pull"],
     ["mean", "rise", "high", "fall"],
     ["start", "wide-up", "wide-down", "narrow-up", "narrow-down"],
@@ -132,9 +151,19 @@ STROKES = [
         "check-half-life-0",
     ],
     ["days", "last", "grey", "adfuller", "jplv7", "one-row"],
+    ["axis", "walks", "band", "half", "run", "book", *[f"start-{k}" for k in range(11)]],
+    ["timeline", "measure", "trade", "earlier", "after"],
+    ["sample", *[f"tick-{k}" for k in range(1, 11)]],
 ]
 
 LABELS = [
+    [
+        "a test reads all 1,216 closes",
+        "round trip",
+        "round trip",
+        "round trip",
+        "a backtest sees only its round trips",
+    ],
     ["Random walk?", "Pulled back?"],
     ["high close…", "…then a fall", "λ < 0"],
     ["random walk, H = 0.5", "reverting, H < 0.5", r"variance $\sim \tau^{2H}$"],
@@ -185,11 +214,40 @@ LABELS = [
         "the script’s figure",
         "the one row",
     ],
+    [
+        "40,000 random walks",
+        "±1 SD",
+        "0.5",
+        "0.4732",
+        "this run",
+        "0.49",
+        "the book",
+        "eleven start days",
+        "six print as 0.49",
+    ],
+    [
+        "2007-07-23",
+        "2012-03-28",
+        "measure the half-life: all 1,216 closes",
+        "2008-01-02",
+        "trade with a 115-day lookback",
+        "every day traded sits inside the days measured",
+        "measure on earlier days",
+        "trade only after",
+        "a sketch of the fix, not a run",
+    ],
+    [
+        "2007-07-23",
+        "2012-03-28",
+        "115 days",
+        "10.6 half-lives",
+        "only a few stretches for a distance from the mean to halve",
+    ],
 ]
 
 #: The frames each GIF takes, and how long one pass shows, in milliseconds.
-FRAMES = [29, 31, 29, 30, 29, 32, 44, 77, 58]
-MS = [7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900, 13500]
+FRAMES = [55, 29, 31, 29, 30, 29, 32, 44, 77, 58, 62, 44, 34]
+MS = [10700, 7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900, 13500, 12400, 10600, 8600]
 
 #: How far, in pixels, every label and title must sit from the nearest stroke.
 #: The sketch's wobble moves a line a pixel or two off its points, so this
@@ -218,8 +276,14 @@ def run(sources):
 
 
 @pytest.fixture(scope="module")
-def drawn(run):
-    return scenes(run)
+def measured(sources):
+    """The random walks and start days Lesson 3's scene draws, a few seconds."""
+    return spread(sources[1])
+
+
+@pytest.fixture(scope="module")
+def drawn(run, measured):
+    return scenes(run, measured)
 
 
 @pytest.fixture(scope="module")
@@ -228,17 +292,17 @@ def frames(drawn):
 
 
 @pytest.fixture(scope="module")
-def gifs(tmp_path_factory, sources):
+def gifs(tmp_path_factory, sources, measured):
     return make_usdcad_tests_whiteboards(
-        out_dir=tmp_path_factory.mktemp("whiteboards"), sources=sources
+        out_dir=tmp_path_factory.mktemp("whiteboards"), sources=sources, measured=measured
     )
 
 
 @pytest.fixture(scope="module")
 def question(drawn):
-    """The first scene drawn, which is enough to watch strokes and labels."""
-    steps = timeline(drawn[0])
-    return steps, render(drawn[0], steps)
+    """The question's scene drawn, which is enough to watch strokes and labels."""
+    steps = timeline(drawn[1])
+    return steps, render(drawn[1], steps)
 
 
 def _durations(path) -> list[int]:
@@ -256,7 +320,7 @@ def _inked(image: Image.Image) -> int:
 
 
 class TestTheScenes:
-    def test_there_are_nine_in_the_order_the_post_reads_them(self, drawn) -> None:
+    def test_there_are_thirteen_in_the_order_the_post_reads_them(self, drawn) -> None:
         assert [scene.title for scene in drawn] == TITLES
 
     def test_no_title_carries_a_scene_number(self, drawn) -> None:
@@ -296,11 +360,20 @@ class TestTheScenes:
                 assert stroke.points == len(stroke.y)
 
 
+def _font(monkeypatch, fallback: bool) -> None:
+    """Draw in DejaVu Sans, the font CI falls back to and wider than the hand
+    fonts, when ``fallback`` is set, and in the installed hand font otherwise."""
+    if fallback:
+        monkeypatch.setattr(whiteboard, "hand_font", lambda: whiteboard.FALLBACK_FONT)
+
+
 class TestTheLabelsStayClearOfTheLines:
-    def test_every_label_and_title_clears_every_stroke(self, drawn) -> None:
+    @pytest.mark.parametrize("fallback", [False, True], ids=["installed font", "fallback font"])
+    def test_every_label_and_title_clears_every_stroke(self, drawn, monkeypatch, fallback) -> None:
+        _font(monkeypatch, fallback)
         for scene in drawn:
             found = clearances(scene)
-            assert sorted(found) == sorted([*scene.labels, scene.title])
+            assert set(found) == {*scene.labels, scene.title}
             for text, pixels in found.items():
                 assert pixels >= CLEAR_PX, (scene.title, text, round(pixels, 1))
 
@@ -313,15 +386,19 @@ class TestTheLabelsStayClearOfTheLines:
     def test_the_hurst_formula_sits_under_the_starting_point(self, drawn) -> None:
         """Left of where the curves end and below where they start, so it
         reads as a statement about both pairs."""
-        hurst = drawn[2]
+        hurst = drawn[3]
         start = next(s for s in hurst.strokes if s.gid == "start")
         formula = next(s for s in hurst.steps if isinstance(s, Label) and s.math)
         assert formula.x <= start.x[0]
         assert formula.y < min(float(s.y.min()) for s in hurst.strokes)
 
-    def test_every_label_and_title_sits_inside_the_board(self, drawn) -> None:
+    @pytest.mark.parametrize("fallback", [False, True], ids=["installed font", "fallback font"])
+    def test_every_label_and_title_sits_inside_the_board(
+        self, drawn, monkeypatch, fallback
+    ) -> None:
         """Clearance from the strokes says nothing about the frame's edge, and a
         wider font can push a label at the right end off the GIF."""
+        _font(monkeypatch, fallback)
         for scene in drawn:
             with matplotlib.rc_context(whiteboard._style()):
                 canvas, artists = whiteboard._board(scene)
@@ -338,7 +415,7 @@ class TestTheLabelsStayClearOfTheLines:
     def test_the_measure_sees_a_label_on_a_line(self, drawn) -> None:
         """A label moved onto its own stroke reads as touching, so the two
         tests above can fail."""
-        hurst = drawn[2]
+        hurst = drawn[3]
         steps = tuple(
             dataclasses.replace(s, x=0.6, y=2.0) if isinstance(s, Label) and s.math else s
             for s in hurst.steps
@@ -354,30 +431,43 @@ class TestTheNumbersComeFromTheRun:
 
     def test_the_half_life_scene_prints_the_runs_lookback(self, run) -> None:
         other = dataclasses.replace(run, lookback=100)
-        assert "≈ 100 days" in scenes(other)[4].labels
-        assert "≈ 115 days" not in scenes(other)[4].labels
+        assert "≈ 100 days" in _scenes(other)[5].labels
+        assert "≈ 115 days" not in _scenes(other)[5].labels
 
     def test_the_warning_prints_the_runs_lookback_and_closes(self, run) -> None:
         other = dataclasses.replace(_shortened(run, 1000), lookback=100)
-        assert scenes(other)[5].labels[-1] == "100 days measured on all 1,000 closes"
+        assert _scenes(other)[6].labels[-1] == "100 days measured on all 1,000 closes"
 
     def test_the_gifs_are_drawn_from_the_sources_handed_in(
         self, monkeypatch, tmp_path, sources
     ) -> None:
         """The first 800 closes have a half-life that rounds to 100 days, as
         ``tests/test_usdcad_mean_reversion_figures.py`` pins, so a GIF that
-        read the file or wrote 115 in would fail here."""
+        read the file or wrote 115 in would fail here. The random walks are
+        measured on those closes too, so they are 800 long."""
         seen = []
         original = whiteboard.scenes
 
-        def record(run):
-            seen.append((run.lookback, len(run.closes)))
-            return original(run)[4:5]
+        def record(run, measured):
+            seen.append((run.lookback, len(run.closes), measured.length))
+            return original(run, measured)[5:6]
 
         monkeypatch.setattr(whiteboard, "scenes", record)
         entry, closes = sources
         make_usdcad_tests_whiteboards(out_dir=tmp_path, sources=(entry, closes[:800]))
-        assert seen == [(100, 800)]
+        assert seen == [(100, 800, 800)]
+
+
+#: Random walks drawn for a measurement a test makes on a run it altered. Few
+#: are needed, since such a test reads what the scene does with the walks
+#: rather than how they spread.
+FEW_PATHS = 400
+
+
+def _scenes(run, measured=None):
+    """Every scene of ``run``, with Lesson 3's walks and start days measured on
+    ``run``'s own closes from :data:`FEW_PATHS` walks unless handed in."""
+    return scenes(run, measured if measured is not None else spread(run.closes, paths=FEW_PATHS))
 
 
 def _shortened(run, closes: int, drops: tuple[int, int] = (2, 3)):
@@ -429,7 +519,7 @@ class TestChansReading:
         """The board distance between any two marks over the gap between their
         values is one number, so the line is a ruler rather than a sketch."""
         run = _altered(run) if altered else run
-        scene = scenes(run)[6]
+        scene = _scenes(run)[7]
         values = [*run.adf.critical, run.adf.statistic]
         xs = [_x(scene, gid) for gid in ("tick-1", "tick-5", "tick-10", "statistic")]
         slopes = [
@@ -443,15 +533,15 @@ class TestChansReading:
         assert line.x.min() < min(xs) and max(xs) < line.x.max()
 
     def test_the_dot_sits_right_of_the_10_percent_tick(self, drawn) -> None:
-        reading = drawn[6]
+        reading = drawn[7]
         assert _x(reading, "statistic") > _x(reading, "tick-10")
 
     def test_a_statistic_below_the_10_percent_value_moves_the_dot_left_of_it(self, run) -> None:
-        reading = scenes(_altered(run, statistic=-3.0))[6]
+        reading = _scenes(_altered(run, statistic=-3.0))[7]
         assert _x(reading, "tick-5") < _x(reading, "statistic") < _x(reading, "tick-10")
 
     def test_the_shaded_zone_runs_from_the_line_start_to_the_10_percent_tick(self, drawn) -> None:
-        reading = drawn[6]
+        reading = drawn[7]
         zone = next(s for s in reading.strokes if s.gid == "zone")
         line = next(s for s in reading.strokes if s.gid == "line")
         assert zone.x.min() == line.x.min()
@@ -459,7 +549,7 @@ class TestChansReading:
         assert zone.y.min() > line.y[0], "the zone sits above the line"
 
     def test_the_arrow_runs_from_the_dot_to_the_10_percent_tick(self, drawn) -> None:
-        reading = drawn[6]
+        reading = drawn[7]
         arrow = next(s for s in reading.strokes if s.gid == "needs")
         dot, edge = _x(reading, "statistic"), _x(reading, "tick-10")
         assert dot - 0.5 < arrow.x[0] < dot
@@ -467,7 +557,7 @@ class TestChansReading:
         assert edge < arrow.x[tip] < edge + 0.5
 
     def test_each_tick_is_labelled_with_its_value_and_level(self, drawn) -> None:
-        reading = drawn[6]
+        reading = drawn[7]
         for gid, value, level in zip(
             ("tick-1", "tick-5", "tick-10"),
             ("−3.458", "−2.871", "−2.594"),
@@ -479,7 +569,7 @@ class TestChansReading:
             assert all(s.x == pytest.approx(_x(reading, gid)) for s in named)
 
     def test_the_labels_follow_the_runs_figures(self, run) -> None:
-        assert scenes(_altered(run))[6].labels == [
+        assert _scenes(_altered(run))[7].labels == [
             "−3.900",
             "1%",
             "−3.100",
@@ -511,7 +601,7 @@ class TestTheFingerprint:
     def test_four_values_each_with_its_own_check_mark(self, drawn) -> None:
         """Every value is followed at once by a green check, and nothing else
         is checked."""
-        steps = drawn[7].steps
+        steps = drawn[8].steps
         values = [
             k for k, s in enumerate(steps) if isinstance(s, Label) and self.VALUE.match(s.text)
         ]
@@ -523,7 +613,7 @@ class TestTheFingerprint:
         assert {steps[k].color for k in checks} == {whiteboard.GOOD}
 
     def test_each_value_sits_beside_the_calculation_that_gives_it(self, drawn) -> None:
-        steps = drawn[7].steps
+        steps = drawn[8].steps
         given = {
             s.names: [v.text for v in steps if isinstance(v, Label) and v.names == s.names]
             for s in steps
@@ -536,7 +626,7 @@ class TestTheFingerprint:
         }, SPEC
 
     def test_three_arrows_leave_the_csv(self, drawn) -> None:
-        fingerprint = drawn[7]
+        fingerprint = drawn[8]
         csv = next(s for s in fingerprint.strokes if s.gid == "csv")
         arrows = [s for s in fingerprint.strokes if s.gid.startswith("to-")]
         assert len(arrows) == 3
@@ -545,7 +635,7 @@ class TestTheFingerprint:
             assert csv.y.min() < arrow.y[0] < csv.y.max()
 
     def test_the_labels_follow_the_runs_figures(self, run) -> None:
-        labels = scenes(_altered(run))[7].labels
+        labels = _scenes(_altered(run))[8].labels
         assert [t for t in labels if self.VALUE.match(t) or "closes" in t] == [
             "1,000 closes",
             "−2.200000",
@@ -585,7 +675,7 @@ class TestOneRowApart:
         assert f"{run.adf.statistic:.6f}" == "-1.840744", SPEC
 
     def test_the_row_shows_six_days_and_the_last(self, drawn) -> None:
-        one_row = drawn[8]
+        one_row = drawn[9]
         assert len(_cells(one_row)) == 7
         assert one_row.labels[:8] == ["1", "2", "3", "4", "5", "6", "…", "1,216"], SPEC
         last = _stroke(one_row, "last")
@@ -596,7 +686,7 @@ class TestOneRowApart:
         """The moved run drops three and four rows, so its bars start on days 4
         and 5 and three days are greyed."""
         run = _shortened(run, 1000, (3, 4)) if moved else run
-        one_row = scenes(run)[8]
+        one_row = _scenes(run)[9]
         edges = _cells(one_row)
         early, late = run.adfuller_first_day, run.adf_first_day
         assert (early, late) == ((4, 5) if moved else (3, 4))
@@ -612,14 +702,14 @@ class TestOneRowApart:
         assert grey.x.max() <= adfuller.x.min() < jplv7.x.min()
 
     def test_two_days_are_greyed_on_the_runs_closes(self, drawn) -> None:
-        one_row = drawn[8]
+        one_row = drawn[9]
         edges = _cells(one_row)
         grey = _stroke(one_row, "grey")
         assert grey.x.max() == pytest.approx(edges[2]), "days 1 and 2"
         assert grey.color == whiteboard.MUTED
 
     def test_both_bars_end_at_the_last_cell_and_adfuller_runs_above(self, drawn) -> None:
-        one_row = drawn[8]
+        one_row = drawn[9]
         last = _stroke(one_row, "last")
         adfuller, jplv7 = _stroke(one_row, "adfuller"), _stroke(one_row, "jplv7")
         assert adfuller.x.max() == jplv7.x.max() == last.x.max()
@@ -627,7 +717,7 @@ class TestOneRowApart:
         assert last.y.min() > adfuller.y.max()
 
     def test_each_value_sits_at_the_end_of_its_bar(self, drawn) -> None:
-        one_row = drawn[8]
+        one_row = drawn[9]
         for gid, name, value in (
             ("adfuller", "adfuller, 1,214 rows", "−1.843018"),
             ("jplv7", "jplv7 adf, 1,213 rows", "−1.840744"),
@@ -642,7 +732,7 @@ class TestOneRowApart:
         assert script.names == "jplv7"
 
     def test_the_one_row_is_adfullers_first_day_marked_last(self, run, drawn) -> None:
-        one_row = drawn[8]
+        one_row = drawn[9]
         edges = _cells(one_row)
         mark = one_row.steps[-2]
         assert mark.gid == "one-row" and mark.color == whiteboard.ACCENT
@@ -653,7 +743,7 @@ class TestOneRowApart:
         assert note.x == pytest.approx((edges[day - 1] + edges[day]) / 2)
 
     def test_the_labels_follow_the_runs_figures(self, run) -> None:
-        labels = scenes(_altered(run))[8].labels
+        labels = _scenes(_altered(run))[9].labels
         assert labels[7] == "1,000"
         assert labels[9:13] == [
             "adfuller, 998 rows",
@@ -669,7 +759,293 @@ class TestOneRowApart:
     )
     def test_a_run_the_words_would_misdescribe_is_refused(self, run, drops) -> None:
         with pytest.raises(ValueError, match="one day later"):
-            scenes(_shortened(run, 1000, drops))
+            _scenes(_shortened(run, 1000, drops))
+
+
+class TestEveryDayOrAFewRoundTrips:
+    """The opening section's point. One schematic path is drawn twice: a dot on
+    every point of the upper copy, and a few round trips under the fainter
+    lower copy. Only the count of closes comes from the run."""
+
+    def test_the_label_prints_the_runs_closes(self, run) -> None:
+        assert _scenes(run)[0].labels[0] == "a test reads all 1,216 closes", SPEC
+        assert _scenes(_shortened(run, 1000))[0].labels[0] == "a test reads all 1,000 closes"
+
+    def test_both_copies_are_the_same_path(self, drawn) -> None:
+        every_day = drawn[0]
+        top, bottom = _stroke(every_day, "top-path"), _stroke(every_day, "bottom-path")
+        assert np.array_equal(top.x, bottom.x)
+        gap = top.y - bottom.y
+        assert gap == pytest.approx(np.full(len(gap), gap[0]), abs=1e-12)
+        assert gap[0] > np.ptp(top.y), "the copies do not overlap"
+        assert (top.color, bottom.color) == (whiteboard.INK, whiteboard.MUTED)
+
+    def test_a_dot_lands_on_every_point_of_the_upper_copy(self, drawn) -> None:
+        every_day = drawn[0]
+        top, closes = _stroke(every_day, "top-path"), _stroke(every_day, "closes")
+        assert closes.dots > 0 and closes.points > 30
+        assert (closes.x.min(), closes.x.max()) == (top.x.min(), top.x.max())
+        assert closes.y == pytest.approx(np.interp(closes.x, top.x, top.y), abs=0.01)
+        assert np.all(np.diff(closes.x) > 0), "drawn from left to right"
+
+    def test_each_round_trip_is_a_bracket_under_the_lower_copy(self, drawn) -> None:
+        every_day = drawn[0]
+        bottom = _stroke(every_day, "bottom-path")
+        trips = [s for s in every_day.strokes if s.gid.startswith("trip-")]
+        assert len(trips) == 3
+        for trip in trips:
+            entry, exit_ = trip.x[0], trip.x[-1]
+            assert bottom.x.min() < entry < exit_ < bottom.x.max()
+            for end in (0, -1):
+                assert trip.y[end] < np.interp(trip.x[end], bottom.x, bottom.y)
+            assert trip.y.min() < bottom.y.min(), "its base runs under the whole copy"
+            named = [s for s in every_day.steps if isinstance(s, Label) and s.names == trip.gid]
+            assert [s.text for s in named][0] == "round trip"
+            assert entry < named[0].x < exit_
+        ends = [(t.x[0], t.x[-1]) for t in trips]
+        assert all(a[1] < b[0] for a, b in zip(ends, ends[1:], strict=False))
+
+    def test_the_round_trips_carry_no_number(self, drawn) -> None:
+        """They stand for a generic rule, not the post's, so nothing on the
+        lower copy counts anything."""
+        every_day = drawn[0]
+        lower = every_day.steps[[s.gid for s in every_day.strokes].index("bottom-path") + 2 :]
+        assert not [s.text for s in lower if isinstance(s, Label) and re.search(r"\d", s.text)]
+
+
+def _axis(scene) -> tuple[float, float]:
+    axis = _stroke(scene, "axis")
+    return float(axis.x.min()), float(axis.x.max())
+
+
+def _bins(measured) -> tuple[np.ndarray, np.ndarray]:
+    """The bins the histogram should draw: a third of an SD wide, three SDs
+    either side of the walks' mean."""
+    mean, sd = measured.walks.mean(), measured.walks.std(ddof=1)
+    edges = mean + sd * np.arange(-9, 10) / 3
+    return edges, np.histogram(measured.walks, bins=edges)[0]
+
+
+def _altered_spread(measured) -> whiteboard.Spread:
+    """The measurement with every figure Lesson 3's scene prints moved: fewer
+    walks with another mean and SD, and every start day printing as 0.49."""
+    offsets = tuple(
+        dataclasses.replace(row, genhurst=0.486 + 0.0008 * row.offset) for row in measured.offsets
+    )
+    return dataclasses.replace(
+        measured, walks=0.5 * measured.walks[:30_000] + 0.26, offsets=offsets
+    )
+
+
+class TestChanceAndTheStartDay:
+    """Lesson 3's scene, drawn to scale: a histogram of ``genhurst`` on the
+    random walks, its ±1 SD band, lines at 0.5, the run's H and the book's
+    0.49, and a dot for each start day's ``genhurst``. The bins, the mean, the
+    SD, the start days and the run's H come from the measurement and the run,
+    and only the book's 0.49 and a random walk's 0.5 are constants."""
+
+    def test_the_measurement_is_the_one_the_post_quotes(self, run, measured) -> None:
+        assert (len(measured.walks), measured.length) == (40_000, 1216), NOISE_SPEC
+        assert round(float(measured.walks.mean()), 3) == 0.496, NOISE_SPEC
+        assert round(float(measured.walks.std(ddof=1)), 3) == 0.023, NOISE_SPEC
+        assert f"{run.hurst:.4f}" == "0.4732", SPEC
+        assert [row.offset for row in measured.offsets if row.prints_as_book] == [1, 3, 4, 6, 8, 9]
+        assert measured.offsets[0].genhurst == run.hurst
+
+    def test_the_axis_leaves_out_111_walks_beyond_three_sds(self, measured) -> None:
+        """The drawn bins hold every walk but these, which are not piled into
+        the end bins."""
+        _, counts = _bins(measured)
+        assert len(measured.walks) - counts.sum() == 111, NOISE_SPEC
+
+    @pytest.mark.parametrize("altered", [False, True])
+    def test_each_bar_is_a_bin_of_the_walks_in_proportion_to_its_count(
+        self, run, measured, altered
+    ) -> None:
+        measured = _altered_spread(measured) if altered else measured
+        scene = _scenes(run, measured)[10]
+        edges, counts = _bins(measured)
+        left, right = _axis(scene)
+
+        def at(value):
+            return left + (value - edges[0]) / (edges[-1] - edges[0]) * (right - left)
+
+        walks = _stroke(scene, "walks")
+        base = float(_stroke(scene, "axis").y[0])
+        heights = []
+        for k in range(len(counts)):
+            inside = (walks.x > at(edges[k]) + 1e-9) & (walks.x < at(edges[k + 1]) - 1e-9)
+            assert inside.any() and np.ptp(walks.y[inside]) == 0, k
+            heights.append(float(walks.y[inside][0]) - base)
+        assert counts.max() > 0
+        per_count = np.array(heights) / counts
+        assert per_count == pytest.approx(np.full(len(counts), per_count[0]), rel=1e-12)
+        assert (walks.x.min(), walks.x.max()) == pytest.approx((left, right))
+
+    @pytest.mark.parametrize("altered", [False, True])
+    def test_every_line_and_dot_sits_at_its_value(self, run, measured, altered) -> None:
+        """One affine map from the bins' edges onto the axis places 0.5, the
+        run's H, the book's 0.49 and every start day's dot."""
+        if altered:
+            run, measured = dataclasses.replace(run, hurst=0.4612), _altered_spread(measured)
+        scene = _scenes(run, measured)[10]
+        edges, _ = _bins(measured)
+        left, right = _axis(scene)
+        values = {"half": 0.5, "run": run.hurst, "book": 0.49}
+        values |= {f"start-{row.offset}": row.genhurst for row in measured.offsets}
+        for gid, value in values.items():
+            expected = left + (value - edges[0]) / (edges[-1] - edges[0]) * (right - left)
+            assert _x(scene, gid) == pytest.approx(expected, abs=1e-12), gid
+        xs = [_x(scene, gid) for gid in values]
+        slopes = [
+            (xs[j] - xs[0]) / (v - values["half"])
+            for j, v in enumerate(values.values())
+            if j and v != values["half"]
+        ]
+        assert slopes == pytest.approx([slopes[0]] * len(slopes), rel=1e-9)
+
+    def test_the_band_spans_one_sd_either_side_under_the_outline(self, drawn, measured) -> None:
+        scene = drawn[10]
+        edges, _ = _bins(measured)
+        left, right = _axis(scene)
+        band, walks = _stroke(scene, "band"), _stroke(scene, "walks")
+        mean, sd = measured.walks.mean(), measured.walks.std(ddof=1)
+        span = [
+            left + (v - edges[0]) / (edges[-1] - edges[0]) * (right - left)
+            for v in (mean - sd, mean + sd)
+        ]
+        assert (band.x.min(), band.x.max()) == pytest.approx(tuple(span))
+        order = np.argsort(walks.x, kind="stable")
+        for x, y in zip(band.x, band.y, strict=True):
+            assert y <= walks.y[order][np.searchsorted(walks.x[order], x, side="right") - 1] + 1e-9
+
+    def test_the_dots_that_print_as_the_book_take_its_colour(self, drawn, measured) -> None:
+        scene = drawn[10]
+        colours = [_stroke(scene, f"start-{row.offset}").color for row in measured.offsets]
+        book = [row.prints_as_book for row in measured.offsets]
+        assert colours == [whiteboard.LOST if hit else whiteboard.ACCENT for hit in book]
+        assert _stroke(scene, "book").color == whiteboard.LOST
+        assert _x(scene, "start-0") == _x(scene, "run")
+
+    def test_the_dots_sit_under_the_axis_and_none_touch(self, drawn) -> None:
+        scene = drawn[10]
+        base = float(_stroke(scene, "axis").y[0])
+        dots = [s for s in scene.strokes if s.gid.startswith("start-")]
+        assert all(dot.y[0] < base - 1 for dot in dots)
+        for i, a in enumerate(dots):
+            for b in dots[i + 1 :]:
+                assert math.hypot(a.x[0] - b.x[0], a.y[0] - b.y[0]) >= 0.19, (a.gid, b.gid)
+
+    def test_the_labels_follow_the_run_and_the_measurement(self, run, measured) -> None:
+        altered = _altered_spread(measured)
+        scene = _scenes(dataclasses.replace(run, hurst=0.4612), altered)[10]
+        assert scene.labels == [
+            "30,000 random walks",
+            "±1 SD",
+            "0.5",
+            "0.4612",
+            "this run",
+            "0.49",
+            "the book",
+            "eleven start days",
+            "eleven print as 0.49",
+        ]
+
+    @pytest.mark.parametrize("cut", ["length", "start"])
+    def test_a_measurement_of_other_closes_is_refused(self, run, measured, cut) -> None:
+        other = (
+            dataclasses.replace(measured, length=1000)
+            if cut == "length"
+            else dataclasses.replace(
+                measured,
+                offsets=(dataclasses.replace(measured.offsets[0], first_day=run.closes.index[1]),),
+            )
+        )
+        with pytest.raises(ValueError, match="walks as long as the run"):
+            scenes(run, other)
+
+
+class TestTheLookAhead:
+    """Lesson 5's look-ahead, the run's three rows drawn to scale by date, and
+    a dashed schematic pair that carries no dates or numbers."""
+
+    def test_the_run_starts_trading_on_2008_01_02(self, run) -> None:
+        dates = [
+            str(d.date()) for d in (run.closes.index[0], run.first_position, run.closes.index[-1])
+        ]
+        assert dates == ["2007-07-23", "2008-01-02", "2012-03-28"], SPEC
+
+    @pytest.mark.parametrize("closes", [1216, 800])
+    def test_the_bars_are_to_scale_by_date(self, sources, closes) -> None:
+        """The first 800 closes trade from day 100 rather than day 115, so the
+        trading bar starts elsewhere."""
+        entry, every = sources
+        run = stationarity_tests(entry, every[:closes])
+        scene = _scenes(run)[11]
+        timeline, measure, trade = (_stroke(scene, g) for g in ("timeline", "measure", "trade"))
+        left, right = timeline.x.min(), timeline.x.max()
+        assert (measure.x.min(), measure.x.max()) == (left, right)
+        assert trade.x.max() == right
+        first, last = run.closes.index[0], run.closes.index[-1]
+        share = (run.first_position - first) / (last - first)
+        assert (trade.x.min() - left) / (right - left) == pytest.approx(share, rel=1e-12)
+        assert trade.x.min() > left, "the trading bar does not start on the first close"
+        assert scene.labels[:5] == [
+            str(first.date()),
+            str(last.date()),
+            f"measure the half-life: all {closes:,} closes",
+            str(run.first_position.date()),
+            f"trade with a {run.lookback}-day lookback",
+        ]
+
+    def test_the_schematic_pair_splits_the_sample_and_carries_no_number(self, drawn) -> None:
+        scene = drawn[11]
+        timeline = _stroke(scene, "timeline")
+        earlier, after = _stroke(scene, "earlier"), _stroke(scene, "after")
+        assert earlier.dashed and after.dashed
+        assert earlier.x.min() == timeline.x.min() and after.x.max() == timeline.x.max()
+        assert earlier.x.max() == after.x.min(), "the measuring bar ends where trading begins"
+        named = [s for s in scene.steps if isinstance(s, Label) and s.names in ("earlier", "after")]
+        assert [s.text for s in named] == [
+            "measure on earlier days",
+            "trade only after",
+            "a sketch of the fix, not a run",
+        ]
+        assert not [s.text for s in named if re.search(r"\d", s.text)]
+
+    def test_the_note_names_the_trading_bar(self, drawn) -> None:
+        note = next(s for s in drawn[11].steps if isinstance(s, Label) and "inside" in s.text)
+        assert (note.names, note.color) == ("trade", whiteboard.LOST)
+
+
+class TestTenHalfLives:
+    """Lesson 5's other limit: a tick every lookback along the closes, the
+    title counting the ticks and the label the closes over the unrounded
+    half-life, which the post prints as 10.6."""
+
+    def test_the_label_divides_the_closes_by_the_unrounded_half_life(self, run, drawn) -> None:
+        assert "10.6 half-lives" in drawn[12].labels, SPEC
+        other = dataclasses.replace(run, half_life=100.0)
+        assert "12.2 half-lives" in _scenes(other)[12].labels
+        assert _scenes(other)[12].title == "Ten half-lives", "the ticks follow the lookback"
+
+    @pytest.mark.parametrize("lookback", [115, 100])
+    def test_a_tick_falls_every_lookback(self, run, lookback) -> None:
+        run = dataclasses.replace(run, lookback=lookback)
+        scene = _scenes(run)[12]
+        sample = _stroke(scene, "sample")
+        left, right = sample.x.min(), sample.x.max()
+        ticks = [s for s in scene.strokes if s.gid.startswith("tick-")]
+        assert len(ticks) == len(run.closes) // lookback
+        xs = [_x(scene, t.gid) for t in ticks]
+        step = lookback / len(run.closes) * (right - left)
+        assert xs == pytest.approx([left + step * k for k in range(1, len(xs) + 1)], abs=1e-12)
+        assert scene.title == {115: "Ten half-lives", 100: "Twelve half-lives"}[lookback]
+        assert f"{lookback} days" in scene.labels
+
+    def test_the_line_runs_from_the_first_close_to_the_last(self, run) -> None:
+        scene = _scenes(_shortened(run, 1000))[12]
+        assert scene.labels[:2] == ["2007-07-23", str(run.closes.index[999].date())]
 
 
 class TestTheTimeline:
@@ -710,9 +1086,9 @@ class TestTheTimeline:
 
     def test_a_stroke_grows_frame_by_frame(self, drawn, frames) -> None:
         """The question's price line shows a longer prefix on each of its 14 frames."""
-        price = drawn[0].steps[1]
+        price = drawn[1].steps[1]
         assert price.gid == "price"
-        shown = [f.partial for f in frames[0] if f.done == 1 and f.partial]
+        shown = [f.partial for f in frames[1] if f.done == 1 and f.partial]
         assert len(shown) == price.frames - 1 == 13
         assert shown == sorted(set(shown))
         assert shown[-1] < price.points
@@ -733,7 +1109,7 @@ class TestTheDrawing:
 
     def test_each_label_adds_ink_on_the_frame_it_appears(self, drawn, question) -> None:
         steps, images = question
-        labels = [i + 1 for i, s in enumerate(drawn[0].steps) if isinstance(s, Label)]
+        labels = [i + 1 for i, s in enumerate(drawn[1].steps) if isinstance(s, Label)]
         for done in labels:
             k = next(k for k, f in enumerate(steps) if f.done == done and f.partial == 0)
             assert _inked(images[k]) > _inked(images[k - 1]), done
@@ -762,7 +1138,7 @@ class TestTheDrawing:
 
 
 class TestTheGifs:
-    def test_there_are_nine_named_for_their_scenes(self, gifs) -> None:
+    def test_there_are_thirteen_named_for_their_scenes(self, gifs) -> None:
         assert [path.name for path in gifs] == GIFS
 
     def test_each_is_680_by_320_with_its_frames(self, gifs) -> None:
