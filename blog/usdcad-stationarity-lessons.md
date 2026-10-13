@@ -29,7 +29,7 @@ The trade, Example 2.5, uses what this post calls the linear rule. Each day it c
 
 The script calls the position its market value. Each day’s P&L is yesterday’s position times today’s percent change in the close. Nothing else enters it. The rule pays no transaction cost and earns or pays no overnight interest on the currencies it holds, which the [post on AUD.CAD with rollover interest](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-rollover-lessons.md) shows can matter. Against any fixed account the rule’s Sharpe ratio is 0.12, over the 1,101 days the rule holds a position. The book prints none. The figure leaves out the rollover interest, as the P&L does.
 
-The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) of minute bars from Chan’s 2018 Python port of his book’s code, saved 2018-10-13. The script loads a MATLAB file of the same bars, which neither public copy of his code includes. The script keeps the bar stamped 16:59 New York time on each day, which gives 1,216 closes from 2007-07-23 to 2012-03-28. This repository transcribed the script from `ericnberwick/EpchanPreview` at commit `e4bc46f`. It also transcribed jplv7’s `adf` and Aste’s `genhurst` from another public copy, and rebuilt `vratiotest` from Lo and MacKinlay’s paper rather than copying MathWorks’ code.
+The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) of minute bars from Chan’s 2018 Python port of his book’s code. The script loads a MATLAB file of the same bars, which neither public copy of his code includes. The script keeps the bar stamped 16:59 New York time on each day, which gives 1,216 closes from 2007-07-23 to 2012-03-28. The references list where the script and the toolbox functions came from.
 
 ## Lesson 1: 4 statistics reproduced
 
@@ -163,9 +163,10 @@ One habit for each lesson.
 ## References
 
 1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 2.1 to 2.5, with pages 39, 41, 42, 44, 45, 46, 47, 48, 49, 50, 58 and 60 cited. The page numbers are the 2013 print edition’s, ISBN 9781118460146, found by searching each quoted sentence in Google Books’ preview on 2026-10-11.
-2. `stationarityTests.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
-3. LeSage, J. P. The jplv7 Econometrics Toolbox for MATLAB, `adf.m` and `ztcrit.m`.
-4. Aste, T. `genhurst.m`, the generalized Hurst exponent, MATLAB File Exchange, dated 2013-01-30.
-5. Lo, A. W., and MacKinlay, A. C. (1988). Stock market prices do not follow random walks: evidence from a simple specification test. *Review of Financial Studies*, 1(1), 41–66.
+2. `stationarityTests.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code. This repository transcribed the script from it.
+3. `inputData_USDCAD.csv`, the USD.CAD minute bars in Chan’s 2018 Python port of the book’s code, saved 2018-10-13. Its [record in the data index](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) names its source, span and price basis.
+4. LeSage, J. P. The jplv7 Econometrics Toolbox for MATLAB, `adf.m` and `ztcrit.m`, transcribed from commit `43c0bb4` of burakbayramli/books, another public copy of Chan’s code.
+5. Aste, T. `genhurst.m`, the generalized Hurst exponent, MATLAB File Exchange, dated 2013-01-30, transcribed from the same copy.
+6. Lo, A. W., and MacKinlay, A. C. (1988). Stock market prices do not follow random walks: evidence from a simple specification test. *Review of Financial Studies*, 1(1), 41–66. This repository rebuilt `vratiotest` from the paper rather than copying MathWorks’ code.
 
 *Not investment advice. Code: [the five examples](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/usdcad_mean_reversion.py), [the three toolbox tests](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/stationarity_tests.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/usdcad_mean_reversion_figures.py), with the checks behind [the examples’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_usdcad_mean_reversion.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_usdcad_mean_reversion_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its Kindle location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-22-the-stationarity-tests-on-usdcad-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*
