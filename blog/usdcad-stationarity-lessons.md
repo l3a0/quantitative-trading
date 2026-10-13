@@ -117,6 +117,8 @@ The difference is one row of the sample. A regression on one lagged change canno
 
 Two other copies of this test show why that row matters. Chan’s own 2018 Python port of the script calls `adfuller`, so it would print −1.843018 where the script’s comment records −1.840744. This repository’s shared library of statistics runs `adfuller` too, so a transcription that reached for it would have missed the script’s figure. This repository’s test suite holds both numbers, so a port that swaps one toolbox for the other fails a test. On these closes the test’s conclusion does not change, since both statistics are far above −2.594. On a series sitting near a critical value, it could.
 
+A day at the start of the sample moves H far more than it moves the ADF statistic. Starting the sample one day later moves the ADF statistic from −1.840744 only to −1.836150, but it moves `genhurst`’s H from 0.4732 to 0.4891, which prints as the book’s 0.49. Lesson 3 explains why.
+
 ## Lesson 3: H misses 0.49 by less than chance moves it
 
 The book reports an H of 0.49 from the MATLAB code, “which suggests that the price series is weakly mean reverting” (Chan, 2013, p. 45). It is the one figure in the chapter’s script that does not land. Three readings of H on the same closes all miss it.
