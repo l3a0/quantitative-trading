@@ -262,6 +262,10 @@ class TestTheReadPath:
         average = _by_gid(drawn.axes[0].lines)["moving-average"]
         assert int(np.flatnonzero(np.isfinite(average.get_ydata()))[0]) == 19
         assert average.get_label() == "20-day moving average"
+        heading = _title(drawn.axes[0])
+        assert len(short.warm_up) != 115
+        assert "their 20-day moving average" in heading
+        assert f"The {len(short.warm_up)} closes before it" in heading
 
     @pytest.mark.parametrize(
         "refusal",
