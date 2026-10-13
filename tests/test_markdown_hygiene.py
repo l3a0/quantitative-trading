@@ -216,6 +216,7 @@ MUST_BE_SWEPT = frozenset(
         "blog/survivorship-and-transaction-costs.md",
         "blog/tu-hypothesis-tests-lessons.md",
         "blog/tu-momentum-lessons.md",
+        "blog/usdcad-holdout-lessons.md",
         "blog/usdcad-stationarity-lessons.md",
         "blog/vix-filter-lessons.md",
         "blog/vx-calendar-spread-lessons.md",
@@ -1220,6 +1221,7 @@ class TestTheFigureHasThreeCopies:
             "monte-carlo-leverage-lessons.md",
             "low-beta-holdout-lessons.md",
             "vix-filter-lessons.md",
+            "usdcad-holdout-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
         assert any(embed.endswith(".gif") for _, embed in embeds), "no GIF embed was read"
         for path, embed in embeds:

@@ -70,7 +70,8 @@ about 20 of the holdout's first days, through 2012-04-26, from Chan's own
 tests read the vintage in the commit that landed it.
 ``tests/test_usdcad_holdout.py`` is the single authority for every number any
 prose surface quotes about it, and Entry 51 of the log carries the verdict. It
-first ran here on 2026-10-13.
+first ran here on 2026-10-13. The write-up, ``blog/usdcad-holdout-lessons.md``,
+teaches the result, and :mod:`chan.usdcad_holdout_figures` draws its figure.
 
 Usage::
 
