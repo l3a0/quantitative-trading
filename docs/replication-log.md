@@ -5409,7 +5409,7 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/usdcad-stationarity-lessons.md](../blog/usdcad-stationarity-lessons.md)
 moves with it, since that post quotes most of these figures. So do its chart,
 which `uv run python -m chan.usdcad_mean_reversion_figures` redraws, and its
-whiteboard sketch of the tests, which
+six whiteboard sketches of the tests, which
 `uv run python -m chan.usdcad_tests_whiteboard` redraws.
 
 ## Entry 23: EWA, EWC and IGE, Chan's *Algorithmic Trading*

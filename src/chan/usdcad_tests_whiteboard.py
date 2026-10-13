@@ -1,12 +1,12 @@
-"""A whiteboard sketch of the four tests and the rule in the USD.CAD post.
+"""Whiteboard sketches of the four tests and the rule in the USD.CAD post.
 
 The post's section "The tests and the file" explains four ways of asking one
 question, whether USD.CAD wanders like a random walk or is pulled back to a
 mean, and then the linear rule that trades the answer. Each test is a short
 paragraph of regression terms. A reader who has not met them gets more from a
 picture of what each one looks for than from the terms, so this module draws
-the section as an animated GIF in six scenes, each sketched stroke by stroke as
-if on a whiteboard.
+six scenes, each sketched stroke by stroke as if on a whiteboard. Each scene is
+its own looping GIF, so the post can place it right after the text it draws.
 
 1. The question: a wiggly price around a dashed mean.
 2. ADF: a high close followed by a fall, which is what a negative λ means.
@@ -18,6 +18,10 @@ if on a whiteboard.
 6. The linear rule: a z-score of +2 sold short and one of −1.5 bought, with a
    warning that the lookback was measured on every close the rule trades.
 
+The numbers above order this list and nothing else. A GIF stands alone, so its
+title is the scene's name with no number, and its file is named for the scene,
+such as ``usdcad_tests_hurst.gif``.
+
 The shapes are schematic and carry no data. Two numbers do: the lookback the
 half-life rounds to and the count of closes. Both come from the
 :class:`chan.usdcad_mean_reversion.StationarityRun` that
@@ -26,20 +30,23 @@ run's own path, so the scale-break guard runs here too. A change to the
 vintage or to how the half-life rounds moves the labels with the run.
 
 :func:`scenes` describes every stroke and label as data, :func:`timeline`
-orders them into frames, and :func:`render` draws them. A test reads the first
-two without drawing anything. A label always appears after the stroke it
-names, and each scene holds on its last frame before the next one starts.
+orders one scene's steps into frames, and :func:`render` draws them. A test
+reads the first two without drawing anything. A label always appears after the
+stroke it names, and each GIF holds on its finished drawing for
+:data:`HOLD_MS` before it loops. :func:`clearances` measures how far each
+label and title sits from the nearest stroke on the finished drawing, so a
+test can hold that no label touches a line it does not name.
 
 The sketch is deterministic. Matplotlib's path sketch adds the same wobble on
 every draw, which two draws in separate processes confirmed byte for byte when
 this module was written. The palette is fixed rather than fitted to each
 frame, and nothing else here is random. So two draws on one machine give the
 same bytes, and a redraw with no change is a no-op diff. Pillow writes the
-GIF, and it arrives as a dependency of matplotlib rather than as an entry of
+GIFs, and it arrives as a dependency of matplotlib rather than as an entry of
 its own in ``pyproject.toml``.
 Another machine can differ, because the hand-drawn font is whichever of
 :data:`HAND_FONTS` is installed, with matplotlib's own DejaVu Sans as the
-fallback, and font rasterising varies across platforms. Redraw it with::
+fallback, and font rasterising varies across platforms. Redraw all six with::
 
     uv run python -m chan.usdcad_tests_whiteboard
 """
@@ -65,7 +72,8 @@ from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_mean_reversion import StationarityRun, read_sources, stationarity_tests
 from chan.vintage import VintageEntry, VintageUnavailable
 
-WHITEBOARD_GIF = "usdcad_tests_whiteboard.gif"
+#: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
+GIF_PREFIX = "usdcad_tests_"
 
 #: The frame in pixels, and the figure size and dpi that give it.
 WIDTH, HEIGHT = 680, 320
@@ -77,12 +85,12 @@ FRAME_MS = 100
 TITLE_MS = 400
 #: A label pops in on one frame that lasts this long.
 LABEL_MS = 350
-#: The last frame of each scene holds this much longer.
-HOLD_MS = 1400
+#: The finished drawing shows this long before the GIF loops back to its title.
+HOLD_MS = 4000
 
 BOARD = "#FFFFFF"
 #: The inks every stroke and label is drawn in. Each frame is mapped onto
-#: these and their blends with the white board, so the GIF carries one
+#: these and their blends with the white board, so every GIF carries one
 #: palette rather than one fitted to every frame.
 INKS = (INK, MUTED, ACCENT, GOOD, LOST)
 BLENDS = (1.0, 0.8, 0.6, 0.4, 0.2)
@@ -134,10 +142,17 @@ class Label:
 
 @dataclass(frozen=True)
 class Scene:
-    """One scene: its title and its strokes and labels in drawing order."""
+    """One scene: its title, the slug its GIF is named for, and its strokes
+    and labels in drawing order."""
 
     title: str
+    slug: str
     steps: tuple[Stroke | Label, ...]
+
+    @property
+    def gif(self) -> str:
+        """The GIF's file name, such as ``usdcad_tests_hurst.gif``."""
+        return f"{GIF_PREFIX}{self.slug}.gif"
 
     @property
     def labels(self) -> list[str]:
@@ -153,7 +168,6 @@ class Frame:
     """One GIF frame: the steps ``scene.steps[:done]`` are complete, and when
     ``partial`` is above zero the stroke at ``done`` shows that many points."""
 
-    scene: int
     done: int
     partial: int
     ms: int
@@ -196,7 +210,8 @@ def _the_question() -> Scene:
     x = np.linspace(0.4, 9.6, 140)
     price = 2.0 + 0.55 * np.sin(1.7 * x) + 0.3 * np.sin(4.3 * x + 1) + 0.12 * np.sin(9.1 * x)
     return Scene(
-        "1  The question",
+        "The question",
+        "question",
         (
             _stroke("mean", _line([(0.4, 2.0), (9.6, 2.0)]), color=MUTED, dashed=True, frames=6),
             _stroke("price", _curve(x, price), frames=14),
@@ -215,7 +230,8 @@ def _adf() -> Scene:
     fall = 1.4 + 2.0 * np.exp(-(after - 5.5) / 1.1) + 0.1 * np.sin(5.0 * (after - 5.5))
     peak = float(rise[-1])
     return Scene(
-        "2  ADF",
+        "ADF",
+        "adf",
         (
             _stroke("mean", _line([(0.4, 1.4), (9.6, 1.4)]), color=MUTED, dashed=True, frames=6),
             _stroke("rise", _curve(before, rise), frames=10),
@@ -233,7 +249,8 @@ def _hurst() -> Scene:
     x = 0.8 + t
     wide, narrow = 0.62 * np.sqrt(t), 0.5 * t**0.25
     return Scene(
-        "3  Hurst",
+        "Hurst",
+        "hurst",
         (
             _dot("start", 0.8, 2.0, color=INK),
             _stroke("wide-up", _curve(x, 2.0 + wide), color=INK, frames=6),
@@ -244,7 +261,10 @@ def _hurst() -> Scene:
             Label("reverting, H < 0.5", 6.6, 2.77, names="narrow-down", color=GOOD),
             # The tilde goes through mathtext as \sim, because the words
             # outside the dollar signs are set in the hand font, which lacks ∼.
-            Label(r"variance $\sim \tau^{2H}$", 6.6, 1.0, names="narrow-down", size=15, math=True),
+            # It sits under the starting point, apart from every curve, because
+            # it describes both pairs. Beside a curve's end it read as that
+            # curve's label.
+            Label(r"variance $\sim \tau^{2H}$", 0.4, 0.45, names="narrow-down", size=15, math=True),
         ),
     )
 
@@ -255,13 +275,14 @@ def _variance_ratio() -> Scene:
         return _line([(left, 0.7), (left, top), (right, top), (right, 0.7)])
 
     return Scene(
-        "4  Variance ratio",
+        "Variance ratio",
+        "variance_ratio",
         (
             _stroke("floor", _line([(1.4, 0.7), (8.6, 0.7)]), color=MUTED, frames=5),
             _stroke("two-day", bar(2.4, 2.2), color=GOOD, frames=8),
-            Label("2-day variance", 3.15, 0.38, names="two-day", ha="center", color=GOOD),
+            Label("2-day variance", 3.15, 0.32, names="two-day", ha="center", color=GOOD),
             _stroke("one-day", bar(5.6, 3.1), color=INK, frames=8),
-            Label("2 × 1-day variance", 6.35, 0.38, names="one-day", ha="center"),
+            Label("2 × 1-day variance", 6.35, 0.32, names="one-day", ha="center"),
             _stroke("gap", _line([(2.4, 3.1), (5.6, 3.1)]), color=MUTED, dashed=True, frames=5),
             Label("ratio < 1 → pulled back", 5.0, 3.62, names="gap", ha="center", color=ACCENT),
         ),
@@ -271,24 +292,31 @@ def _variance_ratio() -> Scene:
 def _half_life(lookback: int) -> Scene:
     halving = 2.2
     t = np.linspace(0.0, 8.0, 90)
-    distance = 0.5 + 3.0 * np.exp(-math.log(2) * t / halving)
+    floor, start = 0.65, 2.9
+    distance = floor + start * np.exp(-math.log(2) * t / halving)
+    half = floor + start / 2
     corner = 1.0 + halving
     return Scene(
-        "5  Half-life",
+        "Half-life",
+        "half_life",
         (
-            _stroke("axes", _line([(1.0, 3.75), (1.0, 0.5), (9.3, 0.5)]), color=MUTED, frames=6),
+            _stroke(
+                "axes", _line([(1.0, 3.75), (1.0, floor), (9.3, floor)]), color=MUTED, frames=6
+            ),
             Label("distance from the mean", 1.2, 3.8, names="axes", color=MUTED, size=12),
             _stroke("decay", _curve(1.0 + t, distance), frames=12),
             _stroke(
                 "half",
-                _line([(1.0, 2.0), (corner, 2.0), (corner, 0.5)]),
+                _line([(1.0, half), (corner, half), (corner, floor)]),
                 color=ACCENT,
                 dashed=True,
                 frames=6,
             ),
-            Label("half", 0.88, 2.0, names="half", ha="right", color=ACCENT, size=12),
-            Label(f"≈ {lookback} days", corner, 0.22, names="half", ha="center", color=ACCENT),
-            Label("−ln 2 / λ", corner + 0.3, 2.4, names="half", size=15),
+            Label("half", 0.8, half, names="half", ha="right", color=ACCENT, size=12),
+            Label(f"≈ {lookback} days", corner, 0.3, names="half", ha="center", color=ACCENT),
+            # The time to half sits in the corner the dashed line closes,
+            # below the curve, so it reads as the span along the axis.
+            Label("−ln 2 / λ", corner + 0.25, 1.1, names="half", size=15),
         ),
     )
 
@@ -301,9 +329,10 @@ def _linear_rule(lookback: int, closes: int) -> Scene:
         - 1.5 * np.exp(-(((x - 5.5) / 0.9) ** 2))
         + 0.3 * np.sin(np.pi * (x - 2.5) / 1.5)
     )
-    warning = _line([(0.55, 0.25), (1.05, 0.25), (0.8, 0.7), (0.55, 0.25)], per_unit=10)
+    warning = _line([(0.5, 0.2), (1.1, 0.2), (0.8, 0.75), (0.5, 0.2)], per_unit=10)
     return Scene(
-        "6  The linear rule",
+        "The linear rule",
+        "linear_rule",
         (
             _stroke("mean", _line([(0.4, 2.0), (9.6, 2.0)]), color=MUTED, dashed=True, frames=6),
             _stroke("price", _curve(x, 2.0 + sigma * z), frames=12),
@@ -312,10 +341,13 @@ def _linear_rule(lookback: int, closes: int) -> Scene:
             _dot("below", 5.5, 2.0 - 1.5 * sigma, color=GOOD),
             Label("z = −1.5 → long 1.5", 5.85, 1.0, names="below", color=GOOD),
             _stroke("warning", warning, color=LOST, width=2.4, frames=5),
-            Label("!", 0.8, 0.43, names="warning", ha="center", color=LOST, size=12),
+            # The sign's "!" is drawn as two strokes rather than set as text,
+            # because it sits inside the triangle, where a label would touch it.
+            _stroke("bang", _line([(0.8, 0.6), (0.8, 0.4)], per_unit=10), color=LOST, frames=2),
+            _stroke("bang-dot", _line([(0.8, 0.3), (0.8, 0.28)]), color=LOST, width=3.0, frames=1),
             Label(
                 f"{lookback} days measured on all {closes:,} closes",
-                1.3,
+                1.35,
                 0.45,
                 names="warning",
                 color=LOST,
@@ -336,28 +368,27 @@ def scenes(run: StationarityRun) -> tuple[Scene, ...]:
     )
 
 
-def timeline(drawn: Sequence[Scene]) -> list[Frame]:
-    """Every frame in order, with how long each one shows.
+def timeline(scene: Scene) -> list[Frame]:
+    """Every frame of one scene's GIF in order, with how long each one shows.
 
-    A scene opens on its title alone. A stroke takes its ``frames`` frames,
-    each showing a longer prefix of its points, and a label takes one frame of
-    :data:`LABEL_MS`. The scene's last frame holds :data:`HOLD_MS` longer.
+    The GIF opens on the scene's title alone. A stroke takes its ``frames``
+    frames, each showing a longer prefix of its points, and a label takes one
+    frame of :data:`LABEL_MS`. The last frame, the finished drawing, shows for
+    :data:`HOLD_MS`, and then the GIF loops.
     """
-    frames: list[Frame] = []
-    for index, scene in enumerate(drawn):
-        frames.append(Frame(index, 0, 0, TITLE_MS))
-        for done, step in enumerate(scene.steps):
-            if isinstance(step, Label):
-                frames.append(Frame(index, done + 1, 0, LABEL_MS))
-                continue
-            for k in range(1, step.frames + 1):
-                shown = math.ceil(step.points * k / step.frames)
-                if shown == step.points:
-                    frames.append(Frame(index, done + 1, 0, FRAME_MS))
-                else:
-                    frames.append(Frame(index, done, max(shown, 2), FRAME_MS))
-        last = frames[-1]
-        frames[-1] = Frame(last.scene, last.done, last.partial, last.ms + HOLD_MS)
+    frames = [Frame(0, 0, TITLE_MS)]
+    for done, step in enumerate(scene.steps):
+        if isinstance(step, Label):
+            frames.append(Frame(done + 1, 0, LABEL_MS))
+            continue
+        for k in range(1, step.frames + 1):
+            shown = math.ceil(step.points * k / step.frames)
+            if shown == step.points:
+                frames.append(Frame(done + 1, 0, FRAME_MS))
+            else:
+                frames.append(Frame(done, max(shown, 2), FRAME_MS))
+    last = frames[-1]
+    frames[-1] = Frame(last.done, last.partial, HOLD_MS)
     return frames
 
 
@@ -404,7 +435,9 @@ def palette() -> Image.Image:
     return holder
 
 
-def _draw_scene(scene: Scene, frames: Sequence[Frame], colours: Image.Image) -> list[Image.Image]:
+def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
+    """A canvas holding the scene's title, and one artist for each step, every
+    stroke empty and every label hidden. The title is the last artist."""
     fig = Figure(figsize=(WIDTH / DPI, HEIGHT / DPI), dpi=DPI)
     fig.patch.set_facecolor(BOARD)
     canvas = FigureCanvasAgg(fig)
@@ -412,7 +445,6 @@ def _draw_scene(scene: Scene, frames: Sequence[Frame], colours: Image.Image) -> 
     ax.set_xlim(*XLIM)
     ax.set_ylim(*YLIM)
     ax.set_axis_off()
-    ax.text(0.3, 4.3, scene.title, color=INK, fontsize=16, fontweight="bold", va="center")
     artists = []
     for step in scene.steps:
         if isinstance(step, Stroke):
@@ -437,62 +469,118 @@ def _draw_scene(scene: Scene, frames: Sequence[Frame], colours: Image.Image) -> 
                 visible=False,
             )
             artists.append(text)
-
-    images = []
-    for frame in frames:
-        for index, (step, artist) in enumerate(zip(scene.steps, artists, strict=True)):
-            if isinstance(step, Label):
-                artist.set_visible(index < frame.done)
-                continue
-            shown = step.points if index < frame.done else 0
-            if index == frame.done:
-                shown = frame.partial
-            artist.set_data(step.x[:shown], step.y[:shown])
-        canvas.draw()
-        rgb = Image.fromarray(np.asarray(canvas.buffer_rgba())[..., :3])
-        images.append(rgb.quantize(palette=colours, dither=Image.Dither.NONE))
-    return images
+    title = ax.text(0.3, 4.3, scene.title, color=INK, fontsize=16, fontweight="bold", va="center")
+    return canvas, artists + [title]
 
 
-def render(drawn: Sequence[Scene], frames: Sequence[Frame]) -> list[Image.Image]:
-    """Draw every frame, each mapped onto :func:`palette`."""
+def _show(scene: Scene, artists: Sequence, frame: Frame) -> None:
+    for index, (step, artist) in enumerate(zip(scene.steps, artists, strict=False)):
+        if isinstance(step, Label):
+            artist.set_visible(index < frame.done)
+            continue
+        shown = step.points if index < frame.done else 0
+        if index == frame.done:
+            shown = frame.partial
+        artist.set_data(step.x[:shown], step.y[:shown])
+
+
+def render(scene: Scene, frames: Sequence[Frame]) -> list[Image.Image]:
+    """Draw every frame of one scene, each mapped onto :func:`palette`."""
     colours = palette()
-    images: list[Image.Image] = []
+    images = []
     with matplotlib.rc_context(_style()):
-        for index, scene in enumerate(drawn):
-            images += _draw_scene(scene, [f for f in frames if f.scene == index], colours)
+        canvas, artists = _board(scene)
+        for frame in frames:
+            _show(scene, artists, frame)
+            canvas.draw()
+            rgb = Image.fromarray(np.asarray(canvas.buffer_rgba())[..., :3])
+            images.append(rgb.quantize(palette=colours, dither=Image.Dither.NONE))
     return images
 
 
-def make_usdcad_tests_whiteboard(
-    out: Path | None = None,
+def clearances(scene: Scene) -> dict[str, float]:
+    """How far each label, and the title, sits from the nearest stroke on the
+    finished drawing, in pixels.
+
+    A text's box is the one matplotlib lays it out in. A stroke is its points
+    with each segment filled in every pixel or so, and the distance is measured
+    to the edge of its ink, half its line width out from the line, or the
+    dot's radius for a dot. The wobble the sketch adds is not in the points,
+    so a label needs a few pixels to spare to stay clear of it on the board.
+    """
+    with matplotlib.rc_context(_style()):
+        canvas, artists = _board(scene)
+        _show(scene, artists, Frame(len(scene.steps), 0, 0))
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        to_pixels = artists[0].axes.transData
+        inks = []
+        for step in scene.strokes:
+            xy = to_pixels.transform(np.column_stack([step.x, step.y]))
+            if step.points > 1:
+                gaps = np.hypot(*np.diff(xy, axis=0).T)
+                xy = np.vstack(
+                    [
+                        np.linspace(a, b, max(2, math.ceil(gap)), endpoint=False)
+                        for a, b, gap in zip(xy[:-1], xy[1:], gaps, strict=True)
+                    ]
+                    + [xy[-1:]]
+                )
+                reach = step.width * DPI / 72 / 2
+            else:
+                reach = 9 * DPI / 72 / 2
+            inks.append((xy, reach))
+        texts = [
+            (step.text, artist)
+            for step, artist in zip(scene.steps, artists, strict=False)
+            if isinstance(step, Label)
+        ] + [(scene.title, artists[-1])]
+        found = {}
+        for text, artist in texts:
+            box = artist.get_window_extent(renderer)
+            nearest = math.inf
+            for xy, reach in inks:
+                dx = np.maximum.reduce([box.x0 - xy[:, 0], xy[:, 0] - box.x1, np.zeros(len(xy))])
+                dy = np.maximum.reduce([box.y0 - xy[:, 1], xy[:, 1] - box.y1, np.zeros(len(xy))])
+                nearest = min(nearest, float(np.hypot(dx, dy).min()) - reach)
+            found[text] = nearest
+    return found
+
+
+def make_usdcad_tests_whiteboards(
+    out_dir: Path | None = None,
     sources: tuple[VintageEntry, pd.Series] | None = None,
-) -> Path:
-    """Write the looping GIF of the six scenes and return its path."""
+) -> list[Path]:
+    """Write one looping GIF for each of the six scenes and return their paths,
+    in the order the post reads them."""
     entry, closes = sources if sources is not None else read_sources()
-    drawn = scenes(stationarity_tests(entry, closes))
-    frames = timeline(drawn)
-    first, *rest = render(drawn, frames)
-    path = out if out is not None else FIGURES_DIR / WHITEBOARD_GIF
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
-    return path
+    folder = out_dir if out_dir is not None else FIGURES_DIR
+    paths = []
+    for scene in scenes(stationarity_tests(entry, closes)):
+        frames = timeline(scene)
+        first, *rest = render(scene, frames)
+        path = folder / scene.gif
+        first.save(
+            path,
+            save_all=True,
+            append_images=rest,
+            duration=[frame.ms for frame in frames],
+            loop=0,
+            optimize=False,
+        )
+        paths.append(path)
+    return paths
 
 
 def main() -> None:
     try:
-        path = make_usdcad_tests_whiteboard()
+        paths = make_usdcad_tests_whiteboards()
     except (VintageUnavailable, WindowCrossesScaleBreak) as refused:
         # As in chan.usdcad_mean_reversion_figures.main, a refusal that names
         # the source or the flagged day reaches the operator as one line.
         raise SystemExit(str(refused)) from refused
-    print(f"wrote {path}")
+    for path in paths:
+        print(f"wrote {path}")
 
 
 if __name__ == "__main__":
