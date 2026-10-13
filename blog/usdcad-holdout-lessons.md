@@ -44,9 +44,9 @@ A positive sum says less than it seems to, because a rule with no edge can end p
 ```math
 \begin{array}{l|r|r}
 \text{Figure} & \text{Chan's closes, 2008 to 2012} & \text{After 2012} \\ \hline
-\text{Days with P\&L} & 1{,}101 & 3{,}791 \\
-\text{Final P\&L} & 0.1141 & 0.1132 \\
-\text{Newey-West t of the mean daily P\&L} & \text{none} & 0.2670 \\
+\text{Days with P}\&\text{L} & 1{,}101 & 3{,}791 \\
+\text{Final P}\&\text{L} & 0.1141 & 0.1132 \\
+\text{Newey-West t of the mean daily P}\&\text{L} & \text{none} & 0.2670 \\
 \text{Sharpe ratio} & 0.12 & 0.0715 \\
 \text{Deepest drawdown} & 0.6425 & 0.5033
 \end{array}
@@ -63,7 +63,7 @@ A test chosen after the data is seen proves little, because some test always fit
 ```math
 \begin{array}{l|l|l|l}
 \text{Prediction} & \text{Predicted} & \text{Outcome} & \text{As predicted} \\ \hline
-\text{H1, final P\&L above 0} & \text{yes, the claim} & 0.1132 & \text{yes} \\
+\text{H1, final P}\&\text{L above 0} & \text{yes, the claim} & 0.1132 & \text{yes} \\
 \text{H2, the same on Chan's 16:59 bar} & \text{yes} & \text{not run} & \text{n/a} \\
 \text{H3, Newey-West t above 1.645} & \text{no} & 0.2670 & \text{yes} \\
 \text{H4, ADF below its 10 percent value} & \text{no} & -2.0814 & \text{yes} \\
