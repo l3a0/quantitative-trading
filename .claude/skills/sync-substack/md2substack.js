@@ -44,7 +44,9 @@
 // two copies agree on whitespace and digits outside ASCII. The review of that
 // change matched GitHub on where a table ends and on a delimiter row of bare
 // hyphens, gave the caret a width, collapsed whitespace in cells, and stopped
-// two kinds of image line from throwing.
+// two kinds of image line from throwing. On 2026-10-13 the image node's type
+// stopped being image/png for every figure and became the type its extension
+// names, as in the Python.
 var M2S = (function () {
   var LINK = { target: "_blank", rel: "noopener noreferrer nofollow", "class": null };
   var WIDGET = {
@@ -66,6 +68,8 @@ var M2S = (function () {
     "$": "\\$", "%": "\\%", "&": "\\&", "#": "\\#", "_": "\\_", "{": "\\{", "}": "\\}",
     "\\": "\\backslash", "~": "{\\sim}", "^": "{\\hat{\\ }}"
   };
+  // The media type each figure's file extension names, matched exactly, as IMAGE_TYPES in the Python.
+  var IMAGE_TYPES = { png: "image/png", gif: "image/gif", jpg: "image/jpeg", jpeg: "image/jpeg" };
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   // ASCII whitespace only, the set WHITESPACE names in the Python.
   function trim(s) { return s.replace(/^[ \t\n\r\f\v]+|[ \t\n\r\f\v]+$/g, ""); }
@@ -197,12 +201,22 @@ var M2S = (function () {
   function startsBlock(lines, i) {
     return opensBlock(lines[i]) || tableColumns(lines, i) !== null;
   }
+  // The media type a figure's file name names. The own-property check keeps a
+  // name such as x.constructor from reading the object's prototype.
+  function imageType(name) {
+    var dot = name.lastIndexOf("."), extension = dot < 0 ? "" : name.slice(dot + 1);
+    if (!Object.prototype.hasOwnProperty.call(IMAGE_TYPES, extension)) {
+      throw new Error("no image type for " + name + ": name it .png, .gif, .jpg or .jpeg");
+    }
+    return IMAGE_TYPES[extension];
+  }
   // A captioned image, and the index of the line after it and its caption.
   function figure(lines, i, images, alt, path, href) {
-    var img = images[path.split("/").pop()];
+    var name = path.split("/").pop();
+    var img = images[name];
     var node = { type: "captionedImage", content: [{ type: "image2", attrs: {
       src: img.url, srcNoWatermark: null, fullscreen: null, imageSize: null, height: img.height, width: img.width,
-      resizeWidth: null, bytes: img.bytes, alt: alt, title: null, type: "image/png", href: href, belowTheFold: false,
+      resizeWidth: null, bytes: img.bytes, alt: alt, title: null, type: imageType(name), href: href, belowTheFold: false,
       topImage: false, internalRedirect: null, isProcessing: false, align: null, offset: false } }] };
     var k = i + 1; while (k < lines.length && !trim(lines[k])) k++;
     // A figure on the post's last non-blank line has no caption to look for.

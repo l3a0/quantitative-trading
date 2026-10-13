@@ -230,6 +230,7 @@ MUST_BE_SWEPT = frozenset(
         "tests/fixtures/substack/deep-headings.md",
         "tests/fixtures/substack/edge-cases.md",
         "tests/fixtures/substack/every-construct.md",
+        "tests/fixtures/substack/image-types.md",
         "tests/fixtures/substack/linked-images.md",
         "tests/fixtures/substack/shape-edges.md",
         "tests/fixtures/substack/subtitle-escapes.md",

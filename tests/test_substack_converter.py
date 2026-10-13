@@ -13,10 +13,10 @@ Three layers check it.
    fails here with a diff. One uses every Markdown shape the converter reads.
    The other puts each block shape straight under a paragraph line, with no
    blank line between, and holds an ordered list long enough to need
-   two-digit numbers. Five more fixtures cover pipe tables, deep headings,
-   linked images, subtitle escapes and inputs at the edges of those shapes,
-   and their tests spell out the expected output rather than pinning a
-   regenerated tree.
+   two-digit numbers. Six more fixtures cover pipe tables, deep headings,
+   linked images, subtitle escapes, inputs at the edges of those shapes, and
+   the media type each image extension names. Their tests spell out the
+   expected output rather than pinning a regenerated tree.
 2. Every committed post converts, and the result keeps the facts that hold
    whatever the post says: its title, its subtitle, where the widgets go, and
    one block per equation, table, code fence, heading and figure.
@@ -59,7 +59,8 @@ DEEP_HEADINGS = FIXTURE_DIR / "deep-headings.md"
 LINKED_IMAGES = FIXTURE_DIR / "linked-images.md"
 SUBTITLE_ESCAPES = FIXTURE_DIR / "subtitle-escapes.md"
 SHAPE_EDGES = FIXTURE_DIR / "shape-edges.md"
-SHAPE_FIXTURES = [TABLES, DEEP_HEADINGS, LINKED_IMAGES, SUBTITLE_ESCAPES, SHAPE_EDGES]
+IMAGE_TYPES = FIXTURE_DIR / "image-types.md"
+SHAPE_FIXTURES = [TABLES, DEEP_HEADINGS, LINKED_IMAGES, SUBTITLE_ESCAPES, SHAPE_EDGES, IMAGE_TYPES]
 POSTS = sorted((REPO_ROOT / "blog").glob("*.md"))
 
 # The fixture's figures were never uploaded, so their Substack fields are made up.
@@ -75,6 +76,24 @@ FIXTURE_IMAGES = {
         "width": 640,
         "height": 480,
         "bytes": 2048,
+    },
+    "animated_figure.gif": {
+        "url": "https://example.invalid/animated_figure.gif",
+        "width": 800,
+        "height": 450,
+        "bytes": 345678,
+    },
+    "photo_figure.jpg": {
+        "url": "https://example.invalid/photo_figure.jpg",
+        "width": 1024,
+        "height": 768,
+        "bytes": 65432,
+    },
+    "photo_figure.jpeg": {
+        "url": "https://example.invalid/photo_figure.jpeg",
+        "width": 1024,
+        "height": 768,
+        "bytes": 65433,
     },
 }
 
@@ -473,6 +492,64 @@ def test_a_linked_image_becomes_a_figure() -> None:
     assert [len(blocks[k]["content"]) for k in (1, 3)] == [1, 1]
     assert blocks[2]["content"] == [{"type": "text", "text": "A paragraph line"}]
     assert blocks[4]["content"][-1]["text"].endswith("with text after it stays a paragraph.")
+
+
+def test_each_image_takes_the_type_its_extension_names() -> None:
+    """A GIF is ``image/gif`` and a JPEG ``image/jpeg``, where both were ``image/png``.
+
+    Substack's upload endpoint returned ``image/gif`` for the USD.CAD post's
+    animated GIFs on 2026-10-13, and its editor writes ``image/gif`` for a
+    source ending ``.gif``. A linked GIF and a captioned one take the same type.
+    """
+    blocks = _convert_fixture(IMAGE_TYPES)["body"]["content"]
+    figures = [n for n in blocks if n["type"] == "captionedImage"]
+    attrs = [f["content"][0]["attrs"] for f in figures]
+    assert [(a["src"], a["type"]) for a in attrs] == [
+        ("https://example.invalid/first_figure.png", "image/png"),
+        ("https://example.invalid/animated_figure.gif", "image/gif"),
+        ("https://example.invalid/animated_figure.gif", "image/gif"),
+        ("https://example.invalid/photo_figure.jpg", "image/jpeg"),
+        ("https://example.invalid/photo_figure.jpeg", "image/jpeg"),
+    ]
+    assert [len(f["content"]) for f in figures] == [1, 2, 1, 1, 1]
+    assert attrs[2]["href"] == "https://example.com/animation"
+
+
+# Figure names whose extension names no type the converter knows. The match is
+# exact, so a capital PNG raises too. A name with no dot has no extension, even
+# when it is spelled ``png``. ``x.constructor`` is a key every JavaScript object
+# inherits, which a bare lookup would read as a type.
+UNKNOWN_IMAGE_NAMES = ["figure.webp", "figure.PNG", "figure", "figure.", "png", "x.constructor"]
+
+# Names whose extension is what follows the last dot, wherever the first one sits.
+TYPED_IMAGE_NAMES = {"chart.2026.gif": "image/gif", ".gif": "image/gif"}
+
+
+def _unknown_message(name: str) -> str:
+    """The whole error both converters give for a figure they cannot type."""
+    return f"no image type for {name}: name it .png, .gif, .jpg or .jpeg"
+
+
+def _with_figure(name: str) -> tuple[str, dict]:
+    """A post holding one figure of that name, and an image map that has it."""
+    md = f"# Title\n\n*Subtitle*\n\n![alt](images/{name})\n"
+    return md, {name: {"url": "https://example.invalid/x", "width": 1, "height": 1, "bytes": 1}}
+
+
+@pytest.mark.parametrize("name", UNKNOWN_IMAGE_NAMES)
+def test_an_unknown_image_extension_raises(name: str) -> None:
+    """A figure the converter cannot type stops the conversion rather than calling it a PNG."""
+    md, images = _with_figure(name)
+    with pytest.raises(ValueError, match=f"^{re.escape(_unknown_message(name))}$"):
+        m2s.convert(md, images)
+
+
+@pytest.mark.parametrize("name", TYPED_IMAGE_NAMES)
+def test_the_extension_follows_the_last_dot(name: str) -> None:
+    """A second dot in a name, or a dot that opens it, leaves the type to the last one."""
+    md, images = _with_figure(name)
+    figure = m2s.convert(md, images)["body"]["content"][0]
+    assert figure["content"][0]["attrs"]["type"] == TYPED_IMAGE_NAMES[name]
 
 
 def test_lines_at_the_edges_of_a_shape_read_as_github_reads_them() -> None:
@@ -1164,6 +1241,25 @@ def test_the_command_line_reads_the_file_as_the_page_does(tmp_path: Path) -> Non
         run.insert(2, "--summary")
         brief = subprocess.run(run, capture_output=True, text=True, check=True, timeout=60)
         assert json.loads(brief.stdout)["md_sha256"] == hashlib.sha256(kept + raw).hexdigest()
+
+
+def test_the_javascript_raises_on_an_unknown_image_extension(tmp_path: Path) -> None:
+    """The in-page copy refuses the same figure names the Python refuses."""
+    results = _run_javascript(
+        [(name, *_with_figure(name)) for name in UNKNOWN_IMAGE_NAMES], tmp_path
+    )
+    for name in UNKNOWN_IMAGE_NAMES:
+        error = results[name]["error"] or ""
+        assert _unknown_message(name) in error, name
+
+
+def test_the_javascript_finds_the_extension_after_the_last_dot(tmp_path: Path) -> None:
+    """The in-page copy types the names with more dots as the Python types them."""
+    cases = [(name, *_with_figure(name)) for name in TYPED_IMAGE_NAMES]
+    results = _run_javascript(cases, tmp_path)
+    for name, md, images in cases:
+        assert results[name]["error"] is None, results[name]["error"]
+        assert results[name]["canon"] == m2s.canonical(m2s.convert(md, images)), name
 
 
 def test_the_javascript_raises_on_an_unterminated_fence(tmp_path: Path) -> None:
