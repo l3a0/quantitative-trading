@@ -88,6 +88,7 @@ from chan import (
     survivorship_and_costs_figures,
     tu_hypothesis_tests_figures,
     tu_momentum_figures,
+    usdcad_holdout_figures,
     usdcad_mean_reversion_figures,
     vix_filter_figures,
     vx_calendar_spread_figures,
@@ -216,6 +217,7 @@ DRAWS: dict[str, Callable[[Path], object]] = {
         tu_hypothesis_tests_figures.make_tu_hypothesis_tests_figure(out=out)
     ),
     "tu_momentum.png": lambda out: tu_momentum_figures.make_tu_figure(out=out),
+    "usdcad_holdout.png": lambda out: usdcad_holdout_figures.make_usdcad_holdout_figure(out=out),
     "usdcad_fall_position.png": lambda out: usdcad_mean_reversion_figures.make_usdcad_fall_figure(
         out=out
     ),

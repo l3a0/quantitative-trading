@@ -5440,6 +5440,10 @@ redraws, and its fourteen whiteboard sketches, which
 5. Two in Lesson 3.
 6. Two in Lesson 5.
 
+[blog/usdcad-holdout-lessons.md](../blog/usdcad-holdout-lessons.md) sets
+about ten of these figures beside Entry 51's, so a change to one of them moves
+that post too.
+
 ## Entry 23: EWA, EWC and IGE, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
@@ -11700,4 +11704,7 @@ holdout was read, and a lookback chosen after seeing these numbers would make
 a new run, and an exploratory one.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit.
+change to any assertion named above moves this entry in the same commit, and
+[blog/usdcad-holdout-lessons.md](../blog/usdcad-holdout-lessons.md) moves with
+it, since that post quotes most of these figures. So does its one figure,
+which `uv run python -m chan.usdcad_holdout_figures` redraws.

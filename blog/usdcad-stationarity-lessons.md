@@ -18,7 +18,7 @@ Chan’s Examples 2.1 to 2.4 run four such tests on USD.CAD, the price of a US d
 2. **The Hurst exponent misses.** The book prints 0.49. The function Chan’s script calls gives 0.47, and his own Python port gives 0.48. Both misses are smaller than the spread H shows on a random walk of the same length.
 3. **The trade ends positive.** Chan says its profit and loss, or P&L, “manages to be positive, albeit with a large drawdown” (Chan, 2013, p. 49). The P&L ends at 0.1141. On the way it rises to a high of 0.1321 in July 2008, then falls 0.6425 to −0.5104 by October. That fall from the high is the drawdown.
 
-**Every result here is exploratory.** The reproduction runs Chan’s tests on Chan’s days, so it says whether his numbers follow from his closes and nothing about whether USD.CAD reverts today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+**Every result here is exploratory.** The reproduction runs Chan’s tests on Chan’s days, so it says whether his numbers follow from his closes and nothing about whether USD.CAD reverts today. A [follow-up post](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-holdout-lessons.md) trades the same rule on the fourteen years after his sample, with the lookback held at 115. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The tests and the file
 
@@ -201,9 +201,9 @@ The look-ahead is that the 115 days are the half-life of the same 1,216 closes t
 
 ![An animated whiteboard sketch titled “The look-ahead”, drawn stroke by stroke. A grey timeline runs from 2007-07-23 to 2012-03-28. Under it a brown bar spans all of it, labelled “measure the half-life: all 1,216 closes”, and a black bar below it starts on 2008-01-02 and runs to the end, labelled “trade with a 115-day lookback”. Red words say that every day traded sits inside the days measured. Below them, a dashed pair sketches what avoiding the look-ahead needs: a brown bar labelled “measure on earlier days” ends where a black bar labelled “trade only after” begins, beside the words “a sketch of the fix, not a run”. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_look_ahead.gif)
 
-*The top three rows are the run, drawn to scale by date. The dashed pair is a schematic of what avoiding the look-ahead needs, and this repository has not run it.*
+*The top three rows are the run, drawn to scale by date. The dashed pair is a schematic of what avoiding the look-ahead needs. The [follow-up post](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-holdout-lessons.md) runs it, with the lookback measured on these closes and the rule trading only the closes after them.*
 
-Later in the chapter Chan makes a different claim about the same choice. Setting the lookback to the half-life means the rule “has no parameters to optimize”, since the half-life is “a quantity that depends on the properties of the price series itself” (Chan, 2013, p. 60). Both statements are true. Nothing was tuned on the P&L, so there is no search to correct for, and the half-life was still read from the days being traded. A replication that avoids the look-ahead has to measure the half-life on earlier days than it trades.
+Later in the chapter Chan makes a different claim about the same choice. Setting the lookback to the half-life means the rule “has no parameters to optimize”, since the half-life is “a quantity that depends on the properties of the price series itself” (Chan, 2013, p. 60). Both statements are true. Nothing was tuned on the P&L, so there is no search to correct for, and the half-life was still read from the days being traded. A replication that avoids the look-ahead has to measure the half-life on earlier days than it trades. The [follow-up post](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-holdout-lessons.md) does that. It keeps the 115 days from these closes and trades the rule on USD.CAD’s closes from 2012-03-29 on.
 
 The half-life also limits what the trade can show. Chan warns that a λ very close to zero, which means a very long half-life, leaves a strategy unable to “complete many round-trip trades” (Chan, 2013, p. 47). At 115 days, the 1,216 closes span 10.6 half-lives, so the whole sample holds about ten stretches long enough for a distance from the mean to halve. That is little evidence, and it assumes the reversion is real. The tests could not reject a random walk, which has no half-life at all, so the 115 days are an estimate from a series that may not revert. The [post on Chan’s stationary candidates](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md) shows, for a currency rate with a 141.6-day half-life, how slow reversion makes the linear rule hard to size. For comparison, the three-ETF portfolio of Example 2.7 has a half-life of 23 days, “considerably shorter than the 115 days for USD.CAD” (Chan, 2013, p. 58), which the [post on the Johansen test](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md) reproduces.
 
@@ -219,7 +219,7 @@ Three questions are beyond it.
 
 1. **What computed the book’s 0.49.** No copy of `genhurst` found gives it on the closes the script’s comments match, and those comments record no value for it. Six of the ten later start days give it, and nothing public shows which run the book’s figure came from.
 2. **Whether Example 2.5 would pay.** It carries the look-ahead, charges no transaction cost, and holds a position that grows without limit as the close strays, all of which Chan names. Against a fixed account its Sharpe ratio is 0.12. It has no annual return, because the return depends on an account size the rule never names.
-3. **Anything about USD.CAD after March 2012.** Every figure is exploratory, on a sample Chan chose.
+3. **Anything about USD.CAD after March 2012.** Every figure here is exploratory, on a sample Chan chose. The [follow-up post](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-holdout-lessons.md) carries the registered result on the later closes, from another vendor’s daily close.
 
 ## What this means for a trader
 
@@ -229,7 +229,7 @@ One habit for each lesson.
 2. **Name the toolbox.** Two implementations of one test can differ by a row of sample, so a port should say which one produced a figure.
 3. **Measure the noise before chasing a figure that misses.** When every available implementation misses a printed number, record the miss, measure how far the statistic moves by chance, and check whether the conclusion still stands.
 4. **Read the drawdown beside the P&L.** A positive total can hide a fall more than five times its size, and an uncapped position can be at its largest inside the move against it.
-5. **Fit the lookback on earlier days than the trade.** A half-life measured on the traded sample is a look-ahead, however principled the choice.
+5. **Fit the lookback on earlier days than the trade.** A half-life measured on the traded sample is a look-ahead, however principled the choice. The [follow-up post](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-holdout-lessons.md) fixes the lookback on these closes and trades the years after them.
 
 ## References
 

@@ -3,6 +3,10 @@
 This file is the single authority for every number any prose surface quotes
 about [issue 607](https://github.com/l3a0/quantitative-trading/issues/607).
 ``docs/replication-log.md`` Entry 51 carries the verdict and points here.
+``blog/usdcad-holdout-lessons.md`` quotes most of these figures, so a change to
+an assertion here moves that post too. ``TestWhatThePostMeasured`` holds the
+numbers it added after the run, and ``tests/test_usdcad_holdout_figures.py``
+holds what its figure draws.
 
 Every pin on the committed closes reads one vintage under one specification,
 so both are stated once here and carried in every figure's failure message as
@@ -613,6 +617,47 @@ class TestTheSideFigures:
         pin(holdout.long_share, 0.399366921656555, "0.3994")
         pin(holdout.short_share, 0.600633078343445, "0.6006")
         assert int(np.sum(holdout.held == 0)) == 0, SPEC
+
+
+class TestWhatThePostMeasured:
+    """Numbers ``blog/usdcad-holdout-lessons.md`` quotes that no row of Entry 51 declared.
+
+    Each was computed after the run, on 2026-10-13, to describe the drawdown
+    the log reports. They are exploratory and decide nothing.
+    """
+
+    def test_the_close_rose_39_5_percent_across_the_fall(self, holdout) -> None:
+        d = holdout.drawdown
+        assert holdout.closes[d.peak] == 1.0445, SPEC
+        assert holdout.closes[d.trough] == 1.45699, SPEC
+        rise = holdout.closes[d.trough] / holdout.closes[d.peak] - 1
+        assert rise == pytest.approx(0.3949162279, abs=1e-9), SPEC
+        assert f"{100 * rise:.1f}" == "39.5", SPEC
+
+    def test_the_rule_was_short_on_458_of_the_562_days_of_the_fall(self, holdout) -> None:
+        """The positions that earn each day after the peak, up to and including the trough."""
+        d = holdout.drawdown
+        held = pd.Series(holdout.held, index=holdout.traded.index)
+        fall = held[(held.index > d.peak) & (held.index <= d.trough)]
+        assert (len(fall), int((fall < 0).sum())) == (562, 458), SPEC
+
+    def test_the_pnl_first_regains_its_2013_high_on_2024_03_06(self, holdout) -> None:
+        d = holdout.drawdown
+        cumulative = holdout.traded.cumsum()
+        after = cumulative[cumulative.index > d.trough]
+        assert after[after >= cumulative[d.peak]].index[0] == pd.Timestamp("2024-03-06"), SPEC
+
+    def test_h_sits_0_0014_below_the_walks_mean_inside_a_band_of_0_0260(
+        self, holdout, band
+    ) -> None:
+        pin(band.mean - holdout.hurst, 0.0013873817670264077, "0.0014")
+        assert f"{band.mean:.4f} ± {2 * band.sd:.4f}" == "0.4987 ± 0.0260", SPEC
+
+    def test_the_largest_position_is_a_short_on_2020_03_19(self, holdout) -> None:
+        held = pd.Series(holdout.held, index=holdout.traded.index)
+        at = held.abs().idxmax()
+        assert at == pd.Timestamp("2020-03-19"), SPEC
+        pin(held[at], -5.405373425565022, "-5.4054")
 
 
 class TestTheReport:
