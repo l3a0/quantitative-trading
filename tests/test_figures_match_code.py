@@ -1,4 +1,4 @@
-"""Every committed figure is what the code that makes it draws today.
+"""Every committed PNG is what the code that makes it draws today.
 
 A committed figure is a generated artifact, and ``docs/design.md``'s register
 row "The regime-map figure and its generator, cut then reversed" rests on it
@@ -340,8 +340,10 @@ class TestEveryCommittedFigureIsCompared:
         """A figure committed without an entry here would go unchecked.
 
         It reads ``*.png`` rather than every file, so a ``.DS_Store`` that
-        Finder leaves there does not fail it, and an untracked new figure
-        still does.
+        Finder leaves there does not fail it, and an untracked new PNG still
+        does. The GIFs are not read here.
+        ``tests/test_usdcad_tests_whiteboard.py`` compares each one with a
+        fresh draw byte for byte, and fails on a GIF it does not draw.
         """
         committed = {path.name for path in FIGURES_DIR.glob("*.png")}
 
