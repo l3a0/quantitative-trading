@@ -494,6 +494,14 @@ class TestTheLabelsStayClearOfTheLines:
 
 
 class TestTheNumbersComeFromTheRun:
+    def test_spread_draws_the_walks_it_is_asked_for(self, run) -> None:
+        """``paths`` sets how many walks, and ``seed`` which ones, so a test
+        that asks for a few walks gets a few, and another seed other walks."""
+        few = spread(run.closes, paths=40)
+        assert len(few.walks) == 40
+        other = spread(run.closes, paths=40, seed=7)
+        assert not np.array_equal(other.walks, few.walks)
+
     def test_the_run_has_1216_closes_and_a_115_day_lookback(self, run) -> None:
         assert (len(run.closes), run.lookback) == (1216, 115), SPEC
         assert round(run.half_life) == 115, SPEC
@@ -753,9 +761,11 @@ class TestOneRowApart:
     @pytest.mark.parametrize("moved", [False, True])
     def test_each_bar_starts_at_the_cell_of_its_first_day(self, run, moved) -> None:
         """The moved run drops three and four rows, so its bars start on days 4
-        and 5 and three days are greyed."""
+        and 5 and three days are greyed. Its last cell still counts every
+        close rather than one more than a row count."""
         run = _shortened(run, 1000, (3, 4)) if moved else run
         one_row = _scenes(run)[9]
+        assert one_row.labels[7] == f"{len(run.closes):,}"
         edges = _cells(one_row)
         early, late = run.adfuller_first_day, run.adf_first_day
         assert (early, late) == ((4, 5) if moved else (3, 4))
@@ -823,8 +833,15 @@ class TestOneRowApart:
 
     @pytest.mark.parametrize(
         "drops",
-        [(2, 4), (3, 3), (4, 3), (0, 1), (6, 7)],
-        ids=["two apart", "together", "swapped", "from day 1", "past the row"],
+        [(2, 4), (3, 3), (4, 3), (0, 1), (5, 6), (6, 7)],
+        ids=[
+            "two apart",
+            "together",
+            "swapped",
+            "from day 1",
+            "jplv7 past the row",
+            "past the row",
+        ],
     )
     def test_a_run_the_words_would_misdescribe_is_refused(self, run, drops) -> None:
         with pytest.raises(ValueError, match="one day later"):
@@ -1404,6 +1421,17 @@ class TestTheTimeline:
                     if isinstance(step, Label):
                         assert step.names in complete, step.text
 
+    def test_each_frame_shows_more_than_the_one_before(self, drawn, frames) -> None:
+        """Pillow merges two identical frames in a row into one, which would
+        cut the frame count the GIF tests pin. So each frame shows a later
+        step, or more points of the stroke being drawn, than the frame before
+        it, and a stroke drawn in part shows at least two points, because a
+        line of one point inks nothing."""
+        for scene, steps in zip(drawn, frames, strict=True):
+            for before, after in zip(steps, steps[1:], strict=False):
+                assert (after.done, after.partial) > (before.done, before.partial), scene.title
+                assert after.partial == 0 or after.partial >= 2, scene.title
+
     def test_a_stroke_grows_frame_by_frame(self, drawn, frames) -> None:
         """The question's price line shows a longer prefix on each of its 14 frames."""
         price = drawn[1].steps[1]
@@ -1488,8 +1516,9 @@ class TestTheGifs:
 
 
 class TestTheCommittedGifs:
-    def test_the_old_combined_gif_is_gone(self) -> None:
-        assert not (FIGURES_DIR / "usdcad_tests_whiteboard.gif").exists()
+    def test_the_figures_folder_holds_these_gifs_and_no_others(self) -> None:
+        """A GIF left behind by a renamed or retired scene fails here."""
+        assert {path.name for path in FIGURES_DIR.glob("*.gif")} == set(GIFS)
 
     def test_each_has_the_size_frames_loop_and_timing_of_a_fresh_draw(self, frames) -> None:
         for name, count, steps in zip(GIFS, FRAMES, frames, strict=True):
@@ -1530,6 +1559,7 @@ class TestTheCommand:
     def test_drawing_with_no_out_dir_writes_the_committed_paths(self, monkeypatch, sources) -> None:
         saved = []
         monkeypatch.setattr(whiteboard, "read_sources", lambda: sources)
+        monkeypatch.setattr(whiteboard, "spread", lambda closes: spread(closes, paths=FEW_PATHS))
         monkeypatch.setattr(whiteboard, "render", lambda scene, frames: [Image.new("P", (1, 1))])
         monkeypatch.setattr(Image.Image, "save", lambda self, path, **kw: saved.append(path))
         paths = make_usdcad_tests_whiteboards()
@@ -1550,6 +1580,21 @@ class TestTheCommand:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert str(stopped.value) == str(refusal)
+
+    def test_the_guard_refuses_before_any_walk_is_drawn(self, monkeypatch, tmp_path) -> None:
+        """The run comes first, so a flagged window stops the draw before the
+        walks, which take most of its time, are drawn for nothing."""
+
+        def refuse(legs, *, start, end):
+            raise WindowCrossesScaleBreak("inputData_USDCAD.csv changes scale on 2009-01-02")
+
+        def no_walks(*_a, **_k):
+            raise AssertionError("the walks were drawn before the guard ran")
+
+        monkeypatch.setattr(usdcad_mean_reversion, "refuse_window_crossing_a_break", refuse)
+        monkeypatch.setattr(whiteboard, "spread", no_walks)
+        with pytest.raises(WindowCrossesScaleBreak):
+            make_usdcad_tests_whiteboards(out_dir=tmp_path)
 
     def test_the_guard_runs_on_the_default_path(self, monkeypatch, tmp_path) -> None:
         def refuse(legs, *, start, end):

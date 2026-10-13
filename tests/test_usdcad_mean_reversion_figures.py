@@ -23,12 +23,14 @@ Exploratory, like everything Examples 2.1 to 2.5 compute here.
 from __future__ import annotations
 
 import shutil
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 from matplotlib.colors import same_color
 from matplotlib.dates import DateFormatter, MonthLocator, YearLocator, date2num, num2date
+from matplotlib.figure import Figure
 
 from chan import paths, usdcad_mean_reversion
 from chan import usdcad_mean_reversion_figures as figures
@@ -657,6 +659,44 @@ class TestTheFallLadder:
             assert rung.get_linestyle() == "--"
             assert rung.get_linewidth() < lines["closes"].get_linewidth()
             assert rung.get_zorder() < lines["closes"].get_zorder()
+
+
+def _heading(closes: list[float], z: list[float]) -> str:
+    """The ladder's heading for a made-up fall of ``closes`` with z-scores ``z``.
+
+    The average is 1 and the deviation 0.01 on every day, so only the closes
+    and the z-scores decide what the heading says. The last day is the trough.
+    """
+    days = pd.date_range("2008-10-01", periods=len(closes), freq="D")
+    run = SimpleNamespace(closes=pd.Series(closes, index=days, dtype=float))
+    held = -pd.Series(z, index=days, dtype=float)
+    average, deviation = pd.Series(1.0, index=days), pd.Series(0.01, index=days)
+    return figures._draw_ladder(Figure().subplots(), run, days, average, deviation, held, 0.0)
+
+
+class TestTheLadderHeading:
+    """What the heading says about falls the committed run never makes.
+
+    The committed fall makes every clause true at once, so each test here
+    breaks one condition and checks that the sentence it guards goes with it.
+    """
+
+    def test_no_second_sentence_when_the_later_close_is_lower(self) -> None:
+        assert "higher in price" not in _heading([1.20, 1.15, 1.10], [4.2, 3.9, 3.5])
+
+    def test_no_second_sentence_when_the_later_close_clears_the_rung(self) -> None:
+        assert "higher in price" not in _heading([1.20, 1.25, 1.30], [4.2, 4.1, 4.05])
+
+    def test_a_fall_within_one_deviation_draws_one_rung_and_says_below(self) -> None:
+        text = _heading([1.20, 1.21, 1.22], [0.5, 0.4, 0.3])
+        assert text.endswith("stood below the first rung.")
+        assert "1 moving deviation above" in text
+        assert rung_count(pd.Series([-0.4, 0.2])) == 1
+
+    def test_the_ordinals_run_to_ninth_and_one_deviation_is_singular(self) -> None:
+        assert figures._ordinal(9) == "ninth"
+        assert figures._ordinal(10) == "10th"
+        assert figures._deviations(1) == "1 moving deviation"
 
 
 class TestTheFallPosition:
