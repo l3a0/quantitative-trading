@@ -1,5 +1,36 @@
 """Issue 607's holdout of Example 2.5 on USD/CAD: the command, the run's rules, and the pins.
 
+This file is the single authority for every number any prose surface quotes
+about [issue 607](https://github.com/l3a0/quantitative-trading/issues/607).
+``docs/replication-log.md`` Entry 51 carries the verdict and points here.
+
+Every pin on the committed closes reads one vintage under one specification,
+so both are stated once here and carried in every figure's failure message as
+:data:`SPEC`.
+
+- **Vintage.** ``alphavantage_usdcad_raw_2007-08-10_2026-10-12_dl2026-10-13.csv``,
+  Alpha Vantage's ``FX_DAILY`` close for USD/CAD, downloaded 2026-10-13,
+  5,000 rows from 2007-08-10 to 2026-10-12, sha256
+  ``9792b44c3491c1c3ab3cdfb61b073e221a4022811e36dca2823d127f95c4f067``. It is
+  committed in ``data/``, so CI runs every pin here.
+- **Specification.** Example 2.5's rule as
+  :func:`chan.usdcad_mean_reversion.linear_mean_reversion` computes it, at the
+  lookback of 115 days fixed from Chan's 2007 to 2012 closes and never
+  re-estimated. It runs over the 115 closes before 2012-03-29 and every close
+  after, and the traded days are ``pnl[115:]``, 2012-03-29 to 2026-10-12. The
+  tested closes ``y`` cover the same span. H1 is ``pnl[115:].sum() > 0``. H3 is
+  the Newey-West t of the mean daily P&L above 1.645. H4 is jplv7's ADF at a
+  constant and 1 lag below ``ztcrit``'s 10 percent value. H5 is
+  ``vratiotest(log y)`` rejecting at 5 percent. H6 is ``genhurst(log y, 2)``
+  within 2 SDs, ``ddof=1``, of its mean over 40,000 random walks of the same
+  length from seed 20261011. H7 is the half-life of ``y``.
+
+The result is **registered**: issue 607 fixed every prediction, pass mark and
+comparator on 2026-10-13 before any holdout close was read. H3 to H7 decide
+nothing, and each pin says whether its prediction matched. The figures are
+pinned in full at 1e-9 and at the four decimals the log quotes. The run first
+ran here on 2026-10-13.
+
 Nothing here calls the vendor. ``tests/test_fetch_alphavantage.py`` holds every
 rule about the ``FX_DAILY`` response on stubbed bodies, and this file holds the
 command around it: each refusal reaches the operator as one line, and the key
@@ -377,3 +408,166 @@ class TestTheReportAndTheCommand:
         with pytest.raises(SystemExit) as stopped:
             usdcad_holdout.main(["run"])
         assert str(stopped.value) == "refused"
+
+
+# --- the pins on the committed vintage ------------------------------------------------------
+
+SPEC = (
+    "alphavantage USDCAD raw dl 2026-10-13, FX_DAILY close, 5,000 rows 2007-08-10 to "
+    "2026-10-12, sha256 9792b44c; Example 2.5's linear rule at the frozen lookback of 115, "
+    "warm-up the 115 closes before 2012-03-29, traded days pnl[115:] from 2012-03-29 to "
+    "2026-10-12, tested closes y over the same span; jplv7 adf(y, 0, 1) against ztcrit's 10%, "
+    "vratiotest(log y), genhurst(log y, 2) with maxT 19 against 40,000 walks seed 20261011, "
+    "registered on issue 607 on 2026-10-13"
+)
+
+VINTAGE = "alphavantage_usdcad_raw_2007-08-10_2026-10-12_dl2026-10-13.csv"
+VINTAGE_SHA256 = "9792b44c3491c1c3ab3cdfb61b073e221a4022811e36dca2823d127f95c4f067"
+
+
+def pin(value: float, full: float, printed: str) -> None:
+    """The full value at 1e-9, and the figure at the four decimals the log quotes."""
+    assert value == pytest.approx(full, abs=1e-9), SPEC
+    assert f"{value:.4f}" == printed, SPEC
+
+
+@pytest.fixture(scope="module")
+def holdout() -> usdcad_holdout.Holdout:
+    """One run on the committed vintage."""
+    return read_holdout()
+
+
+@pytest.fixture(scope="module")
+def band(holdout) -> Band:
+    """H6's band at the tested closes' length, about 6 s."""
+    return random_walk_genhurst(len(holdout.tested))
+
+
+class TestTheVintage:
+    def test_the_entry_names_the_fx_daily_closes_downloaded_2026_10_13(self, holdout) -> None:
+        entry = holdout.entry
+        assert (entry.path, entry.sha256) == (VINTAGE, VINTAGE_SHA256)
+        assert (entry.row_count, entry.first_date, entry.last_date) == (
+            5000,
+            "2007-08-10",
+            "2026-10-12",
+        )
+        assert entry.download_date == DOWNLOAD_DATE
+        assert entry.vendor_column == (
+            "close, FX_DAILY from_symbol=USD to_symbol=CAD outputsize=full"
+        )
+
+
+class TestTheHoldoutWindow:
+    def test_115_warm_up_closes_from_2011_10_20_to_2012_03_28(self, holdout) -> None:
+        warm = holdout.warm_up
+        assert len(warm) == LOOKBACK == holdout.lookback == 115, SPEC
+        assert (warm.index[0], warm.index[-1]) == (
+            pd.Timestamp("2011-10-20"),
+            pd.Timestamp("2012-03-28"),
+        ), SPEC
+
+    def test_3791_traded_days_from_2012_03_29_to_2026_10_12(self, holdout) -> None:
+        assert len(holdout.traded) == len(holdout.tested) == len(holdout.held) == 3791, SPEC
+        assert (holdout.tested.index[0], holdout.tested.index[-1]) == (
+            pd.Timestamp("2012-03-29"),
+            pd.Timestamp("2026-10-12"),
+        ), SPEC
+
+    def test_2_of_3793_weekdays_have_no_row_and_no_run_is_longer_than_1(self, holdout) -> None:
+        assert (holdout.missing_weekdays, holdout.weekdays) == (2, 3793), SPEC
+        assert holdout.longest_gap == Gap(
+            1, pd.Timestamp("2014-12-26"), pd.Timestamp("2014-12-30")
+        ), SPEC
+
+
+class TestThePrimaryPrediction:
+    def test_h1_the_cumulative_pnl_is_above_0_so_the_claim_reproduces(self, holdout) -> None:
+        pin(holdout.total_pnl, 0.11316189494446321, "0.1132")
+        assert holdout.h1 is True, SPEC
+        assert holdout.log_verdict == "reproduced", SPEC
+
+
+class TestTheSecondaryPrediction:
+    def test_h3_the_newey_west_t_does_not_clear_1_645_as_registered(self, holdout) -> None:
+        nw = holdout.newey_west
+        pin(nw.t_newey_west, 0.2670103469846707, "0.2670")
+        assert (nw.lag, nw.n) == (8, 3791), SPEC
+        assert holdout.h3 is False, SPEC
+
+
+class TestTheDescriptivePredictions:
+    def test_h4_the_adf_does_not_reject_at_10_percent_as_registered(self, holdout) -> None:
+        pin(holdout.adf.statistic, -2.0814344247981156, "-2.0814")
+        assert holdout.adf.critical[2] == -2.59369, SPEC
+        assert holdout.h4 is False, SPEC
+        pin(holdout.adfuller_statistic, -2.0242932919577257, "-2.0243")
+
+    def test_h5_the_variance_ratio_does_not_reject_at_5_percent_as_registered(
+        self, holdout
+    ) -> None:
+        pin(holdout.vratio.p_value, 0.43433951622694444, "0.4343")
+        assert holdout.h5 is False, SPEC
+
+    def test_h6_genhurst_falls_inside_2_sds_of_the_random_walks_as_registered(
+        self, holdout, band
+    ) -> None:
+        pin(holdout.hurst, 0.4973527784353397, "0.4974")
+        pin(band.mean, 0.4987401602023661, "0.4987")
+        pin(band.sd, 0.013002157308381909, "0.0130")
+        assert (band.length, band.paths, band.seed) == (3791, 40_000, 20261011), SPEC
+        assert band.holds(holdout.hurst) is True, SPEC
+
+    def test_h7_the_half_life_is_457_8077_days_beside_the_frozen_115(self, holdout) -> None:
+        pin(holdout.half_life, 457.807742210632, "457.8077")
+
+
+class TestTheSideFigures:
+    """Point estimates nothing tests. They decide nothing."""
+
+    def test_the_deepest_drawdown_and_its_dates(self, holdout) -> None:
+        d = holdout.drawdown
+        pin(d.depth, 0.5032929211770972, "0.5033")
+        assert (d.peak, d.trough) == (
+            pd.Timestamp("2013-11-20"),
+            pd.Timestamp("2016-01-19"),
+        ), SPEC
+
+    def test_the_sharpe_ratio_of_the_raw_pnl(self, holdout) -> None:
+        pin(holdout.sharpe, 0.07154201996511289, "0.0715")
+
+    def test_the_largest_position_and_the_shares_long_and_short(self, holdout) -> None:
+        pin(holdout.largest_position, 5.405373425565022, "5.4054")
+        pin(holdout.long_share, 0.399366921656555, "0.3994")
+        pin(holdout.short_share, 0.600633078343445, "0.6006")
+        assert int(np.sum(holdout.held == 0)) == 0, SPEC
+
+
+class TestTheReport:
+    def test_it_prints_each_prediction_its_outcome_and_the_label(
+        self, holdout, band, capsys
+    ) -> None:
+        report(holdout, band)
+        out = capsys.readouterr().out
+        assert f"{VINTAGE}   alphavantage raw, downloaded 2026-10-13" in out
+        assert "warm-up  115 closes, 2011-10-20 to 2012-03-28" in out
+        assert "traded   3791 days, 2012-03-29 to 2026-10-12, lookback 115 days, frozen" in out
+        assert (
+            "2 of 3793 weekdays have no row, the longest run 1 weekday, between 2014-12-26 and "
+            "2014-12-30"
+        ) in out
+        assert "H1 cumulative P&L 0.1132, against > 0: holds. Verdict: reproduced." in out
+        assert "H2 not run" in out
+        assert "H3 Newey-West t 0.2670 at lag 8 over 3791 days" in out
+        assert "> 1.645: does not hold, as registered." in out
+        assert "H4 jplv7 ADF -2.0814, against the 10% value -2.5937" in out
+        assert "adfuller beside it -2.0243" in out
+        assert (
+            "H5 variance ratio p-value 0.4343, rejects at 5%: does not hold, as registered." in out
+        )
+        assert "H6 genhurst 0.4974, against 0.4987 +/- 2 x 0.0130 over 40,000 walks of 3791" in out
+        assert "holds, as registered." in out
+        assert "H7 half-life 457.8077 days, beside the frozen 115, no prediction." in out
+        assert "deepest drawdown 0.5033, from 2013-11-20 to 2016-01-19. Sharpe 0.0715" in out
+        assert "largest absolute position 5.4054, long on 0.3994 and short on 0.6006" in out
+        assert "Registered on issue 607" in out and "through 2012-04-26" in out

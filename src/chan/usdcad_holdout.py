@@ -63,8 +63,14 @@ warm-up date, refuses a zero, negative or non-finite close and a day moving by
 more than a factor of 1.6. A zero close would otherwise make H1's sum infinite
 and pass it. No gap threshold is set, because Chan's own closes skip 250 days.
 
-The result is **registered**. ``tests/test_usdcad_holdout.py`` is the single
-authority for every number any prose surface quotes about it.
+The result is **registered**, on the owner's calling the issue a
+pre-registration on 2026-10-13. :mod:`chan.aud_cad_johansen` already read
+about 20 of the holdout's first days, through 2012-04-26, from Chan's own
+``inputData_USDCAD_20120426.csv`` under a different rule, and the manifest
+tests read the vintage in the commit that landed it.
+``tests/test_usdcad_holdout.py`` is the single authority for every number any
+prose surface quotes about it, and Entry 51 of the log carries the verdict. It
+first ran here on 2026-10-13.
 
 Usage::
 
@@ -427,10 +433,11 @@ def report(holdout: Holdout, band: Band) -> None:
         f"  traded   {len(traded)} days, {tested.index[0].date()} to {tested.index[-1].date()}, "
         f"lookback {h.lookback} days, frozen"
     )
+    gap = h.longest_gap
     print(
         f"  gaps     {h.missing_weekdays} of {h.weekdays} weekdays have no row, the longest run "
-        f"{h.longest_gap.weekdays} weekdays, between {h.longest_gap.after.date()} and "
-        f"{h.longest_gap.before.date()}"
+        f"{gap.weekdays} weekday{'' if gap.weekdays == 1 else 's'}, between {gap.after.date()} "
+        f"and {gap.before.date()}"
     )
     print()
     print(
