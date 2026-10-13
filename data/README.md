@@ -108,6 +108,7 @@ for a series lifted from one of Chan's own files.
 | `yfinance_iwb_adjusted_2000-05-19_2026-10-02_dl2026-10-03.csv` | yfinance | IWB | adjusted | 2000-05-19 .. 2026-10-02 | 2026-10-03 |
 | `yfinance_iwb_raw_2000-05-19_2026-10-02_dl2026-10-03.csv` | yfinance | IWB | raw | 2000-05-19 .. 2026-10-02 | 2026-10-03 |
 | `yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv` | yfinance | SPY | raw | 1993-01-29 .. 2026-10-02 | 2026-10-03 |
+| `alphavantage_usdcad_raw_2007-08-10_2026-10-12_dl2026-10-13.csv` | alphavantage | USDCAD | raw | 2007-08-10 .. 2026-10-12 | 2026-10-13 |
 | `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
 | `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
 | `ijr_20080131/` | Chan's `IJR_20080131.mat` | 600 members | adjusted | 2004-01-15 .. 2008-02-01 | saved 2008-02-02 |
@@ -343,6 +344,37 @@ a reader to infer.
    pins the gap so the reason for that start cannot quietly stop being true.
 4. **`scale_breaks` finds nothing on it.** Its largest day-over-day move is a
    small fraction of the bound, so a flagged day would be a bad print.
+
+`alphavantage_usdcad_raw_2007-08-10_2026-10-12_dl2026-10-13.csv` is USD/CAD's
+daily close from Alpha Vantage, the series
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607) registers
+as the holdout for Example 2.5's linear rule. `chan.usdcad_holdout` fetched it,
+and its run reads it. It is the one Alpha Vantage series committed here, by the
+owner's ruling on that issue, and `## Vintages kept in the owner's archive`
+below says why every other one stays out. Four things about it are worth
+stating rather than leaving a reader to infer.
+
+1. **This is the call that produced it.** `python -m chan.usdcad_holdout fetch`
+   sent one `FX_DAILY` request with `from_symbol=USD`, `to_symbol=CAD`,
+   `outputsize=full` and `datatype=csv` on 2026-10-13.
+   `chan.fetch_alphavantage.fetch_fx_daily` handed the `close` column to the
+   recorder, which the line's `vendor_column` names. The response opened with
+   the header `timestamp,open,high,low,close`, ended in a newline, and listed
+   its rows newest first, so the fetch sorted them. It is recorded under `raw`,
+   because a currency has no splits or dividends to adjust for.
+2. **No row was dropped.** The fetch drops every row dated on or after the
+   download day, because such a row is a session still trading. The newest row
+   was dated 2026-10-12, the day before the download, so the rule dropped
+   nothing. No row fell on a Saturday or a Sunday, which the fetch refuses.
+3. **The response held exactly 5,000 rows.** That round number suggests the
+   vendor caps a full response. If it does, the start date, 2007-08-10, is set
+   by the cap rather than by the vendor's history, and a later download would
+   start later. That is one more reason the fetch refuses to record a second
+   vintage of the pair.
+4. **It fits the budget.** The file holds 91,279 bytes. With its manifest and
+   checksum lines and this paragraph it takes `data/` from 203.56 MB to
+   203.66 MB of file content, which leaves 1.34 MB under the 205 MB
+   budget. Those sizes were measured on this branch and no test holds them.
 
 The twelve `eia_` files are NYMEX futures settlement prices as the US Energy
 Information Administration publishes them, contracts 1 to 4 of three products.
@@ -1436,7 +1468,13 @@ Example 7.1, and the files themselves stay in the owner's data archive. The
 vendor's terms grant personal, non-commercial use, so the bytes may not be
 republished here. The owner decided on 2026-10-03 that the archive keeps them
 and this repo keeps their hashes, and `docs/design.md`'s premise records that
-as an exception.
+as an exception. One Alpha Vantage series is committed here all the same.
+The owner ruled on 2026-10-13, on
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607), that
+USD/CAD's `FX_DAILY` closes are committed in this directory, and the table of
+committed files above has their row. The ruling did not address the vendor's
+terms and reaches no other series, so every other Alpha Vantage series stays in
+the archive.
 
 | File | Vendor | Symbol | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |

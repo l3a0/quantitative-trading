@@ -1,15 +1,23 @@
-"""The fetch that writes Alpha Vantage's daily closes into the owner's archive.
+"""The fetch of Alpha Vantage's daily closes into the archive, or of USD/CAD's into ``data/``.
 
-Nothing here calls the vendor. Every test builds a data directory and an archive
-under ``tmp_path``, and hands :func:`chan.fetch_alphavantage.fetch` a stub for
-the network that maps each symbol to a body or an exception and counts its
-calls, and a stub for ``sleep`` that records each wait instead of waiting.
+Nothing here calls the vendor. The equity tests build a data directory and an
+archive under ``tmp_path``, and hand :func:`chan.fetch_alphavantage.fetch` a
+stub for the network that maps each symbol to a body or an exception and
+counts its calls, and a stub for ``sleep`` that records each wait instead of
+waiting.
+
+The ``FX_DAILY`` tests cover :func:`chan.fetch_alphavantage.fetch_fx_daily`,
+which records USD/CAD's closes as a vintage in a data directory under
+``tmp_path``. They hand it a stub for the network that answers each request in
+turn and refuses any request for a pair other than USD/CAD, and the same stub
+for ``sleep``.
 """
 
 from __future__ import annotations
 
 import http.client
 import json
+import re
 import urllib.parse
 from datetime import date
 from pathlib import Path
@@ -25,14 +33,19 @@ from chan.archive import (
 )
 from chan.fetch_alphavantage import (
     ATTEMPTS,
+    FX_DAILY_HEADER,
     KEY_ENV,
     PAUSE_SECONDS,
     THROTTLE_WAIT_SECONDS,
     TRANSPORT_WAIT_SECONDS,
+    RunStopped,
     fetch,
+    fetch_fx_daily,
+    fx_request_url,
     read_symbols,
     request_url,
 )
+from chan.vintage import MANIFEST_NAME, read_manifest, record_vintage
 
 KEY = "SECRETKEY123"
 
@@ -471,3 +484,189 @@ class TestTheSymbolList:
         assert query["symbol"] == ["BRK.B"]
         assert query["function"] == ["TIME_SERIES_DAILY_ADJUSTED"]
         assert (query["outputsize"], query["datatype"]) == (["full"], ["csv"])
+
+
+# --- the FX_DAILY path --------------------------------------------------------------------
+
+
+def fx_body(*rows: str, header: str = FX_DAILY_HEADER, end: str = "\r\n") -> bytes:
+    """An ``FX_DAILY`` body as the vendor writes it: newest row first, CRLF line ends."""
+    return (end.join([header, *rows]) + end).encode("utf-8")
+
+
+#: Three weekdays, newest first, as measured on 2026-10-13.
+FX_GOOD = fx_body(
+    "2026-10-12,1.4,1.5,1.3,1.4012",
+    "2026-10-09,1.4,1.5,1.3,1.3998",
+    "2026-10-08,1.4,1.5,1.3,1.4005",
+)
+
+
+class FxVendor:
+    """A stub for the network that answers every ``FX_DAILY`` request in turn."""
+
+    def __init__(self, *replies: bytes | BaseException):
+        self.replies = list(replies)
+        self.calls = 0
+
+    def __call__(self, url: str) -> bytes:
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+        assert query["apikey"] == [KEY]
+        assert query["function"] == ["FX_DAILY"]
+        assert (query["from_symbol"], query["to_symbol"]) == (["USD"], ["CAD"])
+        assert (query["outputsize"], query["datatype"]) == (["full"], ["csv"])
+        self.calls += 1
+        reply = self.replies.pop(0) if len(self.replies) > 1 else self.replies[0]
+        if isinstance(reply, BaseException):
+            raise reply
+        return reply
+
+
+@pytest.fixture
+def data_dir(tmp_path) -> Path:
+    directory = tmp_path / "data"
+    directory.mkdir()
+    (directory / MANIFEST_NAME).write_bytes(b"")
+    return directory
+
+
+def fx_run(data_dir, vendor, day=date(2026, 10, 13), clock=None):
+    return fetch_fx_daily(
+        key=KEY,
+        get=vendor,
+        sleep=clock or Clock(),
+        today=lambda: day,
+        data_dir=data_dir,
+    )
+
+
+def nothing_written(data_dir: Path) -> bool:
+    return read_manifest(data_dir) == [] and sorted(p.name for p in data_dir.iterdir()) == [
+        MANIFEST_NAME
+    ]
+
+
+class TestTheFxDaily:
+    def test_the_fetch_takes_no_pair_because_the_ruling_reaches_only_usd_cad(self, data_dir):
+        vendor = FxVendor(FX_GOOD)
+        with pytest.raises(TypeError):
+            fetch_fx_daily("EUR", "USD", key=KEY, get=vendor, sleep=Clock(), data_dir=data_dir)
+        assert vendor.calls == 0
+        assert nothing_written(data_dir)
+
+    def test_the_closes_are_recorded_oldest_first_under_the_pair(self, data_dir, capsys):
+        entry = fx_run(data_dir, FxVendor(FX_GOOD))
+        assert (entry.vendor, entry.symbol, entry.price_basis) == ("alphavantage", "USDCAD", "raw")
+        assert entry.path == "alphavantage_usdcad_raw_2026-10-08_2026-10-12_dl2026-10-13.csv"
+        assert entry.vendor_column == (
+            "close, FX_DAILY from_symbol=USD to_symbol=CAD outputsize=full"
+        )
+        assert (data_dir / entry.path).read_bytes() == (
+            b"Date,Close\n2026-10-08,1.4005\n2026-10-09,1.3998\n2026-10-12,1.4012\n"
+        )
+        assert entry.path in (data_dir / "checksums.sha256").read_text(encoding="utf-8")
+        out = capsys.readouterr().out
+        assert "USDCAD: 3 rows received, 0 dated on or after 2026-10-13 dropped" in out
+        assert "recorded alphavantage_usdcad_raw_2026-10-08_2026-10-12_dl2026-10-13.csv" in out
+
+    def test_a_body_with_lf_line_ends_reads_the_same(self, data_dir):
+        body = FX_GOOD.replace(b"\r\n", b"\n")
+        assert fx_run(data_dir, FxVendor(body)).row_count == 3
+
+    def test_rows_dated_on_or_after_the_download_day_are_dropped_and_named(self, data_dir, capsys):
+        body = fx_body(
+            "2026-10-14,1.4,1.5,1.3,1.5",
+            "2026-10-13,1.4,1.5,1.3,1.5",
+            "2026-10-12,1.4,1.5,1.3,1.4012",
+        )
+        entry = fx_run(data_dir, FxVendor(body))
+        assert (entry.row_count, entry.last_date) == (1, "2026-10-12")
+        out = capsys.readouterr().out
+        assert "2 dated on or after 2026-10-13 dropped (2026-10-13, 2026-10-14)" in out
+        assert "USDCAD: 3 rows received, 2 dated" in out
+
+    def test_the_manifest_holding_the_pair_refuses_before_any_request(self, data_dir):
+        fx_run(data_dir, FxVendor(FX_GOOD))
+        vendor = FxVendor(FX_GOOD)
+        with pytest.raises(ValueError, match="already holds alphavantage_usdcad_raw_"):
+            fx_run(data_dir, vendor, day=date(2026, 10, 14))
+        assert vendor.calls == 0
+        assert len(read_manifest(data_dir)) == 1
+
+    @pytest.mark.parametrize(
+        ("vendor", "basis"), [("yfinance", "raw"), ("alphavantage", "adjusted")]
+    )
+    def test_a_usdcad_vintage_from_another_vendor_or_basis_does_not_refuse(
+        self, data_dir, vendor, basis
+    ):
+        record_vintage(
+            [("2026-10-08", 1.4)],
+            vendor=vendor,
+            symbol="USDCAD",
+            price_basis=basis,
+            download_date="2026-10-10",
+            data_dir=data_dir,
+        )
+        assert fx_run(data_dir, FxVendor(FX_GOOD)).row_count == 3
+        assert len(read_manifest(data_dir)) == 2
+
+    @pytest.mark.parametrize(
+        ("body", "words"),
+        [
+            (fx_body("2026-10-12,1,1,1,1", header="timestamp,open,high,low"), "not the FX_DAILY"),
+            (b"\xef\xbb\xbf" + FX_GOOD, "not the FX_DAILY header"),
+            (FX_GOOD.rstrip(b"\r\n"), "does not end in a newline"),
+            (FX_GOOD[:-12], "does not end in a newline"),
+            (fx_body("2026-10-12,1,1,1,1", "2026-10-09,1,1,1"), "line 3 holds 4 fields"),
+            (fx_body("2026-10-12,1,1,1,1,1"), "line 2 holds 6 fields"),
+            (fx_body("2026-10-12,1,1,1,1", ""), "line 3 holds 1 fields"),
+            (fx_body("2026-13-12,1,1,1,1"), "not an ISO calendar date"),
+            (fx_body("20261009,1,1,1,1"), "not an ISO calendar date"),
+            (fx_body("2026-W41-5,1,1,1,1"), "not an ISO calendar date"),
+            (fx_body("2026-10-11,1,1,1,1", "2026-10-09,1,1,1,1"), "Saturday or a Sunday"),
+            (fx_body("2026-10-10,1,1,1,1"), "the first 2026-10-10"),
+            (fx_body("2026-10-13,1,1,1,1"), "no row dated before 2026-10-13"),
+            (fx_body(), "no row dated before"),
+            (b"", "an empty body"),
+            (fx_body("2026-10-12,1,1,1,"), "is not a number"),
+            (fx_body("2026-10-12,1,1,1,nan"), "not a finite number"),
+            (fx_body("2026-10-12,1,1,1,1", "2026-10-12,1,1,1,1"), "more than one close"),
+            (ERROR, "Alpha Vantage answered 'Invalid API call."),
+            (b'{"Something": "else"}', "neither Error Message, Information nor Note"),
+        ],
+    )
+    def test_a_body_the_run_cannot_trust_is_refused_and_nothing_is_written(
+        self, data_dir, body, words
+    ):
+        with pytest.raises(ValueError, match=re.escape(words)):
+            fx_run(data_dir, FxVendor(body))
+        assert nothing_written(data_dir)
+
+    def test_a_throttle_that_persists_stops_the_fetch(self, data_dir):
+        vendor = FxVendor(INFORMATION)
+        with pytest.raises(RunStopped, match="Thank you for using Alpha Vantage") as stopped:
+            fx_run(data_dir, vendor)
+        assert str(stopped.value).startswith(f"USDCAD, after {ATTEMPTS} attempts: ")
+        assert vendor.calls == ATTEMPTS
+        assert nothing_written(data_dir)
+
+    def test_a_transport_failure_that_clears_is_retried(self, data_dir):
+        clock = Clock()
+        entry = fx_run(data_dir, FxVendor(OSError("reset"), FX_GOOD), clock=clock)
+        assert entry.row_count == 3
+        assert clock.waits == [TRANSPORT_WAIT_SECONDS, PAUSE_SECONDS]
+
+    def test_a_body_cut_off_mid_read_stops_the_fetch_if_it_persists(self, data_dir):
+        with pytest.raises(RunStopped, match="IncompleteRead"):
+            fx_run(data_dir, FxVendor(http.client.IncompleteRead(b"abc", 100)))
+        assert nothing_written(data_dir)
+
+    def test_the_key_appears_in_no_output_when_a_transport_error_quotes_the_request(
+        self, data_dir, capsys
+    ):
+        leaky = OSError(f"could not reach {fx_request_url(KEY)}")
+        with pytest.raises(RunStopped) as stopped:
+            fx_run(data_dir, FxVendor(leaky))
+        out = capsys.readouterr()
+        assert KEY not in str(stopped.value) and "<key>" in str(stopped.value)
+        assert KEY not in out.out + out.err

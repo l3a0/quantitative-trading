@@ -19,9 +19,9 @@ and each says so in its own cells.
    disagreement, and they come from two different tests.
 
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45, 47, 48 and 49 carry their own, three, eleven, twelve, five,
+22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45, 47, 48, 49 and 51 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven and eleven, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven, eleven and ten, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5, 44, 46, 48 and 50 are the five entries that are not replications.
@@ -37,19 +37,22 @@ sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
 directly.
 
-Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49 and 50 is **exploratory** in the design
+Every result in Entries 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50 and 51 is **exploratory** in the design
 doc's sense. Reproducing a published figure spends the sample on a hypothesis
 someone else already chose, and testing a claim the source states does the same, so an
 entry can say whether the number reproduces or the claim holds on its vintage
 and nothing about whether the trade works today. Entry 7's rows 35 to 49,
-Entry 45's row 1 and Entry 49's row 1 are the exceptions, and they are
-**registered**. Entry 7's claim, test and verdict wording were written before
+Entry 45's row 1, Entry 49's row 1 and Entry 51's rows 1 and 3 to 6 are the
+exceptions, and they are **registered**. Entry 7's claim, test and verdict wording were written before
 any return was computed. Entry 45's plan and criterion were written before any
 number was computed, and the wording of its ruin outcome after the leverage
 path and the two ruined months had been seen, which that entry states. Entry
 49 runs the same plan on IVV's S&P 500 from 2008, and its rule for a formation
 with no positive low-group beta was written after the first such formation
-had been seen, which that entry states too. Entries 2 and 9 spend no
+had been seen, which that entry states too. Entry 51 trades Example 2.5's
+rule on USD/CAD's closes after Chan's sample at a lookback fixed from it, and
+every prediction it records was written before any of those closes was read.
+Its row 2 did not run and carries neither label. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
 states rather than picking one. Entry 20 works arithmetic on inputs the book
 states and is outside both for the same reason, which its first conclusion
@@ -380,6 +383,12 @@ says.
   - [The control](#the-control)
   - [What the entry concludes](#what-the-entry-concludes-49)
   - [What this entry cannot say](#what-this-entry-cannot-say-47)
+- [Entry 51: Example 2.5's linear rule on USD/CAD after 2012, Chan's *Algorithmic Trading*](#entry-51-example-25s-linear-rule-on-usdcad-after-2012-chans-algorithmic-trading)
+  - [What the book stated](#what-the-book-stated-8)
+  - [What this repo computed](#what-this-repo-computed-50)
+  - [The verdicts](#the-verdicts-46)
+  - [What the entry concludes](#what-the-entry-concludes-50)
+  - [What this entry cannot say](#what-this-entry-cannot-say-48)
 
 ## How to read an entry
 
@@ -466,11 +475,13 @@ both.
    holds Entry 46,
    [tests/test_vix_filter.py](../tests/test_vix_filter.py) holds Entry 47,
    [tests/test_low_beta_capped.py](../tests/test_low_beta_capped.py) holds
-   Entry 48, and
+   Entry 48,
    [tests/test_low_beta_holdout.py](../tests/test_low_beta_holdout.py) holds
-   Entry 49, and
+   Entry 49,
    [tests/test_khandani_lo_mid_caps.py](../tests/test_khandani_lo_mid_caps.py)
-   holds Entry 50. The archive pins of Entries 46, 49 and 50 run only where
+   holds Entry 50, and
+   [tests/test_usdcad_holdout.py](../tests/test_usdcad_holdout.py) holds
+   Entry 51. The archive pins of Entries 46, 49 and 50 run only where
    the owner's
    data archive is and `QT_ARCHIVE_RUN=1` asks for them.
 2. **Every published figure names where the source prints it, or says it has no
@@ -593,7 +604,7 @@ Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9 and 12 to 16, Entry 41's row 11,
 Entry 42's rows 6 to 16, Entry 43's rows 13 to 17,
 Entry 45's rows 2 to 9, Entry 47's rows 13 to 18, Entry 48's rows 1 to 7,
-and Entry 49's rows 2 to 11.
+Entry 49's rows 2 to 11, and Entry 51's rows 2 to 10.
 
 Entry 25's row 5 is the one among them that verdicts rest on. It asks whether
 the run's 612 returns equal the ones Chan's script saved, which no source
@@ -882,6 +893,14 @@ whose low group's mean beta is not positive and gave that case no verdict.
 The owner's second amendment of 2026-10-11 skips such a formation, and it
 was written after the first one, 2026-04-30, was visible, which Entry 49
 states beside its label.
+
+Entry 51's row 1 takes it for Entry 22's row 7's reason, on USD/CAD's closes
+after Chan's sample. Location 1225 says the P&L of the strategy it names
+"manages to be positive", and the criterion, the sum of the daily P&L over
+the traded days from 2012-03-29 above 0 at a lookback frozen at 115, was
+written on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607)
+before any of those closes was read. So were the four predictions beside it,
+which decide nothing, and the mapping from the criterion to a verdict.
 
 Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
 claims and carry no verdict. Location 1726 says the filter's slope
@@ -5397,7 +5416,8 @@ than a return on capital, so it carries no Sharpe ratio or APR, and the book
 prints none.
 
 **Anything about USD.CAD after March 2012.** Every figure is exploratory, on a
-sample Chan already chose.
+sample Chan already chose. Entry 51 trades Example 2.5's rule on a vendor's
+closes after 2012 at the lookback fixed here, and carries that result.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -11501,3 +11521,168 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
 moves with it, since the closing paragraphs of that post's Lesson 6 quote
 its before-cost figures, its one step beyond noise and the control's gaps.
+
+## Entry 51: Example 2.5's linear rule on USD/CAD after 2012, Chan's *Algorithmic Trading*
+
+Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
+Rationale*, Wiley, 2013, Example 2.5, Kindle location 1225. Shipped under
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607). Entry 22
+reproduces Example 2.5 on Chan's own 1,216 closes from 2007-07-23 to
+2012-03-28, and every result there is exploratory for two reasons. The sample
+was spent reproducing figures Chan chose, and the 115-day lookback is the
+half-life of the same closes the rule trades, a look-ahead location 1225
+names. This entry removes both. The lookback stays at 115, fixed from Chan's
+closes and never re-estimated, and the rule trades only closes after
+2012-03-28.
+
+Ten rows. Nine are derivable from
+[tests/test_usdcad_holdout.py](../tests/test_usdcad_holdout.py), whose pins
+run everywhere because the vintage is committed, and row 2 records a
+prediction that did not run.
+
+**Reproduced.** Over 3,791 traded days, from 2012-03-29 to 2026-10-12, the
+rule's daily P&L sums to 0.1132, above 0, so the claim that the P&L ends
+positive survives out of sample on this feed. It survives narrowly. The mean
+daily P&L is indistinguishable from zero, at a Newey-West t of 0.2670, and
+the deepest drawdown, 0.5033, is more than four times what the run ends with.
+H1 is a single-feed result, because the second holdout, H2, did not run.
+
+One row is a claim and nine are not replications. Row 1 takes the claim
+route `### Rows that are not replications` describes, since no published
+number stands behind it. Row 2 is the prediction that moved to another issue.
+Rows 3 to 7 are the predictions registered beside the claim, which decide
+nothing, and rows 8 to 10 are the figures reported beside them.
+
+Three things carry the result, so they are stated here.
+
+1. **The closes.** Every row but row 2 reads one vintage,
+   `alphavantage_usdcad_raw_2007-08-10_2026-10-12_dl2026-10-13.csv`, Alpha
+   Vantage's `FX_DAILY` close for USD/CAD, downloaded 2026-10-13, 5,000 rows
+   from 2007-08-10 to 2026-10-12. The vendor's daily close is a different
+   feed from Chan's 16:59 bar, so this is the issue's holdout B, the long one
+   on a different feed. The owner ruled on the issue that this one Alpha
+   Vantage series is committed to `data/`, and
+   [data/README.md](../data/README.md) says what it holds.
+2. **The rule and its slices.** The rule is
+   `chan.usdcad_mean_reversion.linear_mean_reversion` exactly. The position
+   is minus the 115-day z-score of the close, each day's P&L is the previous
+   day's position times the day's percent change, and there is no
+   transaction cost and no rollover interest. It runs over the 115 closes
+   before 2012-03-29, from 2011-10-20 to 2012-03-28, and every close after
+   them together. The traded days are `pnl[115:]`, the positions that earn
+   them are `market_value(...)[114:-1]`, and the tested closes `y` cover the
+   traded days' span. The warm-up falls inside Chan's window, so no test
+   reads it.
+3. **The holdout the issue cut.** Holdout A, Chan's 16:59 specification on
+   Massive's minute bars, reaches back only to 2024-10-13 on the current
+   plan. The owner cut it, with its prediction H2, to
+   [issue 608](https://github.com/l3a0/quantitative-trading/issues/608). The
+   issue had said that H1 and H2 disagreeing would make the result
+   feed-dependent, and with H2 unrun that check is not made.
+
+Rows 1 and 3 to 6 are **registered**. On 2026-10-13, before any holdout close
+was read,
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607) wrote
+down each prediction, its statistic, comparator and slice, the lookback, and
+the mapping from H1 to a verdict, and the owner called the issue a
+pre-registration that day. Three reads came before the run, and none decided
+anything.
+
+1. `chan.aud_cad_johansen` already read about 20 of the holdout's first days,
+   through 2012-04-26, from Chan's own `inputData_USDCAD_20120426.csv`, a
+   different feed under a different rule.
+2. The issue's coverage probe compared the vendor's closes with Chan's only
+   on the days the two share up to 2012-03-28.
+3. The manifest, scale-break and column read-back tests read every committed
+   close, so they read this vintage in the commit that landed it, and only
+   their pass or fail was looked at.
+
+Row 7 carried no prediction, so rows 7 to 10 are **exploratory** point
+estimates that nothing tests. Row 2 did not run and carries neither label.
+
+### What the book stated
+
+The book prints no number for the claim, and nothing at all about USD/CAD
+after March 2012, so the published-figure and gap columns have nothing to
+hold in any row and are dropped, under
+`### What a second entry does to this file`.
+
+| # | Row | What the book says | Where |
+| --- | --- | --- | --- |
+| 1 | H1, Example 2.5's cumulative P&L is positive, on holdout B | "manages to be positive", with no figure | location 1225 |
+| 2 | H2, the same claim on holdout A | the same claim | location 1225 |
+| 3 to 7 | H3 to H7, the mean daily P&L, the ADF, the variance ratio, H and the half-life on the later closes | nothing about closes after March 2012. Entry 22 carries what the book prints on Chan's | n/a |
+| 8 to 10 | the drawdown and Sharpe ratio, the positions, and the window | nothing, the book reports no such figure for this period | n/a |
+
+### What this repo computed
+
+| # | Specification | Computed | Assertion |
+| --- | --- | --- | --- |
+| 1 | H1, registered: `pnl[115:].sum() > 0` | 0.1132, above 0, so H1 holds | `TestThePrimaryPrediction::test_h1_the_cumulative_pnl_is_above_0_so_the_claim_reproduces` |
+| 2 | H2, registered: the same sum on holdout A's 16:59 closes | not run, moved to [#608](https://github.com/l3a0/quantitative-trading/issues/608) | none |
+| 3 | H3, registered: the Newey-West t of the mean daily P&L above 1.645, predicted not to | 0.2670 at lag 8 over 3,791 days, so H3 does not hold, as registered | `TestTheSecondaryPrediction::test_h3_the_newey_west_t_does_not_clear_1_645_as_registered` |
+| 4 | H4, registered: jplv7 `adf(y, 0, 1)` below `ztcrit`'s 10 percent value, predicted not to. `adfuller` at the same lag is reported beside it | −2.0814 against −2.5937, so H4 does not hold, as registered. `adfuller` gives −2.0243 | `TestTheDescriptivePredictions::test_h4_the_adf_does_not_reject_at_10_percent_as_registered` |
+| 5 | H5, registered: `vratiotest(log(y))` rejects at 5 percent, predicted not to | p-value 0.4343, h = 0, so H5 does not hold, as registered | `TestTheDescriptivePredictions::test_h5_the_variance_ratio_does_not_reject_at_5_percent_as_registered` |
+| 6 | H6, registered: `genhurst(log(y), 2)` within 2 SDs of its mean over 40,000 random walks of the same length from seed 20261011, predicted to | 0.4974 against 0.4987 ± 2 × 0.0130 on walks of 3,791, so H6 holds, as registered | `TestTheDescriptivePredictions::test_h6_genhurst_falls_inside_2_sds_of_the_random_walks_as_registered` |
+| 7 | H7: `ou_half_life(y)`, beside the frozen 115, no prediction | 457.8077 days | `TestTheDescriptivePredictions::test_h7_the_half_life_is_457_8077_days_beside_the_frozen_115` |
+| 8 | the deepest fall of the cumulative P&L below its running high, and the raw P&L's Sharpe ratio, √252 times the mean over the standard deviation | 0.5033, from 2013-11-20 to 2016-01-19. Sharpe ratio 0.0715 | `TestTheSideFigures::test_the_deepest_drawdown_and_its_dates` and `::test_the_sharpe_ratio_of_the_raw_pnl` |
+| 9 | the positions that earn the traded days: the largest in absolute value, and the shares of traded days long and short | 5.4054. Long on 0.3994 and short on 0.6006, with no day flat | `TestTheSideFigures::test_the_largest_position_and_the_shares_long_and_short` |
+| 10 | the window: the warm-up, the traded days, and the weekdays with no row over the traded days | 115 warm-up closes from 2011-10-20 to 2012-03-28. 3,791 traded days from 2012-03-29 to 2026-10-12. 2 of the 3,793 weekdays have no row, and no run of them is longer than 1, between 2014-12-26 and 2014-12-30 | `TestTheHoldoutWindow::test_115_warm_up_closes_from_2011_10_20_to_2012_03_28`, `::test_3791_traded_days_from_2012_03_29_to_2026_10_12`, `::test_2_of_3793_weekdays_have_no_row_and_no_run_is_longer_than_1` and `TestTheVintage::test_the_entry_names_the_fx_daily_closes_downloaded_2026_10_13` |
+
+### The verdicts
+
+| # | Verdict | Why |
+| --- | --- | --- |
+| 1 | reproduced | Registered. The criterion written on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) before any holdout close was read holds: the P&L ends at 0.1132, above 0. The issue mapped H1 holding to this value before the run. It takes the claim route, and it is a single-feed result, because H2 did not run. |
+| 2 | not run, moved to [#608](https://github.com/l3a0/quantitative-trading/issues/608) | Holdout A needs Massive's minute bars from 2012, and the current plan reaches back only to 2024-10-13. |
+| 3 | none, not a replication | Registered, and it decides nothing. The prediction was that the t would not clear 1.645, and at 0.2670 it does not. |
+| 4 | none, not a replication | Registered, and it decides nothing. The prediction was that the ADF would not reject, and −2.0814 sits above −2.5937. |
+| 5 | none, not a replication | Registered, and it decides nothing. The prediction was that the variance ratio would not reject, and its p-value is 0.4343. |
+| 6 | none, not a replication | Registered, and it decides nothing. The prediction was that H would fall inside the band, and 0.4974 sits 0.0014 below the walks' mean of 0.4987, against a band of ±0.0260. |
+| 7 | none, not a replication | No prediction. The half-life on the later closes is 457.8077 days, almost four times the 115 the rule trades at. |
+| 8 | none, not a replication | The drawdown ran from 2013-11-20 to 2016-01-19, and at 0.5033 it is more than four times the final P&L. The Sharpe ratio is on the raw P&L, which is in units of the position's own scale. |
+| 9 | none, not a replication | The rule was short on 0.6006 of the traded days. Its largest position, 5.4054, is a close more than five moving standard deviations from its 115-day average. |
+| 10 | none, not a replication | The window is the one the issue fixed. No gap threshold was set, because Chan's own closes skip 250 days. |
+
+### What the entry concludes
+
+Three things.
+
+1. **Example 2.5's claim survives out of sample, on one feed.** At the
+   lookback fixed from Chan's closes, the rule's P&L over 3,791 days after his
+   sample ends at 0.1132, above 0. That is `reproduced`, registered, and the
+   first registered result on USD/CAD in this repository. H2 did not run, so
+   nothing here says whether the same holds on Chan's 16:59 bar.
+2. **The claim survives on its sign alone.** The mean daily P&L has a
+   Newey-West t of 0.2670, and the raw P&L's Sharpe ratio is 0.0715. A
+   drawdown of 0.5033 from 2013-11-20 to 2016-01-19 is more than four times
+   what the run ends with. So the sum is positive, and nothing here can tell
+   the mean behind it from zero.
+3. **The later closes read as a random walk, as registered.** The ADF of
+   −2.0814 does not reject at 10 percent, the variance ratio's p-value is
+   0.4343, and H of 0.4974 sits inside its random-walk band. The half-life
+   on these closes is 457.8077 days, almost four times the lookback the rule
+   trades at. Each of H3 to H6 landed as the issue predicted.
+
+### What this entry cannot say
+
+Four things.
+
+**Whether the result depends on the feed.** The vendor's daily close is not
+Chan's 16:59 bar, and the holdout that would have used his bar moved to
+[issue 608](https://github.com/l3a0/quantitative-trading/issues/608).
+
+**Whether the rule would pay.** There is no transaction cost and no rollover
+interest, which the issue left to a later specification, and the position
+grows without limit as the deviation does. The P&L is in units of the
+position's own scale rather than a return on capital.
+
+**Whether the mean is real.** The claim is about the sign of the sum, and a t
+of 0.2670 cannot separate the mean daily P&L from zero.
+
+**Anything about a lookback other than 115.** The issue froze it before the
+holdout was read, and a lookback chosen after seeing these numbers would make
+a new run, and an exploratory one.
+
+Nothing checks this entry against the suite, for the reason Entry 1 states. A
+change to any assertion named above moves this entry in the same commit.

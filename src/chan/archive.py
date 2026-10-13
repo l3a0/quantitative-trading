@@ -10,6 +10,14 @@ publishing raw bars. The owner chose on 2026-10-03 that the archive keeps the
 bytes and this repo commits only their hashes, so the series is still kept and
 the record still names exactly which bytes a result rests on.
 
+One Alpha Vantage series is committed all the same. The owner ruled on
+2026-10-13, on
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607), that
+USD/CAD's ``FX_DAILY`` closes go to ``data/`` as an ordinary vintage, which
+:func:`chan.fetch_alphavantage.fetch_fx_daily` records and this module never
+reads. The ruling did not address the vendor's terms and reaches no other
+series, so every other Alpha Vantage series stays in the archive.
+
 So this module reads a second manifest, ``data/archive_vintages.jsonl``, one
 JSON object per archive file, and hands back a file's bytes only once they hash
 to what that line records. It mirrors :func:`chan.vintage.read_vintage` on

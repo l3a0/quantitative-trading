@@ -17,7 +17,10 @@ So a result computed from a series is committed next to the exact series it was
 computed from, and a result computed from none says so. Licensed data is the
 one exception. Example 7.1's two series of minute bars, and Alpha Vantage's
 daily closes for the S&P 600, S&P 500 and S&P 400 cross-sections, stay in the owner's data archive
-and only their hashes are committed, as `docs/design.md`'s premise records. Everything else is
+and only their hashes are committed, as `docs/design.md`'s premise records.
+Alpha Vantage's USD/CAD daily closes are committed after all, by the owner's
+ruling on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607),
+so CI runs their pins. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
@@ -52,10 +55,10 @@ coin-flip entry says in place of picking one.
 
 ## Status
 
-Forty-six replications run here, eighteen from Chan's *Quantitative Trading*
-and twenty-eight from his *Algorithmic Trading*. The first two were ported from the
+Forty-seven replications run here, eighteen from Chan's *Quantitative Trading*
+and twenty-nine from his *Algorithmic Trading*. The first two were ported from the
 sibling [trading-strategies](https://github.com/l3a0/trading-strategies) repo,
-where they were first built. The other forty-four were built here.
+where they were first built. The other forty-five were built here.
 
 1. The GLD/GDX cointegration example, Chapter 3 and Chapter 7.
 2. The KO/PEP counter-example, Example 7.3, which is a pair that correlates in
@@ -706,6 +709,21 @@ where they were first built. The other forty-four were built here.
     percent rejects every levered advantage above 0.1360 a year, and
     December 2024 alone sets the gap's sign, since without it the gap is
     +0.0313.
+47. Item 22's Example 2.5 after Chan's sample, on Alpha Vantage's USD/CAD
+    daily closes from 2012-03-29 to 2026-10-12, at the lookback of 115 days
+    fixed from his closes and never re-estimated. The claim that the P&L ends
+    positive reproduces: over 3,791 traded days it sums to 0.1132. It
+    survives on its sign alone. The mean daily P&L has a Newey-West t of
+    0.2670, and the deepest drawdown, 0.5033, is more than four times the
+    final P&L. On the later closes the ADF, variance ratio and Hurst tests
+    read as a random walk, and each of those three landed as
+    [issue 607](https://github.com/l3a0/quantitative-trading/issues/607)
+    registered it before any holdout close was read. The half-life is
+    457.8077 days against the frozen 115, and the issue registered no
+    prediction for it. The result is
+    registered and comes from one feed, the vendor's daily close rather than
+    Chan's 16:59 bar, because the holdout on his bar moved to
+    [issue 608](https://github.com/l3a0/quantitative-trading/issues/608).
 
 Two more results run here, and neither is a replication. The first comes from
 the same passage, which names bonds of one issuer as a place a stationary
@@ -1403,7 +1421,20 @@ their ruin lines, March 2026's levered loss, and the gap with one or two
 months dropped. The blog post about it is the exception, and what it says that
 nothing here asserts is listed below.
 
-All forty-six replications reach a verdict in
+[tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) does it for
+Example 2.5's rule on USD/CAD after 2012. It pins H1's cumulative P&L and
+its verdict, each of H3 to H7's statistics with whether its registered
+prediction matched, H6's random-walk band, the drawdown, the Sharpe ratio,
+the largest position, the shares long and short, the window and its weekday
+gaps, and the report's lines. The vintage is committed, so every pin runs
+everywhere, CI included. On synthetic rows it holds each refusal of the run,
+the window, and the slicing that makes the positions `market_value(...)[114:-1]`
+earn `pnl[115:]`. On stubbed calls it holds that each refusal of the command
+prints one line and that the key reaches none.
+[tests/test_fetch_alphavantage.py](tests/test_fetch_alphavantage.py) holds
+the fetch's refusals of a response on stubbed bodies.
+
+All forty-seven replications reach a verdict in
 [docs/replication-log.md](docs/replication-log.md), row by row. Entry 5 there
 carries the fixed-income finding, which has no published number to reach a
 verdict against, Entry 6 the cross rate's verdict, Entry 7 the equity
@@ -1429,8 +1460,9 @@ Entry 43 Chapter 8's leverage boxes', Entry 44 the finding on the reversal on
 the S&P 600, which has no published number to reach a verdict against either,
 Entry 45 the levered low-beta claim's, Entry 47 the VIX filter's on buy on
 gap and on FSTX, Entry 49 the levered low-beta claim's on IVV's S&P 500
-after the book, and Entry 50 the finding on the reversal on the S&P 400
-beside Chan's two files, which has no published number either.
+after the book, Entry 50 the finding on the reversal on the S&P 400
+beside Chan's two files, which has no published number either, and Entry 51
+Example 2.5's claim on USD/CAD after 2012.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict. Entry 48 carries the
 levered low-beta rule at leverage a broker would lend, which is exploratory
@@ -2006,8 +2038,10 @@ two test files that read it.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
-`data/archive_vintages.jsonl` under a cross-section name. It is the one command
-here that needs the owner's key, read from the environment of the run:
+`data/archive_vintages.jsonl` under a cross-section name. It reads the owner's
+key from the environment of the run. One other command asks Alpha Vantage for
+data with the same key, `python -m chan.usdcad_holdout fetch`, and it records
+USD/CAD's daily closes in `data/` rather than in the archive:
 
 ```bash
 ALPHAVANTAGE_API_KEY=... QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.fetch_alphavantage --cross-section sp600 --symbols symbols.txt
@@ -2156,6 +2190,26 @@ random walks of 1,216 log prices and where the observed H falls among them. It
 then prints both estimators with the first 0 to 10 closes dropped, beside
 whether the script's other figures still land. It was designed after the miss was seen, so it is
 exploratory.
+
+Example 2.5's rule on USD/CAD after 2012 takes two commands. `fetch` records
+Alpha Vantage's `FX_DAILY` closes as a vintage in `data/`, once, and refuses
+when one is already recorded. It reads `ALPHAVANTAGE_API_KEY` from the
+environment of the run. The owner's `~/.zshrc` exports it and a plain shell
+does not read that file, hence the interactive `zsh`. `run` needs no key:
+
+```bash
+zsh -i -c 'uv run python -m chan.usdcad_holdout fetch'
+uv run python -m chan.usdcad_holdout run
+```
+
+`run` takes no option, because
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607) fixed
+the window, the lookback of 115 and every prediction before any holdout close
+was read. It prints the vintage, the warm-up, the traded days and their
+weekday gaps, and each of H1 to H7 with its outcome and whether it landed as
+registered. Then it prints the drawdown, the Sharpe ratio, the largest
+position and the shares long and short, which decide nothing. Every refusal
+of either command prints one line.
 
 The ETF cointegration examples, Examples 2.6 to 2.8 of *Algorithmic Trading*,
 take no option, because `cointegrationTests.m` fixes the file, the three ETFs

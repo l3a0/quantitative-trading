@@ -1,4 +1,4 @@
-"""Fetch Alpha Vantage's daily closes into the owner's archive, one symbol at a time.
+"""Fetch Alpha Vantage's daily closes into the owner's archive, or one pair's into ``data/``.
 
 The owner extended the archive exception on 2026-10-04 to Alpha Vantage's daily
 closes for the S&P 600 cross-section, and ruled the same day that the fetch
@@ -70,6 +70,19 @@ rewrite would record a symbol other than the one asked for.
 **The key never reaches output.** The request URL holds it, so no line prints
 the URL, and every line passes through :func:`_redact` before it is printed in
 case a transport error quotes it.
+
+**One currency pair takes a path of its own.** :func:`fetch_fx_daily` sends
+one ``FX_DAILY`` request for USD/CAD, the pair
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607) reads, and
+records the closes through :func:`chan.vintage.record_vintage` rather than
+writing the response to the archive. It shares the retry loop in
+:func:`_request`, the redaction and the printing with the equity path, and
+nothing else, since :func:`fetch` needs the archive and a cross-section the
+owner ruled in. ``python -m chan.usdcad_holdout fetch`` runs it. The owner
+ruled on 2026-10-13 that this one series is committed, so the pair is fixed
+in :data:`FX_FROM` and :data:`FX_TO` rather than taken as an argument. The
+ruling did not address the vendor's terms and reaches no other series, so every
+other series this module fetches stays in the archive.
 """
 
 from __future__ import annotations
@@ -100,7 +113,13 @@ from chan.archive import (
     record_archive_file,
     require_ruled,
 )
-from chan.vintage import SYMBOL_PATTERN
+from chan.vintage import (
+    MANIFEST_NAME,
+    SYMBOL_PATTERN,
+    VintageEntry,
+    read_manifest,
+    record_vintage,
+)
 
 #: The environment variable holding the owner's key, never a file.
 KEY_ENV = "ALPHAVANTAGE_API_KEY"
@@ -256,7 +275,7 @@ def fetch(
                     key,
                 )
                 continue
-            body = _request(symbol, key, get, sleep)
+            body = _request(symbol, request_url(symbol, key), key, get, sleep)
             _settle(cross_section, symbol, body, key, today, data_dir, directory, tally)
     except RunStopped as stopped:
         tally.stopped = str(stopped)
@@ -280,6 +299,212 @@ def fetch(
         settled = set(tally.recorded) | set(tally.failed) | set(tally.already)
         tally.not_reached = [symbol for symbol in todo[reached:] if symbol not in settled]
     return tally
+
+
+#: The header ``FX_DAILY`` writes under ``datatype=csv``, measured on 2026-10-13.
+FX_DAILY_HEADER = "timestamp,open,high,low,close"
+
+#: The fields of one ``FX_DAILY`` row: a date and four prices.
+FX_DAILY_FIELDS = len(FX_DAILY_HEADER.split(","))
+
+#: The one pair the owner ruled may be committed to ``data/``, as ``FX_DAILY``
+#: names its two currencies, and the symbol its closes are recorded under.
+FX_FROM = "USD"
+FX_TO = "CAD"
+FX_SYMBOL = f"{FX_FROM}{FX_TO}"
+
+#: The vendor and basis the pair's daily closes are recorded under.
+FX_VENDOR = "alphavantage"
+FX_BASIS = "raw"
+
+#: The column and the call the pair's recorded closes came from, for the manifest line.
+FX_VENDOR_COLUMN = f"close, FX_DAILY from_symbol={FX_FROM} to_symbol={FX_TO} outputsize=full"
+
+
+def fx_request_url(key: str) -> str:
+    """The one request for USD/CAD's full daily history as CSV."""
+    query = {
+        "function": "FX_DAILY",
+        "from_symbol": FX_FROM,
+        "to_symbol": FX_TO,
+        "outputsize": "full",
+        "datatype": "csv",
+        "apikey": key,
+    }
+    return f"{QUERY_URL}?{urllib.parse.urlencode(query)}"
+
+
+@dataclass(frozen=True)
+class FxCloses:
+    """One ``FX_DAILY`` response read down to its dates and closes.
+
+    ``rows`` pairs each date with the close as the vendor wrote it, oldest
+    first, and leaves out every row dated on or after the download day.
+    ``dropped`` names those, and ``received`` counts every row the body held.
+    """
+
+    rows: list[tuple[str, str]]
+    dropped: list[str]
+    received: int
+
+
+def read_fx_daily(body: bytes, download_date: str) -> FxCloses:
+    """The dates and closes of one ``FX_DAILY`` body, or a ``ValueError`` saying why not.
+
+    Seven refusals, each before anything is written.
+
+    1. A JSON body. ``Error Message`` is quoted, and anything else is named as
+       a body carrying none of the vendor's three keys. A throttle never gets
+       here, because :func:`_request` retries it.
+    2. An empty body.
+    3. A first line other than :data:`FX_DAILY_HEADER`, a byte-order mark
+       included, because the endpoint changed.
+    4. A body that does not end in a newline. The vendor writes the newest row
+       first, so a body cut off mid-read ends on an old row that still parses.
+    5. A row with other than five fields, or a date that is not a calendar
+       day, for the same reason.
+    6. A body with no row dated before the download day.
+    7. A row dated on a Saturday or a Sunday. Chan's USD/CAD closes hold none,
+       and the run counts rows to set its lookback, so a weekend row would
+       shift every window after it.
+
+    A row dated on or after the download day is a session still trading rather
+    than a close, so it is dropped and named rather than refused. The rest are
+    sorted oldest first, because the vendor writes them newest first.
+    """
+    stripped = body.lstrip()
+    if stripped.startswith(b"{"):
+        try:
+            parsed = json.loads(stripped)
+        except ValueError:
+            parsed = None
+        if isinstance(parsed, dict) and "Error Message" in parsed:
+            raise ValueError(
+                f"Alpha Vantage answered {str(parsed['Error Message'])[:_QUOTED]!r}, so nothing "
+                f"was recorded"
+            )
+        raise ValueError(
+            "a JSON body carrying neither Error Message, Information nor Note, so nothing was "
+            "recorded"
+        )
+    if not body:
+        raise ValueError("an empty body, so nothing was recorded")
+    text = body.decode("utf-8", "replace")
+    first = text.split("\n", 1)[0].rstrip("\r")
+    if first != FX_DAILY_HEADER:
+        raise ValueError(
+            f"the body opens with {first[:80]!r}, not the FX_DAILY header "
+            f"{FX_DAILY_HEADER!r}, so nothing was recorded"
+        )
+    if not body.endswith(b"\n"):
+        raise ValueError(
+            "the body does not end in a newline, so it was cut off and its last row may be "
+            "partial. Nothing was recorded"
+        )
+    lines = [line.rstrip("\r") for line in text.split("\n")[1:-1]]
+    rows, dropped = [], []
+    for number, line in enumerate(lines, start=2):
+        fields = line.split(",")
+        if len(fields) != FX_DAILY_FIELDS:
+            raise ValueError(
+                f"line {number} holds {len(fields)} fields rather than {FX_DAILY_FIELDS}, so the "
+                f"body was cut off or the endpoint changed. Nothing was recorded"
+            )
+        day, close = fields[0], fields[-1]
+        try:
+            calendar_day = date.fromisoformat(day)
+        except ValueError:
+            calendar_day = None
+        if calendar_day is None or calendar_day.isoformat() != day:
+            raise ValueError(
+                f"line {number} is dated {day[:40]!r}, which is not an ISO calendar date. Nothing "
+                f"was recorded"
+            )
+        if day >= download_date:
+            dropped.append(day)
+        else:
+            rows.append((day, close))
+    if not rows:
+        raise ValueError(
+            f"the body holds no row dated before {download_date}, so nothing was recorded"
+        )
+    rows.sort()
+    weekend = [day for day, _ in rows if date.fromisoformat(day).weekday() >= 5]
+    if weekend:
+        raise ValueError(
+            f"{len(weekend)} rows fall on a Saturday or a Sunday, the first {weekend[0]}. Chan's "
+            f"USD/CAD closes hold no weekend day and the lookback counts rows, so nothing was "
+            f"recorded"
+        )
+    return FxCloses(rows=rows, dropped=sorted(dropped), received=len(lines))
+
+
+def fetch_fx_daily(
+    *,
+    key: str,
+    get: Callable[[str], bytes] | None = None,
+    sleep: Callable[[float], None] | None = None,
+    today: Callable[[], date] | None = None,
+    data_dir: Path | None = None,
+) -> VintageEntry:
+    """Fetch USD/CAD's ``FX_DAILY`` closes and record them as a vintage in ``data/``.
+
+    The owner ruled on 2026-10-13, on
+    [issue 607](https://github.com/l3a0/quantitative-trading/issues/607), that
+    USD/CAD's closes from this call are committed, so they go through
+    :func:`chan.vintage.record_vintage` rather than into the archive. The
+    ruling reaches no other pair, so the function takes none as an argument.
+    The vintage's symbol is :data:`FX_SYMBOL`, its basis is ``raw`` and its
+    ``vendor_column`` is :data:`FX_VENDOR_COLUMN`.
+
+    A second download would record a second vintage under a new name, because
+    the name carries the download date. So the fetch refuses before any request
+    when the manifest already holds a vintage of the pair from this vendor.
+    :func:`read_fx_daily` holds every rule about the body. ``get``, ``sleep``
+    and ``today`` default as :func:`fetch`'s do, and ``download_date`` is the
+    machine's local date when the response arrived.
+    """
+    get = urllib_get if get is None else get
+    sleep = time.sleep if sleep is None else sleep
+    today = date.today if today is None else today
+    symbol = FX_SYMBOL
+    held = [
+        entry
+        for entry in read_manifest(data_dir)
+        if (entry.vendor, entry.symbol, entry.price_basis) == (FX_VENDOR, symbol, FX_BASIS)
+    ]
+    if held:
+        raise ValueError(
+            f"the manifest already holds {held[0].path}, a vintage of {symbol} from "
+            f"{FX_VENDOR}, so no request was made. A second download would record a second "
+            f"vintage beside it"
+        )
+    manifest = (paths.DATA_DIR if data_dir is None else data_dir) / MANIFEST_NAME
+    _say(f"FX_DAILY {FX_FROM}/{FX_TO}, manifest {manifest}", key)
+    body = _request(symbol, fx_request_url(key), key, get, sleep)
+    download_date = today().isoformat()
+    closes = read_fx_daily(body, download_date)
+    dropped = f" ({', '.join(closes.dropped)})" if closes.dropped else ""
+    _say(
+        f"{symbol}: {closes.received} rows received, {len(closes.dropped)} dated on or after "
+        f"{download_date} dropped{dropped}",
+        key,
+    )
+    entry = record_vintage(
+        closes.rows,
+        vendor=FX_VENDOR,
+        symbol=symbol,
+        price_basis=FX_BASIS,
+        download_date=download_date,
+        vendor_column=FX_VENDOR_COLUMN,
+        data_dir=data_dir,
+    )
+    _say(
+        f"{symbol}: recorded {entry.path}, {entry.row_count} rows, {entry.first_date} to "
+        f"{entry.last_date}",
+        key,
+    )
+    return entry
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -317,12 +542,23 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(1)
 
 
-def _request(symbol: str, key: str, get: Callable[[str], bytes], sleep: Callable[[float], None]):
-    """One symbol's body, or :class:`RunStopped` once a throttle or transport failure persists."""
+def _request(
+    label: str,
+    url: str,
+    key: str,
+    get: Callable[[str], bytes],
+    sleep: Callable[[float], None],
+) -> bytes:
+    """One request's body, or :class:`RunStopped` once a throttle or transport failure persists.
+
+    ``label`` names the request in the refusal, a symbol for the equity path
+    and USD/CAD for :func:`fetch_fx_daily`, and ``url`` is what is sent. Both
+    paths share this loop so neither can miss an exception the other handles.
+    """
     reason = ""
     for attempt in range(1, ATTEMPTS + 1):
         try:
-            body = get(request_url(symbol, key))
+            body = get(url)
         except (OSError, http.client.HTTPException) as failure:
             reason = f"the request failed with {type(failure).__name__}: {failure}"
             sleep(TRANSPORT_WAIT_SECONDS * attempt)
@@ -333,7 +569,7 @@ def _request(symbol: str, key: str, get: Callable[[str], bytes], sleep: Callable
             return body
         reason = f"Alpha Vantage answered {throttle[:_QUOTED]!r}"
         sleep(THROTTLE_WAIT_SECONDS * attempt)
-    raise RunStopped(f"{symbol}, after {ATTEMPTS} attempts: {_redact(reason, key)}")
+    raise RunStopped(f"{label}, after {ATTEMPTS} attempts: {_redact(reason, key)}")
 
 
 def _settle(
