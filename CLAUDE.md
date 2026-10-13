@@ -406,7 +406,7 @@ Verify by executing, not by reading. Mutate the code and confirm a test fails. A
 
 **Watch the checks and fix what they find.** A pull request is not handed over until its checks have run and settled. Pushing is not the end of the work, because the branch that passes locally is not the branch CI builds. CI builds the merge of the branch and its base, and the base moves.
 
-So watch the run rather than assume it. `gh pr checks <n> --watch` blocks until every check settles, so run it in a background shell under `## Keep the main thread free` and act on the rollup when it reports. `gh pr view <n> --json statusCheckRollup` then says what each one concluded. When a check fails, read its log, fix the cause, and push again, in the same session and without waiting to be asked. A red check the owner finds first is work handed over unfinished.
+So watch the run rather than assume it. `gh pr checks <n> --watch` blocks until every check settles, so run it in a background shell and act on the rollup when it reports. `gh pr view <n> --json statusCheckRollup` then says what each one concluded. When a check fails, read its log, fix the cause, and push again, in the same session and without waiting to be asked. A red check the owner finds first is work handed over unfinished.
 
 Three behaviours make the rule sharper than "look for a green tick". The first two were measured on pull requests in the sibling `marketlake` repo, and the third on the template this repo was seeded from.
 
@@ -461,32 +461,6 @@ Two limits are worth stating rather than leaving a reader to infer.
 
 1. A "blocked by" link and a sub-issue start no run of the Action, so they reach the board on the next scheduled run rather than at once. Everything else a session sets starts a run.
 2. What argues for the rule is measured cost rather than a failure. Writing the board by hand cost about $51 a day in session turns and still missed every change no session saw, which [issue 531](https://github.com/l3a0/quantitative-trading/issues/531) measured and [issue 533](https://github.com/l3a0/quantitative-trading/issues/533) moved onto GitHub. Nothing has yet measured what a stale label costs a reader, so setting them is a convention this repo keeps rather than a cost it has priced.
-
-## Keep the main thread free
-
-The main thread is where the owner talks to a session, so a session that blocks it stops answering. Work likely to take more than a minute or so goes to a background sub-agent or a background shell, and the main thread keeps taking requests while it runs.
-
-The owner asked for this rule on 2026-10-04, after one session waited in the foreground on five full-suite runs. They took 394, 405, 444, 469 and 501 seconds, on `main` at `b7534c0`, `28e2e86`, `86d7346`, `4565366` and `31d5538`. Those are wall-clock times from one machine, and no test holds them. Together they kept the session unreachable for over half an hour.
-
-What runs in the background:
-
-- The full test suite, and any measurement that waits on it.
-- A review's lenses and its verifiers, each as its own sub-agent, which `## Pull requests` already asks for in parallel.
-- Watching a pull request's checks until they settle.
-- A decompose loop, and a plan audit that sweeps many files.
-- A check that a blog post's Markdown and its Substack copy still say the same thing.
-- Any wait on something outside the session, such as another session's merge.
-
-Start a sub-agent with the `Agent` tool and let it run in the background, and start a single long command with `Bash` and `run_in_background`. Both report back when they finish, so the main thread never polls or sleeps in a loop waiting on them. While one runs, say in a line what it is doing, then keep working on whatever does not depend on it.
-
-Backgrounding a step does not release what waits on it. A pull request is still not handed over until the check watch reports, and a spawn still waits for its plan audit.
-
-Two things stay in the foreground.
-
-1. A step whose result the very next action needs, when nothing else can usefully happen meanwhile. Say in a line what it is waiting on, so the owner knows the thread is busy.
-2. Anything only the owner can answer, which includes every approval, such as publishing a Substack post. That is a conversation, so it happens on the main thread, while the checks before and after it can run anywhere. A background decompose loop that reaches a question only the owner can answer hands back at once, the main thread asks it, and the loop resumes with the ruling.
-
-The price is named rather than hidden. A sub-agent starts with none of the session's context, so its prompt has to carry everything it needs, as a spawned session's prompt already does. Two background workers can also reach the same shared state at once. State with no check against a lost update, such as an issue body, gets one writer: background agents report what to change, and the main thread writes it.
 
 ## Research pins
 
