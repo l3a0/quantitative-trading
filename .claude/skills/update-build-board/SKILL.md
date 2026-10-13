@@ -36,6 +36,7 @@ publish this page to it.
 | Its data | `board.json` beside the page |
 | What builds the data | `scripts/build_board.py`, run by `.github/workflows/board.yml` |
 | The page's source | `board.html` beside this skill |
+| The page's tab icon | `favicon.ico` beside this skill |
 
 The address is public and the same for every machine, so it lives here rather
 than in a file on the machine.
@@ -300,6 +301,11 @@ skill, run `tests/test_build_board.py` and `tests/test_build_board_generator.py`
 and the harness below, and open the pull request. The run of the Action that
 the merge starts publishes `main`'s `board.html`, so there is nothing to
 publish by hand.
+
+The page links its tab icon as `favicon.ico`, and the step that adds the page
+copies `favicon.ico` beside this skill into the same folder. Renaming the icon
+means changing the page's link, that copy and the two tests that check them
+together.
 
 A change to what the page reads is a change to the script as well. Add the
 field to `scripts/build_board.py`, and to `ITEM_OK` in the page if the renderer
@@ -728,6 +734,32 @@ the script beside it. Each row after them says how it was found.
     ties at zero. `unblocks` is now empty when `most` is 0. The cards waiting
     on several open issues still feed the hidden pointer, so the guard sits on
     the list rather than on the whole pointer.
+
+22. **Two more places deciding on their own whether a card is free.** Caught by
+    the completeness lens of the review of
+    [pull request 580](https://github.com/l3a0/quantitative-trading/pull/580),
+    which fixed the In flight note's planned sentence under defect 20. Two
+    places still read less than `takeable` does.
+
+    1. [Issue 583](https://github.com/l3a0/quantitative-trading/issues/583)
+       recorded the first. The plan marker's suffix, its label sentence and
+       the legend's gloss read only `needs`. So a deferred card with a `build`
+       verdict read "deferred on purpose" directly above "ready to build", and
+       the legend offered it to a builder. `buildable` now asks `takeable` and
+       an open `needs` together, and all three call it. When a free and a held
+       card share a column, the legend sends the reader to each card's own
+       line rather than giving one answer for both.
+    2. [Issue 584](https://github.com/l3a0/quantitative-trading/issues/584)
+       recorded the second. The "Waiting on your review" sentence was fixed
+       text ending "waiting on nothing else", read beside a card whose own line
+       said "waits on" an open issue. The sentence now names what the card's
+       `needs` and `after` name, in the card's words.
+
+    Both cards keep their columns. A held card with a finished plan still sits
+    under "Planned, no builder", because both halves of that heading are true
+    of it and the note beside it says why it is held. A reviewed, green card
+    that waits on an open issue still sits under "Waiting on your review",
+    because nothing is left for a session and waiting is the owner's call.
 
 The four figures that argued for deleting the footer were a count of planned
 cards, a count of finished plans, an interpolated test total that made an old

@@ -274,13 +274,19 @@ from four places, and give the evidence for each one.
    first.
    - Pull requests that are reviewed, green at the current head, and whose
      card carries no `working:` label. Green does not count when the base moved
-     after the last push, as the paragraph after this list explains.
+     after the last push, as the paragraph after this list explains. Name any
+     open issue the card waits on or should land after, as the board's In
+     flight note does, because the merge may have to wait for it.
    - `planned` entries with `ready` of `decide`.
    - Questions a session handed back.
 2. **Plans ready to build with no builder.** These are `planned` entries with
    `ready` of `build`, with no `working:` label, no open pull request, nothing
    open in `needs`, and no pull request merged with no `Part of`. That last one
-   leaves the card only a close by hand, so it is not a candidate.
+   leaves the card only a close by hand, so it is not a candidate. Beyond
+   those, take only cards the board calls free, so only a `kind` of `ready`.
+   A `deferred`, `decision`, `parent` or `data` card can carry a `build`
+   verdict and still not be one to start, and its plan marker says so by
+   dropping "ready to build".
 3. **Blog drafts.** List the Substack drafts and their schedule. A merged or open
    pull request that touches `blog/` can leave its draft stale. A stale draft
    that is neither published nor scheduled is synced rather than asked about,
@@ -295,7 +301,8 @@ from four places, and give the evidence for each one.
    and the recorded copies live outside this repo, in Claude's local memory for
    it. The `sync-substack` skill carries the procedure for a sync.
 4. **The replication backlog**, in `next`'s order, for when nothing above is
-   waiting.
+   waiting. Skip a card that waits on an open issue or whose `kind` is not
+   `ready`, since a `build` there can be a deferred card's verdict.
 
 A stacked pull request is the usual way a base moves without a push. It is one
 built on another pull request's branch rather than on `main`. GitHub's

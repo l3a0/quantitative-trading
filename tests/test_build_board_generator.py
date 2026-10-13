@@ -31,6 +31,8 @@ from pathlib import Path
 import pytest
 
 from tests.test_build_board import (
+    PAGE,
+    SKILL_DIR,
     assert_no_board_data,
     cards,
     run_fetch_page,
@@ -1521,6 +1523,28 @@ def test_the_page_published_is_the_checked_in_one() -> None:
     flow = _workflow()
     assert "cp .claude/skills/update-build-board/board.html _site/index.html" in flow
     assert "--workflow .github/workflows/board.yml" in flow
+
+
+def test_the_icon_is_published_where_the_page_links_it() -> None:
+    """Protects the board's tab from a blank icon.
+
+    The page links its icon by a relative address, so Pages serves it only
+    when the step that adds the page puts the icon in the same folder under
+    that name. A step that dropped the copy, or a page that renamed the link,
+    would leave a browser asking for a file that is not there. The copy runs
+    only after the page's copy succeeds, so joining the two with ``||`` would
+    skip it on every run that works.
+    """
+    href = re.search(r'<link rel="icon" href="([^"]+)"', PAGE.read_text(encoding="utf-8"))
+    assert href, "the page links no icon"
+    href = href.group(1)
+    step = _workflow().split("- name: Add the page", 1)[1].split("\n      - ", 1)[0]
+    assert re.search(
+        r"_site/index\.html &&\s+"
+        + re.escape(f"cp .claude/skills/update-build-board/{href} _site/{href}"),
+        step,
+    )
+    assert (SKILL_DIR / href).is_file()
 
 
 # ---- The setup script ----
