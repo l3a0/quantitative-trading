@@ -40,7 +40,10 @@ The conversion handles the Markdown shapes below, listed in the order
    ``[![alt](path)](target)``, becomes the same node. Its ``href`` is the
    target when that starts ``http://`` or ``https://``, and null otherwise,
    since a path relative to the repository means nothing on Substack. A line
-   holding an image and more text is paragraph text.
+   holding an image and more text is paragraph text. The node's ``type`` is
+   the media type the file's extension names, so ``.png`` is ``image/png``,
+   ``.gif`` is ``image/gif``, and ``.jpg`` and ``.jpeg`` are ``image/jpeg``.
+   Any other extension raises ``ValueError``.
 6. A pipe table becomes a ``latex_block`` holding a LaTeX ``array``, the form
    the posts write by hand in a math fence, and takes the next ``EQSTAT`` id.
    Substack's editor has no table node. A table starts at a line opening
@@ -132,7 +135,9 @@ outside ASCII, where they had read the same line differently. The review of
 that change matched GitHub on where a table ends and on a delimiter row of
 bare hyphens, gave the caret a width, collapsed whitespace in cells, and
 stopped two kinds of image line from raising. It also made ``md_sha256`` and
-``subtitle_length`` measure what the page measures.
+``subtitle_length`` measure what the page measures. On 2026-10-13 the image
+node's ``type`` stopped being ``image/png`` for every figure and became the
+type its extension names, once a post embedded animated GIFs.
 """
 
 from __future__ import annotations
@@ -185,6 +190,11 @@ NESTED_ITEM = re.compile(r"   ([0-9]+\. |- )")
 BLOCK_START = re.compile(r"#{2,6} |```|[0-9]+\. |- ")
 DELIMITER_CELL = re.compile(r":?-+:?")
 SPACE_RUN = re.compile(r"[ \t]+")
+
+# The media type each figure's file extension names, as Substack's upload
+# endpoint returns it and its editor writes it. The match is exact, so a
+# capitalised extension raises like any other one missing here.
+IMAGE_TYPES = {"png": "image/png", "gif": "image/gif", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
 
 # Inside a table cell: an image, a link whose text may hold an image, strong
 # text and emphasis, tried in that order at each position.
@@ -432,9 +442,18 @@ def _starts_block(lines, i):
     return _opens_block(lines[i]) or _table_columns(lines, i) is not None
 
 
+def _image_type(name):
+    """The media type a figure's file name names, or ``ValueError`` for one unknown."""
+    extension = name[name.rfind(".") + 1 :] if "." in name else ""
+    if extension not in IMAGE_TYPES:
+        raise ValueError(f"no image type for {name}: name it .png, .gif, .jpg or .jpeg")
+    return IMAGE_TYPES[extension]
+
+
 def _figure(lines, i, images, alt, path, href):
     """A captioned image, and the index of the line after it and its caption."""
-    img = images[path.rsplit("/", 1)[-1]]
+    name = path.rsplit("/", 1)[-1]
+    img = images[name]
     node = {
         "type": "captionedImage",
         "content": [
@@ -451,7 +470,7 @@ def _figure(lines, i, images, alt, path, href):
                     "bytes": img["bytes"],
                     "alt": alt,
                     "title": None,
-                    "type": "image/png",
+                    "type": _image_type(name),
                     "href": href,
                     "belowTheFold": False,
                     "topImage": False,

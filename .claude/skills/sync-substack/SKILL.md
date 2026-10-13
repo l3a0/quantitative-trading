@@ -147,12 +147,14 @@ route around the extension to reach the signed-in page another way.
 
 ## Create a draft
 
-1. **Upload each figure.** In the page, fetch the PNG from
+1. **Upload each figure.** In the page, fetch the figure from
    `raw.githubusercontent.com` at the pinned commit and send it to
    `POST /api/v1/image` with body `{image: dataUrl}`. Check that the served
-   image's bytes hash to the committed PNG's. Write `images.json`, which maps
-   each file name to the `url` the upload returned and the PNG's `width`,
-   `height` and `bytes`.
+   image's bytes hash to the committed file's. Write `images.json`, which maps
+   each file name to the `url` the upload returned and the figure's `width`,
+   `height` and `bytes`. The converter takes each node's `type` from the file
+   name's extension, and refuses a figure that is not `.png`, `.gif`, `.jpg`
+   or `.jpeg`.
 2. **Convert locally.** Run the converter with `--summary` and keep the hashes
    it prints. `md_sha256` hashes the file's bytes with one leading byte
    order mark removed. That is what the page hashes after fetching the file,
@@ -352,6 +354,17 @@ walk and conversion hashes from that change. A draft made from a post with a
 `\$` or `\~` in its subtitle gets a new conversion hash only. Every other
 committed post converts to the hashes it had before, as
 [PR #486](https://github.com/l3a0/quantitative-trading/pull/486) measured.
+
+On 2026-10-13 each image node's `type` stopped being `image/png` for every
+figure and became the media type its file's extension names, so a GIF is
+`image/gif`. Substack's upload endpoint returns that type for a GIF, and its
+editor writes it for a source ending `.gif`. A draft made from a post that
+embeds a GIF gets new body and conversion hashes from that change, and its
+walk hash stays, since the walk leaves out an image's type. A draft synced
+before the change carries `image/png` on each GIF node. So the first sync
+after it rewrites the `type` of every GIF node from the new conversion, under
+step 3 above, and its report names each node it rewrote. Every post with no
+GIF converts to the hashes it had before.
 
 ## Update a published post
 
