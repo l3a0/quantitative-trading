@@ -482,7 +482,7 @@ def _fingerprint(run: StationarityRun) -> Scene:
         for k, (row, value) in enumerate(zip(rows, values, strict=True)):
             steps += [
                 Label(_signed(value, 6), 7.05, row, names=f"{gid}-out"),
-                _stroke(f"check-{gid}-{k}", _check(8.75, row - 0.02), color=GOOD, frames=3),
+                _stroke(f"check-{gid}-{k}", _check(8.95, row - 0.02), color=GOOD, frames=3),
             ]
     steps.append(
         Label(
