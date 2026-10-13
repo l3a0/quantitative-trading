@@ -4489,7 +4489,8 @@ The second, `usdcad_fall_position.png`, draws three panels on one date axis
 over that fall alone, with a dashed line through all three on 2008-10-10, the
 day of the largest short.
 
-1. The closes with their moving average, as in the first.
+1. The closes with their moving average, as in the first, and a band of one
+   moving standard deviation either side of the average.
 2. The position the rule held at each close, from `market_value`, with the
    largest short of −4.12 and the −3.83 held on 2008-10-27 marked. The script
    plots no position.

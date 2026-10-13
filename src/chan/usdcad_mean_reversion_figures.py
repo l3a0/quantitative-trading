@@ -18,7 +18,11 @@ Lesson 4 of the post then reads the deepest fall day by day, and
 one date axis from the fall's peak to its trough, and a thin vertical line
 crosses all three on the day of the largest short.
 
-1. The closes and their moving average, as in the first figure's top panel.
+1. The closes and their moving average, as in the first figure's top panel,
+   with a band of one moving standard deviation either side of the average.
+   The position counts the close's distance from the average in that unit, so
+   the band shows why the largest short is not where the gap in price is
+   widest.
 2. The position the rule holds at each close, which is
    :func:`chan.usdcad_mean_reversion.market_value`, with the largest short and
    the position on the trough day marked. The script never plots it.
@@ -31,8 +35,9 @@ the scale-break guard runs here too. The run keeps its moving average inside
 :func:`chan.usdcad_mean_reversion.linear_mean_reversion` rather than returning
 it, so the top panel draws it with the same ``movingAvg`` over the run's own
 lookback. The second figure reads the position the same way, from
-``market_value`` over the run's own lookback. Every value and date either
-figure prints comes from the run. Redraw both with::
+``market_value`` over the run's own lookback, and its band from ``movingStd``
+over the same lookback. Every value and date either figure prints comes from
+the run. Redraw both with::
 
     uv run python -m chan.usdcad_mean_reversion_figures
 """
@@ -46,7 +51,7 @@ from matplotlib.dates import DateFormatter, MonthLocator, YearLocator
 from matplotlib.figure import Figure
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
-from chan.matlab_helpers import moving_avg
+from chan.matlab_helpers import moving_avg, moving_std
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
 from chan.series import WindowCrossesScaleBreak
@@ -69,6 +74,13 @@ def moving_average(run: StationarityRun) -> pd.Series:
     """``movingAvg(y, lookback)`` on the run's closes, NaN until the window fills."""
     return pd.Series(
         moving_avg(run.closes.to_numpy(dtype=float), run.lookback), index=run.closes.index
+    )
+
+
+def moving_deviation(run: StationarityRun) -> pd.Series:
+    """``movingStd(y, lookback)`` on the run's closes, the unit the position counts in."""
+    return pd.Series(
+        moving_std(run.closes.to_numpy(dtype=float), run.lookback), index=run.closes.index
     )
 
 
@@ -200,10 +212,14 @@ def make_usdcad_fall_figure(
     peak, trough = run.drawdown.peak, run.drawdown.trough
     held = position(run)[days]
     average = moving_average(run)[days]
+    deviation = moving_deviation(run)[days]
     cumulative = cumulative_pnl(run)[days]
     deepest = held.idxmin()
     rise = run.closes[trough] / run.closes[peak] - 1
     further = run.closes[trough] / run.closes[deepest] - 1
+    gap = run.closes[days] - average
+    gap_grew = gap[trough] / gap[deepest] - 1
+    deviation_grew = deviation[trough] / deviation[deepest] - 1
 
     fig = Figure(figsize=(10, 10.5), dpi=130)
     fig.patch.set_facecolor(SURFACE)
@@ -221,6 +237,16 @@ def make_usdcad_fall_figure(
         gid="moving-average",
         label=f"{run.lookback}-day moving average",
     )
+    close_ax.fill_between(
+        days,
+        average - deviation,
+        average + deviation,
+        color=ACCENT,
+        alpha=0.16,
+        lw=0,
+        gid="deviation-band",
+        label="average ± one moving deviation",
+    )
     close_ax.set_ylabel("Canadian dollars per US dollar", color=INK, fontsize=10)
     close_ax.legend(loc="upper left", frameon=False, fontsize=9.5, labelcolor=INK)
     _heading(
@@ -228,7 +254,8 @@ def make_usdcad_fall_figure(
         f"USD.CAD rose from {run.closes[peak]:.5f} on {peak.date()} to "
         f"{run.closes[trough]:.5f} on {trough.date()}, {100 * rise:.1f} percent.\n"
         f"It closed at {run.closes[deepest]:.5f} on {deepest.date()}, the dashed line, and "
-        f"rose another {100 * further:.1f} percent after it.",
+        f"rose another {100 * further:.1f} percent after it.\nThe band is one moving "
+        "standard deviation either side of the average, the unit the position counts in.",
     )
 
     held_ax.axhline(0, color=MUTED, lw=0.9, gid="zero")
@@ -258,8 +285,11 @@ def make_usdcad_fall_figure(
     _heading(
         held_ax,
         "The position held at each close, minus the close's distance from its average in "
-        "moving deviations.\nIt is largest when the close stands furthest above the average, "
-        "which here was inside the move against it.",
+        "moving deviations.\nIt is largest when the close stands furthest above the average "
+        "in deviations, not in price.\n"
+        f"From {deepest.date()} to {trough.date()} the gap in price grew "
+        f"{100 * gap_grew:.0f} percent and the moving deviation {100 * deviation_grew:.0f} "
+        "percent.",
     )
 
     pnl_ax.axhline(0, color=MUTED, lw=0.9, gid="zero")
