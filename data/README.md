@@ -1472,8 +1472,9 @@ as an exception. One Alpha Vantage series is committed here all the same.
 The owner ruled on 2026-10-13, on
 [issue 607](https://github.com/l3a0/quantitative-trading/issues/607), that
 USD/CAD's `FX_DAILY` closes are committed in this directory, and the table of
-committed files above has their row. The ruling gave no ground on the vendor's
-terms, so every other Alpha Vantage series stays in the archive.
+committed files above has their row. The ruling did not address the vendor's
+terms and reaches no other series, so every other Alpha Vantage series stays in
+the archive.
 
 | File | Vendor | Symbol | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |

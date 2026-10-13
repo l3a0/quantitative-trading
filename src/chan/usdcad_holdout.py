@@ -100,7 +100,7 @@ from ithildincore.stats import NeweyWestSummary, newey_west_summary
 from ithildincore.timeseries import ou_half_life
 
 from chan import fetch_alphavantage
-from chan.fetch_alphavantage import FX_BASIS, FX_VENDOR, KEY_ENV, RunStopped
+from chan.fetch_alphavantage import FX_BASIS, FX_SYMBOL, FX_VENDOR, KEY_ENV, RunStopped
 from chan.khandani_lo import plain_sharpe
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, vintage_line
 from chan.stationarity_tests import Jplv7Adf, VarianceRatio, genhurst, jplv7_adf, vratiotest
@@ -123,10 +123,8 @@ from chan.vintage import (
     resolve_vintage,
 )
 
-#: The pair, as ``FX_DAILY`` names its two currencies, and the symbol it is recorded under.
-FROM_SYMBOL = "USD"
-TO_SYMBOL = "CAD"
-SYMBOL = f"{FROM_SYMBOL}{TO_SYMBOL}"
+#: The symbol the pair is recorded under, which the fetch fixes rather than takes.
+SYMBOL = FX_SYMBOL
 
 #: The download date that picks the holdout's vintage out of the manifest.
 DOWNLOAD_DATE = "2026-10-13"
@@ -505,7 +503,7 @@ def fetch(key: str) -> None:
     """Fetch USD/CAD's ``FX_DAILY`` closes and record them, or refuse with one line."""
     if not key:
         raise ValueError(f"{KEY_ENV} is not set, so no request was made")
-    fetch_alphavantage.fetch_fx_daily(FROM_SYMBOL, TO_SYMBOL, key=key)
+    fetch_alphavantage.fetch_fx_daily(key=key)
 
 
 def main(argv: Sequence[str] | None = None) -> None:

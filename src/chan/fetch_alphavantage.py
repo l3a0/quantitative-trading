@@ -72,16 +72,17 @@ the URL, and every line passes through :func:`_redact` before it is printed in
 case a transport error quotes it.
 
 **One currency pair takes a path of its own.** :func:`fetch_fx_daily` sends
-one ``FX_DAILY`` request for a pair, USD/CAD for
-[issue 607](https://github.com/l3a0/quantitative-trading/issues/607), and
+one ``FX_DAILY`` request for USD/CAD, the pair
+[issue 607](https://github.com/l3a0/quantitative-trading/issues/607) reads, and
 records the closes through :func:`chan.vintage.record_vintage` rather than
 writing the response to the archive. It shares the retry loop in
 :func:`_request`, the redaction and the printing with the equity path, and
 nothing else, since :func:`fetch` needs the archive and a cross-section the
 owner ruled in. ``python -m chan.usdcad_holdout fetch`` runs it. The owner
-ruled on 2026-10-13 that this one series is committed. The ruling gave no
-ground on the vendor's terms, so every other series this module fetches stays
-in the archive.
+ruled on 2026-10-13 that this one series is committed, so the pair is fixed
+in :data:`FX_FROM` and :data:`FX_TO` rather than taken as an argument. The
+ruling did not address the vendor's terms and reaches no other series, so every
+other series this module fetches stays in the archive.
 """
 
 from __future__ import annotations
@@ -306,27 +307,31 @@ FX_DAILY_HEADER = "timestamp,open,high,low,close"
 #: The fields of one ``FX_DAILY`` row: a date and four prices.
 FX_DAILY_FIELDS = len(FX_DAILY_HEADER.split(","))
 
-#: The vendor and basis a pair's daily closes are recorded under.
+#: The one pair the owner ruled may be committed to ``data/``, as ``FX_DAILY``
+#: names its two currencies, and the symbol its closes are recorded under.
+FX_FROM = "USD"
+FX_TO = "CAD"
+FX_SYMBOL = f"{FX_FROM}{FX_TO}"
+
+#: The vendor and basis the pair's daily closes are recorded under.
 FX_VENDOR = "alphavantage"
 FX_BASIS = "raw"
 
+#: The column and the call the pair's recorded closes came from, for the manifest line.
+FX_VENDOR_COLUMN = f"close, FX_DAILY from_symbol={FX_FROM} to_symbol={FX_TO} outputsize=full"
 
-def fx_request_url(from_symbol: str, to_symbol: str, key: str) -> str:
-    """The one request for a currency pair's full daily history as CSV."""
+
+def fx_request_url(key: str) -> str:
+    """The one request for USD/CAD's full daily history as CSV."""
     query = {
         "function": "FX_DAILY",
-        "from_symbol": from_symbol,
-        "to_symbol": to_symbol,
+        "from_symbol": FX_FROM,
+        "to_symbol": FX_TO,
         "outputsize": "full",
         "datatype": "csv",
         "apikey": key,
     }
     return f"{QUERY_URL}?{urllib.parse.urlencode(query)}"
-
-
-def fx_vendor_column(from_symbol: str, to_symbol: str) -> str:
-    """The column and the call a pair's recorded closes came from, for the manifest line."""
-    return f"close, FX_DAILY from_symbol={from_symbol} to_symbol={to_symbol} outputsize=full"
 
 
 @dataclass(frozen=True)
@@ -359,9 +364,9 @@ def read_fx_daily(body: bytes, download_date: str) -> FxCloses:
     5. A row with other than five fields, or a date that is not a calendar
        day, for the same reason.
     6. A body with no row dated before the download day.
-    7. A row dated on a Saturday or a Sunday. Chan's closes hold none, and the
-       run counts rows to set its lookback, so a weekend row would shift every
-       window after it.
+    7. A row dated on a Saturday or a Sunday. Chan's USD/CAD closes hold none,
+       and the run counts rows to set its lookback, so a weekend row would
+       shift every window after it.
 
     A row dated on or after the download day is a session still trading rather
     than a close, so it is dropped and named rather than refused. The rest are
@@ -428,14 +433,13 @@ def read_fx_daily(body: bytes, download_date: str) -> FxCloses:
     if weekend:
         raise ValueError(
             f"{len(weekend)} rows fall on a Saturday or a Sunday, the first {weekend[0]}. Chan's "
-            f"closes hold no weekend day and the lookback counts rows, so nothing was recorded"
+            f"USD/CAD closes hold no weekend day and the lookback counts rows, so nothing was "
+            f"recorded"
         )
     return FxCloses(rows=rows, dropped=sorted(dropped), received=len(lines))
 
 
 def fetch_fx_daily(
-    from_symbol: str = "USD",
-    to_symbol: str = "CAD",
     *,
     key: str,
     get: Callable[[str], bytes] | None = None,
@@ -443,14 +447,15 @@ def fetch_fx_daily(
     today: Callable[[], date] | None = None,
     data_dir: Path | None = None,
 ) -> VintageEntry:
-    """Fetch a pair's ``FX_DAILY`` closes and record them as a vintage in ``data/``.
+    """Fetch USD/CAD's ``FX_DAILY`` closes and record them as a vintage in ``data/``.
 
     The owner ruled on 2026-10-13, on
     [issue 607](https://github.com/l3a0/quantitative-trading/issues/607), that
     USD/CAD's closes from this call are committed, so they go through
     :func:`chan.vintage.record_vintage` rather than into the archive. The
-    vintage's symbol joins the two currencies, its basis is ``raw`` and its
-    ``vendor_column`` names the call.
+    ruling reaches no other pair, so the function takes none as an argument.
+    The vintage's symbol is :data:`FX_SYMBOL`, its basis is ``raw`` and its
+    ``vendor_column`` is :data:`FX_VENDOR_COLUMN`.
 
     A second download would record a second vintage under a new name, because
     the name carries the download date. So the fetch refuses before any request
@@ -462,7 +467,7 @@ def fetch_fx_daily(
     get = urllib_get if get is None else get
     sleep = time.sleep if sleep is None else sleep
     today = date.today if today is None else today
-    symbol = f"{from_symbol}{to_symbol}"
+    symbol = FX_SYMBOL
     held = [
         entry
         for entry in read_manifest(data_dir)
@@ -475,8 +480,8 @@ def fetch_fx_daily(
             f"vintage beside it"
         )
     manifest = (paths.DATA_DIR if data_dir is None else data_dir) / MANIFEST_NAME
-    _say(f"FX_DAILY {from_symbol}/{to_symbol}, manifest {manifest}", key)
-    body = _request(symbol, fx_request_url(from_symbol, to_symbol, key), key, get, sleep)
+    _say(f"FX_DAILY {FX_FROM}/{FX_TO}, manifest {manifest}", key)
+    body = _request(symbol, fx_request_url(key), key, get, sleep)
     download_date = today().isoformat()
     closes = read_fx_daily(body, download_date)
     dropped = f" ({', '.join(closes.dropped)})" if closes.dropped else ""
@@ -491,7 +496,7 @@ def fetch_fx_daily(
         symbol=symbol,
         price_basis=FX_BASIS,
         download_date=download_date,
-        vendor_column=fx_vendor_column(from_symbol, to_symbol),
+        vendor_column=FX_VENDOR_COLUMN,
         data_dir=data_dir,
     )
     _say(
@@ -547,7 +552,7 @@ def _request(
     """One request's body, or :class:`RunStopped` once a throttle or transport failure persists.
 
     ``label`` names the request in the refusal, a symbol for the equity path
-    and the pair for :func:`fetch_fx_daily`, and ``url`` is what is sent. Both
+    and USD/CAD for :func:`fetch_fx_daily`, and ``url`` is what is sent. Both
     paths share this loop so neither can miss an exception the other handles.
     """
     reason = ""

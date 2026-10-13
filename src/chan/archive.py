@@ -15,8 +15,8 @@ One Alpha Vantage series is committed all the same. The owner ruled on
 [issue 607](https://github.com/l3a0/quantitative-trading/issues/607), that
 USD/CAD's ``FX_DAILY`` closes go to ``data/`` as an ordinary vintage, which
 :func:`chan.fetch_alphavantage.fetch_fx_daily` records and this module never
-reads. The ruling gave no ground on the vendor's terms, so every other Alpha
-Vantage series stays in the archive.
+reads. The ruling did not address the vendor's terms and reaches no other
+series, so every other Alpha Vantage series stays in the archive.
 
 So this module reads a second manifest, ``data/archive_vintages.jsonl``, one
 JSON object per archive file, and hands back a file's bytes only once they hash

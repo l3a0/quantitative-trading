@@ -716,10 +716,11 @@ where they were first built. The other forty-five were built here.
     survives on its sign alone. The mean daily P&L has a Newey-West t of
     0.2670, and the deepest drawdown, 0.5033, is more than four times the
     final P&L. On the later closes the ADF, variance ratio and Hurst tests
-    read as a random walk, and the half-life is 457.8077 days against the
-    frozen 115. Each of those predictions landed as
+    read as a random walk, and each of those three landed as
     [issue 607](https://github.com/l3a0/quantitative-trading/issues/607)
-    registered them before any holdout close was read. The result is
+    registered it before any holdout close was read. The half-life is
+    457.8077 days against the frozen 115, and the issue registered no
+    prediction for it. The result is
     registered and comes from one feed, the vendor's daily close rather than
     Chan's 16:59 bar, because the holdout on his bar moved to
     [issue 608](https://github.com/l3a0/quantitative-trading/issues/608).

@@ -98,16 +98,16 @@ class TestTheFetchCommand:
             usdcad_holdout.main(["fetch"])
         assert str(stopped.value) == f"{KEY_ENV} is not set, so no request was made"
 
-    def test_the_pair_and_the_stripped_key_reach_the_fetch(self, monkeypatch):
+    def test_the_stripped_key_reaches_the_fetch(self, monkeypatch):
         monkeypatch.setenv(KEY_ENV, f"  {KEY}\n")
         seen = []
 
-        def fetched(from_symbol, to_symbol, *, key):
-            seen.append((from_symbol, to_symbol, key))
+        def fetched(*, key):
+            seen.append(key)
 
         monkeypatch.setattr(fetch_alphavantage, "fetch_fx_daily", fetched)
         usdcad_holdout.main(["fetch"])
-        assert seen == [("USD", "CAD", KEY)]
+        assert seen == [KEY]
 
     @pytest.mark.parametrize(
         "refusal",
@@ -446,16 +446,16 @@ def band(holdout) -> Band:
 class TestTheVintage:
     def test_the_entry_names_the_fx_daily_closes_downloaded_2026_10_13(self, holdout) -> None:
         entry = holdout.entry
-        assert (entry.path, entry.sha256) == (VINTAGE, VINTAGE_SHA256)
+        assert (entry.path, entry.sha256) == (VINTAGE, VINTAGE_SHA256), SPEC
         assert (entry.row_count, entry.first_date, entry.last_date) == (
             5000,
             "2007-08-10",
             "2026-10-12",
-        )
-        assert entry.download_date == DOWNLOAD_DATE
+        ), SPEC
+        assert entry.download_date == DOWNLOAD_DATE, SPEC
         assert entry.vendor_column == (
             "close, FX_DAILY from_symbol=USD to_symbol=CAD outputsize=full"
-        )
+        ), SPEC
 
 
 class TestTheHoldoutWindow:
@@ -549,25 +549,29 @@ class TestTheReport:
     ) -> None:
         report(holdout, band)
         out = capsys.readouterr().out
-        assert f"{VINTAGE}   alphavantage raw, downloaded 2026-10-13" in out
-        assert "warm-up  115 closes, 2011-10-20 to 2012-03-28" in out
-        assert "traded   3791 days, 2012-03-29 to 2026-10-12, lookback 115 days, frozen" in out
+        assert f"{VINTAGE}   alphavantage raw, downloaded 2026-10-13" in out, SPEC
+        assert "warm-up  115 closes, 2011-10-20 to 2012-03-28" in out, SPEC
+        assert "traded   3791 days, 2012-03-29 to 2026-10-12, lookback 115 days, frozen" in out, (
+            SPEC
+        )
         assert (
             "2 of 3793 weekdays have no row, the longest run 1 weekday, between 2014-12-26 and "
             "2014-12-30"
-        ) in out
-        assert "H1 cumulative P&L 0.1132, against > 0: holds. Verdict: reproduced." in out
-        assert "H2 not run" in out
-        assert "H3 Newey-West t 0.2670 at lag 8 over 3791 days" in out
-        assert "> 1.645: does not hold, as registered." in out
-        assert "H4 jplv7 ADF -2.0814, against the 10% value -2.5937" in out
-        assert "adfuller beside it -2.0243" in out
+        ) in out, SPEC
+        assert "H1 cumulative P&L 0.1132, against > 0: holds. Verdict: reproduced." in out, SPEC
+        assert "H2 not run" in out, SPEC
+        assert "H3 Newey-West t 0.2670 at lag 8 over 3791 days" in out, SPEC
+        assert "> 1.645: does not hold, as registered." in out, SPEC
+        assert "H4 jplv7 ADF -2.0814, against the 10% value -2.5937" in out, SPEC
+        assert "adfuller beside it -2.0243" in out, SPEC
         assert (
             "H5 variance ratio p-value 0.4343, rejects at 5%: does not hold, as registered." in out
-        )
-        assert "H6 genhurst 0.4974, against 0.4987 +/- 2 x 0.0130 over 40,000 walks of 3791" in out
-        assert "holds, as registered." in out
-        assert "H7 half-life 457.8077 days, beside the frozen 115, no prediction." in out
-        assert "deepest drawdown 0.5033, from 2013-11-20 to 2016-01-19. Sharpe 0.0715" in out
-        assert "largest absolute position 5.4054, long on 0.3994 and short on 0.6006" in out
-        assert "Registered on issue 607" in out and "through 2012-04-26" in out
+        ), SPEC
+        assert (
+            "H6 genhurst 0.4974, against 0.4987 +/- 2 x 0.0130 over 40,000 walks of 3791" in out
+        ), SPEC
+        assert "holds, as registered." in out, SPEC
+        assert "H7 half-life 457.8077 days, beside the frozen 115, no prediction." in out, SPEC
+        assert "deepest drawdown 0.5033, from 2013-11-20 to 2016-01-19. Sharpe 0.0715" in out, SPEC
+        assert "largest absolute position 5.4054, long on 0.3994 and short on 0.6006" in out, SPEC
+        assert "Registered on issue 607" in out and "through 2012-04-26" in out, SPEC

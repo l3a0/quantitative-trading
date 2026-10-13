@@ -1,9 +1,16 @@
-"""The fetch that writes Alpha Vantage's daily closes into the owner's archive.
+"""The fetch of Alpha Vantage's daily closes into the archive, or of USD/CAD's into ``data/``.
 
-Nothing here calls the vendor. Every test builds a data directory and an archive
-under ``tmp_path``, and hands :func:`chan.fetch_alphavantage.fetch` a stub for
-the network that maps each symbol to a body or an exception and counts its
-calls, and a stub for ``sleep`` that records each wait instead of waiting.
+Nothing here calls the vendor. The equity tests build a data directory and an
+archive under ``tmp_path``, and hand :func:`chan.fetch_alphavantage.fetch` a
+stub for the network that maps each symbol to a body or an exception and
+counts its calls, and a stub for ``sleep`` that records each wait instead of
+waiting.
+
+The ``FX_DAILY`` tests cover :func:`chan.fetch_alphavantage.fetch_fx_daily`,
+which records USD/CAD's closes as a vintage in a data directory under
+``tmp_path``. They hand it a stub for the network that answers each request in
+turn and refuses any request for a pair other than USD/CAD, and the same stub
+for ``sleep``.
 """
 
 from __future__ import annotations
@@ -525,8 +532,6 @@ def data_dir(tmp_path) -> Path:
 
 def fx_run(data_dir, vendor, day=date(2026, 10, 13), clock=None):
     return fetch_fx_daily(
-        "USD",
-        "CAD",
         key=KEY,
         get=vendor,
         sleep=clock or Clock(),
@@ -542,6 +547,13 @@ def nothing_written(data_dir: Path) -> bool:
 
 
 class TestTheFxDaily:
+    def test_the_fetch_takes_no_pair_because_the_ruling_reaches_only_usd_cad(self, data_dir):
+        vendor = FxVendor(FX_GOOD)
+        with pytest.raises(TypeError):
+            fetch_fx_daily("EUR", "USD", key=KEY, get=vendor, sleep=Clock(), data_dir=data_dir)
+        assert vendor.calls == 0
+        assert nothing_written(data_dir)
+
     def test_the_closes_are_recorded_oldest_first_under_the_pair(self, data_dir, capsys):
         entry = fx_run(data_dir, FxVendor(FX_GOOD))
         assert (entry.vendor, entry.symbol, entry.price_basis) == ("alphavantage", "USDCAD", "raw")
@@ -632,7 +644,7 @@ class TestTheFxDaily:
     def test_the_key_appears_in_no_output_when_a_transport_error_quotes_the_request(
         self, data_dir, capsys
     ):
-        leaky = OSError(f"could not reach {fx_request_url('USD', 'CAD', KEY)}")
+        leaky = OSError(f"could not reach {fx_request_url(KEY)}")
         with pytest.raises(RunStopped) as stopped:
             fx_run(data_dir, FxVendor(leaky))
         out = capsys.readouterr()
