@@ -216,6 +216,9 @@ DRAWS: dict[str, Callable[[Path], object]] = {
         tu_hypothesis_tests_figures.make_tu_hypothesis_tests_figure(out=out)
     ),
     "tu_momentum.png": lambda out: tu_momentum_figures.make_tu_figure(out=out),
+    "usdcad_fall_position.png": lambda out: usdcad_mean_reversion_figures.make_usdcad_fall_figure(
+        out=out
+    ),
     "usdcad_mean_reversion.png": lambda out: usdcad_mean_reversion_figures.make_usdcad_figure(
         out=out
     ),

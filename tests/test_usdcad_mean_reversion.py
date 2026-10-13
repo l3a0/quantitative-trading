@@ -7,8 +7,9 @@ about Examples 2.1 to 2.5, with one exception, in
 ``blog/usdcad-stationarity-lessons.md``. That post also quotes numbers held
 elsewhere: H at a ``maxT`` of 24 in ``tests/test_tu_momentum.py``, CAD/AUD's
 half-life of 141.6 days in ``tests/test_stationary_candidates.py``, the book's
-23-day half-life in ``tests/test_etf_cointegration.py``, and its figure's
-labels in ``tests/test_usdcad_mean_reversion_figures.py``. README lists what
+23-day half-life in ``tests/test_etf_cointegration.py``, its two charts'
+labels in ``tests/test_usdcad_mean_reversion_figures.py``, and its sketches'
+labels in ``tests/test_usdcad_tests_whiteboard.py``. README lists what
 the post says that nothing asserts. ``blog/tu-momentum-lessons.md`` quotes
 USD.CAD's H at a ``maxT`` of 19, which this file pins, so a change to that pin
 moves that post too. ``docs/replication-log.md`` Entry 22 carries the verdicts
@@ -55,6 +56,8 @@ tests he chose. It first ran here on 2026-10-05.
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -63,7 +66,7 @@ from ithildincore.timeseries import adf_tstat
 from chan import usdcad_hurst_noise, usdcad_mean_reversion
 from chan.matlab_helpers import moving_avg, moving_std
 from chan.series import WindowCrossesScaleBreak, scale_breaks
-from chan.stationarity_tests import ZTCRIT_CONSTANT, genhurst, vratiotest
+from chan.stationarity_tests import ZTCRIT_CONSTANT, genhurst, jplv7_adf, vratiotest
 from chan.usdcad_hurst_noise import (
     PATHS,
     SEED,
@@ -74,6 +77,7 @@ from chan.usdcad_hurst_noise import (
     measure,
     percentile,
     python_port_hurst_rows,
+    random_walk_genhurst,
     random_walk_hurst,
     random_walks,
     report,
@@ -94,6 +98,7 @@ from chan.usdcad_mean_reversion import (
     SCRIPT_VRATIO_P,
     SYMBOL,
     StationarityRun,
+    adfuller_at_one_lag,
     linear_mean_reversion,
     main,
     market_value,
@@ -225,6 +230,39 @@ class TestExample21TheAdfTest:
         assert result.adfuller_ar1 == pytest.approx(0.9941138113, abs=5e-11)
         assert round(result.adfuller_statistic, 6) != SCRIPT_ADF
         assert adf_tstat(result.closes.to_numpy(), 1)[1] == 1214
+
+    def test_adfuller_fits_1214_rows_from_day_3_and_jplv7_1213_from_day_4(
+        self, result: StationarityRun
+    ) -> None:
+        """Lesson 2's one row, counting the first of the 1,216 closes as day 1."""
+        assert (result.adfuller_nobs, result.adf.nobs) == (1214, 1213), SPEC
+        assert result.adfuller_nobs == adf_tstat(result.closes.to_numpy(), 1)[1]
+        assert (result.adfuller_first_day, result.adf_first_day) == (3, 4), SPEC
+
+    def test_each_regression_reads_the_closes_from_two_days_before_its_first_day(
+        self, result: StationarityRun
+    ) -> None:
+        """The first row fitted pairs a day's close with the change into the day
+        before, so it reads two earlier closes. Moving one close shows which
+        closes each regression reads, without trusting either function's row
+        count. Both read the last close, so the rows each drops are the first."""
+        y = result.closes.to_numpy(dtype=float)
+
+        def moved(day: int) -> tuple[bool, bool]:
+            shifted = y.copy()
+            shifted[day - 1] *= 1.01
+            return (
+                adfuller_at_one_lag(shifted)[0] != result.adfuller_statistic,
+                jplv7_adf(shifted, ADF_ORDER, ADF_LAGS).statistic != result.adf.statistic,
+            )
+
+        reads = {day: moved(day) for day in (1, 2, 3, len(y))}
+        assert reads == {1: (True, False), 2: (True, True), 3: (True, True), len(y): (True, True)}
+        first_read = [min(day for day in reads if reads[day][k]) for k in (0, 1)]
+        assert [day + 2 for day in first_read] == [
+            result.adfuller_first_day,
+            result.adf_first_day,
+        ]
 
 
 class TestExample22TheHurstExponent:
@@ -358,6 +396,11 @@ class TestExample22HowFarHMovesByChance:
         np.testing.assert_array_equal(first.genhurst, again.genhurst)
         other = random_walk_hurst(1216, paths=3, seed=SEED + 1)
         assert not np.array_equal(first.genhurst, other.genhurst)
+
+    def test_genhurst_alone_gives_the_measurements_values(self, noise: HurstNoise) -> None:
+        """The whiteboard's histogram of Lesson 3 draws these without the
+        port's estimator, so they must be the same walks, value for value."""
+        np.testing.assert_array_equal(random_walk_genhurst(1216), noise.walks.genhurst)
 
     def test_the_standard_errors_of_40_000_walks(self, noise: HurstNoise) -> None:
         """Pinned so prose can quote them. Each is a property of the count, not of the seed."""
@@ -586,6 +629,34 @@ class TestExample25LinearMeanReversion:
         expected = (position.shift(1) * y.pct_change()).fillna(0.0)
         np.testing.assert_allclose(result.pnl.to_numpy(), expected.to_numpy(), atol=1e-12)
 
+    def test_the_sharpe_ratio_against_any_fixed_account_is_0_12(
+        self, result: StationarityRun
+    ) -> None:
+        """No figure Chan printed. The P&L has a Sharpe ratio whatever account it is divided by.
+
+        The specification is ``√252 · mean / std`` with ``ddof=1`` and no
+        risk-free rate, over the 1,101 days whose previous-day position is not
+        NaN, from the first position on 2008-01-02 to the last close. Those
+        days keep the three whose zero return earns nothing, and leave out the
+        115 zeros the script fills in before any position exists. The P&L
+        carries no rollover interest.
+
+        Dividing each day's P&L by one account size is the return on that
+        account. The run's own figure on three such accounts is pinned to the
+        same value, which is the claim the blog post makes.
+        """
+        spec = SPEC + ", Sharpe sqrt(252) mean/std ddof=1, no risk-free rate, 1,101 held days"
+        held = result.pnl.iloc[result.lookback :]
+        assert len(held) == 1101 and held.index[0] == result.first_position, spec
+        assert int((held == 0).sum()) == 3, spec
+        assert result.sharpe == pytest.approx(0.1188463477, abs=5e-11), spec
+        assert round(result.sharpe, 2) == 0.12
+        expected = np.sqrt(252) * held.mean() / held.std(ddof=1)
+        assert result.sharpe == pytest.approx(expected, abs=1e-12), spec
+        for account in (0.5, 7.0, 1_000_000.0):
+            on_account = dataclasses.replace(result, pnl=result.pnl / account)
+            assert on_account.sharpe == pytest.approx(result.sharpe, abs=1e-12), spec
+
 
 def held_position(result: StationarityRun) -> pd.Series:
     """The run's ``mktVal`` on each day, over the run's own lookback."""
@@ -663,8 +734,13 @@ class TestBesideTheClaim:
         assert result.total_pnl - end_of_2008 == pytest.approx(0.3693474000, abs=5e-11), SPEC
 
     def test_the_closes_span_10_6_half_lives(self, result: StationarityRun) -> None:
-        assert len(result.closes) / result.half_life == pytest.approx(10.5546581819, abs=5e-11)
-        assert round(len(result.closes) / result.half_life, 1) == 10.6
+        """The count of closes over the unrounded half-life, which the post
+        prints and Lesson 5's whiteboard sketch labels. Over the 115-day
+        lookback the count would be 10.57, which prints the same."""
+        spans = len(result.closes) / result.half_life
+        assert spans == pytest.approx(10.5546581819, abs=5e-11), SPEC
+        assert round(spans, 1) == 10.6, SPEC
+        assert round(len(result.closes) / result.lookback, 1) == 10.6, SPEC
 
 
 class TestTheRun:

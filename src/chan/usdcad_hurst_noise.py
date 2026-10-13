@@ -196,15 +196,36 @@ def random_walk_hurst(
     blocks of ``chunk`` walks to bound memory, and both estimators read the
     same walk, so the two arrays pair up by position.
     """
-    rng = np.random.default_rng(seed)
     gen, port = [], []
-    for start in range(0, paths, chunk):
-        walks = random_walks(min(chunk, paths - start), length, rng)
+    for walks in _blocks(length, paths, seed, chunk):
         gen.append(genhurst_rows(walks, HURST_Q))
         port.append(python_port_hurst_rows(walks))
     return RandomWalkHurst(
         genhurst=np.concatenate(gen), port=np.concatenate(port), length=length, seed=seed
     )
+
+
+def random_walk_genhurst(
+    length: int, paths: int = PATHS, seed: int = SEED, chunk: int = 250
+) -> np.ndarray:
+    """``genhurst(z, 2)`` alone on the walks :func:`random_walk_hurst` draws.
+
+    The walks come from the same generator in the same blocks, so each value
+    equals that function's ``genhurst`` at the same position. Leaving out the
+    port's estimator, which takes most of the measurement's time, is what lets
+    :mod:`chan.usdcad_tests_whiteboard` draw Lesson 3's histogram without
+    paying for an estimator it does not draw.
+    """
+    return np.concatenate(
+        [genhurst_rows(walks, HURST_Q) for walks in _blocks(length, paths, seed, chunk)]
+    )
+
+
+def _blocks(length: int, paths: int, seed: int, chunk: int):
+    """``paths`` walks of ``length`` from one ``default_rng(seed)``, ``chunk`` at a time."""
+    rng = np.random.default_rng(seed)
+    for start in range(0, paths, chunk):
+        yield random_walks(min(chunk, paths - start), length, rng)
 
 
 def start_offset_hurst(

@@ -1161,6 +1161,8 @@ class TestTheFigureHasThreeCopies:
         The replication log embeds the residual figure with a path relative to
         ``docs/``, which the blog's pattern above never matches. A sweep keyed
         on one document's path shape checks that document and nothing else.
+        The pattern reads a GIF as well as a PNG, because the USD.CAD post
+        embeds fourteen animated sketches, and a PNG-only pattern would skip them.
         """
         import re
 
@@ -1168,7 +1170,7 @@ class TestTheFigureHasThreeCopies:
             (path, embed)
             for path in markdown_files(REPO_ROOT)
             for embed in re.findall(
-                r"!\[[^\]]*\]\(([^)\s]*figures/[^)\s]+\.png)\)",
+                r"!\[[^\]]*\]\(([^)\s]*figures/[^)\s]+\.(?:png|gif))\)",
                 blank_fences(path.read_text("utf-8")),
             )
         ]
@@ -1219,6 +1221,7 @@ class TestTheFigureHasThreeCopies:
             "low-beta-holdout-lessons.md",
             "vix-filter-lessons.md",
         }, "a surface that embeds a figure went unread, so this checks less than it says"
+        assert any(embed.endswith(".gif") for _, embed in embeds), "no GIF embed was read"
         for path, embed in embeds:
             target = (path.parent / embed).resolve()
             assert target.is_file(), f"{path.relative_to(REPO_ROOT)} embeds missing {embed}"
