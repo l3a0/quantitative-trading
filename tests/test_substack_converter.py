@@ -503,7 +503,8 @@ def test_each_image_takes_the_type_its_extension_names() -> None:
     """
     blocks = _convert_fixture(IMAGE_TYPES)["body"]["content"]
     figures = [n for n in blocks if n["type"] == "captionedImage"]
-    assert [(f["content"][0]["attrs"]["src"], f["content"][0]["attrs"]["type"]) for f in figures] == [
+    attrs = [f["content"][0]["attrs"] for f in figures]
+    assert [(a["src"], a["type"]) for a in attrs] == [
         ("https://example.invalid/first_figure.png", "image/png"),
         ("https://example.invalid/animated_figure.gif", "image/gif"),
         ("https://example.invalid/animated_figure.gif", "image/gif"),
@@ -511,7 +512,7 @@ def test_each_image_takes_the_type_its_extension_names() -> None:
         ("https://example.invalid/photo_figure.jpeg", "image/jpeg"),
     ]
     assert [len(f["content"]) for f in figures] == [1, 2, 1, 1, 1]
-    assert figures[2]["content"][0]["attrs"]["href"] == "https://example.com/animation"
+    assert attrs[2]["href"] == "https://example.com/animation"
 
 
 # Figure names whose extension names no type the converter knows. The match is
@@ -1227,9 +1228,12 @@ def test_the_command_line_reads_the_file_as_the_page_does(tmp_path: Path) -> Non
 
 def test_the_javascript_raises_on_an_unknown_image_extension(tmp_path: Path) -> None:
     """The in-page copy refuses the same figure names the Python refuses."""
-    results = _run_javascript([(name, *_with_figure(name)) for name in UNKNOWN_IMAGE_NAMES], tmp_path)
+    results = _run_javascript(
+        [(name, *_with_figure(name)) for name in UNKNOWN_IMAGE_NAMES], tmp_path
+    )
     for name in UNKNOWN_IMAGE_NAMES:
-        assert f"no image type for {name}: " in (results[name]["error"] or ""), name
+        error = results[name]["error"] or ""
+        assert f"no image type for {name}: " in error, name
 
 
 def test_the_javascript_raises_on_an_unterminated_fence(tmp_path: Path) -> None:
