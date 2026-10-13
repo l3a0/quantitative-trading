@@ -5186,11 +5186,11 @@ script, `stationarityTests.m`, runs all five examples in order on the same
 closes, and its comments print every figure but one. The script is in
 ericnberwick/EpchanPreview at `e4bc46f`, under `public/img/book2/`.
 
-Ten rows, all derivable from
+Eleven rows, all derivable from
 [tests/test_usdcad_mean_reversion.py](../tests/test_usdcad_mean_reversion.py).
-Seven do not match one printed figure to one computation, and each says so in
+Eight do not match one printed figure to one computation, and each says so in
 its own cells. Rows 1, 3, 5 and 6 each cover more than one figure from one
-computation. Rows 8 to 10 carry no published figure.
+computation. Rows 8 to 11 carry no published figure.
 
 **The closes.** Every row reads one vintage: Chan's minute file of USD.CAD,
 vendor `chan-py`, symbol `USDCAD`, basis `raw`, saved 2018-10-13, from his
@@ -5238,6 +5238,7 @@ and decides nothing.
 | 8 | 2.1, the statistic `adfuller` gives at the same lag | none, the book runs jplv7 | n/a |
 | 9 | 2.2, H from the Python port's own `genhurst` | none, the book runs Aste's | n/a |
 | 10 | 2.5, the deepest drawdown | none, the book says only "large" | location 1225 states the claim |
+| 11 | 2.5, the Sharpe ratio against a fixed account | none, the book prints none | n/a |
 
 ### What this repo computed
 
@@ -5253,6 +5254,7 @@ and decides nothing.
 | 8 | `adfuller(y, maxlag=1, regression='c', autolag=None)`, 1,214 rows fitted | the same | −1.8430182830 | `TestExample21TheAdfTest::test_adfuller_at_the_same_lag_misses_by_the_one_row_it_keeps` |
 | 9 | `genhurst.py` from Chan's 2018 Python port, on the log closes | the same | 0.4758441244 | `TestExample22TheHurstExponent::test_the_python_ports_own_genhurst_misses_too` |
 | 10 | The deepest fall of the cumulative P&L below its running high | the same | 0.6425313986, from 2008-07-22 to 2008-10-27 | `TestExample25LinearMeanReversion::test_the_drawdown_reported_beside_it` |
+| 11 | `√252 · mean / std` of the daily P&L, `ddof=1`, no risk-free rate, over the 1,101 days whose previous-day position is not NaN, 2008-01-02 to 2012-03-28 | the same | 0.1188463477 | `TestExample25LinearMeanReversion::test_the_sharpe_ratio_against_any_fixed_account_is_0_12` |
 
 ### The verdicts
 
@@ -5268,6 +5270,7 @@ and decides nothing.
 | 8 | none | none, not a replication | Both `ithildincore`'s `adf_tstat` and the ADF line in Chan's 2018 Python port run `adfuller`, which fits the one row jplv7 drops. The Python port would print −1.843018 for the figure the script's comment records as −1.840744. |
 | 9 | none | none, not a replication | The port's `genhurst` is a different estimator, the slope of the log variance of τ-day changes on log τ, halved. It lands nearer the book than Aste's, at 0.48, and still misses 0.49. |
 | 10 | none | none, not a replication | The cumulative P&L reaches 0.1321 on 2008-07-22 and falls to −0.5104 on 2008-10-27, a drop more than five times what the run ends with. That reads as large on any scale, but the book gives none, so it decides nothing. |
+| 11 | none | none, not a replication | The P&L is in units of the position, but dividing every day by one fixed account leaves the ratio of mean to standard deviation unchanged, so the figure is the same against any account. The annual return is not, so it stays undefined, and no account is guaranteed to fund a position with no upper limit. |
 
 ### What the entry concludes
 
@@ -5393,8 +5396,10 @@ lands it would be choosing a reading after its number is seen.
 **Whether Example 2.5 would pay.** The look-ahead above, no transaction cost,
 and a position that grows without limit as the deviation does, all of which
 location 1225 names. The P&L is in units of the position's own scale rather
-than a return on capital, so it carries no Sharpe ratio or APR, and the book
-prints none.
+than a return on capital. Against any fixed account it has a Sharpe ratio of
+0.12, row 11, which the book does not print. It has no APR, because the return
+depends on an account size the rule never names, and no account is guaranteed
+to fund a position with no upper limit.
 
 **Anything about USD.CAD after March 2012.** Every figure is exploratory, on a
 sample Chan already chose.

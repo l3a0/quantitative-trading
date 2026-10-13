@@ -95,6 +95,7 @@ import pandas as pd
 from ithildincore.timeseries import ols, ou_half_life
 from statsmodels.tsa.stattools import adfuller
 
+from chan.khandani_lo import plain_sharpe
 from chan.matlab_helpers import lag1, moving_avg, moving_std, round_half_away
 from chan.series import load_minute_close, refuse_window_crossing_a_break, vintage_line
 from chan.stationarity_tests import Jplv7Adf, VarianceRatio, genhurst, jplv7_adf, vratiotest
@@ -160,6 +161,27 @@ class StationarityRun:
     def first_position(self) -> pd.Timestamp:
         """The first day whose P&L is not zero."""
         return self.pnl.index[int(np.flatnonzero(self.pnl.to_numpy())[0])]
+
+    @property
+    def sharpe(self) -> float:
+        """The annualized Sharpe ratio of the P&L against any fixed account.
+
+        The book prints none. It is :func:`chan.khandani_lo.plain_sharpe`,
+        ``√252 · mean / std`` with ``ddof=1`` and no risk-free rate, over the
+        days whose previous-day position is not NaN. Those are the rows from
+        ``lookback`` on, the first position's day to the last close, and they
+        keep the days a zero return earns nothing. The rows before them are
+        zeros the script fills in for a position that does not exist yet, so
+        they are left out.
+
+        The P&L is in units of the position, not a return on capital. Dividing
+        every day by one account size gives the return on that account and
+        leaves the ratio of mean to standard deviation where it was, so the
+        figure is the same for every account. No account is guaranteed to fund
+        the rule, because the position has no upper limit, and the annual
+        return depends on the account, so it stays undefined.
+        """
+        return plain_sharpe(self.pnl.to_numpy()[self.lookback :])
 
 
 def market_value(closes: np.ndarray, lookback: int) -> np.ndarray:

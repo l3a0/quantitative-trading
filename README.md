@@ -1022,8 +1022,9 @@ does it for the stationarity tests on USD.CAD. It pins each figure the script
 prints at the precision that is real and at the script's, H as a miss against
 the book's 0.49, and the ADF statistic `adfuller` gives beside jplv7's, so a
 port that reaches for the ADF this repo already held fails a test. It also
-recomputes Example 2.5's daily P&L with plain pandas, and pins how far H moves
-on 40,000 seeded random walks and with the sample's start day. It pins the
+recomputes Example 2.5's daily P&L with plain pandas, pins its Sharpe ratio
+against any fixed account, and pins how far H moves on 40,000 seeded random
+walks and with the sample's start day. It pins the
 standard errors 40,000 walks carry and checks that every quoted digit holds
 with two of them to spare.
 [tests/test_stationarity_tests.py](tests/test_stationarity_tests.py) holds the

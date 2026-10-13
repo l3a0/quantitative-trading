@@ -55,6 +55,8 @@ tests he chose. It first ran here on 2026-10-05.
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -585,6 +587,34 @@ class TestExample25LinearMeanReversion:
         position = -(y - y.rolling(115).mean()) / y.rolling(115).std(ddof=1)
         expected = (position.shift(1) * y.pct_change()).fillna(0.0)
         np.testing.assert_allclose(result.pnl.to_numpy(), expected.to_numpy(), atol=1e-12)
+
+    def test_the_sharpe_ratio_against_any_fixed_account_is_0_12(
+        self, result: StationarityRun
+    ) -> None:
+        """No figure Chan printed. The P&L has a Sharpe ratio whatever account it is divided by.
+
+        The specification is ``√252 · mean / std`` with ``ddof=1`` and no
+        risk-free rate, over the 1,101 days whose previous-day position is not
+        NaN, from the first position on 2008-01-02 to the last close. Those
+        days keep the three whose zero return earns nothing, and leave out the
+        115 zeros the script fills in before any position exists. The P&L
+        carries no rollover interest.
+
+        Dividing each day's P&L by one account size is the return on that
+        account. The run's own figure on three such accounts is pinned to the
+        same value, which is the claim the blog post makes.
+        """
+        spec = SPEC + ", Sharpe sqrt(252) mean/std ddof=1, no risk-free rate, 1,101 held days"
+        held = result.pnl.iloc[result.lookback :]
+        assert len(held) == 1101 and held.index[0] == result.first_position, spec
+        assert int((held == 0).sum()) == 3, spec
+        assert result.sharpe == pytest.approx(0.1188463477, abs=5e-11), spec
+        assert round(result.sharpe, 2) == 0.12
+        expected = np.sqrt(252) * held.mean() / held.std(ddof=1)
+        assert result.sharpe == pytest.approx(expected, abs=1e-12), spec
+        for account in (0.5, 7.0, 1_000_000.0):
+            on_account = dataclasses.replace(result, pnl=result.pnl / account)
+            assert on_account.sharpe == pytest.approx(result.sharpe, abs=1e-12), spec
 
 
 def held_position(result: StationarityRun) -> pd.Series:
