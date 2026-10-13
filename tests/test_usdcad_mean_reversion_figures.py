@@ -6,7 +6,9 @@ wrong series, used another lookback, shifted the curve or shaded the wrong
 fall fails even when the arithmetic is right. The classes from ``TestTheFall`` on
 hold the second figure, Lesson 4's three panels over the fall, which a figure
 that drew the wrong days, marked the wrong close or wrote a number into a
-label rather than reading it from the run would fail. Some numbers repeat here on
+label rather than reading it from the run would fail. The top panel draws a
+ladder of rungs by default and the band it replaced when asked for it, and
+both are held. Some numbers repeat here on
 purpose, because a figure's labels are prose and the suite is the authority
 for every number prose quotes. No test compares bytes, for the reason
 ``tests/test_regime_figure.py`` gives.
@@ -34,7 +36,7 @@ from chan import paths, usdcad_mean_reversion
 from chan import usdcad_mean_reversion_figures as figures
 from chan.matlab_helpers import moving_avg, moving_std
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_mean_reversion import market_value, read_sources, stationarity_tests
 from chan.usdcad_mean_reversion_figures import (
@@ -49,6 +51,7 @@ from chan.usdcad_mean_reversion_figures import (
     moving_average,
     moving_deviation,
     position,
+    rung_count,
     signed,
 )
 from chan.vintage import VintageUnavailable
@@ -59,6 +62,8 @@ AVERAGE_STARTS = pd.Timestamp("2007-12-31")
 FIRST_POSITION = pd.Timestamp("2008-01-02")
 PEAK, TROUGH = pd.Timestamp("2008-07-22"), pd.Timestamp("2008-10-27")
 DEEPEST = pd.Timestamp("2008-10-10")
+#: The integer part of the fall's largest z-score, 4.1198560837 on 2008-10-10.
+RUNGS = 4
 
 
 @pytest.fixture(scope="module")
@@ -403,6 +408,14 @@ def fall_axes(fall_figure):
     return {"closes": closes, "position": held, "pnl": pnl}
 
 
+@pytest.fixture(scope="module")
+def band_axes(tmp_path_factory, sources):
+    """The same figure with the band of one moving deviation in place of the ladder."""
+    out = tmp_path_factory.mktemp("usdcad_fall_band") / USDCAD_FALL_FIGURE
+    closes, held, pnl = make_usdcad_fall_figure(out=out, sources=sources, guide="band").axes
+    return {"closes": closes, "position": held, "pnl": pnl}
+
+
 def _text(ax, gid: str) -> str:
     return _by_gid(ax.texts)[gid].get_text()
 
@@ -515,60 +528,25 @@ class TestTheFallCloses:
         assert same_color(lines["closes"].get_color(), INK)
         assert same_color(lines["moving-average"].get_color(), ACCENT)
 
-    def test_the_heading_names_the_rise_the_close_on_the_dashed_day_and_the_band(
+    def test_the_heading_names_the_rise_the_close_on_the_dashed_day_and_the_rungs(
         self, fall_axes
     ) -> None:
         assert _title(fall_axes["closes"]) == (
             "USD.CAD rose from 1.00835 on 2008-07-22 to 1.29485 on 2008-10-27, 28.4 percent.\n"
-            "It closed at 1.17325 on 2008-10-10, the dashed line, and rose another 10.4 "
-            "percent after it.\nThe band is one moving standard deviation either side of the "
-            "average, the unit the position counts in."
+            "It closed at 1.17325 on 2008-10-10, the vertical line, and rose another 10.4 "
+            "percent after it.\nThe dashed rungs sit 1 to 4 moving deviations above the "
+            "average, and spread apart as the deviation grows.\nOn 2008-10-10 the close stood "
+            "just above the fourth rung. On 2008-10-27 it was higher in price but below that "
+            "rung."
         ), SPEC
 
-    def test_the_legend_names_both_lines_and_the_band(self, fall_axes) -> None:
+    def test_the_legend_names_both_lines_and_the_rungs(self, fall_axes) -> None:
         legend = [t.get_text() for t in fall_axes["closes"].get_legend().get_texts()]
         assert legend == [
             "close at 16:59",
             "115-day moving average",
-            "average ± one moving deviation",
+            "average + 1 to 4 moving deviations",
         ]
-
-
-class TestTheFallBand:
-    """The band of one moving deviation either side of the average, in the top panel.
-
-    The position counts the close's distance from the average in moving
-    deviations, so the band is what shows that a wider gap in price on the
-    trough day counted for fewer deviations than the gap on the day of the
-    largest short. The two deviations are ``movingStd`` over the run's 115-day
-    lookback on the vintage and specification ``SPEC`` names.
-    """
-
-    def test_it_is_movingstd_either_side_of_movingavg_on_every_day_of_the_fall(
-        self, fall_axes, result
-    ) -> None:
-        days = fall_days(result)
-        y = result.closes.to_numpy(dtype=float)
-        average = pd.Series(moving_avg(y, 115), index=result.closes.index)[days]
-        deviation = pd.Series(moving_std(y, 115), index=result.closes.index)[days]
-        band = _band(fall_axes["closes"])
-        assert list(band.index) == list(days), SPEC
-        np.testing.assert_allclose(band["low"], average - deviation, rtol=0, atol=1e-12)
-        np.testing.assert_allclose(band["high"], average + deviation, rtol=0, atol=1e-12)
-        np.testing.assert_array_equal(moving_deviation(result)[days].to_numpy(), deviation)
-
-    def test_its_half_width_is_the_moving_deviation_on_the_two_marked_days(self, fall_axes) -> None:
-        band = _band(fall_axes["closes"])
-        half = (band["high"] - band["low"]) / 2
-        assert half[DEEPEST] == pytest.approx(0.0337985635, abs=5e-11), SPEC
-        assert half[TROUGH] == pytest.approx(0.0628484665, abs=5e-11), SPEC
-
-    def test_the_deviation_is_wider_on_the_trough_day_than_on_the_day_of_the_largest_short(
-        self, fall_axes
-    ) -> None:
-        band = _band(fall_axes["closes"])
-        half = (band["high"] - band["low"]) / 2
-        assert half[TROUGH] > half[DEEPEST], SPEC
 
     def test_the_largest_short_is_not_on_the_day_of_the_widest_gap_in_price(
         self, fall_axes
@@ -592,8 +570,166 @@ class TestTheFallBand:
         assert gap[TROUGH] == pytest.approx(0.2409000000, abs=5e-11), SPEC
         assert gap[DEEPEST] == pytest.approx(0.1392452174, abs=5e-11), SPEC
 
-    def test_it_is_the_average_colour(self, fall_axes) -> None:
-        band = _by_gid(fall_axes["closes"].collections)["deviation-band"]
+    def test_any_other_guide_is_refused(self, tmp_path, sources) -> None:
+        with pytest.raises(ValueError, match="guide must be 'ladder' or 'band', not 'rungs'"):
+            make_usdcad_fall_figure(
+                out=tmp_path / USDCAD_FALL_FIGURE, sources=sources, guide="rungs"
+            )
+
+
+def _rungs(ax) -> dict[int, pd.Series]:
+    """Each rung's value on each day it covers, keyed by how many deviations it adds."""
+    return {
+        int(gid.split("-")[1]): pd.Series(line.get_ydata(), index=_days(line))
+        for gid, line in _by_gid(ax.lines).items()
+        if gid.startswith("rung-")
+    }
+
+
+def _closes(ax) -> pd.Series:
+    line = _by_gid(ax.lines)["closes"]
+    return pd.Series(line.get_ydata(), index=_days(line))
+
+
+class TestTheFallLadder:
+    """The ladder of rungs above the average, the top panel's default.
+
+    The position counts the close's distance from the average in moving
+    deviations, and the rungs let the eye count it. On the trough day the
+    close stands higher in price than on the day of the largest short and
+    still below the fourth rung, because the deviation widened. The average
+    and the deviation are ``movingAvg`` and ``movingStd`` over the run's
+    115-day lookback on the vintage and specification ``SPEC`` names.
+    """
+
+    def test_rung_k_is_movingavg_plus_k_movingstd_on_every_day_of_the_fall(
+        self, fall_axes, result
+    ) -> None:
+        days = fall_days(result)
+        y = result.closes.to_numpy(dtype=float)
+        average = pd.Series(moving_avg(y, 115), index=result.closes.index)[days]
+        deviation = pd.Series(moving_std(y, 115), index=result.closes.index)[days]
+        rungs = _rungs(fall_axes["closes"])
+        assert sorted(rungs) == list(range(1, RUNGS + 1)), SPEC
+        for k, rung in rungs.items():
+            assert list(rung.index) == list(days), (k, SPEC)
+            np.testing.assert_allclose(rung, average + k * deviation, rtol=0, atol=1e-12)
+
+    def test_there_are_as_many_rungs_as_the_integer_part_of_the_largest_z_score(
+        self, fall_axes, result
+    ) -> None:
+        days = fall_days(result)
+        z = (result.closes[days] - moving_average(result)[days]) / moving_deviation(result)[days]
+        assert z.max() == pytest.approx(4.1198560837, abs=5e-11), SPEC
+        assert int(z.max()) == RUNGS == 4, SPEC
+        assert rung_count(position(result)[days]) == RUNGS, SPEC
+        assert len(_rungs(fall_axes["closes"])) == RUNGS, SPEC
+
+    def test_the_fourth_rung_on_the_two_marked_days(self, fall_axes) -> None:
+        fourth = _rungs(fall_axes["closes"])[4]
+        assert fourth[DEEPEST] == pytest.approx(1.1691990365, abs=5e-11), SPEC
+        assert fourth[TROUGH] == pytest.approx(1.3053438659, abs=5e-11), SPEC
+
+    def test_the_close_clears_the_fourth_rung_on_the_day_of_the_largest_short_alone(
+        self, fall_axes
+    ) -> None:
+        """What the heading's last line says, so it cannot silently go false.
+
+        The close of 1.29485 on 2008-10-27 is higher than the 1.17325 of
+        2008-10-10, and still below the fourth rung the earlier close cleared."""
+        closes = _closes(fall_axes["closes"])
+        fourth = _rungs(fall_axes["closes"])[4]
+        assert closes[DEEPEST] > fourth[DEEPEST], SPEC
+        assert closes[TROUGH] < fourth[TROUGH], SPEC
+        assert closes[TROUGH] > closes[DEEPEST], SPEC
+        assert list(closes.index[closes > fourth]) == [DEEPEST], SPEC
+
+    def test_each_rung_is_labelled_at_its_right_end(self, fall_axes) -> None:
+        ax = fall_axes["closes"]
+        for k, rung in _rungs(ax).items():
+            assert _text(ax, f"rung-{k}-label") == f"+{k}"
+            assert _anchor(ax, f"rung-{k}-label") == (TROUGH, rung[TROUGH])
+
+    def test_the_rungs_are_thin_muted_dashes_under_the_close(self, fall_axes) -> None:
+        lines = _by_gid(fall_axes["closes"].lines)
+        for k in range(1, RUNGS + 1):
+            rung = lines[f"rung-{k}"]
+            assert same_color(rung.get_color(), MUTED)
+            assert rung.get_linestyle() == "--"
+            assert rung.get_linewidth() < lines["closes"].get_linewidth()
+            assert rung.get_zorder() < lines["closes"].get_zorder()
+
+    def test_no_band_is_drawn(self, fall_axes) -> None:
+        assert "deviation-band" not in _by_gid(fall_axes["closes"].collections)
+
+
+class TestTheFallBandOption:
+    """``guide="band"`` keeps the band the ladder replaced, with its own heading."""
+
+    def test_the_heading_names_the_rise_the_close_on_the_dashed_day_and_the_band(
+        self, band_axes
+    ) -> None:
+        assert _title(band_axes["closes"]) == (
+            "USD.CAD rose from 1.00835 on 2008-07-22 to 1.29485 on 2008-10-27, 28.4 percent.\n"
+            "It closed at 1.17325 on 2008-10-10, the dashed line, and rose another 10.4 "
+            "percent after it.\nThe band is one moving standard deviation either side of the "
+            "average, the unit the position counts in."
+        ), SPEC
+
+    def test_the_legend_names_both_lines_and_the_band(self, band_axes) -> None:
+        legend = [t.get_text() for t in band_axes["closes"].get_legend().get_texts()]
+        assert legend == [
+            "close at 16:59",
+            "115-day moving average",
+            "average ± one moving deviation",
+        ]
+
+    def test_no_rung_is_drawn(self, band_axes) -> None:
+        assert _rungs(band_axes["closes"]) == {}
+
+    def test_the_other_panels_are_the_ladders(self, band_axes, fall_axes) -> None:
+        for name in ("position", "pnl"):
+            assert _title(band_axes[name]) == _title(fall_axes[name]), name
+
+
+class TestTheFallBand:
+    """The band of one moving deviation either side of the average, drawn with ``guide="band"``.
+
+    The position counts the close's distance from the average in moving
+    deviations, so the band is what shows that a wider gap in price on the
+    trough day counted for fewer deviations than the gap on the day of the
+    largest short. The two deviations are ``movingStd`` over the run's 115-day
+    lookback on the vintage and specification ``SPEC`` names.
+    """
+
+    def test_it_is_movingstd_either_side_of_movingavg_on_every_day_of_the_fall(
+        self, band_axes, result
+    ) -> None:
+        days = fall_days(result)
+        y = result.closes.to_numpy(dtype=float)
+        average = pd.Series(moving_avg(y, 115), index=result.closes.index)[days]
+        deviation = pd.Series(moving_std(y, 115), index=result.closes.index)[days]
+        band = _band(band_axes["closes"])
+        assert list(band.index) == list(days), SPEC
+        np.testing.assert_allclose(band["low"], average - deviation, rtol=0, atol=1e-12)
+        np.testing.assert_allclose(band["high"], average + deviation, rtol=0, atol=1e-12)
+        np.testing.assert_array_equal(moving_deviation(result)[days].to_numpy(), deviation)
+
+    def test_its_half_width_is_the_moving_deviation_on_the_two_marked_days(self, band_axes) -> None:
+        band = _band(band_axes["closes"])
+        half = (band["high"] - band["low"]) / 2
+        assert half[DEEPEST] == pytest.approx(0.0337985635, abs=5e-11), SPEC
+        assert half[TROUGH] == pytest.approx(0.0628484665, abs=5e-11), SPEC
+
+    def test_the_deviation_is_wider_on_the_trough_day_than_on_the_day_of_the_largest_short(
+        self, band_axes
+    ) -> None:
+        band = _band(band_axes["closes"])
+        half = (band["high"] - band["low"]) / 2
+        assert half[TROUGH] > half[DEEPEST], SPEC
+
+    def test_it_is_the_average_colour(self, band_axes) -> None:
+        band = _by_gid(band_axes["closes"].collections)["deviation-band"]
         assert same_color(band.get_facecolor()[0][:3], ACCENT)
 
 
@@ -729,15 +865,63 @@ class TestTheFallFollowsTheRun:
         for ax in drawn.values():
             guide = _by_gid(ax.lines)["guide"]
             assert [pd.Timestamp(d) for d in guide.get_xdata()] == [deepest, deepest]
-        assert "on 2008-10-15, the dashed line" in _title(drawn["closes"])
+        assert "on 2008-10-15, the vertical line" in _title(drawn["closes"])
         assert _by_gid(drawn["closes"].lines)["moving-average"].get_label() == (
             "106-day moving average"
         )
+        assert "From 2008-10-15 to 2008-10-27 the gap in price grew" in _title(drawn["position"])
+
+    def test_the_rungs_follow_the_altered_runs_lookback(self, drawn, altered) -> None:
+        """The largest z-score moves to 4.7210946 on 2008-10-15, so there are still four
+        rungs, now over 106 days. The close stands 0.72 of a deviation past the top one,
+        so the heading drops "just"."""
+        run = stationarity_tests(*altered)
+        days = fall_days(run)
+        y = run.closes.to_numpy(dtype=float)
+        average = pd.Series(moving_avg(y, 106), index=run.closes.index)[days]
+        deviation = pd.Series(moving_std(y, 106), index=run.closes.index)[days]
+        rungs = _rungs(drawn["closes"])
+        assert sorted(rungs) == [1, 2, 3, 4]
+        for k, rung in rungs.items():
+            np.testing.assert_allclose(rung, average + k * deviation, rtol=0, atol=1e-12)
+        assert -position(run)[days].min() == pytest.approx(4.7210945936, abs=5e-11)
+        assert _title(drawn["closes"]).endswith(
+            "\nOn 2008-10-15 the close stood above the fourth rung. On 2008-10-27 it was higher "
+            "in price but below that rung."
+        )
+
+    def test_the_band_follows_the_altered_runs_lookback(self, tmp_path, altered) -> None:
+        run = stationarity_tests(*altered)
+        days = fall_days(run)
         y = run.closes.to_numpy(dtype=float)
         deviation = pd.Series(moving_std(y, 106), index=run.closes.index)[days]
-        band = _band(drawn["closes"])
+        drawn = make_usdcad_fall_figure(
+            out=tmp_path / USDCAD_FALL_FIGURE, sources=altered, guide="band"
+        )
+        band = _band(drawn.axes[0])
         np.testing.assert_allclose((band["high"] - band["low"]) / 2, deviation, rtol=0, atol=1e-12)
-        assert "From 2008-10-15 to 2008-10-27 the gap in price grew" in _title(drawn["position"])
+
+    def test_the_rung_count_follows_the_largest_z_score(self, tmp_path, sources) -> None:
+        """Raising 2008-10-15 by 6 percent lifts its z-score to 5.1844936810 and ends the
+        fall there, so the ladder has five rungs and no later close to compare."""
+        entry, closes = sources
+        raised = closes.copy()
+        raised[pd.Timestamp("2008-10-15")] *= 1.06
+        run = stationarity_tests(entry, raised)
+        days = fall_days(run)
+        assert (run.lookback, days[-1]) == (98, pd.Timestamp("2008-10-15"))
+        assert -position(run)[days].min() == pytest.approx(5.1844936810, abs=5e-11)
+        drawn = make_usdcad_fall_figure(
+            out=tmp_path / USDCAD_FALL_FIGURE, sources=(entry, raised)
+        ).axes[0]
+        assert sorted(_rungs(drawn)) == [1, 2, 3, 4, 5]
+        assert drawn.get_legend().get_texts()[2].get_text() == (
+            "average + 1 to 5 moving deviations"
+        )
+        assert _title(drawn).endswith(
+            "The dashed rungs sit 1 to 5 moving deviations above the average, and spread apart "
+            "as the deviation grows.\nOn 2008-10-15 the close stood just above the fifth rung."
+        )
 
     def test_none_of_them_is_the_committed_runs(self, drawn) -> None:
         printed = " ".join(

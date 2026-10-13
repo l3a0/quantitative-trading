@@ -19,10 +19,13 @@ one date axis from the fall's peak to its trough, and a thin vertical line
 crosses all three on the day of the largest short.
 
 1. The closes and their moving average, as in the first figure's top panel,
-   with a band of one moving standard deviation either side of the average.
-   The position counts the close's distance from the average in that unit, so
-   the band shows why the largest short is not where the gap in price is
-   widest.
+   with a ladder of dashed rungs at the average plus 1, 2, 3 and more moving
+   standard deviations. The position counts the close's distance from the
+   average in that unit, and the rungs let the eye count it. They spread apart
+   as the deviation widens, so a close higher in price can sit below a rung an
+   earlier close stood above, which is why the largest short is not where the
+   gap in price is widest. ``guide="band"`` draws the earlier version instead,
+   a shaded band of one moving deviation either side of the average.
 2. The position the rule holds at each close, which is
    :func:`chan.usdcad_mean_reversion.market_value`, with the largest short and
    the position on the trough day marked. The script never plots it.
@@ -35,7 +38,7 @@ the scale-break guard runs here too. The run keeps its moving average inside
 :func:`chan.usdcad_mean_reversion.linear_mean_reversion` rather than returning
 it, so the top panel draws it with the same ``movingAvg`` over the run's own
 lookback. The second figure reads the position the same way, from
-``market_value`` over the run's own lookback, and its band from ``movingStd``
+``market_value`` over the run's own lookback, and its rungs from ``movingStd``
 over the same lookback. Every value and date either figure prints comes from
 the run. Redraw both with::
 
@@ -45,6 +48,7 @@ the run. Redraw both with::
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 from matplotlib.dates import DateFormatter, MonthLocator, YearLocator
@@ -68,6 +72,8 @@ USDCAD_FALL_FIGURE = "usdcad_fall_position.png"
 #: Calendar days of empty axis either side of the fall, so the marks on its
 #: first and last days sit clear of the frame.
 FALL_MARGIN = pd.Timedelta(days=3)
+#: The words the top panel's heading uses to name a rung.
+ORDINALS = ("first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth")
 
 
 def moving_average(run: StationarityRun) -> pd.Series:
@@ -99,6 +105,24 @@ def fall_days(run: StationarityRun) -> pd.DatetimeIndex:
     """The closes from the drawdown's peak to its trough, both included."""
     days = run.closes.index
     return days[(days >= run.drawdown.peak) & (days <= run.drawdown.trough)]
+
+
+def rung_count(held: pd.Series) -> int:
+    """How many rungs the ladder draws: the integer part of the largest z-score in ``held``.
+
+    The position is minus the z-score, so the largest z-score is minus the
+    largest short. The count is at least one, so the ladder never vanishes on a
+    fall whose closes all stay within one deviation of the average.
+    """
+    return max(1, int(-held.min()))
+
+
+def _ordinal(k: int) -> str:
+    return ORDINALS[k - 1] if k <= len(ORDINALS) else f"{k}th"
+
+
+def _deviations(count: int) -> str:
+    return "1 moving deviation" if count == 1 else f"1 to {count} moving deviations"
 
 
 def signed(value: float, places: int = 3) -> str:
@@ -200,12 +224,74 @@ def _label(
     )
 
 
+def _draw_ladder(ax, run, days, average, deviation, held, further) -> str:
+    """Draw the rungs on ``ax`` and return the heading's lines after the first."""
+    rungs = rung_count(held)
+    deepest, trough = held.idxmin(), days[-1]
+    for k in range(1, rungs + 1):
+        rung = average + k * deviation
+        ax.plot(
+            days,
+            rung,
+            color=MUTED,
+            lw=0.8,
+            ls=(0, (2.5, 2.5)),
+            alpha=0.75,
+            zorder=1.5,
+            gid=f"rung-{k}",
+            label=f"average + {_deviations(rungs)}" if k == 1 else "_rung",
+        )
+        ax.annotate(
+            f"+{k}",
+            (trough, rung[trough]),
+            xytext=(3, 0),
+            textcoords="offset points",
+            ha="left",
+            va="center",
+            color=MUTED,
+            fontsize=8.5,
+            gid=f"rung-{k}-label",
+        )
+    lines = (
+        f"It closed at {run.closes[deepest]:.5f} on {deepest.date()}, the vertical line, and "
+        f"rose another {100 * further:.1f} percent after it.\nThe dashed rungs sit "
+        f"{_deviations(rungs)} above the average, and spread apart as the deviation grows."
+    )
+    # The position is minus the z-score, so -held is how many deviations each
+    # close stands above the average, and the top rung is the integer part of
+    # the largest of them.
+    above = -held
+    top = _ordinal(rungs)
+    side = "above" if above[deepest] >= rungs else "below"
+    just = "just " if 0 <= above[deepest] - rungs < 0.5 else ""
+    lines += f"\nOn {deepest.date()} the close stood {just}{side} the {top} rung."
+    # The second sentence is the owner's question answered, so it is written
+    # only when it is true: a later close higher in price and below the rung.
+    higher = run.closes[trough] > run.closes[deepest]
+    if trough != deepest and higher and above[trough] < rungs <= above[deepest]:
+        lines += f" On {trough.date()} it was higher in price but below that rung."
+    return lines
+
+
 @_plain_text
 def make_usdcad_fall_figure(
     out: Path | None = None,
     sources: tuple[VintageEntry, pd.Series] | None = None,
+    guide: Literal["ladder", "band"] = "ladder",
 ) -> Figure:
-    """The closes, the position held and the cumulative P&L from the fall's peak to its trough."""
+    """The closes, the position held and the cumulative P&L from the fall's peak to its trough.
+
+    ``guide`` picks what the top panel draws around the average to show the
+    unit the position counts in. ``"ladder"``, the committed figure, draws a
+    dashed rung at the average plus ``k`` moving deviations for each ``k`` from
+    1 to :func:`rung_count`, labelled at its right end. It draws no rungs below
+    the average, because the rule is short at every close of the committed
+    fall, so no close sits below it. ``"band"`` shades one moving deviation
+    either side of the average instead, which shows the unit but not how many
+    of them a gap spans.
+    """
+    if guide not in ("ladder", "band"):
+        raise ValueError(f"guide must be 'ladder' or 'band', not {guide!r}")
     entry, closes = sources if sources is not None else read_sources()
     run = stationarity_tests(entry, closes)
     days = fall_days(run)
@@ -221,7 +307,7 @@ def make_usdcad_fall_figure(
     gap_grew = gap[trough] / gap[deepest] - 1
     deviation_grew = deviation[trough] / deviation[deepest] - 1
 
-    fig = Figure(figsize=(10, 10.5), dpi=130)
+    fig = Figure(figsize=(10, 11.5), dpi=130)
     fig.patch.set_facecolor(SURFACE)
     close_ax, held_ax, pnl_ax = fig.subplots(3, 1, sharex=True)
     for ax in (close_ax, held_ax, pnl_ax):
@@ -237,26 +323,32 @@ def make_usdcad_fall_figure(
         gid="moving-average",
         label=f"{run.lookback}-day moving average",
     )
-    close_ax.fill_between(
-        days,
-        average - deviation,
-        average + deviation,
-        color=ACCENT,
-        alpha=0.16,
-        lw=0,
-        gid="deviation-band",
-        label="average ± one moving deviation",
-    )
-    close_ax.set_ylabel("Canadian dollars per US dollar", color=INK, fontsize=10)
-    close_ax.legend(loc="upper left", frameon=False, fontsize=9.5, labelcolor=INK)
-    _heading(
-        close_ax,
+    rose = (
         f"USD.CAD rose from {run.closes[peak]:.5f} on {peak.date()} to "
         f"{run.closes[trough]:.5f} on {trough.date()}, {100 * rise:.1f} percent.\n"
-        f"It closed at {run.closes[deepest]:.5f} on {deepest.date()}, the dashed line, and "
-        f"rose another {100 * further:.1f} percent after it.\nThe band is one moving "
-        "standard deviation either side of the average, the unit the position counts in.",
     )
+    if guide == "ladder":
+        heading = rose + _draw_ladder(close_ax, run, days, average, deviation, held, further)
+    else:
+        close_ax.fill_between(
+            days,
+            average - deviation,
+            average + deviation,
+            color=ACCENT,
+            alpha=0.16,
+            lw=0,
+            gid="deviation-band",
+            label="average ± one moving deviation",
+        )
+        heading = (
+            rose + f"It closed at {run.closes[deepest]:.5f} on {deepest.date()}, the dashed "
+            f"line, and rose another {100 * further:.1f} percent after it.\nThe band is one "
+            "moving standard deviation either side of the average, the unit the position "
+            "counts in."
+        )
+    close_ax.set_ylabel("Canadian dollars per US dollar", color=INK, fontsize=10)
+    close_ax.legend(loc="upper left", frameon=False, fontsize=9.5, labelcolor=INK)
+    _heading(close_ax, heading)
 
     held_ax.axhline(0, color=MUTED, lw=0.9, gid="zero")
     held_ax.fill_between(days, held, 0, where=held < 0, color=LOST, alpha=0.14, lw=0, gid="short")
