@@ -17,7 +17,10 @@ So a result computed from a series is committed next to the exact series it was
 computed from, and a result computed from none says so. Licensed data is the
 one exception. Example 7.1's two series of minute bars, and Alpha Vantage's
 daily closes for the S&P 600, S&P 500 and S&P 400 cross-sections, stay in the owner's data archive
-and only their hashes are committed, as `docs/design.md`'s premise records. Everything else is
+and only their hashes are committed, as `docs/design.md`'s premise records.
+Alpha Vantage's USD/CAD daily closes are committed after all, by the owner's
+ruling on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607),
+so CI runs their pins. Everything else is
 regenerable. Rerun the analysis and it comes back. Lose the
 vintage and the number becomes an assertion nobody can check, including its
 author.
@@ -2006,8 +2009,10 @@ two test files that read it.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
-`data/archive_vintages.jsonl` under a cross-section name. It is the one command
-here that needs the owner's key, read from the environment of the run:
+`data/archive_vintages.jsonl` under a cross-section name. It reads the owner's
+key from the environment of the run. One other command asks Alpha Vantage for
+data with the same key, `python -m chan.usdcad_holdout fetch`, and it records
+USD/CAD's daily closes in `data/` rather than in the archive:
 
 ```bash
 ALPHAVANTAGE_API_KEY=... QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.fetch_alphavantage --cross-section sp600 --symbols symbols.txt

@@ -1,4 +1,4 @@
-"""Fetch Alpha Vantage's daily closes into the owner's archive, one symbol at a time.
+"""Fetch Alpha Vantage's daily closes into the owner's archive, or one pair's into ``data/``.
 
 The owner extended the archive exception on 2026-10-04 to Alpha Vantage's daily
 closes for the S&P 600 cross-section, and ruled the same day that the fetch
@@ -78,7 +78,10 @@ records the closes through :func:`chan.vintage.record_vintage` rather than
 writing the response to the archive. It shares the retry loop in
 :func:`_request`, the redaction and the printing with the equity path, and
 nothing else, since :func:`fetch` needs the archive and a cross-section the
-owner ruled in. ``python -m chan.usdcad_holdout fetch`` runs it.
+owner ruled in. ``python -m chan.usdcad_holdout fetch`` runs it. The owner
+ruled on 2026-10-13 that this one series is committed. The ruling gave no
+ground on the vendor's terms, so every other series this module fetches stays
+in the archive.
 """
 
 from __future__ import annotations
