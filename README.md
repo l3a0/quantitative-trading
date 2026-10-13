@@ -2562,9 +2562,13 @@ different file, because a PNG carries the matplotlib version that rendered it.
 data behind the picture rather than its bytes, and asserts that the figure
 plots the same scan `TestRollingRegime` computes.
 [tests/test_figures_match_code.py](tests/test_figures_match_code.py) compares
-the picture itself. It draws every committed figure but `cpo_cells.png`, which
+the picture itself. It draws every committed PNG but `cpo_cells.png`, which
 [tests/test_cpo_figures.py](tests/test_cpo_figures.py) compares, and checks
-each fresh draw's decoded pixels exactly against the committed file. So a
+each fresh draw's decoded pixels exactly against the committed file. The
+USD.CAD post's animated GIFs are checked by
+[tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
+instead, which compares each fresh draw with the committed GIF byte for byte
+and also needs the hand font they were drawn in. So a
 figure whose code moved without a redraw fails the suite. The comparison runs
 only on macOS arm64, where the committed figures are drawn. CI's Linux runner
 draws some figures slightly differently, so CI skips it, and only a run on

@@ -349,8 +349,9 @@ person would actually write.
 ```bash
 # Every figure embed resolves to a file that exists. rg prints each target as
 # file:target, and the loop resolves the target from that file's own folder,
-# since blog/ embeds through ../docs/ and docs/ through figures/.
-rg -o --with-filename --no-heading -r '$1' '\]\(([^)\s]*figures/[^)\s]+\.png)\)' \
+# since blog/ embeds through ../docs/ and docs/ through figures/. It reads GIFs
+# as well as PNGs, because the USD.CAD post embeds animated sketches.
+rg -o --with-filename --no-heading -r '$1' '\]\(([^)\s]*figures/[^)\s]+\.(?:png|gif))\)' \
   *.md docs/*.md blog/*.md \
   | while IFS=: read -r md f; do [ -f "$(dirname "$md")/$f" ] || echo "MISSING $md: $f"; done
 
