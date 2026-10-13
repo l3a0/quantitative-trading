@@ -9,7 +9,7 @@ one says and draws, that a label never appears before the stroke it names,
 that no label touches a line or sits on a tint, how long each GIF
 shows before it loops, and each file's size, frame count and loop.
 
-Labels in eleven scenes quote the run. The opening scene prints the count of
+Labels in ten scenes quote the run. The opening scene prints the count of
 closes. The half-life scene and the linear rule's
 warning print the lookback, the half-life rounded, and the count of closes.
 Chan's reading prints the three critical values and the ADF statistic, and

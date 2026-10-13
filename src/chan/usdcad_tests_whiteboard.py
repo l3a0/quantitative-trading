@@ -53,7 +53,8 @@ and that count is read from the run, so it is spelled out rather than written.
 The first seven scenes' shapes are schematic and carry no data. Two numbers in
 them do: the lookback the half-life rounds to and the count of closes. The
 opening scene's round trips stand for a generic rule that enters and exits,
-not the post's linear rule, which holds a position every day. Chan's
+not the post's linear rule, which holds a position on every day once its
+lookback fills, and changes its size and its side as the close moves. Chan's
 reading is drawn to scale, so the position of each tick and of the statistic's
 dot is an affine function of its value, and it prints the three critical
 values and the statistic. The fingerprint prints the count of closes, the ADF
@@ -316,7 +317,8 @@ def _every_day(closes: int) -> Scene:
     the same path in a fainter ink, with a bracket under each of a few round
     trips from entry to exit. The round trips stand for a generic rule that
     enters and exits. They are not the post's linear rule, which holds a
-    position every day and only changes its size.
+    position on every day once its lookback fills, and changes its size and
+    its side as the close moves.
     """
     x = np.linspace(0.5, 9.5, 180)
     marks = np.linspace(0.5, 9.5, 46)
@@ -477,8 +479,8 @@ def _half_life(lookback: int) -> Scene:
             ),
             Label("half", 0.8, half, names="half", ha="right", color=ACCENT, size=12),
             Label(f"≈ {lookback} days", corner, 0.3, names="half", ha="center", color=ACCENT),
-            # The time to half sits in the corner the dashed line closes,
-            # below the curve, so it reads as the span along the axis.
+            # The time to half sits just right of the vertical dashed line,
+            # under the curve, so it reads as the span along the axis.
             Label("−ln 2 / λ", corner + 0.25, 1.1, names="half", size=15),
         ),
     )

@@ -7,8 +7,9 @@ about Examples 2.1 to 2.5, with one exception, in
 ``blog/usdcad-stationarity-lessons.md``. That post also quotes numbers held
 elsewhere: H at a ``maxT`` of 24 in ``tests/test_tu_momentum.py``, CAD/AUD's
 half-life of 141.6 days in ``tests/test_stationary_candidates.py``, the book's
-23-day half-life in ``tests/test_etf_cointegration.py``, and its two charts'
-labels in ``tests/test_usdcad_mean_reversion_figures.py``. README lists what
+23-day half-life in ``tests/test_etf_cointegration.py``, its two charts'
+labels in ``tests/test_usdcad_mean_reversion_figures.py``, and its sketches'
+labels in ``tests/test_usdcad_tests_whiteboard.py``. README lists what
 the post says that nothing asserts. ``blog/tu-momentum-lessons.md`` quotes
 USD.CAD's H at a ``maxT`` of 19, which this file pins, so a change to that pin
 moves that post too. ``docs/replication-log.md`` Entry 22 carries the verdicts

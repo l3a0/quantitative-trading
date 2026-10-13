@@ -10,7 +10,7 @@ So Chan tests a series before he backtests a trade on it. A test reads every day
 
 ![An animated whiteboard sketch titled “Every day or a few round trips”, drawn stroke by stroke. A wiggly price path runs across the top, and brown dots land one after another on every point of it, under the words “a test reads all 1,216 closes”. Below, the same path is drawn again in grey. Three brown brackets hang under it, each from an entry to an exit and each labelled “round trip”, and the words “a backtest sees only its round trips” sit above that copy. The path and its round trips are schematic, not USD.CAD’s closes and not this post’s rule. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_every_day.gif)
 
-*The path and its round trips are schematic. The linear rule this post trades holds a position every day and only changes its size. The count of closes comes from the run.*
+*The path and its round trips are schematic. The linear rule this post trades holds a position on every day once it has 115 days of closes to look back on, and changes its size and its side as the close moves. The count of closes comes from the run.*
 
 Chan’s Examples 2.1 to 2.4 run four such tests on USD.CAD, the price of a US dollar in Canadian dollars. None of them can show that it reverts, and Example 2.5 trades it anyway. This repository transcribed his script, `stationarityTests.m`, and ran it on the same closes. It found three things.
 
@@ -50,9 +50,9 @@ H is an estimate, and on a finite sample it could sit below 0.5 by chance. The v
 
 A λ like the ADF test’s also says how fast the pull works. When the series is written as a continuous process, its expected distance from the mean decays exponentially and halves in −ln 2 / λ days (Chan, 2013, pp. 46–47). For the half-life, in Example 2.4, Chan fits λ in a second regression of each day’s change on the previous close (Chan, 2013, p. 47). The script adds a constant and leaves out the lagged change, as the book’s regression does.
 
-![An animated whiteboard sketch titled “Half-life”, drawn stroke by stroke. A curve of the distance from the mean starts high on the vertical axis and decays toward the horizontal one. Dashed lines mark where it falls to half. The time that takes is labelled “≈ 115 days” on the axis and “−ln 2 / λ” in the corner the dashed lines close. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_half_life.gif)
+![An animated whiteboard sketch titled “Half-life”, drawn stroke by stroke. A curve of the distance from the mean starts high on the vertical axis and decays toward the horizontal one. Dashed lines mark where it falls to half. The time that takes is labelled “≈ 115 days” on the axis and “−ln 2 / λ” just right of the vertical dashed line, under the curve. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_half_life.gif)
 
-*The 115-day lookback is the run’s half-life rounded to whole days.*
+*The 115 days are the run’s half-life rounded to whole days.*
 
 ### The trade
 
@@ -62,7 +62,7 @@ The trade, Example 2.5, uses what this post calls the linear rule. Each day it c
 
 *The 115-day lookback and the 1,216 closes both come from the run.*
 
-The script calls the position its market value. Each day’s P&L is yesterday’s position times today’s percent change in the close. Nothing else enters it. The rule pays no transaction cost and earns or pays no overnight interest on the currencies it holds, which the [post on AUD.CAD with rollover interest](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-rollover-lessons.md) shows can matter. Against any fixed account the rule’s Sharpe ratio is 0.12, over the 1,101 days the rule holds a position. The book prints none. That Sharpe ratio leaves out the rollover interest, as the P&L does.
+The script calls the position its market value. Each day’s P&L is yesterday’s position times today’s percent change in the close. Nothing else enters it. The rule pays no transaction cost and earns or pays no overnight interest on the currencies it holds, which the [post on AUD.CAD with rollover interest](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-rollover-lessons.md) shows can matter. Against any fixed account the rule’s Sharpe ratio is 0.12, over the 1,101 days the rule holds a position. The book prints none. That Sharpe ratio leaves out the transaction costs and the rollover interest, as the P&L does.
 
 ### The data
 
@@ -96,7 +96,7 @@ Chan reads two things from these figures, and both survive.
 
 ![An animated whiteboard sketch titled “Chan’s reading”, drawn stroke by stroke. A number line carries three ticks, labelled −3.458 for 1%, −2.871 for 5% and −2.594 for 10%. A red hatched zone above the line runs from its left end to the 10% tick, under the words “reject a random walk”. A brown dot right of that tick is labelled −1.84, the ADF statistic, and an arrow from it points back to the tick under the words “must sit left of 10% to reject”. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_no_rejection.gif)
 
-*This sketch is drawn to scale. Every position on the line is proportional to the value it marks, and all four values come from the run.*
+*This sketch is drawn to scale. The gap between any two marks is in proportion to the gap between their values, and all four values come from the run.*
 
 The MATLAB file Chan loaded cannot be compared with the file here, so the match is the only evidence that the two hold the same closes. The four statistics come from three calculations.
 
@@ -117,15 +117,15 @@ Chan’s script calls `adf` from jplv7, James LeSage’s free MATLAB toolbox for
 1. **jplv7’s `adf`** fits 1,213 rows and gives −1.840744, the script’s figure.
 2. **`adfuller`** fits 1,214 rows and gives −1.843018.
 
+The difference is one row of the sample. A regression on one lagged change cannot use the first two days, because they have no earlier change to lag. jplv7 then trims one more row when it lines up the lagged close, so it starts a day later than `adfuller` does.
+
 ![An animated whiteboard sketch titled “One row apart”, drawn stroke by stroke. A row of cells stands for the closes, days 1 to 6, an ellipsis and day 1,216. Days 1 and 2 are hatched in grey, with the words “no earlier change to lag” beneath them. Under the row, a black bar runs from day 3 to the last day, labelled “adfuller, 1,214 rows”, and ends at −1.843018. A green bar below it starts a day later, at day 4, labelled “jplv7 adf, 1,213 rows”, and ends at −1.840744, “the script’s figure”. Last, day 3 is outlined in brown and marked “the one row”. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_one_row.gif)
 
 *The row counts, the two statistics, the last day and the day each bar starts on all come from the run.*
 
-The difference is one row of the sample. A regression on one lagged change cannot use the first two days, because they have no earlier change to lag. jplv7 then trims one more row when it lines up the lagged close, so it starts a day later than `adfuller` does.
-
 Two other copies of this test show why that row matters. Chan’s own 2018 Python port of the script calls `adfuller`, so it would print −1.843018 where the script’s comment records −1.840744. This repository’s shared library of statistics runs `adfuller` too, so a transcription that reached for it would have missed the script’s figure. This repository’s test suite holds both numbers, so a port that swaps one toolbox for the other fails a test. On these closes the test’s conclusion does not change, since both statistics are far above −2.594. On a series sitting near a critical value, it could.
 
-A day at the start of the sample moves H far more than it moves the ADF statistic. Starting the sample one day later moves the ADF statistic from −1.840744 only to −1.836150, but it moves `genhurst`’s H from 0.4732 to 0.4891, which prints as the book’s 0.49. Lesson 3 explains why.
+A day at the start of the sample moves `genhurst`’s H far more than it moves the ADF statistic. Starting the sample one day later moves the ADF statistic from −1.840744 only to −1.836150, but it moves `genhurst`’s H from 0.4732 to 0.4891, which prints as the book’s 0.49. Lesson 3 explains why.
 
 ## Lesson 3: H misses 0.49 by less than chance moves it
 
@@ -163,7 +163,7 @@ Then the variance ratio test says what H cannot. The ratio is 0.964745, below 1,
 
 ![An animated whiteboard sketch titled “Leaning, not crossing”, drawn stroke by stroke. Three gauges are drawn one under another, each running from more reverting values on the left, as the words “← more reverting” over the top say, to a random walk on the right, under “random walk →”. On the first, the ADF statistic, the line ends at 0, a pale red zone marked “reject” runs from its left end to a red tick at −2.594, the 10% critical value, and a brown dot lands at −1.84, between that tick and 0. On the second, H, a grey tick marks 0.5 and a pale green band labelled “±1 SD of a random walk” spans the random walks’ spread around their average. A brown dot lands at 0.4732, at the band’s left edge, and a note beside the gauge says H has no test because it is an estimate. On the third, the variance ratio’s statistic, the line ends at 0, a pale red zone marked “reject” runs to a red tick at −1.96, the critical value of the test at 5%, two-sided, and a brown dot lands at −0.90, between that tick and 0. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_lean_not_cross.gif)
 
-*Each gauge is drawn to its own scale, because the three statistics are in different units, and along one gauge each position is in proportion to its value. Every statistic and critical value comes from the run’s own tests, and the band from the random-walk measurement above.*
+*Each gauge is drawn to its own scale, because the three statistics are in different units. Along one gauge, the gap between any two marks is in proportion to the gap between their values. Every statistic and the ADF’s critical value come from the run’s own tests. The variance ratio’s −1.96 comes from the 5 percent level its test rejects at, and the band from the random-walk measurement above.*
 
 ## Lesson 4: the trade ends positive after a fall more than five times its final P&L
 
@@ -207,7 +207,7 @@ Later in the chapter Chan makes a different claim about the same choice. Setting
 
 The half-life also limits what the trade can show. Chan warns that a λ very close to zero, which means a very long half-life, leaves a strategy unable to “complete many round-trip trades” (Chan, 2013, p. 47). At 115 days, the 1,216 closes span 10.6 half-lives, so the whole sample holds about ten stretches long enough for a distance from the mean to halve. That is little evidence, and it assumes the reversion is real. The tests could not reject a random walk, which has no half-life at all, so the 115 days are an estimate from a series that may not revert. The [post on Chan’s stationary candidates](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md) shows, for a currency rate with a 141.6-day half-life, how slow reversion makes the linear rule hard to size. For comparison, the three-ETF portfolio of Example 2.7 has a half-life of 23 days, “considerably shorter than the 115 days for USD.CAD” (Chan, 2013, p. 58), which the [post on the Johansen test](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md) reproduces.
 
-![An animated whiteboard sketch titled “Ten half-lives”, drawn stroke by stroke. A line runs from 2007-07-23 to 2012-03-28, and brown ticks appear on it one by one, one every 115 days, with the first span labelled “115 days”. Ten ticks fit before the line ends. Above the line the sketch writes “10.6 half-lives”, and below it “only a few stretches for a distance from the mean to halve”. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_half_lives.gif)
+![An animated whiteboard sketch titled “Ten half-lives”, drawn stroke by stroke. A line runs from 2007-07-23 to 2012-03-28, and brown ticks appear on it one by one, one every 115 closes, with the first span labelled “115 days”. Ten ticks fit before the line ends. Above the line the sketch writes “10.6 half-lives”, and below it “only a few stretches for a distance from the mean to halve”. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_half_lives.gif)
 
 *The line counts closes rather than calendar days, with a tick every 115 closes, the run’s lookback. The 10.6 is the 1,216 closes over the unrounded half-life of 115.209794 days.*
 

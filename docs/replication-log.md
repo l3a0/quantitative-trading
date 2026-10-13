@@ -5296,9 +5296,9 @@ Four things.
    thing more carefully.
 4. **Example 2.5's claim survives, and it carries the look-ahead Chan names.**
    The lookback of 115 days is the half-life of the same 1,216 closes the
-   strategy trades. Its P&L is positive by 0.1141 after a fall of 0.6425, and
-   whether that survives a lookback chosen without seeing the closes is a
-   question this entry does not ask.
+   strategy trades. Its P&L ends positive at 0.1141 after falling 0.6425 from
+   a high of 0.1321, and whether that survives a lookback chosen without seeing
+   the closes is a question this entry does not ask.
 
 ### How far H moves by chance and by its start day
 
@@ -5413,12 +5413,12 @@ rule held, which `uv run python -m chan.usdcad_mean_reversion_figures`
 redraws, and its fourteen whiteboard sketches, which
 `uv run python -m chan.usdcad_tests_whiteboard` redraws.
 
-1. One of its opening section.
-2. Six of the tests.
-3. Two of Lesson 1.
-4. One of Lesson 2.
-5. Two of Lesson 3.
-6. Two of Lesson 5.
+1. One in its opening section.
+2. Six in its section on the tests.
+3. Two in Lesson 1.
+4. One in Lesson 2.
+5. Two in Lesson 3.
+6. Two in Lesson 5.
 
 ## Entry 23: EWA, EWC and IGE, Chan's *Algorithmic Trading*
 

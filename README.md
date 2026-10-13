@@ -4486,17 +4486,13 @@ which reads it through the same `read_sources` and `stationarity_tests` as
    2008-10-27 shaded.
 
 The second, `usdcad_fall_position.png`, draws three panels on one date axis
-over that fall alone, with a dashed line through all three on 2008-10-10, the
-day of the largest short.
+over that fall alone.
 
-1. The closes with their moving average, as in the first, and dashed rungs 1
-   to 4 moving standard deviations above the average. The close clears the
-   fourth rung on 2008-10-10 and stays below it on 2008-10-27, though higher
-   in price.
-2. The position the rule held at each close, from `market_value`, with the
-   largest short of −4.12 and the −3.83 held on 2008-10-27 marked. The script
-   plots no position.
-3. The cumulative P&L, with its high of 0.1321 and its low of −0.5104 marked.
+1. The closes with their moving average and dashed rungs 1 to 4 moving
+   standard deviations above it.
+2. The position the rule held at each close, from `market_value`, which the
+   script does not plot.
+3. The cumulative P&L, with its high and its low marked.
 
 ```bash
 uv run python -m chan.usdcad_mean_reversion_figures
@@ -4506,104 +4502,34 @@ uv run python -m chan.usdcad_mean_reversion_figures
 holds what both draw rather than their bytes, for the reason given above for
 the regime map.
 
-The post carries fourteen looping whiteboard sketches, drawn by
+The post also carries fourteen looping whiteboard sketches, drawn by
 [src/chan/usdcad_tests_whiteboard.py](src/chan/usdcad_tests_whiteboard.py).
-Each sits after the text it draws, and each holds on its finished drawing for
-four seconds before it loops. All fourteen live in `docs/figures/`.
+Each sits after the text it draws.
 
-The first, `usdcad_tests_every_day.gif`, sits in the opening section. It draws
-one schematic price path twice, with a dot on every point of the upper copy
-and a few round trips under the lower one, because a test reads every close
-and a backtest sees only its round trips. Only the count of closes comes from
-the run. The round trips stand for a generic rule that enters and exits, not
-the post's linear rule, which holds a position every day.
-
-Six sit in the section on the tests.
-
-1. `usdcad_tests_question.gif`, the question the tests ask.
-2. `usdcad_tests_adf.gif`, the ADF test.
-3. `usdcad_tests_hurst.gif`, H.
-4. `usdcad_tests_variance_ratio.gif`, the variance ratio.
-5. `usdcad_tests_half_life.gif`, the half-life.
-6. `usdcad_tests_linear_rule.gif`, the linear rule.
-
-Their shapes are schematic. The last two print the 115-day lookback, and the
-last prints the 1,216 closes too, both from the same `stationarity_tests` run.
-
-Two sit in Lesson 1, and every number they print comes from that run
-too.
-
-1. `usdcad_tests_no_rejection.gif`, Chan's reading of the ADF test, draws the
-   statistic and the three critical values to scale on one line, with the
-   statistic right of the 10 percent value it would have to pass.
-2. `usdcad_tests_fingerprint.gif` draws why the match stands in for Chan's
-   MATLAB file, which is not public. Three calculations on the CSV give four
-   statistics, each to the six decimals the script prints.
-
-One, `usdcad_tests_one_row.gif`, sits in Lesson 2. It draws the closes as
-a row of days and two bars under it, `adfuller`'s from day 3 and jplv7's from
-day 4, each with its row count and statistic. Each bar starts at the day the
-run's own row count puts its first row on, so the start days come from the run
-as well.
-
-Two sit in Lesson 3.
-
-1. `usdcad_tests_noise_band.gif` draws a histogram of `genhurst`'s H on the
-   40,000 random walks of
-   [src/chan/usdcad_hurst_noise.py](src/chan/usdcad_hurst_noise.py), shades
-   one SD either side of their mean, marks 0.5, the run's 0.4732 and the
-   book's 0.49, and puts a dot under the axis for each of the eleven start
-   days. All of it is to scale.
-2. `usdcad_tests_lean_not_cross.gif` closes the lesson with three gauges, each
-   to its own scale. The ADF statistic of −1.84 sits between 0 and the 10
-   percent critical value of −2.594. H of 0.4732 sits at the left edge of the
-   same walks' one-SD band, short of 0.5, with no critical value because H is
-   an estimate rather than a test. The variance ratio's statistic of −0.90
-   sits between 0 and −1.96, the critical value of its test's two-sided 5
-   percent level.
-
-The walks are drawn again without the port's estimator, which neither sketch
-draws, so the redraw takes seconds rather than the whole measurement's time,
-and [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
-holds that they are the measurement's walks value for value.
-
-The last two sit in Lesson 5.
-
-1. `usdcad_tests_look_ahead.gif` draws the half-life measured on all 1,216
-   closes and the rule trading from 2008-01-02, to scale by date, above a
-   dashed schematic of measuring on earlier days and trading after, which no
-   run here has made.
-2. `usdcad_tests_half_lives.gif` draws the closes on a line with a tick every
-   115 closes, and the 10.6 half-lives they span.
+1. One in the opening section, `usdcad_tests_every_day.gif`.
+2. Six in the section on the tests, `usdcad_tests_question.gif`,
+   `usdcad_tests_adf.gif`, `usdcad_tests_hurst.gif`,
+   `usdcad_tests_variance_ratio.gif`, `usdcad_tests_half_life.gif` and
+   `usdcad_tests_linear_rule.gif`.
+3. Two in Lesson 1, `usdcad_tests_no_rejection.gif` and
+   `usdcad_tests_fingerprint.gif`.
+4. One in Lesson 2, `usdcad_tests_one_row.gif`.
+5. Two in Lesson 3, `usdcad_tests_noise_band.gif` and
+   `usdcad_tests_lean_not_cross.gif`.
+6. Two in Lesson 5, `usdcad_tests_look_ahead.gif` and
+   `usdcad_tests_half_lives.gif`.
 
 ```bash
 uv run python -m chan.usdcad_tests_whiteboard
 ```
 
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
-holds each scene's labels and stroke order, that a label appears only after
-the stroke it names, that every label clears every line and sits inside the
-frame in both the installed hand font and the wider DejaVu Sans that CI falls
-back to, each GIF's frame count, size, timing and loop, and that two draws give
-the same bytes. For the opening sketch it holds that both copies are one path
-and that the count of closes follows the run. For the Lesson 1 pair it also
-holds that every number drawn follows a run with other figures, and that the
-line in Chan's reading is drawn to scale. For Lesson 2's sketch it holds the
-same of its numbers, and that each bar starts at the cell of its regression's
-first day, one cell apart and after the greyed days. A run that would start
-them otherwise is refused, because the title and the note say one row. For
-Lesson 3's histogram it holds that each bar is a bin of the walks with its
-height in proportion to its count, and that every line and dot sits at its
-value. For Lesson 3's gauges it holds that each position is in proportion to
-its value along its own gauge, with reverting values on the left, that each
-dot sits short of its threshold on the reverting side, and that the variance
-ratio's threshold is the one its test rejects at. For
-Lesson 5's pair it holds that the bars are to scale by date, that trading
-starts on the run's first position, and that a tick falls every lookback. Each
-of those numbers follows a run or a measurement with other figures. It
-compares each committed GIF with a fresh
-draw byte for byte only on macOS arm64 in Comic Sans MS, where the files were
-drawn, because the hand font is whichever one is installed.
+holds what each sketch says and draws, that every number a sketch prints is
+read from the run or from the random-walk measurement, and that a run whose
+figures would make a sketch's words false is refused. It compares
+each committed GIF with a fresh draw byte for byte only on macOS arm64 in
+Comic Sans MS, where the files were drawn, because the hand font is whichever
+one is installed.
 
 [blog/khandani-lo-reversal-lessons.md](blog/khandani-lo-reversal-lessons.md)
 is a twenty-fifth post, about Examples 4.3 and 4.4 of Chan's *Algorithmic

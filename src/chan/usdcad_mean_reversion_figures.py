@@ -281,9 +281,7 @@ def make_usdcad_fall_figure(
     The top panel draws a dashed rung at the average plus ``k`` moving
     deviations for each ``k`` from 1 to :func:`rung_count`, labelled at its
     right end. It draws no rungs below the average, because the rule is short
-    at every close of the committed fall, so no close sits below it. The rungs
-    replaced a shaded band of one deviation either side of the average, which
-    showed the unit but did not let the eye count how many of them a gap spans.
+    at every close of the committed fall, so no close sits below it.
     """
     entry, closes = sources if sources is not None else read_sources()
     run = stationarity_tests(entry, closes)
