@@ -4429,8 +4429,9 @@ Five groups of what it says are not pinned here.
    statistics depends on the units of the closes, that a random walk has no
    half-life, and that a fall in a commodity currency fits the autumn of 2008,
    which the post says nothing here tests.
-4. The figure's alt text, whose readings of the lines, such as "near 1.05" and
-   "about 0.92 in late 2007", are approximate by design. The book's own chart
+4. The figures' alt text, whose readings of the lines, such as "near 1.05",
+   "about 0.92 in late 2007" and "about −3.9 in early August", are approximate
+   by design. The book's own chart
    of the cumulative P&L, its Figure 2.3, is not compared with the redraw. The
    post cites that number from the caption recorded in
    [research/book-notes/algorithmic-trading.md](research/book-notes/algorithmic-trading.md),
@@ -4446,7 +4447,7 @@ for the 141.6-day half-life, to
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) for the
 book's 23 days, or to
 [tests/test_usdcad_mean_reversion_figures.py](tests/test_usdcad_mean_reversion_figures.py)
-for the chart's own numbers, or to
+for the charts' own numbers, or to
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 for the whiteboard sketches' labels. Eight had no pin before it, and
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
@@ -4465,23 +4466,33 @@ now pins them all, reading the position from the run's own `market_value`.
 7. The run ends 0.0180 below its high, after climbing 0.6246 from its low.
 8. The 1,216 closes span 10.6 half-lives.
 
-Its chart is drawn from the committed file by
+Its two charts, both in Lesson 4, are drawn from the committed file by
 [src/chan/usdcad_mean_reversion_figures.py](src/chan/usdcad_mean_reversion_figures.py),
 which reads it through the same `read_sources` and `stationarity_tests` as
-`python -m chan.usdcad_mean_reversion`, scale-break guard included. It draws
-two panels on one date axis, for Lesson 4.
+`python -m chan.usdcad_mean_reversion`, scale-break guard included. The first,
+`usdcad_mean_reversion.png`, draws two panels on one date axis.
 
 1. The 1,216 closes with their 115-day moving average.
 2. The cumulative P&L, the script's plot, with the fall from 2008-07-22 to
    2008-10-27 shaded.
+
+The second, `usdcad_fall_position.png`, draws three panels on one date axis
+over that fall alone, with a dashed line through all three on 2008-10-10, the
+day of the largest short.
+
+1. The closes with their moving average, as in the first.
+2. The position the rule held at each close, from `market_value`, with the
+   largest short of −4.12 and the −3.83 held on 2008-10-27 marked. The script
+   plots no position.
+3. The cumulative P&L, with its high of 0.1321 and its low of −0.5104 marked.
 
 ```bash
 uv run python -m chan.usdcad_mean_reversion_figures
 ```
 
 [tests/test_usdcad_mean_reversion_figures.py](tests/test_usdcad_mean_reversion_figures.py)
-holds what it draws rather than its bytes, for the reason given above for the
-regime map.
+holds what both draw rather than their bytes, for the reason given above for
+the regime map.
 
 The post carries nine looping whiteboard sketches, drawn by
 [src/chan/usdcad_tests_whiteboard.py](src/chan/usdcad_tests_whiteboard.py).

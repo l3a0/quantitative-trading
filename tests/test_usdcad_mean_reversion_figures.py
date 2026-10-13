@@ -1,9 +1,12 @@
-"""The pins for the figure in the post on mean reversion on USD.CAD, Examples 2.1 to 2.5.
+"""The pins for the figures in the post on mean reversion on USD.CAD, Examples 2.1 to 2.5.
 
 ``tests/test_usdcad_mean_reversion.py`` holds what the run computes. This file
 holds that the figure draws those numbers, so a generator that plotted the
 wrong series, used another lookback, shifted the curve or shaded the wrong
-fall fails even when the arithmetic is right. Some numbers repeat here on
+fall fails even when the arithmetic is right. The classes from ``TestTheFall`` on
+hold the second figure, Lesson 4's three panels over the fall, which a figure
+that drew the wrong days, marked the wrong close or wrote a number into a
+label rather than reading it from the run would fail. Some numbers repeat here on
 purpose, because a figure's labels are prose and the suite is the authority
 for every number prose quotes. No test compares bytes, for the reason
 ``tests/test_regime_figure.py`` gives.
@@ -25,7 +28,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from matplotlib.colors import same_color
-from matplotlib.dates import DateFormatter, YearLocator, date2num, num2date
+from matplotlib.dates import DateFormatter, MonthLocator, YearLocator, date2num, num2date
 
 from chan import paths, usdcad_mean_reversion
 from chan import usdcad_mean_reversion_figures as figures
@@ -33,13 +36,18 @@ from chan.matlab_helpers import moving_avg
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST
 from chan.series import WindowCrossesScaleBreak
-from chan.usdcad_mean_reversion import read_sources, stationarity_tests
+from chan.usdcad_mean_reversion import market_value, read_sources, stationarity_tests
 from chan.usdcad_mean_reversion_figures import (
+    FALL_MARGIN,
+    USDCAD_FALL_FIGURE,
     USDCAD_FIGURE,
     cumulative_pnl,
+    fall_days,
     main,
+    make_usdcad_fall_figure,
     make_usdcad_figure,
     moving_average,
+    position,
     signed,
 )
 from chan.vintage import VintageUnavailable
@@ -49,6 +57,7 @@ FIRST, LAST = pd.Timestamp("2007-07-23"), pd.Timestamp("2012-03-28")
 AVERAGE_STARTS = pd.Timestamp("2007-12-31")
 FIRST_POSITION = pd.Timestamp("2008-01-02")
 PEAK, TROUGH = pd.Timestamp("2008-07-22"), pd.Timestamp("2008-10-27")
+DEEPEST = pd.Timestamp("2008-10-10")
 
 
 @pytest.fixture(scope="module")
@@ -343,12 +352,31 @@ class TestTheReadPath:
         with pytest.raises(KeyError, match="Close"):
             main()
 
-    def test_the_command_writes_the_committed_path(self, monkeypatch, capsys) -> None:
+    def test_the_command_writes_both_committed_paths(self, monkeypatch, capsys) -> None:
         drawn = []
-        monkeypatch.setattr(figures, "make_usdcad_figure", lambda **kw: drawn.append(kw))
+        monkeypatch.setattr(figures, "make_usdcad_figure", lambda **kw: drawn.append(("all", kw)))
+        monkeypatch.setattr(
+            figures, "make_usdcad_fall_figure", lambda **kw: drawn.append(("fall", kw))
+        )
         main()
-        assert drawn == [{}]
-        assert f"wrote {FIGURES_DIR / USDCAD_FIGURE}" in capsys.readouterr().out
+        assert drawn == [("all", {}), ("fall", {})]
+        printed = capsys.readouterr().out
+        assert f"wrote {FIGURES_DIR / USDCAD_FIGURE}" in printed
+        assert f"wrote {FIGURES_DIR / USDCAD_FALL_FIGURE}" in printed
+
+    def test_a_refusal_in_the_fall_figure_reaches_the_operator_as_one_line(
+        self, monkeypatch
+    ) -> None:
+        refusal = WindowCrossesScaleBreak("inputData_USDCAD.csv changes scale on 2008-10-01")
+
+        def refuse(*_a, **_k):
+            raise refusal
+
+        monkeypatch.setattr(figures, "make_usdcad_figure", lambda **kw: None)
+        monkeypatch.setattr(figures, "make_usdcad_fall_figure", refuse)
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert str(stopped.value) == str(refusal)
 
     def test_drawing_writes_the_file_it_is_given(self, figure, out) -> None:
         assert out.is_file() and out.stat().st_size > 0
@@ -356,3 +384,297 @@ class TestTheReadPath:
 
 def test_the_committed_figure_exists() -> None:
     assert (FIGURES_DIR / USDCAD_FIGURE).is_file()
+
+
+@pytest.fixture(scope="module")
+def fall_out(tmp_path_factory: pytest.TempPathFactory):
+    return tmp_path_factory.mktemp("usdcad_fall_figure") / USDCAD_FALL_FIGURE
+
+
+@pytest.fixture(scope="module")
+def fall_figure(fall_out, sources):
+    return make_usdcad_fall_figure(out=fall_out, sources=sources)
+
+
+@pytest.fixture(scope="module")
+def fall_axes(fall_figure):
+    closes, held, pnl = fall_figure.axes
+    return {"closes": closes, "position": held, "pnl": pnl}
+
+
+def _text(ax, gid: str) -> str:
+    return _by_gid(ax.texts)[gid].get_text()
+
+
+def _point(ax, gid: str) -> tuple[pd.Timestamp, float]:
+    line = _by_gid(ax.lines)[gid]
+    (day,), (value,) = line.get_xdata(), line.get_ydata()
+    return pd.Timestamp(day), float(value)
+
+
+def _anchor(ax, gid: str) -> tuple[pd.Timestamp, float]:
+    day, value = _by_gid(ax.texts)[gid].xy
+    return pd.Timestamp(day), float(value)
+
+
+class TestTheFall:
+    """Lesson 4's figure, three panels on the 70 closes from the peak to the trough."""
+
+    def test_there_are_three_panels_in_the_order_the_post_reads_them(self, fall_axes) -> None:
+        assert list(fall_axes) == ["closes", "position", "pnl"]
+        assert _title(fall_axes["closes"]).startswith("USD.CAD rose from 1.00835")
+        assert _title(fall_axes["position"]).startswith("The position held at each close")
+        assert _title(fall_axes["pnl"]).startswith("The cumulative P&L falls")
+
+    def test_the_days_run_from_the_peak_to_the_trough(self, fall_axes, result) -> None:
+        days = fall_days(result)
+        assert (days[0], days[-1], len(days)) == (PEAK, TROUGH, 70), SPEC
+        for ax, gid in (
+            (fall_axes["closes"], "closes"),
+            (fall_axes["closes"], "moving-average"),
+            (fall_axes["position"], "position"),
+            (fall_axes["pnl"], "pnl"),
+        ):
+            assert _days(_by_gid(ax.lines)[gid]) == list(days), (gid, SPEC)
+
+    def test_the_axis_adds_three_days_either_side_and_is_shared(self, fall_axes) -> None:
+        assert FALL_MARGIN == pd.Timedelta(days=3)
+        expected = (date2num(PEAK - FALL_MARGIN), date2num(TROUGH + FALL_MARGIN))
+        assert {ax.get_xlim() for ax in fall_axes.values()} == {expected}, SPEC
+        first = fall_axes["closes"]
+        assert all(first.get_shared_x_axes().joined(first, ax) for ax in fall_axes.values())
+
+    def test_a_tick_falls_on_the_first_of_each_month(self, fall_axes) -> None:
+        axis = fall_axes["pnl"].xaxis
+        assert isinstance(axis.get_major_locator(), MonthLocator)
+        assert axis.get_major_formatter().fmt == "%Y-%m-%d"
+        low, high = fall_axes["pnl"].get_xlim()
+        shown = [num2date(t).date() for t in axis.get_major_locator()() if low <= t <= high]
+        assert [str(d) for d in shown] == ["2008-08-01", "2008-09-01", "2008-10-01"], SPEC
+
+    def test_the_guide_crosses_all_three_panels_on_the_day_of_the_largest_short(
+        self, fall_axes
+    ) -> None:
+        for name, ax in fall_axes.items():
+            guide = _by_gid(ax.lines)["guide"]
+            assert [pd.Timestamp(d) for d in guide.get_xdata()] == [DEEPEST, DEEPEST], name
+            assert list(guide.get_ydata()) == [0, 1], name
+
+    def test_the_title_carries_the_exploratory_label(self, fall_figure) -> None:
+        assert fall_figure._suptitle.get_text() == (
+            "Exploratory: the position the linear rule held through its deepest fall"
+        )
+
+    def test_the_note_names_the_file_the_window_and_the_look_ahead(self, fall_figure) -> None:
+        notes = [t.get_text() for t in fall_figure.texts if t is not fall_figure._suptitle]
+        assert notes == [
+            "Example 2.5 of Algorithmic Trading on Chan's own USD.CAD closes, 2008-07-22 to "
+            "2008-10-27, the 16:59 bar of each day.\nCloses from "
+            "pythoncodesanddata/inputData_USDCAD.csv, saved 2018-10-13.\nThe 115-day lookback "
+            "comes from the half-life of the same closes the rule trades, so every figure is "
+            "in-sample."
+        ], SPEC
+
+    def test_no_label_is_parsed_as_math(self, fall_figure) -> None:
+        for ax in fall_figure.axes:
+            for text in [*ax.texts, ax.title, ax._left_title]:
+                assert text.get_parse_math() is False
+        for text in fall_figure.texts:
+            assert text.get_parse_math() is False
+
+    def test_it_is_as_wide_as_the_first_figure(self, figure, fall_figure) -> None:
+        assert fall_figure.get_figwidth() == figure.get_figwidth() == 10
+        assert fall_figure.dpi == figure.dpi == 130
+
+    def test_drawing_writes_the_file_it_is_given(self, fall_figure, fall_out) -> None:
+        assert fall_out.is_file() and fall_out.stat().st_size > 0
+
+    def test_the_committed_figure_exists(self) -> None:
+        assert (FIGURES_DIR / USDCAD_FALL_FIGURE).is_file()
+
+
+class TestTheFallCloses:
+    def test_the_lines_are_the_runs_closes_and_average_over_the_fall(
+        self, fall_axes, result
+    ) -> None:
+        days = fall_days(result)
+        lines = _by_gid(fall_axes["closes"].lines)
+        np.testing.assert_array_equal(lines["closes"].get_ydata(), result.closes[days].to_numpy())
+        np.testing.assert_array_equal(
+            lines["moving-average"].get_ydata(), moving_average(result)[days].to_numpy()
+        )
+        assert same_color(lines["closes"].get_color(), INK)
+        assert same_color(lines["moving-average"].get_color(), ACCENT)
+
+    def test_the_heading_names_the_rise_and_the_close_on_the_dashed_day(self, fall_axes) -> None:
+        assert _title(fall_axes["closes"]) == (
+            "USD.CAD rose from 1.00835 on 2008-07-22 to 1.29485 on 2008-10-27, 28.4 percent.\n"
+            "It closed at 1.17325 on 2008-10-10, the dashed line, and rose another 10.4 "
+            "percent after it."
+        ), SPEC
+
+    def test_the_legend_names_both_lines(self, fall_axes) -> None:
+        legend = [t.get_text() for t in fall_axes["closes"].get_legend().get_texts()]
+        assert legend == ["close at 16:59", "115-day moving average"]
+
+
+class TestTheFallPosition:
+    def test_the_line_is_market_value_on_each_day_of_the_fall(self, fall_axes, result) -> None:
+        days = fall_days(result)
+        y = market_value(result.closes.to_numpy(dtype=float), 115)
+        expected = pd.Series(y, index=result.closes.index)[days].to_numpy()
+        line = _by_gid(fall_axes["position"].lines)["position"]
+        np.testing.assert_array_equal(line.get_ydata(), expected)
+        np.testing.assert_array_equal(position(result)[days].to_numpy(), expected)
+
+    def test_it_is_short_at_every_close_of_the_fall(self, fall_axes) -> None:
+        y = np.asarray(_by_gid(fall_axes["position"].lines)["position"].get_ydata())
+        assert (y < 0).all(), SPEC
+
+    def test_the_largest_short_is_marked_where_it_is_lowest(self, fall_axes, result) -> None:
+        """The lowest point inside the fall is also the run's largest short of all, so the
+        label can call it the largest short without saying "inside the fall"."""
+        ax = fall_axes["position"]
+        assert position(result).idxmin() == DEEPEST, SPEC
+        line = _by_gid(ax.lines)["position"]
+        y = np.asarray(line.get_ydata())
+        day, value = _point(ax, "deepest")
+        assert (day, value) == (_days(line)[int(np.argmin(y))], y.min())
+        assert day == DEEPEST, SPEC
+        assert value == pytest.approx(-4.1198560837, abs=5e-11), SPEC
+        assert _anchor(ax, "deepest-label") == (DEEPEST, value)
+        assert _text(ax, "deepest-label") == "largest short −4.12, 2008-10-10"
+
+    def test_the_trough_days_position_is_marked(self, fall_axes) -> None:
+        ax = fall_axes["position"]
+        day, value = _point(ax, "trough-position")
+        assert day == TROUGH, SPEC
+        assert value == pytest.approx(-3.8330290865, abs=5e-11), SPEC
+        assert _anchor(ax, "trough-position-label") == (TROUGH, value)
+        assert _text(ax, "trough-position-label") == "−3.83, 2008-10-27"
+
+    def test_a_line_marks_zero(self, fall_axes) -> None:
+        assert list(_by_gid(fall_axes["position"].lines)["zero"].get_ydata()) == [0, 0]
+
+    def test_the_heading_says_what_the_position_is(self, fall_axes) -> None:
+        assert _title(fall_axes["position"]) == (
+            "The position held at each close, minus the close's distance from its average in "
+            "moving deviations.\nIt is largest when the close stands furthest above the "
+            "average, which here was inside the move against it."
+        )
+        assert fall_axes["position"].get_ylabel() == "position, minus the z-score"
+
+
+class TestTheFallPnl:
+    def test_the_line_is_cumsum_of_the_runs_pnl_over_the_fall(self, fall_axes, result) -> None:
+        days = fall_days(result)
+        line = _by_gid(fall_axes["pnl"].lines)["pnl"]
+        np.testing.assert_array_equal(line.get_ydata(), result.pnl.cumsum()[days].to_numpy())
+        assert same_color(line.get_color(), GOOD)
+
+    def test_the_peak_and_trough_are_marked_and_labelled(self, fall_axes) -> None:
+        ax = fall_axes["pnl"]
+        for gid, day, value, label in (
+            ("peak", PEAK, 0.1320839920, "high 0.1321, 2008-07-22"),
+            ("trough", TROUGH, -0.5104474067, "low −0.5104\n2008-10-27"),
+        ):
+            drawn_day, drawn = _point(ax, gid)
+            assert drawn_day == day, (gid, SPEC)
+            assert drawn == pytest.approx(value, abs=5e-11), (gid, SPEC)
+            assert _anchor(ax, f"{gid}-label") == (day, drawn), gid
+            assert _text(ax, f"{gid}-label") == label, gid
+        assert same_color(_by_gid(ax.lines)["trough"].get_color(), LOST)
+
+    def test_the_marks_are_the_lines_first_and_last_points(self, fall_axes) -> None:
+        ax = fall_axes["pnl"]
+        y = _by_gid(ax.lines)["pnl"].get_ydata()
+        assert _point(ax, "peak")[1] == y[0] == y.max()
+        assert _point(ax, "trough")[1] == y[-1] == y.min()
+
+    def test_the_heading_names_the_depth(self, fall_axes) -> None:
+        assert _title(fall_axes["pnl"]) == (
+            "The cumulative P&L falls 0.6425 over the same days. Unlevered and before costs.\n"
+            "Each day earns the previous close's position times the day's return."
+        ), SPEC
+
+
+@pytest.fixture(scope="module")
+def altered(sources):
+    """The closes with 2008-10-15 raised by 4 percent."""
+    entry, closes = sources
+    raised = closes.copy()
+    raised[pd.Timestamp("2008-10-15")] *= 1.04
+    return entry, raised
+
+
+@pytest.fixture(scope="module")
+def drawn(tmp_path_factory, altered):
+    out = tmp_path_factory.mktemp("usdcad_fall_altered") / USDCAD_FALL_FIGURE
+    closes, held, pnl = make_usdcad_fall_figure(out=out, sources=altered).axes
+    return {"closes": closes, "position": held, "pnl": pnl}
+
+
+class TestTheFallFollowsTheRun:
+    """A run on other closes moves every date and value the figure prints.
+
+    Raising the close of 2008-10-15 by 4 percent moves the half-life to 106
+    days, the largest short to that day and every number on the marks, while
+    the fall still runs from 2008-07-22 to 2008-10-27. So a figure that wrote
+    any of them in, or found the largest short anywhere but in the run, fails.
+    """
+
+    def test_the_labels_and_marks_follow_the_altered_run(self, drawn, altered) -> None:
+        run = stationarity_tests(*altered)
+        days = fall_days(run)
+        held = position(run)[days]
+        cumulative = run.pnl.cumsum()[days]
+        deepest = held.idxmin()
+        assert run.lookback == 106
+        assert (days[0], days[-1], deepest) == (PEAK, TROUGH, pd.Timestamp("2008-10-15"))
+
+        assert _point(drawn["position"], "deepest") == (deepest, held[deepest])
+        assert _point(drawn["position"], "trough-position") == (TROUGH, held[TROUGH])
+        assert _text(drawn["position"], "deepest-label") == (
+            f"largest short {signed(held[deepest], 2)}, 2008-10-15"
+        )
+        assert _text(drawn["position"], "trough-position-label") == (
+            f"{signed(held[TROUGH], 2)}, 2008-10-27"
+        )
+        assert _text(drawn["pnl"], "peak-label") == (
+            f"high {signed(cumulative[PEAK], 4)}, 2008-07-22"
+        )
+        assert _text(drawn["pnl"], "trough-label") == (
+            f"low {signed(cumulative[TROUGH], 4)}\n2008-10-27"
+        )
+        for ax in drawn.values():
+            guide = _by_gid(ax.lines)["guide"]
+            assert [pd.Timestamp(d) for d in guide.get_xdata()] == [deepest, deepest]
+        assert "on 2008-10-15, the dashed line" in _title(drawn["closes"])
+        assert _by_gid(drawn["closes"].lines)["moving-average"].get_label() == (
+            "106-day moving average"
+        )
+
+    def test_none_of_them_is_the_committed_runs(self, drawn) -> None:
+        printed = " ".join(
+            [
+                _text(drawn["position"], "deepest-label"),
+                _text(drawn["position"], "trough-position-label"),
+                _text(drawn["pnl"], "peak-label"),
+                _text(drawn["pnl"], "trough-label"),
+                _title(drawn["closes"]),
+                _title(drawn["pnl"]),
+            ]
+        )
+        for committed in ("−4.12", "−3.83", "0.1321", "−0.5104", "0.6425", "2008-10-10"):
+            assert committed not in printed, committed
+
+    def test_the_window_follows_the_runs_peak(self, tmp_path, sources) -> None:
+        """The first 800 closes peak a day later, on 2008-07-23."""
+        entry, closes = sources
+        shorter = closes.iloc[:800]
+        assert stationarity_tests(entry, shorter).drawdown.peak == pd.Timestamp("2008-07-23")
+        drawn = make_usdcad_fall_figure(out=tmp_path / USDCAD_FALL_FIGURE, sources=(entry, shorter))
+        pnl = drawn.axes[2]
+        assert _days(_by_gid(pnl.lines)["pnl"])[0] == pd.Timestamp("2008-07-23")
+        assert pnl.get_xlim()[0] == date2num(pd.Timestamp("2008-07-23") - FALL_MARGIN)
+        assert _text(pnl, "peak-label").endswith(", 2008-07-23")
