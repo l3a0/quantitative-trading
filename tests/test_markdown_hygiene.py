@@ -1161,7 +1161,7 @@ class TestTheFigureHasThreeCopies:
         ``docs/``, which the blog's pattern above never matches. A sweep keyed
         on one document's path shape checks that document and nothing else.
         The pattern reads a GIF as well as a PNG, because the USD.CAD post
-        embeds thirteen animated sketches, and a PNG-only pattern would skip them.
+        embeds fourteen animated sketches, and a PNG-only pattern would skip them.
         """
         import re
 

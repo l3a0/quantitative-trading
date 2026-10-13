@@ -4504,10 +4504,10 @@ uv run python -m chan.usdcad_mean_reversion_figures
 holds what both draw rather than their bytes, for the reason given above for
 the regime map.
 
-The post carries thirteen looping whiteboard sketches, drawn by
+The post carries fourteen looping whiteboard sketches, drawn by
 [src/chan/usdcad_tests_whiteboard.py](src/chan/usdcad_tests_whiteboard.py).
 Each sits after the text it draws, and each holds on its finished drawing for
-four seconds before it loops. All thirteen live in `docs/figures/`.
+four seconds before it loops. All fourteen live in `docs/figures/`.
 
 The first, `usdcad_tests_every_day.gif`, sits in the opening section. It draws
 one schematic price path twice, with a dot on every point of the upper copy
@@ -4544,15 +4544,25 @@ day 4, each with its row count and statistic. Each bar starts at the day the
 run's own row count puts its first row on, so the start days come from the run
 as well.
 
-One, `usdcad_tests_noise_band.gif`, sits in Lesson 3. It draws a histogram of
-`genhurst`'s H on the 40,000 random walks of
-[src/chan/usdcad_hurst_noise.py](src/chan/usdcad_hurst_noise.py), shades one
-SD either side of their mean, marks 0.5, the run's 0.4732 and the book's 0.49,
-and puts a dot under the axis for each of the eleven start days. All of it is
-to scale. The walks are drawn again without the port's estimator, which the
-sketch does not draw, so the redraw takes seconds rather than the whole
-measurement's time, and
-[tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
+Two sit in Lesson 3.
+
+1. `usdcad_tests_noise_band.gif` draws a histogram of `genhurst`'s H on the
+   40,000 random walks of
+   [src/chan/usdcad_hurst_noise.py](src/chan/usdcad_hurst_noise.py), shades
+   one SD either side of their mean, marks 0.5, the run's 0.4732 and the
+   book's 0.49, and puts a dot under the axis for each of the eleven start
+   days. All of it is to scale.
+2. `usdcad_tests_lean_not_cross.gif` closes the lesson with three gauges, each
+   to its own scale. The ADF statistic of −1.84 sits between 0 and the 10
+   percent critical value of −2.594. H of 0.4732 sits at the left edge of the
+   same walks' one-SD band, short of 0.5, with no critical value because H is
+   an estimate rather than a test. The variance ratio's statistic of −0.90
+   sits between 0 and −1.96, the critical value of its test's two-sided 5
+   percent level.
+
+The walks are drawn again without the port's estimator, which neither sketch
+draws, so the redraw takes seconds rather than the whole measurement's time,
+and [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
 holds that they are the measurement's walks value for value.
 
 The last two sit in Lesson 5.
@@ -4580,8 +4590,12 @@ line in Chan's reading is drawn to scale. For Lesson 2's sketch it holds the
 same of its numbers, and that each bar starts at the cell of its regression's
 first day, one cell apart and after the greyed days. A run that would start
 them otherwise is refused, because the title and the note say one row. For
-Lesson 3's it holds that each bar is a bin of the walks with its height in
-proportion to its count, and that every line and dot sits at its value. For
+Lesson 3's histogram it holds that each bar is a bin of the walks with its
+height in proportion to its count, and that every line and dot sits at its
+value. For Lesson 3's gauges it holds that each position is in proportion to
+its value along its own gauge, with reverting values on the left, that each
+dot sits short of its threshold on the reverting side, and that the variance
+ratio's threshold is the one its test rejects at. For
 Lesson 5's pair it holds that the bars are to scale by date, that trading
 starts on the run's first position, and that a tick falls every lookback. Each
 of those numbers follows a run or a measurement with other figures. It

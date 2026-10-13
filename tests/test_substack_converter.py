@@ -104,7 +104,7 @@ WIDGET_CONTENT = m2s.WIDGET["content"]
 def _image_size(path: Path) -> tuple[int, int]:
     """Width and height from a PNG's header chunk or a GIF's screen descriptor.
 
-    The USD.CAD post embeds thirteen animated GIFs beside its two PNG charts. A GIF stores
+    The USD.CAD post embeds fourteen animated GIFs beside its two PNG charts. A GIF stores
     its size as two little-endian 16-bit numbers right after its six-byte
     signature, where a PNG stores two big-endian 32-bit numbers in its header.
     """

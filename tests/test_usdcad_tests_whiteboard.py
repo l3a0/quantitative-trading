@@ -1,15 +1,15 @@
-"""The pins for the thirteen whiteboard GIFs in the post on mean reversion on USD.CAD.
+"""The pins for the fourteen whiteboard GIFs in the post on mean reversion on USD.CAD.
 
 One GIF sketches the post's opening section, six the scenes of its section
-"The tests and the file", two its Lesson 1, one its Lesson 2, one its Lesson 3
+"The tests and the file", two its Lesson 1, one its Lesson 2, two its Lesson 3
 and two its Lesson 5. Each sits right after the text it draws. The first seven
 are schematic, so what is pinned for every GIF is what a reader takes from
 it: which scenes there are and in which order the post reads them, what each
 one says and draws, that a label never appears before the stroke it names,
-that no label touches a line or sits on Lesson 3's tint, how long each GIF
+that no label touches a line or sits on a tint, how long each GIF
 shows before it loops, and each file's size, frame count and loop.
 
-Labels in ten scenes quote the run. The opening scene prints the count of
+Labels in eleven scenes quote the run. The opening scene prints the count of
 closes. The half-life scene and the linear rule's
 warning print the lookback, the half-life rounded, and the count of closes.
 Chan's reading prints the three critical values and the ADF statistic, and
@@ -19,7 +19,10 @@ and the half-life. One row apart prints the count of closes and each toolbox's
 row count and ADF statistic, and starts each bar at the cell of the first day
 its regression fits. Lesson 3's scene prints the run's H and draws a
 histogram of ``genhurst`` on the random walks and a dot for each start day, all
-from :mod:`chan.usdcad_hurst_noise`, to scale. Lesson 5's look-ahead prints
+from :mod:`chan.usdcad_hurst_noise`, to scale. Lesson 3's gauges print the
+ADF statistic and its 10 percent critical value, H, and the variance ratio's
+statistic and the critical value its test rejects at, and band H by the same
+measurement's mean and SD, each gauge to its own scale. Lesson 5's look-ahead prints
 the first close, the first position and the last close and places its bars by
 date, and its count of half-lives prints the closes over the half-life and
 ticks the line every lookback. All of them are read from the run or the
@@ -32,7 +35,8 @@ messages here carry:
 ``raw``, saved 2018-10-13, its 16:59 bar of each day, 1,216 closes, a
 lookback of 115 days, an ADF statistic of −1.840744 against critical values of
 −3.458, −2.871 and −2.594, an AR(1) estimate of 0.994120, a variance ratio
-p-value of 0.367281 and a half-life of 115.209794 days. ``adfuller`` at the
+p-value of 0.367281 from a statistic of −0.901577, an H of 0.473233, and a
+half-life of 115.209794 days. ``adfuller`` at the
 same lag fits 1,214 rows from day 3, counting the first close as day 1, and
 gives −1.843018, where jplv7's ``adf`` fits 1,213 from day 4. The walks and
 start days are the ones ``NOISE_SPEC`` there names.
@@ -60,11 +64,13 @@ import matplotlib
 import numpy as np
 import pytest
 from PIL import Image
+from scipy.stats import norm
 
 from chan import usdcad_mean_reversion
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR
 from chan.series import WindowCrossesScaleBreak
+from chan.stationarity_tests import VRATIO_ALPHA
 from chan.usdcad_mean_reversion import read_sources, stationarity_tests
 from chan.usdcad_tests_whiteboard import (
     FRAME_MS,
@@ -101,6 +107,7 @@ TITLES = [
     "The fingerprint",
     "One row apart",
     "Chance and the start day",
+    "Leaning, not crossing",
     "The look-ahead",
     "Ten half-lives",
 ]
@@ -117,6 +124,7 @@ GIFS = [
     "usdcad_tests_fingerprint.gif",
     "usdcad_tests_one_row.gif",
     "usdcad_tests_noise_band.gif",
+    "usdcad_tests_lean_not_cross.gif",
     "usdcad_tests_look_ahead.gif",
     "usdcad_tests_half_lives.gif",
 ]
@@ -153,6 +161,19 @@ STROKES = [
     ],
     ["days", "last", "grey", "adfuller", "jplv7", "one-row"],
     ["axis", "walks", "half", "run", "book", *[f"start-{k}" for k in range(11)]],
+    [
+        "adf-line",
+        "adf-zero",
+        "adf-critical",
+        "adf-dot",
+        "h-line",
+        "h-half",
+        "h-dot",
+        "vr-line",
+        "vr-zero",
+        "vr-critical",
+        "vr-dot",
+    ],
     ["timeline", "measure", "trade", "earlier", "after"],
     ["sample", *[f"tick-{k}" for k in range(1, 11)]],
 ]
@@ -227,6 +248,25 @@ LABELS = [
         "six print as 0.49",
     ],
     [
+        "← more reverting",
+        "random walk →",
+        "ADF statistic",
+        "0",
+        "reject",
+        "−2.594 at 10%",
+        "−1.84",
+        "H",
+        "no test:\nH is an estimate",
+        "0.5",
+        "±1 SD of a random walk",
+        "0.4732",
+        "variance ratio\nstatistic",
+        "0",
+        "reject",
+        "−1.96 at 5%, two-sided",
+        "−0.90",
+    ],
+    [
         "2007-07-23",
         "2012-03-28",
         "measure the half-life: all 1,216 closes",
@@ -247,8 +287,23 @@ LABELS = [
 ]
 
 #: The frames each GIF takes, and how long one pass shows, in milliseconds.
-FRAMES = [55, 29, 31, 29, 30, 29, 32, 44, 77, 58, 53, 44, 34]
-MS = [10700, 7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900, 13500, 11750, 10600, 8600]
+FRAMES = [55, 29, 31, 29, 30, 29, 32, 44, 77, 58, 53, 52, 44, 34]
+MS = [
+    10700,
+    7350,
+    7800,
+    7600,
+    7700,
+    7850,
+    7900,
+    10850,
+    14900,
+    13500,
+    11750,
+    14150,
+    10600,
+    8600,
+]
 
 #: How far, in pixels, every label and title must sit from the nearest stroke.
 #: The sketch's wobble moves a line a pixel or two off its points, so this
@@ -321,7 +376,7 @@ def _inked(image: Image.Image) -> int:
 
 
 class TestTheScenes:
-    def test_there_are_thirteen_in_the_order_the_post_reads_them(self, drawn) -> None:
+    def test_there_are_fourteen_in_the_order_the_post_reads_them(self, drawn) -> None:
         assert [scene.title for scene in drawn] == TITLES
 
     def test_no_title_carries_a_scene_number(self, drawn) -> None:
@@ -1039,6 +1094,196 @@ class TestChanceAndTheStartDay:
             scenes(run, other)
 
 
+def _fill(scene, gid: str) -> Fill:
+    return next(f for f in scene.fills if f.gid == gid)
+
+
+def _gauges(scene, run, measured) -> dict[str, dict[str, tuple[float, float]]]:
+    """Each gauge's marks as board position and value, keyed by what each
+    mark is: its random-walk end, its threshold or band edges, its dot."""
+    mean, sd = float(measured.walks.mean()), float(measured.walks.std(ddof=1))
+    critical = float(norm.ppf(VRATIO_ALPHA / 2))
+    return {
+        "adf": {
+            "zero": (_x(scene, "adf-zero"), 0.0),
+            "critical": (_x(scene, "adf-critical"), run.adf.critical[2]),
+            "zone": (_fill(scene, "adf-zone").x1, run.adf.critical[2]),
+            "dot": (_x(scene, "adf-dot"), run.adf.statistic),
+        },
+        "h": {
+            "half": (_x(scene, "h-half"), 0.5),
+            "low": (_fill(scene, "h-band").x0, mean - sd),
+            "high": (_fill(scene, "h-band").x1, mean + sd),
+            "dot": (_x(scene, "h-dot"), run.hurst),
+        },
+        "vr": {
+            "zero": (_x(scene, "vr-zero"), 0.0),
+            "critical": (_x(scene, "vr-critical"), critical),
+            "zone": (_fill(scene, "vr-zone").x1, critical),
+            "dot": (_x(scene, "vr-dot"), run.vratio.statistic),
+        },
+    }
+
+
+def _leaning(run, measured=None):
+    return _scenes(run, measured)[11]
+
+
+def _altered_lean(run):
+    """``run`` with every figure the gauges print moved: an ADF statistic and
+    critical values, H and a variance ratio statistic of other values."""
+    return dataclasses.replace(
+        run,
+        adf=dataclasses.replace(run.adf, statistic=-2.3, critical=(-3.9, -3.1, -2.7)),
+        hurst=0.4612,
+        vratio=dataclasses.replace(run.vratio, statistic=-1.5),
+    )
+
+
+class TestLeaningNotCrossing:
+    """Lesson 3's close: three gauges, each to its own scale, with the random
+    walk toward the right and more reverting values to the left. The ADF
+    statistic sits between 0 and its 10 percent critical value, H between the
+    left edge of the random walks' ±1 SD band and 0.5, and the variance ratio's
+    statistic between 0 and the critical value its own test rejects at."""
+
+    def test_the_run_leans_toward_reversion_without_crossing(self, run, measured) -> None:
+        assert f"{run.adf.statistic:.6f}" == "-1.840744", SPEC
+        assert run.adf.critical[2] < run.adf.statistic < 0, SPEC
+        assert f"{run.vratio.statistic:.6f}" == "-0.901577", SPEC
+        assert f"{run.vratio.ratio:.6f}" == "0.964745", SPEC
+        assert norm.ppf(VRATIO_ALPHA / 2) < run.vratio.statistic < 0, SPEC
+        assert not run.vratio.rejects, SPEC
+        mean, sd = measured.walks.mean(), measured.walks.std(ddof=1)
+        assert mean - sd < run.hurst < 0.5, (SPEC, NOISE_SPEC)
+
+    def test_the_variance_ratio_threshold_is_its_tests_own(self, run, drawn) -> None:
+        """``vratiotest`` rejects when its two-sided p-value is at most its
+        fixed level, 5 percent, so its lower critical value is the normal
+        quantile of half that level, and a statistic there gives a p-value of
+        exactly that level."""
+        assert VRATIO_ALPHA == 0.05
+        critical = whiteboard._vratio_critical()
+        assert critical == norm.ppf(VRATIO_ALPHA / 2)
+        assert 2 * norm.cdf(critical) == pytest.approx(VRATIO_ALPHA, rel=1e-12)
+        assert f"{critical:.6f}" == "-1.959964"
+        assert run.vratio.rejects == (abs(run.vratio.statistic) >= -critical)
+        assert "−1.96 at 5%, two-sided" in drawn[11].labels
+
+    def test_the_threshold_follows_the_tests_level(self, run, monkeypatch) -> None:
+        monkeypatch.setattr(whiteboard, "VRATIO_ALPHA", 0.10)
+        assert "−1.64 at 10%, two-sided" in _leaning(run).labels
+
+    @pytest.mark.parametrize("altered", [False, True])
+    def test_every_position_is_proportional_to_its_value_within_its_gauge(
+        self, run, measured, altered
+    ) -> None:
+        """Along one gauge, the board distance between any two marks over the
+        gap between their values is one positive number, so each gauge is a
+        ruler that runs from reverting on the left to a random walk on the
+        right, and the band spans one SD either side of the walks' mean."""
+        if altered:
+            run, measured = _altered_lean(run), _altered_spread(measured)
+        scene = _leaning(run, measured)
+        for name, marks in _gauges(scene, run, measured).items():
+            points = list(marks.values())
+            slopes = [
+                (b[0] - a[0]) / (b[1] - a[1])
+                for i, a in enumerate(points)
+                for b in points[i + 1 :]
+                if b[1] != a[1]
+            ]
+            assert slopes[0] > 0, name
+            assert slopes == pytest.approx([slopes[0]] * len(slopes), rel=1e-9), name
+            line = _stroke(scene, f"{name}-line")
+            xs = [x for x, _ in points]
+            assert line.x.min() <= min(xs) and max(xs) <= line.x.max(), name
+
+    def test_each_reject_zone_runs_from_the_line_start_to_its_threshold(self, drawn) -> None:
+        scene = drawn[11]
+        for name in ("adf", "vr"):
+            zone, line = _fill(scene, f"{name}-zone"), _stroke(scene, f"{name}-line")
+            assert zone.x0 == line.x.min(), name
+            assert zone.x1 == pytest.approx(_x(scene, f"{name}-critical")), name
+            assert zone.y0 < line.y[0] < zone.y1, name
+        assert {f.color for f in scene.fills} == {whiteboard.REJECT_TINT, whiteboard.TINT}
+        assert _fill(scene, "h-band").color == whiteboard.TINT
+
+    def test_each_tint_is_a_colour_the_palette_already_holds(self) -> None:
+        for tint in (whiteboard.TINT, whiteboard.REJECT_TINT):
+            assert [round(255 * c) for c in matplotlib.colors.to_rgb(tint)] in _palette_rgbs()
+
+    def test_each_dot_sits_on_the_reverting_side_short_of_its_threshold(self, drawn) -> None:
+        scene = drawn[11]
+        assert _x(scene, "adf-critical") < _x(scene, "adf-dot") < _x(scene, "adf-zero")
+        assert _fill(scene, "h-band").x0 <= _x(scene, "h-dot") < _x(scene, "h-half")
+        assert _x(scene, "vr-critical") < _x(scene, "vr-dot") < _x(scene, "vr-zero")
+
+    def test_a_statistic_past_its_threshold_moves_its_dot_into_the_zone(self, run) -> None:
+        crossed = dataclasses.replace(
+            run,
+            adf=dataclasses.replace(run.adf, statistic=-3.0),
+            vratio=dataclasses.replace(run.vratio, statistic=-2.5),
+        )
+        scene = _leaning(crossed)
+        for name in ("adf", "vr"):
+            assert _fill(scene, f"{name}-zone").x0 < _x(scene, f"{name}-dot")
+            assert _x(scene, f"{name}-dot") < _x(scene, f"{name}-critical"), name
+
+    def test_each_gauge_is_drawn_whole_before_the_next_and_its_dot_comes_last(self, drawn) -> None:
+        steps = drawn[11].steps
+        names = [s.gid.split("-")[0] if not isinstance(s, Label) else None for s in steps]
+        drawn_order = [n for n in names if n]
+        assert drawn_order == sorted(drawn_order, key=["adf", "h", "vr"].index)
+        for name in ("adf", "h", "vr"):
+            own = [k for k, n in enumerate(names) if n == name]
+            assert steps[own[-1]].gid == f"{name}-dot", name
+            label = steps[own[-1] + 1]
+            assert isinstance(label, Label) and label.names == f"{name}-dot", name
+            assert label.x == _x(drawn[11], f"{name}-dot"), name
+
+    def test_the_header_runs_from_reverting_on_the_left_to_a_random_walk(self, drawn) -> None:
+        header = {s.text: s for s in drawn[11].steps if isinstance(s, Label) and "→" in s.text}
+        header |= {s.text: s for s in drawn[11].steps if isinstance(s, Label) and "←" in s.text}
+        assert header["← more reverting"].x < header["random walk →"].x
+
+    def test_h_has_no_threshold_and_says_so(self, drawn) -> None:
+        scene = drawn[11]
+        assert not [s for s in scene.strokes if s.gid.startswith("h-") and "critical" in s.gid]
+        assert not [f for f in scene.fills if f.gid.startswith("h-") and "zone" in f.gid]
+        assert "no test:\nH is an estimate" in scene.labels
+
+    def test_the_labels_follow_the_run_and_the_measurement(self, run, measured) -> None:
+        altered = _altered_spread(measured)
+        mean, sd = altered.walks.mean(), altered.walks.std(ddof=1)
+        scene = _leaning(_altered_lean(run), altered)
+        assert scene.labels == [
+            "← more reverting",
+            "random walk →",
+            "ADF statistic",
+            "0",
+            "reject",
+            "−2.700 at 10%",
+            "−2.30",
+            "H",
+            "no test:\nH is an estimate",
+            "0.5",
+            "±1 SD of a random walk",
+            "0.4612",
+            "variance ratio\nstatistic",
+            "0",
+            "reject",
+            "−1.96 at 5%, two-sided",
+            "−1.50",
+        ]
+        band = _fill(scene, "h-band")
+        original = _fill(_leaning(run, measured), "h-band")
+        assert (band.x0, band.x1) != pytest.approx((original.x0, original.x1))
+        assert (mean, sd) != pytest.approx((measured.walks.mean(), measured.walks.std(ddof=1))), (
+            "the altered measurement moves both"
+        )
+
+
 class TestTheLookAhead:
     """Lesson 5's look-ahead, the run's three rows drawn to scale by date, and
     a dashed schematic pair that carries no dates or numbers."""
@@ -1055,7 +1300,7 @@ class TestTheLookAhead:
         trading bar starts elsewhere."""
         entry, every = sources
         run = stationarity_tests(entry, every[:closes])
-        scene = _scenes(run)[11]
+        scene = _scenes(run)[12]
         timeline, measure, trade = (_stroke(scene, g) for g in ("timeline", "measure", "trade"))
         left, right = timeline.x.min(), timeline.x.max()
         assert (measure.x.min(), measure.x.max()) == (left, right)
@@ -1073,7 +1318,7 @@ class TestTheLookAhead:
         ]
 
     def test_the_schematic_pair_splits_the_sample_and_carries_no_number(self, drawn) -> None:
-        scene = drawn[11]
+        scene = drawn[12]
         timeline = _stroke(scene, "timeline")
         earlier, after = _stroke(scene, "earlier"), _stroke(scene, "after")
         assert earlier.dashed and after.dashed
@@ -1088,7 +1333,7 @@ class TestTheLookAhead:
         assert not [s.text for s in named if re.search(r"\d", s.text)]
 
     def test_the_note_names_the_trading_bar(self, drawn) -> None:
-        note = next(s for s in drawn[11].steps if isinstance(s, Label) and "inside" in s.text)
+        note = next(s for s in drawn[12].steps if isinstance(s, Label) and "inside" in s.text)
         assert (note.names, note.color) == ("trade", whiteboard.LOST)
 
 
@@ -1098,15 +1343,15 @@ class TestTenHalfLives:
     half-life, which the post prints as 10.6."""
 
     def test_the_label_divides_the_closes_by_the_unrounded_half_life(self, run, drawn) -> None:
-        assert "10.6 half-lives" in drawn[12].labels, SPEC
+        assert "10.6 half-lives" in drawn[13].labels, SPEC
         other = dataclasses.replace(run, half_life=100.0)
-        assert "12.2 half-lives" in _scenes(other)[12].labels
-        assert _scenes(other)[12].title == "Ten half-lives", "the ticks follow the lookback"
+        assert "12.2 half-lives" in _scenes(other)[13].labels
+        assert _scenes(other)[13].title == "Ten half-lives", "the ticks follow the lookback"
 
     @pytest.mark.parametrize("lookback", [115, 100])
     def test_a_tick_falls_every_lookback(self, run, lookback) -> None:
         run = dataclasses.replace(run, lookback=lookback)
-        scene = _scenes(run)[12]
+        scene = _scenes(run)[13]
         sample = _stroke(scene, "sample")
         left, right = sample.x.min(), sample.x.max()
         ticks = [s for s in scene.strokes if s.gid.startswith("tick-")]
@@ -1118,7 +1363,7 @@ class TestTenHalfLives:
         assert f"{lookback} days" in scene.labels
 
     def test_the_line_runs_from_the_first_close_to_the_last(self, run) -> None:
-        scene = _scenes(_shortened(run, 1000))[12]
+        scene = _scenes(_shortened(run, 1000))[13]
         assert scene.labels[:2] == ["2007-07-23", str(run.closes.index[999].date())]
 
 
@@ -1213,7 +1458,7 @@ class TestTheDrawing:
 
 
 class TestTheGifs:
-    def test_there_are_thirteen_named_for_their_scenes(self, gifs) -> None:
+    def test_there_are_fourteen_named_for_their_scenes(self, gifs) -> None:
         assert [path.name for path in gifs] == GIFS
 
     def test_each_is_680_by_320_with_its_frames(self, gifs) -> None:

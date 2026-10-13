@@ -6,7 +6,7 @@ mean, and then the linear rule that trades the answer. Each test is a short
 paragraph of regression terms. A reader who has not met them gets more from a
 picture of what each one looks for than from the terms, so this module draws
 those as six scenes. One more comes before them, for the post's opening
-section, two after them for its Lesson 1, one for Lesson 2, one for Lesson 3
+section, two after them for its Lesson 1, one for Lesson 2, two for Lesson 3
 and two for Lesson 5. Each scene is sketched stroke by stroke as if on a
 whiteboard, and each is its own looping GIF, so the post can place it right
 after the text it draws.
@@ -35,10 +35,14 @@ after the text it draws.
 11. Chance and the start day: a histogram of ``genhurst``'s H on random walks
     of the same length, with its ±1 SD band, lines at 0.5, the run's H and the
     book's 0.49, and a dot for each of the eleven start days.
-12. The look-ahead: the half-life measured on every close, and the rule
+12. Leaning, not crossing: three gauges, the ADF statistic against its 10
+    percent critical value, H against the random walks' ±1 SD band, and the
+    variance ratio's statistic against its test's critical value, each on the
+    reverting side of a random walk and none past the line that would reject.
+13. The look-ahead: the half-life measured on every close, and the rule
     trading from its first position inside that window, above a schematic of
     measuring on earlier days and trading after.
-13. Ten half-lives: the closes on a line with a tick every lookback, and the
+14. Ten half-lives: the closes on a line with a tick every lookback, and the
     count of half-lives they span.
 
 The numbers above order this list and nothing else. A GIF stands alone, so its
@@ -58,11 +62,16 @@ One row apart prints the count of closes, each toolbox's row count and
 statistic, and places each bar's start at the cell of the first day its
 regression fits. Chance and the start day is drawn to scale along its axis,
 with its bins, its band and its dots from :mod:`chan.usdcad_hurst_noise`
-through :func:`spread`. The look-ahead places its bars to scale by date and
+through :func:`spread`. Leaning, not crossing draws each of its three gauges
+to its own scale, and prints the ADF statistic and its 10 percent critical
+value, H, and the variance ratio's statistic and critical value. Its band is
+the same measurement's mean and SD, and the variance ratio's critical value is
+derived from :data:`chan.stationarity_tests.VRATIO_ALPHA`, the level the test
+reports at. The look-ahead places its bars to scale by date and
 prints the first close, the first position, the last close, the count of
 closes and the lookback. Ten half-lives prints the dates of the first and last
 close, the lookback, and the closes over the unrounded half-life. Every number
-but the book's 0.49 and a random walk's 0.5 comes from the
+but the book's 0.49, a random walk's 0.5 and the gauges' 0 comes from the
 :class:`chan.usdcad_mean_reversion.StationarityRun` that
 :func:`chan.usdcad_mean_reversion.stationarity_tests` returns, read through the
 run's own path, so the scale-break guard runs here too, or from the
@@ -71,13 +80,14 @@ those figures moves the labels with the run.
 
 :func:`scenes` describes every stroke, tint and label as data,
 :func:`timeline` orders one scene's steps into frames, and :func:`render`
-draws them. A test reads the first two without drawing anything. Lesson 3's
-±1 SD band is the one tint, a flat rectangle drawn beneath every stroke. A
+draws them. A test reads the first two without drawing anything. A tint is a
+flat rectangle drawn beneath every stroke, and only Lesson 3's two scenes have
+any: the ±1 SD band in both, and the gauges' reject zones. A
 label always appears after the stroke or tint it names, and each GIF holds on
 its finished drawing for :data:`HOLD_MS` before it loops. :func:`clearances`
 measures how far each label and title sits from the nearest stroke or tint on
 the finished drawing, so a test can hold that no label touches a line it does
-not name and none sits on the tint.
+not name and none sits on a tint.
 
 The sketch is deterministic. Matplotlib's path sketch adds the same wobble on
 every draw, which two draws in separate processes confirmed byte for byte when
@@ -88,7 +98,7 @@ GIFs, and it arrives as a dependency of matplotlib rather than as an entry of
 its own in ``pyproject.toml``.
 Another machine can differ, because the hand-drawn font is whichever of
 :data:`HAND_FONTS` is installed, with matplotlib's own DejaVu Sans as the
-fallback, and font rasterising varies across platforms. Redraw all thirteen with::
+fallback, and font rasterising varies across platforms. Redraw all fourteen with::
 
     uv run python -m chan.usdcad_tests_whiteboard
 """
@@ -108,10 +118,12 @@ from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties, findfont
 from matplotlib.patches import Rectangle
 from PIL import Image
+from scipy.stats import norm
 
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.series import WindowCrossesScaleBreak
+from chan.stationarity_tests import VRATIO_ALPHA
 from chan.usdcad_hurst_noise import (
     PATHS,
     SEED,
@@ -923,6 +935,152 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
     )
 
 
+#: Where Lesson 3's three gauges run on the board, and how far above and below
+#: a gauge its labels sit. Each gauge's own values are mapped onto this span.
+GAUGE_LEFT, GAUGE_RIGHT = 2.5, 9.2
+#: The share of a gauge's span added past its most reverting mark, so its
+#: reject zone or band does not start on the line's end. H's line also runs
+#: past its band by :data:`H_PAST`, because its band reaches above 0.5.
+LEAN_PAST, H_PAST = 0.4, 0.25
+#: The ADF's critical values are the 1, 5 and 10 percent ones in that order,
+#: and the gauge reads the 10 percent one, the level the post and Chan cite.
+ADF_LEVEL = "10%"
+
+
+def _vratio_critical() -> float:
+    """The negative critical value of ``vratiotest``'s two-sided test at
+    :data:`chan.stationarity_tests.VRATIO_ALPHA`, the level its ``h`` reports
+    a rejection at. The p-value is twice the normal tail beyond the statistic,
+    so the test rejects below the normal quantile of half that level."""
+    return float(norm.ppf(VRATIO_ALPHA / 2))
+
+
+def _gauge_map(values: Sequence[float], past_high: float = 0.0):
+    """The affine map from a gauge's values onto the board, spanning every
+    value in ``values`` with :data:`LEAN_PAST` of their span added below the
+    lowest and ``past_high`` of it above the highest."""
+    span = max(values) - min(values)
+    low, high = min(values) - LEAN_PAST * span, max(values) + past_high * span
+
+    def at(value: float) -> float:
+        return GAUGE_LEFT + (value - low) / (high - low) * (GAUGE_RIGHT - GAUGE_LEFT)
+
+    return at
+
+
+def _tick(gid: str, x: float, y: float, color: str = INK, reach: float = 0.1) -> Stroke:
+    return _stroke(gid, _line([(x, y - reach), (x, y + reach)], per_unit=10), color=color, frames=2)
+
+
+def _lean_not_cross(run: StationarityRun, measured: Spread) -> Scene:
+    """Lesson 3's close: the three tests all lean toward reversion and none crosses.
+
+    Three horizontal gauges, drawn one at a time, each with its random-walk
+    value toward the right and more reverting values to the left. Each gauge
+    is drawn to its own scale, since their units differ, so along one gauge a
+    position is an affine function of the value it marks. The statistic's dot
+    comes last on each.
+
+    1. The ADF statistic, against the 10 percent critical value with its
+       reject zone left of it. The line ends at 0.
+    2. ``genhurst``'s H, against the band one SD either side of the random
+       walks' mean from :func:`spread`, the measurement Lesson 3's histogram
+       draws. A tick marks 0.5. H is an estimate rather than a test, so it has
+       no critical value and the gauge draws none.
+    3. The variance ratio's statistic, against the critical value of
+       ``vratiotest``'s own two-sided test at its fixed level, with the reject
+       zone below the negative one. The test also rejects above the positive
+       one, which lies on the side a trending series gives, beyond the
+       random-walk end this gauge stops at.
+    """
+    mean, sd = float(measured.walks.mean()), float(measured.walks.std(ddof=1))
+    adf_critical, vr_critical = run.adf.critical[2], _vratio_critical()
+    adf, vr = run.adf.statistic, run.vratio.statistic
+    at_adf = _gauge_map((0.0, adf_critical, adf))
+    at_h = _gauge_map((RANDOM_WALK_H, mean - sd, mean + sd, run.hurst), past_high=H_PAST)
+    at_vr = _gauge_map((0.0, vr_critical, vr))
+    rows = {"adf": 3.3, "h": 2.0, "vr": 0.7}
+    above, below, zone = 0.45, -0.45, 0.08
+
+    def line(gid: str) -> Stroke:
+        y = rows[gid]
+        return _stroke(f"{gid}-line", _line([(GAUGE_LEFT, y), (GAUGE_RIGHT, y)]), frames=6)
+
+    def reject(gid: str, at, critical: float, words: str) -> list[Stroke | Fill | Label]:
+        """The reject zone left of ``critical``, then its tick and its words."""
+        y, edge = rows[gid], at(critical)
+        return [
+            Fill(f"{gid}-zone", GAUGE_LEFT, y - zone, edge, y + zone, color=REJECT_TINT),
+            Label("reject", edge - 0.12, y + above, names=f"{gid}-zone", ha="right", color=LOST),
+            _tick(f"{gid}-critical", edge, y, color=LOST),
+            Label(words, edge + 0.12, y + above, names=f"{gid}-critical", color=LOST),
+        ]
+
+    def zero(gid: str, at) -> list[Stroke | Label]:
+        y = rows[gid]
+        return [
+            _tick(f"{gid}-zero", at(0.0), y, color=MUTED),
+            Label("0", at(0.0), y + below, names=f"{gid}-zero", ha="center", color=MUTED),
+        ]
+
+    def dot(gid: str, x: float, number: str) -> list[Stroke | Label]:
+        y = rows[gid]
+        return [
+            _dot(f"{gid}-dot", x, y),
+            Label(number, x, y + below, names=f"{gid}-dot", ha="center", color=ACCENT),
+        ]
+
+    h = rows["h"]
+    return Scene(
+        "Leaning, not crossing",
+        "lean_not_cross",
+        (
+            line("adf"),
+            Label("← more reverting", 4.6, 4.3, names="adf-line", color=MUTED, size=12),
+            Label("random walk →", 9.7, 4.3, names="adf-line", ha="right", color=MUTED, size=12),
+            Label("ADF statistic", 0.3, rows["adf"], names="adf-line", size=12),
+            *zero("adf", at_adf),
+            *reject("adf", at_adf, adf_critical, f"{_signed(adf_critical, 3)} at {ADF_LEVEL}"),
+            *dot("adf", at_adf(adf), _signed(adf, 2)),
+            line("h"),
+            Label("H", 0.3, h + 0.25, names="h-line", size=12),
+            Label(
+                "no test:\nH is an estimate", 0.3, h - 0.25, names="h-line", color=MUTED, size=11
+            ),
+            _tick("h-half", at_h(RANDOM_WALK_H), h, color=MUTED),
+            Label(
+                f"{RANDOM_WALK_H:.1f}",
+                at_h(RANDOM_WALK_H),
+                h + below,
+                names="h-half",
+                ha="center",
+                color=MUTED,
+            ),
+            Fill("h-band", at_h(mean - sd), h - zone, at_h(mean + sd), h + zone, color=TINT),
+            Label(
+                "±1 SD of a random walk",
+                (at_h(mean - sd) + at_h(mean + sd)) / 2,
+                h + above,
+                names="h-band",
+                ha="center",
+                color=GOOD,
+                size=12,
+            ),
+            *dot("h", at_h(run.hurst), f"{run.hurst:.4f}"),
+            line("vr"),
+            Label("variance ratio\nstatistic", 0.3, rows["vr"], names="vr-line", size=12),
+            *zero("vr", at_vr),
+            *reject(
+                "vr",
+                at_vr,
+                vr_critical,
+                f"{_signed(vr_critical, 2)} at {VRATIO_ALPHA:.0%}, two-sided",
+            ),
+            *dot("vr", at_vr(vr), _signed(vr, 2)),
+        ),
+    )
+
+
 def _span(x0: float, x1: float, y: float, tick: float = 0.13) -> tuple:
     """A bar from ``x0`` to ``x1`` at height ``y``, with an upright tick at each end."""
     return _line([(x0, y + tick), (x0, y - tick), (x0, y), (x1, y), (x1, y + tick), (x1, y - tick)])
@@ -1093,11 +1251,11 @@ def _half_lives(run: StationarityRun) -> Scene:
 
 
 def scenes(run: StationarityRun, measured: Spread) -> tuple[Scene, ...]:
-    """The thirteen scenes in the order the post reads them, every number drawn
+    """The fourteen scenes in the order the post reads them, every number drawn
     read from ``run`` or, for Lesson 3's, from ``measured``.
 
     The first sketches the post's opening section, the next six the section on
-    the tests, two Lesson 1, one Lesson 2, one Lesson 3, and the last two
+    the tests, two Lesson 1, one Lesson 2, two Lesson 3, and the last two
     Lesson 5.
     """
     return (
@@ -1112,6 +1270,7 @@ def scenes(run: StationarityRun, measured: Spread) -> tuple[Scene, ...]:
         _fingerprint(run),
         _one_row(run),
         _noise_band(run, measured),
+        _lean_not_cross(run, measured),
         _look_ahead(run),
         _half_lives(run),
     )
@@ -1192,6 +1351,9 @@ def palette() -> Image.Image:
 #: with the board. Being a colour the palette already holds, it adds none, so
 #: the other GIFs' palettes, and their bytes, stay as they were.
 TINT = matplotlib.colors.to_hex(_blend(GOOD, BLENDS[-1]))
+#: The reject zones' tint in the gauges that close Lesson 3: the red of a
+#: critical value at the same blend, so it adds no colour to the palette either.
+REJECT_TINT = matplotlib.colors.to_hex(_blend(LOST, BLENDS[-1]))
 
 
 def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
@@ -1346,7 +1508,7 @@ def make_usdcad_tests_whiteboards(
     sources: tuple[VintageEntry, pd.Series] | None = None,
     measured: Spread | None = None,
 ) -> list[Path]:
-    """Write one looping GIF for each of the thirteen scenes and return their
+    """Write one looping GIF for each of the fourteen scenes and return their
     paths, in the order the post reads them.
 
     ``measured`` is the :func:`spread` of the closes, measured from them when
