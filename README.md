@@ -4446,7 +4446,9 @@ for the 141.6-day half-life, to
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) for the
 book's 23 days, or to
 [tests/test_usdcad_mean_reversion_figures.py](tests/test_usdcad_mean_reversion_figures.py)
-for the figure's own numbers. Eight had no pin before it, and
+for the chart's own numbers, or to
+[tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
+for the whiteboard sketch's labels. Eight had no pin before it, and
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py)
 now pins them all, reading the position from the run's own `market_value`.
 
@@ -4463,7 +4465,7 @@ now pins them all, reading the position from the run's own `market_value`.
 7. The run ends 0.0180 below its high, after climbing 0.6246 from its low.
 8. The 1,216 closes span 10.6 half-lives.
 
-Its one figure is drawn from the committed file by
+Its chart is drawn from the committed file by
 [src/chan/usdcad_mean_reversion_figures.py](src/chan/usdcad_mean_reversion_figures.py),
 which reads it through the same `read_sources` and `stationarity_tests` as
 `python -m chan.usdcad_mean_reversion`, scale-break guard included. It draws
@@ -4480,6 +4482,24 @@ uv run python -m chan.usdcad_mean_reversion_figures
 [tests/test_usdcad_mean_reversion_figures.py](tests/test_usdcad_mean_reversion_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+Its second figure, `docs/figures/usdcad_tests_whiteboard.gif`, is a looping
+whiteboard sketch of the section on the tests, drawn by
+[src/chan/usdcad_tests_whiteboard.py](src/chan/usdcad_tests_whiteboard.py) in
+six scenes: the question, the ADF test, H, the variance ratio, the half-life
+and the linear rule. Its shapes are schematic. Its two numbers, the 115-day
+lookback and the 1,216 closes, come from the same `stationarity_tests` run.
+
+```bash
+uv run python -m chan.usdcad_tests_whiteboard
+```
+
+[tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
+holds each scene's labels, that a label appears only after the stroke it
+names, the frame count, size, timing and loop, and that two draws give the
+same bytes. It compares the committed GIF with a fresh draw byte for byte only
+on macOS arm64 in Comic Sans MS, where the file was drawn, because the hand
+font is whichever one is installed.
 
 [blog/khandani-lo-reversal-lessons.md](blog/khandani-lo-reversal-lessons.md)
 is a twenty-fifth post, about Examples 4.3 and 4.4 of Chan's *Algorithmic

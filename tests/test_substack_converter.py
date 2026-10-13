@@ -101,11 +101,18 @@ m2s = _load_converter()
 WIDGET_CONTENT = m2s.WIDGET["content"]
 
 
-def _png_size(path: Path) -> tuple[int, int]:
-    """Width and height from a PNG's header chunk."""
+def _image_size(path: Path) -> tuple[int, int]:
+    """Width and height from a PNG's header chunk or a GIF's screen descriptor.
+
+    The USD.CAD post embeds an animated GIF beside its PNG chart. A GIF stores
+    its size as two little-endian 16-bit numbers right after its six-byte
+    signature, where a PNG stores two big-endian 32-bit numbers in its header.
+    """
     with path.open("rb") as f:
         head = f.read(24)
-    assert head[:8] == b"\x89PNG\r\n\x1a\n", f"{path} is not a PNG"
+    if head[:6] in (b"GIF87a", b"GIF89a"):
+        return struct.unpack("<HH", head[6:10])
+    assert head[:8] == b"\x89PNG\r\n\x1a\n", f"{path} is neither a PNG nor a GIF"
     return struct.unpack(">II", head[16:24])
 
 
@@ -120,7 +127,7 @@ def images_for(post: Path) -> dict:
         found = _figure_line(line)
         if found:
             figure = (post.parent / found.group(2)).resolve()
-            width, height = _png_size(figure)
+            width, height = _image_size(figure)
             images[figure.name] = {
                 "url": f"https://example.invalid/{figure.name}",
                 "width": width,
