@@ -5440,6 +5440,10 @@ redraws, and its fourteen whiteboard sketches, which
 5. Two in Lesson 3.
 6. Two in Lesson 5.
 
+[blog/usdcad-holdout-lessons.md](../blog/usdcad-holdout-lessons.md) sets
+about ten of these figures beside Entry 51's, so a change to one of them moves
+that post too.
+
 ## Entry 23: EWA, EWC and IGE, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their

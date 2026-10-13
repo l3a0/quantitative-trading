@@ -12,8 +12,11 @@ labels in ``tests/test_usdcad_mean_reversion_figures.py``, and its sketches'
 labels in ``tests/test_usdcad_tests_whiteboard.py``. README lists what
 the post says that nothing asserts. ``blog/tu-momentum-lessons.md`` quotes
 USD.CAD's H at a ``maxT`` of 19, which this file pins, so a change to that pin
-moves that post too. ``docs/replication-log.md`` Entry 22 carries the verdicts
-and points here row by row.
+moves that post too. ``blog/usdcad-holdout-lessons.md`` sets about ten of this
+file's figures beside its own, among them the P&L, the drawdown, the Sharpe
+ratio and the half-life, so a change to one of those moves it as well.
+``docs/replication-log.md`` Entry 22 carries the verdicts and points here row
+by row.
 
 Every pin on the committed closes reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as

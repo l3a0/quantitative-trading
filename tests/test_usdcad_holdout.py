@@ -647,6 +647,12 @@ class TestWhatThePostMeasured:
         after = cumulative[cumulative.index > d.trough]
         assert after[after >= cumulative[d.peak]].index[0] == pd.Timestamp("2024-03-06"), SPEC
 
+    def test_h_sits_0_0014_below_the_walks_mean_inside_a_band_of_0_0260(
+        self, holdout, band
+    ) -> None:
+        pin(band.mean - holdout.hurst, 0.0013873817670264077, "0.0014")
+        assert f"{band.mean:.4f} ± {2 * band.sd:.4f}" == "0.4987 ± 0.0260", SPEC
+
     def test_the_largest_position_is_a_short_on_2020_03_19(self, holdout) -> None:
         held = pd.Series(holdout.held, index=holdout.traded.index)
         at = held.abs().idxmax()

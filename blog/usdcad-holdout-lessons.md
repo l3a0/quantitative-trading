@@ -1,4 +1,4 @@
-# Trading USD.CAD’s mean reversion for fourteen years after the book
+# Trading USD.CAD’s mean reversion for fourteen years after Chan’s sample
 
 *On closes nobody had read, Chan’s trade still ends positive, by too little to tell from chance.*
 
@@ -16,12 +16,12 @@ This post removes both. It keeps the lookback at 115, fixed from Chan’s closes
 The holdout draws five lessons.
 
 1. **The claim survives on its sign alone.** The P&L ends at 0.1132, above 0, and its mean daily value cannot be told from zero.
-2. **Writing the predictions down first is what makes it a check.** Six predictions and one figure to report were filed before any later close was read, and the post sets each beside what happened.
+2. **Writing the predictions down first is what makes it a check.** Six predictions and one figure to report were filed before the run computed anything on the later closes, and the post sets each beside what happened.
 3. **The later closes read as a random walk, as predicted.** None of the three tests from the earlier post rejects one.
 4. **The frozen lookback is about a quarter of the later half-life.** The closes after 2012 give a half-life of 457.8077 days.
 5. **The fall is again several times the final P&L.** The deepest drawdown is 0.5033, more than four times what the run ends with.
 
-**The verdict is registered, and the side figures are exploratory.** A registered result is one whose test and pass mark were written down before any of its data was read. A **holdout** is data kept back from every decision about a test, so a result on it is a fresh check. The claim and four of the predictions beside it are registered. The half-life, the drawdown, the Sharpe ratio and the positions were not predicted, so they describe the run and decide nothing.
+**The verdict is registered, and the side figures are exploratory.** A registered result is one whose test and pass mark were written down before anything was computed on its data. Lesson 2 lists what had been read before then. A **holdout** is data kept back from every decision about a test, so a result on it is a fresh check. The claim and four of the predictions beside it are registered. The half-life, the drawdown, the Sharpe ratio and the positions were not predicted, so they describe the run and decide nothing.
 
 ## The closes and what carried over
 
@@ -31,13 +31,13 @@ The rule needs 115 closes before it can hold a position, so the run starts on th
 
 Everything else carried over unchanged. Each day’s P&L is yesterday’s position times today’s percent change in the close. The rule pays no transaction cost and earns or pays no overnight interest on the currencies it holds, as in Chan’s script.
 
-![Two charts stacked on one shared date axis from October 2011 to October 2026. The top chart shows USD.CAD’s daily closes, starting near 1.00 in 2012, climbing to about 1.46 by early 2016, swinging between about 1.21 and 1.45 through 2020 and 2021, and ending near 1.43 in 2026. A smoother brown line, the 115-day moving average, trails the closes from the end of March 2012. A dashed vertical line marks the first traded day, 2012-03-29. The bottom chart shows the cumulative P&L of the linear rule as a green line from 2012-03-29. It rises to 0.1035 on 2013-11-20, marked with a dot, then falls inside a shaded band to −0.3998 on 2016-01-19, marked with a red dot. It climbs back with sharp drops in early 2020 and in 2022, passes its 2013 high in 2024, and ends at 0.1132. A horizontal line marks zero. The title calls the claim registered, and the note says the curve, the fall and the half-life are exploratory.](../docs/figures/usdcad_holdout.png)
+![Two charts stacked on one shared date axis from October 2011 to October 2026. The top chart shows USD.CAD’s daily closes, starting near 1.00 in 2012, climbing to about 1.46 by early 2016, swinging between about 1.21 and 1.45 through 2020 and 2021, and ending near 1.43 in 2026. A smoother brown line, the 115-day moving average, trails the closes from the end of March 2012. A dashed vertical line marks the first traded day, 2012-03-29. The bottom chart shows the cumulative P&L of the linear rule as a green line from 2012-03-29. It rises to 0.1035 on 2013-11-20, marked with a dot, then falls inside a shaded band to −0.3998 on 2016-01-19, marked with a red dot. It climbs back with sharp drops in early 2020 and in 2022, passes its 2013 high in 2024, and ends at 0.1132. A horizontal line marks zero. The title calls the verdict registered and the path exploratory, and the note says the curve, the fall and the half-life are exploratory.](../docs/figures/usdcad_holdout.png)
 
 *USD.CAD’s closes after Chan’s sample with their 115-day moving average, and the linear rule’s cumulative P&L with its deepest fall shaded. The lookback is frozen at the half-life of Chan’s closes, and only the sign of the final P&L was predicted.*
 
 ## Lesson 1: the claim survives on its sign alone
 
-The pass mark, written down before the run, was that the daily P&L summed over the 3,791 traded days is above 0. It is 0.1132. So Chan’s claim that the P&L “manages to be positive” holds on fourteen years he never saw, and the verdict is **reproduced**. On his own closes the P&L ended at 0.1141.
+The pass mark, written down before the run, was that the daily P&L summed over the 3,791 traded days is above 0. It is 0.1132. So Chan’s claim that the P&L “manages to be positive” holds on the fourteen years after his sample, and the verdict is **reproduced**. On his own closes the P&L ended at 0.1141.
 
 A positive sum says less than it seems to, because a rule with no edge can end positive by chance. The question that matters is whether the mean daily P&L behind the sum is above zero by more than chance would give. The t-statistic answers it. It divides the mean daily P&L by its standard error, the amount that mean would typically wander by chance. The **Newey-West** version widens that standard error when nearby days’ P&L moves together, which it does here, because the rule holds much the same position for weeks. It allows for neighbours up to 8 days apart. A one-sided test at the 5 percent level needs a t above 1.645.
 
@@ -58,7 +58,7 @@ The Sharpe ratio says the same thing in the form most traders use. It is the mea
 
 ## Lesson 2: writing the predictions down first is what makes it a check
 
-A test chosen after the data is seen proves little, because some test always fits the data. So before any close after 2012-03-28 was read, the plan for this run wrote down six predictions and one figure to report beside them. Each named its statistic, its pass mark where it had one, and the days it reads. The plan also fixed the lookback at 115 and said which outcome of the first prediction would count as reproduced.
+A test chosen after the data is seen proves little, because some test always fits the data. So before this run computed anything on the closes after 2012-03-28, its plan wrote down six predictions and one figure to report beside them. Each named its statistic, its pass mark where it had one, and the days it reads. The plan also fixed the lookback at 115 and said which outcome of the first prediction would count as reproduced.
 
 ```math
 \begin{array}{l|l|l|l}
@@ -75,13 +75,13 @@ A test chosen after the data is seen proves little, because some test always fit
 
 H1 decides the verdict. H3 to H6 decide nothing on their own, and each landed as written. H7 carried no prediction, so it is exploratory.
 
-H2 did not run. It would have tested the same claim on Chan’s own feed, the 16:59 bar, rebuilt from another vendor’s minute bars. Those bars reach back only to 2024-10-13 on the plan this repository has, so H2 waits for data that covers 2012. Without it, nothing here says whether the result depends on the feed.
+H2 did not run. It would have tested the same claim on Chan’s own feed, the 16:59 bar, rebuilt from another vendor’s minute bars. Those bars reach back only to 2024-10-13 on the data subscription this repository has, so H2 waits for data that covers 2012. Without it, nothing here says whether the result depends on the feed.
 
 Three reads of the later closes came before the run, and the plan names all three because a registration is only as clean as what was seen before it.
 
 1. **The Johansen test on AUD.CAD** in this repository had already read about 20 of the holdout’s first days, through 2012-04-26, from a file of Chan’s that runs to that date. That run used a different rule on Chan’s feed. The [post on that test](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-johansen-lessons.md) covers it.
 2. **A check of the vendor’s coverage** compared its closes with Chan’s only on the days the two share, up to 2012-03-28.
-3. **The file checks** read every close when the vintage was committed, to confirm its checksum and its columns, and only whether they passed was looked at.
+3. **The file checks** read every close when the file was committed, to confirm its checksum and its columns, and only whether they passed was looked at.
 
 None of them computed a P&L or a test statistic on the later days.
 
@@ -91,16 +91,18 @@ The earlier post ran three tests on Chan’s closes, and none could tell USD.CAD
 
 ```math
 \begin{array}{l|r|r|r}
-\text{Test} & \text{Chan's closes} & \text{After 2012} & \text{Rejects a random walk when} \\ \hline
-\text{ADF statistic, jplv7, 1 lag} & -1.8407 & -2.0814 & \text{below } -2.5937 \\
+\text{Test} & \text{Chan's closes} & \text{After 2012} & \text{Rejects after 2012 when} \\ \hline
+\text{ADF statistic, 1 lag} & -1.8407 & -2.0814 & \text{below } -2.5937 \\
 \text{Variance ratio test, p-value} & 0.3673 & 0.4343 & \text{below 0.05} \\
-\text{Hurst exponent H, genhurst} & 0.4732 & 0.4974 & \text{outside } 0.4987 \pm 0.0260
+\text{Hurst exponent H} & 0.4732 & 0.4974 & \text{outside } 0.4987 \pm 0.0260
 \end{array}
 ```
 
-1. **The augmented Dickey-Fuller (ADF) test** gives −2.0814, above its 10 percent critical value of −2.5937, so it does not reject. The statistic has to fall below the critical value to reject. `adfuller`, the version most Python code calls, gives −2.0243 on the same closes, which the earlier post’s second lesson explains.
+1. **The augmented Dickey-Fuller (ADF) test**, in the version from jplv7, the MATLAB toolbox Chan’s script calls, gives −2.0814. That is above its 10 percent critical value of −2.5937, so it does not reject. The statistic has to fall below the critical value to reject. `adfuller`, the version most Python code calls, gives −2.0243 on the same closes, which the earlier post’s second lesson explains.
 2. **The variance ratio test** gives a p-value of 0.4343. A random walk would give a ratio this far from 1 more than two times in five.
-3. **The Hurst exponent H** is 0.4974. On 40,000 random walks of the same 3,791 closes, the same estimator averages 0.4987 with a standard deviation of 0.0130. The plan’s band is two standard deviations either side, 0.4987 ± 0.0260, and H sits 0.0014 below the average. The 10 percent critical value above is the one for this sample’s length, where the earlier post’s was for Chan’s 1,216 closes.
+3. **The Hurst exponent H** is 0.4974, from `genhurst`, the function Chan’s script calls. On 40,000 random walks of the same 3,791 closes, the same estimator averages 0.4987 with a standard deviation of 0.0130. The plan’s band is two standard deviations either side, 0.4987 ± 0.0260, and H sits 0.0014 below the average.
+
+Both thresholds in the last column are for the 3,791 later closes. On Chan’s 1,216 closes the ADF test’s 10 percent value was −2.594, and H’s random-walk spread was wider, as the earlier post’s third lesson measures.
 
 So fourteen more years of closes did not turn USD.CAD into a series a test can call mean reverting. The rule still trades it as one.
 
@@ -116,7 +118,7 @@ The **half-life** is how long a distance from the mean takes to halve, if the se
 \end{array}
 ```
 
-Chan sets the lookback to the half-life because the half-life “depends on the properties of the price series itself” (Chan, 2013, p. 60). On these closes that property moved by a factor of four, and a rule fixed in 2012 kept measuring its deviations over 115 days. The plan carried no prediction for the half-life, so this is a description of the run and nothing more.
+Chan sets the lookback to the half-life because the half-life “depends on the properties of the price series itself” (Chan, 2013, p. 60). On these closes the estimate came out almost four times longer, and a rule fixed in 2012 kept measuring its deviations over 115 days. The plan carried no prediction for the half-life, so this is a description of the run and nothing more.
 
 It also cannot be read as the right lookback. The tests in Lesson 3 cannot reject a random walk, which has no half-life at all, so 457.8077 days is an estimate from a series that may not revert. Running the rule again at a lookback of 458 would be choosing a parameter after seeing its number. That would make a new run, and an exploratory one.
 
@@ -124,11 +126,11 @@ It also cannot be read as the right lookback. The tests in Lesson 3 cannot rejec
 
 On Chan’s closes the P&L fell 0.6425 from its high, more than five times what it ended with. After 2012 it happened again at a smaller scale. The P&L rose to 0.1035 on 2013-11-20 and fell to −0.3998 on 2016-01-19, a drawdown of 0.5033, more than four times the final 0.1132.
 
-The fall has the same cause as in 2008. Across it USD.CAD rose from 1.0445 to 1.45699, so the US dollar gained 39.5 percent on the Canadian dollar. The rule bets that the close returns to its average, so it was short the US dollar on 458 of the 562 days of the fall. The P&L did not pass its 2013 high again until 2024-03-06, more than ten years later.
+As in 2008, the fall came while the dollar rose and the rule was mostly short. Across it USD.CAD rose from 1.0445 to 1.45699, so the US dollar gained 39.5 percent on the Canadian dollar. The rule bets that the close returns to its average, so it was short the US dollar on 458 of the 562 days of the fall. The P&L did not pass its 2013 high again until 2024-03-06, more than ten years later.
 
-Chan’s third caution is that “an unlimited amount of capital may be needed”, because nothing caps the position (Chan, 2013, p. 50). The largest position after 2012 was a short of 5.4054 on 2020-03-19, when the close stood more than five moving standard deviations above its average. On Chan’s closes the largest was a short of 4.12.
+Chan also cautions that “an unlimited amount of capital may be needed”, because nothing caps the position (Chan, 2013, p. 50). The largest position after 2012 was a short of 5.4054 on 2020-03-19, when the close stood more than five moving standard deviations above its average. On Chan’s closes the largest was a short of 4.12.
 
-The rule also leaned the other way from Chan’s sample. On his closes it was short on 488 of the 1,101 days it held a position. After 2012 it was short on 0.6006 of the traded days and long on 0.3994, and it was never flat. A rule that sells a rising close spends most of its time short through a dollar that rose for most of the period.
+The rule also leaned the other way from Chan’s sample. On his closes it was short on 488 of the 1,101 days it held a position, fewer than half. After 2012 it was short on 0.6006 of the traded days and long on 0.3994, and it was never flat.
 
 ## What this holdout cannot say
 
@@ -143,9 +145,9 @@ Four questions are beyond it.
 
 One habit for each lesson.
 
-1. **Read the t beside the sign.** A total that ends positive over fourteen years can still be indistinguishable from zero, and the sign alone says nothing about an edge.
+1. **Read the t beside the sign.** A total that ends positive over fourteen years can still be indistinguishable from zero, and the sign alone says little about an edge.
 2. **Write the predictions down before reading the data.** A plan filed first, with its pass marks and the days it reads, is the difference between a check and a story told afterwards. Name what was seen before it, too.
-3. **Run the tests again before trading a rule on new years.** A rule built for a reverting series still trades a series that no longer looks like one, and only the tests say so.
+3. **Run the tests again before trading a rule on new years.** A rule built for a reverting series trades whatever series it is given, including one the tests cannot tell from a random walk, and only the tests say so.
 4. **Check a fixed parameter against the new data, and do not re-fit it there.** A lookback set on one period can be a quarter of what the next period measures. Changing it after seeing that makes a new, exploratory run.
 5. **Size the drawdown before the trade.** An uncapped rule that sells a rising price fell more than four times its final P&L here and more than five times in Chan’s sample.
 

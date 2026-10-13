@@ -109,17 +109,18 @@ class TestThePanels:
             assert set(line.get_xdata()) == {FIRST_TRADED}, SPEC
             assert line.get_linestyle() == "--"
 
-    def test_the_title_carries_the_registered_label(self, figure) -> None:
+    def test_the_title_labels_the_verdict_registered_and_the_path_exploratory(self, figure) -> None:
         assert figure._suptitle.get_text() == (
-            "Registered: Example 2.5's linear rule on USD.CAD after Chan's sample"
+            "Registered verdict, exploratory path: Example 2.5's linear rule on USD.CAD "
+            "after Chan's sample"
         )
 
     def test_the_note_names_the_file_and_what_is_exploratory(self, figure) -> None:
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
             "Alpha Vantage FX_DAILY closes, 2011-10-20 to 2026-10-12, from "
             "alphavantage_usdcad_raw_2007-08-10_2026-10-12_dl2026-10-13.csv.\nThe registered "
-            "claim is the sign of the final P&L, predicted before any of these closes was "
-            "read.\nThe curve, the fall and the half-life are exploratory."
+            "claim is the sign of the final P&L, predicted before this run computed anything "
+            "on the traded days.\nThe curve, the fall and the half-life are exploratory."
         ], SPEC
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:

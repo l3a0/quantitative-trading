@@ -1148,9 +1148,10 @@ def _look_ahead(run: StationarityRun) -> Scene:
     The top three rows are the run, drawn to scale by date. The timeline runs
     from the first close to the last, the measuring bar spans all of it, and
     the trading bar starts on the run's first position. The bottom pair is a
-    schematic of what avoiding the look-ahead needs, drawn dashed, because no
-    run here measures on earlier days and trades after. So it carries no dates
-    and no numbers, and where it splits the sample means nothing.
+    schematic of what avoiding the look-ahead needs, drawn dashed, because it
+    is not this run's dates. :mod:`chan.usdcad_holdout` runs that fix on the
+    closes after Chan's, with the lookback measured on his. So the pair carries
+    no dates and no numbers, and where it splits the sample means nothing.
     """
     first, last, start = run.closes.index[0], run.closes.index[-1], run.first_position
     left, right = 1.95, 8.05

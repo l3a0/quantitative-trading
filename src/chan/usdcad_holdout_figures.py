@@ -119,11 +119,12 @@ def make_usdcad_holdout_figure(out: Path | None = None, holdout: Holdout | None 
 
     _title(
         fig,
-        "Registered: Example 2.5's linear rule on USD.CAD after Chan's sample",
+        "Registered verdict, exploratory path: Example 2.5's linear rule on USD.CAD after "
+        "Chan's sample",
         f"Alpha Vantage FX_DAILY closes, {days[0].date()} to {days[-1].date()}, from "
         f"{holdout.entry.path}.\nThe registered claim is the sign of the final P&L, "
-        "predicted before any of these closes was read.\nThe curve, the fall and the "
-        "half-life are exploratory.",
+        "predicted before this run computed anything on the traded days.\nThe curve, the "
+        "fall and the half-life are exploratory.",
     )
     fig.tight_layout(rect=(0, 0.075, 1, 0.97))
     return _save(fig, out, USDCAD_HOLDOUT_FIGURE)

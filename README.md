@@ -1431,7 +1431,12 @@ gaps, and the report's lines. The vintage is committed, so every pin runs
 everywhere, CI included. On synthetic rows it holds each refusal of the run,
 the window, and the slicing that makes the positions `market_value(...)[114:-1]`
 earn `pnl[115:]`. On stubbed calls it holds that each refusal of the command
-prints one line and that the key reaches none.
+prints one line and that the key reaches none. `TestWhatThePostMeasured`
+holds what the write-up measured after the run: the closes across the
+drawdown and their rise, the days of the fall held short, the day the P&L
+regains its 2013 high, the largest position's day, and H6's distance from
+the band's mean and the band's half-width. The blog post about it is the
+exception, and what it says that nothing here asserts is listed below.
 [tests/test_fetch_alphavantage.py](tests/test_fetch_alphavantage.py) holds
 the fetch's refusals of a response on stubbed bodies.
 
@@ -4461,7 +4466,7 @@ Five passages point at the forty-eighth post below, which trades the rule after
 2012 at the same lookback: the opening's note on what the reproduction cannot
 say, Lesson 5's paragraph on avoiding the look-ahead and the caption of its
 look-ahead sketch, the third item in what the post cannot say, and the fifth
-habit. None of them quotes its numbers.
+habit. None of them quotes its statistics.
 
 Five groups of what it says are not pinned here.
 
@@ -6989,7 +6994,7 @@ repeating them, and draws five lessons from Entry 51 of the replication log.
    from 2013-11-20 to 2016-01-19, while USD.CAD rose 39.5 percent and the rule
    was short on 458 of its 562 days.
 
-Three groups of what it says are not pinned here.
+Four groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its page in the 2013 print edition, as the
    earlier post cites them: the claim on 49, unlimited capital on 50 and the
@@ -6997,9 +7002,13 @@ Three groups of what it says are not pinned here.
 2. Readings no test asserts: that a rule with no edge can end positive by
    chance, that the rule holds much the same position for weeks, that a
    p-value of 0.4343 means a random walk gives a ratio this far from 1 more
-   than two times in five, and that the US dollar rose against the Canadian
-   dollar for most of the period.
-3. The figure's alt text, whose readings of the lines, such as "near 1.43 in
+   than two times in five, that 488 of 1,101 days is fewer than half, and
+   that 2013-11-20 to 2024-03-06 is more than ten years.
+3. Facts Entry 51 states rather than pins: that the other vendor's minute
+   bars reach back only to 2024-10-13 on the current subscription, and that
+   an earlier run had read about 20 of the holdout's first days, through
+   2012-04-26.
+4. The figure's alt text, whose readings of the lines, such as "near 1.43 in
    2026" and "between about 1.21 and 1.45", are approximate by design.
 
 Every other number traces to an assertion in
@@ -7007,7 +7016,7 @@ Every other number traces to an assertion in
 [tests/test_usdcad_holdout_figures.py](tests/test_usdcad_holdout_figures.py)
 for the figure's own numbers, or, for Chan's closes, to
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py).
-Four had no pin before the post, and `TestWhatThePostMeasured` in
+Six had no pin before the post, and `TestWhatThePostMeasured` in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) pins them, all
 measured after the run.
 
@@ -7016,6 +7025,8 @@ measured after the run.
 2. The rule is short on 458 of the 562 days of the fall.
 3. The P&L first passes its 2013 high again on 2024-03-06.
 4. The largest position is a short of 5.4054 on 2020-03-19.
+5. H sits 0.0014 below the random walks' mean.
+6. The band is 0.4987 ± 0.0260, twice the walks' standard deviation.
 
 Its one figure, `usdcad_holdout.png`, is drawn from the committed file by
 [src/chan/usdcad_holdout_figures.py](src/chan/usdcad_holdout_figures.py),
