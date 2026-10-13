@@ -90,6 +90,10 @@ Chan reads two things from these figures, and both survive.
 1. **The test cannot reject a random walk.** The statistic of −1.84 is above the 10 percent critical value of −2.594, and it has to be below it to reject. So “we can’t show that USD.CAD is stationary” (Chan, 2013, p. 44).
 2. **λ is negative**, which Chan reads as a sign that the series is “at least not trending”.
 
+![An animated whiteboard sketch titled “Chan’s reading”, drawn stroke by stroke. A number line carries three ticks, labelled −3.458 for 1%, −2.871 for 5% and −2.594 for 10%. A red hatched zone above the line runs from its left end to the 10% tick, under the words “reject a random walk”. A brown dot right of that tick is labelled −1.84, the ADF statistic, and an arrow from it points back to the tick under the words “must sit left of 10% to reject”. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_no_rejection.gif)
+
+*This sketch is drawn to scale. Every position on the line is proportional to the value it marks, and all four values come from the run.*
+
 The MATLAB file Chan loaded cannot be compared with the file here, so the match is the only evidence that the two hold the same closes. The four statistics come from three calculations.
 
 1. **The ADF regression**, which gives both the statistic and the AR(1) estimate.
@@ -97,6 +101,10 @@ The MATLAB file Chan loaded cannot be compared with the file here, so the match 
 3. **The half-life regression**, which gives the half-life.
 
 Each lands all six decimals the script prints. None of them depends on the units, so every close multiplied by one constant would match too. Closes that moved differently would be unlikely to match all four to six decimals.
+
+![An animated whiteboard sketch titled “The fingerprint”, drawn stroke by stroke. On the left a box for Chan’s MATLAB file, marked “not public”, sits above a box for the CSV here, marked “1,216 closes”, and a dashed red link between them is crossed out under the words “can’t compare”. Three arrows lead from the CSV to boxes for the ADF regression, the variance ratio and the half-life. Each box leads on to the values it gives, −1.840744 and 0.994120, then 0.367281, then 115.209794, each with a green check mark. A note in the lower right says that the closes times a constant would match too. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_tests_fingerprint.gif)
+
+*The count of closes and the four values come from the run, printed to the six decimals the script prints.*
 
 ## Lesson 2: the ADF figure depends on which toolbox runs it
 

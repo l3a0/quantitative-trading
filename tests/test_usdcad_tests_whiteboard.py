@@ -1,21 +1,28 @@
-"""The pins for the six whiteboard GIFs in the post on mean reversion on USD.CAD.
+"""The pins for the eight whiteboard GIFs in the post on mean reversion on USD.CAD.
 
-Each GIF sketches one scene of the post's section "The tests and the file" and
-sits right after the text it draws. Its shapes are schematic, so what is pinned
-here is what a reader takes from it: which scenes there are and in which order
-the post reads them, what each one says and draws, that a label never appears
-before the stroke it names, that no label touches a line, how long each GIF
-shows before it loops, and each file's size, frame count and loop.
+Six GIFs sketch the scenes of the post's section "The tests and the file", and
+two sketch its Lesson 1. Each sits right after the text it draws. The first
+six are schematic, so what is pinned for every GIF is what a reader takes from
+it: which scenes there are and in which order the post reads them, what each
+one says and draws, that a label never appears before the stroke it names,
+that no label touches a line, how long each GIF shows before it loops, and
+each file's size, frame count and loop.
 
-Two labels quote the run. The half-life scene and the linear rule's warning
-print the lookback, the half-life rounded, and the count of closes. Both are
-read from the run rather than written in, and the tests below hand the scenes
-a run with another lookback and fewer closes to prove it. The numbers come
-from the vintage and the specification ``tests/test_usdcad_mean_reversion.py``
-names as its ``SPEC``, which failure messages here carry:
+Labels in four scenes quote the run. The half-life scene and the linear rule's
+warning print the lookback, the half-life rounded, and the count of closes.
+Chan's reading prints the three critical values and the ADF statistic, and
+places each on a line drawn to scale. The fingerprint prints the count of
+closes, the ADF statistic, the AR(1) estimate, the variance ratio's p-value
+and the half-life. All of them are read from the run rather than written in,
+and the tests below hand the scenes a run with other figures to prove it. The
+numbers come from the vintage and the specification
+``tests/test_usdcad_mean_reversion.py`` names as its ``SPEC``, which failure
+messages here carry:
 ``pythoncodesanddata/inputData_USDCAD.csv``, vendor ``chan-py``, basis
-``raw``, saved 2018-10-13, its 16:59 bar of each day, 1,216 closes and a
-lookback of 115 days.
+``raw``, saved 2018-10-13, its 16:59 bar of each day, 1,216 closes, a
+lookback of 115 days, an ADF statistic of −1.840744 against critical values of
+−3.458, −2.871 and −2.594, an AR(1) estimate of 0.994120, a variance ratio
+p-value of 0.367281 and a half-life of 115.209794 days.
 
 Two draws on one machine give the same bytes, and a test holds that. Whether a
 committed GIF equals a fresh draw depends on the font, because the hand font
@@ -70,6 +77,8 @@ TITLES = [
     "Variance ratio",
     "Half-life",
     "The linear rule",
+    "Chan’s reading",
+    "The fingerprint",
 ]
 
 GIFS = [
@@ -79,6 +88,8 @@ GIFS = [
     "usdcad_tests_variance_ratio.gif",
     "usdcad_tests_half_life.gif",
     "usdcad_tests_linear_rule.gif",
+    "usdcad_tests_no_rejection.gif",
+    "usdcad_tests_fingerprint.gif",
 ]
 
 #: Each scene's strokes, by their ids, in the order they are drawn.
@@ -89,6 +100,27 @@ STROKES = [
     ["floor", "two-day", "one-day", "gap"],
     ["axes", "decay", "half"],
     ["mean", "price", "above", "below", "warning", "bang", "bang-dot"],
+    ["line", "tick-1", "tick-5", "tick-10", "zone", "statistic", "needs"],
+    [
+        "matlab",
+        "csv",
+        "link",
+        "cross-a",
+        "cross-b",
+        "to-adf",
+        "adf",
+        "adf-out",
+        "check-adf-0",
+        "check-adf-1",
+        "to-vratio",
+        "vratio",
+        "vratio-out",
+        "check-vratio-0",
+        "to-half-life",
+        "half-life",
+        "half-life-out",
+        "check-half-life-0",
+    ],
 ]
 
 LABELS = [
@@ -98,11 +130,38 @@ LABELS = [
     ["2-day variance", "2 × 1-day variance", "ratio < 1 → pulled back"],
     ["distance from the mean", "half", "≈ 115 days", "−ln 2 / λ"],
     ["z = +2 → short 2", "z = −1.5 → long 1.5", "115 days measured on all 1,216 closes"],
+    [
+        "−3.458",
+        "1%",
+        "−2.871",
+        "5%",
+        "−2.594",
+        "10%",
+        "reject a random walk",
+        "−1.84",
+        "ADF statistic",
+        "must sit left of 10% to reject",
+    ],
+    [
+        "Chan’s MATLAB file",
+        "not public",
+        "the CSV here",
+        "1,216 closes",
+        "can’t compare",
+        "ADF regression",
+        "−1.840744",
+        "0.994120",
+        "variance ratio",
+        "0.367281",
+        "half-life",
+        "115.209794",
+        "closes × a constant would match too",
+    ],
 ]
 
 #: The frames each GIF takes, and how long one pass shows, in milliseconds.
-FRAMES = [29, 31, 29, 30, 29, 32]
-MS = [7350, 7800, 7600, 7700, 7850, 7900]
+FRAMES = [29, 31, 29, 30, 29, 32, 44, 77]
+MS = [7350, 7800, 7600, 7700, 7850, 7900, 10850, 14900]
 
 #: How far, in pixels, every label and title must sit from the nearest stroke.
 #: The sketch's wobble moves a line a pixel or two off its points, so this
@@ -112,8 +171,9 @@ CLEAR_PX = 10
 #: stroke. Each stands apart from every stroke, by at least
 #: :data:`APART_PX`, so it cannot be read as one curve's label. The Hurst
 #: formula once sat beside the end of the lower green curve, 12 pixels from
-#: it, and read as that curve's label.
-STATEMENTS = {"λ < 0", r"variance $\sim \tau^{2H}$"}
+#: it, and read as that curve's label. The fingerprint's margin note is about
+#: the four values together, so it stands apart from the last check mark.
+STATEMENTS = {"λ < 0", r"variance $\sim \tau^{2H}$", "closes × a constant would match too"}
 APART_PX = 25
 
 
@@ -166,7 +226,7 @@ def _inked(image: Image.Image) -> int:
 
 
 class TestTheScenes:
-    def test_there_are_six_in_the_order_the_section_reads_them(self, drawn) -> None:
+    def test_there_are_eight_in_the_order_the_post_reads_them(self, drawn) -> None:
         assert [scene.title for scene in drawn] == TITLES
 
     def test_no_title_carries_a_scene_number(self, drawn) -> None:
@@ -274,6 +334,168 @@ class TestTheNumbersComeFromTheRun:
         assert seen == [(100, 800)]
 
 
+def _altered(run, statistic: float = -2.2):
+    """``run`` with every figure Lesson 1's scenes print moved to another value."""
+    return dataclasses.replace(
+        run,
+        closes=run.closes.iloc[:1000],
+        adf=dataclasses.replace(
+            run.adf, statistic=statistic, ar1=0.98765, critical=(-3.9, -3.1, -2.7)
+        ),
+        vratio=dataclasses.replace(run.vratio, p_value=0.05),
+        half_life=80.123456,
+    )
+
+
+def _x(scene, gid: str) -> float:
+    """Where the stroke ``gid`` stands on the board, for a tick or a dot."""
+    stroke = next(s for s in scene.strokes if s.gid == gid)
+    assert np.ptp(stroke.x) == 0, gid
+    return float(stroke.x[0])
+
+
+class TestChansReading:
+    """The scene is drawn to scale, so its positions are pinned as well as its
+    words. Chan reads it as no rejection: the statistic, −1.84 in the post, sits
+    right of the 10 percent value of −2.594, and has to sit left of it."""
+
+    def test_the_run_does_not_reject_at_10_percent(self, run) -> None:
+        assert round(run.adf.statistic, 6) == -1.840744, SPEC
+        assert [round(c, 3) for c in run.adf.critical] == [-3.458, -2.871, -2.594], SPEC
+        assert run.adf.statistic > run.adf.critical[2], SPEC
+
+    @pytest.mark.parametrize("altered", [False, True])
+    def test_every_position_is_proportional_to_its_value(self, run, altered) -> None:
+        """The board distance between any two marks over the gap between their
+        values is one number, so the line is a ruler rather than a sketch."""
+        run = _altered(run) if altered else run
+        scene = scenes(run)[6]
+        values = [*run.adf.critical, run.adf.statistic]
+        xs = [_x(scene, gid) for gid in ("tick-1", "tick-5", "tick-10", "statistic")]
+        slopes = [
+            (xs[j] - xs[i]) / (values[j] - values[i])
+            for i in range(len(xs))
+            for j in range(i + 1, len(xs))
+        ]
+        assert slopes[0] > 0
+        assert slopes == pytest.approx([slopes[0]] * len(slopes), rel=1e-12)
+        line = next(s for s in scene.strokes if s.gid == "line")
+        assert line.x.min() < min(xs) and max(xs) < line.x.max()
+
+    def test_the_dot_sits_right_of_the_10_percent_tick(self, drawn) -> None:
+        reading = drawn[6]
+        assert _x(reading, "statistic") > _x(reading, "tick-10")
+
+    def test_a_statistic_below_the_10_percent_value_moves_the_dot_left_of_it(self, run) -> None:
+        reading = scenes(_altered(run, statistic=-3.0))[6]
+        assert _x(reading, "tick-5") < _x(reading, "statistic") < _x(reading, "tick-10")
+
+    def test_the_shaded_zone_runs_from_the_line_start_to_the_10_percent_tick(self, drawn) -> None:
+        reading = drawn[6]
+        zone = next(s for s in reading.strokes if s.gid == "zone")
+        line = next(s for s in reading.strokes if s.gid == "line")
+        assert zone.x.min() == line.x.min()
+        assert zone.x.max() == pytest.approx(_x(reading, "tick-10"))
+        assert zone.y.min() > line.y[0], "the zone sits above the line"
+
+    def test_the_arrow_runs_from_the_dot_to_the_10_percent_tick(self, drawn) -> None:
+        reading = drawn[6]
+        arrow = next(s for s in reading.strokes if s.gid == "needs")
+        dot, edge = _x(reading, "statistic"), _x(reading, "tick-10")
+        assert dot - 0.5 < arrow.x[0] < dot
+        tip = int(np.argmin(arrow.x))
+        assert edge < arrow.x[tip] < edge + 0.5
+
+    def test_each_tick_is_labelled_with_its_value_and_level(self, drawn) -> None:
+        reading = drawn[6]
+        for gid, value, level in zip(
+            ("tick-1", "tick-5", "tick-10"),
+            ("−3.458", "−2.871", "−2.594"),
+            ("1%", "5%", "10%"),
+            strict=True,
+        ):
+            named = [s for s in reading.steps if isinstance(s, Label) and s.names == gid]
+            assert [s.text for s in named] == [value, level], SPEC
+            assert all(s.x == pytest.approx(_x(reading, gid)) for s in named)
+
+    def test_the_labels_follow_the_runs_figures(self, run) -> None:
+        assert scenes(_altered(run))[6].labels == [
+            "−3.900",
+            "1%",
+            "−3.100",
+            "5%",
+            "−2.700",
+            "10%",
+            "reject a random walk",
+            "−2.20",
+            "ADF statistic",
+            "must sit left of 10% to reject",
+        ]
+
+
+class TestTheFingerprint:
+    """Lesson 1's argument: Chan's file cannot be compared, so four values from
+    three calculations on the CSV here stand in for it, each to six decimals."""
+
+    VALUE = re.compile(r"^−?\d+\.\d{6}$")
+
+    def test_the_run_prints_the_scripts_four_values(self, run) -> None:
+        printed = [
+            f"{run.adf.statistic:.6f}",
+            f"{run.adf.ar1:.6f}",
+            f"{run.vratio.p_value:.6f}",
+            f"{run.half_life:.6f}",
+        ]
+        assert printed == ["-1.840744", "0.994120", "0.367281", "115.209794"], SPEC
+
+    def test_four_values_each_with_its_own_check_mark(self, drawn) -> None:
+        """Every value is followed at once by a green check, and nothing else
+        is checked."""
+        steps = drawn[7].steps
+        values = [
+            k for k, s in enumerate(steps) if isinstance(s, Label) and self.VALUE.match(s.text)
+        ]
+        checks = [
+            k for k, s in enumerate(steps) if isinstance(s, Stroke) and s.gid.startswith("check-")
+        ]
+        assert len(values) == 4
+        assert checks == [k + 1 for k in values]
+        assert {steps[k].color for k in checks} == {whiteboard.GOOD}
+
+    def test_each_value_sits_beside_the_calculation_that_gives_it(self, drawn) -> None:
+        steps = drawn[7].steps
+        given = {
+            s.names: [v.text for v in steps if isinstance(v, Label) and v.names == s.names]
+            for s in steps
+            if isinstance(s, Label) and self.VALUE.match(s.text)
+        }
+        assert given == {
+            "adf-out": ["−1.840744", "0.994120"],
+            "vratio-out": ["0.367281"],
+            "half-life-out": ["115.209794"],
+        }, SPEC
+
+    def test_three_arrows_leave_the_csv(self, drawn) -> None:
+        fingerprint = drawn[7]
+        csv = next(s for s in fingerprint.strokes if s.gid == "csv")
+        arrows = [s for s in fingerprint.strokes if s.gid.startswith("to-")]
+        assert len(arrows) == 3
+        for arrow in arrows:
+            assert arrow.x[0] > csv.x.max()
+            assert csv.y.min() < arrow.y[0] < csv.y.max()
+
+    def test_the_labels_follow_the_runs_figures(self, run) -> None:
+        labels = scenes(_altered(run))[7].labels
+        assert [t for t in labels if self.VALUE.match(t) or "closes" in t] == [
+            "1,000 closes",
+            "−2.200000",
+            "0.987650",
+            "0.050000",
+            "80.123456",
+            "closes × a constant would match too",
+        ]
+
+
 class TestTheTimeline:
     def test_each_gif_takes_the_frames_and_time_it_should(self, frames) -> None:
         assert [len(f) for f in frames] == FRAMES
@@ -364,7 +586,7 @@ class TestTheDrawing:
 
 
 class TestTheGifs:
-    def test_there_are_six_named_for_their_scenes(self, gifs) -> None:
+    def test_there_are_eight_named_for_their_scenes(self, gifs) -> None:
         assert [path.name for path in gifs] == GIFS
 
     def test_each_is_680_by_320_with_its_frames(self, gifs) -> None:

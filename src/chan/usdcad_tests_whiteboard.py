@@ -1,12 +1,13 @@
-"""Whiteboard sketches of the four tests and the rule in the USD.CAD post.
+"""Whiteboard sketches of the tests, the rule and Lesson 1 in the USD.CAD post.
 
 The post's section "The tests and the file" explains four ways of asking one
 question, whether USD.CAD wanders like a random walk or is pulled back to a
 mean, and then the linear rule that trades the answer. Each test is a short
 paragraph of regression terms. A reader who has not met them gets more from a
 picture of what each one looks for than from the terms, so this module draws
-six scenes, each sketched stroke by stroke as if on a whiteboard. Each scene is
-its own looping GIF, so the post can place it right after the text it draws.
+those as six scenes, and two more for the post's Lesson 1. Each scene is
+sketched stroke by stroke as if on a whiteboard, and each is its own looping
+GIF, so the post can place it right after the text it draws.
 
 1. The question: a wiggly price around a dashed mean.
 2. ADF: a high close followed by a fall, which is what a negative λ means.
@@ -17,17 +18,29 @@ its own looping GIF, so the post can place it right after the text it draws.
    days, which the run measures at its lookback.
 6. The linear rule: a z-score of +2 sold short and one of −1.5 bought, with a
    warning that the lookback was measured on every close the rule trades.
+7. Chan's reading: the ADF statistic on a number line with the three critical
+   values, right of the 10 percent value it would have to pass to reject a
+   random walk.
+8. The fingerprint: Chan's MATLAB file cannot be compared with the CSV here,
+   so the CSV goes through the three calculations and each lands the values
+   the script printed, which no change of units would alter.
 
 The numbers above order this list and nothing else. A GIF stands alone, so its
 title is the scene's name with no number, and its file is named for the scene,
 such as ``usdcad_tests_hurst.gif``.
 
-The shapes are schematic and carry no data. Two numbers do: the lookback the
-half-life rounds to and the count of closes. Both come from the
+The first six scenes' shapes are schematic and carry no data. Two numbers in
+them do: the lookback the half-life rounds to and the count of closes. Chan's
+reading is drawn to scale, so the position of each tick and of the statistic's
+dot is an affine function of its value, and it prints the three critical
+values and the statistic. The fingerprint prints the count of closes, the ADF
+statistic, the AR(1) estimate, the variance ratio's p-value and the half-life.
+Every one of these comes from the
 :class:`chan.usdcad_mean_reversion.StationarityRun` that
 :func:`chan.usdcad_mean_reversion.stationarity_tests` returns, read through the
 run's own path, so the scale-break guard runs here too. A change to the
-vintage or to how the half-life rounds moves the labels with the run.
+vintage, to how the half-life rounds or to any of those figures moves the
+labels with the run.
 
 :func:`scenes` describes every stroke and label as data, :func:`timeline`
 orders one scene's steps into frames, and :func:`render` draws them. A test
@@ -46,7 +59,7 @@ GIFs, and it arrives as a dependency of matplotlib rather than as an entry of
 its own in ``pyproject.toml``.
 Another machine can differ, because the hand-drawn font is whichever of
 :data:`HAND_FONTS` is installed, with matplotlib's own DejaVu Sans as the
-fallback, and font rasterising varies across platforms. Redraw all six with::
+fallback, and font rasterising varies across platforms. Redraw all eight with::
 
     uv run python -m chan.usdcad_tests_whiteboard
 """
@@ -356,8 +369,141 @@ def _linear_rule(lookback: int, closes: int) -> Scene:
     )
 
 
+def _box(x0: float, y0: float, x1: float, y1: float) -> tuple:
+    """A rectangle drawn from its lower left corner, counterclockwise."""
+    return _line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)])
+
+
+def _check(x: float, y: float) -> tuple:
+    """A check mark whose short stroke starts at (x, y)."""
+    return _line([(x, y), (x + 0.1, y - 0.13), (x + 0.32, y + 0.2)], per_unit=10)
+
+
+def _hatched(x0: float, y0: float, x1: float, y1: float, gap: float = 0.3) -> tuple:
+    """A rectangle shaded with parallel diagonals, drawn as one stroke.
+
+    After the outline, the pen climbs one diagonal, steps along the top edge,
+    comes down the next diagonal parallel to the first, and steps along the
+    bottom edge, so every move between diagonals retraces the outline.
+    """
+    rise = (y1 - y0) / 2
+    points = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
+    feet = np.arange(x0 + gap, x1 - rise, gap)
+    for k, foot in enumerate(feet):
+        diagonal = [(foot, y0), (foot + rise, y1)]
+        points += diagonal if k % 2 == 0 else diagonal[::-1]
+    return _line(points)
+
+
+def _signed(value: float, places: int) -> str:
+    """``value`` to ``places`` decimals with a typographic minus, as the post
+    prints a negative number."""
+    return f"{value:.{places}f}".replace("-", "−")
+
+
+def _no_rejection(statistic: float, critical: Sequence[float]) -> Scene:
+    """Chan's first reading: the statistic sits right of the 10 percent value.
+
+    Unlike the six scenes of the section on the tests, this one is drawn to
+    scale. The line maps the span from the lowest of the four values to the
+    highest, with a quarter of that span added at each end, onto the board, so
+    every position on it is an affine function of the value it marks.
+    """
+    marks = [*critical, statistic]
+    span = max(marks) - min(marks)
+    low, high = min(marks) - span / 4, max(marks) + span / 4
+    left, right, level = 0.9, 9.2, 1.9
+
+    def at(value: float) -> float:
+        return left + (value - low) / (high - low) * (right - left)
+
+    ticks: list[Stroke | Label] = []
+    levels = zip(("tick-1", "tick-5", "tick-10"), critical, ("1%", "5%", "10%"), strict=True)
+    for gid, value, name in levels:
+        top = 2.95 if gid == "tick-10" else level + 0.18
+        ticks += [
+            _stroke(gid, _line([(at(value), level - 0.18), (at(value), top)]), frames=3),
+            Label(_signed(value, 3), at(value), 1.35, names=gid, ha="center", size=12),
+            Label(name, at(value), 0.9, names=gid, ha="center", color=MUTED, size=12),
+        ]
+    edge = at(critical[2])
+    dot = at(statistic)
+    return Scene(
+        "Chan’s reading",
+        "no_rejection",
+        (
+            _stroke("line", _line([(0.5, level), (9.6, level)]), frames=8),
+            *ticks,
+            _stroke("zone", _hatched(0.5, 2.15, edge, 2.85), color=LOST, width=1.4, frames=10),
+            Label(
+                "reject a random walk", (0.5 + edge) / 2, 3.3, names="zone", ha="center", color=LOST
+            ),
+            _dot("statistic", dot, level),
+            Label(_signed(statistic, 2), dot, 1.35, names="statistic", ha="center", color=ACCENT),
+            Label("ADF statistic", dot, 0.9, names="statistic", ha="center", color=ACCENT, size=12),
+            _stroke("needs", _arrow(dot - 0.25, 2.5, edge + 0.2, 2.5), color=ACCENT, frames=5),
+            Label("must sit left of 10% to reject", edge + 0.3, 3.0, names="needs", color=ACCENT),
+        ),
+    )
+
+
+def _fingerprint(run: StationarityRun) -> Scene:
+    """Lesson 1's argument: four values from three calculations all match.
+
+    Chan's MATLAB file is not public, so the closes here are compared with his
+    only through what the script printed. Each calculation leads to the values it
+    gives, at the six decimals the script prints, each with a check mark.
+    """
+    calculations = (
+        ("adf", "ADF regression", 3.4, (run.adf.statistic, run.adf.ar1)),
+        ("vratio", "variance ratio", 2.3, (run.vratio.p_value,)),
+        ("half-life", "half-life", 1.2, (run.half_life,)),
+    )
+    steps: list[Stroke | Label] = [
+        _stroke("matlab", _box(0.2, 2.75, 2.95, 3.85), frames=5),
+        Label("Chan’s MATLAB file", 1.575, 3.5, names="matlab", ha="center", size=12),
+        Label("not public", 1.575, 3.1, names="matlab", ha="center", color=LOST, size=12),
+        _stroke("csv", _box(0.2, 0.75, 2.95, 1.85), frames=5),
+        Label("the CSV here", 1.575, 1.5, names="csv", ha="center", size=12),
+        Label(f"{len(run.closes):,} closes", 1.575, 1.1, names="csv", ha="center", size=12),
+        _stroke("link", _line([(0.6, 2.75), (0.6, 1.85)]), color=LOST, dashed=True, frames=4),
+        _stroke("cross-a", _line([(0.42, 2.48), (0.78, 2.12)]), color=LOST, frames=2),
+        _stroke("cross-b", _line([(0.42, 2.12), (0.78, 2.48)]), color=LOST, frames=2),
+        Label("can’t compare", 1.02, 2.3, names="cross-b", color=LOST, size=12),
+    ]
+    for gid, name, middle, values in calculations:
+        rows = [middle] if len(values) == 1 else [middle + 0.25, middle - 0.25]
+        steps += [
+            _stroke(f"to-{gid}", _arrow(3.05, 1.3, 3.8, middle), color=MUTED, frames=3),
+            _stroke(gid, _box(3.9, middle - 0.35, 6.2, middle + 0.35), frames=5),
+            Label(name, 5.05, middle, names=gid, ha="center", size=12),
+            _stroke(f"{gid}-out", _arrow(6.3, middle, 6.85, middle), color=MUTED, frames=3),
+        ]
+        for k, (row, value) in enumerate(zip(rows, values, strict=True)):
+            steps += [
+                Label(_signed(value, 6), 7.05, row, names=f"{gid}-out"),
+                _stroke(f"check-{gid}-{k}", _check(8.75, row - 0.02), color=GOOD, frames=3),
+            ]
+    steps.append(
+        Label(
+            "closes × a constant would match too",
+            9.85,
+            0.28,
+            names="check-half-life-0",
+            ha="right",
+            color=MUTED,
+            size=12,
+        )
+    )
+    return Scene("The fingerprint", "fingerprint", tuple(steps))
+
+
 def scenes(run: StationarityRun) -> tuple[Scene, ...]:
-    """The six scenes, with the lookback and the count of closes from ``run``."""
+    """The eight scenes in the order the post reads them, every number drawn
+    read from ``run``.
+
+    The first six sketch the section on the tests, and the last two Lesson 1.
+    """
     return (
         _the_question(),
         _adf(),
@@ -365,6 +511,8 @@ def scenes(run: StationarityRun) -> tuple[Scene, ...]:
         _variance_ratio(),
         _half_life(run.lookback),
         _linear_rule(run.lookback, len(run.closes)),
+        _no_rejection(run.adf.statistic, run.adf.critical),
+        _fingerprint(run),
     )
 
 
@@ -551,8 +699,8 @@ def make_usdcad_tests_whiteboards(
     out_dir: Path | None = None,
     sources: tuple[VintageEntry, pd.Series] | None = None,
 ) -> list[Path]:
-    """Write one looping GIF for each of the six scenes and return their paths,
-    in the order the post reads them."""
+    """Write one looping GIF for each of the eight scenes and return their
+    paths, in the order the post reads them."""
     entry, closes = sources if sources is not None else read_sources()
     folder = out_dir if out_dir is not None else FIGURES_DIR
     paths = []

@@ -4483,10 +4483,11 @@ uv run python -m chan.usdcad_mean_reversion_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post's section on the tests carries six looping whiteboard sketches, drawn
-by [src/chan/usdcad_tests_whiteboard.py](src/chan/usdcad_tests_whiteboard.py).
+The post carries eight looping whiteboard sketches, drawn by
+[src/chan/usdcad_tests_whiteboard.py](src/chan/usdcad_tests_whiteboard.py).
 Each sits after the text it draws, and each holds on its finished drawing for
-four seconds before it loops. All six live in `docs/figures/`.
+four seconds before it loops. All eight live in `docs/figures/`. Six sit in
+the section on the tests.
 
 1. `usdcad_tests_question.gif`, the question the tests ask.
 2. `usdcad_tests_adf.gif`, the ADF test.
@@ -4498,6 +4499,16 @@ four seconds before it loops. All six live in `docs/figures/`.
 Their shapes are schematic. The last two print the 115-day lookback, and the
 last prints the 1,216 closes too, both from the same `stationarity_tests` run.
 
+The other two sit in Lesson 1, and every number they print comes from that run
+too.
+
+1. `usdcad_tests_no_rejection.gif`, Chan's reading of the ADF test, draws the
+   statistic and the three critical values to scale on one line, with the
+   statistic right of the 10 percent value it would have to pass.
+2. `usdcad_tests_fingerprint.gif` draws why the match stands in for Chan's
+   MATLAB file, which is not public. Three calculations on the CSV give four
+   statistics, each to the six decimals the script prints.
+
 ```bash
 uv run python -m chan.usdcad_tests_whiteboard
 ```
@@ -4505,7 +4516,9 @@ uv run python -m chan.usdcad_tests_whiteboard
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 holds each scene's labels and stroke order, that a label appears only after
 the stroke it names, that every label clears every line, each GIF's frame
-count, size, timing and loop, and that two draws give the same bytes. It
+count, size, timing and loop, and that two draws give the same bytes. For the
+Lesson 1 pair it also holds that every number drawn follows a run with other
+figures, and that the line in Chan's reading is drawn to scale. It
 compares each committed GIF with a fresh draw byte for byte only on macOS
 arm64 in Comic Sans MS, where the files were drawn, because the hand font is
 whichever one is installed.
