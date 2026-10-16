@@ -2,7 +2,7 @@
 
 *One strategy shows no detectable return, and free data cannot judge the other.*
 
-## Why reproduce a strategy its author called dead
+## Why test a strategy published as dead
 
 Ernest Chan’s *Quantitative Trading* describes two seasonal strategies in stocks, and reports that seasonality of this kind has faded. The first is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, he writes, and the effect “has disappeared since then” (p. 179). The same sentence invites the reader to check that in Example 7.7.
 
