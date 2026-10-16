@@ -4,7 +4,7 @@
 
 ## Why reproduce a strategy its author called dead
 
-Ernest Chan’s *Quantitative Trading* describes two seasonal strategies in stocks, and reports that seasonality of this kind has faded. The second strategy, a monthly rotation from a 2007 working paper by Heston and Sadka, he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, he writes, and the effect “has disappeared since then” (Chan, 2021, p. 179). The same sentence invites the reader to check that in Example 7.7.
+Ernest Chan’s *Quantitative Trading* describes two seasonal strategies in stocks, and reports that seasonality of this kind has faded. The first, the January effect in small caps, he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, a monthly rotation from a 2007 working paper by Heston and Sadka, he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, he writes, and the effect “has disappeared since then” (p. 179). The same sentence invites the reader to check that in Example 7.7.
 
 This repository checked. The data files behind both examples are public, and they are committed here. The book prints the examples in MATLAB in the first edition, and in MATLAB, Python and R in the revised edition. Seventeen of the printed figures need only data the committed files hold, and all seventeen reproduce to the digits printed.
 
@@ -12,8 +12,8 @@ None of the seventeen can say whether the effect died. Example 7.7’s are figur
 
 Two later runs asked the question Chan’s files cannot answer. Each tested one example on its index as it stood at the time, from 2009 on, so the companies that later left the index are in it. Each wrote down its claim, its test and the wording of its verdict before computing any return.
 
-1. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the companies with a checked price.
-2. **The January effect** averages anywhere from −0.1047 to 0.0879 a January before costs, depending on members that free data does not price.
+1. **The January effect** averages anywhere from −0.1047 to 0.0879 a January before costs, depending on members that free data does not price.
+2. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the companies with a checked price.
 
 Neither run shows that the effect died, and neither gives a trader an edge to count on. The section on what this replication cannot say describes both runs and what each leaves open.
 
