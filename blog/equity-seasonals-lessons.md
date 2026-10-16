@@ -4,7 +4,7 @@
 
 ## Why test a strategy published as dead
 
-Ernest Chan’s *Quantitative Trading* describes two seasonal strategies in stocks, and reports that seasonality of this kind has faded. The first is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179). The same sentence invites the reader to check that in Example 7.7.
+Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks as numbered examples with code, and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179). The same sentence invites the reader to check that in Example 7.7.
 
 This repository checked. The data files behind both examples are public, and they are committed here. The book prints the examples in MATLAB in the first edition, and in MATLAB, Python and R in the revised edition. Seventeen of the printed figures need only data the committed files hold, and all seventeen reproduce to the digits printed.
 
