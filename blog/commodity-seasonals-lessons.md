@@ -2,7 +2,7 @@
 
 *A count of profitable years is only as good as the years it counts, where it starts, and who chose the trade.*
 
-## Why test a trade its author calls alive
+## Why test a strategy published as alive
 
 Ernest Chan’s *Quantitative Trading* sets two families of seasonal trade side by side in one sentence. Much of the seasonality in equity markets, he writes, has weakened or even disappeared in recent years, while some seasonal trades in commodity futures are still profitable (Chan, 2021, p. 175). Later in the same chapter he says commodity seasonals are “alive and well”, perhaps, he suggests, because the demand behind them is a real economic need rather than speculation (p. 183).
 
