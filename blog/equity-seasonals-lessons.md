@@ -1,6 +1,6 @@
-# Chan’s equity seasonals reproduce to the digit, and the digits cannot say whether they died
+# Two equity seasonals show no edge a trader can count on
 
-*Reproducing a strategy published as dead checks the figures its author printed. It does not check the death.*
+*Chan’s figures reproduce to the digit. Since 2009, one trade shows nothing detectable, and free data cannot judge the other.*
 
 ## Why reproduce a strategy its author called dead
 
@@ -9,6 +9,8 @@ Ernest Chan’s *Quantitative Trading* describes two seasonal strategies in stoc
 This repository checked. The data files behind both examples are public, and they are committed here. The book prints the examples in MATLAB in the first edition, and in MATLAB, Python and R in the revised edition. Seventeen of the printed figures need only data the committed files hold, and all seventeen reproduce to the digits printed.
 
 None of the seventeen can say whether the effect died. Example 7.7’s are figures over the whole file, and the S&P 500 file holds only 13 months before 2002 once the ranking has its year of history. Both files hold only the companies still in their index on the day Chan saved them. A printed figure that reproduces shows that the code and the data agree with the book. A death is a claim about two periods, and testing it needs a criterion for “disappeared” written down before anything is computed. This repository wrote none before computing returns on either side of 2002, so the post reports them and draws no verdict from them.
+
+Two later runs asked the question Chan’s files cannot answer. Each tested one example on its index as it stood at the time, from 2009 on, so the companies that later left the index are in it. Each wrote down its claim, its test and the wording of its verdict before computing any return. Heston and Sadka’s rotation shows no return detectable above about 4.2 percent a year before costs, on the companies with a checked price. The January effect averages anywhere from −0.1047 to 0.0879 a January before costs, depending on members that free data does not price. Neither run shows that the effect died, and neither gives a trader an edge to count on. The section on what this replication cannot say gives both in full.
 
 The four lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
