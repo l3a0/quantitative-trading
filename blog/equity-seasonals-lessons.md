@@ -1,6 +1,6 @@
 # Two equity seasonals show no edge a trader can count on
 
-*Chan’s figures reproduce to the digit. Since 2009, one strategy shows no detectable return, and free data cannot judge the other.*
+*One strategy shows no detectable return, and free data cannot judge the other.*
 
 ## Why reproduce a strategy its author called dead
 
