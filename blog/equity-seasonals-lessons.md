@@ -6,7 +6,7 @@
 
 Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks as numbered examples with code, and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179).
 
-Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them, and the S&P 500 file holds only 13 months before 2002 once the ranking has its year of history.
+Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them. And on Chan’s data, Heston and Sadka’s rotation first trades in December 2000, leaving only 13 months before 2002.
 
 Two later runs asked the question Chan’s files cannot answer. Each tested one example on its index as it stood at the time, from 2009 on, so the companies that later left the index are in it. Each wrote down its claim, its test and the wording of its verdict before computing any return.
 
