@@ -8,7 +8,7 @@ Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in 
 
 Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them.
 
-Two later runs asked the question Chan’s files cannot answer. Each tested one example on its index as it stood at the time, from 2009 on, so the companies that later left the index are in it. Each wrote down its claim, its test and the wording of its verdict before computing any return.
+Two later runs asked the question Chan’s files cannot answer. Each tested one example on its index as it stood from 2009 on. The companies that later left the index are in the sample. Each wrote down its claim, its test and the wording of its verdict before computing any return.
 
 1. **The January effect** averages anywhere from −0.1047 to 0.0879 a January before costs, depending on members that free data does not price.
 2. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the companies with a checked price.
