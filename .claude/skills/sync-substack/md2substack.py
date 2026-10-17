@@ -157,10 +157,7 @@ WIDGET = {
             "content": [
                 {
                     "type": "text",
-                    "text": (
-                        "baowebdev is a reader-supported publication. To receive new posts "
-                        "and support my work, consider becoming a free or paid subscriber."
-                    ),
+                    "text": "come along my learning journey. enjoy the ride!",
                 }
             ],
         }
