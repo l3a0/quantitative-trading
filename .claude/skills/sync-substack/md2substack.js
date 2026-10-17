@@ -52,7 +52,7 @@ var M2S = (function () {
   var WIDGET = {
     type: "subscribeWidget",
     attrs: { url: "%%checkout_url%%", text: "Subscribe", language: "en" },
-    content: [{ type: "ctaCaption", content: [{ type: "text", text: "baowebdev is a reader-supported publication. To receive new posts and support my work, consider becoming a free or paid subscriber." }] }]
+    content: [{ type: "ctaCaption", content: [{ type: "text", text: "come along on my learning journey. enjoy the ride!" }] }]
   };
   var HEADING = /^(#{2,6}) /;
   var IMAGE = /^!\[([^\n]*)\]\(([^)]+)\)$/;
