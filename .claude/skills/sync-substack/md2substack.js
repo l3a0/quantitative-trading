@@ -52,7 +52,7 @@ var M2S = (function () {
   var WIDGET = {
     type: "subscribeWidget",
     attrs: { url: "%%checkout_url%%", text: "Subscribe", language: "en" },
-    content: [{ type: "ctaCaption", content: [{ type: "text", text: "come along my learning journey. enjoy the ride!" }] }]
+    content: [{ type: "ctaCaption", content: [{ type: "text", text: "come along on my learning journey. enjoy the ride!" }] }]
   };
   var HEADING = /^(#{2,6}) /;
   var IMAGE = /^!\[([^\n]*)\]\(([^)]+)\)$/;
