@@ -1,22 +1,29 @@
-# Chan’s equity seasonals reproduce to the digit, and the digits cannot say whether they died
+# Two equity seasonals show no edge a trader can count on
 
-*Reproducing a strategy published as dead checks the figures its author printed. It does not check the death.*
+*One strategy shows no detectable return, and free data cannot judge the other.*
 
-## Why reproduce a strategy its author called dead
+## Why test a strategy published as dead
 
-Ernest Chan’s *Quantitative Trading* describes two seasonal strategies in stocks, and reports that seasonality of this kind has faded. The second strategy, a monthly rotation from a 2007 working paper by Heston and Sadka, he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, he writes, and the effect “has disappeared since then” (Chan, 2021, p. 179). The same sentence invites the reader to check that in Example 7.7.
+A claim that a strategy died is one a reader acts on by leaving it alone. If the effect still works, that reader walks away from it. So the death is worth checking.
 
-This repository checked. The data files behind both examples are public, and they are committed here. The book prints the examples in MATLAB in the first edition, and in MATLAB, Python and R in the revised edition. Seventeen of the printed figures need only data the committed files hold, and all seventeen reproduce to the digits printed.
+Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks as numbered examples with code, and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179).
 
-None of the seventeen can say whether the effect died. Example 7.7’s are figures over the whole file, and the S&P 500 file holds only 13 months before 2002 once the ranking has its year of history. Both files hold only the companies still in their index on the day Chan saved them. A printed figure that reproduces shows that the code and the data agree with the book. A death is a claim about two periods, and testing it needs a criterion for “disappeared” written down before anything is computed. This repository wrote none before computing returns on either side of 2002, so the post reports them and draws no verdict from them.
+Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them.
+
+Two later runs asked whether either effect still works. Each tested one example on its index as it stood from 2009 on. The companies that later left the index remain in the sample. Each wrote down its claim, its test and the wording of its verdict before computing any return.
+
+1. **The January effect** averages anywhere from −0.1047 to 0.0879 a January before costs, depending on index members that free data does not price.
+2. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the companies with a checked price.
+
+Neither run shows that the effect died, and neither gives a trader an edge to count on. The section on what this replication cannot say describes both runs and what each leaves open.
 
 The four lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
-## The two strategies and the two files
+## The two strategies
 
-**Example 7.6, the January effect.** At each December year-end, rank the S&P 600 small caps on their return over the calendar year. Buy the worst tenth and short the best tenth at that close, and exit both at January’s last close. The reason Chan gives is that investors sell their losers in December to claim the tax loss, and the selling pressure lifts in January (p. 175). Each trade pays two one-way costs of 5 basis points.
+**Example 7.6, the January effect.** It is a mean reversion trade, betting that last year’s losers recover in January and its winners give some back. At each December year-end, rank the S&P 600 small caps on their return over the calendar year. Buy the worst tenth and short the best tenth at that close, and exit both at January’s last close. The reason Chan gives is that investors sell their losers in December to claim the tax loss, and the selling pressure lifts in January (p. 175). Each trade pays two one-way costs of 5 basis points.
 
-**Example 7.7, Heston and Sadka.** At each S&P 500 month-end, rank the stocks on their return in the same calendar month a year earlier. Buy the best tenth and short the worst tenth, and hold for the month. The two scripts this repository holds turn their monthly returns into an annual return by multiplying their mean by 12, and into a Sharpe ratio by multiplying the mean over the standard deviation by √12, with no risk-free rate. The revised MATLAB and R the book prints do the same.
+**Example 7.7, Heston and Sadka.** It is a seasonal momentum trade, betting the other way, that a stock’s return in a calendar month repeats in the same month the next year. At each S&P 500 month-end, rank the stocks on their return in the same calendar month a year earlier. Buy the best tenth and short the worst tenth, and hold for the month. The two scripts this repository holds turn their monthly returns into an annual return by multiplying their mean by 12, and into a Sharpe ratio by multiplying the mean over the standard deviation by √12, with no risk-free rate. The revised MATLAB and R the book prints do the same.
 
 What Chan says of each is not the same, and the difference matters for what a reproduction can find.
 
@@ -24,14 +31,7 @@ What Chan says of each is not the same, and the difference matters for what a re
 2. **Example 7.6.** Its own text is not a death notice. The revised edition says the January effect failed in January 2006 and January 2007 and then “worked wonderfully” in January 2008 (p. 175).
 3. **Example 7.7.** This one is published as dead, in the p. 179 sentence quoted at the top of the post.
 
-The examples read two of Chan’s own MATLAB data files, converted into one file per stock.
-
-1. **For Example 7.6**, `IJR_20080131.mat`: 600 members of the S&P 600, recorded as split-adjusted, saved 2008-02-02, spanning 2004-01-15 to 2008-02-01.
-2. **For Example 7.7**, `SPX_20071123.mat`: 500 members of the S&P 500, also recorded as split-adjusted, saved 2007-11-24, spanning 1999-11-24 to 2007-11-23.
-
-The mirror of Chan’s first-edition code and data, named below, holds only an earlier save of the S&P 600 file, `IJR_20080114.mat`, which ends on 2008-01-14. The file his Example 7.6 script loads comes from [a public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84), a third party’s repost rather than Chan’s own. That copy also carries the earlier save, byte for byte as the mirror has it, which is why its later file is trusted. The two saves give the first two Januaries to the same digits. Both files hold only the companies in their index on the day Chan saved them, carried backwards. That limits every figure in the four lessons, and Lesson 4 comes back to it.
-
-**Which edition says what.** The first edition (2009) prints the examples in MATLAB, cited here by script as `example7_6.m` and `example7_7.m` at commit `1a71950` of the egorpe/EPChan-QuantitativeTrading mirror. The revised edition (2021) prints both in MATLAB, Python and R at pp. 175 to 182. Its Python is cited as `example7_6.py` and `example7_7.py` at commit `653cf92` of liujiantong/epchan_books, a third-party copy whose five printed figures match the book. Page numbers here are the revised edition’s.
+The first edition (2009) prints the examples in MATLAB, and the revised edition (2021) prints them in MATLAB, Python and R. Page numbers here are the revised edition’s.
 
 Every reproduction below is **exploratory**. Reproducing a printed figure tests a hypothesis Chan chose, on data he chose, so it can say whether the figure reproduces and nothing more.
 
@@ -150,9 +150,10 @@ On Chan’s own files, every printed figure his data reaches reproduces exactly.
 
 ## References
 
-- Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Examples 7.6 and 7.7, cited by MATLAB script.
-- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 13, 175, 179 and 180, and Examples 7.6 and 7.7 at pp. 175 to 182.
+- Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Examples 7.6 and 7.7, cited by MATLAB script as `example7_6.m` and `example7_7.m` at commit `1a71950` of the egorpe/EPChan-QuantitativeTrading mirror.
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 13, 175, 179 and 180, and Examples 7.6 and 7.7 at pp. 175 to 182. Its Python is cited as `example7_6.py` and `example7_7.py` at commit `653cf92` of liujiantong/epchan_books, a third-party copy whose five printed figures match the book.
 - Heston, S. L., & Sadka, R. (2007), as Chan (2021, p. 179) cites them, a working paper. Published as Heston, S. L., & Sadka, R. (2008). Seasonality in the cross-section of stock returns. *Journal of Financial Economics*, 87(2), 418–445.
 - Singal, V. (2006). *Beyond the Random Walk: A Guide to Stock Market Anomalies and Low-Risk Investing*. Oxford University Press. Cited by Chan (2021, p. 175) for the January effect.
+- Data: two of Chan’s own MATLAB data files, converted into one file per stock. For Example 7.6, `IJR_20080131.mat` holds 600 members of the S&P 600, recorded as split-adjusted, saved 2008-02-02, spanning 2004-01-15 to 2008-02-01. For Example 7.7, `SPX_20071123.mat` holds 500 members of the S&P 500, also recorded as split-adjusted, saved 2007-11-24, spanning 1999-11-24 to 2007-11-23. The mirror of the first edition’s code and data holds only an earlier save of the S&P 600 file, `IJR_20080114.mat`, which ends on 2008-01-14. The later file comes from [a public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84), a third party’s repost rather than Chan’s own. That copy also carries the earlier save, byte for byte as the mirror has it, which is why its later file is trusted. The two saves give the first two Januaries to the same digits.
 
 *Not investment advice. Code: [the two strategies](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/equity_seasonals.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/equity_seasonals_figures.py), with the checks behind [the strategies’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_equity_seasonals.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_equity_seasonals_figures.py), and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-7-the-equity-seasonals-chans-quantitative-trading) that sets each of Chan’s figures beside the one reproduced here.*
