@@ -2516,9 +2516,13 @@ decide each rule, and rows 9, 10, 13 and 14 run those rules.
    and 10, and the repost is what confirms the two choices the page does not
    decide.
 
-Rows 5, 6 and 21, and the revised edition's half of rows 1, 2 and 19, rest on
-a different inference: the figures match the first edition's, so its rules are
-assumed.
+Rows 5, 6 and 21 rest on a different inference: the R's figures match the
+first edition's, so its rules are assumed, because its Example 7.6 is printed
+only in the book. The revised edition's half of rows 1, 2 and 19 no longer
+rests on that inference. The repost's `example7_6.m` at `7430b84` rounds a
+tenth with `round`, takes a full tenth at each end, and reads one shared row
+for the last day of December and of January, which are `MATLAB_JANUARY`'s
+rules, and its closing comment prints the same three returns.
 
 Every result in rows 1 to 34 is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for

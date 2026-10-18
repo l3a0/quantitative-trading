@@ -383,7 +383,10 @@ def january_effect(
 
 #: Example 7.6 as both editions' MATLAB print it. The owner read the revised
 #: edition on 2026-10-02, and its MATLAB prints the same three returns, labelled
-#: with the January exit day rather than the December entry day.
+#: with the January exit day rather than the December entry day. The revised
+#: ``example7_6.m`` in pinhaocheng/epchan-quant_trading_MATLAB_codes at
+#: ``7430b84`` makes the same three choices this holds: ``round``, a full
+#: tenth at each end, and one shared month-end row.
 MATLAB_JANUARY = JanuaryRules(
     source="example7_6.m, first and revised editions",
     per_stock_period_ends=False,
