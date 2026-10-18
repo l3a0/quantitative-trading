@@ -45,7 +45,7 @@ All seventeen figures Chan’s code prints reproduce here to the digit, but only
 
 ### Example 7.6, the January effect
 
-Here is every printout of Example 7.6, at the precision each source prints, one column for each of its three Januaries. Each number is the return on one trade, held from a December year-end close to the last close of the January its column names, after the two costs. It is a fraction of the capital, split evenly between the long side and the short side. So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81 percent over January 2008.
+Here is every printout of Example 7.6, at the precision each source prints, one column for each of its three Januaries. Each number is the return on one trade, held from a December year-end close to the last close of the January its column names, after a cost of 5 basis points to enter and another 5 to exit. It is a fraction of the capital, split evenly between the long side and the short side. So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81 percent over January 2008.
 
 ```math
 \begin{array}{l|r|r|r}
