@@ -29,7 +29,11 @@ The three lessons below say what the reproduction does teach. The code is open s
 
 ![An animated whiteboard sketch titled “The January trade”, drawn stroke by stroke. A long black bar labelled “a year of returns” ends at a brown dot, and a short thick brown segment one twelfth as long runs on from it, labelled “hold January”. A grey arrow labelled “rank at the year’s last close” points down to a rising row of twenty grey dots, the stocks sorted from the lowest return at the lower left to the highest at the upper right. A green ring circles the lowest two, labelled “buy the worst tenth”, and a red ring the highest two, labelled “short the best tenth”. On the right a red arrow points down, labelled “winners down”, above a green arrow pointing up, labelled “losers up”, and the words “mean reversion” close the sketch.](../docs/figures/equity_seasonals_january_trade.gif)
 
-**Example 7.7, Heston and Sadka.** It is a seasonal momentum trade, betting the other way, that a stock’s return in a calendar month repeats in the same month the next year. At each S&P 500 month-end, rank the stocks on their return in the same calendar month a year earlier. Buy the best tenth and short the worst tenth, and hold for the month. The two scripts this repository holds turn their monthly returns into an annual return by multiplying their mean by 12, and into a Sharpe ratio by multiplying the mean over the standard deviation by √12, with no risk-free rate. The MATLAB and R in the book’s revised edition (2021) do the same.
+**Example 7.7, Heston and Sadka.** It is a seasonal momentum trade, betting the other way, that a stock’s return in a calendar month repeats in the same month the next year. At each S&P 500 month-end, rank the stocks on their return in the same calendar month a year earlier. Buy the best tenth and short the worst tenth, and hold for the month. The two scripts this repository holds, and the MATLAB and R in the book’s revised edition (2021), all turn their monthly returns into an annual return and a Sharpe ratio as below, with no risk-free rate. Here r̄ is the mean monthly return and s its standard deviation.
+
+```math
+\text{annual return} = 12\,\bar{r}, \qquad \text{Sharpe ratio} = \sqrt{12}\,\frac{\bar{r}}{s}
+```
 
 ![An animated whiteboard sketch titled “The same-month trade”, drawn stroke by stroke. Two strips of twelve cells stand one above the other, labelled “last year” and “this year”. March is outlined in brown on the upper strip and labelled “March”, and a brown arrow drops from it to March on the lower strip. The upper strip ends with the words “rank on” and the lower with “hold”. April is then outlined in grey on both strips, labelled “then April, May, …”. Below, a rising row of twenty grey dots sorts the stocks from the lowest return to the highest. A green ring circles the highest two, labelled “buy the best tenth”, and a red ring the lowest two, labelled “short the worst tenth”. On the right a green arrow points up, labelled “winners up”, above a red arrow pointing down, labelled “losers down”, and the words “seasonal momentum” close the sketch.](../docs/figures/equity_seasonals_same_month_trade.gif)
 
@@ -74,6 +78,16 @@ Here is every printout of Example 7.7, whose two figures are the average annual 
 \text{Python, revised edition} & -0.012679 & -0.122247 \\
 \text{R, revised edition} & -0.01139674 & -0.1095098
 \end{array}
+```
+
+Rules 1 and 3 below come down to how the monthly returns are added up and averaged. In symbols, write rᵢ,ₜ for the return of position i in month t, signed so that a short gains when its stock falls, Nₜ for the number of positions that month, and S for the sum of the monthly figures.
+
+```math
+\begin{aligned}
+\text{first edition's month } t &= \sum_{i=1}^{N_t} r_{i,t} \\
+\text{revised month } t &= \frac{1}{N_t} \sum_{i=1}^{N_t} r_{i,t} \\[6pt]
+\text{mean over 83 months} &= \frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
+\end{aligned}
 ```
 
 Its four printouts give four answers. Rules 1 to 4 are in the first edition’s MATLAB, and the rest name the revised script each belongs to.
