@@ -58,7 +58,7 @@ Here is every printout of Example 7.6, at the precision each source prints, one 
 
 Its three printouts give two answers. The MATLAB and the R agree to every digit, and the revised Python differs. Three rules account for every figure.
 
-1. **How many stocks make a tenth, a choice in the MATLAB.** A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that to 58 a side. Rounding down to 57 gives −0.0234 instead of the printed −0.0244.
+1. **How many stocks make a tenth, a choice in the MATLAB.** A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that to 58, so it buys the 58 worst and shorts the 58 best. Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
 2. **How many winners the revised Python shorts, a bug.** It slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
 3. **Whether the revised Python ranks a stock with no year-end close, a bug from a library default.** The revised Python fills a missing year-end close with the last one before it, as pandas did before version 3.0. So for 2007 it ranks PMC, which has no close at the end of 2006, on its last close before an 851-day gap in its prices. That reads the gap as a gain of 1.3056, or 130.56 percent, fourth best of 595, and the script holds PMC short. Without PMC, 594 stocks are ranked. A tenth of 595 rounds to 60 and a tenth of 594 to 59. Without the fill, January 2008 gives 0.090908. Dropping the fill and taking the full tenth together give the MATLAB’s 0.0881, so all three printouts match.
 
