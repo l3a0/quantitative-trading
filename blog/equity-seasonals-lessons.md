@@ -10,10 +10,14 @@ Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in 
 
 Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them.
 
+![An animated whiteboard sketch titled “Which years each source reads”, drawn stroke by stroke. A grey axis runs from 1960 to 2030 with a tick at each decade. A thick black bar labelled “Heston and Sadka’s sample” runs to the start of 2002, with a dashed grey lead-in at its left end, and a dashed brown line at 2002 is labelled “disappeared since then”. Below it two short black bars, labelled “Chan’s files, survivors only”, run from late 1999 to late 2007 and from early 2004 to early 2008. A brown dot on the axis at 2009 is labelled “the book”, and a green bar from there to late 2026 is labelled “two later runs, index as it stood”.](../docs/figures/equity_seasonals_which_years.gif)
+
 Two later runs asked whether either effect still works. Each tested one example on its index as it stood from 2009 on. The companies that later left the index remain in the sample. Each wrote down its claim, its test and the wording of its verdict before computing any return.
 
 1. **The January effect** averages anywhere from −0.1047 to 0.0879 a January before costs, depending on index members that free data does not price.
 2. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the index members free data could price.
+
+![An animated whiteboard sketch titled “Two verdicts”, drawn stroke by stroke, with two number lines. The upper line, labelled “January effect, per January”, carries a brown bracket from −0.1047 to 0.0879 that straddles its zero tick, and the words “free data cannot decide”. The lower line, labelled “Heston and Sadka, per year”, carries a black dot at zero labelled “measured”, and a pale green band from zero to a brown tick labelled “4.2% a year”, with the words “too small to detect” beneath it.](../docs/figures/equity_seasonals_two_verdicts.gif)
 
 Neither run shows that the effect died, and neither gives a trader an edge to count on. The section on what this replication cannot say describes both runs and what each leaves open.
 

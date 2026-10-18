@@ -3154,15 +3154,21 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries two looping whiteboard sketches in its section on the two
-strategies, drawn by
+The post also carries four looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
-1. `equity_seasonals_january_trade.gif`, Example 7.6's year of returns, its
+1. `equity_seasonals_which_years.gif`, in the opening, the years each source
+   reads on one axis to scale: Heston and Sadka's sample to 2002, Chan's two
+   files, the book, and the two registered runs from 2009 on.
+2. `equity_seasonals_two_verdicts.gif`, in the opening, the two registered
+   runs' verdicts on number lines to scale: the January bracket from −0.1047
+   to 0.0879 across zero, and Heston and Sadka's mean at zero with the
+   returns up to X, about 4.2 percent a year, tinted as too small to detect.
+3. `equity_seasonals_january_trade.gif`, Example 7.6's year of returns, its
    ranking at the year's last close, its January hold, and its bet that the
    extremes come back.
-2. `equity_seasonals_same_month_trade.gif`, Example 7.7's ranking on one month
+4. `equity_seasonals_same_month_trade.gif`, Example 7.7's ranking on one month
    a year ago, its hold of the same month, and its bet that the month repeats.
 
 ```bash
@@ -3170,10 +3176,13 @@ uv run python -m chan.equity_seasonals_whiteboard
 ```
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
-holds which tenth each sketch buys and shorts, which way each points its
-extremes, the timing each draws, that no label touches a line, another label
-or the frame's edge, and that each GIF follows its paragraph in the post. Both
-sketches are schematic, so no number in them is read from data. The test
+holds which tenth each strategy sketch buys and shorts, which way each points
+its extremes, the timing each draws, that the opening sketches place every
+figure and date to scale and refuse figures their words would misdescribe,
+that no label touches a line, another label or the frame's edge, and that each
+GIF follows its text in the post. It draws the verdicts from the pinned
+figures, so it runs without the archive, and one test holds that the two
+registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs

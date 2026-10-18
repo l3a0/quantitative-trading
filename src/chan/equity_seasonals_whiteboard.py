@@ -1,36 +1,50 @@
-"""Whiteboard sketches of the two strategies in the equity-seasonals post.
+"""Whiteboard sketches for the equity-seasonals post: its opening and its two strategies.
 
-``blog/equity-seasonals-lessons.md`` describes Example 7.6 and Example 7.7 in
-its section "The two strategies". What a reader has to build in their head
-there is timing: what each strategy ranks on, when it ranks, how long it
-holds, and which way it bets. A timeline shows that faster than a paragraph,
-so this module draws one scene for each strategy, and the post places each
-right after the paragraph it draws.
+``blog/equity-seasonals-lessons.md`` opens on why a strategy published as dead
+is worth testing, which sources can say anything about that, and what two
+later runs found. Its section "The two strategies" then describes Example 7.6
+and Example 7.7. This module draws four scenes, and the post places each
+right after the text it draws.
 
-1. The January trade: a calendar year of returns, a ranking at the year's
+1. Which years each source reads: one axis from 1960 to 2030, with Heston and
+   Sadka's sample ending at the start of 2002, where Chan says the effect
+   disappeared, Chan's two short files, the book, and the two registered runs
+   from 2009 on. Every bar is to scale, from :class:`Spans`.
+2. Two verdicts: the January run's low and high means as one bracket that
+   straddles zero, and the Heston and Sadka run's mean as a dot at zero with
+   the returns its test could miss tinted up to X. Both lines are to scale,
+   and the figures come from :class:`Verdicts`.
+3. The January trade: a calendar year of returns, a ranking at the year's
    last close, the worst tenth bought and the best tenth shorted, held through
    January, with the losers pointed up and the winners down. That is Example
    7.6's bet that the extremes come back, a mean reversion trade.
-2. The same-month trade: two monthly strips, last year above this year, with
+4. The same-month trade: two monthly strips, last year above this year, with
    March of last year ranked and March of this year held, then April and on.
    The best tenth is bought and the worst shorted, with the winners pointed up
    again and the losers down. That is Example 7.7's bet that a month repeats,
    a seasonal momentum trade.
 
-Both scenes are schematic and carry no data. The ranked dots stand for a
-cross-section of stocks sorted by the return each strategy ranks on, and the
-two ringed at each end stand for a tenth. No number read from data is
-drawn, so no test here reads a vintage. March is an example month, and the
-scene says the trade moves on to the next one.
+The two strategy scenes are schematic and carry no data. The ranked dots stand
+for a cross-section of stocks sorted by the return each strategy ranks on, and
+the two ringed at each end stand for a tenth. March is an example month, and
+the scene says the trade moves on to the next one.
+
+The two opening scenes carry data. :meth:`Verdicts.from_runs` reads the
+registered runs on the owner's archive, about twenty seconds, and
+:meth:`Spans.read` reads Chan's committed files and the runs' constants. The
+start of Heston and Sadka's sample is drawn dashed, because nothing here has
+checked where it starts. A run whose figures would make the verdicts scene's
+words false is refused rather than drawn.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied: its strokes, labels, timeline, renderer and palette, so these
-GIFs share that post's look, frame rate, hold and colours. Only the scenes
-and the file names are this module's. Each GIF is named
+than copied: its strokes, labels, tints, timeline, renderer and palette, so
+these GIFs share that post's look, frame rate, hold and colours. Only the
+scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw both with::
+with no change is a no-op diff. Redraw all four on a machine with the archive
+with::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -38,13 +52,20 @@ with no change is a no-op diff. Redraw both with::
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
+from chan import equity_seasonals as seasonals
+from chan.archive import ArchiveUnavailable
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, LOST, MUTED
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.series import load_panel
 from chan.usdcad_tests_whiteboard import (
+    TINT,
+    Fill,
     Label,
     Scene,
     Stroke,
@@ -224,33 +245,368 @@ def _same_month_trade() -> Scene:
 
 
 def scenes() -> tuple[Scene, ...]:
-    """The two scenes in the order the post reads them."""
+    """The two strategy scenes in the order the post reads them."""
     return (_january_trade(), _same_month_trade())
 
 
-def make_equity_seasonals_whiteboards(out_dir: Path | None = None) -> list[Path]:
-    """Write one looping GIF for each scene and return their paths, in the
-    order the post reads them."""
-    folder = out_dir if out_dir is not None else FIGURES_DIR
-    paths = []
-    for scene in scenes():
-        frames = timeline(scene)
-        first, *rest = render(scene, frames)
-        path = folder / gif_name(scene)
-        first.save(
-            path,
-            save_all=True,
-            append_images=rest,
-            duration=[frame.ms for frame in frames],
-            loop=0,
-            optimize=False,
+@dataclass(frozen=True)
+class Verdicts:
+    """The four figures the verdicts scene draws, each read from a registered run.
+
+    ``january_low`` and ``january_high`` are the means of the low and high
+    series of :func:`chan.equity_seasonals.run_point_in_time`, a return per
+    January. ``monthly_mean`` is the mean held month of
+    :func:`chan.equity_seasonals.run_monthly_point_in_time` under
+    :data:`chan.equity_seasonals.REVISED_MATLAB`, and ``detectable`` is that
+    run's X, the annual return its test detects with 80 percent probability.
+    """
+
+    january_low: float
+    january_high: float
+    monthly_mean: float
+    detectable: float
+
+    @classmethod
+    def from_runs(
+        cls, january: seasonals.PointInTimeRun, monthly: seasonals.MonthlyRun
+    ) -> Verdicts:
+        return cls(
+            january_low=january.low.mean,
+            january_high=january.high.mean,
+            monthly_mean=monthly.matlab.test.mean,
+            detectable=monthly.matlab.x,
         )
-        paths.append(path)
-    return paths
+
+
+@dataclass(frozen=True)
+class Spans:
+    """The years the timeline scene draws, each read from the data or the runs.
+
+    ``large_caps`` and ``small_caps`` are the first and last dates of Chan's
+    two files as :func:`chan.series.load_panel` reads them. ``later`` runs
+    from the first month either registered run holds to the last, January
+    2009 to September 2026, from :data:`chan.equity_seasonals.FIRST_HELD` and
+    :data:`chan.equity_seasonals.LAST_HELD`. ``split`` is
+    :data:`chan.equity_seasonals.SPLIT`, the start of 2002.
+    """
+
+    large_caps: tuple[pd.Timestamp, pd.Timestamp]
+    small_caps: tuple[pd.Timestamp, pd.Timestamp]
+    later: tuple[pd.Timestamp, pd.Timestamp]
+    split: pd.Timestamp
+
+    @classmethod
+    def read(cls) -> Spans:
+        def span(name: str) -> tuple[pd.Timestamp, pd.Timestamp]:
+            _, closes = load_panel(name)
+            return closes.index[0], closes.index[-1]
+
+        return cls(
+            large_caps=span(seasonals.LARGE_CAPS),
+            small_caps=span(seasonals.SMALL_CAPS),
+            later=(
+                seasonals.FIRST_HELD.to_timestamp(how="start"),
+                seasonals.LAST_HELD.to_timestamp(how="end").normalize(),
+            ),
+            split=seasonals.SPLIT,
+        )
+
+
+def _signed(value: float, places: int) -> str:
+    return f"{value:.{places}f}".replace("-", "−")
+
+
+#: Each verdict's number line: the board's span, its height, and the values
+#: at its ends. The January line reads a return per January, the Heston and
+#: Sadka line a return per year.
+VERDICT_X = (3.0, 9.6)
+JANUARY_Y, MONTHLY_Y = 3.2, 1.3
+JANUARY_RANGE = (-0.15, 0.15)
+ANNUAL_RANGE = (-0.02, 0.08)
+
+
+def _at(value: float, lo: float, hi: float) -> float:
+    """Where ``value`` sits on a number line from ``lo`` to ``hi``."""
+    if not lo <= value <= hi:
+        raise ValueError(f"{value} lies outside the line from {lo} to {hi}")
+    x0, x1 = VERDICT_X
+    return x0 + (value - lo) / (hi - lo) * (x1 - x0)
+
+
+def _two_verdicts(verdicts: Verdicts) -> Scene:
+    """The two registered runs' verdicts, each on its own number line to scale.
+
+    The January effect's line carries the low and high series' means as the
+    two ends of one bracket that straddles zero, which is why free data cannot
+    decide it. Heston and Sadka's line carries the run's mean, a year's worth
+    of its mean month, as a dot at zero, and tints the returns from zero to X,
+    the size its test could have missed. A run whose figures would make those
+    words false is refused: a bracket that does not straddle zero, or a mean
+    that is not inside the tinted gap's reach of zero.
+    """
+    low, high = verdicts.january_low, verdicts.january_high
+    if not low < 0 < high:
+        raise ValueError(f"the January bracket {low} to {high} does not straddle zero")
+    annual = 12 * verdicts.monthly_mean
+    if not abs(annual) < verdicts.detectable:
+        raise ValueError(f"a mean of {annual} a year is not inside X = {verdicts.detectable}")
+    x_low, x_high = _at(low, *JANUARY_RANGE), _at(high, *JANUARY_RANGE)
+    zero_1, zero_2 = _at(0.0, *JANUARY_RANGE), _at(0.0, *ANNUAL_RANGE)
+    x_detect, x_mean = _at(verdicts.detectable, *ANNUAL_RANGE), _at(annual, *ANNUAL_RANGE)
+    x0, x1 = VERDICT_X
+    bracket_y = JANUARY_Y + 0.35
+    return Scene(
+        "Two verdicts",
+        "two_verdicts",
+        (
+            _stroke(
+                "january-line", _line([(x0, JANUARY_Y), (x1, JANUARY_Y)]), color=MUTED, frames=6
+            ),
+            Label("January effect", 0.3, JANUARY_Y, names="january-line"),
+            Label("per January", 0.3, JANUARY_Y - 0.38, names="january-line", color=MUTED, size=11),
+            _stroke(
+                "january-zero",
+                _line([(zero_1, JANUARY_Y - 0.13), (zero_1, JANUARY_Y + 0.13)]),
+                frames=2,
+            ),
+            Label("0", zero_1, JANUARY_Y - 0.46, names="january-zero", ha="center", size=12),
+            _stroke("bracket", _span(x_low, x_high, bracket_y), color=ACCENT, width=3.0, frames=8),
+            Label(
+                _signed(low, 4),
+                x_low,
+                bracket_y + 0.47,
+                names="bracket",
+                color=ACCENT,
+                ha="center",
+                size=12,
+            ),
+            Label(
+                _signed(high, 4),
+                x_high,
+                bracket_y + 0.47,
+                names="bracket",
+                color=ACCENT,
+                ha="center",
+                size=12,
+            ),
+            Label(
+                "free data cannot decide",
+                x1,
+                JANUARY_Y - 0.46,
+                names="bracket",
+                color=ACCENT,
+                ha="right",
+                size=12,
+            ),
+            _stroke(
+                "monthly-line", _line([(x0, MONTHLY_Y), (x1, MONTHLY_Y)]), color=MUTED, frames=6
+            ),
+            Label("Heston and Sadka", 0.3, MONTHLY_Y, names="monthly-line"),
+            Label("per year", 0.3, MONTHLY_Y - 0.38, names="monthly-line", color=MUTED, size=11),
+            _stroke(
+                "monthly-zero",
+                _line([(zero_2, MONTHLY_Y - 0.13), (zero_2, MONTHLY_Y + 0.13)]),
+                frames=2,
+            ),
+            Label("0", zero_2, MONTHLY_Y - 0.46, names="monthly-zero", ha="center", size=12),
+            Fill("unseen", zero_2, MONTHLY_Y + 0.04, x_detect, MONTHLY_Y + 0.34, TINT),
+            _stroke(
+                "detectable",
+                _line([(x_detect, MONTHLY_Y - 0.13), (x_detect, MONTHLY_Y + 0.45)]),
+                color=ACCENT,
+                width=3.0,
+                frames=3,
+            ),
+            Label(
+                f"{100 * verdicts.detectable:.1f}% a year",
+                x_detect,
+                MONTHLY_Y + 0.8,
+                names="detectable",
+                color=ACCENT,
+                ha="center",
+                size=12,
+            ),
+            _dot("mean", x_mean, MONTHLY_Y, color=INK),
+            Label("measured", x_mean - 0.3, MONTHLY_Y + 0.45, names="mean", ha="right", size=12),
+            Label(
+                "too small to detect",
+                (zero_2 + x_detect) / 2,
+                MONTHLY_Y - 0.46,
+                names="detectable",
+                color=GOOD,
+                ha="center",
+                size=12,
+            ),
+        ),
+    )
+
+
+#: The timeline's years, its board span, and the heights of its rows.
+YEARS = (1960, 2030)
+TIMELINE_X = (0.6, 9.6)
+AXIS_Y = 0.75
+#: Heston and Sadka's sample is drawn from this year, with a dashed lead-in
+#: before it, because nothing here has checked where their sample starts.
+SAMPLE_FROM = 1968
+
+
+def _year(when: pd.Timestamp | float) -> float:
+    """Where a date or a fractional year sits on the timeline."""
+    year = when if isinstance(when, float | int) else when.year + (when.dayofyear - 1) / 365.25
+    lo, hi = YEARS
+    x0, x1 = TIMELINE_X
+    return x0 + (year - lo) / (hi - lo) * (x1 - x0)
+
+
+def _which_years(spans: Spans) -> Scene:
+    """Which years each source reads, on one axis to scale.
+
+    Heston and Sadka's sample ends at the start of 2002, where Chan says the
+    effect disappeared. Chan's two files are short and end before the book.
+    The two registered runs start where the book came out and run to 2026.
+    """
+    lo, hi = YEARS
+    split = _year(spans.split)
+    axis = [(_year(float(lo)), AXIS_Y), (_year(float(hi)), AXIS_Y)]
+    ticks = []
+    for decade in range(lo + 10, hi, 10):
+        x = _year(float(decade))
+        ticks += [(x, AXIS_Y), (x, AXIS_Y - 0.12), (x, AXIS_Y)]
+    sample_y, files_y, later_y = 3.3, 2.45, 1.5
+    large, small = spans.large_caps, spans.small_caps
+    first, last = spans.later
+    book = _year(first)
+    steps: list = [
+        _stroke("axis", _line(axis + ticks), color=MUTED, frames=8),
+    ]
+    for decade in range(lo + 10, hi, 10):
+        steps.append(
+            Label(
+                str(decade),
+                _year(float(decade)),
+                AXIS_Y - 0.43,
+                names="axis",
+                color=MUTED,
+                ha="center",
+                size=11,
+            )
+        )
+    steps += [
+        _stroke(
+            "sample-lead",
+            _line([(_year(float(lo)) + 0.05, sample_y), (_year(float(SAMPLE_FROM)), sample_y)]),
+            color=MUTED,
+            dashed=True,
+            frames=3,
+        ),
+        _stroke(
+            "sample",
+            _line([(_year(float(SAMPLE_FROM)), sample_y), (split, sample_y)]),
+            width=5.0,
+            frames=8,
+        ),
+        Label(
+            "Heston and Sadka’s sample",
+            _year(float(SAMPLE_FROM)),
+            sample_y + 0.4,
+            names="sample",
+            size=12,
+        ),
+        _stroke(
+            "split", _line([(split, 1.95), (split, 3.75)]), color=ACCENT, dashed=True, frames=5
+        ),
+        Label("“disappeared since then”", split + 0.15, 4.02, names="split", color=ACCENT, size=12),
+        _stroke(
+            "large-caps",
+            _line([(_year(large[0]), files_y + 0.14), (_year(large[1]), files_y + 0.14)]),
+            width=5.0,
+            frames=4,
+        ),
+        _stroke(
+            "small-caps",
+            _line([(_year(small[0]), files_y - 0.14), (_year(small[1]), files_y - 0.14)]),
+            width=5.0,
+            frames=4,
+        ),
+        Label(
+            "Chan’s files, survivors only",
+            _year(large[0]) - 0.2,
+            files_y,
+            names="small-caps",
+            ha="right",
+            size=12,
+        ),
+        _dot("book", book, AXIS_Y, color=ACCENT),
+        Label("the book", book, AXIS_Y + 0.38, names="book", color=ACCENT, ha="center", size=12),
+        _stroke(
+            "later",
+            _line([(book, later_y), (_year(last), later_y)]),
+            color=GOOD,
+            width=5.0,
+            frames=6,
+        ),
+        Label(
+            "two later runs, index as it stood",
+            book - 0.2,
+            later_y,
+            names="later",
+            color=GOOD,
+            ha="right",
+            size=12,
+        ),
+    ]
+    return Scene("Which years each source reads", "which_years", tuple(steps))
+
+
+def opening_scenes(verdicts: Verdicts, spans: Spans) -> tuple[Scene, ...]:
+    """The two scenes for the post's opening section, in the order it reads them."""
+    return (_which_years(spans), _two_verdicts(verdicts))
+
+
+def _write(scene: Scene, folder: Path) -> Path:
+    frames = timeline(scene)
+    first, *rest = render(scene, frames)
+    path = folder / gif_name(scene)
+    first.save(
+        path,
+        save_all=True,
+        append_images=rest,
+        duration=[frame.ms for frame in frames],
+        loop=0,
+        optimize=False,
+    )
+    return path
+
+
+def make_equity_seasonals_whiteboards(
+    out_dir: Path | None = None,
+    verdicts: Verdicts | None = None,
+    spans: Spans | None = None,
+) -> list[Path]:
+    """Write one looping GIF for each scene and return their paths, the
+    opening's two first, then the two strategies'.
+
+    ``verdicts`` is read from the two registered runs on the owner's archive
+    when it is not handed in, which takes about twenty seconds, and ``spans``
+    from Chan's two committed files.
+    """
+    folder = out_dir if out_dir is not None else FIGURES_DIR
+    if verdicts is None:
+        verdicts = Verdicts.from_runs(
+            seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
+        )
+    spans = spans if spans is not None else Spans.read()
+    return [_write(scene, folder) for scene in (*opening_scenes(verdicts, spans), *scenes())]
 
 
 def main() -> None:
-    for path in make_equity_seasonals_whiteboards():
+    try:
+        paths = make_equity_seasonals_whiteboards()
+    except ArchiveUnavailable as absent:
+        # The verdicts read the owner's archive, so a machine without it
+        # gets one line naming what is missing rather than a traceback.
+        raise SystemExit(str(absent)) from absent
+    for path in paths:
         print(f"wrote {path}")
 
 
