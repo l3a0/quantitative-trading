@@ -278,7 +278,7 @@ def scenes() -> tuple[Scene, ...]:
 
 @dataclass(frozen=True)
 class RuleFigures:
-    """The figures the seven rule sketches print, all from Chan's two files.
+    """The figures four of the seven rule sketches print, all from Chan's two files.
 
     ``tests/test_equity_seasonals.py`` derives each one from the files in
     ``TestTheRuleSketchesFigures``, so a default here that drifts from the

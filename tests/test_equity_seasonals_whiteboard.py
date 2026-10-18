@@ -529,14 +529,23 @@ class TestTheCommand:
         ],
         ids=["no archive", "January run refused", "monthly run refused"],
     )
-    def test_without_the_archive_it_names_the_one_gif_it_left(self, monkeypatch, refusal) -> None:
+    def test_without_the_archive_it_names_the_one_gif_it_left(
+        self, monkeypatch, refusal, tmp_path
+    ) -> None:
+        """It draws into a scratch folder, because a draw into the figures
+        folder would overwrite the committed GIFs that the byte test compares."""
+
         def refuse():
             raise refusal
 
+        before = {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")}
+        monkeypatch.setattr(sketches, "FIGURES_DIR", tmp_path)
         monkeypatch.setattr(seasonals, "run_point_in_time", refuse)
         with pytest.raises(SystemExit) as stopped:
             main()
         assert str(stopped.value) == f"equity_seasonals_two_verdicts.gif was not redrawn: {refusal}"
+        assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - 1
+        assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
     def test_without_the_archive_it_still_writes_the_other_ten(
         self, monkeypatch, tmp_path, spans
@@ -752,6 +761,43 @@ def _middle(scene, gid) -> float:
     return float(x.min() + x.max()) / 2
 
 
+#: Figures unlike the defaults in every field, so a mark that ignores its
+#: figure and draws the default lands in the wrong place.
+MOVED = RuleFigures(
+    ranked_2006=600,
+    longs_2006=60,
+    shorts_2006=57,
+    pmc_last_close=5.5,
+    pmc_gap_days=800,
+    pmc_2007_close=12.0,
+    pmc_gain=1.1818,
+    pmc_rank=3,
+    ranked_2007=590,
+    empty_months=11,
+    held_months=85,
+    month_end_rows=97,
+    first_pass_row=240,
+    repaired_row=11,
+)
+
+
+@pytest.fixture(params=[RuleFigures(), MOVED], ids=["the files' figures", "other figures"])
+def figures(request) -> RuleFigures:
+    return request.param
+
+
+def _bar_heights(scene) -> list[float]:
+    """Each bar's drawn return in the add-up scene, read from its stroke."""
+    bars = _stroke(scene, "bars")
+    heights = []
+    for k in range(len(sketches.POSITION_RETURNS)):
+        x = 0.8 + k * 0.33
+        at = np.isclose(bars.x, x)
+        offsets = bars.y[at] - sketches.SUM_BASE
+        heights.append(float(offsets[np.argmax(np.abs(offsets))]))
+    return heights
+
+
 class TestTheRuleSketches:
     """What each rule sketch says and where it puts its marks."""
 
@@ -759,7 +805,7 @@ class TestTheRuleSketches:
         assert [gif_name(scene) for scene in rules] == RULE_GIFS
 
     def test_each_prints_its_figures(self, rules) -> None:
-        short, filled, _, wrong, empty, _, lookup = rules
+        short, filled, _, _, empty, _, lookup = rules
         assert _labels(short) == [
             "buy the 58 worst",
             "short 56 of the 58 best",
@@ -776,7 +822,6 @@ class TestTheRuleSketches:
             "+130.56% read as 2007’s gain",
             "4th best of 595: shorted",
         ]
-        assert "E dropped: C has no close" in _labels(wrong)
         assert _labels(empty) == [
             "month 1: no return",
             "12 months with no position, each a 0",
@@ -793,66 +838,84 @@ class TestTheRuleSketches:
             "the repair reads row m − 1, here 13",
         ]
 
+    def test_the_schematic_ones_say_what_they_should(self, rules) -> None:
+        _, _, bars, wrong, _, own, _ = rules
+        assert _labels(bars) == [
+            "one month’s N positions",
+            "first edition: add them up",
+            "summed positions",
+            "revised: ÷ N",
+            "capital",
+            "each month is N times too big",
+        ]
+        assert _labels(wrong) == [
+            "sorted by return",
+            *sketches.SORTED,
+            "column order",
+            *sketches.COLUMNS,
+            "no close",
+            "E dropped: C has no close",
+            "C ranked anyway",
+            "each check reads the column, not the stock",
+        ]
+        assert _labels(own) == [
+            "shared month-end row",
+            "stock A",
+            "stock B",
+            "missing",
+            "B’s own last priced day, which the revised Python reads",
+            "the month’s last five trading days",
+        ]
+
     def test_other_figures_move_the_labels(self) -> None:
-        moved = RuleFigures(
-            ranked_2006=600,
-            longs_2006=60,
-            shorts_2006=57,
-            pmc_last_close=5.5,
-            pmc_gap_days=800,
-            pmc_2007_close=12.0,
-            pmc_gain=1.1818,
-            pmc_rank=3,
-            ranked_2007=590,
-            empty_months=11,
-            held_months=84,
-            month_end_rows=97,
-            first_pass_row=240,
-            repaired_row=11,
-        )
-        short, filled, _, _, empty, _, lookup = rule_scenes(moved)
-        assert "3 left out: the best and the 60th" in _labels(
-            short
-        ) and "January 2006, 600 stocks ranked" in _labels(short)
+        short, filled, _, _, empty, _, lookup = rule_scenes(MOVED)
+        assert "3 left out: the best and the 60th" in _labels(short)
+        assert "January 2006, 600 stocks ranked" in _labels(short)
         assert "3rd best of 590: shorted" in _labels(filled)
         assert "+118.18% read as 2007’s gain" in _labels(filled)
         assert "last close 5.50, then 800 trading days with no price" in _labels(filled)
-        assert "first edition: sum ÷ 95" in _labels(empty)
-        assert "revised: sum ÷ 84" in _labels(empty)
+        assert "first edition: sum ÷ 96" in _labels(empty)
+        assert "revised: sum ÷ 85" in _labels(empty)
         assert "the repair reads row m − 1, here 11" in _labels(lookup)
         assert "row 240" in _labels(lookup) and "97 month-end rows" in _labels(lookup)
 
-    def test_the_two_sides_are_to_scale_and_the_long_side_reaches_a_tenth(self, rules) -> None:
-        short = rules[0]
-        drawn = RuleFigures()
+    def test_the_two_sides_are_to_scale_and_the_long_side_reaches_a_tenth(self, figures) -> None:
+        short = rule_scenes(figures)[0]
         long_bar, short_bar = _stroke(short, "long"), _stroke(short, "short")
-        lengths = np.ptp(long_bar.x), np.ptp(short_bar.x)
-        assert lengths[0] / lengths[1] == pytest.approx(drawn.longs_2006 / drawn.shorts_2006)
+        assert np.ptp(long_bar.x) == pytest.approx(figures.longs_2006 * sketches.STOCK_WIDTH)
+        assert np.ptp(short_bar.x) == pytest.approx(figures.shorts_2006 * sketches.STOCK_WIDTH)
         assert _xs(short, "tenth").min() == pytest.approx(long_bar.x.max())
         gap = _stroke(short, "missing")
         assert (gap.x.min(), gap.x.max()) == pytest.approx((short_bar.x.max(), long_bar.x.max()))
+        assert (long_bar.color, short_bar.color) == (GOOD, LOST)
 
-    def test_pmcs_close_is_carried_flat_to_the_end_of_2006_and_rises_to_2007s(self, rules) -> None:
-        filled = rules[1]
-        drawn = RuleFigures()
+    def test_pmcs_close_is_carried_flat_to_the_end_of_2006_and_rises_to_2007s(
+        self, figures
+    ) -> None:
+        filled = rule_scenes(figures)[1]
         carried = _stroke(filled, "carried")
         assert np.ptp(carried.y) == pytest.approx(0.0)
-        assert carried.y[0] == pytest.approx(sketches._pmc_y(drawn.pmc_last_close))
+        assert carried.y[0] == pytest.approx(sketches._pmc_y(figures.pmc_last_close))
         start, end = _stroke(filled, "end-2006"), _stroke(filled, "end-2007")
         assert start.x[0] == pytest.approx(sketches._pmc_x(2007.0))
         assert carried.x.max() == pytest.approx(start.x[0])
-        assert start.y[0] == pytest.approx(sketches._pmc_y(drawn.pmc_last_close))
-        assert end.y[0] == pytest.approx(sketches._pmc_y(drawn.pmc_2007_close))
+        assert start.y[0] == pytest.approx(sketches._pmc_y(figures.pmc_last_close))
+        assert end.y[0] == pytest.approx(sketches._pmc_y(figures.pmc_2007_close))
         assert sketches._pmc_x(2007.5) < end.x[0] < sketches._pmc_x(2008.0)
         after = _stroke(filled, "after")
         assert end.y[0] in after.y and end.x[0] in after.x
+        gain = _stroke(filled, "gain")
+        assert gain.color == LOST and gain.y.max() > gain.y[0]
 
-    def test_the_sum_is_n_times_the_average(self, rules) -> None:
+    def test_the_sum_is_the_bars_added_up_and_n_times_the_average(self, rules) -> None:
         bars = rules[2]
-        total = np.ptp(_stroke(bars, "sum").y)
-        mean = np.ptp(_stroke(bars, "mean").y)
-        assert total == pytest.approx(len(sketches.POSITION_RETURNS) * mean)
-        assert sum(sketches.POSITION_RETURNS) < 0
+        heights = _bar_heights(bars)
+        assert heights == pytest.approx(list(sketches.POSITION_RETURNS))
+        total = _stroke(bars, "sum").y.min() - sketches.SUM_BASE
+        mean = _stroke(bars, "mean").y.min() - sketches.SUM_BASE
+        assert total == pytest.approx(sum(heights))
+        assert total == pytest.approx(len(heights) * mean)
+        assert total < mean < 0
 
     def test_the_check_pairs_columns_and_rings_the_wrong_stock(self, rules) -> None:
         wrong = rules[3]
@@ -861,25 +924,30 @@ class TestTheRuleSketches:
             arrow = _stroke(wrong, f"pair-{k}")
             assert arrow.x[0] == pytest.approx(sketches._card(k))
             assert arrow.color == (LOST if k == hole else whiteboard.MUTED)
+        rising = _stroke(wrong, f"pair-{hole}")
+        assert rising.y[0] < rising.y.max() == pytest.approx(sketches.SORTED_Y - 0.42)
         assert _middle(wrong, "dropped") == pytest.approx(sketches._card(hole), abs=0.01)
         assert sketches.SORTED[hole] != sketches.NO_CLOSE
         kept_at = sketches.SORTED.index(sketches.NO_CLOSE)
         assert _middle(wrong, "kept") == pytest.approx(sketches._card(kept_at), abs=0.01)
         assert _middle(wrong, "no-close") == pytest.approx(sketches._card(hole), abs=0.01)
+        assert (_stroke(wrong, "dropped").color, _stroke(wrong, "kept").color) == (
+            LOST,
+            whiteboard.ACCENT,
+        )
 
-    def test_the_months_are_counted_and_each_bracket_spans_its_mean(self, rules) -> None:
-        empty = rules[4]
-        drawn = RuleFigures()
-        months = 1 + drawn.empty_months + drawn.held_months
-        assert _stroke(empty, "empty").points == drawn.empty_months
-        assert _stroke(empty, "held").points == drawn.held_months
+    def test_the_months_are_counted_and_each_bracket_spans_its_mean(self, figures) -> None:
+        empty = rule_scenes(figures)[4]
+        months = 1 + figures.empty_months + figures.held_months
+        assert _stroke(empty, "empty").points == figures.empty_months
+        assert _stroke(empty, "held").points == figures.held_months
         assert _middle(empty, "missing") == pytest.approx(sketches._month(1, months), abs=0.01)
         first, revised = _stroke(empty, "first"), _stroke(empty, "revised")
         assert (first.x.min(), first.x.max()) == pytest.approx(
             (sketches._month(2, months), sketches._month(months, months))
         )
         assert (revised.x.min(), revised.x.max()) == pytest.approx(
-            (sketches._month(2 + drawn.empty_months, months), sketches._month(months, months))
+            (sketches._month(2 + figures.empty_months, months), sketches._month(months, months))
         )
         assert revised.x.min() == pytest.approx(_stroke(empty, "held").x.min())
 
@@ -893,13 +961,13 @@ class TestTheRuleSketches:
         assert b.x.max() < shared.x0
         assert _middle(own, "b-own") == pytest.approx(b.x.max(), abs=0.01)
         assert _middle(own, "b-missing") == pytest.approx(last, abs=0.01)
+        assert (_stroke(own, "b-own").color, _stroke(own, "b-missing").color) == (GOOD, LOST)
 
-    def test_the_lookup_runs_past_the_rows_and_the_repair_reads_a_row(self, rules) -> None:
-        lookup = rules[6]
-        drawn = RuleFigures()
+    def test_the_lookup_runs_past_the_rows_and_the_repair_reads_a_row(self, figures) -> None:
+        lookup = rule_scenes(figures)[6]
         x0, x1, _ = sketches.ROWS
         assert _stroke(lookup, "past").x.min() == pytest.approx(x1)
         assert _middle(lookup, "asks") > x1
-        width = (x1 - x0) / drawn.month_end_rows
+        width = (x1 - x0) / figures.month_end_rows
         repair = _stroke(lookup, "repair")
-        assert repair.x[0] == pytest.approx(x0 + (drawn.repaired_row - 0.5) * width)
+        assert repair.x[0] == pytest.approx(x0 + (figures.repaired_row - 0.5) * width)

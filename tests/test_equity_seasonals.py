@@ -3190,7 +3190,7 @@ def test_the_whiteboard_draws_these_runs_verdicts(point_in_time, monthly) -> Non
 
 
 class TestTheRuleSketchesFigures:
-    """Every figure the seven rule sketches print, derived from Chan's two files.
+    """Every figure the rule sketches print, derived from Chan's two files.
 
     ``RuleFigures`` in ``chan.equity_seasonals_whiteboard`` holds them as
     defaults so the sketches draw without loading a panel. These tests hold
@@ -3230,6 +3230,7 @@ class TestTheRuleSketchesFigures:
         returns = monthly_returns(spx, FIRST_EDITION_MATLAB).to_numpy()
         assert math.isnan(returns[0])
         assert int((returns[1:] == 0).sum()) == drawn.empty_months
+        assert (np.flatnonzero(returns == 0) + 1).tolist() == list(range(2, 2 + drawn.empty_months))
         assert int((returns[1:] != 0).sum()) == drawn.held_months
         assert int(np.isfinite(returns).sum()) == drawn.first_edition_months
 

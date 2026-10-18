@@ -3214,7 +3214,7 @@ that no label touches a line, another label or the frame's edge, and that each
 GIF follows its text in the post. The rule sketches' figures are defaults in
 `RuleFigures`, and `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
-one from Chan's files. It draws the verdicts from the pinned
+one from Chan's files. The whiteboard test draws the verdicts from the pinned
 figures, so it runs without the archive, and a test in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) holds that
 the two registered runs give those figures where the archive is. The test
