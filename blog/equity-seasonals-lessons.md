@@ -119,7 +119,7 @@ So −0.9167 is in units of summed positions, not a return on capital. Dividing 
 
 #### Rule 2: which close keeps a stock in the first edition’s ranking, a bug
 
-It decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives an annual return of −1.0822, in summed positions like the −0.9167 it replaces.
+It decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives an annual return of −1.0822, in summed positions like the −0.9167 it replaces. Dividing each month by its positions turns that into −0.0113 a year in units of capital.
 
 ![An animated whiteboard sketch titled “Checking the wrong stock’s close”, drawn stroke by stroke. A row of five cells labelled “sorted by return” holds D, B, E, A and C. Below it a row labelled “column order” holds A, B, C, D and E, with a red cross under C labelled “no close”. Grey arrows join each upper cell to the cell beneath it, and a red arrow rises from C to E. A red ring circles E, labelled “E dropped: C has no close”, and a brown ring circles C in the upper row, labelled “C ranked anyway”. The words “each check reads the column, not the stock” close the sketch.](../docs/figures/equity_seasonals_rule_wrong_close.gif)
 

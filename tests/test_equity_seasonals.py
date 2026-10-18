@@ -454,6 +454,14 @@ class TestHestonSadkaFirstEdition:
         assert own.annual_return == pytest.approx(-1.0822171415504576, abs=1e-9)
         assert own.sharpe == pytest.approx(-0.12087260820688678, abs=1e-9)
 
+    def test_masking_by_own_close_in_units_of_capital(self, spx) -> None:
+        """-0.0113 a year once each month is divided by its positions, a figure
+        this repo derived and Chan did not print."""
+        own = replace(FIRST_EDITION_MATLAB, mask=Mask.OWN_CLOSE, per_position=True)
+        annual = heston_sadka(spx, own).annual_return
+        assert annual == pytest.approx(-0.011290362081074482, abs=1e-9)
+        assert format(annual, ".4f") == "-0.0113"
+
     def test_averaging_over_the_months_with_positions_moves_both(self, spx) -> None:
         held = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, dropped=13))
         assert held.annual_return == pytest.approx(-1.0491940146590437, abs=1e-9)
