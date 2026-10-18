@@ -3151,6 +3151,29 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+The post also carries two looping whiteboard sketches in its section on the two
+strategies, drawn by
+[src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `equity_seasonals_january_trade.gif`, Example 7.6's year of returns, its
+   ranking at the December 31 close, its January hold, and its bet that the
+   extremes come back.
+2. `equity_seasonals_same_month_trade.gif`, Example 7.7's ranking on one month
+   a year ago, its hold of the same month, and its bet that the month repeats.
+
+```bash
+uv run python -m chan.equity_seasonals_whiteboard
+```
+
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
+holds which tenth each sketch buys and shorts, which way each points its
+extremes, the timing each draws, that no label touches a line, and that each
+GIF follows its paragraph in the post. Both sketches are schematic, so no
+number in them is read from data. It compares each committed GIF with a fresh
+draw byte for byte only on macOS arm64 in Comic Sans MS, as the USD.CAD
+sketches' test does.
+
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
 Trading*. Chan trades the first day after an overnight earnings announcement
