@@ -64,9 +64,17 @@ Here is every printout of Example 7.6, at the precision each source prints, one 
 
 Its three printouts give two answers. The MATLAB and the R agree to every digit, and the revised Python differs. Three rules account for every figure.
 
-1. **How many stocks make a tenth, a choice in the MATLAB.** A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that to 58, so it buys the 58 worst and shorts the 58 best. Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
-2. **How many winners the revised Python shorts, a bug.** It slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
-3. **Whether the revised Python ranks a stock with no year-end close, a bug from a library default.** The revised Python fills a missing year-end close with the last one before it, as pandas did before version 3.0. So for 2007 it ranks PMC, which has no close at the end of 2006, on its last close before an 851-day gap in its prices. That reads the gap as a gain of 1.3056, or 130.56 percent, fourth best of 595, and the script holds PMC short. Without PMC, 594 stocks are ranked. A tenth of 595 rounds to 60 and a tenth of 594 to 59. Without the fill, January 2008 gives 0.090908. Dropping the fill and taking the full tenth together give the MATLAB’s 0.0881, so all three printouts match.
+#### Rule 1: how many stocks make a tenth, a choice in the MATLAB
+
+A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that to 58, so it buys the 58 worst and shorts the 58 best. Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
+
+#### Rule 2: how many winners the revised Python shorts, a bug
+
+It slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
+
+#### Rule 3: whether the revised Python ranks a stock with no year-end close, a bug from a library default
+
+The revised Python fills a missing year-end close with the last one before it, as pandas did before version 3.0. So for 2007 it ranks PMC, which has no close at the end of 2006, on its last close before an 851-day gap in its prices. That reads the gap as a gain of 1.3056, or 130.56 percent, fourth best of 595, and the script holds PMC short. Without PMC, 594 stocks are ranked. A tenth of 595 rounds to 60 and a tenth of 594 to 59. Without the fill, January 2008 gives 0.090908. Dropping the fill and taking the full tenth together give the MATLAB’s 0.0881, so all three printouts match.
 
 ### Example 7.7, Heston and Sadka
 
@@ -82,28 +90,54 @@ Here is every printout of Example 7.7, whose two figures are the average annual 
 \end{array}
 ```
 
-Rules 1 and 3 below come down to how the monthly returns are added up and averaged. In symbols, write rᵢ,ₜ for the return of position i in month t, signed so that a short gains when its stock falls, Nₜ for the number of positions that month, and S for the sum of the monthly figures.
+Its four printouts give four answers. Rules 1 to 4 are in the first edition’s MATLAB, and the rest name the revised script each belongs to. The three revised printouts differ in where a month ends, which stocks a month keeps, how a tenth is rounded and what the standard deviation divides by, so one strategy in three languages gives three answers.
+
+#### Rule 1: what the first edition’s annual return sums, a bug
+
+It adds up every position held each month and never divides by how many there were. Write rᵢ,ₜ for the return of position i in month t, signed so that a short gains when its stock falls, and Nₜ for the number of positions that month.
 
 ```math
 \begin{aligned}
 \text{first edition's month } t &= \sum_{i=1}^{N_t} r_{i,t} \\
-\text{revised month } t &= \frac{1}{N_t} \sum_{i=1}^{N_t} r_{i,t} \\[6pt]
-\text{mean over 83 months} &= \frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
+\text{revised month } t &= \frac{1}{N_t} \sum_{i=1}^{N_t} r_{i,t}
 \end{aligned}
 ```
 
-Its four printouts give four answers. Rules 1 to 4 are in the first edition’s MATLAB, and the rest name the revised script each belongs to.
+So −0.9167 is in units of summed positions, not a return on capital. Dividing each month by its positions puts the same script in units of capital, at −0.0105 a year, a figure computed here that Chan did not print. The three revised printouts divide.
 
-1. **What the first edition’s annual return sums, a bug.** It adds up every position held each month and never divides by how many there were. So −0.9167 is in units of summed positions, not a return on capital. Dividing each month by its positions puts the same script in units of capital, at −0.0105 a year, a figure computed here that Chan did not print. The three revised printouts divide.
-2. **Which close keeps a stock in the first edition’s ranking, a bug.** It decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives an annual return of −1.0822, in summed positions like the −0.9167 it replaces.
-3. **Which months the first edition’s mean runs over, a bug.** It averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the sum of the monthly returns, so dropping them leaves that sum unchanged and divides it by 83 instead of 95. The old mean is the sum divided by 95, so multiplying it by 95/83 cancels the 95 and leaves the sum divided by 83. In summed positions, −0.9167 × 95/83 = −1.0492. In units of capital, rule 1’s −0.0105 × 95/83 = −0.0120.
-4. **What the first edition’s standard deviation does with a missing month, a bug.** It counts the one month with no return as zero, while its mean skips that month. Skipping it gives a Sharpe ratio of −0.1049.
-5. **When a stock’s month ends and which stocks it keeps, two choices in the revised Python.** It reads each stock’s own last priced day in the month, and keeps a stock in the ranking on its own return. One shared month-end row for every stock gives an annual return of −0.012917. The revised MATLAB gives the same figure when it keeps a stock on its own return rather than its own close, so these two rules are what separate the two scripts.
-6. **How many stocks make a tenth, a choice in the revised R.** It rounds a tenth to the nearest whole number, and sends an exact half to the even neighbour, so 48.5 stocks becomes 48 and 47.5 becomes 48. On this file some months land on a half, so the half matters. Rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down, as the revised MATLAB and Python do, gives the revised MATLAB’s.
-7. **What the standard deviation divides by, a choice in all three revised scripts.** The revised Python divides by the number of months, n, and dividing by n − 1 gives a Sharpe ratio of −0.121508. The revised R divides by n − 1, and dividing by n gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by n and prints the −0.1243. The one from this book’s first edition divides by n − 1 and gives −0.1236.
-8. **How the revised MATLAB finds a month-end, a bug repaired rather than copied.** The listing on p. 179 cuts its prices down to month-end rows and then looks one up by a daily row number, which stops on the loop’s first pass. Reading the month-end row instead, with the second book’s `smartstd`, gives Chan’s figures. The R on p. 181 needs no repair. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) settles both points the pages leave open. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
+#### Rule 2: which close keeps a stock in the first edition’s ranking, a bug
 
-The three revised printouts differ in where a month ends, which stocks a month keeps, how a tenth is rounded and what the standard deviation divides by, so one strategy in three languages gives three answers.
+It decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives an annual return of −1.0822, in summed positions like the −0.9167 it replaces.
+
+#### Rule 3: which months the first edition’s mean runs over, a bug
+
+It averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the sum of the monthly returns, S, so dropping them leaves S unchanged and divides it by 83 instead of 95.
+
+```math
+\frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
+```
+
+Multiplying the old mean by 95/83 cancels its 95. In summed positions, −0.9167 × 95/83 = −1.0492. In units of capital, rule 1’s −0.0105 × 95/83 = −0.0120.
+
+#### Rule 4: what the first edition’s standard deviation does with a missing month, a bug
+
+It counts the one month with no return as zero, while its mean skips that month. Skipping it gives a Sharpe ratio of −0.1049.
+
+#### Rule 5: when a stock’s month ends and which stocks it keeps, two choices in the revised Python
+
+It reads each stock’s own last priced day in the month, and keeps a stock in the ranking on its own return. One shared month-end row for every stock gives an annual return of −0.012917. The revised MATLAB gives the same figure when it keeps a stock on its own return rather than its own close, so these two rules are what separate the two scripts.
+
+#### Rule 6: how many stocks make a tenth, a choice in the revised R
+
+It rounds a tenth to the nearest whole number, and sends an exact half to the even neighbour, so 48.5 stocks becomes 48 and 47.5 becomes 48. On this file some months land on a half, so the half matters. Rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down, as the revised MATLAB and Python do, gives the revised MATLAB’s.
+
+#### Rule 7: what the standard deviation divides by, a choice in all three revised scripts
+
+The revised Python divides by the number of months, n, and dividing by n − 1 gives a Sharpe ratio of −0.121508. The revised R divides by n − 1, and dividing by n gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by n and prints the −0.1243. The one from this book’s first edition divides by n − 1 and gives −0.1236.
+
+#### Rule 8: how the revised MATLAB finds a month-end, a bug repaired rather than copied
+
+The listing on p. 179 cuts its prices down to month-end rows and then looks one up by a daily row number, which stops on the loop’s first pass. Reading the month-end row instead, with the second book’s `smartstd`, gives Chan’s figures. The R on p. 181 needs no repair. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) settles both points the pages leave open. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
 
 ## Lesson 2: reproducing a strategy published as dead checks its figures, not its death
 
