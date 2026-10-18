@@ -1,11 +1,12 @@
-"""The pins for the four whiteboard GIFs in the equity-seasonals post.
+"""The pins for the eleven whiteboard GIFs in the equity-seasonals post.
 
-Two sketch the post's opening section and two its section "The two
-strategies". The opening's timeline places each source's years to scale, from
-Chan's committed files and the registered runs' constants, and its verdicts
-sketch draws the two registered runs' figures to scale. Those figures are
-pinned here as :data:`PINNED`, the values ``tests/test_equity_seasonals.py``
-pins, so every test but one runs without the owner's archive. The one,
+Two sketch the post's opening section, two its section "The two strategies",
+and seven the rules its first lesson lists, one rule each. The opening's
+timeline places each source's years to scale, from Chan's committed files and
+the registered runs' constants, and its verdicts sketch draws the two
+registered runs' figures to scale. Those figures are pinned here as
+:data:`PINNED`, the values ``tests/test_equity_seasonals.py`` pins, so every
+test but one runs without the owner's archive. The one,
 :class:`TestTheRunsGiveThePinnedVerdicts`, holds that the runs give them.
 
 The strategy sketches are schematic and read no data, so what is pinned for
@@ -23,6 +24,12 @@ them is what a reader takes from them.
    in the installed hand font and in the wider fallback.
 5. Each file's size, frame count, loop and timing, and that it sits in the
    post right after the paragraph it draws.
+
+The rule sketches print figures from :class:`RuleFigures`, whose defaults
+``tests/test_equity_seasonals.py`` derives from Chan's files. What is pinned
+here is that each label prints its figure, that the marks stand where the
+figures put them, and that other figures move both. Each rule sketch closes
+the rule it draws in the post.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -57,6 +64,7 @@ from chan.equity_seasonals_whiteboard import (
     TENTH,
     TIMELINE_X,
     YEAR,
+    RuleFigures,
     Spans,
     Verdicts,
     _at,
@@ -65,6 +73,7 @@ from chan.equity_seasonals_whiteboard import (
     main,
     make_equity_seasonals_whiteboards,
     opening_scenes,
+    rule_scenes,
     scenes,
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
@@ -87,8 +96,17 @@ POST = REPO_ROOT / "blog" / "equity-seasonals-lessons.md"
 TITLES = ["The January trade", "The same-month trade"]
 STRATEGY_GIFS = ["equity_seasonals_january_trade.gif", "equity_seasonals_same_month_trade.gif"]
 OPENING_GIFS = ["equity_seasonals_which_years.gif", "equity_seasonals_two_verdicts.gif"]
+RULE_GIFS = [
+    "equity_seasonals_rule_short_side.gif",
+    "equity_seasonals_rule_filled_close.gif",
+    "equity_seasonals_rule_sum_or_mean.gif",
+    "equity_seasonals_rule_wrong_close.gif",
+    "equity_seasonals_rule_empty_months.gif",
+    "equity_seasonals_rule_own_month_end.gif",
+    "equity_seasonals_rule_month_end_lookup.gif",
+]
 #: Every GIF in the order :func:`make_equity_seasonals_whiteboards` writes them.
-GIFS = OPENING_GIFS + STRATEGY_GIFS
+GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
 #: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``. The vintage
@@ -171,9 +189,14 @@ def opening(spans):
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn):
-    """All four scenes in the order their GIFs are written."""
-    return (*opening, *drawn)
+def rules():
+    return rule_scenes()
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules):
+    """All eleven scenes in the order their GIFs are written."""
+    return (*opening, *drawn, *rules)
 
 
 @pytest.fixture(scope="module")
@@ -365,7 +388,7 @@ class TestTheLabelsStayClearOfTheLines:
 
 
 class TestTheGifs:
-    def test_there_are_four_named_for_their_scenes(self, gifs) -> None:
+    def test_there_is_one_named_for_each_scene(self, gifs) -> None:
         assert [path.name for path in gifs] == GIFS
 
     def test_each_is_680_by_320_and_loops_forever(self, gifs, frames) -> None:
@@ -447,12 +470,42 @@ class TestThePost:
                 "**Example 7.6, the January effect.**",
                 "**Example 7.7, Heston and Sadka.**",
             ),
-            GIFS,
+            OPENING_GIFS + STRATEGY_GIFS,
             strict=True,
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
             embed = paragraphs[index + 1]
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
+
+    def test_each_rule_sketch_closes_the_rule_it_draws(self) -> None:
+        """Example 7.6's rules 2 and 3, then Example 7.7's rules 1, 2, 3, 5 and
+        8, each with its sketch as the last block before the next heading."""
+        text = POST.read_text(encoding="utf-8")
+        for (example, rule), name in zip(
+            (
+                ("### Example 7.6", "#### Rule 2:"),
+                ("### Example 7.6", "#### Rule 3:"),
+                ("### Example 7.7", "#### Rule 1:"),
+                ("### Example 7.7", "#### Rule 2:"),
+                ("### Example 7.7", "#### Rule 3:"),
+                ("### Example 7.7", "#### Rule 5:"),
+                ("### Example 7.7", "#### Rule 8:"),
+            ),
+            RULE_GIFS,
+            strict=True,
+        ):
+            start = text.index("\n" + rule, text.index("\n" + example))
+            end = re.compile(r"\n#{2,4} ").search(text, start + 1).start()
+            blocks = [b.strip() for b in text[start:end].split("\n\n") if b.strip()]
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", blocks[-1]
+            ), name
+            assert sum(name in b for b in blocks) == 1, name
+
+    def test_every_sketch_is_embedded_once(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for name in GIFS:
+            assert text.count(f"(../docs/figures/{name})") == 1, name
 
 
 class TestTheCommand:
@@ -485,7 +538,7 @@ class TestTheCommand:
             main()
         assert str(stopped.value) == f"equity_seasonals_two_verdicts.gif was not redrawn: {refusal}"
 
-    def test_without_the_archive_it_still_writes_the_other_three(
+    def test_without_the_archive_it_still_writes_the_other_ten(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -683,3 +736,170 @@ class TestTheTimeline:
         )
         bar = _stroke(opening_scenes(PINNED, moved)[0], "large-caps")
         assert bar.x[0] == pytest.approx(_year(pd.Timestamp("1995-01-02")))
+
+
+def _labels(scene) -> list[str]:
+    return scene.labels
+
+
+def _xs(scene, gid) -> np.ndarray:
+    return _stroke(scene, gid).x
+
+
+def _middle(scene, gid) -> float:
+    """The middle of the stroke's horizontal extent, the centre of a ring or a cross."""
+    x = _stroke(scene, gid).x
+    return float(x.min() + x.max()) / 2
+
+
+class TestTheRuleSketches:
+    """What each rule sketch says and where it puts its marks."""
+
+    def test_they_are_seven_in_the_order_the_post_reads_them(self, rules) -> None:
+        assert [gif_name(scene) for scene in rules] == RULE_GIFS
+
+    def test_each_prints_its_figures(self, rules) -> None:
+        short, filled, _, wrong, empty, _, lookup = rules
+        assert _labels(short) == [
+            "buy the 58 worst",
+            "short the 56 best",
+            "a tenth: 58",
+            "2 left out",
+            "the winners are sliced as topN − 2",
+            "January 2006, 579 stocks ranked",
+        ]
+        assert [s for s in _labels(filled) if not s.isdigit()] == [
+            "PMC",
+            "last close 6.02, carried across an 851-day gap",
+            "end of 2006",
+            "13.88",
+            "+130.56% read as 2007’s gain",
+            "4th best of 595: shorted",
+        ]
+        assert "E dropped: C has no close" in _labels(wrong)
+        assert _labels(empty) == [
+            "month 1: no return",
+            "12 months with no position, each a 0",
+            "83 months that hold positions",
+            "first edition: sum ÷ 95",
+            "revised: sum ÷ 83",
+        ]
+        assert _labels(lookup) == [
+            "96 month-end rows",
+            "row 1",
+            "row 96",
+            "row 237",
+            "the first pass asks for it and stops",
+            "the repair reads row m − 1, here 12",
+        ]
+
+    def test_other_figures_move_the_labels(self) -> None:
+        moved = RuleFigures(
+            ranked_2006=600,
+            longs_2006=60,
+            shorts_2006=57,
+            pmc_last_close=5.5,
+            pmc_gap_days=800,
+            pmc_2007_close=12.0,
+            pmc_gain=1.1818,
+            pmc_rank=3,
+            ranked_2007=590,
+            empty_months=11,
+            held_months=84,
+            month_end_rows=97,
+            first_pass_row=240,
+            repaired_row=11,
+        )
+        short, filled, _, _, empty, _, lookup = rule_scenes(moved)
+        assert "3 left out" in _labels(short) and "January 2006, 600 stocks ranked" in _labels(
+            short
+        )
+        assert "3rd best of 590: shorted" in _labels(filled)
+        assert "+118.18% read as 2007’s gain" in _labels(filled)
+        assert "last close 5.50, carried across an 800-day gap" in _labels(filled)
+        assert "first edition: sum ÷ 95" in _labels(empty)
+        assert "revised: sum ÷ 84" in _labels(empty)
+        assert "the repair reads row m − 1, here 11" in _labels(lookup)
+        assert "row 240" in _labels(lookup) and "97 month-end rows" in _labels(lookup)
+
+    def test_the_two_sides_are_to_scale_and_the_long_side_reaches_a_tenth(self, rules) -> None:
+        short = rules[0]
+        drawn = RuleFigures()
+        long_bar, short_bar = _stroke(short, "long"), _stroke(short, "short")
+        lengths = np.ptp(long_bar.x), np.ptp(short_bar.x)
+        assert lengths[0] / lengths[1] == pytest.approx(drawn.longs_2006 / drawn.shorts_2006)
+        assert _xs(short, "tenth").min() == pytest.approx(long_bar.x.max())
+        gap = _stroke(short, "missing")
+        assert (gap.x.min(), gap.x.max()) == pytest.approx((short_bar.x.max(), long_bar.x.max()))
+
+    def test_pmcs_close_is_carried_flat_to_the_end_of_2006_and_rises_to_2007s(self, rules) -> None:
+        filled = rules[1]
+        drawn = RuleFigures()
+        carried = _stroke(filled, "carried")
+        assert np.ptp(carried.y) == pytest.approx(0.0)
+        assert carried.y[0] == pytest.approx(sketches._pmc_y(drawn.pmc_last_close))
+        start, end = _stroke(filled, "end-2006"), _stroke(filled, "end-2007")
+        assert start.x[0] == pytest.approx(sketches._pmc_x(2007.0))
+        assert carried.x.max() == pytest.approx(start.x[0])
+        assert start.y[0] == pytest.approx(sketches._pmc_y(drawn.pmc_last_close))
+        assert end.y[0] == pytest.approx(sketches._pmc_y(drawn.pmc_2007_close))
+        assert sketches._pmc_x(2007.5) < end.x[0] < sketches._pmc_x(2008.0)
+        after = _stroke(filled, "after")
+        assert end.y[0] in after.y and end.x[0] in after.x
+
+    def test_the_sum_is_n_times_the_average(self, rules) -> None:
+        bars = rules[2]
+        total = np.ptp(_stroke(bars, "sum").y)
+        mean = np.ptp(_stroke(bars, "mean").y)
+        assert total == pytest.approx(len(sketches.POSITION_RETURNS) * mean)
+        assert sum(sketches.POSITION_RETURNS) < 0
+
+    def test_the_check_pairs_columns_and_rings_the_wrong_stock(self, rules) -> None:
+        wrong = rules[3]
+        hole = sketches.COLUMNS.index(sketches.NO_CLOSE)
+        for k in range(len(sketches.COLUMNS)):
+            arrow = _stroke(wrong, f"pair-{k}")
+            assert arrow.x[0] == pytest.approx(sketches._card(k))
+            assert arrow.color == (LOST if k == hole else whiteboard.MUTED)
+        assert _middle(wrong, "dropped") == pytest.approx(sketches._card(hole), abs=0.01)
+        assert sketches.SORTED[hole] != sketches.NO_CLOSE
+        kept_at = sketches.SORTED.index(sketches.NO_CLOSE)
+        assert _middle(wrong, "kept") == pytest.approx(sketches._card(kept_at), abs=0.01)
+        assert _middle(wrong, "no-close") == pytest.approx(sketches._card(hole), abs=0.01)
+
+    def test_the_months_are_counted_and_each_bracket_spans_its_mean(self, rules) -> None:
+        empty = rules[4]
+        drawn = RuleFigures()
+        months = 1 + drawn.empty_months + drawn.held_months
+        assert _stroke(empty, "empty").points == drawn.empty_months
+        assert _stroke(empty, "held").points == drawn.held_months
+        assert _middle(empty, "missing") == pytest.approx(sketches._month(1, months), abs=0.01)
+        first, revised = _stroke(empty, "first"), _stroke(empty, "revised")
+        assert (first.x.min(), first.x.max()) == pytest.approx(
+            (sketches._month(2, months), sketches._month(months, months))
+        )
+        assert (revised.x.min(), revised.x.max()) == pytest.approx(
+            (sketches._month(2 + drawn.empty_months, months), sketches._month(months, months))
+        )
+        assert revised.x.min() == pytest.approx(_stroke(empty, "held").x.min())
+
+    def test_b_is_read_on_its_own_last_day_and_missing_on_the_shared_row(self, rules) -> None:
+        own = rules[5]
+        shared = next(step for step in own.fills if step.gid == "shared")
+        last = sketches.DAYS_X[-1]
+        assert shared.x0 < last < shared.x1
+        assert _stroke(own, "a").points == len(sketches.DAYS_X)
+        b = _stroke(own, "b")
+        assert b.x.max() < shared.x0
+        assert _middle(own, "b-own") == pytest.approx(b.x.max(), abs=0.01)
+        assert _middle(own, "b-missing") == pytest.approx(last, abs=0.01)
+
+    def test_the_lookup_runs_past_the_rows_and_the_repair_reads_a_row(self, rules) -> None:
+        lookup = rules[6]
+        drawn = RuleFigures()
+        x0, x1, _ = sketches.ROWS
+        assert _stroke(lookup, "past").x.min() == pytest.approx(x1)
+        assert _middle(lookup, "asks") > x1
+        width = (x1 - x0) / sketches.ROW_CELLS
+        repair = _stroke(lookup, "repair")
+        assert repair.x[0] == pytest.approx(x0 + (drawn.repaired_row - 0.5) * width)

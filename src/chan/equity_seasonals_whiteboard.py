@@ -1,10 +1,11 @@
-"""Whiteboard sketches for the equity-seasonals post: its opening and its two strategies.
+"""Whiteboard sketches for the equity-seasonals post: its opening, its two strategies and its rules.
 
 ``blog/equity-seasonals-lessons.md`` opens on why a strategy published as dead
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
-and Example 7.7. This module draws four scenes, and the post places each
-right after the text it draws.
+and Example 7.7, and its first lesson lists the rules behind each printout.
+This module draws eleven scenes, and the post places each right after the
+text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
    behind Heston and Sadka's 13 percent ending at the start of 2002, where
@@ -26,6 +27,26 @@ right after the text it draws.
    again and the losers down. That is Example 7.7's bet that a month repeats,
    a seasonal momentum trade.
 
+The other seven each draw one rule, in the order the post lists them:
+
+1. Example 7.6's rule 2, the revised Python's winners sliced two short of a
+   tenth, as two bars to scale.
+2. Example 7.6's rule 3, PMC's last close carried across its gap to the end
+   of 2006 and read as a gain for 2007.
+3. Example 7.7's rule 1, one month's positions added up against averaged.
+4. Example 7.7's rule 2, each stock in the sorted row checked against the
+   close in the same column of the unsorted one.
+5. Example 7.7's rule 3, the 96 months as dots, with the 95 and the 83 each
+   mean divides by.
+6. Example 7.7's rule 5, a shared month-end row against each stock's own last
+   priced day.
+7. Example 7.7's rule 8, the first pass asking the month-end rows for a daily
+   row past their end, and the row the repair reads.
+
+Their figures come from :class:`RuleFigures`, which
+``tests/test_equity_seasonals.py`` derives from Chan's two files. The scenes
+for rules 1, 2 and 5 of Example 7.7 are schematic and carry no figure.
+
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
 the two ringed at each end stand for a tenth. March is an example month, and
@@ -46,9 +67,9 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all four with the command below. Only
-the verdicts sketch reads the archive, so on a machine without it the command
-redraws the other three and exits non-zero naming the one it left::
+with no change is a no-op diff. Redraw all eleven with the command below.
+Only the verdicts sketch reads the archive, so on a machine without it the
+command redraws the other ten and exits non-zero naming the one it left::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -253,6 +274,581 @@ def _same_month_trade() -> Scene:
 def scenes() -> tuple[Scene, ...]:
     """The two strategy scenes in the order the post reads them."""
     return (_january_trade(), _same_month_trade())
+
+
+@dataclass(frozen=True)
+class RuleFigures:
+    """The figures the seven rule sketches print, all from Chan's two files.
+
+    ``tests/test_equity_seasonals.py`` derives each one from the files in
+    ``TestTheRuleSketchesFigures``, so a default here that drifts from the
+    data fails there rather than reaching a GIF.
+    """
+
+    #: January 2006 under the revised Python: stocks ranked, losers bought
+    #: and winners shorted, the winners sliced as ``topN - 2``.
+    ranked_2006: int = 579
+    longs_2006: int = 58
+    shorts_2006: int = 56
+    #: PMC in the S&P 600 file: its last close before its gap, the trading
+    #: days the gap runs, its close at the end of 2007, the gain the fill
+    #: reads for 2007, where that gain ranks and of how many.
+    pmc_last_close: float = 6.02
+    pmc_gap_days: int = 851
+    pmc_2007_close: float = 13.88
+    pmc_gain: float = 1.3056478405315617
+    pmc_rank: int = 4
+    ranked_2007: int = 595
+    #: Example 7.7's months in the S&P 500 file: the first with no return,
+    #: then the months with no position and the months that hold positions.
+    empty_months: int = 12
+    held_months: int = 83
+    #: The revised MATLAB's month-end rows, and the daily row its first pass
+    #: asks for, ``monthEnds(12)``, where the repair reads row 12.
+    month_end_rows: int = 96
+    first_pass_row: int = 237
+    repaired_row: int = 12
+
+    @property
+    def first_edition_months(self) -> int:
+        """The months the first edition's mean runs over, every one with a return."""
+        return self.empty_months + self.held_months
+
+
+def _cross(x: float, y: float, r: float = 0.14) -> tuple:
+    """An X centred on (x, y), drawn as one stroke."""
+    return _line(
+        [(x - r, y - r), (x + r, y + r), (x, y), (x - r, y + r), (x + r, y - r)], per_unit=10
+    )
+
+
+def _circle(x: float, y: float, r: float) -> tuple:
+    angle = np.linspace(0.0, 2 * math.pi, 30)
+    return x + r * np.cos(angle), y + r * np.sin(angle)
+
+
+def _ordinal(n: int) -> str:
+    suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+#: The short-side scene's bars: where both start, and the width of one stock.
+SIDES_X, STOCK_WIDTH = 0.9, 0.11
+LONG_Y, SHORT_Y = 3.0, 2.0
+
+
+def _short_side(f: RuleFigures) -> Scene:
+    """Example 7.6's rule 2: the winners sliced two short of a tenth."""
+    long_end = SIDES_X + f.longs_2006 * STOCK_WIDTH
+    short_end = SIDES_X + f.shorts_2006 * STOCK_WIDTH
+    return Scene(
+        "Two fewer winners shorted",
+        "rule_short_side",
+        (
+            _stroke("long", _span(SIDES_X, long_end, LONG_Y), color=GOOD, width=4.0, frames=8),
+            Label(f"buy the {f.longs_2006} worst", SIDES_X, 3.5, names="long", color=GOOD, size=12),
+            _stroke("short", _span(SIDES_X, short_end, SHORT_Y), color=LOST, width=4.0, frames=8),
+            Label(
+                f"short the {f.shorts_2006} best", SIDES_X, 2.5, names="short", color=LOST, size=12
+            ),
+            _stroke(
+                "tenth",
+                _line([(long_end, 3.35), (long_end, 1.6)]),
+                color=ACCENT,
+                dashed=True,
+                frames=4,
+            ),
+            Label(
+                f"a tenth: {f.longs_2006}",
+                long_end + 0.22,
+                3.5,
+                names="tenth",
+                color=ACCENT,
+                size=12,
+            ),
+            _stroke(
+                "missing",
+                _line([(short_end, SHORT_Y), (long_end, SHORT_Y)]),
+                color=MUTED,
+                dashed=True,
+                frames=2,
+            ),
+            Label(
+                f"{f.longs_2006 - f.shorts_2006} left out",
+                long_end + 0.22,
+                SHORT_Y,
+                names="missing",
+                color=MUTED,
+                size=12,
+            ),
+            Label("the winners are sliced as topN − 2", SIDES_X, 1.0, names="missing", size=13),
+            Label(
+                f"January 2006, {f.ranked_2006} stocks ranked",
+                SIDES_X,
+                0.45,
+                names="missing",
+                color=MUTED,
+                size=11,
+            ),
+        ),
+    )
+
+
+#: The filled-close scene's years along the board, and its price scale.
+PMC_X = (0.8, 8.4)
+PMC_YEARS = (2004.0, 2008.1)
+PMC_AXIS_Y = 0.65
+PMC_PRICE = (6.0, 1.5, 0.22)
+
+
+def _pmc_x(year: float) -> float:
+    (x0, x1), (first, last) = PMC_X, PMC_YEARS
+    return x0 + (x1 - x0) * (year - first) / (last - first)
+
+
+def _pmc_y(price: float) -> float:
+    base, y0, per = PMC_PRICE
+    return y0 + (price - base) * per
+
+
+def _filled_close(f: RuleFigures) -> Scene:
+    """Example 7.6's rule 3: PMC's last close carried across its gap to 2006's year-end.
+
+    The two short stretches of price either side of the gap are schematic. The
+    carried close, the close at the end of 2007 and the years are PMC's.
+    """
+    ticks = []
+    for year in range(2004, 2009):
+        ticks += [(_pmc_x(year), PMC_AXIS_Y), (_pmc_x(year), PMC_AXIS_Y - 0.1)]
+        ticks.append((_pmc_x(year), PMC_AXIS_Y))
+    early_t = np.linspace(2004.04, 2004.2, 12)
+    early = f.pmc_last_close + 0.25 * np.sin(np.linspace(0, 5, 12)) * np.linspace(1, 0, 12)
+    late_t = np.linspace(2007.58, 2008.08, 20)
+    late = f.pmc_2007_close + 0.7 + 0.5 * np.sin(np.linspace(0, 7, 20))
+    late[-6] = f.pmc_2007_close
+    end_2006, end_2007 = _pmc_x(2007.0), _pmc_x(late_t[-6])
+    carried, closed = _pmc_y(f.pmc_last_close), _pmc_y(f.pmc_2007_close)
+    axis = [(_pmc_x(PMC_YEARS[0]), PMC_AXIS_Y), (_pmc_x(PMC_YEARS[1]), PMC_AXIS_Y)]
+    return Scene(
+        "PMC’s filled close",
+        "rule_filled_close",
+        (
+            _stroke("axis", _line(axis + ticks), color=MUTED, frames=6),
+            *[
+                Label(
+                    str(year), _pmc_x(year), 0.22, names="axis", color=MUTED, ha="center", size=11
+                )
+                for year in range(2004, 2009)
+            ],
+            Stroke("before", np.array([_pmc_x(t) for t in early_t]), _pmc_y(early), frames=4),
+            Label("PMC", _pmc_x(2004.0), 1.12, names="before", size=12),
+            _stroke(
+                "carried",
+                _line([(_pmc_x(2004.2), carried), (end_2006, carried)]),
+                color=MUTED,
+                dashed=True,
+                frames=8,
+            ),
+            Label(
+                f"last close {f.pmc_last_close:.2f}, carried across an {f.pmc_gap_days}-day gap",
+                _pmc_x(2004.0),
+                2.0,
+                names="carried",
+                color=MUTED,
+                size=11,
+            ),
+            _dot("end-2006", end_2006, carried),
+            Label(
+                "end of 2006",
+                end_2006 - 0.25,
+                1.12,
+                names="end-2006",
+                color=ACCENT,
+                ha="right",
+                size=11,
+            ),
+            Stroke("after", np.array([_pmc_x(t) for t in late_t]), _pmc_y(late), frames=5),
+            _dot("end-2007", end_2007, closed),
+            Label(
+                f"{f.pmc_2007_close:.2f}",
+                end_2007 + 0.25,
+                closed - 0.27,
+                names="end-2007",
+                color=ACCENT,
+                size=11,
+            ),
+            _stroke(
+                "gain",
+                _arrow(end_2006 + 0.1, carried + 0.1, end_2007 - 0.12, closed - 0.08),
+                color=LOST,
+                frames=5,
+            ),
+            Label(
+                f"+{f.pmc_gain:.2%} read as 2007’s gain",
+                3.0,
+                3.35,
+                names="gain",
+                color=LOST,
+                size=12,
+            ),
+            Label(
+                f"{_ordinal(f.pmc_rank)} best of {f.ranked_2007}: shorted",
+                3.0,
+                2.85,
+                names="gain",
+                color=LOST,
+                size=12,
+            ),
+        ),
+    )
+
+
+#: One schematic month's returns on its positions, and the line they hang from.
+POSITION_RETURNS = (0.35, -0.45, 0.1, -0.5, 0.25, -0.4, -0.2, -0.35)
+SUM_BASE = 2.5
+SUM_X, MEAN_X = 6.1, 8.6
+
+
+def _bars(x0: float, step: float) -> tuple:
+    """Each return as a bar from :data:`SUM_BASE`, joined along it, as one stroke."""
+    points = []
+    for k, r in enumerate(POSITION_RETURNS):
+        x = x0 + k * step
+        points += [(x, SUM_BASE), (x, SUM_BASE + r), (x, SUM_BASE)]
+        if k + 1 < len(POSITION_RETURNS):
+            points.append((x + step, SUM_BASE))
+    return _line(points, per_unit=10)
+
+
+def _sum_or_mean() -> Scene:
+    """Example 7.7's rule 1: one month's positions added up, or averaged."""
+    total = sum(POSITION_RETURNS)
+    mean = total / len(POSITION_RETURNS)
+    return Scene(
+        "Add up, or average",
+        "rule_sum_or_mean",
+        (
+            _stroke("bars", _bars(0.8, 0.33), frames=10, width=3.0),
+            Label("one month’s N positions", 0.6, 3.35, names="bars", size=12),
+            _stroke("to-sum", _arrow(3.4, SUM_BASE, 5.5, SUM_BASE), color=MUTED, frames=4),
+            Label("first edition: add them up", SUM_X, 3.35, names="to-sum", ha="center", size=12),
+            _stroke(
+                "sum", _line([(SUM_X, SUM_BASE), (SUM_X, SUM_BASE + total)]), width=8.0, frames=5
+            ),
+            Label("summed positions", SUM_X, 0.85, names="sum", ha="center", size=12),
+            _stroke(
+                "mean",
+                _line([(MEAN_X, SUM_BASE), (MEAN_X, SUM_BASE + mean)]),
+                color=ACCENT,
+                width=8.0,
+                frames=1,
+            ),
+            Label("revised: ÷ N", MEAN_X, 3.35, names="mean", color=ACCENT, ha="center", size=12),
+            Label("capital", MEAN_X, 0.85, names="mean", color=ACCENT, ha="center", size=12),
+            _stroke(
+                "zero",
+                _line([(SUM_X - 0.4, SUM_BASE), (MEAN_X + 0.4, SUM_BASE)]),
+                color=MUTED,
+                frames=3,
+            ),
+            Label("each month is N times too big", 5.0, 0.35, names="zero", color=MUTED, size=11),
+        ),
+    )
+
+
+#: The wrong-close scene's two rows of five stocks: the first sorted by
+#: return, the second in column order, with C the stock that has no close.
+CARDS = (2.4, 6.4)
+SORTED_Y, COLUMNS_Y = 3.1, 1.6
+SORTED, COLUMNS = "DBEAC", "ABCDE"
+NO_CLOSE = "C"
+
+
+def _card(k: int) -> float:
+    return CARDS[0] + (k + 0.5) * (CARDS[1] - CARDS[0]) / len(COLUMNS)
+
+
+def _wrong_close() -> Scene:
+    """Example 7.7's rule 2: each sorted position checked against the close in its column."""
+    hole = COLUMNS.index(NO_CLOSE)
+    pairs = [
+        _stroke(
+            f"pair-{k}",
+            _arrow(_card(k), SORTED_Y - 0.42, _card(k), COLUMNS_Y + 0.42),
+            color=MUTED,
+            frames=2,
+        )
+        for k in range(len(COLUMNS))
+        if k != hole
+    ]
+    one = np.array([SORTED_Y])
+    return Scene(
+        "Checking the wrong stock’s close",
+        "rule_wrong_close",
+        (
+            _stroke("sorted", _cells(*CARDS, SORTED_Y, months=5, half=0.36), frames=8),
+            Label(
+                "sorted by return", CARDS[0] - 0.2, SORTED_Y, names="sorted", ha="right", size=12
+            ),
+            *[
+                Label(s, _card(k), SORTED_Y, names="sorted", ha="center", size=14)
+                for k, s in enumerate(SORTED)
+            ],
+            _stroke("columns", _cells(*CARDS, COLUMNS_Y, months=5, half=0.36), frames=8),
+            Label("column order", CARDS[0] - 0.2, COLUMNS_Y, names="columns", ha="right", size=12),
+            *[
+                Label(s, _card(k), COLUMNS_Y, names="columns", ha="center", size=14)
+                for k, s in enumerate(COLUMNS)
+            ],
+            _stroke(
+                "no-close",
+                _cross(_card(hole), COLUMNS_Y - 0.66, r=0.1),
+                color=LOST,
+                frames=2,
+            ),
+            Label(
+                "no close",
+                _card(hole) + 0.3,
+                COLUMNS_Y - 0.66,
+                names="no-close",
+                color=LOST,
+                size=11,
+            ),
+            *pairs,
+            _stroke(
+                f"pair-{hole}",
+                _arrow(_card(hole), COLUMNS_Y + 0.42, _card(hole), SORTED_Y - 0.42),
+                color=LOST,
+                frames=3,
+            ),
+            _stroke("dropped", _ring(np.array([_card(hole)]), one, pad=0.4), color=LOST, frames=4),
+            Label(
+                f"{SORTED[hole]} dropped: {NO_CLOSE} has no close",
+                CARDS[1] + 0.3,
+                3.1,
+                names="dropped",
+                color=LOST,
+                size=12,
+            ),
+            _stroke(
+                "kept",
+                _ring(np.array([_card(SORTED.index(NO_CLOSE))]), one, pad=0.4),
+                color=ACCENT,
+                frames=4,
+            ),
+            Label(
+                f"{NO_CLOSE} ranked anyway",
+                CARDS[1] + 0.3,
+                2.6,
+                names="kept",
+                color=ACCENT,
+                size=12,
+            ),
+            Label(
+                "each check reads the column, not the stock",
+                CARDS[0],
+                0.3,
+                names="kept",
+                color=MUTED,
+                size=11,
+            ),
+        ),
+    )
+
+
+#: The empty-months scene's strip of months, from the first to the last.
+MONTHS_X = (0.7, 9.3)
+MONTHS_Y = 2.75
+
+
+def _month(k: int, months: int) -> float:
+    """Month ``k`` of ``months``, counting from 1, along the strip."""
+    return MONTHS_X[0] + (MONTHS_X[1] - MONTHS_X[0]) * (k - 1) / (months - 1)
+
+
+def _empty_months(f: RuleFigures) -> Scene:
+    """Example 7.7's rule 3: the months each mean divides by."""
+    months = 1 + f.empty_months + f.held_months
+    first_held = 2 + f.empty_months
+    empty = np.array([_month(k, months) for k in range(2, first_held)])
+    held = np.array([_month(k, months) for k in range(first_held, months + 1)])
+    return Scene(
+        "Which months the mean counts",
+        "rule_empty_months",
+        (
+            _stroke("missing", _circle(_month(1, months), MONTHS_Y, 0.06), color=MUTED, width=1.4),
+            Label("month 1: no return", 0.6, 2.38, names="missing", color=MUTED, size=10),
+            Stroke("empty", empty, np.full(len(empty), MONTHS_Y), color=MUTED, frames=4, dots=4.0),
+            Label(
+                f"{f.empty_months} months with no position, each a 0",
+                0.6,
+                3.35,
+                names="empty",
+                color=MUTED,
+                size=11,
+            ),
+            Stroke("held", held, np.full(len(held), MONTHS_Y), frames=10, dots=4.0),
+            Label(
+                f"{f.held_months} months that hold positions",
+                MONTHS_X[1],
+                3.35,
+                names="held",
+                ha="right",
+                size=11,
+            ),
+            _stroke("first", _span(_month(2, months), _month(months, months), 1.9), frames=8),
+            Label(
+                f"first edition: sum ÷ {f.first_edition_months}",
+                5.0,
+                1.5,
+                names="first",
+                ha="center",
+                size=12,
+            ),
+            _stroke(
+                "revised",
+                _span(_month(first_held, months), _month(months, months), 0.9),
+                color=ACCENT,
+                frames=8,
+            ),
+            Label(
+                f"revised: sum ÷ {f.held_months}",
+                5.6,
+                0.5,
+                names="revised",
+                color=ACCENT,
+                ha="center",
+                size=12,
+            ),
+        ),
+    )
+
+
+#: The own-month-end scene's last five trading days, and its two stocks' rows.
+DAYS_X = (2.4, 3.5, 4.6, 5.7, 6.8)
+A_Y, B_Y = 2.75, 1.75
+#: How many of those days stock B has a price on.
+B_PRICED = 3
+
+
+def _own_month_end() -> Scene:
+    """Example 7.7's rule 5: the shared month-end row against each stock's own last day."""
+    last = DAYS_X[-1]
+    own = DAYS_X[B_PRICED - 1]
+    return Scene(
+        "Where a month ends",
+        "rule_own_month_end",
+        (
+            Fill("shared", last - 0.3, 1.25, last + 0.3, 3.2, TINT),
+            Label("shared month-end row", last, 3.6, names="shared", ha="center", size=12),
+            Stroke("a", np.array(DAYS_X), np.full(len(DAYS_X), A_Y), frames=4, dots=8.0),
+            Label("stock A", DAYS_X[0] - 0.4, A_Y, names="a", ha="right", size=12),
+            Stroke("b", np.array(DAYS_X[:B_PRICED]), np.full(B_PRICED, B_Y), frames=2, dots=8.0),
+            Label("stock B", DAYS_X[0] - 0.4, B_Y, names="b", ha="right", size=12),
+            _stroke("b-missing", _cross(last, B_Y), color=LOST, frames=2),
+            Label("missing", last + 0.45, B_Y, names="b-missing", color=LOST, size=12),
+            _stroke(
+                "b-own", _ring(np.array([own]), np.array([B_Y]), pad=0.25), color=GOOD, frames=4
+            ),
+            Label(
+                "B’s own last priced day, which the revised Python reads",
+                DAYS_X[0] - 1.5,
+                0.85,
+                names="b-own",
+                color=GOOD,
+                size=12,
+            ),
+            Label(
+                "the month’s last five trading days",
+                DAYS_X[0] - 1.5,
+                0.35,
+                names="b-own",
+                color=MUTED,
+                size=11,
+            ),
+        ),
+    )
+
+
+#: The lookup scene's strip, which stands for the month-end rows, and its cells.
+ROWS = (0.8, 6.2, 2.7)
+ROW_CELLS = 16
+ASKED_X = 8.6
+
+
+def _month_end_lookup(f: RuleFigures) -> Scene:
+    """Example 7.7's rule 8: the first pass asks the month-end rows for a daily row."""
+    x0, x1, y = ROWS
+    repaired = x0 + (f.repaired_row - 0.5) * (x1 - x0) / ROW_CELLS
+    return Scene(
+        "A lookup past the end",
+        "rule_month_end_lookup",
+        (
+            _stroke("rows", _cells(x0, x1, y, months=ROW_CELLS, half=0.22), frames=8),
+            Label(
+                f"{f.month_end_rows} month-end rows",
+                (x0 + x1) / 2,
+                3.3,
+                names="rows",
+                ha="center",
+                size=12,
+            ),
+            Label("row 1", x0, y - 0.56, names="rows", color=MUTED, ha="center", size=11),
+            Label(
+                f"row {f.month_end_rows}",
+                x1,
+                y - 0.56,
+                names="rows",
+                color=MUTED,
+                ha="center",
+                size=11,
+            ),
+            _stroke("past", _line([(x1, y), (ASKED_X, y)]), color=MUTED, dashed=True, frames=5),
+            _stroke("asks", _cross(ASKED_X, y), color=LOST, frames=2),
+            Label(
+                f"row {f.first_pass_row}",
+                ASKED_X,
+                3.3,
+                names="asks",
+                color=LOST,
+                ha="center",
+                size=12,
+            ),
+            Label(
+                "the first pass asks for it and stops",
+                9.6,
+                1.75,
+                names="asks",
+                color=LOST,
+                ha="right",
+                size=12,
+            ),
+            _stroke("repair", _arrow(repaired, 1.05, repaired, y - 0.3), color=GOOD, frames=4),
+            Label(
+                f"the repair reads row m − 1, here {f.repaired_row}",
+                repaired + 0.2,
+                0.75,
+                names="repair",
+                color=GOOD,
+                size=12,
+            ),
+        ),
+    )
+
+
+def rule_scenes(figures: RuleFigures | None = None) -> tuple[Scene, ...]:
+    """The seven rule scenes in the order the post reads them: Example 7.6's
+    rules 2 and 3, then Example 7.7's rules 1, 2, 3, 5 and 8."""
+    f = figures if figures is not None else RuleFigures()
+    return (
+        _short_side(f),
+        _filled_close(f),
+        _sum_or_mean(),
+        _wrong_close(),
+        _empty_months(f),
+        _own_month_end(),
+        _month_end_lookup(f),
+    )
 
 
 @dataclass(frozen=True)
@@ -618,24 +1214,25 @@ def make_equity_seasonals_whiteboards(
     spans: Spans | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
-    opening's two first, then the two strategies'.
+    opening's two first, then the two strategies', then the seven rules'.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
     archive, about twenty seconds. Every GIF but the verdicts sketch is
     written before that read, so a refused or missing archive leaves the
-    other three redrawn and raises from the read.
+    other ten redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
     paths = [_write(_which_years(spans), folder)]
     strategies = [_write(scene, folder) for scene in scenes()]
+    rules = [_write(scene, folder) for scene in rule_scenes()]
     if verdicts is None:
         verdicts = Verdicts.from_runs(
             seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
         )
     paths.append(_write(_two_verdicts(verdicts), folder))
-    return paths + strategies
+    return paths + strategies + rules
 
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -654,7 +1251,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other three GIFs are already written. The one left stale is
+        # The other ten GIFs are already written. The one left stale is
         # named, and the exit is non-zero, so a redraw on a machine without
         # the archive does not read as a full one.
         raise SystemExit(f"{GIF_PREFIX}two_verdicts.gif was not redrawn: {refused}") from refused

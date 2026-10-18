@@ -2578,7 +2578,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's four GIFs are checked the same way by
+equity seasonals post's eleven GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3159,7 +3159,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries four looping whiteboard sketches, drawn by
+The post also carries eleven looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3178,21 +3178,42 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    extremes come back.
 4. `equity_seasonals_same_month_trade.gif`, Example 7.7's ranking on one month
    a year ago, its hold of the same month, and its bet that the month repeats.
+5. `equity_seasonals_rule_short_side.gif`, Example 7.6's rule 2, the 58 losers
+   bought against the 56 winners shorted in January 2006, as bars to scale.
+6. `equity_seasonals_rule_filled_close.gif`, Example 7.6's rule 3, PMC's last
+   close carried across its 851-day gap and read as a gain of 130.56 percent
+   for 2007.
+7. `equity_seasonals_rule_sum_or_mean.gif`, Example 7.7's rule 1, one month's
+   positions added up against averaged.
+8. `equity_seasonals_rule_wrong_close.gif`, Example 7.7's rule 2, each stock in
+   the sorted row checked against the close in the same column of the
+   unsorted one.
+9. `equity_seasonals_rule_empty_months.gif`, Example 7.7's rule 3, the 96
+   months and the 95 and 83 each mean divides by.
+10. `equity_seasonals_rule_own_month_end.gif`, Example 7.7's rule 5, a shared
+    month-end row against each stock's own last priced day.
+11. `equity_seasonals_rule_month_end_lookup.gif`, Example 7.7's rule 8, the
+    first pass asking the 96 month-end rows for row 237, and the row the
+    repair reads.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
 Only the verdicts sketch reads the owner's archive. On a machine without it
-the command redraws the other three and exits non-zero, naming the one it
+the command redraws the other ten and exits non-zero, naming the one it
 left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
 its extremes, the timing each draws, that the opening sketches place every
 figure and date to scale and refuse figures their words would misdescribe,
+that each rule sketch prints its figures and puts its marks where they say,
 that no label touches a line, another label or the frame's edge, and that each
-GIF follows its text in the post. It draws the verdicts from the pinned
+GIF follows its text in the post. The rule sketches' figures are defaults in
+`RuleFigures`, and `TestTheRuleSketchesFigures` in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
+one from Chan's files. It draws the verdicts from the pinned
 figures, so it runs without the archive, and a test in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) holds that
 the two registered runs give those figures where the archive is. The test

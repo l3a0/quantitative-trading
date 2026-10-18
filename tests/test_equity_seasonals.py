@@ -3171,3 +3171,57 @@ def test_the_whiteboard_draws_these_runs_verdicts(point_in_time, monthly) -> Non
         assert getattr(drawn, field) == pytest.approx(getattr(PINNED, field), abs=1e-9), field
     for field in ("january_low_rejects", "january_high_rejects", "monthly_rejects"):
         assert getattr(drawn, field) is getattr(PINNED, field), field
+
+
+class TestTheRuleSketchesFigures:
+    """Every figure the seven rule sketches print, derived from Chan's two files.
+
+    ``RuleFigures`` in ``chan.equity_seasonals_whiteboard`` holds them as
+    defaults so the sketches draw without loading a panel. These tests hold
+    that the defaults are what the files give.
+    """
+
+    def test_january_2006_under_the_revised_python(self, ijr) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        first = january_effect(ijr, PYTHON_JANUARY).trades[0]
+        drawn = RuleFigures()
+        assert (first.ranked, first.longs, first.shorts) == (
+            drawn.ranked_2006,
+            drawn.longs_2006,
+            drawn.shorts_2006,
+        )
+
+    def test_pmcs_gap_and_the_gain_the_fill_reads(self, ijr) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        drawn = RuleFigures()
+        pmc = ijr["PMC"]
+        priced = np.flatnonzero(pmc.notna().to_numpy())
+        assert int(np.diff(priced).max()) - 1 == drawn.pmc_gap_days
+        filled = ijr.resample("YE").last().iloc[:-1].ffill()
+        assert filled["PMC"].iloc[-2] == drawn.pmc_last_close
+        assert filled["PMC"].iloc[-1] == drawn.pmc_2007_close
+        gain = (filled.iloc[-1] - filled.iloc[-2]) / filled.iloc[-2]
+        assert gain["PMC"] == pytest.approx(drawn.pmc_gain, abs=1e-12)
+        assert int((gain.dropna() > gain["PMC"]).sum()) + 1 == drawn.pmc_rank
+        assert int(gain.notna().sum()) == drawn.ranked_2007
+
+    def test_the_first_editions_months(self, spx) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        drawn = RuleFigures()
+        returns = monthly_returns(spx, FIRST_EDITION_MATLAB).to_numpy()
+        assert math.isnan(returns[0])
+        assert int((returns[1:] == 0).sum()) == drawn.empty_months
+        assert int((returns[1:] != 0).sum()) == drawn.held_months
+        assert int(np.isfinite(returns).sum()) == drawn.first_edition_months
+
+    def test_the_revised_matlabs_first_lookup(self, spx) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        drawn = RuleFigures()
+        ends = row_month_ends(spx.index)
+        assert len(ends) == drawn.month_end_rows
+        assert ends[drawn.repaired_row - 1] + 1 == drawn.first_pass_row
+        assert drawn.first_pass_row > drawn.month_end_rows

@@ -2806,9 +2806,10 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/equity-seasonals-lessons.md](../blog/equity-seasonals-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.equity_seasonals_figures` redraws. So do its two
-opening whiteboard sketches, which `uv run python -m chan.equity_seasonals_whiteboard`
-redraws, one of them on a machine with the archive. The verdicts sketch draws
+which `uv run python -m chan.equity_seasonals_figures` redraws. So do its
+whiteboard sketches, which `uv run python -m chan.equity_seasonals_whiteboard`
+redraws, one of them on a machine with the archive. Seven of them draw one rule
+each, and `TestTheRuleSketchesFigures` derives their figures from Chan's files. The verdicts sketch draws
 rows 35, 41 and 44's figures and refuses to draw unless rows 37 and 43's tests
 give their registered verdicts, and `PINNED` in
 [tests/test_equity_seasonals_whiteboard.py](../tests/test_equity_seasonals_whiteboard.py)

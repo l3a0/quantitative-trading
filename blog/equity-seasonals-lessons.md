@@ -78,9 +78,13 @@ Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
 
 It slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
 
+![An animated whiteboard sketch titled “Two fewer winners shorted”, drawn stroke by stroke. A green bar labelled “buy the 58 worst” runs to a dashed brown line labelled “a tenth: 58”. Below it a red bar labelled “short the 56 best” stops two stocks short of that line, and a dashed grey segment fills the difference, labelled “2 left out”. Beneath them are the words “the winners are sliced as topN − 2” and “January 2006, 579 stocks ranked”.](../docs/figures/equity_seasonals_rule_short_side.gif)
+
 #### Rule 3: whether the revised Python ranks a stock with no year-end close, a bug from a library default
 
 The revised Python fills a missing year-end close with the last one before it, as pandas did before version 3.0. So for 2007 it ranks PMC, which has no close at the end of 2006, on its last close before an 851-day gap in its prices. That reads the gap as a gain of 1.3056, or 130.56 percent, fourth best of 595, and the script holds PMC short. Without PMC, 594 stocks are ranked. A tenth of 595 rounds to 60 and a tenth of 594 to 59. Without the fill, January 2008 gives 0.090908. Dropping the fill and taking the full tenth together give the MATLAB’s 0.0881, so all three printouts match.
+
+![An animated whiteboard sketch titled “PMC’s filled close”, drawn stroke by stroke. A grey axis runs from 2004 to 2008. A short black price line labelled “PMC” sits in early 2004, and a dashed grey line carries it flat to a brown dot at the start of 2007, labelled “end of 2006”, under the words “last close 6.02, carried across an 851-day gap”. A second short black price line runs through late 2007 to a brown dot labelled “13.88”. A red arrow climbs from the first dot to the second, beside the words “+130.56% read as 2007’s gain” and “4th best of 595: shorted”.](../docs/figures/equity_seasonals_rule_filled_close.gif)
 
 ### Example 7.7, Heston and Sadka
 
@@ -111,9 +115,13 @@ It adds up every position held each month and never divides by how many there we
 
 So −0.9167 is in units of summed positions, not a return on capital. Dividing each month by its positions puts the same script in units of capital, at −0.0105 a year, a figure computed here that Chan did not print. The three revised printouts divide.
 
+![An animated whiteboard sketch titled “Add up, or average”, drawn stroke by stroke. Eight thin bars hang up and down from a line, labelled “one month’s N positions”. A grey arrow leads to a long black bar below the line, labelled “first edition: add them up” and “summed positions”, and beside it a short brown bar labelled “revised: ÷ N” and “capital”. The words “each month is N times too big” close the sketch.](../docs/figures/equity_seasonals_rule_sum_or_mean.gif)
+
 #### Rule 2: which close keeps a stock in the first edition’s ranking, a bug
 
 It decides whether to keep a stock by looking at a different stock’s close, because it compares a row sorted by return with a row still in column order. Keeping each stock on its own close gives an annual return of −1.0822, in summed positions like the −0.9167 it replaces.
+
+![An animated whiteboard sketch titled “Checking the wrong stock’s close”, drawn stroke by stroke. A row of five cells labelled “sorted by return” holds D, B, E, A and C. Below it a row labelled “column order” holds A, B, C, D and E, with a red cross under C labelled “no close”. Grey arrows join each upper cell to the cell beneath it, and a red arrow rises from C to E. A red ring circles E, labelled “E dropped: C has no close”, and a brown ring circles C in the upper row, labelled “C ranked anyway”. The words “each check reads the column, not the stock” close the sketch.](../docs/figures/equity_seasonals_rule_wrong_close.gif)
 
 #### Rule 3: which months the first edition’s mean runs over, a bug
 
@@ -124,6 +132,8 @@ It averages over 95 months, counting as zero the 12 that hold no position becaus
 ```
 
 Multiplying the old mean by 95/83 cancels its 95. In summed positions, −0.9167 × 95/83 = −1.0492. In units of capital, rule 1’s −0.0105 × 95/83 = −0.0120.
+
+![An animated whiteboard sketch titled “Which months the mean counts”, drawn stroke by stroke. A row of 96 dots runs across the board: a hollow grey dot labelled “month 1: no return”, then 12 grey dots labelled “12 months with no position, each a 0”, then 83 black dots labelled “83 months that hold positions”. A black bracket under months 2 to 96 is labelled “first edition: sum ÷ 95”, and a brown bracket under the last 83 is labelled “revised: sum ÷ 83”.](../docs/figures/equity_seasonals_rule_empty_months.gif)
 
 #### Rule 4: what the first edition’s standard deviation does with a missing month, a bug
 
@@ -141,6 +151,8 @@ Skipping it gives a Sharpe ratio of −0.1049.
 #### Rule 5: when a stock’s month ends and which stocks it keeps, two choices in the revised Python
 
 It reads each stock’s own last priced day in the month, and keeps a stock in the ranking on its own return. One shared month-end row for every stock gives an annual return of −0.012917. The revised MATLAB gives the same figure when it keeps a stock on its own return rather than its own close, so these two rules are what separate the two scripts.
+
+![An animated whiteboard sketch titled “Where a month ends”, drawn stroke by stroke. A pale green column labelled “shared month-end row” covers the last of five trading days. Stock A has a dot on all five days. Stock B has dots on the first three, a green ring round the third, and a red cross labelled “missing” in the shared column. The words “B’s own last priced day, which the revised Python reads” and “the month’s last five trading days” sit below.](../docs/figures/equity_seasonals_rule_own_month_end.gif)
 
 #### Rule 6: how many stocks make a tenth, a choice in the revised R
 
@@ -169,6 +181,8 @@ The revised Python divides by the number of months, n, and dividing by n − 1 g
 #### Rule 8: how the revised MATLAB finds a month-end, a bug repaired rather than copied
 
 The listing on p. 179 cuts its prices down to month-end rows and then looks one up by a daily row number, which stops on the loop’s first pass. Reading the month-end row instead, with the second book’s `smartstd`, gives Chan’s figures. The R on p. 181 needs no repair. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) settles both points the pages leave open. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
+
+![An animated whiteboard sketch titled “A lookup past the end”, drawn stroke by stroke. A strip of cells labelled “96 month-end rows” runs from “row 1” to “row 96”. A dashed grey line continues past its end to a red cross labelled “row 237”, with the words “the first pass asks for it and stops”. A green arrow points up at the twelfth cell, labelled “the repair reads row m − 1, here 12”.](../docs/figures/equity_seasonals_rule_month_end_lookup.gif)
 
 ## Lesson 2: reproducing a strategy published as dead checks its figures, not its death
 
