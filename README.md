@@ -3096,18 +3096,19 @@ the regime map.
 eighth post, about the equity seasonals, Examples 7.6 and 7.7. Chan reports
 seasonality in stocks as fading and publishes Example 7.7 as dead, while his
 text on Example 7.6 says it won in January 2008 after losing in the two
-Januaries before. The post draws four lessons from Entry 7 of the replication
+Januaries before. The post draws three lessons from Entry 7 of the replication
 log.
 
-1. Every figure the committed files reach reproduces, and only under each
-   script's own rules.
-2. One strategy gives four answers across four printouts, and the first
+1. Chan's numbers come from his code, bugs and all. Every figure his code
+   prints reproduces, none comes from the strategy as the book describes it,
+   and four of the rules that set them are bugs that matching the book means
+   copying. Example 7.7's four printouts give four answers, and the first
    edition's is in different units from the other three.
-3. Reproducing a strategy published as dead checks its printed figures and not
+2. Reproducing a strategy published as dead checks its printed figures and not
    its death. The split at 2002 is exploratory with no verdict, and Chan's
    claim that the most recent five years do worse holds on his own file under
    a criterion written before the check ran.
-4. A file of survivors is the first thing the result cannot get past.
+3. A file of survivors is the first thing the result cannot get past.
 
 Three groups of its figures are not pinned here.
 

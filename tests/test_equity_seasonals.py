@@ -685,7 +685,7 @@ class TestTheYearsInsideTheSplit:
     """Exploratory, with no verdict, like the split they sit inside.
 
     The calendar-year sums of the revised Python's kept months, which the post's
-    Lesson 3 quotes beside its figure of the running sum. A year's sum is twelve
+    Lesson 2 quotes beside its figure of the running sum. A year's sum is twelve
     times its mean, so it is in the same units as each half's annual return.
     First run on 2026-10-03.
     """

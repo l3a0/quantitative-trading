@@ -1,6 +1,6 @@
 """The equity-seasonals post's one figure, drawn from the committed S&P 500 file.
 
-``blog/equity-seasonals-lessons.md`` teaches in its Lesson 3 that reproducing a
+``blog/equity-seasonals-lessons.md`` teaches in its Lesson 2 that reproducing a
 strategy published as dead checks its printed figures and not its death. The
 exploratory split at 2002 is where that lesson reaches the data, and the owner
 chose on 2026-10-02 to give it a figure, the one issue 240 named.
