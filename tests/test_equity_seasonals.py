@@ -466,12 +466,32 @@ class TestHestonSadkaFirstEdition:
         assert sharpe == pytest.approx(-0.1049097760233146, abs=1e-9)
 
     def test_dividing_by_the_positions_puts_the_return_in_units_of_capital(self, spx) -> None:
-        """-0.0120 a year, a figure this repo derived and Chan did not print."""
-        per = heston_sadka(
+        """-0.0105 a year, a figure this repo derived and Chan did not print.
+
+        Only the division changes, so the mean still runs over 95 months and
+        counts the 12 empty ones as zero.
+        """
+        per = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, per_position=True))
+        assert per.annual_return == pytest.approx(-0.010467218122084418, abs=1e-9)
+
+    def test_dropping_the_empty_months_scales_either_return_by_95_over_83(self, spx) -> None:
+        """The 12 empty months add nothing to the sum, so dropping them divides it by 83, not 95.
+
+        That carries -0.9167 to -1.0492 in summed positions, and -0.0105 to
+        -0.0120 in units of capital.
+        """
+        summed = heston_sadka(spx, FIRST_EDITION_MATLAB)
+        dropped = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, dropped=13))
+        divided = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, per_position=True))
+        both = heston_sadka(
             spx,
             replace(FIRST_EDITION_MATLAB, per_position=True, empty_month_is_nan=True, dropped=13),
         )
-        assert per.annual_return == pytest.approx(-0.011980550862626747, abs=1e-9)
+        assert int(np.isfinite(summed.returns.to_numpy()).sum()) == 95
+        assert int(np.isfinite(both.returns.to_numpy()[13:]).sum()) == 83
+        assert dropped.annual_return == pytest.approx(summed.annual_return * 95 / 83, abs=1e-12)
+        assert both.annual_return == pytest.approx(divided.annual_return * 95 / 83, abs=1e-12)
+        assert both.annual_return == pytest.approx(-0.011980550862626747, abs=1e-9)
 
 
 class TestTheShapesTheScaleBreakCommentNames:
