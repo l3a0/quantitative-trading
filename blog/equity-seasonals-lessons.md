@@ -202,7 +202,7 @@ What the file can give is a split, and it is **exploratory, with no verdict**. T
 \end{array}
 ```
 
-On survivors, over this short window, the loss sits before 2002 and the period after it is slightly positive. That runs the opposite way to the published story. Only the revised Python’s series is split here.
+On this file of survivors, the strategy lost money before 2002 and made a little after it. That runs the opposite way to the published story. Only the revised Python’s series is split here.
 
 The 70 months from 2002 are not a steady small gain. They climb to a peak in January 2006 and fall from there to the end. The gap between 2002, whose months sum to 0.2227, and 2006, whose months sum to −0.1319, is wider than the gap between the two halves’ annual returns. The figure below draws the 83 months as a running sum, so each half’s slope is its annual return divided by 12.
 
