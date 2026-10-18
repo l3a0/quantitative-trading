@@ -66,7 +66,13 @@ Its three printouts give two answers. The MATLAB and the R agree to every digit,
 
 #### Rule 1: how many stocks make a tenth, a choice in the MATLAB
 
-A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that to 58, so it buys the 58 worst and shorts the 58 best. Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
+A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that to 58, so it buys the 58 worst and shorts the 58 best.
+
+```math
+\frac{578}{10} = 57.8, \qquad \text{rounded: } 58, \qquad \text{rounded down: } 57
+```
+
+Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
 
 #### Rule 2: how many winners the revised Python shorts, a bug
 
@@ -121,7 +127,16 @@ Multiplying the old mean by 95/83 cancels its 95. In summed positions, −0.9167
 
 #### Rule 4: what the first edition’s standard deviation does with a missing month, a bug
 
-It counts the one month with no return as zero, while its mean skips that month. Skipping it gives a Sharpe ratio of −0.1049.
+It counts the one month with no return as zero, while its mean skips that month. Month 1 is that month.
+
+```math
+\begin{aligned}
+\bar{r} &= \frac{1}{95} \sum_{t=2}^{96} r_t && \text{month 1 skipped} \\
+s &= \operatorname{std}(0, r_2, \dots, r_{96}) && \text{month 1 counted as } 0
+\end{aligned}
+```
+
+Skipping it gives a Sharpe ratio of −0.1049.
 
 #### Rule 5: when a stock’s month ends and which stocks it keeps, two choices in the revised Python
 
@@ -129,9 +144,25 @@ It reads each stock’s own last priced day in the month, and keeps a stock in t
 
 #### Rule 6: how many stocks make a tenth, a choice in the revised R
 
-It rounds a tenth to the nearest whole number, and sends an exact half to the even neighbour, so 48.5 stocks becomes 48 and 47.5 becomes 48. On this file some months land on a half, so the half matters. Rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down, as the revised MATLAB and Python do, gives the revised MATLAB’s.
+It rounds a tenth to the nearest whole number, and sends an exact half to the even neighbour.
+
+```math
+\begin{array}{r|r|r|r}
+\text{A tenth} & \text{R's rounding} & \text{Half up} & \text{Down} \\ \hline
+47.5 & 48 & 48 & 47 \\
+48.5 & 48 & 49 & 48
+\end{array}
+```
+
+On this file some months land on a half, so the half matters. Rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down, as the revised MATLAB and Python do, gives the revised MATLAB’s.
 
 #### Rule 7: what the standard deviation divides by, a choice in all three revised scripts
+
+The standard deviation of n monthly returns divides their summed squared deviations from the mean by n or by n − 1.
+
+```math
+s_n = \sqrt{\frac{1}{n} \sum_{t=1}^{n} (r_t - \bar{r})^2}, \qquad s_{n-1} = \sqrt{\frac{1}{n-1} \sum_{t=1}^{n} (r_t - \bar{r})^2}
+```
 
 The revised Python divides by the number of months, n, and dividing by n − 1 gives a Sharpe ratio of −0.121508. The revised R divides by n − 1, and dividing by n gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by n and prints the −0.1243. The one from this book’s first edition divides by n − 1 and gives −0.1236.
 
