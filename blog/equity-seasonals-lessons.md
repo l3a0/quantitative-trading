@@ -204,7 +204,9 @@ What the file can give is a split, and it is **exploratory, with no verdict**. T
 
 On this file of survivors, the strategy lost money before 2002 and made a little after it. That runs the opposite way to the published story. Only the revised Python’s series is split here.
 
-The 70 months from 2002 are not a steady small gain. They climb to a peak in January 2006 and fall from there to the end. The gap between 2002, whose months sum to 0.2227, and 2006, whose months sum to −0.1319, is wider than the gap between the two halves’ annual returns. The figure below draws the 83 months as a running sum, so each half’s slope is its annual return divided by 12.
+The 70 months from 2002 are not a steady small gain. They climb to a peak in January 2006 and fall from there to the end of the file. A single year inside them swings more than the whole split does. The months of 2002 add up to a gain of 0.2227 and those of 2006 to a loss of 0.1319, while the two halves’ annual returns are only −0.145387 and 0.011967. So one good or bad year is enough to change what the split appears to show.
+
+The figure below adds up the 83 months one at a time, so the line rises in a month that made money and falls in one that lost it. The steeper a stretch, the larger its average monthly return.
 
 ![A line chart of the running sum of Example 7.7’s monthly returns under the revised edition’s Python rules, from December 2000 to October 2007, in fractions of capital. A dashed vertical line marks the start of 2002. To its left, labelled 13 months before 2002 at −0.145387 a year and a Sharpe ratio of −0.859993, the line falls through 2001. To its right, labelled 70 months from 2002 at 0.011967 a year and a Sharpe ratio of 0.141777, the line climbs steeply through 2002, swings up and down through 2003 to 2005, peaks in January 2006, and falls to end below zero. The title calls the split an exploratory cut with no verdict, and the note names Chan’s S&P 500 file, which holds only survivors.](../docs/figures/equity_seasonals_split.png)
 
