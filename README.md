@@ -3100,10 +3100,10 @@ Januaries before. The post draws three lessons from Entry 7 of the replication
 log.
 
 1. Chan's numbers come from his code, bugs and all. Every figure his code
-   prints reproduces, none comes from the strategy as the book describes it,
-   and four of the rules that set them are bugs that matching the book means
-   copying. Example 7.7's four printouts give four answers, and the first
-   edition's is in different units from the other three.
+   prints reproduces, but the book's description fits several numbers, and
+   six of the rules each script adds are bugs, which matching the printed
+   figures means copying. Example 7.7's four printouts give four answers, and
+   the first edition's is in different units from the other three.
 2. Reproducing a strategy published as dead checks its printed figures and not
    its death. The split at 2002 is exploratory with no verdict, and Chan's
    claim that the most recent five years do worse holds on his own file under
@@ -3120,7 +3120,9 @@ Three groups of its figures are not pinned here.
    recent five years instead of the entire data period", and Chan's
    statement that those years do even worse, are on p. 180.
 2. Counts, arithmetic and facts no test asserts. Nothing counts the seventeen
-   reproduced figures, nine for Example 7.6 and eight for Example 7.7, or the
+   reproduced figures, nine for Example 7.6 and eight for Example 7.7, or
+   Lesson 1's rules, which of them are bugs, and the six it copies and one it
+   repairs, or the
    first edition's 95 months with a return and 83 with a position, which are
    its 96 months less the one with no return and less the twelve with no
    position. Nothing states that a half's slope in the figure is its annual
@@ -3147,7 +3149,7 @@ Its one figure is drawn from the committed S&P 500 file by
 [src/chan/equity_seasonals_figures.py](src/chan/equity_seasonals_figures.py).
 It draws the 83 months the revised Python keeps as a running sum, split at
 2002 and labelled with each half's month count, annual return and Sharpe
-ratio, for Lesson 3.
+ratio, for Lesson 2.
 
 ```bash
 uv run python -m chan.equity_seasonals_figures
