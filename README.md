@@ -3099,7 +3099,8 @@ text on Example 7.6 says it won in January 2008 after losing in the two
 Januaries before. The post draws three lessons from Entry 7 of the replication
 log.
 
-1. Chan's numbers come from his code, bugs and all. Every figure his code
+1. Account for every choice and every bug, or one strategy gives several
+   answers. Every figure his code
    prints reproduces, but the book's description fits several numbers, and
    six of the rules each script adds are bugs, which matching the printed
    figures means copying. Example 7.7's four printouts give four answers, and

@@ -45,7 +45,7 @@ What Chan says of each is not the same, and the difference matters for what a re
 2. **Example 7.6.** Its own text is not a death notice. The revised edition says the January effect failed in January 2006 and January 2007 and then “worked wonderfully” in January 2008 (p. 175).
 3. **Example 7.7.** This one is published as dead, in the p. 179 sentence quoted at the top of the post.
 
-## Lesson 1: Chan’s numbers come from his code, bugs and all
+## Lesson 1: Account for every choice and every bug, or one strategy gives several answers
 
 All seventeen figures Chan’s code prints reproduce here to the digit, but only by copying his code. The book’s description of each strategy fits several numbers, and each script picks one through rules the description leaves out. Six of those rules are bugs, so matching the printed figures means copying them. A seventh, in the revised MATLAB as the book prints it, stops the script on its first pass and has to be repaired instead.
 
@@ -242,7 +242,7 @@ Three questions are beyond it.
 
 Three habits follow from the lessons above.
 
-1. **Reproduce a published figure with the author’s code before trusting a description of it.** Every figure here needed rules the description leaves out.
+1. **Account for every choice and every bug before comparing two figures for one strategy.** Every figure here needed rules the description leaves out, and seven of those rules are bugs.
 2. **Check a figure’s units before comparing two printouts.** The first edition’s −0.9167 and the revised edition’s −0.0129 come from one strategy, and only one of them is a return on capital.
 3. **Do not read a survivor file as evidence that an effect died or lived.** A file saved after the fact holds the stocks that made it, and a split through 83 months of them swings with a single year.
 
