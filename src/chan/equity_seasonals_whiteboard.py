@@ -6,14 +6,16 @@ later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7. This module draws four scenes, and the post places each
 right after the text it draws.
 
-1. Which years each source reads: one axis from 1960 to 2030, with Heston and
-   Sadka's sample ending at the start of 2002, where Chan says the effect
-   disappeared, Chan's two short files, the book, and the two registered runs
-   from 2009 on. Every bar is to scale, from :class:`Spans`.
+1. Which years each source reads: one axis from 1960 to 2030, with the years
+   behind Heston and Sadka's 13 percent ending at the start of 2002, where
+   Chan says the effect disappeared, Chan's two short files, the book's first
+   edition, and the two registered runs from 2009 on. Every bar is to scale,
+   from :class:`Spans`.
 2. Two verdicts: the January run's low and high means as one bracket that
    straddles zero, and the Heston and Sadka run's mean as a dot at zero with
-   the returns its test could miss tinted up to X. Both lines are to scale,
-   and the figures come from :class:`Verdicts`.
+   the returns its test could miss tinted up to the return it detects 80
+   percent of the time. Each line has its own scale, and the figures come
+   from :class:`Verdicts`.
 3. The January trade: a calendar year of returns, a ranking at the year's
    last close, the worst tenth bought and the best tenth shorted, held through
    January, with the losers pointed up and the winners down. That is Example
@@ -32,9 +34,10 @@ the scene says the trade moves on to the next one.
 The two opening scenes carry data. :meth:`Verdicts.from_runs` reads the
 registered runs on the owner's archive, about twenty seconds, and
 :meth:`Spans.read` reads Chan's committed files and the runs' constants. The
-start of Heston and Sadka's sample is drawn dashed, because nothing here has
-checked where it starts. A run whose figures would make the verdicts scene's
-words false is refused rather than drawn.
+bar for Heston and Sadka's 13 percent ends at Chan's 2002 split rather than at
+any date read from their paper, and its start is drawn dashed, because nothing
+here has checked where their sample starts or ends. A run whose verdicts
+differ from the ones the scene's words state is refused rather than drawn.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied: its strokes, labels, tints, timeline, renderer and palette, so
@@ -43,8 +46,9 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all four on a machine with the archive
-with::
+with no change is a no-op diff. Redraw all four with the command below. Only
+the verdicts sketch reads the archive, so on a machine without it the command
+redraws the other three and exits non-zero naming the one it left::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -59,7 +63,8 @@ import numpy as np
 import pandas as pd
 
 from chan import equity_seasonals as seasonals
-from chan.archive import ArchiveUnavailable
+from chan.archive import ArchiveRefused, ArchiveUnavailable
+from chan.fund_panel import PanelRefused
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.series import load_panel
@@ -77,6 +82,7 @@ from chan.usdcad_tests_whiteboard import (
     render,
     timeline,
 )
+from chan.vintage import VintageUnavailable
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "equity_seasonals_"
@@ -251,20 +257,29 @@ def scenes() -> tuple[Scene, ...]:
 
 @dataclass(frozen=True)
 class Verdicts:
-    """The four figures the verdicts scene draws, each read from a registered run.
+    """What the verdicts scene draws, each field read from a registered run.
 
-    ``january_low`` and ``january_high`` are the means of the low and high
-    series of :func:`chan.equity_seasonals.run_point_in_time`, a return per
-    January. ``monthly_mean`` is the mean held month of
-    :func:`chan.equity_seasonals.run_monthly_point_in_time` under
-    :data:`chan.equity_seasonals.REVISED_MATLAB`, and ``detectable`` is that
-    run's X, the annual return its test detects with 80 percent probability.
+    The January run is :func:`chan.equity_seasonals.run_point_in_time`, and
+    the monthly run :func:`chan.equity_seasonals.run_monthly_point_in_time`
+    under :data:`chan.equity_seasonals.REVISED_MATLAB`.
+
+    - ``january_low`` and ``january_high``: the low and high series' mean
+      return per January.
+    - ``monthly_mean``: the monthly run's mean held month.
+    - ``detectable``: the monthly run's X, the annual return its test detects
+      with 80 percent probability.
+    - ``january_low_rejects``, ``january_high_rejects`` and
+      ``monthly_rejects``: whether each series' one-sided test rejects a mean
+      of zero, which is what each registered verdict turns on.
     """
 
     january_low: float
     january_high: float
     monthly_mean: float
     detectable: float
+    january_low_rejects: bool
+    january_high_rejects: bool
+    monthly_rejects: bool
 
     @classmethod
     def from_runs(
@@ -275,6 +290,9 @@ class Verdicts:
             january_high=january.high.mean,
             monthly_mean=monthly.matlab.test.mean,
             detectable=monthly.matlab.x,
+            january_low_rejects=january.low.rejects,
+            january_high_rejects=january.high.rejects,
+            monthly_rejects=monthly.matlab.test.rejects,
         )
 
 
@@ -284,9 +302,10 @@ class Spans:
 
     ``large_caps`` and ``small_caps`` are the first and last dates of Chan's
     two files as :func:`chan.series.load_panel` reads them. ``later`` runs
-    from the first month either registered run holds to the last, January
-    2009 to September 2026, from :data:`chan.equity_seasonals.FIRST_HELD` and
-    :data:`chan.equity_seasonals.LAST_HELD`. ``split`` is
+    over the monthly run's held months, January 2009 to September 2026, from
+    :data:`chan.equity_seasonals.FIRST_HELD` and
+    :data:`chan.equity_seasonals.LAST_HELD`, which hold the January run's
+    eighteen Januaries from 2009 to 2026 too. ``split`` is
     :data:`chan.equity_seasonals.SPLIT`, the start of 2002.
     """
 
@@ -337,16 +356,26 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
     """The two registered runs' verdicts, each on its own number line to scale.
 
     The January effect's line carries the low and high series' means as the
-    two ends of one bracket that straddles zero, which is why free data cannot
-    decide it. Heston and Sadka's line carries the run's mean, a year's worth
-    of its mean month, as a dot at zero, and tints the returns from zero to X,
-    the size its test could have missed. A run whose figures would make those
-    words false is refused: a bracket that does not straddle zero, or a mean
-    that is not inside the tinted gap's reach of zero.
+    two ends of one bracket that straddles zero. Heston and Sadka's line
+    carries the run's mean, a year's worth of its mean month, as a dot at
+    zero, and tints the returns from zero to X, which a true return of that
+    size could pass unseen. Each line has its own scale.
+
+    The words are the registered verdicts, so a run whose verdicts differ is
+    refused rather than drawn.
+
+    1. "free data cannot decide" needs the high series to reject zero and the
+       low series not to, and the bracket to straddle zero.
+    2. "could pass unseen" needs the monthly run not to reject zero, and its
+       mean to sit nearer zero than X on either side.
     """
     low, high = verdicts.january_low, verdicts.january_high
     if not low < 0 < high:
         raise ValueError(f"the January bracket {low} to {high} does not straddle zero")
+    if verdicts.january_low_rejects or not verdicts.january_high_rejects:
+        raise ValueError("free data decides the January verdict, so the words would be false")
+    if verdicts.monthly_rejects:
+        raise ValueError("the monthly run rejects zero, so a return was detected")
     annual = 12 * verdicts.monthly_mean
     if not abs(annual) < verdicts.detectable:
         raise ValueError(f"a mean of {annual} a year is not inside X = {verdicts.detectable}")
@@ -363,7 +392,7 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
                 "january-line", _line([(x0, JANUARY_Y), (x1, JANUARY_Y)]), color=MUTED, frames=6
             ),
             Label("January effect", 0.3, JANUARY_Y, names="january-line"),
-            Label("per January", 0.3, JANUARY_Y - 0.38, names="january-line", color=MUTED, size=11),
+            Label("per January", 0.3, JANUARY_Y - 0.38, names="january-line", size=11),
             _stroke(
                 "january-zero",
                 _line([(zero_1, JANUARY_Y - 0.13), (zero_1, JANUARY_Y + 0.13)]),
@@ -402,7 +431,7 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
                 "monthly-line", _line([(x0, MONTHLY_Y), (x1, MONTHLY_Y)]), color=MUTED, frames=6
             ),
             Label("Heston and Sadka", 0.3, MONTHLY_Y, names="monthly-line"),
-            Label("per year", 0.3, MONTHLY_Y - 0.38, names="monthly-line", color=MUTED, size=11),
+            Label("per year", 0.3, MONTHLY_Y - 0.38, names="monthly-line", size=11),
             _stroke(
                 "monthly-zero",
                 _line([(zero_2, MONTHLY_Y - 0.13), (zero_2, MONTHLY_Y + 0.13)]),
@@ -418,7 +447,7 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
                 frames=3,
             ),
             Label(
-                f"{100 * verdicts.detectable:.1f}% a year",
+                f"about {100 * verdicts.detectable:.1f}% a year",
                 x_detect,
                 MONTHLY_Y + 0.8,
                 names="detectable",
@@ -429,7 +458,7 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
             _dot("mean", x_mean, MONTHLY_Y, color=INK),
             Label("measured", x_mean - 0.3, MONTHLY_Y + 0.45, names="mean", ha="right", size=12),
             Label(
-                "too small to detect",
+                "could pass unseen",
                 (zero_2 + x_detect) / 2,
                 MONTHLY_Y - 0.46,
                 names="detectable",
@@ -445,9 +474,12 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
 YEARS = (1960, 2030)
 TIMELINE_X = (0.6, 9.6)
 AXIS_Y = 0.75
-#: Heston and Sadka's sample is drawn from this year, with a dashed lead-in
-#: before it, because nothing here has checked where their sample starts.
+#: The bar for Heston and Sadka's 13 percent is drawn solid from this year,
+#: with a dashed lead-in before it, because nothing here has checked where
+#: their sample starts.
 SAMPLE_FROM = 1968
+#: The book's first edition, which the post cites as Chan (2009).
+BOOK_YEAR = 2009
 
 
 def _year(when: pd.Timestamp | float) -> float:
@@ -461,9 +493,11 @@ def _year(when: pd.Timestamp | float) -> float:
 def _which_years(spans: Spans) -> Scene:
     """Which years each source reads, on one axis to scale.
 
-    Heston and Sadka's sample ends at the start of 2002, where Chan says the
-    effect disappeared. Chan's two files are short and end before the book.
-    The two registered runs start where the book came out and run to 2026.
+    The years behind Heston and Sadka's 13 percent end at the start of 2002,
+    where Chan says the effect disappeared. That end is Chan's split, not a
+    date read from their paper. Chan's two files are short and end before the
+    book's first edition. The two registered runs start that year and run to
+    2026.
     """
     lo, hi = YEARS
     split = _year(spans.split)
@@ -475,7 +509,7 @@ def _which_years(spans: Spans) -> Scene:
     sample_y, files_y, later_y = 3.3, 2.45, 1.5
     large, small = spans.large_caps, spans.small_caps
     first, last = spans.later
-    book = _year(first)
+    book = _year(float(BOOK_YEAR))
     steps: list = [
         _stroke("axis", _line(axis + ticks), color=MUTED, frames=8),
     ]
@@ -506,8 +540,8 @@ def _which_years(spans: Spans) -> Scene:
             frames=8,
         ),
         Label(
-            "Heston and Sadka’s sample",
-            _year(float(SAMPLE_FROM)),
+            "Heston and Sadka’s 13%, before 2002",
+            _year(float(lo)) + 0.05,
             sample_y + 0.4,
             names="sample",
             size=12,
@@ -540,14 +574,14 @@ def _which_years(spans: Spans) -> Scene:
         Label("the book", book, AXIS_Y + 0.38, names="book", color=ACCENT, ha="center", size=12),
         _stroke(
             "later",
-            _line([(book, later_y), (_year(last), later_y)]),
+            _line([(_year(first), later_y), (_year(last), later_y)]),
             color=GOOD,
             width=5.0,
             frames=6,
         ),
         Label(
             "two later runs, index as it stood",
-            book - 0.2,
+            _year(first) - 0.2,
             later_y,
             names="later",
             color=GOOD,
@@ -586,26 +620,44 @@ def make_equity_seasonals_whiteboards(
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies'.
 
-    ``verdicts`` is read from the two registered runs on the owner's archive
-    when it is not handed in, which takes about twenty seconds, and ``spans``
-    from Chan's two committed files.
+    ``spans`` is read from Chan's two committed files when it is not handed
+    in. ``verdicts`` is read from the two registered runs on the owner's
+    archive, about twenty seconds. Every GIF but the verdicts sketch is
+    written before that read, so a refused or missing archive leaves the
+    other three redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
+    spans = spans if spans is not None else Spans.read()
+    paths = [_write(_which_years(spans), folder)]
+    strategies = [_write(scene, folder) for scene in scenes()]
     if verdicts is None:
         verdicts = Verdicts.from_runs(
             seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
         )
-    spans = spans if spans is not None else Spans.read()
-    return [_write(scene, folder) for scene in (*opening_scenes(verdicts, spans), *scenes())]
+    paths.append(_write(_two_verdicts(verdicts), folder))
+    return paths + strategies
+
+
+#: The refusals a redraw can meet in reading the archive, the ones
+#: :func:`chan.equity_seasonals.main` turns into one line.
+REFUSALS = (
+    VintageUnavailable,
+    ArchiveUnavailable,
+    ArchiveRefused,
+    seasonals.PointInTimeRefused,
+    seasonals.MonthlyRunRefused,
+    PanelRefused,
+)
 
 
 def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
-    except ArchiveUnavailable as absent:
-        # The verdicts read the owner's archive, so a machine without it
-        # gets one line naming what is missing rather than a traceback.
-        raise SystemExit(str(absent)) from absent
+    except REFUSALS as refused:
+        # The other three GIFs are already written. The one left stale is
+        # named, and the exit is non-zero, so a redraw on a machine without
+        # the archive does not read as a full one.
+        raise SystemExit(f"{GIF_PREFIX}two_verdicts.gif was not redrawn: {refused}") from refused
     for path in paths:
         print(f"wrote {path}")
 

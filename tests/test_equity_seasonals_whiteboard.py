@@ -49,10 +49,13 @@ from chan import usdcad_tests_whiteboard as whiteboard
 from chan.archive import ArchiveUnavailable
 from chan.equity_seasonals_whiteboard import (
     ANNUAL_RANGE,
+    AXIS_Y,
+    BOOK_YEAR,
     JANUARY_END,
     JANUARY_RANGE,
     RANKED,
     TENTH,
+    TIMELINE_X,
     YEAR,
     Spans,
     Verdicts,
@@ -88,12 +91,20 @@ OPENING_GIFS = ["equity_seasonals_which_years.gif", "equity_seasonals_two_verdic
 GIFS = OPENING_GIFS + STRATEGY_GIFS
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
-#: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``.
+#: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``. The vintage
+#: is Alpha Vantage's ``adjusted_close`` for the IJR and IVV members files'
+#: series, downloaded 2026-10-05, in the owner's archive. The specification is
+#: ``MATLAB_JANUARY`` on the S&P 600 at each year-end, January 2009 to January
+#: 2026, and ``REVISED_MATLAB`` on the S&P 500 each month, January 2009 to
+#: September 2026, both before costs. A re-pin there moves these figures.
 PINNED = Verdicts(
     january_low=-0.1047304659686345,
     january_high=0.08787549947820747,
     monthly_mean=-0.0001391960725288475,
     detectable=0.0422031836138127,
+    january_low_rejects=False,
+    january_high_rejects=True,
+    monthly_rejects=False,
 )
 
 STROKES = [
@@ -225,18 +236,18 @@ class TestTheScenes:
     def test_each_says_what_it_should(self, drawn) -> None:
         assert [scene.labels for scene in drawn] == LABELS
 
-    def test_every_label_names_a_stroke_drawn_before_it(self, drawn) -> None:
-        for scene in drawn:
+    def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
+        for scene in every:
             for index, step in enumerate(scene.steps):
                 if isinstance(step, Label):
                     earlier = [s.gid for s in scene.steps[:index] if not isinstance(s, Label)]
                     assert step.names in earlier, (scene.title, step.text)
 
-    def test_no_label_is_parsed_as_math(self, drawn) -> None:
-        assert not [s.text for scene in drawn for s in scene.steps if getattr(s, "math", 0)]
+    def test_no_label_is_parsed_as_math(self, every) -> None:
+        assert not [s.text for scene in every for s in scene.steps if getattr(s, "math", 0)]
 
-    def test_every_stroke_has_a_point_for_each_of_its_frames(self, drawn) -> None:
-        for scene in drawn:
+    def test_every_stroke_has_a_point_for_each_of_its_frames(self, every) -> None:
+        for scene in every:
             for stroke in scene.strokes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
@@ -423,14 +434,15 @@ class TestTheCommittedGifs:
 
 class TestThePost:
     def test_each_gif_follows_the_paragraph_it_draws(self) -> None:
-        """The timeline right after the paragraph on what Chan's files can
-        show, the verdicts right after the list of the two verdicts, the
+        """The timeline right after the paragraph that introduces the later
+        runs, the last source it draws, then the list of the two verdicts and
+        the verdicts sketch right after it, the
         January trade right after Example 7.6's paragraph, and the same-month
         trade right after Example 7.7's."""
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         for opening, name in zip(
             (
-                "Running Chan’s code on his own data files",
+                "Two later runs asked whether either effect still works.",
                 "1. **The January effect** averages",
                 "**Example 7.6, the January effect.**",
                 "**Example 7.7, Heston and Sadka.**",
@@ -455,13 +467,35 @@ class TestTheCommand:
             f"wrote {FIGURES_DIR / name}" for name in GIFS
         ]
 
-    def test_without_the_archive_it_stops_on_one_line(self, monkeypatch) -> None:
+    @pytest.mark.parametrize(
+        "refusal",
+        [
+            ArchiveUnavailable("no archive here"),
+            seasonals.PointInTimeRefused("a member is missing"),
+            seasonals.MonthlyRunRefused("a schedule is missing"),
+        ],
+        ids=["no archive", "January run refused", "monthly run refused"],
+    )
+    def test_without_the_archive_it_names_the_one_gif_it_left(self, monkeypatch, refusal) -> None:
+        def refuse():
+            raise refusal
+
+        monkeypatch.setattr(seasonals, "run_point_in_time", refuse)
+        with pytest.raises(SystemExit) as stopped:
+            main()
+        assert str(stopped.value) == f"equity_seasonals_two_verdicts.gif was not redrawn: {refusal}"
+
+    def test_without_the_archive_it_still_writes_the_other_three(
+        self, monkeypatch, tmp_path, spans
+    ) -> None:
         def absent():
             raise ArchiveUnavailable("no archive here")
 
         monkeypatch.setattr(seasonals, "run_point_in_time", absent)
-        with pytest.raises(SystemExit, match="no archive here"):
-            main()
+        with pytest.raises(ArchiveUnavailable):
+            make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans)
+        written = sorted(path.name for path in tmp_path.glob("*.gif"))
+        assert written == sorted(set(GIFS) - {"equity_seasonals_two_verdicts.gif"})
 
 
 class TestTheVerdicts:
@@ -479,9 +513,9 @@ class TestTheVerdicts:
             "Heston and Sadka",
             "per year",
             "0",
-            "4.2% a year",
+            "about 4.2% a year",
             "measured",
-            "too small to detect",
+            "could pass unseen",
         ]
 
     def test_the_bracket_spans_the_two_means_to_scale(self, opening) -> None:
@@ -503,24 +537,62 @@ class TestTheVerdicts:
         assert abs(mean.x[0] - zero) < detect - zero
 
     def test_other_figures_move_the_labels_and_the_marks(self, spans) -> None:
-        moved = Verdicts(january_low=-0.05, january_high=0.12, monthly_mean=0.001, detectable=0.03)
+        moved = dataclasses.replace(
+            PINNED, january_low=-0.05, january_high=0.12, monthly_mean=0.001, detectable=0.03
+        )
         scene = opening_scenes(moved, spans)[1]
-        assert {"−0.0500", "0.1200", "3.0% a year"} <= set(scene.labels)
+        assert {"−0.0500", "0.1200", "about 3.0% a year"} <= set(scene.labels)
         assert _stroke(scene, "bracket").x.max() == pytest.approx(_at(0.12, *JANUARY_RANGE))
 
     @pytest.mark.parametrize(
-        "moved",
+        "changes",
         [
-            Verdicts(january_low=0.01, january_high=0.08, monthly_mean=0.0, detectable=0.04),
-            Verdicts(january_low=-0.1, january_high=-0.01, monthly_mean=0.0, detectable=0.04),
-            Verdicts(january_low=-0.1, january_high=0.08, monthly_mean=0.004, detectable=0.04),
-            Verdicts(january_low=-0.2, january_high=0.08, monthly_mean=0.0, detectable=0.04),
+            {"january_low": 0.01},
+            {"january_high": -0.01},
+            {"monthly_mean": 0.004},
+            {"monthly_mean": -0.0015, "detectable": 0.01},
+            {"january_low": -0.2},
+            {"january_low_rejects": True},
+            {"january_high_rejects": False},
+            {"monthly_rejects": True},
         ],
-        ids=["bracket above zero", "bracket below zero", "mean past X", "off the line"],
+        ids=[
+            "bracket above zero",
+            "bracket below zero",
+            "mean past X",
+            "mean past minus X",
+            "off the line",
+            "both January series reject",
+            "neither January series rejects",
+            "the monthly run rejects",
+        ],
     )
-    def test_figures_the_words_would_misdescribe_are_refused(self, spans, moved) -> None:
+    def test_figures_the_words_would_misdescribe_are_refused(self, spans, changes) -> None:
         with pytest.raises(ValueError):
-            opening_scenes(moved, spans)
+            opening_scenes(dataclasses.replace(PINNED, **changes), spans)
+
+    def test_the_january_line_is_to_scale(self, opening) -> None:
+        """Absolute positions, not the scale function checked against itself:
+        zero halfway along a line from −0.15 to 0.15, and each end of the
+        bracket as far from zero as its value."""
+        scene = opening[1]
+        line = _stroke(scene, "january-line")
+        zero = _stroke(scene, "january-zero").x[0]
+        bracket = _stroke(scene, "bracket")
+        assert zero == pytest.approx((line.x[0] + line.x[-1]) / 2)
+        unit = (line.x[-1] - line.x[0]) / 0.30
+        assert zero - bracket.x.min() == pytest.approx(-PINNED.january_low * unit)
+        assert bracket.x.max() - zero == pytest.approx(PINNED.january_high * unit)
+
+    def test_the_annual_line_is_to_scale(self, opening) -> None:
+        """Zero a fifth of the way along a line from −0.02 to 0.08, and the
+        tint as wide as X on that scale."""
+        scene = opening[1]
+        line = _stroke(scene, "monthly-line")
+        width = line.x[-1] - line.x[0]
+        (tint,) = scene.fills
+        assert tint.x0 == pytest.approx(line.x[0] + 0.2 * width)
+        assert tint.x1 - tint.x0 == pytest.approx(PINNED.detectable / 0.10 * width)
 
 
 class TestTheTimeline:
@@ -544,7 +616,7 @@ class TestTheTimeline:
             "2000",
             "2010",
             "2020",
-            "Heston and Sadka’s sample",
+            "Heston and Sadka’s 13%, before 2002",
             "“disappeared since then”",
             "Chan’s files, survivors only",
             "the book",
@@ -565,7 +637,35 @@ class TestTheTimeline:
         assert (later.x[0], later.x[-1]) == pytest.approx(
             (_year(spans.later[0]), _year(spans.later[1]))
         )
-        assert _stroke(scene, "book").x[0] == pytest.approx(later.x[0])
+        assert _stroke(scene, "book").x[0] == pytest.approx(_year(float(BOOK_YEAR)))
+
+    def test_the_book_is_the_first_edition_the_post_cites_and_the_runs_start_that_year(
+        self, spans
+    ) -> None:
+        assert "Chan, E. P. (2009)" in POST.read_text(encoding="utf-8")
+        assert BOOK_YEAR == spans.later[0].year == seasonals.FIRST_HELD.year
+
+    def test_the_monthly_months_hold_the_januaries_too(self, spans) -> None:
+        first = pd.Timestamp(f"{BOOK_YEAR}-01-01")
+        last = first + pd.DateOffset(years=seasonals.SURVIVOR_JANUARIES - 1)
+        assert spans.later[0] <= first and last <= spans.later[1]
+
+    def test_the_axis_runs_1960_to_2030_with_even_decades(self, opening) -> None:
+        """Absolute positions: the axis spans the board's timeline, and
+        1999-11-24 sits at its share of the seventy years."""
+        axis = _stroke(opening[0], "axis")
+        lo, hi = TIMELINE_X
+        assert (axis.x.min(), axis.x.max()) == pytest.approx((lo, hi))
+        ticks = sorted(
+            {round(float(x), 9) for x, y in zip(axis.x, axis.y, strict=True) if y < AXIS_Y - 0.1}
+        )
+        assert len(ticks) == 6
+        assert np.diff(ticks) == pytest.approx([(hi - lo) / 7] * 5)
+        start = _stroke(opening[0], "large-caps").x[0]
+        share = (pd.Timestamp("1999-11-24") - pd.Timestamp("1960-01-01")).days / (
+            pd.Timestamp("2030-01-01") - pd.Timestamp("1960-01-01")
+        ).days
+        assert start == pytest.approx(lo + share * (hi - lo), abs=0.002)
 
     def test_the_sample_ends_where_chan_says_the_effect_disappeared(self, opening) -> None:
         """Its start is drawn dashed, since nothing here checked it."""
@@ -583,14 +683,3 @@ class TestTheTimeline:
         )
         bar = _stroke(opening_scenes(PINNED, moved)[0], "large-caps")
         assert bar.x[0] == pytest.approx(_year(pd.Timestamp("1995-01-02")))
-
-
-class TestTheRunsGiveThePinnedVerdicts:
-    def test_from_the_runs(self) -> None:
-        """The two registered runs on the owner's archive, about twenty
-        seconds, or a skip naming what is missing."""
-        try:
-            runs = seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
-        except ArchiveUnavailable as absent:
-            pytest.skip(str(absent))
-        assert Verdicts.from_runs(*runs) == PINNED

@@ -2578,7 +2578,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's two GIFs are checked the same way by
+equity seasonals post's four GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3134,7 +3134,9 @@ Three groups of its figures are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py), or to
 [tests/test_equity_seasonals_figures.py](tests/test_equity_seasonals_figures.py)
-for the figure's own labels. One group had no pin before it, and
+for the figure's own labels, or to
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
+for the whiteboard sketches' labels. One group had no pin before it, and
 `TestTheYearsInsideTheSplit` now pins it: the calendar-year sums of the
 revised Python's months, 0.2227 for 2002 and −0.1319 for 2006, that those
 two years differ by more than the two halves of the split do, and that the
@@ -3159,12 +3161,15 @@ The post also carries four looping whiteboard sketches, drawn by
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
 1. `equity_seasonals_which_years.gif`, in the opening, the years each source
-   reads on one axis to scale: Heston and Sadka's sample to 2002, Chan's two
-   files, the book, and the two registered runs from 2009 on.
+   reads on one axis to scale: the years behind Heston and Sadka's 13
+   percent, ending at Chan's 2002 split, Chan's two files, the book's first
+   edition, and the two registered runs from 2009 on.
 2. `equity_seasonals_two_verdicts.gif`, in the opening, the two registered
-   runs' verdicts on number lines to scale: the January bracket from −0.1047
-   to 0.0879 across zero, and Heston and Sadka's mean at zero with the
-   returns up to X, about 4.2 percent a year, tinted as too small to detect.
+   runs' verdicts on number lines, each to its own scale: the January bracket
+   from −0.1047 to 0.0879 across zero, and Heston and Sadka's mean at zero
+   with the returns up to about 4.2 percent a year tinted as ones that could
+   pass unseen. That 4.2 percent is the return the test detects 80 percent of
+   the time.
 3. `equity_seasonals_january_trade.gif`, Example 7.6's year of returns, its
    ranking at the year's last close, its January hold, and its bet that the
    extremes come back.
@@ -3175,14 +3180,19 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
+Only the verdicts sketch reads the owner's archive. On a machine without it
+the command redraws the other three and exits non-zero, naming the one it
+left.
+
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
 its extremes, the timing each draws, that the opening sketches place every
 figure and date to scale and refuse figures their words would misdescribe,
 that no label touches a line, another label or the frame's edge, and that each
 GIF follows its text in the post. It draws the verdicts from the pinned
-figures, so it runs without the archive, and one test holds that the two
-registered runs give those figures where the archive is. The test
+figures, so it runs without the archive, and a test in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) holds that
+the two registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs

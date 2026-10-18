@@ -3136,3 +3136,18 @@ class TestTheMonthlyPins:
         assert "stopped inside the month held: 23, their returns summed by side -0.7013" in out
         assert "    departing: long 505 (12.0%), short 698 (16.5%), neither 3019 (71.5%)" in out
         assert "    chi-square p 0.000, descriptive only" in out
+
+
+def test_the_whiteboard_draws_these_runs_verdicts(point_in_time, monthly) -> None:
+    """The verdicts sketch in ``tests/test_equity_seasonals_whiteboard.py``
+    draws from its ``PINNED`` figures, so it runs without the archive. This
+    holds that the two registered runs give those figures, at the tolerance
+    every pin here uses, on this file's own runs rather than a second pair."""
+    from chan.equity_seasonals_whiteboard import Verdicts
+    from tests.test_equity_seasonals_whiteboard import PINNED
+
+    drawn = Verdicts.from_runs(point_in_time, monthly)
+    for field in ("january_low", "january_high", "monthly_mean", "detectable"):
+        assert getattr(drawn, field) == pytest.approx(getattr(PINNED, field), abs=1e-9), field
+    for field in ("january_low_rejects", "january_high_rejects", "monthly_rejects"):
+        assert getattr(drawn, field) is getattr(PINNED, field), field
