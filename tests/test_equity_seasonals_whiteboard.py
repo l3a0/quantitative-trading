@@ -762,15 +762,15 @@ class TestTheRuleSketches:
         short, filled, _, wrong, empty, _, lookup = rules
         assert _labels(short) == [
             "buy the 58 worst",
-            "short the 56 best",
+            "short 56 of the 58 best",
             "a tenth: 58",
-            "2 left out",
+            "2 left out: the best and the 58th",
             "the winners are sliced as topN − 2",
             "January 2006, 579 stocks ranked",
         ]
         assert [s for s in _labels(filled) if not s.isdigit()] == [
             "PMC",
-            "last close 6.02, carried across an 851-day gap",
+            "last close 6.02, then 851 trading days with no price",
             "end of 2006",
             "13.88",
             "+130.56% read as 2007’s gain",
@@ -788,9 +788,9 @@ class TestTheRuleSketches:
             "96 month-end rows",
             "row 1",
             "row 96",
-            "row 237",
+            "row 258",
             "the first pass asks for it and stops",
-            "the repair reads row m − 1, here 12",
+            "the repair reads row m − 1, here 13",
         ]
 
     def test_other_figures_move_the_labels(self) -> None:
@@ -811,12 +811,12 @@ class TestTheRuleSketches:
             repaired_row=11,
         )
         short, filled, _, _, empty, _, lookup = rule_scenes(moved)
-        assert "3 left out" in _labels(short) and "January 2006, 600 stocks ranked" in _labels(
+        assert "3 left out: the best and the 60th" in _labels(
             short
-        )
+        ) and "January 2006, 600 stocks ranked" in _labels(short)
         assert "3rd best of 590: shorted" in _labels(filled)
         assert "+118.18% read as 2007’s gain" in _labels(filled)
-        assert "last close 5.50, carried across an 800-day gap" in _labels(filled)
+        assert "last close 5.50, then 800 trading days with no price" in _labels(filled)
         assert "first edition: sum ÷ 95" in _labels(empty)
         assert "revised: sum ÷ 84" in _labels(empty)
         assert "the repair reads row m − 1, here 11" in _labels(lookup)
@@ -900,6 +900,6 @@ class TestTheRuleSketches:
         x0, x1, _ = sketches.ROWS
         assert _stroke(lookup, "past").x.min() == pytest.approx(x1)
         assert _middle(lookup, "asks") > x1
-        width = (x1 - x0) / sketches.ROW_CELLS
+        width = (x1 - x0) / drawn.month_end_rows
         repair = _stroke(lookup, "repair")
         assert repair.x[0] == pytest.approx(x0 + (drawn.repaired_row - 0.5) * width)

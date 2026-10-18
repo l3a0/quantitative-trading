@@ -527,6 +527,12 @@ class TestTheShapesTheScaleBreakCommentNames:
             assert inside.max() < 20, f"{symbol} {when.date()} spans the gap"
 
 
+#: The revised MATLAB's first pass through its month loop, ``for m=14:...``
+#: in the revised code's repost, pinhaocheng/epchan-quant_trading_MATLAB_codes
+#: ``7430b84``, which ranks on ``monthlyRet(m-12, :)`` and masks on row m - 1.
+FIRST_PASS_M = 14
+
+
 class TestHestonSadkaRevisedMatlab:
     """Example 7.7 in the revised edition's MATLAB, as printed on p. 179 with one repair.
 
@@ -543,10 +549,12 @@ class TestHestonSadkaRevisedMatlab:
         assert_reproduces(result.sharpe, -0.12434081928195095, "-0.1243", ".4f")
 
     def test_the_printed_index_is_out_of_range_on_the_first_pass(self, spx) -> None:
-        """``monthEnds(12)`` is a daily row, and the cut ``cl`` holds 96 rows."""
+        """The loop's first pass, m = 14, asks for ``monthEnds(13)``, a daily row,
+        and the cut ``cl`` holds 96 rows. The loop starts at 14 in the revised
+        code's repost, pinhaocheng/epchan-quant_trading_MATLAB_codes ``7430b84``."""
         ends = row_month_ends(spx.index)
         assert len(ends) == 96
-        assert ends[11] + 1 == 237
+        assert ends[FIRST_PASS_M - 2] + 1 == 258
 
     def test_it_drops_thirteen_months_as_printed(self, spx) -> None:
         """``ret(1:13)=[]`` leaves 83 months, from the end of December 2000."""
@@ -3223,5 +3231,6 @@ class TestTheRuleSketchesFigures:
         drawn = RuleFigures()
         ends = row_month_ends(spx.index)
         assert len(ends) == drawn.month_end_rows
+        assert drawn.repaired_row == FIRST_PASS_M - 1
         assert ends[drawn.repaired_row - 1] + 1 == drawn.first_pass_row
         assert drawn.first_pass_row > drawn.month_end_rows

@@ -303,11 +303,11 @@ class RuleFigures:
     #: then the months with no position and the months that hold positions.
     empty_months: int = 12
     held_months: int = 83
-    #: The revised MATLAB's month-end rows, and the daily row its first pass
-    #: asks for, ``monthEnds(12)``, where the repair reads row 12.
+    #: The revised MATLAB's month-end rows, and the daily row its first pass,
+    #: m = 14, asks for, ``monthEnds(13)``, where the repair reads row 13.
     month_end_rows: int = 96
-    first_pass_row: int = 237
-    repaired_row: int = 12
+    first_pass_row: int = 258
+    repaired_row: int = 13
 
     @property
     def first_edition_months(self) -> int:
@@ -349,11 +349,16 @@ def _short_side(f: RuleFigures) -> Scene:
             Label(f"buy the {f.longs_2006} worst", SIDES_X, 3.5, names="long", color=GOOD, size=12),
             _stroke("short", _span(SIDES_X, short_end, SHORT_Y), color=LOST, width=4.0, frames=8),
             Label(
-                f"short the {f.shorts_2006} best", SIDES_X, 2.5, names="short", color=LOST, size=12
+                f"short {f.shorts_2006} of the {f.longs_2006} best",
+                SIDES_X,
+                2.5,
+                names="short",
+                color=LOST,
+                size=12,
             ),
             _stroke(
                 "tenth",
-                _line([(long_end, 3.35), (long_end, 1.6)]),
+                _line([(long_end, 3.35), (long_end, 1.8)]),
                 color=ACCENT,
                 dashed=True,
                 frames=4,
@@ -374,11 +379,13 @@ def _short_side(f: RuleFigures) -> Scene:
                 frames=2,
             ),
             Label(
-                f"{f.longs_2006 - f.shorts_2006} left out",
-                long_end + 0.22,
-                SHORT_Y,
+                f"{f.longs_2006 - f.shorts_2006} left out: "
+                f"the best and the {_ordinal(f.longs_2006)}",
+                long_end + 0.1,
+                1.45,
                 names="missing",
                 color=MUTED,
+                ha="right",
                 size=12,
             ),
             Label("the winners are sliced as topN − 2", SIDES_X, 1.0, names="missing", size=13),
@@ -450,12 +457,13 @@ def _filled_close(f: RuleFigures) -> Scene:
                 frames=8,
             ),
             Label(
-                f"last close {f.pmc_last_close:.2f}, carried across an {f.pmc_gap_days}-day gap",
-                _pmc_x(2004.0),
+                f"last close {f.pmc_last_close:.2f}, "
+                f"then {f.pmc_gap_days} trading days with no price",
+                0.4,
                 2.0,
                 names="carried",
                 color=MUTED,
-                size=11,
+                size=10.5,
             ),
             _dot("end-2006", end_2006, carried),
             Label(
@@ -779,7 +787,7 @@ ASKED_X = 8.6
 def _month_end_lookup(f: RuleFigures) -> Scene:
     """Example 7.7's rule 8: the first pass asks the month-end rows for a daily row."""
     x0, x1, y = ROWS
-    repaired = x0 + (f.repaired_row - 0.5) * (x1 - x0) / ROW_CELLS
+    repaired = x0 + (f.repaired_row - 0.5) * (x1 - x0) / f.month_end_rows
     return Scene(
         "A lookup past the end",
         "rule_month_end_lookup",

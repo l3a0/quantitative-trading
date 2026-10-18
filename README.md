@@ -3179,7 +3179,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 4. `equity_seasonals_same_month_trade.gif`, Example 7.7's ranking on one month
    a year ago, its hold of the same month, and its bet that the month repeats.
 5. `equity_seasonals_rule_short_side.gif`, Example 7.6's rule 2, the 58 losers
-   bought against the 56 winners shorted in January 2006, as bars to scale.
+   bought against the 56 winners shorted in January 2006, as bars to scale,
+   with the best winner and the 58th left out.
 6. `equity_seasonals_rule_filled_close.gif`, Example 7.6's rule 3, PMC's last
    close carried across its 851-day gap and read as a gain of 130.56 percent
    for 2007.
@@ -3193,8 +3194,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 10. `equity_seasonals_rule_own_month_end.gif`, Example 7.7's rule 5, a shared
     month-end row against each stock's own last priced day.
 11. `equity_seasonals_rule_month_end_lookup.gif`, Example 7.7's rule 8, the
-    first pass asking the 96 month-end rows for row 237, and the row the
-    repair reads.
+    first pass asking the 96 month-end rows for row 258, and row 13, which
+    the repair reads.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
