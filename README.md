@@ -3100,11 +3100,11 @@ Januaries before. The post draws three lessons from Entry 7 of the replication
 log.
 
 1. Account for every choice and every bug, or one strategy gives several
-   answers. Every figure his code
-   prints reproduces, but the book's description fits several numbers, and
-   six of the rules each script adds are bugs, which matching the printed
-   figures means copying. Example 7.7's four printouts give four answers, and
-   the first edition's is in different units from the other three.
+   answers. Every figure his code prints reproduces, but the book's
+   description fits several numbers, and six of the rules each script adds are
+   bugs, which matching the printed figures means copying. Example 7.7's four
+   printouts give four answers, and the first edition's is in different units
+   from the other three.
 2. Reproducing a strategy published as dead checks its printed figures and not
    its death. The split at 2002 is exploratory with no verdict, and Chan's
    claim that the most recent five years do worse holds on his own file under
