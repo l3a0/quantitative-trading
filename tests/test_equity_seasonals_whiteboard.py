@@ -8,7 +8,7 @@ them.
 1. Which way each strategy bets: Example 7.6 buys the lowest-ranked tenth and
    shorts the highest and points its losers up and its winners down, and
    Example 7.7 does the reverse and points each the way it already went.
-2. Its timing: January is one twelfth of the year past the December 31 close,
+2. Its timing: January is one twelfth of the year past the year's last close,
    and the same-month trade ranks and holds the same calendar month in two
    strips, a year apart, then moves on a month.
 3. That each sketch names its bet in the post's own words, "mean reversion"
@@ -89,7 +89,7 @@ LABELS = [
     [
         "a year of returns",
         "hold January",
-        "rank at the Dec 31 close",
+        "rank at the year’s last close",
         "buy the worst tenth",
         "short the best tenth",
         "losers up",
@@ -100,7 +100,7 @@ LABELS = [
         "last year",
         "this year",
         "March",
-        "rank",
+        "rank on",
         "hold",
         "then April, May, …",
         "buy the best tenth",

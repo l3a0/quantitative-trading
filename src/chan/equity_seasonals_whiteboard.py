@@ -7,8 +7,8 @@ holds, and which way it bets. A timeline shows that faster than a paragraph,
 so this module draws one scene for each strategy, and the post places each
 right after the paragraph it draws.
 
-1. The January trade: a calendar year of returns, a ranking at the December
-   31 close, the worst tenth bought and the best tenth shorted, held through
+1. The January trade: a calendar year of returns, a ranking at the year's
+   last close, the worst tenth bought and the best tenth shorted, held through
    January, with the losers pointed up and the winners down. That is Example
    7.6's bet that the extremes come back, a mean reversion trade.
 2. The same-month trade: two monthly strips, last year above this year, with
@@ -19,9 +19,9 @@ right after the paragraph it draws.
 
 Both scenes are schematic and carry no data. The ranked dots stand for a
 cross-section of stocks sorted by the return each strategy ranks on, and the
-two ringed at each end stand for a tenth. No number is drawn, so no test here
-reads a vintage. March is an example month, and the scene says the trade moves
-on to the next one.
+two ringed at each end stand for a tenth. No number read from data is
+drawn, so no test here reads a vintage. March is an example month, and the
+scene says the trade moves on to the next one.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied: its strokes, labels, timeline, renderer and palette, so these
@@ -112,7 +112,7 @@ def _cell(x0: float, x1: float, y: float, month: int, months: int = 12, half: fl
 
 
 #: Where the January trade's year runs, and where its January ends, one
-#: twelfth of the year past the December 31 close.
+#: twelfth of the year past the year's last close.
 YEAR = (0.6, 6.0, 3.4)
 JANUARY_END = YEAR[1] + (YEAR[1] - YEAR[0]) / 12
 #: Where each scene's ranked row runs, from its lowest stock to its highest.
@@ -140,7 +140,7 @@ def _january_trade() -> Scene:
             ),
             Label("hold January", JANUARY_END + 0.2, y, names="january", color=ACCENT),
             _stroke("to-rank", _arrow(x1 - 0.05, y - 0.25, x1 - 0.3, 2.7), color=MUTED, frames=4),
-            Label("rank at the Dec 31 close", x1 + 0.2, 2.85, names="to-rank", size=12),
+            Label("rank at the year’s last close", x1 + 0.2, 2.85, names="to-rank", size=12),
             Stroke("ranked", stocks[0], stocks[1], color=MUTED, frames=10, dots=6.0),
             _stroke("buy", _ring(*losers), color=GOOD, frames=6),
             Label("buy the worst tenth", 1.7, 0.3, names="buy", color=GOOD, size=12),
@@ -188,7 +188,7 @@ def _same_month_trade() -> Scene:
                 "march-then", _cell(x0, x1, LAST_YEAR, MARCH), color=ACCENT, width=3.5, frames=4
             ),
             Label("March", march, 3.8, names="march-then", color=ACCENT, ha="center"),
-            Label("rank", x1 + 0.25, LAST_YEAR, names="march-then", color=ACCENT, size=12),
+            Label("rank on", x1 + 0.25, LAST_YEAR, names="march-then", color=ACCENT, size=12),
             _stroke(
                 "repeat", _arrow(march, gap[0] - 0.02, march, gap[1] + 0.02), color=ACCENT, frames=3
             ),

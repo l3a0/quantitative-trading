@@ -343,9 +343,10 @@ class TestEveryCommittedFigureIsCompared:
 
         It reads ``*.png`` rather than every file, so a ``.DS_Store`` that
         Finder leaves there does not fail it, and an untracked new PNG still
-        does. The GIFs are not read here.
-        ``tests/test_usdcad_tests_whiteboard.py`` compares each one with a
-        fresh draw byte for byte, and fails on a GIF it does not draw.
+        does. The GIFs are not read here. ``tests/test_usdcad_tests_whiteboard.py``
+        and ``tests/test_equity_seasonals_whiteboard.py`` each compare their own
+        GIFs with a fresh draw byte for byte, and the second fails on any GIF in
+        the folder that neither module draws.
         """
         committed = {path.name for path in FIGURES_DIR.glob("*.png")}
 

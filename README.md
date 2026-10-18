@@ -2577,7 +2577,10 @@ the owner's machine catches a stale figure. The USD.CAD post's animated GIFs
 are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
-also only on macOS arm64 and only with the hand font they were drawn in.
+also only on macOS arm64 and only with the hand font they were drawn in. The
+equity seasonals post's two GIFs are checked the same way by
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
+which also fails on any GIF in the folder that neither module draws.
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3157,7 +3160,7 @@ strategies, drawn by
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
 1. `equity_seasonals_january_trade.gif`, Example 7.6's year of returns, its
-   ranking at the December 31 close, its January hold, and its bet that the
+   ranking at the year's last close, its January hold, and its bet that the
    extremes come back.
 2. `equity_seasonals_same_month_trade.gif`, Example 7.7's ranking on one month
    a year ago, its hold of the same month, and its bet that the month repeats.
@@ -3168,11 +3171,13 @@ uv run python -m chan.equity_seasonals_whiteboard
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each sketch buys and shorts, which way each points its
-extremes, the timing each draws, that no label touches a line, and that each
-GIF follows its paragraph in the post. Both sketches are schematic, so no
-number in them is read from data. It compares each committed GIF with a fresh
-draw byte for byte only on macOS arm64 in Comic Sans MS, as the USD.CAD
-sketches' test does.
+extremes, the timing each draws, that no label touches a line, another label
+or the frame's edge, and that each GIF follows its paragraph in the post. Both
+sketches are schematic, so no number in them is read from data. The test
+compares each committed GIF with a fresh draw byte for byte only on macOS arm64
+in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
+the USD.CAD module's strokes, timeline and renderer, so an edit there needs
+both redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
