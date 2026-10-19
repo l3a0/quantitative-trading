@@ -1945,7 +1945,8 @@ def test_a_board_older_than_its_threshold_says_it_may_be_stale(
     like a fresh one. The threshold comes from the board, which takes it from
     the workflow's schedule, so the page carries no second copy of it. The
     banner names the gap between scheduled runs and says GitHub can start one
-    late, because GitHub promises no cadence the page could quote as a bound.
+    late or drop it, because GitHub promises no cadence the page could quote as
+    a bound.
     """
     board = fixture_board(
         source="github",
@@ -1959,7 +1960,7 @@ def test_a_board_older_than_its_threshold_says_it_may_be_stale(
         assert banner == (
             "This board may be stale. It was built from GitHub 1h ago. "
             "Scheduled rebuilds are due at most 30 minutes apart, and it is older than that "
-            "plus an allowance for GitHub starting one late, "
+            "plus an allowance for GitHub starting one late or dropping it, "
             "so the Action that rebuilds it may be failing."
         )
     else:
