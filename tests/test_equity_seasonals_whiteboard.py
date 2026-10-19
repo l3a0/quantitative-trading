@@ -665,7 +665,7 @@ class TestThePost:
         for opening, name in zip(
             (
                 "A second run tested Example 7.6",
-                "Free daily prices cover most",
+                "That match is what shows",
                 "The low series averages",
             ),
             JANUARY_GIFS,
