@@ -252,7 +252,7 @@ Survivorship bias is what a backtest picks up when its data holds only the compa
 
 ## What this replication cannot say
 
-Three questions are beyond it.
+Three open questions.
 
 ### 1. Whether Heston and Sadka’s effect existed before 2002
 
