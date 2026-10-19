@@ -1518,6 +1518,81 @@ class TestAPanelIsRememberedWithinAProcess:
         with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
             load_panel("SRC.mat", data_dir=remembered)
 
+    def test_a_member_rewritten_to_a_new_size_under_its_old_time_is_hashed_again(
+        self, counted: dict[str, int], remembered: Path
+    ) -> None:
+        """Written in place and its time put back, so only the size says it moved."""
+        load_panel("SRC.mat", data_dir=remembered)
+        member = remembered / "src" / "bbb.csv"
+        before = member.stat()
+        member.write_bytes(member.read_bytes().replace(b"21.0", b"21.25"))
+        os.utime(member, ns=(before.st_atime_ns, before.st_mtime_ns))
+
+        with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
+            load_panel("SRC.mat", data_dir=remembered)
+
+    def test_a_member_changed_during_the_first_read_is_hashed_again(
+        self, counted: dict[str, int], remembered: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A stamp taken after the read would describe the changed file and serve the old one."""
+        reading = series.read_vintage
+
+        def change_it_once_read(entry, data_dir=None):
+            payload = reading(entry, data_dir=data_dir)
+            if entry.symbol == "BBB":
+                member = remembered / entry.path
+                member.write_bytes(payload.replace(b"21.0", b"21.5"))
+            return payload
+
+        monkeypatch.setattr(series, "read_vintage", change_it_once_read)
+        load_panel("SRC.mat", data_dir=remembered)
+        monkeypatch.setattr(series, "read_vintage", reading)
+
+        with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
+            load_panel("SRC.mat", data_dir=remembered)
+
+    def test_a_member_missing_when_it_was_stamped_is_not_remembered(
+        self, counted: dict[str, int], remembered: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A file absent at its stamp and again later would match its own missing stamp."""
+        member = remembered / "src" / "bbb.csv"
+        genuine = member.read_bytes()
+        member.unlink()
+        reading = series.read_vintage
+
+        def put_it_back_to_read_it(entry, data_dir=None):
+            if entry.symbol == "BBB":
+                member.write_bytes(genuine)
+            return reading(entry, data_dir=data_dir)
+
+        monkeypatch.setattr(series, "read_vintage", put_it_back_to_read_it)
+        load_panel("SRC.mat", data_dir=remembered)
+        monkeypatch.setattr(series, "read_vintage", reading)
+        member.unlink()
+
+        with pytest.raises(VintageUnavailable, match="no file is at"):
+            load_panel("SRC.mat", data_dir=remembered)
+
+    def test_a_manifest_rewritten_during_the_first_read_is_read_again(
+        self, counted: dict[str, int], remembered: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        manifest = remembered / MANIFEST_NAME
+        reading = series.read_manifest
+
+        def rewrite_it_once_read(data_dir=None):
+            entries = reading(data_dir)
+            lines = manifest.read_text(encoding="utf-8").splitlines()
+            manifest.write_text("".join(line + "\n" for line in reversed(lines)), encoding="utf-8")
+            return entries
+
+        monkeypatch.setattr(series, "read_manifest", rewrite_it_once_read)
+        load_panel("SRC.mat", data_dir=remembered)
+        monkeypatch.setattr(series, "read_manifest", reading)
+
+        load_panel("SRC.mat", data_dir=remembered)
+
+        assert counted == {"manifest": 2, "member": 6}
+
     def test_a_rewritten_manifest_is_read_again(
         self, counted: dict[str, int], remembered: Path
     ) -> None:
