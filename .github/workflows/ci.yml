@@ -57,10 +57,14 @@ jobs:
       # The suite includes tests/test_markdown_hygiene.py, which runs the prose
       # checks CLAUDE.md names. They run here rather than in the docs job so a
       # local `pytest` catches them too. pyproject.toml's addopts spreads the
-      # run across one pytest-xdist worker per core, so this step needs no flag
-      # and runs the same command a local check does.
+      # run across one pytest-xdist worker per core, so the step needs no flag
+      # for that and runs the same command a local check does, plus one flag
+      # that changes nothing about what runs. `--durations=30` lists the 30
+      # slowest test phases, timing setup, call and teardown apart, so CI's
+      # slow tests are ranked from CI's own runner rather than borrowed from a
+      # Mac, which runs more workers and more tests.
       - name: Run the test suite
-        run: uv run pytest
+        run: uv run pytest --durations=30
 
   # CLAUDE.md requires every .md file to pass markdownlint. Without this job
   # that rule is advice, which is how it sat in the repos this template came
