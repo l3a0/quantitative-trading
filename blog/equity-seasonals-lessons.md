@@ -294,7 +294,7 @@ The wording written before the run covers three outcomes.
 
 The two versions disagree, so the verdict is the third. Free data cannot decide whether the January effect survived the book. Prices for the members that could have fallen in a traded tenth are what could decide it.
 
-Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the bias described above, and no rule for it was written before the run, so it is described rather than tested.
+Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the survivorship bias described above, and no rule for it was written before the run, so it is described rather than tested.
 
 ### 3. Whether Heston and Sadka’s effect survived the book
 
