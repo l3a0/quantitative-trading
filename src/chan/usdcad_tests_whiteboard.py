@@ -190,7 +190,8 @@ XLIM, YLIM = (0.0, 10.0), (0.0, 4.7)
 class Stroke:
     """A line drawn from its first point to its last over ``frames`` frames.
 
-    A stroke of one point is a dot, drawn in a single frame. A stroke with a
+    A stroke of one point is a dot, drawn in a single frame when ``frames`` is
+    1, as :func:`_dot` sets it. A stroke with a
     ``dots`` size is a row of dots of that size in points, one on each of its
     points and no line between them, revealed a few more on each frame.
     """
@@ -228,7 +229,8 @@ class Fill:
 
 @dataclass(frozen=True)
 class Label:
-    """Text that appears once the stroke or tint it names, ``names``, is drawn."""
+    """Text that appears at its own place in the scene's steps. ``names`` is the
+    stroke or tint before it that it labels, which the tests hold is drawn first."""
 
     text: str
     x: float

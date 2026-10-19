@@ -20,7 +20,7 @@ import pytest
 
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.usdcad_tests_whiteboard import Label, Scene, Stroke, _line, _stroke
+from chan.usdcad_tests_whiteboard import Fill, Label, Scene, Stroke, _line, _stroke
 
 SCRIPT = REPO_ROOT / ".claude" / "skills" / "sketch-notes" / "draft.py"
 
@@ -61,8 +61,13 @@ class TestEachBrokenRuleIsFlagged:
         scene = _scene(_line_across(), Label("on the line", 3.0, 2.05, names="line"))
         assert any("px from a stroke" in line for line in _found(scene, tmp_path))
 
-    def test_a_label_off_the_board(self, tmp_path) -> None:
-        scene = _scene(_line_across(), Label("off the board", 9.8, 4.6, names="line"))
+    @pytest.mark.parametrize(
+        ("x", "y", "ha"),
+        [(9.8, 4.6, "left"), (9.9, 3.0, "left"), (5.0, 4.68, "left"), (0.02, 3.0, "right")],
+        ids=["corner", "right edge", "top edge", "left edge"],
+    )
+    def test_a_label_off_the_board(self, tmp_path, x, y, ha) -> None:
+        scene = _scene(_line_across(), Label("off the board", x, y, names="line", ha=ha))
         assert any("px inside the board" in line for line in _found(scene, tmp_path))
 
     def test_two_labels_touching(self, tmp_path) -> None:
@@ -92,8 +97,30 @@ class TestEachBrokenRuleIsFlagged:
         assert any("8 frames for 1 points" in line for line in found)
         assert any("the GIF holds" in line for line in found)
 
+    def test_a_label_naming_a_tint_drawn_before_it_is_ok(self, tmp_path) -> None:
+        scene = _scene(
+            Fill("band", 1.0, 1.0, 4.0, 1.5, whiteboard.MUTED),
+            Label("a band", 5.0, 3.5, names="band"),
+        )
+        assert not any("not drawn before it" in line for line in _found(scene, tmp_path))
+
     def test_a_dot_drawn_in_one_frame_is_ok(self, tmp_path) -> None:
         assert _found(_scene(whiteboard._dot("dot", 5.0, 2.0)), tmp_path) == []
+
+
+class TestThePacing:
+    def test_paced_labels_show_900_ms_and_the_drawing_holds_12_seconds(self) -> None:
+        scene = whiteboard._adf()
+        plain, paced = draft.frames_for(scene, False), draft.frames_for(scene, True)
+        assert [(f.done, f.partial) for f in paced] == [(f.done, f.partial) for f in plain]
+        for before, after in zip(plain[1:-1], paced[1:-1], strict=True):
+            labelled = (
+                after.partial == 0
+                and after.done
+                and not isinstance(scene.steps[after.done - 1], Stroke)
+            )
+            assert after.ms == (900 if labelled else before.ms)
+        assert (paced[0].ms, paced[-1].ms) == (plain[0].ms, 12000)
 
 
 class TestBothFontsAreChecked:
@@ -138,9 +165,25 @@ class TestItNeverWritesIntoTheFigures:
         assert not draft.inside_figures(tmp_path)
         assert not draft.inside_figures(FIGURES_DIR.parent / "figures-draft")
 
-    def test_the_command_stops_before_drawing(self, tmp_path) -> None:
+    def test_a_symlink_followed_by_dotdot_is_refused(self, tmp_path) -> None:
+        inside = tmp_path / "figures" / "sub"
+        inside.mkdir(parents=True)
+        (tmp_path / "link").symlink_to(inside)
+        guarded = tmp_path / "figures"
+        assert os.path.samefile(os.path.realpath(tmp_path / "link" / ".."), guarded)
+        original = draft.FIGURES_DIR
+        try:
+            draft.FIGURES_DIR = guarded
+            assert draft.inside_figures(tmp_path / "link" / "..")
+        finally:
+            draft.FIGURES_DIR = original
+
+    def test_the_command_stops_before_drawing(self, tmp_path, monkeypatch) -> None:
+        """The figures folder is a scratch one here, so a broken guard writes nothing real."""
+        monkeypatch.setattr(draft, "FIGURES_DIR", tmp_path)
         with pytest.raises(SystemExit, match="not docs/figures"):
-            draft.main(["chan.usdcad_tests_whiteboard:_adf", "--out", str(FIGURES_DIR)])
+            draft.main(["chan.usdcad_tests_whiteboard:_adf", "--out", str(tmp_path)])
+        assert list(tmp_path.iterdir()) == []
 
 
 class TestTheCommand:
@@ -169,3 +212,20 @@ class TestTheCommand:
         printed = capsys.readouterr().out
         assert "see below" in printed and "px from a stroke" in printed
         assert os.path.exists(out / "broken.gif")
+
+    def test_one_broken_scene_among_several_exits_1(self, tmp_path, monkeypatch) -> None:
+        (tmp_path / "two_sketches.py").write_text(
+            textwrap.dedent(
+                """
+                from chan.usdcad_tests_whiteboard import Label, Scene, _adf, _line, _stroke
+
+                def scenes():
+                    line = _stroke("line", _line([(1, 2), (9, 2)]))
+                    on_it = Label("on it", 3, 2.05, names="line")
+                    broken = Scene("Broken", "broken", (line, on_it))
+                    return (broken, _adf())
+                """
+            )
+        )
+        monkeypatch.syspath_prepend(str(tmp_path))
+        assert draft.main(["two_sketches:scenes", "--out", str(tmp_path / "out")]) == 1

@@ -85,7 +85,7 @@ def inside_figures(out: Path) -> bool:
     relative path, a symlink, or another case on a disk that ignores case all
     count, and so does a folder in it that does not exist yet.
     """
-    target = Path(os.path.abspath(out))
+    target = Path(os.path.realpath(out))
     return any(
         place.exists() and os.path.samefile(place, FIGURES_DIR)
         for place in (target, *target.parents)
