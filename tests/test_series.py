@@ -1474,6 +1474,17 @@ class TestAPanelIsRememberedWithinAProcess:
         assert counted == {"manifest": 2, "member": 6}
         assert series._PANELS == {}
 
+    def test_a_path_that_resolves_to_the_remembered_directory_is_served_from_it(
+        self, counted: dict[str, int], remembered: Path, tmp_path: Path
+    ) -> None:
+        link = tmp_path / "link"
+        link.symlink_to(remembered, target_is_directory=True)
+
+        load_panel("SRC.mat", data_dir=remembered)
+        load_panel("SRC.mat", data_dir=link)
+
+        assert counted == {"manifest": 1, "member": 3}
+
     def test_changing_a_returned_frame_changes_no_later_result(
         self, counted: dict[str, int], remembered: Path
     ) -> None:
