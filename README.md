@@ -130,8 +130,10 @@ where they were first built. The other forty-five were built here.
    computed. Every year-end has members with no checked price that could
    change a tenth, so every January is bounded. The low series averages
    −0.1047 a January before costs with a one-sided p of 1.000, and the high
-   series 0.0879 with a p of 0.001. The two disagree, so the free sources
-   cannot decide whether the January effect survived the book, and
+   series 0.0879 with a p of 0.001. Leaving those members out averages
+   −0.0083, between the two, described rather than tested. The two series
+   disagree, so the free sources cannot decide whether the January effect
+   survived the book, and
    [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) asks
    whether to buy prices for the members that threaten a tenth. Example 7.7
    then ran under the revised MATLAB's rules on the members IVV held each

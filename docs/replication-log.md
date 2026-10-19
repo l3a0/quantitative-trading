@@ -2670,6 +2670,7 @@ code behind rows 9, 10, 13 and 14 traces to
 | 47 | positions in the months between two schedules held on a name that changed: those the carry-forward run gave a removed name, then those the union run gave an added name. The 69 pairs of schedules removed 500 names and added 503 | 216 and 162, 378 in all | none | `TestTheMonthlyPins::test_the_positions_on_names_that_changed_per_pair_and_in_total` and `TestTheScheduleChanges::test_500_names_removed_and_503_added_over_69_pairs` |
 | 48 | positions whose stock stopped strictly between the month-end that set them and the next, and their returns summed, each signed by its side | 23, summing to −0.7013 | none | `TestTheMonthlyPins::test_23_positions_stopped_inside_the_month_held` |
 | 49 | covered member-months from ranking months 2008-12 to 2025-08, split by whether the name leaves the index within twelve months, and placed long, short or neither by row 41's rules. Described rather than tested | departing 12.0%, 16.5% and 71.5%, staying 9.8%, 9.6% and 80.6% | none | `TestTheMonthlyPins::test_departing_names_fall_in_a_tenth_more_often` |
+| 50 | row 35's year-ends with the missing members left out altogether, the tenth taken of the ranked covered members alone, from 43 long and 43 short of 433 ranked to 60 long and 60 short of 598 ranked. Described rather than tested, because [issue 329](https://github.com/l3a0/quantitative-trading/issues/329) wrote no rule for it | −0.0083, one-sided p 0.743 | none | `TestThePointInTimePins::test_leaving_the_missing_members_out_lands_between_the_two` |
 
 Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
@@ -2710,6 +2711,7 @@ no published figure to take a gap from.
 | 36 to 40 | none, registered | Reported beside row 35. Row 40 compares two runs on one cross-section, so it measures membership rather than two download dates. Its two figures differ in sign because the bound is wider than the gap it would measure, so it says nothing yet about what survivorship cost Example 7.6. |
 | 41 | none, registered | The registered verdict is "no return detectable above about 4.2% a year", the criterion's own wording rather than one of the three a replication takes. The mean is −0.0001 a month with a one-sided p of 0.539, so the test does not reject. The 4.2% is row 44's X at one decimal of a percent, as the issue fixed. A true return below that size could pass undetected, so the verdict never says the strategy is dead. It is before costs and on covered members only. Its membership is carried forward between quarterly schedules, and it lacks the return a failing stock takes when it leaves, which the free source does not carry. `TestTheMonthlyPins::test_the_verdict` holds the wording. |
 | 42 to 49 | none, registered | Reported beside row 41. Row 45 equals row 41 because the printouts' differences never bind on this panel. Every ranked member has the closes its month needs, so keeping a stock on its own close and keeping it on its own return keep the same stocks. Rows 46 and 47 measure what carrying a schedule forward misdates, and both bracketing means are negative, like row 41's. Row 48's positions earn their return to the last close and nothing after it. Row 49 tests the argument the dropped members rest on. Among covered members, names that leave the index within a year land in a tenth more often than names that stay, most of all in the short tenth. The issue said before the run that a clear difference would count as evidence against the argument that dropping a missing member is neutral, and this is such a difference. Which way it moves row 41's mean is not measured. The chi-square p prints as 0.000 and decides nothing, because member-months repeat the same names. |
+| 50 | none, exploratory | Reported beside row 35 with no verdict. Leaving the missing members out ranks each year on a different set of stocks than the strategy would have traded, the survivorship problem the bound exists to avoid, so its p is not a test of the effect. |
 
 ### What the entry concludes
 
@@ -2753,8 +2755,9 @@ Seven things.
    first registered result. Rows 35 to 40 bound every January, because every
    year-end has members with no checked price that could change a tenth. The
    low series averages −0.1047 a January with a one-sided p of 1.000, and the
-   high series 0.0879 with a p of 0.001. A purchase of the threatening
-   members' prices is what could decide it.
+   high series 0.0879 with a p of 0.001. Row 50 leaves those members out and
+   averages −0.0083, between the two, described rather than tested. A
+   purchase of the threatening members' prices is what could decide it.
 7. **On the S&P 500 as IVV held it each month, Example 7.7 earns no return
    detectable above about 4.2% a year after the book.** This is registered.
    Row 41 averages −0.0001 a month before costs over the 213 months from

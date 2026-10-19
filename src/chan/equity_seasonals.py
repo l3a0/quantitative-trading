@@ -1183,6 +1183,10 @@ class YearEnd:
     ``high`` are before costs. They are equal, and equal to ``trade``'s return
     with its costs added back, exactly when no missing member threatens a
     tenth.
+
+    ``dropped`` is the January with the missing members left out altogether,
+    the tenth taken of the ranked covered members alone, before costs. Issue
+    329 wrote no rule for it, so it is described rather than tested.
     """
 
     report_date: str
@@ -1200,6 +1204,7 @@ class YearEnd:
     no_exit: int
     low: float
     high: float
+    dropped: float
 
     @property
     def exact(self) -> bool:
@@ -1359,6 +1364,9 @@ def point_in_time_year(
             f"{date}: january_effect entered {trade.entered.date()} and ranked "
             f"{trade.ranked}, where the slice gives {entered.date()} and {ranked}"
         )
+    alone = january_effect(sliced, MATLAB_JANUARY)
+    if [one.exited for one in alone.trades] != [exited]:
+        raise PointInTimeRefused(f"{date}: the covered members alone do not yield this January")
     sides = threat_sides(year_end_returns(IJR, date, filings_dir), year.missing, universe)
     counts = {side: sum(1 for value in sides.values() if value == side) for side in SIDES}
     low, high = bounded_january(annual, january, trade.longs, **counts)
@@ -1379,6 +1387,7 @@ def point_in_time_year(
         no_exit=int((np.isfinite(annual) & ~np.isfinite(january)).sum()),
         low=low,
         high=high,
+        dropped=alone.trades[0].ret + 2 * ONE_WAY_COST,
     )
 
 
@@ -1428,6 +1437,11 @@ class PointInTimeRun:
     @property
     def verdict(self) -> str:
         return point_in_time_verdict(self.low, self.high, self.x_low, self.x_high)
+
+    @property
+    def dropped(self) -> OneSided:
+        """The Januaries with the missing members left out, described rather than tested."""
+        return one_sided_t([year.dropped for year in self.year_ends])
 
     @property
     def after_costs(self) -> tuple[float, float]:

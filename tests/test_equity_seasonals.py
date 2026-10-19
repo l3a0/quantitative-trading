@@ -2101,6 +2101,15 @@ class TestThePointInTimePins:
         assert_reproduces(test.p, 0.0008865014467510794, "0.001", ".3f")
         assert test.rejects
 
+    def test_leaving_the_missing_members_out_lands_between_the_two(self, point_in_time) -> None:
+        """The post quotes it beside the bound. Issue 329 wrote no rule for it,
+        so it is described, and its p is not a verdict."""
+        test = point_in_time.dropped
+        assert test.n == 18
+        assert_reproduces(test.mean, -0.00833318712859331, "-0.0083", ".4f")
+        assert_reproduces(test.p, 0.7434684265801739, "0.743", ".3f")
+        assert point_in_time.low.mean < test.mean < point_in_time.high.mean
+
     def test_x_for_each_series(self, point_in_time) -> None:
         assert_reproduces(point_in_time.x_low, 0.05474237393477483, "0.0547", ".4f")
         assert_reproduces(point_in_time.x_high, 0.06153368896545796, "0.0615", ".4f")
