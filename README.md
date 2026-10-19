@@ -2580,7 +2580,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's twenty-one GIFs are checked the same way by
+equity seasonals post's twenty-five GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3170,7 +3170,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries twenty-one looping whiteboard sketches, drawn by
+The post also carries twenty-five looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3233,23 +3233,36 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 21. `equity_seasonals_january_ranges.gif`, each of the registered run's
     eighteen Januaries as a bar from its low version to its high, with a dot
     beside each bar for that January with the unchecked members left out.
+22. `equity_seasonals_ivv_carry.gif`, under "Whether Heston and Sadka's effect
+    survived the book", a company that leaves or joins between two of IVV's
+    filings, held until the next one.
+23. `equity_seasonals_ivv_checked.gif`, the 98,321 of 107,115 member-months
+    with a checked price, and the month-ends with the fewest and the most.
+24. `equity_seasonals_ivv_leavers.gif`, the companies that left the index
+    within a year against those that stayed, as shares placed long, short and
+    neither.
+25. `equity_seasonals_ivv_running_sum.gif`, the run's 213 held months added up
+    against the line 13 percent a year would climb.
 
-Like the strategy sketches, Lesson 3's three and the January registered and
-fill sketches are schematic and carry no figures. Six sketches build more
+Like the strategy sketches, Lesson 3's three, the January registered and fill
+sketches and the carry-forward sketch are schematic and carry no figures.
+Seven sketches build more
 slowly than the rest and hold their finished drawings for twelve seconds,
 because each carries more than the usual pace lets a reader take in.
 
 1. The first two of the five-year sketches, 13 and 14.
 2. The last two of Lesson 3's sketches, 17 and 18.
 3. The January fill and ranges sketches, 20 and 21.
+4. The leavers sketch, 24.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Only the verdicts and ranges sketches read the owner's archive. On a machine
-without it the command redraws the other nineteen and exits non-zero, naming
-the two it left.
+Five sketches read the owner's archive: the verdicts sketch, the ranges
+sketch, and section 3's checked, leavers and running-sum sketches. On a machine
+without it the command redraws the other twenty and exits non-zero, naming the
+five it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
@@ -3260,8 +3273,10 @@ that the split sketch draws each bar and bracket to one scale and colours each
 bar by its sign, that the five-year sketches draw each bar to its months and
 each dot, band and January bar at its figure, that Lesson 3's sketches keep
 the companies that left out of the file, its ranking and its saved panel, that
-six sketches build slowly and hold for twelve seconds, that the ranges sketch
-draws each January from its low to its high, that no label touches a line,
+seven sketches build slowly and hold for twelve seconds, that the ranges sketch
+draws each January from its low to its high, that section 3's sketches hold a
+change until the next filing, split each bar at its share and add up the
+held months to one scale, that no label touches a line,
 another label or the frame's edge, and that each GIF follows its text in the
 post. The rule sketches' figures are defaults in `RuleFigures`, and
 `TestTheRuleSketchesFigures` in
@@ -3272,11 +3287,10 @@ S&P 500 file. The five-year sketches' figures are defaults in
 `FiveYearFigures`, and `TestTheFiveYearSketches` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The whiteboard test draws the verdicts from the pinned
-figures and the January ranges from `PINNED_RANGES`, so it runs without the
-archive, and two tests in
+figures, the January ranges from `PINNED_RANGES` and section 3's figures
+from `PINNED_IVV`, so it runs without the archive, and three tests in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold that the
-two registered runs give those figures and those Januaries where the archive
-is. The test
+registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS
 arm64 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw
 with the USD.CAD module's strokes, timeline and renderer, so an edit there

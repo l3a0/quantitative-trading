@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws twenty-one scenes, and the post places each right after the
+This module draws twenty-five scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -99,6 +99,23 @@ illustrates:
 The fill and ranges sketches build slowly as well. The registered and fill
 sketches are schematic and carry no figures.
 
+The last four sit under the question on whether Heston and Sadka's effect
+survived the book, one under each of the first four headings that split it:
+
+1. A list stands until the next filing: a company that leaves between two of
+   IVV's quarter-end filings is still held until the next one, and one that
+   joins is not held until then. It is schematic.
+2. Who had a checked price: the member-months with a checked price against
+   those dropped, overall and at the month-ends with the fewest and the most.
+3. Leavers land in the tenths: the companies that left the index within a
+   year, and those that stayed, as shares placed long, short and neither.
+   It builds slowly.
+4. The run's held months added up, against the line 13 percent a year would
+   climb.
+
+The last three draw :class:`IvvFigures`, read from the IVV run on the owner's
+archive.
+
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
 the two ringed at each end stand for a tenth. March is an example month, and
@@ -120,10 +137,10 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-one with the command below.
-Only the verdicts and ranges sketches read the archive, so on a machine
-without it the command redraws the other nineteen and exits non-zero naming
-the two it left::
+with no change is a no-op diff. Redraw all twenty-five with the command below.
+Five sketches read the archive, so on a machine
+without it the command redraws the other twenty and exits non-zero naming
+the five it left, :data:`ARCHIVE_SLUGS`::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """

@@ -2823,9 +2823,11 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one figure,
 which `uv run python -m chan.equity_seasonals_figures` redraws. So do the
 whiteboard sketches that print figures, which `uv run python -m
-chan.equity_seasonals_whiteboard` redraws, two of them on a machine with the
+chan.equity_seasonals_whiteboard` redraws, five of them on a machine with the
 archive. Those are the two opening sketches, four of the seven rule sketches,
-the split sketch, the five-year check's three and the January ranges sketch.
+the split sketch, the five-year check's three, the January ranges sketch and
+three of the four sketches on whether Heston and Sadka's effect survived the
+book.
 `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) derives the
 rule sketches' figures from Chan's files, `TestTheYearsInsideTheSplit` the split
@@ -2836,6 +2838,8 @@ sketch draws rows 35, 41 and 44's figures and refuses to draw unless rows 37 and
 moves with a re-pin of either. The January ranges sketch draws the registered
 January run's eighteen Januaries and, beside each, row 50's January with every
 missing member left out. `PINNED_RANGES` there moves with a re-pin of either.
+Section 3's sketches draw row 41's months and coverage and row 49's departures
+from the IVV run, and `PINNED_IVV` there moves with a re-pin of any of them.
 
 ## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*
 

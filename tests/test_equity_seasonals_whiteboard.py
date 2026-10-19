@@ -1,18 +1,20 @@
-"""The pins for the twenty-one whiteboard GIFs in the equity-seasonals post.
+"""The pins for the twenty-five whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, three its
-lesson on survivorship bias, and three its question on whether the January
-effect survived the book. The opening's timeline places each source's years to
+lesson on survivorship bias, three its question on whether the January
+effect survived the book, and four its question on whether Heston and Sadka's
+effect survived it. The opening's timeline places each source's years to
 scale, from Chan's committed files and the registered runs' constants, and its
 verdicts sketch draws the two registered runs' figures to scale. Those figures
 are pinned here as :data:`PINNED`, the values
 ``tests/test_equity_seasonals.py`` pins, so every test here runs without the
 owner's archive. ``test_the_whiteboard_draws_these_runs_verdicts`` and
-``test_the_whiteboard_draws_these_runs_ranges`` in
-``tests/test_equity_seasonals.py`` hold that the runs give :data:`PINNED` and
-:data:`PINNED_RANGES`.
+``test_the_whiteboard_draws_these_runs_ranges`` and
+``test_the_whiteboard_draws_these_runs_ivv_figures`` in
+``tests/test_equity_seasonals.py`` hold that the runs give :data:`PINNED`,
+:data:`PINNED_RANGES` and :data:`PINNED_IVV`.
 
 The strategy sketches are schematic and read no data, so what is pinned for
 them is what a reader takes from them.
@@ -50,7 +52,8 @@ pinned for them is what a reader takes from them: who is in the file and who
 is not, which stocks a tenth holds, and where each mark stands. The January
 ranges sketch draws :data:`PINNED_RANGES`, which
 ``test_the_whiteboard_draws_these_runs_ranges`` holds the registered run
-gives. Six sketches build slowly, and their pace is pinned too.
+gives. Section 3's carry-forward sketch is schematic, and its other three draw
+:data:`PINNED_IVV`. Seven sketches build slowly, and their pace is pinned too.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -86,6 +89,7 @@ from chan.equity_seasonals_whiteboard import (
     TIMELINE_X,
     YEAR,
     FiveYearFigures,
+    IvvFigures,
     JanuaryRanges,
     RuleFigures,
     Spans,
@@ -95,6 +99,7 @@ from chan.equity_seasonals_whiteboard import (
     _year,
     five_year_scenes,
     gif_name,
+    ivv_scenes,
     january_scenes,
     main,
     make_equity_seasonals_whiteboards,
@@ -151,6 +156,12 @@ JANUARY_GIFS = [
     "equity_seasonals_january_fill.gif",
     "equity_seasonals_january_ranges.gif",
 ]
+IVV_GIFS = [
+    "equity_seasonals_ivv_carry.gif",
+    "equity_seasonals_ivv_checked.gif",
+    "equity_seasonals_ivv_leavers.gif",
+    "equity_seasonals_ivv_running_sum.gif",
+]
 GIFS = (
     OPENING_GIFS
     + STRATEGY_GIFS
@@ -159,9 +170,16 @@ GIFS = (
     + FIVE_YEAR_GIFS
     + SURVIVOR_GIFS
     + JANUARY_GIFS
+    + IVV_GIFS
 )
 #: The GIFs a redraw cannot write without the owner's archive.
-ARCHIVE_GIFS = {"equity_seasonals_two_verdicts.gif", "equity_seasonals_january_ranges.gif"}
+ARCHIVE_GIFS = {
+    "equity_seasonals_two_verdicts.gif",
+    "equity_seasonals_january_ranges.gif",
+    "equity_seasonals_ivv_checked.gif",
+    "equity_seasonals_ivv_leavers.gif",
+    "equity_seasonals_ivv_running_sum.gif",
+}
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
 #: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``. The vintage
@@ -226,6 +244,245 @@ PINNED_RANGES = JanuaryRanges(
         -0.009081193606773712,
         0.001457459899829136,
     ),
+)
+
+#: The registered IVV run's figures that section 3's sketches draw, as
+#: ``test_the_whiteboard_draws_these_runs_ivv_figures`` in
+#: ``tests/test_equity_seasonals.py`` holds the run gives them. Same vintage
+#: and specification as :data:`PINNED`'s monthly figures: Alpha Vantage's
+#: ``adjusted_close`` for the IVV members file's series, downloaded 2026-10-05,
+#: under ``REVISED_MATLAB``, held months January 2009 to September 2026,
+#: before costs.
+IVV_RETURNS = (
+    -0.0379857988360995,
+    0.021246503696400323,
+    -0.0358781205180302,
+    0.005875045039702774,
+    0.006893493963916881,
+    -0.009523025432268926,
+    0.009584243093939003,
+    -0.016991060735716303,
+    -0.035403426750204164,
+    4.938861147155206e-05,
+    -0.009040584247814808,
+    -0.0021031318477821525,
+    -0.032733296155586816,
+    0.0028581808182344946,
+    0.017995219927032322,
+    0.01777360155869371,
+    -0.0032757426217312723,
+    0.006488503458352694,
+    0.015289299165042973,
+    -0.02526853700193417,
+    0.020267063919560225,
+    0.016735008596621144,
+    0.002507269116061376,
+    -0.0001674864254724675,
+    -0.014561322057976585,
+    0.019159620571970574,
+    -0.01920031181295382,
+    -0.009676477072137533,
+    0.00992746559046442,
+    0.008250230975830788,
+    -0.00783793804315121,
+    0.05071196928363015,
+    -0.037005688249535595,
+    0.029334174384897074,
+    -0.004321783251426416,
+    -0.010287561454024064,
+    0.028046168145790865,
+    -0.005030233925546779,
+    -0.02254714209450469,
+    0.022577486084970132,
+    0.0378976872182034,
+    -0.015118529197022314,
+    0.010057722934155277,
+    -0.03501121108125936,
+    -0.025472465674253222,
+    -0.005126518760386773,
+    -0.0060972076955798545,
+    -0.012192590043170115,
+    0.009824377303970223,
+    -0.004930972097501739,
+    0.00016842012717260862,
+    0.002745745146091103,
+    -0.043678163997261675,
+    -0.02994738754659756,
+    -0.015496211631478036,
+    0.009036701811118644,
+    -0.003911273804865304,
+    0.004285005556306464,
+    0.004937341078907046,
+    0.006409959299407806,
+    0.00318740204210623,
+    -0.00700354924898144,
+    -0.003638529442225598,
+    -0.005418910344808592,
+    0.003410345467538982,
+    0.005698487292484544,
+    -0.00883995770646569,
+    -0.010034462010032434,
+    0.00946394422901991,
+    -0.008083515396571272,
+    0.026171343540710927,
+    -0.01275195788625066,
+    0.04056607525412072,
+    0.018777617068643025,
+    -0.008842390388492837,
+    -0.0031341799449591456,
+    0.009416388992772667,
+    -0.014127794666237637,
+    0.032506317655804445,
+    4.833705579842402e-05,
+    0.025386716608256518,
+    -0.009452337026060633,
+    0.0015433715758404684,
+    0.01618869050577917,
+    0.02293885312527561,
+    -0.012949138360864811,
+    -0.017769500369724602,
+    0.06023686169694832,
+    0.022482862453109573,
+    -0.028471746276749962,
+    -0.012101392990913944,
+    -0.004061576463468347,
+    -0.011683067921485196,
+    -0.010854897923833482,
+    -0.020095832923473392,
+    0.00794815333197758,
+    -0.023567417938163016,
+    0.00015214034148806023,
+    0.009182638556711642,
+    -0.022816612587554633,
+    0.03482543845146469,
+    -0.03686332788303407,
+    0.0017811029079780015,
+    -0.01268423150964028,
+    0.006433291198401316,
+    0.012062610821206708,
+    0.00676088382605724,
+    -0.017497630503882856,
+    0.024034730176591718,
+    0.01126405233969932,
+    0.006956438678302258,
+    -0.014794845594855064,
+    -0.0040995077432267575,
+    -0.007789863713150039,
+    -0.003949842309618259,
+    0.003164488155269736,
+    -0.007502941853325388,
+    -0.021633407267410417,
+    -0.008346186045044422,
+    -0.03368944860566857,
+    0.015580470921773719,
+    0.010673775398913038,
+    0.006512433814282702,
+    -0.01217650026533752,
+    -0.02744339939284119,
+    -0.02154675788545266,
+    0.004483491285053849,
+    0.015063512412976496,
+    -0.021320686128913705,
+    -0.013272438005894898,
+    -0.022888621440883265,
+    -0.014568746729453215,
+    -0.012583498673268748,
+    0.012420234375804797,
+    0.05111197422014362,
+    0.010827894495133036,
+    0.008173074630213937,
+    0.00019260838867336238,
+    0.013337049145186566,
+    -0.013391689472226244,
+    -0.005138077686974438,
+    0.011343603984537208,
+    0.013421758333197918,
+    0.007655959466967236,
+    -0.009281171127805058,
+    -0.08271554925499776,
+    0.003324058174240978,
+    -0.012483998432641991,
+    -0.016832200653850975,
+    0.0004226805398053046,
+    0.047724449247358476,
+    0.0049972602513345885,
+    -0.045181608980582384,
+    0.017939348639400377,
+    -0.011543932517234816,
+    -0.003207995386425447,
+    -0.007100836748667199,
+    0.02733971099041321,
+    0.002328566899312652,
+    -0.02996689299980593,
+    0.024612334907552838,
+    0.033502988219168084,
+    0.016136567486706416,
+    -3.996970272057585e-06,
+    -0.0019369077614885101,
+    -0.01308648542185879,
+    0.02662326865344017,
+    0.01081088612413108,
+    -0.02305676435299483,
+    0.009024383622068383,
+    0.03489863706167164,
+    0.021994651287566395,
+    -0.015264924004552757,
+    -0.04910419820734907,
+    0.0009362394277770451,
+    0.015212455222935963,
+    0.007844153783436862,
+    0.01253169957757605,
+    0.007536674909553988,
+    -0.018968968549766242,
+    -0.0009940234842372038,
+    0.031064687974763208,
+    -0.012367655381759012,
+    0.0006570394700643113,
+    0.016278505305220018,
+    0.005476591921781731,
+    0.012217235578132325,
+    0.019870898975940805,
+    -0.024409212952266862,
+    0.003021305507002975,
+    0.00731643012327767,
+    0.004511796435286796,
+    0.005346093237442395,
+    -0.022249714963908457,
+    -0.0022783435215252665,
+    0.020620520144283176,
+    -0.0012497169381607462,
+    0.01175657662312716,
+    -0.012647075486355727,
+    -0.006945489120624929,
+    0.008793185890689725,
+    -0.04181480253961732,
+    -0.025788968058108565,
+    0.017963867975811624,
+    -0.022764247287665407,
+    0.029813810326942494,
+    0.004772837026203943,
+    0.028741499213804547,
+    0.05174786867973112,
+    0.017420219326838612,
+    -0.032424858966202286,
+    -0.03105164919165711,
+    0.048322736942504455,
+)
+PINNED_IVV = IvvFigures(
+    covered=98321,
+    members=107115,
+    fewest=("2012-09", 364, 501),
+    most=("2025-09", 501, 503),
+    departing=(505, 698, 3019),
+    staying=(8624, 8431, 71055),
+    months=tuple(
+        zip(
+            pd.period_range("2009-01", periods=len(IVV_RETURNS), freq="M").strftime("%Y-%m"),
+            IVV_RETURNS,
+            strict=True,
+        )
+    ),
+    mean=-0.0001391960725288475,
 )
 
 STROKES = [
@@ -317,9 +574,14 @@ def january():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors, january):
-    """All twenty-one scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules, *split, *five, *survivors, *january)
+def ivv():
+    return ivv_scenes(PINNED_IVV)
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules, split, five, survivors, january, ivv):
+    """All twenty-five scenes in the order their GIFs are written."""
+    return (*opening, *drawn, *rules, *split, *five, *survivors, *january, *ivv)
 
 
 @pytest.fixture(scope="module")
@@ -334,6 +596,7 @@ def gifs(tmp_path_factory, spans):
         verdicts=PINNED,
         spans=spans,
         ranges=PINNED_RANGES,
+        ivv=PINNED_IVV,
     )
 
 
@@ -539,7 +802,7 @@ class TestTheGifs:
 
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, spans) -> None:
         again = make_equity_seasonals_whiteboards(
-            out_dir=tmp_path, verdicts=PINNED, spans=spans, ranges=PINNED_RANGES
+            out_dir=tmp_path, verdicts=PINNED, spans=spans, ranges=PINNED_RANGES, ivv=PINNED_IVV
         )
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
@@ -698,6 +961,35 @@ class TestThePost:
                 rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed.strip()
             ), name
 
+    def test_each_section_3_sketch_follows_its_part(self) -> None:
+        """Each under its own heading, after the paragraph it draws."""
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("### 3. Whether Heston and Sadka’s effect survived the book")
+        end = text.index("\n## ", start)
+        paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
+        for heading, opening, name in zip(
+            (
+                "#### How the run was built",
+                "#### Which companies it kept",
+                "#### Whether dropping the rest matters",
+                "#### What the run found",
+            ),
+            (
+                "A third run tested Example 7.7",
+                "Free daily prices gave a checked price",
+                "Dropping the rest is harmless only if",
+                "The 213 months average",
+            ),
+            IVV_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            assert paragraphs[index - 1] == heading, name
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)",
+                paragraphs[index + 1].strip(),
+            ), name
+
     def test_every_sketch_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
         for name in GIFS:
@@ -725,7 +1017,7 @@ class TestTheCommand:
         ],
         ids=["no archive", "January run refused", "monthly run refused"],
     )
-    def test_without_the_archive_it_names_the_two_gifs_it_left(
+    def test_without_the_archive_it_names_the_five_gifs_it_left(
         self, monkeypatch, refusal, tmp_path
     ) -> None:
         """It draws into a scratch folder, because a draw into the figures
@@ -740,13 +1032,14 @@ class TestTheCommand:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert str(stopped.value) == (
-            "equity_seasonals_two_verdicts.gif and equity_seasonals_january_ranges.gif "
-            f"were not redrawn: {refusal}"
+            "equity_seasonals_two_verdicts.gif, equity_seasonals_january_ranges.gif, "
+            "equity_seasonals_ivv_checked.gif, equity_seasonals_ivv_leavers.gif, "
+            f"equity_seasonals_ivv_running_sum.gif were not redrawn: {refusal}"
         )
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_nineteen(
+    def test_without_the_archive_it_still_writes_the_other_twenty(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -1501,6 +1794,7 @@ class TestTheFiveYearSketches:
                     "survivors_panels",
                     "january_fill",
                     "january_ranges",
+                    "ivv_leavers",
                 )
             )
             assert {f.ms for f in labels} <= {
@@ -1827,6 +2121,7 @@ class TestTheJanuarySketches:
         monkeypatch.setattr(seasonals, "run_point_in_time", lambda: run)
         monkeypatch.setattr(seasonals, "run_monthly_point_in_time", lambda: object())
         monkeypatch.setattr(sketches.Verdicts, "from_runs", classmethod(lambda cls, a, b: PINNED))
+        monkeypatch.setattr(sketches.IvvFigures, "from_run", classmethod(lambda cls, m: PINNED_IVV))
         monkeypatch.setattr(
             sketches.JanuaryRanges, "from_run", classmethod(lambda cls, january: from_run(january))
         )
@@ -1836,3 +2131,158 @@ class TestTheJanuarySketches:
         seen.clear()
         make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans, verdicts=PINNED)
         assert seen == [run], "the ranges are read from the run even when the verdicts are given"
+
+
+def _fill(scene, gid):
+    return next(f for f in scene.fills if f.gid == gid)
+
+
+#: Made-up figures for section 3's sketches, so a mark or a word that should
+#: follow the run's figures is seen to.
+OTHER_IVV = IvvFigures(
+    covered=60,
+    members=100,
+    fewest=("2010-03", 30, 100),
+    most=("2011-07", 90, 100),
+    departing=(1, 3, 6),
+    staying=(2, 2, 6),
+    months=(("2010-01", 0.01), ("2010-02", -0.02), ("2010-03", 0.03)),
+    mean=0.0066666666666666671,
+)
+
+
+class TestTheSection3Sketches:
+    """Section 3's four sketches: carry-forward, checked prices, leavers, the running sum."""
+
+    def test_they_are_four_in_the_order_the_post_reads_them(self, ivv) -> None:
+        assert [gif_name(scene) for scene in ivv] == IVV_GIFS
+
+    def test_each_says_what_it_should(self, ivv) -> None:
+        carry, checked, leavers, running = ivv
+        assert carry.labels == [
+            "quarter-end filings",
+            "a company that leaves",
+            "leaves the index",
+            "still held",
+            "a company that joins",
+            "not yet held",
+            "each filing’s list stands until the next one",
+        ]
+        assert checked.labels == [
+            "98,321 member-months with a checked price",
+            "8,794 dropped",
+            "fewest: 364 of 501, 2012-09",
+            "most: 501 of 503, 2025-09",
+        ]
+        assert leavers.labels == [
+            "left within a year",
+            "long 12.0%",
+            "short 16.5%",
+            "neither",
+            "stayed",
+            "long 9.8%",
+            "short 9.6%",
+            "neither",
+            "leavers sit in a traded tenth more often, most of all the short one",
+        ]
+        assert running.title == "213 months add up to nothing"
+        assert running.labels == [
+            "0",
+            "2009",
+            "2026",
+            "13% a year, the book’s figure",
+            "the run’s 213 months, added up",
+            "a mean of −0.0001 a month: flat, where 13% a year climbs",
+        ]
+
+    def test_a_change_is_held_until_the_next_filing(self, ivv) -> None:
+        """The leaver is still held, in red, up to the next filing, and the joiner
+        is not held, in red and dashed, until one."""
+        carry = ivv[0]
+        held, late = _stroke(carry, "held"), _stroke(carry, "late")
+        missed, joined = _stroke(carry, "missed"), _stroke(carry, "joined")
+        assert held.x[-1] == late.x[0] == sketches.LEAVES_AT
+        assert late.x[-1] == next(f for f in sketches.FILINGS if f > sketches.LEAVES_AT)
+        assert missed.x[0] == sketches.JOINS_AT
+        assert (
+            missed.x[-1]
+            == joined.x[0]
+            == next(f for f in sketches.FILINGS if f > sketches.JOINS_AT)
+        )
+        assert (held.color, late.color, missed.color, joined.color) == (
+            whiteboard.INK,
+            LOST,
+            LOST,
+            whiteboard.INK,
+        )
+        assert missed.dashed and not late.dashed
+
+    @pytest.mark.parametrize("figures", [PINNED_IVV, OTHER_IVV], ids=["the run's", "other"])
+    def test_each_bar_splits_at_its_share(self, figures) -> None:
+        checked, leavers = ivv_scenes(figures)[1:3]
+        x0, x1 = sketches.BAR_X
+        assert _fill(checked, "all-checked").x1 == pytest.approx(
+            x0 + (x1 - x0) * figures.covered / figures.members
+        )
+        for name, (_, covered, members) in (("fewest", figures.fewest), ("most", figures.most)):
+            assert _fill(checked, f"{name}-checked").x1 == pytest.approx(
+                x0 + (x1 - x0) * covered / members
+            )
+            assert _fill(checked, f"{name}-dropped").color == LOST
+        start = sketches.LEAVERS_X0
+        for k, counts in enumerate((figures.departing, figures.staying)):
+            total = sum(counts)
+            long, short = _fill(leavers, f"long-{k}"), _fill(leavers, f"short-{k}")
+            assert long.x1 - long.x0 == pytest.approx((x1 - start) * counts[0] / total)
+            assert short.x1 - short.x0 == pytest.approx((x1 - start) * counts[1] / total)
+            assert (long.color, short.color) == (GOOD, LOST)
+            assert _labelled(leavers, f"long {counts[0] / total:.1%}").color == GOOD
+
+    @pytest.mark.parametrize("figures", [PINNED_IVV, OTHER_IVV], ids=["the run's", "other"])
+    def test_the_running_sum_adds_up_the_months_to_one_scale(self, figures) -> None:
+        running = ivv_scenes(figures)[3]
+        values = np.array([value for _, value in figures.months])
+        run, book = _stroke(running, "run"), _stroke(running, "book")
+        per = (book.y[-1] - book.y[0]) / (sketches.BOOK_ANNUAL / 12 * len(values))
+        assert book.y[-1] == pytest.approx(sketches.RUNNING_TOP)
+        assert run.y == pytest.approx(
+            sketches.RUNNING_ZERO + per * np.concatenate([[0.0], np.cumsum(values)])
+        )
+        assert (run.color, book.color, book.dashed) == (whiteboard.INK, GOOD, True)
+        assert running.title == f"{len(values)} months add up to nothing"
+
+    def test_the_mean_is_the_months_mean(self) -> None:
+        values = [value for _, value in PINNED_IVV.months]
+        assert float(np.mean(values)) == pytest.approx(PINNED_IVV.mean, abs=1e-15)
+
+    def test_the_leavers_build_slowly(self) -> None:
+        assert "ivv_leavers" in sketches.PACED
+
+    def test_each_alt_text_quotes_its_sketchs_words(self, ivv) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for scene in ivv:
+            alt = _alt(text, scene)
+            for label in scene.labels:
+                if label != "0":
+                    assert label in alt, (scene.slug, label)
+        assert "holds for twelve seconds" in _alt(text, ivv[2])
+
+    def test_a_redraw_with_the_archive_draws_section_3_from_the_ivv_run(
+        self, monkeypatch, tmp_path, spans
+    ) -> None:
+        """Without this, a redraw could draw section 3 without reading the run."""
+        monthly, seen = object(), []
+
+        def from_run(run):
+            seen.append(run)
+            return PINNED_IVV
+
+        monkeypatch.setattr(seasonals, "run_monthly_point_in_time", lambda: monthly)
+        monkeypatch.setattr(
+            sketches.IvvFigures, "from_run", classmethod(lambda cls, m: from_run(m))
+        )
+        written = make_equity_seasonals_whiteboards(
+            out_dir=tmp_path, spans=spans, verdicts=PINNED, ranges=PINNED_RANGES
+        )
+        assert sorted(path.name for path in written) == sorted(GIFS)
+        assert seen == [monthly]

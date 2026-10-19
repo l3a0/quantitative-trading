@@ -3359,6 +3359,28 @@ class TestTheFiveYearSketches:
         )
 
 
+def test_the_whiteboard_draws_these_runs_ivv_figures(monthly) -> None:
+    """Section 3's sketches in ``tests/test_equity_seasonals_whiteboard.py`` draw
+    from its ``PINNED_IVV``, so they run without the archive. This holds that the
+    registered IVV run gives those figures, at the tolerance every pin here uses."""
+    from chan.equity_seasonals_whiteboard import IvvFigures
+    from tests.test_equity_seasonals_whiteboard import PINNED_IVV
+
+    drawn = IvvFigures.from_run(monthly)
+    assert (drawn.covered, drawn.members, drawn.fewest, drawn.most) == (
+        PINNED_IVV.covered,
+        PINNED_IVV.members,
+        PINNED_IVV.fewest,
+        PINNED_IVV.most,
+    )
+    assert (drawn.departing, drawn.staying) == (PINNED_IVV.departing, PINNED_IVV.staying)
+    assert [m for m, _ in drawn.months] == [m for m, _ in PINNED_IVV.months]
+    assert [v for _, v in drawn.months] == pytest.approx(
+        [v for _, v in PINNED_IVV.months], abs=1e-9
+    )
+    assert drawn.mean == pytest.approx(PINNED_IVV.mean, abs=1e-12)
+
+
 def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:
     """The January ranges sketch in ``tests/test_equity_seasonals_whiteboard.py``
     draws from its ``PINNED_RANGES``, so it runs without the archive. This holds
