@@ -264,6 +264,8 @@ The file holds 13 months before 2002, all on survivors. Testing it needs monthly
 
 The two paid sources’ licences bar republishing their data. Every result here is computed from data committed beside it, so that anyone can recompute it.
 
+The free source has since been read. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on a panel that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, with a t-statistic of 8.63, where they printed 1.15 percent. Before 2002 alone it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on a panel without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, which does not separate the two. That is the project’s construction rather than Chan’s rule, and the comparison was run after a first look at these numbers, so it is exploratory.
+
 ### 2. Whether the January effect survived the book
 
 A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
@@ -331,6 +333,8 @@ The 213 months average −0.0001 a month before costs. A strategy that truly ear
 #### What the verdict says
 
 The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”. The 4.2 percent is the smallest annual return the test detects 80 percent of the time, so a smaller true return could pass unseen, and the verdict does not say the effect died. It also leaves out costs, which can only lower the return, and the last return a failing company takes as it leaves the index, which free data does not carry.
+
+A broader series agrees with the registered run. From 2002 to 2024 the same portfolio on NYSE and AMEX stocks earned 0.12 percent a month, with a t-statistic of 0.50. Over the 192 months it shares with the run on IVV’s members, 2009 to 2024, it earned 0.12 percent a month with a t of 0.39, and the two series moved together, at a correlation of 0.59. Neither shows a mean detectably above zero after the book. Like the section 1 figures, this comparison is exploratory.
 
 ## What this means for a trader
 
