@@ -966,6 +966,17 @@ class TestThePost:
                 rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed.strip()
             ), name
 
+    def test_the_open_questions_are_listed_as_their_subsections_name_them(self) -> None:
+        """The list under "Three open questions." names each subsection, in order."""
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("## What this replication cannot say")
+        end = text.index("\n## ", start + 1)
+        section = text[start:end]
+        listed = re.findall(r"^\d\. (.+)\.$", section.split("\n### ", 1)[0], flags=re.MULTILINE)
+        headings = re.findall(r"^### \d\. (.+)$", section, flags=re.MULTILINE)
+        assert len(headings) == 3
+        assert listed == headings
+
     def test_each_section_3_sketch_follows_its_part(self) -> None:
         """Each under its own heading, after the paragraph it draws."""
         text = POST.read_text(encoding="utf-8")
