@@ -833,7 +833,10 @@ def read_vintage(entry: VintageEntry, data_dir: Path | None = None) -> bytes:
     Nothing is cached. A cache would be a second answer to the question of
     what is on disk right now, and what it would save is one hash of a file the
     run is about to parse anyway. A hash is one pass over the bytes the parse
-    also reads before it builds a series out of them.
+    also reads before it builds a series out of them. This function hashes
+    every read it is asked for. :func:`chan.series.load_panel` asks once per
+    process for a file nothing has changed, and its docstring says how it
+    tells.
     """
     path = _directory(data_dir) / entry.path
     try:

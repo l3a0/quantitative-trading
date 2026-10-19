@@ -1403,6 +1403,171 @@ class TestAPanelIsOneSourceReadOnce:
         )
 
 
+class TestAPanelIsRememberedWithinAProcess:
+    """``load_panel`` reads a committed panel once per process, and anything else every time.
+
+    Most cases here point the memo at a temporary directory, so a case may break
+    a file and watch the next read notice, which the committed tree never allows.
+    Each one starts from an empty memo, because the process's own memo holds
+    whatever earlier cases read.
+    """
+
+    @pytest.fixture
+    def counted(self, monkeypatch: pytest.MonkeyPatch) -> dict[str, int]:
+        """How many times a call reached the manifest and a member file."""
+        reads = {"manifest": 0, "member": 0}
+        real_manifest, real_vintage = series.read_manifest, series.read_vintage
+
+        def manifest(data_dir=None):
+            reads["manifest"] += 1
+            return real_manifest(data_dir)
+
+        def member(entry, data_dir=None):
+            reads["member"] += 1
+            return real_vintage(entry, data_dir=data_dir)
+
+        monkeypatch.setattr(series, "read_manifest", manifest)
+        monkeypatch.setattr(series, "read_vintage", member)
+        monkeypatch.setattr(series, "_PANELS", {})
+        return reads
+
+    @pytest.fixture
+    def remembered(self, data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+        """A three-member source in a directory the memo treats as the committed one."""
+        record_lifted_columns(COLUMNS, **LIFTED_FROM, data_dir=data_dir)
+        monkeypatch.setattr(series, "_REMEMBERED_DIRECTORY", data_dir.resolve())
+        return data_dir
+
+    def test_a_second_read_of_a_committed_panel_reaches_no_file(
+        self, counted: dict[str, int]
+    ) -> None:
+        first_members, first = load_panel("GDX.xls")
+        assert counted == {"manifest": 1, "member": 1}
+
+        members, again = load_panel("GDX.xls")
+
+        assert counted == {"manifest": 1, "member": 1}
+        assert members == first_members
+        pd.testing.assert_frame_equal(again, first)
+
+    def test_a_temporary_directory_is_read_on_every_call(
+        self, counted: dict[str, int], data_dir: Path
+    ) -> None:
+        record_lifted_columns(COLUMNS, **LIFTED_FROM, data_dir=data_dir)
+
+        load_panel("SRC.mat", data_dir=data_dir)
+        load_panel("SRC.mat", data_dir=data_dir)
+
+        assert counted == {"manifest": 2, "member": 6}
+        assert series._PANELS == {}
+
+    def test_a_moved_default_directory_is_read_on_every_call(
+        self, counted: dict[str, int], data_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The default resolves at call time, so a test that moves it reads what it moved to."""
+        record_lifted_columns(COLUMNS, **LIFTED_FROM, data_dir=data_dir)
+        monkeypatch.setattr(paths, "DATA_DIR", data_dir)
+
+        load_panel("SRC.mat")
+        load_panel("SRC.mat")
+
+        assert counted == {"manifest": 2, "member": 6}
+        assert series._PANELS == {}
+
+    def test_changing_a_returned_frame_changes_no_later_result(
+        self, counted: dict[str, int], remembered: Path
+    ) -> None:
+        """Both the first read and a remembered one hand back a frame of their own."""
+        members, first = load_panel("SRC.mat", data_dir=remembered)
+        expected = first.copy()
+        first.iloc[0, 0] = -1.0
+        members.clear()
+
+        members, second = load_panel("SRC.mat", data_dir=remembered)
+        pd.testing.assert_frame_equal(second, expected)
+        assert [entry.symbol for entry in members] == ["AAA", "BBB", "CCC"]
+        second.iloc[0, 0] = -2.0
+
+        _, third = load_panel("SRC.mat", data_dir=remembered)
+        pd.testing.assert_frame_equal(third, expected)
+        assert counted == {"manifest": 1, "member": 3}
+
+    def test_a_member_changed_on_disk_is_hashed_again(
+        self, counted: dict[str, int], remembered: Path
+    ) -> None:
+        """The edit keeps the file's size, so only its modification time says it moved."""
+        load_panel("SRC.mat", data_dir=remembered)
+        member = remembered / "src" / "bbb.csv"
+        member.write_bytes(member.read_bytes().replace(b"21.0", b"21.5"))
+
+        with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
+            load_panel("SRC.mat", data_dir=remembered)
+
+    def test_a_member_replaced_with_its_old_stamp_is_hashed_again(
+        self, counted: dict[str, int], remembered: Path
+    ) -> None:
+        """A copy that keeps size and modification time still lands on a new inode."""
+        load_panel("SRC.mat", data_dir=remembered)
+        member = remembered / "src" / "bbb.csv"
+        before = member.stat()
+        swapped = member.with_name("swapped.csv")
+        swapped.write_bytes(member.read_bytes().replace(b"21.0", b"21.5"))
+        os.utime(swapped, ns=(before.st_atime_ns, before.st_mtime_ns))
+        swapped.replace(member)
+
+        with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
+            load_panel("SRC.mat", data_dir=remembered)
+
+    def test_a_rewritten_manifest_is_read_again(
+        self, counted: dict[str, int], remembered: Path
+    ) -> None:
+        load_panel("SRC.mat", data_dir=remembered)
+        load_panel("SRC.mat", data_dir=remembered)
+        assert counted == {"manifest": 1, "member": 3}
+        manifest = remembered / MANIFEST_NAME
+        lines = manifest.read_text(encoding="utf-8").splitlines()
+        manifest.write_text("".join(line + "\n" for line in reversed(lines)), encoding="utf-8")
+
+        load_panel("SRC.mat", data_dir=remembered)
+
+        assert counted == {"manifest": 2, "member": 6}
+
+    def test_each_field_is_remembered_apart(
+        self, counted: dict[str, int], data_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        wide = {
+            "AAA": [
+                ("2026-01-02", 10.0, 10.5, 9.5, 9.75, 100),
+                ("2026-01-05", 11.0, 11.5, 10.5, 10.75, 200),
+            ]
+        }
+        record_lifted_columns(
+            wide,
+            **LIFTED_FROM,
+            fields=("Close", "High", "Low", "Open", "Volume"),
+            data_dir=data_dir,
+        )
+        monkeypatch.setattr(series, "_REMEMBERED_DIRECTORY", data_dir.resolve())
+
+        _, closes = load_panel("SRC.mat", data_dir=data_dir)
+        _, opens = load_panel("SRC.mat", field="Open", data_dir=data_dir)
+
+        assert closes["AAA"].tolist() == [10.0, 11.0]
+        assert opens["AAA"].tolist() == [9.75, 10.75]
+
+    def test_a_refusal_is_not_remembered(self, counted: dict[str, int], remembered: Path) -> None:
+        member = remembered / "src" / "bbb.csv"
+        genuine = member.read_bytes()
+        member.write_bytes(genuine.replace(b"21.0", b"21.5"))
+        with pytest.raises(VintageUnavailable):
+            load_panel("SRC.mat", data_dir=remembered)
+        member.write_bytes(genuine)
+
+        _, panel = load_panel("SRC.mat", data_dir=remembered)
+
+        assert panel.loc["2026-01-06", "BBB"] == 21.0
+
+
 class TestTheCommittedPanelsAreChansArrays:
     """The price sources issues 88, 250, 225 and 299 committed, read back whole.
 
