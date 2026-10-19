@@ -659,7 +659,7 @@ class TestThePost:
     def test_each_january_sketch_follows_its_paragraph(self) -> None:
         """Each after its own paragraph, all three under the January question."""
         text = POST.read_text(encoding="utf-8")
-        start = text.index("### Whether the January effect survived the book")
+        start = text.index("### 2. Whether the January effect survived the book")
         end = text.index("\n### ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(

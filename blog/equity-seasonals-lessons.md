@@ -254,11 +254,11 @@ Survivorship bias is what a backtest picks up when its data holds only the compa
 
 Three questions are beyond it.
 
-### Whether Heston and Sadka’s effect existed before 2002
+### 1. Whether Heston and Sadka’s effect existed before 2002
 
 The file holds 13 months before 2002, all on survivors. Testing it needs a panel without that limit.
 
-### Whether the January effect survived the book
+### 2. Whether the January effect survived the book
 
 A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. Its claim, its test and the wording of its verdict were written down before any return was computed, which makes it **registered** rather than exploratory.
 
@@ -272,7 +272,7 @@ The low series averages −0.1047 a January before costs, nowhere near above zer
 
 ![An animated whiteboard sketch titled “Eighteen Januaries, each a range”, drawn slowly stroke by stroke. Eighteen vertical bars stand along a grey zero line from 2009 to 2026, each running from that January’s low version to its high, under the words “each bar runs from a January’s low version to its high”. The bars are tallest in the first years and shrink to almost nothing by 2026. Most are black and straddle zero. The bars for 2020, 2021 and 2024 are red and sit wholly below zero, and the bar for 2023 is green and sits wholly above it. The words “black: straddles zero, so free data cannot tell which side” and “before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_ranges.gif)
 
-### Whether Heston and Sadka’s effect survived the book
+### 3. Whether Heston and Sadka’s effect survived the book
 
 A third run tested Example 7.7 under the revised MATLAB’s rules on the S&P 500 as it stood each month, from January 2009 to September 2026, so the companies that later left the index are in it. The membership comes from IVV, an iShares fund that holds the index and files its holdings with the SEC each quarter. Each filing’s list stands for the months until the next, so a company that joins or leaves between two filings counts as doing so at the next one. This run is **registered** too, for the same reason as the second. Free daily prices gave a checked price for 98,321 of its 107,115 member-months, each one company in one month, and the run dropped the rest, so each tenth is a tenth of the companies with a checked price. Dropping the rest is harmless only if leaving the index has little to do with where a company ranks. Among the companies kept, those that left the index within a year landed in a traded tenth more often than those that stayed, most of all in the short tenth. That comparison is described rather than tested. It counts against the drop being harmless, and which way it moves the result is not measured. The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would print a mean at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months. The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”. The 4.2 percent is the smallest annual return the test detects 80 percent of the time, so a smaller true return could pass unseen, and the verdict does not say the effect died. It also leaves out costs, which can only lower the return, and the last return a failing company takes as it leaves the index, which free data does not carry.
 
