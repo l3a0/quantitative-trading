@@ -256,7 +256,7 @@ Three questions are beyond it.
 
 ### 1. Whether Heston and Sadka’s effect existed before 2002
 
-The file holds 13 months before 2002, all on survivors. Testing it needs a panel without that limit.
+The file holds 13 months before 2002, all on survivors. Testing it needs data without that limit.
 
 ### 2. Whether the January effect survived the book
 
