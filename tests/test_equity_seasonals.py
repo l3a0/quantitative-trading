@@ -3340,3 +3340,22 @@ class TestTheFiveYearSketches:
         assert FiveYearFigures().januaries == tuple(
             (t.exited.year, pytest.approx(t.ret, abs=1e-12)) for t in trades
         )
+
+
+def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:
+    """The January ranges sketch in ``tests/test_equity_seasonals_whiteboard.py``
+    draws from its ``PINNED_RANGES``, so it runs without the archive. This holds
+    that the registered January run gives those Januaries, at the tolerance every
+    pin here uses."""
+    from chan.equity_seasonals_whiteboard import JanuaryRanges
+    from tests.test_equity_seasonals_whiteboard import PINNED_RANGES
+
+    drawn = JanuaryRanges.from_run(point_in_time)
+    assert [year for year, _, _ in drawn.januaries] == [
+        year for year, _, _ in PINNED_RANGES.januaries
+    ]
+    for (year, low, high), (_, pinned_low, pinned_high) in zip(
+        drawn.januaries, PINNED_RANGES.januaries, strict=True
+    ):
+        assert low == pytest.approx(pinned_low, abs=1e-9), year
+        assert high == pytest.approx(pinned_high, abs=1e-9), year

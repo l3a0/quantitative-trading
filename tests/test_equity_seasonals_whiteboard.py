@@ -1,12 +1,13 @@
-"""The pins for the eighteen whiteboard GIFs in the equity-seasonals post.
+"""The pins for the twenty-one whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
-second lesson discusses, three its check of Chan's five-year claim, and three
-its lesson on survivorship bias. The opening's timeline places each source's
-years to scale, from Chan's committed files and the registered runs'
-constants, and its verdicts sketch draws the two registered runs' figures to
-scale. Those figures are pinned here as :data:`PINNED`, the values
+second lesson discusses, three its check of Chan's five-year claim, three its
+lesson on survivorship bias, and three its question on whether the January
+effect survived the book. The opening's timeline places each source's years to
+scale, from Chan's committed files and the registered runs' constants, and its
+verdicts sketch draws the two registered runs' figures to scale. Those figures
+are pinned here as :data:`PINNED`, the values
 ``tests/test_equity_seasonals.py`` pins, so every test but one runs without
 the owner's archive. The one, :class:`TestTheRunsGiveThePinnedVerdicts`, holds
 that the runs give them.
@@ -39,6 +40,15 @@ bar and bracket stands to one scale on the file's figures and on other ones,
 that each bar and its value take the colour of their sign, and that it sits
 between the paragraph on the split's years and the one on the running-sum
 chart.
+
+The five-year sketches print :class:`FiveYearFigures`, which
+``TestTheFiveYearSketches`` in ``tests/test_equity_seasonals.py`` derives.
+Lesson 3's three sketches and the January fill are schematic, so what is
+pinned for them is what a reader takes from them: who is in the file and who
+is not, which stocks a tenth holds, and where each mark stands. The January
+ranges sketch draws :data:`PINNED_RANGES`, which
+``test_the_whiteboard_draws_these_runs_ranges`` holds the registered run
+gives. Six sketches build slowly, and their pace is pinned too.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -74,6 +84,7 @@ from chan.equity_seasonals_whiteboard import (
     TIMELINE_X,
     YEAR,
     FiveYearFigures,
+    JanuaryRanges,
     RuleFigures,
     Spans,
     SplitFigures,
@@ -82,6 +93,7 @@ from chan.equity_seasonals_whiteboard import (
     _year,
     five_year_scenes,
     gif_name,
+    january_scenes,
     main,
     make_equity_seasonals_whiteboards,
     opening_scenes,
@@ -132,7 +144,22 @@ SURVIVOR_GIFS = [
     "equity_seasonals_survivors_ranking.gif",
     "equity_seasonals_survivors_panels.gif",
 ]
-GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS + SPLIT_GIFS + FIVE_YEAR_GIFS + SURVIVOR_GIFS
+JANUARY_GIFS = [
+    "equity_seasonals_january_registered.gif",
+    "equity_seasonals_january_fill.gif",
+    "equity_seasonals_january_ranges.gif",
+]
+GIFS = (
+    OPENING_GIFS
+    + STRATEGY_GIFS
+    + RULE_GIFS
+    + SPLIT_GIFS
+    + FIVE_YEAR_GIFS
+    + SURVIVOR_GIFS
+    + JANUARY_GIFS
+)
+#: The GIFs a redraw cannot write without the owner's archive.
+ARCHIVE_GIFS = {"equity_seasonals_two_verdicts.gif", "equity_seasonals_january_ranges.gif"}
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
 #: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``. The vintage
@@ -141,6 +168,33 @@ GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS + SPLIT_GIFS + FIVE_YEAR_GIFS + 
 #: ``MATLAB_JANUARY`` on the S&P 600 at each year-end, January 2009 to January
 #: 2026, and ``REVISED_MATLAB`` on the S&P 500 each month, January 2009 to
 #: September 2026, both before costs. A re-pin there moves these figures.
+#: The registered January run's eighteen Januaries, each with its low and high
+#: return before costs, as ``test_the_whiteboard_draws_these_runs_ranges`` in
+#: ``tests/test_equity_seasonals.py`` holds the run gives them. Same vintage
+#: and specification as :data:`PINNED`'s January figures.
+PINNED_RANGES = JanuaryRanges(
+    (
+        (2009, -0.3102916684682715, 0.31512341488232387),
+        (2010, -0.19839476507411702, 0.24494937260065897),
+        (2011, -0.192227314302099, 0.1889766558224868),
+        (2012, -0.10870572849484236, 0.14492043392989745),
+        (2013, -0.15467069691120883, 0.1457086223041022),
+        (2014, -0.1653363299933961, 0.1597979963136514),
+        (2015, -0.13112900962243856, 0.0686157912693974),
+        (2016, -0.09597216550984841, 0.06014433261299512),
+        (2017, -0.08469806698164244, 0.044717957152853684),
+        (2018, -0.08838588652403147, 0.06835439802701994),
+        (2019, -0.009638637680710993, 0.1306503085694603),
+        (2020, -0.12694805604135495, -0.004070341602840345),
+        (2021, -0.18706825793047532, -0.09002848776268077),
+        (2022, -0.007092727187004211, 0.03353559694544943),
+        (2023, 0.051120529038608704, 0.08356653439121693),
+        (2024, -0.049378548477207414, -0.019616922654241906),
+        (2025, -0.024022313935317015, 0.0037277705788413724),
+        (2026, -0.0023087433400641386, 0.0026855572271426084),
+    )
+)
+
 PINNED = Verdicts(
     january_low=-0.1047304659686345,
     january_high=0.08787549947820747,
@@ -235,9 +289,14 @@ def survivors():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors):
-    """All eighteen scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules, *split, *five, *survivors)
+def january():
+    return january_scenes(PINNED_RANGES)
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules, split, five, survivors, january):
+    """All twenty-one scenes in the order their GIFs are written."""
+    return (*opening, *drawn, *rules, *split, *five, *survivors, *january)
 
 
 @pytest.fixture(scope="module")
@@ -248,7 +307,10 @@ def frames(every):
 @pytest.fixture(scope="module")
 def gifs(tmp_path_factory, spans):
     return make_equity_seasonals_whiteboards(
-        out_dir=tmp_path_factory.mktemp("sketches"), verdicts=PINNED, spans=spans
+        out_dir=tmp_path_factory.mktemp("sketches"),
+        verdicts=PINNED,
+        spans=spans,
+        ranges=PINNED_RANGES,
     )
 
 
@@ -453,7 +515,9 @@ class TestTheGifs:
             assert path.stat().st_size < 1_000_000, path.name
 
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, spans) -> None:
-        again = make_equity_seasonals_whiteboards(out_dir=tmp_path, verdicts=PINNED, spans=spans)
+        again = make_equity_seasonals_whiteboards(
+            out_dir=tmp_path, verdicts=PINNED, spans=spans, ranges=PINNED_RANGES
+        )
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
 
@@ -617,7 +681,7 @@ class TestTheCommand:
         ],
         ids=["no archive", "January run refused", "monthly run refused"],
     )
-    def test_without_the_archive_it_names_the_one_gif_it_left(
+    def test_without_the_archive_it_names_the_two_gifs_it_left(
         self, monkeypatch, refusal, tmp_path
     ) -> None:
         """It draws into a scratch folder, because a draw into the figures
@@ -631,11 +695,14 @@ class TestTheCommand:
         monkeypatch.setattr(seasonals, "run_point_in_time", refuse)
         with pytest.raises(SystemExit) as stopped:
             main()
-        assert str(stopped.value) == f"equity_seasonals_two_verdicts.gif was not redrawn: {refusal}"
-        assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - 1
+        assert str(stopped.value) == (
+            "equity_seasonals_two_verdicts.gif and equity_seasonals_january_ranges.gif "
+            f"were not redrawn: {refusal}"
+        )
+        assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_seventeen(
+    def test_without_the_archive_it_still_writes_the_other_nineteen(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -645,7 +712,7 @@ class TestTheCommand:
         with pytest.raises(ArchiveUnavailable):
             make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans)
         written = sorted(path.name for path in tmp_path.glob("*.gif"))
-        assert written == sorted(set(GIFS) - {"equity_seasonals_two_verdicts.gif"})
+        assert written == sorted(set(GIFS) - ARCHIVE_GIFS)
 
 
 class TestTheVerdicts:
@@ -1370,7 +1437,7 @@ class TestTheFiveYearSketches:
             assert value.names == f"jan-{year}" and value.color == bar.color
             assert abs(value.x - bar.x[0]) < 1e-9
 
-    def test_the_first_two_build_slowly_and_hold_twelve_seconds(self, every) -> None:
+    def test_the_paced_sketches_build_slowly_and_hold_twelve_seconds(self, every) -> None:
         """The pace the owner accepted: each label alone for 0.9 s, the drawing for 12 s."""
         assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
         for scene in every:
@@ -1383,7 +1450,14 @@ class TestTheFiveYearSketches:
             paced = scene.slug in sketches.PACED
             assert paced == (
                 scene.slug
-                in ("five_year_months", "five_year_noise", "survivors_ranking", "survivors_panels")
+                in (
+                    "five_year_months",
+                    "five_year_noise",
+                    "survivors_ranking",
+                    "survivors_panels",
+                    "january_fill",
+                    "january_ranges",
+                )
             )
             assert {f.ms for f in labels} <= {
                 sketches.PACED_LABEL_MS if paced else whiteboard.LABEL_MS
@@ -1420,8 +1494,8 @@ class TestTheSurvivorSketches:
             "highest",
             "worst tenth",
             "in the file",
-            "the file’s worst tenth: other stocks",
-            "red rings: companies that left the index before 2007",
+            "the file’s worst tenth: a different set",
+            "red rings: companies that left the index before the file was saved",
         ]
         assert panels.labels == [
             "a file saved in 2007",
@@ -1431,8 +1505,8 @@ class TestTheSurvivorSketches:
             "joined",
             "left",
             "left",
-            "each month’s members",
-            "the later runs used the panel on the right",
+            "members at each ranking date",
+            "the later runs, from 2009, used the panel on the right",
         ]
 
     def test_the_survivors_reach_the_save_and_the_leavers_stop_short(self, survivors) -> None:
@@ -1478,7 +1552,8 @@ class TestTheSurvivorSketches:
         assert set(range(tenth)) & set(sketches.GONE), "the worst tenth as it stood holds a leaver"
         assert not set(kept[:tenth]) & set(sketches.GONE)
         assert _stroke(ranking, "stood-tenth").dashed
-        assert _stroke(ranking, "file-tenth").color == LOST
+        assert _stroke(ranking, "file-tenth").color == whiteboard.ACCENT
+        assert sketches.SURVIVOR_TENTH * 10 == sketches.SURVIVOR_RANKED
 
     def test_the_saved_panel_keeps_no_leaver_and_carries_the_joiner_back(self, survivors) -> None:
         panels = survivors[2]
@@ -1488,6 +1563,8 @@ class TestTheSurvivorSketches:
         for line in saved:
             assert (line.x.min(), line.x.max()) == pytest.approx(left)
         assert _stroke(panels, "saved-joiner").color == GOOD
+        for k in range(6):
+            assert _stroke(panels, f"saved-{k}").color == whiteboard.INK
         stood = [s for s in panels.strokes if s.gid.startswith("stood-")]
         assert len(stood) == 9
         for line, (a, b), colour in zip(
@@ -1499,3 +1576,145 @@ class TestTheSurvivorSketches:
             assert line.color == colour
         assert sketches.STOOD_COLOURS.count(LOST) == 2
         assert sketches.STOOD_SPANS[6][0] > 0 and sketches.STOOD_COLOURS[6] == GOOD
+        for (a, b), colour in zip(sketches.STOOD_SPANS, sketches.STOOD_COLOURS, strict=True):
+            if colour == whiteboard.INK:
+                assert (a, b) == (0, 1)
+            elif colour == LOST:
+                assert a == 0 and b < 1
+            else:
+                assert a > 0 and b == 1
+
+    def test_each_alt_text_quotes_its_sketchs_words(self, survivors) -> None:
+        """Every label but the axis years appears in the alt text word for word,
+        and the alt text's counts are the sketch's."""
+        text = POST.read_text(encoding="utf-8")
+        for scene in survivors:
+            alt = _alt(text, scene)
+            for label in scene.labels:
+                if label not in ("1999", "2003", "2007"):
+                    assert label in alt, (scene.slug, label)
+        saved = _alt(text, survivors[0]).lower()
+        assert f"{_count_word(len(sketches.SURVIVOR_ROWS))} black lines" in saved
+        assert f"{_count_word(len(sketches.LEAVERS))} red lines" in saved
+        ranking = _alt(text, survivors[1]).lower()
+        assert f"ranks {_count_word(sketches.SURVIVOR_RANKED)} stocks" in ranking
+        assert f"{_count_word(len(sketches.GONE))} of them drawn as red rings" in ranking
+
+
+def _alt(text: str, scene) -> str:
+    match = re.search(rf"!\[([^\]]+)\]\(\.\./docs/figures/{re.escape(gif_name(scene))}\)", text)
+    assert match, scene.slug
+    alt = match.group(1)
+    assert f"“{scene.title}”" in alt, scene.slug
+    return alt
+
+
+def _count_word(n: int) -> str:
+    return {3: "three", 6: "six", 18: "eighteen", 20: "twenty"}.get(n, str(n))
+
+
+class TestTheJanuarySketches:
+    """The January section's three sketches: registered, the two fills, the ranges."""
+
+    def test_they_are_three_in_the_order_the_post_reads_them(self, january) -> None:
+        assert [gif_name(scene) for scene in january] == JANUARY_GIFS
+
+    def test_each_says_what_it_should(self, january) -> None:
+        registered, fill, ranges = january
+        assert registered.labels == [
+            "claim",
+            "test",
+            "verdict’s words",
+            "all written down",
+            "then returns computed",
+            "registered",
+            "returns computed",
+            "then a test that fits them",
+            "exploratory",
+            "only a registered result can confirm anything",
+        ]
+        assert fill.labels == [
+            "buy the worst tenth",
+            "short the best tenth",
+            "?",
+            "a member with no checked price",
+            "could land in either tenth",
+            "low version",
+            "if bought: near the worst return",
+            "if shorted: near the best",
+            "high version",
+            "if bought: near the best return",
+            "if shorted: near the worst",
+            "so each January gets a low and a high result",
+        ]
+        assert ranges.title == "Eighteen Januaries, each a range"
+        assert ranges.labels == [
+            "0",
+            "2009",
+            "2014",
+            "2019",
+            "2026",
+            "each bar runs from a January’s low version to its high",
+            "black: straddles zero, so free data cannot tell which side",
+            "before costs",
+        ]
+
+    def test_the_written_steps_come_before_the_line_and_the_returns_after(self, january) -> None:
+        registered = january[0]
+        line = _stroke(registered, "written").x[0]
+        for k in range(len(sketches.WRITTEN_STEPS)):
+            assert _stroke(registered, f"box-{k}").x.max() < line
+        assert _stroke(registered, "box-3").x.min() > line
+        assert _stroke(registered, "box-3").color == GOOD
+        assert _stroke(registered, "box-4").color == LOST
+        assert _stroke(registered, "box-4").x.max() < _stroke(registered, "box-5").x.min()
+
+    def test_the_gap_can_land_in_either_tenth(self, january) -> None:
+        fill = january[1]
+        xs = np.linspace(*sketches.FILL_XS, sketches.FILL_RANKED)
+        tenth = sketches.FILL_TENTH
+        assert tenth * 10 == sketches.FILL_RANKED
+        assert _middle(fill, "buy") == pytest.approx(xs[:tenth].mean(), abs=0.01)
+        assert _middle(fill, "short") == pytest.approx(xs[-tenth:].mean(), abs=0.01)
+        assert (_stroke(fill, "buy").color, _stroke(fill, "short").color) == (GOOD, LOST)
+        to_buy, to_short = _stroke(fill, "to-buy"), _stroke(fill, "to-short")
+        assert to_buy.x[0] < sketches.UNPRICED[0] < to_short.x[0]
+        assert to_buy.x.min() < xs[tenth] and to_short.x.max() > xs[-tenth - 1]
+
+    @pytest.mark.parametrize(
+        "ranges",
+        [
+            PINNED_RANGES,
+            JanuaryRanges(((2009, -0.2, 0.1), (2010, 0.02, 0.05), (2011, -0.04, -0.01))),
+        ],
+        ids=["the run's Januaries", "other Januaries"],
+    )
+    def test_each_bar_runs_from_low_to_high_in_its_colour(self, ranges) -> None:
+        scene = january_scenes(ranges)[2]
+        xs = np.linspace(*sketches.RANGES_X, len(ranges.januaries))
+        for x, (year, low, high) in zip(xs, ranges.januaries, strict=True):
+            bar = _stroke(scene, f"jan-{year}")
+            assert bar.x == pytest.approx(np.full(bar.points, x))
+            assert bar.y[0] == pytest.approx(sketches.RANGES_ZERO + low * sketches.RANGES_PER)
+            assert bar.y[-1] == pytest.approx(sketches.RANGES_ZERO + high * sketches.RANGES_PER)
+            expected = whiteboard.INK if low < 0 < high else (GOOD if low > 0 else LOST)
+            assert bar.color == expected, year
+
+    def test_the_runs_januaries_straddle_but_four(self) -> None:
+        """What the alt text says: 2020, 2021 and 2024 below zero, 2023 above."""
+        below = [y for y, low, high in PINNED_RANGES.januaries if high < 0]
+        above = [y for y, low, high in PINNED_RANGES.januaries if low > 0]
+        assert (below, above) == ([2020, 2021, 2024], [2023])
+        first = PINNED_RANGES.januaries[0]
+        assert (format(first[1], ".2f"), format(first[2], ".2f")) == ("-0.31", "0.32")
+
+    def test_each_alt_text_quotes_its_sketchs_words(self, january) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for scene in january:
+            alt = _alt(text, scene)
+            for label in scene.labels:
+                if label not in ("0", "2014", "2019", "?", "low version", "high version"):
+                    assert label in alt, (scene.slug, label)
+        ranges = _alt(text, january[2])
+        assert "Eighteen vertical bars" in ranges and "2020, 2021 and 2024" in ranges
+        assert "the bar for 2023 is green" in ranges and "−0.31 to +0.32 in 2009" in ranges

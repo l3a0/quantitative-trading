@@ -2578,7 +2578,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's eighteen GIFs are checked the same way by
+equity seasonals post's twenty-one GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3168,7 +3168,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries eighteen looping whiteboard sketches, drawn by
+The post also carries twenty-one looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3218,23 +3218,32 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 16. `equity_seasonals_survivors_file.gif`, in Lesson 3, the companies a file
     saved in 2007 holds against the ones that left before the save.
 17. `equity_seasonals_survivors_ranking.gif`, a month's ranking as it stood
-    against the same ranking as the file holds it, whose worst tenth holds
-    other stocks.
+    against the same ranking as the file holds it, whose worst tenth is a
+    different set.
 18. `equity_seasonals_survivors_panels.gif`, a file saved in 2007 against the
-    index as it stood each month, the panel the later runs used.
+    index as it stood at each ranking date, the panel the later runs used
+    from 2009.
+19. `equity_seasonals_january_registered.gif`, under "Whether the January
+    effect survived the book", the claim, test and verdict's words written
+    down before any return is computed.
+20. `equity_seasonals_january_fill.gif`, how the low and high versions fill a
+    member with no checked price.
+21. `equity_seasonals_january_ranges.gif`, each of the registered run's
+    eighteen Januaries as a bar from its low version to its high.
 
-The last three are schematic. The first two of the five-year sketches and the
-last two of Lesson 3's build more slowly than the rest and hold their
+Like the strategy sketches, Lesson 3's three and the January fill are
+schematic. Six sketches build more slowly than the rest and hold their
 finished drawings for twelve seconds, because each carries more than the usual
-pace lets a reader take in.
+pace lets a reader take in: the first two of the five-year sketches, the last
+two of Lesson 3's sketches, and the January fill and ranges.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Only the verdicts sketch reads the owner's archive. On a machine without it
-the command redraws the other seventeen and exits non-zero, naming the one it
-left.
+Only the verdicts and ranges sketches read the owner's archive. On a machine
+without it the command redraws the other nineteen and exits non-zero, naming
+the two it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
@@ -3245,9 +3254,10 @@ that the split sketch draws each bar and bracket to one scale and colours each
 bar by its sign, that the five-year sketches draw each bar to its months and
 each dot, band and January bar at its figure, that Lesson 3's sketches keep
 the companies that left out of the file, its ranking and its saved panel, that
-four sketches build slowly and hold for twelve seconds, that no label touches
-a line, another label or the frame's edge, and that each GIF follows its text
-in the post. The rule sketches' figures are defaults in `RuleFigures`, and
+six sketches build slowly and hold for twelve seconds, that the ranges sketch
+draws each January from its low to its high, that no label touches a line,
+another label or the frame's edge, and that each GIF follows its text in the
+post. The rule sketches' figures are defaults in `RuleFigures`, and
 `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The split sketch's figures are defaults in

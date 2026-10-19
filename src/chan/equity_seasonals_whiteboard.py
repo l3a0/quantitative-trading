@@ -1,10 +1,10 @@
-"""Whiteboard sketches for the equity-seasonals post, from its opening to its five-year check.
+"""Whiteboard sketches for the equity-seasonals post, from its opening to its last section.
 
 ``blog/equity-seasonals-lessons.md`` opens on why a strategy published as dead
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws eighteen scenes, and the post places each right after the
+This module draws twenty-one scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -52,7 +52,7 @@ draws the two halves' annual returns beside the sums of 2002 and 2006, to
 one scale, with a bracket for each pair's gap. Its figures come from
 :class:`SplitFigures`, which ``TestTheYearsInsideTheSplit`` derives.
 
-The last three follow Lesson 2's check of Chan's five-year claim, one after
+The next three follow Lesson 2's check of Chan's five-year claim, one after
 each of its paragraphs:
 
 1. Which months each figure covers: the whole period, the split's two halves
@@ -70,16 +70,32 @@ each of their labels longer and their finished drawings for twelve seconds.
 The last three sit in Lesson 3, on survivorship bias, and are schematic:
 
 1. What a saved file can see: six companies' lines run to the save in 2007
-   and three stop early, acquired, shrunk out of the index or failed, and a
-   bracket shows only the six are in the file.
+   and three stop early, because the company was acquired, shrank out of the
+   index or failed, and a bracket shows only the six are in the file.
 2. The ranking only sees survivors: one month's ranking as it stood, with
    the stocks that later left ringed in red, above the same ranking as the
-   file holds it, whose worst tenth holds other stocks.
-3. Two ways to build a panel: a file saved in 2007, which carries its
-   members back, including one that joined later, against the index as it
-   stood each month, which the post's later runs used.
+   file holds it, whose worst tenth is a different set.
+3. Two ways to build a panel: a file saved in 2007 carries 2007's members
+   back, one that joined later among them. Beside it, the index as it stood
+   at each ranking date, the panel the post's later runs used from 2009.
 
 The second and third are in :data:`PACED` too.
+
+The last three sit in "What this replication cannot say", under its question
+on whether the January effect survived the book, one after each of its three
+paragraphs:
+
+1. What registered means: the claim, the test and the verdict's words written
+   down before any return is computed, against an exploratory order.
+2. Two ways to fill a gap: a member with no checked price could land in
+   either traded tenth, and the low and high versions fill it in opposite
+   ways. It is schematic.
+3. Every January of the registered run as a bar from its low version to its
+   high, coloured by whether it straddles zero. Its figures come from
+   :class:`JanuaryRanges`, read from that run on the owner's archive, like
+   the verdicts sketch's.
+
+The second and third are in :data:`PACED`.
 
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
@@ -97,14 +113,15 @@ differ from the ones the scene's words state is refused rather than drawn.
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied: its strokes, labels, tints, timeline, renderer and palette, so
 these GIFs share that post's look, frame rate and colours, and all but the
-two in :data:`PACED` share its pace and hold. Only the
+ones in :data:`PACED` share its pace and hold. Only the
 scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all eighteen with the command below.
-Only the verdicts sketch reads the archive, so on a machine without it the
-command redraws the other seventeen and exits non-zero naming the one it left::
+with no change is a no-op diff. Redraw all twenty-one with the command below.
+Only the verdicts and ranges sketches read the archive, so on a machine
+without it the command redraws the other nineteen and exits non-zero naming
+the two it left::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -132,6 +149,7 @@ from chan.usdcad_tests_whiteboard import (
     Scene,
     Stroke,
     _arrow,
+    _box,
     _dot,
     _line,
     _span,
@@ -1570,23 +1588,23 @@ def _survivors_ranking() -> Scene:
         _stroke(
             "file-tenth",
             _ring(xs[file_tenth], np.full(SURVIVOR_TENTH, IN_FILE_Y), pad=0.2),
-            color=LOST,
+            color=ACCENT,
             frames=15,
         )
     )
     steps.append(
         Label(
-            "the file’s worst tenth: other stocks",
+            "the file’s worst tenth: a different set",
             xs[0],
             IN_FILE_Y - 0.5,
             names="file-tenth",
-            color=LOST,
+            color=ACCENT,
             size=10,
         )
     )
     steps.append(
         Label(
-            "red rings: companies that left the index before 2007",
+            "red rings: companies that left the index before the file was saved",
             0.3,
             0.45,
             names="file-tenth",
@@ -1691,7 +1709,7 @@ def _survivors_panels() -> Scene:
         )
     steps.append(
         Label(
-            "each month’s members",
+            "members at each ranking date",
             sum(right) / 2,
             0.7,
             names="stood-8",
@@ -1702,7 +1720,7 @@ def _survivors_panels() -> Scene:
     )
     steps.append(
         Label(
-            "the later runs used the panel on the right",
+            "the later runs, from 2009, used the panel on the right",
             0.3,
             0.25,
             names="stood-8",
@@ -1718,10 +1736,251 @@ def survivor_scenes() -> tuple[Scene, ...]:
     return (_survivors_file(), _survivors_ranking(), _survivors_panels())
 
 
+#: The fill scene's ranked row, its height, where the member with no checked
+#: price stands, and how many stocks stand for a tenth.
+FILL_XS, FILL_Y, UNPRICED = (0.6, 4.8), 2.2, (2.7, 3.75)
+FILL_RANKED, FILL_TENTH = 20, 2
+
+
+def _january_fill() -> Scene:
+    """The January run's two versions: how each fills a member with no checked price."""
+    xs = np.linspace(*FILL_XS, FILL_RANKED)
+    row = np.full(FILL_RANKED, FILL_Y)
+    tenth = np.full(FILL_TENTH, FILL_Y)
+    qx, qy = UNPRICED
+    return Scene(
+        "Two ways to fill a gap",
+        "january_fill",
+        (
+            Stroke("ranked", xs, row, color=MUTED, frames=FILL_RANKED - 1, dots=6.0),
+            _stroke("buy", _ring(xs[:FILL_TENTH], tenth, pad=0.2), color=GOOD, frames=15),
+            Label(
+                "buy the worst tenth", xs[0] - 0.2, FILL_Y - 0.55, names="buy", color=GOOD, size=11
+            ),
+            _stroke("short", _ring(xs[-FILL_TENTH:], tenth, pad=0.2), color=LOST, frames=15),
+            Label(
+                "short the best tenth",
+                xs[-1] + 0.2,
+                FILL_Y - 0.55,
+                names="short",
+                color=LOST,
+                ha="right",
+                size=11,
+            ),
+            Label("?", qx, qy, names="short", ha="center", size=20),
+            Label(
+                "a member with no checked price", qx + 0.3, qy, names="short", color=MUTED, size=11
+            ),
+            _stroke(
+                "to-buy",
+                _arrow(qx - 0.25, qy - 0.42, xs[FILL_TENTH - 1] + 0.2, FILL_Y + 0.32),
+                color=MUTED,
+                frames=15,
+            ),
+            _stroke(
+                "to-short",
+                _arrow(qx + 0.25, qy - 0.42, xs[-FILL_TENTH] - 0.2, FILL_Y + 0.32),
+                color=MUTED,
+                frames=15,
+            ),
+            Label(
+                "could land in either tenth",
+                qx,
+                1.15,
+                names="to-short",
+                color=MUTED,
+                ha="center",
+                size=10,
+            ),
+            Label("low version", 5.6, 3.3, names="to-short", color=LOST, size=13),
+            Label(
+                "if bought: near the worst return", 5.6, 2.9, names="to-short", color=LOST, size=10
+            ),
+            Label("if shorted: near the best", 5.6, 2.6, names="to-short", color=LOST, size=10),
+            Label("high version", 5.6, 1.85, names="to-short", color=GOOD, size=13),
+            Label(
+                "if bought: near the best return", 5.6, 1.45, names="to-short", color=GOOD, size=10
+            ),
+            Label("if shorted: near the worst", 5.6, 1.15, names="to-short", color=GOOD, size=10),
+            Label(
+                "so each January gets a low and a high result",
+                0.4,
+                0.4,
+                names="to-short",
+                color=ACCENT,
+                size=12,
+            ),
+        ),
+    )
+
+
+@dataclass(frozen=True)
+class JanuaryRanges:
+    """Each January of the registered run, as its year with its low and high return.
+
+    The run is :func:`chan.equity_seasonals.run_point_in_time`, and the
+    returns are before costs, one per year-end, labelled by the January the
+    trade exits in.
+    """
+
+    januaries: tuple[tuple[int, float, float], ...]
+
+    @classmethod
+    def from_run(cls, january: seasonals.PointInTimeRun) -> JanuaryRanges:
+        return cls(
+            tuple((year.trade.exited.year, year.low, year.high) for year in january.year_ends)
+        )
+
+
+#: The ranges scene's zero line, its scale, and the board the bars span.
+RANGES_ZERO, RANGES_PER, RANGES_X = 2.2, 3.4, (1.2, 9.0)
+#: The years the axis labels, besides the first and the last.
+RANGES_YEARS = (2014, 2019)
+
+
+def _range_colour(low: float, high: float) -> str:
+    """Black for a range across zero, green for one above it, red for one below."""
+    if low < 0 < high:
+        return INK
+    return GOOD if low > 0 else LOST
+
+
+def _january_ranges(ranges: JanuaryRanges) -> Scene:
+    """Every January of the registered run as a bar from its low version to its high."""
+    years = ranges.januaries
+    x0, x1 = RANGES_X
+    xs = np.linspace(x0, x1, len(years))
+    last = f"jan-{years[-1][0]}"
+    steps: list[Stroke | Fill | Label] = [
+        _stroke(
+            "zero",
+            _line([(x0 - 0.3, RANGES_ZERO), (x1 + 0.3, RANGES_ZERO)]),
+            color=MUTED,
+            frames=18,
+        ),
+        Label("0", x0 - 0.5, RANGES_ZERO, names="zero", color=MUTED, ha="right", size=11),
+    ]
+    for x, (year, low, high) in zip(xs, years, strict=True):
+        bar = _line(
+            [(x, RANGES_ZERO + low * RANGES_PER), (x, RANGES_ZERO + high * RANGES_PER)], per_unit=20
+        )
+        steps.append(
+            _stroke(
+                f"jan-{year}",
+                bar,
+                color=_range_colour(low, high),
+                width=5.0,
+                frames=max(1, min(6, len(bar[0]) - 1)),
+            )
+        )
+    shown = {years[0][0], *RANGES_YEARS, years[-1][0]}
+    for x, (year, _, _) in zip(xs, years, strict=True):
+        if year in shown:
+            steps.append(Label(str(year), x, 0.6, names=last, color=MUTED, ha="center", size=10))
+    steps.append(
+        Label(
+            "each bar runs from a January’s low version to its high", 0.4, 3.85, names=last, size=11
+        )
+    )
+    steps.append(
+        Label(
+            "black: straddles zero, so free data cannot tell which side",
+            0.4,
+            0.25,
+            names=last,
+            color=MUTED,
+            size=10,
+        )
+    )
+    steps.append(Label("before costs", 9.6, 0.25, names=last, color=MUTED, ha="right", size=10))
+    return Scene(
+        f"{_number_word(len(years))} Januaries, each a range", "january_ranges", tuple(steps)
+    )
+
+
+def _number_word(n: int) -> str:
+    words = {17: "Seventeen", 18: "Eighteen", 19: "Nineteen", 20: "Twenty"}
+    return words.get(n, str(n))
+
+
+#: The registered scene's three written steps, each with where its box starts.
+WRITTEN_STEPS = (("claim", 0.2), ("test", 2.3), ("verdict’s words", 4.4))
+WRITTEN_Y, EXPLORED_Y, WRITTEN_LINE_X = 2.9, 1.3, 6.55
+
+
+def _january_registered() -> Scene:
+    """What makes the January run registered: everything written before any return."""
+    y, y2 = WRITTEN_Y, EXPLORED_Y
+    steps: list[Stroke | Fill | Label] = []
+    for k, (text, x) in enumerate(WRITTEN_STEPS):
+        steps.append(_stroke(f"box-{k}", _box(x, y - 0.35, x + 2.0, y + 0.35), frames=4))
+        steps.append(Label(text, x + 1.0, y, names=f"box-{k}", ha="center", size=10))
+        if k < len(WRITTEN_STEPS) - 1:
+            steps.append(
+                _stroke(f"arrow-{k}", _arrow(x + 2.01, y, x + 2.09, y), color=MUTED, frames=2)
+            )
+    steps.append(
+        _stroke(
+            "written",
+            _line([(WRITTEN_LINE_X, 3.45), (WRITTEN_LINE_X, 2.2)]),
+            color=ACCENT,
+            dashed=True,
+            frames=4,
+        )
+    )
+    steps.append(
+        Label(
+            "all written down",
+            WRITTEN_LINE_X,
+            3.75,
+            names="written",
+            color=ACCENT,
+            ha="center",
+            size=11,
+        )
+    )
+    steps.append(_stroke("box-3", _box(6.7, y - 0.35, 9.75, y + 0.35), color=GOOD, frames=4))
+    steps.append(
+        Label("then returns computed", 8.22, y, names="box-3", color=GOOD, ha="center", size=11)
+    )
+    steps.append(Label("registered", 0.2, 3.6, names="box-3", color=GOOD, size=13))
+    steps.append(_stroke("box-4", _box(0.3, y2 - 0.35, 3.3, y2 + 0.35), color=LOST, frames=4))
+    steps.append(
+        Label("returns computed", 1.8, y2, names="box-4", color=LOST, ha="center", size=11)
+    )
+    steps.append(_stroke("arrow-4", _arrow(3.35, y2, 3.75, y2), color=MUTED, frames=2))
+    steps.append(_stroke("box-5", _box(3.8, y2 - 0.35, 7.3, y2 + 0.35), frames=4))
+    steps.append(Label("then a test that fits them", 5.55, y2, names="box-5", ha="center", size=11))
+    steps.append(Label("exploratory", 0.3, 2.05, names="box-5", color=LOST, size=13))
+    steps.append(
+        Label(
+            "only a registered result can confirm anything",
+            0.5,
+            0.35,
+            names="box-5",
+            color=ACCENT,
+            size=12,
+        )
+    )
+    return Scene("What registered means", "january_registered", tuple(steps))
+
+
+def january_scenes(ranges: JanuaryRanges) -> tuple[Scene, ...]:
+    """The January section's three scenes in the order the post reads them."""
+    return (_january_registered(), _january_fill(), _january_ranges(ranges))
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-PACED = ("five_year_months", "five_year_noise", "survivors_ranking", "survivors_panels")
+PACED = (
+    "five_year_months",
+    "five_year_noise",
+    "survivors_ranking",
+    "survivors_panels",
+    "january_fill",
+    "january_ranges",
+)
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
@@ -2102,16 +2361,19 @@ def make_equity_seasonals_whiteboards(
     out_dir: Path | None = None,
     verdicts: Verdicts | None = None,
     spans: Spans | None = None,
+    ranges: JanuaryRanges | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
-    then the split's, then the five-year check's three, then Lesson 3's three.
+    then the split's, then the five-year check's three, then Lesson 3's three,
+    then the January section's three.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
-    archive, about twenty seconds. Every GIF but the verdicts sketch is
-    written before that read, so a refused or missing archive leaves the
-    other seventeen redrawn and raises from the read.
+    archive, about twenty seconds, and ``ranges`` from the January run among
+    them. Every GIF but the verdicts and ranges sketches is written before
+    that read, so a refused or missing archive leaves the other nineteen
+    redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
@@ -2121,12 +2383,16 @@ def make_equity_seasonals_whiteboards(
     split = [_write(scene, folder) for scene in split_scenes()]
     five = [_write(scene, folder) for scene in five_year_scenes()]
     survivors = [_write(scene, folder) for scene in survivor_scenes()]
-    if verdicts is None:
-        verdicts = Verdicts.from_runs(
-            seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
-        )
+    january = [_write(_january_registered(), folder), _write(_january_fill(), folder)]
+    if verdicts is None or ranges is None:
+        run = seasonals.run_point_in_time()
+        if verdicts is None:
+            verdicts = Verdicts.from_runs(run, seasonals.run_monthly_point_in_time())
+        if ranges is None:
+            ranges = JanuaryRanges.from_run(run)
     paths.append(_write(_two_verdicts(verdicts), folder))
-    return paths + strategies + rules + split + five + survivors
+    january.append(_write(_january_ranges(ranges), folder))
+    return paths + strategies + rules + split + five + survivors + january
 
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -2145,10 +2411,13 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other seventeen GIFs are already written. The one left stale is
-        # named, and the exit is non-zero, so a redraw on a machine without
-        # the archive does not read as a full one.
-        raise SystemExit(f"{GIF_PREFIX}two_verdicts.gif was not redrawn: {refused}") from refused
+        # The other nineteen GIFs are already written. The two left stale
+        # are named, and the exit is non-zero, so a redraw on a machine
+        # without the archive does not read as a full one.
+        raise SystemExit(
+            f"{GIF_PREFIX}two_verdicts.gif and {GIF_PREFIX}january_ranges.gif "
+            f"were not redrawn: {refused}"
+        ) from refused
     for path in paths:
         print(f"wrote {path}")
 
