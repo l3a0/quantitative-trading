@@ -664,9 +664,9 @@ class TestThePost:
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
             (
-                "A second run tested Example 7.6",
+                "It is a one-sided t-test on the 18 Januaries",
                 "That match is what shows",
-                "The low series averages",
+                "Each version goes through the same test",
             ),
             JANUARY_GIFS,
             strict=True,

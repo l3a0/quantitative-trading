@@ -260,7 +260,15 @@ The file holds 13 months before 2002, all on survivors. Testing it needs a panel
 
 ### 2. Whether the January effect survived the book
 
-A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC. Its claim, its test and the wording of its verdict were written down before any return was computed, which makes it **registered** rather than exploratory.
+A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
+
+Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict. That makes the run **registered** rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs, over the 18 Januaries after the book. The test asks whether the data show μ above zero:
+
+```math
+H_0: \mu = 0 \qquad \text{against} \qquad H_1: \mu > 0
+```
+
+It is a one-sided t-test on the 18 Januaries. Its p value is the chance that a strategy that truly earns nothing in January would print an average at least as high as the one measured. A p below 0.05 rejects H₀ and so finds a January effect.
 
 ![An animated whiteboard sketch titled “What registered means”, drawn stroke by stroke. Under the word “registered”, three boxes joined by arrows, “claim”, “test” and “verdict’s words”, stand before a dashed brown line labelled “all written down”, and past it a green box reads “then returns computed”. Under the word “exploratory”, a red box “returns computed” leads to a box “no claim written down first”. The words “exploratory can kill an idea, only registered can confirm one” close the sketch.](../docs/figures/equity_seasonals_january_registered.gif)
 
@@ -274,9 +282,19 @@ That match is what shows the price belongs to that company and not to a later on
 
 ![An animated whiteboard sketch titled “Two ways to fill a gap”, drawn slowly stroke by stroke. A row of twenty ranked stocks has a green ring round its lowest two, labelled “buy the worst tenth”, and a red ring round its highest two, labelled “short the best tenth”. Above the row a question mark, labelled “a member with no checked price”, sends a grey arrow to each ring, and beneath the row are the words “could land in a traded tenth”. To the right, in red, “low version”, then “if bought: near the worst January return” and “if shorted: near the best”. Below it, in green, “high version”, then “if bought: near the best January return” and “if shorted: near the worst”. The words “so each January gets a low and a high result” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_fill.gif)
 
-The low series averages −0.1047 a January before costs, nowhere near above zero. The high series averages 0.0879, well above it. Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the bias the paragraph above describes, and no rule for it was written before the run, so it is described rather than tested. Free data cannot decide between the low and high series, and prices for the members that could have fallen in a traded tenth are what could.
+Each version goes through the same test. The low series averages −0.1047 a January before costs, with a p of 1.000, so it shows no sign of an effect. The high series averages 0.0879, with a p of 0.001, which rejects H₀ and would read as a January effect on its own.
 
 ![An animated whiteboard sketch titled “Eighteen Januaries, each a range”, drawn slowly stroke by stroke. Eighteen vertical bars stand along a grey zero line from 2009 to 2026, each running from that January’s low version to its high, under the words “each bar runs from a January’s low version to its high”. The bars are tallest in the first years and shrink to almost nothing by 2026. Most are black and straddle zero. The bars for 2020, 2021 and 2024 are red and sit wholly below zero, and the bar for 2023 is green and sits wholly above it. The words “black: straddles zero, so free data cannot tell which side” and “before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_ranges.gif)
+
+The wording written before the run covers three outcomes.
+
+1. **Both versions reject H₀.** The verdict is a January effect above zero.
+2. **Neither rejects.** The verdict is no January effect detectable above some size X, the smallest average the test would catch 80 percent of the time.
+3. **One rejects and the other does not.** The verdict is that the free sources cannot decide it.
+
+The two versions disagree, so the verdict is the third. Free data cannot decide whether the January effect survived the book. Prices for the members that could have fallen in a traded tenth are what could decide it.
+
+Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the bias described above, and no rule for it was written before the run, so it is described rather than tested.
 
 ### 3. Whether Heston and Sadka’s effect survived the book
 
