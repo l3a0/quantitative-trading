@@ -87,6 +87,7 @@ from __future__ import annotations
 
 import io
 import math
+import os
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
@@ -95,8 +96,10 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
+from chan import paths
 from chan.vintage import (
     EVENT_FIELDS,
+    MANIFEST_NAME,
     VintageEntry,
     VintageUnavailable,
     read_manifest,
@@ -160,6 +163,23 @@ RETURN_HEADER = "Return"
 
 #: The header row of the Python port's two files of monthly interest rates.
 RATE_HEADER = "Year,Month,Rates"
+
+#: The one directory :func:`load_panel` remembers reads of, as it stood on import.
+#:
+#: Bound at import, so a test that later moves ``chan.paths.DATA_DIR`` sends its
+#: calls to a different directory from this one, and they read in full.
+_REMEMBERED_DIRECTORY = paths.DATA_DIR
+
+#: A file's inode, change time, modification time and size, or ``None`` when ``stat`` fails.
+_Stamp = tuple[int, int, int, int] | None
+
+#: :func:`load_panel`'s reads of the committed directory in this process, by source and field.
+#:
+#: Each value holds the manifest's stamp and every member's, taken before the
+#: read that built it, then the members and the frame.
+_PANELS: dict[
+    tuple[str, str], tuple[_Stamp, tuple[_Stamp, ...], tuple[VintageEntry, ...], pd.DataFrame]
+] = {}
 
 
 class WindowCrossesScaleBreak(Exception):
@@ -456,6 +476,30 @@ def load_panel(
     member is still read through :func:`read_vintage`, so each one is hashed
     against its entry before it is parsed.
 
+    A read of the committed directory is remembered for the rest of the
+    process. A later call for the same source and field skips the manifest and
+    the hashes, and returns a copy of what the first call built, while the
+    manifest and every member keep the stamp taken just before the first call
+    read them. A stamp is a file's inode, change time, modification time and
+    size. A write, a rename or a permission change moves the change time, and
+    no file call sets it back, so a file changed since is read and hashed
+    again. Each unchanged file is hashed once per process for each field asked
+    of it, rather than once per call. The modification time is there for
+    Windows, where the change time records a file's creation instead. On a
+    filesystem whose clock is coarse, two writes inside one tick can share
+    both times, and the inode and size still tell most of those apart.
+
+    Any other directory is read in full on every call. That covers a temporary
+    one and a moved ``chan.paths.DATA_DIR``, so a case that breaks a copy reads
+    the broken copy. A refusal is never remembered. Every call gets its own
+    copy of the frame and of the members, so a caller that changes its result
+    changes nobody else's.
+
+    The price is memory. Each panel read stays held until the process exits,
+    and a run that reads a panel once holds it twice, once remembered and once in
+    the caller's copy. ``docs/design.md``'s register says why this is not the
+    shared price cache it cuts.
+
     The frame's index is the union of the members' dates. A member's file holds
     only the days its source priced it, so a day it was not priced is NaN here,
     which is what the source held. For a stock file, compute returns on this
@@ -480,6 +524,21 @@ def load_panel(
     4. A close asked of a source of returns.
     5. Two members holding one symbol.
     """
+    directory = paths.DATA_DIR if data_dir is None else data_dir
+    remembering = directory == _REMEMBERED_DIRECTORY
+    if remembering:
+        remembered = _PANELS.get((source_file, field))
+        if remembered is not None:
+            manifest_stamp, member_stamps, members, frame = remembered
+            if (manifest_stamp, member_stamps) == (
+                _stamp(directory / MANIFEST_NAME),
+                _member_stamps(directory, members),
+            ):
+                return list(members), frame.copy()
+        # Stamped before the read, so a file that changes during it leaves a
+        # stamp the next call no longer matches.
+        manifest_stamp = _stamp(directory / MANIFEST_NAME)
+
     try:
         entries = read_manifest(data_dir)
     except (OSError, ValueError) as unreadable:
@@ -526,6 +585,8 @@ def load_panel(
             f"cannot say which is the column"
         )
 
+    if remembering:
+        member_stamps = _member_stamps(directory, members)
     columns = {}
     for entry in members:
         payload = read_vintage(entry, data_dir=data_dir)
@@ -533,7 +594,25 @@ def load_panel(
             payload, entry.symbol, column=_column_of(payload, field, entry.path)
         )
     # The columns keep the dict's order, which is the members' sorted order.
-    return members, pd.DataFrame(columns).sort_index()
+    frame = pd.DataFrame(columns).sort_index()
+    if remembering and None not in (manifest_stamp, *member_stamps):
+        _PANELS[(source_file, field)] = (manifest_stamp, member_stamps, tuple(members), frame)
+        return members, frame.copy()
+    return members, frame
+
+
+def _member_stamps(directory: Path, members: Sequence[VintageEntry]) -> tuple[_Stamp, ...]:
+    return tuple(_stamp(directory / entry.path) for entry in members)
+
+
+def _stamp(path: Path) -> _Stamp:
+    try:
+        status = os.stat(path)
+    except OSError:
+        # A file that cannot be stamped is never remembered, and the read that
+        # follows is what says why it cannot be read.
+        return None
+    return (status.st_ino, status.st_ctime_ns, status.st_mtime_ns, status.st_size)
 
 
 def row_month_ends(days: pd.DatetimeIndex) -> NDArray[np.intp]:
