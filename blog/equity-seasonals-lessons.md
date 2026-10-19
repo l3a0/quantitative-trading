@@ -314,7 +314,7 @@ A third run tested Example 7.7 under the revised MATLAB’s rules on the S&P 500
 
 Free daily prices gave a checked price for 98,321 of its 107,115 member-months, each one company in one month, and the run dropped the rest, so each tenth is a tenth of the companies with a checked price.
 
-![An animated whiteboard sketch titled “Who had a checked price”, drawn stroke by stroke. A long bar is black for the “98,321 member-months with a checked price” and red for the “8,794 dropped”. Two shorter bars below it split the same way at two month-ends, labelled “fewest: 364 of 501, 2012-09” and “most: 501 of 503, 2025-09”.](../docs/figures/equity_seasonals_ivv_checked.gif)
+![An animated whiteboard sketch titled “Who had a checked price”, drawn stroke by stroke. A long bar is black for the “98,321 member-months with a checked price” and red for the “8,794 dropped”. Two thinner bars below it split the same way at two month-ends, labelled “fewest: 364 of 501, 2012-09” and “most: 501 of 503, 2025-09”.](../docs/figures/equity_seasonals_ivv_checked.gif)
 
 #### Whether dropping the rest matters
 
@@ -326,7 +326,7 @@ Dropping the rest is harmless only if leaving the index has little to do with wh
 
 The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would print a mean at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months.
 
-![An animated whiteboard sketch titled “213 months add up to nothing”, drawn stroke by stroke. A grey zero line runs from 2009 to 2026. A green dashed line labelled “13% a year, the book’s figure” climbs steadily above it, and a black line labelled “the run’s 213 months, added up” wanders along zero and ends just below it. The words “a mean of −0.0001 a month: flat, where 13% a year climbs” close the sketch.](../docs/figures/equity_seasonals_ivv_running_sum.gif)
+![An animated whiteboard sketch titled “213 months add up to nothing”, drawn stroke by stroke. A grey zero line runs from 2009 to 2026. A green dashed line labelled “13% a year, the book’s figure” climbs steadily above it, and a black line labelled “the run’s 213 months, added up” runs just below zero nearly the whole way, lowest in 2021, and ends just below it. The words “a mean of −0.0001 a month: flat, where 13% a year climbs” close the sketch.](../docs/figures/equity_seasonals_ivv_running_sum.gif)
 
 #### What the verdict says
 

@@ -2838,7 +2838,7 @@ sketch draws rows 35, 41 and 44's figures and refuses to draw unless rows 37 and
 moves with a re-pin of either. The January ranges sketch draws the registered
 January run's eighteen Januaries and, beside each, row 50's January with every
 missing member left out. `PINNED_RANGES` there moves with a re-pin of either.
-Section 3's sketches draw row 41's months and coverage and row 49's departures
+Those three sketches draw row 41's months and coverage and row 49's departures
 from the IVV run, and `PINNED_IVV` there moves with a re-pin of any of them.
 
 ## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*

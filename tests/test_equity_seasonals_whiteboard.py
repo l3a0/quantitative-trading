@@ -67,6 +67,7 @@ import hashlib
 import math
 import platform
 import re
+from types import SimpleNamespace
 
 import matplotlib
 import numpy as np
@@ -251,8 +252,11 @@ PINNED_RANGES = JanuaryRanges(
 #: ``tests/test_equity_seasonals.py`` holds the run gives them. Same vintage
 #: and specification as :data:`PINNED`'s monthly figures: Alpha Vantage's
 #: ``adjusted_close`` for the IVV members file's series, downloaded 2026-10-05,
-#: under ``REVISED_MATLAB``, held months January 2009 to September 2026,
-#: before costs.
+#: under ``REVISED_MATLAB``, before costs. The months and their mean are the
+#: held months January 2009 to September 2026. The coverage runs over the
+#: ranking month-ends 2008-12 to 2026-08, and the departures over the ranking
+#: months 2008-12 to 2025-08, each counting a name that leaves within twelve
+#: months, as row 49 of the replication log says.
 IVV_RETURNS = (
     -0.0379857988360995,
     0.021246503696400323,
@@ -989,6 +993,10 @@ class TestThePost:
                 rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)",
                 paragraphs[index + 1].strip(),
             ), name
+        (verdict,) = [
+            k for k, p in enumerate(paragraphs) if p.startswith("The verdict, in the words written")
+        ]
+        assert paragraphs[verdict - 1] == "#### What the verdict says"
 
     def test_every_sketch_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -2146,7 +2154,7 @@ OTHER_IVV = IvvFigures(
     most=("2011-07", 90, 100),
     departing=(1, 3, 6),
     staying=(2, 2, 6),
-    months=(("2010-01", 0.01), ("2010-02", -0.02), ("2010-03", 0.03)),
+    months=(("2010-12", 0.01), ("2011-01", -0.02), ("2011-02", 0.03)),
     mean=0.0066666666666666671,
 )
 
@@ -2216,6 +2224,9 @@ class TestTheSection3Sketches:
             whiteboard.INK,
         )
         assert missed.dashed and not late.dashed
+        for k in range(len(sketches.FILINGS)):
+            filing = _stroke(carry, f"filing-{k}")
+            assert (filing.color, filing.dashed) == (whiteboard.MUTED, True)
 
     @pytest.mark.parametrize("figures", [PINNED_IVV, OTHER_IVV], ids=["the run's", "other"])
     def test_each_bar_splits_at_its_share(self, figures) -> None:
@@ -2237,6 +2248,12 @@ class TestTheSection3Sketches:
             assert short.x1 - short.x0 == pytest.approx((x1 - start) * counts[1] / total)
             assert (long.color, short.color) == (GOOD, LOST)
             assert _labelled(leavers, f"long {counts[0] / total:.1%}").color == GOOD
+            assert _fill(leavers, f"neither-{k}").color == whiteboard.MUTED
+        assert _fill(leavers, "long-0").y0 > _fill(leavers, "long-1").y0, "the leavers sit above"
+        assert (_fill(checked, "all-checked").color, _fill(checked, "all-dropped").color) == (
+            whiteboard.INK,
+            LOST,
+        )
 
     @pytest.mark.parametrize("figures", [PINNED_IVV, OTHER_IVV], ids=["the run's", "other"])
     def test_the_running_sum_adds_up_the_months_to_one_scale(self, figures) -> None:
@@ -2249,7 +2266,35 @@ class TestTheSection3Sketches:
             sketches.RUNNING_ZERO + per * np.concatenate([[0.0], np.cumsum(values)])
         )
         assert (run.color, book.color, book.dashed) == (whiteboard.INK, GOOD, True)
+        first, last = figures.months[0][0][:4], figures.months[-1][0][:4]
+        assert running.labels[1:3] == [first, last]
         assert running.title == f"{len(values)} months add up to nothing"
+
+    def test_the_extremes_are_by_share_and_the_months_by_label(self) -> None:
+        """The month with the fewest members covered is not the one with the
+        lowest share, so a rule reading counts would pick the wrong one."""
+        coverage = [
+            SimpleNamespace(month="2010-01", covered=50, members=100),
+            SimpleNamespace(month="2010-02", covered=45, members=50),
+            SimpleNamespace(month="2010-03", covered=60, members=150),
+            SimpleNamespace(month="2010-04", covered=99, members=100),
+        ]
+        monthly = SimpleNamespace(
+            covered=254,
+            members=400,
+            coverage=coverage,
+            departures=SimpleNamespace(table=((1, 2, 3), (4, 5, 6))),
+            matlab=SimpleNamespace(
+                returns=pd.Series(
+                    [0.01, -0.02], index=pd.to_datetime(["2010-01-29", "2010-02-26"])
+                ),
+                test=SimpleNamespace(mean=-0.005),
+            ),
+        )
+        figures = IvvFigures.from_run(monthly)
+        assert (figures.fewest, figures.most) == (("2010-03", 60, 150), ("2010-04", 99, 100))
+        assert figures.months == (("2010-01", 0.01), ("2010-02", -0.02))
+        assert (figures.departing, figures.staying) == ((1, 2, 3), (4, 5, 6))
 
     def test_the_mean_is_the_months_mean(self) -> None:
         values = [value for _, value in PINNED_IVV.months]
@@ -2277,7 +2322,11 @@ class TestTheSection3Sketches:
             seen.append(run)
             return PINNED_IVV
 
+        def unneeded():
+            raise AssertionError("the January run is read though nothing needs it")
+
         monkeypatch.setattr(seasonals, "run_monthly_point_in_time", lambda: monthly)
+        monkeypatch.setattr(seasonals, "run_point_in_time", unneeded)
         monkeypatch.setattr(
             sketches.IvvFigures, "from_run", classmethod(lambda cls, m: from_run(m))
         )

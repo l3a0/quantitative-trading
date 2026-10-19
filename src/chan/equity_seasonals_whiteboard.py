@@ -81,7 +81,7 @@ The next three sit in Lesson 3, on survivorship bias, and are schematic:
 
 Lesson 3's second and third build slowly, as :data:`PACED` lists.
 
-The last three sit in "What this replication cannot say", under its question
+The next three sit in "What this replication cannot say", under its question
 on whether the January effect survived the book, each after the paragraph it
 illustrates:
 
@@ -2040,7 +2040,7 @@ def january_scenes(ranges: JanuaryRanges) -> tuple[Scene, ...]:
 # --- Section 3: whether Heston and Sadka's effect survived the book ---------
 
 #: Chan's "more than 13 percent" a year for Heston and Sadka's rotation before
-#: 2002, the book's figure at Kindle location 4425 rather than a run's.
+#: 2002, the book's figure on p. 179 of the revised edition rather than a run's.
 BOOK_ANNUAL = 0.13
 
 
