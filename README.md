@@ -3111,7 +3111,7 @@ log.
    a criterion written before the check ran.
 3. A file of survivors is the first thing the result cannot get past.
 
-Three groups of its figures are not pinned here.
+Four groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. "More than 13
    percent" and "has disappeared since then" are on p. 179, "has weakened or
@@ -3126,14 +3126,20 @@ Three groups of its figures are not pinned here.
    repairs, or the
    first edition's 95 months with a return and 83 with a position, which are
    its 96 months less the one with no return and less the twelve with no
-   position. Nothing states that a half's slope in the figure is its annual
-   return over 12, that the revised Python copy's five printed figures match the book,
+   position. Nothing states that a stretch's slope in the figure is its
+   average monthly return, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
    [data/README.md](data/README.md) records by its sha256.
 3. Its references. The four citations, including the publication details the
    post gives for Heston and Sadka and for Singal, are cited rather than
    computed.
+4. Heston and Sadka's own figures, read from their October 2006 working
+   paper: NYSE- and AMEX-listed stocks in CRSP from January 1965 to December
+   2002, only firms listed before each month, and the 1.15 percent a month in
+   Table 2 for ranking on the return a year earlier. The post's 13.8 percent a
+   year is twelve times that. Lesson 2 sets these beside Chan's file to say
+   why the file cannot test them.
 
 Every other number in the post traces to an assertion in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py), or to
