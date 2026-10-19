@@ -33,8 +33,9 @@ no figure he printed applies to it and its tables drop the same columns.
 Entry 48 tests location 4709's rule at two ceilings Chan prints no figure
 for, so its tables drop the published-figure and gap columns, and each of its
 verdict cells says it is not a replication. Entry 52 reads a series another
-project built and publishes, so it computes no figure of its own to set
-against the two it quotes, and its tables drop the gap and verdict columns.
+project built and publishes and sets the two figures it quotes beside that
+series, so it chases neither, and its tables drop the gap and verdict
+columns.
 Entries 6 and 15 come from the same
 sentence of the book as Entry 5 and are replications, because the claim each
 tests is about a series Chan names or a class whose members are tested
@@ -600,8 +601,11 @@ replication, and it can carry neither a gap nor any of the three verdicts.
 Entry 1's rows 2 and 10 are in that position, as are Entry 2's rows 6, 7 and 8,
 Entry 3's rows 10, 13, 14, 16, 17 and 29 to 34, and Entry 4's rows 4 to 21, and
 each verdict cell says so rather than reaching for a fourth value. Every row of
-Entries 5, 44, 46, 50 and 52 is in that position too, so those entries drop the
-verdict column rather than filling it. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
+Entries 5, 44, 46 and 50 is in that position too, so those entries drop the
+verdict column rather than filling it. Entry 52's rows 1 and 2 quote published
+figures, but set them beside a series another project built rather than one
+this repository computes, so they chase neither, and that entry drops the gap
+and verdict columns for the same reason. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -11733,8 +11737,8 @@ it. This repository holds no copy of the paper. Shipped under
 
 Entry 7 reproduces Example 7.7 on Chan's S&P 500 file and tests it on IVV's
 members after the book. Neither can see before 2002 on a panel that holds
-the companies that later left, and Chan's file holds 13 months before 2002,
-all on survivors. The Open Source Asset Pricing project, from Andrew Chen and
+the companies that later left, and Chan's file keeps 13 months before 2002
+after the rule's twelve-month lookback, all on survivors. The Open Source Asset Pricing project, from Andrew Chen and
 Tom Zimmermann, rebuilds Heston and Sadka's own signal from CRSP as
 `MomSeasonShort` and publishes its portfolio returns from 1927.
 [Issue 660](https://github.com/l3a0/quantitative-trading/issues/660)
@@ -11743,7 +11747,8 @@ Entry 7's two runs.
 
 This entry is not a replication. Its main series is the project's
 construction, read as published, rather than a figure this repository
-computes from a rule. The two published figures are set beside it, so the
+computes from a rule. The two published figures are set beside it, and row 1
+states its distance from Heston and Sadka's, but no row chases either, so the
 tables drop the gap and verdict columns, under
 `### Rows that are not replications`. Every row is **exploratory**: the issue
 was filed after a first look at these numbers, and neither side's
@@ -11762,15 +11767,18 @@ Four things carry the result.
    1,176 months from 1927-01 to 2024-12, read through
    `chan.open_asset_pricing.long_short_returns`. It is the return of the
    equal-weighted top tenth less the bottom tenth of NYSE and AMEX stocks,
-   sorted each month on the return in the same calendar month a year
-   earlier, before costs. [data/README.md](../data/README.md) records the
-   construction from the release's `SignalDoc.csv`. The file writes percent,
-   and every figure here is a fraction.
+   re-formed monthly, before costs, as [data/README.md](../data/README.md)
+   records from the release's `SignalDoc.csv`. The signal they are sorted on
+   is the return in the same calendar month a year earlier, by the project's
+   description of it, which
+   [issue 661](https://github.com/l3a0/quantitative-trading/issues/661)'s
+   table quotes. The file writes
+   percent, and every figure here is a fraction.
 2. **This repository's runs.** `REVISED_MATLAB` unchanged and before costs,
    on Chan's `SPX_20071123.mat` over the 83 months it keeps, and on IVV's
    members each month as Entry 7 names them. Months are matched by calendar
-   month, because both sides date a month by its last trading day and the
-   two calendars do not always agree on it.
+   month rather than by date, so a day that differs between two calendars
+   cannot drop a month. On these runs the dates agree in every shared month.
 3. **The windows.** Heston and Sadka's sample is 1965-01 to 2002-12. The
    split is the book's, at 2002-01-01, so 2002 falls in the after half, as it
    does in Entry 7's split. The before half starts at 1965-01, where their
@@ -11780,9 +11788,10 @@ Four things carry the result.
    mean less the bottom's. The project's row is the whole of that difference.
    Each correlation and t is the same at either scale. A difference of means
    is not, so the halved difference sets the two at the rule's scale. Chan's
-   13 percent a year reads as twelve times Heston and Sadka's 1.15 percent,
-   which is 13.8, so it is taken to be on the project's scale and is compared
-   unhalved. Location 4425 does not say which scale it uses.
+   13 percent is taken to be on the project's scale and is compared
+   unhalved, but that is an inference. Location 4425 cites a 2007 seminar
+   draft of Heston and Sadka's paper rather than the 2008 article, and does
+   not say which scale it uses.
 
 ### What the sources stated
 
@@ -11798,7 +11807,7 @@ Four things carry the result.
 
 | # | Window | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |
-| 1 | 1965-01 to 2002-12, 456 months | the project's series, mean and one-sided t | 0.0136 a month, t 8.63, so 0.0021 above Heston and Sadka's 0.0115 | `TestTheOpenAssetPricingPins::test_heston_and_sadkas_sample_beats_their_printed_figure` |
+| 1 | 1965-01 to 2002-12, 456 months | the project's series, mean and one-sided t | 0.0136 a month, t 8.63, 0.0021 above Heston and Sadka's 0.0115, about 1.3 standard errors | `TestTheOpenAssetPricingPins::test_heston_and_sadkas_sample` |
 | 2 | 1965-01 to 2001-12, 444 months | the same, and twelve times the mean | 0.0131 a month, t 8.28, or 15.8% a year against Chan's more than 13% | `TestTheOpenAssetPricingPins::test_before_2002_it_earns_more_than_chans_13_percent` |
 | 3 | 2002-01 to 2024-12, 276 months | the same, and its one-sided p | 0.0012 a month, t 0.50, p 0.307 | `TestTheOpenAssetPricingPins::test_from_2002_its_mean_is_not_detectably_above_zero` |
 | 4 | 2000-12 to 2007-10, 83 months | `REVISED_MATLAB` on Chan's file against the project: each mean, standard deviation and t, the correlation, the difference of means, and the difference against half the project's mean | this repo −0.0011, 0.0302, t −0.33. The project 0.0018, 0.0356, t 0.46. Correlation 0.705. Difference −0.0029, or −0.0020 at the rule's scale | `TestTheOpenAssetPricingPins::test_on_chans_file` |
@@ -11810,10 +11819,14 @@ Four things carry the result.
 [Issue 661](https://github.com/l3a0/quantitative-trading/issues/661) asked which differences between the two sides the comparison can
 attribute a gap to. Five differ, and one does not.
 
-1. **The scale.** Row 6 holds it, so it is removed by arithmetic, and the
-   halved differences in rows 4 and 5 are what remains. It also accounts for
-   most of the difference in standard deviation. Half the project's 0.0425 is
-   0.0213, against the IVV run's 0.0200.
+1. **The scale.** Row 6 holds it, so the halved differences in rows 4 and 5
+   remove it by arithmetic. The halving is exact in a month where every held
+   stock has a return. On Chan's file 2 held positions have none, which the
+   rule still counts, and that moves one month by at most 0.0013. On IVV's
+   members the scale also accounts for most of the difference in standard
+   deviation. Half the project's 0.0425 is 0.0213, against the IVV run's
+   0.0200. On Chan's file it does not: half the project's 0.0356 is 0.0178,
+   against Chan's file's 0.0302.
 2. **The universe.** The S&P 500's large companies against every NYSE and
    AMEX stock, small ones included and Nasdaq's left out. The comparison
    cannot separate this from the next two, because all three change together.
@@ -11828,8 +11841,10 @@ attribute a gap to. Five differ, and one does not.
    sets their breakpoints. No test measures what the difference moves.
 6. **The signal, which is the same on both sides by description.** Both rank
    on the return in the same calendar month a year before the month held.
-   The project's signal documentation says so, and this entry has not read
-   the project's code to check it.
+   That rests on the project's description of its signal, as
+   [issue 661](https://github.com/l3a0/quantitative-trading/issues/661)'s
+   table quotes it. This repository holds neither the project's code nor its
+   `SignalDoc.csv`, so nothing here checks it.
 
 So the comparison can attribute a gap to the scale and to nothing else on its
 own. What is left after halving belongs to the universe, the membership and
@@ -11839,13 +11854,15 @@ the returns together.
 
 Three things.
 
-1. **On CRSP, the signal earned more before 2002 than either published figure
-   says.** Over Heston and Sadka's sample the project's series averages 0.0136
-   a month with a t of 8.63, against their 0.0115 and 7.6. Before the book's
-   split it averages 0.0131 a month, 15.8% a year, against Chan's more than
-   13%. That is the release's construction and not Heston and Sadka's, so it
-   says the effect shows up in a broad survivorship-free panel before 2002,
-   and not that their figure reproduces.
+1. **On CRSP, the signal earned at least what both published figures say
+   before 2002.** Over Heston and Sadka's sample the project's series averages
+   0.0136 a month with a t of 8.63, against their 0.0115 and 7.6. The
+   difference, 0.0021, is about 1.3 standard errors of the project's mean, so
+   it does not separate the two. Before the book's split it averages 0.0131 a
+   month, 15.8% a year, which is consistent with Chan's "more than 13
+   percent". That is the release's construction and not Heston and Sadka's,
+   so it says the effect shows up in a broad survivorship-free panel before
+   2002, and not that their figure reproduces.
 2. **From 2002 the same series averages 0.0012 a month, with a t of 0.50.**
    Over the 192 months it shares with the IVV run, it averages 0.0012 with a t
    of 0.39. So a broader panel than the S&P 500 also shows no mean

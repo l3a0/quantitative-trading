@@ -3254,10 +3254,11 @@ class TestTheOpenAssetPricingPins:
        ``openassetpricing-202510_momseasonshort-ls_return_1927-01-31_2024-12-31_dl2026-10-19.csv``,
        read through :func:`chan.open_asset_pricing.long_short_returns`. The
        specification is the project's own: equal-weighted tenths of NYSE and
-       AMEX stocks on the return in the same calendar month a year earlier,
-       re-formed monthly, the top tenth less the bottom, before costs.
-       ``data/README.md`` records it from the release's ``SignalDoc.csv``. The
-       file writes percent and the pins read fractions.
+       AMEX stocks, re-formed monthly, the top tenth less the bottom, before
+       costs, which ``data/README.md`` records from the release's
+       ``SignalDoc.csv``. The sort is on the return in the same calendar month
+       a year earlier, by the project's description, which issue 661 quotes.
+       The file writes percent and the pins read fractions.
     2. **This repo's side.** :data:`chan.equity_seasonals.REVISED_MATLAB`
        unchanged and before costs, on Chan's ``SPX_20071123.mat`` over its 83
        kept months, and on IVV's members each month, the run
@@ -3283,7 +3284,7 @@ class TestTheOpenAssetPricingPins:
             "2024-12",
         )
 
-    def test_heston_and_sadkas_sample_beats_their_printed_figure(self, compared) -> None:
+    def test_heston_and_sadkas_sample(self, compared) -> None:
         sample = compared.around.sample
         assert sample.n == 456
         assert sample.mean == pytest.approx(0.01360724437376685, rel=1e-9)
@@ -3311,6 +3312,8 @@ class TestTheOpenAssetPricingPins:
         assert result.ours.mean == pytest.approx(-0.0010768919655643329, rel=1e-9)
         assert result.theirs.mean == pytest.approx(0.0018011414208584633, rel=1e-9)
         assert result.ours.std == pytest.approx(0.0301843032370091, rel=1e-9)
+        assert result.ours.t == pytest.approx(-0.32503492451529425, rel=1e-9)
+        assert result.theirs.t == pytest.approx(0.4608689262534086, rel=1e-9)
         assert result.theirs.std == pytest.approx(0.03560487233273358, rel=1e-9)
         assert result.correlation == pytest.approx(0.7050739002601322, rel=1e-9)
         assert result.difference == pytest.approx(-0.0028780333864227962, rel=1e-9)
@@ -3322,6 +3325,8 @@ class TestTheOpenAssetPricingPins:
         assert result.ours.mean == pytest.approx(-0.0003944432956364475, rel=1e-9)
         assert result.theirs.mean == pytest.approx(0.0012004061941000746, rel=1e-9)
         assert result.theirs.t == pytest.approx(0.3913231334163311, rel=1e-9)
+        assert result.ours.t == pytest.approx(-0.2739366063232309, rel=1e-9)
+        assert result.difference == pytest.approx(-0.0015948494897365221, rel=1e-9)
         assert result.ours.std == pytest.approx(0.019951939623318628, rel=1e-9)
         assert result.theirs.std == pytest.approx(0.04250532289773282, rel=1e-9)
         assert result.correlation == pytest.approx(0.5915365787192671, rel=1e-9)
@@ -3332,7 +3337,13 @@ class TestTheOpenAssetPricingPins:
         out = capsys.readouterr().out
         assert out.startswith(
             "Example 7.7 against Open Source Asset Pricing's MomSeasonShort, exploratory\n"
+            "  openassetpricing-202510_momseasonshort-ls_return_1927-01-31_2024-12-31"
+            "_dl2026-10-19.csv"
         )
+        assert (
+            "  the project's equal-weighted tenths of NYSE and AMEX stocks, long the top and "
+            "short the bottom, before costs\n"
+        ) in out
         assert (
             "  Heston and Sadka's sample, 1965-01 to 2002-12: mean 0.0136 a month, t 8.63, over "
             "456 months; they print 0.0115, t 7.6, a gap of +0.0021"
@@ -3344,9 +3355,22 @@ class TestTheOpenAssetPricingPins:
         assert "  from 2002-01-01 to 2024-12: mean 0.0012 a month, t 0.50, over 276 months" in out
         assert "on SPX_20071123.mat, 2000-12 to 2007-10, 83 months" in out
         assert (
+            "    this repo: mean -0.0011, standard deviation 0.0302, t -0.33; the project: mean "
+            "0.0018, standard deviation 0.0356, t 0.46\n"
             "    correlation 0.705, difference of means -0.0029 a month, -0.0020 against half "
-            "the project's, the rule's scale"
+            "the project's, the rule's scale\n"
         ) in out
+
+    def test_the_ivv_report(self, compared, monthly, capsys) -> None:
+        seasonals.report_ivv_overlap(seasonals.ivv_overlap(compared, monthly))
+        assert capsys.readouterr().out == (
+            "  Example 7.7 in MATLAB, revised edition on IVV's members each month, 2009-01 to "
+            "2024-12, 192 months\n"
+            "    this repo: mean -0.0004, standard deviation 0.0200, t -0.27; the project: mean "
+            "0.0012, standard deviation 0.0425, t 0.39\n"
+            "    correlation 0.592, difference of means -0.0016 a month, -0.0010 against half "
+            "the project's, the rule's scale\n"
+        )
 
 
 class TestTheOpenAssetPricingCommand:
@@ -3358,6 +3382,33 @@ class TestTheOpenAssetPricingCommand:
         monkeypatch.setattr(seasonals, "report_ivv_overlap", lambda result: print(result))
         seasonals.main(["--open-asset-pricing"])
         assert capsys.readouterr().out == "compared\ncompared monthly\n"
+
+    def test_no_option_runs_chans_files_and_not_the_comparison(self, monkeypatch) -> None:
+        calls = []
+        monkeypatch.setattr(seasonals, "run", lambda: calls.append("files"))
+        monkeypatch.setattr(seasonals, "run_open_asset_pricing", lambda: calls.append("osap"))
+        seasonals.main([])
+        assert calls == ["files"]
+
+    def test_the_project_is_read_from_the_data_directory_given(self, tmp_path) -> None:
+        """An empty directory holds no manifest, so the project's read is refused."""
+        with pytest.raises(VintageUnavailable, match="so no vintage can be resolved"):
+            seasonals.run_open_asset_pricing(data_dir=tmp_path)
+
+    def test_chans_file_is_read_from_the_data_directory_given(self, tmp_path) -> None:
+        """A directory holding the project's file and not Chan's refuses Chan's by name."""
+        data = Path(seasonals.open_asset_pricing.long_short_vintage("MomSeasonShort").path)
+        source = Path(__file__).resolve().parents[1] / "data"
+        for name in ("vintages.jsonl", "checksums.sha256", data.name):
+            (tmp_path / name).write_bytes((source / name).read_bytes())
+        with pytest.raises(VintageUnavailable, match="spx_20071123/"):
+            seasonals.run_open_asset_pricing(data_dir=tmp_path)
+
+    @pytest.mark.parametrize("other", ["--survivors", "--point-in-time"])
+    def test_it_cannot_be_given_with_another_option(self, other) -> None:
+        with pytest.raises(SystemExit) as stopped:
+            seasonals.main([other, "--open-asset-pricing"])
+        assert stopped.value.code == 2
 
     @pytest.mark.parametrize(
         "refusal",

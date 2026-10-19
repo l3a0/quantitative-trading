@@ -2089,10 +2089,12 @@ class ComparisonRefused(Exception):
 def calendar_months(returns: pd.Series) -> pd.Series:
     """``returns`` indexed by calendar month, as monthly periods.
 
-    This repo labels a month by its last trading day and the project by its
-    own, so two series agree on the month and not always on the day. A
-    repeated month or a missing return is refused by name, because either
-    would change the count every figure below is pinned with.
+    Matching on the month rather than the date means a day that differs
+    between two calendars cannot drop a month, as it would for
+    :data:`PYTHON_HESTON_SADKA`'s 2009-01-31 against
+    :data:`REVISED_MATLAB`'s 2009-01-30. A repeated month or a missing return
+    is refused by name, because either would change the count every figure
+    below is pinned with.
     """
     if isinstance(returns.index, pd.PeriodIndex):
         months = returns.index.asfreq("M")
