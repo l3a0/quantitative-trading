@@ -409,7 +409,7 @@ them are worth stating rather than leaving a reader to infer.
    reads `openassetpricing-202510`, and a later release is a different vintage
    rather than a second download of this one.
 3. **This is the call that produced them.** On 2026-10-19 the
-   `openassetpricing` package resolved `OpenAP(202510).dl_port('op')` to one
+   `openassetpricing` package resolved `OpenAP(202510).dl_port('op', 'pandas')` to one
    file, `PredictorPortsFull.csv`, and that file was downloaded whole. It held
    77,651,932 bytes with sha256
    `6cdaf0ff051222b813e6f8404d7a30b94e146b421625f202bd04473fe97a1817`, opened
@@ -425,24 +425,30 @@ them are worth stating rather than leaving a reader to infer.
    `ret` is. Each row is dated the last trading day of its month, such as
    1926-02-27, not the calendar month end, and every series has one row for
    every calendar month of its span.
-5. **The construction differs by signal.** Each is equal-weighted. The
-   release's `SignalDoc.csv` gives each its own sort, and that file held
-   181,712 bytes with sha256
+5. **The construction differs by signal.** Each is equal-weighted, and each
+   long-short row is the top portfolio's return less the bottom one's. The
+   release's `SignalDoc.csv` gives each signal's weighting, quantile, filter
+   and rebalancing. That file held 181,712 bytes with sha256
    `f6c055120bad7afe97c16e23e0f49bce0982269026605a955e8064bd661cf415` on the
-   same day. It is not committed, so these five facts are its, copied here.
-   - `MomSeasonShort`, from Heston and Sadka (2008), sorts NYSE and AMEX
-     stocks only into tenths, re-formed monthly.
-   - `Mom12m`, from Jegadeesh and Titman (1993), sorts into tenths re-formed
-     every three months.
-   - `STreversal`, from Jegadeesh (1990), sorts into tenths re-formed monthly,
-     long the past month's losers.
-   - `BetaFP`, from Frazzini and Pedersen (2014), sorts into tenths re-formed
-     monthly. The project's own note says the paper's factor is a
-     rank-weighted median split scaled to a beta of 1, so these portfolios are
-     not the paper's.
-   - `AnnouncementReturn`, from Chan, Jegadeesh and Lakonishok (1996), sorts
-     into fifths rather than tenths, re-formed monthly. Its first month,
-     1971-09, holds one stock on each side.
+   same day and is not committed. Where a fact below comes from the returns
+   file instead, it says so.
+   1. `MomSeasonShort`, from Heston and Sadka (2008), sorts NYSE and AMEX
+      stocks only into tenths, re-formed monthly.
+   2. `Mom12m`, from Jegadeesh and Titman (1993), sorts into tenths re-formed
+      every three months.
+   3. `STreversal`, from Jegadeesh (1990), sorts into tenths re-formed monthly,
+      long the past month's losers.
+   4. `BetaFP`, from Frazzini and Pedersen (2014), sorts into tenths re-formed
+      monthly, and its long-short row is long the highest-beta tenth and short
+      the lowest. That is the opposite side of the paper's betting-against-beta
+      trade. The project's own note says the paper's factor is a rank-weighted
+      median split scaled to a beta of 1, so these portfolios are not the
+      paper's in construction either.
+   5. `AnnouncementReturn`, from Chan, Jegadeesh and Lakonishok (1996), is
+      re-formed monthly. `SignalDoc.csv` leaves its quantile blank, and the
+      returns file holds five portfolios, `01` to `05`, so it is sorted into
+      fifths. The returns file's first month for it, 1971-09, holds one stock
+      on each side.
 6. **They fit the budget.** The five files hold 283,897 bytes. With their
    manifest and checksum lines and these paragraphs they take `data/` from
    203.66 MB to 203.95 MB of file content, which leaves 1.05 MB under the

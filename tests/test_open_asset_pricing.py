@@ -1,7 +1,7 @@
 """Pins for the Open Source Asset Pricing long-short returns, and refusals of their reader.
 
 Every pin reads release 202510 of Chen and Zimmermann's project, downloaded on
-2026-10-19 through ``OpenAP(202510).dl_port('op')``, whose one source file is
+2026-10-19 through ``OpenAP(202510).dl_port('op', 'pandas')``, whose one source file is
 ``PredictorPortsFull.csv``. Each committed file holds one signal's long-short
 rows of that file, byte for byte: equal-weighted, long the extreme quantile the
 signal predicts high and short the other, with each signal's quantile, filter
@@ -110,7 +110,7 @@ class TestTheVintages:
         )
         assert entry.vendor_column == (
             f"rows signalname={signal} port=LS of PredictorPortsFull.csv, "
-            f"OpenAP(202510).dl_port('op')"
+            f"OpenAP(202510).dl_port('op', 'pandas')"
         )
 
     @pytest.mark.parametrize("signal", SIGNALS)
