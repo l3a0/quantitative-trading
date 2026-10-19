@@ -346,7 +346,7 @@ The 4.2 percent follows from the noise in the 213 months and the two numbers fix
 \text{SE} = \frac{s}{\sqrt{n}} = \frac{0.0206}{\sqrt{213}} = 0.00141
 ```
 
-The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom. If the true mean is X, the t-statistic follows a noncentral t distribution, centred near X divided by the standard error. That distance, the noncentrality δ, is the one at which the statistic clears 1.652 four times in five:
+The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean is X, the t-statistic follows a noncentral t distribution, centred near X divided by the standard error. That distance, the noncentrality δ, is the one at which the statistic clears 1.652 four times in five:
 
 ```math
 P\left(T_{212}(\delta) > 1.652\right) = 0.80 \quad\Rightarrow\quad \delta = 2.494
