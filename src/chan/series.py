@@ -87,6 +87,7 @@ from __future__ import annotations
 
 import io
 import math
+import os
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
@@ -163,16 +164,14 @@ RETURN_HEADER = "Return"
 #: The header row of the Python port's two files of monthly interest rates.
 RATE_HEADER = "Year,Month,Rates"
 
-#: The one directory :func:`load_panel` remembers reads of, as it resolved on import.
+#: The one directory :func:`load_panel` remembers reads of, as it stood on import.
 #:
-#: Bound once rather than read at call time, because it is what a call's own
-#: directory is compared against. A test that moves ``chan.paths.DATA_DIR``
-#: moves it after this module is imported, so the comparison is what tells a
-#: moved directory from the committed one.
-_REMEMBERED_DIRECTORY = paths.DATA_DIR.resolve()
+#: Bound at import, so a test that later moves ``chan.paths.DATA_DIR`` sends its
+#: calls to a different directory from this one, and they read in full.
+_REMEMBERED_DIRECTORY = paths.DATA_DIR
 
-#: A file's inode, modification time in nanoseconds and size, or ``None`` when it cannot be read.
-_Stamp = tuple[int, int, int] | None
+#: A file's inode, change time, modification time and size, or ``None`` when ``stat`` fails.
+_Stamp = tuple[int, int, int, int] | None
 
 #: :func:`load_panel`'s reads of the committed directory in this process, by source and field.
 #:
@@ -478,23 +477,28 @@ def load_panel(
     against its entry before it is parsed.
 
     A read of the committed directory is remembered for the rest of the
-    process, because the suite reads one panel dozens of times in one worker.
-    A later call for the same source and field skips the manifest and the
-    hashes, and returns a copy of what the first call built, while the
-    manifest and every member keep the inode, modification time and size they
-    had when the first call read them. A file changed since is read and hashed
-    again, so the hash runs once per process per unchanged file rather than
-    once per call. The one change it does not see keeps all three, which takes
-    resetting a file's modification time on purpose after writing it in place.
-    Any other directory is read in full on every call. That covers a
-    temporary one and a moved ``chan.paths.DATA_DIR``, so a case that breaks a
-    copy reads the broken copy. A refusal is never remembered, and every call
-    gets its own copy of the frame and the members, so a caller that changes
-    its result changes nobody else's. The price is memory: each panel read
-    stays held until the process exits.
-    [Issue 672](https://github.com/l3a0/quantitative-trading/issues/672)
-    carries why this is not the shared price cache ``docs/design.md``'s
-    register cuts.
+    process. A later call for the same source and field skips the manifest and
+    the hashes, and returns a copy of what the first call built, while the
+    manifest and every member keep the stamp taken just before the first call
+    read them. A stamp is a file's inode, change time, modification time and
+    size. A write, a rename or a permission change moves the change time, and
+    no file call sets it back, so a file changed since is read and hashed
+    again. Each unchanged file is hashed once per process for each field asked
+    of it, rather than once per call. The modification time is there for
+    Windows, where the change time records a file's creation instead. On a
+    filesystem whose clock is coarse, two writes inside one tick can share
+    both times, and the inode and size still tell most of those apart.
+
+    Any other directory is read in full on every call. That covers a temporary
+    one and a moved ``chan.paths.DATA_DIR``, so a case that breaks a copy reads
+    the broken copy. A refusal is never remembered. Every call gets its own
+    copy of the frame and of the members, so a caller that changes its result
+    changes nobody else's.
+
+    The price is memory. Each panel read stays held until the process exits,
+    and a run that reads a panel once holds it twice, once remembered and once in
+    the caller's copy. ``docs/design.md``'s register says why this is not the
+    shared price cache it cuts.
 
     The frame's index is the union of the members' dates. A member's file holds
     only the days its source priced it, so a day it was not priced is NaN here,
@@ -520,7 +524,7 @@ def load_panel(
     4. A close asked of a source of returns.
     5. Two members holding one symbol.
     """
-    directory = (paths.DATA_DIR if data_dir is None else data_dir).resolve()
+    directory = paths.DATA_DIR if data_dir is None else data_dir
     remembering = directory == _REMEMBERED_DIRECTORY
     if remembering:
         remembered = _PANELS.get((source_file, field))
@@ -603,12 +607,12 @@ def _member_stamps(directory: Path, members: Sequence[VintageEntry]) -> tuple[_S
 
 def _stamp(path: Path) -> _Stamp:
     try:
-        status = path.stat()
+        status = os.stat(path)
     except OSError:
         # A file that cannot be stamped is never remembered, and the read that
         # follows is what says why it cannot be read.
         return None
-    return (status.st_ino, status.st_mtime_ns, status.st_size)
+    return (status.st_ino, status.st_ctime_ns, status.st_mtime_ns, status.st_size)
 
 
 def row_month_ends(days: pd.DatetimeIndex) -> NDArray[np.intp]:

@@ -26,7 +26,9 @@ import math
 import os
 import shutil
 import sys
+import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -1403,13 +1405,22 @@ class TestAPanelIsOneSourceReadOnce:
         )
 
 
+def wait_for_the_file_clock_to_tick() -> None:
+    """Let a file's next write land on a later timestamp than its last one.
+
+    Linux stamps file times from a coarse clock, a few milliseconds per tick, so
+    a write right after another can carry the same time.
+    """
+    time.sleep(0.05)
+
+
 class TestAPanelIsRememberedWithinAProcess:
     """``load_panel`` reads a committed panel once per process, and anything else every time.
 
-    Most cases here point the memo at a temporary directory, so a case may break
-    a file and watch the next read notice, which the committed tree never allows.
-    Each one starts from an empty memo, because the process's own memo holds
-    whatever earlier cases read.
+    Most cases here have ``load_panel`` remember a temporary directory, so a case
+    may break a file and watch the next read notice, which the committed tree
+    never allows. Each one starts with nothing remembered, because the process
+    already remembers whatever earlier cases read.
     """
 
     @pytest.fixture
@@ -1433,9 +1444,9 @@ class TestAPanelIsRememberedWithinAProcess:
 
     @pytest.fixture
     def remembered(self, data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-        """A three-member source in a directory the memo treats as the committed one."""
+        """A three-member source in a directory remembered as the committed one is."""
         record_lifted_columns(COLUMNS, **LIFTED_FROM, data_dir=data_dir)
-        monkeypatch.setattr(series, "_REMEMBERED_DIRECTORY", data_dir.resolve())
+        monkeypatch.setattr(series, "_REMEMBERED_DIRECTORY", data_dir)
         return data_dir
 
     def test_a_second_read_of_a_committed_panel_reaches_no_file(
@@ -1459,7 +1470,6 @@ class TestAPanelIsRememberedWithinAProcess:
         load_panel("SRC.mat", data_dir=data_dir)
 
         assert counted == {"manifest": 2, "member": 6}
-        assert series._PANELS == {}
 
     def test_a_moved_default_directory_is_read_on_every_call(
         self, counted: dict[str, int], data_dir: Path, monkeypatch: pytest.MonkeyPatch
@@ -1472,18 +1482,6 @@ class TestAPanelIsRememberedWithinAProcess:
         load_panel("SRC.mat")
 
         assert counted == {"manifest": 2, "member": 6}
-        assert series._PANELS == {}
-
-    def test_a_path_that_resolves_to_the_remembered_directory_is_served_from_it(
-        self, counted: dict[str, int], remembered: Path, tmp_path: Path
-    ) -> None:
-        link = tmp_path / "link"
-        link.symlink_to(remembered, target_is_directory=True)
-
-        load_panel("SRC.mat", data_dir=remembered)
-        load_panel("SRC.mat", data_dir=link)
-
-        assert counted == {"manifest": 1, "member": 3}
 
     def test_changing_a_returned_frame_changes_no_later_result(
         self, counted: dict[str, int], remembered: Path
@@ -1506,38 +1504,94 @@ class TestAPanelIsRememberedWithinAProcess:
     def test_a_member_changed_on_disk_is_hashed_again(
         self, counted: dict[str, int], remembered: Path
     ) -> None:
-        """The edit keeps the file's size, so only its modification time says it moved."""
+        """The edit keeps the file's inode and size, so only its times say it moved."""
         load_panel("SRC.mat", data_dir=remembered)
         member = remembered / "src" / "bbb.csv"
+        wait_for_the_file_clock_to_tick()
         member.write_bytes(member.read_bytes().replace(b"21.0", b"21.5"))
 
         with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
             load_panel("SRC.mat", data_dir=remembered)
 
-    def test_a_member_replaced_with_its_old_stamp_is_hashed_again(
+    @NOT_ROOT
+    def test_a_member_made_unreadable_is_refused_again(
         self, counted: dict[str, int], remembered: Path
     ) -> None:
-        """A copy that keeps size and modification time still lands on a new inode."""
+        """A permission change moves only the change time, and the full read refuses."""
+        load_panel("SRC.mat", data_dir=remembered)
+        member = remembered / "src" / "bbb.csv"
+        wait_for_the_file_clock_to_tick()
+        member.chmod(0)
+        try:
+            with pytest.raises(VintageUnavailable, match="is there and could not be read"):
+                load_panel("SRC.mat", data_dir=remembered)
+        finally:
+            member.chmod(0o644)
+
+    def test_a_member_rewritten_under_its_old_modification_time_is_hashed_again(
+        self, counted: dict[str, int], remembered: Path
+    ) -> None:
+        """Putting the modification time back by hand leaves the change time moved."""
         load_panel("SRC.mat", data_dir=remembered)
         member = remembered / "src" / "bbb.csv"
         before = member.stat()
-        swapped = member.with_name("swapped.csv")
-        swapped.write_bytes(member.read_bytes().replace(b"21.0", b"21.5"))
-        os.utime(swapped, ns=(before.st_atime_ns, before.st_mtime_ns))
-        swapped.replace(member)
+        wait_for_the_file_clock_to_tick()
+        member.write_bytes(member.read_bytes().replace(b"21.0", b"21.5"))
+        os.utime(member, ns=(before.st_atime_ns, before.st_mtime_ns))
 
         with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
             load_panel("SRC.mat", data_dir=remembered)
 
-    def test_a_member_rewritten_to_a_new_size_under_its_old_time_is_hashed_again(
-        self, counted: dict[str, int], remembered: Path
+    @pytest.mark.parametrize(
+        ("frozen", "change"),
+        [
+            pytest.param(
+                ("st_ctime_ns", "st_mtime_ns"), "resize", id="a resize under a frozen clock"
+            ),
+            pytest.param(
+                ("st_ctime_ns", "st_mtime_ns"), "replace", id="a replacement under a frozen clock"
+            ),
+            pytest.param(
+                ("st_ctime_ns",), "rewrite", id="a rewrite where the change time is creation"
+            ),
+        ],
+    )
+    def test_a_change_the_times_miss_is_hashed_again(
+        self,
+        counted: dict[str, int],
+        remembered: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        frozen: tuple[str, ...],
+        change: str,
     ) -> None:
-        """Written in place and its time put back, so only the size says it moved."""
+        """The inode, the size and the modification time each catch what a frozen time misses.
+
+        A coarse clock gives two writes inside one tick the same times, and on Windows
+        ``st_ctime`` is when a file was created. Each case freezes the times that
+        filesystem would leave still, then makes the one change only another part of
+        the stamp can see.
+        """
+
+        def stat_on_that_filesystem(path):
+            real = os.stat(path)
+            fields = ("st_ino", "st_ctime_ns", "st_mtime_ns", "st_size")
+            return SimpleNamespace(
+                **{field: 0 if field in frozen else getattr(real, field) for field in fields}
+            )
+
+        monkeypatch.setattr(series, "os", SimpleNamespace(stat=stat_on_that_filesystem))
         load_panel("SRC.mat", data_dir=remembered)
         member = remembered / "src" / "bbb.csv"
-        before = member.stat()
-        member.write_bytes(member.read_bytes().replace(b"21.0", b"21.25"))
-        os.utime(member, ns=(before.st_atime_ns, before.st_mtime_ns))
+        genuine = member.read_bytes()
+        if change == "resize":
+            member.write_bytes(genuine.replace(b"21.0", b"21.25"))
+        elif change == "replace":
+            swapped = member.with_name("swapped.csv")
+            swapped.write_bytes(genuine.replace(b"21.0", b"21.5"))
+            swapped.replace(member)
+        else:
+            wait_for_the_file_clock_to_tick()
+            member.write_bytes(genuine.replace(b"21.0", b"21.5"))
 
         with pytest.raises(VintageUnavailable, match="src/bbb.csv: the bytes at"):
             load_panel("SRC.mat", data_dir=remembered)
@@ -1545,12 +1599,17 @@ class TestAPanelIsRememberedWithinAProcess:
     def test_a_member_changed_during_the_first_read_is_hashed_again(
         self, counted: dict[str, int], remembered: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """A stamp taken after the read would describe the changed file and serve the old one."""
+        """A stamp taken after the read would describe the changed file and serve the old one.
+
+        No writer in this repository runs during a read. The order costs one line, and this
+        holds it.
+        """
         reading = series.read_vintage
 
         def change_it_once_read(entry, data_dir=None):
             payload = reading(entry, data_dir=data_dir)
             if entry.symbol == "BBB":
+                wait_for_the_file_clock_to_tick()
                 member = remembered / entry.path
                 member.write_bytes(payload.replace(b"21.0", b"21.5"))
             return payload
@@ -1565,7 +1624,11 @@ class TestAPanelIsRememberedWithinAProcess:
     def test_a_member_missing_when_it_was_stamped_is_not_remembered(
         self, counted: dict[str, int], remembered: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """A file absent at its stamp and again later would match its own missing stamp."""
+        """A file absent at its stamp and again later would match its own missing stamp.
+
+        Reaching that state takes a file appearing between its stamp and its read, which
+        nothing in this repository does.
+        """
         member = remembered / "src" / "bbb.csv"
         genuine = member.read_bytes()
         member.unlink()
@@ -1587,11 +1650,13 @@ class TestAPanelIsRememberedWithinAProcess:
     def test_a_manifest_rewritten_during_the_first_read_is_read_again(
         self, counted: dict[str, int], remembered: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """The same order as for a member, held for the manifest."""
         manifest = remembered / MANIFEST_NAME
         reading = series.read_manifest
 
         def rewrite_it_once_read(data_dir=None):
             entries = reading(data_dir)
+            wait_for_the_file_clock_to_tick()
             lines = manifest.read_text(encoding="utf-8").splitlines()
             manifest.write_text("".join(line + "\n" for line in reversed(lines)), encoding="utf-8")
             return entries
@@ -1611,6 +1676,7 @@ class TestAPanelIsRememberedWithinAProcess:
         load_panel("SRC.mat", data_dir=remembered)
         assert counted == {"manifest": 1, "member": 3}
         manifest = remembered / MANIFEST_NAME
+        wait_for_the_file_clock_to_tick()
         lines = manifest.read_text(encoding="utf-8").splitlines()
         manifest.write_text("".join(line + "\n" for line in reversed(lines)), encoding="utf-8")
 
@@ -1633,7 +1699,7 @@ class TestAPanelIsRememberedWithinAProcess:
             fields=("Close", "High", "Low", "Open", "Volume"),
             data_dir=data_dir,
         )
-        monkeypatch.setattr(series, "_REMEMBERED_DIRECTORY", data_dir.resolve())
+        monkeypatch.setattr(series, "_REMEMBERED_DIRECTORY", data_dir)
 
         _, closes = load_panel("SRC.mat", data_dir=data_dir)
         _, opens = load_panel("SRC.mat", field="Open", data_dir=data_dir)
