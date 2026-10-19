@@ -106,7 +106,7 @@ from chan.equity_seasonals_whiteboard import (
     survivor_scenes,
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import GOOD, LOST
+from chan.regime_figure import ACCENT, GOOD, LOST
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -204,7 +204,27 @@ PINNED_RANGES = JanuaryRanges(
         (2024, -0.049378548477207414, -0.019616922654241906),
         (2025, -0.024022313935317015, 0.0037277705788413724),
         (2026, -0.0023087433400641386, 0.0026855572271426084),
-    )
+    ),
+    (
+        0.012336949438598671,
+        0.06180529076981473,
+        -0.013370995134989752,
+        0.03172977641610309,
+        -0.02030750077070813,
+        -0.007532225519990697,
+        -0.05582536829303888,
+        -0.02597585841808829,
+        -0.02022825313242196,
+        -0.014463170941109132,
+        0.07600271988106036,
+        -0.07209343541723659,
+        -0.14597092899043138,
+        0.016770103068295995,
+        0.07016665994931218,
+        -0.03541739751290522,
+        -0.009081193606773712,
+        0.001457459899829136,
+    ),
 )
 
 STROKES = [
@@ -1680,6 +1700,7 @@ class TestTheJanuarySketches:
             "each bar runs from a January’s low version to its high",
             "black: straddles zero, so free data cannot tell which side",
             "before costs",
+            "brown dot: the unchecked members left out",
         ]
 
     def test_the_written_steps_come_before_the_line_and_the_returns_after(self, january) -> None:
@@ -1721,7 +1742,9 @@ class TestTheJanuarySketches:
         "ranges",
         [
             PINNED_RANGES,
-            JanuaryRanges(((2009, -0.2, 0.1), (2010, 0.02, 0.05), (2011, -0.04, -0.01))),
+            JanuaryRanges(
+                ((2009, -0.2, 0.1), (2010, 0.02, 0.05), (2011, -0.04, -0.01)), (0.0, 0.03, -0.02)
+            ),
         ],
         ids=["the run's Januaries", "other Januaries"],
     )
@@ -1735,6 +1758,11 @@ class TestTheJanuarySketches:
             assert bar.y[-1] == pytest.approx(sketches.RANGES_ZERO + high * sketches.RANGES_PER)
             expected = whiteboard.INK if low < 0 < high else (GOOD if low > 0 else LOST)
             assert bar.color == expected, year
+        for x, (year, _, _), dropped in zip(xs, ranges.januaries, ranges.dropped, strict=True):
+            dot = _stroke(scene, f"left-{year}")
+            assert (dot.points, dot.color) == (1, ACCENT), year
+            assert dot.x[0] == pytest.approx(x + sketches.RANGES_DOT_OFFSET), year
+            assert dot.y[0] == pytest.approx(sketches.RANGES_ZERO + dropped * sketches.RANGES_PER)
         count = len(ranges.januaries)
         word = {18: "Eighteen", 3: "Three"}[count]
         assert scene.title == f"{word} Januaries, each a range"
@@ -1755,6 +1783,19 @@ class TestTheJanuarySketches:
         ranges = _alt(text, january[2])
         assert "Eighteen vertical bars" in ranges and "2020, 2021 and 2024" in ranges
         assert "the bar for 2023 is green" in ranges
+
+    def test_every_dot_sits_inside_its_januarys_range(self) -> None:
+        """What the alt text says, and what places the left-out figure between the two."""
+        for (year, low, high), dropped in zip(
+            PINNED_RANGES.januaries, PINNED_RANGES.dropped, strict=True
+        ):
+            assert low <= dropped <= high, year
+
+    def test_the_dots_average_to_the_left_out_mean(self) -> None:
+        """The post's −0.0083, which ``tests/test_equity_seasonals.py`` pins on the archive."""
+        assert float(np.mean(PINNED_RANGES.dropped)) == pytest.approx(
+            -0.00833318712859331, abs=1e-12
+        )
 
     def test_the_ranges_average_to_the_verdicts_pinned_means(self) -> None:
         """The two pins come from one run, so the Januaries average to its means."""

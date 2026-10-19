@@ -3231,7 +3231,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 20. `equity_seasonals_january_fill.gif`, how the low and high versions fill a
     member with no checked price.
 21. `equity_seasonals_january_ranges.gif`, each of the registered run's
-    eighteen Januaries as a bar from its low version to its high.
+    eighteen Januaries as a bar from its low version to its high, with a dot
+    beside each bar for that January with the unchecked members left out.
 
 Like the strategy sketches, Lesson 3's three and the January registered and
 fill sketches are schematic and carry no figures. Six sketches build more

@@ -87,11 +87,12 @@ paragraphs:
 
 1. What registered means: the claim, the test and the verdict's words written
    down before any return is computed, against an exploratory order.
-2. Two ways to fill a gap: a member with no checked price could land in
-   either traded tenth, and the low and high versions fill it in opposite
-   ways. It is schematic.
+2. Two ways to fill a gap: a member with no checked price could land in a
+   traded tenth, and the low and high versions fill it in opposite ways. It
+   is schematic.
 3. Every January of the registered run as a bar from its low version to its
-   high, coloured by whether it straddles zero. Its figures come from
+   high, coloured by whether it straddles zero, with a dot beside each bar at
+   that January's return with the unchecked members left out. Its figures come from
    :class:`JanuaryRanges`, read from that run on the owner's archive, like
    the verdicts sketch's.
 
@@ -1831,20 +1832,25 @@ class JanuaryRanges:
 
     The run is :func:`chan.equity_seasonals.run_point_in_time`, and the
     returns are before costs, one per year-end, labelled by the January the
-    trade exits in.
+    trade exits in. ``dropped`` holds each January with the unchecked members
+    left out, in the same order, which the post describes rather than tests.
     """
 
     januaries: tuple[tuple[int, float, float], ...]
+    dropped: tuple[float, ...]
 
     @classmethod
     def from_run(cls, january: seasonals.PointInTimeRun) -> JanuaryRanges:
         return cls(
-            tuple((year.trade.exited.year, year.low, year.high) for year in january.year_ends)
+            tuple((year.trade.exited.year, year.low, year.high) for year in january.year_ends),
+            tuple(year.dropped for year in january.year_ends),
         )
 
 
 #: The ranges scene's zero line, its scale, and the board the bars span.
 RANGES_ZERO, RANGES_PER, RANGES_X = 2.2, 3.4, (1.2, 9.0)
+#: How far right of its bar each left-out dot sits, so a short bar stays in view.
+RANGES_DOT_OFFSET = 0.14
 #: The years the axis labels, besides the first and the last.
 RANGES_YEARS = (2014, 2019)
 
@@ -1904,6 +1910,29 @@ def _january_ranges(ranges: JanuaryRanges) -> Scene:
         )
     )
     steps.append(Label("before costs", 9.6, 0.25, names=last, color=MUTED, ha="right", size=10))
+    for x, (year, _, _), dropped in zip(xs, years, ranges.dropped, strict=True):
+        y = RANGES_ZERO + dropped * RANGES_PER
+        steps.append(
+            Stroke(
+                f"left-{year}",
+                np.array([x + RANGES_DOT_OFFSET]),
+                np.array([y]),
+                color=ACCENT,
+                frames=1,
+                dots=5.5,
+            )
+        )
+    steps.append(
+        Label(
+            "brown dot: the unchecked members left out",
+            9.6,
+            3.5,
+            names=f"left-{years[-1][0]}",
+            color=ACCENT,
+            ha="right",
+            size=10,
+        )
+    )
     return Scene(
         f"{_number_word(len(years))} Januaries, each a range", "january_ranges", tuple(steps)
     )

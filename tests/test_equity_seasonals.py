@@ -3368,3 +3368,4 @@ def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:
     ):
         assert low == pytest.approx(pinned_low, abs=1e-9), year
         assert high == pytest.approx(pinned_high, abs=1e-9), year
+    assert drawn.dropped == pytest.approx(PINNED_RANGES.dropped, abs=1e-9)
