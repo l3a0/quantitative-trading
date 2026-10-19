@@ -67,7 +67,7 @@ Their figures come from :class:`FiveYearFigures`. The first two carry more
 than the usual pace lets a reader take in, so :func:`sketch_timeline` holds
 each of their labels longer and their finished drawings for twelve seconds.
 
-The last three sit in Lesson 3, on survivorship bias, and are schematic:
+The next three sit in Lesson 3, on survivorship bias, and are schematic:
 
 1. What a saved file can see: six companies' lines run to the save in 2007
    and three stop early, because the company was acquired, shrank out of the
@@ -79,7 +79,7 @@ The last three sit in Lesson 3, on survivorship bias, and are schematic:
    back, one that joined later among them. Beside it, the index as it stood
    at each ranking date, the panel the post's later runs used from 2009.
 
-The second and third are in :data:`PACED` too.
+Lesson 3's second and third build slowly, as :data:`PACED` lists.
 
 The last three sit in "What this replication cannot say", under its question
 on whether the January effect survived the book, one after each of its three
@@ -95,7 +95,8 @@ paragraphs:
    :class:`JanuaryRanges`, read from that run on the owner's archive, like
    the verdicts sketch's.
 
-The second and third are in :data:`PACED`.
+The fill and ranges sketches build slowly as well. The registered and fill
+sketches are schematic and carry no figures.
 
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
@@ -1784,7 +1785,7 @@ def _january_fill() -> Scene:
                 frames=15,
             ),
             Label(
-                "could land in either tenth",
+                "could land in a traded tenth",
                 qx,
                 1.15,
                 names="to-short",
@@ -1794,12 +1795,22 @@ def _january_fill() -> Scene:
             ),
             Label("low version", 5.6, 3.3, names="to-short", color=LOST, size=13),
             Label(
-                "if bought: near the worst return", 5.6, 2.9, names="to-short", color=LOST, size=10
+                "if bought: near the worst January return",
+                5.6,
+                2.9,
+                names="to-short",
+                color=LOST,
+                size=10,
             ),
             Label("if shorted: near the best", 5.6, 2.6, names="to-short", color=LOST, size=10),
             Label("high version", 5.6, 1.85, names="to-short", color=GOOD, size=13),
             Label(
-                "if bought: near the best return", 5.6, 1.45, names="to-short", color=GOOD, size=10
+                "if bought: near the best January return",
+                5.6,
+                1.45,
+                names="to-short",
+                color=GOOD,
+                size=10,
             ),
             Label("if shorted: near the worst", 5.6, 1.15, names="to-short", color=GOOD, size=10),
             Label(
@@ -1898,9 +1909,16 @@ def _january_ranges(ranges: JanuaryRanges) -> Scene:
     )
 
 
+#: Counts in words for the ranges sketch's title.
+COUNT_WORDS = (
+    "Zero One Two Three Four Five Six Seven Eight Nine Ten Eleven Twelve Thirteen"
+    " Fourteen Fifteen Sixteen Seventeen Eighteen Nineteen Twenty"
+).split()
+
+
 def _number_word(n: int) -> str:
-    words = {17: "Seventeen", 18: "Eighteen", 19: "Nineteen", 20: "Twenty"}
-    return words.get(n, str(n))
+    """``n`` in words up to twenty, and in digits past it."""
+    return COUNT_WORDS[n] if n < len(COUNT_WORDS) else str(n)
 
 
 #: The registered scene's three written steps, each with where its box starts.
@@ -1950,11 +1968,13 @@ def _january_registered() -> Scene:
     )
     steps.append(_stroke("arrow-4", _arrow(3.35, y2, 3.75, y2), color=MUTED, frames=2))
     steps.append(_stroke("box-5", _box(3.8, y2 - 0.35, 7.3, y2 + 0.35), frames=4))
-    steps.append(Label("then a test that fits them", 5.55, y2, names="box-5", ha="center", size=11))
+    steps.append(
+        Label("no claim written down first", 5.55, y2, names="box-5", ha="center", size=11)
+    )
     steps.append(Label("exploratory", 0.3, 2.05, names="box-5", color=LOST, size=13))
     steps.append(
         Label(
-            "only a registered result can confirm anything",
+            "exploratory can kill an idea, only registered can confirm one",
             0.5,
             0.35,
             names="box-5",

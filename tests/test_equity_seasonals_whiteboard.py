@@ -8,9 +8,11 @@ effect survived the book. The opening's timeline places each source's years to
 scale, from Chan's committed files and the registered runs' constants, and its
 verdicts sketch draws the two registered runs' figures to scale. Those figures
 are pinned here as :data:`PINNED`, the values
-``tests/test_equity_seasonals.py`` pins, so every test but one runs without
-the owner's archive. The one, :class:`TestTheRunsGiveThePinnedVerdicts`, holds
-that the runs give them.
+``tests/test_equity_seasonals.py`` pins, so every test here runs without the
+owner's archive. ``test_the_whiteboard_draws_these_runs_verdicts`` and
+``test_the_whiteboard_draws_these_runs_ranges`` in
+``tests/test_equity_seasonals.py`` hold that the runs give :data:`PINNED` and
+:data:`PINNED_RANGES`.
 
 The strategy sketches are schematic and read no data, so what is pinned for
 them is what a reader takes from them.
@@ -168,6 +170,16 @@ ARCHIVE_GIFS = {"equity_seasonals_two_verdicts.gif", "equity_seasonals_january_r
 #: ``MATLAB_JANUARY`` on the S&P 600 at each year-end, January 2009 to January
 #: 2026, and ``REVISED_MATLAB`` on the S&P 500 each month, January 2009 to
 #: September 2026, both before costs. A re-pin there moves these figures.
+PINNED = Verdicts(
+    january_low=-0.1047304659686345,
+    january_high=0.08787549947820747,
+    monthly_mean=-0.0001391960725288475,
+    detectable=0.0422031836138127,
+    january_low_rejects=False,
+    january_high_rejects=True,
+    monthly_rejects=False,
+)
+
 #: The registered January run's eighteen Januaries, each with its low and high
 #: return before costs, as ``test_the_whiteboard_draws_these_runs_ranges`` in
 #: ``tests/test_equity_seasonals.py`` holds the run gives them. Same vintage
@@ -193,16 +205,6 @@ PINNED_RANGES = JanuaryRanges(
         (2025, -0.024022313935317015, 0.0037277705788413724),
         (2026, -0.0023087433400641386, 0.0026855572271426084),
     )
-)
-
-PINNED = Verdicts(
-    january_low=-0.1047304659686345,
-    january_high=0.08787549947820747,
-    monthly_mean=-0.0001391960725288475,
-    detectable=0.0422031836138127,
-    january_low_rejects=False,
-    january_high_rejects=True,
-    monthly_rejects=False,
 )
 
 STROKES = [
@@ -653,6 +655,27 @@ class TestThePost:
             embed = paragraphs[offset]
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
         assert define + 3 == panel
+
+    def test_each_january_sketch_follows_its_paragraph(self) -> None:
+        """Each after its own paragraph, all three under the January question."""
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("### Whether the January effect survived the book")
+        end = text.index("\n### ", start + 1)
+        paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
+        for opening, name in zip(
+            (
+                "A second run tested Example 7.6",
+                "Free daily prices cover most",
+                "The low series averages",
+            ),
+            JANUARY_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            embed = paragraphs[index + 1]
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed.strip()
+            ), name
 
     def test_every_sketch_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -1537,7 +1560,7 @@ class TestTheSurvivorSketches:
             assert bracket.y.min() < min(ys) and bracket.y.max() > max(ys)
             assert bracket.color == colour
 
-    def test_the_file_drops_the_leavers_so_its_tenth_holds_other_stocks(self, survivors) -> None:
+    def test_the_file_drops_the_leavers_so_its_tenth_is_a_different_set(self, survivors) -> None:
         ranking = survivors[1]
         xs = np.linspace(*sketches.SURVIVOR_XS, sketches.SURVIVOR_RANKED)
         kept = [k for k in range(sketches.SURVIVOR_RANKED) if k not in sketches.GONE]
@@ -1629,21 +1652,21 @@ class TestTheJanuarySketches:
             "then returns computed",
             "registered",
             "returns computed",
-            "then a test that fits them",
+            "no claim written down first",
             "exploratory",
-            "only a registered result can confirm anything",
+            "exploratory can kill an idea, only registered can confirm one",
         ]
         assert fill.labels == [
             "buy the worst tenth",
             "short the best tenth",
             "?",
             "a member with no checked price",
-            "could land in either tenth",
+            "could land in a traded tenth",
             "low version",
-            "if bought: near the worst return",
+            "if bought: near the worst January return",
             "if shorted: near the best",
             "high version",
-            "if bought: near the best return",
+            "if bought: near the best January return",
             "if shorted: near the worst",
             "so each January gets a low and a high result",
         ]
@@ -1669,7 +1692,7 @@ class TestTheJanuarySketches:
         assert _stroke(registered, "box-4").color == LOST
         assert _stroke(registered, "box-4").x.max() < _stroke(registered, "box-5").x.min()
 
-    def test_the_gap_can_land_in_either_tenth(self, january) -> None:
+    def test_the_gap_can_land_in_a_traded_tenth(self, january) -> None:
         fill = january[1]
         xs = np.linspace(*sketches.FILL_XS, sketches.FILL_RANKED)
         tenth = sketches.FILL_TENTH
@@ -1677,6 +1700,19 @@ class TestTheJanuarySketches:
         assert _middle(fill, "buy") == pytest.approx(xs[:tenth].mean(), abs=0.01)
         assert _middle(fill, "short") == pytest.approx(xs[-tenth:].mean(), abs=0.01)
         assert (_stroke(fill, "buy").color, _stroke(fill, "short").color) == (GOOD, LOST)
+        colours = {s.text: s.color for s in fill.steps if isinstance(s, Label)}
+        for text in (
+            "low version",
+            "if bought: near the worst January return",
+            "if shorted: near the best",
+        ):
+            assert colours[text] == LOST, text
+        for text in (
+            "high version",
+            "if bought: near the best January return",
+            "if shorted: near the worst",
+        ):
+            assert colours[text] == GOOD, text
         to_buy, to_short = _stroke(fill, "to-buy"), _stroke(fill, "to-short")
         assert to_buy.x[0] < sketches.UNPRICED[0] < to_short.x[0]
         assert to_buy.x.min() < xs[tenth] and to_short.x.max() > xs[-tenth - 1]
@@ -1699,22 +1735,53 @@ class TestTheJanuarySketches:
             assert bar.y[-1] == pytest.approx(sketches.RANGES_ZERO + high * sketches.RANGES_PER)
             expected = whiteboard.INK if low < 0 < high else (GOOD if low > 0 else LOST)
             assert bar.color == expected, year
+        count = len(ranges.januaries)
+        word = {18: "Eighteen", 3: "Three"}[count]
+        assert scene.title == f"{word} Januaries, each a range"
 
     def test_the_runs_januaries_straddle_but_four(self) -> None:
         """What the alt text says: 2020, 2021 and 2024 below zero, 2023 above."""
         below = [y for y, low, high in PINNED_RANGES.januaries if high < 0]
         above = [y for y, low, high in PINNED_RANGES.januaries if low > 0]
         assert (below, above) == ([2020, 2021, 2024], [2023])
-        first = PINNED_RANGES.januaries[0]
-        assert (format(first[1], ".2f"), format(first[2], ".2f")) == ("-0.31", "0.32")
 
     def test_each_alt_text_quotes_its_sketchs_words(self, january) -> None:
         text = POST.read_text(encoding="utf-8")
         for scene in january:
             alt = _alt(text, scene)
             for label in scene.labels:
-                if label not in ("0", "2014", "2019", "?", "low version", "high version"):
+                if label not in ("0", "2014", "2019", "?"):
                     assert label in alt, (scene.slug, label)
         ranges = _alt(text, january[2])
         assert "Eighteen vertical bars" in ranges and "2020, 2021 and 2024" in ranges
-        assert "the bar for 2023 is green" in ranges and "−0.31 to +0.32 in 2009" in ranges
+        assert "the bar for 2023 is green" in ranges
+
+    def test_the_ranges_average_to_the_verdicts_pinned_means(self) -> None:
+        """The two pins come from one run, so the Januaries average to its means."""
+        lows = [low for _, low, _ in PINNED_RANGES.januaries]
+        highs = [high for _, _, high in PINNED_RANGES.januaries]
+        assert float(np.mean(lows)) == pytest.approx(PINNED.january_low, abs=1e-12)
+        assert float(np.mean(highs)) == pytest.approx(PINNED.january_high, abs=1e-12)
+
+    def test_a_redraw_with_the_archive_draws_the_ranges_from_the_run(
+        self, monkeypatch, tmp_path, spans
+    ) -> None:
+        """Without this, a redraw could draw the ranges without reading the run."""
+        run, seen = object(), []
+
+        def from_run(january):
+            seen.append(january)
+            return PINNED_RANGES
+
+        monkeypatch.setattr(seasonals, "run_point_in_time", lambda: run)
+        monkeypatch.setattr(seasonals, "run_monthly_point_in_time", lambda: object())
+        monkeypatch.setattr(sketches.Verdicts, "from_runs", classmethod(lambda cls, a, b: PINNED))
+        monkeypatch.setattr(
+            sketches.JanuaryRanges, "from_run", classmethod(lambda cls, january: from_run(january))
+        )
+        written = make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans)
+        assert sorted(path.name for path in written) == sorted(GIFS)
+        assert seen == [run]
+        seen.clear()
+        make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans, verdicts=PINNED)
+        assert seen == [run], "the ranges are read from the run even when the verdicts are given"

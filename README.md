@@ -3231,11 +3231,14 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 21. `equity_seasonals_january_ranges.gif`, each of the registered run's
     eighteen Januaries as a bar from its low version to its high.
 
-Like the strategy sketches, Lesson 3's three and the January fill are
-schematic. Six sketches build more slowly than the rest and hold their
-finished drawings for twelve seconds, because each carries more than the usual
-pace lets a reader take in: the first two of the five-year sketches, the last
-two of Lesson 3's sketches, and the January fill and ranges.
+Like the strategy sketches, Lesson 3's three and the January registered and
+fill sketches are schematic and carry no figures. Six sketches build more
+slowly than the rest and hold their finished drawings for twelve seconds,
+because each carries more than the usual pace lets a reader take in.
+
+1. The first two of the five-year sketches, 13 and 14.
+2. The last two of Lesson 3's sketches, 17 and 18.
+3. The January fill and ranges sketches, 20 and 21.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
@@ -3266,9 +3269,11 @@ S&P 500 file. The five-year sketches' figures are defaults in
 `FiveYearFigures`, and `TestTheFiveYearSketches` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The whiteboard test draws the verdicts from the pinned
-figures, so it runs without the archive, and a test in
-[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) holds that
-the two registered runs give those figures where the archive is. The test
+figures and the January ranges from `PINNED_RANGES`, so it runs without the
+archive, and two tests in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold that the
+two registered runs give those figures and those Januaries where the archive
+is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS
 arm64 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw
 with the USD.CAD module's strokes, timeline and renderer, so an edit there
