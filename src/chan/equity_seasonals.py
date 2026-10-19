@@ -163,6 +163,19 @@ beside it with no verdict. The claim, the test and the wording were written
 on the issue before any return was computed, so the result is labelled
 registered.
 
+**Example 7.7 against Open Source Asset Pricing's ``MomSeasonShort``.**
+[Issue 661](https://github.com/l3a0/quantitative-trading/issues/661) reads the
+project's long-short returns for Heston and Sadka's own signal, built from
+CRSP, through :func:`chan.open_asset_pricing.long_short_returns`. Those are the
+project's equal-weighted tenths of NYSE and AMEX stocks, companies that later
+left included, from 1927. :func:`around_2002` reads them over Heston and
+Sadka's 1965 to 2002 sample and on each side of :data:`SPLIT`, and
+:func:`overlap` sets :data:`REVISED_MATLAB` beside them on Chan's file and on
+IVV's members, month by calendar month. The rule earns half the top tenth less
+the bottom and the project's row the whole of it, which
+:attr:`Overlap.halved_difference` corrects. The comparison is exploratory,
+because the issue was filed after a first look at these numbers.
+
 ``tests/test_equity_seasonals.py`` is the single authority for every number
 any prose surface quotes about either example.
 
@@ -170,9 +183,12 @@ Usage:
     python -m chan.equity_seasonals
     python -m chan.equity_seasonals --survivors
     python -m chan.equity_seasonals --point-in-time
+    python -m chan.equity_seasonals --open-asset-pricing
 
 ``--point-in-time`` runs Example 7.6 on the S&P 600 at each year-end, then
-Example 7.7 on the S&P 500 each month.
+Example 7.7 on the S&P 500 each month. ``--open-asset-pricing`` compares
+Example 7.7 with the project's ``MomSeasonShort`` on Chan's file, then on
+IVV's members, which needs the owner's archive.
 """
 
 from __future__ import annotations
@@ -191,7 +207,7 @@ from ithildincore.stats import NeweyWestSummary, newey_west_summary
 from numpy.typing import NDArray
 from scipy import optimize, stats
 
-from chan import sp500_panel, sp600_panel
+from chan import open_asset_pricing, sp500_panel, sp600_panel
 from chan.archive import ArchiveEntry, ArchiveRefused, ArchiveUnavailable, read_cross_section
 from chan.fund_holdings import IJR, Filing, members
 from chan.fund_panel import (
@@ -2046,6 +2062,196 @@ def run_monthly_point_in_time(
 
 
 # --------------------------------------------------------------------------
+# Example 7.7 against Open Source Asset Pricing's MomSeasonShort
+# --------------------------------------------------------------------------
+
+#: The project's signal for Heston and Sadka's rule, a stock's return in the
+#: same calendar month a year earlier.
+OSAP_SIGNAL = "MomSeasonShort"
+
+#: The first and last month of Heston and Sadka's sample, which their Table 2 covers.
+HESTON_SADKA_FIRST = pd.Period("1965-01", "M")
+HESTON_SADKA_LAST = pd.Period("2002-12", "M")
+
+#: Heston and Sadka's Table 2: the top tenth less the bottom on the same month a
+#: year earlier, 1.15 percent a month with a t of 7.6.
+HESTON_SADKA_MONTHLY = 0.0115
+HESTON_SADKA_T = 7.6
+
+#: Location 4425's "more than 13 percent" a year before 2002, before costs.
+CHAN_ANNUAL = 0.13
+
+
+class ComparisonRefused(Exception):
+    """The comparison stopped rather than match months it cannot match one to one."""
+
+
+def calendar_months(returns: pd.Series) -> pd.Series:
+    """``returns`` indexed by calendar month, as monthly periods.
+
+    Matching on the month rather than the date means a day that differs
+    between two calendars cannot drop a month, as it would for
+    :data:`PYTHON_HESTON_SADKA`'s 2009-01-31 against
+    :data:`REVISED_MATLAB`'s 2009-01-30. A repeated month or a missing return
+    is refused by name, because either would change the count every figure
+    below is pinned with.
+    """
+    if isinstance(returns.index, pd.PeriodIndex):
+        months = returns.index.asfreq("M")
+    else:
+        months = pd.PeriodIndex(pd.DatetimeIndex(returns.index), freq="M")
+    if months.has_duplicates:
+        raise ComparisonRefused(f"{months[months.duplicated()][0]} appears twice in {returns.name}")
+    empty = months[returns.isna().to_numpy()]
+    if len(empty):
+        raise ComparisonRefused(f"{returns.name} holds no return for {empty[0]}")
+    return pd.Series(returns.to_numpy(dtype=float), index=months, name=returns.name)
+
+
+def decimal_months(percent: pd.Series) -> pd.Series:
+    """The project's long-short returns, which it writes in percent, as fractions by month."""
+    return calendar_months(percent / 100)
+
+
+def months_between(
+    returns: pd.Series, first: pd.Period, last: pd.Period | None = None
+) -> pd.Series:
+    """The months of ``returns``, indexed by period, from ``first`` to ``last`` inclusive."""
+    index = returns.index
+    chosen = index >= first
+    if last is not None:
+        chosen &= index <= last
+    return returns[chosen]
+
+
+@dataclass(frozen=True)
+class Overlap:
+    """One of this repo's runs and the project's series over the months both hold."""
+
+    first: pd.Period
+    last: pd.Period
+    ours: OneSided
+    theirs: OneSided
+    correlation: float
+
+    @property
+    def n(self) -> int:
+        return self.ours.n
+
+    @property
+    def difference(self) -> float:
+        """This repo's mean less the project's, which is also the mean monthly difference."""
+        return self.ours.mean - self.theirs.mean
+
+    @property
+    def halved_difference(self) -> float:
+        """This repo's mean less half the project's, the two at one scale.
+
+        :data:`REVISED_MATLAB` divides a month's summed return by every position
+        held, long and short together, so it earns half the top tenth's mean
+        less the bottom's. The project's long-short row is that whole
+        difference, top less bottom. Halving it puts both on the rule's scale.
+        The correlation and each t are the same at either scale.
+        """
+        return self.ours.mean - self.theirs.mean / 2
+
+
+def overlap(ours: pd.Series, theirs: pd.Series) -> Overlap:
+    """``ours`` against ``theirs``, both fractions a month, over the calendar months both hold."""
+    mine, project = calendar_months(ours), calendar_months(theirs)
+    shared = mine.index.intersection(project.index).sort_values()
+    if len(shared) < 3:
+        raise ComparisonRefused(
+            f"{ours.name} and {theirs.name} share {len(shared)} months, too few for a correlation"
+        )
+    mine, project = mine[shared], project[shared]
+    return Overlap(
+        first=shared[0],
+        last=shared[-1],
+        ours=one_sided_t(mine.to_numpy()),
+        theirs=one_sided_t(project.to_numpy()),
+        correlation=float(np.corrcoef(mine.to_numpy(), project.to_numpy())[0, 1]),
+    )
+
+
+@dataclass(frozen=True)
+class AroundTwoThousandTwo:
+    """The project's series over Heston and Sadka's sample, and on each side of :data:`SPLIT`."""
+
+    #: :data:`HESTON_SADKA_FIRST` to :data:`HESTON_SADKA_LAST`.
+    sample: OneSided
+    #: :data:`HESTON_SADKA_FIRST` to the month before :data:`SPLIT`.
+    before: OneSided
+    #: :data:`SPLIT`'s month to the series' last.
+    after: OneSided
+    last: pd.Period
+
+    @property
+    def gap(self) -> float:
+        """The project's mean over the sample less Heston and Sadka's 1.15 percent a month."""
+        return self.sample.mean - HESTON_SADKA_MONTHLY
+
+    @property
+    def before_annual(self) -> float:
+        """Twelve times the mean before 2002, the unit of Chan's 13 percent."""
+        return 12 * self.before.mean
+
+
+def around_2002(returns: pd.Series) -> AroundTwoThousandTwo:
+    """Items 2 and 4 of issue 661, on the project's returns as fractions by month.
+
+    The split is :data:`SPLIT`, the date the book hands over, so 2002 falls in
+    the after half as it does in :func:`split_at`. Heston and Sadka's sample
+    runs through 2002, so it holds twelve months the before half does not.
+    Both start where their sample does, although the release reaches further
+    back. Exploratory, and it carries no verdict.
+    """
+    split = SPLIT.to_period("M")
+    after = months_between(returns, split)
+    return AroundTwoThousandTwo(
+        sample=one_sided_t(months_between(returns, HESTON_SADKA_FIRST, HESTON_SADKA_LAST)),
+        before=one_sided_t(months_between(returns, HESTON_SADKA_FIRST, split - 1)),
+        after=one_sided_t(after),
+        last=after.index[-1],
+    )
+
+
+def chans_file_months(closes: pd.DataFrame) -> pd.Series:
+    """:data:`REVISED_MATLAB`'s kept months on Chan's S&P 500 file, the months its figures use."""
+    return monthly_returns(closes, REVISED_MATLAB).iloc[REVISED_MATLAB.dropped :]
+
+
+@dataclass(frozen=True)
+class OpenAssetPricingRun:
+    """The project's series around 2002, and against Example 7.7 on Chan's file."""
+
+    entry: VintageEntry
+    #: The long-short returns as fractions, by calendar month.
+    returns: pd.Series
+    around: AroundTwoThousandTwo
+    #: :data:`REVISED_MATLAB` on Chan's S&P 500 file against the project.
+    chans_file: Overlap
+
+
+def run_open_asset_pricing(*, data_dir: Path | None = None) -> OpenAssetPricingRun:
+    """Read the project's ``MomSeasonShort`` vintage and Chan's file, and compare them."""
+    entry, percent = open_asset_pricing.long_short_returns(OSAP_SIGNAL, data_dir=data_dir)
+    returns = decimal_months(percent)
+    _, closes = load_panel(LARGE_CAPS, data_dir=data_dir)
+    return OpenAssetPricingRun(
+        entry=entry,
+        returns=returns,
+        around=around_2002(returns),
+        chans_file=overlap(chans_file_months(closes), returns),
+    )
+
+
+def ivv_overlap(run: OpenAssetPricingRun, monthly: MonthlyRun) -> Overlap:
+    """:data:`REVISED_MATLAB` on IVV's monthly members against the project."""
+    return overlap(monthly.matlab.returns, run.returns)
+
+
+# --------------------------------------------------------------------------
 # The report
 # --------------------------------------------------------------------------
 
@@ -2228,6 +2434,49 @@ def _monthly_figures(result: MonthlyTest) -> str:
     )
 
 
+def _one_sided(test: OneSided) -> str:
+    return f"mean {test.mean:.4f} a month, t {test.t:.2f}, over {test.n} months"
+
+
+def _overlap_lines(label: str, result: Overlap) -> None:
+    print(f"  {label}, {result.first} to {result.last}, {result.n} months")
+    print(
+        f"    this repo: mean {result.ours.mean:.4f}, standard deviation {result.ours.std:.4f}, "
+        f"t {result.ours.t:.2f}; the project: mean {result.theirs.mean:.4f}, standard "
+        f"deviation {result.theirs.std:.4f}, t {result.theirs.t:.2f}"
+    )
+    print(
+        f"    correlation {result.correlation:.3f}, difference of means "
+        f"{result.difference:.4f} a month, {result.halved_difference:.4f} against half the "
+        f"project's, the rule's scale"
+    )
+
+
+def report_open_asset_pricing(run: OpenAssetPricingRun) -> None:
+    around = run.around
+    print(f"Example 7.7 against Open Source Asset Pricing's {OSAP_SIGNAL}, exploratory")
+    print(f"  {vintage_line(run.entry)}")
+    print(
+        "  the project's equal-weighted tenths of NYSE and AMEX stocks, long the top and short "
+        "the bottom, before costs"
+    )
+    print(
+        f"  Heston and Sadka's sample, {HESTON_SADKA_FIRST} to {HESTON_SADKA_LAST}: "
+        f"{_one_sided(around.sample)}; they print {HESTON_SADKA_MONTHLY:.4f}, t "
+        f"{HESTON_SADKA_T:.1f}, a gap of {around.gap:+.4f}"
+    )
+    print(
+        f"  before {SPLIT.date()}, from {HESTON_SADKA_FIRST}: {_one_sided(around.before)}, "
+        f"{around.before_annual:.1%} a year against Chan's more than {CHAN_ANNUAL:.0%}"
+    )
+    print(f"  from {SPLIT.date()} to {around.last}: {_one_sided(around.after)}")
+    _overlap_lines(f"{REVISED_MATLAB.source} on {LARGE_CAPS}", run.chans_file)
+
+
+def report_ivv_overlap(result: Overlap) -> None:
+    _overlap_lines(f"{REVISED_MATLAB.source} on IVV's members each month", result)
+
+
 def report_monthly(result: MonthlyRun) -> None:
     downloads = sorted({entry.download_date for entry in result.entries})
     first, last = result.coverage[0].schedule, result.coverage[-1].schedule
@@ -2342,6 +2591,14 @@ def main(argv: Sequence[str] | None = None) -> None:
             "Example 7.7 from January 2009 on IVV's members each month"
         ),
     )
+    which.add_argument(
+        "--open-asset-pricing",
+        action="store_true",
+        help=(
+            "compare Example 7.7 with Open Source Asset Pricing's MomSeasonShort, on Chan's "
+            "file and then on IVV's members each month, which needs the owner's archive"
+        ),
+    )
     args = parser.parse_args([] if argv is None else argv)
     try:
         if args.survivors:
@@ -2350,6 +2607,10 @@ def main(argv: Sequence[str] | None = None) -> None:
             report_point_in_time(run_point_in_time(), run_survivors())
             print()
             report_monthly(run_monthly_point_in_time())
+        elif args.open_asset_pricing:
+            compared = run_open_asset_pricing()
+            report_open_asset_pricing(compared)
+            report_ivv_overlap(ivv_overlap(compared, run_monthly_point_in_time()))
         else:
             run()
     except (
@@ -2360,6 +2621,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         PointInTimeRefused,
         MonthlyRunRefused,
         PanelRefused,
+        ComparisonRefused,
     ) as refusal:
         # A refusal naming which member is missing is worth nothing at the
         # bottom of a pandas traceback, which is the reason

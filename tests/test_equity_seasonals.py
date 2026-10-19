@@ -2,7 +2,9 @@
 
 This file is the single authority for every number any prose surface quotes
 about either example. ``docs/replication-log.md`` Entry 7 carries the verdicts
-and points here row by row.
+and points here row by row, and Entry 52 does the same for the comparison with
+Open Source Asset Pricing's ``MomSeasonShort``, whose vintages
+``TestTheOpenAssetPricingPins`` names.
 
 Three vintages, each read whole through :func:`chan.series.load_panel`.
 
@@ -3136,3 +3138,291 @@ class TestTheMonthlyPins:
         assert "stopped inside the month held: 23, their returns summed by side -0.7013" in out
         assert "    departing: long 505 (12.0%), short 698 (16.5%), neither 3019 (71.5%)" in out
         assert "    chi-square p 0.000, descriptive only" in out
+
+
+def _monthly(first: str, values, *, day: str = "last") -> pd.Series:
+    """Synthetic monthly returns from ``first``, dated each month's last day or a day before it."""
+    ends = pd.date_range(first, periods=len(values), freq="ME")
+    if day == "early":
+        ends = ends - pd.Timedelta(days=1)
+    return pd.Series(np.asarray(values, dtype=float), index=ends, name="synthetic")
+
+
+class TestMatchingTheProjectsMonths:
+    """The comparison's arithmetic on synthetic series, with no vintage read."""
+
+    def test_a_month_matches_on_the_calendar_month_rather_than_the_day(self) -> None:
+        ours = _monthly("2009-01", [0.01, 0.02, 0.03, 0.04], day="early")
+        theirs = _monthly("2009-02", [0.02, 0.03, 0.05, 0.07])
+        result = seasonals.overlap(ours, theirs)
+        assert (str(result.first), str(result.last), result.n) == ("2009-02", "2009-04", 3)
+        assert result.ours.mean == pytest.approx(0.03)
+        assert result.theirs.mean == pytest.approx(0.1 / 3)
+        assert result.difference == pytest.approx(0.03 - 0.1 / 3)
+        assert result.halved_difference == pytest.approx(0.03 - 0.1 / 6)
+        assert result.correlation == pytest.approx(np.corrcoef([2, 3, 4], [2, 3, 5])[0, 1])
+
+    def test_the_project_writes_percent_and_the_comparison_reads_fractions(self) -> None:
+        percent = _monthly("1965-01", [1.36, -0.5])
+        assert list(seasonals.decimal_months(percent)) == pytest.approx([0.0136, -0.005])
+        assert str(seasonals.decimal_months(percent).index[0]) == "1965-01"
+
+    def test_a_repeated_month_is_refused_rather_than_matched_twice(self) -> None:
+        twice = pd.Series(
+            [0.01, 0.02], index=pd.DatetimeIndex(["2009-01-30", "2009-01-31"]), name="twice"
+        )
+        with pytest.raises(seasonals.ComparisonRefused, match="2009-01 appears twice in twice"):
+            seasonals.calendar_months(twice)
+
+    def test_a_missing_return_is_refused_rather_than_dropped(self) -> None:
+        with pytest.raises(seasonals.ComparisonRefused, match="holds no return for 2009-02"):
+            seasonals.calendar_months(_monthly("2009-01", [0.01, np.nan, 0.03]))
+
+    def test_two_series_sharing_too_few_months_are_refused(self) -> None:
+        with pytest.raises(seasonals.ComparisonRefused, match="share 2 months"):
+            seasonals.overlap(_monthly("2009-01", [0.01, 0.02]), _monthly("2009-01", [0.0, 0.1]))
+
+    def test_heston_and_sadkas_sample_keeps_2002_and_the_books_split_gives_it_away(self) -> None:
+        """Each window gets a value of its own, so a boundary off by a month moves a mean.
+
+        1964 is far out, 1965 to 2001 earns 0.01, 2002 earns 0.04, and 2003 on
+        earns -0.01 and 0.03 in turn, so every window's mean is distinct.
+        """
+        months = pd.period_range("1964-01", "2024-12", freq="M")
+        values = np.where(
+            months.year < 1965,
+            9.0,
+            np.where(months.year < 2002, 0.01, np.where(months.year == 2002, 0.04, 0.0)),
+        )
+        later = months.year > 2002
+        values[later] = np.resize([-0.01, 0.03], later.sum())
+        returns = pd.Series(values, index=months, name="synthetic")
+        result = seasonals.around_2002(returns)
+        assert result.sample.n == 456
+        assert result.sample.mean == pytest.approx((444 * 0.01 + 12 * 0.04) / 456)
+        assert result.before.n == 444
+        assert result.before.mean == pytest.approx(0.01)
+        assert result.before_annual == pytest.approx(0.12)
+        assert result.after.n == 276
+        assert result.after.mean == pytest.approx((12 * 0.04 + 132 * 0.02) / 276)
+        assert str(result.last) == "2024-12"
+        assert result.gap == pytest.approx(result.sample.mean - 0.0115)
+
+    def test_the_rule_earns_half_the_top_tenth_less_the_bottom(self) -> None:
+        """Why ``halved_difference`` halves the project's mean rather than doubling the rule's."""
+        rng = np.random.default_rng(661)
+        days = pd.bdate_range("2001-01-01", "2002-06-28")
+        steps = rng.normal(0, 0.01, (len(days), 20))
+        closes = pd.DataFrame(
+            np.exp(np.cumsum(steps, axis=0)), index=days, columns=[f"S{i}" for i in range(20)]
+        )
+        held, stock = seasonals.positions(closes, seasonals.REVISED_MATLAB)
+        returns = seasonals.monthly_returns(closes, seasonals.REVISED_MATLAB)
+        checked = 0
+        for month in range(1, len(held)):
+            before = held.iloc[month - 1]
+            if not (before != 0).any():
+                continue
+            earned = stock.iloc[month]
+            top, bottom = earned[before == 1].mean(), earned[before == -1].mean()
+            assert returns.iloc[month] == pytest.approx((top - bottom) / 2, rel=1e-12)
+            checked += 1
+        assert checked == 4
+
+    def test_chans_file_keeps_the_revised_matlabs_83_months(self, spx) -> None:
+        months = seasonals.chans_file_months(spx)
+        assert len(months) == 83
+        assert (months.index[0].date().isoformat(), months.index[-1].date().isoformat()) == (
+            "2000-12-29",
+            "2007-10-31",
+        )
+        assert not months.isna().any()
+
+
+@pytest.fixture(scope="module")
+def compared() -> seasonals.OpenAssetPricingRun:
+    """The project's committed series and Chan's file, a few seconds, with no archive read."""
+    return seasonals.run_open_asset_pricing()
+
+
+class TestTheOpenAssetPricingPins:
+    """Example 7.7 against the Open Source Asset Pricing project's ``MomSeasonShort``, exploratory.
+
+    Two vintages and two specifications, one of each per side.
+
+    1. **The project's side.** Its release 202510, downloaded 2026-10-19,
+       ``openassetpricing-202510_momseasonshort-ls_return_1927-01-31_2024-12-31_dl2026-10-19.csv``,
+       read through :func:`chan.open_asset_pricing.long_short_returns`. The
+       specification is the project's own: equal-weighted tenths of NYSE and
+       AMEX stocks, re-formed monthly, the top tenth less the bottom, before
+       costs, which ``data/README.md`` records from the release's
+       ``SignalDoc.csv``. The sort is on the return in the same calendar month
+       a year earlier, by the project's description, which issue 661 quotes.
+       The file writes percent and the pins read fractions.
+    2. **This repo's side.** :data:`chan.equity_seasonals.REVISED_MATLAB`
+       unchanged and before costs, on Chan's ``SPX_20071123.mat`` over its 83
+       kept months, and on IVV's members each month, the run
+       ``TestTheMonthlyPins`` names with its own four-part vintage. The IVV
+       row reads the owner's archive and skips with the reader's message
+       where none is.
+
+    Months are matched by calendar month. Heston and Sadka's sample is 1965-01
+    to 2002-12, and the split is the book's, at 2002-01-01, so 2002 is in the
+    after half. Labelled exploratory: issue 661 was filed after a first look at
+    these numbers, and neither side's construction was chosen for the
+    comparison. First run on 2026-10-19.
+    """
+
+    def test_it_reads_the_one_committed_release(self, compared) -> None:
+        assert compared.entry.path == (
+            "openassetpricing-202510_momseasonshort-ls_return_1927-01-31_2024-12-31"
+            "_dl2026-10-19.csv"
+        )
+        assert len(compared.returns) == 1176
+        assert (str(compared.returns.index[0]), str(compared.returns.index[-1])) == (
+            "1927-01",
+            "2024-12",
+        )
+
+    def test_heston_and_sadkas_sample(self, compared) -> None:
+        sample = compared.around.sample
+        assert sample.n == 456
+        assert sample.mean == pytest.approx(0.01360724437376685, rel=1e-9)
+        assert sample.t == pytest.approx(8.633503160912532, rel=1e-9)
+        assert compared.around.gap == pytest.approx(0.0021072443737668502, rel=1e-9)
+
+    def test_before_2002_it_earns_more_than_chans_13_percent(self, compared) -> None:
+        before = compared.around.before
+        assert before.n == 444
+        assert before.mean == pytest.approx(0.013133990629309849, rel=1e-9)
+        assert before.t == pytest.approx(8.280547072932409, rel=1e-9)
+        assert compared.around.before_annual == pytest.approx(0.15760788755171817, rel=1e-9)
+
+    def test_from_2002_its_mean_is_not_detectably_above_zero(self, compared) -> None:
+        after = compared.around.after
+        assert str(compared.around.last) == "2024-12"
+        assert after.n == 276
+        assert after.mean == pytest.approx(0.0012242855992733068, rel=1e-9)
+        assert after.t == pytest.approx(0.5042545079355029, rel=1e-9)
+        assert after.p == pytest.approx(0.3072431529597122, rel=1e-6)
+
+    def test_on_chans_file(self, compared) -> None:
+        result = compared.chans_file
+        assert (str(result.first), str(result.last), result.n) == ("2000-12", "2007-10", 83)
+        assert result.ours.mean == pytest.approx(-0.0010768919655643329, rel=1e-9)
+        assert result.theirs.mean == pytest.approx(0.0018011414208584633, rel=1e-9)
+        assert result.ours.std == pytest.approx(0.0301843032370091, rel=1e-9)
+        assert result.ours.t == pytest.approx(-0.32503492451529425, rel=1e-9)
+        assert result.theirs.t == pytest.approx(0.4608689262534086, rel=1e-9)
+        assert result.theirs.std == pytest.approx(0.03560487233273358, rel=1e-9)
+        assert result.correlation == pytest.approx(0.7050739002601322, rel=1e-9)
+        assert result.difference == pytest.approx(-0.0028780333864227962, rel=1e-9)
+        assert result.halved_difference == pytest.approx(-0.0019774626759935647, rel=1e-9)
+
+    def test_on_ivvs_members(self, compared, monthly) -> None:
+        result = seasonals.ivv_overlap(compared, monthly)
+        assert (str(result.first), str(result.last), result.n) == ("2009-01", "2024-12", 192)
+        assert result.ours.mean == pytest.approx(-0.0003944432956364475, rel=1e-9)
+        assert result.theirs.mean == pytest.approx(0.0012004061941000746, rel=1e-9)
+        assert result.theirs.t == pytest.approx(0.3913231334163311, rel=1e-9)
+        assert result.ours.t == pytest.approx(-0.2739366063232309, rel=1e-9)
+        assert result.difference == pytest.approx(-0.0015948494897365221, rel=1e-9)
+        assert result.ours.std == pytest.approx(0.019951939623318628, rel=1e-9)
+        assert result.theirs.std == pytest.approx(0.04250532289773282, rel=1e-9)
+        assert result.correlation == pytest.approx(0.5915365787192671, rel=1e-9)
+        assert result.halved_difference == pytest.approx(-0.0009946463926865, rel=1e-9)
+
+    def test_the_report(self, compared, capsys) -> None:
+        seasonals.report_open_asset_pricing(compared)
+        out = capsys.readouterr().out
+        assert out.startswith(
+            "Example 7.7 against Open Source Asset Pricing's MomSeasonShort, exploratory\n"
+            "  openassetpricing-202510_momseasonshort-ls_return_1927-01-31_2024-12-31"
+            "_dl2026-10-19.csv"
+        )
+        assert (
+            "  the project's equal-weighted tenths of NYSE and AMEX stocks, long the top and "
+            "short the bottom, before costs\n"
+        ) in out
+        assert (
+            "  Heston and Sadka's sample, 1965-01 to 2002-12: mean 0.0136 a month, t 8.63, over "
+            "456 months; they print 0.0115, t 7.6, a gap of +0.0021"
+        ) in out
+        assert (
+            "  before 2002-01-01, from 1965-01: mean 0.0131 a month, t 8.28, over 444 months, "
+            "15.8% a year against Chan's more than 13%"
+        ) in out
+        assert "  from 2002-01-01 to 2024-12: mean 0.0012 a month, t 0.50, over 276 months" in out
+        assert "on SPX_20071123.mat, 2000-12 to 2007-10, 83 months" in out
+        assert (
+            "    this repo: mean -0.0011, standard deviation 0.0302, t -0.33; the project: mean "
+            "0.0018, standard deviation 0.0356, t 0.46\n"
+            "    correlation 0.705, difference of means -0.0029 a month, -0.0020 against half "
+            "the project's, the rule's scale\n"
+        ) in out
+
+    def test_the_ivv_report(self, compared, monthly, capsys) -> None:
+        seasonals.report_ivv_overlap(seasonals.ivv_overlap(compared, monthly))
+        assert capsys.readouterr().out == (
+            "  Example 7.7 in MATLAB, revised edition on IVV's members each month, 2009-01 to "
+            "2024-12, 192 months\n"
+            "    this repo: mean -0.0004, standard deviation 0.0200, t -0.27; the project: mean "
+            "0.0012, standard deviation 0.0425, t 0.39\n"
+            "    correlation 0.592, difference of means -0.0016 a month, -0.0010 against half "
+            "the project's, the rule's scale\n"
+        )
+
+
+class TestTheOpenAssetPricingCommand:
+    def test_it_reports_chans_file_then_ivvs_members(self, monkeypatch, capsys) -> None:
+        monkeypatch.setattr(seasonals, "run_open_asset_pricing", lambda: "compared")
+        monkeypatch.setattr(seasonals, "run_monthly_point_in_time", lambda: "monthly")
+        monkeypatch.setattr(seasonals, "report_open_asset_pricing", lambda run: print(run))
+        monkeypatch.setattr(seasonals, "ivv_overlap", lambda run, monthly: f"{run} {monthly}")
+        monkeypatch.setattr(seasonals, "report_ivv_overlap", lambda result: print(result))
+        seasonals.main(["--open-asset-pricing"])
+        assert capsys.readouterr().out == "compared\ncompared monthly\n"
+
+    def test_no_option_runs_chans_files_and_not_the_comparison(self, monkeypatch) -> None:
+        calls = []
+        monkeypatch.setattr(seasonals, "run", lambda: calls.append("files"))
+        monkeypatch.setattr(seasonals, "run_open_asset_pricing", lambda: calls.append("osap"))
+        seasonals.main([])
+        assert calls == ["files"]
+
+    def test_the_project_is_read_from_the_data_directory_given(self, tmp_path) -> None:
+        """An empty directory holds no manifest, so the project's read is refused."""
+        with pytest.raises(VintageUnavailable, match="so no vintage can be resolved"):
+            seasonals.run_open_asset_pricing(data_dir=tmp_path)
+
+    def test_chans_file_is_read_from_the_data_directory_given(self, tmp_path) -> None:
+        """A directory holding the project's file and not Chan's refuses Chan's by name."""
+        data = Path(seasonals.open_asset_pricing.long_short_vintage("MomSeasonShort").path)
+        source = Path(__file__).resolve().parents[1] / "data"
+        for name in ("vintages.jsonl", "checksums.sha256", data.name):
+            (tmp_path / name).write_bytes((source / name).read_bytes())
+        with pytest.raises(VintageUnavailable, match="spx_20071123/"):
+            seasonals.run_open_asset_pricing(data_dir=tmp_path)
+
+    @pytest.mark.parametrize("other", ["--survivors", "--point-in-time"])
+    def test_it_cannot_be_given_with_another_option(self, other) -> None:
+        with pytest.raises(SystemExit) as stopped:
+            seasonals.main([other, "--open-asset-pricing"])
+        assert stopped.value.code == 2
+
+    @pytest.mark.parametrize(
+        "refusal",
+        [
+            seasonals.ComparisonRefused("2009-01 appears twice in synthetic"),
+            VintageUnavailable("openassetpricing-202510_x.csv hashes to 00, not ff"),
+        ],
+        ids=lambda refusal: type(refusal).__name__,
+    )
+    def test_each_refusal_is_one_line(self, refusal, monkeypatch) -> None:
+        def refuse():
+            raise refusal
+
+        monkeypatch.setattr(seasonals, "run_open_asset_pricing", refuse)
+        with pytest.raises(SystemExit) as stopped:
+            seasonals.main(["--open-asset-pricing"])
+        assert stopped.value.code == str(refusal)
