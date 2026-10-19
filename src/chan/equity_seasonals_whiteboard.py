@@ -1,4 +1,4 @@
-"""Whiteboard sketches for the equity-seasonals post: its opening, its two strategies and its rules.
+"""Whiteboard sketches for the equity-seasonals post: its opening, strategies, rules and split.
 
 ``blog/equity-seasonals-lessons.md`` opens on why a strategy published as dead
 is worth testing, which sources can say anything about that, and what two
@@ -927,12 +927,12 @@ def _split_swing(f: SplitFigures) -> Scene:
     halves_gap = abs(f.from_2002 - f.before_2002)
     years_gap = abs(f.year_2002 - f.year_2006)
     return Scene(
-        "One year swings more than the split",
+        "Two years sit further apart than the halves",
         "split_swing",
         (
             _stroke("zero", _line([(1.1, SWING_ZERO), (3.35, SWING_ZERO)]), color=MUTED, frames=3),
             Label(
-                "the two halves, per year",
+                "the two halves, an average year",
                 sum(HALVES_X) / 2,
                 3.65,
                 names="zero",
@@ -1000,7 +1000,12 @@ def _split_swing(f: SplitFigures) -> Scene:
                 "zero-years", _line([(5.5, SWING_ZERO), (7.85, SWING_ZERO)]), color=MUTED, frames=3
             ),
             Label(
-                "two single years", sum(YEARS_X) / 2, 3.65, names="zero-years", ha="center", size=12
+                "two single years, 12 months each",
+                sum(YEARS_X) / 2,
+                3.65,
+                names="zero-years",
+                ha="center",
+                size=12,
             ),
             _stroke(
                 "y2002",
@@ -1051,7 +1056,7 @@ def _split_swing(f: SplitFigures) -> Scene:
                 size=11,
             ),
             Label(
-                "each bar adds up a year of monthly returns, the halves’ on average, before costs",
+                "before costs",
                 0.6,
                 0.35,
                 names="years-gap",

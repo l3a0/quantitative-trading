@@ -1,14 +1,14 @@
 """The pins for the twelve whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
-seven the rules its first lesson lists, one rule each, and one the split in
-its second lesson. The opening's
-timeline places each source's years to scale, from Chan's committed files and
-the registered runs' constants, and its verdicts sketch draws the two
-registered runs' figures to scale. Those figures are pinned here as
-:data:`PINNED`, the values ``tests/test_equity_seasonals.py`` pins, so every
-test but one runs without the owner's archive. The one,
-:class:`TestTheRunsGiveThePinnedVerdicts`, holds that the runs give them.
+seven the rules its first lesson lists, one rule each, and one the split that
+its second lesson discusses. The opening's timeline places each source's years
+to scale, from Chan's committed files and the registered runs' constants, and
+its verdicts sketch draws the two registered runs' figures to scale. Those
+figures are pinned here as :data:`PINNED`, the values
+``tests/test_equity_seasonals.py`` pins, so every test but one runs without
+the owner's archive. The one, :class:`TestTheRunsGiveThePinnedVerdicts`, holds
+that the runs give them.
 
 The strategy sketches are schematic and read no data, so what is pinned for
 them is what a reader takes from them.
@@ -31,6 +31,13 @@ The rule sketches print figures from :class:`RuleFigures`, whose defaults
 here is that each label prints its figure, that the marks stand where the
 figures put them, and that other figures move both. Each rule sketch closes
 the rule it draws in the post.
+
+The split sketch prints figures from :class:`SplitFigures`, whose defaults
+``TestTheYearsInsideTheSplit`` derives. What is pinned for it is that each
+bar and bracket stands to one scale on the file's figures and on other ones,
+that each bar and its value take the colour of their sign, and that it sits
+between the paragraph on the split's years and the one on the running-sum
+chart.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -997,7 +1004,15 @@ class TestTheRuleSketches:
 SWUNG = SplitFigures(before_2002=-0.05, from_2002=0.12, year_2002=-0.08, year_2006=0.04)
 
 
-@pytest.fixture(params=[SplitFigures(), SWUNG], ids=["the file's figures", "other figures"])
+#: Figures with the halves the other way round, so a gap that is not a
+#: distance would print with a minus sign.
+FLIPPED = SplitFigures(before_2002=0.09, from_2002=-0.02, year_2002=0.15, year_2006=-0.1)
+
+
+@pytest.fixture(
+    params=[SplitFigures(), SWUNG, FLIPPED],
+    ids=["the file's figures", "other figures", "the halves the other way round"],
+)
 def split_figures(request) -> SplitFigures:
     return request.param
 
@@ -1009,19 +1024,19 @@ class TestTheSplitSketch:
         (swing,) = split
         assert gif_name(swing) == SPLIT_GIFS[0]
         assert swing.labels == [
-            "the two halves, per year",
+            "the two halves, an average year",
             "before 2002",
             "−0.145387",
             "from 2002",
             "+0.011967",
             "0.1574 apart",
-            "two single years",
+            "two single years, 12 months each",
             "2002",
             "+0.2227",
             "2006",
             "−0.1319",
             "0.3546 apart",
-            "each bar adds up a year of monthly returns, the halves’ on average, before costs",
+            "before costs",
         ]
 
     def test_other_figures_move_the_labels(self) -> None:
@@ -1076,3 +1091,36 @@ class TestTheSplitSketch:
         years = [_stroke(swing, gid).x[0] for gid in ("y2002", "y2006")]
         assert max(halves) < _stroke(swing, "halves-gap").x.max() < min(years)
         assert max(years) < _stroke(swing, "years-gap").x.max()
+
+    def test_each_gap_prints_as_a_distance(self, split_figures) -> None:
+        (swing,) = split_scenes(split_figures)
+        f = split_figures
+        gaps = [text for text in swing.labels if text.endswith(" apart")]
+        assert gaps == [
+            f"{abs(f.from_2002 - f.before_2002):.4f} apart",
+            f"{abs(f.year_2002 - f.year_2006):.4f} apart",
+        ]
+
+    def test_each_value_sits_by_its_bar_in_its_signs_colour(self, split_figures) -> None:
+        (swing,) = split_scenes(split_figures)
+        f = split_figures
+        values = {
+            "before": f.before_2002,
+            "after": f.from_2002,
+            "y2002": f.year_2002,
+            "y2006": f.year_2006,
+        }
+        for gid, value in values.items():
+            places = 6 if gid in ("before", "after") else 4
+            text = f"{value:+.{places}f}".replace("-", "−")
+            (label,) = [s for s in swing.steps if isinstance(s, Label) and s.text == text]
+            assert label.names == gid
+            assert abs(label.x - _stroke(swing, gid).x[0]) <= 0.25, gid
+            assert label.color == (GOOD if value > 0 else LOST), gid
+
+    def test_both_brackets_and_their_gaps_are_brown(self, split) -> None:
+        (swing,) = split
+        for gid in ("halves-gap", "years-gap"):
+            assert _stroke(swing, gid).color == whiteboard.ACCENT
+        gaps = [s for s in swing.steps if isinstance(s, Label) and s.text.endswith(" apart")]
+        assert [s.color for s in gaps] == [whiteboard.ACCENT, whiteboard.ACCENT]

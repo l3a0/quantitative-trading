@@ -747,6 +747,31 @@ class TestTheYearsInsideTheSplit:
     def test_the_running_sum_peaks_in_january_2006(self, kept) -> None:
         assert kept.cumsum().idxmax() == pd.Timestamp("2006-01-31")
 
+    def test_the_running_sum_rises_slips_climbs_and_falls(self, kept) -> None:
+        """The post's shape: up through 2002, down through 2003 and 2004, up
+        through 2005 to the peak, and down from it to its last month."""
+        years = kept.groupby(kept.index.year).sum()
+        assert years[2002] > 0 and years[2003] < 0 and years[2004] < 0 and years[2005] > 0
+        running = kept.cumsum()
+        after_peak = running[running.index > running.idxmax()]
+        assert after_peak.idxmin() == kept.index[-1] == pd.Timestamp("2007-10-31")
+
+    def test_2002_and_2006_are_the_later_halfs_best_and_worst_full_years(self, kept) -> None:
+        later = kept[kept.index >= pd.Timestamp("2002-01-01")]
+        counts = later.groupby(later.index.year).size()
+        full = later.groupby(later.index.year).sum()[counts == 12]
+        assert list(full.index) == [2002, 2003, 2004, 2005, 2006]
+        assert (full.idxmax(), full.idxmin()) == (2002, 2006)
+
+    def test_without_2002_the_later_half_loses(self, kept) -> None:
+        """Exploratory, with no verdict: the later half's small gain rests on 2002."""
+        later = kept[kept.index >= pd.Timestamp("2002-01-01")]
+        rest = later[later.index.year != 2002]
+        assert len(rest) == 58
+        annual = 12 * float(np.nanmean(rest.to_numpy()))
+        assert annual == pytest.approx(-0.03164001190171385, abs=1e-9)
+        assert format(annual, ".6f") == "-0.031640"
+
     def test_the_split_sketch_draws_these_figures(self, spx, kept) -> None:
         """``SplitFigures`` holds its defaults so the sketch draws without the file."""
         from chan.equity_seasonals_whiteboard import SplitFigures

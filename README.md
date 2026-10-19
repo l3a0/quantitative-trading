@@ -3214,11 +3214,14 @@ holds which tenth each strategy sketch buys and shorts, which way each points
 its extremes, the timing each draws, that the opening sketches place every
 figure and date to scale and refuse figures their words would misdescribe,
 that each rule sketch prints its figures and puts its marks where they say,
-that no label touches a line, another label or the frame's edge, and that each
-GIF follows its text in the post. The rule sketches' figures are defaults in
-`RuleFigures`, and `TestTheRuleSketchesFigures` in
+that the split sketch draws each bar and bracket to one scale and colours each
+bar by its sign, that no label touches a line, another label or the frame's
+edge, and that each GIF follows its text in the post. The rule sketches'
+figures are defaults in `RuleFigures`, and `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
-one from Chan's files. The whiteboard test draws the verdicts from the pinned
+one from Chan's files. The split sketch's figures are defaults in
+`SplitFigures`, and `TestTheYearsInsideTheSplit` derives each one from Chan's
+S&P 500 file. The whiteboard test draws the verdicts from the pinned
 figures, so it runs without the archive, and a test in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) holds that
 the two registered runs give those figures where the archive is. The test
