@@ -254,6 +254,10 @@ Survivorship bias is what a backtest picks up when its data holds only the compa
 
 Three open questions.
 
+1. Whether Heston and Sadka’s effect existed before 2002.
+2. Whether the January effect survived the book.
+3. Whether Heston and Sadka’s effect survived the book.
+
 ### 1. Whether Heston and Sadka’s effect existed before 2002
 
 The file holds 13 months before 2002, all on survivors. Testing it needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
@@ -310,7 +314,7 @@ Leaving the unchecked members out, with each tenth taken of the checked members 
 
 A third run tested Example 7.7 under the revised MATLAB’s rules on the S&P 500 as it stood each month, from January 2009 to September 2026, so the companies that later left the index are in it. The membership comes from IVV, an iShares fund that holds the index and files its holdings with the SEC each quarter. Each filing’s list stands for the months until the next, so a company that joins or leaves between two filings counts as doing so at the next one. This run is **registered** too, for the same reason as the second.
 
-![An animated whiteboard sketch titled “A list stands until the next filing”, drawn stroke by stroke. Four grey dashed lines stand for “quarter-end filings”. On a row labelled “a company that leaves”, a black line runs from the first filing to a tick labelled “leaves the index”, and a red stretch labelled “still held” carries on to the next filing. On a row labelled “a company that joins”, a red dashed stretch labelled “not yet held” runs from where it joins to the next filing, and a black line runs on from there. The words “each filing’s list stands until the next one” close the sketch.](../docs/figures/equity_seasonals_ivv_carry.gif)
+![An animated whiteboard sketch titled “A list stands until the next filing”, drawn stroke by stroke. Four grey dashed lines stand for “quarter-end filings”. On a row labelled “a company that leaves”, a black line runs from the first filing to a tick labelled “leaves the index”, and a red stretch carries on to the next filing, labelled “still on the list”. On a row labelled “a company that joins”, a red dashed stretch labelled “not yet on the list” runs from where it joins to the next filing, and a black line runs on from there. The words “each filing’s list stands until the next one” close the sketch.](../docs/figures/equity_seasonals_ivv_carry.gif)
 
 #### Which companies it kept
 
@@ -328,7 +332,7 @@ Dropping the rest is harmless only if leaving the index has little to do with wh
 
 The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would print a mean at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months.
 
-![An animated whiteboard sketch titled “213 months add up to nothing”, drawn stroke by stroke. A grey zero line runs from 2009 to 2026. A green dashed line labelled “13% a year, the book’s figure” climbs steadily above it, and a black line labelled “the run’s 213 months, added up” runs just below zero nearly the whole way, lowest in 2021, and ends just below it. The words “a mean of −0.0001 a month: flat, where 13% a year climbs” close the sketch.](../docs/figures/equity_seasonals_ivv_running_sum.gif)
+![An animated whiteboard sketch titled “213 months add up to nothing”, drawn stroke by stroke. A grey zero line runs from 2009 to 2026. A green dashed line, labelled “13% a year, the book’s figure”, climbs steeply above it, and a brown dashed line labelled “4.2% a year” climbs more gently. A black line labelled “the run’s 213 months, added up” runs just below zero nearly the whole way, lowest in 2021, and ends just below it. The words “a mean of −0.0001 a month: flat, under the 4.2% a year its test could detect” close the sketch.](../docs/figures/equity_seasonals_ivv_running_sum.gif)
 
 #### What the verdict says
 

@@ -487,6 +487,7 @@ PINNED_IVV = IvvFigures(
         )
     ),
     mean=-0.0001391960725288475,
+    detectable=0.0422031836138127,
 )
 
 STROKES = [
@@ -2156,6 +2157,7 @@ OTHER_IVV = IvvFigures(
     staying=(2, 2, 6),
     months=(("2010-12", 0.01), ("2011-01", -0.02), ("2011-02", 0.03)),
     mean=0.0066666666666666671,
+    detectable=0.09,
 )
 
 
@@ -2171,9 +2173,9 @@ class TestTheSection3Sketches:
             "quarter-end filings",
             "a company that leaves",
             "leaves the index",
-            "still held",
+            "still on the list",
             "a company that joins",
-            "not yet held",
+            "not yet on the list",
             "each filing’s list stands until the next one",
         ]
         assert checked.labels == [
@@ -2199,13 +2201,14 @@ class TestTheSection3Sketches:
             "2009",
             "2026",
             "13% a year, the book’s figure",
+            "4.2% a year",
             "the run’s 213 months, added up",
-            "a mean of −0.0001 a month: flat, where 13% a year climbs",
+            "a mean of −0.0001 a month: flat, under the 4.2% a year its test could detect",
         ]
 
     def test_a_change_is_held_until_the_next_filing(self, ivv) -> None:
-        """The leaver is still held, in red, up to the next filing, and the joiner
-        is not held, in red and dashed, until one."""
+        """The leaver stays on the list, in red, up to the next filing, and the
+        joiner is not on it, in red and dashed, until one."""
         carry = ivv[0]
         held, late = _stroke(carry, "held"), _stroke(carry, "late")
         missed, joined = _stroke(carry, "missed"), _stroke(carry, "joined")
@@ -2266,6 +2269,14 @@ class TestTheSection3Sketches:
             sketches.RUNNING_ZERO + per * np.concatenate([[0.0], np.cumsum(values)])
         )
         assert (run.color, book.color, book.dashed) == (whiteboard.INK, GOOD, True)
+        detect = _stroke(running, "detectable")
+        assert detect.y == pytest.approx(
+            sketches.RUNNING_ZERO + per * figures.detectable / 12 * np.arange(len(values) + 1)
+        )
+        assert (detect.color, detect.dashed) == (ACCENT, True)
+        assert _labelled(running, f"{100 * figures.detectable:.1f}% a year").y == pytest.approx(
+            detect.y[-1]
+        )
         first, last = figures.months[0][0][:4], figures.months[-1][0][:4]
         assert running.labels[1:3] == [first, last]
         assert running.title == f"{len(values)} months add up to nothing"
@@ -2289,6 +2300,7 @@ class TestTheSection3Sketches:
                     [0.01, -0.02], index=pd.to_datetime(["2010-01-29", "2010-02-26"])
                 ),
                 test=SimpleNamespace(mean=-0.005),
+                x=0.07,
             ),
         )
         figures = IvvFigures.from_run(monthly)

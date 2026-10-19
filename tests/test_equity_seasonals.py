@@ -3381,6 +3381,7 @@ def test_the_whiteboard_draws_these_runs_ivv_figures(monthly) -> None:
         [v for _, v in PINNED_IVV.months], abs=1e-9
     )
     assert drawn.mean == pytest.approx(PINNED_IVV.mean, abs=1e-12)
+    assert drawn.detectable == pytest.approx(PINNED_IVV.detectable, abs=1e-12)
 
 
 def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:

@@ -103,15 +103,15 @@ The last four sit under the question on whether Heston and Sadka's effect
 survived the book, one under each of the first four headings that split it:
 
 1. A list stands until the next filing: a company that leaves between two of
-   IVV's quarter-end filings is still held until the next one, and one that
-   joins is not held until then. It is schematic.
+   IVV's quarter-end filings stays on the list the run ranks until the next
+   one, and one that joins is not on it until then. It is schematic.
 2. Who had a checked price: the member-months with a checked price against
    those dropped, overall and at the month-ends with the fewest and the most.
 3. Leavers land in the tenths: the companies that left the index within a
    year, and those that stayed, as shares placed long, short and neither.
    It builds slowly.
-4. The run's held months added up, against the line 13 percent a year would
-   climb.
+4. The run's held months added up, against the lines 13 percent a year and
+   the return its test detects would climb.
 
 The last three draw :class:`IvvFigures`, read from the IVV run on the owner's
 archive.
@@ -2055,7 +2055,8 @@ class IvvFigures:
     ``staying`` are the departures table's two rows, long, short and neither,
     and ``months`` is :data:`chan.equity_seasonals.REVISED_MATLAB`'s held
     months before costs, each as its month and its return, with ``mean``
-    their mean.
+    their mean and ``detectable`` the annual return its test detects 80
+    percent of the time.
     """
 
     covered: int
@@ -2066,6 +2067,7 @@ class IvvFigures:
     staying: tuple[int, int, int]
     months: tuple[tuple[str, float], ...]
     mean: float
+    detectable: float
 
     @classmethod
     def from_run(cls, monthly: seasonals.MonthlyRun) -> IvvFigures:
@@ -2084,15 +2086,16 @@ class IvvFigures:
                 for day, value in returns.items()
             ),
             mean=monthly.matlab.test.mean,
+            detectable=monthly.matlab.x,
         )
 
 
 #: Where the carry-forward scene draws its four quarter-end filings, and the
 #: two companies' rows.
-FILINGS = (3.0, 5.0, 7.0, 9.0)
+FILINGS = (3.0, 5.4, 7.1, 9.1)
 LEAVER_Y, JOINER_Y = 3.0, 1.75
 #: Where the leaver leaves and the joiner joins, between two filings.
-LEAVES_AT, JOINS_AT = 5.6, 3.8
+LEAVES_AT, JOINS_AT = 6.0, 4.0
 
 
 def _ivv_carry() -> Scene:
@@ -2121,15 +2124,7 @@ def _ivv_carry() -> Scene:
             width=4.0,
             frames=4,
         ),
-        Label(
-            "still held",
-            (LEAVES_AT + FILINGS[2]) / 2,
-            LEAVER_Y - 0.5,
-            names="late",
-            color=LOST,
-            ha="center",
-            size=10,
-        ),
+        Label("still on the list", FILINGS[2] + 0.2, LEAVER_Y, names="late", color=LOST, size=9),
         Label("a company that joins", 0.3, JOINER_Y + 0.42, names="late", size=11),
         _stroke(
             "missed",
@@ -2140,13 +2135,13 @@ def _ivv_carry() -> Scene:
             frames=4,
         ),
         Label(
-            "not yet held",
-            (JOINS_AT + FILINGS[1]) / 2 - 0.3,
+            "not yet on the list",
+            (FILINGS[0] + FILINGS[1]) / 2,
             JOINER_Y - 0.45,
             names="missed",
             color=LOST,
             ha="center",
-            size=10,
+            size=9,
         ),
         _stroke("joined", _line([(FILINGS[1], JOINER_Y), (9.4, JOINER_Y)]), width=4.0, frames=8),
         Label(
@@ -2255,11 +2250,12 @@ def _ivv_leavers(f: IvvFigures) -> Scene:
 
 #: The running-sum scene's span across the board, its zero line, and the
 #: height the book's 13 percent a year reaches by the last month.
-RUNNING_X, RUNNING_ZERO, RUNNING_TOP = (1.0, 8.6), 1.35, 3.95
+RUNNING_X, RUNNING_ZERO, RUNNING_TOP = (1.0, 8.45), 1.35, 3.95
 
 
 def _ivv_running_sum(f: IvvFigures) -> Scene:
-    """The held months added up, against the line 13 percent a year would climb."""
+    """The held months added up, against the lines 13 percent a year and the
+    return the test detects would climb."""
     values = np.array([value for _, value in f.months])
     n = len(values)
     added = np.concatenate([[0.0], np.cumsum(values)])
@@ -2275,16 +2271,32 @@ def _ivv_running_sum(f: IvvFigures) -> Scene:
         _stroke("book", (xs, RUNNING_ZERO + book * per), color=GOOD, dashed=True, frames=12),
         Label(
             f"{BOOK_ANNUAL:.0%} a year, the book’s figure",
-            5.6,
-            2.45,
+            x0,
+            3.75,
             names="book",
             color=GOOD,
             size=11,
         ),
-        _stroke("run", (xs, RUNNING_ZERO + added * per), width=2.6, frames=24),
-        Label(f"the run’s {n} months, added up", 7.0, 1.85, names="run", ha="center", size=11),
+        _stroke(
+            "detectable",
+            (xs, RUNNING_ZERO + f.detectable / 12 * np.arange(n + 1) * per),
+            color=ACCENT,
+            dashed=True,
+            frames=12,
+        ),
         Label(
-            f"a mean of {_signed(f.mean, 4)} a month: flat, where {BOOK_ANNUAL:.0%} a year climbs",
+            f"{100 * f.detectable:.1f}% a year",
+            x1 + 0.2,
+            RUNNING_ZERO + f.detectable / 12 * n * per,
+            names="detectable",
+            color=ACCENT,
+            size=10,
+        ),
+        _stroke("run", (xs, RUNNING_ZERO + added * per), width=2.6, frames=24),
+        Label(f"the run’s {n} months, added up", 4.5, 0.72, names="run", ha="center", size=11),
+        Label(
+            f"a mean of {_signed(f.mean, 4)} a month: flat, under the "
+            f"{100 * f.detectable:.1f}% a year its test could detect",
             0.3,
             0.25,
             names="run",

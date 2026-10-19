@@ -3262,15 +3262,17 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     eighteen Januaries as a bar from its low version to its high, with a dot
     beside each bar for that January with the unchecked members left out.
 22. `equity_seasonals_ivv_carry.gif`, under "Whether Heston and Sadka's effect
-    survived the book", a company that leaves or joins between two of IVV's
-    filings, held until the next one.
+    survived the book", a company that leaves between two of IVV's filings,
+    still on the list until the next one, and one that joins, not yet on it
+    until then.
 23. `equity_seasonals_ivv_checked.gif`, the 98,321 of 107,115 member-months
     with a checked price, and the month-ends with the fewest and the most.
 24. `equity_seasonals_ivv_leavers.gif`, the companies that left the index
     within a year against those that stayed, as shares placed long, short and
     neither.
 25. `equity_seasonals_ivv_running_sum.gif`, the run's 213 held months added up
-    against the line 13 percent a year would climb.
+    against the lines 13 percent a year and the 4.2 percent a year its test
+    detects would climb.
 
 Like the strategy sketches, Lesson 3's three, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures.
