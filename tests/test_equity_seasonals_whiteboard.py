@@ -1009,6 +1009,12 @@ class TestThePost:
             k for k, p in enumerate(paragraphs) if p.startswith("The verdict, in the words written")
         ]
         assert paragraphs[verdict - 1] == "#### What the verdict says"
+        for heading, opening in (
+            ("#### Where the 4.2 percent comes from", "The 4.2 percent follows from the noise"),
+            ("#### What a broader series shows", "A broader series agrees with the registered run"),
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            assert paragraphs[index - 1] == heading
 
     def test_every_sketch_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
