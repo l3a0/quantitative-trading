@@ -30,7 +30,10 @@ is the first to arrive by hand since `chan.vintage` existed, and
 [issue 124](https://github.com/l3a0/quantitative-trading/issues/124) is where
 that was settled. The seven files of Chan's 2018 Python port arrived by hand
 too, because they are committed as his zip shipped them and neither writer
-produces that shape.
+produces that shape. So did the five long-short return series of the Open
+Source Asset Pricing project, because neither writer records a return, and
+their names were built the way the recorder builds one so the check on recorded
+names below holds them to their fields.
 
 The third way is `chan.vintage.record_lifted_columns`, which writes every
 column of one of Chan's files at once, each as its own vintage carrying the
@@ -48,8 +51,9 @@ date are recoverable from the path without reading a byte, and
 the name its file took. Renaming such a file fails the suite either way.
 Renaming the file alone leaves an entry naming nothing, and renaming the entry
 with it makes the fields and the name disagree. The hand-written files above
-are exempt, because nothing built their names out of their fields and so
-nothing can compare the two, and so are the lifted columns, which take their
+are exempt, other than the five Open Source Asset Pricing files, because
+nothing built their names out of their fields and so nothing can compare the
+two, and so are the lifted columns, which take their
 source's directory and their symbol rather than the recorder's join. What holds
 a hand-written entry instead is the identity pinned for it in
 [tests/support/committed_vintages.py](../tests/support/committed_vintages.py),
@@ -109,6 +113,11 @@ for a series lifted from one of Chan's own files.
 | `yfinance_iwb_raw_2000-05-19_2026-10-02_dl2026-10-03.csv` | yfinance | IWB | raw | 2000-05-19 .. 2026-10-02 | 2026-10-03 |
 | `yfinance_spy_raw_1993-01-29_2026-10-02_dl2026-10-03.csv` | yfinance | SPY | raw | 1993-01-29 .. 2026-10-02 | 2026-10-03 |
 | `alphavantage_usdcad_raw_2007-08-10_2026-10-12_dl2026-10-13.csv` | alphavantage | USDCAD | raw | 2007-08-10 .. 2026-10-12 | 2026-10-13 |
+| `openassetpricing-202510_momseasonshort-ls_return_1927-01-31_2024-12-31_dl2026-10-19.csv` | openassetpricing-202510 | MOMSEASONSHORT-LS | return | 1927-01-31 .. 2024-12-31 | 2026-10-19 |
+| `openassetpricing-202510_mom12m-ls_return_1927-01-31_2024-12-31_dl2026-10-19.csv` | openassetpricing-202510 | MOM12M-LS | return | 1927-01-31 .. 2024-12-31 | 2026-10-19 |
+| `openassetpricing-202510_streversal-ls_return_1926-02-27_2024-12-31_dl2026-10-19.csv` | openassetpricing-202510 | STREVERSAL-LS | return | 1926-02-27 .. 2024-12-31 | 2026-10-19 |
+| `openassetpricing-202510_betafp-ls_return_1928-04-30_2024-12-31_dl2026-10-19.csv` | openassetpricing-202510 | BETAFP-LS | return | 1928-04-30 .. 2024-12-31 | 2026-10-19 |
+| `openassetpricing-202510_announcementreturn-ls_return_1971-09-30_2024-12-31_dl2026-10-19.csv` | openassetpricing-202510 | ANNOUNCEMENTRETURN-LS | return | 1971-09-30 .. 2024-12-31 | 2026-10-19 |
 | `spx_20071123/` | Chan's `SPX_20071123.mat` | 500 members | adjusted | 1999-11-24 .. 2007-11-23 | saved 2007-11-24 |
 | `ijr_20080114/` | Chan's `IJR_20080114.mat` | 600 members | adjusted | 2004-01-15 .. 2008-01-14 | saved 2008-01-15 |
 | `ijr_20080131/` | Chan's `IJR_20080131.mat` | 600 members | adjusted | 2004-01-15 .. 2008-02-01 | saved 2008-02-02 |
@@ -375,6 +384,77 @@ stating rather than leaving a reader to infer.
    checksum lines and this paragraph it takes `data/` from 203.56 MB to
    203.66 MB of file content, which leaves 1.34 MB under the 205 MB
    budget. Those sizes were measured on this branch and no test holds them.
+
+The five `openassetpricing-202510_` files are monthly long-short portfolio
+returns from the Open Source Asset Pricing project. Andrew Chen and Tom
+Zimmermann rebuild published stock-return predictors from CRSP, sort stocks on
+each one, and publish the portfolios' returns. Their paper is "Open Source
+Cross-Sectional Asset Pricing", *Critical Finance Review*, 2022, and the
+project asks anyone using its data to cite it.
+[Issue 660](https://github.com/l3a0/quantitative-trading/issues/660) committed
+these five so the issues comparing them with strategies reproduced here read
+bytes somebody kept. `chan.open_asset_pricing` reads them. Six things about
+them are worth stating rather than leaving a reader to infer.
+
+1. **The project's terms allow this, as far as they say anything.** Its home
+   page asks that anyone using the data cite the paper. Its Data and FAQ pages,
+   read on 2026-10-19, state no licence, no terms of use and no restriction on
+   redistribution. Its code repository carries the GNU General Public License,
+   version 2, which covers the code and says nothing about the returns. The
+   returns are portfolio averages the authors publish openly, not CRSP's
+   per-stock records, so nothing found bars committing them with the citation
+   above. The owner can still reverse that on the pull request.
+2. **The release is part of the vendor.** The project ships a new release most
+   years, and a release can restate an earlier month. The project
+   published release 202510 on 2025-10-22. So the vendor field
+   reads `openassetpricing-202510`, and a later release is a different vintage
+   rather than a second download of this one.
+3. **This is the call that produced them.** On 2026-10-19 the
+   `openassetpricing` package resolved `OpenAP(202510).dl_port('op', 'pandas')` to one
+   file, `PredictorPortsFull.csv`, and that file was downloaded whole. It held
+   77,651,932 bytes with sha256
+   `6cdaf0ff051222b813e6f8404d7a30b94e146b421625f202bd04473fe97a1817`, opened
+   with the header `signalname,port,date,ret,signallag,Nlong,Nshort` and ended
+   each line in a bare newline. Each committed file is that header followed by
+   every line whose first two cells are the signal and `LS`, byte for byte and
+   in the file's order. The package itself parses the file and sorts it,
+   which is why the bytes were taken from the file rather than from the
+   package's frame. Each line's `vendor_column` names the rows it took.
+4. **Nothing in the rows was edited.** `ret` is the long-short return in
+   percent a month, and `Nlong` and `Nshort` count the stocks on each side.
+   `signallag` is `NA` on every long-short row, as the source writes it, and no
+   `ret` is. Each row is dated the last trading day of its month, such as
+   1926-02-27, not the calendar month end, and every series has one row for
+   every calendar month of its span.
+5. **The construction differs by signal.** Each is equal-weighted, and each
+   long-short row is the top portfolio's return less the bottom one's. The
+   release's `SignalDoc.csv` gives each signal's weighting, quantile, filter
+   and rebalancing. That file held 181,712 bytes with sha256
+   `f6c055120bad7afe97c16e23e0f49bce0982269026605a955e8064bd661cf415` on the
+   same day and is not committed. Where a fact below comes from the returns
+   file instead, it says so.
+   1. `MomSeasonShort`, from Heston and Sadka (2008), sorts NYSE and AMEX
+      stocks only into tenths, re-formed monthly.
+   2. `Mom12m`, from Jegadeesh and Titman (1993), sorts into tenths re-formed
+      every three months.
+   3. `STreversal`, from Jegadeesh (1990), sorts into tenths re-formed monthly,
+      long the past month's losers.
+   4. `BetaFP`, from Frazzini and Pedersen (2014), sorts into tenths re-formed
+      monthly, and its long-short row is long the highest-beta tenth and short
+      the lowest. That is the opposite side of the paper's betting-against-beta
+      trade. The project's own note says the paper's factor is a rank-weighted
+      median split scaled to a beta of 1, so these portfolios are not the
+      paper's in construction either.
+   5. `AnnouncementReturn`, from Chan, Jegadeesh and Lakonishok (1996), is
+      re-formed monthly. `SignalDoc.csv` leaves its quantile blank, and the
+      returns file holds five portfolios, `01` to `05`, so it is sorted into
+      fifths. The returns file's first month for it, 1971-09, holds one stock
+      on each side.
+6. **They fit the budget.** The five files hold 283,897 bytes. With their
+   manifest and checksum lines and these paragraphs they take `data/` from
+   203.66 MB to 203.95 MB of file content, which leaves 1.05 MB under the
+   205 MB budget. Those sizes were measured on this branch and no test holds
+   them.
 
 The twelve `eia_` files are NYMEX futures settlement prices as the US Energy
 Information Administration publishes them, contracts 1 to 4 of three products.
@@ -1651,7 +1731,7 @@ this branch and no test holds them.
 
 ## Header shape
 
-The vintages here carry one of three header shapes.
+The vintages here carry one of four header shapes.
 
 The files placed by hand above carry a three-row header before the data,
 except the seven of Chan's Python port, which the third shape below covers.
@@ -1699,6 +1779,14 @@ file's layout from the pin in
 file, whose second column is a time. `chan.series.load_minute_close` reads
 that one, `chan.series.load_returns` reads the return file, which holds no
 dates, and `chan.series.load_rates` reads the two rate files.
+
+The fourth shape is the header the Open Source Asset Pricing project gave
+`PredictorPortsFull.csv`, `signalname,port,date,ret,signallag,Nlong,Nshort`,
+which each of its five files keeps because its rows are that file's lines
+byte for byte. The date is the third column, and the signal's name in the
+first is what names the series in the bytes. `chan.open_asset_pricing` reads
+them and refuses a row naming any other signal or portfolio, and the check on
+each file's span knows the shape by that header.
 
 ## Verifying the bytes
 
@@ -1768,8 +1856,10 @@ Two files carry that record.
    existed and the two SPY workbook columns', `spy_chan.csv`'s and
    `spy_unadjusted_chan.csv`'s, which were typed because the recorder cannot
    write a saved date, and the seven files of Chan's Python port, which were
-   typed because they keep the zip's shape. Every other line was written by
-   code, a download by
+   typed because they keep the zip's shape. The five Open Source Asset Pricing
+   lines were typed by a script rather than by either recorder, because
+   neither records a return, and their names follow the recorder's join.
+   Every other line was written by code, a download by
    `record_vintage` and a column lifted from Chan's MATLAB and CSV files by
    `record_lifted_columns`. More lines will be typed by hand for as long as a
    replication reaches for another of Chan's workbook columns.
@@ -1778,8 +1868,9 @@ Two files carry that record.
    and each change that recorded a vintage made it false again.
    [Issue 132](https://github.com/l3a0/quantitative-trading/issues/132), the
    sweep of prose that counts the committed vintages, is why it names the
-   hand-written lines instead. Only a hand-typed workbook column changes that
-   set, and that is the change that would also write the line.
+   hand-written lines instead. Only a hand-typed line changes that set, such
+   as a workbook column or a return series, and that is the change that would
+   also write the line.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.
