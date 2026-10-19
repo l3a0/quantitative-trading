@@ -52,6 +52,10 @@ sets, and when" in the [update-build-board skill](../update-build-board/SKILL.md
 label, the verdict line's exact form and the commands. Read them there rather than from a copy here, so a change to the
 format reaches every loop.
 
+A split adds sub-issues and "blocked by" links, and neither starts a run of the board. So a
+loop that splits also owes the board a dispatch, per the moments "What a card waits on
+changes" and "An issue gains or loses a sub-issue" in the same skill.
+
 ## What makes a pass find something
 
 A pass that re-reads the plan finds nothing. Two questions return almost everything, and they

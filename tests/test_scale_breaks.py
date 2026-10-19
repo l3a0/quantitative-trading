@@ -899,21 +899,25 @@ class TestTheGuardOverTheWholeManifest:
 
     def test_only_vintages_that_hold_no_price_are_left_out(self) -> None:
         """The skip is by basis, so this says what it skips today: the bill series,
-        Chan's 497 earnings flags, and the two rate files and the return file of
-        his Python port."""
+        Chan's 497 earnings flags, the two rate files and the return file of his
+        Python port, and the five long-short return series of the Open Source
+        Asset Pricing project."""
         skipped = {e.path for e in read_manifest()} - {e.path for e in price_entries()}
         assert {e.price_basis for e in read_manifest() if e.path in skipped} == {
             "rate",
             "event",
             "return",
         }
-        assert {path for path in skipped if not path.startswith("earnannfile/")} == {
+        assert {
+            path for path in skipped if not path.startswith(("earnannfile/", "openassetpricing-"))
+        } == {
             "fred_tb3ms_rate_1934-01-01_2026-08-01_dl2026-09-30.csv",
             "pythoncodesanddata/AUD_interestRate.csv",
             "pythoncodesanddata/CAD_interestRate.csv",
             "pythoncodesanddata/AUDCAD_unequal_ret.csv",
         }
         assert len([path for path in skipped if path.startswith("earnannfile/")]) == 497
+        assert len([path for path in skipped if path.startswith("openassetpricing-")]) == 5
 
     def test_a_rate_series_would_report_breaks_if_it_were_read_as_a_price(self) -> None:
         """Why the skip exists, measured rather than asserted.

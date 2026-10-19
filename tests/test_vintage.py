@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from chan import vintage
+from chan import open_asset_pricing, vintage
 from chan.paths import DATA_DIR
 from chan.vintage import (
     CHECKSUMS_NAME,
@@ -1197,7 +1197,11 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
     Only those. A recorded vintage carries a single `Date,Close` header and no
     symbol anywhere in its bytes, which is the shape `_serialize` writes and
     `data/README.md`'s `## Header shape` section explains. Its symbol is held
-    by `the_recorded_entries_name_themselves` instead, out of the path.
+    by `the_recorded_entries_name_themselves` instead, out of the path. The
+    five Open Source Asset Pricing files are skipped here too. They carry
+    their source's header, and their symbol is held by the same path check and
+    by `tests/test_open_asset_pricing.py`, which reads the signal's name off
+    every row.
 
     This is what covers a workbook column, which is the reason `spy_chan.csv`
     joined `HAND_WRITTEN` rather than being left outside it. It covers every
@@ -1224,6 +1228,11 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
 
 def the_recorded_entries_name_themselves(directory: Path) -> None:
     """Every entry the recorder wrote agrees with the path it took.
+
+    So does every entry typed under a name the recorder's join built, which is
+    the five Open Source Asset Pricing return series. Neither recorder writes a
+    return, so a script typed their lines, and naming them this way is what
+    brings them under this check.
 
     `vintage_filename` joins all five identity fields, so a recorded vintage's
     vendor, symbol, price basis and span are recoverable from `entry.path`
@@ -1520,10 +1529,11 @@ def _lifted_from_chan(path: str) -> bool:
 def _days_in(path: str, raw: bytes) -> list[str]:
     """The ISO date of every row in a committed file, one per row.
 
-    Every file this repo wrote, and every file placed by hand, writes an ISO
-    date first on each row, so a row is a line opening with four digits. The
-    files of Chan's Python port do not, and their pin's shape says what each
-    holds instead.
+    Every file this repo wrote, and every file placed by hand but two kinds,
+    writes an ISO date first on each row, so a row is a line opening with four
+    digits. The files of Chan's Python port do not, and their pin's shape says
+    what each holds instead. The Open Source Asset Pricing files do not either,
+    and the last paragraph below says how they are read.
 
     1. A minute or daily file writes `YYYYMMDD`, which is rewritten as ISO.
     2. A rate file writes a year and a month, and its date is the first of the
@@ -1532,8 +1542,17 @@ def _days_in(path: str, raw: bytes) -> list[str]:
        `RETURN_CALENDAR` names. A return row opens with `0.` or `-0.`, so the
        four-digit test the other files take would drop every one, and the
        length assertion is what checks each row got a date.
+
+    The Open Source Asset Pricing files keep their source's header, which puts
+    the signal's name first and the date third. They are told apart by that
+    header rather than by their path, so a row of theirs is every line after
+    it, and a line that is not a row breaks the row count rather than being
+    dropped.
     """
     lines = raw.decode("utf-8").splitlines()
+    if lines and lines[0] == ",".join(open_asset_pricing.HEADER):
+        column = open_asset_pricing.HEADER.index("date")
+        return [line.split(",")[column] for line in lines[1:]]
     if path not in PYTHON_PORT:
         return [line.split(",")[0] for line in lines if line[:4].isdigit()]
     rows = [line.split(",") for line in lines[1:]]

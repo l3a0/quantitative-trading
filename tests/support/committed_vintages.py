@@ -11,6 +11,15 @@ counts the reader's map against the same set. Spelling it twice would let a new
 vintage satisfy one file and not the other, and nothing would say which
 spelling was right.
 
+One kind of line no recorder wrote sits in none of the three. The five long-short
+return series of the Open Source Asset Pricing project, from
+[issue 660](https://github.com/l3a0/quantitative-trading/issues/660), were typed
+by a script because neither recorder writes a ``return``, and their paths were
+built by the recorder's join. Keeping them out of :data:`HAND_WRITTEN` is what
+puts them under ``the_recorded_entries_name_themselves`` in
+``tests/test_vintage.py``, which holds each path to its fields, and
+``tests/test_open_asset_pricing.py`` pins each one's identity and sha256.
+
 Hand-written means no code wrote the manifest line. That is the whole reason
 the set needs naming. A hand-written line has no generator to check it against,
 while a recorded one does, and the two therefore need different assertions

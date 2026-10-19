@@ -142,7 +142,13 @@ where they were first built. The other forty-five were built here.
    −0.0001 a month before costs, with a one-sided p of 0.539, so no return is
    detectable above about 4.2% a year. The verdict reads only the 98,321 of
    107,115 member-months with a checked price, and it leaves out costs and
-   the return a failing stock takes when it leaves.
+   the return a failing stock takes when it leaves. Entry 52 sets both of
+   Example 7.7's runs beside the Open Source Asset Pricing project's
+   `MomSeasonShort`, Heston and Sadka's signal rebuilt from CRSP, which holds
+   the companies that later left. That series averages 0.0136 a month over
+   their 1965 to 2002 sample, with a t of 8.63, and 0.0012 a month from 2002,
+   with a t of 0.50. It correlates at 0.592 with the IVV run. The comparison
+   is exploratory and reaches no verdict.
 8. Khandani and Lo's linear reversal, Example 3.7, which buys yesterday's
    losers against the market and shorts its winners. On Chan's own S&P 500
    file over 2006 it gives a Sharpe ratio of 0.2510 before costs and −3.1884
@@ -1474,7 +1480,9 @@ Example 2.5's claim on USD/CAD after 2012.
 Entry 46 carries the rerun of Example 7.2 described above, which
 chases no published figure and so reaches no verdict. Entry 48 carries the
 levered low-beta rule at leverage a broker would lend, which is exploratory
-and, like Entry 46, reaches no verdict.
+and, like Entry 46, reaches no verdict. Entry 52 sets Example 7.7 beside the
+Open Source Asset Pricing project's `MomSeasonShort`, which is exploratory and
+reaches no verdict either.
 
 A vintage is recorded rather than dropped in. `src/chan/vintage.py` writes a
 series and its provenance together and refuses to overwrite either, and
@@ -1885,8 +1893,28 @@ revised Python's figures follow with no verdict. Then come the means on the
 two masks that bracket each name that changed between schedules, the names
 removed and added between each pair of schedules with the positions held on
 them, the positions whose stock stopped inside the month held, and where
-departing names fell, which it marks as descriptive only. The two options
-cannot be given together.
+departing names fell, which it marks as descriptive only.
+
+`--open-asset-pricing` sets Example 7.7 beside the Open Source Asset Pricing
+project's `MomSeasonShort`, Heston and Sadka's own signal rebuilt from CRSP,
+from the release `data/` holds. It needs the archive for its last part only:
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.equity_seasonals --open-asset-pricing
+```
+
+It prints the project's mean and t over Heston and Sadka's 1965 to 2002
+sample beside their printed figure, then before 2002 beside Chan's 13 percent
+a year, and from 2002. Then, on Chan's file and on IVV's members, it prints
+each side's mean, standard deviation and t over the months both hold, their
+correlation, and their difference of means, raw and at the rule's scale. The
+rule earns half the top tenth less the bottom and the project the whole of
+it, which is why the second difference halves the project's mean. A machine
+with no archive gets every figure but the IVV one, then one line saying why it
+stopped. Entry 52 of the replication log carries the result, labelled
+exploratory.
+
+The three options cannot be given together.
 
 Khandani and Lo's reversal reads Chan's S&P 500 file and takes no window,
 because his script fixes both the file and the window:
