@@ -675,7 +675,7 @@ def stale_after_minutes(longest_gap: int) -> int:
 
     ``longest_gap`` is the longest gap between two scheduled runs. The
     threshold adds ``SCHEDULE_DELAY_ALLOWANCE`` to it, so a run GitHub starts
-    late does not read as a failing Action.
+    late or drops does not read as a failing Action.
     """
     return longest_gap + SCHEDULE_DELAY_ALLOWANCE
 

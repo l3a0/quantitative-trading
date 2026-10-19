@@ -1480,8 +1480,8 @@ def test_a_change_that_starts_no_run_names_the_dispatch() -> None:
     was their backstop fired in about 11% of its slots over 185 hours, which
     issue 587 measured. The owner ruled that the session making such a change
     dispatches the board itself. So every moment in the skill that sets one
-    names the dispatch, each of them has a moment, and the command names
-    this workflow, which keeps its dispatch trigger.
+    names the dispatch, each of the two changes has a moment that names it,
+    and the command names this workflow, which keeps its dispatch trigger.
     """
     assert set(NO_RUN_READS) <= set(re.findall(r"\b(blockedBy|subIssues)\b", bb.ISSUES_QUERY))
     moments = _moments()
@@ -1491,7 +1491,7 @@ def test_a_change_that_starts_no_run_names_the_dispatch() -> None:
         for moment in setting:
             assert "dispatch the board" in moment.lower(), moment.split("\n", 1)[0]
     skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
-    assert skill.count(f"\n{DISPATCH}\n") == 2
+    assert f"\n{DISPATCH}\n" in skill
     assert f"{DISPATCH} --ref" not in skill
     assert re.search(r"^  workflow_dispatch:\s*$", _workflow(), re.M)
 

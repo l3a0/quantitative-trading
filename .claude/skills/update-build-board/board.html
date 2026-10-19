@@ -468,9 +468,9 @@ function adopt(src) {
    gap rather than promising a rebuild by any time. GitHub documents no bound
    on the delay. Until issue 563 the threshold was twice the gap, which would
    call a healthy board stale whenever one run came an hour late in a quiet
-   stretch. Until issue 587 the allowance was an hour, which called a healthy
-   board stale 45% of the time once the schedule fired in about 11% of its
-   slots.
+   stretch. Issue 587 raised the allowance from an hour, which called a
+   healthy board stale 45% of the time once the schedule fired in about 11% of
+   its slots.
 
    Until issue 533 the board also named the fields it did not carry yet, from
    a `lacks` list in the state, while the artifact board stayed the board of

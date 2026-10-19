@@ -44,20 +44,21 @@ than in a file on the machine.
 A change reaches the page once a run of the Action finishes. A label, a body
 edit and a comment each start a run. A "blocked by" link and a sub-issue start
 none, because GitHub Actions lists no trigger for either. So the session that
-sets one dispatches the board itself, once its changes are set, with the same
-`gh` login it set them with. The moments below say where.
+makes one dispatches the board itself once its changes are in, using the `gh`
+login it made them with. The moments below say where.
 
 ```bash
 gh workflow run board.yml --repo l3a0/quantitative-trading
 ```
 
-The dispatch runs on `main`, the default branch. Never pass `--ref`, because
-the `github-pages` environment lets only `main` deploy, so a run from any other
-branch builds and then has its deploy refused.
+The dispatch runs on `main`, the default branch. Never pass `--ref`. The
+`github-pages` environment lets only `main` deploy, so GitHub refuses the
+deploy of a run from any other branch.
 
-The `cron` line in `.github/workflows/board.yml` is a sweep rather than a
-backstop. After it moved to `8,38` it fired in about 11% of its slots over the
-next week, with up to ten hours between two runs, which
+The `cron` line in `.github/workflows/board.yml` still starts runs, which catch
+a change made with a workflow's own token or a dispatch a session forgot, but
+nothing can rely on it. After it moved to `8,38` it fired in about 11% of its
+slots over the next 185 hours, with up to 603 minutes between two runs, which
 [issue 587](https://github.com/l3a0/quantitative-trading/issues/587) measured.
 Pages also tells a browser to cache `board.json` for ten minutes, and the page
 asks for a fresh copy every two minutes to get round it.

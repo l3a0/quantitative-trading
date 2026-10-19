@@ -47,9 +47,9 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-  # A sweep for a change made with a workflow's own token, which starts no
-  # run, and for a dispatch a session forgot. It is no backstop, because
-  # GitHub delays or drops a scheduled run under load. Issue 587 measured
+  # Catches a change made with a workflow's own token, which starts no run,
+  # and a dispatch a session forgot. Nothing can rely on it, because GitHub
+  # delays or drops a scheduled run under load. Issue 587 measured
   # about 11% of the 8,38 slots firing over 185 hours, with up to 603 minutes
   # between two runs. The generator reads this line, and the page calls the
   # board stale once it is older than the longest gap between two runs plus
@@ -64,7 +64,8 @@ on:
   # by one in the hope that a changed cron line makes GitHub register the
   # schedule anew, as reported in
   # https://github.com/orgs/community/discussions/185355. It did not help
-  # enough, so issue 587 moved the backstop to the dispatch above.
+  # enough, so issue 587 made the session that sets a link or sub-issue
+  # dispatch the board itself.
   schedule:
     - cron: "8,38 * * * *"
   workflow_dispatch:
