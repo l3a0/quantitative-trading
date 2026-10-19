@@ -2578,7 +2578,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's eleven GIFs are checked the same way by
+equity seasonals post's twelve GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3160,7 +3160,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries eleven looping whiteboard sketches, drawn by
+The post also carries twelve looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3197,13 +3197,16 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 11. `equity_seasonals_rule_month_end_lookup.gif`, Example 7.7's rule 8, the
     first pass asking the 96 month-end rows for row 258, and row 13, which
     the repair reads.
+12. `equity_seasonals_split_swing.gif`, in Lesson 2, the two halves' annual
+    returns beside the sums of 2002 and 2006, to one scale, with their gaps
+    of 0.1574 and 0.3546.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
 Only the verdicts sketch reads the owner's archive. On a machine without it
-the command redraws the other ten and exits non-zero, naming the one it
+the command redraws the other eleven and exits non-zero, naming the one it
 left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)

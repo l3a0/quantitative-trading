@@ -747,6 +747,18 @@ class TestTheYearsInsideTheSplit:
     def test_the_running_sum_peaks_in_january_2006(self, kept) -> None:
         assert kept.cumsum().idxmax() == pd.Timestamp("2006-01-31")
 
+    def test_the_split_sketch_draws_these_figures(self, spx, kept) -> None:
+        """``SplitFigures`` holds its defaults so the sketch draws without the file."""
+        from chan.equity_seasonals_whiteboard import SplitFigures
+
+        drawn = SplitFigures()
+        years = kept.groupby(kept.index.year).sum()
+        before, after = split_at(heston_sadka(spx, PYTHON_HESTON_SADKA), PYTHON_HESTON_SADKA)
+        assert drawn.before_2002 == pytest.approx(before[1], abs=1e-12)
+        assert drawn.from_2002 == pytest.approx(after[1], abs=1e-12)
+        assert drawn.year_2002 == pytest.approx(years[2002], abs=1e-12)
+        assert drawn.year_2006 == pytest.approx(years[2006], abs=1e-12)
+
 
 class TestTheMostRecentFiveYears:
     """P. 180's claim that the most recent five years give even worse average returns.

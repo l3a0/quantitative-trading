@@ -1,7 +1,8 @@
-"""The pins for the eleven whiteboard GIFs in the equity-seasonals post.
+"""The pins for the twelve whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
-and seven the rules its first lesson lists, one rule each. The opening's
+seven the rules its first lesson lists, one rule each, and one the split in
+its second lesson. The opening's
 timeline places each source's years to scale, from Chan's committed files and
 the registered runs' constants, and its verdicts sketch draws the two
 registered runs' figures to scale. Those figures are pinned here as
@@ -66,6 +67,7 @@ from chan.equity_seasonals_whiteboard import (
     YEAR,
     RuleFigures,
     Spans,
+    SplitFigures,
     Verdicts,
     _at,
     _year,
@@ -75,6 +77,7 @@ from chan.equity_seasonals_whiteboard import (
     opening_scenes,
     rule_scenes,
     scenes,
+    split_scenes,
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import GOOD, LOST
@@ -105,8 +108,9 @@ RULE_GIFS = [
     "equity_seasonals_rule_own_month_end.gif",
     "equity_seasonals_rule_month_end_lookup.gif",
 ]
+SPLIT_GIFS = ["equity_seasonals_split_swing.gif"]
 #: Every GIF in the order :func:`make_equity_seasonals_whiteboards` writes them.
-GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS
+GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS + SPLIT_GIFS
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
 #: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``. The vintage
@@ -194,9 +198,14 @@ def rules():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules):
-    """All eleven scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules)
+def split():
+    return split_scenes()
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules, split):
+    """All twelve scenes in the order their GIFs are written."""
+    return (*opening, *drawn, *rules, *split)
 
 
 @pytest.fixture(scope="module")
@@ -502,6 +511,16 @@ class TestThePost:
             ), name
             assert sum(name in b for b in blocks) == 1, name
 
+    def test_the_split_sketch_follows_the_paragraph_on_the_years(self) -> None:
+        """Before the paragraph that explains the running-sum chart, so that
+        paragraph's "the figure below" still names the chart."""
+        paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
+        (index,) = [k for k, p in enumerate(paragraphs) if p.startswith("The 70 months from 2002")]
+        name = re.escape(SPLIT_GIFS[0])
+        assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{name}\)", paragraphs[index + 1])
+        assert paragraphs[index + 2].startswith("The figure below adds up the 83 months")
+        assert "equity_seasonals_split.png" in paragraphs[index + 3]
+
     def test_every_sketch_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
         for name in GIFS:
@@ -547,7 +566,7 @@ class TestTheCommand:
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - 1
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_ten(
+    def test_without_the_archive_it_still_writes_the_other_eleven(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -971,3 +990,89 @@ class TestTheRuleSketches:
         width = (x1 - x0) / figures.month_end_rows
         repair = _stroke(lookup, "repair")
         assert repair.x[0] == pytest.approx(x0 + (figures.repaired_row - 0.5) * width)
+
+
+#: Figures unlike the file's, with the halves further apart than the years,
+#: so a mark drawn from the defaults lands in the wrong place.
+SWUNG = SplitFigures(before_2002=-0.05, from_2002=0.12, year_2002=-0.08, year_2006=0.04)
+
+
+@pytest.fixture(params=[SplitFigures(), SWUNG], ids=["the file's figures", "other figures"])
+def split_figures(request) -> SplitFigures:
+    return request.param
+
+
+class TestTheSplitSketch:
+    """The two halves' annual returns beside two single years, to one scale."""
+
+    def test_it_says_what_it_should(self, split) -> None:
+        (swing,) = split
+        assert gif_name(swing) == SPLIT_GIFS[0]
+        assert swing.labels == [
+            "the two halves, per year",
+            "before 2002",
+            "−0.145387",
+            "from 2002",
+            "+0.011967",
+            "0.1574 apart",
+            "two single years",
+            "2002",
+            "+0.2227",
+            "2006",
+            "−0.1319",
+            "0.3546 apart",
+            "each bar adds up a year of monthly returns, the halves’ on average, before costs",
+        ]
+
+    def test_other_figures_move_the_labels(self) -> None:
+        (swing,) = split_scenes(SWUNG)
+        for text in (
+            "−0.050000",
+            "+0.120000",
+            "0.1700 apart",
+            "−0.0800",
+            "+0.0400",
+            "0.1200 apart",
+        ):
+            assert text in swing.labels, text
+
+    def test_each_bar_runs_from_zero_to_its_figure_in_its_signs_colour(self, split_figures) -> None:
+        (swing,) = split_scenes(split_figures)
+        f = split_figures
+        for gid, value in (
+            ("before", f.before_2002),
+            ("after", f.from_2002),
+            ("y2002", f.year_2002),
+            ("y2006", f.year_2006),
+        ):
+            bar = _stroke(swing, gid)
+            assert np.ptp(bar.x) == pytest.approx(0.0)
+            assert bar.y[0] == pytest.approx(sketches.SWING_ZERO)
+            assert bar.y[-1] - bar.y[0] == pytest.approx(value * sketches.SWING_PER)
+            assert bar.color == (GOOD if value > 0 else LOST), gid
+
+    def test_each_bracket_spans_its_pairs_gap(self, split_figures) -> None:
+        (swing,) = split_scenes(split_figures)
+        f = split_figures
+        for gid, ends in (
+            ("halves-gap", (f.before_2002, f.from_2002)),
+            ("years-gap", (f.year_2002, f.year_2006)),
+        ):
+            bracket = _stroke(swing, gid)
+            assert (bracket.y.min(), bracket.y.max()) == pytest.approx(
+                tuple(sketches._swing_y(v) for v in sorted(ends))
+            ), gid
+
+    def test_the_years_bracket_is_longer_on_the_files_figures(self, split) -> None:
+        (swing,) = split
+        halves = np.ptp(_stroke(swing, "halves-gap").y)
+        years = np.ptp(_stroke(swing, "years-gap").y)
+        assert years / halves == pytest.approx(0.35464347755594144 / 0.15735417776401822)
+        assert years > 2 * halves
+
+    def test_each_pair_stands_in_its_own_group(self, split) -> None:
+        (swing,) = split
+        halves = [_stroke(swing, gid).x[0] for gid in ("before", "after")]
+        years = [_stroke(swing, gid).x[0] for gid in ("y2002", "y2006")]
+        assert max(halves) < _stroke(swing, "halves-gap").x.max() < min(years)
+        assert max(years) < _stroke(swing, "years-gap").x.max()

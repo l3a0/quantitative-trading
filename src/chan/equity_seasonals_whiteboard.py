@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws eleven scenes, and the post places each right after the
+This module draws twelve scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -47,6 +47,11 @@ Their figures come from :class:`RuleFigures`, which
 ``tests/test_equity_seasonals.py`` derives from Chan's two files. The scenes
 for rules 1, 2 and 5 of Example 7.7 are schematic and carry no figure.
 
+The twelfth sits in Lesson 2, after the paragraph on the split's years. It
+draws the two halves' annual returns beside the sums of 2002 and 2006, to
+one scale, with a bracket for each pair's gap. Its figures come from
+:class:`SplitFigures`, which ``TestTheYearsInsideTheSplit`` derives.
+
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
 the two ringed at each end stand for a tenth. March is an example month, and
@@ -67,9 +72,9 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all eleven with the command below.
+with no change is a no-op diff. Redraw all twelve with the command below.
 Only the verdicts sketch reads the archive, so on a machine without it the
-command redraws the other ten and exits non-zero naming the one it left::
+command redraws the other eleven and exits non-zero naming the one it left::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -860,6 +865,209 @@ def rule_scenes(figures: RuleFigures | None = None) -> tuple[Scene, ...]:
 
 
 @dataclass(frozen=True)
+class SplitFigures:
+    """The figures the split-swing sketch draws, from Chan's S&P 500 file.
+
+    Each is the revised Python's: the annual return of its 13 months before
+    2002 and of its 70 from 2002, and the sum of its months in 2002 and in
+    2006. A year's sum is twelve times its mean, so it is in the same units
+    as a half's annual return. ``TestTheYearsInsideTheSplit`` in
+    ``tests/test_equity_seasonals.py`` derives each one from the file.
+    """
+
+    before_2002: float = -0.14538748140058178
+    from_2002: float = 0.011966696363436455
+    year_2002: float = 0.22273245297832958
+    year_2006: float = -0.13191102457761186
+
+
+#: The split-swing scene's zero line, its scale in board units per unit of
+#: return, and where each group's two bars and its bracket stand.
+SWING_ZERO, SWING_PER = 2.1, 5.0
+HALVES_X, YEARS_X = (1.75, 3.0), (6.1, 7.5)
+HALVES_GAP_X, YEARS_GAP_X = 3.75, 8.0
+
+
+def _swing_y(r: float) -> float:
+    return SWING_ZERO + r * SWING_PER
+
+
+def _bar(x: float, r: float) -> tuple:
+    return _line([(x, SWING_ZERO), (x, _swing_y(r))])
+
+
+def _bracket(x: float, low: float, high: float) -> tuple:
+    """An upright bracket at ``x`` from return ``low`` to ``high``, opening left."""
+    return _line(
+        [
+            (x - 0.1, _swing_y(low)),
+            (x, _swing_y(low)),
+            (x, _swing_y(high)),
+            (x - 0.1, _swing_y(high)),
+        ]
+    )
+
+
+def _with_sign(value: float, places: int) -> str:
+    """The value with its sign always shown, and a true minus."""
+    return f"{value:+.{places}f}".replace("-", "−")
+
+
+def _sign_color(r: float) -> str:
+    return GOOD if r > 0 else LOST
+
+
+def _split_swing(f: SplitFigures) -> Scene:
+    """Lesson 2's split: the two halves' annual returns against two single years.
+
+    The bars and brackets are to one scale, so the years' bracket is as much
+    longer than the halves' as their gap is wider.
+    """
+    (before_x, after_x), (y2002_x, y2006_x) = HALVES_X, YEARS_X
+    halves_gap = abs(f.from_2002 - f.before_2002)
+    years_gap = abs(f.year_2002 - f.year_2006)
+    return Scene(
+        "One year swings more than the split",
+        "split_swing",
+        (
+            _stroke("zero", _line([(1.1, SWING_ZERO), (3.35, SWING_ZERO)]), color=MUTED, frames=3),
+            Label(
+                "the two halves, per year",
+                sum(HALVES_X) / 2,
+                3.65,
+                names="zero",
+                ha="center",
+                size=12,
+            ),
+            _stroke(
+                "before",
+                _bar(before_x, f.before_2002),
+                color=_sign_color(f.before_2002),
+                width=9.0,
+                frames=3,
+            ),
+            Label(
+                "before 2002",
+                before_x,
+                min(_swing_y(f.before_2002), SWING_ZERO) - 0.38,
+                names="before",
+                ha="center",
+                size=11,
+            ),
+            Label(
+                _with_sign(f.before_2002, 6),
+                before_x - 0.25,
+                (_swing_y(f.before_2002) + SWING_ZERO) / 2,
+                names="before",
+                color=_sign_color(f.before_2002),
+                ha="right",
+                size=10,
+            ),
+            _stroke(
+                "after",
+                _bar(after_x, f.from_2002),
+                color=_sign_color(f.from_2002),
+                width=9.0,
+                frames=1,
+            ),
+            Label(
+                "from 2002", after_x - 0.15, SWING_ZERO - 0.42, names="after", ha="center", size=11
+            ),
+            Label(
+                _with_sign(f.from_2002, 6),
+                after_x,
+                max(_swing_y(f.from_2002), SWING_ZERO) + 0.38,
+                names="after",
+                color=_sign_color(f.from_2002),
+                ha="center",
+                size=10,
+            ),
+            _stroke(
+                "halves-gap",
+                _bracket(HALVES_GAP_X, f.before_2002, f.from_2002),
+                color=ACCENT,
+                frames=4,
+            ),
+            Label(
+                f"{halves_gap:.4f} apart",
+                HALVES_GAP_X + 0.25,
+                _swing_y((f.before_2002 + f.from_2002) / 2),
+                names="halves-gap",
+                color=ACCENT,
+                size=11,
+            ),
+            _stroke(
+                "zero-years", _line([(5.5, SWING_ZERO), (7.85, SWING_ZERO)]), color=MUTED, frames=3
+            ),
+            Label(
+                "two single years", sum(YEARS_X) / 2, 3.65, names="zero-years", ha="center", size=12
+            ),
+            _stroke(
+                "y2002",
+                _bar(y2002_x, f.year_2002),
+                color=_sign_color(f.year_2002),
+                width=9.0,
+                frames=4,
+            ),
+            Label("2002", y2002_x, SWING_ZERO - 0.38, names="y2002", ha="center", size=11),
+            Label(
+                _with_sign(f.year_2002, 4),
+                y2002_x - 0.25,
+                (_swing_y(f.year_2002) + SWING_ZERO) / 2,
+                names="y2002",
+                color=_sign_color(f.year_2002),
+                ha="right",
+                size=10,
+            ),
+            _stroke(
+                "y2006",
+                _bar(y2006_x, f.year_2006),
+                color=_sign_color(f.year_2006),
+                width=9.0,
+                frames=3,
+            ),
+            Label("2006", y2006_x, SWING_ZERO + 0.38, names="y2006", ha="center", size=11),
+            Label(
+                _with_sign(f.year_2006, 4),
+                y2006_x,
+                _swing_y(f.year_2006) - 0.36,
+                names="y2006",
+                color=_sign_color(f.year_2006),
+                ha="center",
+                size=10,
+            ),
+            _stroke(
+                "years-gap",
+                _bracket(YEARS_GAP_X, f.year_2006, f.year_2002),
+                color=ACCENT,
+                frames=5,
+            ),
+            Label(
+                f"{years_gap:.4f} apart",
+                YEARS_GAP_X + 0.25,
+                _swing_y((f.year_2006 + f.year_2002) / 2),
+                names="years-gap",
+                color=ACCENT,
+                size=11,
+            ),
+            Label(
+                "each bar adds up a year of monthly returns, the halves’ on average, before costs",
+                0.6,
+                0.35,
+                names="years-gap",
+                color=MUTED,
+                size=11,
+            ),
+        ),
+    )
+
+
+def split_scenes(figures: SplitFigures | None = None) -> tuple[Scene, ...]:
+    """The one scene for Lesson 2's split."""
+    return (_split_swing(figures if figures is not None else SplitFigures()),)
+
+
+@dataclass(frozen=True)
 class Verdicts:
     """What the verdicts scene draws, each field read from a registered run.
 
@@ -1222,25 +1430,27 @@ def make_equity_seasonals_whiteboards(
     spans: Spans | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
-    opening's two first, then the two strategies', then the seven rules'.
+    opening's two first, then the two strategies', then the seven rules',
+    then the split's.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
     archive, about twenty seconds. Every GIF but the verdicts sketch is
     written before that read, so a refused or missing archive leaves the
-    other ten redrawn and raises from the read.
+    other eleven redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
     paths = [_write(_which_years(spans), folder)]
     strategies = [_write(scene, folder) for scene in scenes()]
     rules = [_write(scene, folder) for scene in rule_scenes()]
+    split = [_write(scene, folder) for scene in split_scenes()]
     if verdicts is None:
         verdicts = Verdicts.from_runs(
             seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
         )
     paths.append(_write(_two_verdicts(verdicts), folder))
-    return paths + strategies + rules
+    return paths + strategies + rules + split
 
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -1259,7 +1469,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other ten GIFs are already written. The one left stale is
+        # The other eleven GIFs are already written. The one left stale is
         # named, and the exit is non-zero, so a redraw on a machine without
         # the archive does not read as a full one.
         raise SystemExit(f"{GIF_PREFIX}two_verdicts.gif was not redrawn: {refused}") from refused
