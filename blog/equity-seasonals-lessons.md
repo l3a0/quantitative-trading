@@ -264,10 +264,10 @@ A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, Jan
 
 ![An animated whiteboard sketch titled “What registered means”, drawn stroke by stroke. Under the word “registered”, three boxes joined by arrows, “claim”, “test” and “verdict’s words”, stand before a dashed brown line labelled “all written down”, and past it a green box reads “then returns computed”. Under the word “exploratory”, a red box “returns computed” leads to a box “no claim written down first”. The words “exploratory can kill an idea, only registered can confirm one” close the sketch.](../docs/figures/equity_seasonals_january_registered.gif)
 
-Free daily prices cover most of the index’s members but not all of them. A member’s price counts as checked only when it agrees with the fund’s filing, to within the filing’s rounding:
+Free daily prices cover most of the index’s members but not all of them. A member’s price counts as checked only when it agrees with the fund’s filing, to within the filing’s rounding. The close is the free price on the filing’s date, and the shares and the value are what the filing lists for that member:
 
 ```math
-\text{free close on the filing's date} \times \text{shares the filing lists} = \text{value the filing reports}
+\text{close} \times \text{shares} = \text{value}
 ```
 
 That match is what shows the price belongs to that company and not to a later one using the same ticker. At every year-end some member with no checked price could have fallen in a traded tenth. Leaving those members out would rank each year on a different set of stocks than the strategy would really have traded, the same problem Lesson 3 describes in Chan’s files. Guessing their returns would put a number nobody can check into the result. So each January was computed twice, once at each extreme. The low version is the worst case for the strategy. Each such member it would hold long gets a return near the worst of that January, and each it would short gets one near the best. The high version is the best case and does the reverse. If both versions landed on the same side of zero, the missing prices could not change the verdict.
