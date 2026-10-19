@@ -948,7 +948,7 @@ class TestThePost:
     def test_each_january_sketch_follows_its_paragraph(self) -> None:
         """Each after its own paragraph, all three under the January question."""
         text = POST.read_text(encoding="utf-8")
-        start = text.index("### 2. Whether the January effect survived the book")
+        start = text.index("### Whether the January effect survived the book")
         end = text.index("\n### ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
@@ -967,20 +967,20 @@ class TestThePost:
             ), name
 
     def test_the_open_questions_are_listed_as_their_subsections_name_them(self) -> None:
-        """The list under "Three open questions." names each subsection, in order."""
+        """The list under "Three open questions:" names each subsection, in order."""
         text = POST.read_text(encoding="utf-8")
         start = text.index("## What this replication cannot say")
         end = text.index("\n## ", start + 1)
         section = text[start:end]
         listed = re.findall(r"^\d\. (.+)\.$", section.split("\n### ", 1)[0], flags=re.MULTILINE)
-        headings = re.findall(r"^### \d\. (.+)$", section, flags=re.MULTILINE)
+        headings = re.findall(r"^### (.+)$", section, flags=re.MULTILINE)
         assert len(headings) == 3
         assert listed == headings
 
     def test_each_section_3_sketch_follows_its_part(self) -> None:
         """Each under its own heading, after the paragraph it draws."""
         text = POST.read_text(encoding="utf-8")
-        start = text.index("### 3. Whether Heston and Sadka’s effect survived the book")
+        start = text.index("### Whether Heston and Sadka’s effect survived the book")
         end = text.index("\n## ", start)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for heading, opening, name in zip(

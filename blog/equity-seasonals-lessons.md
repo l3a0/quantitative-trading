@@ -252,13 +252,13 @@ Survivorship bias is what a backtest picks up when its data holds only the compa
 
 ## What this replication cannot say
 
-Three open questions.
+Three open questions:
 
 1. Whether Heston and Sadka’s effect existed before 2002.
 2. Whether the January effect survived the book.
 3. Whether Heston and Sadka’s effect survived the book.
 
-### 1. Whether Heston and Sadka’s effect existed before 2002
+### Whether Heston and Sadka’s effect existed before 2002
 
 The file holds 13 months before 2002, all on survivors. Testing it needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
 
@@ -270,7 +270,7 @@ The two paid sources’ licences bar republishing their data. Every result here 
 
 The free source has since been read. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on a panel that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, with a t-statistic of 8.63, where they printed 1.15 percent. Before 2002 alone it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on a panel without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, which does not separate the two. That is the project’s construction rather than Chan’s rule, and the comparison was run after a first look at these numbers, so it is exploratory.
 
-### 2. Whether the January effect survived the book
+### Whether the January effect survived the book
 
 A second run tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
 
@@ -308,7 +308,7 @@ The two versions disagree, so the verdict is the third. Free data cannot decide 
 
 Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the survivorship bias described above, and no rule for it was written before the run, so it is exploratory rather than registered.
 
-### 3. Whether Heston and Sadka’s effect survived the book
+### Whether Heston and Sadka’s effect survived the book
 
 #### How the run was built
 
