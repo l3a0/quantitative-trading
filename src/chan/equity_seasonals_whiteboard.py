@@ -82,8 +82,8 @@ The next three sit in Lesson 3, on survivorship bias, and are schematic:
 Lesson 3's second and third build slowly, as :data:`PACED` lists.
 
 The last three sit in "What this replication cannot say", under its question
-on whether the January effect survived the book, one after each of its three
-paragraphs:
+on whether the January effect survived the book, each after the paragraph it
+illustrates:
 
 1. What registered means: the claim, the test and the verdict's words written
    down before any return is computed, against an exploratory order.
@@ -1832,18 +1832,19 @@ class JanuaryRanges:
 
     The run is :func:`chan.equity_seasonals.run_point_in_time`, and the
     returns are before costs, one per year-end, labelled by the January the
-    trade exits in. ``dropped`` holds each January with the unchecked members
-    left out, in the same order, which the post describes rather than tests.
+    trade exits in. ``left_out`` holds each January with every member that
+    has no checked price left out, in the same order, which the post labels
+    exploratory.
     """
 
     januaries: tuple[tuple[int, float, float], ...]
-    dropped: tuple[float, ...]
+    left_out: tuple[float, ...]
 
     @classmethod
     def from_run(cls, january: seasonals.PointInTimeRun) -> JanuaryRanges:
         return cls(
             tuple((year.trade.exited.year, year.low, year.high) for year in january.year_ends),
-            tuple(year.dropped for year in january.year_ends),
+            tuple(year.left_out for year in january.year_ends),
         )
 
 
@@ -1910,8 +1911,8 @@ def _january_ranges(ranges: JanuaryRanges) -> Scene:
         )
     )
     steps.append(Label("before costs", 9.6, 0.25, names=last, color=MUTED, ha="right", size=10))
-    for x, (year, _, _), dropped in zip(xs, years, ranges.dropped, strict=True):
-        y = RANGES_ZERO + dropped * RANGES_PER
+    for x, (year, _, _), left_out in zip(xs, years, ranges.left_out, strict=True):
+        y = RANGES_ZERO + left_out * RANGES_PER
         steps.append(
             Stroke(
                 f"left-{year}",

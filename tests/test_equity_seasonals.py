@@ -2102,13 +2102,18 @@ class TestThePointInTimePins:
         assert test.rejects
 
     def test_leaving_the_missing_members_out_lands_between_the_two(self, point_in_time) -> None:
-        """The post quotes it beside the bound. Issue 329 wrote no rule for it,
-        so it is described, and its p is not a verdict."""
-        test = point_in_time.dropped
+        """Every missing member left out, the tenth taken of the ranked covered
+        members alone, unlike the bound's tenth of the whole index. The post
+        quotes it beside the bound. Issue 329 wrote no rule for it, so it is
+        exploratory, and its p is not a verdict."""
+        test = point_in_time.left_out
         assert test.n == 18
         assert_reproduces(test.mean, -0.00833318712859331, "-0.0083", ".4f")
         assert_reproduces(test.p, 0.7434684265801739, "0.743", ".3f")
         assert point_in_time.low.mean < test.mean < point_in_time.high.mean
+        assert [year.left_out_tenth for year in point_in_time.year_ends] == [
+            43, 43, 43, 48, 46, 44, 50, 53, 55, 55, 55, 56, 57, 58, 59, 59, 59, 60,
+        ]  # fmt: skip
 
     def test_x_for_each_series(self, point_in_time) -> None:
         assert_reproduces(point_in_time.x_low, 0.05474237393477483, "0.0547", ".4f")
@@ -2161,6 +2166,9 @@ class TestThePointInTimePins:
         assert "verdict: the free sources cannot decide it" in out
         assert "    2009 January: 0.3213 and -0.3041" in out
         assert "    the mean: 0.1155 and -0.0771" in out
+        assert "    2009 January: 0.0123   (43 long and 43 short of 433 ranked)" in out
+        assert "    2026 January: 0.0015   (60 long and 60 short of 598 ranked)" in out
+        assert "    the mean: -0.0083, t -0.67, one-sided p 0.743, over 18 Januaries" in out
 
 
 # --------------------------------------------------------------------------
@@ -3354,8 +3362,8 @@ class TestTheFiveYearSketches:
 def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:
     """The January ranges sketch in ``tests/test_equity_seasonals_whiteboard.py``
     draws from its ``PINNED_RANGES``, so it runs without the archive. This holds
-    that the registered January run gives those Januaries, at the tolerance every
-    pin here uses."""
+    that the registered January run gives those Januaries, and each one's return
+    with every missing member left out, at the tolerance every pin here uses."""
     from chan.equity_seasonals_whiteboard import JanuaryRanges
     from tests.test_equity_seasonals_whiteboard import PINNED_RANGES
 
@@ -3368,4 +3376,4 @@ def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:
     ):
         assert low == pytest.approx(pinned_low, abs=1e-9), year
         assert high == pytest.approx(pinned_high, abs=1e-9), year
-    assert drawn.dropped == pytest.approx(PINNED_RANGES.dropped, abs=1e-9)
+    assert drawn.left_out == pytest.approx(PINNED_RANGES.left_out, abs=1e-9)

@@ -137,7 +137,10 @@ member that could change a tenth is flagged from the filings alone by
 by :func:`bounded_january`. Each series takes the one-sided test, and
 :func:`point_in_time_verdict` words the outcome. The claim, the test, the bound
 and the wording were written on the issue before any return was computed, so
-the result is labelled registered.
+the result is labelled registered. Beside it the run reports each January with
+every missing member left out, the tenth taken of the ranked covered members
+alone. No rule was written for that series first, so it is exploratory and
+described rather than tested.
 
 **Example 7.7 on the S&P 500 as IVV held it each month.**
 [Issue 336](https://github.com/l3a0/quantitative-trading/issues/336) runs
@@ -1184,9 +1187,11 @@ class YearEnd:
     with its costs added back, exactly when no missing member threatens a
     tenth.
 
-    ``dropped`` is the January with the missing members left out altogether,
-    the tenth taken of the ranked covered members alone, before costs. Issue
-    329 wrote no rule for it, so it is described rather than tested.
+    ``left_out`` is the January with every missing member left out, the tenth
+    taken of the ranked covered members alone, before costs, and
+    ``left_out_tenth`` is how many that tenth holds on each side. Issue 329
+    wrote no rule for it, so it is exploratory and described rather than
+    tested.
     """
 
     report_date: str
@@ -1204,7 +1209,8 @@ class YearEnd:
     no_exit: int
     low: float
     high: float
-    dropped: float
+    left_out: float
+    left_out_tenth: int
 
     @property
     def exact(self) -> bool:
@@ -1387,7 +1393,8 @@ def point_in_time_year(
         no_exit=int((np.isfinite(annual) & ~np.isfinite(january)).sum()),
         low=low,
         high=high,
-        dropped=alone.trades[0].ret + 2 * ONE_WAY_COST,
+        left_out=alone.trades[0].ret + 2 * ONE_WAY_COST,
+        left_out_tenth=alone.trades[0].longs,
     )
 
 
@@ -1439,9 +1446,9 @@ class PointInTimeRun:
         return point_in_time_verdict(self.low, self.high, self.x_low, self.x_high)
 
     @property
-    def dropped(self) -> OneSided:
-        """The Januaries with the missing members left out, described rather than tested."""
-        return one_sided_t([year.dropped for year in self.year_ends])
+    def left_out(self) -> OneSided:
+        """The Januaries with every missing member left out, described rather than tested."""
+        return one_sided_t([year.left_out for year in self.year_ends])
 
     @property
     def after_costs(self) -> tuple[float, float]:
@@ -2224,6 +2231,21 @@ def report_point_in_time(result: PointInTimeRun, survivors: SurvivorRun | None =
             f"costs: mean {after:.4f}"
         )
     print(f"  verdict: {result.verdict}")
+    left_out = result.left_out
+    print(
+        "  every missing member left out, the tenth taken of the ranked covered members alone, "
+        "exploratory and described rather than tested"
+    )
+    for year in result.year_ends:
+        print(
+            f"    {year.trade.exited.year} January: {year.left_out:.4f}   "
+            f"({year.left_out_tenth} long and {year.left_out_tenth} short of "
+            f"{year.trade.ranked} ranked)"
+        )
+    print(
+        f"    the mean: {left_out.mean:.4f}, t {left_out.t:.2f}, one-sided p {left_out.p:.3f}, "
+        f"over {left_out.n} Januaries"
+    )
     if survivors is not None:
         per, means = survivorship_gap(result, survivors)
         print(

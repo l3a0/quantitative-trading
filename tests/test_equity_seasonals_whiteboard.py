@@ -181,7 +181,8 @@ PINNED = Verdicts(
 )
 
 #: The registered January run's eighteen Januaries, each with its low and high
-#: return before costs, as ``test_the_whiteboard_draws_these_runs_ranges`` in
+#: return before costs, and then each January's return with every missing
+#: member left out, as ``test_the_whiteboard_draws_these_runs_ranges`` in
 #: ``tests/test_equity_seasonals.py`` holds the run gives them. Same vintage
 #: and specification as :data:`PINNED`'s January figures.
 PINNED_RANGES = JanuaryRanges(
@@ -1758,11 +1759,11 @@ class TestTheJanuarySketches:
             assert bar.y[-1] == pytest.approx(sketches.RANGES_ZERO + high * sketches.RANGES_PER)
             expected = whiteboard.INK if low < 0 < high else (GOOD if low > 0 else LOST)
             assert bar.color == expected, year
-        for x, (year, _, _), dropped in zip(xs, ranges.januaries, ranges.dropped, strict=True):
+        for x, (year, _, _), left_out in zip(xs, ranges.januaries, ranges.left_out, strict=True):
             dot = _stroke(scene, f"left-{year}")
             assert (dot.points, dot.color) == (1, ACCENT), year
             assert dot.x[0] == pytest.approx(x + sketches.RANGES_DOT_OFFSET), year
-            assert dot.y[0] == pytest.approx(sketches.RANGES_ZERO + dropped * sketches.RANGES_PER)
+            assert dot.y[0] == pytest.approx(sketches.RANGES_ZERO + left_out * sketches.RANGES_PER)
         count = len(ranges.januaries)
         word = {18: "Eighteen", 3: "Three"}[count]
         assert scene.title == f"{word} Januaries, each a range"
@@ -1783,17 +1784,26 @@ class TestTheJanuarySketches:
         ranges = _alt(text, january[2])
         assert "Eighteen vertical bars" in ranges and "2020, 2021 and 2024" in ranges
         assert "the bar for 2023 is green" in ranges
+        assert "every dot falls inside its bar’s range" in ranges
+
+    def test_each_dot_clears_its_bar(self, january) -> None:
+        """A dot on its bar hides the short late bars, which the first draw did."""
+        ranges = january[2]
+        year = PINNED_RANGES.januaries[-1][0]
+        bar, dot = _stroke(ranges, f"jan-{year}"), _stroke(ranges, f"left-{year}")
+        assert sketches.RANGES_DOT_OFFSET >= 0.1
+        assert dot.x[0] - bar.x[0] == pytest.approx(sketches.RANGES_DOT_OFFSET)
 
     def test_every_dot_sits_inside_its_januarys_range(self) -> None:
         """What the alt text says, and what places the left-out figure between the two."""
-        for (year, low, high), dropped in zip(
-            PINNED_RANGES.januaries, PINNED_RANGES.dropped, strict=True
+        for (year, low, high), left_out in zip(
+            PINNED_RANGES.januaries, PINNED_RANGES.left_out, strict=True
         ):
-            assert low <= dropped <= high, year
+            assert low <= left_out <= high, year
 
     def test_the_dots_average_to_the_left_out_mean(self) -> None:
         """The post's −0.0083, which ``tests/test_equity_seasonals.py`` pins on the archive."""
-        assert float(np.mean(PINNED_RANGES.dropped)) == pytest.approx(
+        assert float(np.mean(PINNED_RANGES.left_out)) == pytest.approx(
             -0.00833318712859331, abs=1e-12
         )
 
