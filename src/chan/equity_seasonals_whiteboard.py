@@ -1,4 +1,4 @@
-"""Whiteboard sketches for the equity-seasonals post: its opening, strategies, rules and split.
+"""Whiteboard sketches for the equity-seasonals post, from its opening to its five-year check.
 
 ``blog/equity-seasonals-lessons.md`` opens on why a strategy published as dead
 is worth testing, which sources can say anything about that, and what two
@@ -82,7 +82,8 @@ differ from the ones the scene's words state is refused rather than drawn.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied: its strokes, labels, tints, timeline, renderer and palette, so
-these GIFs share that post's look, frame rate, hold and colours. Only the
+these GIFs share that post's look, frame rate and colours, and all but the
+two in :data:`PACED` share its pace and hold. Only the
 scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
@@ -1125,8 +1126,10 @@ class FiveYearFigures:
 #: 2000 to the end of October 2007, each month a twelfth of a year along it.
 MONTHS_FROM, MONTHS_TO = 2000 + 11 / 12, 2007 + 10 / 12
 MONTHS_BOARD = (0.6, 9.4)
-#: The split falls at the start of 2002, and the rerun's input starts with the
-#: rows after 2002-11-23 and keeps its first month at the end of 2003.
+#: The split falls at the start of 2002. The rerun's input begins on
+#: 2002-11-25, the first row after 2002-11-23, and is drawn from the start of
+#: December 2002, its first whole month. It keeps its first month at the end
+#: of 2003.
 SPLIT_YEAR, RERUN_INPUT, RERUN_KEPT = 2002.0, 2002 + 11 / 12, 2003 + 11 / 12
 WHOLE_Y, HALVES_Y, RERUN_Y, BETWEEN_Y, MONTHS_AXIS_Y = 3.55, 2.8, 2.05, 1.45, 0.95
 
@@ -1170,30 +1173,38 @@ def _five_year_months(f: FiveYearFigures) -> Scene:
             ],
             _stroke("whole", _span(start, end, WHOLE_Y, tick=0.07), frames=24),
             Label(
-                f"whole period: {f.whole_months} months, {_signed(f.whole_python, 6)}",
+                f"whole period: {f.whole_months} months, {_with_sign(f.whole_python, 6)}",
                 MONTHS_BOARD[0],
                 WHOLE_Y + above,
                 names="whole",
                 size=10,
             ),
             _stroke(
-                "before", _span(start, split - 0.04, HALVES_Y, tick=0.07), color=LOST, frames=9
+                "before",
+                _span(start, split - 0.04, HALVES_Y, tick=0.07),
+                color=_sign_color(f.before_2002),
+                frames=9,
             ),
             Label(
-                f"before 2002: {f.before_months} months, {_signed(f.before_2002, 6)}",
+                f"before 2002: {f.before_months} months, {_with_sign(f.before_2002, 6)}",
                 MONTHS_BOARD[0],
                 HALVES_Y + above,
                 names="before",
-                color=LOST,
+                color=_sign_color(f.before_2002),
                 size=10,
             ),
-            _stroke("after", _span(split + 0.04, end, HALVES_Y, tick=0.07), color=GOOD, frames=24),
+            _stroke(
+                "after",
+                _span(split + 0.04, end, HALVES_Y, tick=0.07),
+                color=_sign_color(f.from_2002),
+                frames=24,
+            ),
             Label(
                 f"from 2002: {f.after_months} months, {_with_sign(f.from_2002, 6)}",
                 MONTHS_BOARD[1],
                 HALVES_Y + above,
                 names="after",
-                color=GOOD,
+                color=_sign_color(f.from_2002),
                 ha="right",
                 size=10,
             ),
@@ -1215,7 +1226,7 @@ def _five_year_months(f: FiveYearFigures) -> Scene:
             ),
             _stroke("rerun", _span(rerun_kept, end, RERUN_Y, tick=0.07), color=ACCENT, frames=18),
             Label(
-                f"five-year rerun: {f.rerun_months} months, {_signed(f.rerun_python, 6)}",
+                f"five-year rerun: {f.rerun_months} months, {_with_sign(f.rerun_python, 6)}",
                 MONTHS_BOARD[1],
                 RERUN_Y + above,
                 names="rerun",

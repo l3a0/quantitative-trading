@@ -428,6 +428,7 @@ class TestTheGifs:
                     len(steps),
                     0,
                 )
+            assert _durations(path) == [f.ms for f in steps], path.name
 
     def test_each_opens_on_its_title_and_holds_its_drawing(self, every, frames) -> None:
         for scene, steps in zip(every, frames, strict=True):
@@ -1164,10 +1165,10 @@ SHIFTED = FiveYearFigures(
     rerun_months=44,
     between_months=26,
     whole_python=-0.02,
-    before_2002=-0.1,
-    from_2002=0.02,
+    before_2002=0.1,
+    from_2002=-0.02,
     rerun_python=-0.03,
-    between=0.05,
+    between=-0.05,
     whole_matlab=-0.01,
     rerun_matlab=-0.02,
     rerun_error=0.015,
@@ -1228,9 +1229,9 @@ class TestTheFiveYearSketches:
         months, noise, januaries = five_year_scenes(SHIFTED)
         for text in (
             "whole period: 80 months, −0.020000",
-            "before 2002: 10 months, −0.100000",
+            "before 2002: 10 months, +0.100000",
             "five-year rerun: 44 months, −0.030000",
-            "26 months the rerun leaves out: +0.050000",
+            "26 months the rerun leaves out: −0.050000",
         ):
             assert text in months.labels, text
         for text in (
@@ -1266,6 +1267,47 @@ class TestTheFiveYearSketches:
         assert _stroke(months, "after").color == (GOOD if f.from_2002 > 0 else LOST)
         assert _stroke(months, "between").color == (GOOD if f.between > 0 else LOST)
         assert _stroke(months, "warm-up").dashed
+        for gid, prefix in (
+            ("before", "before 2002:"),
+            ("after", "from 2002:"),
+            ("between", f"{f.between_months} months the rerun"),
+        ):
+            (label,) = [
+                s for s in months.steps if isinstance(s, Label) and s.text.startswith(prefix)
+            ]
+            assert label.color == _stroke(months, gid).color, gid
+
+    def test_each_year_label_sits_on_its_tick(self, five) -> None:
+        months = five[0]
+        axis = _stroke(months, "axis")
+        for year in range(2001, 2008):
+            label = _labelled(months, str(year))
+            assert label.x == pytest.approx(sketches._when(year))
+            assert np.isclose(axis.x, label.x).sum() >= 2, year
+            assert axis.y[np.isclose(axis.x, label.x)].min() < sketches.MONTHS_AXIS_Y
+
+    def test_each_value_on_the_noise_line_sits_on_its_tick(self, five) -> None:
+        noise = five[1]
+        line = _stroke(noise, "line")
+        for value, text in ((-0.04, "−0.04"), (-0.02, "−0.02"), (0.0, "0")):
+            label = _labelled(noise, text)
+            assert label.x == pytest.approx(sketches._on_noise(value))
+            assert line.y[np.isclose(line.x, label.x)].min() < sketches.NOISE_Y, text
+
+    def test_each_alt_text_quotes_its_sketchs_words(self, five) -> None:
+        """Every label but the axis numbers appears in the alt text word for word."""
+        text = POST.read_text(encoding="utf-8")
+        ticks = {str(year) for year in range(2001, 2008)} | {"−0.04", "−0.02", "0"}
+        for scene in five:
+            match = re.search(
+                rf"!\[([^\]]+)\]\(\.\./docs/figures/{re.escape(gif_name(scene))}\)", text
+            )
+            assert match, scene.slug
+            alt = match.group(1)
+            assert f"“{scene.title}”" in alt, scene.slug
+            for label in scene.labels:
+                if label not in ticks and not label.startswith("January "):
+                    assert label in alt, (scene.slug, label)
 
     def test_the_band_and_dots_stand_at_their_figures(self, five_figures) -> None:
         noise = five_year_scenes(five_figures)[1]

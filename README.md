@@ -3105,7 +3105,8 @@ log.
    bugs, which matching the printed figures means copying. Example 7.7's four
    printouts give four answers, and the first edition's is in different units
    from the other three.
-2. Reproducing a strategy published as dead checks its printed figures and not
+2. To test whether an effect died, fix the criterion and the sample first.
+   Reproducing a strategy published as dead checks its printed figures and not
    its death. The split at 2002 is exploratory with no verdict, and Chan's
    claim that the most recent five years do worse holds on his own file under
    a criterion written before the check ran.
@@ -3232,13 +3233,18 @@ its extremes, the timing each draws, that the opening sketches place every
 figure and date to scale and refuse figures their words would misdescribe,
 that each rule sketch prints its figures and puts its marks where they say,
 that the split sketch draws each bar and bracket to one scale and colours each
-bar by its sign, that no label touches a line, another label or the frame's
-edge, and that each GIF follows its text in the post. The rule sketches'
+bar by its sign, that the five-year sketches draw each bar to its months and
+each dot, band and January bar at its figure, that two of them build slowly
+and hold for twelve seconds, that no label touches a line, another label or the
+frame's edge, and that each GIF follows its text in the post. The rule sketches'
 figures are defaults in `RuleFigures`, and `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The split sketch's figures are defaults in
 `SplitFigures`, and `TestTheYearsInsideTheSplit` derives each one from Chan's
-S&P 500 file. The whiteboard test draws the verdicts from the pinned
+S&P 500 file. The five-year sketches' figures are defaults in
+`FiveYearFigures`, and `TestTheFiveYearSketches` in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
+one from Chan's files. The whiteboard test draws the verdicts from the pinned
 figures, so it runs without the archive, and a test in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) holds that
 the two registered runs give those figures where the archive is. The test

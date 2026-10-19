@@ -33,7 +33,7 @@ The three lessons below say what the reproduction does teach. The code is open s
 
 ![An animated whiteboard sketch titled “The same-month trade”, drawn stroke by stroke. Two strips of twelve cells stand one above the other, labelled “last year” and “this year”. March is outlined in brown on the upper strip and labelled “March”, and a brown arrow drops from it to March on the lower strip. The upper strip ends with the words “rank on” and the lower with “hold”. April is then outlined in grey on both strips, labelled “then April, May, …”. Below, a rising row of twenty grey dots sorts the stocks from the lowest return to the highest. A green ring circles the highest two, labelled “buy the best tenth”, and a red ring the lowest two, labelled “short the worst tenth”. On the right a green arrow points up, labelled “winners up”, above a red arrow pointing down, labelled “losers down”, and the words “seasonal momentum” close the sketch.](../docs/figures/equity_seasonals_same_month_trade.gif)
 
-The two scripts this repository holds, and the MATLAB and R in the book’s revised edition (2021), all turn their monthly returns into an annual return and a Sharpe ratio as below, with no risk-free rate. Here r̄ is the mean monthly return and s its standard deviation.
+Each of Chan’s scripts for Example 7.7 turns its monthly returns into an annual return and a Sharpe ratio as below, with no risk-free rate. Here r̄ is the mean monthly return and s its standard deviation.
 
 ```math
 \text{annual return} = 12\,\bar{r}, \qquad \text{Sharpe ratio} = \sqrt{12}\,\frac{\bar{r}}{s}
@@ -46,6 +46,8 @@ What Chan says of each is not the same, and the difference matters for what a re
 3. **Example 7.7.** This one is published as dead, in the p. 179 sentence quoted at the top of the post.
 
 ## Lesson 1: Account for every choice and every bug, or one strategy gives several answers
+
+Chan’s book has two editions. The first, from 2009, gives Examples 7.6 and 7.7 in MATLAB. The revised edition, from 2021, gives each in MATLAB, Python and R. This post names each script by its language and edition, so “the revised Python” is the Python from the revised edition.
 
 All seventeen figures Chan’s code prints reproduce here to the digit, but only by copying his code. The book’s description of each strategy fits several numbers, and each script picks one through rules the description leaves out. Six of those rules are bugs, so matching the printed figures means copying them. A seventh, in the revised MATLAB as the book prints it, stops the script on its first pass and has to be repaired instead.
 
@@ -184,7 +186,7 @@ The listing on p. 179 cuts its prices down to month-end rows and then looks one 
 
 ![An animated whiteboard sketch titled “A lookup past the end”, drawn stroke by stroke. A strip of cells labelled “96 month-end rows” runs from “row 1” to “row 96”. A dashed grey line continues past its end to a red cross labelled “row 258”, with the words “the first pass asks for it and stops”. A green arrow points up near the strip’s left end, at row 13 of 96, labelled “the repair reads row m − 1, here 13”.](../docs/figures/equity_seasonals_rule_month_end_lookup.gif)
 
-## Lesson 2: reproducing a strategy published as dead checks its figures, not its death
+## Lesson 2: To test whether an effect died, fix the criterion and the sample first
 
 Every printout’s whole-period figure for Example 7.7 is negative on Chan’s file, as he printed it. That is consistent with an effect that died. It is also consistent with one that never lived on these stocks over these years. A reproduction cannot tell those apart, for three reasons.
 
