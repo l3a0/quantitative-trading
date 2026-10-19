@@ -405,7 +405,8 @@ them are worth stating rather than leaving a reader to infer.
    per-stock records, so nothing found bars committing them with the citation
    above. The owner can still reverse that on the pull request.
 2. **The release is part of the vendor.** The project ships a new release most
-   years, and a release can restate an earlier month. So the vendor field
+   years, and a release can restate an earlier month. The project
+   published release 202510 on 2025-10-22. So the vendor field
    reads `openassetpricing-202510`, and a later release is a different vintage
    rather than a second download of this one.
 3. **This is the call that produced them.** On 2026-10-19 the
@@ -1855,8 +1856,10 @@ Two files carry that record.
    existed and the two SPY workbook columns', `spy_chan.csv`'s and
    `spy_unadjusted_chan.csv`'s, which were typed because the recorder cannot
    write a saved date, and the seven files of Chan's Python port, which were
-   typed because they keep the zip's shape. Every other line was written by
-   code, a download by
+   typed because they keep the zip's shape. The five Open Source Asset Pricing
+   lines were typed by a script rather than by either recorder, because
+   neither records a return, and their names follow the recorder's join.
+   Every other line was written by code, a download by
    `record_vintage` and a column lifted from Chan's MATLAB and CSV files by
    `record_lifted_columns`. More lines will be typed by hand for as long as a
    replication reaches for another of Chan's workbook columns.
@@ -1865,8 +1868,9 @@ Two files carry that record.
    and each change that recorded a vintage made it false again.
    [Issue 132](https://github.com/l3a0/quantitative-trading/issues/132), the
    sweep of prose that counts the committed vintages, is why it names the
-   hand-written lines instead. Only a hand-typed workbook column changes that
-   set, and that is the change that would also write the line.
+   hand-written lines instead. Only a hand-typed line changes that set, such
+   as a workbook column or a return series, and that is the change that would
+   also write the line.
 2. [checksums.sha256](checksums.sha256) is a projection of it, regenerated
    whenever a vintage is recorded, so `shasum` keeps working without a second
    surface anyone has to remember to update.

@@ -1197,7 +1197,11 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
     Only those. A recorded vintage carries a single `Date,Close` header and no
     symbol anywhere in its bytes, which is the shape `_serialize` writes and
     `data/README.md`'s `## Header shape` section explains. Its symbol is held
-    by `the_recorded_entries_name_themselves` instead, out of the path.
+    by `the_recorded_entries_name_themselves` instead, out of the path. The
+    five Open Source Asset Pricing files are skipped here too. They carry
+    their source's header, and their symbol is held by the same path check and
+    by `tests/test_open_asset_pricing.py`, which reads the signal's name off
+    every row.
 
     This is what covers a workbook column, which is the reason `spy_chan.csv`
     joined `HAND_WRITTEN` rather than being left outside it. It covers every
@@ -1224,6 +1228,11 @@ def the_hand_written_entries_name_their_series(directory: Path) -> None:
 
 def the_recorded_entries_name_themselves(directory: Path) -> None:
     """Every entry the recorder wrote agrees with the path it took.
+
+    So does every entry typed under a name the recorder's join built, which is
+    the five Open Source Asset Pricing return series. Neither recorder writes a
+    return, so a script typed their lines, and naming them this way is what
+    brings them under this check.
 
     `vintage_filename` joins all five identity fields, so a recorded vintage's
     vendor, symbol, price basis and span are recoverable from `entry.path`

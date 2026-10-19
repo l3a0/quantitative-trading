@@ -256,3 +256,59 @@ class TestTheReaderRefuses:
 
 def test_the_release_is_the_one_the_vendor_names() -> None:
     assert open_asset_pricing.VENDOR == f"openassetpricing-{open_asset_pricing.RELEASE}"
+
+
+class TestTheReaderRefusesWhatTheReviewFound:
+    """Cases a mutation review of the reader found no test refusing.
+
+    Each one is a weaker check that let a malformed file through: a header in
+    another order, a row with a cell too many, a date out of order against the
+    row before it rather than the first row, a date with text after it, and a
+    signal named in another case.
+    """
+
+    def test_the_sources_names_in_another_order(self, tmp_path: Path) -> None:
+        header = "signalname,port,ret,date,signallag,Nlong,Nshort"
+        payload = f"{header}\nMom12m,LS,1.5,1927-01-31,NA,50,50\n".encode()
+        directory = _with_one_vintage(tmp_path, "Mom12m", payload)
+
+        with pytest.raises(VintageUnavailable, match=f"the header reads '{header}'"):
+            long_short_returns("Mom12m", data_dir=directory)
+
+    def test_a_row_with_a_cell_too_many(self, tmp_path: Path) -> None:
+        payload = (",".join(HEADER) + "\nMom12m,LS,1927-01-31,1.5,NA,50,50,9\n").encode()
+        directory = _with_one_vintage(tmp_path, "Mom12m", payload)
+
+        with pytest.raises(
+            VintageUnavailable, match="line 2 holds 8 cells where the header names 7"
+        ):
+            long_short_returns("Mom12m", data_dir=directory)
+
+    def test_a_date_earlier_than_the_row_before_it_but_not_the_first(self, tmp_path: Path) -> None:
+        body = "".join(
+            f"Mom12m,LS,{day},1.5,NA,50,50\n" for day in ("1927-01-31", "1927-03-31", "1927-02-28")
+        )
+        payload = (",".join(HEADER) + "\n" + body).encode()
+        directory = _with_one_vintage(tmp_path, "Mom12m", payload)
+
+        with pytest.raises(VintageUnavailable, match="line 4 is dated '1927-02-28'"):
+            long_short_returns("Mom12m", data_dir=directory)
+
+    def test_a_date_with_text_after_it(self, tmp_path: Path) -> None:
+        payload = (",".join(HEADER) + "\nMom12m,LS,1927-01-31x,1.5,NA,50,50\n").encode()
+        directory = _with_one_vintage(tmp_path, "Mom12m", payload)
+
+        with pytest.raises(VintageUnavailable, match="line 2 is dated '1927-01-31x'"):
+            long_short_returns("Mom12m", data_dir=directory)
+
+    def test_the_signal_named_in_another_case(self, tmp_path: Path) -> None:
+        payload = (",".join(HEADER) + "\nmom12m,LS,1927-01-31,1.5,NA,50,50\n").encode()
+        directory = _with_one_vintage(tmp_path, "Mom12m", payload)
+
+        with pytest.raises(VintageUnavailable, match="line 2 is the 'LS' row of 'mom12m'"):
+            long_short_returns("Mom12m", data_dir=directory)
+
+    def test_the_index_is_named_for_the_sources_date_column(self) -> None:
+        _, returns = long_short_returns("Mom12m")
+
+        assert returns.index.name == "date"
