@@ -3110,7 +3110,8 @@ log.
    its death. The split at 2002 is exploratory with no verdict, and Chan's
    claim that the most recent five years do worse holds on his own file under
    a criterion written before the check ran.
-3. A file of survivors is the first thing the result cannot get past.
+3. Rule out survivorship bias before trusting a backtest. A file of survivors
+   is the first thing the result cannot get past.
 
 Four groups of its figures are not pinned here.
 

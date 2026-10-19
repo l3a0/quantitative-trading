@@ -238,13 +238,11 @@ Example 7.6 meets the same limit from another side. All three of its Januaries r
 
 ![An animated whiteboard sketch titled “Three Januaries are three trades”, drawn stroke by stroke. Three bars stand on a grey zero line: a short red bar hanging to −0.0244 labelled “January 2006”, a shorter red bar hanging to −0.0068 labelled “January 2007”, and a tall green bar rising to +0.0881 labelled “January 2008”. The words “three trades” sit to the right, and “Example 7.6 in MATLAB, after costs” closes the sketch.](../docs/figures/equity_seasonals_five_year_januaries.gif)
 
-## Lesson 3: a file of survivors is the first thing the result cannot get past
+## Lesson 3: Rule out survivorship bias before trusting a backtest
 
-Both files hold the companies in their index on the day Chan saved them, with each one’s history carried backwards. A company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not in a file saved in 2007. So every figure in the three lessons is about companies that survived to the end of the file.
+Survivorship bias is what a backtest picks up when its data holds only the companies that survived. Both of Chan’s files hold the companies in their index on the day he saved them. A company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not in a file saved in 2007. Both strategies trade the tenth at each end of a ranking, so a company missing from the file is one they could never trade, whatever its returns were. Every figure in the three lessons is about companies that survived to the end of the file.
 
-Both strategies rank stocks on past returns and trade the tenth at each end, so which companies the file holds decides which companies they trade. A company the index dropped before the save is a company neither strategy could pick, whatever its returns were.
-
-[The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches survivorship in full. On two tables Chan prints for the purpose, a database of survivors turns a loss into a large gain. Heston and Sadka’s 13 percent, which covers the years before 2002, has not been tested here on a panel that keeps the companies that left.
+[The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) shows how large the bias can be: on two tables Chan prints for the purpose, a database of survivors turns a loss into a large gain. Heston and Sadka’s 13 percent, which covers the years before 2002, has not been tested here on a panel that keeps the companies that left.
 
 ## What this replication cannot say
 
@@ -260,7 +258,7 @@ Three habits follow from the lessons above.
 
 1. **Account for every choice and every bug before comparing two figures for one strategy.** Every figure here needed rules the description leaves out, and seven of those rules are bugs.
 2. **Check a figure’s units before comparing two printouts.** The first edition’s −0.9167 and the revised edition’s −0.0129 come from one strategy, and only one of them is a return on capital.
-3. **Do not read a survivor file as evidence that an effect died or lived.** A file saved after the fact holds the stocks that made it, and a split through 83 months of them swings with a single year.
+3. **Rule out survivorship bias before reading a result as an effect that died or lived.** A file saved after the fact holds the stocks that made it, and a split through 83 months of them swings with a single year.
 
 On Chan’s own files, every printed figure his data reaches reproduces exactly. Whether the strategies died is a separate question, which these files cannot answer. For the January effect, a criterion written in advance and a panel that keeps the companies that left the index reach a bound, and the bound is too wide to read. It does not show that the effect died, and it does not show that it lived. For Heston and Sadka’s rotation, the same kind of test on the S&P 500 as it stood each month finds no return detectable above about 4.2 percent a year before costs, on the companies with a checked price. A smaller return could pass unseen, so it does not show that the effect died.
 
