@@ -632,12 +632,15 @@ def rank_entry(
 
 
 # Minutes added to the longest gap between two scheduled runs before the page
-# calls the board stale. It is an allowance chosen for a scheduled run that
-# starts up to an hour late. GitHub's documentation says only that such a run
-# "can be delayed during periods of high loads", and neither confirms a delay
-# of that size nor bounds it. The threshold was twice the gap until issue 563,
-# which assumed the schedule runs on time.
-SCHEDULE_DELAY_ALLOWANCE = 60
+# calls the board stale. GitHub's documentation says only that a scheduled run
+# "can be delayed during periods of high loads" and that its queued jobs "may
+# be dropped", and bounds neither. Issue 587 measured the longest gap between
+# two scheduled runs at 603 minutes over 185 hours, so the allowance is ten
+# hours and no gap measured there would read as a failing Action. At the
+# earlier 60, a healthy board would have read as stale 45% of that time. The
+# threshold was twice the gap until issue 563, which assumed the schedule runs
+# on time.
+SCHEDULE_DELAY_ALLOWANCE = 600
 
 
 def longest_gap_minutes(workflow: Path) -> int:

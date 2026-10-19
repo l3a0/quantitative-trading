@@ -464,10 +464,13 @@ function adopt(src) {
    time the schedule changed.
 
    The threshold is the longest gap between two scheduled runs plus an
-   allowance for a run GitHub starts late, so the banner names the gap rather
-   than promising a rebuild by any time. GitHub documents no bound on the
-   delay. Until issue 563 the threshold was twice the gap, which would call a
-   healthy board stale whenever one run came an hour late in a quiet stretch.
+   allowance for a run GitHub starts late or drops, so the banner names the
+   gap rather than promising a rebuild by any time. GitHub documents no bound
+   on the delay. Until issue 563 the threshold was twice the gap, which would
+   call a healthy board stale whenever one run came an hour late in a quiet
+   stretch. Until issue 587 the allowance was an hour, which called a healthy
+   board stale 45% of the time once the schedule fired in about 11% of its
+   slots.
 
    Until issue 533 the board also named the fields it did not carry yet, from
    a `lacks` list in the state, while the artifact board stayed the board of
@@ -479,7 +482,7 @@ function liveNotes() {
     const age = (Date.now() - new Date(s.updatedAt).getTime()) / 60000;
     const due = isNum(s.longestGapMinutes)
       ? `Scheduled rebuilds are due at most ${s.longestGapMinutes} minutes apart, ` +
-        `and it is older than that plus an allowance for GitHub starting one late, ` +
+        `and it is older than that plus an allowance for GitHub starting one late or dropping it, ` +
         `so the Action that rebuilds it may be failing.`
       : `The Action that rebuilds it may be failing.`;
     if (age > s.staleAfterMinutes) out.push(

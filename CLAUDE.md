@@ -460,7 +460,7 @@ So a session that starts or ends work on a card, finishes a decompose loop, post
 
 Two limits are worth stating rather than leaving a reader to infer.
 
-1. A "blocked by" link and a sub-issue start no run of the Action, so they reach the board on the next scheduled run rather than at once. Everything else a session sets starts a run.
+1. A "blocked by" link and a sub-issue start no run of the Action, so the session that sets one dispatches the board itself with its own `gh` login, once its changes are set. The skill gives the command and the moments that need it. Everything else a session sets starts a run. The schedule is a sweep that cannot be relied on, because it fired in about 11% of its slots over the 185 hours [issue 587](https://github.com/l3a0/quantitative-trading/issues/587) measured, and the owner ruled on 2026-10-19 that no timer outside GitHub replaces it.
 2. What argues for the rule is measured cost rather than a failure. Writing the board by hand cost about $51 a day in session turns and still missed every change no session saw, which [issue 531](https://github.com/l3a0/quantitative-trading/issues/531) measured and [issue 533](https://github.com/l3a0/quantitative-trading/issues/533) moved onto GitHub. Nothing has yet measured what a stale label costs a reader, so setting them is a convention this repo keeps rather than a cost it has priced.
 
 ## Research pins

@@ -1,6 +1,6 @@
 ---
 name: update-build-board
-description: Keep the Quantitative Trading Build Board true by setting, on GitHub, the labels, links and lines it reads. Run it when a decompose loop starts or exits, when a build session starts on a card or hands its pull request over, when a review is posted, when an issue is filed or its priority or what it waits on changes, and when the page's code changes. A GitHub Action rebuilds the board from GitHub on every change, so nothing here writes the board itself. Answering what to take next is a read of the board's board.json.
+description: Keep the Quantitative Trading Build Board true by setting, on GitHub, the labels, links and lines it reads. Run it when a decompose loop starts or exits, when a build session starts on a card or hands its pull request over, when a review is posted, when an issue is filed, gains or loses a sub-issue, or its priority or what it waits on changes, and when the page's code changes. A GitHub Action rebuilds the board from GitHub on every change, so nothing here writes the board itself. Answering what to take next is a read of the board's board.json.
 ---
 
 # Update the build board
@@ -43,12 +43,24 @@ than in a file on the machine.
 
 A change reaches the page once a run of the Action finishes. A label, a body
 edit and a comment each start a run. A "blocked by" link and a sub-issue start
-none, because GitHub Actions lists no trigger for either, so they wait for the
-next scheduled run. The `cron` line in `.github/workflows/board.yml` sets
-when those are due, and GitHub can start one late or drop it under load. Pages
-also tells a browser to cache
-`board.json` for ten minutes, and the page asks for a fresh copy every two
-minutes to get round it.
+none, because GitHub Actions lists no trigger for either. So the session that
+sets one dispatches the board itself, once its changes are set, with the same
+`gh` login it set them with. The moments below say where.
+
+```bash
+gh workflow run board.yml --repo l3a0/quantitative-trading
+```
+
+The dispatch runs on `main`, the default branch. Never pass `--ref`, because
+the `github-pages` environment lets only `main` deploy, so a run from any other
+branch builds and then has its deploy refused.
+
+The `cron` line in `.github/workflows/board.yml` is a sweep rather than a
+backstop. After it moved to `8,38` it fired in about 11% of its slots over the
+next week, with up to ten hours between two runs, which
+[issue 587](https://github.com/l3a0/quantitative-trading/issues/587) measured.
+Pages also tells a browser to cache `board.json` for ten minutes, and the page
+asks for a fresh copy every two minutes to get round it.
 
 To read the board, as step 4 of `sync-prune-next` does, build it from GitHub
 rather than fetching the published copy, because the build reads GitHub as it
@@ -102,10 +114,15 @@ board wrong, and nothing else notices.
    if it joins the priority order, because a card with no band is left out of
    the board's default view. Add a native "blocked by" link for each open
    issue it cannot start before, and a `Board after:` line for an ordering
-   nothing enforces.
+   nothing enforces. If it set any link, dispatch the board once everything
+   is set, because a link starts no run.
 7. **A card's priority changes.** Move its `band:N` label, and add, change or
    remove its `Board order:` line.
-8. **What a card waits on changes.** Add or remove its "blocked by" link.
+8. **What a card waits on changes.** Add or remove its "blocked by" link, then
+   dispatch the board, because the link starts no run.
+9. **An issue gains or loses a sub-issue.** Dispatch the board once the
+   sub-issues are set, because they start no run. A split in a decompose loop
+   is the usual case, and an issue with any sub-issue draws as a parent.
 
 Nothing else needs setting. A pull request opening, merging or closing, its
 checks settling, and an issue closing, retitled or relabelled all reach the
@@ -125,6 +142,7 @@ gh api --method POST repos/l3a0/quantitative-trading/issues/<n>/dependencies/blo
   -F issue_id="$(gh api repos/l3a0/quantitative-trading/issues/<b> --jq .id)"
 gh api --method DELETE \
   "repos/l3a0/quantitative-trading/issues/<n>/dependencies/blocked_by/$(gh api repos/l3a0/quantitative-trading/issues/<b> --jq .id)"
+gh workflow run board.yml --repo l3a0/quantitative-trading
 ```
 
 A "blocked by" link takes the blocker's database id, which `--jq .id` reads,
@@ -167,7 +185,7 @@ a number the data already carries, because that sentence outlives the number.
 
 | Section | Field | Comes from |
 | --- | --- | --- |
-| `STATE` | `updatedAt`, `issues.open`, `longestGapMinutes`, `staleAfterMinutes` | the time GitHub was read, the open issue count, the longest gap in the workflow's schedule, and that gap plus a 60-minute allowance for a scheduled run GitHub starts late |
+| `STATE` | `updatedAt`, `issues.open`, `longestGapMinutes`, `staleAfterMinutes` | the time GitHub was read, the open issue count, the longest gap in the workflow's schedule, and that gap plus a 600-minute allowance for a scheduled run GitHub starts late or drops |
 | `TRACKER` | `n`, `ms`, `label`, `labels` | each open issue's number, milestone, title and labels, less the board's own `band:N` and `working:` labels, which the page draws as the rank chip and the busy stripe |
 | `TRACKER` | `kind` | `parent` for an issue with any sub-issue, then `data` for `blocked-on-data`, `deferred` for `deferred` and `decision` for `decision`, in that order where an issue carries more than one, and `ready` otherwise |
 | `TRACKER` | `needs` | the issue's native "blocked by" links, keeping only blockers that are open issues in this repository |
