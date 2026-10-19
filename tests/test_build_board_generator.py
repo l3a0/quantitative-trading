@@ -1268,6 +1268,12 @@ def test_the_stale_threshold_is_the_longest_gap_plus_ten_hours_for_a_dropped_run
     assert bb.stale_after_minutes(bb.longest_gap_minutes(WORKFLOW)) == 630
 
 
+def test_the_skill_quotes_the_allowance_the_script_adds() -> None:
+    """Protects the skill's data table from a second copy of the allowance."""
+    skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+    assert f"a {bb.SCHEDULE_DELAY_ALLOWANCE}-minute allowance" in skill
+
+
 def test_the_threshold_adds_the_named_allowance(monkeypatch: pytest.MonkeyPatch) -> None:
     """Protects the allowance from a second copy of 600 inside the formula."""
     monkeypatch.setattr(bb, "SCHEDULE_DELAY_ALLOWANCE", 7)
@@ -1464,6 +1470,10 @@ DISPATCH = "gh workflow run board.yml --repo l3a0/quantitative-trading"
 # moment in the skill uses for the change a session makes to it.
 NO_RUN_READS = {"blockedBy": '"blocked by" link', "subIssues": "sub-issue"}
 
+# Any wording of either change, so a moment reworded away from the words above
+# still has to name the dispatch.
+NO_RUN_WORDING = re.compile(r"blocked[- ]by|dependenc|sub-?issue|child issue", re.I)
+
 
 def _moments() -> list[str]:
     """The numbered moments under the skill's "What a session sets, and when"."""
@@ -1486,9 +1496,9 @@ def test_a_change_that_starts_no_run_names_the_dispatch() -> None:
     assert set(NO_RUN_READS) <= set(re.findall(r"\b(blockedBy|subIssues)\b", bb.ISSUES_QUERY))
     moments = _moments()
     for words in NO_RUN_READS.values():
-        setting = [m for m in moments if words in m]
-        assert setting, f"no moment names a {words}"
-        for moment in setting:
+        assert any(words in m for m in moments), f"no moment names a {words}"
+    for moment in moments:
+        if NO_RUN_WORDING.search(moment):
             assert "dispatch the board" in moment.lower(), moment.split("\n", 1)[0]
     skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
     assert f"\n{DISPATCH}\n" in skill
