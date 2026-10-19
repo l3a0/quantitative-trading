@@ -2020,6 +2020,269 @@ def january_scenes(ranges: JanuaryRanges) -> tuple[Scene, ...]:
     return (_january_registered(), _january_fill(), _january_ranges(ranges))
 
 
+# --- Section 3: whether Heston and Sadka's effect survived the book ---------
+
+#: Chan's "more than 13 percent" a year for Heston and Sadka's rotation before
+#: 2002, the book's figure at Kindle location 4425 rather than a run's.
+BOOK_ANNUAL = 0.13
+
+
+@dataclass(frozen=True)
+class IvvFigures:
+    """What section 3's sketches draw from the registered IVV run.
+
+    The run is :func:`chan.equity_seasonals.run_monthly_point_in_time`.
+    ``covered`` and ``members`` count member-months, ``fewest`` and ``most``
+    are the month-ends with the lowest and highest share covered, each as its
+    month, its covered count and its member count, ``departing`` and
+    ``staying`` are the departures table's two rows, long, short and neither,
+    and ``months`` is :data:`chan.equity_seasonals.REVISED_MATLAB`'s held
+    months before costs, each as its month and its return, with ``mean``
+    their mean.
+    """
+
+    covered: int
+    members: int
+    fewest: tuple[str, int, int]
+    most: tuple[str, int, int]
+    departing: tuple[int, int, int]
+    staying: tuple[int, int, int]
+    months: tuple[tuple[str, float], ...]
+    mean: float
+
+    @classmethod
+    def from_run(cls, monthly: seasonals.MonthlyRun) -> IvvFigures:
+        share = [(c.month, c.covered, c.members) for c in monthly.coverage]
+        departing, staying = monthly.departures.table
+        returns = monthly.matlab.returns
+        return cls(
+            covered=monthly.covered,
+            members=monthly.members,
+            fewest=min(share, key=lambda m: m[1] / m[2]),
+            most=max(share, key=lambda m: m[1] / m[2]),
+            departing=tuple(departing),
+            staying=tuple(staying),
+            months=tuple(
+                (pd.Timestamp(day).strftime("%Y-%m"), float(value))
+                for day, value in returns.items()
+            ),
+            mean=monthly.matlab.test.mean,
+        )
+
+
+#: Where the carry-forward scene draws its four quarter-end filings, and the
+#: two companies' rows.
+FILINGS = (3.0, 5.0, 7.0, 9.0)
+LEAVER_Y, JOINER_Y = 3.0, 1.75
+#: Where the leaver leaves and the joiner joins, between two filings.
+LEAVES_AT, JOINS_AT = 5.6, 3.8
+
+
+def _ivv_carry() -> Scene:
+    """Each filing's list stands until the next, so a change counts at the next filing."""
+    steps: list[Stroke | Fill | Label] = [
+        _stroke(f"filing-{k}", _line([(x, 1.2), (x, 3.3)]), color=MUTED, dashed=True, frames=4)
+        for k, x in enumerate(FILINGS)
+    ]
+    last = f"filing-{len(FILINGS) - 1}"
+    steps += [
+        Label("quarter-end filings", FILINGS[0], 0.85, names=last, color=MUTED, size=11),
+        Label("a company that leaves", 0.3, LEAVER_Y + 0.5, names=last, size=11),
+        _stroke(
+            "held", _line([(FILINGS[0], LEAVER_Y), (LEAVES_AT, LEAVER_Y)]), width=4.0, frames=8
+        ),
+        _stroke(
+            "leaves",
+            _line([(LEAVES_AT, LEAVER_Y - 0.2), (LEAVES_AT, LEAVER_Y + 0.2)]),
+            frames=2,
+        ),
+        Label("leaves the index", LEAVES_AT, LEAVER_Y + 0.65, names="leaves", ha="center", size=10),
+        _stroke(
+            "late",
+            _line([(LEAVES_AT, LEAVER_Y), (FILINGS[2], LEAVER_Y)]),
+            color=LOST,
+            width=4.0,
+            frames=4,
+        ),
+        Label(
+            "still held",
+            (LEAVES_AT + FILINGS[2]) / 2,
+            LEAVER_Y - 0.5,
+            names="late",
+            color=LOST,
+            ha="center",
+            size=10,
+        ),
+        Label("a company that joins", 0.3, JOINER_Y + 0.42, names="late", size=11),
+        _stroke(
+            "missed",
+            _line([(JOINS_AT, JOINER_Y), (FILINGS[1], JOINER_Y)]),
+            color=LOST,
+            dashed=True,
+            width=3.0,
+            frames=4,
+        ),
+        Label(
+            "not yet held",
+            (JOINS_AT + FILINGS[1]) / 2 - 0.3,
+            JOINER_Y - 0.45,
+            names="missed",
+            color=LOST,
+            ha="center",
+            size=10,
+        ),
+        _stroke("joined", _line([(FILINGS[1], JOINER_Y), (9.4, JOINER_Y)]), width=4.0, frames=8),
+        Label(
+            "each filing’s list stands until the next one",
+            0.3,
+            0.35,
+            names="joined",
+            color=ACCENT,
+            size=12,
+        ),
+    ]
+    return Scene("A list stands until the next filing", "ivv_carry", tuple(steps))
+
+
+#: The bars' left and right ends, shared by the checked and leavers scenes.
+BAR_X = (0.6, 9.4)
+
+
+def _ivv_checked(f: IvvFigures) -> Scene:
+    """The member-months with a checked price against those dropped, overall and at the extremes."""
+    x0, x1 = BAR_X
+    split = x0 + (x1 - x0) * f.covered / f.members
+    steps: list[Stroke | Fill | Label] = [
+        Fill("all-checked", x0, 3.0, split, 3.35, INK),
+        Label(
+            f"{f.covered:,} member-months with a checked price",
+            x0,
+            3.75,
+            names="all-checked",
+            size=11,
+        ),
+        Fill("all-dropped", split, 3.0, x1, 3.35, LOST),
+        Label(
+            f"{f.members - f.covered:,} dropped",
+            x1,
+            2.6,
+            names="all-dropped",
+            color=LOST,
+            ha="right",
+            size=11,
+        ),
+    ]
+    for name, y, (month, covered, members), word in (
+        ("fewest", 1.75, f.fewest, "fewest"),
+        ("most", 0.85, f.most, "most"),
+    ):
+        cut = x0 + (x1 - x0) * covered / members
+        steps += [
+            Fill(f"{name}-checked", x0, y, cut, y + 0.25, INK),
+            Fill(f"{name}-dropped", cut, y, x1, y + 0.25, LOST),
+            Label(
+                f"{word}: {covered} of {members}, {month}",
+                x0,
+                y + 0.55,
+                names=f"{name}-dropped",
+                size=10,
+            ),
+        ]
+    return Scene("Who had a checked price", "ivv_checked", tuple(steps))
+
+
+#: Where the leavers scene's bars start, right of their row labels.
+LEAVERS_X0 = 2.8
+
+
+def _ivv_leavers(f: IvvFigures) -> Scene:
+    """Each row's member-months as shares placed long, short and neither, leavers above."""
+    x0, x1 = LEAVERS_X0, BAR_X[1]
+    steps: list[Stroke | Fill | Label] = []
+    for k, (text, y, counts) in enumerate(
+        (("left within a year", 3.0, f.departing), ("stayed", 1.5, f.staying))
+    ):
+        total = sum(counts)
+        long, short = counts[0] / total, counts[1] / total
+        a = x0 + (x1 - x0) * long
+        b = a + (x1 - x0) * short
+        steps += [
+            Fill(f"long-{k}", x0, y, a, y + 0.3, GOOD),
+            Label(text, 0.3, y + 0.12, names=f"long-{k}", size=11),
+            Label(f"long {long:.1%}", x0, y + 0.7, names=f"long-{k}", color=GOOD, size=10),
+            Fill(f"short-{k}", a, y, b, y + 0.3, LOST),
+            Label(
+                f"short {short:.1%}",
+                b,
+                y - 0.35,
+                names=f"short-{k}",
+                color=LOST,
+                ha="right",
+                size=10,
+            ),
+            Fill(f"neither-{k}", b, y, x1, y + 0.3, MUTED),
+            Label("neither", x1, y + 0.7, names=f"neither-{k}", color=MUTED, ha="right", size=10),
+        ]
+    steps.append(
+        Label(
+            "leavers sit in a traded tenth more often, most of all the short one",
+            0.3,
+            0.4,
+            names="neither-1",
+            color=ACCENT,
+            size=11,
+        )
+    )
+    return Scene("Leavers land in the tenths", "ivv_leavers", tuple(steps))
+
+
+#: The running-sum scene's span across the board, its zero line, and the
+#: height the book's 13 percent a year reaches by the last month.
+RUNNING_X, RUNNING_ZERO, RUNNING_TOP = (1.0, 8.6), 1.35, 3.95
+
+
+def _ivv_running_sum(f: IvvFigures) -> Scene:
+    """The held months added up, against the line 13 percent a year would climb."""
+    values = np.array([value for _, value in f.months])
+    n = len(values)
+    added = np.concatenate([[0.0], np.cumsum(values)])
+    book = BOOK_ANNUAL / 12 * np.arange(n + 1)
+    x0, x1 = RUNNING_X
+    per = (RUNNING_TOP - RUNNING_ZERO) / book[-1]
+    xs = np.linspace(x0, x1, n + 1)
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("zero", _line([(x0, RUNNING_ZERO), (x1, RUNNING_ZERO)]), color=MUTED, frames=6),
+        Label("0", x0 - 0.25, RUNNING_ZERO, names="zero", color=MUTED, ha="right", size=11),
+        Label(f.months[0][0][:4], x0, 0.7, names="zero", color=MUTED, ha="center", size=10),
+        Label(f.months[-1][0][:4], x1, 0.7, names="zero", color=MUTED, ha="center", size=10),
+        _stroke("book", (xs, RUNNING_ZERO + book * per), color=GOOD, dashed=True, frames=12),
+        Label(
+            f"{BOOK_ANNUAL:.0%} a year, the book’s figure",
+            5.6,
+            2.45,
+            names="book",
+            color=GOOD,
+            size=11,
+        ),
+        _stroke("run", (xs, RUNNING_ZERO + added * per), width=2.6, frames=24),
+        Label(f"the run’s {n} months, added up", 7.0, 1.85, names="run", ha="center", size=11),
+        Label(
+            f"a mean of {_signed(f.mean, 4)} a month: flat, where {BOOK_ANNUAL:.0%} a year climbs",
+            0.3,
+            0.25,
+            names="run",
+            color=ACCENT,
+            size=11,
+        ),
+    ]
+    return Scene(f"{n} months add up to nothing", "ivv_running_sum", tuple(steps))
+
+
+def ivv_scenes(figures: IvvFigures) -> tuple[Scene, ...]:
+    """Section 3's four, in the order the post reads them."""
+    return (_ivv_carry(), _ivv_checked(figures), _ivv_leavers(figures), _ivv_running_sum(figures))
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
@@ -2030,6 +2293,7 @@ PACED = (
     "survivors_panels",
     "january_fill",
     "january_ranges",
+    "ivv_leavers",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
@@ -2412,18 +2676,19 @@ def make_equity_seasonals_whiteboards(
     verdicts: Verdicts | None = None,
     spans: Spans | None = None,
     ranges: JanuaryRanges | None = None,
+    ivv: IvvFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
     then the split's, then the five-year check's three, then Lesson 3's three,
-    then the January section's three.
+    then the January section's three, then section 3's four.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
-    archive, about twenty seconds, and ``ranges`` from the January run among
-    them. Every GIF but the verdicts and ranges sketches is written before
-    that read, so a refused or missing archive leaves the other nineteen
-    redrawn and raises from the read.
+    archive, about twenty seconds, ``ranges`` from the January run among
+    them, and ``ivv`` from the IVV run. Every GIF that needs none of them is
+    written before that read, so a refused or missing archive leaves those
+    twenty redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
@@ -2434,16 +2699,30 @@ def make_equity_seasonals_whiteboards(
     five = [_write(scene, folder) for scene in five_year_scenes()]
     survivors = [_write(scene, folder) for scene in survivor_scenes()]
     january = [_write(_january_registered(), folder), _write(_january_fill(), folder)]
-    if verdicts is None or ranges is None:
-        run = seasonals.run_point_in_time()
-        if verdicts is None:
-            verdicts = Verdicts.from_runs(run, seasonals.run_monthly_point_in_time())
-        if ranges is None:
-            ranges = JanuaryRanges.from_run(run)
+    section_3 = [_write(_ivv_carry(), folder)]
+    run = seasonals.run_point_in_time() if verdicts is None or ranges is None else None
+    monthly = seasonals.run_monthly_point_in_time() if verdicts is None or ivv is None else None
+    if verdicts is None:
+        verdicts = Verdicts.from_runs(run, monthly)
+    if ranges is None:
+        ranges = JanuaryRanges.from_run(run)
+    if ivv is None:
+        ivv = IvvFigures.from_run(monthly)
     paths.append(_write(_two_verdicts(verdicts), folder))
     january.append(_write(_january_ranges(ranges), folder))
-    return paths + strategies + rules + split + five + survivors + january
+    section_3 += [_write(scene, folder) for scene in ivv_scenes(ivv)[1:]]
+    return paths + strategies + rules + split + five + survivors + january + section_3
 
+
+#: The sketches whose figures come from the owner's archive, which a redraw
+#: without it leaves stale.
+ARCHIVE_SLUGS = (
+    "two_verdicts",
+    "january_ranges",
+    "ivv_checked",
+    "ivv_leavers",
+    "ivv_running_sum",
+)
 
 #: The refusals a redraw can meet in reading the archive, the ones
 #: :func:`chan.equity_seasonals.main` turns into one line.
@@ -2461,13 +2740,11 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other nineteen GIFs are already written. The two left stale
+        # The other twenty GIFs are already written. The five left stale
         # are named, and the exit is non-zero, so a redraw on a machine
         # without the archive does not read as a full one.
-        raise SystemExit(
-            f"{GIF_PREFIX}two_verdicts.gif and {GIF_PREFIX}january_ranges.gif "
-            f"were not redrawn: {refused}"
-        ) from refused
+        stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)
+        raise SystemExit(f"{stale} were not redrawn: {refused}") from refused
     for path in paths:
         print(f"wrote {path}")
 

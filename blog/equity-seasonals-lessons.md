@@ -308,17 +308,25 @@ Leaving the unchecked members out, with each tenth taken of the checked members 
 
 A third run tested Example 7.7 under the revised MATLAB’s rules on the S&P 500 as it stood each month, from January 2009 to September 2026, so the companies that later left the index are in it. The membership comes from IVV, an iShares fund that holds the index and files its holdings with the SEC each quarter. Each filing’s list stands for the months until the next, so a company that joins or leaves between two filings counts as doing so at the next one. This run is **registered** too, for the same reason as the second.
 
+![An animated whiteboard sketch titled “A list stands until the next filing”, drawn stroke by stroke. Four grey dashed lines stand for “quarter-end filings”. On a row labelled “a company that leaves”, a black line runs from the first filing to a tick labelled “leaves the index”, and a red stretch labelled “still held” carries on to the next filing. On a row labelled “a company that joins”, a red dashed stretch labelled “not yet held” runs from where it joins to the next filing, and a black line runs on from there. The words “each filing’s list stands until the next one” close the sketch.](../docs/figures/equity_seasonals_ivv_carry.gif)
+
 #### Which companies it kept
 
 Free daily prices gave a checked price for 98,321 of its 107,115 member-months, each one company in one month, and the run dropped the rest, so each tenth is a tenth of the companies with a checked price.
+
+![An animated whiteboard sketch titled “Who had a checked price”, drawn stroke by stroke. A long bar is black for the “98,321 member-months with a checked price” and red for the “8,794 dropped”. Two shorter bars below it split the same way at two month-ends, labelled “fewest: 364 of 501, 2012-09” and “most: 501 of 503, 2025-09”.](../docs/figures/equity_seasonals_ivv_checked.gif)
 
 #### Whether dropping the rest matters
 
 Dropping the rest is harmless only if leaving the index has little to do with where a company ranks. Among the companies kept, those that left the index within a year landed in a traded tenth more often than those that stayed, most of all in the short tenth. That comparison is described rather than tested. It counts against the drop being harmless, and which way it moves the result is not measured.
 
+![An animated whiteboard sketch titled “Leavers land in the tenths”, drawn slowly stroke by stroke, with two bars split into green, red and grey shares of member-months. The bar for companies that “left within a year” is “long 12.0%”, “short 16.5%” and “neither” for the rest. The bar for those that “stayed” is “long 9.8%”, “short 9.6%” and “neither”. The words “leavers sit in a traded tenth more often, most of all the short one” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_ivv_leavers.gif)
+
 #### What the run found
 
 The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would print a mean at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months.
+
+![An animated whiteboard sketch titled “213 months add up to nothing”, drawn stroke by stroke. A grey zero line runs from 2009 to 2026. A green dashed line labelled “13% a year, the book’s figure” climbs steadily above it, and a black line labelled “the run’s 213 months, added up” wanders along zero and ends just below it. The words “a mean of −0.0001 a month: flat, where 13% a year climbs” close the sketch.](../docs/figures/equity_seasonals_ivv_running_sum.gif)
 
 #### What the verdict says
 
