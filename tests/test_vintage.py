@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from chan import vintage
+from chan import open_asset_pricing, vintage
 from chan.paths import DATA_DIR
 from chan.vintage import (
     CHECKSUMS_NAME,
@@ -1520,10 +1520,11 @@ def _lifted_from_chan(path: str) -> bool:
 def _days_in(path: str, raw: bytes) -> list[str]:
     """The ISO date of every row in a committed file, one per row.
 
-    Every file this repo wrote, and every file placed by hand, writes an ISO
-    date first on each row, so a row is a line opening with four digits. The
-    files of Chan's Python port do not, and their pin's shape says what each
-    holds instead.
+    Every file this repo wrote, and every file placed by hand but two kinds,
+    writes an ISO date first on each row, so a row is a line opening with four
+    digits. The files of Chan's Python port do not, and their pin's shape says
+    what each holds instead. The Open Source Asset Pricing files do not either,
+    and the last paragraph below says how they are read.
 
     1. A minute or daily file writes `YYYYMMDD`, which is rewritten as ISO.
     2. A rate file writes a year and a month, and its date is the first of the
@@ -1532,8 +1533,17 @@ def _days_in(path: str, raw: bytes) -> list[str]:
        `RETURN_CALENDAR` names. A return row opens with `0.` or `-0.`, so the
        four-digit test the other files take would drop every one, and the
        length assertion is what checks each row got a date.
+
+    The Open Source Asset Pricing files keep their source's header, which puts
+    the signal's name first and the date third. They are told apart by that
+    header rather than by their path, so a row of theirs is every line after
+    it, and a line that is not a row breaks the row count rather than being
+    dropped.
     """
     lines = raw.decode("utf-8").splitlines()
+    if lines and lines[0] == ",".join(open_asset_pricing.HEADER):
+        column = open_asset_pricing.HEADER.index("date")
+        return [line.split(",")[column] for line in lines[1:]]
     if path not in PYTHON_PORT:
         return [line.split(",")[0] for line in lines if line[:4].isdigit()]
     rows = [line.split(",") for line in lines[1:]]
