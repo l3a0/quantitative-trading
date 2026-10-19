@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws twelve scenes, and the post places each right after the
+This module draws fifteen scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -52,6 +52,21 @@ draws the two halves' annual returns beside the sums of 2002 and 2006, to
 one scale, with a bracket for each pair's gap. Its figures come from
 :class:`SplitFigures`, which ``TestTheYearsInsideTheSplit`` derives.
 
+The last three follow Lesson 2's check of Chan's five-year claim, one after
+each of its paragraphs:
+
+1. Which months each figure covers: the whole period, the split's two halves
+   and the five-year rerun on one timeline, with the rerun's first year,
+   which only feeds the ranking, and the 23 months between the split and the
+   rerun.
+2. The verdict's gap of 0.0036 against one standard error of the rerun,
+   0.0281, on one number line.
+3. Example 7.6's three Januaries as three bars, three trades.
+
+Their figures come from :class:`FiveYearFigures`. The first two carry more
+than the usual pace lets a reader take in, so :func:`sketch_timeline` holds
+each of their labels longer and their finished drawings for twelve seconds.
+
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
 the two ringed at each end stand for a tenth. March is an example month, and
@@ -72,9 +87,9 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twelve with the command below.
+with no change is a no-op diff. Redraw all fifteen with the command below.
 Only the verdicts sketch reads the archive, so on a machine without it the
-command redraws the other eleven and exits non-zero naming the one it left::
+command redraws the other fourteen and exits non-zero naming the one it left::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -97,6 +112,7 @@ from chan.series import load_panel
 from chan.usdcad_tests_whiteboard import (
     TINT,
     Fill,
+    Frame,
     Label,
     Scene,
     Stroke,
@@ -1073,6 +1089,339 @@ def split_scenes(figures: SplitFigures | None = None) -> tuple[Scene, ...]:
 
 
 @dataclass(frozen=True)
+class FiveYearFigures:
+    """The figures the five-year check's three sketches draw, from Chan's files.
+
+    The months sketch draws the revised Python's figures, as the split does:
+    its whole period, its two halves, its five-year rerun and the 23 months
+    between the split and the rerun. The noise sketch draws the revised
+    MATLAB's, which carry the verdict: the rerun, the whole period and the
+    rerun's standard error. The January sketch draws Example 7.6's three
+    trades in MATLAB, after costs. ``tests/test_equity_seasonals.py`` derives
+    each one in ``TestTheMostRecentFiveYears`` and ``TestTheFiveYearSketches``.
+    """
+
+    whole_months: int = 83
+    before_months: int = 13
+    after_months: int = 70
+    rerun_months: int = 47
+    between_months: int = 23
+    whole_python: float = -0.012679138708036275
+    before_2002: float = -0.14538748140058178
+    from_2002: float = 0.011966696363436455
+    rerun_python: float = -0.01643109580760715
+    between: float = 0.06999696732165601
+    whole_matlab: float = -0.012922703586771995
+    rerun_matlab: float = -0.016502156222333787
+    rerun_error: float = 0.028137266582467655
+    januaries: tuple[tuple[int, float], ...] = (
+        (2006, -0.024368881797563913),
+        (2007, -0.006796429884419337),
+        (2008, 0.08807964565655355),
+    )
+
+
+#: The months sketch's board: the kept months run from the start of December
+#: 2000 to the end of October 2007, each month a twelfth of a year along it.
+MONTHS_FROM, MONTHS_TO = 2000 + 11 / 12, 2007 + 10 / 12
+MONTHS_BOARD = (0.6, 9.4)
+#: The split falls at the start of 2002, and the rerun's input starts with the
+#: rows after 2002-11-23 and keeps its first month at the end of 2003.
+SPLIT_YEAR, RERUN_INPUT, RERUN_KEPT = 2002.0, 2002 + 11 / 12, 2003 + 11 / 12
+WHOLE_Y, HALVES_Y, RERUN_Y, BETWEEN_Y, MONTHS_AXIS_Y = 3.55, 2.8, 2.05, 1.45, 0.95
+
+
+def _when(year: float) -> float:
+    """Where a date, as a year and its fraction, sits on the months sketch."""
+    (x0, x1), span = MONTHS_BOARD, MONTHS_TO - MONTHS_FROM
+    return x0 + (x1 - x0) * (year - MONTHS_FROM) / span
+
+
+def _five_year_months(f: FiveYearFigures) -> Scene:
+    """The months each figure in the five-year check covers, on one timeline."""
+    ticks = []
+    for year in range(2001, 2008):
+        ticks += [(_when(year), MONTHS_AXIS_Y), (_when(year), MONTHS_AXIS_Y - 0.1)]
+        ticks.append((_when(year), MONTHS_AXIS_Y))
+    start, end, split = _when(MONTHS_FROM), _when(MONTHS_TO), _when(SPLIT_YEAR)
+    rerun_input, rerun_kept = _when(RERUN_INPUT), _when(RERUN_KEPT)
+    above = 0.38
+    return Scene(
+        "Which months each figure covers",
+        "five_year_months",
+        (
+            _stroke(
+                "axis",
+                _line([(start, MONTHS_AXIS_Y), (end, MONTHS_AXIS_Y)] + ticks),
+                color=MUTED,
+                frames=18,
+            ),
+            *[
+                Label(
+                    str(year),
+                    _when(year),
+                    MONTHS_AXIS_Y - 0.4,
+                    names="axis",
+                    color=MUTED,
+                    ha="center",
+                    size=10,
+                )
+                for year in range(2001, 2008)
+            ],
+            _stroke("whole", _span(start, end, WHOLE_Y, tick=0.07), frames=24),
+            Label(
+                f"whole period: {f.whole_months} months, {_signed(f.whole_python, 6)}",
+                MONTHS_BOARD[0],
+                WHOLE_Y + above,
+                names="whole",
+                size=10,
+            ),
+            _stroke(
+                "before", _span(start, split - 0.04, HALVES_Y, tick=0.07), color=LOST, frames=9
+            ),
+            Label(
+                f"before 2002: {f.before_months} months, {_signed(f.before_2002, 6)}",
+                MONTHS_BOARD[0],
+                HALVES_Y + above,
+                names="before",
+                color=LOST,
+                size=10,
+            ),
+            _stroke("after", _span(split + 0.04, end, HALVES_Y, tick=0.07), color=GOOD, frames=24),
+            Label(
+                f"from 2002: {f.after_months} months, {_with_sign(f.from_2002, 6)}",
+                MONTHS_BOARD[1],
+                HALVES_Y + above,
+                names="after",
+                color=GOOD,
+                ha="right",
+                size=10,
+            ),
+            _stroke(
+                "warm-up",
+                _line([(rerun_input, RERUN_Y), (rerun_kept, RERUN_Y)], per_unit=20),
+                color=MUTED,
+                dashed=True,
+                frames=9,
+            ),
+            Label(
+                "first year only ranks",
+                (rerun_input + rerun_kept) / 2,
+                RERUN_Y + above,
+                names="warm-up",
+                color=MUTED,
+                ha="center",
+                size=10,
+            ),
+            _stroke("rerun", _span(rerun_kept, end, RERUN_Y, tick=0.07), color=ACCENT, frames=18),
+            Label(
+                f"five-year rerun: {f.rerun_months} months, {_signed(f.rerun_python, 6)}",
+                MONTHS_BOARD[1],
+                RERUN_Y + above,
+                names="rerun",
+                color=ACCENT,
+                ha="right",
+                size=10,
+            ),
+            _stroke(
+                "between",
+                _line(
+                    [
+                        (split, BETWEEN_Y + 0.12),
+                        (split, BETWEEN_Y),
+                        (rerun_kept, BETWEEN_Y),
+                        (rerun_kept, BETWEEN_Y + 0.12),
+                    ]
+                ),
+                color=_sign_color(f.between),
+                frames=12,
+            ),
+            Label(
+                f"{f.between_months} months the rerun leaves out: {_with_sign(f.between, 6)}",
+                rerun_kept + 0.2,
+                BETWEEN_Y,
+                names="between",
+                color=_sign_color(f.between),
+                size=10,
+            ),
+            Label(
+                "revised Python’s rules, a year, before costs",
+                0.3,
+                0.2,
+                names="between",
+                color=MUTED,
+                size=10,
+            ),
+        ),
+    )
+
+
+#: The noise sketch's number line: its span on the board, its height, and the
+#: returns a year at its ends.
+NOISE_BOARD, NOISE_Y, NOISE_RANGE = (1.0, 9.0), 2.0, (-0.05, 0.02)
+
+
+def _on_noise(value: float) -> float:
+    (x0, x1), (lo, hi) = NOISE_BOARD, NOISE_RANGE
+    return x0 + (x1 - x0) * (value - lo) / (hi - lo)
+
+
+def _five_year_noise(f: FiveYearFigures) -> Scene:
+    """The verdict's gap against one standard error of the rerun, to one scale."""
+    y = NOISE_Y
+    ticks = []
+    for value in (-0.04, -0.02, 0.0):
+        ticks += [(_on_noise(value), y), (_on_noise(value), y - 0.12), (_on_noise(value), y)]
+    band = (_on_noise(f.rerun_matlab - f.rerun_error), _on_noise(f.rerun_matlab + f.rerun_error))
+    rerun, whole = _on_noise(f.rerun_matlab), _on_noise(f.whole_matlab)
+    gap = abs(f.rerun_matlab - f.whole_matlab)
+    return Scene(
+        "A gap far smaller than the noise",
+        "five_year_noise",
+        (
+            Fill("band", band[0], y - 0.22, band[1], y + 0.22, TINT),
+            Label(
+                f"one standard error each way, {f.rerun_error:.4f}",
+                (band[0] + band[1]) / 2,
+                y + 0.55,
+                names="band",
+                color=GOOD,
+                ha="center",
+                size=11,
+            ),
+            _stroke(
+                "line",
+                _line([(NOISE_BOARD[0], y), (NOISE_BOARD[1], y)] + ticks),
+                color=MUTED,
+                frames=15,
+            ),
+            *[
+                Label(
+                    _signed(value, 2) if value else "0",
+                    _on_noise(value),
+                    y - 0.52,
+                    names="line",
+                    color=MUTED,
+                    ha="center",
+                    size=10,
+                )
+                for value in (-0.04, -0.02, 0.0)
+            ],
+            _dot("rerun", rerun, y, color=ACCENT),
+            Label(
+                f"five-year rerun {_signed(f.rerun_matlab, 4)}",
+                rerun - 0.15,
+                y - 0.85,
+                names="rerun",
+                color=ACCENT,
+                ha="right",
+                size=11,
+            ),
+            _dot("whole", whole, y, color=INK),
+            Label(
+                f"whole period {_signed(f.whole_matlab, 4)}",
+                whole + 0.15,
+                y - 0.85,
+                names="whole",
+                size=11,
+            ),
+            _stroke(
+                "gap",
+                _line(
+                    [(rerun, y + 0.95), (rerun, y + 1.05), (whole, y + 1.05), (whole, y + 0.95)],
+                    per_unit=30,
+                ),
+                color=LOST,
+                frames=9,
+            ),
+            Label(
+                f"{gap:.4f} apart",
+                (rerun + whole) / 2,
+                y + 1.35,
+                names="gap",
+                color=LOST,
+                ha="center",
+                size=11,
+            ),
+            Label(
+                "revised MATLAB’s rules, a year, before costs",
+                0.3,
+                0.2,
+                names="gap",
+                color=MUTED,
+                size=10,
+            ),
+        ),
+    )
+
+
+#: The January sketch's zero line, its scale, and where each January's bar stands.
+JANUARY_ZERO, JANUARY_PER, JANUARY_XS = 1.9, 18.0, (2.6, 4.6, 6.6)
+
+
+def _five_year_januaries(f: FiveYearFigures) -> Scene:
+    """Example 7.6's three reproduced Januaries, each one trade, to one scale."""
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("zero", _line([(1.6, JANUARY_ZERO), (7.6, JANUARY_ZERO)]), color=MUTED, frames=4)
+    ]
+    for x, (year, r) in zip(JANUARY_XS, f.januaries, strict=True):
+        gid = f"jan-{year}"
+        tip = JANUARY_ZERO + r * JANUARY_PER
+        steps.append(
+            _stroke(
+                gid,
+                _line([(x, JANUARY_ZERO), (x, tip)]),
+                color=_sign_color(r),
+                width=12.0,
+                frames=max(1, min(4, round(abs(r) * JANUARY_PER * 6) - 1)),
+            )
+        )
+        name_y = JANUARY_ZERO - 0.42 if r > 0 else JANUARY_ZERO + 0.42
+        value_y = tip + (0.42 if r > 0 else -0.42)
+        steps.append(Label(f"January {year}", x, name_y, names=gid, ha="center", size=11))
+        steps.append(
+            Label(
+                _with_sign(r, 4), x, value_y, names=gid, color=_sign_color(r), ha="center", size=11
+            )
+        )
+    last = f"jan-{f.januaries[-1][0]}"
+    steps.append(Label("three trades", 8.0, JANUARY_ZERO + 0.6, names=last, color=ACCENT, size=14))
+    steps.append(
+        Label("Example 7.6 in MATLAB, after costs", 0.3, 0.2, names=last, color=MUTED, size=10)
+    )
+    return Scene("Three Januaries are three trades", "five_year_januaries", tuple(steps))
+
+
+def five_year_scenes(figures: FiveYearFigures | None = None) -> tuple[Scene, ...]:
+    """The five-year check's three scenes in the order the post reads them."""
+    f = figures if figures is not None else FiveYearFigures()
+    return (_five_year_months(f), _five_year_noise(f), _five_year_januaries(f))
+
+
+#: The scenes that build slowly, because each carries more than a reader takes
+#: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
+#: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
+PACED = ("five_year_months", "five_year_noise")
+PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
+
+
+def sketch_timeline(scene: Scene) -> list[Frame]:
+    """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
+    frames = timeline(scene)
+    if scene.slug not in PACED:
+        return frames
+    paced = [
+        Frame(f.done, f.partial, PACED_LABEL_MS)
+        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
+        else f
+        for f in frames
+    ]
+    last = paced[-1]
+    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
+    return paced
+
+
+@dataclass(frozen=True)
 class Verdicts:
     """What the verdicts scene draws, each field read from a registered run.
 
@@ -1415,7 +1764,7 @@ def opening_scenes(verdicts: Verdicts, spans: Spans) -> tuple[Scene, ...]:
 
 
 def _write(scene: Scene, folder: Path) -> Path:
-    frames = timeline(scene)
+    frames = sketch_timeline(scene)
     first, *rest = render(scene, frames)
     path = folder / gif_name(scene)
     first.save(
@@ -1436,13 +1785,13 @@ def make_equity_seasonals_whiteboards(
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
-    then the split's.
+    then the split's, then the five-year check's three.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
     archive, about twenty seconds. Every GIF but the verdicts sketch is
     written before that read, so a refused or missing archive leaves the
-    other eleven redrawn and raises from the read.
+    other fourteen redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
@@ -1450,12 +1799,13 @@ def make_equity_seasonals_whiteboards(
     strategies = [_write(scene, folder) for scene in scenes()]
     rules = [_write(scene, folder) for scene in rule_scenes()]
     split = [_write(scene, folder) for scene in split_scenes()]
+    five = [_write(scene, folder) for scene in five_year_scenes()]
     if verdicts is None:
         verdicts = Verdicts.from_runs(
             seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
         )
     paths.append(_write(_two_verdicts(verdicts), folder))
-    return paths + strategies + rules + split
+    return paths + strategies + rules + split + five
 
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -1474,7 +1824,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other eleven GIFs are already written. The one left stale is
+        # The other fourteen GIFs are already written. The one left stale is
         # named, and the exit is non-zero, so a redraw on a machine without
         # the archive does not read as a full one.
         raise SystemExit(f"{GIF_PREFIX}two_verdicts.gif was not redrawn: {refused}") from refused

@@ -1,14 +1,14 @@
-"""The pins for the twelve whiteboard GIFs in the equity-seasonals post.
+"""The pins for the fifteen whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
-seven the rules its first lesson lists, one rule each, and one the split that
-its second lesson discusses. The opening's timeline places each source's years
-to scale, from Chan's committed files and the registered runs' constants, and
-its verdicts sketch draws the two registered runs' figures to scale. Those
-figures are pinned here as :data:`PINNED`, the values
-``tests/test_equity_seasonals.py`` pins, so every test but one runs without
-the owner's archive. The one, :class:`TestTheRunsGiveThePinnedVerdicts`, holds
-that the runs give them.
+seven the rules its first lesson lists, one rule each, one the split that its
+second lesson discusses, and three its check of Chan's five-year claim. The
+opening's timeline places each source's years to scale, from Chan's committed
+files and the registered runs' constants, and its verdicts sketch draws the
+two registered runs' figures to scale. Those figures are pinned here as
+:data:`PINNED`, the values ``tests/test_equity_seasonals.py`` pins, so every
+test but one runs without the owner's archive. The one,
+:class:`TestTheRunsGiveThePinnedVerdicts`, holds that the runs give them.
 
 The strategy sketches are schematic and read no data, so what is pinned for
 them is what a reader takes from them.
@@ -72,18 +72,21 @@ from chan.equity_seasonals_whiteboard import (
     TENTH,
     TIMELINE_X,
     YEAR,
+    FiveYearFigures,
     RuleFigures,
     Spans,
     SplitFigures,
     Verdicts,
     _at,
     _year,
+    five_year_scenes,
     gif_name,
     main,
     make_equity_seasonals_whiteboards,
     opening_scenes,
     rule_scenes,
     scenes,
+    sketch_timeline,
     split_scenes,
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
@@ -116,8 +119,13 @@ RULE_GIFS = [
     "equity_seasonals_rule_month_end_lookup.gif",
 ]
 SPLIT_GIFS = ["equity_seasonals_split_swing.gif"]
+FIVE_YEAR_GIFS = [
+    "equity_seasonals_five_year_months.gif",
+    "equity_seasonals_five_year_noise.gif",
+    "equity_seasonals_five_year_januaries.gif",
+]
 #: Every GIF in the order :func:`make_equity_seasonals_whiteboards` writes them.
-GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS + SPLIT_GIFS
+GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS + SPLIT_GIFS + FIVE_YEAR_GIFS
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
 #: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``. The vintage
@@ -210,14 +218,19 @@ def split():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split):
-    """All twelve scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules, *split)
+def five():
+    return five_year_scenes()
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules, split, five):
+    """All fifteen scenes in the order their GIFs are written."""
+    return (*opening, *drawn, *rules, *split, *five)
 
 
 @pytest.fixture(scope="module")
 def frames(every):
-    return [timeline(scene) for scene in every]
+    return [sketch_timeline(scene) for scene in every]
 
 
 @pytest.fixture(scope="module")
@@ -416,10 +429,11 @@ class TestTheGifs:
                     0,
                 )
 
-    def test_each_opens_on_its_title_and_holds_its_drawing(self, frames) -> None:
-        for steps in frames:
+    def test_each_opens_on_its_title_and_holds_its_drawing(self, every, frames) -> None:
+        for scene, steps in zip(every, frames, strict=True):
             assert (steps[0].done, steps[0].ms) == (0, TITLE_MS)
-            assert steps[-1].ms == HOLD_MS
+            hold = sketches.PACED_HOLD_MS if scene.slug in sketches.PACED else HOLD_MS
+            assert steps[-1].ms == hold, scene.slug
 
     def test_each_is_under_1_mb(self, gifs) -> None:
         for path in gifs:
@@ -528,6 +542,21 @@ class TestThePost:
         assert paragraphs[index + 2].startswith("The figure below adds up the 83 months")
         assert "equity_seasonals_split.png" in paragraphs[index + 3]
 
+    def test_each_five_year_sketch_follows_its_paragraph(self) -> None:
+        paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
+        for opening, name in zip(
+            (
+                "That sits beside the split without contradicting it.",
+                "That verdict is narrow.",
+                "Example 7.6 meets the same limit from another side.",
+            ),
+            FIVE_YEAR_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            embed = paragraphs[index + 1]
+            assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
+
     def test_every_sketch_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
         for name in GIFS:
@@ -573,7 +602,7 @@ class TestTheCommand:
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - 1
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_eleven(
+    def test_without_the_archive_it_still_writes_the_other_fourteen(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -1124,3 +1153,165 @@ class TestTheSplitSketch:
             assert _stroke(swing, gid).color == whiteboard.ACCENT
         gaps = [s for s in swing.steps if isinstance(s, Label) and s.text.endswith(" apart")]
         assert [s.color for s in gaps] == [whiteboard.ACCENT, whiteboard.ACCENT]
+
+
+#: Five-year figures unlike the file's in every field, so a mark drawn from
+#: the defaults lands in the wrong place.
+SHIFTED = FiveYearFigures(
+    whole_months=80,
+    before_months=10,
+    after_months=70,
+    rerun_months=44,
+    between_months=26,
+    whole_python=-0.02,
+    before_2002=-0.1,
+    from_2002=0.02,
+    rerun_python=-0.03,
+    between=0.05,
+    whole_matlab=-0.01,
+    rerun_matlab=-0.02,
+    rerun_error=0.015,
+    januaries=((2006, 0.03), (2007, -0.02), (2008, 0.05)),
+)
+
+
+@pytest.fixture(params=[FiveYearFigures(), SHIFTED], ids=["the files' figures", "other figures"])
+def five_figures(request) -> FiveYearFigures:
+    return request.param
+
+
+def _labelled(scene, text: str) -> Label:
+    (label,) = [s for s in scene.steps if isinstance(s, Label) and s.text == text]
+    return label
+
+
+class TestTheFiveYearSketches:
+    """The months each figure covers, the gap against the noise, and three Januaries."""
+
+    def test_they_are_three_in_the_order_the_post_reads_them(self, five) -> None:
+        assert [gif_name(scene) for scene in five] == FIVE_YEAR_GIFS
+
+    def test_each_says_what_it_should(self, five) -> None:
+        months, noise, januaries = five
+        assert months.labels == [
+            *[str(year) for year in range(2001, 2008)],
+            "whole period: 83 months, −0.012679",
+            "before 2002: 13 months, −0.145387",
+            "from 2002: 70 months, +0.011967",
+            "first year only ranks",
+            "five-year rerun: 47 months, −0.016431",
+            "23 months the rerun leaves out: +0.069997",
+            "revised Python’s rules, a year, before costs",
+        ]
+        assert noise.labels == [
+            "one standard error each way, 0.0281",
+            "−0.04",
+            "−0.02",
+            "0",
+            "five-year rerun −0.0165",
+            "whole period −0.0129",
+            "0.0036 apart",
+            "revised MATLAB’s rules, a year, before costs",
+        ]
+        assert januaries.labels == [
+            "January 2006",
+            "−0.0244",
+            "January 2007",
+            "−0.0068",
+            "January 2008",
+            "+0.0881",
+            "three trades",
+            "Example 7.6 in MATLAB, after costs",
+        ]
+
+    def test_other_figures_move_the_labels(self) -> None:
+        months, noise, januaries = five_year_scenes(SHIFTED)
+        for text in (
+            "whole period: 80 months, −0.020000",
+            "before 2002: 10 months, −0.100000",
+            "five-year rerun: 44 months, −0.030000",
+            "26 months the rerun leaves out: +0.050000",
+        ):
+            assert text in months.labels, text
+        for text in (
+            "one standard error each way, 0.0150",
+            "0.0100 apart",
+            "five-year rerun −0.0200",
+        ):
+            assert text in noise.labels, text
+        assert "+0.0300" in januaries.labels and "−0.0200" in januaries.labels
+
+    def test_each_bar_on_the_timeline_covers_its_months(self, five) -> None:
+        """Each bar's length is its month count, a twelfth of a year each."""
+        (months, _, _) = five
+        figures = FiveYearFigures()
+        month = sketches._when(sketches.MONTHS_FROM + 1 / 12) - sketches._when(sketches.MONTHS_FROM)
+        whole = _stroke(months, "whole")
+        assert np.ptp(whole.x) == pytest.approx(figures.whole_months * month)
+        halves = np.ptp(_stroke(months, "before").x) + np.ptp(_stroke(months, "after").x)
+        assert halves == pytest.approx(
+            (figures.before_months + figures.after_months) * month, abs=0.09
+        )
+        assert np.ptp(_stroke(months, "rerun").x) == pytest.approx(figures.rerun_months * month)
+        assert np.ptp(_stroke(months, "warm-up").x) == pytest.approx(12 * month)
+        between = _stroke(months, "between")
+        assert np.ptp(between.x) == pytest.approx(figures.between_months * month)
+        assert between.x.max() == pytest.approx(_stroke(months, "rerun").x.min())
+        assert between.x.min() == pytest.approx(sketches._when(sketches.SPLIT_YEAR))
+
+    def test_the_timeline_takes_its_colours_from_the_signs(self, five_figures) -> None:
+        months = five_year_scenes(five_figures)[0]
+        f = five_figures
+        assert _stroke(months, "before").color == (GOOD if f.before_2002 > 0 else LOST)
+        assert _stroke(months, "after").color == (GOOD if f.from_2002 > 0 else LOST)
+        assert _stroke(months, "between").color == (GOOD if f.between > 0 else LOST)
+        assert _stroke(months, "warm-up").dashed
+
+    def test_the_band_and_dots_stand_at_their_figures(self, five_figures) -> None:
+        noise = five_year_scenes(five_figures)[1]
+        f = five_figures
+        band = next(step for step in noise.fills if step.gid == "band")
+        assert band.x0 == pytest.approx(sketches._on_noise(f.rerun_matlab - f.rerun_error))
+        assert band.x1 == pytest.approx(sketches._on_noise(f.rerun_matlab + f.rerun_error))
+        rerun, whole = _stroke(noise, "rerun"), _stroke(noise, "whole")
+        assert rerun.x[0] == pytest.approx(sketches._on_noise(f.rerun_matlab))
+        assert whole.x[0] == pytest.approx(sketches._on_noise(f.whole_matlab))
+        gap = _stroke(noise, "gap")
+        assert (gap.x.min(), gap.x.max()) == pytest.approx(tuple(sorted((rerun.x[0], whole.x[0]))))
+
+    def test_the_gap_is_far_inside_the_band_on_the_files_figures(self, five) -> None:
+        noise = five[1]
+        band = next(step for step in noise.fills if step.gid == "band")
+        gap = _stroke(noise, "gap")
+        assert (band.x1 - band.x0) / np.ptp(gap.x) > 15
+
+    def test_each_january_bar_runs_to_its_trade(self, five_figures) -> None:
+        januaries = five_year_scenes(five_figures)[2]
+        for year, r in five_figures.januaries:
+            bar = _stroke(januaries, f"jan-{year}")
+            assert bar.y[0] == pytest.approx(sketches.JANUARY_ZERO)
+            assert bar.y[-1] - bar.y[0] == pytest.approx(r * sketches.JANUARY_PER)
+            assert bar.color == (GOOD if r > 0 else LOST)
+            value = _labelled(januaries, f"{r:+.4f}".replace("-", "−"))
+            assert value.names == f"jan-{year}" and value.color == bar.color
+            assert abs(value.x - bar.x[0]) < 1e-9
+
+    def test_the_first_two_build_slowly_and_hold_twelve_seconds(self, every) -> None:
+        """The pace the owner accepted: each label alone for 0.9 s, the drawing for 12 s."""
+        assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
+        for scene in every:
+            frames = sketch_timeline(scene)
+            labels = [
+                f
+                for f in frames[:-1]
+                if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
+            ]
+            paced = scene.slug in sketches.PACED
+            assert paced == (scene.slug in ("five_year_months", "five_year_noise"))
+            assert {f.ms for f in labels} <= {
+                sketches.PACED_LABEL_MS if paced else whiteboard.LABEL_MS
+            }
+            assert frames[-1].ms == (sketches.PACED_HOLD_MS if paced else HOLD_MS)
+            assert [(f.done, f.partial) for f in frames] == [
+                (f.done, f.partial) for f in timeline(scene)
+            ]

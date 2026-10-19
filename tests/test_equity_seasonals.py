@@ -3280,3 +3280,63 @@ class TestTheRuleSketchesFigures:
         assert drawn.repaired_row == FIRST_PASS_M - 1
         assert ends[drawn.repaired_row - 1] + 1 == drawn.first_pass_row
         assert drawn.first_pass_row > drawn.month_end_rows
+
+
+class TestTheFiveYearSketches:
+    """Every figure the five-year check's three sketches draw, from Chan's files.
+
+    ``FiveYearFigures`` in ``chan.equity_seasonals_whiteboard`` holds them as
+    defaults so the sketches draw without loading a panel.
+    """
+
+    def test_the_months_sketch_draws_the_revised_pythons_figures(self, spx, kept) -> None:
+        from chan.equity_seasonals_whiteboard import FiveYearFigures
+
+        drawn = FiveYearFigures()
+        check = five_year_check(spx, PYTHON_HESTON_SADKA)
+        before, after = split_at(check.whole, PYTHON_HESTON_SADKA)
+        between = kept[(kept.index >= "2002-01-01") & (kept.index < "2003-12-01")]
+        between_annual, _ = summarize(between, replace(PYTHON_HESTON_SADKA, dropped=0))
+        assert (len(kept), before[0], after[0]) == (
+            drawn.whole_months,
+            drawn.before_months,
+            drawn.after_months,
+        )
+        assert (len(check.rerun_kept), len(between)) == (drawn.rerun_months, drawn.between_months)
+        assert drawn.whole_python == pytest.approx(check.whole.annual_return, abs=1e-12)
+        assert drawn.before_2002 == pytest.approx(before[1], abs=1e-12)
+        assert drawn.from_2002 == pytest.approx(after[1], abs=1e-12)
+        assert drawn.rerun_python == pytest.approx(check.rerun.annual_return, abs=1e-12)
+        assert drawn.between == pytest.approx(between_annual, abs=1e-12)
+
+    def test_the_months_sketchs_dates_are_the_files(self, spx, kept) -> None:
+        from chan import equity_seasonals_whiteboard as sketches
+
+        check = five_year_check(spx, PYTHON_HESTON_SADKA)
+        assert kept.index[0] == pd.Timestamp("2000-12-31")
+        assert kept.index[-1] == pd.Timestamp("2007-10-31")
+        assert sketches.MONTHS_FROM == pytest.approx(2000 + 11 / 12)
+        assert sketches.MONTHS_TO == pytest.approx(2007 + 10 / 12)
+        assert check.rerun_kept.index[0] == pd.Timestamp("2003-12-31")
+        assert sketches.RERUN_KEPT == pytest.approx(2003 + 11 / 12)
+        assert seasonals.five_year_cutoff(spx) == pd.Timestamp("2002-11-23")
+        assert sketches.RERUN_INPUT == pytest.approx(2002 + 11 / 12)
+
+    def test_the_noise_sketch_draws_the_revised_matlabs_figures(self, spx) -> None:
+        from chan.equity_seasonals_whiteboard import FiveYearFigures
+
+        drawn = FiveYearFigures()
+        check = five_year_check(spx, REVISED_MATLAB)
+        kept_months = check.rerun_kept.to_numpy()
+        error = 12 * smartstd_book_two(kept_months) / math.sqrt(len(kept_months))
+        assert drawn.whole_matlab == pytest.approx(check.whole.annual_return, abs=1e-12)
+        assert drawn.rerun_matlab == pytest.approx(check.rerun.annual_return, abs=1e-12)
+        assert drawn.rerun_error == pytest.approx(error, abs=1e-12)
+
+    def test_the_january_sketch_draws_the_matlabs_three_trades(self, ijr) -> None:
+        from chan.equity_seasonals_whiteboard import FiveYearFigures
+
+        trades = january_effect(ijr, MATLAB_JANUARY).trades
+        assert FiveYearFigures().januaries == tuple(
+            (t.exited.year, pytest.approx(t.ret, abs=1e-12)) for t in trades
+        )
