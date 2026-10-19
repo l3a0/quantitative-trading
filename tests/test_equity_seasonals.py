@@ -3156,6 +3156,28 @@ class TestTheMonthlyPins:
     def test_x_is_4_22_percent_a_year(self, monthly) -> None:
         assert_reproduces(monthly.matlab.x, 0.0422031836138127, "4.22%", ".2%")
 
+    def test_how_the_4_2_percent_is_derived(self, monthly) -> None:
+        """Each step the post's section on the verdict prints, at its precision:
+        the months' standard error, the one-sided 5% critical value at 212
+        degrees of freedom, the noncentrality the test clears with probability
+        0.8, and the monthly mean that gives, twelve times which is X."""
+        from scipy import optimize, stats
+
+        test = monthly.matlab.test
+        df = test.n - 1
+        error = test.std / math.sqrt(test.n)
+        critical = stats.t.isf(seasonals.SIGNIFICANCE, df)
+        shift = optimize.brentq(
+            lambda s: stats.nct.sf(critical, df, s) - seasonals.POWER, 0.0, 50.0, xtol=1e-12
+        )
+        assert (test.n, df, seasonals.SIGNIFICANCE, seasonals.POWER) == (213, 212, 0.05, 0.8)
+        assert_reproduces(test.std, 0.0205768768232231, "0.0206", ".4f")
+        assert_reproduces(error, 0.0014099043682784275, "0.00141", ".5f")
+        assert_reproduces(critical, 1.6520729200438098, "1.652", ".3f")
+        assert_reproduces(shift, 2.494447174535743, "2.494", ".3f")
+        assert_reproduces(shift * error, 0.003516931967817725, "0.00352", ".5f")
+        assert 12 * shift * error == pytest.approx(monthly.matlab.x, rel=1e-12)
+
     def test_the_verdict(self, monthly) -> None:
         assert monthly.verdict == "no return detectable above about 4.2% a year"
 

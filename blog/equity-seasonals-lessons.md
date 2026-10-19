@@ -338,6 +338,26 @@ The 213 months average −0.0001 a month before costs. A strategy that truly ear
 
 The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”. The 4.2 percent is the smallest annual return the test detects 80 percent of the time, so a smaller true return could pass unseen, and the verdict does not say the effect died. It also leaves out costs, which can only lower the return, and the last return a failing company takes as it leaves the index, which free data does not carry.
 
+The 4.2 percent follows from the noise in the 213 months and the two numbers fixed before the run, the 5 percent bar and the 80 percent chance. The months have a standard deviation of 0.0206, so their mean has a standard error of
+
+```math
+\text{SE} = \frac{s}{\sqrt{n}} = \frac{0.0206}{\sqrt{213}} = 0.00141
+```
+
+The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom. If the true mean is X, the t-statistic follows a noncentral t distribution, centred near X divided by the standard error. That distance, the noncentrality δ, is the one at which the statistic clears 1.652 four times in five:
+
+```math
+P\left(T_{212}(\delta) > 1.652\right) = 0.80 \quad\Rightarrow\quad \delta = 2.494
+```
+
+X is that many standard errors, and twelve months make a year:
+
+```math
+X = 2.494 \times 0.00141 = 0.00352 \text{ a month}, \qquad 12X = 0.0422 \text{ a year}
+```
+
+More months or less noise would lower it.
+
 A broader series agrees with the registered run. From 2002 to 2024 the same portfolio on NYSE and AMEX stocks earned 0.12 percent a month, with a t-statistic of 0.50. Over the 192 months it shares with the run on IVV’s members, 2009 to 2024, it earned 0.12 percent a month with a t of 0.39, and the two series moved together, at a correlation of 0.59. Neither shows a mean detectably above zero after the book. Like the section 1 figures, this comparison is exploratory.
 
 ## What this means for a trader
