@@ -3136,3 +3136,80 @@ class TestTheMonthlyPins:
         assert "stopped inside the month held: 23, their returns summed by side -0.7013" in out
         assert "    departing: long 505 (12.0%), short 698 (16.5%), neither 3019 (71.5%)" in out
         assert "    chi-square p 0.000, descriptive only" in out
+
+
+def _monthly(first: str, values, *, day: str = "last") -> pd.Series:
+    """Synthetic monthly returns from ``first``, dated each month's last day or a day before it."""
+    ends = pd.date_range(first, periods=len(values), freq="ME")
+    if day == "early":
+        ends = ends - pd.Timedelta(days=1)
+    return pd.Series(np.asarray(values, dtype=float), index=ends, name="synthetic")
+
+
+class TestMatchingTheProjectsMonths:
+    """The comparison's arithmetic on synthetic series, with no vintage read."""
+
+    def test_a_month_matches_on_the_calendar_month_rather_than_the_day(self) -> None:
+        ours = _monthly("2009-01", [0.01, 0.02, 0.03, 0.04], day="early")
+        theirs = _monthly("2009-02", [0.02, 0.03, 0.05, 0.07])
+        result = seasonals.overlap(ours, theirs)
+        assert (str(result.first), str(result.last), result.n) == ("2009-02", "2009-04", 3)
+        assert result.ours.mean == pytest.approx(0.03)
+        assert result.theirs.mean == pytest.approx(0.1 / 3)
+        assert result.difference == pytest.approx(0.03 - 0.1 / 3)
+        assert result.correlation == pytest.approx(np.corrcoef([2, 3, 4], [2, 3, 5])[0, 1])
+
+    def test_the_project_writes_percent_and_the_comparison_reads_fractions(self) -> None:
+        percent = _monthly("1965-01", [1.36, -0.5])
+        assert list(seasonals.decimal_months(percent)) == pytest.approx([0.0136, -0.005])
+        assert str(seasonals.decimal_months(percent).index[0]) == "1965-01"
+
+    def test_a_repeated_month_is_refused_rather_than_matched_twice(self) -> None:
+        twice = pd.Series(
+            [0.01, 0.02], index=pd.DatetimeIndex(["2009-01-30", "2009-01-31"]), name="twice"
+        )
+        with pytest.raises(seasonals.ComparisonRefused, match="2009-01 appears twice in twice"):
+            seasonals.calendar_months(twice)
+
+    def test_a_missing_return_is_refused_rather_than_dropped(self) -> None:
+        with pytest.raises(seasonals.ComparisonRefused, match="holds no return for 2009-02"):
+            seasonals.calendar_months(_monthly("2009-01", [0.01, np.nan, 0.03]))
+
+    def test_two_series_sharing_too_few_months_are_refused(self) -> None:
+        with pytest.raises(seasonals.ComparisonRefused, match="share 2 months"):
+            seasonals.overlap(_monthly("2009-01", [0.01, 0.02]), _monthly("2009-01", [0.0, 0.1]))
+
+    def test_heston_and_sadkas_sample_keeps_2002_and_the_books_split_gives_it_away(self) -> None:
+        """Each window gets a value of its own, so a boundary off by a month moves a mean.
+
+        1964 is far out, 1965 to 2001 earns 0.01, 2002 earns 0.04, and 2003 on
+        earns -0.01 and 0.03 in turn, so every window's mean is distinct.
+        """
+        months = pd.period_range("1964-01", "2024-12", freq="M")
+        values = np.where(
+            months.year < 1965,
+            9.0,
+            np.where(months.year < 2002, 0.01, np.where(months.year == 2002, 0.04, 0.0)),
+        )
+        later = months.year > 2002
+        values[later] = np.resize([-0.01, 0.03], later.sum())
+        returns = pd.Series(values, index=months, name="synthetic")
+        result = seasonals.around_2002(returns)
+        assert result.sample.n == 456
+        assert result.sample.mean == pytest.approx((444 * 0.01 + 12 * 0.04) / 456)
+        assert result.before.n == 444
+        assert result.before.mean == pytest.approx(0.01)
+        assert result.before_annual == pytest.approx(0.12)
+        assert result.after.n == 276
+        assert result.after.mean == pytest.approx((12 * 0.04 + 132 * 0.02) / 276)
+        assert str(result.last) == "2024-12"
+        assert result.gap == pytest.approx(result.sample.mean - 0.0115)
+
+    def test_chans_file_keeps_the_revised_matlabs_83_months(self, spx) -> None:
+        months = seasonals.chans_file_months(spx)
+        assert len(months) == 83
+        assert (months.index[0].date().isoformat(), months.index[-1].date().isoformat()) == (
+            "2000-12-29",
+            "2007-10-31",
+        )
+        assert not months.isna().any()

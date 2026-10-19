@@ -2046,6 +2046,149 @@ def run_monthly_point_in_time(
 
 
 # --------------------------------------------------------------------------
+# Example 7.7 against Open Source Asset Pricing's MomSeasonShort
+# --------------------------------------------------------------------------
+
+#: The project's signal for Heston and Sadka's rule, a stock's return in the
+#: same calendar month a year earlier.
+OSAP_SIGNAL = "MomSeasonShort"
+
+#: The first and last month of Heston and Sadka's sample, which their Table 2 covers.
+HESTON_SADKA_FIRST = pd.Period("1965-01", "M")
+HESTON_SADKA_LAST = pd.Period("2002-12", "M")
+
+#: Heston and Sadka's Table 2: the top tenth less the bottom on the same month a
+#: year earlier, 1.15 percent a month with a t of 7.6.
+HESTON_SADKA_MONTHLY = 0.0115
+HESTON_SADKA_T = 7.6
+
+#: Location 4425's "more than 13 percent" a year before 2002, before costs.
+CHAN_ANNUAL = 0.13
+
+
+class ComparisonRefused(Exception):
+    """The comparison stopped rather than match months it cannot match one to one."""
+
+
+def calendar_months(returns: pd.Series) -> pd.Series:
+    """``returns`` indexed by calendar month, as monthly periods.
+
+    This repo labels a month by its last trading day and the project by its
+    own, so two series agree on the month and not always on the day. A
+    repeated month or a missing return is refused by name, because either
+    would change the count every figure below is pinned with.
+    """
+    months = pd.PeriodIndex(pd.DatetimeIndex(returns.index), freq="M")
+    if months.has_duplicates:
+        raise ComparisonRefused(f"{months[months.duplicated()][0]} appears twice in {returns.name}")
+    empty = months[returns.isna().to_numpy()]
+    if len(empty):
+        raise ComparisonRefused(f"{returns.name} holds no return for {empty[0]}")
+    return pd.Series(returns.to_numpy(dtype=float), index=months, name=returns.name)
+
+
+def decimal_months(percent: pd.Series) -> pd.Series:
+    """The project's long-short returns, which it writes in percent, as fractions by month."""
+    return calendar_months(percent / 100)
+
+
+def months_between(
+    returns: pd.Series, first: pd.Period, last: pd.Period | None = None
+) -> pd.Series:
+    """The months of ``returns``, indexed by period, from ``first`` to ``last`` inclusive."""
+    index = returns.index
+    chosen = index >= first
+    if last is not None:
+        chosen &= index <= last
+    return returns[chosen]
+
+
+@dataclass(frozen=True)
+class Overlap:
+    """One of this repo's runs and the project's series over the months both hold."""
+
+    first: pd.Period
+    last: pd.Period
+    ours: OneSided
+    theirs: OneSided
+    correlation: float
+
+    @property
+    def n(self) -> int:
+        return self.ours.n
+
+    @property
+    def difference(self) -> float:
+        """This repo's mean less the project's, which is also the mean monthly difference."""
+        return self.ours.mean - self.theirs.mean
+
+
+def overlap(ours: pd.Series, theirs: pd.Series) -> Overlap:
+    """``ours`` against ``theirs``, both fractions a month, over the calendar months both hold."""
+    mine, project = calendar_months(ours), calendar_months(theirs)
+    shared = mine.index.intersection(project.index).sort_values()
+    if len(shared) < 3:
+        raise ComparisonRefused(
+            f"{ours.name} and {theirs.name} share {len(shared)} months, too few for a correlation"
+        )
+    mine, project = mine[shared], project[shared]
+    return Overlap(
+        first=shared[0],
+        last=shared[-1],
+        ours=one_sided_t(mine.to_numpy()),
+        theirs=one_sided_t(project.to_numpy()),
+        correlation=float(np.corrcoef(mine.to_numpy(), project.to_numpy())[0, 1]),
+    )
+
+
+@dataclass(frozen=True)
+class AroundTwoThousandTwo:
+    """The project's series over Heston and Sadka's sample, and on each side of :data:`SPLIT`."""
+
+    #: :data:`HESTON_SADKA_FIRST` to :data:`HESTON_SADKA_LAST`.
+    sample: OneSided
+    #: :data:`HESTON_SADKA_FIRST` to the month before :data:`SPLIT`.
+    before: OneSided
+    #: :data:`SPLIT`'s month to the series' last.
+    after: OneSided
+    last: pd.Period
+
+    @property
+    def gap(self) -> float:
+        """The project's mean over the sample less Heston and Sadka's 1.15 percent a month."""
+        return self.sample.mean - HESTON_SADKA_MONTHLY
+
+    @property
+    def before_annual(self) -> float:
+        """Twelve times the mean before 2002, the unit of Chan's 13 percent."""
+        return 12 * self.before.mean
+
+
+def around_2002(returns: pd.Series) -> AroundTwoThousandTwo:
+    """Items 2 and 4 of issue 661, on the project's returns as fractions by month.
+
+    The split is :data:`SPLIT`, the date the book hands over, so 2002 falls in
+    the after half as it does in :func:`split_at`. Heston and Sadka's sample
+    runs through 2002, so it holds twelve months the before half does not.
+    Both start where their sample does, although the release reaches further
+    back. Exploratory, and it carries no verdict.
+    """
+    split = SPLIT.to_period("M")
+    after = months_between(returns, split)
+    return AroundTwoThousandTwo(
+        sample=one_sided_t(months_between(returns, HESTON_SADKA_FIRST, HESTON_SADKA_LAST)),
+        before=one_sided_t(months_between(returns, HESTON_SADKA_FIRST, split - 1)),
+        after=one_sided_t(after),
+        last=after.index[-1],
+    )
+
+
+def chans_file_months(closes: pd.DataFrame) -> pd.Series:
+    """:data:`REVISED_MATLAB`'s kept months on Chan's S&P 500 file, the months its figures use."""
+    return monthly_returns(closes, REVISED_MATLAB).iloc[REVISED_MATLAB.dropped :]
+
+
+# --------------------------------------------------------------------------
 # The report
 # --------------------------------------------------------------------------
 
