@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws fifteen scenes, and the post places each right after the
+This module draws eighteen scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -67,6 +67,20 @@ Their figures come from :class:`FiveYearFigures`. The first two carry more
 than the usual pace lets a reader take in, so :func:`sketch_timeline` holds
 each of their labels longer and their finished drawings for twelve seconds.
 
+The last three sit in Lesson 3, on survivorship bias, and are schematic:
+
+1. What a saved file can see: six companies' lines run to the save in 2007
+   and three stop early, acquired, shrunk out of the index or failed, and a
+   bracket shows only the six are in the file.
+2. The ranking only sees survivors: one month's ranking as it stood, with
+   the stocks that later left ringed in red, above the same ranking as the
+   file holds it, whose worst tenth holds other stocks.
+3. Two ways to build a panel: a file saved in 2007, which carries its
+   members back, including one that joined later, against the index as it
+   stood each month, which the post's later runs used.
+
+The second and third are in :data:`PACED` too.
+
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
 the two ringed at each end stand for a tenth. March is an example month, and
@@ -88,9 +102,9 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all fifteen with the command below.
+with no change is a no-op diff. Redraw all eighteen with the command below.
 Only the verdicts sketch reads the archive, so on a machine without it the
-command redraws the other fourteen and exits non-zero naming the one it left::
+command redraws the other seventeen and exits non-zero naming the one it left::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -1409,10 +1423,305 @@ def five_year_scenes(figures: FiveYearFigures | None = None) -> tuple[Scene, ...
     return (_five_year_months(f), _five_year_noise(f), _five_year_januaries(f))
 
 
+#: The saved-file scene's board: its companies' lines run from 1999 to the
+#: save, the save line stands just past them, and the rows hold the six
+#: companies that survived and the three that left, each with how far along
+#: the years it got and why it left.
+SAVED_FROM_X, SAVED_TO_X = 1.0, 7.0
+SAVE_X = SAVED_TO_X + 0.2
+SURVIVOR_ROWS = (3.5, 3.25, 3.0, 2.75, 2.5, 2.25)
+LEAVERS = ((1.8, 0.3, "acquired"), (1.5, 0.55, "shrank out of the index"), (1.2, 0.8, "failed"))
+SAVED_AXIS_Y = 0.75
+
+
+def _side_bracket(gid: str, x: float, low: float, high: float, color: str) -> Stroke:
+    """An upright bracket at ``x`` from ``low`` to ``high``, opening left."""
+    return _stroke(
+        gid, _line([(x - 0.12, low), (x, low), (x, high), (x - 0.12, high)]), color=color, frames=4
+    )
+
+
+def _survivors_file() -> Scene:
+    """Lesson 3: a file saved in 2007 holds the companies that survived to the save."""
+    years = {1999: SAVED_FROM_X, 2003: (SAVED_FROM_X + SAVED_TO_X) / 2, 2007: SAVED_TO_X}
+    ticks = [
+        p
+        for x in years.values()
+        for p in ((x, SAVED_AXIS_Y), (x, SAVED_AXIS_Y - 0.1), (x, SAVED_AXIS_Y))
+    ]
+    steps: list[Stroke | Fill | Label] = [
+        _stroke(
+            "axis",
+            _line([(SAVED_FROM_X, SAVED_AXIS_Y), (SAVED_TO_X, SAVED_AXIS_Y)] + ticks),
+            color=MUTED,
+            frames=6,
+        ),
+        *[
+            Label(str(year), x, SAVED_AXIS_Y - 0.4, names="axis", color=MUTED, ha="center", size=10)
+            for year, x in years.items()
+        ],
+    ]
+    for k, y in enumerate(SURVIVOR_ROWS):
+        steps.append(
+            _stroke(
+                f"survivor-{k}", _line([(SAVED_FROM_X, y), (SAVED_TO_X, y)]), frames=4, width=3.0
+            )
+        )
+    last_survivor = f"survivor-{len(SURVIVOR_ROWS) - 1}"
+    steps.append(
+        Label(
+            "companies still in the index in 2007", SAVED_FROM_X, 3.9, names=last_survivor, size=11
+        )
+    )
+    for k, (y, share, why) in enumerate(LEAVERS):
+        end = SAVED_FROM_X + (SAVED_TO_X - SAVED_FROM_X) * share
+        steps.append(
+            _stroke(
+                f"leaver-{k}", _line([(SAVED_FROM_X, y), (end, y)]), color=LOST, frames=3, width=3.0
+            )
+        )
+        steps.append(Label(why, end + 0.2, y, names=f"leaver-{k}", color=LOST, size=10))
+    steps.append(
+        _stroke("save", _line([(SAVE_X, 3.65), (SAVE_X, 1.0)]), color=ACCENT, dashed=True, frames=5)
+    )
+    steps.append(
+        Label("Chan saves the file", SAVE_X, 4.0, names="save", color=ACCENT, ha="center", size=11)
+    )
+    steps.append(
+        _side_bracket(
+            "in-file", SAVE_X + 0.45, SURVIVOR_ROWS[-1] - 0.1, SURVIVOR_ROWS[0] + 0.1, INK
+        )
+    )
+    steps.append(
+        Label(
+            "in the file",
+            SAVE_X + 0.62,
+            (SURVIVOR_ROWS[0] + SURVIVOR_ROWS[-1]) / 2,
+            names="in-file",
+            size=11,
+        )
+    )
+    low, high = LEAVERS[-1][0], LEAVERS[0][0]
+    steps.append(_side_bracket("not-in-file", SAVE_X + 0.45, low - 0.1, high + 0.1, LOST))
+    steps.append(
+        Label(
+            "missing from it",
+            SAVE_X + 0.62,
+            (low + high) / 2,
+            names="not-in-file",
+            color=LOST,
+            size=11,
+        )
+    )
+    return Scene("What a saved file can see", "survivors_file", tuple(steps))
+
+
+#: The ranking scene's twenty stocks along one month's ranking, lowest return
+#: first, the two rows it draws them on, and the stocks that left the index.
+SURVIVOR_RANKED = 20
+SURVIVOR_XS = (2.0, 9.2)
+STOOD_Y, IN_FILE_Y = 2.9, 1.6
+GONE = (0, 2, 17)
+#: How many stocks stand for a tenth, as in the strategy sketches.
+SURVIVOR_TENTH = 2
+
+
+def _survivors_ranking() -> Scene:
+    """Lesson 3: the stocks that left are missing, so the file's tenth holds others."""
+    xs = np.linspace(*SURVIVOR_XS, SURVIVOR_RANKED)
+    kept = [k for k in range(SURVIVOR_RANKED) if k not in GONE]
+    steps: list[Stroke | Fill | Label] = [
+        Stroke("stood", xs[kept], np.full(len(kept), STOOD_Y), frames=len(kept) - 1, dots=6.0),
+        Label("as it stood", 1.6, STOOD_Y, names="stood", ha="right", size=11),
+        Label(
+            "lowest return", xs[0], STOOD_Y + 0.5, names="stood", color=MUTED, ha="center", size=10
+        ),
+        Label("highest", xs[-1], STOOD_Y + 0.5, names="stood", color=MUTED, ha="center", size=10),
+    ]
+    for k in GONE:
+        steps.append(
+            _stroke(
+                f"gone-{k}",
+                _ring(np.array([xs[k]]), np.array([STOOD_Y]), pad=0.07),
+                color=LOST,
+                width=1.6,
+                frames=6,
+            )
+        )
+    tenth = list(range(SURVIVOR_TENTH))
+    steps.append(
+        _stroke(
+            "stood-tenth",
+            _ring(xs[tenth], np.full(SURVIVOR_TENTH, STOOD_Y), pad=0.2),
+            color=MUTED,
+            dashed=True,
+            frames=13,
+        )
+    )
+    steps.append(
+        Label("worst tenth", xs[0] + 0.1, STOOD_Y - 0.5, names="stood-tenth", color=MUTED, size=10)
+    )
+    steps.append(
+        Stroke("file", xs[kept], np.full(len(kept), IN_FILE_Y), frames=len(kept) - 1, dots=6.0)
+    )
+    steps.append(Label("in the file", 1.6, IN_FILE_Y, names="file", ha="right", size=11))
+    file_tenth = kept[:SURVIVOR_TENTH]
+    steps.append(
+        _stroke(
+            "file-tenth",
+            _ring(xs[file_tenth], np.full(SURVIVOR_TENTH, IN_FILE_Y), pad=0.2),
+            color=LOST,
+            frames=15,
+        )
+    )
+    steps.append(
+        Label(
+            "the file’s worst tenth: other stocks",
+            xs[0],
+            IN_FILE_Y - 0.5,
+            names="file-tenth",
+            color=LOST,
+            size=10,
+        )
+    )
+    steps.append(
+        Label(
+            "red rings: companies that left the index before 2007",
+            0.3,
+            0.45,
+            names="file-tenth",
+            color=LOST,
+            size=10,
+        )
+    )
+    return Scene("The ranking only sees survivors", "survivors_ranking", tuple(steps))
+
+
+#: The panels scene's two panels, its nine rows, and the right panel's spans
+#: as shares of the years: six members throughout, one that joined, two that
+#: left.
+SAVED_PANEL, STOOD_PANEL = (0.6, 4.4), (5.4, 9.2)
+PANEL_ROWS = tuple(3.4 - 0.29 * k for k in range(9))
+STOOD_SPANS = ((0, 1),) * 6 + ((0.45, 1), (0, 0.35), (0, 0.6))
+STOOD_COLOURS = (INK,) * 6 + (GOOD, LOST, LOST)
+
+
+def _panel_x(panel: tuple[float, float], share: float) -> float:
+    return panel[0] + (panel[1] - panel[0]) * share
+
+
+def _survivors_panels() -> Scene:
+    """Lesson 3: a file saved in 2007 against the index as it stood each month."""
+    left, right = SAVED_PANEL, STOOD_PANEL
+    steps: list[Stroke | Fill | Label] = []
+    for k, y in enumerate(PANEL_ROWS[:6]):
+        steps.append(
+            _stroke(f"saved-{k}", _line([(left[0], y), (left[1], y)]), frames=9, width=3.0)
+        )
+    joiner_y = PANEL_ROWS[6]
+    steps.append(
+        _stroke(
+            "saved-joiner",
+            _line([(left[0], joiner_y), (left[1], joiner_y)]),
+            color=GOOD,
+            frames=9,
+            width=3.0,
+        )
+    )
+    steps.append(
+        Label("a file saved in 2007", sum(left) / 2, 3.75, names="saved-0", ha="center", size=12)
+    )
+    steps.append(
+        Label(
+            "joined later, carried back",
+            left[0],
+            PANEL_ROWS[7] - 0.05,
+            names="saved-joiner",
+            color=GOOD,
+            size=10,
+        )
+    )
+    steps.append(
+        Label(
+            "2007’s members, carried back",
+            sum(left) / 2,
+            0.7,
+            names="saved-joiner",
+            color=MUTED,
+            ha="center",
+            size=10,
+        )
+    )
+    for k, (y, (a, b), colour) in enumerate(
+        zip(PANEL_ROWS, STOOD_SPANS, STOOD_COLOURS, strict=True)
+    ):
+        steps.append(
+            _stroke(
+                f"stood-{k}",
+                _line([(_panel_x(right, a), y), (_panel_x(right, b), y)]),
+                color=colour,
+                frames=9 if b - a > 0.35 else 8,
+                width=3.0,
+            )
+        )
+    steps.append(
+        Label("the index as it stood", sum(right) / 2, 3.75, names="stood-0", ha="center", size=12)
+    )
+    steps.append(
+        Label(
+            "joined",
+            _panel_x(right, STOOD_SPANS[6][0]) - 0.3,
+            PANEL_ROWS[6],
+            names="stood-6",
+            color=GOOD,
+            ha="right",
+            size=10,
+        )
+    )
+    for k in (7, 8):
+        steps.append(
+            Label(
+                "left",
+                _panel_x(right, STOOD_SPANS[k][1]) + 0.3,
+                PANEL_ROWS[k],
+                names=f"stood-{k}",
+                color=LOST,
+                size=10,
+            )
+        )
+    steps.append(
+        Label(
+            "each month’s members",
+            sum(right) / 2,
+            0.7,
+            names="stood-8",
+            color=MUTED,
+            ha="center",
+            size=10,
+        )
+    )
+    steps.append(
+        Label(
+            "the later runs used the panel on the right",
+            0.3,
+            0.25,
+            names="stood-8",
+            color=ACCENT,
+            size=11,
+        )
+    )
+    return Scene("Two ways to build a panel", "survivors_panels", tuple(steps))
+
+
+def survivor_scenes() -> tuple[Scene, ...]:
+    """Lesson 3's three schematic scenes in the order the post reads them."""
+    return (_survivors_file(), _survivors_ranking(), _survivors_panels())
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-PACED = ("five_year_months", "five_year_noise")
+PACED = ("five_year_months", "five_year_noise", "survivors_ranking", "survivors_panels")
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
@@ -1796,13 +2105,13 @@ def make_equity_seasonals_whiteboards(
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
-    then the split's, then the five-year check's three.
+    then the split's, then the five-year check's three, then Lesson 3's three.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
     archive, about twenty seconds. Every GIF but the verdicts sketch is
     written before that read, so a refused or missing archive leaves the
-    other fourteen redrawn and raises from the read.
+    other seventeen redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
@@ -1811,12 +2120,13 @@ def make_equity_seasonals_whiteboards(
     rules = [_write(scene, folder) for scene in rule_scenes()]
     split = [_write(scene, folder) for scene in split_scenes()]
     five = [_write(scene, folder) for scene in five_year_scenes()]
+    survivors = [_write(scene, folder) for scene in survivor_scenes()]
     if verdicts is None:
         verdicts = Verdicts.from_runs(
             seasonals.run_point_in_time(), seasonals.run_monthly_point_in_time()
         )
     paths.append(_write(_two_verdicts(verdicts), folder))
-    return paths + strategies + rules + split + five
+    return paths + strategies + rules + split + five + survivors
 
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -1835,7 +2145,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other fourteen GIFs are already written. The one left stale is
+        # The other seventeen GIFs are already written. The one left stale is
         # named, and the exit is non-zero, so a redraw on a machine without
         # the archive does not read as a full one.
         raise SystemExit(f"{GIF_PREFIX}two_verdicts.gif was not redrawn: {refused}") from refused

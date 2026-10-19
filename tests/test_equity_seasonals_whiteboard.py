@@ -1,14 +1,15 @@
-"""The pins for the fifteen whiteboard GIFs in the equity-seasonals post.
+"""The pins for the eighteen whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
-second lesson discusses, and three its check of Chan's five-year claim. The
-opening's timeline places each source's years to scale, from Chan's committed
-files and the registered runs' constants, and its verdicts sketch draws the
-two registered runs' figures to scale. Those figures are pinned here as
-:data:`PINNED`, the values ``tests/test_equity_seasonals.py`` pins, so every
-test but one runs without the owner's archive. The one,
-:class:`TestTheRunsGiveThePinnedVerdicts`, holds that the runs give them.
+second lesson discusses, three its check of Chan's five-year claim, and three
+its lesson on survivorship bias. The opening's timeline places each source's
+years to scale, from Chan's committed files and the registered runs'
+constants, and its verdicts sketch draws the two registered runs' figures to
+scale. Those figures are pinned here as :data:`PINNED`, the values
+``tests/test_equity_seasonals.py`` pins, so every test but one runs without
+the owner's archive. The one, :class:`TestTheRunsGiveThePinnedVerdicts`, holds
+that the runs give them.
 
 The strategy sketches are schematic and read no data, so what is pinned for
 them is what a reader takes from them.
@@ -88,6 +89,7 @@ from chan.equity_seasonals_whiteboard import (
     scenes,
     sketch_timeline,
     split_scenes,
+    survivor_scenes,
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import GOOD, LOST
@@ -125,7 +127,12 @@ FIVE_YEAR_GIFS = [
     "equity_seasonals_five_year_januaries.gif",
 ]
 #: Every GIF in the order :func:`make_equity_seasonals_whiteboards` writes them.
-GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS + SPLIT_GIFS + FIVE_YEAR_GIFS
+SURVIVOR_GIFS = [
+    "equity_seasonals_survivors_file.gif",
+    "equity_seasonals_survivors_ranking.gif",
+    "equity_seasonals_survivors_panels.gif",
+]
+GIFS = OPENING_GIFS + STRATEGY_GIFS + RULE_GIFS + SPLIT_GIFS + FIVE_YEAR_GIFS + SURVIVOR_GIFS
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
 #: them in ``TestThePointInTimePins`` and ``TestTheMonthlyPins``. The vintage
@@ -223,9 +230,14 @@ def five():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five):
-    """All fifteen scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules, *split, *five)
+def survivors():
+    return survivor_scenes()
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules, split, five, survivors):
+    """All eighteen scenes in the order their GIFs are written."""
+    return (*opening, *drawn, *rules, *split, *five, *survivors)
 
 
 @pytest.fixture(scope="module")
@@ -558,6 +570,26 @@ class TestThePost:
             embed = paragraphs[index + 1]
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
 
+    def test_lesson_3s_sketches_follow_their_paragraphs(self) -> None:
+        """The saved file and the ranking after the paragraph that defines
+        survivorship bias, the two panels after the one that ends on a panel
+        keeping the companies that left."""
+        paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
+        (define,) = [
+            k for k, p in enumerate(paragraphs) if p.startswith("Survivorship bias is what")
+        ]
+        (panel,) = [
+            k for k, p in enumerate(paragraphs) if p.startswith("[The post on survivorship and")
+        ]
+        for offset, name in (
+            (define + 1, SURVIVOR_GIFS[0]),
+            (define + 2, SURVIVOR_GIFS[1]),
+            (panel + 1, SURVIVOR_GIFS[2]),
+        ):
+            embed = paragraphs[offset]
+            assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
+        assert define + 3 == panel
+
     def test_every_sketch_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
         for name in GIFS:
@@ -603,7 +635,7 @@ class TestTheCommand:
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - 1
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_fourteen(
+    def test_without_the_archive_it_still_writes_the_other_seventeen(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -1349,7 +1381,10 @@ class TestTheFiveYearSketches:
                 if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
             ]
             paced = scene.slug in sketches.PACED
-            assert paced == (scene.slug in ("five_year_months", "five_year_noise"))
+            assert paced == (
+                scene.slug
+                in ("five_year_months", "five_year_noise", "survivors_ranking", "survivors_panels")
+            )
             assert {f.ms for f in labels} <= {
                 sketches.PACED_LABEL_MS if paced else whiteboard.LABEL_MS
             }
@@ -1357,3 +1392,110 @@ class TestTheFiveYearSketches:
             assert [(f.done, f.partial) for f in frames] == [
                 (f.done, f.partial) for f in timeline(scene)
             ]
+
+
+class TestTheSurvivorSketches:
+    """Lesson 3's three schematic sketches of survivorship bias."""
+
+    def test_they_are_three_in_the_order_the_post_reads_them(self, survivors) -> None:
+        assert [gif_name(scene) for scene in survivors] == SURVIVOR_GIFS
+
+    def test_each_says_what_it_should(self, survivors) -> None:
+        saved, ranking, panels = survivors
+        assert saved.labels == [
+            "1999",
+            "2003",
+            "2007",
+            "companies still in the index in 2007",
+            "acquired",
+            "shrank out of the index",
+            "failed",
+            "Chan saves the file",
+            "in the file",
+            "missing from it",
+        ]
+        assert ranking.labels == [
+            "as it stood",
+            "lowest return",
+            "highest",
+            "worst tenth",
+            "in the file",
+            "the file’s worst tenth: other stocks",
+            "red rings: companies that left the index before 2007",
+        ]
+        assert panels.labels == [
+            "a file saved in 2007",
+            "joined later, carried back",
+            "2007’s members, carried back",
+            "the index as it stood",
+            "joined",
+            "left",
+            "left",
+            "each month’s members",
+            "the later runs used the panel on the right",
+        ]
+
+    def test_the_survivors_reach_the_save_and_the_leavers_stop_short(self, survivors) -> None:
+        saved = survivors[0]
+        save = _stroke(saved, "save")
+        for k in range(len(sketches.SURVIVOR_ROWS)):
+            line = _stroke(saved, f"survivor-{k}")
+            assert (line.x.min(), line.x.max()) == pytest.approx(
+                (sketches.SAVED_FROM_X, sketches.SAVED_TO_X)
+            )
+            assert line.color == whiteboard.INK
+        for k, (_, share, why) in enumerate(sketches.LEAVERS):
+            line = _stroke(saved, f"leaver-{k}")
+            assert line.x.max() < sketches.SAVED_TO_X and line.color == LOST, why
+            assert line.x.max() == pytest.approx(
+                sketches.SAVED_FROM_X + (sketches.SAVED_TO_X - sketches.SAVED_FROM_X) * share
+            )
+        assert save.dashed and save.x[0] > sketches.SAVED_TO_X
+
+    def test_each_bracket_spans_its_rows_past_the_save(self, survivors) -> None:
+        saved = survivors[0]
+        save_x = _stroke(saved, "save").x[0]
+        rows = sketches.SURVIVOR_ROWS
+        leavers = [y for y, _, _ in sketches.LEAVERS]
+        for gid, ys, colour in (("in-file", rows, whiteboard.INK), ("not-in-file", leavers, LOST)):
+            bracket = _stroke(saved, gid)
+            assert bracket.x.min() > save_x
+            assert bracket.y.min() < min(ys) and bracket.y.max() > max(ys)
+            assert bracket.color == colour
+
+    def test_the_file_drops_the_leavers_so_its_tenth_holds_other_stocks(self, survivors) -> None:
+        ranking = survivors[1]
+        xs = np.linspace(*sketches.SURVIVOR_XS, sketches.SURVIVOR_RANKED)
+        kept = [k for k in range(sketches.SURVIVOR_RANKED) if k not in sketches.GONE]
+        stood, in_file = _stroke(ranking, "stood"), _stroke(ranking, "file")
+        assert stood.x == pytest.approx(xs[kept]) and in_file.x == pytest.approx(xs[kept])
+        for k in sketches.GONE:
+            assert _middle(ranking, f"gone-{k}") == pytest.approx(xs[k], abs=0.01)
+            assert _stroke(ranking, f"gone-{k}").color == LOST
+        tenth = sketches.SURVIVOR_TENTH
+        assert _middle(ranking, "stood-tenth") == pytest.approx(xs[:tenth].mean(), abs=0.01)
+        assert _middle(ranking, "file-tenth") == pytest.approx(xs[kept[:tenth]].mean(), abs=0.01)
+        assert set(range(tenth)) & set(sketches.GONE), "the worst tenth as it stood holds a leaver"
+        assert not set(kept[:tenth]) & set(sketches.GONE)
+        assert _stroke(ranking, "stood-tenth").dashed
+        assert _stroke(ranking, "file-tenth").color == LOST
+
+    def test_the_saved_panel_keeps_no_leaver_and_carries_the_joiner_back(self, survivors) -> None:
+        panels = survivors[2]
+        left, right = sketches.SAVED_PANEL, sketches.STOOD_PANEL
+        saved = [s for s in panels.strokes if s.gid.startswith("saved-")]
+        assert len(saved) == 7
+        for line in saved:
+            assert (line.x.min(), line.x.max()) == pytest.approx(left)
+        assert _stroke(panels, "saved-joiner").color == GOOD
+        stood = [s for s in panels.strokes if s.gid.startswith("stood-")]
+        assert len(stood) == 9
+        for line, (a, b), colour in zip(
+            stood, sketches.STOOD_SPANS, sketches.STOOD_COLOURS, strict=True
+        ):
+            assert (line.x.min(), line.x.max()) == pytest.approx(
+                (sketches._panel_x(right, a), sketches._panel_x(right, b))
+            )
+            assert line.color == colour
+        assert sketches.STOOD_COLOURS.count(LOST) == 2
+        assert sketches.STOOD_SPANS[6][0] > 0 and sketches.STOOD_COLOURS[6] == GOOD

@@ -2578,7 +2578,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's fifteen GIFs are checked the same way by
+equity seasonals post's eighteen GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3168,7 +3168,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries fifteen looping whiteboard sketches, drawn by
+The post also carries eighteen looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3215,17 +3215,25 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     against the rerun's standard error of 0.0281, on one number line.
 15. `equity_seasonals_five_year_januaries.gif`, Example 7.6's three
     reproduced Januaries as three bars.
+16. `equity_seasonals_survivors_file.gif`, in Lesson 3, the companies a file
+    saved in 2007 holds against the ones that left before the save.
+17. `equity_seasonals_survivors_ranking.gif`, a month's ranking as it stood
+    against the same ranking as the file holds it, whose worst tenth holds
+    other stocks.
+18. `equity_seasonals_survivors_panels.gif`, a file saved in 2007 against the
+    index as it stood each month, the panel the later runs used.
 
-The first two of the five-year sketches build more slowly than the rest and
-hold their finished drawings for twelve seconds, because each carries more
-than the usual pace lets a reader take in.
+The last three are schematic. The first two of the five-year sketches and the
+last two of Lesson 3's build more slowly than the rest and hold their
+finished drawings for twelve seconds, because each carries more than the usual
+pace lets a reader take in.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
 Only the verdicts sketch reads the owner's archive. On a machine without it
-the command redraws the other fourteen and exits non-zero, naming the one it
+the command redraws the other seventeen and exits non-zero, naming the one it
 left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
@@ -3235,10 +3243,12 @@ figure and date to scale and refuse figures their words would misdescribe,
 that each rule sketch prints its figures and puts its marks where they say,
 that the split sketch draws each bar and bracket to one scale and colours each
 bar by its sign, that the five-year sketches draw each bar to its months and
-each dot, band and January bar at its figure, that two of them build slowly
-and hold for twelve seconds, that no label touches a line, another label or the
-frame's edge, and that each GIF follows its text in the post. The rule sketches'
-figures are defaults in `RuleFigures`, and `TestTheRuleSketchesFigures` in
+each dot, band and January bar at its figure, that Lesson 3's sketches keep
+the companies that left out of the file, its ranking and its saved panel, that
+four sketches build slowly and hold for twelve seconds, that no label touches
+a line, another label or the frame's edge, and that each GIF follows its text
+in the post. The rule sketches' figures are defaults in `RuleFigures`, and
+`TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The split sketch's figures are defaults in
 `SplitFigures`, and `TestTheYearsInsideTheSplit` derives each one from Chan's
@@ -3249,10 +3259,10 @@ one from Chan's files. The whiteboard test draws the verdicts from the pinned
 figures, so it runs without the archive, and a test in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) holds that
 the two registered runs give those figures where the archive is. The test
-compares each committed GIF with a fresh draw byte for byte only on macOS arm64
-in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
-the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-both redraw commands.
+compares each committed GIF with a fresh draw byte for byte only on macOS
+arm64 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw
+with the USD.CAD module's strokes, timeline and renderer, so an edit there
+needs both redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
