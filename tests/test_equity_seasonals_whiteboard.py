@@ -1,9 +1,10 @@
-"""The pins for the twenty-five whiteboard GIFs in the equity-seasonals post.
+"""The pins for the twenty-seven whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, three its
-lesson on survivorship bias, three its question on whether the January
+lesson on survivorship bias, two its question on whether Heston and Sadka's
+effect existed before 2002, three its question on whether the January
 effect survived the book, and four its question on whether Heston and Sadka's
 effect survived it. The opening's timeline places each source's years to
 scale, from Chan's committed files and the registered runs' constants, and its
@@ -53,7 +54,10 @@ is not, which stocks a tenth holds, and where each mark stands. The January
 ranges sketch draws :data:`PINNED_RANGES`, which
 ``test_the_whiteboard_draws_these_runs_ranges`` holds the registered run
 gives. Section 3's carry-forward sketch is schematic, and its other three draw
-:data:`PINNED_IVV`. Seven sketches build slowly, and their pace is pinned too.
+:data:`PINNED_IVV`. Section 1's sources sketch is schematic, and its second
+draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
+release gives, so its test reads the run itself. Nine sketches build slowly,
+and their pace is pinned too.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -92,6 +96,7 @@ from chan.equity_seasonals_whiteboard import (
     FiveYearFigures,
     IvvFigures,
     JanuaryRanges,
+    OsapFigures,
     RuleFigures,
     Spans,
     SplitFigures,
@@ -105,6 +110,7 @@ from chan.equity_seasonals_whiteboard import (
     main,
     make_equity_seasonals_whiteboards,
     opening_scenes,
+    osap_scenes,
     rule_scenes,
     scenes,
     sketch_timeline,
@@ -152,6 +158,10 @@ SURVIVOR_GIFS = [
     "equity_seasonals_survivors_ranking.gif",
     "equity_seasonals_survivors_panels.gif",
 ]
+OSAP_GIFS = [
+    "equity_seasonals_osap_sources.gif",
+    "equity_seasonals_osap_before.gif",
+]
 JANUARY_GIFS = [
     "equity_seasonals_january_registered.gif",
     "equity_seasonals_january_fill.gif",
@@ -170,6 +180,7 @@ GIFS = (
     + SPLIT_GIFS
     + FIVE_YEAR_GIFS
     + SURVIVOR_GIFS
+    + OSAP_GIFS
     + JANUARY_GIFS
     + IVV_GIFS
 )
@@ -490,6 +501,20 @@ PINNED_IVV = IvvFigures(
     detectable=0.0422031836138127,
 )
 
+#: Section 1's figures, as ``run_open_asset_pricing`` gives them from the
+#: committed release 202510 of Open Source Asset Pricing's ``MomSeasonShort``,
+#: long-short in equal-weighted tenths of NYSE and AMEX stocks, before costs,
+#: 1965-01 to 2002-12 for ``sample`` and 1965-01 to 2001-12 for ``before``.
+#: ``printed`` and ``chan_annual`` are Heston and Sadka's and Chan's figures.
+#: Entry 52 of the replication log carries the same numbers.
+PINNED_OSAP = OsapFigures(
+    printed=0.0115,
+    sample=0.01360724437376685,
+    sample_t=8.633503160912532,
+    before=0.013133990629309849,
+    chan_annual=0.13,
+)
+
 STROKES = [
     ["year", "close", "january", "to-rank", "ranked", "buy", "short", "losers-up", "winners-down"],
     [
@@ -579,14 +604,19 @@ def january():
 
 
 @pytest.fixture(scope="module")
+def osap():
+    return osap_scenes(PINNED_OSAP)
+
+
+@pytest.fixture(scope="module")
 def ivv():
     return ivv_scenes(PINNED_IVV)
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors, january, ivv):
-    """All twenty-five scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules, *split, *five, *survivors, *january, *ivv)
+def every(opening, drawn, rules, split, five, survivors, osap, january, ivv):
+    """All twenty-seven scenes in the order their GIFs are written."""
+    return (*opening, *drawn, *rules, *split, *five, *survivors, *osap, *january, *ivv)
 
 
 @pytest.fixture(scope="module")
@@ -602,6 +632,7 @@ def gifs(tmp_path_factory, spans):
         spans=spans,
         ranges=PINNED_RANGES,
         ivv=PINNED_IVV,
+        osap=PINNED_OSAP,
     )
 
 
@@ -807,7 +838,12 @@ class TestTheGifs:
 
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, spans) -> None:
         again = make_equity_seasonals_whiteboards(
-            out_dir=tmp_path, verdicts=PINNED, spans=spans, ranges=PINNED_RANGES, ivv=PINNED_IVV
+            out_dir=tmp_path,
+            verdicts=PINNED,
+            spans=spans,
+            ranges=PINNED_RANGES,
+            ivv=PINNED_IVV,
+            osap=PINNED_OSAP,
         )
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
@@ -1065,7 +1101,7 @@ class TestTheCommand:
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_twenty(
+    def test_without_the_archive_it_still_writes_the_other_twenty_two(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -1821,6 +1857,8 @@ class TestTheFiveYearSketches:
                     "january_fill",
                     "january_ranges",
                     "ivv_leavers",
+                    "osap_sources",
+                    "osap_before",
                 )
             )
             assert {f.ms for f in labels} <= {
@@ -2364,3 +2402,136 @@ class TestTheSection3Sketches:
         )
         assert sorted(path.name for path in written) == sorted(GIFS)
         assert seen == [monthly]
+
+
+class TestTheSection1Sketches:
+    """Section 1's two sketches: the three sources, and the figures before 2002."""
+
+    def test_they_are_two_in_the_order_the_post_reads_them(self, osap) -> None:
+        assert [gif_name(scene) for scene in osap] == OSAP_GIFS
+
+    def test_the_committed_release_gives_the_pinned_figures(self) -> None:
+        drawn = OsapFigures.from_run(seasonals.run_open_asset_pricing())
+        for field in ("printed", "sample", "sample_t", "before", "chan_annual"):
+            assert getattr(drawn, field) == pytest.approx(getattr(PINNED_OSAP, field), abs=1e-12), (
+                field
+            )
+
+    def test_each_says_what_it_should(self, osap) -> None:
+        sources, before = osap
+        assert sources.labels == [
+            "CRSP",
+            "Norgate Diamond",
+            "Open Source Asset Pricing",
+            "keeps the companies that left",
+            "reaches back to 1965",
+            "can be committed here",
+            "runs Chan’s own rule",
+            "institutions only",
+            "$787.50 a year",
+            "free",
+            "only Open Source Asset Pricing can be committed, and it cannot run Chan’s rule",
+        ]
+        assert before.labels == [
+            "0",
+            "Open Source Asset Pricing:",
+            "Heston and Sadka printed",
+            "1.15%",
+            "1965 to 2002, their sample",
+            "1.36%",
+            "one standard error each way",
+            "1965 to 2001, before Chan’s 2002",
+            "1.31%",
+            "Chan’s “more than 13%” a year, 1.08% a month",
+            "a month, before costs, NYSE and AMEX stocks with the ones that left",
+        ]
+
+    def test_each_answer_is_a_green_tick_or_a_red_cross(self, osap) -> None:
+        """Only Open Source Asset Pricing can be committed, and only it cannot run Chan's rule."""
+        sources = osap[0]
+        gids = {stroke.gid for stroke in sources.strokes}
+        for r, (_, answers) in enumerate(sketches.SOURCE_QUESTIONS):
+            for k, yes in enumerate(answers):
+                mark = _stroke(sources, f"mark-{r}-{k}")
+                assert mark.color == (GOOD if yes else LOST), (r, k)
+                assert (f"mark-{r}-{k}-b" in gids) is (not yes), (r, k)
+                assert mark.x.min() == pytest.approx(sketches.SOURCE_COLUMNS[k] - 0.2)
+        committed = dict(sketches.SOURCE_QUESTIONS)["can be committed here"]
+        chans_rule = dict(sketches.SOURCE_QUESTIONS)["runs Chan’s own rule"]
+        assert (committed, chans_rule) == ((False, False, True), (True, True, False))
+
+    @pytest.mark.parametrize(
+        "figures",
+        [
+            PINNED_OSAP,
+            OsapFigures(printed=0.01, sample=0.008, sample_t=4.0, before=0.012, chan_annual=0.06),
+        ],
+        ids=["the run's", "other"],
+    )
+    def test_each_bar_and_mark_stands_at_its_figure(self, figures) -> None:
+        before = osap_scenes(figures)[1]
+        per = (sketches.OSAP_X1 - sketches.OSAP_X0) / sketches.OSAP_TOP
+
+        def at(value):
+            return sketches.OSAP_X0 + value * per
+
+        for gid, value, colour in (
+            ("printed", figures.printed, whiteboard.INK),
+            ("sample", figures.sample, ACCENT),
+            ("prior", figures.before, ACCENT),
+        ):
+            bar = _fill(before, gid)
+            assert (bar.x0, bar.x1, bar.color) == (
+                sketches.OSAP_X0,
+                pytest.approx(at(value)),
+                colour,
+            ), gid
+            assert _labelled(before, f"{100 * value:.2f}%").color == colour
+        error = _stroke(before, "error")
+        assert error.x.min() == pytest.approx(
+            at(figures.sample - figures.sample / figures.sample_t)
+        )
+        assert error.x.max() == pytest.approx(
+            at(figures.sample + figures.sample / figures.sample_t)
+        )
+        chan = _stroke(before, "chan")
+        assert chan.x == pytest.approx(np.full(chan.points, at(figures.chan_annual / 12)))
+        assert (chan.color, chan.dashed) == (GOOD, True)
+
+    def test_heston_and_sadka_sit_just_outside_one_standard_error(self) -> None:
+        """What the post says: about 1.3 standard errors apart, and the sketch draws it."""
+        gap = (PINNED_OSAP.sample - PINNED_OSAP.printed) / PINNED_OSAP.error
+        assert f"{gap:.1f}" == "1.3"
+        assert PINNED_OSAP.printed < PINNED_OSAP.sample - PINNED_OSAP.error
+        assert 12 * PINNED_OSAP.before > PINNED_OSAP.chan_annual
+
+    def test_both_build_slowly(self) -> None:
+        assert {"osap_sources", "osap_before"} <= set(sketches.PACED)
+
+    def test_each_alt_text_quotes_its_sketchs_words(self, osap) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for scene in osap:
+            alt = _alt(text, scene)
+            for label in scene.labels:
+                if label != "0":
+                    assert label in alt, (scene.slug, label)
+            assert "holds for twelve seconds" in alt, scene.slug
+
+    def test_each_follows_its_paragraph(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("### Whether Heston and Sadka’s effect existed before 2002")
+        end = text.index("\n### ", start + 1)
+        paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
+        for opening, name in zip(
+            (
+                "The two paid sources’ licences bar republishing",
+                "The free source has since been read.",
+            ),
+            OSAP_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)",
+                paragraphs[index + 1].strip(),
+            ), name

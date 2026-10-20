@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws twenty-five scenes, and the post places each right after the
+This module draws twenty-seven scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -81,9 +81,24 @@ The next three sit in Lesson 3, on survivorship bias, and are schematic:
 
 Lesson 3's second and third build slowly, as :data:`PACED` lists.
 
-The next three sit in "What this replication cannot say", under its question
-on whether the January effect survived the book, each after the paragraph it
-illustrates:
+The next two sit in "What this replication cannot say", under its question on
+whether Heston and Sadka's effect existed before 2002, each after the
+paragraph it illustrates:
+
+1. Three ways to get the data: CRSP, Norgate Diamond and Open Source Asset
+   Pricing against four questions, with a green tick or a red cross for each
+   and each source's cost beneath. Only Open Source Asset Pricing can be
+   committed, and only it cannot run Chan's rule. It is schematic.
+2. Before 2002, without survivors: Heston and Sadka's printed monthly return
+   above Open Source Asset Pricing's over their sample, with one standard
+   error each way, and over the years before Chan's 2002, all to one scale,
+   against a dashed line at Chan's 13 percent a year. Its figures come from
+   :class:`OsapFigures`, read from the committed release.
+
+Both build slowly.
+
+The next three sit under the question on whether the January effect survived
+the book, each after the paragraph it illustrates:
 
 1. What registered means: the claim, the test and the verdict's words written
    down before any return is computed, against an exploratory order.
@@ -137,9 +152,9 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-five with the command below.
+with no change is a no-op diff. Redraw all twenty-seven with the command below.
 Five sketches read the archive, so on a machine
-without it the command redraws the other twenty and exits non-zero naming
+without it the command redraws the other twenty-two and exits non-zero naming
 the five it left, :data:`ARCHIVE_SLUGS`::
 
     uv run python -m chan.equity_seasonals_whiteboard
@@ -2892,14 +2907,16 @@ def make_equity_seasonals_whiteboards(
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
     then the split's, then the five-year check's three, then Lesson 3's three,
-    then the January section's three, then section 3's four.
+    then section 1's two, then the January section's three, then section 3's
+    four.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
     archive, about twenty seconds, ``ranges`` from the January run among
-    them, and ``ivv`` from the IVV run. Every GIF that needs none of them is
+    them, and ``ivv`` from the IVV run. ``osap`` is read from the committed
+    Open Source Asset Pricing release. Every GIF that needs no archive is
     written before that read, so a refused or missing archive leaves those
-    twenty redrawn and raises from the read.
+    twenty-two redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
@@ -2953,7 +2970,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other twenty GIFs are already written. The five left stale
+        # The other twenty-two GIFs are already written. The five left stale
         # are named, and the exit is non-zero, so a redraw on a machine
         # without the archive does not read as a full one.
         stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)

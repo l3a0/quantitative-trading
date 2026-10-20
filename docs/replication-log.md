@@ -11910,6 +11910,13 @@ Three things.
    Example 7.7 earned 0.0020 a month less than the project's series on Chan's
    file and 0.0010 less on IVV's members.
 
+The sketch "Before 2002, without survivors" in
+[blog/equity-seasonals-lessons.md](../blog/equity-seasonals-lessons.md) draws
+the first conclusion's 0.0136, its standard error and 0.0131, read from this
+run. `PINNED_OSAP` in
+[tests/test_equity_seasonals_whiteboard.py](../tests/test_equity_seasonals_whiteboard.py)
+moves with a re-pin of any of them.
+
 ### What this entry cannot say
 
 Three things.

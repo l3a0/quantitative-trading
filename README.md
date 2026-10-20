@@ -2608,7 +2608,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's twenty-five GIFs are checked the same way by
+equity seasonals post's twenty-seven GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3198,7 +3198,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries twenty-five looping whiteboard sketches, drawn by
+The post also carries twenty-seven looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3253,37 +3253,46 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 18. `equity_seasonals_survivors_panels.gif`, a file saved in 2007 against the
     index as it stood at each ranking date, the panel the later runs used
     from 2009.
-19. `equity_seasonals_january_registered.gif`, under "Whether the January
+19. `equity_seasonals_osap_sources.gif`, under "Whether Heston and Sadka's
+    effect existed before 2002", CRSP, Norgate Diamond and Open Source Asset
+    Pricing against four questions, with what each costs. Only Open Source
+    Asset Pricing can be committed, and only it cannot run Chan's rule.
+20. `equity_seasonals_osap_before.gif`, Heston and Sadka's printed 1.15
+    percent a month against Open Source Asset Pricing's 1.36 percent over
+    their sample, with one standard error each way, and 1.31 percent before
+    Chan's 2002, against Chan's 13 percent a year as 1.08 percent a month.
+21. `equity_seasonals_january_registered.gif`, under "Whether the January
     effect survived the book", the claim, test and verdict's words written
     down before any return is computed.
-20. `equity_seasonals_january_fill.gif`, how the low and high versions fill a
+22. `equity_seasonals_january_fill.gif`, how the low and high versions fill a
     member with no checked price.
-21. `equity_seasonals_january_ranges.gif`, each of the registered run's
+23. `equity_seasonals_january_ranges.gif`, each of the registered run's
     eighteen Januaries as a bar from its low version to its high, with a dot
     beside each bar for that January with the unchecked members left out.
-22. `equity_seasonals_ivv_carry.gif`, under "Whether Heston and Sadka's effect
+24. `equity_seasonals_ivv_carry.gif`, under "Whether Heston and Sadka's effect
     survived the book", a company that leaves between two of IVV's filings,
     still on the list until the next one, and one that joins, not yet on it
     until then.
-23. `equity_seasonals_ivv_checked.gif`, the 98,321 of 107,115 member-months
+25. `equity_seasonals_ivv_checked.gif`, the 98,321 of 107,115 member-months
     with a checked price, and the month-ends with the fewest and the most.
-24. `equity_seasonals_ivv_leavers.gif`, the companies that left the index
+26. `equity_seasonals_ivv_leavers.gif`, the companies that left the index
     within a year against those that stayed, as shares placed long, short and
     neither.
-25. `equity_seasonals_ivv_running_sum.gif`, the run's 213 held months added up
+27. `equity_seasonals_ivv_running_sum.gif`, the run's 213 held months added up
     against the lines 13 percent a year and the 4.2 percent a year its test
     detects would climb.
 
-Like the strategy sketches, Lesson 3's three, the January registered and fill
-sketches and the carry-forward sketch are schematic and carry no figures.
-Seven sketches build more
-slowly than the rest and hold their finished drawings for twelve seconds,
-because each carries more than the usual pace lets a reader take in.
+Like the strategy sketches, Lesson 3's three, the sources sketch, the January
+registered and fill sketches and the carry-forward sketch are schematic and
+carry no figures. Nine sketches build more slowly than the rest and hold their
+finished drawings for twelve seconds, because each carries more than the usual pace lets a reader take in.
 
 1. The first two of the five-year sketches, 13 and 14.
 2. The last two of Lesson 3's sketches, 17 and 18.
-3. The January fill and ranges sketches, 20 and 21.
-4. The leavers sketch, 24.
+3. The two sketches on whether Heston and Sadka's effect existed before 2002,
+   19 and 20.
+4. The January fill and ranges sketches, 22 and 23.
+5. The leavers sketch, 26.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
@@ -3291,8 +3300,8 @@ uv run python -m chan.equity_seasonals_whiteboard
 
 Five sketches read the owner's archive: the verdicts sketch, the ranges
 sketch, and section 3's checked, leavers and running-sum sketches. On a machine
-without it the command redraws the other twenty and exits non-zero, naming the
-five it left.
+without it the command redraws the other twenty-two and exits non-zero,
+naming the five it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
