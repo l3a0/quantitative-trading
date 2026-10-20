@@ -426,6 +426,8 @@ Over the 192 months it shares with the run on IVV’s members, 2009 to 2024, it 
 
 ![An animated whiteboard sketch titled “Two running sums”, drawn slowly stroke by stroke. A grey line marks “0” from “2009” to “2024”, and a note reads “both added up, neither halved”. A brown line, “the project’s series”, climbs well above zero in the middle years, falls back, and ends above it. A black line, “the IVV run”, wanders a little below zero and ends there, rising and falling with the brown one on a smaller scale. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_broad_running.gif)
 
+Added up, the project’s series swings about twice as far as the run’s, because Chan’s rule divides each month’s sum by every position it holds, long and short together, so it earns half the gap between the best tenth and the worst.
+
 ## What this means for a trader
 
 Three habits follow from the lessons above.
