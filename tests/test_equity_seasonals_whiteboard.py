@@ -1085,7 +1085,7 @@ class TestThePost:
                 "#### What the run found",
             ),
             (
-                "A third run tested Example 7.7",
+                "The second later run, the IVV run below, tested Example 7.7",
                 "Free daily prices gave a checked price",
                 "Dropping the rest is harmless only if",
                 "The 213 months average",
@@ -1105,7 +1105,7 @@ class TestThePost:
         assert paragraphs[verdict - 1] == "#### What the verdict says"
         for heading, opening in (
             ("##### Where the 4.2 percent comes from", "The 4.2 percent follows from the noise"),
-            ("#### What a broader series shows", "A broader series agrees with the registered run"),
+            ("#### What a broader series shows", "A broader series agrees with the IVV run"),
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
             assert paragraphs[index - 1] == heading
@@ -1126,7 +1126,9 @@ class TestThePost:
         start = text.index("## What this means for a trader")
         end = text.index("\n## ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
-        assert paragraphs[-2].startswith("On Chan’s own files, every printed figure")
+        assert paragraphs[-2].startswith(
+            "On Chan’s own files, all seventeen figures his code prints"
+        )
         assert (
             "A return the test would likely miss is under about 4.2 percent a year before "
             "costs, and costs only lower it, so it is not an edge a trader can count on."
@@ -2699,7 +2701,7 @@ class TestTheSection2Sketches:
         for opening, name in zip(
             (
                 "The two paid sources’ licences bar republishing",
-                "The free source has since been read.",
+                "This repository has since read the free source.",
             ),
             OSAP_GIFS,
             strict=True,
@@ -3201,7 +3203,7 @@ class TestTheBroaderSeriesSketches:
         end = text.index("\n## ", start)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
-            ("A broader series agrees with the registered run.", "Over the 192 months"),
+            ("A broader series agrees with the IVV run.", "Over the 192 months"),
             BROAD_GIFS[:2],
             strict=True,
         ):
@@ -3210,7 +3212,8 @@ class TestTheBroaderSeriesSketches:
                 rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)",
                 paragraphs[index + 1].strip(),
             ), name
-        (index,) = [k for k, p in enumerate(paragraphs) if BROAD_GIFS[1] in p]
+        (index,) = [k for k, p in enumerate(paragraphs) if p.startswith("Month to month,")]
+        assert BROAD_GIFS[1] in paragraphs[index - 1]
         assert re.fullmatch(
             rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(BROAD_GIFS[2])}\)",
             paragraphs[index + 1].strip(),
