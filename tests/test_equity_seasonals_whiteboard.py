@@ -1084,7 +1084,7 @@ class TestThePost:
     def test_the_open_questions_are_listed_as_their_subsections_name_them(self) -> None:
         """The list under "Three open questions:" names each subsection, in order."""
         text = POST.read_text(encoding="utf-8")
-        start = text.index("## What this replication cannot say")
+        start = text.index("## What later data can and cannot say")
         end = text.index("\n## ", start + 1)
         section = text[start:end]
         listed = re.findall(r"^\d\. (.+)\.$", section.split("\n### ", 1)[0], flags=re.MULTILINE)

@@ -25,7 +25,7 @@ For each, this repository wrote down the claim, the test and the wording of the 
 
 ![An animated whiteboard sketch titled “Two verdicts”, drawn slowly stroke by stroke, with two number lines. Each line has its own scale. The upper line, labelled “January effect” and “per January”, has a zero tick, “0”, and a brown bracket from “−0.1047” to “0.0879” that straddles it, with the words “free data cannot decide”. The lower line, labelled “Heston and Sadka” and “per year”, has its own “0”, a pale green band from zero to a brown tick labelled “about 4.2% a year”, and a black dot at zero labelled “measured”, with the words “could pass unseen” beneath the band. A red arrow under the band points back toward zero and stops halfway, labelled “costs lower it, not measured”. The words “not shown dead, and no edge a trader can count on” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_two_verdicts.gif)
 
-Neither run shows that the effect died, and neither gives a trader an edge to count on. The section on what this replication cannot say describes both runs and what each leaves open.
+Neither run shows that the effect died, and neither gives a trader an edge to count on. The section on what later data can and cannot say describes both runs and what each leaves open.
 
 The reproduction teaches three lessons, each with its own section below:
 
@@ -285,13 +285,15 @@ Both strategies trade the tenth at each end of a ranking, so a company missing f
 
 ![An animated whiteboard sketch titled “Two ways to build the data”, drawn slowly stroke by stroke. On the left, under “a file saved in 2007”, six black lines and one green line run the full width, the green one labelled “joined later, carried back”, with “2007’s members, carried back” beneath. On the right, under “the index as it stood”, the same six black lines run the full width, a green line labelled “joined” starts partway, and two red lines labelled “left” stop early, with “members at each ranking date” beneath. The words “the later runs, from 2009, used the data on the right” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_survivors_panels.gif)
 
-## What this replication cannot say
+## What later data can and cannot say
 
 Three open questions:
 
 1. Whether the January effect survived the book.
 2. Whether Heston and Sadka’s effect existed before 2002.
 3. Whether Heston and Sadka’s effect survived the book.
+
+Survived the book means kept working after its first edition appeared in 2009, the years the two later runs test.
 
 ### Whether the January effect survived the book
 
