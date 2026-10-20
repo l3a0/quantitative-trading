@@ -8,20 +8,26 @@ A claim that a strategy died is one a reader acts on by leaving it alone. If the
 
 Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks as numbered examples with code, and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179).
 
-Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them.
+Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them. A company that was taken over, shrank out of the index or failed before that day is missing, so the strategies never trade it. A backtest on such a file measures only the survivors, and the error that causes is called survivorship bias. Lesson 3 shows how large it can be.
 
-Two later runs asked whether either effect still works. Each tested one example on its index as it stood from 2009 on. The companies that later left the index remain in the sample. Each wrote down its claim, its test and the wording of its verdict before computing any return.
+Two later runs asked whether either effect still works. Each tested one example on its index as it stood from 2009 on. The companies that later left the index remain in the sample. For each, this repository wrote down the claim, the test and the wording of the verdict before computing any return. A result tested that way is called registered, and only a registered result can confirm an effect. A result computed first and judged afterwards is exploratory. It can kill an idea or justify a closer look, but it carries no verdict.
 
 ![An animated whiteboard sketch titled “Which years each source reads”, drawn stroke by stroke. A grey axis runs from 1960 to 2030 with a tick at each decade. A thick black bar labelled “Heston and Sadka’s 13%, before 2002” runs to the start of 2002, with a dashed grey lead-in at its left end, and a dashed brown line at 2002 is labelled “disappeared since then”. Below it two short black bars, labelled “Chan’s files, survivors only”, run from late 1999 to late 2007 and from early 2004 to early 2008. A brown dot on the axis at 2009 is labelled “the book”, and a green bar from there to late 2026 is labelled “two later runs, index as it stood”.](../docs/figures/equity_seasonals_which_years.gif)
 
-1. **The January effect** averages between −0.1047 and 0.0879 a January before costs, depending on how the index members whose prices free data cannot check are filled in.
-2. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the index members with a checked price.
+1. **The January effect** averages between −0.1047 and 0.0879 a January before costs, a loss of 10.47 percent to a gain of 8.79 percent, depending on how the index members whose prices free data cannot check are filled in.
+2. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the index members with a checked price. The test catches a true return that large four times in five, so a smaller one could pass unseen.
 
 ![An animated whiteboard sketch titled “Two verdicts”, drawn slowly stroke by stroke, with two number lines. Each line has its own scale. The upper line, labelled “January effect” and “per January”, has a zero tick, “0”, and a brown bracket from “−0.1047” to “0.0879” that straddles it, with the words “free data cannot decide”. The lower line, labelled “Heston and Sadka” and “per year”, has its own “0”, a pale green band from zero to a brown tick labelled “about 4.2% a year”, and a black dot at zero labelled “measured”, with the words “could pass unseen” beneath the band. A red arrow under the band points back toward zero and stops halfway, labelled “costs lower it, not measured”. The words “not shown dead, and no edge a trader can count on” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_two_verdicts.gif)
 
 Neither run shows that the effect died, and neither gives a trader an edge to count on. The section on what this replication cannot say describes both runs and what each leaves open.
 
-The three lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+The reproduction teaches three lessons, each with its own section below:
+
+1. Account for every choice and every bug, or one strategy gives several answers.
+2. To test whether an effect died, fix the criterion and the sample first.
+3. Rule out survivorship bias before trusting a backtest.
+
+The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two strategies
 
