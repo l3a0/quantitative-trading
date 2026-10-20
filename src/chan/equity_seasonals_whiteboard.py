@@ -169,6 +169,7 @@ from chan.usdcad_tests_whiteboard import (
     Stroke,
     _arrow,
     _box,
+    _check,
     _dot,
     _line,
     _span,
@@ -2037,6 +2038,184 @@ def january_scenes(ranges: JanuaryRanges) -> tuple[Scene, ...]:
     return (_january_registered(), _january_fill(), _january_ranges(ranges))
 
 
+# --- Section 1: whether Heston and Sadka's effect existed before 2002 --------
+
+#: The three sources the section names, as the grid's columns.
+SOURCES = ("CRSP", "Norgate Diamond", "Open Source Asset Pricing")
+#: What decides between them, as the grid's rows, each with its answer for
+#: CRSP, Norgate Diamond and Open Source Asset Pricing in that order.
+SOURCE_QUESTIONS = (
+    ("keeps the companies that left", (True, True, True)),
+    ("reaches back to 1965", (True, True, True)),
+    ("can be committed here", (False, False, True)),
+    ("runs Chan’s own rule", (True, True, False)),
+)
+#: What each source costs, as the post's list gives it in October 2026.
+SOURCE_COSTS = ("institutions only", "$787.50 a year", "free")
+#: The grid's column centres and row heights.
+SOURCE_COLUMNS = (4.55, 6.4, 8.65)
+SOURCE_ROWS = (3.05, 2.5, 1.95, 1.4)
+
+
+def _osap_sources() -> Scene:
+    """The three sources against what decides between them, ticked or crossed."""
+    steps: list[Stroke | Fill | Label] = []
+    for k, (name, x) in enumerate(zip(SOURCES, SOURCE_COLUMNS, strict=True)):
+        steps.append(
+            _stroke(f"rule-{k}", _line([(x - 0.85, 3.52), (x + 0.85, 3.52)]), color=MUTED, frames=3)
+        )
+        steps.append(Label(name, x, 3.85, names=f"rule-{k}", ha="center", size=9))
+    last_rule = f"rule-{len(SOURCES) - 1}"
+    for r, ((question, answers), y) in enumerate(zip(SOURCE_QUESTIONS, SOURCE_ROWS, strict=True)):
+        steps.append(Label(question, 0.3, y, names=last_rule, size=11))
+        for k, (yes, x) in enumerate(zip(answers, SOURCE_COLUMNS, strict=True)):
+            x1 = x - 0.2
+            if yes:
+                steps.append(
+                    _stroke(f"mark-{r}-{k}", _check(x1, y), color=GOOD, width=2.6, frames=3)
+                )
+                continue
+            steps.append(
+                _stroke(
+                    f"mark-{r}-{k}",
+                    _line([(x1, y - 0.13), (x1 + 0.26, y + 0.13)], per_unit=10),
+                    color=LOST,
+                    width=2.6,
+                    frames=2,
+                )
+            )
+            steps.append(
+                _stroke(
+                    f"mark-{r}-{k}-b",
+                    _line([(x1, y + 0.13), (x1 + 0.26, y - 0.13)], per_unit=10),
+                    color=LOST,
+                    width=2.6,
+                    frames=2,
+                )
+            )
+    last_row = len(SOURCE_QUESTIONS) - 1
+    for k, (cost, x) in enumerate(zip(SOURCE_COSTS, SOURCE_COLUMNS, strict=True)):
+        steps.append(
+            Label(cost, x, 0.9, names=f"mark-{last_row}-{k}", color=MUTED, ha="center", size=10)
+        )
+    steps.append(
+        Label(
+            "only Open Source Asset Pricing can be committed, and it cannot run Chan’s rule",
+            0.3,
+            0.35,
+            names=f"mark-{last_row}-{len(SOURCES) - 1}",
+            color=ACCENT,
+            size=11,
+        )
+    )
+    return Scene("Three ways to get the data", "osap_sources", tuple(steps))
+
+
+@dataclass(frozen=True)
+class OsapFigures:
+    """What section 1's bars draw, in fractions a month.
+
+    ``printed`` is Heston and Sadka's Table 2 figure and ``chan_annual`` Chan's
+    "more than 13 percent" a year, the book's figures. ``sample`` and
+    ``sample_t`` are Open Source Asset Pricing's ``MomSeasonShort`` mean and
+    one-sided t over 1965 to 2002, and ``before`` its mean over 1965 to 2001,
+    all from :func:`chan.equity_seasonals.run_open_asset_pricing`.
+    """
+
+    printed: float
+    sample: float
+    sample_t: float
+    before: float
+    chan_annual: float
+
+    @classmethod
+    def from_run(cls, run: seasonals.OpenAssetPricingRun) -> OsapFigures:
+        return cls(
+            printed=seasonals.HESTON_SADKA_MONTHLY,
+            sample=run.around.sample.mean,
+            sample_t=run.around.sample.t,
+            before=run.around.before.mean,
+            chan_annual=seasonals.CHAN_ANNUAL,
+        )
+
+    @property
+    def error(self) -> float:
+        """The 1965 to 2002 mean's standard error, the mean over its t."""
+        return self.sample / self.sample_t
+
+
+#: Where the bars start, the return the board's right edge stands for, and
+#: where that edge is.
+OSAP_X0, OSAP_TOP, OSAP_X1 = 4.4, 0.0175, 9.3
+
+
+def _osap_before(f: OsapFigures) -> Scene:
+    """Heston and Sadka's printed mean against the project's, to one scale, with Chan's line."""
+    per = (OSAP_X1 - OSAP_X0) / OSAP_TOP
+
+    def at(value: float) -> float:
+        return OSAP_X0 + value * per
+
+    chan = f.chan_annual / 12
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("axis", _line([(OSAP_X0, 1.1), (OSAP_X0, 3.85)]), color=MUTED, frames=4),
+        Label("0", OSAP_X0, 0.75, names="axis", color=MUTED, ha="center", size=10),
+        Label("Open Source Asset Pricing:", 0.3, 3.0, names="axis", color=ACCENT, size=11),
+    ]
+    for text, y, value, colour, gid, x, size in (
+        ("Heston and Sadka printed", 3.45, f.printed, INK, "printed", 0.3, 11),
+        ("1965 to 2002, their sample", 2.55, f.sample, ACCENT, "sample", 0.5, 10),
+        ("1965 to 2001, before Chan’s 2002", 1.55, f.before, ACCENT, "prior", 0.5, 10),
+    ):
+        steps += [
+            Label(text, x, y, names="axis", size=size),
+            Fill(gid, OSAP_X0, y - 0.13, at(value), y + 0.13, colour),
+            Label(f"{100 * value:.2f}%", at(value) + 0.15, y, names=gid, color=colour, size=11),
+        ]
+        if gid == "sample":
+            low, high = at(f.sample - f.error), at(f.sample + f.error)
+            steps += [
+                _stroke("error", _span(low, high, y - 0.45, tick=0.1), frames=6),
+                Label(
+                    "one standard error each way",
+                    low - 0.25,
+                    y - 0.45,
+                    names="error",
+                    color=MUTED,
+                    ha="right",
+                    size=9,
+                ),
+            ]
+    steps += [
+        _stroke(
+            "chan", _line([(at(chan), 1.2), (at(chan), 1.8)]), color=GOOD, dashed=True, frames=4
+        ),
+        Label(
+            f"Chan’s “more than {f.chan_annual:.0%}” a year, {100 * chan:.2f}% a month",
+            at(chan) - 0.1,
+            0.85,
+            names="chan",
+            color=GOOD,
+            ha="center",
+            size=10,
+        ),
+        Label(
+            "a month, before costs, NYSE and AMEX stocks with the ones that left",
+            0.3,
+            0.3,
+            names="chan",
+            color=ACCENT,
+            size=10,
+        ),
+    ]
+    return Scene("Before 2002, without survivors", "osap_before", tuple(steps))
+
+
+def osap_scenes(figures: OsapFigures) -> tuple[Scene, ...]:
+    """Section 1's two, in the order the post reads them."""
+    return (_osap_sources(), _osap_before(figures))
+
+
 # --- Section 3: whether Heston and Sadka's effect survived the book ---------
 
 #: Chan's "more than 13 percent" a year for Heston and Sadka's rotation before
@@ -2323,6 +2502,8 @@ PACED = (
     "january_fill",
     "january_ranges",
     "ivv_leavers",
+    "osap_sources",
+    "osap_before",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
@@ -2706,6 +2887,7 @@ def make_equity_seasonals_whiteboards(
     spans: Spans | None = None,
     ranges: JanuaryRanges | None = None,
     ivv: IvvFigures | None = None,
+    osap: OsapFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
@@ -2727,6 +2909,8 @@ def make_equity_seasonals_whiteboards(
     split = [_write(scene, folder) for scene in split_scenes()]
     five = [_write(scene, folder) for scene in five_year_scenes()]
     survivors = [_write(scene, folder) for scene in survivor_scenes()]
+    osap = osap if osap is not None else OsapFigures.from_run(seasonals.run_open_asset_pricing())
+    section_1 = [_write(scene, folder) for scene in osap_scenes(osap)]
     january = [_write(_january_registered(), folder), _write(_january_fill(), folder)]
     section_3 = [_write(_ivv_carry(), folder)]
     run = seasonals.run_point_in_time() if verdicts is None or ranges is None else None
@@ -2740,7 +2924,7 @@ def make_equity_seasonals_whiteboards(
     paths.append(_write(_two_verdicts(verdicts), folder))
     january.append(_write(_january_ranges(ranges), folder))
     section_3 += [_write(scene, folder) for scene in ivv_scenes(ivv)[1:]]
-    return paths + strategies + rules + split + five + survivors + january + section_3
+    return paths + strategies + rules + split + five + survivors + section_1 + january + section_3
 
 
 #: The sketches whose figures come from the owner's archive, which a redraw
