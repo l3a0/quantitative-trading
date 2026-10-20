@@ -36,7 +36,10 @@ The three lessons below say what the reproduction does teach. The code is open s
 Each of Chan’s scripts for Example 7.7 turns its monthly returns into an annual return and a Sharpe ratio as below, with no risk-free rate. Here r̄ is the mean monthly return and s its standard deviation.
 
 ```math
-\text{annual return} = 12\,\bar{r}, \qquad \text{Sharpe ratio} = \sqrt{12}\,\frac{\bar{r}}{s}
+\begin{aligned}
+\text{annual return} &= 12\,\bar{r} \\
+\text{Sharpe ratio} &= \sqrt{12}\,\frac{\bar{r}}{s}
+\end{aligned}
 ```
 
 What Chan says of each is not the same, and the difference matters for what a reproduction can find.
@@ -53,14 +56,14 @@ All seventeen figures Chan’s code prints reproduce here to the digit, but only
 
 ### Example 7.6, the January effect
 
-Here is every printout of Example 7.6, at the precision each source prints, one column for each of its three Januaries. Each number is the return on one trade, held from a December year-end close to the last close of the January its column names, after a cost of 5 basis points to enter and another 5 to exit. It is a fraction of the capital, split evenly between the long side and the short side. So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81 percent over January 2008.
+Here is every printout of Example 7.6, at the precision each source prints, one row for each of its three Januaries and one column for each script. The MATLAB column holds both editions, which print the same figures, and the Python and R columns hold the revised edition’s. Each number is the return on one trade, held from a December year-end close to the last close of the January its row names, after a cost of 5 basis points to enter and another 5 to exit. It is a fraction of the capital, split evenly between the long side and the short side. So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81 percent over January 2008.
 
 ```math
-\begin{array}{l|r|r|r}
-\text{Example 7.6 printout} & \text{January 2006} & \text{January 2007} & \text{January 2008} \\ \hline
-\text{MATLAB, both editions} & -0.0244 & -0.0068 & 0.0881 \\
-\text{Python, revised edition} & -0.023853 & -0.003641 & 0.088486 \\
-\text{R, revised edition} & -0.0244 & -0.0068 & 0.0881
+\small\begin{array}{l|r|r|r}
+\text{January} & \text{MATLAB} & \text{Python} & \text{R} \\ \hline
+2006 & -0.0244 & -0.023853 & -0.0244 \\
+2007 & -0.0068 & -0.003641 & -0.0068 \\
+2008 & 0.0881 & 0.088486 & 0.0881
 \end{array}
 ```
 
@@ -71,7 +74,11 @@ Its three printouts give two answers. The MATLAB and the R agree to every digit,
 A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that to 58, so it buys the 58 worst and shorts the 58 best.
 
 ```math
-\frac{578}{10} = 57.8, \qquad \text{rounded: } 58, \qquad \text{rounded down: } 57
+\begin{gathered}
+\frac{578}{10} = 57.8 \\
+\text{rounded: } 58 \\
+\text{rounded down: } 57
+\end{gathered}
 ```
 
 Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
@@ -93,12 +100,12 @@ The revised Python fills a missing year-end close with the last one before it, a
 Here is every printout of Example 7.7, whose two figures are the average annual return and the Sharpe ratio. The annual return is a fraction too, so −0.0129 is a loss of 1.29 percent a year. The first edition’s −0.9167 is not a loss of 91.67 percent a year. It is in different units, which the first rule below explains.
 
 ```math
-\begin{array}{l|r|r}
-\text{Example 7.7 printout} & \text{Annual return} & \text{Sharpe ratio} \\ \hline
-\text{MATLAB, first edition} & -0.9167 & -0.1055 \\
-\text{MATLAB, revised edition} & -0.0129 & -0.1243 \\
-\text{Python, revised edition} & -0.012679 & -0.122247 \\
-\text{R, revised edition} & -0.01139674 & -0.1095098
+\small\begin{array}{l|r|r}
+\text{Example 7.7} & \text{Annual return} & \text{Sharpe ratio} \\ \hline
+\text{MATLAB, first} & -0.9167 & -0.1055 \\
+\text{MATLAB, revised} & -0.0129 & -0.1243 \\
+\text{Python, revised} & -0.012679 & -0.122247 \\
+\text{R, revised} & -0.01139674 & -0.1095098
 \end{array}
 ```
 
@@ -143,8 +150,9 @@ It counts the one month with no return as zero, while its mean skips that month.
 
 ```math
 \begin{aligned}
-\bar{r} &= \frac{1}{95} \sum_{t=2}^{96} r_t && \text{month 1 skipped} \\
-s &= \operatorname{std}(0, r_2, \dots, r_{96}) && \text{month 1 counted as } 0
+\bar{r} &= \frac{1}{95} \sum_{t=2}^{96} r_t \quad \text{month 1 skipped} \\
+s &= \operatorname{std}(0, r_2, \dots, r_{96}) \\
+&\quad \text{month 1 counted as } 0
 \end{aligned}
 ```
 
@@ -175,7 +183,10 @@ On this file some months land on a half, so the half matters. Rounding every hal
 The standard deviation of n monthly returns divides their summed squared deviations from the mean by n or by n − 1.
 
 ```math
-s_n = \sqrt{\frac{1}{n} \sum_{t=1}^{n} (r_t - \bar{r})^2}, \qquad s_{n-1} = \sqrt{\frac{1}{n-1} \sum_{t=1}^{n} (r_t - \bar{r})^2}
+\begin{aligned}
+s_n &= \sqrt{\frac{1}{n} \sum_{t=1}^{n} (r_t - \bar{r})^2} \\
+s_{n-1} &= \sqrt{\frac{1}{n-1} \sum_{t=1}^{n} (r_t - \bar{r})^2}
+\end{aligned}
 ```
 
 The revised Python divides by the number of months, n, and dividing by n − 1 gives a Sharpe ratio of −0.121508. The revised R divides by n − 1, and dividing by n gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by n and prints the −0.1243. The one from this book’s first edition divides by n − 1 and gives −0.1236.
@@ -201,10 +212,11 @@ Every printout’s whole-period figure for Example 7.7 is negative on Chan’s f
 What the file can give is a split, and it is **exploratory, with no verdict**. The revised Python keeps 83 months for its statistics, from 2000-12-31 to 2007-10-31. Cut at the start of 2002:
 
 ```math
-\begin{array}{l|r|r|r}
-\text{Revised Python, split at 2002} & \text{Months} & \text{Annual return} & \text{Sharpe ratio} \\ \hline
-\text{Before 2002} & 13 & -0.145387 & -0.859993 \\
-\text{From 2002} & 70 & 0.011967 & 0.141777
+\small\begin{array}{l|r|r}
+\text{Revised Python} & \text{Before 2002} & \text{From 2002} \\ \hline
+\text{Months} & 13 & 70 \\
+\text{Annual return} & -0.145387 & 0.011967 \\
+\text{Sharpe ratio} & -0.859993 & 0.141777
 \end{array}
 ```
 
@@ -369,7 +381,10 @@ Z is a draw from a normal curve with a spread of 1. V is a draw from a chi-squar
 No formula turns the 0.80 back into δ, so a solver searches for it:
 
 ```math
-P\left(T_{212}(\delta) > 1.652\right) = 0.80 \quad\Rightarrow\quad \delta = 2.494
+\begin{gathered}
+P\left(T_{212}(\delta) > 1.652\right) = 0.80 \\
+\Rightarrow\quad \delta = 2.494
+\end{gathered}
 ```
 
 The chance of clearing 1.652 rises as δ grows. At δ = 0 it is 0.05, the 5 percent bar, and at δ = 50 it is all but certain. So the solver starts with that bracket, keeps narrowing it to the part where the chance crosses 0.80, and stops once it is narrower than a trillionth.
@@ -379,7 +394,11 @@ The two answers agree to three decimals, 2.4937 against 2.4944. The exact δ is 
 X is that many standard errors, and twelve months make a year:
 
 ```math
-X = 2.494 \times 0.00141 = 0.00352 \text{ a month}, \qquad 12X = 0.0422 \text{ a year}
+\begin{aligned}
+X &= 2.494 \times 0.00141 \\
+&= 0.00352 \text{ a month} \\
+12X &= 0.0422 \text{ a year}
+\end{aligned}
 ```
 
 More months or less noise would lower it.
