@@ -1,9 +1,9 @@
 """The pins for the thirty-three whiteboard GIFs in the equity-seasonals post.
 
-Two sketch the post's opening section, two its section "The two strategies",
+Four sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
-second lesson discusses, three its check of Chan's five-year claim, three its
-lesson on survivorship bias, three its question on whether the January effect
+second lesson discusses, three its check of Chan's five-year claim, two its
+lesson on survivorship bias, two its question on whether the January effect
 survived the book, two its question on whether Heston and Sadka's effect
 existed before 2002, and ten its question on whether Heston and Sadka's
 effect survived it, three of them on where its 4.2 percent comes from and
@@ -49,7 +49,7 @@ after the running-sum chart and the paragraph on the split's years.
 
 The five-year sketches print :class:`FiveYearFigures`, which
 ``TestTheFiveYearSketches`` in ``tests/test_equity_seasonals.py`` derives.
-Lesson 3's three sketches and the January fill are schematic, so what is
+The three survivorship sketches and the January fill are schematic, so what is
 pinned for them is what a reader takes from them: who is in the file and who
 is not, which stocks a tenth holds, and where each mark stands. The January
 ranges sketch draws :data:`PINNED_RANGES`, which
@@ -1387,6 +1387,26 @@ class TestTheTimeline:
             assert label.x == pytest.approx(_year(end) + 0.2)
         assert _stroke(scene, "large-caps").y[0] > _stroke(scene, "small-caps").y[0]
 
+    def test_its_alt_text_quotes_its_labels_and_names_each_files_span(self, opening, spans) -> None:
+        """Every label but the decades, quoted in the order it is drawn, and each
+        file's example named right after the span its bar runs, in the post's
+        words for the part of the year: early, mid or late."""
+        scene = opening[0]
+        alt = _alt(POST.read_text(encoding="utf-8"), scene)
+        quoted = [w if w.startswith("“") else f"“{w}”" for w in scene.labels if not w.isdigit()]
+        places = [alt.find(w) for w in quoted]
+        assert -1 not in places, [w for w, at in zip(quoted, places) if at < 0]
+        assert places == sorted(places)
+
+        def when(day: pd.Timestamp) -> str:
+            return f"{('early', 'mid', 'late')[(day.month - 1) // 4]} {day.year}"
+
+        for text, (start, end) in (
+            ("Example 7.7, S&P 500", spans.large_caps),
+            ("Example 7.6, S&P 600", spans.small_caps),
+        ):
+            assert f"from {when(start)} to {when(end)}, labelled “{text}”" in alt
+
     def test_every_bar_sits_at_its_dates(self, opening, spans) -> None:
         scene = opening[0]
         assert _stroke(scene, "sample").x[-1] == pytest.approx(_year(spans.split))
@@ -2026,9 +2046,19 @@ class TestTheFiveYearSketches:
                 (f.done, f.partial) for f in timeline(scene)
             ]
 
+    def test_the_alt_text_says_slow_exactly_when_the_sketch_is_paced(self, every) -> None:
+        """A reader learns the pace from the alt text: "drawn slowly" and a
+        twelve-second hold for each paced sketch, and neither for the rest."""
+        text = POST.read_text(encoding="utf-8")
+        for scene in every:
+            alt = _alt(text, scene)
+            paced = scene.slug in sketches.PACED
+            assert ("drawn slowly" in alt) == paced, scene.slug
+            assert ("twelve seconds" in alt) == paced, scene.slug
+
 
 class TestTheSurvivorSketches:
-    """Lesson 3's three schematic sketches of survivorship bias."""
+    """The three schematic sketches of survivorship bias, one in the opening and two in Lesson 3."""
 
     def test_they_are_three_in_the_order_the_post_reads_them(self, survivors) -> None:
         assert [gif_name(scene) for scene in survivors] == SURVIVOR_GIFS
@@ -2173,7 +2203,7 @@ def _count_word(n: int) -> str:
 
 
 class TestTheJanuarySketches:
-    """The January section's three sketches: registered, the two fills, the ranges."""
+    """The three January sketches, the first in the opening: registered, the two fills, the ranges."""
 
     def test_they_are_three_in_the_order_the_post_reads_them(self, january) -> None:
         assert [gif_name(scene) for scene in january] == JANUARY_GIFS

@@ -3260,7 +3260,7 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     as it stood against the same ranking as the file holds it, whose worst
     tenth is a different set.
 18. `equity_seasonals_survivors_panels.gif`, a file saved in 2007 against the
-    index as it stood at each ranking date, the panel the later runs used
+    index as it stood at each ranking date, the data the later runs used
     from 2009.
 19. `equity_seasonals_january_registered.gif`, in the opening beside its
     explanation of a registered result, the claim, test and verdict's words
@@ -3313,7 +3313,7 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     halved. The project's months swing about twice as far as the IVV run's,
     and its sum ends above zero where the run's ends below it.
 
-Like the strategy sketches, Lesson 3's three, the January registered and fill
+Like the strategy sketches, the three survivorship sketches, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The
 sources sketch carries no figure a run computes, only each source's cost.
 Eighteen sketches build more slowly than the rest and hold their finished
@@ -3323,7 +3323,7 @@ a reader take in.
 1. The years and verdicts sketches, 1 and 2.
 2. Example 7.6's rule 2 sketch, 5.
 3. The first two of the five-year sketches, 13 and 14.
-4. The last two of Lesson 3's sketches, 17 and 18.
+4. Lesson 3's two sketches, 17 and 18.
 5. The January fill and ranges sketches, 20 and 21.
 6. The two sketches on whether Heston and Sadka's effect existed before 2002,
    22 and 23.
@@ -3349,8 +3349,9 @@ figure and date to scale and refuse figures their words would misdescribe, that
 each rule sketch prints its figures and puts its marks where they say, that the
 split sketch draws each bar and bracket to one scale and colours each bar by
 its sign, that the five-year sketches draw each bar to its months and each dot,
-band and January bar at its figure, that Lesson 3's sketches keep the companies
-that left out of the file, its ranking and its saved panel, that section 2's
+band and January bar at its figure, that the three survivorship sketches keep
+the companies that left out of the file, its ranking and the data saved in
+2007, that section 2's
 sketches tick and cross each source as the post describes it and draw each bar
 at its figure, that the 4.2 percent's three sketches put the critical value, δ
 and each bracket where the test's figures say, that the broader series' bars,

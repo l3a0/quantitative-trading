@@ -5,7 +5,9 @@ is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
 This module draws thirty-three scenes, and the post places each right after the
-text it draws. The first four are these.
+text it draws. The first four are the opening's years and verdicts sketches and
+the two strategies' sketches. The opening also holds the first survivorship
+sketch and the first January sketch, which are listed below with their groups.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
    behind Heston and Sadka's 13 percent ending at the start of 2002, where
@@ -83,9 +85,9 @@ two in Lesson 3:
    file holds it, whose worst tenth is a different set.
 3. Two ways to build the data: a file saved in 2007 carries 2007's members
    back, one that joined later among them. Beside it, the index as it stood
-   at each ranking date, the panel the post's later runs used from 2009.
+   at each ranking date, the data the post's later runs used from 2009.
 
-Lesson 3's second and third build slowly, as :data:`PACED` lists.
+The second and third build slowly, as :data:`PACED` lists.
 
 The next three belong to the question on whether the January effect survived
 the book. The post places the first in its opening, beside its explanation of
@@ -182,7 +184,7 @@ for a cross-section of stocks sorted by the return each strategy ranks on, and
 the two ringed at each end stand for a tenth. March is an example month, and
 the scene says the trade moves on to the next one.
 
-The two opening scenes carry data. :meth:`Verdicts.from_runs` reads the
+The opening's years and verdicts scenes carry data. :meth:`Verdicts.from_runs` reads the
 registered runs on the owner's archive, about twenty seconds, and
 :meth:`Spans.read` reads Chan's committed files and the runs' constants. The
 bar for Heston and Sadka's 13 percent ends at Chan's 2002 split rather than at
@@ -1814,7 +1816,7 @@ def _survivors_panels() -> Scene:
 
 
 def survivor_scenes() -> tuple[Scene, ...]:
-    """Lesson 3's three schematic scenes in the order the post reads them."""
+    """The three schematic survivorship scenes in the order the post reads them."""
     return (_survivors_file(), _survivors_ranking(), _survivors_panels())
 
 
@@ -2096,7 +2098,7 @@ def _january_registered() -> Scene:
 
 
 def january_scenes(ranges: JanuaryRanges) -> tuple[Scene, ...]:
-    """The January section's three scenes in the order the post reads them."""
+    """The three January scenes in the order the post reads them, the first in the opening."""
     return (_january_registered(), _january_fill(), _january_ranges(ranges))
 
 
@@ -3540,10 +3542,10 @@ def make_equity_seasonals_whiteboards(
     project: seasonals.OpenAssetPricingRun | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
-    opening's two first, then the two strategies', then the seven rules',
-    then the split's, then the five-year check's three, then Lesson 3's three,
-    then the January section's three, then section 2's two, then section 3's
-    ten.
+    opening's years and verdicts sketches first, then the two strategies',
+    then the seven rules', then the split's, then the five-year check's three,
+    then the three survivorship sketches, then the January question's three,
+    then section 2's two, then section 3's ten.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's

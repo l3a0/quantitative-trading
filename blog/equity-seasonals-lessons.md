@@ -211,7 +211,7 @@ It rounds a tenth to the nearest whole number, and sends an exact half to the ev
 \end{array}
 ```
 
-On this file some months land on a half, so the half matters. Rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down, as the revised MATLAB and Python do, gives the revised MATLAB’s figures.
+On this file some months land on a half, so the half matters. Rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down, as the revised MATLAB and Python do, gives the revised MATLAB’s annual return.
 
 #### Rule 7: dividing by n or n − 1, a choice in all three revised scripts
 
