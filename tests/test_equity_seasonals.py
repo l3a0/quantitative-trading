@@ -3160,7 +3160,8 @@ class TestTheMonthlyPins:
         """Each step the post's section on the verdict prints, at its precision:
         the months' standard error, the one-sided 5% critical value at 212
         degrees of freedom, the noncentrality the test clears with probability
-        0.8, and the monthly mean that gives, twelve times which is X."""
+        0.8 and the normal shortcut that approximates it, and the monthly mean
+        that gives, twelve times which is X."""
         from scipy import optimize, stats
 
         test = monthly.matlab.test
@@ -3175,6 +3176,18 @@ class TestTheMonthlyPins:
         assert_reproduces(error, 0.0014099043682784275, "0.00141", ".5f")
         assert_reproduces(critical, 1.6520729200438098, "1.652", ".3f")
         assert_reproduces(shift, 2.494447174535743, "2.494", ".3f")
+        assert_reproduces(shift, 2.494447174535743, "2.4944", ".4f")
+        # The normal shortcut the post gives first: the critical value plus
+        # the standard normal's 80th percentile, which lands within 0.001.
+        z = stats.norm.isf(1 - seasonals.POWER)
+        assert_reproduces(z, 0.8416212335729143, "0.842", ".3f")
+        assert_reproduces(critical + z, 2.4936941536167244, "2.494", ".3f")
+        assert_reproduces(critical + z, 2.4936941536167244, "2.4937", ".4f")
+        # The bracket the solver narrows: the 5 percent bar at no shift, and
+        # all but certain at a shift of 50.
+        assert stats.nct.sf(critical, df, 0.0) == pytest.approx(seasonals.SIGNIFICANCE, abs=1e-12)
+        assert stats.nct.sf(critical, df, 50.0) > 1 - 1e-12
+        assert stats.nct.sf(critical, df, shift) == pytest.approx(seasonals.POWER, abs=1e-12)
         assert_reproduces(shift * error, 0.003516931967817725, "0.00352", ".5f")
         assert 12 * shift * error == pytest.approx(monthly.matlab.x, rel=1e-12)
 

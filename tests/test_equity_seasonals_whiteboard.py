@@ -1046,7 +1046,7 @@ class TestThePost:
         ]
         assert paragraphs[verdict - 1] == "#### What the verdict says"
         for heading, opening in (
-            ("#### Where the 4.2 percent comes from", "The 4.2 percent follows from the noise"),
+            ("##### Where the 4.2 percent comes from", "The 4.2 percent follows from the noise"),
             ("#### What a broader series shows", "A broader series agrees with the registered run"),
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]

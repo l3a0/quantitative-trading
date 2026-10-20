@@ -342,7 +342,7 @@ The 213 months average −0.0001 a month before costs. A strategy that truly ear
 
 The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”. The 4.2 percent is the smallest annual return the test detects 80 percent of the time, so a smaller true return could pass unseen, and the verdict does not say the effect died. It also leaves out costs, which can only lower the return, and the last return a failing company takes as it leaves the index, which free data does not carry.
 
-#### Where the 4.2 percent comes from
+##### Where the 4.2 percent comes from
 
 The 4.2 percent follows from the noise in the 213 months and the two numbers fixed before the run, the 5 percent bar and the 80 percent chance. The months have a standard deviation of 0.0206, so their mean has a standard error of
 
@@ -350,11 +350,31 @@ The 4.2 percent follows from the noise in the 213 months and the two numbers fix
 \text{SE} = \frac{s}{\sqrt{n}} = \frac{0.0206}{\sqrt{213}} = 0.00141
 ```
 
-The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean is X, the t-statistic follows a noncentral t distribution, centred near X divided by the standard error. That distance, the noncentrality δ, is the one at which the statistic clears 1.652 four times in five:
+The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean were zero, the t-statistic would scatter around zero with a spread of about 1, and it would clear 1.652 only 5 percent of the time. If the true mean is X, the whole scatter shifts right by about X divided by the standard error. That shift is the noncentrality, δ, and the shifted shape is a noncentral t distribution. The 4.2 percent comes from asking how far the scatter must shift for the statistic to clear 1.652 four times in five.
+
+A normal curve gives a close answer. A normal curve with a spread of 1 puts four draws in five above the point 0.842 below its centre. So the centre has to sit 0.842 past 1.652:
+
+```math
+\delta \approx 1.652 + 0.842 = 2.494
+```
+
+The exact answer uses the noncentral t itself. With 212 degrees of freedom and a shift of δ, it is a normal draw shifted by δ, divided by how far the months’ measured spread strays from the true one:
+
+```math
+T_{212}(\delta) = \frac{Z + \delta}{\sqrt{V / 212}}
+```
+
+Z is a draw from a normal curve with a spread of 1. V is a draw from a chi-squared distribution with 212 degrees of freedom, so V / 212 averages 1 and wanders around it, the way a spread measured from 213 months wanders around the true spread. That wandering widens the scatter a little beyond the normal curve’s.
+
+No formula turns the 0.80 back into δ, so a solver searches for it:
 
 ```math
 P\left(T_{212}(\delta) > 1.652\right) = 0.80 \quad\Rightarrow\quad \delta = 2.494
 ```
+
+The chance of clearing 1.652 rises as δ grows. At δ = 0 it is 0.05, the 5 percent bar, and at δ = 50 it is all but certain. So the solver starts with that bracket, keeps narrowing it to the part where the chance crosses 0.80, and stops once it is narrower than a trillionth.
+
+The two answers agree to three decimals, 2.4937 against 2.4944. The exact δ is the larger, because the wider scatter needs a slightly bigger shift to clear 1.652 four times in five.
 
 X is that many standard errors, and twelve months make a year:
 
