@@ -8,7 +8,7 @@ A claim that a strategy died is one a reader acts on by leaving it alone. If the
 
 Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179).
 
-Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them. A company that was taken over, shrank out of the index or failed before that day is missing, so the strategies never trade it. A backtest on such a file measures only the survivors, and the error this causes is called survivorship bias. Lesson 3 explains it and links to a post that measures how large it can be.
+Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them. A company that was acquired, shrank out of the index or failed before that day is missing, so the strategies never trade it. A backtest on such a file measures only the survivors, and the error this causes is called survivorship bias. Lesson 3 explains it and links to a post that measures how large it can be.
 
 ![An animated whiteboard sketch titled “What a saved file can see”, drawn stroke by stroke over a timeline from 1999 to 2007. Six black lines labelled “companies still in the index in 2007” run the whole way to a dashed brown line labelled “Chan saves the file”. Below them three red lines stop early, labelled “acquired”, “shrank out of the index” and “failed”. A black bracket beside the six is labelled “in the file”, and a red bracket beside the three is labelled “missing from it”.](../docs/figures/equity_seasonals_survivors_file.gif)
 
@@ -19,6 +19,8 @@ Two later runs asked whether either effect still works. Each tested one example 
 For each, this repository wrote down the claim, the test and the wording of the verdict before computing any return. A result tested that way is called registered, and only a registered result can confirm an effect. A result computed first and judged afterwards is exploratory. It can kill an idea or justify a closer look, but it carries no verdict.
 
 ![An animated whiteboard sketch titled “What registered means”, drawn stroke by stroke. Under the word “registered”, three boxes joined by arrows, “claim”, “test” and “verdict’s words”, stand before a dashed brown line labelled “all written down”, and past it a green box reads “then returns computed”. Under the word “exploratory”, a red box “returns computed” leads to a box “no claim written down first”. The words “exploratory can kill an idea, only registered can confirm one” close the sketch.](../docs/figures/equity_seasonals_january_registered.gif)
+
+The two later runs found the following.
 
 1. **The January effect** averages between −0.1047 and 0.0879 a January before costs, a loss of 10.47 percent to a gain of 8.79 percent, depending on how the index members whose prices free data cannot check are filled in.
 2. **Heston and Sadka’s rotation** shows no return detectable above about 4.2 percent a year before costs, on the index members with a checked price. The test catches a true return that large four times in five, so a smaller one could pass unseen.
@@ -37,7 +39,7 @@ The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/q
 
 ## The two strategies
 
-**Example 7.6, the January effect.** It is a **mean reversion** trade, betting that last year’s losers recover in January and its winners give some back. At each December year-end, rank the S&P 600, an index of 600 smaller US companies, on their return over the calendar year. Buy the worst tenth and short the best tenth at that close, selling borrowed shares so the trade gains when they fall, and exit both at January’s last close. The reason Chan gives is that investors sell their losers in December to claim the tax loss, and the selling pressure lifts in January (p. 175). Each trade pays a cost of 5 basis points, or 0.05 percent, to enter and another 5 to exit.
+**Example 7.6, the January effect.** It is a **mean reversion** trade, betting that last year’s losers recover in January and its winners give some back. At each December year-end, rank the S&P 600, an index of 600 smaller US companies, on their return over the calendar year. Buy the worst tenth and short the best tenth at that close, and exit both at January’s last close. The bought stocks are the long side. Shorting means selling borrowed shares, so the short side gains when its stocks fall. The reason Chan gives is that investors sell their losers in December to claim the tax loss, and the selling pressure lifts in January (p. 175). Each trade pays a cost of 5 basis points, or 0.05 percent, to enter and another 5 to exit.
 
 ![An animated whiteboard sketch titled “The January trade”, drawn stroke by stroke. A long black bar labelled “a year of returns” ends at a brown dot, and a short thick brown segment one twelfth as long runs on from it, labelled “hold January”. A grey arrow labelled “rank at the year’s last close” points down to a rising row of twenty grey dots, the stocks sorted from the lowest return at the lower left to the highest at the upper right. A green ring circles the lowest two, labelled “buy the worst tenth”, and a red ring the highest two, labelled “short the best tenth”. On the right a red arrow points down, labelled “winners down”, above a green arrow pointing up, labelled “losers up”, and the words “mean reversion” close the sketch.](../docs/figures/equity_seasonals_january_trade.gif)
 
@@ -66,11 +68,11 @@ Chan’s book has two editions. The first, from 2009, gives Examples 7.6 and 7.7
 
 All seventeen figures Chan’s code prints reproduce here to the digit, but only by copying his code. The book’s description of each strategy fits several numbers, and each script picks one through rules the description leaves out. Seven of those rules are bugs. Matching the printed figures means copying six of them. The seventh, in the revised MATLAB as the book prints it, stops the script on its first pass and has to be repaired instead.
 
-So a backtest that misses a published figure may differ only in rules like these. The eleven below are:
+So a backtest that misses a published figure may differ only in rules like these. Here are the eleven, each marked as a choice or a bug:
 
 - **Example 7.6**
    1. Rounding a tenth, a choice.
-   2. Two winners short, a bug.
+   2. Two fewer winners shorted, a bug.
    3. A filled-in close, a bug.
 - **Example 7.7**
    1. Summing without dividing, a bug.
@@ -111,7 +113,7 @@ A tenth of the 578 stocks it ranks for January 2006 is 57.8, and it rounds that 
 
 Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
 
-#### Rule 2: two winners short, a bug in the revised Python
+#### Rule 2: two fewer winners shorted, a bug in the revised Python
 
 It slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked, one more than the MATLAB’s 578, because of the fill rule 3 describes. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
 
@@ -119,7 +121,7 @@ It slices its winners as `topN - 2` stocks rather than a full tenth, so in Janua
 
 #### Rule 3: a filled-in close, a bug in the revised Python
 
-The revised Python fills a missing year-end close with the last close before it, as pandas, Python’s data library, did by default before version 3.0. PMC has no close at the end of 2006. Its last close, 6.02, comes before a gap of 851 trading days in its prices, and its close at the end of 2007 is 13.88. So the script ranks PMC for January 2008 as if it rose from 6.02 to 13.88, a gain of 1.3056, or 130.56 percent. That is fourth best of 595, so the script holds PMC short. Without the fill PMC drops out, and a tenth of the 594 left rounds to 59 rather than 60. Dropping the fill alone gives 0.090908 for January 2008. Dropping it and also taking rule 2’s full tenth gives the MATLAB’s 0.0881, so all three printouts match.
+The revised Python fills a missing year-end close with the last close before it, as pandas, Python’s data library, did by default before version 3.0. One stock in the file, PMC, has no close at the end of 2006. Its last close before then, 6.02, comes before a gap of 851 trading days in its prices, and its close at the end of 2007 is 13.88. So the script ranks PMC for January 2008 as if it rose from 6.02 to 13.88, a gain of 1.3056, or 130.56 percent. That is fourth best of 595, so the script holds PMC short. Without the fill, PMC drops out, and a tenth of the 594 left rounds to 59 rather than 60. Dropping the fill alone gives 0.090908 for January 2008. Dropping it and also taking rule 2’s full tenth gives the MATLAB’s 0.0881, so all three printouts match.
 
 ![An animated whiteboard sketch titled “PMC’s filled close”, drawn stroke by stroke. A grey axis runs from 2004 to 2008. A short black price line labelled “PMC” sits in early 2004, and a dashed grey line carries it flat to a brown dot at the start of 2007, labelled “end of 2006”, under the words “last close 6.02, then 851 trading days with no price”. A second short black price line runs from August 2007 into 2008 and passes a brown dot near the end of 2007, labelled “13.88”. A red arrow climbs from the first dot to the second, beside the words “+130.56% read as 2007’s gain” and “4th best of 595: shorted”.](../docs/figures/equity_seasonals_rule_filled_close.gif)
 
@@ -163,7 +165,7 @@ So −0.9167 is a sum over positions, not a return on capital. Dividing each mon
 
 #### Rule 2: the wrong stock’s close, a bug in the first edition
 
-The script sorts the stocks by return, then checks each sorted place for a missing close in the original, unsorted order. So the check for the stock in third place reads whichever stock sits third in the original order. A stock can be dropped because another has no close, and a stock with no close can stay in. Keeping each stock on its own close gives an annual return of −1.0822, a sum over positions like the −0.9167 it replaces. Dividing each month by its positions turns that into −0.0113 a year in units of capital.
+The script sorts the stocks by return, then checks each one for a missing close. It finds that close by position in the file’s column order rather than by stock. So the check for the stock in third place reads whichever stock sits in the third column. A stock can be dropped because another has no close, and a stock with no close can stay in. Keeping each stock on its own close gives an annual return of −1.0822, a sum over positions like the −0.9167 it replaces. Dividing each month by its positions turns that into −0.0113 a year in units of capital.
 
 ![An animated whiteboard sketch titled “Checking the wrong stock’s close”, drawn stroke by stroke. A row of five cells labelled “sorted by return” holds D, B, E, A and C. Below it a row labelled “column order” holds A, B, C, D and E, with a red cross under C labelled “no close”. Grey arrows join each upper cell to the cell beneath it, and a red arrow rises from C to E. A red ring circles E, labelled “E dropped: C has no close”, and a brown ring circles C in the upper row, labelled “C ranked anyway”. The words “each check reads the column, not the stock” close the sketch.](../docs/figures/equity_seasonals_rule_wrong_close.gif)
 
@@ -228,7 +230,7 @@ The revised Python divides by the number of months, n, and dividing by n − 1 g
 
 #### Rule 8: the month-end lookup, a bug repaired in the revised MATLAB
 
-The listing on p. 179 keeps only the 96 month-end rows, then looks each month up by its row number among the daily rows. On its first pass it asks for row 258, past the end of the 96, and stops. Reading the month-end row instead, row 13, with the second book’s `smartstd`, gives Chan’s figures. The R on p. 181 needs no repair. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) answers the two questions the pages leave open. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
+The listing on p. 179 keeps only the 96 month-end rows, then looks each month up by its row number among the daily rows. On its first pass it asks for row 258, past the end of the 96, and stops. Reading the month-end row instead, which on the first pass is row 13, with the second book’s `smartstd`, gives Chan’s figures. The R on p. 181 needs no repair. The pages leave two questions open: whether the script Chan ran reads the month-end row, and which `smartstd` it calls. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) answers both. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
 
 ![An animated whiteboard sketch titled “A lookup past the end”, drawn stroke by stroke. A strip of cells labelled “96 month-end rows” runs from “row 1” to “row 96”. A dashed grey line continues past its end to a red cross labelled “row 258”, with the words “the first pass asks for it and stops”. A green arrow points up near the strip’s left end, at row 13 of 96, labelled “the repair reads row m − 1, here 13”.](../docs/figures/equity_seasonals_rule_month_end_lookup.gif)
 
