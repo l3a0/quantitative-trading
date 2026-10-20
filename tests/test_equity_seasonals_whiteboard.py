@@ -1395,7 +1395,7 @@ class TestTheTimeline:
         alt = _alt(POST.read_text(encoding="utf-8"), scene)
         quoted = [w if w.startswith("“") else f"“{w}”" for w in scene.labels if not w.isdigit()]
         places = [alt.find(w) for w in quoted]
-        assert -1 not in places, [w for w, at in zip(quoted, places) if at < 0]
+        assert -1 not in places, [w for w, at in zip(quoted, places, strict=True) if at < 0]
         assert places == sorted(places)
 
         def when(day: pd.Timestamp) -> str:
@@ -2203,7 +2203,7 @@ def _count_word(n: int) -> str:
 
 
 class TestTheJanuarySketches:
-    """The three January sketches, the first in the opening: registered, the two fills, the ranges."""
+    """The three January sketches, the first in the opening: registered, the fill, the ranges."""
 
     def test_they_are_three_in_the_order_the_post_reads_them(self, january) -> None:
         assert [gif_name(scene) for scene in january] == JANUARY_GIFS
