@@ -299,13 +299,13 @@ Survived the book means kept working after its first edition appeared in 2009, t
 
 The first later run, the January run below, tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
 
-Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict. That makes the run **registered** rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years after the book, which the 18 Januaries from 2009 to 2026 sample. The test asks whether the data show μ above zero:
+Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict. That makes the run **registered** rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years after the book. The 18 Januaries from 2009 to 2026 are a sample of it. The test starts from H₀, that the strategy earns nothing in January, and asks whether the data favour H₁, that μ is above zero:
 
 ```math
 H_0: \mu = 0 \qquad \text{against} \qquad H_1: \mu > 0
 ```
 
-It is a one-sided t-test on the 18 Januaries. Its p value is the chance that a strategy that truly earns nothing in January would give a t-statistic at least as high as the one measured. A p below 0.05 rejects H₀ and so finds a January effect.
+It is a one-sided t-test on the 18 Januaries. One-sided means only an average above zero counts as an effect. The t-statistic is the average divided by its standard error, so it counts how many standard errors the average sits above zero. Its p value is the chance that a strategy that truly earns nothing in January would give a t-statistic at least as high as the one measured. A p below 0.05 rejects H₀ and so finds a January effect.
 
 Free daily prices cover most of the index’s members but not all of them. A member’s price counts as checked only when it agrees with the fund’s filing, to within the filing’s rounding. The close is the free price on the filing’s date, and the shares and the value are what the filing lists for that member:
 
@@ -313,7 +313,11 @@ Free daily prices cover most of the index’s members but not all of them. A mem
 \text{close} \times \text{shares} = \text{value}
 ```
 
-That match is what shows the price belongs to that company and not to a later one using the same ticker. A member that was also in the filing a year earlier must pass the same check there, because its ranking starts from that year-end’s close. At every year-end some member with no checked price could have fallen in a traded tenth. Leaving those members out would rank each year on a different set of stocks than the strategy would really have traded, a version of the problem Lesson 3 describes in Chan’s files. Their returns are unknown, and a single guess would give a false impression of accuracy. A lower and an upper bound show how far the answer could move, so each January was computed twice, once near each extreme. The low version is close to the worst case for the strategy. Each such member it would hold long gets a return near the worst of that January, and each it would short gets one near the best. The high version is close to the best case and does the reverse. If both versions gave the same test result, that result would be the verdict.
+That match is what shows the price belongs to that company and not to a later one using the same ticker. A member that was also in the filing a year earlier must pass the same check there, because its ranking starts from that year-end’s close.
+
+At every year-end some member with no checked price could have fallen in a traded tenth. Leaving those members out would rank each year on a different set of stocks than the strategy would really have traded, a version of the problem Lesson 3 describes in Chan’s files. Their returns are unknown, and a single guess would give a false impression of accuracy.
+
+A lower and an upper bound show how far the answer could move, so each January was computed twice, once near each extreme. The low version is close to the worst case for the strategy. Each such member it would hold long gets a return near the worst of that January, and each it would short gets one near the best. The high version is close to the best case and does the reverse. If both versions gave the same test result, that result would be the verdict.
 
 ![An animated whiteboard sketch titled “Two ways to fill a gap”, drawn slowly stroke by stroke. A row of twenty ranked stocks has a green ring round its lowest two, labelled “buy the worst tenth”, and a red ring round its highest two, labelled “short the best tenth”. Above the row a question mark, labelled “a member with no checked price”, sends a grey arrow to each ring, and beneath the row are the words “could land in a traded tenth”. To the right, in red, “low version”, then “if bought: near the worst January return” and “if shorted: near the best”. Below it, in green, “high version”, then “if bought: near the best January return” and “if shorted: near the worst”. The words “so each January gets a low and a high result” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_fill.gif)
 

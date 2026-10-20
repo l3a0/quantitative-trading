@@ -1069,7 +1069,7 @@ class TestThePost:
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
             (
-                "That match is what shows",
+                "A lower and an upper bound show how far the answer could move",
                 "Each version goes through the same test",
             ),
             JANUARY_GIFS[1:],
