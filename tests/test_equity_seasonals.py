@@ -488,7 +488,10 @@ class TestHestonSadkaFirstEdition:
         """The 12 empty months add nothing to the sum, so dropping them divides it by 83, not 95.
 
         That carries -0.9167 to -1.0492 in summed positions, and -0.0105 to
-        -0.0120 in units of capital.
+        -0.0120 in units of capital. The post writes each old figure as a
+        fraction over 95, -87.08 and -0.9944, so the 95s cancel. Each is the
+        full-precision figure times 95, rounded, because the printed figure
+        times 95 gives -87.09 and -0.9975.
         """
         summed = heston_sadka(spx, FIRST_EDITION_MATLAB)
         dropped = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, dropped=13))
@@ -502,6 +505,10 @@ class TestHestonSadkaFirstEdition:
         assert dropped.annual_return == pytest.approx(summed.annual_return * 95 / 83, abs=1e-12)
         assert both.annual_return == pytest.approx(divided.annual_return * 95 / 83, abs=1e-12)
         assert both.annual_return == pytest.approx(-0.011980550862626747, abs=1e-9)
+        assert summed.annual_return * 95 == pytest.approx(-87.08310321670066, abs=1e-9)
+        assert divided.annual_return * 95 == pytest.approx(-0.9943857215980196, abs=1e-9)
+        assert format(summed.annual_return * 95, ".2f") == "-87.08"
+        assert format(divided.annual_return * 95, ".4f") == "-0.9944"
 
 
 class TestTheShapesTheScaleBreakCommentNames:

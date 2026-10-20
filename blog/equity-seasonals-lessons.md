@@ -181,11 +181,10 @@ Multiplying the old mean by 95/83 cancels its 95:
 
 ```math
 \begin{aligned}
-&\frac{S}{95} \times \frac{95}{83} = \frac{95\,S}{95 \times 83} = \frac{S}{83} \\
 &\text{as a sum over positions:} \\
-&\quad -0.9167 \times \frac{95}{83} = -1.0492 \\
+&\quad \frac{-87.08}{95\llap{\rule[0.32em]{1.05em}{0.06em}}} \times \frac{95\llap{\rule[0.32em]{1.05em}{0.06em}}}{83} = \frac{-87.08}{83} = -1.0492 \\
 &\text{in units of capital, rule 1's:} \\
-&\quad -0.0105 \times \frac{95}{83} = -0.0120
+&\quad \frac{-0.9944}{95\llap{\rule[0.32em]{1.05em}{0.06em}}} \times \frac{95\llap{\rule[0.32em]{1.05em}{0.06em}}}{83} = \frac{-0.9944}{83} = -0.0120
 \end{aligned}
 ```
 
