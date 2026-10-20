@@ -1127,6 +1127,7 @@ class TestThePost:
         end = text.index("\n## ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         assert paragraphs[-2].startswith("On Chan’s own files, every printed figure")
+        assert "A return the test would likely miss is under about 4.2 percent" in paragraphs[-2]
         assert "it is not an edge a trader can count on." in paragraphs[-2]
         assert (
             paragraphs[-1].strip().endswith("(../docs/figures/equity_seasonals_two_verdicts.gif)")
@@ -1221,9 +1222,8 @@ class TestTheVerdicts:
         costs = _stroke(verdicts, "costs")
         zero, x = _at(0.0, *ANNUAL_RANGE), _at(PINNED.detectable, *ANNUAL_RANGE)
         assert costs.color == LOST
-        assert costs.x.max() == pytest.approx(x - 0.1) and costs.x.min() == pytest.approx(
-            zero + 0.1
-        )
+        assert costs.x.max() == pytest.approx(x - 0.1)
+        assert costs.x.min() == pytest.approx((zero + x) / 2), "it stops halfway, implying no size"
         assert costs.x[0] == pytest.approx(x - 0.1), "it starts at X and points toward zero"
         assert costs.y.max() < sketches.MONTHLY_Y - 0.5
         assert _labelled(verdicts, "costs lower it, not measured").color == LOST
@@ -3141,7 +3141,10 @@ class TestTheBroaderSeriesSketches:
         low, high = sketches.RUNNING_SUMS_LOW, sketches.RUNNING_SUMS_HIGH
         assert low < min(theirs.min(), ours.min()) and max(theirs.max(), ours.max()) < high
         assert theirs[-1] > 0 > ours[-1]
-        assert theirs.max() > 2 * ours.max()
+        months = np.array([(m[1], m[2]) for m in together.months])
+        spread = months[:, 0].std(ddof=1) / months[:, 1].std(ddof=1)
+        assert 1.8 < spread < 2.5, "the project's months swing about twice as far"
+        assert abs(theirs.min() - ours.min()) < 0.05, "both reach about the same low"
         assert up(high) == pytest.approx(sketches.RUNNING_SUMS_TOP)
 
     def test_all_build_slowly_and_two_need_the_archive(self) -> None:
@@ -3164,7 +3167,8 @@ class TestTheBroaderSeriesSketches:
         assert "tilts up to the right" in alt and "in green" in alt
         alt = _alt(text, broad[2])
         assert "A brown line" in alt and "A black line" in alt
-        assert "ends above it" in alt and "below zero and ends there" in alt
+        assert "ends above it" in alt and "ends below zero" in alt
+        assert "reaches about the same low" in alt
 
     def test_each_follows_its_paragraph(self) -> None:
         text = POST.read_text(encoding="utf-8")

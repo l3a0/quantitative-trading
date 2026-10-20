@@ -165,10 +165,10 @@ each of its two paragraphs and the third after the second:
    project's series share, the project's return across and the run's up, with
    their correlation. :class:`Together` reads the release and the IVV run's
    months, so it needs the archive.
-3. Two running sums: the same months added up, neither halved, so the
-   project's long-short gap swings about twice as far as the IVV run's rule,
-   which earns half of it. Each line moves with the other while they drift
-   apart in level.
+3. Two running sums: the same months added up, neither halved. The
+   project's months swing about twice as far as the IVV run's, since the rule
+   earns half the long-short gap, but the sums' spans differ by more than
+   that, because the universe, the membership and the returns differ too.
 
 All three build slowly.
 
@@ -3341,13 +3341,13 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
             ),
             _stroke(
                 "costs",
-                _arrow(x_detect - 0.1, MONTHLY_Y - 0.92, zero_2 + 0.1, MONTHLY_Y - 0.92),
+                _arrow(x_detect - 0.1, MONTHLY_Y - 0.92, (zero_2 + x_detect) / 2, MONTHLY_Y - 0.92),
                 color=LOST,
                 frames=6,
             ),
             Label(
                 "costs lower it, not measured",
-                zero_2 - 0.2,
+                (zero_2 + x_detect) / 2 - 0.2,
                 MONTHLY_Y - 0.92,
                 names="costs",
                 color=LOST,
