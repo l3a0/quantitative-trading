@@ -54,7 +54,7 @@ is not, which stocks a tenth holds, and where each mark stands. The January
 ranges sketch draws :data:`PINNED_RANGES`, which
 ``test_the_whiteboard_draws_these_runs_ranges`` holds the registered run
 gives. Section 3's carry-forward sketch is schematic, and its other three draw
-:data:`PINNED_IVV`. Section 1's sources sketch is schematic, and its second
+:data:`PINNED_IVV`. Section 1's sources sketch reads no run, and its second
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. Nine sketches build slowly,
 and their pace is pinned too.
@@ -2456,9 +2456,44 @@ class TestTheSection1Sketches:
                 assert mark.color == (GOOD if yes else LOST), (r, k)
                 assert (f"mark-{r}-{k}-b" in gids) is (not yes), (r, k)
                 assert mark.x.min() == pytest.approx(sketches.SOURCE_COLUMNS[k] - 0.2)
-        committed = dict(sketches.SOURCE_QUESTIONS)["can be committed here"]
-        chans_rule = dict(sketches.SOURCE_QUESTIONS)["runs Chan’s own rule"]
-        assert (committed, chans_rule) == ((False, False, True), (True, True, False))
+        assert sketches.SOURCE_QUESTIONS == (
+            ("keeps the companies that left", (True, True, True)),
+            ("reaches back to 1965", (True, True, True)),
+            ("can be committed here", (False, False, True)),
+            ("runs Chan’s own rule", (True, True, False)),
+        )
+        crosses = [s for s in sources.strokes if s.gid.endswith("-b")]
+        assert len(crosses) == 3
+        assert all(stroke.color == LOST for stroke in crosses)
+
+    def test_each_word_is_in_the_ink_its_meaning_calls_for(self, osap) -> None:
+        sources, before = osap
+        inks = {label.text: label.color for label in sources.steps if isinstance(label, Label)}
+        for text in (*sketches.SOURCES, *(q for q, _ in sketches.SOURCE_QUESTIONS)):
+            assert inks[text] == whiteboard.INK, text
+        for cost in sketches.SOURCE_COSTS:
+            assert inks[cost] == whiteboard.MUTED, cost
+        assert inks[sources.labels[-1]] == ACCENT
+        inks = {label.text: label.color for label in before.steps if isinstance(label, Label)}
+        assert inks["0"] == whiteboard.MUTED
+        assert inks["one standard error each way"] == whiteboard.MUTED
+        assert inks["Open Source Asset Pricing:"] == ACCENT
+        assert inks[before.labels[-1]] == ACCENT
+        assert inks[before.labels[-2]] == GOOD
+        for text in ("Heston and Sadka printed", "1965 to 2002, their sample"):
+            assert inks[text] == whiteboard.INK, text
+
+    def test_the_printed_bar_sits_above_the_projects_two(self, osap) -> None:
+        """Heston and Sadka's bar on top, then the project's heading and its two bars."""
+        before = osap[1]
+        middle = {
+            gid: (_fill(before, gid).y0 + _fill(before, gid).y1) / 2
+            for gid in ("printed", "sample", "prior")
+        }
+        heading = _labelled(before, "Open Source Asset Pricing:").y
+        assert middle["printed"] > heading > middle["sample"] > middle["prior"]
+        assert _labelled(before, "Heston and Sadka printed").y == pytest.approx(middle["printed"])
+        assert _labelled(before, "1965 to 2002, their sample").y == pytest.approx(middle["sample"])
 
     @pytest.mark.parametrize(
         "figures",
@@ -2515,7 +2550,33 @@ class TestTheSection1Sketches:
             for label in scene.labels:
                 if label != "0":
                     assert label in alt, (scene.slug, label)
+            assert "drawn slowly stroke by stroke" in alt, scene.slug
             assert "holds for twelve seconds" in alt, scene.slug
+
+    def test_each_alt_text_says_what_the_drawing_shows(self, osap) -> None:
+        """Each claim the alt text makes about ink or place, held against the scene."""
+        sources, before = osap
+        text = POST.read_text(encoding="utf-8")
+        alt = _alt(text, sources)
+        rows = dict(sketches.SOURCE_QUESTIONS)
+        assert "Green ticks fill the first two rows for all three." in alt
+        assert all(rows["keeps the companies that left"]) and all(rows["reaches back to 1965"])
+        assert _stroke(sources, "mark-0-0").color == GOOD
+        alt = _alt(text, before)
+        assert "A black bar for “Heston and Sadka printed”" in alt
+        assert "a brown bar for “1965 to 2002, their sample”" in alt
+        assert "A second brown bar, “1965 to 2001, before Chan’s 2002”" in alt
+        assert [_fill(before, gid).color for gid in ("printed", "sample", "prior")] == [
+            whiteboard.INK,
+            ACCENT,
+            ACCENT,
+        ]
+        assert "which stops just short of 1.15" in alt
+        assert PINNED_OSAP.sample - PINNED_OSAP.error > PINNED_OSAP.printed
+        assert "past a green dashed mark" in alt
+        chan = _stroke(before, "chan")
+        assert (chan.color, chan.dashed) == (GOOD, True)
+        assert _fill(before, "prior").x1 > chan.x.max()
 
     def test_each_follows_its_paragraph(self) -> None:
         text = POST.read_text(encoding="utf-8")

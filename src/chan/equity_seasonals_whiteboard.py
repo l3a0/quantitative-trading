@@ -88,9 +88,11 @@ paragraph it illustrates:
 1. Three ways to get the data: CRSP, Norgate Diamond and Open Source Asset
    Pricing against four questions, with a green tick or a red cross for each
    and each source's cost beneath. Only Open Source Asset Pricing can be
-   committed, and only it cannot run Chan's rule. It is schematic.
-2. Before 2002, without survivors: Heston and Sadka's printed monthly return
-   above Open Source Asset Pricing's over their sample, with one standard
+   committed, and only it cannot run Chan's rule. It draws no figure a run
+   computes, only the post's cost of each source.
+2. Before 2002, without survivors: a bar for Heston and Sadka's printed
+   monthly return, drawn above bars for Open Source Asset Pricing's over their
+   sample, with one standard
    error each way, and over the years before Chan's 2002, all to one scale,
    against a dashed line at Chan's 13 percent a year. Its figures come from
    :class:`OsapFigures`, read from the committed release.
@@ -2133,7 +2135,7 @@ class OsapFigures:
     ``printed`` is Heston and Sadka's Table 2 figure and ``chan_annual`` Chan's
     "more than 13 percent" a year, the book's figures. ``sample`` and
     ``sample_t`` are Open Source Asset Pricing's ``MomSeasonShort`` mean and
-    one-sided t over 1965 to 2002, and ``before`` its mean over 1965 to 2001,
+    its t-statistic over 1965 to 2002, and ``before`` its mean over 1965 to 2001,
     all from :func:`chan.equity_seasonals.run_open_asset_pricing`.
     """
 
@@ -2159,8 +2161,8 @@ class OsapFigures:
         return self.sample / self.sample_t
 
 
-#: Where the bars start, the return the board's right edge stands for, and
-#: where that edge is.
+#: Where the bars start, the return the scale's right end stands for, and
+#: where that end is on the board.
 OSAP_X0, OSAP_TOP, OSAP_X1 = 4.4, 0.0175, 9.3
 
 

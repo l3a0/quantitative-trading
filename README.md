@@ -3282,9 +3282,9 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     against the lines 13 percent a year and the 4.2 percent a year its test
     detects would climb.
 
-Like the strategy sketches, Lesson 3's three, the sources sketch, the January
-registered and fill sketches and the carry-forward sketch are schematic and
-carry no figures. Nine sketches build more slowly than the rest and hold their
+Like the strategy sketches, Lesson 3's three, the January registered and fill
+sketches and the carry-forward sketch are schematic and carry no figures. The
+sources sketch carries no figure a run computes, only each source's cost. Nine sketches build more slowly than the rest and hold their
 finished drawings for twelve seconds, because each carries more than the usual pace lets a reader take in.
 
 1. The first two of the five-year sketches, 13 and 14.
@@ -3312,7 +3312,9 @@ that the split sketch draws each bar and bracket to one scale and colours each
 bar by its sign, that the five-year sketches draw each bar to its months and
 each dot, band and January bar at its figure, that Lesson 3's sketches keep
 the companies that left out of the file, its ranking and its saved panel, that
-seven sketches build slowly and hold for twelve seconds, that the ranges sketch
+section 1's sketches tick and cross each source as the post describes it and
+draw each bar at its figure, that nine sketches build slowly and hold for
+twelve seconds, that the ranges sketch
 draws each January from its low to its high, that section 3's sketches hold a
 change until the next filing, split each bar at its share and add up the
 held months to one scale, that no label touches a line,
@@ -3327,7 +3329,8 @@ S&P 500 file. The five-year sketches' figures are defaults in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The whiteboard test draws the verdicts from the pinned
 figures, the January ranges from `PINNED_RANGES` and section 3's figures
-from `PINNED_IVV`, so it runs without the archive, and three tests in
+from `PINNED_IVV`, and reads section 1's from the committed Open Source Asset
+Pricing release as `PINNED_OSAP`, so it runs without the archive, and three tests in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold that the
 registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS
