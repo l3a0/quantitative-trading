@@ -266,7 +266,7 @@ The figure below adds up the 83 months one at a time, so the line rises in a mon
 
 *The running sum climbs through 2002, peaks in January 2006 and falls to the end of the file. The labels give each half’s annual return and Sharpe ratio.*
 
-The 70 months from 2002 are not a steady small gain. Added up month by month, they rise through 2002, slip through 2003 and 2004, climb again to a peak in January 2006, and fall from there to October 2007. Two single years inside them sit further apart than the two halves do. The best full year, 2002, adds up to a gain of 0.2227 and the worst, 2006, to a loss of 0.1319, so they are 0.3546 apart. The two halves’ annual returns, −0.145387 and 0.011967, are only 0.1574 apart. Without 2002, the other 58 months from 2002 lose 0.031640 a year, so the small gain after 2002 rests on that one year.
+The 70 months from 2002 are not a steady small gain. Between the climb through 2002 and the peak in January 2006, their running sum slips through 2003 and 2004. Two single years inside them sit further apart than the two halves do. The best full year, 2002, adds up to a gain of 0.2227 and the worst, 2006, to a loss of 0.1319, so they are 0.3546 apart. The two halves’ annual returns, −0.145387 and 0.011967, are only 0.1574 apart. Without 2002, the other 58 months from 2002 lose 0.031640 a year, so the small gain after 2002 rests on that one year.
 
 ![An animated whiteboard sketch titled “Two years sit further apart than the halves”, drawn stroke by stroke, with bars to one scale. On the left, under “the two halves, an average year”, a red bar labelled “before 2002” hangs below a zero line to −0.145387, and a short green bar labelled “from 2002” rises to +0.011967. A brown bracket beside them is labelled “0.1574 apart”. On the right, under “two single years, 12 months each”, a tall green bar labelled “2002” rises to +0.2227, and a red bar labelled “2006” hangs to −0.1319. A brown bracket more than twice as long is labelled “0.3546 apart”. The words “before costs” close the sketch.](../docs/figures/equity_seasonals_split_swing.gif)
 
@@ -278,7 +278,7 @@ That sits beside the split without contradicting it. The 70 months from 2002 inc
 
 ![An animated whiteboard sketch titled “Which months each figure covers”, drawn slowly stroke by stroke over a timeline from 2001 to 2007. A black bar for the whole period is labelled “whole period: 83 months, −0.012679”. Below it the split’s two bars meet at the start of 2002: a short red one labelled “before 2002: 13 months, −0.145387” and a long green one labelled “from 2002: 70 months, +0.011967”. Below that the five-year rerun starts with a dashed grey stretch from late 2002 to late 2003, labelled “first year only ranks”, then a brown bar to the end, labelled “five-year rerun: 47 months, −0.016431”. A green bracket from the start of 2002 to the start of the brown bar is labelled “23 months the rerun leaves out: +0.069997”. The words “revised Python’s rules, a year, before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_five_year_months.gif)
 
-That verdict is narrow. The gap between the two figures is 0.0036 a year, and the rerun’s annual return has a standard error of 0.0281 a year, about eight times larger. A standard error is how far a measured average typically lands from the true one by chance alone, so a gap eight times smaller than it is well inside the noise. So the check shows that Chan’s comparison holds on his own file of survivors. It does not show that the effect weakened.
+The five-year verdict is narrow. The gap between the two figures is 0.0036 a year, and the rerun’s annual return has a standard error of 0.0281 a year, about eight times larger. A standard error is how far a measured average typically lands from the true one by chance alone, so a gap eight times smaller than it is well inside the noise. So the check shows that Chan’s comparison holds on his own file of survivors. It does not show that the effect weakened.
 
 ![An animated whiteboard sketch titled “A gap far smaller than the noise”, drawn slowly stroke by stroke. A number line runs from below −0.04 to above 0, with ticks at −0.04, −0.02 and 0. A pale green band labelled “one standard error each way, 0.0281” stretches from about −0.045 to about +0.012 around a brown dot labelled “five-year rerun −0.0165”. Beside it a black dot is labelled “whole period −0.0129”. A small red bracket above the two dots is labelled “0.0036 apart”. The words “revised MATLAB’s rules, a year, before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_five_year_noise.gif)
 
@@ -288,7 +288,7 @@ Example 7.6 meets the same limit from another side. All three of its Januaries r
 
 ## Lesson 3: Rule out survivorship bias before trusting a backtest
 
-Survivorship bias is what a backtest picks up when its data holds only the companies that survived. Both of Chan’s files hold the companies in their index on the day he saved them, each with its prices carried back to the start of the file. A company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not in a file saved in 2007.
+The opening named the bias: Chan’s files hold only the companies still in their index on the day he saved them. Each company in them has its prices carried back to the start of the file, so a company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not in a file saved in 2007.
 
 Both strategies trade the tenth at each end of a ranking, so a company missing from the file is one they could never trade, whatever its returns were. Every figure this post computes from Chan’s files is about companies that survived to the end of the file.
 
@@ -306,13 +306,13 @@ Three open questions:
 2. Whether Heston and Sadka’s effect existed before 2002.
 3. Whether Heston and Sadka’s effect survived the book.
 
-Survived the book means kept working after its first edition appeared in 2009, the years the two later runs test.
+To survive the book means to keep working after the book’s first edition appeared in 2009, the years the two later runs test.
 
 ### Whether the January effect survived the book
 
 The first later run, the January run below, tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
 
-Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict. That makes the run **registered** rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years after the book. The 18 Januaries from 2009 to 2026 are a sample of those years. The test starts from H₀, that the strategy earns nothing in January, and asks whether the data favour H₁, that μ is above zero:
+Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict, so the run is registered rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years after the book. The 18 Januaries from 2009 to 2026 are a sample of those years. The test starts from H₀, that the strategy earns nothing in January, and asks whether the data favour H₁, that μ is above zero:
 
 ```math
 H_0: \mu = 0 \qquad \text{against} \qquad H_1: \mu > 0
@@ -354,7 +354,7 @@ Even with every price checked, 18 Januaries could not show a small effect. Examp
 
 ### Whether Heston and Sadka’s effect existed before 2002
 
-Chan’s file holds 13 months before 2002, all on survivors. Testing the effect before 2002 needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
+Chan’s file holds 13 months before 2002, all on survivors. Testing the effect in those years needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
 
 1. **CRSP**, Heston and Sadka’s own source. It licenses its data to universities, government agencies and investment firms, which usually reach it through WRDS, a data service the Wharton School runs for subscribers. It publishes no price for individuals.
 2. **Norgate Data’s Diamond tier**, at $787.50 a year in October 2026. It carries US stocks back to 1950, delisted ones included, with past index membership. Whether its early decades cover as many stocks as CRSP’s is unchecked.
@@ -402,7 +402,7 @@ The verdict, in the words written before the run, is “no return detectable abo
 
 ##### Where the 4.2 percent comes from
 
-This part shows the arithmetic behind the 4.2 percent. A reader who wants only the verdict can skip to what a broader series shows.
+A reader who wants only the verdict, stated above, can skip this arithmetic and go to the next section, *What a broader series shows*.
 
 The 4.2 percent follows from the noise in the 213 months and the two numbers fixed before the run, the 5 percent bar and the 80 percent chance. The months have a standard deviation of 0.0206, so their mean has a standard error of
 
@@ -410,7 +410,7 @@ The 4.2 percent follows from the noise in the 213 months and the two numbers fix
 \text{SE} = \frac{s}{\sqrt{n}} = \frac{0.0206}{\sqrt{213}} = 0.00141
 ```
 
-The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean were zero, the t-statistic would scatter around zero with a spread of about 1, and it would clear 1.652 only 5 percent of the time. If the true mean is X, the whole scatter shifts right by about X divided by the standard error. Call that shift δ. The 4.2 percent comes from asking how far the scatter must shift for the statistic to clear 1.652 four times in five.
+The test calls a mean above zero when its t-statistic clears 1.652. That is the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean were zero, the t-statistic would scatter around zero with a spread of about 1, and it would clear 1.652 only 5 percent of the time. If the true mean is X, the whole scatter shifts right by about X divided by the standard error. Call that shift δ. The 4.2 percent comes from asking how far the scatter must shift for the statistic to clear 1.652 four times in five.
 
 ![An animated whiteboard sketch titled “Shifting the scatter”, drawn slowly stroke by stroke. Two rows share one axis of t-statistics. In the top row a grey scatter for “true mean 0” rises and falls, a red dashed line marks “1.652, the 5% bar”, and the thin tail past the line is shaded red, “clears it 5% of the time”. In the row below, the same shape in brown, for “true mean X”, sits slid right by an arrow labelled “δ = 2.494”, and its larger part past the line is shaded green, “clears it 80% of the time”. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_delta_scatter.gif)
 
@@ -448,7 +448,7 @@ The chance of clearing 1.652 rises as δ grows. At δ = 0 it is 0.05, the 5 perc
 
 ![An animated whiteboard sketch titled “Narrowing the bracket”, drawn slowly stroke by stroke. An upright axis is labelled “chance of” and “clearing 1.652”, a level one “δ”, and a grey note reads “drawn from 0 to 5, the solver starts at 50”. A black curve rises from “0.05” and crosses a brown dashed line at “0.80”. Below the axis, three brackets show the solver’s steps, each inside the one above: “narrowed from 50” runs from 0 to about 4.9, “keeps the upper half” from about 2.5 to 4.9, and “then jumps close” is a short bracket around 2.5, and the last is brown. A brown dashed line drops from the crossing to it, labelled “δ = 2.494”. The words “each bracket keeps the part where the curve crosses 0.80” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_delta_bracket.gif)
 
-The shortcut gives 2.4937 and the exact answer 2.4944, so they agree to three decimals. The exact answer is the larger, because the wider scatter needs a slightly bigger shift to clear 1.652 four times in five.
+The normal-curve shortcut gives 2.4937 and the exact answer 2.4944, so they agree to three decimals. The exact answer is the larger, because the wider scatter needs a slightly bigger shift to clear 1.652 four times in five.
 
 X is that many standard errors, and twelve months make a year:
 

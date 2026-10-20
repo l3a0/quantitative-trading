@@ -1027,7 +1027,7 @@ class TestThePost:
         for opening, name in zip(
             (
                 "That sits beside the split without contradicting it.",
-                "That verdict is narrow.",
+                "The five-year verdict is narrow.",
                 "Example 7.6 meets the same limit from another side.",
             ),
             FIVE_YEAR_GIFS,
@@ -1044,7 +1044,7 @@ class TestThePost:
         the definition of survivorship bias."""
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         (define,) = [
-            k for k, p in enumerate(paragraphs) if p.startswith("Survivorship bias is what")
+            k for k, p in enumerate(paragraphs) if p.startswith("The opening named the bias")
         ]
         (trade,) = [
             k for k, p in enumerate(paragraphs) if p.startswith("Both strategies trade the tenth")
@@ -1127,7 +1127,7 @@ class TestThePost:
         for heading, opening in (
             (
                 "##### Where the 4.2 percent comes from",
-                "This part shows the arithmetic behind the 4.2 percent.",
+                "A reader who wants only the verdict, stated above, can skip",
             ),
             ("#### What a broader series shows", "A broader series agrees with the IVV run"),
         ):
