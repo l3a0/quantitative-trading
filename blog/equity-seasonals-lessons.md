@@ -8,7 +8,7 @@ A claim that a strategy died is one a reader acts on by leaving it alone. If the
 
 Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179).
 
-Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them. A company that was taken over, shrank out of the index or failed before that day is missing, so the strategies never trade it. A backtest on such a file measures only the survivors, and the error that causes is called survivorship bias. Lesson 3 shows how large it can be.
+Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them. A company that was taken over, shrank out of the index or failed before that day is missing, so the strategies never trade it. A backtest on such a file measures only the survivors, and the error this causes is called survivorship bias. Lesson 3 explains it and links to a post that measures how large it can be.
 
 ![An animated whiteboard sketch titled “What a saved file can see”, drawn stroke by stroke over a timeline from 1999 to 2007. Six black lines labelled “companies still in the index in 2007” run the whole way to a dashed brown line labelled “Chan saves the file”. Below them three red lines stop early, labelled “acquired”, “shrank out of the index” and “failed”. A black bracket beside the six is labelled “in the file”, and a red bracket beside the three is labelled “missing from it”.](../docs/figures/equity_seasonals_survivors_file.gif)
 
@@ -54,7 +54,7 @@ Each of Chan’s scripts for Example 7.7 turns its monthly returns into an annua
 \end{aligned}
 ```
 
-What Chan says of each differs. Only Example 7.7 is published as dead, so it is the claim a reader would act on by leaving the strategy alone.
+Chan says something different about seasonal stock strategies in general and about each example, and the difference matters for what a reproduction can find.
 
 1. **Seasonal strategies in stocks.** Much of the seasonality in equity markets “has weakened or even disappeared in recent years”, Chan writes (p. 175). The same sentence goes on to call some seasonal trades in commodity futures still profitable, and [the companion post on the commodity seasonals](https://github.com/l3a0/quantitative-trading/blob/main/blog/commodity-seasonals-lessons.md) tests that half. Earlier in the book he recalls praising a seasonal stock strategy on his blog, a reader backtesting it and finding it did not work, and his own backtest confirming the reader’s (p. 13). He names Example 7.6 as that strategy.
 2. **Example 7.6.** Its own text is not a death notice. The revised edition says the January effect failed in January 2006 and January 2007 and then “worked wonderfully” in January 2008 (p. 175).
@@ -77,7 +77,7 @@ So a backtest that misses a published figure may differ only in rules like these
    2. The wrong stock’s close, a bug.
    3. Empty months in the mean, a bug.
    4. A missing month as zero, a bug.
-   5. Each stock’s own month-end, two choices.
+   5. Each stock’s own month-end and which stocks it keeps, two choices.
    6. Rounding halves to even, a choice.
    7. Dividing by n or n − 1, a choice.
    8. The month-end lookup, a bug repaired.
@@ -193,7 +193,7 @@ s &= \operatorname{std}(0, r_2, \dots, r_{96}) \\
 
 Skipping it in both gives a Sharpe ratio of −0.1049, against the printed −0.1055.
 
-#### Rule 5: each stock’s own month-end, two choices in the revised Python
+#### Rule 5: each stock’s own month-end and which stocks it keeps, two choices in the revised Python
 
 The revised Python reads each stock’s own last priced day in the month, and the revised MATLAB reads one shared month-end row for every stock. They also keep a stock in the ranking differently. The Python keeps one that has a return, and the MATLAB one that has a close. Run with one shared month-end, the Python gives an annual return of −0.012917. The MATLAB gives the same figure when it keeps a stock on its return rather than its close. So these two choices are what separate the two scripts.
 
@@ -310,7 +310,7 @@ Survived the book means kept working after its first edition appeared in 2009, t
 
 The first later run, the January run below, tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
 
-Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict. That makes the run **registered** rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years after the book. The 18 Januaries from 2009 to 2026 are a sample of it. The test starts from H₀, that the strategy earns nothing in January, and asks whether the data favour H₁, that μ is above zero:
+Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict. That makes the run **registered** rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years after the book. The 18 Januaries from 2009 to 2026 are a sample of those years. The test starts from H₀, that the strategy earns nothing in January, and asks whether the data favour H₁, that μ is above zero:
 
 ```math
 H_0: \mu = 0 \qquad \text{against} \qquad H_1: \mu > 0
@@ -362,7 +362,7 @@ The two paid sources’ licences bar republishing their data. Every result here 
 
 ![An animated whiteboard sketch titled “Three ways to get the data”, drawn slowly stroke by stroke as a grid. Its columns are “CRSP”, “Norgate Diamond” and “Open Source Asset Pricing”, and its rows ask whether each “keeps the companies that left”, “reaches back to 1965”, “can be committed here” and “runs Chan’s own rule”. Green ticks fill the first two rows for all three. On “can be committed here” CRSP and Norgate Diamond get red crosses and Open Source Asset Pricing a tick, and on “runs Chan’s own rule” the first two get ticks and Open Source Asset Pricing a cross. Below, the costs read “institutions only”, “$787.50 a year” and “free”. The words “only Open Source Asset Pricing can be committed, and it cannot run Chan’s rule” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_sources.gif)
 
-This repository has since read the free source. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on data that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, where they printed 1.15 percent. Its t-statistic of 8.63 puts that average more than eight standard errors above zero. From 1965 to 2001, before Chan’s 2002, it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on data without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, a gap small enough to arise by chance, so the two figures do not disagree. That is the project’s construction rather than Chan’s rule, and the comparison was run after a first look at these numbers, so it is exploratory.
+This repository has since read the free source. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on data that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, where they printed 1.15 percent. Its t-statistic of 8.63 puts that average more than eight standard errors above zero. From 1965 to 2001, before Chan’s 2002, it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on data without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, a gap small enough to arise by chance, so the comparison cannot tell the two figures apart. That is the project’s construction rather than Chan’s rule, and the comparison was run after a first look at these numbers, so it is exploratory.
 
 ![An animated whiteboard sketch titled “Before 2002, without survivors”, drawn slowly stroke by stroke, with three bars in percent a month to one scale. A black bar for “Heston and Sadka printed” reaches “1.15%”. Under “Open Source Asset Pricing:”, a brown bar for “1965 to 2002, their sample” reaches “1.36%”, with a bracket below it marking “one standard error each way”, which stops just short of 1.15. A second brown bar, “1965 to 2001, before Chan’s 2002”, reaches “1.31%”, past a green dashed mark for “Chan’s “more than 13%” a year, 1.08% a month”. The words “a month, before costs, NYSE and AMEX stocks with the ones that left” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_before.gif)
 
