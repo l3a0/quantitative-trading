@@ -56,7 +56,7 @@ Each of Chan’s scripts for Example 7.7 turns its monthly returns into an annua
 \end{aligned}
 ```
 
-Chan says something different about seasonal stock strategies in general and about each example, and the difference matters for what a reproduction can find.
+Chan says something different about seasonal stock strategies in general and about each example.
 
 1. **Seasonal strategies in stocks.** Much of the seasonality in equity markets “has weakened or even disappeared in recent years”, Chan writes (p. 175). The same sentence goes on to call some seasonal trades in commodity futures still profitable, and [the companion post on the commodity seasonals](https://github.com/l3a0/quantitative-trading/blob/main/blog/commodity-seasonals-lessons.md) tests that half. Earlier in the book he recalls praising a seasonal stock strategy on his blog, a reader backtesting it and finding it did not work, and his own backtest confirming the reader’s (p. 13). He names Example 7.6 as that strategy.
 2. **Example 7.6.** Its own text is not a death notice. The revised edition says the January effect failed in January 2006 and January 2007 and then “worked wonderfully” in January 2008 (p. 175).
@@ -150,7 +150,7 @@ So one strategy in three languages gives three answers.
 
 #### Rule 1: summing without dividing, a bug in the first edition
 
-It adds up every position held each month and never divides by how many there were. Write rᵢ,ₜ for the return of position i in month t, signed so that a short gains when its stock falls, and Nₜ for the number of positions that month.
+It adds up every position held each month and never divides by how many there were. Write `rᵢ,ₜ` for the return of position `i` in month `t`, signed so that a short gains when its stock falls, and `Nₜ` for the number of positions that month.
 
 ```math
 \begin{aligned}
@@ -171,7 +171,7 @@ The script sorts the stocks by return, then checks each one for a missing close.
 
 #### Rule 3: empty months in the mean, a bug in the first edition
 
-It averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the sum of the monthly returns, S, so dropping them leaves S unchanged and divides it by 83 instead of 95.
+It averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the sum of the monthly returns, `S`, so dropping them leaves `S` unchanged and divides it by 83 instead of 95.
 
 ```math
 \frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
@@ -217,7 +217,7 @@ On this file some months land on a half, so the half matters. Rounding every hal
 
 #### Rule 7: dividing by n or n − 1, a choice in all three revised scripts
 
-The standard deviation of n monthly returns divides their summed squared deviations from the mean by n or by n − 1.
+The standard deviation of n monthly returns divides their summed squared deviations from the mean by `n` or by `n − 1`.
 
 ```math
 \begin{aligned}
@@ -226,7 +226,7 @@ s_{n-1} &= \sqrt{\frac{1}{n-1} \sum_{t=1}^{n} (r_t - \bar{r})^2}
 \end{aligned}
 ```
 
-The revised Python divides by the number of months, n, and dividing by n − 1 gives a Sharpe ratio of −0.121508. The revised R divides by n − 1, and dividing by n gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by n and prints the −0.1243. The one from this book’s first edition divides by n − 1 and gives −0.1236.
+The revised Python divides by the number of months, `n`, and dividing by `n − 1` gives a Sharpe ratio of −0.121508. The revised R divides by `n − 1`, and dividing by `n` gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by `n` and prints the −0.1243. The one from this book’s first edition divides by `n − 1` and gives −0.1236.
 
 #### Rule 8: the month-end lookup, a bug repaired in the revised MATLAB
 
