@@ -3313,19 +3313,20 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 Like the strategy sketches, Lesson 3's three, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The
 sources sketch carries no figure a run computes, only each source's cost.
-Seventeen sketches build more slowly than the rest and hold their finished
+Eighteen sketches build more slowly than the rest and hold their finished
 drawings for twelve seconds, because each carries more than the usual pace lets
 a reader take in.
 
 1. The years and verdicts sketches, 1 and 2.
-2. The first two of the five-year sketches, 13 and 14.
-3. The last two of Lesson 3's sketches, 17 and 18.
-4. The January fill and ranges sketches, 20 and 21.
-5. The two sketches on whether Heston and Sadka's effect existed before 2002,
+2. Example 7.6's rule 2 sketch, 5.
+3. The first two of the five-year sketches, 13 and 14.
+4. The last two of Lesson 3's sketches, 17 and 18.
+5. The January fill and ranges sketches, 20 and 21.
+6. The two sketches on whether Heston and Sadka's effect existed before 2002,
    22 and 23.
-6. The leavers sketch, 26.
-7. The three sketches of the 4.2 percent's derivation, 28 to 30.
-8. The three broader-series sketches, 31 to 33.
+7. The leavers sketch, 26.
+8. The three sketches of the 4.2 percent's derivation, 28 to 30.
+9. The three broader-series sketches, 31 to 33.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
@@ -3351,7 +3352,7 @@ sketches tick and cross each source as the post describes it and draw each bar
 at its figure, that the 4.2 percent's three sketches put the critical value, δ
 and each bracket where the test's figures say, that the broader series' bars,
 dots and running sums stand at the release's and the run's figures, that
-seventeen sketches build slowly and hold for twelve seconds, that the ranges
+eighteen sketches build slowly and hold for twelve seconds, that the ranges
 sketch draws each January from its low to its high, that section 3's sketches
 hold a change until the next filing, split each bar at its share and add up the
 held months to one scale, that no label touches a line, another label or the

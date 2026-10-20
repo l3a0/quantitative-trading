@@ -60,7 +60,7 @@ nine draw :data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its s
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
-:data:`PINNED_IVV`'s month count. Seventeen sketches build slowly, and their
+:data:`PINNED_IVV`'s month count. Eighteen sketches build slowly, and their
 pace is pinned too. The broader series' three read the committed Open Source
 Asset Pricing release, and the last two also :data:`PINNED_IVV`'s months.
 
@@ -806,7 +806,7 @@ class TestTheBets:
         text = POST.read_text(encoding="utf-8")
         for scene, bet in zip(drawn, ("mean reversion", "seasonal momentum"), strict=True):
             assert bet in scene.labels
-            assert f"a {bet} trade" in text, bet
+            assert f"a **{bet}** trade" in text, bet
 
 
 class TestTheTiming:
@@ -1959,6 +1959,7 @@ class TestTheFiveYearSketches:
                 scene.slug
                 in (
                     "which_years",
+                    "rule_short_side",
                     "two_verdicts",
                     "five_year_months",
                     "five_year_noise",

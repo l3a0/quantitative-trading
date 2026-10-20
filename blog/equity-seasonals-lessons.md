@@ -98,7 +98,7 @@ Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
 
 It slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked, one more than the MATLAB’s 578, because of the fill rule 3 describes. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
 
-![An animated whiteboard sketch titled “Two fewer winners shorted”, drawn stroke by stroke. A green bar labelled “buy the 58 worst” runs to a dashed brown line labelled “a tenth: 58”. Below it a red bar labelled “short 56 of the 58 best” stops two stocks short of that line, and a dashed grey segment fills the difference, labelled “2 left out: the best and the 58th”. Beneath them are the words “the winners are sliced as topN − 2” and “January 2006, 579 stocks ranked”.](../docs/figures/equity_seasonals_rule_short_side.gif)
+![An animated whiteboard sketch titled “Two fewer winners shorted”, drawn slowly stroke by stroke. A green bar labelled “buy the 58 worst” runs to a dashed brown line labelled “a tenth: 58”. Below it a red bar labelled “short 56 of the 58 best” stops two stocks short of that line, and a dashed grey segment fills the difference, labelled “2 left out: the best and the 58th”. Beneath them are the words “the winners are sliced as topN − 2” and “January 2006, 579 stocks ranked”. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_rule_short_side.gif)
 
 #### Rule 3: a filled-in close, a bug in the revised Python
 

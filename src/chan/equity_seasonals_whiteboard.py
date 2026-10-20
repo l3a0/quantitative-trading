@@ -33,7 +33,7 @@ text it draws. The first four are these.
 The other seven each draw one rule, in the order the post lists them:
 
 1. Example 7.6's rule 2, the revised Python's winners sliced two short of a
-   tenth, as two bars to scale.
+   tenth, as two bars to scale. It builds slowly.
 2. Example 7.6's rule 3, PMC's last close carried across its gap to the end
    of 2006 and read as a gain for 2007.
 3. Example 7.7's rule 1, one month's positions added up against averaged.
@@ -3095,6 +3095,7 @@ def _broad_running(t: Together) -> Scene:
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 PACED = (
     "which_years",
+    "rule_short_side",
     "two_verdicts",
     "five_year_months",
     "five_year_noise",
