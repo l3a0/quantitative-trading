@@ -177,7 +177,16 @@ It averages over 95 months, counting as zero the 12 that hold no position becaus
 \frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
 ```
 
-Multiplying the old mean by 95/83 cancels its 95. As a sum over positions, −0.9167 × 95/83 = −1.0492. In units of capital, rule 1’s −0.0105 × 95/83 = −0.0120.
+Multiplying the old mean by 95/83 cancels its 95.
+
+```math
+\begin{aligned}
+&\text{as a sum over positions:} \\
+&\quad -0.9167 \times \frac{95}{83} = -1.0492 \\
+&\text{in units of capital, rule 1's:} \\
+&\quad -0.0105 \times \frac{95}{83} = -0.0120
+\end{aligned}
+```
 
 ![An animated whiteboard sketch titled “Which months the mean counts”, drawn stroke by stroke. A row of 96 dots runs across the board: a hollow grey dot labelled “month 1: no return”, then 12 grey dots labelled “12 months with no position, each a 0”, then 83 black dots labelled “83 months that hold positions”. A black bracket under months 2 to 96 is labelled “first edition: sum ÷ 95”, and a brown bracket under the last 83 is labelled “revised: sum ÷ 83”.](../docs/figures/equity_seasonals_rule_empty_months.gif)
 
