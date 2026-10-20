@@ -78,7 +78,7 @@ The next three sit in Lesson 3, on survivorship bias, and are schematic:
 2. The ranking only sees survivors: one month's ranking as it stood, with
    the stocks that later left ringed in red, above the same ranking as the
    file holds it, whose worst tenth is a different set.
-3. Two ways to build a panel: a file saved in 2007 carries 2007's members
+3. Two ways to build the data: a file saved in 2007 carries 2007's members
    back, one that joined later among them. Beside it, the index as it stood
    at each ranking date, the panel the post's later runs used from 2009.
 
@@ -1798,7 +1798,7 @@ def _survivors_panels() -> Scene:
     )
     steps.append(
         Label(
-            "the later runs, from 2009, used the panel on the right",
+            "the later runs, from 2009, used the data on the right",
             0.3,
             0.25,
             names="stood-8",
@@ -1806,7 +1806,7 @@ def _survivors_panels() -> Scene:
             size=11,
         )
     )
-    return Scene("Two ways to build a panel", "survivors_panels", tuple(steps))
+    return Scene("Two ways to build the data", "survivors_panels", tuple(steps))
 
 
 def survivor_scenes() -> tuple[Scene, ...]:

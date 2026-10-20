@@ -1021,24 +1021,28 @@ class TestThePost:
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
 
     def test_lesson_3s_sketches_follow_their_paragraphs(self) -> None:
-        """The saved file and the ranking after the paragraph that defines
-        survivorship bias, the two panels after the one that ends on a panel
-        keeping the companies that left."""
+        """The saved file after the paragraph that defines survivorship bias,
+        the ranking after the one on what the strategies could trade, and the
+        two ways to build the data after the one on keeping the companies that
+        left."""
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         (define,) = [
             k for k, p in enumerate(paragraphs) if p.startswith("Survivorship bias is what")
+        ]
+        (trade,) = [
+            k for k, p in enumerate(paragraphs) if p.startswith("Both strategies trade the tenth")
         ]
         (panel,) = [
             k for k, p in enumerate(paragraphs) if p.startswith("[The post on survivorship and")
         ]
         for offset, name in (
             (define + 1, SURVIVOR_GIFS[0]),
-            (define + 2, SURVIVOR_GIFS[1]),
+            (trade + 1, SURVIVOR_GIFS[1]),
             (panel + 1, SURVIVOR_GIFS[2]),
         ):
             embed = paragraphs[offset]
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
-        assert define + 3 == panel
+        assert (trade, panel) == (define + 2, define + 4)
 
     def test_each_january_sketch_follows_its_paragraph(self) -> None:
         """Each after its own paragraph, all three under the January question."""
@@ -2026,7 +2030,7 @@ class TestTheSurvivorSketches:
             "left",
             "left",
             "members at each ranking date",
-            "the later runs, from 2009, used the panel on the right",
+            "the later runs, from 2009, used the data on the right",
         ]
 
     def test_the_survivors_reach_the_save_and_the_leavers_stop_short(self, survivors) -> None:
