@@ -147,8 +147,8 @@ question, each after the text it draws:
    clears it green.
 3. Narrowing the bracket: the chance of clearing the critical value against
    δ, the 0.80 line, and the solver's own first three brackets inside δ from
-   0 to 5, from :func:`chan.equity_seasonals.shift_brackets`. It halves down
-   from 50, keeps the upper half once, then jumps close. The sketch says it
+   0 to 5, from :func:`chan.equity_seasonals.shift_brackets`. It narrows
+   down from 50, keeps the upper half once, then jumps close. The sketch says it
    draws δ from 0 to 5 where the solver starts at 50.
 
 All three draw the critical value and δ from :class:`Shift`, which reads only
@@ -2775,9 +2775,10 @@ def _brackets(n: int) -> tuple[list[tuple[float, float]], list[str]]:
     """The solver's first three brackets that fit inside :data:`BRACKET_D`,
     and what each row says about how it got there.
 
-    The solver halves its way down from 50 before that, which
-    ``test_the_rows_say_what_the_solver_did`` holds for the run's months and
-    which held for every run length tried from 5 to 10,000. The second row
+    The solver narrows its way down from 50 before that, one interpolation
+    step and then halvings, which ``test_the_rows_say_what_the_solver_did``
+    holds for the run's months and which held for every run length tried from
+    5 to 10,000. The second row
     says which half it kept, and the third is where it jumps close.
     """
     every = seasonals.shift_brackets(n)
@@ -2785,7 +2786,7 @@ def _brackets(n: int) -> tuple[list[tuple[float, float]], list[str]]:
     shown = every[first : first + len(BRACKET_ROWS)]
     upper = shown[1][0] > shown[0][0]
     words = [
-        f"halved from {seasonals.SHIFT_BRACKET[1]:.0f}",
+        f"narrowed from {seasonals.SHIFT_BRACKET[1]:.0f}",
         f"keeps the {'upper' if upper else 'lower'} half",
         "then jumps close",
     ]

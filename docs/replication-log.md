@@ -2446,7 +2446,8 @@ of them lands from the strategy's description alone. Each needs the rules its
 own script applies, and the issue records the figure each rule gives when it is
 changed.
 
-Chan publishes both strategies as already dead, so reproducing them checks
+Chan publishes Example 7.7 as already dead and reports Example 7.6 failing in
+two Januaries before working in the third, so reproducing them checks
 whether a documented disappearance is visible in data a reader can get. Every
 printout's whole-period figure is negative on his files, as he printed it. What
 the files cannot show is the 13 percent before 2002 that a disappearance would
@@ -11842,7 +11843,7 @@ Four things carry the result.
 
 | # | Row | What the source says | Where |
 | --- | --- | --- | --- |
-| 1 | The signal over Heston and Sadka's sample | 1.15 percent a month, t 7.6, 1965 to 2002 | Heston and Sadka 2008, Table 2 |
+| 1 | The signal over Heston and Sadka's sample | 1.15 percent a month, t 7.6, 1965 to 2002 | Heston and Sadka, Table 2, read by the post from their October 2006 working paper. This repository holds no copy of either version |
 | 2 | The signal before 2002 | "more than 13 percent" a year, before transaction costs | Kindle location 4425 |
 | 3 | The signal from 2002 | the effect "has disappeared since then", with no figure | Kindle location 4425 |
 | 4 and 5 | Example 7.7 against the project, on Chan's file and on IVV's members | nothing | n/a |

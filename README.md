@@ -3126,8 +3126,9 @@ the regime map.
 eighth post, about the equity seasonals, Examples 7.6 and 7.7. Chan reports
 seasonality in stocks as fading and publishes Example 7.7 as dead, while his
 text on Example 7.6 says it won in January 2008 after losing in the two
-Januaries before. The post draws three lessons from Entry 7 of the replication
-log.
+Januaries before. The post leads with the verdicts of Entry 7's two registered
+runs, draws three lessons from Entry 7 of the replication log, and sets Entry
+52's Open Source Asset Pricing series beside them.
 
 1. Account for every choice and every bug, or one strategy gives several
    answers. Every figure his code prints reproduces, but the book's
@@ -3163,7 +3164,11 @@ Four groups of its figures are not pinned here.
    average monthly return, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
-   [data/README.md](data/README.md) records by its sha256.
+   [data/README.md](data/README.md) records by its sha256. Nothing asserts
+   the sources' facts either: CRSP's licensing, or Norgate Diamond's $787.50 a
+   year in October 2026 and its US stocks back to 1950, which
+   [issue 196](https://github.com/l3a0/quantitative-trading/issues/196)
+   records.
 3. Its references. The four citations, including the publication details the
    post gives for Heston and Sadka and for Singal, are cited rather than
    computed.
@@ -3292,7 +3297,7 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     percent that clears it.
 30. `equity_seasonals_delta_bracket.gif`, the chance of clearing 1.652 against
     δ, the 0.80 line, and the solver's own first three brackets inside δ from
-    0 to 5, which halve down from 50, keep the upper half once and then jump
+    0 to 5, which narrow down from 50, keep the upper half once and then jump
     close to the crossing at 2.494.
 31. `equity_seasonals_broad_before_after.gif`, under "What a broader series
     shows", Open Source Asset Pricing's mean a month from 1965 to 2001,

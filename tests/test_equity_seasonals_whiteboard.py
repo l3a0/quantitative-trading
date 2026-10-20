@@ -2757,7 +2757,7 @@ class TestTheDeltaSketches:
             "drawn from 0 to 5, the solver starts at 50",
             "0.05",
             "0.80",
-            "halved from 50",
+            "narrowed from 50",
             "keeps the upper half",
             "then jumps close",
             "δ = 2.494",
@@ -2874,7 +2874,7 @@ class TestTheDeltaSketches:
         assert crossing == pytest.approx(at(s.shift), abs=0.02)
 
     def test_the_rows_say_what_the_solver_did(self) -> None:
-        """For the run's 213 months it halves down from 50, keeps the upper
+        """For the run's 213 months it narrows down from 50, keeps the upper
         half once, then jumps close, and the words come from the brackets."""
         every = seasonals.shift_brackets(213)
         widths = [high - low for low, high in every[:4]]
@@ -2885,7 +2885,7 @@ class TestTheDeltaSketches:
         assert every[5][1] - every[5][0] < (every[4][1] - every[4][0]) / 10
         shown, words = sketches._brackets(213)
         assert shown == every[3:6]
-        assert words == ["halved from 50", "keeps the upper half", "then jumps close"]
+        assert words == ["narrowed from 50", "keeps the upper half", "then jumps close"]
 
     def test_the_shading_and_curves_hold_their_shape(self, delta) -> None:
         """The shortcut's curve has a spread of 1, its two shadings cover the
