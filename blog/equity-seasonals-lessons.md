@@ -68,8 +68,19 @@ All seventeen figures Chan’s code prints reproduce here to the digit, but only
 
 So a backtest that misses a published figure may differ only in rules like these. The eleven below are:
 
-- **Example 7.6**: 1. rounding a tenth, a choice. 2. two winners short, a bug. 3. a filled-in close, a bug.
-- **Example 7.7**: 1. summing without dividing, a bug. 2. the wrong stock’s close, a bug. 3. empty months in the mean, a bug. 4. a missing month as zero, a bug. 5. each stock’s own month-end, two choices. 6. rounding halves to even, a choice. 7. dividing by n or n − 1, a choice. 8. the month-end lookup, a bug repaired.
+- **Example 7.6**
+   1. Rounding a tenth, a choice.
+   2. Two winners short, a bug.
+   3. A filled-in close, a bug.
+- **Example 7.7**
+   1. Summing without dividing, a bug.
+   2. The wrong stock’s close, a bug.
+   3. Empty months in the mean, a bug.
+   4. A missing month as zero, a bug.
+   5. Each stock’s own month-end, two choices.
+   6. Rounding halves to even, a choice.
+   7. Dividing by n or n − 1, a choice.
+   8. The month-end lookup, a bug repaired.
 
 ### Example 7.6, the January effect
 
