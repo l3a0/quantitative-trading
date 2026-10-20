@@ -2608,7 +2608,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's twenty-seven GIFs are checked the same way by
+equity seasonals post's thirty GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3198,7 +3198,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries twenty-seven looping whiteboard sketches, drawn by
+The post also carries thirty looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3281,11 +3281,23 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 27. `equity_seasonals_ivv_running_sum.gif`, the run's 213 held months added up
     against the lines 13 percent a year and the 4.2 percent a year its test
     detects would climb.
+28. `equity_seasonals_delta_scatter.gif`, under "Where the 4.2 percent comes
+    from", the t-statistic's scatter for a true mean of zero, which clears
+    1.652 5 percent of the time, above the same scatter slid right by
+    δ = 2.494, which clears it 80 percent of the time.
+29. `equity_seasonals_delta_shortcut.gif`, a normal curve centred at
+    1.652 + 0.842 = 2.494, with the 20 percent that misses 1.652 and the 80
+    percent that clears it.
+30. `equity_seasonals_delta_bracket.gif`, the chance of clearing 1.652 against
+    δ, the 0.80 line, and four brackets each halving onto the crossing at
+    2.494.
 
 Like the strategy sketches, Lesson 3's three, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The
-sources sketch carries no figure a run computes, only each source's cost. Nine sketches build more slowly than the rest and hold their
-finished drawings for twelve seconds, because each carries more than the usual pace lets a reader take in.
+sources sketch carries no figure a run computes, only each source's cost.
+Twelve sketches build more slowly than the rest and hold their finished
+drawings for twelve seconds, because each carries more than the usual pace lets
+a reader take in.
 
 1. The first two of the five-year sketches, 13 and 14.
 2. The last two of Lesson 3's sketches, 17 and 18.
@@ -3293,15 +3305,17 @@ finished drawings for twelve seconds, because each carries more than the usual p
 4. The two sketches on whether Heston and Sadka's effect existed before 2002,
    22 and 23.
 5. The leavers sketch, 26.
+6. The three sketches of the 4.2 percent's derivation, 28 to 30.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Five sketches read the owner's archive: the verdicts sketch, the ranges
-sketch, and section 3's checked, leavers and running-sum sketches. On a machine
-without it the command redraws the other twenty-two and exits non-zero,
-naming the five it left.
+Eight sketches read the owner's archive: the verdicts sketch, the ranges
+sketch, section 3's checked, leavers and running-sum sketches, and the three
+of the 4.2 percent's derivation, which read the run's month count. On a
+machine without it the command redraws the other twenty-two and exits
+non-zero, naming the eight it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
@@ -3313,7 +3327,9 @@ bar by its sign, that the five-year sketches draw each bar to its months and
 each dot, band and January bar at its figure, that Lesson 3's sketches keep
 the companies that left out of the file, its ranking and its saved panel, that
 section 2's sketches tick and cross each source as the post describes it and
-draw each bar at its figure, that nine sketches build slowly and hold for
+draw each bar at its figure, that the 4.2 percent's three sketches put the
+critical value, δ and each bracket where the test's figures say, that twelve
+sketches build slowly and hold for
 twelve seconds, that the ranges sketch
 draws each January from its low to its high, that section 3's sketches hold a
 change until the next filing, split each bar at its share and add up the

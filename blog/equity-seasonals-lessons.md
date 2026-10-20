@@ -364,6 +364,8 @@ The 4.2 percent follows from the noise in the 213 months and the two numbers fix
 
 The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean were zero, the t-statistic would scatter around zero with a spread of about 1, and it would clear 1.652 only 5 percent of the time. If the true mean is X, the whole scatter shifts right by about X divided by the standard error. That shift is the noncentrality, δ, and the shifted shape is a noncentral t distribution. The 4.2 percent comes from asking how far the scatter must shift for the statistic to clear 1.652 four times in five.
 
+![An animated whiteboard sketch titled “Shifting the scatter”, drawn slowly stroke by stroke. Two rows share one axis of t-statistics. In the top row a grey scatter for “true mean 0” rises and falls, a red dashed line marks “1.652, the 5% bar”, and the thin tail past the line is shaded red, “clears it 5% of the time”. In the row below, the same shape in brown, for “true mean X”, sits slid right by an arrow labelled “δ = 2.494”, and its larger part past the line is shaded green, “clears it 80% of the time”. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_delta_scatter.gif)
+
 A normal curve gives a close answer. With a spread of 1, the statistic is about δ plus a normal draw Z, and 80 percent of normal draws land above −0.842, because 0.842 is the normal curve’s 80th percentile and the curve is symmetric. So the statistic clears 1.652 four times in five when 1.652 sits 0.842 below the centre, which puts the centre at 0.842 past 1.652:
 
 ```math
@@ -374,6 +376,8 @@ A normal curve gives a close answer. With a spread of 1, the statistic is about 
 & \delta \approx 1.652 + 0.842 = 2.494
 \end{aligned}
 ```
+
+![An animated whiteboard sketch titled “The normal shortcut”, drawn slowly stroke by stroke. A brown normal curve has a dashed line at its centre, labelled “centre = 1.652 + 0.842 = 2.494”. A red dashed line marks “1.652, the bar”. The part of the curve left of it is shaded red, “20% miss”, and the part right of it green, “80% clear it”. A black bracket from the bar to the centre is labelled “0.842”, and the words “0.842 is the normal curve’s 80th percentile, so 80% of it lies above 0.842 below the centre” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_delta_shortcut.gif)
 
 The exact answer uses the noncentral t itself. With 212 degrees of freedom and a shift of δ, it is a normal draw shifted by δ, divided by how far the months’ measured spread strays from the true one:
 
@@ -393,6 +397,8 @@ P\left(T_{212}(\delta) > 1.652\right) = 0.80 \\
 ```
 
 The chance of clearing 1.652 rises as δ grows. At δ = 0 it is 0.05, the 5 percent bar, and at δ = 50 it is all but certain. So the solver starts with that bracket, keeps narrowing it to the part where the chance crosses 0.80, and stops once it is narrower than a trillionth.
+
+![An animated whiteboard sketch titled “Narrowing the bracket”, drawn slowly stroke by stroke. A grey note reads “drawn from 0 to 5, the solver starts at 50”. Against an upright axis labelled “chance of” and “clearing 1.652” and a level one labelled “δ”, a black curve rises from “0.05” and crosses a brown dashed line at “0.80”. Below the axis, four brackets each keep half of the one above, from the whole axis down to a brown one, and a brown dashed line drops from the crossing to it, labelled “δ = 2.494”. The words “each bracket keeps the half where the curve crosses 0.80” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_delta_bracket.gif)
 
 The two answers agree to three decimals, 2.4937 against 2.4944. The exact δ is the larger, because the wider scatter needs a slightly bigger shift to clear 1.652 four times in five.
 

@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws twenty-seven scenes, and the post places each right after the
+This module draws thirty scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -116,7 +116,7 @@ existed before 2002, each after the paragraph it illustrates:
 
 Both build slowly.
 
-The last four sit under the question on whether Heston and Sadka's effect
+The next four sit under the question on whether Heston and Sadka's effect
 survived the book, one under each of the first four headings that split it:
 
 1. A list stands until the next filing: a company that leaves between two of
@@ -130,8 +130,26 @@ survived the book, one under each of the first four headings that split it:
 4. The run's held months added up, against the lines 13 percent a year and
    the return its test detects would climb.
 
-The last three draw :class:`IvvFigures`, read from the IVV run on the owner's
-archive.
+The last three of those draw :class:`IvvFigures`, read from the IVV run on
+the owner's archive.
+
+The last three sit under "Where the 4.2 percent comes from", in the same
+question, each after the text it draws:
+
+1. Shifting the scatter: the t-statistic's scatter when the true mean is
+   zero, with its thin tail past the critical value shaded red, above the
+   same scatter slid right by δ, with the 80 percent past it shaded green.
+2. The normal shortcut: a normal curve centred 0.842 past the critical
+   value, with the 20 percent that misses it red and the 80 percent that
+   clears it green.
+3. Narrowing the bracket: the chance of clearing the critical value against
+   δ, the 0.80 line, and four brackets each keeping the half the crossing is
+   in. The solver narrows faster, so the halving is the idea rather than its
+   steps, and the sketch says it draws δ from 0 to 5 where the solver starts
+   at 50.
+
+All three draw the critical value and δ from :class:`Shift`, which reads only
+the IVV run's month count, and all three build slowly.
 
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
@@ -154,10 +172,10 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-seven with the command below.
-Five sketches read the archive, so on a machine
+with no change is a no-op diff. Redraw all thirty with the command below.
+Eight sketches read the archive, so on a machine
 without it the command redraws the other twenty-two and exits non-zero naming
-the five it left, :data:`ARCHIVE_SLUGS`::
+the eight it left, :data:`ARCHIVE_SLUGS`::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -170,6 +188,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 from chan import equity_seasonals as seasonals
 from chan.archive import ArchiveRefused, ArchiveUnavailable
@@ -2508,6 +2527,330 @@ def ivv_scenes(figures: IvvFigures) -> tuple[Scene, ...]:
     return (_ivv_carry(), _ivv_checked(figures), _ivv_leavers(figures), _ivv_running_sum(figures))
 
 
+# --- Section 3: where the 4.2 percent comes from -----------------------------
+
+
+@dataclass(frozen=True)
+class Shift:
+    """The test's figures the three δ sketches draw, all from its months.
+
+    ``df`` is one fewer than the months, ``critical`` the one-sided 5 percent
+    critical value, ``shift`` the noncentrality δ the statistic clears it at
+    with probability 0.8, and ``z`` the normal curve's 80th percentile, which
+    the normal shortcut adds to ``critical``.
+    """
+
+    df: int
+    critical: float
+    shift: float
+    z: float
+
+    @classmethod
+    def of(cls, f: IvvFigures) -> Shift:
+        critical, shift = seasonals.detectable_shift(len(f.months))
+        z = float(stats.norm.isf(1 - seasonals.POWER))
+        return cls(df=len(f.months) - 1, critical=critical, shift=shift, z=z)
+
+
+def _shade(xs: np.ndarray, base: float, tops: np.ndarray) -> tuple:
+    """Upright strokes from ``base`` up to each of ``tops``, as one pen path."""
+    points: list[tuple[float, float]] = []
+    for k, (x, top) in enumerate(zip(xs, tops, strict=True)):
+        points += [(x, base), (x, top)] if k % 2 == 0 else [(x, top), (x, base)]
+    return _line(points, per_unit=8)
+
+
+#: The scatter scene's t axis, from -3 to 5.6 across the board from 3 to 9.6,
+#: its two rows' baselines, and each curve's height at its peak.
+SCATTER_T, SCATTER_X = (-3.0, 5.6), (3.0, 9.6)
+SCATTER_UPPER, SCATTER_LOWER, SCATTER_HEIGHT = 2.55, 0.8, 1.25
+
+
+def _scatter_at(t: float | np.ndarray) -> float | np.ndarray:
+    (t0, t1), (x0, x1) = SCATTER_T, SCATTER_X
+    return x0 + (np.asarray(t) - t0) * (x1 - x0) / (t1 - t0)
+
+
+def _delta_scatter(f: IvvFigures) -> Scene:
+    """The statistic's scatter under a true mean of zero, and the same scatter
+    slid right by δ, each with its part past the critical value shaded."""
+    s = Shift.of(f)
+    upper, lower, height = SCATTER_UPPER, SCATTER_LOWER, SCATTER_HEIGHT
+    ts = np.linspace(*SCATTER_T, 120)
+    scale = height / stats.t.pdf(0, s.df)
+    tail = np.linspace(s.critical, SCATTER_T[1] - 0.05, 22)
+    xc, x0, x1 = _scatter_at(s.critical), *SCATTER_X
+    at = _scatter_at
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("upper-axis", _line([(x0, upper), (x1, upper)]), color=MUTED, frames=4),
+        _stroke(
+            "null",
+            (at(ts), upper + scale * stats.t.pdf(ts, s.df)),
+            color=MUTED,
+            width=2.2,
+            frames=10,
+        ),
+        Label("true mean 0", 0.3, upper + 0.55, names="null", size=11),
+        _stroke(
+            "bar",
+            _line([(xc, lower - 0.05), (xc, upper + height + 0.35)]),
+            color=LOST,
+            dashed=True,
+            frames=5,
+        ),
+        Label(
+            f"{s.critical:.3f}, the 5% bar",
+            xc + 0.25,
+            upper + height + 0.35,
+            names="bar",
+            color=LOST,
+            size=10,
+        ),
+        _stroke(
+            "null-tail",
+            _shade(at(tail), upper, upper + scale * stats.t.pdf(tail, s.df)),
+            color=LOST,
+            width=1.0,
+            frames=6,
+        ),
+        Label(
+            "clears it 5% of the time", 0.3, upper + 0.15, names="null-tail", color=LOST, size=10
+        ),
+        _stroke("lower-axis", _line([(x0, lower), (x1, lower)]), color=MUTED, frames=4),
+        _stroke(
+            "moved",
+            (at(ts), lower + scale * stats.nct.pdf(ts, s.df, s.shift)),
+            color=ACCENT,
+            width=2.4,
+            frames=10,
+        ),
+        Label("true mean X", 0.3, lower + 0.55, names="moved", color=ACCENT, size=11),
+        _stroke("shift", _arrow(at(0.0), upper - 0.3, at(s.shift), upper - 0.3), frames=6),
+        Label(f"δ = {s.shift:.3f}", at(0.0) - 0.3, upper - 0.3, names="shift", ha="right", size=11),
+        _stroke(
+            "moved-tail",
+            _shade(at(tail), lower, lower + scale * stats.nct.pdf(tail, s.df, s.shift)),
+            color=GOOD,
+            width=1.0,
+            frames=8,
+        ),
+        Label(
+            "clears it 80% of the time", 0.3, lower + 0.15, names="moved-tail", color=GOOD, size=10
+        ),
+    ]
+    return Scene("Shifting the scatter", "delta_scatter", tuple(steps))
+
+
+#: The shortcut scene's t axis, from -1 to 5.5 across the board from 0.6 to
+#: 9.4, its baseline, and the curve's height at its centre.
+SHORTCUT_T, SHORTCUT_X = (-1.0, 5.5), (0.6, 9.4)
+SHORTCUT_BASE, SHORTCUT_HEIGHT = 1.15, 2.3
+
+
+def _shortcut_at(t: float | np.ndarray) -> float | np.ndarray:
+    (t0, t1), (x0, x1) = SHORTCUT_T, SHORTCUT_X
+    return x0 + (np.asarray(t) - t0) * (x1 - x0) / (t1 - t0)
+
+
+def _delta_shortcut(f: IvvFigures) -> Scene:
+    """A normal curve centred 0.842 past the critical value, with the share
+    that misses it and the share that clears it."""
+    s = Shift.of(f)
+    centre = s.critical + s.z
+    base, height = SHORTCUT_BASE, SHORTCUT_HEIGHT
+    at = _shortcut_at
+
+    def curve(t: float | np.ndarray) -> np.ndarray:
+        return base + height * np.exp(-0.5 * (np.asarray(t) - centre) ** 2)
+
+    ts = np.linspace(*SHORTCUT_T, 120)
+    below = np.linspace(SHORTCUT_T[0] + 0.05, s.critical, 16)
+    above = np.linspace(s.critical, SHORTCUT_T[1] - 0.05, 30)
+    xc, xm = at(s.critical), at(centre)
+    steps: list[Stroke | Fill | Label] = [
+        _stroke(
+            "axis", _line([(SHORTCUT_X[0], base), (SHORTCUT_X[1], base)]), color=MUTED, frames=4
+        ),
+        _stroke("curve", (at(ts), curve(ts)), color=ACCENT, width=2.4, frames=10),
+        _stroke(
+            "centre", _line([(xm, base), (xm, curve(centre))]), color=ACCENT, dashed=True, frames=4
+        ),
+        Label(
+            f"centre = {s.critical:.3f} + {s.z:.3f} = {centre:.3f}",
+            xm + 0.25,
+            base + height + 0.35,
+            names="centre",
+            color=ACCENT,
+            size=11,
+        ),
+        _stroke(
+            "bar",
+            _line([(xc, base - 0.1), (xc, base + height + 0.25)]),
+            color=LOST,
+            dashed=True,
+            frames=5,
+        ),
+        Label(
+            f"{s.critical:.3f}, the bar",
+            xc - 0.2,
+            base + height + 0.25,
+            names="bar",
+            color=LOST,
+            ha="right",
+            size=10,
+        ),
+        _stroke("miss", _shade(at(below), base, curve(below)), color=LOST, width=1.0, frames=5),
+        Label(
+            f"{1 - seasonals.POWER:.0%} miss",
+            at(SHORTCUT_T[0]) + 0.1,
+            base + 0.45,
+            names="miss",
+            color=LOST,
+            size=11,
+        ),
+        _stroke("clear", _shade(at(above), base, curve(above)), color=GOOD, width=1.0, frames=8),
+        Label(
+            f"{seasonals.POWER:.0%} clear it",
+            at(SHORTCUT_T[1]) - 0.1,
+            base + 1.5,
+            names="clear",
+            color=GOOD,
+            ha="right",
+            size=11,
+        ),
+        _stroke("gap", _span(xc, xm, base - 0.35, tick=0.08), frames=4),
+        Label(f"{s.z:.3f}", xm + 0.2, base - 0.35, names="gap", size=11),
+        Label(
+            f"{s.z:.3f} is the normal curve’s {seasonals.POWER * 100:.0f}th percentile, so "
+            f"{seasonals.POWER:.0%} of it lies above {s.z:.3f} below the centre",
+            0.3,
+            0.25,
+            names="gap",
+            color=MUTED,
+            size=9,
+        ),
+    ]
+    return Scene("The normal shortcut", "delta_shortcut", tuple(steps))
+
+
+#: The bracket scene's δ axis, from 0 to 5 across the board from 2.3 to 9.3,
+#: its chance axis from 0 to 1 up the board from 2 to 3.85, and the rows the
+#: brackets narrow down, top to bottom.
+BRACKET_D, BRACKET_X, BRACKET_Y = (0.0, 5.0), (2.3, 9.3), (2.0, 3.85)
+BRACKET_ROWS = (1.65, 1.35, 1.05, 0.75)
+
+
+def _bracket_at(d: float | np.ndarray) -> float | np.ndarray:
+    (d0, d1), (x0, x1) = BRACKET_D, BRACKET_X
+    return x0 + (np.asarray(d) - d0) * (x1 - x0) / (d1 - d0)
+
+
+def _bracket_up(chance: float | np.ndarray) -> float | np.ndarray:
+    y0, y1 = BRACKET_Y
+    return y0 + np.asarray(chance) * (y1 - y0)
+
+
+def _brackets(s: Shift) -> list[tuple[float, float]]:
+    """Each row's bracket, halving the last by keeping the half the 0.80
+    crossing is in. The solver narrows faster, so this is the idea of it."""
+    low, high, out = *BRACKET_D, []
+    for _ in BRACKET_ROWS:
+        out.append((low, high))
+        middle = (low + high) / 2
+        if stats.nct.sf(s.critical, s.df, middle) < seasonals.POWER:
+            low = middle
+        else:
+            high = middle
+    return out
+
+
+def _delta_bracket(f: IvvFigures) -> Scene:
+    """The chance of clearing the critical value against δ, the 0.80 line,
+    and brackets narrowing onto where they cross."""
+    s = Shift.of(f)
+    at, up = _bracket_at, _bracket_up
+    x0, x1 = BRACKET_X
+    ds = np.linspace(*BRACKET_D, 80)
+    floor = float(stats.nct.sf(s.critical, s.df, 0.0))
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("axis", _line([(x0, up(0.0)), (x1, up(0.0))]), color=MUTED, frames=4),
+        _stroke("chance-axis", _line([(x0, up(0.0)), (x0, up(1.0))]), color=MUTED, frames=3),
+        Label("chance of", 0.25, up(0.7), names="chance-axis", color=MUTED, size=10),
+        Label(
+            f"clearing {s.critical:.3f}", 0.25, up(0.45), names="chance-axis", color=MUTED, size=10
+        ),
+        Label("δ", x1 + 0.2, up(0.0), names="axis", color=MUTED, size=12),
+        Label(
+            f"drawn from {BRACKET_D[0]:.0f} to {BRACKET_D[1]:.0f}, the solver starts at 50",
+            9.6,
+            4.3,
+            names="axis",
+            color=MUTED,
+            ha="right",
+            size=9,
+        ),
+        _stroke("power", (at(ds), up(stats.nct.sf(s.critical, s.df, ds))), width=2.4, frames=12),
+        Label(f"{floor:.2f}", x0 - 0.25, up(floor), names="power", ha="right", size=10),
+        _stroke(
+            "target",
+            _line([(x0, up(seasonals.POWER)), (x1, up(seasonals.POWER))]),
+            color=ACCENT,
+            dashed=True,
+            frames=5,
+        ),
+        Label(
+            f"{seasonals.POWER:.2f}",
+            x0 - 0.25,
+            up(seasonals.POWER),
+            names="target",
+            color=ACCENT,
+            ha="right",
+            size=11,
+        ),
+    ]
+    last = len(BRACKET_ROWS) - 1
+    for k, ((low, high), y) in enumerate(zip(_brackets(s), BRACKET_ROWS, strict=True)):
+        steps.append(
+            _stroke(
+                f"bracket-{k}",
+                _span(at(low), at(high), y, tick=0.08),
+                color=ACCENT if k == last else MUTED,
+                frames=4,
+            )
+        )
+    steps += [
+        _stroke(
+            "found",
+            _line([(at(s.shift), up(seasonals.POWER)), (at(s.shift), BRACKET_ROWS[-1] - 0.12)]),
+            color=ACCENT,
+            dashed=True,
+            frames=5,
+        ),
+        Label(
+            f"δ = {s.shift:.3f}",
+            at(s.shift) + 0.2,
+            BRACKET_ROWS[-1],
+            names="found",
+            color=ACCENT,
+            size=11,
+        ),
+        Label(
+            f"each bracket keeps the half where the curve crosses {seasonals.POWER:.2f}",
+            0.3,
+            0.25,
+            names="found",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    return Scene("Narrowing the bracket", "delta_bracket", tuple(steps))
+
+
+def delta_scenes(figures: IvvFigures) -> tuple[Scene, ...]:
+    """The three under "Where the 4.2 percent comes from", in reading order."""
+    return (_delta_scatter(figures), _delta_shortcut(figures), _delta_bracket(figures))
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
@@ -2521,6 +2864,9 @@ PACED = (
     "ivv_leavers",
     "osap_sources",
     "osap_before",
+    "delta_scatter",
+    "delta_shortcut",
+    "delta_bracket",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
@@ -2910,7 +3256,7 @@ def make_equity_seasonals_whiteboards(
     opening's two first, then the two strategies', then the seven rules',
     then the split's, then the five-year check's three, then Lesson 3's three,
     then the January section's three, then section 2's two, then section 3's
-    four.
+    seven.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
@@ -2943,6 +3289,7 @@ def make_equity_seasonals_whiteboards(
     paths.append(_write(_two_verdicts(verdicts), folder))
     january.append(_write(_january_ranges(ranges), folder))
     section_3 += [_write(scene, folder) for scene in ivv_scenes(ivv)[1:]]
+    section_3 += [_write(scene, folder) for scene in delta_scenes(ivv)]
     return paths + strategies + rules + split + five + survivors + january + section_2 + section_3
 
 
@@ -2954,6 +3301,9 @@ ARCHIVE_SLUGS = (
     "ivv_checked",
     "ivv_leavers",
     "ivv_running_sum",
+    "delta_scatter",
+    "delta_shortcut",
+    "delta_bracket",
 )
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -2972,7 +3322,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other twenty-two GIFs are already written. The five left stale
+        # The other twenty-two GIFs are already written. The eight left stale
         # are named, and the exit is non-zero, so a redraw on a machine
         # without the archive does not read as a full one.
         stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)

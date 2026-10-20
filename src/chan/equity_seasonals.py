@@ -913,12 +913,24 @@ def detectable_mean(
     X is a mean per holding, as ``std`` is a deviation per holding, so a caller
     whose holding is a month multiplies by twelve for a year.
     """
-    df = n - 1
-    critical = stats.t.isf(significance, df)
-    noncentrality = optimize.brentq(
-        lambda shift: stats.nct.sf(critical, df, shift) - power, 0.0, 50.0, xtol=1e-12
-    )
+    _, noncentrality = detectable_shift(n, significance=significance, power=power)
     return float(noncentrality * std / math.sqrt(n))
+
+
+def detectable_shift(
+    n: int, *, significance: float = SIGNIFICANCE, power: float = POWER
+) -> tuple[float, float]:
+    """The one-sided test's critical value at ``n - 1`` degrees of freedom,
+    and the noncentrality at which the statistic clears it with probability
+    ``power``.
+
+    No formula turns ``power`` back into the noncentrality, so a solver
+    narrows a bracket from 0 to 50 onto it.
+    """
+    df = n - 1
+    critical = float(stats.t.isf(significance, df))
+    shift = optimize.brentq(lambda s: stats.nct.sf(critical, df, s) - power, 0.0, 50.0, xtol=1e-12)
+    return critical, float(shift)
 
 
 def survivor_filing() -> Filing:

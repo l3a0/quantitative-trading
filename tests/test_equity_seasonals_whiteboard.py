@@ -1,17 +1,18 @@
-"""The pins for the twenty-seven whiteboard GIFs in the equity-seasonals post.
+"""The pins for the thirty whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, three its
-lesson on survivorship bias, three its question on whether the January
-effect survived the book, two its question on whether Heston and Sadka's
-effect existed before 2002, and four its question on whether Heston and Sadka's
-effect survived it. The opening's timeline places each source's years to
-scale, from Chan's committed files and the registered runs' constants, and its
-verdicts sketch draws the two registered runs' figures to scale. Those figures
-are pinned here as :data:`PINNED`, the values
-``tests/test_equity_seasonals.py`` pins, so every test here runs without the
-owner's archive. ``test_the_whiteboard_draws_these_runs_verdicts`` and
+lesson on survivorship bias, three its question on whether the January effect
+survived the book, two its question on whether Heston and Sadka's effect
+existed before 2002, and seven its question on whether Heston and Sadka's
+effect survived it, three of them on where its 4.2 percent comes from. The
+opening's timeline places each source's years to scale, from Chan's committed
+files and the registered runs' constants, and its verdicts sketch draws the
+two registered runs' figures to scale. Those figures are pinned here as
+:data:`PINNED`, the values ``tests/test_equity_seasonals.py`` pins, so every
+test here runs without the owner's archive.
+``test_the_whiteboard_draws_these_runs_verdicts`` and
 ``test_the_whiteboard_draws_these_runs_ranges`` and
 ``test_the_whiteboard_draws_these_runs_ivv_figures`` in
 ``tests/test_equity_seasonals.py`` hold that the runs give :data:`PINNED`,
@@ -56,8 +57,10 @@ ranges sketch draws :data:`PINNED_RANGES`, which
 gives. Section 3's carry-forward sketch is schematic, and its other three draw
 :data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its second
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
-release gives, so its test reads the run itself. Nine sketches build slowly,
-and their pace is pinned too.
+release gives, so its test reads the run itself. The three sketches of the
+4.2 percent's derivation draw the test's critical value and δ from
+:data:`PINNED_IVV`'s month count. Twelve sketches build slowly, and their
+pace is pinned too.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -98,11 +101,13 @@ from chan.equity_seasonals_whiteboard import (
     JanuaryRanges,
     OsapFigures,
     RuleFigures,
+    Shift,
     Spans,
     SplitFigures,
     Verdicts,
     _at,
     _year,
+    delta_scenes,
     five_year_scenes,
     gif_name,
     ivv_scenes,
@@ -173,6 +178,11 @@ IVV_GIFS = [
     "equity_seasonals_ivv_leavers.gif",
     "equity_seasonals_ivv_running_sum.gif",
 ]
+DELTA_GIFS = [
+    "equity_seasonals_delta_scatter.gif",
+    "equity_seasonals_delta_shortcut.gif",
+    "equity_seasonals_delta_bracket.gif",
+]
 GIFS = (
     OPENING_GIFS
     + STRATEGY_GIFS
@@ -183,6 +193,7 @@ GIFS = (
     + JANUARY_GIFS
     + OSAP_GIFS
     + IVV_GIFS
+    + DELTA_GIFS
 )
 #: The GIFs a redraw cannot write without the owner's archive.
 ARCHIVE_GIFS = {
@@ -191,6 +202,7 @@ ARCHIVE_GIFS = {
     "equity_seasonals_ivv_checked.gif",
     "equity_seasonals_ivv_leavers.gif",
     "equity_seasonals_ivv_running_sum.gif",
+    *DELTA_GIFS,
 }
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
@@ -614,9 +626,25 @@ def ivv():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors, january, osap, ivv):
-    """All twenty-seven scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules, *split, *five, *survivors, *january, *osap, *ivv)
+def delta():
+    return delta_scenes(PINNED_IVV)
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, delta):
+    """All thirty scenes in the order their GIFs are written."""
+    return (
+        *opening,
+        *drawn,
+        *rules,
+        *split,
+        *five,
+        *survivors,
+        *january,
+        *osap,
+        *ivv,
+        *delta,
+    )
 
 
 @pytest.fixture(scope="module")
@@ -1096,7 +1124,9 @@ class TestTheCommand:
         assert str(stopped.value) == (
             "equity_seasonals_two_verdicts.gif, equity_seasonals_january_ranges.gif, "
             "equity_seasonals_ivv_checked.gif, equity_seasonals_ivv_leavers.gif, "
-            f"equity_seasonals_ivv_running_sum.gif were not redrawn: {refusal}"
+            "equity_seasonals_ivv_running_sum.gif, equity_seasonals_delta_scatter.gif, "
+            "equity_seasonals_delta_shortcut.gif, equity_seasonals_delta_bracket.gif "
+            f"were not redrawn: {refusal}"
         )
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
@@ -1859,6 +1889,9 @@ class TestTheFiveYearSketches:
                     "ivv_leavers",
                     "osap_sources",
                     "osap_before",
+                    "delta_scatter",
+                    "delta_shortcut",
+                    "delta_bracket",
                 )
             )
             assert {f.ms for f in labels} <= {
@@ -2589,6 +2622,218 @@ class TestTheSection2Sketches:
                 "The free source has since been read.",
             ),
             OSAP_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)",
+                paragraphs[index + 1].strip(),
+            ), name
+
+
+#: What :class:`Shift` gives for the IVV run's 213 months, the values
+#: ``test_how_the_4_2_percent_is_derived`` in ``tests/test_equity_seasonals.py``
+#: pins.
+PINNED_SHIFT = Shift(
+    df=212, critical=1.6520729200438098, shift=2.494447174535743, z=0.8416212335729143
+)
+
+#: A made-up run of 30 months, so the labels have to follow the figures.
+SHORT = dataclasses.replace(PINNED_IVV, months=PINNED_IVV.months[:30])
+
+
+class TestTheDeltaSketches:
+    """The three sketches under "Where the 4.2 percent comes from"."""
+
+    def test_they_are_three_in_the_order_the_post_reads_them(self, delta) -> None:
+        assert [gif_name(scene) for scene in delta] == DELTA_GIFS
+
+    def test_the_test_gives_the_pinned_figures(self) -> None:
+        drawn = Shift.of(PINNED_IVV)
+        assert drawn.df == PINNED_SHIFT.df
+        for field in ("critical", "shift", "z"):
+            assert getattr(drawn, field) == pytest.approx(getattr(PINNED_SHIFT, field), abs=1e-9)
+
+    def test_each_says_what_it_should(self, delta) -> None:
+        scatter, shortcut, bracket = delta
+        assert scatter.labels == [
+            "true mean 0",
+            "1.652, the 5% bar",
+            "clears it 5% of the time",
+            "true mean X",
+            "δ = 2.494",
+            "clears it 80% of the time",
+        ]
+        assert shortcut.labels == [
+            "centre = 1.652 + 0.842 = 2.494",
+            "1.652, the bar",
+            "20% miss",
+            "80% clear it",
+            "0.842",
+            "0.842 is the normal curve’s 80th percentile, so 80% of it lies above 0.842 "
+            "below the centre",
+        ]
+        assert bracket.labels == [
+            "chance of",
+            "clearing 1.652",
+            "δ",
+            "drawn from 0 to 5, the solver starts at 50",
+            "0.05",
+            "0.80",
+            "δ = 2.494",
+            "each bracket keeps the half where the curve crosses 0.80",
+        ]
+
+    def test_the_labels_follow_the_figures(self) -> None:
+        """Fewer months move the critical value and δ, and the words move with them."""
+        s = Shift.of(SHORT)
+        assert s.df == 29 and s.critical > PINNED_SHIFT.critical and s.shift > PINNED_SHIFT.shift
+        scatter, shortcut, bracket = delta_scenes(SHORT)
+        assert f"{s.critical:.3f}, the 5% bar" in scatter.labels
+        assert f"δ = {s.shift:.3f}" in scatter.labels and f"δ = {s.shift:.3f}" in bracket.labels
+        assert f"centre = {s.critical:.3f} + 0.842 = {s.critical + s.z:.3f}" in shortcut.labels
+        assert f"clearing {s.critical:.3f}" in bracket.labels
+
+    def test_each_mark_is_in_the_ink_its_meaning_calls_for(self, delta) -> None:
+        scatter, shortcut, bracket = delta
+        for scene, gid, ink, dashed in (
+            (scatter, "null", whiteboard.MUTED, False),
+            (scatter, "bar", LOST, True),
+            (scatter, "null-tail", LOST, False),
+            (scatter, "moved", ACCENT, False),
+            (scatter, "moved-tail", GOOD, False),
+            (scatter, "shift", whiteboard.INK, False),
+            (shortcut, "curve", ACCENT, False),
+            (shortcut, "centre", ACCENT, True),
+            (shortcut, "bar", LOST, True),
+            (shortcut, "miss", LOST, False),
+            (shortcut, "clear", GOOD, False),
+            (shortcut, "gap", whiteboard.INK, False),
+            (bracket, "power", whiteboard.INK, False),
+            (bracket, "target", ACCENT, True),
+            (bracket, "found", ACCENT, True),
+        ):
+            stroke = _stroke(scene, gid)
+            assert (stroke.color, stroke.dashed) == (ink, dashed), (scene.slug, gid)
+        spans = [s for s in bracket.strokes if s.gid.startswith("bracket-")]
+        assert [s.color for s in spans] == [
+            whiteboard.MUTED,
+            whiteboard.MUTED,
+            whiteboard.MUTED,
+            ACCENT,
+        ]
+        for scene, text, ink in (
+            (scatter, "1.652, the 5% bar", LOST),
+            (scatter, "clears it 5% of the time", LOST),
+            (scatter, "true mean X", ACCENT),
+            (scatter, "clears it 80% of the time", GOOD),
+            (shortcut, "1.652, the bar", LOST),
+            (shortcut, "20% miss", LOST),
+            (shortcut, "80% clear it", GOOD),
+            (shortcut, "centre = 1.652 + 0.842 = 2.494", ACCENT),
+            (bracket, "0.80", ACCENT),
+            (bracket, "δ = 2.494", ACCENT),
+        ):
+            assert _labelled(scene, text).color == ink, (scene.slug, text)
+
+    @pytest.mark.parametrize("figures", [PINNED_IVV, SHORT], ids=["the run's", "made up"])
+    def test_the_scatter_stands_at_its_figures(self, figures) -> None:
+        s = Shift.of(figures)
+        scatter = delta_scenes(figures)[0]
+        at = sketches._scatter_at
+        bar = _stroke(scatter, "bar")
+        assert bar.x == pytest.approx(np.full(bar.points, at(s.critical)))
+        for tail in ("null-tail", "moved-tail"):
+            assert _stroke(scatter, tail).x.min() == pytest.approx(at(s.critical)), tail
+        arrow = _stroke(scatter, "shift")
+        assert (arrow.x.min(), arrow.x.max()) == (
+            pytest.approx(at(0.0)),
+            pytest.approx(at(s.shift)),
+        )
+        null = _stroke(scatter, "null")
+        assert null.x[np.argmax(null.y)] == pytest.approx(at(0.0), abs=0.05)
+        assert _stroke(scatter, "moved").y.max() < sketches.SCATTER_UPPER
+
+    @pytest.mark.parametrize("figures", [PINNED_IVV, SHORT], ids=["the run's", "made up"])
+    def test_the_shortcut_centres_its_curve_past_the_bar(self, figures) -> None:
+        s = Shift.of(figures)
+        shortcut = delta_scenes(figures)[1]
+        at = sketches._shortcut_at
+        centre = _stroke(shortcut, "centre")
+        assert centre.x == pytest.approx(np.full(centre.points, at(s.critical + s.z)))
+        curve = _stroke(shortcut, "curve")
+        assert curve.x[np.argmax(curve.y)] == pytest.approx(at(s.critical + s.z), abs=0.05)
+        gap = _stroke(shortcut, "gap")
+        assert (gap.x.min(), gap.x.max()) == (
+            pytest.approx(at(s.critical)),
+            pytest.approx(at(s.critical + s.z)),
+        )
+        assert _stroke(shortcut, "miss").x.max() == pytest.approx(at(s.critical))
+        assert _stroke(shortcut, "clear").x.min() == pytest.approx(at(s.critical))
+
+    @pytest.mark.parametrize("figures", [PINNED_IVV, SHORT], ids=["the run's", "made up"])
+    def test_the_brackets_halve_onto_the_crossing(self, figures) -> None:
+        s = Shift.of(figures)
+        bracket = delta_scenes(figures)[2]
+        at, up = sketches._bracket_at, sketches._bracket_up
+        spans = [
+            (st.x.min(), st.x.max()) for st in bracket.strokes if st.gid.startswith("bracket-")
+        ]
+        assert spans[0] == (pytest.approx(at(0.0)), pytest.approx(at(5.0)))
+        for (a0, b0), (a1, b1) in zip(spans, spans[1:], strict=False):
+            assert b1 - a1 == pytest.approx((b0 - a0) / 2)
+            assert a0 <= a1 + 1e-9 and b1 <= b0 + 1e-9
+        assert all(a <= at(s.shift) <= b for a, b in spans)
+        found = _stroke(bracket, "found")
+        assert found.x == pytest.approx(np.full(found.points, at(s.shift)))
+        target = _stroke(bracket, "target")
+        assert target.y == pytest.approx(np.full(target.points, up(0.8)))
+        power = _stroke(bracket, "power")
+        assert power.y[0] == pytest.approx(up(0.05))
+        crossing = np.interp(up(0.8), power.y, power.x)
+        assert crossing == pytest.approx(at(s.shift), abs=0.02)
+
+    def test_all_three_build_slowly_and_need_the_archive(self) -> None:
+        slugs = {"delta_scatter", "delta_shortcut", "delta_bracket"}
+        assert slugs <= set(sketches.PACED)
+        assert slugs <= set(sketches.ARCHIVE_SLUGS)
+
+    def test_each_alt_text_quotes_its_words_and_its_pace(self, delta) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for scene in delta:
+            alt = _alt(text, scene)
+            for label in scene.labels:
+                assert f"“{label}”" in alt, (scene.slug, label)
+            assert "drawn slowly stroke by stroke" in alt, scene.slug
+            assert "holds for twelve seconds" in alt, scene.slug
+
+    def test_each_alt_text_says_what_the_drawing_shows(self, delta) -> None:
+        scatter, shortcut, bracket = delta
+        text = POST.read_text(encoding="utf-8")
+        alt = _alt(text, scatter)
+        assert "a grey scatter" in alt and _stroke(scatter, "null").color == whiteboard.MUTED
+        assert "a red dashed line" in alt
+        assert "shaded red" in alt and "in brown" in alt and "shaded green" in alt
+        alt = _alt(text, shortcut)
+        assert "A brown normal curve" in alt and "A black bracket" in alt
+        assert _stroke(shortcut, "gap").color == whiteboard.INK
+        alt = _alt(text, bracket)
+        assert "a black curve" in alt and "a brown dashed line" in alt
+        assert "four brackets" in alt and len(sketches.BRACKET_ROWS) == 4
+        assert "down to a brown one" in alt
+
+    def test_each_follows_what_it_draws(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("##### Where the 4.2 percent comes from")
+        end = text.index("\n#### ", start)
+        paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
+        for opening, name in zip(
+            (
+                "The test calls a mean above zero when its t-statistic clears",
+                "```math\n\\begin{aligned}\n\\text{clears the bar:}",
+                "The chance of clearing 1.652 rises as δ grows.",
+            ),
+            DELTA_GIFS,
             strict=True,
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
