@@ -2608,7 +2608,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's thirty GIFs are checked the same way by
+equity seasonals post's thirty-two GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3198,7 +3198,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries thirty looping whiteboard sketches, drawn by
+The post also carries thirty-two looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3292,11 +3292,18 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     δ, the 0.80 line, and the solver's own first three brackets inside δ from
     0 to 5, which halve down from 50, keep the upper half once and then jump
     close to the crossing at 2.494.
+31. `equity_seasonals_broad_before_after.gif`, under "What a broader series
+    shows", Open Source Asset Pricing's mean a month from 1965 to 2001,
+    1.31 percent, and from 2002 to 2024, 0.12 percent, each with one standard
+    error each way, the second crossing zero.
+32. `equity_seasonals_broad_together.gif`, a dot for each of the 192 months
+    from 2009 to 2024 that the project's series and the IVV run share, which
+    tilt up together at a correlation of 0.59.
 
 Like the strategy sketches, Lesson 3's three, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The
 sources sketch carries no figure a run computes, only each source's cost.
-Twelve sketches build more slowly than the rest and hold their finished
+Fourteen sketches build more slowly than the rest and hold their finished
 drawings for twelve seconds, because each carries more than the usual pace lets
 a reader take in.
 
@@ -3307,16 +3314,17 @@ a reader take in.
    22 and 23.
 5. The leavers sketch, 26.
 6. The three sketches of the 4.2 percent's derivation, 28 to 30.
+7. The two broader-series sketches, 31 and 32.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Eight sketches read the owner's archive: the verdicts sketch, the ranges
-sketch, section 3's checked, leavers and running-sum sketches, and the three
-of the 4.2 percent's derivation, which read the run's month count. On a
-machine without it the command redraws the other twenty-two and exits
-non-zero, naming the eight it left.
+Nine sketches read the owner's archive: the verdicts sketch, the ranges sketch,
+section 3's checked, leavers and running-sum sketches, the three of the 4.2
+percent's derivation, which read the run's month count, and the broader series'
+scatter, which reads the run's months. On a machine without it the command
+redraws the other twenty-three and exits non-zero, naming the nine it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
@@ -3329,8 +3337,9 @@ each dot, band and January bar at its figure, that Lesson 3's sketches keep
 the companies that left out of the file, its ranking and its saved panel, that
 section 2's sketches tick and cross each source as the post describes it and
 draw each bar at its figure, that the 4.2 percent's three sketches put the
-critical value, δ and each bracket where the test's figures say, that twelve
-sketches build slowly and hold for
+critical value, δ and each bracket where the test's figures say, that the
+broader series' bars and dots stand at the release's and the run's figures,
+that fourteen sketches build slowly and hold for
 twelve seconds, that the ranges sketch
 draws each January from its low to its high, that section 3's sketches hold a
 change until the next filing, split each bar at its share and add up the

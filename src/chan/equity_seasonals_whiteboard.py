@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws thirty scenes, and the post places each right after the
+This module draws thirty-two scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -151,6 +151,20 @@ question, each after the text it draws:
 All three draw the critical value and δ from :class:`Shift`, which reads only
 the IVV run's month count, and all three build slowly.
 
+The last two sit under "What a broader series shows", one after each of its
+two paragraphs:
+
+1. Before 2002 and after: Open Source Asset Pricing's mean a month from 1965
+   to 2001 and from 2002 to 2024, as bars to one scale with one standard
+   error each way. The second's bracket crosses zero. Its figures come from
+   :class:`Broad`, read from the committed release.
+2. Moving together: a dot for each of the 192 months the IVV run and the
+   project's series share, the project's return across and the run's up, with
+   their correlation. :class:`Together` reads the release and the IVV run's
+   months, so it needs the archive.
+
+Both build slowly.
+
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
 the two ringed at each end stand for a tenth. March is an example month, and
@@ -172,10 +186,10 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all thirty with the command below.
-Eight sketches read the archive, so on a machine
-without it the command redraws the other twenty-two and exits non-zero naming
-the eight it left, :data:`ARCHIVE_SLUGS`::
+with no change is a no-op diff. Redraw all thirty-two with the command below.
+Nine sketches read the archive, so on a machine
+without it the command redraws the other twenty-three and exits non-zero
+naming the nine it left, :data:`ARCHIVE_SLUGS`::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -2861,6 +2875,156 @@ def delta_scenes(figures: IvvFigures) -> tuple[Scene, ...]:
     return (_delta_scatter(figures), _delta_shortcut(figures), _delta_bracket(figures))
 
 
+# --- Section 3: what a broader series shows -------------------------------------
+
+
+@dataclass(frozen=True)
+class Broad:
+    """Open Source Asset Pricing's ``MomSeasonShort`` mean a month on each side
+    of :data:`chan.equity_seasonals.SPLIT`, each with its standard error, the
+    mean over its t, from :func:`chan.equity_seasonals.run_open_asset_pricing`.
+    """
+
+    before: float
+    before_error: float
+    after: float
+    after_error: float
+    first: int
+    split: int
+    last: int
+
+    @classmethod
+    def from_run(cls, run: seasonals.OpenAssetPricingRun) -> Broad:
+        a = run.around
+        return cls(
+            before=a.before.mean,
+            before_error=a.before.mean / a.before.t,
+            after=a.after.mean,
+            after_error=a.after.mean / a.after.t,
+            first=seasonals.HESTON_SADKA_FIRST.year,
+            split=seasonals.SPLIT.year,
+            last=a.last.year,
+        )
+
+
+#: Where the before-and-after bars' scale starts and ends, as returns a month,
+#: and where on the board those ends sit.
+BROAD_LOW, BROAD_HIGH, BROAD_X = -0.004, 0.017, (4.2, 9.4)
+
+
+def _broad_at(value: float) -> float:
+    x0, x1 = BROAD_X
+    return x0 + (value - BROAD_LOW) * (x1 - x0) / (BROAD_HIGH - BROAD_LOW)
+
+
+def _broad_before_after(b: Broad) -> Scene:
+    """The project's mean before the split and after it, to one scale, each
+    with one standard error either side."""
+    zero = _broad_at(0.0)
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("zero", _line([(zero, 0.95), (zero, 3.75)]), color=MUTED, frames=4),
+        Label("0", zero, 0.65, names="zero", color=MUTED, ha="center", size=10),
+    ]
+    for text, y, mean, error, gid in (
+        (f"{b.first} to {b.split - 1}", 3.0, b.before, b.before_error, "before"),
+        (f"{b.split} to {b.last}", 1.7, b.after, b.after_error, "after"),
+    ):
+        steps += [
+            Label(text, 0.3, y, names="zero", size=11),
+            Fill(gid, zero, y - 0.15, _broad_at(mean), y + 0.15, ACCENT),
+            Label(
+                f"{100 * mean:.2f}%",
+                max(_broad_at(mean), zero) + 0.2,
+                y + 0.4,
+                names=gid,
+                color=ACCENT,
+                size=11,
+            ),
+            _stroke(
+                f"{gid}-error",
+                _span(_broad_at(mean - error), _broad_at(mean + error), y - 0.4, tick=0.08),
+                frames=5,
+            ),
+        ]
+    steps += [
+        Label("one standard error each way", 0.3, 1.3, names="after-error", color=MUTED, size=9),
+        Label(
+            "Open Source Asset Pricing, a month before costs, "
+            "NYSE and AMEX with the ones that left",
+            0.3,
+            0.25,
+            names="after-error",
+            color=ACCENT,
+            size=9,
+        ),
+    ]
+    return Scene(f"Before {b.split} and after", "broad_before_after", tuple(steps))
+
+
+@dataclass(frozen=True)
+class Together:
+    """The months the IVV run and the project's series both hold, each as its
+    month, the project's return and the run's, and their correlation."""
+
+    months: tuple[tuple[str, float, float], ...]
+    correlation: float
+
+    @classmethod
+    def from_runs(cls, ivv: IvvFigures, run: seasonals.OpenAssetPricingRun) -> Together:
+        ours = pd.Series(
+            [value for _, value in ivv.months],
+            index=pd.PeriodIndex([month for month, _ in ivv.months], freq="M"),
+        )
+        theirs = seasonals.calendar_months(run.returns)
+        shared = ours.index.intersection(theirs.index)
+        return cls(
+            months=tuple(
+                (str(month), float(theirs[month]), float(ours[month])) for month in shared
+            ),
+            correlation=float(np.corrcoef(theirs[shared], ours[shared])[0, 1]),
+        )
+
+
+#: The scatter's centre on the board, and the returns a month its axes run to
+#: each side: the project's across and the IVV run's up.
+TOGETHER_CENTRE, TOGETHER_LIMITS, TOGETHER_REACH = (6.1, 2.15), (0.15, 0.09), (3.2, 1.6)
+
+
+def _together_at(theirs: float | np.ndarray, ours: float | np.ndarray) -> tuple:
+    (cx, cy), (lx, ly), (rx, ry) = TOGETHER_CENTRE, TOGETHER_LIMITS, TOGETHER_REACH
+    return cx + np.asarray(theirs) * rx / lx, cy + np.asarray(ours) * ry / ly
+
+
+def _broad_together(t: Together) -> Scene:
+    """A dot for each shared month, the project's return across and the IVV
+    run's up, with the correlation."""
+    (cx, cy), (rx, ry) = TOGETHER_CENTRE, TOGETHER_REACH
+    theirs = np.array([m[1] for m in t.months])
+    ours = np.array([m[2] for m in t.months])
+    xs, ys = _together_at(theirs, ours)
+    first, last = t.months[0][0][:4], t.months[-1][0][:4]
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("across", _line([(cx - rx - 0.1, cy), (cx + rx + 0.1, cy)]), color=MUTED, frames=4),
+        _stroke("up", _line([(cx, cy - ry - 0.05), (cx, cy + ry + 0.05)]), color=MUTED, frames=4),
+        Label(
+            "the project’s month",
+            cx + rx + 0.1,
+            cy - 0.5,
+            names="across",
+            color=ACCENT,
+            ha="right",
+            size=10,
+        ),
+        Label("the IVV run’s month", cx + 0.25, cy + ry, names="up", size=10),
+        Stroke("months", xs, ys, color=INK, frames=12, dots=3.5),
+        Label(f"{len(t.months)} months,", 0.3, 3.2, names="months", size=11),
+        Label(f"{first} to {last}", 0.3, 2.85, names="months", size=11),
+        Label(f"correlation {t.correlation:.2f}", 0.3, 2.2, names="months", color=GOOD, size=11),
+        Label("they rise and fall together", 0.3, 0.3, names="months", color=MUTED, size=10),
+    ]
+    return Scene("Moving together", "broad_together", tuple(steps))
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
@@ -2877,6 +3041,8 @@ PACED = (
     "delta_scatter",
     "delta_shortcut",
     "delta_bracket",
+    "broad_before_after",
+    "broad_together",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
@@ -3261,20 +3427,22 @@ def make_equity_seasonals_whiteboards(
     ranges: JanuaryRanges | None = None,
     ivv: IvvFigures | None = None,
     osap: OsapFigures | None = None,
+    project: seasonals.OpenAssetPricingRun | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
     then the split's, then the five-year check's three, then Lesson 3's three,
     then the January section's three, then section 2's two, then section 3's
-    seven.
+    nine.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
     archive, about twenty seconds, ``ranges`` from the January run among
-    them, and ``ivv`` from the IVV run. ``osap`` is read from the committed
-    Open Source Asset Pricing release. Every GIF that needs no archive is
-    written before that read, so a refused or missing archive leaves those
-    twenty-two redrawn and raises from the read.
+    them, and ``ivv`` from the IVV run. ``osap`` and the broader series'
+    figures are read from ``project``, the committed Open Source Asset
+    Pricing release, when it is not handed in. Every GIF that needs no
+    archive is written before that read, so a refused or missing archive
+    leaves those twenty-three redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
@@ -3284,8 +3452,10 @@ def make_equity_seasonals_whiteboards(
     split = [_write(scene, folder) for scene in split_scenes()]
     five = [_write(scene, folder) for scene in five_year_scenes()]
     survivors = [_write(scene, folder) for scene in survivor_scenes()]
-    osap = osap if osap is not None else OsapFigures.from_run(seasonals.run_open_asset_pricing())
+    project = project if project is not None else seasonals.run_open_asset_pricing()
+    osap = osap if osap is not None else OsapFigures.from_run(project)
     section_2 = [_write(scene, folder) for scene in osap_scenes(osap)]
+    broad = [_write(_broad_before_after(Broad.from_run(project)), folder)]
     january = [_write(_january_registered(), folder), _write(_january_fill(), folder)]
     section_3 = [_write(_ivv_carry(), folder)]
     run = seasonals.run_point_in_time() if verdicts is None or ranges is None else None
@@ -3300,7 +3470,19 @@ def make_equity_seasonals_whiteboards(
     january.append(_write(_january_ranges(ranges), folder))
     section_3 += [_write(scene, folder) for scene in ivv_scenes(ivv)[1:]]
     section_3 += [_write(scene, folder) for scene in delta_scenes(ivv)]
-    return paths + strategies + rules + split + five + survivors + january + section_2 + section_3
+    broad.append(_write(_broad_together(Together.from_runs(ivv, project)), folder))
+    return (
+        paths
+        + strategies
+        + rules
+        + split
+        + five
+        + survivors
+        + january
+        + section_2
+        + section_3
+        + broad
+    )
 
 
 #: The sketches whose figures come from the owner's archive, which a redraw
@@ -3314,6 +3496,7 @@ ARCHIVE_SLUGS = (
     "delta_scatter",
     "delta_shortcut",
     "delta_bracket",
+    "broad_together",
 )
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -3332,7 +3515,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other twenty-two GIFs are already written. The eight left stale
+        # The other twenty-three GIFs are already written. The nine left stale
         # are named, and the exit is non-zero, so a redraw on a machine
         # without the archive does not read as a full one.
         stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)

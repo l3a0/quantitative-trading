@@ -416,7 +416,13 @@ More months or less noise would lower it.
 
 #### What a broader series shows
 
-A broader series agrees with the registered run. From 2002 to 2024 the same portfolio on NYSE and AMEX stocks earned 0.12 percent a month, with a t-statistic of 0.50. Over the 192 months it shares with the run on IVV’s members, 2009 to 2024, it earned 0.12 percent a month with a t of 0.39, and the two series moved together, at a correlation of 0.59. Neither shows a mean detectably above zero after the book. Like the section 1 figures, this comparison is exploratory.
+A broader series agrees with the registered run. From 2002 to 2024 the same portfolio on NYSE and AMEX stocks earned 0.12 percent a month, with a t-statistic of 0.50.
+
+![An animated whiteboard sketch titled “Before 2002 and after”, drawn slowly stroke by stroke. A grey line marks “0”. A long brown bar for “1965 to 2001” reaches “1.31%”, with a black bracket under it, far from zero, for one standard error each way. A short brown bar for “2002 to 2024” reaches “0.12%”, and its bracket crosses zero, labelled “one standard error each way”. The words “Open Source Asset Pricing, a month before costs, NYSE and AMEX with the ones that left” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_broad_before_after.gif)
+
+Over the 192 months it shares with the run on IVV’s members, 2009 to 2024, it earned 0.12 percent a month with a t of 0.39, and the two series moved together, at a correlation of 0.59. Neither shows a mean detectably above zero after the book. Like the figures before 2002, this comparison is exploratory.
+
+![An animated whiteboard sketch titled “Moving together”, drawn slowly stroke by stroke. Two grey axes cross, one labelled “the project’s month” across and one “the IVV run’s month” up. A black dot for each month fills in, a cloud that tilts up to the right. Beside it the words “192 months,” and “2009 to 2024” and, in green, “correlation 0.59”. The words “they rise and fall together” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_broad_together.gif)
 
 ## What this means for a trader
 

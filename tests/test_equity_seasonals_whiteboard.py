@@ -1,12 +1,13 @@
-"""The pins for the thirty whiteboard GIFs in the equity-seasonals post.
+"""The pins for the thirty-two whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, three its
 lesson on survivorship bias, three its question on whether the January effect
 survived the book, two its question on whether Heston and Sadka's effect
-existed before 2002, and seven its question on whether Heston and Sadka's
-effect survived it, three of them on where its 4.2 percent comes from. The
+existed before 2002, and nine its question on whether Heston and Sadka's
+effect survived it, three of them on where its 4.2 percent comes from and two
+on what a broader series shows. The
 opening's timeline places each source's years to scale, from Chan's committed
 files and the registered runs' constants, and its verdicts sketch draws the
 two registered runs' figures to scale. Those figures are pinned here as
@@ -59,8 +60,9 @@ gives. Section 3's carry-forward sketch is schematic, and its other three draw
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
-:data:`PINNED_IVV`'s month count. Twelve sketches build slowly, and their
-pace is pinned too.
+:data:`PINNED_IVV`'s month count. Fourteen sketches build slowly, and their
+pace is pinned too. The broader series' two read the committed Open Source
+Asset Pricing release, and the second also :data:`PINNED_IVV`'s months.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -96,6 +98,7 @@ from chan.equity_seasonals_whiteboard import (
     TENTH,
     TIMELINE_X,
     YEAR,
+    Broad,
     FiveYearFigures,
     IvvFigures,
     JanuaryRanges,
@@ -104,6 +107,7 @@ from chan.equity_seasonals_whiteboard import (
     Shift,
     Spans,
     SplitFigures,
+    Together,
     Verdicts,
     _at,
     _year,
@@ -183,6 +187,10 @@ DELTA_GIFS = [
     "equity_seasonals_delta_shortcut.gif",
     "equity_seasonals_delta_bracket.gif",
 ]
+BROAD_GIFS = [
+    "equity_seasonals_broad_before_after.gif",
+    "equity_seasonals_broad_together.gif",
+]
 GIFS = (
     OPENING_GIFS
     + STRATEGY_GIFS
@@ -194,6 +202,7 @@ GIFS = (
     + OSAP_GIFS
     + IVV_GIFS
     + DELTA_GIFS
+    + BROAD_GIFS
 )
 #: The GIFs a redraw cannot write without the owner's archive.
 ARCHIVE_GIFS = {
@@ -203,6 +212,7 @@ ARCHIVE_GIFS = {
     "equity_seasonals_ivv_leavers.gif",
     "equity_seasonals_ivv_running_sum.gif",
     *DELTA_GIFS,
+    "equity_seasonals_broad_together.gif",
 }
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
@@ -631,8 +641,22 @@ def delta():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, delta):
-    """All thirty scenes in the order their GIFs are written."""
+def project():
+    """Open Source Asset Pricing's committed release, which needs no archive."""
+    return seasonals.run_open_asset_pricing()
+
+
+@pytest.fixture(scope="module")
+def broad(project):
+    return (
+        sketches._broad_before_after(Broad.from_run(project)),
+        sketches._broad_together(Together.from_runs(PINNED_IVV, project)),
+    )
+
+
+@pytest.fixture(scope="module")
+def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, delta, broad):
+    """All thirty-two scenes in the order their GIFs are written."""
     return (
         *opening,
         *drawn,
@@ -644,6 +668,7 @@ def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, del
         *osap,
         *ivv,
         *delta,
+        *broad,
     )
 
 
@@ -653,7 +678,7 @@ def frames(every):
 
 
 @pytest.fixture(scope="module")
-def gifs(tmp_path_factory, spans):
+def gifs(tmp_path_factory, spans, project):
     return make_equity_seasonals_whiteboards(
         out_dir=tmp_path_factory.mktemp("sketches"),
         verdicts=PINNED,
@@ -661,6 +686,7 @@ def gifs(tmp_path_factory, spans):
         ranges=PINNED_RANGES,
         ivv=PINNED_IVV,
         osap=PINNED_OSAP,
+        project=project,
     )
 
 
@@ -864,7 +890,7 @@ class TestTheGifs:
         for path in gifs:
             assert path.stat().st_size < 1_000_000, path.name
 
-    def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, spans) -> None:
+    def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, spans, project) -> None:
         again = make_equity_seasonals_whiteboards(
             out_dir=tmp_path,
             verdicts=PINNED,
@@ -872,6 +898,7 @@ class TestTheGifs:
             ranges=PINNED_RANGES,
             ivv=PINNED_IVV,
             osap=PINNED_OSAP,
+            project=project,
         )
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
@@ -1125,8 +1152,8 @@ class TestTheCommand:
             "equity_seasonals_two_verdicts.gif, equity_seasonals_january_ranges.gif, "
             "equity_seasonals_ivv_checked.gif, equity_seasonals_ivv_leavers.gif, "
             "equity_seasonals_ivv_running_sum.gif, equity_seasonals_delta_scatter.gif, "
-            "equity_seasonals_delta_shortcut.gif, equity_seasonals_delta_bracket.gif "
-            f"were not redrawn: {refusal}"
+            "equity_seasonals_delta_shortcut.gif, equity_seasonals_delta_bracket.gif, "
+            f"equity_seasonals_broad_together.gif were not redrawn: {refusal}"
         )
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
@@ -1892,6 +1919,8 @@ class TestTheFiveYearSketches:
                     "delta_scatter",
                     "delta_shortcut",
                     "delta_bracket",
+                    "broad_before_after",
+                    "broad_together",
                 )
             )
             assert {f.ms for f in labels} <= {
@@ -2851,6 +2880,170 @@ class TestTheDeltaSketches:
                 "The chance of clearing 1.652 rises as δ grows.",
             ),
             DELTA_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)",
+                paragraphs[index + 1].strip(),
+            ), name
+
+
+#: What :class:`Broad` gives from the committed Open Source Asset Pricing
+#: release 202510, ``MomSeasonShort`` long-short, 1965-01 to 2001-12 and
+#: 2002-01 to 2024-12. Entry 52 of the replication log carries the means and ts.
+PINNED_BROAD = Broad(
+    before=0.013133990629309849,
+    before_error=0.013133990629309849 / 8.280547072932409,
+    after=0.0012242855992733068,
+    after_error=0.0012242855992733068 / 0.5042545079355029,
+    first=1965,
+    split=2002,
+    last=2024,
+)
+
+
+class TestTheBroaderSeriesSketches:
+    """The two under "What a broader series shows"."""
+
+    def test_they_are_two_in_the_order_the_post_reads_them(self, broad) -> None:
+        assert [gif_name(scene) for scene in broad] == BROAD_GIFS
+
+    def test_the_release_gives_the_pinned_figures(self, project) -> None:
+        drawn = Broad.from_run(project)
+        assert (drawn.first, drawn.split, drawn.last) == (1965, 2002, 2024)
+        for field in ("before", "before_error", "after", "after_error"):
+            assert getattr(drawn, field) == pytest.approx(getattr(PINNED_BROAD, field), abs=1e-12)
+
+    def test_the_scatter_holds_the_192_months_entry_52_compares(self, project) -> None:
+        together = Together.from_runs(PINNED_IVV, project)
+        assert len(together.months) == 192
+        assert (together.months[0][0], together.months[-1][0]) == ("2009-01", "2024-12")
+        assert together.correlation == pytest.approx(0.5915365787192671, abs=1e-12)
+        theirs = np.array([m[1] for m in together.months])
+        ours = np.array([m[2] for m in together.months])
+        assert np.abs(theirs).max() < sketches.TOGETHER_LIMITS[0]
+        assert np.abs(ours).max() < sketches.TOGETHER_LIMITS[1]
+
+    def test_each_says_what_it_should(self, broad) -> None:
+        before_after, together = broad
+        assert before_after.labels == [
+            "0",
+            "1965 to 2001",
+            "1.31%",
+            "2002 to 2024",
+            "0.12%",
+            "one standard error each way",
+            "Open Source Asset Pricing, a month before costs, "
+            "NYSE and AMEX with the ones that left",
+        ]
+        assert together.labels == [
+            "the project’s month",
+            "the IVV run’s month",
+            "192 months,",
+            "2009 to 2024",
+            "correlation 0.59",
+            "they rise and fall together",
+        ]
+        assert before_after.title == "Before 2002 and after"
+
+    def test_each_mark_is_in_the_ink_its_meaning_calls_for(self, broad) -> None:
+        before_after, together = broad
+        assert [_fill(before_after, gid).color for gid in ("before", "after")] == [ACCENT, ACCENT]
+        for gid in ("before-error", "after-error", "zero"):
+            ink = whiteboard.MUTED if gid == "zero" else whiteboard.INK
+            assert _stroke(before_after, gid).color == ink, gid
+        assert _labelled(before_after, "1.31%").color == ACCENT
+        assert _labelled(before_after, "0.12%").color == ACCENT
+        months = _stroke(together, "months")
+        assert (months.color, months.dots > 0) == (whiteboard.INK, True)
+        assert _labelled(together, "correlation 0.59").color == GOOD
+        assert _labelled(together, "the project’s month").color == ACCENT
+
+    @pytest.mark.parametrize(
+        "figures",
+        [
+            PINNED_BROAD,
+            Broad(
+                before=0.006,
+                before_error=0.002,
+                after=-0.002,
+                after_error=0.001,
+                first=1970,
+                split=2002,
+                last=2020,
+            ),
+        ],
+        ids=["the release's", "made up"],
+    )
+    def test_each_bar_and_bracket_stands_at_its_figure(self, figures) -> None:
+        scene = sketches._broad_before_after(figures)
+        at = sketches._broad_at
+        zero = at(0.0)
+        for gid, mean, error in (
+            ("before", figures.before, figures.before_error),
+            ("after", figures.after, figures.after_error),
+        ):
+            bar = _fill(scene, gid)
+            assert (bar.x0, bar.x1) == (pytest.approx(zero), pytest.approx(at(mean))), gid
+            span = _stroke(scene, f"{gid}-error")
+            assert (span.x.min(), span.x.max()) == (
+                pytest.approx(at(mean - error)),
+                pytest.approx(at(mean + error)),
+            ), gid
+            assert _labelled(scene, f"{100 * mean:.2f}%").color == ACCENT
+        assert f"{figures.first} to {figures.split - 1}" in scene.labels
+        assert f"{figures.split} to {figures.last}" in scene.labels
+
+    def test_the_after_bracket_crosses_zero_and_the_before_one_does_not(self) -> None:
+        """What the alt text says, held on the release's figures."""
+        b = PINNED_BROAD
+        assert b.after - b.after_error < 0 < b.after + b.after_error
+        assert b.before - b.before_error > 0
+
+    def test_each_dot_stands_at_its_month(self, broad, project) -> None:
+        together = Together.from_runs(PINNED_IVV, project)
+        months = _stroke(broad[1], "months")
+        xs, ys = sketches._together_at(
+            np.array([m[1] for m in together.months]), np.array([m[2] for m in together.months])
+        )
+        assert months.x == pytest.approx(xs)
+        assert months.y == pytest.approx(ys)
+        cx, cy = sketches.TOGETHER_CENTRE
+        assert sketches._together_at(0.0, 0.0) == (pytest.approx(cx), pytest.approx(cy))
+        theirs = np.array([m[1] for m in together.months])
+        ours = np.array([m[2] for m in together.months])
+        assert np.argmax(months.x) == np.argmax(theirs), "the project's best month is rightmost"
+        assert np.argmax(months.y) == np.argmax(ours), "the IVV run's best month is highest"
+        assert np.argmin(months.x) == np.argmin(theirs)
+        assert np.argmin(months.y) == np.argmin(ours)
+
+    def test_both_build_slowly_and_only_the_scatter_needs_the_archive(self) -> None:
+        assert {"broad_before_after", "broad_together"} <= set(sketches.PACED)
+        assert "broad_together" in sketches.ARCHIVE_SLUGS
+        assert "broad_before_after" not in sketches.ARCHIVE_SLUGS
+
+    def test_each_alt_text_quotes_its_words_and_says_what_it_shows(self, broad) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for scene in broad:
+            alt = _alt(text, scene)
+            for label in scene.labels:
+                assert f"“{label}”" in alt, (scene.slug, label)
+            assert "drawn slowly stroke by stroke" in alt and "holds for twelve seconds" in alt
+        alt = _alt(text, broad[0])
+        assert "its bracket crosses zero" in alt and "far from zero" in alt
+        assert "brown bar" in alt and "black bracket" in alt
+        alt = _alt(text, broad[1])
+        assert "tilts up to the right" in alt and "in green" in alt
+
+    def test_each_follows_its_paragraph(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("#### What a broader series shows")
+        end = text.index("\n## ", start)
+        paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
+        for opening, name in zip(
+            ("A broader series agrees with the registered run.", "Over the 192 months"),
+            BROAD_GIFS,
             strict=True,
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]

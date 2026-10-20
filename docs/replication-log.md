@@ -2838,11 +2838,12 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one figure,
 which `uv run python -m chan.equity_seasonals_figures` redraws. So do the
 whiteboard sketches that print figures, which `uv run python -m
-chan.equity_seasonals_whiteboard` redraws, eight of them on a machine with the
+chan.equity_seasonals_whiteboard` redraws, nine of them on a machine with the
 archive. Those are the two opening sketches, four of the seven rule sketches,
 the split sketch, the five-year check's three, the January ranges sketch and
-six of the seven sketches on whether Heston and Sadka's effect survived the
-book, three of them on where its 4.2 percent comes from.
+eight of the nine sketches on whether Heston and Sadka's effect survived the
+book, three of them on where its 4.2 percent comes from and two on what a
+broader series shows.
 `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) derives the
 rule sketches' figures from Chan's files, `TestTheYearsInsideTheSplit` the split
@@ -2854,9 +2855,10 @@ moves with a re-pin of either. The January ranges sketch draws the registered
 January run's eighteen Januaries and, beside each, row 50's January with every
 missing member left out. `PINNED_RANGES` there moves with a re-pin of either.
 The checked, leavers and running-sum sketches draw row 41's months and
-coverage and row 49's departures from the IVV run, and the 4.2 percent's three
-draw the critical value and δ from row 41's month count, so `PINNED_IVV` there
-moves with a re-pin of any of them.
+coverage and row 49's departures from the IVV run, the 4.2 percent's three
+draw the critical value and δ from row 41's month count, and the broader
+series' scatter draws row 41's months against Entry 52's, so `PINNED_IVV`
+there moves with a re-pin of any of them.
 
 ## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*
 
@@ -11917,7 +11919,10 @@ The sketch "Before 2002, without survivors" in
 the first conclusion's 0.0136, its standard error and 0.0131, read from this
 run. `PINNED_OSAP` in
 [tests/test_equity_seasonals_whiteboard.py](../tests/test_equity_seasonals_whiteboard.py)
-moves with a re-pin of any of them.
+moves with a re-pin of any of them. "Before 2002 and after" draws the means
+and standard errors of 1965 to 2001 and of 2002 to 2024, which `PINNED_BROAD`
+there pins, and "Moving together" draws row 5's 192 months and their
+correlation of 0.592.
 
 ### What this entry cannot say
 
