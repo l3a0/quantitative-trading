@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws thirty-two scenes, and the post places each right after the
+This module draws thirty-three scenes, and the post places each right after the
 text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
@@ -151,8 +151,8 @@ question, each after the text it draws:
 All three draw the critical value and δ from :class:`Shift`, which reads only
 the IVV run's month count, and all three build slowly.
 
-The last two sit under "What a broader series shows", one after each of its
-two paragraphs:
+The last three sit under "What a broader series shows", the first two after
+each of its two paragraphs and the third after the second:
 
 1. Before 2002 and after: Open Source Asset Pricing's mean a month from 1965
    to 2001 and from 2002 to 2024, as bars to one scale with one standard
@@ -162,8 +162,12 @@ two paragraphs:
    project's series share, the project's return across and the run's up, with
    their correlation. :class:`Together` reads the release and the IVV run's
    months, so it needs the archive.
+3. Two running sums: the same months added up, neither halved, so the
+   project's long-short gap swings about twice as far as the IVV run's rule,
+   which earns half of it. Each line moves with the other while they drift
+   apart in level.
 
-Both build slowly.
+All three build slowly.
 
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
@@ -186,10 +190,10 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all thirty-two with the command below.
-Nine sketches read the archive, so on a machine
+with no change is a no-op diff. Redraw all thirty-three with the command below.
+Ten sketches read the archive, so on a machine
 without it the command redraws the other twenty-three and exits non-zero
-naming the nine it left, :data:`ARCHIVE_SLUGS`::
+naming the ten it left, :data:`ARCHIVE_SLUGS`::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -3025,6 +3029,62 @@ def _broad_together(t: Together) -> Scene:
     return Scene("Moving together", "broad_together", tuple(steps))
 
 
+#: The running-sums scene's span along the board, where zero sits, the sums
+#: its scale runs from and to, and how far up the board the top one sits.
+RUNNING_SUMS_X, RUNNING_SUMS_ZERO = (1.0, 7.2), 1.55
+RUNNING_SUMS_LOW, RUNNING_SUMS_HIGH, RUNNING_SUMS_TOP = -0.3, 0.6, 3.65
+
+
+def _running_sums_up(total: float | np.ndarray) -> float | np.ndarray:
+    per = (RUNNING_SUMS_TOP - RUNNING_SUMS_ZERO) / RUNNING_SUMS_HIGH
+    return RUNNING_SUMS_ZERO + np.asarray(total) * per
+
+
+def _broad_running(t: Together) -> Scene:
+    """Both series' shared months added up, each in its own units, to one
+    vertical scale: the project's long-short gap, and the IVV run's rule,
+    which earns half of it."""
+    theirs = np.concatenate([[0.0], np.cumsum([m[1] for m in t.months])])
+    ours = np.concatenate([[0.0], np.cumsum([m[2] for m in t.months])])
+    x0, x1 = RUNNING_SUMS_X
+    xs = np.linspace(x0, x1, len(theirs))
+    zero = RUNNING_SUMS_ZERO
+    first, last = t.months[0][0][:4], t.months[-1][0][:4]
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("zero", _line([(x0, zero), (x1, zero)]), color=MUTED, frames=6),
+        Label("0", x0 - 0.25, zero, names="zero", color=MUTED, ha="right", size=11),
+        Label(first, x0, 0.3, names="zero", color=MUTED, ha="center", size=10),
+        Label(last, x1, 0.3, names="zero", color=MUTED, ha="center", size=10),
+        _stroke("theirs", (xs, _running_sums_up(theirs)), color=ACCENT, width=2.2, frames=20),
+        Label(
+            "the project’s series",
+            x1 + 0.15,
+            float(_running_sums_up(theirs[-1])) + 0.2,
+            names="theirs",
+            color=ACCENT,
+            size=9,
+        ),
+        _stroke("ours", (xs, _running_sums_up(ours)), width=2.4, frames=20),
+        Label(
+            "the IVV run",
+            x1 + 0.15,
+            float(_running_sums_up(ours[-1])) - 0.2,
+            names="ours",
+            size=9,
+        ),
+        Label(
+            "both added up, neither halved",
+            9.6,
+            4.3,
+            names="ours",
+            color=MUTED,
+            ha="right",
+            size=10,
+        ),
+    ]
+    return Scene("Two running sums", "broad_running", tuple(steps))
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
@@ -3043,6 +3103,7 @@ PACED = (
     "delta_bracket",
     "broad_before_after",
     "broad_together",
+    "broad_running",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
@@ -3433,7 +3494,7 @@ def make_equity_seasonals_whiteboards(
     opening's two first, then the two strategies', then the seven rules',
     then the split's, then the five-year check's three, then Lesson 3's three,
     then the January section's three, then section 2's two, then section 3's
-    nine.
+    ten.
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
@@ -3470,7 +3531,8 @@ def make_equity_seasonals_whiteboards(
     january.append(_write(_january_ranges(ranges), folder))
     section_3 += [_write(scene, folder) for scene in ivv_scenes(ivv)[1:]]
     section_3 += [_write(scene, folder) for scene in delta_scenes(ivv)]
-    broad.append(_write(_broad_together(Together.from_runs(ivv, project)), folder))
+    together = Together.from_runs(ivv, project)
+    broad += [_write(_broad_together(together), folder), _write(_broad_running(together), folder)]
     return (
         paths
         + strategies
@@ -3497,6 +3559,7 @@ ARCHIVE_SLUGS = (
     "delta_shortcut",
     "delta_bracket",
     "broad_together",
+    "broad_running",
 )
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -3515,7 +3578,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other twenty-three GIFs are already written. The nine left stale
+        # The other twenty-three GIFs are already written. The ten left stale
         # are named, and the exit is non-zero, so a redraw on a machine
         # without the archive does not read as a full one.
         stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)

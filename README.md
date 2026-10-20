@@ -2608,7 +2608,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's thirty-two GIFs are checked the same way by
+equity seasonals post's thirty-three GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3198,7 +3198,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries thirty-two looping whiteboard sketches, drawn by
+The post also carries thirty-three looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3299,11 +3299,14 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 32. `equity_seasonals_broad_together.gif`, a dot for each of the 192 months
     from 2009 to 2024 that the project's series and the IVV run share, which
     tilt up together at a correlation of 0.59.
+33. `equity_seasonals_broad_running.gif`, the same 192 months added up, neither
+    halved, so the project's series swings about twice as far as the IVV run
+    and ends above zero where the run ends below it.
 
 Like the strategy sketches, Lesson 3's three, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The
 sources sketch carries no figure a run computes, only each source's cost.
-Fourteen sketches build more slowly than the rest and hold their finished
+Fifteen sketches build more slowly than the rest and hold their finished
 drawings for twelve seconds, because each carries more than the usual pace lets
 a reader take in.
 
@@ -3314,17 +3317,18 @@ a reader take in.
    22 and 23.
 5. The leavers sketch, 26.
 6. The three sketches of the 4.2 percent's derivation, 28 to 30.
-7. The two broader-series sketches, 31 and 32.
+7. The three broader-series sketches, 31 to 33.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Nine sketches read the owner's archive: the verdicts sketch, the ranges sketch,
+Ten sketches read the owner's archive: the verdicts sketch, the ranges sketch,
 section 3's checked, leavers and running-sum sketches, the three of the 4.2
 percent's derivation, which read the run's month count, and the broader series'
-scatter, which reads the run's months. On a machine without it the command
-redraws the other twenty-three and exits non-zero, naming the nine it left.
+scatter and running sums, which read the run's months. On a machine without it
+the command redraws the other twenty-three and exits non-zero, naming the ten
+it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
@@ -3338,8 +3342,8 @@ the companies that left out of the file, its ranking and its saved panel, that
 section 2's sketches tick and cross each source as the post describes it and
 draw each bar at its figure, that the 4.2 percent's three sketches put the
 critical value, δ and each bracket where the test's figures say, that the
-broader series' bars and dots stand at the release's and the run's figures,
-that fourteen sketches build slowly and hold for
+broader series' bars, dots and running sums stand at the release's and the
+run's figures, that fifteen sketches build slowly and hold for
 twelve seconds, that the ranges sketch
 draws each January from its low to its high, that section 3's sketches hold a
 change until the next filing, split each bar at its share and add up the

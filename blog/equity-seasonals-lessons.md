@@ -424,6 +424,8 @@ Over the 192 months it shares with the run on IVV’s members, 2009 to 2024, it 
 
 ![An animated whiteboard sketch titled “Moving together”, drawn slowly stroke by stroke. Two grey axes cross, one labelled “the project’s month” across and one “the IVV run’s month” up. A black dot for each month fills in, a cloud that tilts up to the right. Beside it the words “192 months,” and “2009 to 2024” and, in green, “correlation 0.59”. The words “they rise and fall together” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_broad_together.gif)
 
+![An animated whiteboard sketch titled “Two running sums”, drawn slowly stroke by stroke. A grey line marks “0” from “2009” to “2024”, and a note reads “both added up, neither halved”. A brown line, “the project’s series”, climbs well above zero in the middle years, falls back, and ends above it. A black line, “the IVV run”, wanders a little below zero and ends there, rising and falling with the brown one on a smaller scale. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_broad_running.gif)
+
 ## What this means for a trader
 
 Three habits follow from the lessons above.

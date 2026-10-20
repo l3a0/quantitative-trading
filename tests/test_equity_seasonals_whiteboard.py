@@ -1,13 +1,13 @@
-"""The pins for the thirty-two whiteboard GIFs in the equity-seasonals post.
+"""The pins for the thirty-three whiteboard GIFs in the equity-seasonals post.
 
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, three its
 lesson on survivorship bias, three its question on whether the January effect
 survived the book, two its question on whether Heston and Sadka's effect
-existed before 2002, and nine its question on whether Heston and Sadka's
-effect survived it, three of them on where its 4.2 percent comes from and two
-on what a broader series shows. The
+existed before 2002, and ten its question on whether Heston and Sadka's
+effect survived it, three of them on where its 4.2 percent comes from and
+three on what a broader series shows. The
 opening's timeline places each source's years to scale, from Chan's committed
 files and the registered runs' constants, and its verdicts sketch draws the
 two registered runs' figures to scale. Those figures are pinned here as
@@ -60,9 +60,9 @@ gives. Section 3's carry-forward sketch is schematic, and its other three draw
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
-:data:`PINNED_IVV`'s month count. Fourteen sketches build slowly, and their
-pace is pinned too. The broader series' two read the committed Open Source
-Asset Pricing release, and the second also :data:`PINNED_IVV`'s months.
+:data:`PINNED_IVV`'s month count. Fifteen sketches build slowly, and their
+pace is pinned too. The broader series' three read the committed Open Source
+Asset Pricing release, and the last two also :data:`PINNED_IVV`'s months.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -190,6 +190,7 @@ DELTA_GIFS = [
 BROAD_GIFS = [
     "equity_seasonals_broad_before_after.gif",
     "equity_seasonals_broad_together.gif",
+    "equity_seasonals_broad_running.gif",
 ]
 GIFS = (
     OPENING_GIFS
@@ -213,6 +214,7 @@ ARCHIVE_GIFS = {
     "equity_seasonals_ivv_running_sum.gif",
     *DELTA_GIFS,
     "equity_seasonals_broad_together.gif",
+    "equity_seasonals_broad_running.gif",
 }
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
@@ -651,12 +653,13 @@ def broad(project):
     return (
         sketches._broad_before_after(Broad.from_run(project)),
         sketches._broad_together(Together.from_runs(PINNED_IVV, project)),
+        sketches._broad_running(Together.from_runs(PINNED_IVV, project)),
     )
 
 
 @pytest.fixture(scope="module")
 def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, delta, broad):
-    """All thirty-two scenes in the order their GIFs are written."""
+    """All thirty-three scenes in the order their GIFs are written."""
     return (
         *opening,
         *drawn,
@@ -1153,7 +1156,8 @@ class TestTheCommand:
             "equity_seasonals_ivv_checked.gif, equity_seasonals_ivv_leavers.gif, "
             "equity_seasonals_ivv_running_sum.gif, equity_seasonals_delta_scatter.gif, "
             "equity_seasonals_delta_shortcut.gif, equity_seasonals_delta_bracket.gif, "
-            f"equity_seasonals_broad_together.gif were not redrawn: {refusal}"
+            "equity_seasonals_broad_together.gif, equity_seasonals_broad_running.gif "
+            f"were not redrawn: {refusal}"
         )
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
@@ -1921,6 +1925,7 @@ class TestTheFiveYearSketches:
                     "delta_bracket",
                     "broad_before_after",
                     "broad_together",
+                    "broad_running",
                 )
             )
             assert {f.ms for f in labels} <= {
@@ -2904,9 +2909,9 @@ PINNED_BROAD = Broad(
 
 
 class TestTheBroaderSeriesSketches:
-    """The two under "What a broader series shows"."""
+    """The three under "What a broader series shows"."""
 
-    def test_they_are_two_in_the_order_the_post_reads_them(self, broad) -> None:
+    def test_they_are_three_in_the_order_the_post_reads_them(self, broad) -> None:
         assert [gif_name(scene) for scene in broad] == BROAD_GIFS
 
     def test_the_release_gives_the_pinned_figures(self, project) -> None:
@@ -2926,7 +2931,15 @@ class TestTheBroaderSeriesSketches:
         assert np.abs(ours).max() < sketches.TOGETHER_LIMITS[1]
 
     def test_each_says_what_it_should(self, broad) -> None:
-        before_after, together = broad
+        before_after, together, running = broad
+        assert running.labels == [
+            "0",
+            "2009",
+            "2024",
+            "the project’s series",
+            "the IVV run",
+            "both added up, neither halved",
+        ]
         assert before_after.labels == [
             "0",
             "1965 to 2001",
@@ -2948,7 +2961,11 @@ class TestTheBroaderSeriesSketches:
         assert before_after.title == "Before 2002 and after"
 
     def test_each_mark_is_in_the_ink_its_meaning_calls_for(self, broad) -> None:
-        before_after, together = broad
+        before_after, together, running = broad
+        assert _stroke(running, "theirs").color == ACCENT
+        assert _stroke(running, "ours").color == whiteboard.INK
+        assert _stroke(running, "zero").color == whiteboard.MUTED
+        assert _labelled(running, "the project’s series").color == ACCENT
         assert [_fill(before_after, gid).color for gid in ("before", "after")] == [ACCENT, ACCENT]
         for gid in ("before-error", "after-error", "zero"):
             ink = whiteboard.MUTED if gid == "zero" else whiteboard.INK
@@ -3018,9 +3035,32 @@ class TestTheBroaderSeriesSketches:
         assert np.argmin(months.x) == np.argmin(theirs)
         assert np.argmin(months.y) == np.argmin(ours)
 
-    def test_both_build_slowly_and_only_the_scatter_needs_the_archive(self) -> None:
-        assert {"broad_before_after", "broad_together"} <= set(sketches.PACED)
-        assert "broad_together" in sketches.ARCHIVE_SLUGS
+    def test_the_running_sums_add_up_each_series_unhalved(self, broad, project) -> None:
+        """Each line is its series' running sum at one vertical scale, inside
+        the scale's ends, with the project's ending above zero and the run's
+        below, as the alt text says."""
+        together = Together.from_runs(PINNED_IVV, project)
+        theirs = np.concatenate([[0.0], np.cumsum([m[1] for m in together.months])])
+        ours = np.concatenate([[0.0], np.cumsum([m[2] for m in together.months])])
+        running = broad[2]
+        up = sketches._running_sums_up
+        assert _stroke(running, "theirs").y == pytest.approx(up(theirs))
+        assert _stroke(running, "ours").y == pytest.approx(up(ours))
+        x0, x1 = sketches.RUNNING_SUMS_X
+        for line in ("theirs", "ours"):
+            stroke = _stroke(running, line)
+            assert (stroke.x[0], stroke.x[-1]) == (pytest.approx(x0), pytest.approx(x1))
+        assert up(0.0) == pytest.approx(sketches.RUNNING_SUMS_ZERO)
+        low, high = sketches.RUNNING_SUMS_LOW, sketches.RUNNING_SUMS_HIGH
+        assert low < min(theirs.min(), ours.min()) and max(theirs.max(), ours.max()) < high
+        assert theirs[-1] > 0 > ours[-1]
+        assert theirs.max() > 2 * ours.max()
+        assert up(high) == pytest.approx(sketches.RUNNING_SUMS_TOP)
+
+    def test_all_build_slowly_and_two_need_the_archive(self) -> None:
+        slugs = {"broad_before_after", "broad_together", "broad_running"}
+        assert slugs <= set(sketches.PACED)
+        assert {"broad_together", "broad_running"} <= set(sketches.ARCHIVE_SLUGS)
         assert "broad_before_after" not in sketches.ARCHIVE_SLUGS
 
     def test_each_alt_text_quotes_its_words_and_says_what_it_shows(self, broad) -> None:
@@ -3035,6 +3075,9 @@ class TestTheBroaderSeriesSketches:
         assert "brown bar" in alt and "black bracket" in alt
         alt = _alt(text, broad[1])
         assert "tilts up to the right" in alt and "in green" in alt
+        alt = _alt(text, broad[2])
+        assert "A brown line" in alt and "A black line" in alt
+        assert "ends above it" in alt and "below zero and ends there" in alt
 
     def test_each_follows_its_paragraph(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -3043,7 +3086,7 @@ class TestTheBroaderSeriesSketches:
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
             ("A broader series agrees with the registered run.", "Over the 192 months"),
-            BROAD_GIFS,
+            BROAD_GIFS[:2],
             strict=True,
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
@@ -3051,3 +3094,8 @@ class TestTheBroaderSeriesSketches:
                 rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)",
                 paragraphs[index + 1].strip(),
             ), name
+        (index,) = [k for k, p in enumerate(paragraphs) if BROAD_GIFS[1] in p]
+        assert re.fullmatch(
+            rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(BROAD_GIFS[2])}\)",
+            paragraphs[index + 1].strip(),
+        )
