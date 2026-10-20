@@ -3253,22 +3253,22 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 18. `equity_seasonals_survivors_panels.gif`, a file saved in 2007 against the
     index as it stood at each ranking date, the panel the later runs used
     from 2009.
-19. `equity_seasonals_osap_sources.gif`, under "Whether Heston and Sadka's
+19. `equity_seasonals_january_registered.gif`, under "Whether the January
+    effect survived the book", the claim, test and verdict's words written
+    down before any return is computed.
+20. `equity_seasonals_january_fill.gif`, how the low and high versions fill a
+    member with no checked price.
+21. `equity_seasonals_january_ranges.gif`, each of the registered run's
+    eighteen Januaries as a bar from its low version to its high, with a dot
+    beside each bar for that January with the unchecked members left out.
+22. `equity_seasonals_osap_sources.gif`, under "Whether Heston and Sadka's
     effect existed before 2002", CRSP, Norgate Diamond and Open Source Asset
     Pricing against four questions, with what each costs. Only Open Source
     Asset Pricing can be committed, and only it cannot run Chan's rule.
-20. `equity_seasonals_osap_before.gif`, Heston and Sadka's printed 1.15
+23. `equity_seasonals_osap_before.gif`, Heston and Sadka's printed 1.15
     percent a month against Open Source Asset Pricing's 1.36 percent over
     their sample, with one standard error each way, and 1.31 percent before
     Chan's 2002, against Chan's 13 percent a year as 1.08 percent a month.
-21. `equity_seasonals_january_registered.gif`, under "Whether the January
-    effect survived the book", the claim, test and verdict's words written
-    down before any return is computed.
-22. `equity_seasonals_january_fill.gif`, how the low and high versions fill a
-    member with no checked price.
-23. `equity_seasonals_january_ranges.gif`, each of the registered run's
-    eighteen Januaries as a bar from its low version to its high, with a dot
-    beside each bar for that January with the unchecked members left out.
 24. `equity_seasonals_ivv_carry.gif`, under "Whether Heston and Sadka's effect
     survived the book", a company that leaves between two of IVV's filings,
     still on the list until the next one, and one that joins, not yet on it
@@ -3289,9 +3289,9 @@ finished drawings for twelve seconds, because each carries more than the usual p
 
 1. The first two of the five-year sketches, 13 and 14.
 2. The last two of Lesson 3's sketches, 17 and 18.
-3. The two sketches on whether Heston and Sadka's effect existed before 2002,
-   19 and 20.
-4. The January fill and ranges sketches, 22 and 23.
+3. The January fill and ranges sketches, 20 and 21.
+4. The two sketches on whether Heston and Sadka's effect existed before 2002,
+   22 and 23.
 5. The leavers sketch, 26.
 
 ```bash
@@ -3312,7 +3312,7 @@ that the split sketch draws each bar and bracket to one scale and colours each
 bar by its sign, that the five-year sketches draw each bar to its months and
 each dot, band and January bar at its figure, that Lesson 3's sketches keep
 the companies that left out of the file, its ranking and its saved panel, that
-section 1's sketches tick and cross each source as the post describes it and
+section 2's sketches tick and cross each source as the post describes it and
 draw each bar at its figure, that nine sketches build slowly and hold for
 twelve seconds, that the ranges sketch
 draws each January from its low to its high, that section 3's sketches hold a
@@ -3329,7 +3329,7 @@ S&P 500 file. The five-year sketches' figures are defaults in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The whiteboard test draws the verdicts from the pinned
 figures, the January ranges from `PINNED_RANGES` and section 3's figures
-from `PINNED_IVV`, and reads section 1's from the committed Open Source Asset
+from `PINNED_IVV`, and reads section 2's from the committed Open Source Asset
 Pricing release as `PINNED_OSAP`, so it runs without the archive, and three tests in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold that the
 registered runs give those figures where the archive is. The test

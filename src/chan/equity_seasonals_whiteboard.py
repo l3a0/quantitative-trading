@@ -81,26 +81,9 @@ The next three sit in Lesson 3, on survivorship bias, and are schematic:
 
 Lesson 3's second and third build slowly, as :data:`PACED` lists.
 
-The next two sit in "What this replication cannot say", under its question on
-whether Heston and Sadka's effect existed before 2002, each after the
-paragraph it illustrates:
-
-1. Three ways to get the data: CRSP, Norgate Diamond and Open Source Asset
-   Pricing against four questions, with a green tick or a red cross for each
-   and each source's cost beneath. Only Open Source Asset Pricing can be
-   committed, and only it cannot run Chan's rule. It draws no figure a run
-   computes, only the post's cost of each source.
-2. Before 2002, without survivors: a bar for Heston and Sadka's printed
-   monthly return, drawn above bars for Open Source Asset Pricing's over their
-   sample, with one standard
-   error each way, and over the years before Chan's 2002, all to one scale,
-   against a dashed line at Chan's 13 percent a year. Its figures come from
-   :class:`OsapFigures`, read from the committed release.
-
-Both build slowly.
-
-The next three sit under the question on whether the January effect survived
-the book, each after the paragraph it illustrates:
+The next three sit in "What this replication cannot say", under its question
+on whether the January effect survived the book, each after the paragraph it
+illustrates:
 
 1. What registered means: the claim, the test and the verdict's words written
    down before any return is computed, against an exploratory order.
@@ -115,6 +98,23 @@ the book, each after the paragraph it illustrates:
 
 The fill and ranges sketches build slowly as well. The registered and fill
 sketches are schematic and carry no figures.
+
+The next two sit under the question on whether Heston and Sadka's effect
+existed before 2002, each after the paragraph it illustrates:
+
+1. Three ways to get the data: CRSP, Norgate Diamond and Open Source Asset
+   Pricing against four questions, with a green tick or a red cross for each
+   and each source's cost beneath. Only Open Source Asset Pricing can be
+   committed, and only it cannot run Chan's rule. It draws no figure a run
+   computes, only the post's cost of each source.
+2. Before 2002, without survivors: a bar for Heston and Sadka's printed
+   monthly return, drawn above bars for Open Source Asset Pricing's over their
+   sample, with one standard
+   error each way, and over the years before Chan's 2002, all to one scale,
+   against a dashed line at Chan's 13 percent a year. Its figures come from
+   :class:`OsapFigures`, read from the committed release.
+
+Both build slowly.
 
 The last four sit under the question on whether Heston and Sadka's effect
 survived the book, one under each of the first four headings that split it:
@@ -2055,7 +2055,7 @@ def january_scenes(ranges: JanuaryRanges) -> tuple[Scene, ...]:
     return (_january_registered(), _january_fill(), _january_ranges(ranges))
 
 
-# --- Section 1: whether Heston and Sadka's effect existed before 2002 --------
+# --- Section 2: whether Heston and Sadka's effect existed before 2002 --------
 
 #: The three sources the section names, as the grid's columns.
 SOURCES = ("CRSP", "Norgate Diamond", "Open Source Asset Pricing")
@@ -2130,7 +2130,7 @@ def _osap_sources() -> Scene:
 
 @dataclass(frozen=True)
 class OsapFigures:
-    """What section 1's bars draw, in fractions a month.
+    """What section 2's bars draw, in fractions a month.
 
     ``printed`` is Heston and Sadka's Table 2 figure and ``chan_annual`` Chan's
     "more than 13 percent" a year, the book's figures. ``sample`` and
@@ -2229,7 +2229,7 @@ def _osap_before(f: OsapFigures) -> Scene:
 
 
 def osap_scenes(figures: OsapFigures) -> tuple[Scene, ...]:
-    """Section 1's two, in the order the post reads them."""
+    """Section 2's two, in the order the post reads them."""
     return (_osap_sources(), _osap_before(figures))
 
 
@@ -2909,7 +2909,7 @@ def make_equity_seasonals_whiteboards(
     """Write one looping GIF for each scene and return their paths, the
     opening's two first, then the two strategies', then the seven rules',
     then the split's, then the five-year check's three, then Lesson 3's three,
-    then section 1's two, then the January section's three, then section 3's
+    then the January section's three, then section 2's two, then section 3's
     four.
 
     ``spans`` is read from Chan's two committed files when it is not handed
@@ -2929,7 +2929,7 @@ def make_equity_seasonals_whiteboards(
     five = [_write(scene, folder) for scene in five_year_scenes()]
     survivors = [_write(scene, folder) for scene in survivor_scenes()]
     osap = osap if osap is not None else OsapFigures.from_run(seasonals.run_open_asset_pricing())
-    section_1 = [_write(scene, folder) for scene in osap_scenes(osap)]
+    section_2 = [_write(scene, folder) for scene in osap_scenes(osap)]
     january = [_write(_january_registered(), folder), _write(_january_fill(), folder)]
     section_3 = [_write(_ivv_carry(), folder)]
     run = seasonals.run_point_in_time() if verdicts is None or ranges is None else None
@@ -2943,7 +2943,7 @@ def make_equity_seasonals_whiteboards(
     paths.append(_write(_two_verdicts(verdicts), folder))
     january.append(_write(_january_ranges(ranges), folder))
     section_3 += [_write(scene, folder) for scene in ivv_scenes(ivv)[1:]]
-    return paths + strategies + rules + split + five + survivors + section_1 + january + section_3
+    return paths + strategies + rules + split + five + survivors + january + section_2 + section_3
 
 
 #: The sketches whose figures come from the owner's archive, which a redraw

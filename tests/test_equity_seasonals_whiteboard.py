@@ -3,9 +3,9 @@
 Two sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, three its
-lesson on survivorship bias, two its question on whether Heston and Sadka's
-effect existed before 2002, three its question on whether the January
-effect survived the book, and four its question on whether Heston and Sadka's
+lesson on survivorship bias, three its question on whether the January
+effect survived the book, two its question on whether Heston and Sadka's
+effect existed before 2002, and four its question on whether Heston and Sadka's
 effect survived it. The opening's timeline places each source's years to
 scale, from Chan's committed files and the registered runs' constants, and its
 verdicts sketch draws the two registered runs' figures to scale. Those figures
@@ -54,7 +54,7 @@ is not, which stocks a tenth holds, and where each mark stands. The January
 ranges sketch draws :data:`PINNED_RANGES`, which
 ``test_the_whiteboard_draws_these_runs_ranges`` holds the registered run
 gives. Section 3's carry-forward sketch is schematic, and its other three draw
-:data:`PINNED_IVV`. Section 1's sources sketch reads no run, and its second
+:data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its second
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. Nine sketches build slowly,
 and their pace is pinned too.
@@ -180,8 +180,8 @@ GIFS = (
     + SPLIT_GIFS
     + FIVE_YEAR_GIFS
     + SURVIVOR_GIFS
-    + OSAP_GIFS
     + JANUARY_GIFS
+    + OSAP_GIFS
     + IVV_GIFS
 )
 #: The GIFs a redraw cannot write without the owner's archive.
@@ -501,7 +501,7 @@ PINNED_IVV = IvvFigures(
     detectable=0.0422031836138127,
 )
 
-#: Section 1's figures, as ``run_open_asset_pricing`` gives them from the
+#: Section 2's figures, as ``run_open_asset_pricing`` gives them from the
 #: committed release 202510 of Open Source Asset Pricing's ``MomSeasonShort``,
 #: long-short in equal-weighted tenths of NYSE and AMEX stocks, before costs,
 #: 1965-01 to 2002-12 for ``sample`` and 1965-01 to 2001-12 for ``before``.
@@ -614,9 +614,9 @@ def ivv():
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors, osap, january, ivv):
+def every(opening, drawn, rules, split, five, survivors, january, osap, ivv):
     """All twenty-seven scenes in the order their GIFs are written."""
-    return (*opening, *drawn, *rules, *split, *five, *survivors, *osap, *january, *ivv)
+    return (*opening, *drawn, *rules, *split, *five, *survivors, *january, *osap, *ivv)
 
 
 @pytest.fixture(scope="module")
@@ -2404,8 +2404,8 @@ class TestTheSection3Sketches:
         assert seen == [monthly]
 
 
-class TestTheSection1Sketches:
-    """Section 1's two sketches: the three sources, and the figures before 2002."""
+class TestTheSection2Sketches:
+    """Section 2's two sketches: the three sources, and the figures before 2002."""
 
     def test_they_are_two_in_the_order_the_post_reads_them(self, osap) -> None:
         assert [gif_name(scene) for scene in osap] == OSAP_GIFS

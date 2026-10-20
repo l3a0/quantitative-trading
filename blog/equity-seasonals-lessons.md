@@ -254,25 +254,9 @@ Survivorship bias is what a backtest picks up when its data holds only the compa
 
 Three open questions:
 
-1. Whether Heston and Sadka’s effect existed before 2002.
-2. Whether the January effect survived the book.
+1. Whether the January effect survived the book.
+2. Whether Heston and Sadka’s effect existed before 2002.
 3. Whether Heston and Sadka’s effect survived the book.
-
-### Whether Heston and Sadka’s effect existed before 2002
-
-The file holds 13 months before 2002, all on survivors. Testing it needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
-
-1. **CRSP**, Heston and Sadka’s own source. It licenses its data to universities, government agencies and investment firms, which usually reach it through WRDS, a data service the Wharton School runs for subscribers. It publishes no price for individuals.
-2. **Norgate Data’s Diamond tier**, at $787.50 a year in October 2026. It carries US stocks back to 1950, delisted ones included, with past index membership. Whether its early decades cover as many stocks as CRSP’s is unchecked.
-3. **[The Open Source Asset Pricing project](https://www.openassetpricing.com/)**, free. It rebuilds Heston and Sadka’s signal from CRSP and publishes the monthly returns of portfolios sorted on it. Those are its portfolios rather than Chan’s rule, so they test the effect rather than reproduce Example 7.7.
-
-The two paid sources’ licences bar republishing their data. Every result here is computed from data committed beside it, so that anyone can recompute it.
-
-![An animated whiteboard sketch titled “Three ways to get the data”, drawn slowly stroke by stroke as a grid. Its columns are “CRSP”, “Norgate Diamond” and “Open Source Asset Pricing”, and its rows ask whether each “keeps the companies that left”, “reaches back to 1965”, “can be committed here” and “runs Chan’s own rule”. Green ticks fill the first two rows for all three. On “can be committed here” CRSP and Norgate Diamond get red crosses and Open Source Asset Pricing a tick, and on “runs Chan’s own rule” the first two get ticks and Open Source Asset Pricing a cross. Below, the costs read “institutions only”, “$787.50 a year” and “free”. The words “only Open Source Asset Pricing can be committed, and it cannot run Chan’s rule” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_sources.gif)
-
-The free source has since been read. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on a panel that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, with a t-statistic of 8.63, where they printed 1.15 percent. Before 2002 alone it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on a panel without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, which does not separate the two. That is the project’s construction rather than Chan’s rule, and the comparison was run after a first look at these numbers, so it is exploratory.
-
-![An animated whiteboard sketch titled “Before 2002, without survivors”, drawn slowly stroke by stroke, with three bars in percent a month to one scale. A black bar for “Heston and Sadka printed” reaches “1.15%”. Under “Open Source Asset Pricing:”, a brown bar for “1965 to 2002, their sample” reaches “1.36%”, with a bracket below it marking “one standard error each way”, which stops just short of 1.15. A second brown bar, “1965 to 2001, before Chan’s 2002”, reaches “1.31%”, past a green dashed mark for “Chan’s “more than 13%” a year, 1.08% a month”. The words “a month, before costs, NYSE and AMEX stocks with the ones that left” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_before.gif)
 
 ### Whether the January effect survived the book
 
@@ -311,6 +295,22 @@ The wording written before the run covers three outcomes.
 The two versions disagree, so the verdict is the third. Free data cannot decide whether the January effect survived the book. Prices for the members that could have fallen in a traded tenth are what could decide it.
 
 Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the survivorship bias described above, and no rule for it was written before the run, so it is exploratory rather than registered.
+
+### Whether Heston and Sadka’s effect existed before 2002
+
+Chan’s file holds 13 months before 2002, all on survivors. Testing it needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
+
+1. **CRSP**, Heston and Sadka’s own source. It licenses its data to universities, government agencies and investment firms, which usually reach it through WRDS, a data service the Wharton School runs for subscribers. It publishes no price for individuals.
+2. **Norgate Data’s Diamond tier**, at $787.50 a year in October 2026. It carries US stocks back to 1950, delisted ones included, with past index membership. Whether its early decades cover as many stocks as CRSP’s is unchecked.
+3. **[The Open Source Asset Pricing project](https://www.openassetpricing.com/)**, free. It rebuilds Heston and Sadka’s signal from CRSP and publishes the monthly returns of portfolios sorted on it. Those are its portfolios rather than Chan’s rule, so they test the effect rather than reproduce Example 7.7.
+
+The two paid sources’ licences bar republishing their data. Every result here is computed from data committed beside it, so that anyone can recompute it.
+
+![An animated whiteboard sketch titled “Three ways to get the data”, drawn slowly stroke by stroke as a grid. Its columns are “CRSP”, “Norgate Diamond” and “Open Source Asset Pricing”, and its rows ask whether each “keeps the companies that left”, “reaches back to 1965”, “can be committed here” and “runs Chan’s own rule”. Green ticks fill the first two rows for all three. On “can be committed here” CRSP and Norgate Diamond get red crosses and Open Source Asset Pricing a tick, and on “runs Chan’s own rule” the first two get ticks and Open Source Asset Pricing a cross. Below, the costs read “institutions only”, “$787.50 a year” and “free”. The words “only Open Source Asset Pricing can be committed, and it cannot run Chan’s rule” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_sources.gif)
+
+The free source has since been read. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on a panel that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, with a t-statistic of 8.63, where they printed 1.15 percent. Before 2002 alone it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on a panel without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, which does not separate the two. That is the project’s construction rather than Chan’s rule, and the comparison was run after a first look at these numbers, so it is exploratory.
+
+![An animated whiteboard sketch titled “Before 2002, without survivors”, drawn slowly stroke by stroke, with three bars in percent a month to one scale. A black bar for “Heston and Sadka printed” reaches “1.15%”. Under “Open Source Asset Pricing:”, a brown bar for “1965 to 2002, their sample” reaches “1.36%”, with a bracket below it marking “one standard error each way”, which stops just short of 1.15. A second brown bar, “1965 to 2001, before Chan’s 2002”, reaches “1.31%”, past a green dashed mark for “Chan’s “more than 13%” a year, 1.08% a month”. The words “a month, before costs, NYSE and AMEX stocks with the ones that left” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_before.gif)
 
 ### Whether Heston and Sadka’s effect survived the book
 
