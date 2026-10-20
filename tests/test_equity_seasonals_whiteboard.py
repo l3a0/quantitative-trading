@@ -45,8 +45,7 @@ The split sketch prints figures from :class:`SplitFigures`, whose defaults
 ``TestTheYearsInsideTheSplit`` derives. What is pinned for it is that each
 bar and bracket stands to one scale on the file's figures and on other ones,
 that each bar and its value take the colour of their sign, and that it sits
-between the paragraph on the split's years and the one on the running-sum
-chart.
+after the running-sum chart and the paragraph on the split's years.
 
 The five-year sketches print :class:`FiveYearFigures`, which
 ``TestTheFiveYearSketches`` in ``tests/test_equity_seasonals.py`` derives.
@@ -995,14 +994,16 @@ class TestThePost:
             assert sum(name in b for b in blocks) == 1, name
 
     def test_the_split_sketch_follows_the_paragraph_on_the_years(self) -> None:
-        """Before the paragraph that explains the running-sum chart, so that
-        paragraph's "the figure below" still names the chart."""
+        """After the running-sum chart and the paragraph that reads its shape,
+        so the chart comes before the words that describe it."""
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         (index,) = [k for k, p in enumerate(paragraphs) if p.startswith("The 70 months from 2002")]
         name = re.escape(SPLIT_GIFS[0])
         assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{name}\)", paragraphs[index + 1])
-        assert paragraphs[index + 2].startswith("The figure below adds up the 83 months")
-        assert "equity_seasonals_split.png" in paragraphs[index + 3]
+        assert paragraphs[index - 1].startswith("*The running sum climbs")
+        assert "equity_seasonals_split.png" in paragraphs[index - 2]
+        assert paragraphs[index - 3].startswith("The figure below adds up the 83 months")
+        assert paragraphs[index + 2].startswith("Chan makes one claim about timing")
 
     def test_each_five_year_sketch_follows_its_paragraph(self) -> None:
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
