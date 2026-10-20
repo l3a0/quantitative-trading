@@ -143,10 +143,10 @@ question, each after the text it draws:
    value, with the 20 percent that misses it red and the 80 percent that
    clears it green.
 3. Narrowing the bracket: the chance of clearing the critical value against
-   δ, the 0.80 line, and four brackets each keeping the half the crossing is
-   in. The solver narrows faster, so the halving is the idea rather than its
-   steps, and the sketch says it draws δ from 0 to 5 where the solver starts
-   at 50.
+   δ, the 0.80 line, and the solver's own first three brackets inside δ from
+   0 to 5, from :func:`chan.equity_seasonals.shift_brackets`. It halves down
+   from 50, keeps the upper half once, then jumps close. The sketch says it
+   draws δ from 0 to 5 where the solver starts at 50.
 
 All three draw the critical value and δ from :class:`Shift`, which reads only
 the IVV run's month count, and all three build slowly.
@@ -2735,9 +2735,9 @@ def _delta_shortcut(f: IvvFigures) -> Scene:
 
 #: The bracket scene's δ axis, from 0 to 5 across the board from 2.3 to 9.3,
 #: its chance axis from 0 to 1 up the board from 2 to 3.85, and the rows the
-#: brackets narrow down, top to bottom.
+#: solver's first three brackets inside that window sit on, top to bottom.
 BRACKET_D, BRACKET_X, BRACKET_Y = (0.0, 5.0), (2.3, 9.3), (2.0, 3.85)
-BRACKET_ROWS = (1.65, 1.35, 1.05, 0.75)
+BRACKET_ROWS = (1.65, 1.3, 0.95)
 
 
 def _bracket_at(d: float | np.ndarray) -> float | np.ndarray:
@@ -2750,18 +2750,25 @@ def _bracket_up(chance: float | np.ndarray) -> float | np.ndarray:
     return y0 + np.asarray(chance) * (y1 - y0)
 
 
-def _brackets(s: Shift) -> list[tuple[float, float]]:
-    """Each row's bracket, halving the last by keeping the half the 0.80
-    crossing is in. The solver narrows faster, so this is the idea of it."""
-    low, high, out = *BRACKET_D, []
-    for _ in BRACKET_ROWS:
-        out.append((low, high))
-        middle = (low + high) / 2
-        if stats.nct.sf(s.critical, s.df, middle) < seasonals.POWER:
-            low = middle
-        else:
-            high = middle
-    return out
+def _brackets(n: int) -> tuple[list[tuple[float, float]], list[str]]:
+    """The solver's first three brackets that fit inside :data:`BRACKET_D`,
+    and what each row says about how it got there.
+
+    The solver halves its way down from 50 before that, which
+    ``test_the_rows_say_what_the_solver_did`` holds for the run's months and
+    which held for every run length tried from 5 to 10,000. The second row
+    says which half it kept, and the third is where it jumps close.
+    """
+    every = seasonals.shift_brackets(n)
+    first = next(k for k, (_, high) in enumerate(every) if high <= BRACKET_D[1])
+    shown = every[first : first + len(BRACKET_ROWS)]
+    upper = shown[1][0] > shown[0][0]
+    words = [
+        f"halved from {seasonals.SHIFT_BRACKET[1]:.0f}",
+        f"keeps the {'upper' if upper else 'lower'} half",
+        "then jumps close",
+    ]
+    return shown, words
 
 
 def _delta_bracket(f: IvvFigures) -> Scene:
@@ -2809,15 +2816,17 @@ def _delta_bracket(f: IvvFigures) -> Scene:
         ),
     ]
     last = len(BRACKET_ROWS) - 1
-    for k, ((low, high), y) in enumerate(zip(_brackets(s), BRACKET_ROWS, strict=True)):
-        steps.append(
+    shown, words = _brackets(s.df + 1)
+    for k, ((low, high), y, text) in enumerate(zip(shown, BRACKET_ROWS, words, strict=True)):
+        steps += [
             _stroke(
                 f"bracket-{k}",
                 _span(at(low), at(high), y, tick=0.08),
                 color=ACCENT if k == last else MUTED,
                 frames=4,
-            )
-        )
+            ),
+            Label(text, 0.25, y, names=f"bracket-{k}", color=MUTED, size=9),
+        ]
     steps += [
         _stroke(
             "found",
@@ -2828,14 +2837,15 @@ def _delta_bracket(f: IvvFigures) -> Scene:
         ),
         Label(
             f"δ = {s.shift:.3f}",
-            at(s.shift) + 0.2,
-            BRACKET_ROWS[-1],
+            at(s.shift) - 0.2,
+            BRACKET_ROWS[-1] - 0.35,
             names="found",
             color=ACCENT,
+            ha="right",
             size=11,
         ),
         Label(
-            f"each bracket keeps the half where the curve crosses {seasonals.POWER:.2f}",
+            f"each bracket keeps the part where the curve crosses {seasonals.POWER:.2f}",
             0.3,
             0.25,
             names="found",

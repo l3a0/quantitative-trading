@@ -2680,8 +2680,11 @@ class TestTheDeltaSketches:
             "drawn from 0 to 5, the solver starts at 50",
             "0.05",
             "0.80",
+            "halved from 50",
+            "keeps the upper half",
+            "then jumps close",
             "δ = 2.494",
-            "each bracket keeps the half where the curve crosses 0.80",
+            "each bracket keeps the part where the curve crosses 0.80",
         ]
 
     def test_the_labels_follow_the_figures(self) -> None:
@@ -2716,12 +2719,7 @@ class TestTheDeltaSketches:
             stroke = _stroke(scene, gid)
             assert (stroke.color, stroke.dashed) == (ink, dashed), (scene.slug, gid)
         spans = [s for s in bracket.strokes if s.gid.startswith("bracket-")]
-        assert [s.color for s in spans] == [
-            whiteboard.MUTED,
-            whiteboard.MUTED,
-            whiteboard.MUTED,
-            ACCENT,
-        ]
+        assert [s.color for s in spans] == [whiteboard.MUTED, whiteboard.MUTED, ACCENT]
         for scene, text, ink in (
             (scatter, "1.652, the 5% bar", LOST),
             (scatter, "clears it 5% of the time", LOST),
@@ -2772,16 +2770,21 @@ class TestTheDeltaSketches:
         assert _stroke(shortcut, "clear").x.min() == pytest.approx(at(s.critical))
 
     @pytest.mark.parametrize("figures", [PINNED_IVV, SHORT], ids=["the run's", "made up"])
-    def test_the_brackets_halve_onto_the_crossing(self, figures) -> None:
+    def test_the_brackets_are_the_solvers_own(self, figures) -> None:
+        """The three rows are the first three brackets the solver holds inside
+        δ from 0 to 5, each inside the last and each around δ."""
         s = Shift.of(figures)
         bracket = delta_scenes(figures)[2]
         at, up = sketches._bracket_at, sketches._bracket_up
         spans = [
             (st.x.min(), st.x.max()) for st in bracket.strokes if st.gid.startswith("bracket-")
         ]
-        assert spans[0] == (pytest.approx(at(0.0)), pytest.approx(at(5.0)))
+        every = seasonals.shift_brackets(s.df + 1)
+        first = next(k for k, (_, high) in enumerate(every) if high <= 5.0)
+        assert first == 0 or every[first - 1][1] > 5.0
+        for (x0, x1), (low, high) in zip(spans, every[first : first + 3], strict=True):
+            assert (x0, x1) == (pytest.approx(at(low)), pytest.approx(at(high)))
         for (a0, b0), (a1, b1) in zip(spans, spans[1:], strict=False):
-            assert b1 - a1 == pytest.approx((b0 - a0) / 2)
             assert a0 <= a1 + 1e-9 and b1 <= b0 + 1e-9
         assert all(a <= at(s.shift) <= b for a, b in spans)
         found = _stroke(bracket, "found")
@@ -2789,9 +2792,23 @@ class TestTheDeltaSketches:
         target = _stroke(bracket, "target")
         assert target.y == pytest.approx(np.full(target.points, up(0.8)))
         power = _stroke(bracket, "power")
-        assert power.y[0] == pytest.approx(up(0.05))
+        assert power.y[0] == pytest.approx(up(0.05), abs=0.01)
         crossing = np.interp(up(0.8), power.y, power.x)
         assert crossing == pytest.approx(at(s.shift), abs=0.02)
+
+    def test_the_rows_say_what_the_solver_did(self) -> None:
+        """For the run's 213 months it halves down from 50, keeps the upper
+        half once, then jumps close, and the words come from the brackets."""
+        every = seasonals.shift_brackets(213)
+        widths = [high - low for low, high in every[:4]]
+        ratios = [b / a for a, b in zip(widths, widths[1:], strict=False)]
+        assert ratios == pytest.approx([0.5, 0.5, 0.5])
+        assert every[3] == pytest.approx((0.0, 4.934210526315789))
+        assert every[4][0] > every[3][0] and every[4][1] == every[3][1]
+        assert every[5][1] - every[5][0] < (every[4][1] - every[4][0]) / 10
+        shown, words = sketches._brackets(213)
+        assert shown == every[3:6]
+        assert words == ["halved from 50", "keeps the upper half", "then jumps close"]
 
     def test_all_three_build_slowly_and_need_the_archive(self) -> None:
         slugs = {"delta_scatter", "delta_shortcut", "delta_bracket"}
@@ -2819,8 +2836,8 @@ class TestTheDeltaSketches:
         assert _stroke(shortcut, "gap").color == whiteboard.INK
         alt = _alt(text, bracket)
         assert "a black curve" in alt and "a brown dashed line" in alt
-        assert "four brackets" in alt and len(sketches.BRACKET_ROWS) == 4
-        assert "down to a brown one" in alt
+        assert "three brackets" in alt and len(sketches.BRACKET_ROWS) == 3
+        assert "the last is brown" in alt
 
     def test_each_follows_what_it_draws(self) -> None:
         text = POST.read_text(encoding="utf-8")

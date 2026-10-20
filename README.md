@@ -3289,8 +3289,9 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     1.652 + 0.842 = 2.494, with the 20 percent that misses 1.652 and the 80
     percent that clears it.
 30. `equity_seasonals_delta_bracket.gif`, the chance of clearing 1.652 against
-    δ, the 0.80 line, and four brackets each halving onto the crossing at
-    2.494.
+    δ, the 0.80 line, and the solver's own first three brackets inside δ from
+    0 to 5, which halve down from 50, keep the upper half once and then jump
+    close to the crossing at 2.494.
 
 Like the strategy sketches, Lesson 3's three, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The

@@ -929,8 +929,53 @@ def detectable_shift(
     """
     df = n - 1
     critical = float(stats.t.isf(significance, df))
-    shift = optimize.brentq(lambda s: stats.nct.sf(critical, df, s) - power, 0.0, 50.0, xtol=1e-12)
-    return critical, float(shift)
+    return critical, _solve_shift(critical, df, power)
+
+
+#: Where the solver's search for the noncentrality starts.
+SHIFT_BRACKET = (0.0, 50.0)
+
+
+def _solve_shift(
+    critical: float, df: int, power: float, seen: list[tuple[float, float]] | None = None
+) -> float:
+    """The noncentrality at which the statistic clears ``critical`` with
+    probability ``power``. ``seen``, when given, collects each point the
+    solver tries and how far the chance there is from ``power``."""
+
+    def gap(shift: float) -> float:
+        value = float(stats.nct.sf(critical, df, shift) - power)
+        if seen is not None:
+            seen.append((shift, value))
+        return value
+
+    return float(optimize.brentq(gap, *SHIFT_BRACKET, xtol=1e-12))
+
+
+def shift_brackets(
+    n: int, *, significance: float = SIGNIFICANCE, power: float = POWER
+) -> list[tuple[float, float]]:
+    """The bracket around the noncentrality after each point the solver tries
+    inside :data:`SHIFT_BRACKET`, as :func:`detectable_shift` finds it.
+
+    A point where the chance falls short of ``power`` raises the bracket's low
+    end, and any other point lowers its high end.
+    """
+    df = n - 1
+    critical = float(stats.t.isf(significance, df))
+    seen: list[tuple[float, float]] = []
+    _solve_shift(critical, df, power, seen)
+    low, high = SHIFT_BRACKET
+    out = []
+    for shift, value in seen:
+        if shift in SHIFT_BRACKET:
+            continue
+        if value < 0:
+            low = max(low, shift)
+        else:
+            high = min(high, shift)
+        out.append((low, high))
+    return out
 
 
 def survivor_filing() -> Filing:
