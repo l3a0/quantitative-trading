@@ -3330,27 +3330,26 @@ scatter and running sums, which read the run's months. On a machine without it
 the command redraws the other twenty-three and exits non-zero, naming the ten
 it left.
 
-[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
-holds which tenth each strategy sketch buys and shorts, which way each points
-its extremes, the timing each draws, that the opening sketches place every
-figure and date to scale and refuse figures their words would misdescribe,
-that each rule sketch prints its figures and puts its marks where they say,
-that the split sketch draws each bar and bracket to one scale and colours each
-bar by its sign, that the five-year sketches draw each bar to its months and
-each dot, band and January bar at its figure, that Lesson 3's sketches keep
-the companies that left out of the file, its ranking and its saved panel, that
-section 2's sketches tick and cross each source as the post describes it and
-draw each bar at its figure, that the 4.2 percent's three sketches put the
-critical value, δ and each bracket where the test's figures say, that the
-broader series' bars, dots and running sums stand at the release's and the
-run's figures, that fifteen sketches build slowly and hold for
-twelve seconds, that the ranges sketch
-draws each January from its low to its high, that section 3's sketches hold a
-change until the next filing, split each bar at its share and add up the
-held months to one scale, that no label touches a line,
-another label or the frame's edge, and that each GIF follows its text in the
-post. The rule sketches' figures are defaults in `RuleFigures`, and
-`TestTheRuleSketchesFigures` in
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whitebo
+ard.py) holds which tenth each strategy sketch buys and shorts, which way each
+points its extremes, the timing each draws, that the opening sketches place
+every figure and date to scale and refuse figures their words would
+misdescribe, that each rule sketch prints its figures and puts its marks where
+they say, that the split sketch draws each bar and bracket to one scale and
+colours each bar by its sign, that the five-year sketches draw each bar to its
+months and each dot, band and January bar at its figure, that Lesson 3's
+sketches keep the companies that left out of the file, its ranking and its
+saved panel, that section 2's sketches tick and cross each source as the post
+describes it and draw each bar at its figure, that the 4.2 percent's three
+sketches put the critical value, δ and each bracket where the test's figures
+say, that the broader series' bars, dots and running sums stand at the
+release's and the run's figures, that fifteen sketches build slowly and hold
+for twelve seconds, that the ranges sketch draws each January from its low to
+its high, that section 3's sketches hold a change until the next filing, split
+each bar at its share and add up the held months to one scale, that no label
+touches a line, another label or the frame's edge, and that each GIF follows
+its text in the post. The rule sketches' figures are defaults in `RuleFigures`,
+and `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The split sketch's figures are defaults in
 `SplitFigures`, and `TestTheYearsInsideTheSplit` derives each one from Chan's
@@ -3358,15 +3357,15 @@ S&P 500 file. The five-year sketches' figures are defaults in
 `FiveYearFigures`, and `TestTheFiveYearSketches` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The whiteboard test draws the verdicts from the pinned
-figures, the January ranges from `PINNED_RANGES` and section 3's figures
-from `PINNED_IVV`, and reads section 2's from the committed Open Source Asset
-Pricing release as `PINNED_OSAP`, so it runs without the archive, and three tests in
-[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold that the
-registered runs give those figures where the archive is. The test
-compares each committed GIF with a fresh draw byte for byte only on macOS
-arm64 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw
-with the USD.CAD module's strokes, timeline and renderer, so an edit there
-needs both redraw commands.
+figures, the January ranges from `PINNED_RANGES` and section 3's figures from
+`PINNED_IVV`, and reads section 2's from the committed Open Source Asset
+Pricing release as `PINNED_OSAP`, so it runs without the archive, and three
+tests in [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold
+that the registered runs give those figures where the archive is. The test
+compares each committed GIF with a fresh draw byte for byte only on macOS arm64
+in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
+the USD.CAD module's strokes, timeline and renderer, so an edit there needs
+both redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic

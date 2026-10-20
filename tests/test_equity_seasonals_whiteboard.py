@@ -55,8 +55,8 @@ pinned for them is what a reader takes from them: who is in the file and who
 is not, which stocks a tenth holds, and where each mark stands. The January
 ranges sketch draws :data:`PINNED_RANGES`, which
 ``test_the_whiteboard_draws_these_runs_ranges`` holds the registered run
-gives. Section 3's carry-forward sketch is schematic, and its other three draw
-:data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its second
+gives. Section 3's carry-forward sketch is schematic, and eight of its other
+nine draw :data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its second
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
@@ -1137,7 +1137,7 @@ class TestTheCommand:
         ],
         ids=["no archive", "January run refused", "monthly run refused"],
     )
-    def test_without_the_archive_it_names_the_five_gifs_it_left(
+    def test_without_the_archive_it_names_the_gifs_it_left(
         self, monkeypatch, refusal, tmp_path
     ) -> None:
         """It draws into a scratch folder, because a draw into the figures
@@ -2844,6 +2844,46 @@ class TestTheDeltaSketches:
         assert shown == every[3:6]
         assert words == ["halved from 50", "keeps the upper half", "then jumps close"]
 
+    def test_the_shading_and_curves_hold_their_shape(self, delta) -> None:
+        """The shortcut's curve has a spread of 1, its two shadings cover the
+        curve from end to end on each side of the bar, and every shading is
+        upright strokes joined along the base or the curve, never diagonals.
+        The moved scatter peaks near δ."""
+        scatter, shortcut, bracket = delta
+        s = PINNED_SHIFT
+        at = sketches._shortcut_at
+        centre = s.critical + s.z
+        curve = _stroke(shortcut, "curve")
+        base, height = sketches.SHORTCUT_BASE, sketches.SHORTCUT_HEIGHT
+        one_off = np.interp(at(centre + 1.0), curve.x, curve.y)
+        assert one_off == pytest.approx(base + height * math.exp(-0.5), abs=0.01)
+        miss, clear = _stroke(shortcut, "miss"), _stroke(shortcut, "clear")
+        assert miss.x.min() == pytest.approx(at(sketches.SHORTCUT_T[0] + 0.05))
+        assert clear.x.max() == pytest.approx(at(sketches.SHORTCUT_T[1] - 0.05))
+        for scene, gid in (
+            (scatter, "null-tail"),
+            (scatter, "moved-tail"),
+            (shortcut, "miss"),
+            (shortcut, "clear"),
+        ):
+            shade = _stroke(scene, gid)
+            dx, dy = np.diff(shade.x), np.diff(shade.y)
+            sideways = np.abs(dx) > 1e-9
+            slopes = np.abs(dy[sideways] / dx[sideways])
+            assert slopes.max() < 3, (scene.slug, gid)
+        moved = _stroke(scatter, "moved")
+        assert moved.x[np.argmax(moved.y)] == pytest.approx(sketches._scatter_at(s.shift), abs=0.1)
+
+    def test_the_brackets_narrow_downward_and_the_line_reaches_the_last(self, delta) -> None:
+        bracket = delta[2]
+        rows = [st.y.mean() for st in bracket.strokes if st.gid.startswith("bracket-")]
+        assert rows == pytest.approx(list(sketches.BRACKET_ROWS))
+        assert rows == sorted(rows, reverse=True)
+        assert rows[0] < sketches._bracket_up(0.0)
+        found = _stroke(bracket, "found")
+        assert found.y.min() == pytest.approx(sketches.BRACKET_ROWS[-1] - 0.12)
+        assert found.y.max() == pytest.approx(sketches._bracket_up(0.8))
+
     def test_all_three_build_slowly_and_need_the_archive(self) -> None:
         slugs = {"delta_scatter", "delta_shortcut", "delta_bracket"}
         assert slugs <= set(sketches.PACED)
@@ -2863,13 +2903,17 @@ class TestTheDeltaSketches:
         text = POST.read_text(encoding="utf-8")
         alt = _alt(text, scatter)
         assert "a grey scatter" in alt and _stroke(scatter, "null").color == whiteboard.MUTED
-        assert "a red dashed line" in alt
-        assert "shaded red" in alt and "in brown" in alt and "shaded green" in alt
+        assert "a red dashed line marks “1.652, the 5% bar”" in alt
+        assert "the thin tail past the line is shaded red" in alt
+        assert "slid right by an arrow labelled “δ = 2.494”" in alt
+        assert "its larger part past the line is shaded green" in alt and "in brown" in alt
+        assert "A red dashed line marks “1.652, the bar”" in _alt(text, shortcut)
+        assert _stroke(shortcut, "bar").color == LOST
         alt = _alt(text, shortcut)
         assert "A brown normal curve" in alt and "A black bracket" in alt
         assert _stroke(shortcut, "gap").color == whiteboard.INK
         alt = _alt(text, bracket)
-        assert "a black curve" in alt and "a brown dashed line" in alt
+        assert "A black curve" in alt and "a brown dashed line" in alt
         assert "three brackets" in alt and len(sketches.BRACKET_ROWS) == 3
         assert "the last is brown" in alt
 
@@ -3099,3 +3143,14 @@ class TestTheBroaderSeriesSketches:
             rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(BROAD_GIFS[2])}\)",
             paragraphs[index + 1].strip(),
         )
+
+
+@pytest.mark.parametrize("group", ["delta", "broad"])
+def test_each_alt_text_quotes_its_labels_in_drawing_order(group, request) -> None:
+    """The alt text follows the order the frames show, so each quoted label
+    first appears after the one drawn before it."""
+    text = POST.read_text(encoding="utf-8")
+    for scene in request.getfixturevalue(group):
+        alt = _alt(text, scene)
+        places = [alt.index(f"“{label}”") for label in scene.labels]
+        assert places == sorted(places), (scene.slug, scene.labels)

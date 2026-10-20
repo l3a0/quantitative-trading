@@ -2858,7 +2858,11 @@ The checked, leavers and running-sum sketches draw row 41's months and
 coverage and row 49's departures from the IVV run, the 4.2 percent's three
 draw the critical value and δ from row 41's month count, and the broader
 series' scatter and running sums draw row 41's months against Entry 52's, so
-`PINNED_IVV` there moves with a re-pin of any of them.
+`PINNED_IVV` there moves with a re-pin of any of them. `PINNED_SHIFT` there
+copies the critical value, δ and the normal curve's 80th percentile that
+`test_how_the_4_2_percent_is_derived` in
+[tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) pins, and
+moves with a re-pin of it.
 
 ## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*
 
