@@ -98,9 +98,27 @@ byline ids, cookies, tokens, session ids and the URLs of uploaded images.
    `test_no_committed_post_escapes_a_character_inside_text` fails when a
    committed post's math fence holds a text command, such as `\text{}` or
    `\mbox{}`, with any backslash in it other than `\$`, `\{` or `\}`.
-4. **The post names no issue or pull request.** The owner's rule for blog
+4. **Every equation and table fits a phone's width (owner directive,
+   2026-10-20).** Substack draws a display equation wider than the text
+   column with a sideways scroll bar, so on a phone its ends look cut off.
+   At a 375-pixel viewport the column is
+   343 pixels wide, so keep every math block at or under 320 pixels, which
+   also fits a 360-pixel phone. Measure rather than guess, as the section
+   below says. Three fixes have worked, and none changes a figure.
+   1. Break an equation whose parts sit side by side, joined by `\qquad` or
+      `\quad\Rightarrow\quad`, onto separate lines with `aligned` or
+      `gathered`.
+   2. Turn a table with long row labels and several number columns on its
+      side, so the long labels become short column heads, and say so in any
+      sentence that names a row or a column.
+   3. Start a table's array with `\small`, about 15 percent narrower.
+
+   Write this way from the first draft of a post rather than fixing it at
+   sync time. On 2026-10-20 the owner read the equity seasonals draft on a
+   phone and found five equations and three tables clipped.
+5. **The post names no issue or pull request.** The owner's rule for blog
    posts is to say what an issue held rather than cite it.
-5. **The post uses only shapes the converter handles.** The Python file's
+6. **The post uses only shapes the converter handles.** The Python file's
    docstring lists them. A pipe table becomes a LaTeX `array` in a math
    block, by the owner's ruling of 2026-10-10, and its cells lose their links
    and inline formatting. A cell reads only the inline Markdown the body
@@ -121,6 +139,14 @@ where `window.MathJax` exists, and run `MathJax.tex2mml(expr, {display: true})`.
 Look for `merror` and for a backslash inside `mtext`. A KaTeX check does not
 catch either failure, because KaTeX supports `\%` inside `\text{}` and MathJax
 without `textmacros` does not.
+
+To measure a block's width, use the same page in the built-in browser with
+its viewport set to 375 by 812. Render the block with
+`MathJax.tex2chtml(expr, {display: true})`, set the result's font size to
+101.8 percent as Substack's own blocks do, place it inside a clone of a
+`[data-component-name="Latex"]` element in the post body, and read the width
+of its `mjx-math` element. Measure every math block in the post at the
+pushed commit, since a table converted from pipes counts too.
 
 ## Work from the drafts list page
 
