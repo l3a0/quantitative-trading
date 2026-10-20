@@ -9,9 +9,10 @@ text it draws. The first four are these.
 
 1. Which years each source reads: one axis from 1960 to 2030, with the years
    behind Heston and Sadka's 13 percent ending at the start of 2002, where
-   Chan says the effect disappeared, Chan's two short files, the book's first
-   edition, and the two registered runs from 2009 on. Every bar is to scale,
-   from :class:`Spans`, and it builds slowly.
+   Chan says the effect disappeared, Chan's two short files, each labelled
+   with its example and index, the book's first edition, and the two
+   registered runs from 2009 on. Every bar is to scale, from :class:`Spans`,
+   and it builds slowly.
 2. Two verdicts: the January run's low and high means as one bracket that
    straddles zero, and the Heston and Sadka run's mean as a dot at zero with
    the returns its test could miss tinted up to the return it detects 80
@@ -3455,15 +3456,29 @@ def _which_years(spans: Spans) -> Scene:
         Label("“disappeared since then”", split + 0.15, 4.02, names="split", color=ACCENT, size=12),
         _stroke(
             "large-caps",
-            _line([(_year(large[0]), files_y + 0.14), (_year(large[1]), files_y + 0.14)]),
+            _line([(_year(large[0]), files_y + 0.2), (_year(large[1]), files_y + 0.2)]),
             width=5.0,
             frames=4,
         ),
+        Label(
+            "Example 7.7, S&P 500",
+            _year(large[1]) + 0.2,
+            files_y + 0.2,
+            names="large-caps",
+            size=10,
+        ),
         _stroke(
             "small-caps",
-            _line([(_year(small[0]), files_y - 0.14), (_year(small[1]), files_y - 0.14)]),
+            _line([(_year(small[0]), files_y - 0.2), (_year(small[1]), files_y - 0.2)]),
             width=5.0,
             frames=4,
+        ),
+        Label(
+            "Example 7.6, S&P 600",
+            _year(small[1]) + 0.2,
+            files_y - 0.2,
+            names="small-caps",
+            size=10,
         ),
         Label(
             "Chan’s files, survivors only",

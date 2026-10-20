@@ -3210,8 +3210,9 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
 1. `equity_seasonals_which_years.gif`, in the opening, the years each source
    reads on one axis to scale: the years behind Heston and Sadka's 13
-   percent, ending at Chan's 2002 split, Chan's two files, the book's first
-   edition, and the two registered runs from 2009 on.
+   percent, ending at Chan's 2002 split, Chan's two files, each labelled with
+   its example and index, the book's first edition, and the two registered
+   runs from 2009 on.
 2. `equity_seasonals_two_verdicts.gif`, in the opening and again at the end
    of "What this means for a trader", the two registered runs' verdicts on
    number lines, each to its own scale: the January bracket from −0.1047 to

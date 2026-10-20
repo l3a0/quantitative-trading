@@ -1366,10 +1366,26 @@ class TestTheTimeline:
             "2020",
             "Heston and Sadka’s 13%, before 2002",
             "“disappeared since then”",
+            "Example 7.7, S&P 500",
+            "Example 7.6, S&P 600",
             "Chan’s files, survivors only",
             "the book",
             "two later runs, index as it stood",
         ]
+
+    def test_each_file_names_its_example_beside_its_bar(self, opening, spans) -> None:
+        """The S&P 500 file is Example 7.7's and the S&P 600 file Example 7.6's,
+        each labelled level with its own bar and just past its end."""
+        scene = opening[0]
+        for gid, text, (_, end) in (
+            ("large-caps", "Example 7.7, S&P 500", spans.large_caps),
+            ("small-caps", "Example 7.6, S&P 600", spans.small_caps),
+        ):
+            bar, label = _stroke(scene, gid), _labelled(scene, text)
+            assert label.names == gid
+            assert label.y == pytest.approx(bar.y[0])
+            assert label.x == pytest.approx(_year(end) + 0.2)
+        assert _stroke(scene, "large-caps").y[0] > _stroke(scene, "small-caps").y[0]
 
     def test_every_bar_sits_at_its_dates(self, opening, spans) -> None:
         scene = opening[0]
