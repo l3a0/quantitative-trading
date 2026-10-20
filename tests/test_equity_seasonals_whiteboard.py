@@ -968,6 +968,23 @@ class TestThePost:
             embed = paragraphs[index + 1]
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
 
+    def test_the_two_definitions_bring_their_sketches_into_the_opening(self) -> None:
+        """The opening explains survivorship bias and the registered label, so
+        the sketch for each sits right after the paragraph that explains it."""
+        text = POST.read_text(encoding="utf-8")
+        opening = text[: text.index("\n## The two strategies")]
+        paragraphs = [p for p in opening.split("\n\n") if p.strip()]
+        for start, name in (
+            ("Running Chan’s code on his own data files", SURVIVOR_GIFS[0]),
+            ("For each, this repository wrote down the claim", JANUARY_GIFS[0]),
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(start)]
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", paragraphs[index + 1]
+            ), name
+        assert any("is called survivorship bias" in p for p in paragraphs)
+        assert any("is called registered" in p for p in paragraphs)
+
     def test_each_rule_sketch_closes_the_rule_it_draws(self) -> None:
         """Example 7.6's rules 2 and 3, then Example 7.7's rules 1, 2, 3, 5 and
         8, each with its sketch as the last block before the next heading."""
@@ -1021,10 +1038,10 @@ class TestThePost:
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
 
     def test_lesson_3s_sketches_follow_their_paragraphs(self) -> None:
-        """The saved file after the paragraph that defines survivorship bias,
-        the ranking after the one on what the strategies could trade, and the
-        two ways to build the data after the one on keeping the companies that
-        left."""
+        """The ranking after the paragraph on what the strategies could trade,
+        and the two ways to build the data after the one on keeping the
+        companies that left. The saved-file sketch moved to the opening with
+        the definition of survivorship bias."""
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         (define,) = [
             k for k, p in enumerate(paragraphs) if p.startswith("Survivorship bias is what")
@@ -1036,27 +1053,26 @@ class TestThePost:
             k for k, p in enumerate(paragraphs) if p.startswith("[The post on survivorship and")
         ]
         for offset, name in (
-            (define + 1, SURVIVOR_GIFS[0]),
             (trade + 1, SURVIVOR_GIFS[1]),
             (panel + 1, SURVIVOR_GIFS[2]),
         ):
             embed = paragraphs[offset]
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
-        assert (trade, panel) == (define + 2, define + 4)
+        assert (trade, panel) == (define + 1, define + 3)
 
     def test_each_january_sketch_follows_its_paragraph(self) -> None:
-        """Each after its own paragraph, all three under the January question."""
+        """The fill and ranges sketches after their paragraphs under the January
+        question. The registered sketch moved to the opening with its definition."""
         text = POST.read_text(encoding="utf-8")
         start = text.index("### Whether the January effect survived the book")
         end = text.index("\n### ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
             (
-                "It is a one-sided t-test on the 18 Januaries",
                 "That match is what shows",
                 "Each version goes through the same test",
             ),
-            JANUARY_GIFS,
+            JANUARY_GIFS[1:],
             strict=True,
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]

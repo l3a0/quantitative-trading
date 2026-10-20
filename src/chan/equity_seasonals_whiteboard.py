@@ -70,7 +70,9 @@ Their figures come from :class:`FiveYearFigures`. The first two carry more
 than the usual pace lets a reader take in, so :func:`sketch_timeline` holds
 each of their labels longer and their finished drawings for twelve seconds.
 
-The next three sit in Lesson 3, on survivorship bias, and are schematic:
+The next three are about survivorship bias and are schematic. The post places
+the first in its opening, beside its explanation of the bias, and the other
+two in Lesson 3:
 
 1. What a saved file can see: six companies' lines run to the save in 2007
    and three stop early, because the company was acquired, shrank out of the
@@ -84,9 +86,10 @@ The next three sit in Lesson 3, on survivorship bias, and are schematic:
 
 Lesson 3's second and third build slowly, as :data:`PACED` lists.
 
-The next three sit in "What this replication cannot say", under its question
-on whether the January effect survived the book, each after the paragraph it
-illustrates:
+The next three belong to the question on whether the January effect survived
+the book. The post places the first in its opening, beside its explanation of
+a registered result, and the other two under that question, each after the
+paragraph it illustrates:
 
 1. What registered means: the claim, the test and the verdict's words written
    down before any return is computed, against an exploratory order.

@@ -3252,19 +3252,21 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     against the rerun's standard error of 0.0281, on one number line.
 15. `equity_seasonals_five_year_januaries.gif`, Example 7.6's three
     reproduced Januaries as three bars.
-16. `equity_seasonals_survivors_file.gif`, in Lesson 3, the companies a file
-    saved in 2007 holds against the ones that left before the save.
-17. `equity_seasonals_survivors_ranking.gif`, a month's ranking as it stood
-    against the same ranking as the file holds it, whose worst tenth is a
-    different set.
+16. `equity_seasonals_survivors_file.gif`, in the opening beside its
+    explanation of survivorship bias, the companies a file saved in 2007 holds
+    against the ones that left before the save.
+17. `equity_seasonals_survivors_ranking.gif`, in Lesson 3, a month's ranking
+    as it stood against the same ranking as the file holds it, whose worst
+    tenth is a different set.
 18. `equity_seasonals_survivors_panels.gif`, a file saved in 2007 against the
     index as it stood at each ranking date, the panel the later runs used
     from 2009.
-19. `equity_seasonals_january_registered.gif`, under "Whether the January
-    effect survived the book", the claim, test and verdict's words written
-    down before any return is computed.
-20. `equity_seasonals_january_fill.gif`, how the low and high versions fill a
-    member with no checked price.
+19. `equity_seasonals_january_registered.gif`, in the opening beside its
+    explanation of a registered result, the claim, test and verdict's words
+    written down before any return is computed.
+20. `equity_seasonals_january_fill.gif`, under "Whether the January effect
+    survived the book", how the low and high versions fill a member with no
+    checked price.
 21. `equity_seasonals_january_ranges.gif`, each of the registered run's
     eighteen Januaries as a bar from its low version to its high, with a dot
     beside each bar for that January with the unchecked members left out.
