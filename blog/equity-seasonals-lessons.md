@@ -308,6 +308,10 @@ The two versions disagree, so the verdict is the third. Free data cannot decide 
 
 Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the survivorship bias described above, and no rule for it was written before the run, so it is exploratory rather than registered.
 
+#### What 18 Januaries can detect
+
+Even with every price checked, 18 Januaries could not show a small effect. Example 7.6 trades once a year, so its test has 18 numbers to work with. The smallest average January the test would catch four times in five is 0.0547 for the low version and 0.0615 for the high one, a gain of about 5.5 to 6 percent each January. A true effect smaller than that could pass unseen, and Chan’s own three Januaries, −0.0244, −0.0068 and 0.0881, sit mostly inside that range. Settling the January effect needs more Januaries as well as better prices, and more Januaries take more years.
+
 ### Whether Heston and Sadka’s effect existed before 2002
 
 Chan’s file holds 13 months before 2002, all on survivors. Testing it needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
@@ -349,6 +353,8 @@ Dropping the rest is harmless only if leaving the index has little to do with wh
 The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would give a t-statistic at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months.
 
 ![An animated whiteboard sketch titled “213 months add up to nothing”, drawn stroke by stroke. A grey zero line runs from 2009 to 2026. A green dashed line, labelled “13% a year, the book’s figure”, climbs steeply above it, and a brown dashed line labelled “4.2% a year” climbs more gently. A black line labelled “the run’s 213 months, added up” runs just below zero nearly the whole way, lowest in 2021, and ends just below it. The words “a mean of −0.0001 a month: flat, under the 4.2% a year its test could detect” close the sketch.](../docs/figures/equity_seasonals_ivv_running_sum.gif)
+
+The green line draws the book’s 13 percent as printed. Read as Heston and Sadka’s figure, that is the gap between the best tenth and the worst, and Chan’s rule earns half that gap, so at the rule’s scale it is about 6.5 percent a year. The run falls well short of either.
 
 #### What the verdict says
 
