@@ -31,7 +31,7 @@ The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/q
 
 ## The two strategies
 
-**Example 7.6, the January effect.** It is a mean reversion trade, betting that last year’s losers recover in January and its winners give some back. At each December year-end, rank the S&P 600 small caps on their return over the calendar year. Buy the worst tenth and short the best tenth at that close, and exit both at January’s last close. The reason Chan gives is that investors sell their losers in December to claim the tax loss, and the selling pressure lifts in January (p. 175). Each trade pays two one-way costs of 5 basis points.
+**Example 7.6, the January effect.** It is a mean reversion trade, betting that last year’s losers recover in January and its winners give some back. At each December year-end, rank the S&P 600, an index of 600 smaller US companies, on their return over the calendar year. Buy the worst tenth and short the best tenth at that close, selling borrowed shares so the trade gains when they fall, and exit both at January’s last close. The reason Chan gives is that investors sell their losers in December to claim the tax loss, and the selling pressure lifts in January (p. 175). Each trade pays a cost of 5 basis points, or 0.05 percent, to enter and another 5 to exit.
 
 ![An animated whiteboard sketch titled “The January trade”, drawn stroke by stroke. A long black bar labelled “a year of returns” ends at a brown dot, and a short thick brown segment one twelfth as long runs on from it, labelled “hold January”. A grey arrow labelled “rank at the year’s last close” points down to a rising row of twenty grey dots, the stocks sorted from the lowest return at the lower left to the highest at the upper right. A green ring circles the lowest two, labelled “buy the worst tenth”, and a red ring the highest two, labelled “short the best tenth”. On the right a red arrow points down, labelled “winners down”, above a green arrow pointing up, labelled “losers up”, and the words “mean reversion” close the sketch.](../docs/figures/equity_seasonals_january_trade.gif)
 
@@ -39,7 +39,7 @@ The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/q
 
 ![An animated whiteboard sketch titled “The same-month trade”, drawn stroke by stroke. Two strips of twelve cells stand one above the other, labelled “last year” and “this year”. March is outlined in brown on the upper strip and labelled “March”, and a brown arrow drops from it to March on the lower strip. The upper strip ends with the words “rank on” and the lower with “hold”. April is then outlined in grey on both strips, labelled “then April, May, …”. Below, a rising row of twenty grey dots sorts the stocks from the lowest return to the highest. A green ring circles the highest two, labelled “buy the best tenth”, and a red ring the lowest two, labelled “short the worst tenth”. On the right a green arrow points up, labelled “winners up”, above a red arrow pointing down, labelled “losers down”, and the words “seasonal momentum” close the sketch.](../docs/figures/equity_seasonals_same_month_trade.gif)
 
-Each of Chan’s scripts for Example 7.7 turns its monthly returns into an annual return and a Sharpe ratio as below, with no risk-free rate. Here r̄ is the mean monthly return and s its standard deviation.
+Each of Chan’s scripts for Example 7.7 turns its monthly returns into an annual return and a Sharpe ratio as below. The Sharpe ratio is return per unit of risk: the average return divided by its standard deviation, the typical size of a month’s swing around that average. Chan’s scripts subtract no risk-free rate, the return on cash, before dividing. Here r̄ is the mean monthly return and s its standard deviation.
 
 ```math
 \begin{aligned}
@@ -48,7 +48,7 @@ Each of Chan’s scripts for Example 7.7 turns its monthly returns into an annua
 \end{aligned}
 ```
 
-What Chan says of each is not the same, and the difference matters for what a reproduction can find.
+What Chan says of each differs. Only Example 7.7 is published as dead, so it is the claim a reader would act on by leaving the strategy alone.
 
 1. **Seasonal strategies in stocks.** Much of the seasonality in equity markets “has weakened or even disappeared in recent years”, Chan writes (p. 175). The same sentence goes on to call some seasonal trades in commodity futures still profitable, and [the companion post on the commodity seasonals](https://github.com/l3a0/quantitative-trading/blob/main/blog/commodity-seasonals-lessons.md) tests that half. Earlier in the book he recalls praising a seasonal stock strategy on his blog, a reader backtesting it and finding it did not work, and his own backtest confirming the reader’s (p. 13). He names Example 7.6 as that strategy.
 2. **Example 7.6.** Its own text is not a death notice. The revised edition says the January effect failed in January 2006 and January 2007 and then “worked wonderfully” in January 2008 (p. 175).
