@@ -11,7 +11,7 @@ text it draws. The first four are these.
    behind Heston and Sadka's 13 percent ending at the start of 2002, where
    Chan says the effect disappeared, Chan's two short files, the book's first
    edition, and the two registered runs from 2009 on. Every bar is to scale,
-   from :class:`Spans`.
+   from :class:`Spans`, and it builds slowly.
 2. Two verdicts: the January run's low and high means as one bracket that
    straddles zero, and the Heston and Sadka run's mean as a dot at zero with
    the returns its test could miss tinted up to the return it detects 80
@@ -3094,6 +3094,7 @@ def _broad_running(t: Together) -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 PACED = (
+    "which_years",
     "two_verdicts",
     "five_year_months",
     "five_year_noise",
