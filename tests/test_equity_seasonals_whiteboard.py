@@ -1127,7 +1127,10 @@ class TestThePost:
         end = text.index("\n## ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         assert paragraphs[-2].startswith("On Chan’s own files, every printed figure")
-        assert "A return the test would likely miss is under about 4.2 percent" in paragraphs[-2]
+        assert (
+            "A return the test would likely miss is under about 4.2 percent a year before "
+            "costs, and costs only lower it, so it is not an edge a trader can count on."
+        ) in paragraphs[-2]
         assert "it is not an edge a trader can count on." in paragraphs[-2]
         assert (
             paragraphs[-1].strip().endswith("(../docs/figures/equity_seasonals_two_verdicts.gif)")
@@ -3099,6 +3102,11 @@ class TestTheBroaderSeriesSketches:
         assert f"{figures.first} to {figures.split - 1}" in scene.labels
         assert f"{figures.split} to {figures.last}" in scene.labels
 
+    def test_the_earlier_years_sit_above_the_later(self, broad) -> None:
+        before_after = broad[0]
+        assert _labelled(before_after, "1965 to 2001").y > _labelled(before_after, "2002 to 2024").y
+        assert _fill(before_after, "before").y0 > _fill(before_after, "after").y1
+
     def test_the_after_bracket_crosses_zero_and_the_before_one_does_not(self) -> None:
         """What the alt text says, held on the release's figures."""
         b = PINNED_BROAD
@@ -3115,6 +3123,13 @@ class TestTheBroaderSeriesSketches:
         assert months.y == pytest.approx(ys)
         cx, cy = sketches.TOGETHER_CENTRE
         assert sketches._together_at(0.0, 0.0) == (pytest.approx(cx), pytest.approx(cy))
+        (lx, ly), (rx, ry) = sketches.TOGETHER_LIMITS, sketches.TOGETHER_REACH
+        theirs_all = np.array([m[1] for m in together.months])
+        ours_all = np.array([m[2] for m in together.months])
+        assert months.x == pytest.approx(cx + theirs_all * rx / lx), (
+            "across is the project, to its own limit"
+        )
+        assert months.y == pytest.approx(cy + ours_all * ry / ly), "up is the run, to its own limit"
         theirs = np.array([m[1] for m in together.months])
         ours = np.array([m[2] for m in together.months])
         assert np.argmax(months.x) == np.argmax(theirs), "the project's best month is rightmost"
@@ -3146,6 +3161,9 @@ class TestTheBroaderSeriesSketches:
         assert 1.8 < spread < 2.5, "the project's months swing about twice as far"
         assert abs(theirs.min() - ours.min()) < 0.05, "both reach about the same low"
         assert up(high) == pytest.approx(sketches.RUNNING_SUMS_TOP)
+        x0, x1 = sketches.RUNNING_SUMS_X
+        assert _labelled(running, "2009").x == pytest.approx(x0)
+        assert _labelled(running, "2024").x == pytest.approx(x1)
 
     def test_all_build_slowly_and_two_need_the_archive(self) -> None:
         slugs = {"broad_before_after", "broad_together", "broad_running"}
@@ -3162,12 +3180,19 @@ class TestTheBroaderSeriesSketches:
             assert "drawn slowly stroke by stroke" in alt and "holds for twelve seconds" in alt
         alt = _alt(text, broad[0])
         assert "its bracket crosses zero" in alt and "far from zero" in alt
-        assert "brown bar" in alt and "black bracket" in alt
+        assert (
+            "A long brown bar for “1965 to 2001”" in alt
+            and "A short brown bar for “2002 to 2024”" in alt
+        )
+        assert "black bracket" in alt
         alt = _alt(text, broad[1])
         assert "tilts up to the right" in alt and "in green" in alt
+        assert "Two grey axes cross" in alt
         alt = _alt(text, broad[2])
         assert "A brown line" in alt and "A black line" in alt
         assert "ends above it" in alt and "ends below zero" in alt
+        assert "climbs well above it in the middle years" in alt
+        assert "falls back below it in 2021, climbs back above it late in 2022" in alt
         assert "reaches about the same low" in alt
 
     def test_each_follows_its_paragraph(self) -> None:
@@ -3201,3 +3226,14 @@ def test_each_alt_text_quotes_its_labels_in_drawing_order(group, request) -> Non
         alt = _alt(text, scene)
         places = [alt.index(f"“{label}”") for label in scene.labels]
         assert places == sorted(places), (scene.slug, scene.labels)
+
+
+def test_the_broader_series_sentence_says_what_the_months_show(project) -> None:
+    """The post's "about twice as far" is the months' spread, which the run and
+    the release give, and the sentence names the months."""
+    text = POST.read_text(encoding="utf-8")
+    assert "Month to month, the project’s series swings about twice as far as the run’s" in text
+    together = Together.from_runs(PINNED_IVV, project)
+    months = np.array([(m[1], m[2]) for m in together.months])
+    ratio = months[:, 0].std(ddof=1) / months[:, 1].std(ddof=1)
+    assert f"{ratio:.1f}" == "2.1"

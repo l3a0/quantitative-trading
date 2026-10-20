@@ -136,7 +136,7 @@ survived the book, one under each of the first four headings that split it:
 The last three of those draw :class:`IvvFigures`, read from the IVV run on
 the owner's archive.
 
-The last three sit under "Where the 4.2 percent comes from", in the same
+The next three sit under "Where the 4.2 percent comes from", in the same
 question, each after the text it draws:
 
 1. Shifting the scatter: the t-statistic's scatter when the true mean is
@@ -154,8 +154,9 @@ question, each after the text it draws:
 All three draw the critical value and δ from :class:`Shift`, which reads only
 the IVV run's month count, and all three build slowly.
 
-The last three sit under "What a broader series shows", the first two after
-each of its two paragraphs and the third after the second:
+The last three sit under "What a broader series shows". The first two follow
+its first two paragraphs, and the third follows the second sketch, ahead of
+the paragraph that explains why its two lines differ in scale:
 
 1. Before 2002 and after: Open Source Asset Pricing's mean a month from 1965
    to 2001 and from 2002 to 2024, as bars to one scale with one standard

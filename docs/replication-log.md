@@ -2842,9 +2842,11 @@ whiteboard sketches that print figures, which `uv run python -m
 chan.equity_seasonals_whiteboard` redraws, ten of them on a machine with the
 archive. Those are the two opening sketches, four of the seven rule sketches,
 the split sketch, the five-year check's three, the January ranges sketch and
-nine of the ten sketches on whether Heston and Sadka's effect survived the
-book, three of them on where its 4.2 percent comes from and three on what a
-broader series shows.
+eight of the ten sketches on whether Heston and Sadka's effect survived the
+book, three of them on where its 4.2 percent comes from and two on what a
+broader series shows. The third on the broader series, "Before 2002 and
+after", draws only Entry 52's figures, as the sketches on whether the effect
+existed before 2002 do.
 `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) derives the
 rule sketches' figures from Chan's files, `TestTheYearsInsideTheSplit` the split
