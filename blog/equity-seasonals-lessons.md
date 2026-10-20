@@ -364,10 +364,15 @@ The 4.2 percent follows from the noise in the 213 months and the two numbers fix
 
 The test calls a mean above zero when its t-statistic clears 1.652, the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean were zero, the t-statistic would scatter around zero with a spread of about 1, and it would clear 1.652 only 5 percent of the time. If the true mean is X, the whole scatter shifts right by about X divided by the standard error. That shift is the noncentrality, δ, and the shifted shape is a noncentral t distribution. The 4.2 percent comes from asking how far the scatter must shift for the statistic to clear 1.652 four times in five.
 
-A normal curve gives a close answer. A normal curve with a spread of 1 puts four draws in five above the point 0.842 below its centre. So the centre has to sit 0.842 past 1.652:
+A normal curve gives a close answer. With a spread of 1, the statistic is about δ plus a normal draw Z, and 80 percent of normal draws land above −0.842, because 0.842 is the normal curve’s 80th percentile and the curve is symmetric. So the statistic clears 1.652 four times in five when 1.652 sits 0.842 below the centre, which puts the centre at 0.842 past 1.652:
 
 ```math
-\delta \approx 1.652 + 0.842 = 2.494
+\begin{aligned}
+\text{clears the bar:}\quad & \delta + Z > 1.652 \\
+\text{four in five:}\quad & P(Z > -0.842) = 0.80 \\
+\text{so:}\quad & 1.652 - \delta = -0.842 \\
+& \delta \approx 1.652 + 0.842 = 2.494
+\end{aligned}
 ```
 
 The exact answer uses the noncentral t itself. With 212 degrees of freedom and a shift of δ, it is a normal draw shifted by δ, divided by how far the months’ measured spread strays from the true one:
