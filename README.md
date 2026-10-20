@@ -3207,12 +3207,13 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    reads on one axis to scale: the years behind Heston and Sadka's 13
    percent, ending at Chan's 2002 split, Chan's two files, the book's first
    edition, and the two registered runs from 2009 on.
-2. `equity_seasonals_two_verdicts.gif`, in the opening, the two registered
-   runs' verdicts on number lines, each to its own scale: the January bracket
-   from −0.1047 to 0.0879 across zero, and Heston and Sadka's mean at zero
-   with the returns up to about 4.2 percent a year tinted as ones that could
-   pass unseen. That 4.2 percent is the return the test detects 80 percent of
-   the time.
+2. `equity_seasonals_two_verdicts.gif`, in the opening and again at the end
+   of "What this means for a trader", the two registered runs' verdicts on
+   number lines, each to its own scale: the January bracket from −0.1047 to
+   0.0879 across zero, and Heston and Sadka's mean at zero with the returns up
+   to about 4.2 percent a year tinted as ones that could pass unseen, and a
+   red arrow for the costs that would lower them. That 4.2 percent is the
+   return the test detects 80 percent of the time.
 3. `equity_seasonals_january_trade.gif`, Example 7.6's year of returns, its
    ranking at the year's last close, its January hold, and its bet that the
    extremes come back.
@@ -3307,18 +3308,19 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 Like the strategy sketches, Lesson 3's three, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The
 sources sketch carries no figure a run computes, only each source's cost.
-Fifteen sketches build more slowly than the rest and hold their finished
+Sixteen sketches build more slowly than the rest and hold their finished
 drawings for twelve seconds, because each carries more than the usual pace lets
 a reader take in.
 
-1. The first two of the five-year sketches, 13 and 14.
-2. The last two of Lesson 3's sketches, 17 and 18.
-3. The January fill and ranges sketches, 20 and 21.
-4. The two sketches on whether Heston and Sadka's effect existed before 2002,
+1. The verdicts sketch, 2.
+2. The first two of the five-year sketches, 13 and 14.
+3. The last two of Lesson 3's sketches, 17 and 18.
+4. The January fill and ranges sketches, 20 and 21.
+5. The two sketches on whether Heston and Sadka's effect existed before 2002,
    22 and 23.
-5. The leavers sketch, 26.
-6. The three sketches of the 4.2 percent's derivation, 28 to 30.
-7. The three broader-series sketches, 31 to 33.
+6. The leavers sketch, 26.
+7. The three sketches of the 4.2 percent's derivation, 28 to 30.
+8. The three broader-series sketches, 31 to 33.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
@@ -3344,7 +3346,7 @@ saved panel, that section 2's sketches tick and cross each source as the post
 describes it and draw each bar at its figure, that the 4.2 percent's three
 sketches put the critical value, δ and each bracket where the test's figures
 say, that the broader series' bars, dots and running sums stand at the
-release's and the run's figures, that fifteen sketches build slowly and hold
+release's and the run's figures, that sixteen sketches build slowly and hold
 for twelve seconds, that the ranges sketch draws each January from its low to
 its high, that section 3's sketches hold a change until the next filing, split
 each bar at its share and add up the held months to one scale, that no label

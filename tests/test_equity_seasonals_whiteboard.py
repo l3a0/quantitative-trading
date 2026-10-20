@@ -60,7 +60,7 @@ nine draw :data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its s
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
-:data:`PINNED_IVV`'s month count. Fifteen sketches build slowly, and their
+:data:`PINNED_IVV`'s month count. Sixteen sketches build slowly, and their
 pace is pinned too. The broader series' three read the committed Open Source
 Asset Pricing release, and the last two also :data:`PINNED_IVV`'s months.
 
@@ -1110,10 +1110,27 @@ class TestThePost:
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
             assert paragraphs[index - 1] == heading
 
-    def test_every_sketch_is_embedded_once(self) -> None:
+    def test_every_sketch_is_embedded_once_and_the_verdicts_twice(self) -> None:
+        """The verdicts sketch opens the post and closes it, with one alt text."""
         text = POST.read_text(encoding="utf-8")
         for name in GIFS:
-            assert text.count(f"(../docs/figures/{name})") == 1, name
+            twice = name == "equity_seasonals_two_verdicts.gif"
+            assert text.count(f"(../docs/figures/{name})") == (2 if twice else 1), name
+        embeds = re.findall(
+            r"!\[[^\]]+\]\(\.\./docs/figures/equity_seasonals_two_verdicts\.gif\)", text
+        )
+        assert len(embeds) == 2 and embeds[0] == embeds[1]
+
+    def test_the_verdicts_sketch_closes_the_post_after_its_last_paragraph(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("## What this means for a trader")
+        end = text.index("\n## ", start + 1)
+        paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
+        assert paragraphs[-2].startswith("On Chan’s own files, every printed figure")
+        assert "it is not an edge a trader can count on." in paragraphs[-2]
+        assert (
+            paragraphs[-1].strip().endswith("(../docs/figures/equity_seasonals_two_verdicts.gif)")
+        )
 
 
 class TestTheCommand:
@@ -1193,7 +1210,32 @@ class TestTheVerdicts:
             "about 4.2% a year",
             "measured",
             "could pass unseen",
+            "costs lower it, not measured",
+            "not shown dead, and no edge a trader can count on",
         ]
+
+    def test_costs_point_back_toward_zero_under_the_band(self, opening) -> None:
+        """The arrow runs from X back toward zero below the line, in red, and
+        the closing words are brown, with the alt text quoting them in order."""
+        verdicts = opening[1]
+        costs = _stroke(verdicts, "costs")
+        zero, x = _at(0.0, *ANNUAL_RANGE), _at(PINNED.detectable, *ANNUAL_RANGE)
+        assert costs.color == LOST
+        assert costs.x.max() == pytest.approx(x - 0.1) and costs.x.min() == pytest.approx(
+            zero + 0.1
+        )
+        assert costs.x[0] == pytest.approx(x - 0.1), "it starts at X and points toward zero"
+        assert costs.y.max() < sketches.MONTHLY_Y - 0.5
+        assert _labelled(verdicts, "costs lower it, not measured").color == LOST
+        assert (
+            _labelled(verdicts, "not shown dead, and no edge a trader can count on").color == ACCENT
+        )
+        alt = _alt(POST.read_text(encoding="utf-8"), verdicts)
+        place = 0
+        for label in verdicts.labels:
+            place = alt.index(f"“{label}”", place) + 1
+        assert "A red arrow under the band points back toward zero" in alt
+        assert "holds for twelve seconds" in alt and "drawn slowly" in alt
 
     def test_the_bracket_spans_the_two_means_to_scale(self, opening) -> None:
         bracket = _stroke(opening[1], "bracket")
@@ -1911,6 +1953,7 @@ class TestTheFiveYearSketches:
             assert paced == (
                 scene.slug
                 in (
+                    "two_verdicts",
                     "five_year_months",
                     "five_year_noise",
                     "survivors_ranking",

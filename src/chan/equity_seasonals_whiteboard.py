@@ -15,8 +15,11 @@ text it draws. The first four are these.
 2. Two verdicts: the January run's low and high means as one bracket that
    straddles zero, and the Heston and Sadka run's mean as a dot at zero with
    the returns its test could miss tinted up to the return it detects 80
-   percent of the time. Each line has its own scale, and the figures come
-   from :class:`Verdicts`.
+   percent of the time, with a red arrow for the costs that would lower it.
+   It closes on "not shown dead, and no edge a trader can count on". Each
+   line has its own scale, and the figures come from :class:`Verdicts`. It
+   builds slowly, and the post embeds it twice, here and again at the end of
+   "What this means for a trader".
 3. The January trade: a calendar year of returns, a ranking at the year's
    last close, the worst tenth bought and the best tenth shorted, held through
    January, with the losers pointed up and the winners down. That is Example
@@ -3089,6 +3092,7 @@ def _broad_running(t: Together) -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 PACED = (
+    "two_verdicts",
     "five_year_months",
     "five_year_noise",
     "survivors_ranking",
@@ -3208,7 +3212,7 @@ def _signed(value: float, places: int) -> str:
 #: at its ends. The January line reads a return per January, the Heston and
 #: Sadka line a return per year.
 VERDICT_X = (3.0, 9.6)
-JANUARY_Y, MONTHLY_Y = 3.2, 1.3
+JANUARY_Y, MONTHLY_Y = 3.4, 1.68
 JANUARY_RANGE = (-0.15, 0.15)
 ANNUAL_RANGE = (-0.02, 0.08)
 
@@ -3334,6 +3338,29 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
                 color=GOOD,
                 ha="center",
                 size=12,
+            ),
+            _stroke(
+                "costs",
+                _arrow(x_detect - 0.1, MONTHLY_Y - 0.92, zero_2 + 0.1, MONTHLY_Y - 0.92),
+                color=LOST,
+                frames=6,
+            ),
+            Label(
+                "costs lower it, not measured",
+                zero_2 - 0.2,
+                MONTHLY_Y - 0.92,
+                names="costs",
+                color=LOST,
+                ha="right",
+                size=10,
+            ),
+            Label(
+                "not shown dead, and no edge a trader can count on",
+                0.3,
+                0.25,
+                names="costs",
+                color=ACCENT,
+                size=11,
             ),
         ),
     )
