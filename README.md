@@ -3131,8 +3131,9 @@ log.
 
 1. Account for every choice and every bug, or one strategy gives several
    answers. Every figure his code prints reproduces, but the book's
-   description fits several numbers, and six of the rules each script adds are
-   bugs, which matching the printed figures means copying. Example 7.7's four
+   description fits several numbers, and seven of the rules each script adds
+   are bugs. Matching the printed figures means copying six of them, and the
+   seventh has to be repaired. Example 7.7's four
    printouts give four answers, and the first edition's is in different units
    from the other three.
 2. To test whether an effect died, fix the criterion and the sample first.

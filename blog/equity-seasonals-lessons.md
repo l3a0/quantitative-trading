@@ -52,7 +52,7 @@ What Chan says of each is not the same, and the difference matters for what a re
 
 Chan’s book has two editions. The first, from 2009, gives Examples 7.6 and 7.7 in MATLAB. The revised edition, from 2021, gives each in MATLAB, Python and R. This post names each script by its language and edition, so “the revised Python” is the Python from the revised edition.
 
-All seventeen figures Chan’s code prints reproduce here to the digit, but only by copying his code. The book’s description of each strategy fits several numbers, and each script picks one through rules the description leaves out. Six of those rules are bugs, so matching the printed figures means copying them. A seventh, in the revised MATLAB as the book prints it, stops the script on its first pass and has to be repaired instead.
+All seventeen figures Chan’s code prints reproduce here to the digit, but only by copying his code. The book’s description of each strategy fits several numbers, and each script picks one through rules the description leaves out. Seven of those rules are bugs. Matching the printed figures means copying six of them. The seventh, in the revised MATLAB as the book prints it, stops the script on its first pass and has to be repaired instead.
 
 ### Example 7.6, the January effect
 
