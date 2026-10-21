@@ -76,7 +76,7 @@ Eleven classes and one test.
    ``residual_check``, held on a synthetic series.
 10. ``TestTheWindowPower``, the simulation issue 212 declared before it ran:
     how often a series that truly reverts at the rate's half-life rejects in
-    the rate's scan.
+    the rate's scan, and the closed form it runs, held to ``adf_tstat``.
 11. ``TestTheKnownMeanRule``, what a known-mean version of Chan's linear rule
     earns on the rate's half-life, set beside a 36-day half-life.
 
@@ -184,6 +184,7 @@ from chan.stationary_candidates import (
     SPREAD_POWER_HALF_LIFE,
     SPREAD_POWER_SEED,
     SPREAD_PRODUCTS,
+    STEP,
     TEST_START,
     TRADING_DAYS,
     WINDOW,
@@ -191,6 +192,7 @@ from chan.stationary_candidates import (
     CrossRate,
     Orientation,
     _orientation,
+    batched_adf,
     batched_engle_granger,
     calendar_spread,
     cross_rate,
@@ -1024,8 +1026,8 @@ class TestTheWindowPower:
     20261002, scanned as the rate is. It answers the hypothesis Lesson 4 of
     the blog post offered for why so few of the rate's windows reject. It does
     not show that slow reversion is the reason, because the model has neither
-    the rate's fat tails nor its changing volatility. Exploratory. Takes about
-    half a minute.
+    the rate's fat tails nor its changing volatility. Exploratory. The
+    simulation takes about a second.
     """
 
     def test_the_declared_specification(self, power, rate: CrossRate) -> None:
@@ -1045,6 +1047,33 @@ class TestTheWindowPower:
         assert one.clear10[0] == int((stats < ADF_CRIT_CONST["10%"]).sum())
         assert one.clear5[0] == int((stats < ADF_CRIT_CONST["5%"]).sum())
         assert one.whole_rejects5[0] == (adf_tstat(path, LAGS)[0] < ADF_CRIT_CONST["5%"])
+
+    def test_the_batched_statistic_is_the_engine_s(self, rate: CrossRate) -> None:
+        """The closed form the simulation runs gives ``adf_tstat``'s statistic
+        on every window of five simulated paths, on each whole path, and on the
+        rate itself and each of its 226 windows."""
+        z = simulated_paths(rate.half_life, len(rate.log_rate), 5, POWER_SEED)
+        for e in range(WINDOW, z.shape[1] + 1, STEP):
+            want = [adf_tstat(p[e - WINDOW : e], LAGS)[0] for p in z]
+            assert batched_adf(z[:, e - WINDOW : e]) == pytest.approx(want, abs=1e-9)
+        assert batched_adf(z) == pytest.approx([adf_tstat(p, LAGS)[0] for p in z], abs=1e-9)
+        values = rate.log_rate.to_numpy(dtype=float)
+        assert batched_adf(values[None, :])[0] == pytest.approx(rate.adf_stat, abs=1e-9)
+        windows = np.array([values[e - WINDOW + 1 : e + 1] for e in rate.scan.end_idx])
+        assert batched_adf(windows) == pytest.approx(rate.scan.adf_stat, abs=1e-9)
+
+    def test_a_short_path_keeps_its_last_window_and_its_first_day(self, rate: CrossRate) -> None:
+        """On paths one step longer than a window, the scan ends on the last
+        day, as the rate's does, and the whole-path test reads every day. The
+        declared length leaves 7 days after the last window, so no pinned count
+        could see either."""
+        length = WINDOW + STEP
+        z = simulated_paths(rate.half_life, length, 200, POWER_SEED)
+        short = window_power(rate.half_life, length, paths=200)
+        assert short.windows == len(rolling_adf(z[0]).adf_stat) == 2
+        want = [adf_tstat(p, LAGS)[0] < ADF_CRIT_CONST["5%"] for p in z]
+        assert 0 < sum(want) < 200
+        assert list(short.whole_rejects5) == want
 
     def test_a_long_path_reverts_at_the_rate_s_half_life(self, rate: CrossRate) -> None:
         """Measured the way the rate's is, two million simulated days give the

@@ -497,6 +497,36 @@ def simulated_paths(half_life: float, length: int, paths: int, seed: int) -> NDA
     return _ar1(rng.standard_normal((paths, length)), phi)
 
 
+def batched_adf(z: NDArray[np.float64]) -> NDArray[np.float64]:
+    """The ADF statistic at one lag with a constant for each row of ``z``.
+
+    The regression of the change on the lagged level, one lagged change and a
+    constant, as :func:`ithildincore.timeseries.adf_tstat` runs it through
+    ``adfuller``. Demeaning each regressor within its row stands in for the
+    constant, and the residual variance keeps the constant's degree of freedom.
+    Solved in closed form across rows, because the window-power simulation is
+    227,000 fits and one call of the engine takes about a fifth of a
+    millisecond. ``tests/test_stationary_candidates.py`` holds that the two
+    agree.
+    """
+    dz = np.diff(z, axis=1)
+    y, level, change = dz[:, 1:], z[:, 1:-1], dz[:, :-1]
+    y = y - y.mean(axis=1, keepdims=True)
+    level = level - level.mean(axis=1, keepdims=True)
+    change = change - change.mean(axis=1, keepdims=True)
+    s11 = (level * level).sum(axis=1)
+    s22 = (change * change).sum(axis=1)
+    s12 = (level * change).sum(axis=1)
+    s1y = (level * y).sum(axis=1)
+    s2y = (change * y).sum(axis=1)
+    det = s11 * s22 - s12 * s12
+    coef_level = (s22 * s1y - s12 * s2y) / det
+    coef_change = (s11 * s2y - s12 * s1y) / det
+    resid = y - coef_level[:, None] * level - coef_change[:, None] * change
+    variance = (resid * resid).sum(axis=1) / (y.shape[1] - 3)
+    return coef_level / np.sqrt(variance * s22 / det)
+
+
 def window_power(
     half_life: float, length: int, *, paths: int = POWER_PATHS, seed: int = POWER_SEED
 ) -> WindowPower:
@@ -504,28 +534,23 @@ def window_power(
 
     The windows are :func:`rolling_adf`'s, 252 days stepped by 21 at one lag
     with a constant, and so is the statistic. Only the statistic is computed,
-    because the half-life ``rolling_adf`` also fits in each window would double
-    the run time and the simulation reports nothing about it.
-    ``tests/test_stationary_candidates.py`` holds that the two agree.
+    because the simulation reports nothing about the half-life ``rolling_adf``
+    also fits in each window. ``test_the_scan_is_the_rate_s_scan`` holds the
+    counts to ``rolling_adf``'s scan on the first path. The statistic comes
+    from :func:`batched_adf`, called once per window end across every path and
+    once over the whole paths.
     """
     z = simulated_paths(half_life, length, paths, seed)
     ends = range(WINDOW, length + 1, STEP)
-    clear10 = np.empty(paths, dtype=np.int64)
-    clear5 = np.empty(paths, dtype=np.int64)
-    whole = np.empty(paths, dtype=bool)
-    for i, path in enumerate(z):
-        stats = np.array([adf_tstat(path[e - WINDOW : e], LAGS, constant=True)[0] for e in ends])
-        clear10[i] = int((stats < ADF_CRIT_CONST["10%"]).sum())
-        clear5[i] = int((stats < ADF_CRIT_CONST["5%"]).sum())
-        whole[i] = adf_tstat(path, LAGS, constant=True)[0] < ADF_CRIT_CONST["5%"]
+    stats = np.column_stack([batched_adf(z[:, e - WINDOW : e]) for e in ends])
     return WindowPower(
         half_life=half_life,
         phi=1.0 - math.log(2.0) / half_life,
         length=length,
         windows=len(ends),
-        clear10=clear10,
-        clear5=clear5,
-        whole_rejects5=whole,
+        clear10=(stats < ADF_CRIT_CONST["10%"]).sum(axis=1),
+        clear5=(stats < ADF_CRIT_CONST["5%"]).sum(axis=1),
+        whole_rejects5=batched_adf(z) < ADF_CRIT_CONST["5%"],
     )
 
 
