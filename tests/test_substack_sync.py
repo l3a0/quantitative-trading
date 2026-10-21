@@ -4,19 +4,24 @@ A session syncs a draft by calling ``SYNC.syncTo`` in a page on the
 publication. The function replaces only the top-level blocks that changed and
 refuses to write whenever a hash or a comparison says the write could lose an
 edit the owner made in the editor. Those refusals are what make the write safe
-to send without a dry run, so each one is pinned here.
+to send without a dry run, so each one is pinned here, along with each way a
+write can fail after it starts.
 
 No test talks to Substack. Each case runs the function against a fake ``fetch``
 that serves the Markdown at two commits and one draft, and records every
-request. A test reads what the function returned and what it sent.
+request. A test reads what the function returned and what it sent. A few more
+cases call ``SYNC.splice`` directly on blocks no post produces.
 
 The fixture post has ten blocks once converted, with the two subscribe
-widgets the converter adds at indices 5 and 9.
+widgets the converter adds at indices 5 and 9. The live draft's widgets carry
+a url the editor wrote, a different one for each, so a test can tell which
+widget went where.
 
 The JavaScript runs under the engine ``tests/test_substack_converter.py``
 picks, node or ``osascript -l JavaScript``. JavaScriptCore has no
 ``crypto.subtle``, so the driver hashes with its own SHA-256, and
-``test_the_driver_hash_is_sha256`` checks it against ``hashlib``.
+``test_the_driver_hash_is_sha256`` checks it against ``hashlib``. The page's
+own ``crypto.subtle`` path is the one part no test runs.
 """
 
 from __future__ import annotations
@@ -43,6 +48,20 @@ IMAGES = {
         "width": 1300,
         "height": 754,
         "bytes": 4321,
+    }
+}
+NEW_IMAGE = {
+    "url": "https://example.invalid/sync_new.png",
+    "width": 680,
+    "height": 320,
+    "bytes": 999,
+}
+REDRAWN = {
+    "sync_chart.png": {
+        "url": "https://example.invalid/sync_chart_v2.png",
+        "width": 1300,
+        "height": 800,
+        "bytes": 5000,
     }
 }
 # What the editor writes into a widget, which differs from the converter's.
@@ -78,37 +97,45 @@ NO_SECOND_HEADING = ONE_PARAGRAPH.replace("## Second section", "Second section, 
 REPEATED_PARAGRAPH = BASE_MD.replace(
     "The opening paragraph.\n", "The opening paragraph.\n\nThe opening paragraph.\n"
 )
+NEW_FIGURE = ONE_PARAGRAPH + "\n![A second chart](../docs/figures/sync_new.png)\n"
+FIGURE_TWICE = BASE_MD + "\n![The chart again](../docs/figures/sync_chart.png)\n"
 
 
 def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _body(md: str) -> dict:
-    return m2s.convert(md, IMAGES)["body"]
+def _body(md: str, images: dict = IMAGES) -> dict:
+    return m2s.convert(md, images)["body"]
 
 
 def _live_body(md: str = BASE_MD) -> dict:
-    """The base conversion as the editor stores it, with its widgets rewritten."""
+    """The base conversion as the editor stores it, each widget's url rewritten."""
     body = copy.deepcopy(_body(md))
-    for block in body["content"]:
+    for i, block in enumerate(body["content"]):
         if block["type"] == "subscribeWidget":
-            block["attrs"]["url"] = EDITOR_WIDGET_URL
+            # A new block, since the converter's two widgets are one object.
+            url = f"{EDITOR_WIDGET_URL}-{i}"
+            body["content"][i] = {**block, "attrs": {**block["attrs"], "url": url}}
     return body
 
 
-def _draft(body: dict, title: str = "A sync fixture") -> dict:
+def _draft(body: dict, **fields) -> dict:
+    """The draft as GET /api/v1/drafts/<id> returns an unpublished one."""
     return {
-        "draft_title": title,
+        "draft_title": "A sync fixture",
         "draft_subtitle": "A subtitle for the sync tests.",
         "draft_updated_at": "2026-10-21T10:00:00.000Z",
         "draft_body": json.dumps(body),
+        "post_date": None,
+        "postSchedules": [],
+        **fields,
     }
 
 
-def _expect(md: str, live: dict) -> dict:
+def _expect(md: str, live: dict, images: dict = IMAGES) -> dict:
     """The hashes a session takes from --summary and from its notes."""
-    summary = m2s.summary(m2s.convert(md, IMAGES), md.encode("utf-8"))
+    summary = m2s.summary(m2s.convert(md, images), md.encode("utf-8"))
     return {
         "md": summary["md_sha256"],
         "conversion": summary["conversion_sha256"][:8],
@@ -125,6 +152,8 @@ def _case(
     write: bool = True,
     expect: dict | None = None,
     draft: dict | None = None,
+    images: dict = IMAGES,
+    base_md: str = BASE_MD,
     **extra,
 ) -> dict:
     live = live if live is not None else _live_body()
@@ -133,11 +162,12 @@ def _case(
         "post": POST,
         "base": BASE_SHA,
         "commit": NEW_SHA,
-        "expect": {**_expect(md, live), **(expect or {})},
+        "expect": {**_expect(md, live, images), **(expect or {})},
         "write": write,
     }
     cfg.update(extra.pop("cfg", {}))
-    files = {RAW + BASE_SHA + "/" + POST: BASE_MD, RAW + NEW_SHA + "/" + POST: md}
+    cfg["expect"] = {k: v for k, v in cfg["expect"].items() if v is not None}
+    files = {RAW + BASE_SHA + "/" + POST: base_md, RAW + NEW_SHA + "/" + POST: md}
     case = {"name": name, "cfg": cfg, "files": files, "draft": draft or _draft(live)}
     case.update(extra)
     return case
@@ -158,6 +188,13 @@ def _without_figure() -> dict:
     return body
 
 
+def _figure_twice_live() -> dict:
+    """A draft of FIGURE_TWICE whose two images are different uploads."""
+    body = _live_body(FIGURE_TWICE)
+    body["content"][-2]["content"][0]["attrs"]["src"] = "https://example.invalid/other.png"
+    return body
+
+
 BAD_CONFIGS = {
     "short hash": {"expect": {**_expect(ONE_PARAGRAPH, _live_body()), "walk": "abc1234"}},
     "missing base": {"base": None},
@@ -165,14 +202,50 @@ BAD_CONFIGS = {
     "post outside blog": {"post": "../blog/sync-fixture.md"},
     "short commit": {"commit": "b" * 39},
     "upper-case hash": {"expect": {**_expect(ONE_PARAGRAPH, _live_body()), "md": "ABCDEF12"}},
+    "short liveBody": {"expect": {**_expect(ONE_PARAGRAPH, _live_body()), "liveBody": "abc"}},
+    "images not a map": {"images": "sync_chart.png"},
 }
+
+# Each refusal: its case, the reason it returns, and the flag it sets false.
+REFUSALS = [
+    ("live body off its baseline", "the live body moved from its baseline", "liveOk"),
+    ("owner highlight", "the live draft differs from the base commit's conversion", "baseOk"),
+    ("change drops a widget", "the change adds or drops a widget", None),
+    ("draft moves before the write", "the draft moved", None),
+    ("draft body moves before the write", "the draft moved", None),
+    ("conversion hash differs", "the conversion", "convOk"),
+    ("markdown hash differs", "the Markdown", "mdOk"),
+    ("patched body hash differs", "the patched body", "patchOk"),
+    ("patched walk hash differs", "the patched body", "walkOk"),
+    (
+        "figure missing from the draft",
+        "the base Markdown names 1 figures and the draft holds 0",
+        None,
+    ),
+    (
+        "figure twice with two uploads",
+        "the figure sync_chart.png appears twice with different images",
+        None,
+    ),
+    ("new figure with no image", "no image for sync_new.png: pass it in images", None),
+    ("markdown not found", "a read failed: the Markdown at commit", None),
+    ("base markdown not found", "a read failed: the Markdown at base", None),
+    ("draft body not json", "a read failed: the draft", None),
+    ("published", "the draft is published", None),
+    ("scheduled", "the draft is scheduled", None),
+    ("no post_date", "the draft does not say whether it is published", None),
+]
 
 
 def _cases() -> list[dict]:
+    live = _live_body()
+    no_post_date = _draft(live)
+    del no_post_date["post_date"]
     cases = [
         _case("writes one paragraph"),
         _case("dry run", write=False),
         _case("write must be true", cfg={"write": "yes"}),
+        _case("no liveBody", expect={"liveBody": None}),
         _case("live body off its baseline", expect={"liveBody": _sha("another body")}),
         _case("owner highlight", live=_highlighted()),
         _case("widget inside the change", md=AROUND_A_WIDGET),
@@ -180,15 +253,77 @@ def _cases() -> list[dict]:
         _case("converter widgets", live=_body(BASE_MD)),
         _case("change drops a widget", md=NO_SECOND_HEADING),
         _case("draft moves before the write", moveAfterRead=1),
-        _case("title differs", draft=_draft(_live_body(), title="Another title")),
+        _case("draft body moves before the write", moveBodyAfterRead=1),
+        _case(
+            "title and subtitle differ",
+            draft=_draft(live, draft_title="Another", draft_subtitle=""),
+        ),
         _case("conversion hash differs", expect={"conversion": "0" * 8}),
         _case("markdown hash differs", expect={"md": "0" * 64}),
+        _case("patched body hash differs", expect={"body": "0" * 8}),
+        _case("patched walk hash differs", expect={"walk": "0" * 8}),
         _case("nothing changed", md=BASE_MD, cfg={"commit": BASE_SHA}),
         _case("figure missing from the draft", live=_without_figure()),
+        _case(
+            "figure twice with two uploads",
+            md=FIGURE_TWICE,
+            base_md=FIGURE_TWICE,
+            live=_figure_twice_live(),
+        ),
+        _case(
+            "new figure with no image", md=NEW_FIGURE, images={**IMAGES, "sync_new.png": NEW_IMAGE}
+        ),
+        _case(
+            "new figure passed in",
+            md=NEW_FIGURE,
+            images={**IMAGES, "sync_new.png": NEW_IMAGE},
+            cfg={"images": {"sync_new.png": NEW_IMAGE}},
+        ),
+        _case("redrawn figure passed in", images=REDRAWN, cfg={"images": REDRAWN}),
         _case("markdown not found", missing=RAW + NEW_SHA + "/" + POST),
+        _case("base markdown not found", missing=RAW + BASE_SHA + "/" + POST),
+        _case("draft body not json", draft=_draft(live, draft_body="not json")),
+        _case("published", draft=_draft(live, post_date="2026-10-02T12:03:26.000Z")),
+        _case(
+            "scheduled", draft=_draft(live, postSchedules=[{"trigger_at": "2026-11-01T12:00:00Z"}])
+        ),
+        _case("no post_date", draft=no_post_date),
+        _case("write fails", putStatus=500),
+        _case("read-back differs", alterOnPut=True),
+        _case("read-back fails", failReadAfterPut=True),
     ]
     cases += [_case("bad config: " + name, cfg=change) for name, change in BAD_CONFIGS.items()]
     return cases
+
+
+def _block(kind: str, text: str) -> dict:
+    """A top-level block for the splice cases, a paragraph or a widget."""
+    if kind == "W":
+        return {"type": "subscribeWidget", "attrs": {"url": text}}
+    return {"type": "paragraph", "content": [{"type": "text", "text": text}]}
+
+
+# Called on SYNC.splice directly. The first has two widgets inside the change,
+# which no committed post produces, so only here is their order observable.
+SPLICES = [
+    (
+        "two widgets inside the change",
+        [("P", "p"), ("W", "live-a"), ("W", "live-b"), ("P", "q")],
+        [("P", "p2"), ("W", "conv"), ("W", "conv"), ("P", "q2")],
+    ),
+    ("a widget appears", [("P", "p"), ("P", "q")], [("P", "p"), ("W", "conv"), ("P", "q")]),
+]
+
+
+def _splices() -> list[list]:
+    return [
+        [
+            name,
+            {"type": "doc", "content": [_block(*b) for b in live]},
+            {"type": "doc", "content": [_block(*b) for b in conv]},
+        ]
+        for name, live, conv in SPLICES
+    ]
 
 
 SHA_INPUTS = ["", "abc", "é and ∑ and 𝔼", "x" * 55, "x" * 56, "x" * 64, "x" * 119, "y" * 1000]
@@ -251,9 +386,13 @@ DRIVER = """
       text: async function () { return body; }, json: async function () { return body; } };
   };
   emit("SYNC_SHA " + JSON.stringify(__SHA_INPUTS.map(__sha256)));
+  __SPLICES.forEach(function (c) {
+    emit("SPLICE_RESULT " + JSON.stringify({ name: c[0], out: SYNC.splice(c[1], c[2]) }));
+  });
   for (var k = 0; k < __CASES.length; k++) {
     var c = __CASES[k];
-    var state = JSON.parse(JSON.stringify(c.draft)), reads = 0, log = [], put = null;
+    var state = JSON.parse(JSON.stringify(c.draft)), reads = 0, log = [];
+    var put = null, written = false;
     var draftUrl = "/api/v1/drafts/" + c.cfg.draft;
     var io = {
       sha: async function (s) { return __sha256(s); },
@@ -262,14 +401,22 @@ DRIVER = """
         log.push(method + " " + url);
         if (url === draftUrl && method === "PUT") {
           put = JSON.parse(init.body).draft_body;
-          state.draft_body = put;
+          if (c.putStatus) return reply(c.putStatus, null);
+          written = true;
+          var stored = JSON.parse(put);
+          if (c.alterOnPut) stored.content.pop();
+          state.draft_body = JSON.stringify(stored);
           state.draft_updated_at = "2026-10-21T10:05:00.000Z";
           return reply(200, null);
         }
         if (url === draftUrl) {
+          if (written && c.failReadAfterPut) return reply(500, null);
           reads++;
           var snapshot = JSON.parse(JSON.stringify(state));
           if (c.moveAfterRead === reads) state.draft_updated_at = "2026-10-21T10:01:00.000Z";
+          if (c.moveBodyAfterRead === reads) {
+            state.draft_body = JSON.stringify(JSON.parse(state.draft_body));
+          }
           return reply(200, snapshot);
         }
         if (url !== c.missing && Object.prototype.hasOwnProperty.call(c.files, url)) {
@@ -302,6 +449,7 @@ def run(tmp_path_factory: pytest.TempPathFactory) -> dict:
         + SHA256_JS
         + f"\nvar __SHA_INPUTS = {json.dumps(SHA_INPUTS, ensure_ascii=False)};\n"
         + f"var __CASES = {json.dumps(cases, ensure_ascii=False)};\n"
+        + f"var __SPLICES = {json.dumps(_splices(), ensure_ascii=False)};\n"
         + DRIVER
     )
     runner = Path(tmp_path_factory.mktemp("substack_sync")) / "run.js"
@@ -314,21 +462,29 @@ def run(tmp_path_factory: pytest.TempPathFactory) -> dict:
         pytest.fail("substack_sync.js did not finish within 120 seconds")
     output = done.stdout + done.stderr
     assert done.returncode == 0, output[-2000:]
-    results, hashes = {}, None
+    results, hashes, splices = {}, None, {}
     for line in output.splitlines():
         if line.startswith("SYNC_RESULT "):
             result = json.loads(line[len("SYNC_RESULT ") :])
             results[result["name"]] = result
+        elif line.startswith("SPLICE_RESULT "):
+            result = json.loads(line[len("SPLICE_RESULT ") :])
+            splices[result["name"]] = result["out"]
         elif line.startswith("SYNC_SHA "):
             hashes = json.loads(line[len("SYNC_SHA ") :])
     assert set(results) == {c["name"] for c in cases}, output[-2000:]
     for result in results.values():
         assert result["error"] is None, result["error"]
-    return {"cases": results, "sha": hashes}
+    assert set(splices) == {name for name, _, _ in SPLICES}, output[-2000:]
+    return {"cases": results, "sha": hashes, "splices": splices}
 
 
 def _methods(result: dict) -> list[str]:
     return [entry.split(" ", 1)[0] for entry in result["log"]]
+
+
+def _put(run: dict, name: str) -> dict:
+    return json.loads(run["cases"][name]["put"])
 
 
 def test_the_driver_hash_is_sha256(run: dict) -> None:
@@ -337,20 +493,26 @@ def test_the_driver_hash_is_sha256(run: dict) -> None:
 
 
 def test_a_changed_paragraph_replaces_that_block_only(run: dict) -> None:
-    result = run["cases"]["writes one paragraph"]
-    out = result["out"]
-    assert "refused" not in out
-    for check in ("mdOk", "liveOk", "convOk", "baseOk", "patchOk", "walkOk", "titleSame"):
+    out = run["cases"]["writes one paragraph"]["out"]
+    assert "refused" not in out and "failed" not in out
+    for check in (
+        "mdOk",
+        "liveOk",
+        "convOk",
+        "baseOk",
+        "patchOk",
+        "walkOk",
+        "titleSame",
+        "subtitleSame",
+    ):
         assert out[check] is True, check
     assert (out["prefix"], out["removed"], out["replaced"], out["suffix"]) == (4, 1, 1, 5)
     assert out["blocks"] == 10
     assert out["images"] == 1
-    live, new = _live_body(), _body(ONE_PARAGRAPH)
-    expected = copy.deepcopy(live)
-    expected["content"][4] = new["content"][4]
-    assert json.loads(result["put"]) == expected
-    assert out["put"] == 200
-    assert (out["readBack"], out["backWalkOk"], out["updatedChanged"]) == (True, True, True)
+    expected = _live_body()
+    expected["content"][4] = _body(ONE_PARAGRAPH)["content"][4]
+    assert _put(run, "writes one paragraph") == expected
+    assert (out["put"], out["readBack"], out["updatedChanged"]) == (200, True, True)
     assert out["bodyAfter"] == _sha(m2s.canonical(expected))[:12]
     assert out["backIsConversion"] is False
 
@@ -374,25 +536,53 @@ def test_the_write_reads_twice_before_it_and_once_after(run: dict) -> None:
     ]
 
 
+def test_without_a_live_body_hash_the_base_comparison_stands_in(run: dict) -> None:
+    """A record with no body hash, or a hidden bodyAfter, still syncs."""
+    out = run["cases"]["no liveBody"]["out"]
+    assert "liveOk" not in out
+    assert out["baseOk"] is True and out["put"] == 200
+    assert _put(run, "no liveBody") == _put(run, "writes one paragraph")
+
+
 def test_widgets_match_whatever_their_attributes(run: dict) -> None:
     """The suffix runs through both widgets though the editor rewrote their url.
 
-    The write keeps the editor's widgets rather than the converter's.
+    The write keeps the editor's widgets, each in its own place, rather than
+    the converter's.
     """
-    put = json.loads(run["cases"]["writes one paragraph"]["put"])
-    assert [put["content"][i]["attrs"]["url"] for i in (5, 9)] == [EDITOR_WIDGET_URL] * 2
+    put = _put(run, "writes one paragraph")
+    assert [put["content"][i]["attrs"]["url"] for i in (5, 9)] == [
+        f"{EDITOR_WIDGET_URL}-5",
+        f"{EDITOR_WIDGET_URL}-9",
+    ]
 
 
 def test_a_widget_inside_the_change_keeps_the_live_one(run: dict) -> None:
-    result = run["cases"]["widget inside the change"]
-    out = result["out"]
+    out = run["cases"]["widget inside the change"]["out"]
     assert "refused" not in out
     assert (out["prefix"], out["removed"], out["replaced"], out["suffix"]) == (4, 3, 3, 3)
+    expected = _live_body()
     new = _body(AROUND_A_WIDGET)
-    put = json.loads(result["put"])
-    assert put["content"][5] == _live_body()["content"][5]
-    assert put["content"][4] == new["content"][4]
-    assert put["content"][6] == new["content"][6]
+    expected["content"][4] = new["content"][4]
+    expected["content"][6] = new["content"][6]
+    assert _put(run, "widget inside the change") == expected
+
+
+def test_widgets_inside_the_change_keep_their_live_order(run: dict) -> None:
+    out = run["splices"]["two widgets inside the change"]
+    assert (out["prefix"], out["removed"], out["replaced"], out["suffix"]) == (0, 4, 4, 0)
+    assert out["body"]["content"] == [
+        _block("P", "p2"),
+        _block("W", "live-a"),
+        _block("W", "live-b"),
+        _block("P", "q2"),
+    ]
+    assert [b["attrs"]["url"] for b in out["compare"]["content"][1:3]] == ["conv", "conv"]
+
+
+def test_a_widget_that_appears_leaves_no_body(run: dict) -> None:
+    out = run["splices"]["a widget appears"]
+    assert out["body"] is None and out["compare"] is None
 
 
 def test_a_repeated_paragraph_is_inserted_once(run: dict) -> None:
@@ -401,17 +591,40 @@ def test_a_repeated_paragraph_is_inserted_once(run: dict) -> None:
     Without that limit the suffix runs back through the first paragraph, the
     two meet with nothing between them, and the call reports no change.
     """
-    result = run["cases"]["repeated paragraph"]
-    out = result["out"]
+    out = run["cases"]["repeated paragraph"]["out"]
     assert (out["prefix"], out["removed"], out["replaced"], out["suffix"]) == (1, 0, 1, 9)
-    assert json.loads(result["put"]) == {
-        **_live_body(),
+    live = _live_body()
+    assert _put(run, "repeated paragraph") == {
+        **live,
         "content": [
-            *_live_body()["content"][:1],
+            live["content"][0],
             _body(REPEATED_PARAGRAPH)["content"][1],
-            *_live_body()["content"][1:],
+            *live["content"][1:],
         ],
     }
+
+
+def test_a_title_or_subtitle_difference_is_reported_and_left_alone(run: dict) -> None:
+    """A post whose subtitle is over 255 units keeps it blank, and the write sends the body only."""
+    result = run["cases"]["title and subtitle differ"]
+    assert (result["out"]["titleSame"], result["out"]["subtitleSame"]) == (False, False)
+    assert result["out"]["put"] == 200
+    assert _put(run, "title and subtitle differ") == _put(run, "writes one paragraph")
+
+
+def test_a_figure_can_be_added_or_replaced_by_passing_it_in(run: dict) -> None:
+    added = run["cases"]["new figure passed in"]["out"]
+    assert added["put"] == 200 and added["images"] == 2
+    assert (
+        _put(run, "new figure passed in")["content"][9]
+        == _body(NEW_FIGURE, {**IMAGES, "sync_new.png": NEW_IMAGE})["content"][9]
+    )
+    redrawn = run["cases"]["redrawn figure passed in"]["out"]
+    assert (redrawn["prefix"], redrawn["removed"], redrawn["replaced"]) == (3, 2, 2)
+    assert (
+        _put(run, "redrawn figure passed in")["content"][3]
+        == _body(ONE_PARAGRAPH, REDRAWN)["content"][3]
+    )
 
 
 def test_without_write_true_it_only_reports(run: dict) -> None:
@@ -423,31 +636,19 @@ def test_without_write_true_it_only_reports(run: dict) -> None:
         assert result["put"] is None, name
 
 
-@pytest.mark.parametrize(
-    ("name", "reason", "failed"),
-    [
-        ("live body off its baseline", "the live body moved from its baseline", "liveOk"),
-        ("owner highlight", "the live draft differs from the base commit's conversion", "baseOk"),
-        ("change drops a widget", "the change adds or drops a widget", None),
-        ("draft moves before the write", "the draft moved", None),
-        ("title differs", "the title or subtitle differs", "titleSame"),
-        ("conversion hash differs", "the conversion", "convOk"),
-        ("markdown hash differs", "the Markdown", "mdOk"),
-        (
-            "figure missing from the draft",
-            "the base Markdown names 1 figures and the draft holds 0",
-            None,
-        ),
-        ("markdown not found", "a read failed", None),
-    ],
-)
-def test_each_refusal_sends_no_write(run: dict, name: str, reason: str, failed: str | None) -> None:
+@pytest.mark.parametrize(("name", "reason", "flag"), REFUSALS)
+def test_each_refusal_sends_no_write(run: dict, name: str, reason: str, flag: str | None) -> None:
     result = run["cases"][name]
     assert result["out"]["refused"] == reason
-    if failed:
-        assert result["out"][failed] is False
+    if flag:
+        assert result["out"][flag] is False
     assert "PUT" not in _methods(result)
     assert result["put"] is None
+
+
+def test_a_held_draft_is_refused_before_anything_is_hashed(run: dict) -> None:
+    for name in ("published", "scheduled", "no post_date"):
+        assert "mdOk" not in run["cases"][name]["out"], name
 
 
 def test_a_live_body_off_its_baseline_stops_before_converting(run: dict) -> None:
@@ -459,11 +660,28 @@ def test_a_live_body_off_its_baseline_stops_before_converting(run: dict) -> None
 def test_the_owner_highlight_passes_the_baseline_and_still_stops(run: dict) -> None:
     """A highlight the last sync kept matches the baseline, so only the base comparison stops it.
 
-    The splice would otherwise copy block 8 from the conversion, which has no
-    highlight, whenever a change reached it.
+    Block 8 differs from every conversion, so without that comparison every
+    sync would copy it from the conversion and drop the highlight.
     """
     out = run["cases"]["owner highlight"]["out"]
     assert out["liveOk"] is True and out["convOk"] is True
+
+
+@pytest.mark.parametrize(
+    ("name", "failed"),
+    [
+        ("write fails", "the write returned 500"),
+        ("read-back differs", "the read-back does not match what was sent"),
+        ("read-back fails", "the read-back failed"),
+    ],
+)
+def test_a_failed_write_says_so_and_gives_no_baseline(run: dict, name: str, failed: str) -> None:
+    """A session records bodyAfter as the next baseline, so a failure must not carry one."""
+    out = run["cases"][name]["out"]
+    assert out["failed"] == failed
+    assert "refused" not in out
+    assert "bodyAfter" not in out and "backIsConversion" not in out
+    assert "PUT" in _methods(run["cases"][name])
 
 
 def test_nothing_changed_writes_nothing(run: dict) -> None:
