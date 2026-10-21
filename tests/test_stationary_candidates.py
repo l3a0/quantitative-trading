@@ -1062,6 +1062,19 @@ class TestTheWindowPower:
         windows = np.array([values[e - WINDOW + 1 : e + 1] for e in rate.scan.end_idx])
         assert batched_adf(windows) == pytest.approx(rate.scan.adf_stat, abs=1e-9)
 
+    def test_a_short_path_keeps_its_last_window_and_its_first_day(self, rate: CrossRate) -> None:
+        """On paths one step longer than a window, the scan ends on the last
+        day, as the rate's does, and the whole-path test reads every day. The
+        declared length leaves 7 days after the last window, so no pinned count
+        could see either."""
+        length = WINDOW + STEP
+        z = simulated_paths(rate.half_life, length, 200, POWER_SEED)
+        short = window_power(rate.half_life, length, paths=200)
+        assert short.windows == len(rolling_adf(z[0]).adf_stat) == 2
+        want = [adf_tstat(p, LAGS)[0] < ADF_CRIT_CONST["5%"] for p in z]
+        assert 0 < sum(want) < 200
+        assert list(short.whole_rejects5) == want
+
     def test_a_long_path_reverts_at_the_rate_s_half_life(self, rate: CrossRate) -> None:
         """Measured the way the rate's is, two million simulated days give the
         half-life back. A path as short as the test window reads it short as
