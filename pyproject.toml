@@ -76,7 +76,7 @@ pythonpath = ["."]
 # `uv run pytest` is the parallel run everywhere it is written down.
 # `loadfile` keeps each test file on one worker, so a module-scoped fixture is
 # built once, as it is serially. `tests/conftest.py` schedules `loadfile`
-# itself, to run two named files on one worker. xdist's default spreads one
+# itself, to run each named pair of files on one worker. xdist's default spreads one
 # file's tests over several workers, and each builds the file's fixtures
 # again. xdist starts every worker whatever the selection, so `-n 0` is the
 # faster choice for a few tests. `--pdb` turns the workers off on its own.
