@@ -605,7 +605,7 @@ Entries 5, 44, 46 and 50 is in that position too, so those entries drop the
 verdict column rather than filling it. Entry 52's rows 1 and 2 quote published
 figures, but set them beside a series another project built rather than one
 this repository computes, so they chase neither, and that entry drops the gap
-and verdict columns for the same reason. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 49,
+and verdict columns for the same reason. So are Entry 6's rows 2 to 9, Entry 7's rows 15 to 18, 23 to 29 and 30 to 50,
 Entry 8's row 3, Entry 9's rows 3 to 5, Entry 10's rows 6 to 13, Entry 11's
 rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
@@ -2431,8 +2431,11 @@ Rows 22 to 29 shipped under
 rows 35 to 40 under
 [issue 329](https://github.com/l3a0/quantitative-trading/issues/329), and rows
 41 to 49 under [issue 336](https://github.com/l3a0/quantitative-trading/issues/336).
+Row 50 shipped under no issue of its own. The owner asked for it while editing
+the equity seasonals post, whose edits
+[issue 632](https://github.com/l3a0/quantitative-trading/issues/632) tracks.
 
-Forty-nine rows, all derivable from
+Fifty rows, all derivable from
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py).
 
 **Every figure the committed files reach reproduces, in every printout.** Chan
@@ -2443,7 +2446,8 @@ of them lands from the strategy's description alone. Each needs the rules its
 own script applies, and the issue records the figure each rule gives when it is
 changed.
 
-Chan publishes both strategies as already dead, so reproducing them checks
+Chan publishes Example 7.7 as already dead and reports Example 7.6 failing in
+two Januaries before working in the third, so reproducing them checks
 whether a documented disappearance is visible in data a reader can get. Every
 printout's whole-period figure is negative on his files, as he printed it. What
 the files cannot show is the 13 percent before 2002 that a disappearance would
@@ -2479,7 +2483,8 @@ file maps each member to an Alpha Vantage ticker and records whether the
 series' raw close agrees with the filing.
 [Issue 332](https://github.com/l3a0/quantitative-trading/issues/332) built it.
 Their closes are the adjusted closes of the 1,487 `sp600` lines it maps to,
-all downloaded 2026-10-05, and the calendar is the same SPY vintage.
+all downloaded 2026-10-05, and the calendar is the same SPY vintage. Row 50
+reads the same files.
 
 Rows 41 to 49 read neither of Chan's files. They run Example 7.7 on the
 members IVV's 70 quarter-end schedules list from 2008-12-31 to 2026-06-30, each
@@ -2503,8 +2508,9 @@ Example 7.7, rows 15 to 18 split one of them at 2002, rows 19 to 21 are
 Example 7.6's third January, rows 22 to 29 are p. 180's most recent five
 years, rows 30 to 34 are Example 7.6 from January 2009 to January 2026 on
 IJR's members at 2025-12-31, rows 35 to 40 are the same Januaries on IJR's
-members at each year-end, and rows 41 to 49 are Example 7.7 from January 2009
-to September 2026 on IVV's members each month. Each row names the
+members at each year-end, rows 41 to 49 are Example 7.7 from January 2009
+to September 2026 on IVV's members each month, and row 50 is row 35's
+Januaries with every missing member left out. Each row names the
 printout whose rules it runs, and `chan.equity_seasonals` holds those rules as
 `JANUARY_RULES` and `HESTON_SADKA_RULES`.
 
@@ -2531,9 +2537,13 @@ decide each rule, and rows 9, 10, 13 and 14 run those rules.
    and 10, and the repost is what confirms the two choices the page does not
    decide.
 
-Rows 5, 6 and 21, and the revised edition's half of rows 1, 2 and 19, rest on
-a different inference: the figures match the first edition's, so its rules are
-assumed.
+Rows 5, 6 and 21 rest on a different inference: the R's figures match the
+first edition's, so its rules are assumed, because its Example 7.6 is printed
+only in the book. The revised edition's half of rows 1, 2 and 19 no longer
+rests on that inference. The repost's `example7_6.m` at `7430b84` rounds a
+tenth with `round`, takes a full tenth at each end, and reads one shared row
+for the last day of December and of January, which are `MATLAB_JANUARY`'s
+rules, and its closing comment prints the same three returns.
 
 Every result in rows 1 to 34 is **exploratory**. A replication spends the sample on a
 hypothesis Chan chose, and rows 15 to 18 were computed before any criterion for
@@ -2582,6 +2592,11 @@ of 501 in 2012-09 and highest at 501 of 503 in 2025-09. Row 49 tests the
 argument that dropping a missing member is neutral, and the verdict cell for
 rows 42 to 49 says what it found.
 
+Row 50 is **exploratory**. It leaves every missing member out of row 35's
+Januaries, the way rows 41 to 49 do for Example 7.7, but
+[issue 329](https://github.com/l3a0/quantitative-trading/issues/329) wrote no
+rule for it before the run.
+
 ### What the book printed
 
 | # | Row | Published | Where |
@@ -2615,6 +2630,7 @@ rows 42 to 49 says what it found.
 | 36 to 40 | row 35's standard deviations, each series' one-sided t-test, the mean each detects with 80% probability, the means after costs, and row 30's mean less row 35's | nothing | n/a |
 | 41 | 7.7, mean monthly return before costs, January 2009 to September 2026, IVV's members each month | nothing, the book prints no figure for these months | n/a |
 | 42 to 49 | row 41's standard deviation, its one-sided t-test, the annual return the test detects with 80% probability, the same figures under the revised Python's rules, the means on the two bracketing masks, and three counts: positions on names that changed between schedules, positions whose stock stopped inside the month, and where departing names fall | nothing | n/a |
+| 50 | 7.6, mean January return before costs, row 35's Januaries with every missing member left out | nothing | n/a |
 
 None of rows 1 to 14 and 19 to 21 is among the committed highlights, because each is printed
 beside code rather than in a sentence somebody marked. Row 22's sentence is not
@@ -2681,6 +2697,7 @@ code behind rows 9, 10, 13 and 14 traces to
 | 47 | positions in the months between two schedules held on a name that changed: those the carry-forward run gave a removed name, then those the union run gave an added name. The 69 pairs of schedules removed 500 names and added 503 | 216 and 162, 378 in all | none | `TestTheMonthlyPins::test_the_positions_on_names_that_changed_per_pair_and_in_total` and `TestTheScheduleChanges::test_500_names_removed_and_503_added_over_69_pairs` |
 | 48 | positions whose stock stopped strictly between the month-end that set them and the next, and their returns summed, each signed by its side | 23, summing to −0.7013 | none | `TestTheMonthlyPins::test_23_positions_stopped_inside_the_month_held` |
 | 49 | covered member-months from ranking months 2008-12 to 2025-08, split by whether the name leaves the index within twelve months, and placed long, short or neither by row 41's rules. Described rather than tested | departing 12.0%, 16.5% and 71.5%, staying 9.8%, 9.6% and 80.6% | none | `TestTheMonthlyPins::test_departing_names_fall_in_a_tenth_more_often` |
+| 50 | row 35's year-ends with every missing member left out, the tenth taken of the ranked covered members alone, from 43 long and 43 short of 433 ranked to 60 long and 60 short of 598 ranked. Described rather than tested, because [issue 329](https://github.com/l3a0/quantitative-trading/issues/329) wrote no rule for it | −0.0083, one-sided p 0.743 | none | `TestThePointInTimePins::test_leaving_the_missing_members_out_lands_between_the_two` |
 
 Each of rows 1 to 14 and 19 to 21 is asserted twice: its full value at `abs=1e-9`, and its
 rounding at the precision its source prints. So the computed column quotes the
@@ -2698,7 +2715,7 @@ no published figure to take a gap from.
 | 4 | reproduced | as row 3 |
 | 5 | reproduced | Inferred rules, as the entry's opening says. No decile on this file lands on a half, so R's rounding and MATLAB's give the same stocks. |
 | 6 | reproduced | as row 5 |
-| 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Keeping each stock on its own close instead gives −1.0822, and averaging over the 83 months that hold positions gives −1.0492. Dividing each month by its positions gives −0.0120 a year, a figure this repo derived and Chan did not print. |
+| 7 | reproduced | The return is a sum over every position held that month, never divided by their number, so −0.9167 is in units of summed positions rather than a fraction of capital. Keeping each stock on its own close instead gives −1.0822, or −0.0113 a year once each month is divided by its positions. Dividing each month by its positions gives −0.0105 a year, a figure this repo derived and Chan did not print. The 12 empty months add nothing to the sum, so averaging over the 83 that hold positions divides the same sum by 83 instead of 95. Multiplying the old mean by 95/83 cancels its 95, carrying −0.9167 to −1.0492 and −0.0105 to −0.0120. |
 | 8 | reproduced | Skipping the NaN month in the standard deviation instead of counting it as zero gives −0.1049. |
 | 9 | reproduced | The printed code with one repair. As printed, it reads a daily row of a 96-row array and cannot run. The repair reads the month-end row, and because the printed mask removes stocks by column, it keeps each stock on its own close. Keeping the first edition's sorted-against-columns rule instead gives −0.0120 and does not print. Keeping each stock on its own return also prints −0.0129, so the code chooses the close where four decimals cannot. |
 | 10 | reproduced | As row 9. Pp. 179 to 181 do not print `smartstd`, and the revised code's repost ships book two's. *Algorithmic Trading*'s, which skips a month with no position and divides by n, prints −0.1243. The first edition's gives −0.1236. Every month the drop removes holds no position, so under the former the drop count moves no figure. Under the first edition's it does: dropping 12 also prints −0.1243 by counting one empty month as zero, which is the reading this row ran before the code was read, and dropping none gives −0.1330. |
@@ -2721,6 +2738,7 @@ no published figure to take a gap from.
 | 36 to 40 | none, registered | Reported beside row 35. Row 40 compares two runs on one cross-section, so it measures membership rather than two download dates. Its two figures differ in sign because the bound is wider than the gap it would measure, so it says nothing yet about what survivorship cost Example 7.6. |
 | 41 | none, registered | The registered verdict is "no return detectable above about 4.2% a year", the criterion's own wording rather than one of the three a replication takes. The mean is −0.0001 a month with a one-sided p of 0.539, so the test does not reject. The 4.2% is row 44's X at one decimal of a percent, as the issue fixed. A true return below that size could pass undetected, so the verdict never says the strategy is dead. It is before costs and on covered members only. Its membership is carried forward between quarterly schedules, and it lacks the return a failing stock takes when it leaves, which the free source does not carry. `TestTheMonthlyPins::test_the_verdict` holds the wording. |
 | 42 to 49 | none, registered | Reported beside row 41. Row 45 equals row 41 because the printouts' differences never bind on this panel. Every ranked member has the closes its month needs, so keeping a stock on its own close and keeping it on its own return keep the same stocks. Rows 46 and 47 measure what carrying a schedule forward misdates, and both bracketing means are negative, like row 41's. Row 48's positions earn their return to the last close and nothing after it. Row 49 tests the argument the dropped members rest on. Among covered members, names that leave the index within a year land in a tenth more often than names that stay, most of all in the short tenth. The issue said before the run that a clear difference would count as evidence against the argument that dropping a missing member is neutral, and this is such a difference. Which way it moves row 41's mean is not measured. The chi-square p prints as 0.000 and decides nothing, because member-months repeat the same names. |
+| 50 | none, exploratory | Reported beside row 35 with no verdict, because [issue 329](https://github.com/l3a0/quantitative-trading/issues/329) wrote no rule for it before the run. Leaving every missing member out also ranks each year on a different set of stocks than the strategy would have traded, a bias row 49 measured for Example 7.7 and nobody has measured here. |
 
 ### What the entry concludes
 
@@ -2760,12 +2778,14 @@ Seven things.
    0.132. The data are survivors, tilted toward the effect, so this reading
    goes one way only.
 6. **On IJR's members as they stood at each year-end, the free sources cannot
-   decide whether the January effect survived the book.** This is the log's
+   decide whether the January effect still worked after 2008.** This is the log's
    first registered result. Rows 35 to 40 bound every January, because every
    year-end has members with no checked price that could change a tenth. The
    low series averages −0.1047 a January with a one-sided p of 1.000, and the
-   high series 0.0879 with a p of 0.001. A purchase of the threatening
-   members' prices is what could decide it.
+   high series 0.0879 with a p of 0.001. Row 50 leaves out every member with
+   no checked price and averages −0.0083, between the two, described rather
+   than tested. A
+   purchase of the threatening members' prices is what could decide it.
 7. **On the S&P 500 as IVV held it each month, Example 7.7 earns no return
    detectable above about 4.2% a year after the book.** This is registered.
    Row 41 averages −0.0001 a month before costs over the 213 months from
@@ -2777,7 +2797,7 @@ Seven things.
 
 Four things.
 
-**Whether Example 7.6's January effect survived the book.** Rows 35 to 40
+**Whether Example 7.6's January effect still worked after 2008.** Rows 35 to 40
 were built to say, and the bound is too wide for either answer. Members with
 no checked price could change a tenth at every year-end, and the free sources
 hold no price for them. Rows 30 to 34 bound it in one direction only, on
@@ -2817,7 +2837,43 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/equity-seasonals-lessons.md](../blog/equity-seasonals-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.equity_seasonals_figures` redraws.
+which `uv run python -m chan.equity_seasonals_figures` redraws. So do the
+whiteboard sketches that print figures, which `uv run python -m
+chan.equity_seasonals_whiteboard` redraws, fifteen of them on a machine with
+the archive. Those are the opening's years and verdicts sketches, four of the
+seven rule sketches, the split sketch, the five-year check's three, the January
+ranges sketch, the two under "What 18 Januaries can detect", eight of the ten
+sketches on whether Heston and Sadka's effect still worked after 2008, three of
+them on where its 4.2 percent comes from and two on what a broader series
+shows, and three of the four under "Further work". The third on the broader
+series, "Before 2002 and after", draws only Entry 52's figures, as the
+sketches on whether the effect existed before 2002 do.
+`TestTheRuleSketchesFigures` in
+[tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) derives the
+rule sketches' figures from Chan's files, `TestTheYearsInsideTheSplit` the split
+sketch's, and `TestTheFiveYearSketches` the five-year check's. The verdicts
+sketch draws rows 35, 41 and 44's figures and refuses to draw unless rows 37 and
+43's tests give their registered verdicts, and `PINNED` in
+[tests/test_equity_seasonals_whiteboard.py](../tests/test_equity_seasonals_whiteboard.py)
+moves with a re-pin of either. The January ranges sketch draws the registered
+January run's eighteen Januaries and, beside each, row 50's January with every
+missing member left out. `PINNED_RANGES` there moves with a re-pin of either.
+The two under "What 18 Januaries can detect" draw the registered January run's
+count and its two versions' spreads, from which row 38's X follows, so
+`PINNED_POWER` there moves with a re-pin of it.
+Three of the four under "Further work" draw rows 35 and 38's figures through
+`PINNED` and `PINNED_POWER`, row 41's months through `PINNED_IVV`, and the 741
+member-years the January run could not check, so each moves with a re-pin of
+those.
+The checked, leavers and running-sum sketches draw row 41's months and
+coverage and row 49's departures from the IVV run, the 4.2 percent's three
+draw the critical value and δ from row 41's month count, and the broader
+series' scatter and running sums draw row 41's months against Entry 52's, so
+`PINNED_IVV` there moves with a re-pin of any of them. `PINNED_SHIFT` there
+copies the critical value, δ and the normal curve's 80th percentile that
+`test_how_the_4_2_percent_is_derived` in
+[tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) pins, and
+moves with a re-pin of it.
 
 ## Entry 8: the Khandani-Lo reversal, Chan's *Quantitative Trading*
 
@@ -11797,7 +11853,7 @@ Four things carry the result.
 
 | # | Row | What the source says | Where |
 | --- | --- | --- | --- |
-| 1 | The signal over Heston and Sadka's sample | 1.15 percent a month, t 7.6, 1965 to 2002 | Heston and Sadka 2008, Table 2 |
+| 1 | The signal over Heston and Sadka's sample | 1.15 percent a month, t 7.6, 1965 to 2002 | Heston and Sadka, Table 2, read by the post from their October 2006 working paper. This repository holds no copy of either version |
 | 2 | The signal before 2002 | "more than 13 percent" a year, before transaction costs | Kindle location 4425 |
 | 3 | The signal from 2002 | the effect "has disappeared since then", with no figure | Kindle location 4425 |
 | 4 and 5 | Example 7.7 against the project, on Chan's file and on IVV's members | nothing | n/a |
@@ -11872,6 +11928,17 @@ Three things.
    0.705 on Chan's file and 0.592 on IVV's members. At the rule's scale,
    Example 7.7 earned 0.0020 a month less than the project's series on Chan's
    file and 0.0010 less on IVV's members.
+
+The sketch "Before 2002, without survivors" in
+[blog/equity-seasonals-lessons.md](../blog/equity-seasonals-lessons.md) draws
+the first conclusion's 0.0136, its standard error and 0.0131, read from this
+run. `PINNED_OSAP` in
+[tests/test_equity_seasonals_whiteboard.py](../tests/test_equity_seasonals_whiteboard.py)
+moves with a re-pin of any of them. "Before 2002 and after" draws the means
+and standard errors of 1965 to 2001 and of 2002 to 2024, which `PINNED_BROAD`
+there pins, and "Moving together" draws row 5's 192 months and their
+correlation of 0.592, and "Two running sums" adds those months up, neither
+halved.
 
 ### What this entry cannot say
 

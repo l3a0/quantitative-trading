@@ -1607,8 +1607,13 @@ class TestTheGifs:
 
 class TestTheCommittedGifs:
     def test_the_figures_folder_holds_these_gifs_and_no_others(self) -> None:
-        """A GIF left behind by a renamed or retired scene fails here."""
-        assert {path.name for path in FIGURES_DIR.glob("*.gif")} == set(GIFS)
+        """A GIF left behind by a renamed or retired scene fails here.
+
+        It reads this module's prefix, because the equity-seasonals post's
+        sketches share the folder. ``tests/test_equity_seasonals_whiteboard.py``
+        holds that every GIF there carries one of the two prefixes.
+        """
+        assert {path.name for path in FIGURES_DIR.glob("usdcad_tests_*.gif")} == set(GIFS)
 
     def test_each_has_the_size_frames_loop_and_timing_of_a_fresh_draw(self, frames) -> None:
         for name, count, steps in zip(GIFS, FRAMES, frames, strict=True):

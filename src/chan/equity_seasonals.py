@@ -1,8 +1,9 @@
 """Chan's two equity seasonals, Examples 7.6 and 7.7, on his files and on IJR's members.
 
-Chan publishes both strategies as already dead. At Kindle location 4425 he says
-the Heston and Sadka strategy returned more than 13 percent a year before 2002
-and "has disappeared since then". Example 7.6 trades the January effect, and
+Chan publishes Example 7.7 as already dead and reports Example 7.6 failing in
+two Januaries before working in the third. At Kindle location 4425 he says the
+Heston and Sadka strategy returned more than 13 percent a year before 2002 and
+"has disappeared since then". Example 7.6 trades the January effect, and
 location 766 says a reader's backtest of it failed and Chan's own confirmed the
 failure. So reproducing these checks whether a documented disappearance is
 visible in data a reader can get, rather than whether a published edge
@@ -137,7 +138,10 @@ member that could change a tenth is flagged from the filings alone by
 by :func:`bounded_january`. Each series takes the one-sided test, and
 :func:`point_in_time_verdict` words the outcome. The claim, the test, the bound
 and the wording were written on the issue before any return was computed, so
-the result is labelled registered.
+the result is labelled registered. Beside it the run reports each January with
+every missing member left out, the tenth taken of the ranked covered members
+alone. No rule was written for that series first, so it is exploratory and
+described rather than tested.
 
 **Example 7.7 on the S&P 500 as IVV held it each month.**
 [Issue 336](https://github.com/l3a0/quantitative-trading/issues/336) runs
@@ -399,7 +403,10 @@ def january_effect(
 
 #: Example 7.6 as both editions' MATLAB print it. The owner read the revised
 #: edition on 2026-10-02, and its MATLAB prints the same three returns, labelled
-#: with the January exit day rather than the December entry day.
+#: with the January exit day rather than the December entry day. The revised
+#: ``example7_6.m`` in pinhaocheng/epchan-quant_trading_MATLAB_codes at
+#: ``7430b84`` makes the same three choices this holds: ``round``, a full
+#: tenth at each end, and one shared month-end row.
 MATLAB_JANUARY = JanuaryRules(
     source="example7_6.m, first and revised editions",
     per_stock_period_ends=False,
@@ -907,12 +914,69 @@ def detectable_mean(
     X is a mean per holding, as ``std`` is a deviation per holding, so a caller
     whose holding is a month multiplies by twelve for a year.
     """
-    df = n - 1
-    critical = stats.t.isf(significance, df)
-    noncentrality = optimize.brentq(
-        lambda shift: stats.nct.sf(critical, df, shift) - power, 0.0, 50.0, xtol=1e-12
-    )
+    _, noncentrality = detectable_shift(n, significance=significance, power=power)
     return float(noncentrality * std / math.sqrt(n))
+
+
+def detectable_shift(
+    n: int, *, significance: float = SIGNIFICANCE, power: float = POWER
+) -> tuple[float, float]:
+    """The one-sided test's critical value at ``n - 1`` degrees of freedom,
+    and the noncentrality at which the statistic clears it with probability
+    ``power``.
+
+    No formula turns ``power`` back into the noncentrality, so a solver
+    narrows a bracket from 0 to 50 onto it.
+    """
+    df = n - 1
+    critical = float(stats.t.isf(significance, df))
+    return critical, _solve_shift(critical, df, power)
+
+
+#: Where the solver's search for the noncentrality starts.
+SHIFT_BRACKET = (0.0, 50.0)
+
+
+def _solve_shift(
+    critical: float, df: int, power: float, seen: list[tuple[float, float]] | None = None
+) -> float:
+    """The noncentrality at which the statistic clears ``critical`` with
+    probability ``power``. ``seen``, when given, collects each point the
+    solver tries and how far the chance there is from ``power``."""
+
+    def gap(shift: float) -> float:
+        value = float(stats.nct.sf(critical, df, shift) - power)
+        if seen is not None:
+            seen.append((shift, value))
+        return value
+
+    return float(optimize.brentq(gap, *SHIFT_BRACKET, xtol=1e-12))
+
+
+def shift_brackets(
+    n: int, *, significance: float = SIGNIFICANCE, power: float = POWER
+) -> list[tuple[float, float]]:
+    """The bracket around the noncentrality after each point the solver tries
+    inside :data:`SHIFT_BRACKET`, as :func:`detectable_shift` finds it.
+
+    A point where the chance falls short of ``power`` raises the bracket's low
+    end, and any other point lowers its high end.
+    """
+    df = n - 1
+    critical = float(stats.t.isf(significance, df))
+    seen: list[tuple[float, float]] = []
+    _solve_shift(critical, df, power, seen)
+    low, high = SHIFT_BRACKET
+    out = []
+    for shift, value in seen:
+        if shift in SHIFT_BRACKET:
+            continue
+        if value < 0:
+            low = max(low, shift)
+        else:
+            high = min(high, shift)
+        out.append((low, high))
+    return out
 
 
 def survivor_filing() -> Filing:
@@ -1196,6 +1260,12 @@ class YearEnd:
     ``high`` are before costs. They are equal, and equal to ``trade``'s return
     with its costs added back, exactly when no missing member threatens a
     tenth.
+
+    ``left_out`` is the January with every missing member left out, the tenth
+    taken of the ranked covered members alone, before costs, and
+    ``left_out_tenth`` is how many that tenth holds on each side. Issue 329
+    wrote no rule for it, so it is exploratory and described rather than
+    tested.
     """
 
     report_date: str
@@ -1213,6 +1283,8 @@ class YearEnd:
     no_exit: int
     low: float
     high: float
+    left_out: float
+    left_out_tenth: int
 
     @property
     def exact(self) -> bool:
@@ -1372,6 +1444,9 @@ def point_in_time_year(
             f"{date}: january_effect entered {trade.entered.date()} and ranked "
             f"{trade.ranked}, where the slice gives {entered.date()} and {ranked}"
         )
+    alone = january_effect(sliced, MATLAB_JANUARY)
+    if [one.exited for one in alone.trades] != [exited]:
+        raise PointInTimeRefused(f"{date}: the covered members alone do not yield this January")
     sides = threat_sides(year_end_returns(IJR, date, filings_dir), year.missing, universe)
     counts = {side: sum(1 for value in sides.values() if value == side) for side in SIDES}
     low, high = bounded_january(annual, january, trade.longs, **counts)
@@ -1392,6 +1467,8 @@ def point_in_time_year(
         no_exit=int((np.isfinite(annual) & ~np.isfinite(january)).sum()),
         low=low,
         high=high,
+        left_out=alone.trades[0].ret + 2 * ONE_WAY_COST,
+        left_out_tenth=alone.trades[0].longs,
     )
 
 
@@ -1441,6 +1518,11 @@ class PointInTimeRun:
     @property
     def verdict(self) -> str:
         return point_in_time_verdict(self.low, self.high, self.x_low, self.x_high)
+
+    @property
+    def left_out(self) -> OneSided:
+        """The Januaries with every missing member left out, described rather than tested."""
+        return one_sided_t([year.left_out for year in self.year_ends])
 
     @property
     def after_costs(self) -> tuple[float, float]:
@@ -2413,6 +2495,21 @@ def report_point_in_time(result: PointInTimeRun, survivors: SurvivorRun | None =
             f"costs: mean {after:.4f}"
         )
     print(f"  verdict: {result.verdict}")
+    left_out = result.left_out
+    print(
+        "  every missing member left out, the tenth taken of the ranked covered members alone, "
+        "exploratory and described rather than tested"
+    )
+    for year in result.year_ends:
+        print(
+            f"    {year.trade.exited.year} January: {year.left_out:.4f}   "
+            f"({year.left_out_tenth} long and {year.left_out_tenth} short of "
+            f"{year.trade.ranked} ranked)"
+        )
+    print(
+        f"    the mean: {left_out.mean:.4f}, t {left_out.t:.2f}, one-sided p {left_out.p:.3f}, "
+        f"over {left_out.n} Januaries"
+    )
     if survivors is not None:
         per, means = survivorship_gap(result, survivors)
         print(

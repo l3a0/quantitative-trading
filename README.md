@@ -99,9 +99,10 @@ where they were first built. The other forty-five were built here.
    the first lag count whose residuals pass, against a bar of −2.86, so the
    claim reproduces. Its half-life is 141.6 trading days, and only 23 of 226
    one-year windows reject at 10%.
-7. The equity seasonals, Examples 7.6 and 7.7, which Chan publishes as already
-   dead: the January effect on his S&P 600 file and Heston and Sadka's
-   year-on-year rotation on his S&P 500 file. He prints them in the first
+7. The equity seasonals, Examples 7.6 and 7.7: the January effect on his
+   S&P 600 file, which he reports failing in two Januaries before working in
+   the third, and Heston and Sadka's year-on-year rotation on his S&P 500
+   file, which he publishes as already dead. He prints them in the first
    edition's MATLAB and in the revised edition's MATLAB, Python and R, and all
    seventeen figures his files reach reproduce to the digits printed. None
    lands from the strategy as described. The revised MATLAB and R rules follow
@@ -130,8 +131,10 @@ where they were first built. The other forty-five were built here.
    computed. Every year-end has members with no checked price that could
    change a tenth, so every January is bounded. The low series averages
    −0.1047 a January before costs with a one-sided p of 1.000, and the high
-   series 0.0879 with a p of 0.001. The two disagree, so the free sources
-   cannot decide whether the January effect survived the book, and
+   series 0.0879 with a p of 0.001. Leaving out every member with no checked
+   price averages −0.0083, between the two, described rather than tested. The two series
+   disagree, so the free sources cannot decide whether the January effect
+   still worked after 2008, and
    [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) asks
    whether to buy prices for the members that threaten a tenth. Example 7.7
    then ran under the revised MATLAB's rules on the members IVV held each
@@ -2605,7 +2608,10 @@ the owner's machine catches a stale figure. The USD.CAD post's animated GIFs
 are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
-also only on macOS arm64 and only with the hand font they were drawn in.
+also only on macOS arm64 and only with the hand font they were drawn in. The
+equity seasonals post's thirty-nine GIFs are checked the same way by
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
+which also fails on any GIF in the folder that neither module draws.
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3121,20 +3127,26 @@ the regime map.
 eighth post, about the equity seasonals, Examples 7.6 and 7.7. Chan reports
 seasonality in stocks as fading and publishes Example 7.7 as dead, while his
 text on Example 7.6 says it won in January 2008 after losing in the two
-Januaries before. The post draws four lessons from Entry 7 of the replication
-log.
+Januaries before. The post leads with the verdicts of Entry 7's two registered
+runs, draws three lessons from Entry 7 of the replication log, and sets Entry
+52's Open Source Asset Pricing series beside them.
 
-1. Every figure the committed files reach reproduces, and only under each
-   script's own rules.
-2. One strategy gives four answers across four printouts, and the first
-   edition's is in different units from the other three.
-3. Reproducing a strategy published as dead checks its printed figures and not
+1. Account for every choice and every bug, or one strategy gives several
+   answers. Every figure his code prints reproduces, but the book's
+   description fits several numbers, and seven of the rules each script adds
+   are bugs. Matching the printed figures means copying six of them, and the
+   seventh has to be repaired. Example 7.7's four
+   printouts give four answers, and the first edition's is in different units
+   from the other three.
+2. To test whether an effect died, fix the criterion and the sample first.
+   Reproducing a strategy published as dead checks its printed figures and not
    its death. The split at 2002 is exploratory with no verdict, and Chan's
    claim that the most recent five years do worse holds on his own file under
    a criterion written before the check ran.
-4. A file of survivors is the first thing the result cannot get past.
+3. Rule out survivorship bias before trusting a backtest. A file of survivors
+   is the first thing the result cannot get past.
 
-Three groups of its figures are not pinned here.
+Four groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. "More than 13
    percent" and "has disappeared since then" are on p. 179, "has weakened or
@@ -3144,22 +3156,36 @@ Three groups of its figures are not pinned here.
    recent five years instead of the entire data period", and Chan's
    statement that those years do even worse, are on p. 180.
 2. Counts, arithmetic and facts no test asserts. Nothing counts the seventeen
-   reproduced figures, nine for Example 7.6 and eight for Example 7.7, or the
+   reproduced figures, nine for Example 7.6 and eight for Example 7.7, or
+   Lesson 1's rules, which of them are bugs, and the six it copies and one it
+   repairs, or the
    first edition's 95 months with a return and 83 with a position, which are
    its 96 months less the one with no return and less the twelve with no
-   position. Nothing states that a half's slope in the figure is its annual
-   return over 12, that the revised Python copy's five printed figures match the book,
+   position. Nothing states that a stretch's slope in the figure is its
+   average monthly return, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
-   [data/README.md](data/README.md) records by its sha256.
+   [data/README.md](data/README.md) records by its sha256. Nothing asserts
+   the sources' facts either: CRSP's licensing, or Norgate Diamond's $787.50 a
+   year in October 2026 and its US stocks back to 1950, which
+   [issue 196](https://github.com/l3a0/quantitative-trading/issues/196)
+   records.
 3. Its references. The four citations, including the publication details the
    post gives for Heston and Sadka and for Singal, are cited rather than
    computed.
+4. Heston and Sadka's own figures, read from their October 2006 working
+   paper: NYSE- and AMEX-listed stocks in CRSP from January 1965 to December
+   2002, only firms listed before each month, and the 1.15 percent a month in
+   Table 2 for ranking on the return a year earlier. The post's 13.8 percent a
+   year is twelve times that. Lesson 2 sets these beside Chan's file to say
+   why the file cannot test them.
 
 Every other number in the post traces to an assertion in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py), or to
 [tests/test_equity_seasonals_figures.py](tests/test_equity_seasonals_figures.py)
-for the figure's own labels. One group had no pin before it, and
+for the figure's own labels, or to
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
+for the whiteboard sketches' labels. One group had no pin before it, and
 `TestTheYearsInsideTheSplit` now pins it: the calendar-year sums of the
 revised Python's months, 0.2227 for 2002 and −0.1319 for 2006, that those
 two years differ by more than the two halves of the split do, and that the
@@ -3169,7 +3195,7 @@ Its one figure is drawn from the committed S&P 500 file by
 [src/chan/equity_seasonals_figures.py](src/chan/equity_seasonals_figures.py).
 It draws the 83 months the revised Python keeps as a running sum, split at
 2002 and labelled with each half's month count, annual return and Sharpe
-ratio, for Lesson 3.
+ratio, for Lesson 2.
 
 ```bash
 uv run python -m chan.equity_seasonals_figures
@@ -3178,6 +3204,220 @@ uv run python -m chan.equity_seasonals_figures
 [tests/test_equity_seasonals_figures.py](tests/test_equity_seasonals_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries thirty-nine looping whiteboard sketches, drawn by
+[src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `equity_seasonals_which_years.gif`, in the opening, the years each source
+   reads on one axis to scale: the years behind Heston and Sadka's 13
+   percent, ending at Chan's 2002 split, Chan's two files, each labelled with
+   its example and index, the book's first edition, and the two registered
+   runs from 2009 on.
+2. `equity_seasonals_two_verdicts.gif`, in the opening and again at the end
+   of "What this means for a trader", the two registered runs' verdicts on
+   number lines, each to its own scale: the January bracket from −0.1047 to
+   0.0879 across zero, and Heston and Sadka's mean at zero with the returns up
+   to about 4.2 percent a year tinted as ones that could pass unseen, and a
+   red arrow for the costs that would lower them. That 4.2 percent is the
+   return the test detects 80 percent of the time.
+3. `equity_seasonals_january_trade.gif`, Example 7.6's year of returns, its
+   ranking at the year's last close, its January hold, and its bet that the
+   extremes come back.
+4. `equity_seasonals_same_month_trade.gif`, Example 7.7's ranking on one month
+   a year ago, its hold of the same month, and its bet that the month repeats.
+5. `equity_seasonals_rule_short_side.gif`, Example 7.6's rule 2, the 58 losers
+   bought against the 56 winners shorted in January 2006, as bars to scale,
+   with the best winner and the 58th left out.
+6. `equity_seasonals_rule_filled_close.gif`, Example 7.6's rule 3, PMC's last
+   close carried across its 851-day gap and read as a gain of 130.56 percent
+   for 2007.
+7. `equity_seasonals_rule_sum_or_mean.gif`, Example 7.7's rule 1, one month's
+   positions added up against averaged.
+8. `equity_seasonals_rule_wrong_close.gif`, Example 7.7's rule 2, each stock in
+   the sorted row checked against the close in the same column of the
+   unsorted one.
+9. `equity_seasonals_rule_empty_months.gif`, Example 7.7's rule 3, the 96
+   months and the 95 and 83 each mean divides by.
+10. `equity_seasonals_rule_own_month_end.gif`, Example 7.7's rule 5, a shared
+    month-end row against each stock's own last priced day.
+11. `equity_seasonals_rule_month_end_lookup.gif`, Example 7.7's rule 8, the
+    first pass asking the 96 month-end rows for row 258, and row 13, which
+    the repair reads.
+12. `equity_seasonals_split_swing.gif`, in Lesson 2, the two halves' annual
+    returns beside the sums of 2002 and 2006, to one scale, with their gaps
+    of 0.1574 and 0.3546.
+13. `equity_seasonals_five_year_months.gif`, in Lesson 2's five-year check,
+    the months the whole period, the split and the five-year rerun each
+    cover, with the 23 months the rerun leaves out of the split.
+14. `equity_seasonals_five_year_noise.gif`, the verdict's gap of 0.0036
+    against the rerun's standard error of 0.0281, on one number line.
+15. `equity_seasonals_five_year_januaries.gif`, Example 7.6's three
+    reproduced Januaries as three bars.
+16. `equity_seasonals_survivors_file.gif`, in the opening beside its
+    explanation of survivorship bias, the companies a file saved in 2007 holds
+    against the ones that left before the save.
+17. `equity_seasonals_survivors_ranking.gif`, in Lesson 3, a month's ranking
+    as it stood against the same ranking as the file holds it, whose worst
+    tenth is a different set.
+18. `equity_seasonals_survivors_panels.gif`, a file saved in 2007 against the
+    index as it stood at each ranking date, the data the later runs used
+    from 2009.
+19. `equity_seasonals_january_registered.gif`, in the opening beside its
+    explanation of a registered result, the claim, test and verdict's words
+    written down before any return is computed.
+20. `equity_seasonals_january_fill.gif`, under "Whether the January effect
+    still worked after 2008", how the low and high versions fill a member with no
+    checked price.
+21. `equity_seasonals_january_ranges.gif`, each of the registered run's
+    eighteen Januaries as a bar from its low version to its high, with a dot
+    beside each bar for that January with the unchecked members left out.
+22. `equity_seasonals_osap_sources.gif`, under "Whether Heston and Sadka's
+    effect existed before 2002", CRSP, Norgate Diamond and Open Source Asset
+    Pricing against four questions, with what each costs. Only Open Source
+    Asset Pricing can be committed, and only it cannot run Chan's rule.
+23. `equity_seasonals_osap_before.gif`, Heston and Sadka's printed 1.15
+    percent a month against Open Source Asset Pricing's 1.36 percent over
+    their sample, with one standard error each way, and 1.31 percent before
+    Chan's 2002, against Chan's 13 percent a year as 1.08 percent a month.
+24. `equity_seasonals_ivv_carry.gif`, under "Whether Heston and Sadka's effect
+    still worked after 2008", a company that leaves between two of IVV's filings,
+    still on the list until the next one, and one that joins, not yet on it
+    until then.
+25. `equity_seasonals_ivv_checked.gif`, the 98,321 of 107,115 member-months
+    with a checked price, and the month-ends with the fewest and the most.
+26. `equity_seasonals_ivv_leavers.gif`, the companies that left the index
+    within a year against those that stayed, as shares placed long, short and
+    neither.
+27. `equity_seasonals_ivv_running_sum.gif`, the run's 213 held months added up
+    against the lines 13 percent a year and the 4.2 percent a year its test
+    detects would climb.
+28. `equity_seasonals_delta_scatter.gif`, under "Where the 4.2 percent comes
+    from", the t-statistic's scatter for a true mean of zero, which clears
+    1.652 5 percent of the time, above the same scatter slid right by
+    δ = 2.494, which clears it 80 percent of the time.
+29. `equity_seasonals_delta_shortcut.gif`, a normal curve centred at
+    1.652 + 0.842 = 2.494, with the 20 percent that misses 1.652 and the 80
+    percent that clears it.
+30. `equity_seasonals_delta_bracket.gif`, the chance of clearing 1.652 against
+    δ, the 0.80 line, and the solver's own first three brackets inside δ from
+    0 to 5, which narrow down from 50, keep the upper half once and then jump
+    close to the crossing at 2.494.
+31. `equity_seasonals_broad_before_after.gif`, under "What a broader series
+    shows", Open Source Asset Pricing's mean a month from 1965 to 2001,
+    1.31 percent, and from 2002 to 2024, 0.12 percent, each with one standard
+    error each way, the second crossing zero.
+32. `equity_seasonals_broad_together.gif`, a dot for each of the 192 months
+    from 2009 to 2024 that the project's series and the IVV run share, which
+    tilt up together at a correlation of 0.59.
+33. `equity_seasonals_broad_running.gif`, the same 192 months added up, neither
+    halved. The project's months swing about twice as far as the IVV run's,
+    and its sum ends above zero where the run's ends below it.
+34. `equity_seasonals_january_catch.gif`, under "What 18 Januaries can
+    detect", the sizes 18 Januaries could miss, tinted the same size each side
+    of zero, each version's X as a bracket, and Chan's three Januaries as dots
+    labelled by year with a mark at their mean, all on one scale, with a key
+    naming the dots and the bracket.
+35. `equity_seasonals_january_years.gif`, each version's X against the count of
+    Januaries, marked at 18 and at 72, which take 72 years.
+36. `equity_seasonals_further_one_series.gif`, under "Every member's price"
+    in "Further work", the January bracket the two versions leave beside the
+    741 member-years free data could not check, and the one series checked
+    prices would give, whose place is not known yet.
+37. `equity_seasonals_further_more_januaries.gif`, under "More Januaries",
+    three spans on a timeline, the run's 18 Januaries, the S&P 600's 32 from
+    1995 and about 100 on size-defined small caps from 1927, each with the X
+    its count gives on the run's two spreads.
+38. `equity_seasonals_further_more_stocks.gif`, under "More stocks each
+    January", the same Januaries on a tenth of about 60 stocks and on a tenth
+    of thousands, the second spread narrower, over a band for what does not
+    average out, how differently the bought and the shorted tenth follow the
+    market.
+39. `equity_seasonals_further_regime_split.gif`, under "By market regime",
+    the 18 Januaries split evenly, 9 and 9, the best case for the smaller
+    regime, and the X of 9 against the X of 18 to scale.
+
+Like the strategy sketches, the three survivorship sketches, the January registered and fill
+sketches, the carry-forward sketch and the cross-section sketch under "Further
+work" are schematic and carry no figures. Which Januaries the regime sketch puts
+in each regime is schematic too. The
+sources sketch carries no figure a run computes, only each source's cost.
+Every pale tint that carries meaning has a green edge, because the tint alone
+stands 1.29 to 1 against the white board, under WCAG 2.1's 3 to 1 for a
+graphical object.
+
+Twenty-four sketches build more slowly than the rest and hold their finished
+drawings for twelve seconds, because each carries more than the usual pace lets
+a reader take in.
+
+1. The years and verdicts sketches, 1 and 2.
+2. Example 7.6's rule 2 sketch, 5.
+3. The first two of the five-year sketches, 13 and 14.
+4. Lesson 3's two sketches, 17 and 18.
+5. The January fill and ranges sketches, 20 and 21.
+6. The two sketches on whether Heston and Sadka's effect existed before 2002,
+   22 and 23.
+7. The leavers sketch, 26.
+8. The three sketches of the 4.2 percent's derivation, 28 to 30.
+9. The three broader-series sketches, 31 to 33.
+10. The two sketches under "What 18 Januaries can detect", 34 and 35.
+11. The four under "Further work", 36 to 39.
+
+```bash
+uv run python -m chan.equity_seasonals_whiteboard
+```
+
+Fifteen sketches read the owner's archive: the verdicts sketch, the ranges
+sketch, section 3's checked, leavers and running-sum sketches, the three of
+the 4.2 percent's derivation, which read the run's month count, the broader
+series' scatter and running sums, which read the run's months, and the two
+under "What 18 Januaries can detect", which read the January run's spread,
+and three of the four under "Further work", which read the registered runs'
+figures. On a machine without it the command redraws the other twenty-four
+and exits non-zero, naming the fifteen it left.
+
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
+holds which tenth each strategy sketch buys and shorts, which way each points
+its extremes, the timing each draws, that the opening sketches place every
+figure and date to scale and refuse figures their words would misdescribe, that
+each rule sketch prints its figures and puts its marks where they say, that the
+split sketch draws each bar and bracket to one scale and colours each bar by
+its sign, that the five-year sketches draw each bar to its months and each dot,
+band and January bar at its figure, that the three survivorship sketches keep
+the companies that left out of the file, its ranking and the data saved in
+2007, that section 2's
+sketches tick and cross each source as the post describes it and draw each bar
+at its figure, that the 4.2 percent's three sketches put the critical value, δ
+and each bracket where the test's figures say, that the broader series' bars,
+dots and running sums stand at the release's and the run's figures, that
+twenty-four sketches build slowly and hold for twelve seconds, that the
+further-work sketches draw each bracket, span and half at the runs' figures,
+that every pale tint has a green edge, that the ranges
+sketch draws each January from its low to its high, that the catch sketch
+tints the same size each side of zero and the years sketch draws each
+version's X at every count, that section 3's sketches
+hold a change until the next filing, split each bar at its share and add up the
+held months to one scale, that no label touches a line, another label or the
+frame's edge, and that each GIF follows its text in the post. The rule
+sketches' figures are defaults in `RuleFigures`, and
+`TestTheRuleSketchesFigures` in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
+one from Chan's files. The split sketch's figures are defaults in
+`SplitFigures`, and `TestTheYearsInsideTheSplit` derives each one from Chan's
+S&P 500 file. The five-year sketches' figures are defaults in
+`FiveYearFigures`, and `TestTheFiveYearSketches` in
+[tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
+one from Chan's files. The whiteboard test draws the verdicts from the pinned
+figures, the January ranges from `PINNED_RANGES`, the two under "What 18
+Januaries can detect" from `PINNED_POWER` and section 3's figures from
+`PINNED_IVV`, and reads section 2's from the committed Open Source Asset
+Pricing release as `PINNED_OSAP`, so it runs without the archive, and four
+tests in [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold
+that the registered runs give those figures where the archive is. The test
+compares each committed GIF with a fresh draw byte for byte only on macOS arm64
+in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
+the USD.CAD module's strokes, timeline and renderer, so an edit there needs
+both redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic

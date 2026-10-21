@@ -448,6 +448,8 @@ On 2026-10-10, eleven open write-up issues were blocked on nothing in the code. 
 1. Compare the live draft with the copy of it recorded at the last sync, so any edit the owner made since then shows up.
 2. If the owner has edited the draft, pull those edits into the Markdown and never overwrite them.
 
+**Every equation and table in a post fits a phone's width (owner directive, 2026-10-20).** Substack shows a display equation or LaTeX table that is wider than the text column behind a sideways scroll bar, so a phone reader sees it cut off. Write each one to fit from the first draft: break side-by-side parts onto their own lines, turn a wide table on its side, and shrink a table with `\small`. The `sync-substack` skill's `## Check the post before converting it` gives the width limit, how to measure it in Substack's own renderer, and the fixes. On 2026-10-20 the owner read the equity seasonals draft on a phone and found five equations and three tables clipped.
+
 **Publishing stays with the owner.** Publishing, scheduling and sending a post are the owner's call. So is any change to a post that is already published, because writing to a published post's draft changes the live post. A draft the owner has scheduled counts as published here, because a write to it changes what goes out.
 
 The price is throughput. Every write-up edits `README.md`, `docs/replication-log.md` and `tests/test_markdown_hygiene.py`, so write-ups started all at once conflict with each other. Run them in small batches, in the build board's order.

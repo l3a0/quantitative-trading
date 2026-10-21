@@ -456,6 +456,14 @@ class TestHestonSadkaFirstEdition:
         assert own.annual_return == pytest.approx(-1.0822171415504576, abs=1e-9)
         assert own.sharpe == pytest.approx(-0.12087260820688678, abs=1e-9)
 
+    def test_masking_by_own_close_in_units_of_capital(self, spx) -> None:
+        """-0.0113 a year once each month is divided by its positions, a figure
+        this repo derived and Chan did not print."""
+        own = replace(FIRST_EDITION_MATLAB, mask=Mask.OWN_CLOSE, per_position=True)
+        annual = heston_sadka(spx, own).annual_return
+        assert annual == pytest.approx(-0.011290362081074482, abs=1e-9)
+        assert format(annual, ".4f") == "-0.0113"
+
     def test_averaging_over_the_months_with_positions_moves_both(self, spx) -> None:
         held = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, dropped=13))
         assert held.annual_return == pytest.approx(-1.0491940146590437, abs=1e-9)
@@ -468,12 +476,39 @@ class TestHestonSadkaFirstEdition:
         assert sharpe == pytest.approx(-0.1049097760233146, abs=1e-9)
 
     def test_dividing_by_the_positions_puts_the_return_in_units_of_capital(self, spx) -> None:
-        """-0.0120 a year, a figure this repo derived and Chan did not print."""
-        per = heston_sadka(
+        """-0.0105 a year, a figure this repo derived and Chan did not print.
+
+        Only the division changes, so the mean still runs over 95 months and
+        counts the 12 empty ones as zero.
+        """
+        per = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, per_position=True))
+        assert per.annual_return == pytest.approx(-0.010467218122084418, abs=1e-9)
+
+    def test_dropping_the_empty_months_scales_either_return_by_95_over_83(self, spx) -> None:
+        """The 12 empty months add nothing to the sum, so dropping them divides it by 83, not 95.
+
+        That carries -0.9167 to -1.0492 in summed positions, and -0.0105 to
+        -0.0120 in units of capital. The post writes each old figure as a
+        fraction over 95, -87.08 and -0.9944, so the 95s cancel. Each is the
+        full-precision figure times 95, rounded, because the printed figure
+        times 95 gives -87.09 and -0.9975.
+        """
+        summed = heston_sadka(spx, FIRST_EDITION_MATLAB)
+        dropped = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, dropped=13))
+        divided = heston_sadka(spx, replace(FIRST_EDITION_MATLAB, per_position=True))
+        both = heston_sadka(
             spx,
             replace(FIRST_EDITION_MATLAB, per_position=True, empty_month_is_nan=True, dropped=13),
         )
-        assert per.annual_return == pytest.approx(-0.011980550862626747, abs=1e-9)
+        assert int(np.isfinite(summed.returns.to_numpy()).sum()) == 95
+        assert int(np.isfinite(both.returns.to_numpy()[13:]).sum()) == 83
+        assert dropped.annual_return == pytest.approx(summed.annual_return * 95 / 83, abs=1e-12)
+        assert both.annual_return == pytest.approx(divided.annual_return * 95 / 83, abs=1e-12)
+        assert both.annual_return == pytest.approx(-0.011980550862626747, abs=1e-9)
+        assert summed.annual_return * 95 == pytest.approx(-87.08310321670066, abs=1e-9)
+        assert divided.annual_return * 95 == pytest.approx(-0.9943857215980196, abs=1e-9)
+        assert format(summed.annual_return * 95, ".2f") == "-87.08"
+        assert format(divided.annual_return * 95, ".4f") == "-0.9944"
 
 
 class TestTheShapesTheScaleBreakCommentNames:
@@ -509,6 +544,12 @@ class TestTheShapesTheScaleBreakCommentNames:
             assert inside.max() < 20, f"{symbol} {when.date()} spans the gap"
 
 
+#: The revised MATLAB's first pass through its month loop, ``for m=14:...``
+#: in the revised code's repost, pinhaocheng/epchan-quant_trading_MATLAB_codes
+#: ``7430b84``, which ranks on ``monthlyRet(m-12, :)`` and masks on row m - 1.
+FIRST_PASS_M = 14
+
+
 class TestHestonSadkaRevisedMatlab:
     """Example 7.7 in the revised edition's MATLAB, as printed on p. 179 with one repair.
 
@@ -525,10 +566,12 @@ class TestHestonSadkaRevisedMatlab:
         assert_reproduces(result.sharpe, -0.12434081928195095, "-0.1243", ".4f")
 
     def test_the_printed_index_is_out_of_range_on_the_first_pass(self, spx) -> None:
-        """``monthEnds(12)`` is a daily row, and the cut ``cl`` holds 96 rows."""
+        """The loop's first pass, m = 14, asks for ``monthEnds(13)``, a daily row,
+        and the cut ``cl`` holds 96 rows. The loop starts at 14 in the revised
+        code's repost, pinhaocheng/epchan-quant_trading_MATLAB_codes ``7430b84``."""
         ends = row_month_ends(spx.index)
         assert len(ends) == 96
-        assert ends[11] + 1 == 237
+        assert ends[FIRST_PASS_M - 2] + 1 == 258
 
     def test_it_drops_thirteen_months_as_printed(self, spx) -> None:
         """``ret(1:13)=[]`` leaves 83 months, from the end of December 2000."""
@@ -687,7 +730,7 @@ class TestTheYearsInsideTheSplit:
     """Exploratory, with no verdict, like the split they sit inside.
 
     The calendar-year sums of the revised Python's kept months, which the post's
-    Lesson 3 quotes beside its figure of the running sum. A year's sum is twelve
+    Lesson 2 quotes beside its figure of the running sum. A year's sum is twelve
     times its mean, so it is in the same units as each half's annual return.
     First run on 2026-10-03.
     """
@@ -712,6 +755,43 @@ class TestTheYearsInsideTheSplit:
 
     def test_the_running_sum_peaks_in_january_2006(self, kept) -> None:
         assert kept.cumsum().idxmax() == pd.Timestamp("2006-01-31")
+
+    def test_the_running_sum_rises_slips_climbs_and_falls(self, kept) -> None:
+        """The post's shape: up through 2002, down through 2003 and 2004, up
+        through 2005 to the peak, and down from it to its last month."""
+        years = kept.groupby(kept.index.year).sum()
+        assert years[2002] > 0 and years[2003] < 0 and years[2004] < 0 and years[2005] > 0
+        running = kept.cumsum()
+        after_peak = running[running.index > running.idxmax()]
+        assert after_peak.idxmin() == kept.index[-1] == pd.Timestamp("2007-10-31")
+
+    def test_2002_and_2006_are_the_later_halfs_best_and_worst_full_years(self, kept) -> None:
+        later = kept[kept.index >= pd.Timestamp("2002-01-01")]
+        counts = later.groupby(later.index.year).size()
+        full = later.groupby(later.index.year).sum()[counts == 12]
+        assert list(full.index) == [2002, 2003, 2004, 2005, 2006]
+        assert (full.idxmax(), full.idxmin()) == (2002, 2006)
+
+    def test_without_2002_the_later_half_loses(self, kept) -> None:
+        """Exploratory, with no verdict: the later half's small gain rests on 2002."""
+        later = kept[kept.index >= pd.Timestamp("2002-01-01")]
+        rest = later[later.index.year != 2002]
+        assert len(rest) == 58
+        annual = 12 * float(np.nanmean(rest.to_numpy()))
+        assert annual == pytest.approx(-0.03164001190171385, abs=1e-9)
+        assert format(annual, ".6f") == "-0.031640"
+
+    def test_the_split_sketch_draws_these_figures(self, spx, kept) -> None:
+        """``SplitFigures`` holds its defaults so the sketch draws without the file."""
+        from chan.equity_seasonals_whiteboard import SplitFigures
+
+        drawn = SplitFigures()
+        years = kept.groupby(kept.index.year).sum()
+        before, after = split_at(heston_sadka(spx, PYTHON_HESTON_SADKA), PYTHON_HESTON_SADKA)
+        assert drawn.before_2002 == pytest.approx(before[1], abs=1e-12)
+        assert drawn.from_2002 == pytest.approx(after[1], abs=1e-12)
+        assert drawn.year_2002 == pytest.approx(years[2002], abs=1e-12)
+        assert drawn.year_2006 == pytest.approx(years[2006], abs=1e-12)
 
 
 class TestTheMostRecentFiveYears:
@@ -1874,8 +1954,14 @@ class TestThePointInTimeFlags:
         assert all(sum(pin[2:]) > 0 for pin in PIT_THREATS)
 
     def test_741_member_years_threaten_89_of_them_at_2008(self) -> None:
-        """The totals the log quotes, sized on this run's universe rather than on every member."""
-        assert sum(sum(pin[2:]) for pin in PIT_THREATS) == 741
+        """The totals the log and the post's further work quote, sized on this
+        run's universe rather than on every member."""
+        from chan.equity_seasonals_whiteboard import UNCHECKED_MEMBER_YEARS
+
+        total = sum(sum(pin[2:]) for pin in PIT_THREATS)
+        assert total == 741 == UNCHECKED_MEMBER_YEARS
+        post = Path(__file__).parents[1] / "blog" / "equity-seasonals-lessons.md"
+        assert f"{total} member-years of the S&P 600" in post.read_text(encoding="utf-8")
         assert PIT_THREATS[0][:2] == ("2008-12-31", 161)
         assert sum(PIT_THREATS[0][2:]) == 89
 
@@ -2030,6 +2116,20 @@ class TestThePointInTimePins:
         assert_reproduces(test.p, 0.0008865014467510794, "0.001", ".3f")
         assert test.rejects
 
+    def test_leaving_the_missing_members_out_lands_between_the_two(self, point_in_time) -> None:
+        """Every missing member left out, the tenth taken of the ranked covered
+        members alone, unlike the bound's tenth of the whole index. The post
+        quotes it beside the bound. Issue 329 wrote no rule for it, so it is
+        exploratory, and its p is not a verdict."""
+        test = point_in_time.left_out
+        assert test.n == 18
+        assert_reproduces(test.mean, -0.00833318712859331, "-0.0083", ".4f")
+        assert_reproduces(test.p, 0.7434684265801739, "0.743", ".3f")
+        assert point_in_time.low.mean < test.mean < point_in_time.high.mean
+        assert [year.left_out_tenth for year in point_in_time.year_ends] == [
+            43, 43, 43, 48, 46, 44, 50, 53, 55, 55, 55, 56, 57, 58, 59, 59, 59, 60,
+        ]  # fmt: skip
+
     def test_x_for_each_series(self, point_in_time) -> None:
         assert_reproduces(point_in_time.x_low, 0.05474237393477483, "0.0547", ".4f")
         assert_reproduces(point_in_time.x_high, 0.06153368896545796, "0.0615", ".4f")
@@ -2081,6 +2181,9 @@ class TestThePointInTimePins:
         assert "verdict: the free sources cannot decide it" in out
         assert "    2009 January: 0.3213 and -0.3041" in out
         assert "    the mean: 0.1155 and -0.0771" in out
+        assert "    2009 January: 0.0123   (43 long and 43 short of 433 ranked)" in out
+        assert "    2026 January: 0.0015   (60 long and 60 short of 598 ranked)" in out
+        assert "    the mean: -0.0083, t -0.67, one-sided p 0.743, over 18 Januaries" in out
 
 
 # --------------------------------------------------------------------------
@@ -3066,6 +3169,41 @@ class TestTheMonthlyPins:
     def test_x_is_4_22_percent_a_year(self, monthly) -> None:
         assert_reproduces(monthly.matlab.x, 0.0422031836138127, "4.22%", ".2%")
 
+    def test_how_the_4_2_percent_is_derived(self, monthly) -> None:
+        """Each step the post's section on the verdict prints, at its precision:
+        the months' standard error, the one-sided 5% critical value at 212
+        degrees of freedom, the noncentrality the test clears with probability
+        0.8 and the normal shortcut that approximates it, and the monthly mean
+        that gives, twelve times which is X."""
+        from scipy import optimize, stats
+
+        test = monthly.matlab.test
+        df = test.n - 1
+        error = test.std / math.sqrt(test.n)
+        critical = stats.t.isf(seasonals.SIGNIFICANCE, df)
+        shift = optimize.brentq(
+            lambda s: stats.nct.sf(critical, df, s) - seasonals.POWER, 0.0, 50.0, xtol=1e-12
+        )
+        assert (test.n, df, seasonals.SIGNIFICANCE, seasonals.POWER) == (213, 212, 0.05, 0.8)
+        assert_reproduces(test.std, 0.0205768768232231, "0.0206", ".4f")
+        assert_reproduces(error, 0.0014099043682784275, "0.00141", ".5f")
+        assert_reproduces(critical, 1.6520729200438098, "1.652", ".3f")
+        assert_reproduces(shift, 2.494447174535743, "2.494", ".3f")
+        assert_reproduces(shift, 2.494447174535743, "2.4944", ".4f")
+        # The normal shortcut the post gives first: the critical value plus
+        # the standard normal's 80th percentile, which lands within 0.001.
+        z = stats.norm.isf(1 - seasonals.POWER)
+        assert_reproduces(z, 0.8416212335729143, "0.842", ".3f")
+        assert_reproduces(critical + z, 2.4936941536167244, "2.494", ".3f")
+        assert_reproduces(critical + z, 2.4936941536167244, "2.4937", ".4f")
+        # The bracket the solver narrows: the 5 percent bar at no shift, and
+        # all but certain at a shift of 50.
+        assert stats.nct.sf(critical, df, 0.0) == pytest.approx(seasonals.SIGNIFICANCE, abs=1e-12)
+        assert stats.nct.sf(critical, df, 50.0) > 1 - 1e-12
+        assert stats.nct.sf(critical, df, shift) == pytest.approx(seasonals.POWER, abs=1e-12)
+        assert_reproduces(shift * error, 0.003516931967817725, "0.00352", ".5f")
+        assert 12 * shift * error == pytest.approx(monthly.matlab.x, rel=1e-12)
+
     def test_the_verdict(self, monthly) -> None:
         assert monthly.verdict == "no return detectable above about 4.2% a year"
 
@@ -3138,6 +3276,197 @@ class TestTheMonthlyPins:
         assert "stopped inside the month held: 23, their returns summed by side -0.7013" in out
         assert "    departing: long 505 (12.0%), short 698 (16.5%), neither 3019 (71.5%)" in out
         assert "    chi-square p 0.000, descriptive only" in out
+
+
+def test_the_whiteboard_draws_these_runs_verdicts(point_in_time, monthly) -> None:
+    """The verdicts sketch in ``tests/test_equity_seasonals_whiteboard.py``
+    draws from its ``PINNED`` figures, so it runs without the archive. This
+    holds that the two registered runs give those figures, at the tolerance
+    every pin here uses, on this file's own runs rather than a second pair."""
+    from chan.equity_seasonals_whiteboard import Verdicts
+    from tests.test_equity_seasonals_whiteboard import PINNED
+
+    drawn = Verdicts.from_runs(point_in_time, monthly)
+    for field in ("january_low", "january_high", "monthly_mean", "detectable"):
+        assert getattr(drawn, field) == pytest.approx(getattr(PINNED, field), abs=1e-9), field
+    for field in ("january_low_rejects", "january_high_rejects", "monthly_rejects"):
+        assert getattr(drawn, field) is getattr(PINNED, field), field
+
+
+class TestTheRuleSketchesFigures:
+    """Every figure the rule sketches print, derived from Chan's two files.
+
+    ``RuleFigures`` in ``chan.equity_seasonals_whiteboard`` holds them as
+    defaults so the sketches draw without loading a panel. These tests hold
+    that the defaults are what the files give.
+    """
+
+    def test_january_2006_under_the_revised_python(self, ijr) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        first = january_effect(ijr, PYTHON_JANUARY).trades[0]
+        drawn = RuleFigures()
+        assert (first.ranked, first.longs, first.shorts) == (
+            drawn.ranked_2006,
+            drawn.longs_2006,
+            drawn.shorts_2006,
+        )
+
+    def test_pmcs_gap_and_the_gain_the_fill_reads(self, ijr) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        drawn = RuleFigures()
+        pmc = ijr["PMC"]
+        priced = np.flatnonzero(pmc.notna().to_numpy())
+        assert int(np.diff(priced).max()) - 1 == drawn.pmc_gap_days
+        filled = ijr.resample("YE").last().iloc[:-1].ffill()
+        assert filled["PMC"].iloc[-2] == drawn.pmc_last_close
+        assert filled["PMC"].iloc[-1] == drawn.pmc_2007_close
+        gain = (filled.iloc[-1] - filled.iloc[-2]) / filled.iloc[-2]
+        assert gain["PMC"] == pytest.approx(drawn.pmc_gain, abs=1e-12)
+        assert int((gain.dropna() > gain["PMC"]).sum()) + 1 == drawn.pmc_rank
+        assert int(gain.notna().sum()) == drawn.ranked_2007
+
+    def test_the_first_editions_months(self, spx) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        drawn = RuleFigures()
+        returns = monthly_returns(spx, FIRST_EDITION_MATLAB).to_numpy()
+        assert math.isnan(returns[0])
+        assert int((returns[1:] == 0).sum()) == drawn.empty_months
+        assert (np.flatnonzero(returns == 0) + 1).tolist() == list(range(2, 2 + drawn.empty_months))
+        assert int((returns[1:] != 0).sum()) == drawn.held_months
+        assert int(np.isfinite(returns).sum()) == drawn.first_edition_months
+
+    def test_the_revised_matlabs_first_lookup(self, spx) -> None:
+        from chan.equity_seasonals_whiteboard import RuleFigures
+
+        drawn = RuleFigures()
+        ends = row_month_ends(spx.index)
+        assert len(ends) == drawn.month_end_rows
+        assert drawn.repaired_row == FIRST_PASS_M - 1
+        assert ends[drawn.repaired_row - 1] + 1 == drawn.first_pass_row
+        assert drawn.first_pass_row > drawn.month_end_rows
+
+
+class TestTheFiveYearSketches:
+    """Every figure the five-year check's three sketches draw, from Chan's files.
+
+    ``FiveYearFigures`` in ``chan.equity_seasonals_whiteboard`` holds them as
+    defaults so the sketches draw without loading a panel.
+    """
+
+    def test_the_months_sketch_draws_the_revised_pythons_figures(self, spx, kept) -> None:
+        from chan.equity_seasonals_whiteboard import FiveYearFigures
+
+        drawn = FiveYearFigures()
+        check = five_year_check(spx, PYTHON_HESTON_SADKA)
+        before, after = split_at(check.whole, PYTHON_HESTON_SADKA)
+        between = kept[(kept.index >= "2002-01-01") & (kept.index < "2003-12-01")]
+        between_annual, _ = summarize(between, replace(PYTHON_HESTON_SADKA, dropped=0))
+        assert (len(kept), before[0], after[0]) == (
+            drawn.whole_months,
+            drawn.before_months,
+            drawn.after_months,
+        )
+        assert (len(check.rerun_kept), len(between)) == (drawn.rerun_months, drawn.between_months)
+        assert drawn.whole_python == pytest.approx(check.whole.annual_return, abs=1e-12)
+        assert drawn.before_2002 == pytest.approx(before[1], abs=1e-12)
+        assert drawn.from_2002 == pytest.approx(after[1], abs=1e-12)
+        assert drawn.rerun_python == pytest.approx(check.rerun.annual_return, abs=1e-12)
+        assert drawn.between == pytest.approx(between_annual, abs=1e-12)
+
+    def test_the_months_sketchs_dates_are_the_files(self, spx, kept) -> None:
+        from chan import equity_seasonals_whiteboard as sketches
+
+        check = five_year_check(spx, PYTHON_HESTON_SADKA)
+        assert kept.index[0] == pd.Timestamp("2000-12-31")
+        assert kept.index[-1] == pd.Timestamp("2007-10-31")
+        assert sketches.MONTHS_FROM == pytest.approx(2000 + 11 / 12)
+        assert sketches.MONTHS_TO == pytest.approx(2007 + 10 / 12)
+        assert check.rerun_kept.index[0] == pd.Timestamp("2003-12-31")
+        assert sketches.RERUN_KEPT == pytest.approx(2003 + 11 / 12)
+        assert seasonals.five_year_cutoff(spx) == pd.Timestamp("2002-11-23")
+        assert sketches.RERUN_INPUT == pytest.approx(2002 + 11 / 12)
+
+    def test_the_noise_sketch_draws_the_revised_matlabs_figures(self, spx) -> None:
+        from chan.equity_seasonals_whiteboard import FiveYearFigures
+
+        drawn = FiveYearFigures()
+        check = five_year_check(spx, REVISED_MATLAB)
+        kept_months = check.rerun_kept.to_numpy()
+        error = 12 * smartstd_book_two(kept_months) / math.sqrt(len(kept_months))
+        assert drawn.whole_matlab == pytest.approx(check.whole.annual_return, abs=1e-12)
+        assert drawn.rerun_matlab == pytest.approx(check.rerun.annual_return, abs=1e-12)
+        assert drawn.rerun_error == pytest.approx(error, abs=1e-12)
+
+    def test_the_january_sketch_draws_the_matlabs_three_trades(self, ijr) -> None:
+        from chan.equity_seasonals_whiteboard import FiveYearFigures
+
+        trades = january_effect(ijr, MATLAB_JANUARY).trades
+        assert FiveYearFigures().januaries == tuple(
+            (t.exited.year, pytest.approx(t.ret, abs=1e-12)) for t in trades
+        )
+
+
+def test_the_whiteboard_draws_these_runs_ivv_figures(monthly) -> None:
+    """Section 3's sketches in ``tests/test_equity_seasonals_whiteboard.py`` draw
+    from its ``PINNED_IVV``, so they run without the archive. This holds that the
+    registered IVV run gives those figures, at the tolerance every pin here uses."""
+    from chan.equity_seasonals_whiteboard import IvvFigures
+    from tests.test_equity_seasonals_whiteboard import PINNED_IVV
+
+    drawn = IvvFigures.from_run(monthly)
+    assert (drawn.covered, drawn.members, drawn.fewest, drawn.most) == (
+        PINNED_IVV.covered,
+        PINNED_IVV.members,
+        PINNED_IVV.fewest,
+        PINNED_IVV.most,
+    )
+    assert (drawn.departing, drawn.staying) == (PINNED_IVV.departing, PINNED_IVV.staying)
+    assert [m for m, _ in drawn.months] == [m for m, _ in PINNED_IVV.months]
+    assert [v for _, v in drawn.months] == pytest.approx(
+        [v for _, v in PINNED_IVV.months], abs=1e-9
+    )
+    assert drawn.mean == pytest.approx(PINNED_IVV.mean, abs=1e-12)
+    assert drawn.detectable == pytest.approx(PINNED_IVV.detectable, abs=1e-12)
+
+
+def test_the_whiteboard_draws_these_runs_power(point_in_time) -> None:
+    """The two sketches under "What 18 Januaries can detect" in
+    ``tests/test_equity_seasonals_whiteboard.py`` draw from its ``PINNED_POWER``,
+    so they run without the archive. This holds that the registered January
+    run gives that count and those spreads, and that they give the run's X."""
+    from chan.equity_seasonals_whiteboard import JanuaryPower
+    from tests.test_equity_seasonals_whiteboard import PINNED_POWER
+
+    drawn = JanuaryPower.from_run(point_in_time)
+    assert drawn.n == PINNED_POWER.n
+    assert drawn.low_std == pytest.approx(PINNED_POWER.low_std, abs=1e-12)
+    assert drawn.high_std == pytest.approx(PINNED_POWER.high_std, abs=1e-12)
+    assert drawn.detectable() == pytest.approx(
+        (point_in_time.x_low, point_in_time.x_high), abs=1e-12
+    )
+
+
+def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:
+    """The January ranges sketch in ``tests/test_equity_seasonals_whiteboard.py``
+    draws from its ``PINNED_RANGES``, so it runs without the archive. This holds
+    that the registered January run gives those Januaries, and each one's return
+    with every missing member left out, at the tolerance every pin here uses."""
+    from chan.equity_seasonals_whiteboard import JanuaryRanges
+    from tests.test_equity_seasonals_whiteboard import PINNED_RANGES
+
+    drawn = JanuaryRanges.from_run(point_in_time)
+    assert [year for year, _, _ in drawn.januaries] == [
+        year for year, _, _ in PINNED_RANGES.januaries
+    ]
+    for (year, low, high), (_, pinned_low, pinned_high) in zip(
+        drawn.januaries, PINNED_RANGES.januaries, strict=True
+    ):
+        assert low == pytest.approx(pinned_low, abs=1e-9), year
+        assert high == pytest.approx(pinned_high, abs=1e-9), year
+    assert drawn.left_out == pytest.approx(PINNED_RANGES.left_out, abs=1e-9)
 
 
 def _monthly(first: str, values, *, day: str = "last") -> pd.Series:
