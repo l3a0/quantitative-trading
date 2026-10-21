@@ -128,6 +128,15 @@ its list.
   math unless it is written as a formula, such as the USD.CAD post's Hurst
   exponent.
 - Every stroke has at least as many points as frames.
+- A pale tint that carries meaning gets a green edge. `TINT` stands 1.29 to 1
+  against the white board, under WCAG 2.1's 3 to 1 for a graphical object,
+  and `GOOD` stands 4.86 to 1. The equity seasonals module's `_tinted` draws
+  both, and `test_every_pale_tint_has_a_green_edge` holds every tint to it.
+  The published USD.CAD post's sketches keep their unedged tints until the
+  owner rules on changing a live post.
+- Colour is never the only cue. Green and red look alike to a reader with
+  red-green colour blindness, so each group a colour marks also carries its
+  own label, sign or position, and a caption names the mark it explains.
 - Each GIF is 680 by 320, loops, opens on its title, holds its drawing, stays
   under 1 MB, and two draws give the same bytes.
 - The committed GIF is a fresh draw, byte for byte. That test runs only on

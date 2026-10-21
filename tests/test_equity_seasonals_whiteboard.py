@@ -2661,7 +2661,7 @@ class TestTheJanuaryPowerSketches:
             f"from about {sketches._signed(-x_low, 3)} to about {sketches._signed(x_low, 3)}"
             in catch_alt
         )
-        assert "Two red dots sit inside the tint below zero" in catch_alt
+        assert "Two red dots sit on the line under the tint, below zero" in catch_alt
         assert "a green dot sits past the bracket" in catch_alt
 
 
@@ -2702,18 +2702,19 @@ class TestTheFurtherWorkSketches:
             "32 Januaries: 0.0403 to 0.0453",
             "about 100 Januaries: 0.0224 to 0.0252",
             "small caps by size before 1995",
-            "each pair: the smallest average January gain that many Januaries can detect",
+            "each pair: the smallest average January gain caught four times in five,",
+            "if Januaries swing as much as the 18 do",
         ]
         assert stocks.labels == [
             "a tenth of about 60 stocks",
             "a tenth of thousands",
-            "what every small cap shares does not average out",
+            "band: how differently the two tenths follow the market does not average out",
             "each dot a January’s long-short return, drawn to no scale",
         ]
         assert regime.labels == [
             "18 Januaries",
-            "9 in rising markets",
-            "9 in falling markets",
+            "9 in one regime, if split evenly",
+            "9 in the other",
             "0",
             "0.05",
             "0.10",
@@ -2731,11 +2732,16 @@ class TestTheFurtherWorkSketches:
         bracket = _stroke(one, "now")
         assert bracket.color == ACCENT
         assert _x(bracket) == pytest.approx((at(PINNED.january_low), at(PINNED.january_high)))
-        dot = _stroke(one, "one")
-        assert (dot.color, dot.x[0]) == (
-            ACCENT,
-            pytest.approx((at(PINNED.january_low) + at(PINNED.january_high)) / 2),
-        )
+        mid = (at(PINNED.january_low) + at(PINNED.january_high)) / 2
+        ring = _stroke(one, "one")
+        # A hollow ring, not a dot, so the unknown place is not read as a value.
+        assert (ring.color, len(ring.x) > 1) == (ACCENT, True)
+        centre = ((ring.x.min() + ring.x.max()) / 2, (ring.y.min() + ring.y.max()) / 2)
+        assert centre[0] == pytest.approx(mid, abs=1e-3)
+        for gid in ("in-low", "in-high"):
+            arrow = _stroke(one, gid)
+            closest = np.hypot(arrow.x - centre[0], arrow.y - centre[1]).min()
+            assert closest < 0.6, (gid, closest)
         assert f"{sketches.UNCHECKED_MEMBER_YEARS} member-years unchecked" in one.labels
 
     def test_each_span_runs_from_its_first_january_with_its_x(self, further) -> None:
@@ -2772,13 +2778,14 @@ class TestTheFurtherWorkSketches:
     def test_the_split_halves_the_januaries_and_draws_each_half_x_to_scale(self, further) -> None:
         regime = further[3]
         at = lambda v: sketches._along(v, sketches.REGIME_RANGE, sketches.REGIME_X)  # noqa: E731
-        rising, falling = _stroke(regime, "rising"), _stroke(regime, "falling")
-        assert (len(rising.x), rising.color) == (9, GOOD)
-        assert (len(falling.x), falling.color) == (9, LOST)
-        # Colour is not the only cue: each half carries its own label.
-        assert _labelled(regime, "9 in rising markets").names == "rising"
-        assert _labelled(regime, "9 in falling markets").names == "falling"
-        for count, ink in ((18, whiteboard.INK), (9, LOST)):
+        first, second = _stroke(regime, "first"), _stroke(regime, "second")
+        # Both halves in ink, each with its own label: colour carries no meaning
+        # here, and the labels say the even split is an assumption.
+        assert (len(first.x), first.color) == (9, whiteboard.INK)
+        assert (len(second.x), second.color) == (9, whiteboard.INK)
+        assert _labelled(regime, "9 in one regime, if split evenly").names == "first"
+        assert _labelled(regime, "9 in the other").names == "second"
+        for count, ink in ((18, whiteboard.INK), (9, ACCENT)):
             low, high = PINNED_POWER.detectable(count)
             bracket = _stroke(regime, f"x-{count}")
             assert bracket.color == ink
@@ -2793,7 +2800,9 @@ class TestTheFurtherWorkSketches:
         for count, about in ((12, ""), (26, ""), (94, "about ")):
             low, high = OTHER_POWER.detectable(count)
             assert f"{about}{count} Januaries: {low:.4f} to {high:.4f}" in more.labels
-        assert {"12 Januaries", "6 in rising markets", "6 in falling markets"} <= set(regime.labels)
+        assert {"12 Januaries", "6 in one regime, if split evenly", "6 in the other"} <= set(
+            regime.labels
+        )
 
     def test_each_follows_the_part_it_draws(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -2824,13 +2833,15 @@ class TestTheFurtherWorkSketches:
             assert "drawn slowly" in alt and "holds for twelve seconds" in alt, scene.slug
         stocks_alt, regime_alt = _alt(text, further[2]), _alt(text, further[3])
         assert "schematic and to no scale" in stocks_alt
-        assert "nine green dots" in regime_alt and "nine red dots" in regime_alt
+        assert "two rows of nine black dots" in regime_alt and "schematic" in regime_alt
 
 
 def test_every_pale_tint_has_a_green_edge(every) -> None:
     """The tint alone stands 1.29 to 1 against the white board, under WCAG
     2.1's 3 to 1 for a graphical object, so every tinted region gets a green
-    edge, GOOD at 4.86 to 1, that runs along its top and bottom and spans it."""
+    edge, GOOD at 4.86 to 1, that runs along its top and bottom and spans it.
+    The edge is no hairline: a stroke under a pixel wide would not read."""
+    assert sketches.TINT_EDGE >= 1.0
     for scene in every:
         for fill in scene.fills:
             if fill.color != whiteboard.TINT:

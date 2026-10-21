@@ -3330,11 +3330,12 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     its count gives on the run's two spreads.
 38. `equity_seasonals_further_more_stocks.gif`, under "More stocks each
     January", the same Januaries on a tenth of about 60 stocks and on a tenth
-    of thousands, the second spread narrower, over a band for what every small
-    cap shares.
+    of thousands, the second spread narrower, over a band for what does not
+    average out, how differently the bought and the shorted tenth follow the
+    market.
 39. `equity_seasonals_further_regime_split.gif`, under "By market regime",
-    the 18 Januaries split 9 and 9 between rising and falling markets, each
-    half labelled, and the X of 9 against the X of 18 to scale.
+    the 18 Januaries split evenly, 9 and 9, the best case for the smaller
+    regime, and the X of 9 against the X of 18 to scale.
 
 Like the strategy sketches, the three survivorship sketches, the January registered and fill
 sketches, the carry-forward sketch and the cross-section sketch under "Further
@@ -3389,7 +3390,9 @@ sketches tick and cross each source as the post describes it and draw each bar
 at its figure, that the 4.2 percent's three sketches put the critical value, δ
 and each bracket where the test's figures say, that the broader series' bars,
 dots and running sums stand at the release's and the run's figures, that
-twenty sketches build slowly and hold for twelve seconds, that the ranges
+twenty-four sketches build slowly and hold for twelve seconds, that the
+further-work sketches draw each bracket, span and half at the runs' figures,
+that every pale tint has a green edge, that the ranges
 sketch draws each January from its low to its high, that the catch sketch
 tints the same size each side of zero and the years sketch draws each
 version's X at every count, that section 3's sketches

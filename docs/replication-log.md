@@ -2845,9 +2845,9 @@ seven rule sketches, the split sketch, the five-year check's three, the January
 ranges sketch, the two under "What 18 Januaries can detect", eight of the ten
 sketches on whether Heston and Sadka's effect still worked after 2008, three of
 them on where its 4.2 percent comes from and two on what a broader series
-shows, and three of the four under "Further work". The third on the broader series, "Before 2002 and
-after", draws only Entry 52's figures, as the sketches on whether the effect
-existed before 2002 do.
+shows, and three of the four under "Further work". The third on the broader
+series, "Before 2002 and after", draws only Entry 52's figures, as the
+sketches on whether the effect existed before 2002 do.
 `TestTheRuleSketchesFigures` in
 [tests/test_equity_seasonals.py](../tests/test_equity_seasonals.py) derives the
 rule sketches' figures from Chan's files, `TestTheYearsInsideTheSplit` the split

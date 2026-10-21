@@ -207,12 +207,13 @@ The last four sit under "Further work", each after the part of it it draws:
    spreads.
 3. More stocks, steadier Januaries: schematic and carrying no figures, the
    same Januaries on a tenth of about 60 stocks and on a tenth of thousands,
-   over a band for what every small cap shares.
+   over a band for what does not average out: how differently the bought
+   and the shorted tenth follow the market.
 4. What a regime split costs: the run's Januaries split evenly between two
-   regimes, labelled one by one so colour is not the only cue, and the X
-   each half gives against the X of all of them, with the IVV run's X on all
-   its months and on half of them. Which Januaries fall in which regime is
-   schematic.
+   regimes, the best case for the smaller one, in two rows of ink labelled
+   as an even split, and the X each half gives against the X of all of
+   them, with the IVV run's X on all its months and on half of them. Which
+   Januaries fall in which regime is schematic.
 
 The first, second and fourth read the registered runs on the owner's archive,
 and all four build slowly.
@@ -236,9 +237,10 @@ than copied: its strokes, labels, tints, timeline, renderer and palette, so
 these GIFs share that post's look, frame rate and colours, and all but the
 ones in :data:`PACED` share its pace and hold. Only the
 scenes and the file names are this module's. Every pale tint that carries
-meaning gets a green edge from :func:`_tinted`, because the tint alone stands
-1.29 to 1 against the board, under WCAG 2.1's 3 to 1 for a graphical object. Each GIF is named
-:data:`GIF_PREFIX` plus the scene's slug.
+meaning gets a green edge, from :func:`_tinted` or, in the catch sketch
+where two tints meet at zero, one box round both. The tint alone stands 1.29
+to 1 against the board, under WCAG 2.1's 3 to 1 for a graphical object.
+Each GIF is named :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. Redraw all thirty-nine with the command below.
@@ -3964,8 +3966,8 @@ NARROWER, SHARED_HALF = 0.42, 0.32
 def _one_series(verdicts: Verdicts, unchecked: int = UNCHECKED_MEMBER_YEARS) -> Scene:
     """The January bracket the two versions leave, and the one series that
     checked prices for the unchecked members would give. The lower line is
-    schematic: where that series lands is not known, so its mark sits midway
-    and says so."""
+    schematic: where that series lands is not known, so its mark is a hollow
+    ring midway that says so, rather than a dot a reader could read as a value."""
     top, below = 2.9, 1.25
     at = lambda value: _along(value, SERIES_RANGE, SERIES_X)  # noqa: E731
     low, high = verdicts.january_low, verdicts.january_high
@@ -4018,7 +4020,7 @@ def _one_series(verdicts: Verdicts, unchecked: int = UNCHECKED_MEMBER_YEARS) -> 
             ha="right",
             size=10,
         ),
-        _dot("one", mid, below, color=ACCENT),
+        _stroke("one", _ring(np.array([mid]), np.array([below]), pad=0.12), color=ACCENT, frames=6),
         Label(
             "one series, one verdict",
             mid,
@@ -4045,7 +4047,7 @@ def _more_januaries(power: JanuaryPower) -> Scene:
     """Where more Januaries would come from, each span with the X its count of
     Januaries would give on the run's two spreads, from :meth:`JanuaryPower.detectable`."""
     at = lambda year: _along(year, SAMPLE_YEARS, SAMPLE_X)  # noqa: E731
-    axis_y, last = 1.0, BOOK_YEAR + power.n - 1
+    axis_y, last = 1.3, BOOK_YEAR + power.n - 1
     ticks = []
     for year in (1930, 1960, 1990, 2020):
         ticks += [(at(year), axis_y), (at(year), axis_y - 0.1), (at(year), axis_y)]
@@ -4065,7 +4067,7 @@ def _more_januaries(power: JanuaryPower) -> Scene:
         _stroke(
             "sp600",
             _line(
-                [(at(SP600_FIRST_JANUARY - 0.2), axis_y), (at(SP600_FIRST_JANUARY - 0.2), 2.45)],
+                [(at(SP600_FIRST_JANUARY - 0.2), axis_y), (at(SP600_FIRST_JANUARY - 0.2), 2.75)],
                 per_unit=12,
             ),
             color=MUTED,
@@ -4082,9 +4084,9 @@ def _more_januaries(power: JanuaryPower) -> Scene:
         ),
     ]
     rows = (
-        (BOOK_YEAR, 3.45, INK, ""),
-        (SP600_FIRST_JANUARY, 2.7, ACCENT, ""),
-        (CRSP_FIRST_JANUARY, 1.95, ACCENT, "about "),
+        (BOOK_YEAR, 3.6, INK, ""),
+        (SP600_FIRST_JANUARY, 3.0, ACCENT, ""),
+        (CRSP_FIRST_JANUARY, 2.2, ACCENT, "about "),
     )
     for first, y, color, about in rows:
         n = last - first + 1
@@ -4095,7 +4097,7 @@ def _more_januaries(power: JanuaryPower) -> Scene:
         )
         text = f"{about}{n} Januaries: {low:.4f} to {high:.4f}"
         if first == CRSP_FIRST_JANUARY:
-            steps.append(Label(text, at(first), y + 0.45, names=gid, color=color, size=10))
+            steps.append(Label(text, at(first), y + 0.42, names=gid, color=color, size=10))
         else:
             steps.append(
                 Label(text, at(first) - 0.25, y, names=gid, color=color, ha="right", size=10)
@@ -4105,13 +4107,21 @@ def _more_januaries(power: JanuaryPower) -> Scene:
         Label(
             f"small caps by size before {SP600_FIRST_JANUARY}",
             at(CRSP_FIRST_JANUARY),
-            1.5,
+            1.8,
             names=crsp,
             color=MUTED,
             size=10,
         ),
         Label(
-            "each pair: the smallest average January gain that many Januaries can detect",
+            "each pair: the smallest average January gain caught four times in five,",
+            0.3,
+            0.5,
+            names=crsp,
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            f"if Januaries swing as much as the {power.n} do",
             0.3,
             0.2,
             names=crsp,
@@ -4125,8 +4135,8 @@ def _more_januaries(power: JanuaryPower) -> Scene:
 def _more_stocks() -> Scene:
     """Schematic and carrying no figures: the same Januaries' long-short
     returns on a tenth of about 60 stocks and on a tenth of thousands, the
-    second spread narrower, both over a band for the part every small cap
-    shares, which does not average out."""
+    second spread narrower, both over a band for what does not average out:
+    how differently the bought and the shorted tenth follow the market."""
     zero = 2.0
     steps: list[Stroke | Fill | Label] = []
     panels = (
@@ -4146,7 +4156,7 @@ def _more_stocks() -> Scene:
         )
     steps += [
         Label(
-            "what every small cap shares does not average out",
+            "band: how differently the two tenths follow the market does not average out",
             0.3,
             0.55,
             names="shared-1",
@@ -4166,34 +4176,23 @@ def _more_stocks() -> Scene:
 
 
 def _regime_split(power: JanuaryPower, ivv: IvvFigures, verdicts: Verdicts) -> Scene:
-    """The run's Januaries split evenly between two regimes, and the X each
-    half would give against the X of all of them, to scale, with the IVV
-    run's X on all its months and on half of them. Which Januaries fall in
-    which regime is schematic."""
+    """The run's Januaries split evenly between two regimes, the best case for
+    the smaller one, and the X each half would give against the X of all of
+    them, to scale, with the IVV run's X on all its months and on half of
+    them. Which Januaries fall in which regime is schematic, and the labels
+    say the split is an even one, so both rows are drawn in ink."""
     at = lambda value: _along(value, REGIME_RANGE, REGIME_X)  # noqa: E731
     n, half = power.n, power.n // 2
     line_y = 0.95
     steps: list[Stroke | Fill | Label] = [
         Stroke("all", np.linspace(1.2, 5.0, n), np.full(n, 3.35), frames=6, dots=3.5),
         Label(f"{n} Januaries", 5.3, 3.35, names="all", size=11),
+        Stroke("first", np.linspace(1.2, 3.0, half), np.full(half, 2.8), frames=4, dots=3.5),
+        Label(f"{half} in one regime, if split evenly", 3.3, 2.8, names="first", size=11),
         Stroke(
-            "rising",
-            np.linspace(1.2, 3.0, half),
-            np.full(half, 2.8),
-            color=GOOD,
-            frames=4,
-            dots=3.5,
+            "second", np.linspace(1.2, 3.0, n - half), np.full(n - half, 2.3), frames=4, dots=3.5
         ),
-        Label(f"{half} in rising markets", 3.3, 2.8, names="rising", color=GOOD, size=11),
-        Stroke(
-            "falling",
-            np.linspace(1.2, 3.0, n - half),
-            np.full(n - half, 2.3),
-            color=LOST,
-            frames=4,
-            dots=3.5,
-        ),
-        Label(f"{n - half} in falling markets", 3.3, 2.3, names="falling", color=LOST, size=11),
+        Label(f"{n - half} in the other", 3.3, 2.3, names="second", size=11),
     ]
     ticks = []
     for value in (0.0, 0.05, 0.1):
@@ -4218,7 +4217,7 @@ def _regime_split(power: JanuaryPower, ivv: IvvFigures, verdicts: Verdicts) -> S
             for value in (0.0, 0.05, 0.1)
         ],
     ]
-    for count, y, color in ((n, line_y + 0.35, INK), (half, line_y + 0.8, LOST)):
+    for count, y, color in ((n, line_y + 0.35, INK), (half, line_y + 0.8, ACCENT)):
         low, high = power.detectable(count)
         gid = f"x-{count}"
         steps.append(
