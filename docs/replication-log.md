@@ -3449,9 +3449,9 @@ Three things.
 2. **Gasoline agrees with the book on every year the file can read.** 1995 to
    2015 holds the 2 losing years 19 of 21 allows and no third. The three
    unreadable years are gaps in EIA's file, not losses.
-3. **In this exploratory record, both trades win fewer years after the years
-   Chan counted.** Natural gas wins 15 of 15 through 2008 and 7 of 15 after, which
-   agrees with his remark at location 4632. Gasoline wins 3 of 8 from 2016 to
+3. **In this exploratory record, both trades win a smaller share of years
+   after the years Chan counted.** Natural gas wins 15 of 15 through 2008 and 7
+   of 15 after, which agrees with his remark at location 4632. Gasoline wins 3 of 8 from 2016 to
    2023. Eight years with no costs charged can show the change and cannot
    measure it.
 

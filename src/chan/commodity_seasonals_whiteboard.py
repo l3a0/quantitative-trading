@@ -20,8 +20,8 @@ paragraph it draws.
    still trading on the entry date and one in which it has expired. A dashed
    line at each entry and exit crosses the contracts still trading that day,
    and June's number is how many it crosses, which its closing label says. It
-   sits in Lesson 4, after the
-   paragraph opening "For gasoline the answer is simple."
+   sits in Lesson 4, after the paragraph opening "For gasoline the answer is
+   simple."
 
 Both carry data, and neither needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the

@@ -346,7 +346,9 @@ def _day(day: date) -> str:
 
 
 class TestThePostQuotesThePins:
-    """The post's copies of the figures above, read from the post itself.
+    """One copy of each figure above, read from the post itself.
+
+    Other copies of the same figure elsewhere in the post are not read.
 
     The prose states these numbers and the tests above derive them, so before
     this class a typo in the post passed every test. Round 1 of the post's
@@ -373,6 +375,11 @@ class TestThePostQuotesThePins:
             assert f"{year} & {from_1995[year]} & {from_1994[year]}" in self.text
         ends = [min(year for year, run in from_1994.items() if run == count) for count in (13, 14)]
         assert f"the streaks of 13 and 14 end in {ends[0]} and {ends[1]} instead" in self.text
+        main_text, sidebar = (min(y for y, run in from_1995.items() if run == n) for n in (13, 14))
+        assert (
+            f"The main text’s 13 is the streak ending in {main_text} and the sidebar’s 14 "
+            f"is the streak ending in {sidebar}"
+        ) in self.text
 
     def test_the_gasoline_count_and_its_gaps(self) -> None:
         years = [trade for trade in GASOLINE if trade.year <= 2015]

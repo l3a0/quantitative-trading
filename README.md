@@ -187,7 +187,8 @@ where they were first built. The other forty-five were built here.
     sidebar's 14, read as first-edition figures counted from 1995. Gasoline from 1995 to 2015 holds the 2 losing years that
     Chan's 19 of 21 allows, and shows 16 profitable rather than 19, because
     EIA's file has no row on the trade date in 1997, 1998 or 1999. Both trades
-    win fewer years after the years he counted. Every figure is exploratory.
+    win a smaller share of years after the years he counted. Every figure is
+    exploratory.
 12. Post-earnings announcement drift, Example 7.2 of *Algorithmic Trading*,
     which buys or shorts a stock at the open after an earnings announcement
     when the overnight gap is large, and sells at the close. On Chan's own
@@ -3584,7 +3585,7 @@ replication log.
 2. A missing row is not a losing year, so three gaps in EIA's file bound the
    gasoline count between 16 and 19 rather than settling it.
 3. A trade chosen after looking at the history is tested by the years after
-   the book, and both trades win fewer of them.
+   the book, and both trades win a smaller share of them.
 4. Reading one named contract from files numbered by expiry needs a calendar
    checked against something the files do not supply.
 
@@ -3613,10 +3614,10 @@ not pinned here.
    [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
-   all three unreadable years profitable, that four contracts in four years are
-   16, that 21 less the 3 unreadable years is 18, that 1994 to 2023 is 30
-   years, that the last 9 of 1995 to 2015 are 2007 to 2015, that 7 of 15 is
-   fewer than half, and that 2016 to 2023 is eight years.
+   all three unreadable years profitable, that 21 less the 3 unreadable years
+   is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 7 of 15 is
+   fewer than half, and that the 8 later gasoline years in Lesson 3's caveat
+   are 2016 to 2023.
 4. Its references. The three citations are cited rather than computed.
 5. Three dates no test asserts: the files' last row on 5 April 2024, which
    their file names record, the day the 16 exchange dates were read, 3
@@ -3631,8 +3632,9 @@ for the figure's own labels, or to
 for the sketches' labels and the dates their alt text gives. One had no pin before it, and
 `TestNaturalGas::test_the_runs_counted_from_the_files_first_year` now pins it:
 counted from 1994, the run of 13 profitable years ends in 2006.
-`TestThePostQuotesThePins` reads the post's own copies of the counts, the
-streaks, the gap dates and the splits, and fails when one drifts from the run.
+`TestThePostQuotesThePins` reads one copy of each count, streak, gap date and
+split in the post, and fails when that copy drifts from the run. A second copy
+of the same figure elsewhere in the post is not read.
 
 Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).
