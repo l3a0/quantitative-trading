@@ -113,9 +113,10 @@ each after the paragraph it draws:
 
 1. What eighteen Januaries can catch: a tint over the January returns from
    minus the low version's X to plus it, the sizes that could pass unseen,
-   each version's X as a bracket, and Chan's three Januaries as dots, all on
-   one scale. The test is one-sided, so the half below zero mirrors the half
-   above to show a size rather than a second test.
+   each version's X as a bracket, and Chan's three Januaries as dots labelled
+   by year, all on one scale, with a key naming the dots and the bracket. The
+   test is one-sided, so the half below zero mirrors the half above to show a
+   size rather than a second test.
 2. More Januaries take more years: each version's X against the count of
    Januaries, from :func:`chan.equity_seasonals.detectable_mean` of the run's
    spread, marked at 18 and at four times 18.
@@ -2236,7 +2237,7 @@ def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
     for k, (year, r) in enumerate(chan.januaries):
         steps.append(
             Label(
-                _with_sign(r, 4),
+                f"{year}: {_with_sign(r, 4)}",
                 _on_catch(r),
                 y - 0.85 - 0.32 * (k % 2),
                 names=f"chan-{year}",
@@ -2247,9 +2248,15 @@ def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
         )
     last = f"chan-{chan.januaries[-1][0]}"
     steps += [
-        Label("Chan’s three Januaries, after costs", 0.3, 0.55, names=last, size=10),
         Label(
-            f"the registered run’s {power.n} Januaries, before costs",
+            "dots: Chan’s three Januaries, one trade each, after costs",
+            0.3,
+            0.55,
+            names=last,
+            size=10,
+        ),
+        Label(
+            f"bracket: what the registered run’s {power.n} Januaries catch, before costs",
             0.3,
             0.2,
             names=last,

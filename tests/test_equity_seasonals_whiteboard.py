@@ -2443,11 +2443,11 @@ class TestTheJanuaryPowerSketches:
             "could pass unseen",
             "0.0547 to 0.0615",
             "caught four times in five",
-            "−0.0244",
-            "−0.0068",
-            "+0.0881",
-            "Chan’s three Januaries, after costs",
-            "the registered run’s 18 Januaries, before costs",
+            "2006: −0.0244",
+            "2007: −0.0068",
+            "2008: +0.0881",
+            "dots: Chan’s three Januaries, one trade each, after costs",
+            "bracket: what the registered run’s 18 Januaries catch, before costs",
         ]
         assert years.title == "More Januaries take more years"
         assert years.labels == [
@@ -2514,7 +2514,7 @@ class TestTheJanuaryPowerSketches:
     def test_other_spreads_move_the_count_the_marks_and_the_words(self) -> None:
         catch, years = january_power_scenes(OTHER_POWER)
         assert catch.title == "What twelve Januaries can catch"
-        assert "the registered run’s 12 Januaries, before costs" in catch.labels
+        assert "bracket: what the registered run’s 12 Januaries catch, before costs" in catch.labels
         assert _stroke(years, "more").x == pytest.approx(sketches._power_at(48))
         assert "one January a year, so 48 Januaries take 48 years" in years.labels
         low, high = OTHER_POWER.detectable()

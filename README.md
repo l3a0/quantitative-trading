@@ -3314,8 +3314,9 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     and its sum ends above zero where the run's ends below it.
 34. `equity_seasonals_january_catch.gif`, under "What 18 Januaries can
     detect", the sizes 18 Januaries could miss, tinted the same size each side
-    of zero, each version's X as a bracket, and Chan's three Januaries as dots,
-    all on one scale.
+    of zero, each version's X as a bracket, and Chan's three Januaries as dots
+    labelled by year, all on one scale, with a key naming the dots and the
+    bracket.
 35. `equity_seasonals_january_years.gif`, each version's X against the count of
     Januaries, marked at 18 and at 72, which take 72 years.
 
