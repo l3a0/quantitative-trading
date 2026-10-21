@@ -13,11 +13,12 @@ files and the registered runs' constants, and its verdicts sketch draws the
 two registered runs' figures to scale. Those figures are pinned here as
 :data:`PINNED`, the values ``tests/test_equity_seasonals.py`` pins, so every
 test here runs without the owner's archive.
-``test_the_whiteboard_draws_these_runs_verdicts`` and
-``test_the_whiteboard_draws_these_runs_ranges`` and
-``test_the_whiteboard_draws_these_runs_ivv_figures`` in
+``test_the_whiteboard_draws_these_runs_verdicts``,
+``test_the_whiteboard_draws_these_runs_ranges``,
+``test_the_whiteboard_draws_these_runs_ivv_figures`` and
+``test_the_whiteboard_draws_these_runs_power`` in
 ``tests/test_equity_seasonals.py`` hold that the runs give :data:`PINNED`,
-:data:`PINNED_RANGES` and :data:`PINNED_IVV`.
+:data:`PINNED_RANGES`, :data:`PINNED_IVV` and :data:`PINNED_POWER`.
 
 The strategy sketches are schematic and read no data, so what is pinned for
 them is what a reader takes from them.
@@ -54,8 +55,11 @@ pinned for them is what a reader takes from them: who is in the file and who
 is not, which stocks a tenth holds, and where each mark stands. The January
 ranges sketch draws :data:`PINNED_RANGES`, which
 ``test_the_whiteboard_draws_these_runs_ranges`` holds the registered run
-gives. Section 3's carry-forward sketch is schematic, and eight of its other
-nine draw :data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its second
+gives. The two under "What 18 Januaries can detect" draw :data:`PINNED_POWER`,
+which ``test_the_whiteboard_draws_these_runs_power`` holds the registered run
+gives, beside Chan's three Januaries from :class:`FiveYearFigures`. Section
+3's carry-forward sketch is schematic, and eight of its other nine draw
+:data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its second
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
@@ -2399,15 +2403,29 @@ class TestTheJanuarySketches:
         monkeypatch.setattr(
             sketches.JanuaryRanges, "from_run", classmethod(lambda cls, january: from_run(january))
         )
+        powers = []
+
+        def power_from_run(january):
+            powers.append(january)
+            return PINNED_POWER
+
         monkeypatch.setattr(
-            sketches.JanuaryPower, "from_run", classmethod(lambda cls, january: PINNED_POWER)
+            sketches.JanuaryPower,
+            "from_run",
+            classmethod(lambda cls, january: power_from_run(january)),
         )
         written = make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans)
         assert sorted(path.name for path in written) == sorted(GIFS)
-        assert seen == [run]
-        seen.clear()
+        assert (seen, powers) == ([run], [run])
+        seen.clear(), powers.clear()
         make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans, verdicts=PINNED)
         assert seen == [run], "the ranges are read from the run even when the verdicts are given"
+        assert powers == [run], "so are the spreads"
+        seen.clear(), powers.clear()
+        make_equity_seasonals_whiteboards(
+            out_dir=tmp_path, spans=spans, verdicts=PINNED, ranges=PINNED_RANGES
+        )
+        assert (seen, powers) == ([], [run]), "the spreads are read even when the rest is given"
 
 
 #: Made-up spreads for the two sketches under "What 18 Januaries can detect",
@@ -2461,6 +2479,35 @@ class TestTheJanuaryPowerSketches:
             "0.0265 to 0.0298",
             "Four times the Januaries, about half the X",
             "one January a year, so 72 Januaries take 72 years",
+        ]
+
+    def test_each_label_is_in_the_ink_its_meaning_calls_for(self, power) -> None:
+        """Ticks, axes and the run's note are context, so muted. The bracket and
+        the marks it is read at are brass. Each of Chan's Januaries takes its
+        sign's colour."""
+        catch, years = power
+        colors = {
+            scene.slug: [s.color for s in scene.steps if isinstance(s, Label)] for scene in power
+        }
+        assert colors[catch.slug] == [
+            *[sketches.MUTED] * 4,
+            GOOD,
+            ACCENT,
+            ACCENT,
+            LOST,
+            LOST,
+            GOOD,
+            sketches.INK,
+            sketches.MUTED,
+        ]
+        assert colors[years.slug] == [
+            sketches.MUTED,
+            sketches.MUTED,
+            sketches.INK,
+            sketches.MUTED,
+            *[ACCENT] * 4,
+            sketches.INK,
+            sketches.MUTED,
         ]
 
     def test_the_tint_runs_the_same_size_each_side_of_zero(self, power) -> None:
@@ -2524,7 +2571,7 @@ class TestTheJanuaryPowerSketches:
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         for opening, name in zip(
             (
-                "Even with every price checked, 18 Januaries could not show",
+                "A second limit would remain even with every price checked.",
                 "Settling the January effect needs more Januaries",
             ),
             POWER_GIFS,
@@ -2544,6 +2591,16 @@ class TestTheJanuaryPowerSketches:
             ]
             assert places == sorted(places), scene.slug
         catch_alt = _alt(text, power[0])
+        x_low = PINNED_POWER.detectable()[0]
+        ticks = sketches.CATCH_TICKS
+        assert (
+            f"from below {sketches._signed(ticks[0], 2)} to above {sketches._signed(ticks[-1], 2)}"
+            in catch_alt
+        )
+        assert (
+            f"from about {sketches._signed(-x_low, 3)} to about {sketches._signed(x_low, 3)}"
+            in catch_alt
+        )
         assert "Two red dots sit inside the tint below zero" in catch_alt
         assert "a green dot sits past the bracket" in catch_alt
 

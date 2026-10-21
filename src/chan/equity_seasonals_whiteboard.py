@@ -115,8 +115,8 @@ each after the paragraph it draws:
    minus the low version's X to plus it, the sizes that could pass unseen,
    each version's X as a bracket, and Chan's three Januaries as dots labelled
    by year, all on one scale, with a key naming the dots and the bracket. The
-   test is one-sided, so the half below zero mirrors the half above to show a
-   size rather than a second test.
+   test is one-sided. The half below zero only mirrors the half above to show
+   a size, not a second test.
 2. More Januaries take more years: each version's X against the count of
    Januaries, from :func:`chan.equity_seasonals.detectable_mean` of the run's
    spread, marked at 18 and at four times 18.
@@ -2170,9 +2170,9 @@ def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
     three Januaries on one scale.
 
     The tint runs from minus the low version's X to plus it, the sizes that
-    could pass unseen. The test is one-sided and never looks below zero, so
-    the half below zero mirrors the half above to show a size, as the post's
-    "inside that range" does, rather than a second test.
+    could pass unseen. The test is one-sided and never looks below zero. The
+    half below zero only mirrors the half above to show a size, as the post's
+    "inside that range" does, not a second test.
     """
     y = CATCH_Y
     x_low, x_high = power.detectable()

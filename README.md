@@ -3343,13 +3343,13 @@ a reader take in.
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Twelve sketches read the owner's archive: the verdicts sketch, the ranges sketch,
-section 3's checked, leavers and running-sum sketches, the three of the 4.2
-percent's derivation, which read the run's month count, the broader series'
-scatter and running sums, which read the run's months, and the two under "What
-18 Januaries can detect", which read the January run's spread. On a machine
-without it the command redraws the other twenty-three and exits non-zero,
-naming the twelve it left.
+Twelve sketches read the owner's archive: the verdicts sketch, the ranges
+sketch, section 3's checked, leavers and running-sum sketches, the three of
+the 4.2 percent's derivation, which read the run's month count, the broader
+series' scatter and running sums, which read the run's months, and the two
+under "What 18 Januaries can detect", which read the January run's spread. On
+a machine without it the command redraws the other twenty-three and exits
+non-zero, naming the twelve it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
@@ -3381,9 +3381,10 @@ S&P 500 file. The five-year sketches' figures are defaults in
 `FiveYearFigures`, and `TestTheFiveYearSketches` in
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) derives each
 one from Chan's files. The whiteboard test draws the verdicts from the pinned
-figures, the January ranges from `PINNED_RANGES` and section 3's figures from
+figures, the January ranges from `PINNED_RANGES`, the two under "What 18
+Januaries can detect" from `PINNED_POWER` and section 3's figures from
 `PINNED_IVV`, and reads section 2's from the committed Open Source Asset
-Pricing release as `PINNED_OSAP`, so it runs without the archive, and three
+Pricing release as `PINNED_OSAP`, so it runs without the archive, and four
 tests in [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold
 that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
