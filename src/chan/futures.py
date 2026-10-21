@@ -56,15 +56,16 @@ from chan.vintage import VintageEntry, read_vintage, resolve_vintage
 VENDOR = "eia"
 PRICE_BASIS = "raw"
 
-#: Days NYMEX closed outside its holiday rules. The only one between February
-#: 20 and April 30 is 1994-04-27, Richard Nixon's funeral, which moves the May
+#: Days outside NYMEX's holiday rules when its trading floor closed and the
+#: natural gas files hold no new settlement. The only one between February 20
+#: and April 30 is 1994-04-27, Richard Nixon's funeral, which moves the May
 #: 1994 natural gas expiry and no trade date. They are listed so the calendar is
 #: the exchange's rather than one tuned to these trades.
 #:
 #: Three days this list used to carry are gone: 2012-10-29 and 2012-10-30, when
 #: Hurricane Sandy closed the trading floor, and 2018-12-05. All eight natural
 #: gas and RBOB files hold a settlement on each, and on each day most of them
-#: differ from the previous trading day, which a holiday row repeating a settlement does
+#: differ from the previous trading day's settlement, which a holiday row does
 #: not. Counted as closed, the Sandy days put the November 2012 natural gas
 #: expiry on 2012-10-25, two trading days before the files hand over.
 #: ``tests/test_stationary_candidates.py`` pins that every file settled on all
