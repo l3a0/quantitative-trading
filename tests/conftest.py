@@ -28,8 +28,9 @@ time no test holds, and two files pin what it computes:
 ``tests/test_tu_hypothesis_tests.py`` its figures, and
 ``tests/test_tu_hypothesis_tests_figures.py`` what its figure draws. So
 ``tu_hypothesis_run`` shares that run as ``cpo_result`` does. Its two files are
-not joined, so ``--dist loadfile`` computes it at most twice, because each
-build cost under 12 seconds on CI.
+not joined, because it never reached the 30 slowest tests of a CI run, which
+puts each build under 12 seconds there. So ``--dist loadfile`` computes it at
+most twice.
 
 Example 7.4's factor momentum run on Chan's S&P 600 file takes about 100
 seconds on CI, and two files pin what it computes:

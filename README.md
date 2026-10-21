@@ -2069,9 +2069,9 @@ same figures net of 1 basis point a round trip, the verdict on Chan's claim,
 and, added after the result was seen and deciding nothing, where his 1.947
 sits among all 400 cells. It takes about five minutes. On a
 machine with no archive it refuses, naming both ways to set one, and its pins
-in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them. Run those
-pins with `-n 0`, because a parallel run builds the run once for each of the
-two test files that read it.
+in `tests/test_cpo.py` skip unless `QT_ARCHIVE_RUN=1` asks for them. A parallel
+run puts the two test files that read it on one worker, so it builds the run
+once, as `-n 0` does.
 
 The fetch writes Alpha Vantage's daily closes for a list of symbols into the
 owner's archive, one file per symbol, and records each one as a line of
@@ -7363,8 +7363,8 @@ its committed file in `tests/test_figures_match_code.py`, and the 46 of
 [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)'s run in
 `tests/test_khandani_lo_mid_caps.py`, because `.claude/settings.json` sets
 `QT_ARCHIVE_RUN=1`. They run only where the owner's archive is configured.
-Each test file that reads Example 7.1's run builds it in about six minutes,
-and the rerun's pins take under a minute. The holdout's pins read 817 member
+The two test files that read Example 7.1's run share one build of about six
+minutes, and the rerun's pins take under a minute. The holdout's pins read 817 member
 series' adjusted closes and volumes plus SPY's line. Its test file took 284
 seconds serially with the pins and 149 seconds without them, measured once on
 one machine at `6da2c3e9`, and no test holds either time. The pins of

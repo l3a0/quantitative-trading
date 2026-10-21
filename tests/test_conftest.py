@@ -71,8 +71,18 @@ def _schedule(scheduler: LoadFileScheduling, collection: list[str]) -> list[list
     return [worker.sent for worker in workers]
 
 
-#: Two files outside the pair, which :func:`_collection` puts either side of it.
-BEFORE, AFTER = "tests/test_before.py", "tests/test_after.py"
+#: A file outside every pair, which :func:`_collection` puts after the pair.
+AFTER = "tests/test_after.py"
+
+
+def _near_miss(pair: tuple[str, str]) -> str:
+    """A file outside the pair whose name is a prefix of the joined file's name.
+
+    It sits before the pair, as ``tests/test_pca_factor.py`` sits before the
+    factor momentum pair, so a scheduler matching names by prefix rather than
+    whole fails.
+    """
+    return pair[1].removesuffix(".py")[:-1] + ".py"
 
 
 def _collection(pair: tuple[str, str]) -> list[str]:
@@ -82,7 +92,7 @@ def _collection(pair: tuple[str, str]) -> list[str]:
     """
     first, second = pair
     return [
-        f"{BEFORE}::test_a",
+        f"{_near_miss(pair)}::test_a",
         f"{first}::test_a",
         f"{first}::test_b",
         f"{second}::test_a",
@@ -107,7 +117,7 @@ def test_the_pair_runs_on_one_worker_and_every_other_file_keeps_its_own_unit(fix
     sent = _schedule(scheduler, _collection(pair))
     assert sorted(_files(s) & set(pair) for s in sent) == [set(), set(pair)]
     units = {unit for work in scheduler.assigned_work.values() for unit in work}
-    assert units == {BEFORE, pair[0], AFTER}
+    assert units == {_near_miss(pair), pair[0], AFTER}
 
 
 @shared_runs
