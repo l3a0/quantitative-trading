@@ -137,11 +137,16 @@ bare hyphens, gave the caret a width, collapsed whitespace in cells, and
 stopped two kinds of image line from raising. It also made ``md_sha256`` and
 ``subtitle_length`` measure what the page measures. On 2026-10-13 the image
 node's ``type`` stopped being ``image/png`` for every figure and became the
-type its extension names, once a post embedded animated GIFs.
+type its extension names, once a post embedded animated GIFs. On 2026-10-20
+each widget and each text node's marks became copies, so no object appears
+twice in a converted tree and none is a module constant. The output did not
+change. Before that, editing one widget of a draft edited the other and the
+``WIDGET`` every later conversion read.
 """
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import re
@@ -252,8 +257,10 @@ def inline(s, marks=()):
 
 def _text(t, marks):
     node = {"type": "text", "text": unescape(t)}
+    # Copies, since inline() hands one mark to every node in its span, and a
+    # tree that shares an object changes in two places when edited in one.
     if marks:
-        node["marks"] = list(marks)
+        node["marks"] = copy.deepcopy(list(marks))
     return node
 
 
@@ -512,7 +519,7 @@ def convert(md, images):
             if level == 1:
                 n_heading += 1
                 if n_heading == 2:
-                    body.append(WIDGET)
+                    body.append(copy.deepcopy(WIDGET))
             body.append(
                 {
                     "type": "heading",
@@ -614,7 +621,7 @@ def convert(md, images):
                 buf.append(lines[i])
                 i += 1
             body.append(para(" ".join(buf)))
-    body.append(WIDGET)
+    body.append(copy.deepcopy(WIDGET))
     return {"title": title, "subtitle": subtitle, "body": {"type": "doc", "content": body}}
 
 

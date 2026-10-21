@@ -1145,6 +1145,37 @@ def test_the_divergent_strings_read_as_intended() -> None:
     assert returns[1]["content"][1] == strong
 
 
+def _holders(value, path: str, out: dict[int, list[str]]) -> dict[int, list[str]]:
+    """Every dict and list inside value, by id, with each path that reaches it."""
+    if isinstance(value, dict | list):
+        out.setdefault(id(value), []).append(path)
+        items = value.items() if isinstance(value, dict) else enumerate(value)
+        for key, child in items:
+            _holders(child, f"{path}/{key}", out)
+    return out
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda c: c[0] if isinstance(c, tuple) else str(c))
+def test_a_converted_tree_holds_no_object_twice(case: tuple[str, str, dict]) -> None:
+    """Editing one node of a draft must leave every other node alone.
+
+    Tests and the sync both build edited copies of converted trees. The
+    converter once appended its module-level widget to every draft, so
+    writing into one widget changed the other and every later conversion.
+    It also gave every text node of one span the same mark dict.
+    """
+    name, md, images = case
+    held = _holders(m2s.convert(md, images), "", {})
+    shared = {i: paths for i, paths in held.items() if len(paths) > 1}
+    assert not shared, f"{name}: {list(shared.values())[:3]}"
+    constants = {}
+    for key, value in vars(m2s).items():
+        if key.isupper():
+            _holders(value, key, constants)
+    leaked = [paths for i, paths in held.items() if i in constants]
+    assert not leaked, f"{name}: {leaked[:3]}"
+
+
 def test_the_canonical_form_ignores_key_order() -> None:
     """Substack returns a draft's keys in its own order, and the check must not care."""
     assert m2s.canonical({"b": [1, {"d": "é", "c": None}], "a": True}) == (
