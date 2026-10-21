@@ -487,6 +487,48 @@ class TestThePostQuotesThePins:
         assert round(biggest.change) == 3
         assert f"one gain near three dollars in {biggest.year}" in alt
 
+    def test_the_files_first_whole_trade(self) -> None:
+        """1993's trade has neither price and 1994's has both, which the post says twice."""
+        first = NG_YEARS[0]
+        before, trade = natural_gas_trade(first - 1), natural_gas_trade(first)
+        assert (before.entry_price, before.exit_price) == (None, None)
+        assert trade.entry_price is not None and trade.exit_price is not None
+        assert f"The natural gas files first hold a whole trade in {first}." in self.text
+        assert f"{first}, the first year the files hold a whole trade" in self.text
+
+    def test_the_holiday_rows(self) -> None:
+        """The one unbroken run of NYMEX holidays the natural gas files hold a row on."""
+        files = [settlements(NATURAL_GAS[number])[1] for number in (1, 2, 3, 4)]
+        holidays = sorted(day for year in range(1994, 2024) for day in futures.nymex_holidays(year))
+        rowed = [any(day in rows for rows in files) for day in holidays]
+        runs, start = [], None
+        for k, has in enumerate([*rowed, False]):
+            if has and start is None:
+                start = k
+            elif not has and start is not None:
+                runs.append((start, k - 1))
+                start = None
+        first, last = max(runs, key=lambda run: run[1] - run[0])
+        assert sum(rowed) - (last - first + 1) == 1
+        assert (
+            f"On every exchange holiday from {holidays[first]:%B %Y} to "
+            f"{holidays[last]:%B %Y}, the natural gas files hold a row"
+        ) in self.text
+
+    def test_the_june_caption_s_2006_dates(self) -> None:
+        """The June sketch's caption says why 2006's entry and exit moved."""
+        trade = natural_gas_trade(2006)
+        asked_entry, asked_exit = date(2006, 2, 25), date(2006, 4, 15)
+        good_friday = futures.good_friday(2006)
+        assert trade.entry_day > ng_last_trade(2006, 3)
+        assert trade.exit_day < good_friday < asked_exit
+        assert (
+            f"In 2006, February 25 fell on a {asked_entry:%A}, so the trade entered on "
+            f"{trade.entry_day:%A} the {trade.entry_day.day}th, after March had expired. "
+            f"April 15 was a {asked_exit:%A} and the {good_friday.day}th was Good Friday, "
+            f"so the exit moved back to the {trade.exit_day.day}th."
+        ) in self.text
+
 
 def _weekend_roll(day: date, forward: bool) -> date:
     """``day`` moved past weekends alone, the calendar without NYMEX's holidays."""

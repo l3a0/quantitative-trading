@@ -504,10 +504,12 @@ to infer.
    run pairing two contracts reads only the days both hold. The New York Harbor
    contract-1 file misses trading days too, among them 1997-04-14, which leaves
    three of the gasoline seasonal's years unreadable. The natural gas
-   files go the other way on exchange holidays. They carry rows such as
-   2018-01-01, 2018-03-30 and 2018-12-25 that repeat the day before's
-   settlement exactly, and the files keep them, so a return across one of those
-   days reads as zero. `scale_breaks` finds nothing on any of the twelve,
+   files go the other way on some exchange holidays. On every NYMEX holiday
+   from January 2018 to November 2019, and on 2014-01-20, they carry a row
+   that repeats the previous trading day's settlement exactly, such as
+   2018-01-01, 2018-03-30 and 2018-12-25. They carry a row on no other holiday
+   from 1994 to 2023. The files keep those rows, so a return across one of
+   those days reads as zero. `scale_breaks` finds nothing on any of the twelve,
    though they widened the range of ordinary daily moves the bound was fitted
    to, which [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins.
 

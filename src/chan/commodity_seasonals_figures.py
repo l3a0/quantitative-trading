@@ -1,4 +1,4 @@
-"""The commodity-seasonals post's one figure, drawn from the committed EIA files.
+"""The commodity-seasonals post's chart, drawn from the committed EIA files.
 
 ``blog/commodity-seasonals-lessons.md`` teaches in its Lesson 2 that a missing
 row is not a losing year, and in its Lesson 3 that a trade chosen after looking

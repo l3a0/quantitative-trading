@@ -179,9 +179,10 @@ where they were first built. The other forty-five were built here.
     121.5 on the closes and 127.65 on the opens, and on Example 3.7 it prints
     0.9578 rather than the book's 0.25. Every figure is exploratory and about
     survivors.
-11. Chan's two commodity seasonal trades, which he says still pay where much
-    of the equity seasonality has weakened or disappeared: the May gasoline contract from April 13 to April 25,
-    and the June natural gas contract from February 25 to April 15. On EIA's
+11. Chan's two commodity seasonal trades, which he says still pay where
+    much of the equity seasonality has weakened or disappeared: the May
+    gasoline contract from April 13 to April 25, and the June natural gas
+    contract from February 25 to April 15. On EIA's
     NYMEX settlements, natural gas is profitable in every year from 1995 to
     2008, which reproduces both the main text's 13 consecutive years and the
     sidebar's 14, read as first-edition figures counted from 1995. Gasoline from 1995 to 2015 holds the 2 losing years that

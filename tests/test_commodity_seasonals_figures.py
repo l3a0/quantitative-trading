@@ -1,4 +1,4 @@
-"""The pins for the commodity-seasonals post's one figure.
+"""The pins for the commodity-seasonals post's chart.
 
 ``tests/test_commodity_seasonals.py`` holds what the two trades compute. This
 file holds that the figure draws those numbers, so a generator that drew a

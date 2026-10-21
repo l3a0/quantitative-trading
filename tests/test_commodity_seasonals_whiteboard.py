@@ -1,8 +1,10 @@
 """The pins for the two whiteboard GIFs in the commodity seasonals post.
 
-One sketches Lesson 1's streaks and one Lesson 4's numbered files. Both read
-the natural gas run on the committed EIA files, so every test here reads the
-run itself rather than a pinned copy of its figures.
+One sketches Lesson 1's streaks and one Lesson 4's numbered files. The scenes
+are built from the natural gas run on the committed EIA files rather than from
+a pinned copy of its figures. Most tests check the drawing against the run,
+and a few check the run against literal dates, counts and labels the post
+quotes, such as test_the_run_gives_these_dates_and_files.
 
 1. The streak sketch draws a dot at each profitable year from 1994 to the
    first loss, a cross at that loss, the first edition's release between 2008
@@ -508,6 +510,13 @@ class TestTheJuneYears:
         trade = seasonals.natural_gas_trade(2007)
         assert trade.entry_day == ng_last_trade(2007, 3)
 
+    def test_march_still_trades_on_its_own_last_day(self) -> None:
+        """2007 enters on March's last trading day, where the run reads June as
+        contract 4, so its note would call March still trading."""
+        f = sketches.JuneYear.from_run(2007)
+        assert f.entry == f.last_trade[0]
+        assert (f.march_trading, f.entry_number) == (True, 4)
+
 
 class TestTheJuneSketch:
     def test_its_words(self, every) -> None:
@@ -546,7 +555,13 @@ class TestTheJuneSketch:
                 bar = _stroke(scene, f"{f.year}-{month}")
                 assert bar.x.max() == pytest.approx(_day_x(last)), (f.year, month)
                 assert bar.x.min() == pytest.approx(CALENDAR_X[0])
-            assert _stroke(scene, f"{f.year}-june").x.max() > CALENDAR_X[1]
+            june = _stroke(scene, f"{f.year}-june")
+            assert june.x.min() == pytest.approx(CALENDAR_X[0])
+            # The shaft runs flat along June's row from the calendar's start
+            # past its end, so a shortened shaft bends away from the row.
+            shaft = june.x <= CALENDAR_X[1]
+            assert june.y[shaft] == pytest.approx([june.y[0]] * int(shaft.sum()))
+            assert june.x.max() > CALENDAR_X[1]
             assert f.last_trade[3] > CALENDAR[1].replace(year=f.year)
 
     def test_june_is_numbered_by_the_bars_each_line_crosses(self, every, years) -> None:

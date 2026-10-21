@@ -3351,10 +3351,12 @@ Ten rows, all derivable from
 [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py).
 
 **Both natural gas figures reproduce under the reading the issue pinned, and
-the gasoline count agrees with the book on every year the file can read.** Chan says commodity seasonal trades still pay where
-much of the equity seasonality has weakened or disappeared, and gives two. Gasoline buys the May contract at the
-close of April 13 and sells at the close of April 25. Natural gas buys the June
-contract at the close of February 25 and sells at the close of April 15.
+the gasoline count agrees with the book on every year the file can read.**
+Chan says commodity seasonal trades still pay where much of the equity
+seasonality has weakened or disappeared, and gives two. Gasoline buys the May
+contract at the close of April 13 and sells at the close of April 25. Natural
+gas buys the June contract at the close of February 25 and sells at the close
+of April 15.
 
 1. **Natural gas.** Every year from 1994 to 2008 is profitable. Counted from
    1995, the run is 13 years ending in 2007 and 14 ending in 2008, the main
@@ -3452,8 +3454,9 @@ Three things.
 3. **In this exploratory record, both trades win a smaller share of years
    after the years Chan counted.** Natural gas wins 15 of 15 through 2008 and 7
    of 15 after, which agrees with his remark at location 4632. Gasoline wins 3
-   of 8 from 2016 to 2023. Eight years with no costs charged can show the
-   change and cannot measure it.
+   of 8 from 2016 to 2023. Each trade's earlier years include the years Chan
+   chose its rule on, so the drop can overstate how much it weakened, and no
+   costs are charged.
 
 ### What this entry cannot say
 

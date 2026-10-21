@@ -1,4 +1,4 @@
-# Chan’s commodity seasonals fit his counts on every year the data can read, and win fewer years after the book
+# Chan’s commodity seasonals fit his counts in every year the files have prices for, and win a smaller share of years after the book
 
 *A count of profitable years is only as good as the years it counts, where it starts, and who chose the trade.*
 
@@ -121,7 +121,7 @@ For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sam
 
 ### What these years cannot grade
 
-The split before and after the book is no verdict on whether either trade is alive. Gasoline’s 8 later years and natural gas’s 15, with no costs charged, can show that a win rate changed but are too few to measure by how much. Nobody wrote down a test for “alive” before this repository computed these years. The figures describe the record. They do not grade Chan’s claim, and like every result here the split is exploratory.
+The split before and after the book is no verdict on whether either trade is alive. Each trade’s earlier years include the years Chan chose its rule on, and a rule looks best on those, so the drop after the book can overstate how much either trade weakened. No costs are charged on either side of the split. Nobody wrote down a test for “alive” before this repository computed these years. The figures describe the record. They do not grade Chan’s claim, and like every result here the split is exploratory.
 
 Chan names the same weakness, and offers a check. A trade that happens once a year produces few results, he writes, so it is hard to tell whether its results on past prices reflect data-snooping bias, meaning a pattern found by searching the past that will not repeat. He suggests trying somewhat different entry and exit dates to see whether the profits hold up (p. 186). This repository did not try them. Varying the dates until some version works is a search across many trades, and a search needs its own safeguards: a list of the variants written down before any is run, a bar for success that rises with the number of variants tried, and years held back that the search never sees.
 
@@ -143,7 +143,7 @@ Because the June contract moves between files, the expiry rule is part of the re
 2. **Against the files’ own handovers.** When a contract expires, every later contract moves up one number. So on the day after an expiry, each file’s price should carry on from the price the file one number higher showed the day before. Contract 2’s file, for example, picks up where contract 3’s file left off. Before mid-1997 the files show contracts stopping five or six trading days before delivery rather than three. For the March 1996 contract, the price handover in late February 1996 fits a five-day rule and not a three-day one. After the first run, a review made the run follow the files’ handovers before mid-1997 instead of the three-day rule. That moves the 1996 and 1997 entries from contract 4 to contract 3. Both years are profitable on either contract, so the correction changed no count.
 3. **Against the edge cases.** In 10 of the 30 years, the entry date falls on the March contract’s last trading day. The rule counts a contract as trading on its own last day, so the run reads June as contract 4 on those days. Reading contract 3 instead flips no year’s result.
 
-The run also computes its own calendar of trading days and expiries rather than reading it from the files, because a row in the files does not show that the exchange was open. On every exchange holiday from January 2018 to November 2019, the natural gas files hold a row that repeats the previous day’s settlement. In other years they hold a row on almost no holiday. Of NYMEX’s holidays, only Good Friday can land on a trade date, and it moved six trade dates between 1994 and 2023.
+The run also computes its own calendar of trading days and expiries rather than reading it from the files, because a row in the files does not show that the exchange was open. On every exchange holiday from January 2018 to November 2019, the natural gas files hold a row that repeats the previous trading day’s settlement. In other years they hold a row on almost no holiday. Of NYMEX’s holidays, only Good Friday can land on a trade date, and it moved six trade dates between 1994 and 2023.
 
 The same map from dates to contracts serves Chan’s calendar spreads, trades that buy one delivery month and sell another, tested on the same files. [The calendar spreads post](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md) reports what those spreads showed.
 
