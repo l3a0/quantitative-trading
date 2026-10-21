@@ -25,8 +25,9 @@ is reported as missing rather than moved.
 **The data is EIA's contract-numbered settlements, not one file per contract.**
 Contract 1 is whichever contract expires next, so the module has to say which
 numbered file holds the May or June contract on a given day. The May gasoline
-contract is contract 1 on both gasoline dates, because it trades until the last
-business day of April. The June natural gas contract is contract 4 or 3 at the
+contract is contract 1 on both gasoline dates. The April contract stops trading
+on the last trading day of March, and the May contract trades until the last
+trading day of April. The June natural gas contract is contract 4 or 3 at the
 entry, depending on whether the March contract has expired, and contract 2 at
 the exit. :func:`chan.futures.ng_last_trade` gives each expiry. Today a
 contract stops three trading days before delivery, and before mid-1997 it

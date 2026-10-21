@@ -262,9 +262,14 @@ class TestNaturalGas:
         assert {year: run for year, run in runs.items() if run >= 13} == {2007: 13, 2008: 14}
 
     def test_the_runs_counted_from_the_files_first_year(self) -> None:
-        """Counted from 1994, the runs of 13 and 14 end a year early, in 2006 and 2007."""
+        """Counted from 1994, the runs of 13 and 14 end a year early, in 2006 and 2007.
+
+        1994 is the files' first whole trade, which the post says twice: 1993 has
+        neither price.
+        """
         runs = runs_ending(GAS)
         assert (runs[2006], runs[2007], runs[2008]) == (13, 14, 15)
+        assert natural_gas_trade(1993).profitable is None
 
     def test_a_missing_year_breaks_a_run_in_any_order(self) -> None:
         trades = [gasoline_trade(year) for year in (2000, 1997, 1996, 1995)]
@@ -346,7 +351,7 @@ def _day(day: date) -> str:
 
 
 class TestThePostQuotesThePins:
-    """One copy of each figure above, read from the post itself.
+    """One copy of each count, streak, gap date and split in the post, read from the post itself.
 
     Other copies of the same figure elsewhere in the post are not read.
 
