@@ -112,10 +112,10 @@ fallback, and font rasterising varies across platforms. Redraw all fourteen with
 
     uv run python -m chan.usdcad_tests_whiteboard
 
-:mod:`chan.equity_seasonals_whiteboard` draws its thirty-five sketches with this
+:mod:`chan.equity_seasonals_whiteboard` draws its thirty-nine sketches with this
 module's strokes, timeline and renderer, so an edit to those changes its GIFs
 too. Redraw both sets after one. The second command needs the owner's archive
-for twelve of its thirty-five GIFs, and says so when it is missing::
+for fifteen of its thirty-nine GIFs, and says so when it is missing::
 
     uv run python -m chan.usdcad_tests_whiteboard
     uv run python -m chan.equity_seasonals_whiteboard

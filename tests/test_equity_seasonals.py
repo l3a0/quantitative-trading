@@ -1956,8 +1956,10 @@ class TestThePointInTimeFlags:
     def test_741_member_years_threaten_89_of_them_at_2008(self) -> None:
         """The totals the log and the post's further work quote, sized on this
         run's universe rather than on every member."""
+        from chan.equity_seasonals_whiteboard import UNCHECKED_MEMBER_YEARS
+
         total = sum(sum(pin[2:]) for pin in PIT_THREATS)
-        assert total == 741
+        assert total == 741 == UNCHECKED_MEMBER_YEARS
         post = Path(__file__).parents[1] / "blog" / "equity-seasonals-lessons.md"
         assert f"{total} member-years of the S&P 600" in post.read_text(encoding="utf-8")
         assert PIT_THREATS[0][:2] == ("2008-12-31", 161)

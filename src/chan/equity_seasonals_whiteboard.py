@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws thirty-five scenes, and the post places each right after the
+This module draws thirty-nine scenes, and the post places each right after the
 text it draws. The first four are the opening's years and verdicts sketches and
 the two strategies' sketches. The opening also holds the first survivorship
 sketch and the first January sketch, which are listed below with their groups.
@@ -176,7 +176,7 @@ question, each after the text it draws:
 All three draw the critical value and δ from :class:`Shift`, which reads only
 the IVV run's month count, and all three build slowly.
 
-The last three sit under "What a broader series shows". The first two follow
+The next three sit under "What a broader series shows". The first two follow
 its first two paragraphs, and the third follows the second sketch, ahead of
 the paragraph that explains why its two lines differ in scale:
 
@@ -194,6 +194,28 @@ the paragraph that explains why its two lines differ in scale:
    that, because the universe, the membership and the returns differ too.
 
 All three build slowly.
+
+The last four sit under "Further work", each after the part of it it draws:
+
+1. One series instead of two: the January bracket the two versions leave,
+   beside the count of member-years free data could not check, and the one
+   series checked prices would give. Where that series lands is not known,
+   so the lower line is schematic and its mark says so.
+2. Where more Januaries come from: three spans on a timeline from the 1920s,
+   the run's Januaries from 2009, the S&P 600's from 1995 and a size-defined
+   universe's from 1927, each with the X its count gives on the run's two
+   spreads.
+3. More stocks, steadier Januaries: schematic and carrying no figures, the
+   same Januaries on a tenth of about 60 stocks and on a tenth of thousands,
+   over a band for what every small cap shares.
+4. What a regime split costs: the run's Januaries split evenly between two
+   regimes, labelled one by one so colour is not the only cue, and the X
+   each half gives against the X of all of them, with the IVV run's X on all
+   its months and on half of them. Which Januaries fall in which regime is
+   schematic.
+
+The first, second and fourth read the registered runs on the owner's archive,
+and all four build slowly.
 
 The two strategy scenes are schematic and carry no data. The ranked dots stand
 for a cross-section of stocks sorted by the return each strategy ranks on, and
@@ -213,14 +235,16 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied: its strokes, labels, tints, timeline, renderer and palette, so
 these GIFs share that post's look, frame rate and colours, and all but the
 ones in :data:`PACED` share its pace and hold. Only the
-scenes and the file names are this module's. Each GIF is named
+scenes and the file names are this module's. Every pale tint that carries
+meaning gets a green edge from :func:`_tinted`, because the tint alone stands
+1.29 to 1 against the board, under WCAG 2.1's 3 to 1 for a graphical object. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all thirty-five with the command below.
-Twelve sketches read the archive, so on a machine
-without it the command redraws the other twenty-three and exits non-zero
-naming the twelve it left, :data:`ARCHIVE_SLUGS`::
+with no change is a no-op diff. Redraw all thirty-nine with the command below.
+Fifteen sketches read the archive, so on a machine
+without it the command redraws the other twenty-four and exits non-zero
+naming the fifteen it left, :data:`ARCHIVE_SLUGS`::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -259,6 +283,21 @@ from chan.usdcad_tests_whiteboard import (
     timeline,
 )
 from chan.vintage import VintageUnavailable
+
+#: The width of the green edge drawn round every pale tint that carries
+#: meaning. The tint alone stands 1.29 to 1 against the white board, under
+#: WCAG 2.1's 3 to 1 for a graphical object, and GOOD stands 4.86 to 1.
+TINT_EDGE = 1.2
+
+
+def _tinted(gid: str, x0: float, y0: float, x1: float, y1: float) -> tuple[Fill, Stroke]:
+    """A pale tint and a thin green edge round it, so the region it marks
+    reads at WCAG's 3 to 1 for graphical objects. The edge is ``gid`` plus
+    ``-edge``."""
+    return Fill(gid, x0, y0, x1, y1, TINT), _stroke(
+        f"{gid}-edge", _box(x0, y0, x1, y1), color=GOOD, width=TINT_EDGE, frames=4
+    )
+
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "equity_seasonals_"
@@ -902,14 +941,14 @@ def _own_month_end() -> Scene:
         "Where a month ends",
         "rule_own_month_end",
         (
-            Fill("shared", last - 0.3, 1.25, last + 0.3, 3.2, TINT),
+            *_tinted("shared", last - 0.3, 1.25, last + 0.3, 3.2),
             Label("shared month-end row", last, 3.6, names="shared", ha="center", size=12),
             Stroke("a", np.array(DAYS_X), np.full(len(DAYS_X), A_Y), frames=4, dots=8.0),
             Label("stock A", DAYS_X[0] - 0.4, A_Y, names="a", ha="right", size=12),
             Stroke("b", np.array(DAYS_X[:B_PRICED]), np.full(B_PRICED, B_Y), frames=2, dots=8.0),
             Label("stock B", DAYS_X[0] - 0.4, B_Y, names="b", ha="right", size=12),
             _stroke("b-missing", _cross(last, B_Y), color=LOST, frames=2),
-            Label("missing", last + 0.45, B_Y, names="b-missing", color=LOST, size=12),
+            Label("missing", last + 0.5, B_Y, names="b-missing", color=LOST, size=12),
             _stroke(
                 "b-own", _ring(np.array([own]), np.array([B_Y]), pad=0.25), color=GOOD, frames=4
             ),
@@ -1428,7 +1467,7 @@ def _five_year_noise(f: FiveYearFigures) -> Scene:
         "A gap far smaller than the noise",
         "five_year_noise",
         (
-            Fill("band", band[0], y - 0.22, band[1], y + 0.22, TINT),
+            *_tinted("band", band[0], y - 0.22, band[1], y + 0.22),
             Label(
                 f"one standard error each way, {f.rerun_error:.4f}",
                 (band[0] + band[1]) / 2,
@@ -2204,10 +2243,17 @@ def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
         ],
         Fill("unseen", zero, y + 0.04, _on_catch(x_low), y + 0.34, TINT),
         Fill("unseen-below", _on_catch(-x_low), y + 0.04, zero, y + 0.34, TINT),
+        _stroke(
+            "unseen-edge",
+            _box(_on_catch(-x_low), y + 0.04, _on_catch(x_low), y + 0.34),
+            color=GOOD,
+            width=TINT_EDGE,
+            frames=4,
+        ),
         Label(
             "could pass unseen",
             (_on_catch(-x_low) + zero) / 2,
-            y + 0.62,
+            y + 0.66,
             names="unseen",
             color=GOOD,
             ha="center",
@@ -3465,6 +3511,10 @@ PACED = (
     "broad_running",
     "january_catch",
     "january_years",
+    "further_one_series",
+    "further_more_januaries",
+    "further_more_stocks",
+    "further_regime_split",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
@@ -3668,7 +3718,7 @@ def _two_verdicts(verdicts: Verdicts) -> Scene:
                 frames=2,
             ),
             Label("0", zero_2, MONTHLY_Y - 0.46, names="monthly-zero", ha="center", size=12),
-            Fill("unseen", zero_2, MONTHLY_Y + 0.04, x_detect, MONTHLY_Y + 0.34, TINT),
+            *_tinted("unseen", zero_2, MONTHLY_Y + 0.04, x_detect, MONTHLY_Y + 0.34),
             _stroke(
                 "detectable",
                 _line([(x_detect, MONTHLY_Y - 0.13), (x_detect, MONTHLY_Y + 0.45)]),
@@ -3880,6 +3930,341 @@ def _write(scene: Scene, folder: Path) -> Path:
     return path
 
 
+# --- Further work: what a larger sample would take ---------------------------
+
+#: The member-years of the S&P 600 with no checked price at a year-end that
+#: could change a traded tenth, 2008 to 2025, from the registered January run.
+#: ``test_741_member_years_threaten_89_of_them_at_2008`` in
+#: ``tests/test_equity_seasonals.py`` holds that the run's threats sum to it.
+UNCHECKED_MEMBER_YEARS = 741
+#: The first January the S&P 600's own history allows, after its October 1994
+#: start, and the first a size-defined universe from CRSP's 1926 start allows.
+SP600_FIRST_JANUARY, CRSP_FIRST_JANUARY = 1995, 1927
+#: The board spans of the further-work sketches' scales.
+SERIES_X, SERIES_RANGE = (1.0, 9.2), (-0.15, 0.15)
+SAMPLE_X, SAMPLE_YEARS = (0.6, 9.4), (1924, 2028)
+REGIME_X, REGIME_RANGE = (1.0, 9.2), (0.0, 0.1)
+#: Schematic January returns for the cross-section sketch, in board units
+#: around its zero line. They draw a spread, not data.
+SCATTER = (
+    0.95, -0.6, 0.35, -1.0, 0.75, -0.25, 1.05, -0.8, 0.15,
+    0.55, -0.45, 0.9, -0.95, 0.3, -0.15, 0.65, -0.7, 0.05,
+)  # fmt: skip
+#: How far a wider universe narrows the schematic spread, and the shared band's half height.
+NARROWER, SHARED_HALF = 0.42, 0.32
+
+
+def _one_series(verdicts: Verdicts, unchecked: int = UNCHECKED_MEMBER_YEARS) -> Scene:
+    """The January bracket the two versions leave, and the one series that
+    checked prices for the unchecked members would give. The lower line is
+    schematic: where that series lands is not known, so its mark sits midway
+    and says so."""
+    top, below = 2.9, 1.25
+    at = lambda value: _along(value, SERIES_RANGE, SERIES_X)  # noqa: E731
+    low, high = verdicts.january_low, verdicts.january_high
+    mid = (at(low) + at(high)) / 2
+    zero = at(0.0)
+    steps: list[Stroke | Fill | Label] = [
+        _stroke(
+            "now-line",
+            _line(
+                [
+                    (SERIES_X[0], top),
+                    (zero, top),
+                    (zero, top - 0.1),
+                    (zero, top),
+                    (SERIES_X[1], top),
+                ]
+            ),
+            color=MUTED,
+            frames=6,
+        ),
+        Label("0", zero, top - 0.42, names="now-line", color=MUTED, ha="center", size=10),
+        _stroke(
+            "now", _span(at(low), at(high), top + 0.3, tick=0.1), color=ACCENT, width=3.0, frames=6
+        ),
+        Label(
+            _signed(low, 4), at(low), top + 0.72, names="now", color=ACCENT, ha="center", size=11
+        ),
+        Label(
+            _signed(high, 4), at(high), top + 0.72, names="now", color=ACCENT, ha="center", size=11
+        ),
+        Label(
+            f"{unchecked} member-years unchecked",
+            0.3,
+            top + 1.05,
+            names="now",
+            color=MUTED,
+            size=10,
+        ),
+        _stroke(
+            "later-line", _line([(SERIES_X[0], below), (SERIES_X[1], below)]), color=MUTED, frames=6
+        ),
+        _stroke("in-low", _arrow(at(low), top - 0.25, mid - 0.35, below + 0.35), frames=6),
+        _stroke("in-high", _arrow(at(high), top - 0.25, mid + 0.35, below + 0.35), frames=6),
+        Label(
+            "with every price checked",
+            9.6,
+            (top + below) / 2 - 0.1,
+            names="in-high",
+            color=MUTED,
+            ha="right",
+            size=10,
+        ),
+        _dot("one", mid, below, color=ACCENT),
+        Label(
+            "one series, one verdict",
+            mid,
+            below - 0.45,
+            names="one",
+            color=ACCENT,
+            ha="center",
+            size=11,
+        ),
+        Label(
+            "where it lands is not known yet",
+            mid,
+            below - 0.8,
+            names="one",
+            color=MUTED,
+            ha="center",
+            size=10,
+        ),
+    ]
+    return Scene("One series instead of two", "further_one_series", tuple(steps))
+
+
+def _more_januaries(power: JanuaryPower) -> Scene:
+    """Where more Januaries would come from, each span with the X its count of
+    Januaries would give on the run's two spreads, from :meth:`JanuaryPower.detectable`."""
+    at = lambda year: _along(year, SAMPLE_YEARS, SAMPLE_X)  # noqa: E731
+    axis_y, last = 1.0, BOOK_YEAR + power.n - 1
+    ticks = []
+    for year in (1930, 1960, 1990, 2020):
+        ticks += [(at(year), axis_y), (at(year), axis_y - 0.1), (at(year), axis_y)]
+    steps: list[Stroke | Fill | Label] = [
+        _stroke(
+            "axis",
+            _line([(SAMPLE_X[0], axis_y), *ticks, (SAMPLE_X[1], axis_y)]),
+            color=MUTED,
+            frames=8,
+        ),
+        *[
+            Label(
+                str(year), at(year), axis_y - 0.4, names="axis", color=MUTED, ha="center", size=10
+            )
+            for year in (1930, 1960, 1990, 2020)
+        ],
+        _stroke(
+            "sp600",
+            _line(
+                [(at(SP600_FIRST_JANUARY - 0.2), axis_y), (at(SP600_FIRST_JANUARY - 0.2), 2.45)],
+                per_unit=12,
+            ),
+            color=MUTED,
+            dashed=True,
+            frames=4,
+        ),
+        Label(
+            "S&P 600 begins",
+            at(SP600_FIRST_JANUARY - 0.2) + 0.2,
+            axis_y + 0.35,
+            names="sp600",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    rows = (
+        (BOOK_YEAR, 3.45, INK, ""),
+        (SP600_FIRST_JANUARY, 2.7, ACCENT, ""),
+        (CRSP_FIRST_JANUARY, 1.95, ACCENT, "about "),
+    )
+    for first, y, color, about in rows:
+        n = last - first + 1
+        low, high = power.detectable(n)
+        gid = f"span-{first}"
+        steps.append(
+            _stroke(gid, _span(at(first), at(last), y, tick=0.1), color=color, width=3.0, frames=6)
+        )
+        text = f"{about}{n} Januaries: {low:.4f} to {high:.4f}"
+        if first == CRSP_FIRST_JANUARY:
+            steps.append(Label(text, at(first), y + 0.45, names=gid, color=color, size=10))
+        else:
+            steps.append(
+                Label(text, at(first) - 0.25, y, names=gid, color=color, ha="right", size=10)
+            )
+    crsp = f"span-{CRSP_FIRST_JANUARY}"
+    steps += [
+        Label(
+            f"small caps by size before {SP600_FIRST_JANUARY}",
+            at(CRSP_FIRST_JANUARY),
+            1.5,
+            names=crsp,
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            "each pair: the smallest average January gain that many Januaries can detect",
+            0.3,
+            0.2,
+            names=crsp,
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    return Scene("Where more Januaries come from", "further_more_januaries", tuple(steps))
+
+
+def _more_stocks() -> Scene:
+    """Schematic and carrying no figures: the same Januaries' long-short
+    returns on a tenth of about 60 stocks and on a tenth of thousands, the
+    second spread narrower, both over a band for the part every small cap
+    shares, which does not average out."""
+    zero = 2.0
+    steps: list[Stroke | Fill | Label] = []
+    panels = (
+        (0.6, 4.6, "a tenth of about 60 stocks", 1.0),
+        (5.4, 9.4, "a tenth of thousands", NARROWER),
+    )
+    for side, (x0, x1, title, scale) in enumerate(panels):
+        steps.append(
+            _stroke(f"zero-{side}", _line([(x0, zero), (x1, zero)]), color=MUTED, frames=4)
+        )
+        steps += _tinted(f"shared-{side}", x0, zero - SHARED_HALF, x1, zero + SHARED_HALF)
+        xs = np.linspace(x0 + 0.2, x1 - 0.2, len(SCATTER))
+        ys = zero + np.sign(SCATTER) * np.maximum(np.abs(SCATTER) * scale, 0.12)
+        steps.append(Stroke(f"januaries-{side}", xs, ys, frames=6, dots=3.5))
+        steps.append(
+            Label(title, (x0 + x1) / 2, 3.55, names=f"januaries-{side}", ha="center", size=11)
+        )
+    steps += [
+        Label(
+            "what every small cap shares does not average out",
+            0.3,
+            0.55,
+            names="shared-1",
+            color=GOOD,
+            size=10,
+        ),
+        Label(
+            "each dot a January’s long-short return, drawn to no scale",
+            0.3,
+            0.2,
+            names="januaries-1",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    return Scene("More stocks, steadier Januaries", "further_more_stocks", tuple(steps))
+
+
+def _regime_split(power: JanuaryPower, ivv: IvvFigures, verdicts: Verdicts) -> Scene:
+    """The run's Januaries split evenly between two regimes, and the X each
+    half would give against the X of all of them, to scale, with the IVV
+    run's X on all its months and on half of them. Which Januaries fall in
+    which regime is schematic."""
+    at = lambda value: _along(value, REGIME_RANGE, REGIME_X)  # noqa: E731
+    n, half = power.n, power.n // 2
+    line_y = 0.95
+    steps: list[Stroke | Fill | Label] = [
+        Stroke("all", np.linspace(1.2, 5.0, n), np.full(n, 3.35), frames=6, dots=3.5),
+        Label(f"{n} Januaries", 5.3, 3.35, names="all", size=11),
+        Stroke(
+            "rising",
+            np.linspace(1.2, 3.0, half),
+            np.full(half, 2.8),
+            color=GOOD,
+            frames=4,
+            dots=3.5,
+        ),
+        Label(f"{half} in rising markets", 3.3, 2.8, names="rising", color=GOOD, size=11),
+        Stroke(
+            "falling",
+            np.linspace(1.2, 3.0, n - half),
+            np.full(n - half, 2.3),
+            color=LOST,
+            frames=4,
+            dots=3.5,
+        ),
+        Label(f"{n - half} in falling markets", 3.3, 2.3, names="falling", color=LOST, size=11),
+    ]
+    ticks = []
+    for value in (0.0, 0.05, 0.1):
+        ticks += [(at(value), line_y), (at(value), line_y - 0.1), (at(value), line_y)]
+    steps += [
+        _stroke(
+            "line",
+            _line([(REGIME_X[0], line_y), *ticks, (REGIME_X[1], line_y)]),
+            color=MUTED,
+            frames=6,
+        ),
+        *[
+            Label(
+                _signed(value, 2) if value else "0",
+                at(value),
+                line_y - 0.4,
+                names="line",
+                color=MUTED,
+                ha="center",
+                size=10,
+            )
+            for value in (0.0, 0.05, 0.1)
+        ],
+    ]
+    for count, y, color in ((n, line_y + 0.35, INK), (half, line_y + 0.8, LOST)):
+        low, high = power.detectable(count)
+        gid = f"x-{count}"
+        steps.append(
+            _stroke(gid, _span(at(low), at(high), y, tick=0.08), color=color, width=3.0, frames=4)
+        )
+        steps.append(
+            Label(
+                f"{count}: {low:.4f} to {high:.4f}",
+                at(low) - 0.25,
+                y,
+                names=gid,
+                color=color,
+                ha="right",
+                size=10,
+            )
+        )
+    months = np.array([r for _, r in ivv.months])
+    halved = 12 * seasonals.detectable_mean(months.std(ddof=1), len(months) // 2)
+    steps += [
+        Label(
+            "each regime tried is another chance for luck",
+            9.6,
+            3.85,
+            names=f"x-{half}",
+            color=LOST,
+            ha="right",
+            size=10,
+        ),
+        Label(
+            f"Heston and Sadka: {100 * verdicts.detectable:.1f}% a year on {len(months)} months,"
+            f" about {100 * halved:.1f}% on half",
+            0.3,
+            0.2,
+            names=f"x-{half}",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    return Scene("What a regime split costs", "further_regime_split", tuple(steps))
+
+
+def further_work_scenes(
+    verdicts: Verdicts, power: JanuaryPower, ivv: IvvFigures
+) -> tuple[Scene, ...]:
+    """The four under "Further work", in the order the post reads them."""
+    return (
+        _one_series(verdicts),
+        _more_januaries(power),
+        _more_stocks(),
+        _regime_split(power, ivv, verdicts),
+    )
+
+
 def make_equity_seasonals_whiteboards(
     out_dir: Path | None = None,
     verdicts: Verdicts | None = None,
@@ -3895,7 +4280,7 @@ def make_equity_seasonals_whiteboards(
     then the seven rules', then the split's, then the five-year check's three,
     then the three survivorship sketches, then the January question's three,
     then section 2's two, then section 3's ten, then the two under "What 18
-    Januaries can detect".
+    Januaries can detect", then the four under "Further work".
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
@@ -3904,7 +4289,7 @@ def make_equity_seasonals_whiteboards(
     figures are read from ``project``, the committed Open Source Asset
     Pricing release, when it is not handed in. Every GIF that needs no
     archive is written before that read, so a refused or missing archive
-    leaves those twenty-three redrawn and raises from the read.
+    leaves those twenty-four redrawn and raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     spans = spans if spans is not None else Spans.read()
@@ -3920,6 +4305,7 @@ def make_equity_seasonals_whiteboards(
     broad = [_write(_broad_before_after(Broad.from_run(project)), folder)]
     january = [_write(_january_registered(), folder), _write(_january_fill(), folder)]
     section_3 = [_write(_ivv_carry(), folder)]
+    more_stocks = _write(_more_stocks(), folder)
     needs_run = verdicts is None or ranges is None or power is None
     run = seasonals.run_point_in_time() if needs_run else None
     monthly = seasonals.run_monthly_point_in_time() if verdicts is None or ivv is None else None
@@ -3949,6 +4335,12 @@ def make_equity_seasonals_whiteboards(
         + section_3
         + broad
         + [_write(scene, folder) for scene in january_power_scenes(power)]
+        + [
+            _write(_one_series(verdicts), folder),
+            _write(_more_januaries(power), folder),
+            more_stocks,
+            _write(_regime_split(power, ivv, verdicts), folder),
+        ]
     )
 
 
@@ -3967,6 +4359,9 @@ ARCHIVE_SLUGS = (
     "broad_running",
     "january_catch",
     "january_years",
+    "further_one_series",
+    "further_more_januaries",
+    "further_regime_split",
 )
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -3985,7 +4380,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other twenty-three GIFs are already written. The twelve left stale
+        # The other twenty-four GIFs are already written. The fifteen left stale
         # are named, and the exit is non-zero, so a redraw on a machine
         # without the archive does not read as a full one.
         stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)

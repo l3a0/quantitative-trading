@@ -2839,13 +2839,13 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one figure,
 which `uv run python -m chan.equity_seasonals_figures` redraws. So do the
 whiteboard sketches that print figures, which `uv run python -m
-chan.equity_seasonals_whiteboard` redraws, twelve of them on a machine with the
-archive. Those are the opening's years and verdicts sketches, four of the seven
-rule sketches, the split sketch, the five-year check's three, the January
-ranges sketch, the two under "What 18 Januaries can detect", and eight of the
-ten sketches on whether Heston and Sadka's effect still worked after 2008, three of
+chan.equity_seasonals_whiteboard` redraws, fifteen of them on a machine with
+the archive. Those are the opening's years and verdicts sketches, four of the
+seven rule sketches, the split sketch, the five-year check's three, the January
+ranges sketch, the two under "What 18 Januaries can detect", eight of the ten
+sketches on whether Heston and Sadka's effect still worked after 2008, three of
 them on where its 4.2 percent comes from and two on what a broader series
-shows. The third on the broader series, "Before 2002 and
+shows, and three of the four under "Further work". The third on the broader series, "Before 2002 and
 after", draws only Entry 52's figures, as the sketches on whether the effect
 existed before 2002 do.
 `TestTheRuleSketchesFigures` in
@@ -2861,6 +2861,10 @@ missing member left out. `PINNED_RANGES` there moves with a re-pin of either.
 The two under "What 18 Januaries can detect" draw the registered January run's
 count and its two versions' spreads, from which row 38's X follows, so
 `PINNED_POWER` there moves with a re-pin of it.
+Three of the four under "Further work" draw rows 35 and 38's figures through
+`PINNED` and `PINNED_POWER`, row 41's months through `PINNED_IVV`, and the 741
+member-years the January run could not check, so each moves with a re-pin of
+those.
 The checked, leavers and running-sum sketches draw row 41's months and
 coverage and row 49's departures from the IVV run, the 4.2 percent's three
 draw the critical value and δ from row 41's month count, and the broader

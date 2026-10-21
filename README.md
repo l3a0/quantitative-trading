@@ -2609,7 +2609,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's thirty-five GIFs are checked the same way by
+equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3205,7 +3205,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries thirty-five looping whiteboard sketches, drawn by
+The post also carries thirty-nine looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3320,11 +3320,32 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     naming the dots and the bracket.
 35. `equity_seasonals_january_years.gif`, each version's X against the count of
     Januaries, marked at 18 and at 72, which take 72 years.
+36. `equity_seasonals_further_one_series.gif`, under "Every member's price"
+    in "Further work", the January bracket the two versions leave beside the
+    741 member-years free data could not check, and the one series checked
+    prices would give, whose place is not known yet.
+37. `equity_seasonals_further_more_januaries.gif`, under "More Januaries",
+    three spans on a timeline, the run's 18 Januaries, the S&P 600's 32 from
+    1995 and about 100 on size-defined small caps from 1927, each with the X
+    its count gives on the run's two spreads.
+38. `equity_seasonals_further_more_stocks.gif`, under "More stocks each
+    January", the same Januaries on a tenth of about 60 stocks and on a tenth
+    of thousands, the second spread narrower, over a band for what every small
+    cap shares.
+39. `equity_seasonals_further_regime_split.gif`, under "By market regime",
+    the 18 Januaries split 9 and 9 between rising and falling markets, each
+    half labelled, and the X of 9 against the X of 18 to scale.
 
 Like the strategy sketches, the three survivorship sketches, the January registered and fill
-sketches and the carry-forward sketch are schematic and carry no figures. The
+sketches, the carry-forward sketch and the cross-section sketch under "Further
+work" are schematic and carry no figures. Which Januaries the regime sketch puts
+in each regime is schematic too. The
 sources sketch carries no figure a run computes, only each source's cost.
-Twenty sketches build more slowly than the rest and hold their finished
+Every pale tint that carries meaning has a green edge, because the tint alone
+stands 1.29 to 1 against the white board, under WCAG 2.1's 3 to 1 for a
+graphical object.
+
+Twenty-four sketches build more slowly than the rest and hold their finished
 drawings for twelve seconds, because each carries more than the usual pace lets
 a reader take in.
 
@@ -3339,18 +3360,20 @@ a reader take in.
 8. The three sketches of the 4.2 percent's derivation, 28 to 30.
 9. The three broader-series sketches, 31 to 33.
 10. The two sketches under "What 18 Januaries can detect", 34 and 35.
+11. The four under "Further work", 36 to 39.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Twelve sketches read the owner's archive: the verdicts sketch, the ranges
+Fifteen sketches read the owner's archive: the verdicts sketch, the ranges
 sketch, section 3's checked, leavers and running-sum sketches, the three of
 the 4.2 percent's derivation, which read the run's month count, the broader
 series' scatter and running sums, which read the run's months, and the two
-under "What 18 Januaries can detect", which read the January run's spread. On
-a machine without it the command redraws the other twenty-three and exits
-non-zero, naming the twelve it left.
+under "What 18 Januaries can detect", which read the January run's spread,
+and three of the four under "Further work", which read the registered runs'
+figures. On a machine without it the command redraws the other twenty-four
+and exits non-zero, naming the fifteen it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points

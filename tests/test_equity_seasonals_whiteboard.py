@@ -1,4 +1,4 @@
-"""The pins for the thirty-five whiteboard GIFs in the equity-seasonals post.
+"""The pins for the thirty-nine whiteboard GIFs in the equity-seasonals post.
 
 Four sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
@@ -7,7 +7,7 @@ lesson on survivorship bias, four its question on whether the January effect
 still worked after 2008, two its question on whether Heston and Sadka's effect
 existed before 2002, and ten its question on whether Heston and Sadka's
 effect survived it, three of them on where its 4.2 percent comes from and
-three on what a broader series shows. The
+three on what a broader series shows, and four its further work. The
 opening's timeline places each source's years to scale, from Chan's committed
 files and the registered runs' constants, and its verdicts sketch draws the
 two registered runs' figures to scale. Those figures are pinned here as
@@ -63,9 +63,13 @@ gives, beside Chan's three Januaries from :class:`FiveYearFigures`. Section
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
-:data:`PINNED_IVV`'s month count. Twenty sketches build slowly, and their
+:data:`PINNED_IVV`'s month count. Twenty-four sketches build slowly, and their
 pace is pinned too. The broader series' three read the committed Open Source
 Asset Pricing release, and the last two also :data:`PINNED_IVV`'s months.
+Three of the four further-work sketches draw :data:`PINNED`,
+:data:`PINNED_POWER` and :data:`PINNED_IVV`, and the count of unchecked
+member-years that ``tests/test_equity_seasonals.py`` holds the run gives. The
+cross-section sketch is schematic.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -117,6 +121,7 @@ from chan.equity_seasonals_whiteboard import (
     _year,
     delta_scenes,
     five_year_scenes,
+    further_work_scenes,
     gif_name,
     ivv_scenes,
     january_power_scenes,
@@ -198,6 +203,12 @@ BROAD_GIFS = [
     "equity_seasonals_broad_running.gif",
 ]
 POWER_GIFS = ["equity_seasonals_january_catch.gif", "equity_seasonals_january_years.gif"]
+FURTHER_GIFS = [
+    "equity_seasonals_further_one_series.gif",
+    "equity_seasonals_further_more_januaries.gif",
+    "equity_seasonals_further_more_stocks.gif",
+    "equity_seasonals_further_regime_split.gif",
+]
 GIFS = (
     OPENING_GIFS
     + STRATEGY_GIFS
@@ -211,6 +222,7 @@ GIFS = (
     + DELTA_GIFS
     + BROAD_GIFS
     + POWER_GIFS
+    + FURTHER_GIFS
 )
 #: The GIFs a redraw cannot write without the owner's archive.
 ARCHIVE_GIFS = {
@@ -223,6 +235,9 @@ ARCHIVE_GIFS = {
     "equity_seasonals_broad_together.gif",
     "equity_seasonals_broad_running.gif",
     *POWER_GIFS,
+    "equity_seasonals_further_one_series.gif",
+    "equity_seasonals_further_more_januaries.gif",
+    "equity_seasonals_further_regime_split.gif",
 }
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
@@ -647,6 +662,11 @@ def power():
 
 
 @pytest.fixture(scope="module")
+def further():
+    return further_work_scenes(PINNED, PINNED_POWER, PINNED_IVV)
+
+
+@pytest.fixture(scope="module")
 def osap():
     return osap_scenes(PINNED_OSAP)
 
@@ -677,8 +697,10 @@ def broad(project):
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, delta, broad, power):
-    """All thirty-five scenes in the order their GIFs are written."""
+def every(
+    opening, drawn, rules, split, five, survivors, january, osap, ivv, delta, broad, power, further
+):
+    """All thirty-nine scenes in the order their GIFs are written."""
     return (
         *opening,
         *drawn,
@@ -692,6 +714,7 @@ def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, del
         *delta,
         *broad,
         *power,
+        *further,
     )
 
 
@@ -1229,13 +1252,16 @@ class TestTheCommand:
             "equity_seasonals_ivv_running_sum.gif, equity_seasonals_delta_scatter.gif, "
             "equity_seasonals_delta_shortcut.gif, equity_seasonals_delta_bracket.gif, "
             "equity_seasonals_broad_together.gif, equity_seasonals_broad_running.gif, "
-            "equity_seasonals_january_catch.gif, equity_seasonals_january_years.gif "
+            "equity_seasonals_january_catch.gif, equity_seasonals_january_years.gif, "
+            "equity_seasonals_further_one_series.gif, "
+            "equity_seasonals_further_more_januaries.gif, "
+            "equity_seasonals_further_regime_split.gif "
             f"were not redrawn: {refusal}"
         )
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_twenty_three(
+    def test_without_the_archive_it_still_writes_the_other_twenty_four(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -2064,6 +2090,10 @@ class TestTheFiveYearSketches:
                     "broad_running",
                     "january_catch",
                     "january_years",
+                    "further_one_series",
+                    "further_more_januaries",
+                    "further_more_stocks",
+                    "further_regime_split",
                 )
             )
             assert {f.ms for f in labels} <= {
@@ -2628,6 +2658,189 @@ class TestTheJanuaryPowerSketches:
         )
         assert "Two red dots sit inside the tint below zero" in catch_alt
         assert "a green dot sits past the bracket" in catch_alt
+
+
+#: Made-up figures for the further-work sketches, so a count, a mark or a word
+#: that should follow the runs is seen to.
+OTHER_VERDICTS = dataclasses.replace(PINNED, january_low=-0.05, january_high=0.12)
+
+
+def _x(stroke) -> tuple[float, float]:
+    return float(stroke.x.min()), float(stroke.x.max())
+
+
+class TestTheFurtherWorkSketches:
+    """The four under "Further work": one series instead of two, where more
+    Januaries come from, more stocks each January, and a regime split."""
+
+    def test_they_are_four_in_the_order_the_post_reads_them(self, further) -> None:
+        assert [gif_name(scene) for scene in further] == FURTHER_GIFS
+
+    def test_each_says_what_it_should(self, further) -> None:
+        one, more, stocks, regime = further
+        assert one.labels == [
+            "0",
+            "−0.1047",
+            "0.0879",
+            "741 member-years unchecked",
+            "with every price checked",
+            "one series, one verdict",
+            "where it lands is not known yet",
+        ]
+        assert more.labels == [
+            "1930",
+            "1960",
+            "1990",
+            "2020",
+            "S&P 600 begins",
+            "18 Januaries: 0.0547 to 0.0615",
+            "32 Januaries: 0.0403 to 0.0453",
+            "about 100 Januaries: 0.0224 to 0.0252",
+            "small caps by size before 1995",
+            "each pair: the smallest average January gain that many Januaries can detect",
+        ]
+        assert stocks.labels == [
+            "a tenth of about 60 stocks",
+            "a tenth of thousands",
+            "what every small cap shares does not average out",
+            "each dot a January’s long-short return, drawn to no scale",
+        ]
+        assert regime.labels == [
+            "18 Januaries",
+            "9 in rising markets",
+            "9 in falling markets",
+            "0",
+            "0.05",
+            "0.10",
+            "18: 0.0547 to 0.0615",
+            "9: 0.0815 to 0.0916",
+            "each regime tried is another chance for luck",
+            "Heston and Sadka: 4.2% a year on 213 months, about 6.0% on half",
+        ]
+
+    def test_the_bracket_stands_at_the_two_versions_and_the_one_series_between(
+        self, further
+    ) -> None:
+        one = further[0]
+        at = lambda v: sketches._along(v, sketches.SERIES_RANGE, sketches.SERIES_X)  # noqa: E731
+        bracket = _stroke(one, "now")
+        assert bracket.color == ACCENT
+        assert _x(bracket) == pytest.approx((at(PINNED.january_low), at(PINNED.january_high)))
+        dot = _stroke(one, "one")
+        assert (dot.color, dot.x[0]) == (
+            ACCENT,
+            pytest.approx((at(PINNED.january_low) + at(PINNED.january_high)) / 2),
+        )
+        assert f"{sketches.UNCHECKED_MEMBER_YEARS} member-years unchecked" in one.labels
+
+    def test_each_span_runs_from_its_first_january_with_its_x(self, further) -> None:
+        more = further[1]
+        at = lambda y: sketches._along(y, sketches.SAMPLE_YEARS, sketches.SAMPLE_X)  # noqa: E731
+        last = BOOK_YEAR + PINNED_POWER.n - 1
+        assert last == 2026
+        for first, ink in (
+            (BOOK_YEAR, whiteboard.INK),
+            (sketches.SP600_FIRST_JANUARY, ACCENT),
+            (sketches.CRSP_FIRST_JANUARY, ACCENT),
+        ):
+            span = _stroke(more, f"span-{first}")
+            assert span.color == ink, first
+            assert _x(span) == pytest.approx((at(first), at(last))), first
+            low, high = PINNED_POWER.detectable(last - first + 1)
+            assert any(
+                label.endswith(f"{last - first + 1} Januaries: {low:.4f} to {high:.4f}")
+                for label in more.labels
+            ), first
+        assert _stroke(more, "sp600").dashed
+
+    def test_the_wider_universe_scatters_less_over_an_edged_band(self, further) -> None:
+        """Schematic: the right panel's spread is the left's narrowed, and the
+        band both share keeps its height."""
+        stocks = further[2]
+        wide, narrow = _stroke(stocks, "januaries-0"), _stroke(stocks, "januaries-1")
+        assert np.abs(narrow.y - 2.0).max() < np.abs(wide.y - 2.0).max()
+        bands = [_fill(stocks, f"shared-{side}") for side in (0, 1)]
+        assert {(b.y0, b.y1) for b in bands} == {
+            (2.0 - sketches.SHARED_HALF, 2.0 + sketches.SHARED_HALF)
+        }
+
+    def test_the_split_halves_the_januaries_and_draws_each_half_x_to_scale(self, further) -> None:
+        regime = further[3]
+        at = lambda v: sketches._along(v, sketches.REGIME_RANGE, sketches.REGIME_X)  # noqa: E731
+        rising, falling = _stroke(regime, "rising"), _stroke(regime, "falling")
+        assert (len(rising.x), rising.color) == (9, GOOD)
+        assert (len(falling.x), falling.color) == (9, LOST)
+        # Colour is not the only cue: each half carries its own label.
+        assert _labelled(regime, "9 in rising markets").names == "rising"
+        assert _labelled(regime, "9 in falling markets").names == "falling"
+        for count, ink in ((18, whiteboard.INK), (9, LOST)):
+            low, high = PINNED_POWER.detectable(count)
+            bracket = _stroke(regime, f"x-{count}")
+            assert bracket.color == ink
+            assert _x(bracket) == pytest.approx((at(low), at(high)))
+
+    def test_other_figures_move_the_counts_marks_and_words(self) -> None:
+        one, more, _, regime = further_work_scenes(OTHER_VERDICTS, OTHER_POWER, PINNED_IVV)
+        at = lambda v: sketches._along(v, sketches.SERIES_RANGE, sketches.SERIES_X)  # noqa: E731
+        assert _x(_stroke(one, "now")) == pytest.approx((at(-0.05), at(0.12)))
+        assert one.labels[1:3] == ["−0.0500", "0.1200"]
+        # Twelve Januaries end in 2020, so 1995 gives 26 and 1927 about 94.
+        for count, about in ((12, ""), (26, ""), (94, "about ")):
+            low, high = OTHER_POWER.detectable(count)
+            assert f"{about}{count} Januaries: {low:.4f} to {high:.4f}" in more.labels
+        assert {"12 Januaries", "6 in rising markets", "6 in falling markets"} <= set(regime.labels)
+
+    def test_each_follows_the_part_it_draws(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        start = text.index("## Further work")
+        paragraphs = [p for p in text[start : text.index("## References")].split("\n\n") if p]
+        for opening, name in zip(
+            (
+                "At the year-ends from 2008 to 2025, 741 member-years",
+                "Example 7.6 trades once a year, so more Januaries",
+                "Each tenth of the S&P 600 holds about 60 stocks.",
+                "1. **A smaller sample in each regime.**",
+            ),
+            FURTHER_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            assert re.fullmatch(
+                rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", paragraphs[index + 1]
+            ), name
+
+    def test_each_alt_text_quotes_its_labels_in_drawing_order(self, further) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for scene in further:
+            alt = _alt(text, scene)
+            places = [alt.find(f"“{label}”") for label in scene.labels]
+            assert -1 not in places, scene.slug
+            assert places == sorted(places), scene.slug
+            assert "drawn slowly" in alt and "holds for twelve seconds" in alt, scene.slug
+        stocks_alt, regime_alt = _alt(text, further[2]), _alt(text, further[3])
+        assert "schematic and to no scale" in stocks_alt
+        assert "nine green dots" in regime_alt and "nine red dots" in regime_alt
+
+
+def test_every_pale_tint_has_a_green_edge(every) -> None:
+    """The tint alone stands 1.29 to 1 against the white board, under WCAG
+    2.1's 3 to 1 for a graphical object, so every tinted region gets a green
+    edge, GOOD at 4.86 to 1, that runs along its top and bottom and spans it."""
+    for scene in every:
+        for fill in scene.fills:
+            if fill.color != whiteboard.TINT:
+                continue
+            edges = [
+                s
+                for s in scene.strokes
+                if s.color == GOOD
+                and s.width == sketches.TINT_EDGE
+                and s.x.min() <= fill.x0 + 1e-9
+                and s.x.max() >= fill.x1 - 1e-9
+                and s.y.min() == pytest.approx(fill.y0)
+                and s.y.max() == pytest.approx(fill.y1)
+            ]
+            assert edges, (scene.slug, fill.gid)
 
 
 def _fill(scene, gid):
