@@ -134,7 +134,7 @@ where they were first built. The other forty-five were built here.
    series 0.0879 with a p of 0.001. Leaving out every member with no checked
    price averages −0.0083, between the two, described rather than tested. The two series
    disagree, so the free sources cannot decide whether the January effect
-   survived the book, and
+   still worked after 2008, and
    [issue 407](https://github.com/l3a0/quantitative-trading/issues/407) asks
    whether to buy prices for the members that threaten a tenth. Example 7.7
    then ran under the revised MATLAB's rules on the members IVV held each
@@ -3267,7 +3267,7 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     explanation of a registered result, the claim, test and verdict's words
     written down before any return is computed.
 20. `equity_seasonals_january_fill.gif`, under "Whether the January effect
-    survived the book", how the low and high versions fill a member with no
+    still worked after 2008", how the low and high versions fill a member with no
     checked price.
 21. `equity_seasonals_january_ranges.gif`, each of the registered run's
     eighteen Januaries as a bar from its low version to its high, with a dot
@@ -3281,7 +3281,7 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     their sample, with one standard error each way, and 1.31 percent before
     Chan's 2002, against Chan's 13 percent a year as 1.08 percent a month.
 24. `equity_seasonals_ivv_carry.gif`, under "Whether Heston and Sadka's effect
-    survived the book", a company that leaves between two of IVV's filings,
+    still worked after 2008", a company that leaves between two of IVV's filings,
     still on the list until the next one, and one that joins, not yet on it
     until then.
 25. `equity_seasonals_ivv_checked.gif`, the 98,321 of 107,115 member-months

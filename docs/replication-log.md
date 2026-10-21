@@ -2778,7 +2778,7 @@ Seven things.
    0.132. The data are survivors, tilted toward the effect, so this reading
    goes one way only.
 6. **On IJR's members as they stood at each year-end, the free sources cannot
-   decide whether the January effect survived the book.** This is the log's
+   decide whether the January effect still worked after 2008.** This is the log's
    first registered result. Rows 35 to 40 bound every January, because every
    year-end has members with no checked price that could change a tenth. The
    low series averages −0.1047 a January with a one-sided p of 1.000, and the
@@ -2797,7 +2797,7 @@ Seven things.
 
 Four things.
 
-**Whether Example 7.6's January effect survived the book.** Rows 35 to 40
+**Whether Example 7.6's January effect still worked after 2008.** Rows 35 to 40
 were built to say, and the bound is too wide for either answer. Members with
 no checked price could change a tenth at every year-end, and the free sources
 hold no price for them. Rows 30 to 34 bound it in one direction only, on
@@ -2843,7 +2843,7 @@ chan.equity_seasonals_whiteboard` redraws, twelve of them on a machine with the
 archive. Those are the opening's years and verdicts sketches, four of the seven
 rule sketches, the split sketch, the five-year check's three, the January
 ranges sketch, the two under "What 18 Januaries can detect", and eight of the
-ten sketches on whether Heston and Sadka's effect survived the book, three of
+ten sketches on whether Heston and Sadka's effect still worked after 2008, three of
 them on where its 4.2 percent comes from and two on what a broader series
 shows. The third on the broader series, "Before 2002 and
 after", draws only Entry 52's figures, as the sketches on whether the effect

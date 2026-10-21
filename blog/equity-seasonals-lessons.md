@@ -1,12 +1,12 @@
 # Two equity seasonals show no edge a trader can count on
 
-*One strategy shows no detectable return, and free data cannot judge the other.*
+*One strategy shows no return detectable above about 4.2 percent a year, and free data cannot judge the other.*
 
 ## Why test a strategy published as dead
 
 A claim that a strategy died is one a reader acts on by leaving it alone. If the effect still works, that reader walks away from it. So the death is worth checking.
 
-Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Its average annual return before 2002 was “more than 13 percent” before costs, and the effect “has disappeared since then” (p. 179).
+Ernest Chan’s *Quantitative Trading* works through two seasonal strategies in stocks and reports that seasonality of this kind has faded. The first, Example 7.6, is the January effect, which he reports as failing in January 2006 and January 2007 and then working in January 2008 (Chan, 2021, p. 175). The second, Example 7.7, is a monthly rotation from a 2007 working paper by Heston and Sadka, which he publishes as dead. Before 2002 it returned “more than 13 percent” a year, before costs, and the effect “has disappeared since then” (p. 179).
 
 Running Chan’s code on his own data files reproduces every figure it printed. That shows the code and the data agree with the book. It cannot show whether either effect died. Both files hold only the companies still in their index on the day Chan saved them. A company that was acquired, shrank out of the index or failed before that day is missing, so the strategies never trade it. A backtest on such a file measures only the survivors, and the error this causes is called survivorship bias. Lesson 3 explains it and links to a post that measures how large it can be.
 
@@ -206,7 +206,7 @@ Skipping it in both gives a Sharpe ratio of −0.1049, against the printed −0.
 
 #### Rule 5: each stock’s own month-end and which stocks it keeps, two choices in the revised Python
 
-The revised Python reads each stock’s own last priced day in the month, and the revised MATLAB reads one shared month-end row for every stock. They also keep a stock in the ranking differently. The Python keeps one that has a return, and the MATLAB one that has a close. Run with one shared month-end, the Python gives an annual return of −0.012917. The MATLAB gives the same figure when it keeps a stock on its return rather than its close. So these two choices are what separate the two scripts.
+The revised Python reads each stock’s own last priced day in the month, and the revised MATLAB reads one shared month-end row for every stock. They also keep a stock in the ranking differently. The Python keeps one that has a return, and the MATLAB one that has a close. They differ on a stock with a close at this month-end but none a month earlier, which has a close and no return. Run with one shared month-end, the Python gives an annual return of −0.012917. The MATLAB gives the same figure when it keeps a stock on its return rather than its close. So these two choices are what separate the two scripts.
 
 ![An animated whiteboard sketch titled “Where a month ends”, drawn stroke by stroke. A pale green column labelled “shared month-end row” covers the last of five trading days. Stock A has a dot on all five days. Stock B has dots on the first three, a green ring round the third, and a red cross labelled “missing” in the shared column. The words “B’s own last priced day, which the revised Python reads” and “the month’s last five trading days” sit below.](../docs/figures/equity_seasonals_rule_own_month_end.gif)
 
@@ -235,7 +235,7 @@ s_{n-1} &= \sqrt{\frac{1}{n-1} \sum_{t=1}^{n} (r_t - \bar{r})^2}
 \end{aligned}
 ```
 
-The revised Python divides by the number of months, `n`, and dividing by `n − 1` gives a Sharpe ratio of −0.121508. The revised R divides by `n − 1`, and dividing by `n` gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by `n` and prints the −0.1243. The one from this book’s first edition divides by `n − 1` and gives −0.1236.
+The revised Python divides by the number of months, `n`, and dividing by `n − 1` gives a Sharpe ratio of −0.121508. The revised R divides by `n − 1`, and dividing by `n` gives −0.1101755. The revised MATLAB calls a helper, `smartstd`, whose body the book does not print, and Chan’s two books ship two versions of it. The one from his second book, *Algorithmic Trading*, divides by `n` and gives the printed −0.1243. The one from this book’s first edition divides by `n − 1` and gives −0.1236.
 
 #### Rule 8: the month-end lookup, a bug repaired in the revised MATLAB
 
@@ -331,19 +331,19 @@ Both strategies trade the tenth at each end of a ranking, so a company missing f
 
 Three open questions:
 
-1. Whether the January effect survived the book.
+1. Whether the January effect still worked after 2008.
 2. Whether Heston and Sadka’s effect existed before 2002.
-3. Whether Heston and Sadka’s effect survived the book.
+3. Whether Heston and Sadka’s effect still worked after 2008.
 
-To survive the book means to keep working after the book’s first edition, which came out in November 2008 with a 2009 date. The two later runs test the years from January 2009.
+The book’s first edition came out in November 2008 with a 2009 date, so the two later runs test the years from January 2009.
 
-### Whether the January effect survived the book
+### Whether the January effect still worked after 2008
 
 #### How the January run was built
 
 The first later run, the January run below, tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
 
-Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict, so the run is registered rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years after the book. The 18 Januaries from 2009 to 2026 are a sample of those years. The test starts from H₀, that the strategy earns nothing in January, and asks whether the data favour H₁, that μ is above zero:
+Before any return was computed, this repository wrote down the claim, the test and the wording of every possible verdict, so the run is registered rather than exploratory. The claim is about μ, the true average January return of Example 7.6 before costs in the years from 2009 on. The 18 Januaries from 2009 to 2026 are a sample of those years. The test starts from H₀, that the strategy earns nothing in January, and asks whether the data favour H₁, that μ is above zero:
 
 ```math
 H_0: \mu = 0 \qquad \text{against} \qquad H_1: \mu > 0
@@ -380,16 +380,16 @@ Each version goes through the same test. The low series averages −0.1047 a Jan
 The wording written before the run covers three outcomes.
 
 1. **Both versions reject H₀.** The verdict is a January effect above zero.
-2. **Neither rejects.** The verdict is no January effect detectable above some size X, the smallest average the test would catch 80 percent of the time.
+2. **Neither rejects.** The verdict is no January effect detectable above some size X, the smallest average the test would catch four times in five.
 3. **One rejects and the other does not.** The verdict is that the free sources cannot decide it.
 
-The two versions disagree, so the verdict is the third. Free data cannot decide whether the January effect survived the book. Prices for the members that could have fallen in a traded tenth are what could decide it.
+The two versions disagree, so the verdict is the third. Free data cannot decide whether the January effect still worked after 2008. Prices for the members that could have fallen in a traded tenth are what could decide it.
 
 A third series leaves the unchecked members out and takes each tenth of the checked members alone. It averages −0.0083 a January, near zero and between the two. That figure carries the survivorship bias described above, and no rule for it was written before the run, so it is exploratory rather than registered.
 
 #### What 18 Januaries can detect
 
-A second limit would remain even with every price checked. Example 7.6 trades once a year, so its test has only 18 numbers to work with. On the two versions’ spreads, the smallest average January the test would catch four times in five is 0.0547 for the low version and 0.0615 for the high one, a gain of about 5.5 to 6.2 percent each January. A true effect smaller than that could pass unseen. Two of Chan’s own three Januaries, −0.0244 and −0.0068, are smaller than that in size, and so is their mean, 0.0190. Only 0.0881 is larger. The section on where Heston and Sadka’s 4.2 percent comes from, further down, works the same calculation through step by step.
+A second limit would remain even with every price checked. Example 7.6 trades once a year, so its test has only 18 numbers to work with. Given how far each version’s Januaries swing, the smallest average January the test would catch four times in five is 0.0547 for the low version and 0.0615 for the high one, a gain of about 5.5 to 6.2 percent each January. A true effect smaller than that could pass unseen. Two of Chan’s own three Januaries, −0.0244 and −0.0068, are smaller than that in size, and so is their mean, 0.0190. Only 0.0881 is larger. The section on where Heston and Sadka’s 4.2 percent comes from, further down, works the same calculation through step by step.
 
 ![An animated whiteboard sketch titled “What eighteen Januaries can catch”, drawn slowly stroke by stroke. A grey number line runs from below −0.04 to above 0.08, with ticks labelled “−0.04”, “0”, “0.04” and “0.08”. A pale green tint runs from about −0.055 to about 0.055, labelled “could pass unseen”. Above its right end a brown bracket is labelled “0.0547 to 0.0615” and “caught four times in five”. Two red dots sit inside the tint below zero, labelled “2006: −0.0244” and “2007: −0.0068”, and a green dot sits past the bracket, labelled “2008: +0.0881”. A black mark inside the tint, at the three’s average, is labelled “their mean: +0.0190”. A two-line key, “dots: Chan’s three Januaries, one trade each, after costs” and “bracket: what the registered run’s 18 Januaries catch, before costs”, closes the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_catch.gif)
 
@@ -405,17 +405,17 @@ Chan’s file holds 13 months before 2002, all on survivors. Testing the effect 
 2. **Norgate Data’s Diamond tier**, at $787.50 a year in October 2026. It carries US stocks back to 1950, delisted ones included, with past index membership. Whether its early decades cover as many stocks as CRSP’s is unchecked.
 3. **[The Open Source Asset Pricing project](https://www.openassetpricing.com/)**, free. It rebuilds Heston and Sadka’s signal from CRSP and publishes the monthly returns of portfolios sorted on it. Those are its portfolios rather than Chan’s rule, so they test the effect rather than reproduce Example 7.7.
 
-The two paid sources’ licences bar republishing their data. Every result here is computed from data committed beside it, so that anyone can recompute it.
+Every result in this post is computed from data published with the code, so anyone can recompute it. The two paid sources’ licences bar that.
 
 ![An animated whiteboard sketch titled “Three ways to get the data”, drawn slowly stroke by stroke as a grid. Its columns are “CRSP”, “Norgate Diamond” and “Open Source Asset Pricing”, and its rows ask whether each “keeps the companies that left”, “reaches back to 1965”, “can be committed here” and “runs Chan’s own rule”. Green ticks fill the first two rows for all three. On “can be committed here” CRSP and Norgate Diamond get red crosses and Open Source Asset Pricing a tick, and on “runs Chan’s own rule” the first two get ticks and Open Source Asset Pricing a cross. Below, the costs read “institutions only”, “$787.50 a year” and “free”. The words “only Open Source Asset Pricing can be committed, and it cannot run Chan’s rule” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_sources.gif)
 
 #### What the free source found
 
-This repository has since read the free source. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on data that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, where they printed 1.15 percent. Its t-statistic of 8.63 puts that average more than eight standard errors above zero. From 1965 to 2001, before Chan’s 2002, it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on data without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, a gap small enough to arise by chance, so the comparison cannot tell the two figures apart. The portfolio is the project’s own construction rather than Chan’s rule, and both comparisons were run after a first look at these numbers, so they are exploratory.
+This repository has since read the free source. The Open Source Asset Pricing project’s portfolio buys the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and shorts the tenth that did worst, re-formed each month, on data that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, where they printed 1.15 percent. Its t-statistic of 8.63 puts that average more than eight standard errors above zero. From 1965 to 2001, before Chan’s 2002, it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on data without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, a gap small enough to arise by chance, so the comparison cannot tell the two figures apart. The portfolio is the project’s own construction rather than Chan’s rule, and both comparisons were run after a first look at these numbers, so they are exploratory.
 
 ![An animated whiteboard sketch titled “Before 2002, without survivors”, drawn slowly stroke by stroke, with three bars in percent a month to one scale. The words “Open Source Asset Pricing:” head the two lower bars. Above them, a black bar for “Heston and Sadka printed” reaches “1.15%”. Below, a brown bar for “1965 to 2002, their sample” reaches “1.36%”, with a bracket below it marking “one standard error each way”, which stops just short of 1.15. A second brown bar, “1965 to 2001, before Chan’s 2002”, reaches “1.31%”, past a green dashed mark for “Chan’s “more than 13%” a year, 1.08% a month”. The words “a month, before costs, NYSE and AMEX stocks with the ones that left” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_before.gif)
 
-### Whether Heston and Sadka’s effect survived the book
+### Whether Heston and Sadka’s effect still worked after 2008
 
 #### How the IVV run was built
 
@@ -437,7 +437,7 @@ Dropping the rest is harmless only if leaving the index has little to do with wh
 
 #### What the IVV run found
 
-The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would give a t-statistic at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months.
+The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would give a t-statistic at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months, so the choice between the two scripts does not move this result.
 
 ![An animated whiteboard sketch titled “213 months add up to nothing”, drawn stroke by stroke. A grey zero line runs from 2009 to 2026. A green dashed line, labelled “13% a year, the book’s figure”, climbs steeply above it, and a brown dashed line labelled “4.2% a year” climbs more gently. A black line labelled “the run’s 213 months, added up” runs just below zero nearly the whole way, lowest in 2021, and ends just below it. The words “a mean of −0.0001 a month: flat, under the 4.2% a year its test could detect” close the sketch.](../docs/figures/equity_seasonals_ivv_running_sum.gif)
 
@@ -445,19 +445,19 @@ The green line draws the book’s 13 percent as printed. Read as Heston and Sadk
 
 #### What the IVV verdict says
 
-The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”. The 4.2 percent is the smallest annual return the test detects 80 percent of the time, so a smaller true return could pass unseen, and the verdict does not say the effect died. It also leaves out costs, which can only lower the return, and the last return a failing company takes as it leaves the index, which free data does not carry.
+The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”. The 4.2 percent is the smallest annual return the test detects four times in five, so a smaller true return could pass unseen, and the verdict does not say the effect died. It also leaves out costs, which can only lower the return, and the last return a failing company takes as it leaves the index, which free data does not carry.
 
 ##### Where the 4.2 percent comes from
 
 A reader who wants only the verdict, stated above, can skip this arithmetic and go to the next section, *What a broader series shows*.
 
-The 4.2 percent follows from the noise in the 213 months and the two numbers fixed before the run, the 5 percent bar and the 80 percent chance. The 80 percent is the convention Jacob Cohen proposed for a test’s power, the chance it catches a true effect of a given size. Paired with the 5 percent bar, it lets the test miss a real effect a fifth of the time but raise a false alarm only a twentieth of the time, so a false alarm counts as four times as costly as a miss. The months have a standard deviation of 0.0206, so their mean has a standard error of
+The 4.2 percent follows from the noise in the 213 months and the two numbers fixed before the run, the 5 percent bar and the chance of catching a true effect four times in five, 80 percent. The 80 percent is the convention Jacob Cohen proposed for a test’s power, the chance it catches a true effect of a given size. Paired with the 5 percent bar, it lets the test miss a real effect a fifth of the time but raise a false alarm only a twentieth of the time, so a false alarm counts as four times as costly as a miss. The months have a standard deviation of 0.0206, so their mean has a standard error of
 
 ```math
 \text{SE} = \frac{s}{\sqrt{n}} = \frac{0.0206}{\sqrt{213}} = 0.00141
 ```
 
-The test calls a mean above zero when its t-statistic clears 1.652. That is the one-sided 5 percent critical value at 212 degrees of freedom, one fewer than the 213 months, because the mean is estimated from them. If the true mean were zero, the t-statistic would scatter around zero with a spread of about 1, and it would clear 1.652 only 5 percent of the time. If the true mean is X, the whole scatter shifts right by about X divided by the standard error. Call that shift δ. The 4.2 percent comes from asking how far the scatter must shift for the statistic to clear 1.652 four times in five.
+The test calls a mean above zero when its t-statistic clears 1.652. 1.652 comes from the t distribution for 212 degrees of freedom, one fewer than the 213 months because the mean is estimated from them. If the true mean were zero, the t-statistic would scatter around zero with a spread of about 1, and it would clear 1.652 only 5 percent of the time. If the true mean is X, the whole scatter shifts right by about X divided by the standard error. Call that shift δ. The 4.2 percent comes from asking how far the scatter must shift for the statistic to clear 1.652 four times in five.
 
 ![An animated whiteboard sketch titled “Shifting the scatter”, drawn slowly stroke by stroke. Two rows share one axis of t-statistics. In the top row a grey scatter for “true mean 0” rises and falls, a red dashed line marks “1.652, the 5% bar”, and the thin tail past the line is shaded red, “clears it 5% of the time”. In the row below, the same shape in brown, for “true mean X”, sits slid right by an arrow labelled “δ = 2.494”, and its larger part past the line is shaded green, “clears it 80% of the time”. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_delta_scatter.gif)
 
@@ -515,7 +515,7 @@ A broader series agrees with the IVV run. From 2002 to 2024 Open Source Asset Pr
 
 ![An animated whiteboard sketch titled “Before 2002 and after”, drawn slowly stroke by stroke. A grey line marks “0”. A long brown bar for “1965 to 2001” reaches “1.31%”, with a black bracket under it, far from zero, for one standard error each way. A short brown bar for “2002 to 2024” reaches “0.12%”, and its bracket crosses zero, labelled “one standard error each way”. The words “Open Source Asset Pricing, a month before costs, NYSE and AMEX with the ones that left” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_broad_before_after.gif)
 
-Over the 192 months it shares with the IVV run, 2009 to 2024, it earned 0.12 percent a month with a t of 0.39, and the two series moved together, at a correlation of 0.59. Neither shows a mean detectably above zero after the book. Like the figures before 2002, this comparison is exploratory.
+Over the 192 months it shares with the IVV run, 2009 to 2024, it earned 0.12 percent a month with a t of 0.39, and the two series moved together, at a correlation of 0.59. Neither shows a mean detectably above zero from 2009 on. Like the figures before 2002, this comparison is exploratory.
 
 ![An animated whiteboard sketch titled “Moving together”, drawn slowly stroke by stroke. Two grey axes cross, one labelled “Open Source Asset Pricing’s month” across and one “the IVV run’s month” up. A black dot for each month fills in, a cloud that tilts up to the right. Beside it the words “192 months,” and “2009 to 2024” and, in green, “correlation 0.59”. The words “they rise and fall together” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_broad_together.gif)
 
@@ -528,7 +528,7 @@ Month to month, Open Source Asset Pricing’s series swings about twice as far a
 Three habits follow from the lessons above.
 
 1. **Account for every choice, every bug and every unit before comparing two figures for one strategy.** Every figure here needed rules the description leaves out, seven of those rules are bugs, and the first edition’s −0.9167 is not a return on capital.
-2. **Write the criterion and fix the sample before reading a split.** A split computed first carries no verdict, and through 83 months of survivors it swings with a single year.
+2. **Write the criterion and fix the sample before reading a split.** A split computed before its test is written carries no verdict, and through 83 months of survivors it swings with a single year.
 3. **Rule out survivorship bias before reading a result as an effect that died or lived.** A file saved after the fact holds only the stocks that made it.
 
 On Chan’s own files, all seventeen figures his code prints reproduce to the digit. Whether the strategies died is a separate question, which these files cannot answer. For the January effect, a test written in advance, on data that keeps the companies that left the index, gives a range from a loss of 10.47 percent to a gain of 8.79 percent a January. That is too wide to say which side of zero the effect sits. It does not show that the effect died, and it does not show that it lived.

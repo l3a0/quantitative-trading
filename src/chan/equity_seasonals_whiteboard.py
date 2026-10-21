@@ -89,8 +89,8 @@ two in Lesson 3:
 
 The second and third build slowly, as :data:`PACED` lists.
 
-The next three belong to the question on whether the January effect survived
-the book. The post places the first in its opening, beside its explanation of
+The next three belong to the question on whether the January effect still
+worked after 2008. The post places the first in its opening, beside its explanation of
 a registered result, and the other two under that question, each after the
 paragraph it illustrates:
 
@@ -142,7 +142,7 @@ existed before 2002, each after the paragraph it illustrates:
 Both build slowly.
 
 The next four sit under the question on whether Heston and Sadka's effect
-survived the book, one under each of the first four headings that split it:
+still worked after 2008, one under each of the first four headings that split it:
 
 1. A list stands until the next filing: a company that leaves between two of
    IVV's quarter-end filings stays on the list the run ranks until the next
@@ -2624,7 +2624,7 @@ def osap_scenes(figures: OsapFigures) -> tuple[Scene, ...]:
     return (_osap_sources(), _osap_before(figures))
 
 
-# --- Section 3: whether Heston and Sadka's effect survived the book ---------
+# --- Section 3: whether Heston and Sadka's effect still worked after 2008 ---
 
 #: Chan's "more than 13 percent" a year for Heston and Sadka's rotation before
 #: 2002, the book's figure on p. 179 of the revised edition rather than a run's.

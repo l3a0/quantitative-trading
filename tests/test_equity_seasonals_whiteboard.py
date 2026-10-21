@@ -4,7 +4,7 @@ Four sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, two its
 lesson on survivorship bias, four its question on whether the January effect
-survived the book, two its question on whether Heston and Sadka's effect
+still worked after 2008, two its question on whether Heston and Sadka's effect
 existed before 2002, and ten its question on whether Heston and Sadka's
 effect survived it, three of them on where its 4.2 percent comes from and
 three on what a broader series shows. The
@@ -1088,7 +1088,7 @@ class TestThePost:
         """The fill and ranges sketches after their paragraphs under the January
         question. The registered sketch moved to the opening with its definition."""
         text = POST.read_text(encoding="utf-8")
-        start = text.index("### Whether the January effect survived the book")
+        start = text.index("### Whether the January effect still worked after 2008")
         end = text.index("\n### ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
@@ -1119,7 +1119,7 @@ class TestThePost:
     def test_each_section_3_sketch_follows_its_part(self) -> None:
         """Each under its own heading, after the paragraph it draws."""
         text = POST.read_text(encoding="utf-8")
-        start = text.index("### Whether Heston and Sadka’s effect survived the book")
+        start = text.index("### Whether Heston and Sadka’s effect still worked after 2008")
         end = text.index("\n## ", start)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for heading, opening, name in zip(
@@ -3010,7 +3010,7 @@ class TestTheSection2Sketches:
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for opening, name in zip(
             (
-                "The two paid sources’ licences bar republishing",
+                "Every result in this post is computed from data published",
                 "This repository has since read the free source.",
             ),
             OSAP_GIFS,
