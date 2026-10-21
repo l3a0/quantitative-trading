@@ -1020,7 +1020,8 @@ class TestThePost:
         assert paragraphs[index - 1].startswith("*The running sum climbs")
         assert "equity_seasonals_split.png" in paragraphs[index - 2]
         assert paragraphs[index - 3].startswith("The figure below adds up the 83 months")
-        assert paragraphs[index + 2].startswith("Chan makes one claim about timing")
+        assert paragraphs[index + 2] == "### Chan’s five-year claim"
+        assert paragraphs[index + 3].startswith("Chan makes one claim about timing")
 
     def test_each_five_year_sketch_follows_its_paragraph(self) -> None:
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]

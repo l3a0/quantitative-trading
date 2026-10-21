@@ -247,6 +247,8 @@ The listing on p. 179 keeps only the 96 month-end rows, then looks each month up
 
 Every printout’s whole-period figure for Example 7.7 is negative on Chan’s file, as he printed it. That is consistent with an effect that died. It is also consistent with one that never lived on these stocks over these years. A reproduction cannot tell those apart, for three reasons.
 
+### Why a reproduction cannot decide it
+
 1. **This repository wrote no criterion for “disappeared” first.** A claim that an effect “disappeared” needs a test stated before any number is seen: which statistic, over which periods, crossing which bar. The repository’s rule is that a figure computed before its criterion carries no verdict, and it computed the split below first.
 2. **The file barely reaches the period before.** The S&P 500 file starts on 1999-11-24. After the twelve months the ranking needs, it holds 13 months before 2002.
 3. **The 13 percent comes from a sample this file does not hold.** Heston and Sadka measured it on NYSE- and AMEX-listed stocks in CRSP, the Center for Research in Security Prices’ database of US stock returns, from January 1965 to December 2002. Each month they used only the firms listed by then, so firms that later failed or delisted stay in, which reduces the survivorship bias that Lesson 3 describes. Ranked on the return a year earlier, their best tenth beat their worst by 1.15 percent a month before costs, about 13.8 percent a year, which fits Chan’s “more than 13 percent”. Running the same rule on Chan’s file is no test of that figure, because the file differs from their sample in several ways at once.
@@ -267,6 +269,8 @@ The last difference comes from how each month is computed. Example 7.7 buys `n` 
 ```
 
 Each barred term is a tenth’s average return, and the difference between them is the gap Heston and Sadka report, what a dollar bought and a dollar shorted earn together. Chan spreads one dollar across both sides, half on each, so his month earns half the gap.
+
+### The split at 2002
 
 What the file can give is a split, and it is **exploratory, with no verdict**. The revised Python keeps 83 months for its statistics, from December 2000 to October 2007. Cut at the start of 2002:
 
@@ -291,6 +295,8 @@ The 70 months from 2002 are not a steady small gain. Between the climb through 2
 
 ![An animated whiteboard sketch titled “Two years sit further apart than the halves”, drawn stroke by stroke, with bars to one scale. On the left, under “the two halves, an average year”, a red bar labelled “before 2002” hangs below a zero line to −0.145387, and a short green bar labelled “from 2002” rises to +0.011967. A brown bracket beside them is labelled “0.1574 apart”. On the right, under “two single years, 12 months each”, a tall green bar labelled “2002” rises to +0.2227, and a red bar labelled “2006” hangs to −0.1319. A brown bracket more than twice as long is labelled “0.3546 apart”. The words “before costs” close the sketch.](../docs/figures/equity_seasonals_split_swing.gif)
 
+### Chan’s five-year claim
+
 Chan makes one claim about timing that the file can check. He suggests running the program on “the most recent five years instead of the entire data period” and says the average returns are even worse (p. 180).
 
 This repository wrote the check down before computing any five-year figure. The running-sum figure above was already published then, so the shape of those years was in view, and the check was chosen because it runs Chan’s program exactly as his sentence says. The file ends on 2007-11-23, so its most recent five years start after 2002-11-23. Rerun the revised MATLAB’s rules unchanged on the rows after that date, and call the claim reproduced if the annual return comes out below the whole period’s. The first year of those rows only builds the ranking’s history, so the rerun keeps 47 months, from December 2003 to October 2007, and returns −0.0165 a year against the whole period’s −0.0129. The claim holds. Under the revised Python’s rules, reported beside it with no verdict, the figures are −0.016431 and −0.012679.
@@ -302,6 +308,8 @@ That sits beside the split without contradicting it. The 70 months from 2002 inc
 The five-year verdict is narrow. The gap between the two figures is 0.0036 a year, and the rerun’s annual return has a standard error of 0.0281 a year, about eight times larger. A standard error is how far a measured average typically lands from the true one by chance alone, so a gap eight times smaller than it is well inside the noise. So the check shows that Chan’s comparison holds on his own file of survivors. It does not show that the effect weakened.
 
 ![An animated whiteboard sketch titled “A gap far smaller than the noise”, drawn slowly stroke by stroke. A number line runs from below −0.04 to above 0, with ticks at −0.04, −0.02 and 0. A pale green band labelled “one standard error each way, 0.0281” stretches from about −0.045 to about +0.012 around a brown dot labelled “five-year rerun −0.0165”. Beside it a black dot is labelled “whole period −0.0129”. A small red bracket above the two dots is labelled “0.0036 apart”. The words “revised MATLAB’s rules, a year, before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_five_year_noise.gif)
+
+### Example 7.6’s three Januaries
 
 Example 7.6 meets the same limit from another side. All three of its Januaries reproduce: the two that lost, and January 2008, the one Chan’s text says “worked wonderfully” (p. 175), at 0.0881 in both editions’ MATLAB and the revised R and 0.088486 in the revised Python. One winning January after two losing ones, on a file of survivors, is three trades. They show that Chan’s code and data agree with his book, and they say nothing about whether the January effect lives.
 
