@@ -12,14 +12,15 @@ paragraph it draws.
    the loss, a dashed mark for the first edition's release in November 2008,
    brackets above the axis for the streaks of 13 and 14 counted from 1995 and
    brackets below for the same counts from 1994. It sits in Lesson 1, after
-   the paragraph opening "Read as first-edition figures counted from 1995".
+   the list of what the files rule out and cannot pick, which opens
+   "1. **They rule out a count written for the revised edition.**".
 2. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
    line at each entry and exit crosses the contracts still trading that day,
-   and June's number is how many it crosses. It closes on contract 1 being
-   whichever contract stops trading next. It sits in Lesson 4, after the
+   and June's number is how many it crosses, which its closing label says. It
+   sits in Lesson 4, after the
    paragraph opening "For gasoline the answer is simple."
 
 Both carry data, and neither needs the owner's archive.
@@ -401,7 +402,7 @@ def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
     steps = _year_steps(still, YEAR_TOPS[0]) + _year_steps(expired, YEAR_TOPS[1])
     steps.append(
         Label(
-            "contract 1 is whichever contract stops trading next",
+            "June’s number is how many bars each line crosses",
             9.6,
             0.22,
             names=f"{expired.year}-exit",

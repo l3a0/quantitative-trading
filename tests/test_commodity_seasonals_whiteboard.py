@@ -82,7 +82,7 @@ GIFS = ["commodity_sketch_streak_start.gif", "commodity_sketch_june_file.gif"]
 
 #: The paragraph each GIF follows, by its opening words.
 FOLLOWS = (
-    "Read as first-edition figures counted from 1995",
+    "1. **They rule out a count written for the revised edition.**",
     "For gasoline the answer is simple.",
 )
 
@@ -119,7 +119,7 @@ JUNE_LABELS = [
     "March has expired",
     "June is contract 3 on Feb 27",
     "contract 2 on Apr 13",
-    "contract 1 is whichever contract stops trading next",
+    "June’s number is how many bars each line crosses",
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -604,12 +604,9 @@ class TestTheJuneSketch:
         assert "June is contract 4 on Feb 23" in scene.labels
         assert len(_reaches(scene, "2008", _stroke(scene, "2008-entry").x[0])) == 3
 
-    def test_it_closes_on_contract_1_being_whichever_stops_trading_next(self, every) -> None:
+    def test_it_closes_on_the_rule_it_draws(self, every) -> None:
         last = every[1].steps[-1]
-        assert (last.text, last.color) == (
-            "contract 1 is whichever contract stops trading next",
-            INK,
-        )
+        assert (last.text, last.color) == ("June’s number is how many bars each line crosses", INK)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, years) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
