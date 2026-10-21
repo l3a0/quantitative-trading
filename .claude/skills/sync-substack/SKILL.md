@@ -215,8 +215,9 @@ The eval is indirect, so each file's top-level `var` becomes a property of the
 page's global object and outlives the call. A `ready` of false means a file
 evaluated without defining its name. An `error` beside `refused` means the
 eval threw, and an `EvalError` there means the page's content security policy
-forbids eval. The restore has not yet run on a Substack page, so the first
-session to run it records here whether it worked.
+forbids eval. On 2026-10-21 the restore ran on the drafts list page, in the
+desktop app's built-in browser pane, and returned `ready: true`. So
+Substack's content security policy allows the indirect eval there.
 
 ## Create a draft
 
