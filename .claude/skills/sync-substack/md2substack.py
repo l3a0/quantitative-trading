@@ -138,8 +138,8 @@ stopped two kinds of image line from raising. It also made ``md_sha256`` and
 ``subtitle_length`` measure what the page measures. On 2026-10-13 the image
 node's ``type`` stopped being ``image/png`` for every figure and became the
 type its extension names, once a post embedded animated GIFs. On 2026-10-20
-each widget and each text node's marks became copies, so no object appears
-twice in a converted tree and none is a module constant. The output did not
+each widget and each text node's marks became copies, so no dict or list
+appears twice in a converted tree and none belongs to a module constant. The output did not
 change. Before that, editing one widget of a draft edited the other and the
 ``WIDGET`` every later conversion read.
 """

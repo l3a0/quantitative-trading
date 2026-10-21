@@ -1159,13 +1159,14 @@ def _holders(value, path: str, out: dict[int, list[str]]) -> dict[int, list[str]
 def test_a_converted_tree_holds_no_object_twice(case: tuple[str, str, dict]) -> None:
     """Editing one node of a draft must leave every other node alone.
 
-    Tests and the sync both build edited copies of converted trees. The
-    converter once appended its module-level widget to every draft, so
-    writing into one widget changed the other and every later conversion.
-    It also gave every text node of one span the same mark dict.
+    Tests build edited copies of converted trees. The converter once
+    appended its module-level widget to every draft, so writing into one
+    widget changed the other and every later conversion. It also gave every
+    text node of one span the same mark dict.
     """
     name, md, images = case
-    held = _holders(m2s.convert(md, images), "", {})
+    tree = m2s.convert(md, images)
+    held = _holders(tree, "", {})
     shared = {i: paths for i, paths in held.items() if len(paths) > 1}
     assert not shared, f"{name}: {list(shared.values())[:3]}"
     constants = {}
@@ -1174,6 +1175,11 @@ def test_a_converted_tree_holds_no_object_twice(case: tuple[str, str, dict]) -> 
             _holders(value, key, constants)
     leaked = [paths for i, paths in held.items() if i in constants]
     assert not leaked, f"{name}: {leaked[:3]}"
+    # The caller's images map stays the caller's, so an edit to the tree
+    # never reaches it.
+    given = _holders(images, "images", {})
+    borrowed = [paths for i, paths in held.items() if i in given]
+    assert not borrowed, f"{name}: {borrowed[:3]}"
 
 
 def test_the_canonical_form_ignores_key_order() -> None:
