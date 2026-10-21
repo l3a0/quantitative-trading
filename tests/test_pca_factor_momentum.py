@@ -30,10 +30,12 @@ and once without PMC.
 Every run on the file happens once, in the ``results`` fixture, because each
 set of columns takes 752 decompositions. Every pin reads that fixture, and the
 report's test prints from it rather than computing again. The write-up's pins
-in ``TestWhatThePostMeasured`` read two more module fixtures for the same
-reason, ``components`` for the 753 fitting days' decompositions and
-``weights`` for the 1,504 more, on the 251 days before each day t and on the
-251 days ending it.
+in ``TestWhatThePostMeasured`` read two more fixtures for the same reason,
+``components`` for the 753 fitting days' decompositions and ``weights`` for
+the 1,504 more, on the 251 days before each day t and on the 251 days ending
+it. All three come from ``pca_factor_momentum_run`` in ``tests/conftest.py``,
+which ``tests/test_pca_factor_momentum_figures.py`` reads too, so a run of the
+suite computes them once for both files.
 
 Exploratory. Testing a claim someone else chose spends the 2004 to 2008 sample
 on it. It first ran here on 2026-10-10.
@@ -74,7 +76,6 @@ from chan.pca_factor_momentum import (
     _figures,
     benjamini_hochberg,
     compute,
-    compute_both,
     daily_components,
     decompose,
     factor_pairs,
@@ -120,9 +121,8 @@ def panel():
 
 
 @pytest.fixture(scope="module")
-def results(panel) -> Results:
-    _, closes = panel
-    return compute_both(closes)
+def results(pca_factor_momentum_run) -> Results:
+    return pca_factor_momentum_run[0]
 
 
 class TestTheSpecification:
@@ -339,15 +339,15 @@ def returns(panel) -> np.ndarray:
 
 
 @pytest.fixture(scope="module")
-def components(returns) -> list[Decomposition]:
+def components(pca_factor_momentum_run) -> list[Decomposition]:
     """All 753 fitting days' decompositions, computed once for every pin below."""
-    return daily_components(returns)
+    return pca_factor_momentum_run[1]
 
 
 @pytest.fixture(scope="module")
-def weights(returns, components) -> WeightStatistics:
+def weights(pca_factor_momentum_run) -> WeightStatistics:
     """1,504 more decompositions, on 251 days before and ending each day t, so computed once."""
-    return weight_statistics(returns, components)
+    return pca_factor_momentum_run[2]
 
 
 class TestWhatThePostMeasured:

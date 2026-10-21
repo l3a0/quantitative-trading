@@ -30,10 +30,6 @@ from chan.pca_factor_momentum import (
     NAMES,
     Results,
     WeightStatistics,
-    compute_both,
-    daily_components,
-    file_returns,
-    weight_statistics,
 )
 from chan.pca_factor_momentum_figures import (
     LABEL_SPOTS,
@@ -43,26 +39,18 @@ from chan.pca_factor_momentum_figures import (
     make_pca_factor_momentum_figure,
 )
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
-from chan.series import load_panel
 from chan.vintage import VintageUnavailable
 
 
 @pytest.fixture(scope="module")
-def drawn_from() -> tuple[Results, WeightStatistics]:
-    """Computed once, because each takes hundreds of decompositions."""
-    _, closes = load_panel(SMALL_CAPS, field="Close")
-    returns = file_returns(closes)
-    return compute_both(closes), weight_statistics(returns, daily_components(returns))
+def results(pca_factor_momentum_run) -> Results:
+    """The run ``tests/test_pca_factor_momentum.py`` pins, shared through ``tests/conftest.py``."""
+    return pca_factor_momentum_run[0]
 
 
 @pytest.fixture(scope="module")
-def results(drawn_from) -> Results:
-    return drawn_from[0]
-
-
-@pytest.fixture(scope="module")
-def weights(drawn_from) -> WeightStatistics:
-    return drawn_from[1]
+def weights(pca_factor_momentum_run) -> WeightStatistics:
+    return pca_factor_momentum_run[2]
 
 
 @pytest.fixture(scope="module")
