@@ -3606,18 +3606,20 @@ not pinned here.
 2. Facts outside the committed data. RBOB beginning to trade in October 2005,
    the first edition's release in November 2008 and its 2009 date, RB as the
    symbol RBOB trades under, a natural gas contract stopping three trading days
-   before delivery and the May gasoline contract trading until the last
-   business day of April as the exchange's rules, Good Friday as the only NYMEX
-   holiday that can land on a trade date, EIA publishing the nearest four
-   contracts numbered by expiry, EIA's statement that its source is NYMEX, and
+   before delivery and the April and May gasoline contracts trading until the
+   last trading day of the month before delivery as the exchange's rules, Good
+   Friday as the only NYMEX holiday that can land on a trade date, EIA
+   publishing the nearest four contracts numbered by expiry, EIA's statement
+   that its source is NYMEX, and
    the Massive futures data service returning April 2025 gasoline prices, which
    [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
    all three unreadable years profitable, that 21 less the 3 unreadable years
    is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 7 of 15 is
-   fewer than half, and that the 8 later gasoline years in Lesson 3's caveat
-   are 2016 to 2023.
+   fewer than half, that the 8 later gasoline years in Lesson 3's caveat
+   are 2016 to 2023, that 2008 is a year after 2007, and that 1994 is one
+   year before 1995.
 4. Its references. The three citations are cited rather than computed.
 5. Three dates no test asserts: the files' last row on 5 April 2024, which
    their file names record, the day the 16 exchange dates were read, 3

@@ -463,7 +463,7 @@ class TestThePostQuotesThePins:
         later = [t for t in GASOLINE if t.year >= 2016]
         won, of = _tally(GASOLINE, 1995, 2015)
         assert f"Its years {missing[0]}, {missing[1]} and {missing[2]} are empty slots" in alt
-        assert f"{won} of {of} profitable with {len(missing)} with no row" in alt
+        assert f"{won} of {of} profitable and {len(missing)} with no row" in alt
         assert f"{profitable_count(later)} of {len(later)} profitable" in alt
         assert f"with losses in {losses[0]} and {losses[1]}" in alt
         lost = sum(t.profitable is False for t in later)
