@@ -184,6 +184,7 @@ from chan.stationary_candidates import (
     SPREAD_POWER_HALF_LIFE,
     SPREAD_POWER_SEED,
     SPREAD_PRODUCTS,
+    STEP,
     TEST_START,
     TRADING_DAYS,
     WINDOW,
@@ -191,6 +192,7 @@ from chan.stationary_candidates import (
     CrossRate,
     Orientation,
     _orientation,
+    batched_adf,
     batched_engle_granger,
     calendar_spread,
     cross_rate,
@@ -1025,7 +1027,7 @@ class TestTheWindowPower:
     the blog post offered for why so few of the rate's windows reject. It does
     not show that slow reversion is the reason, because the model has neither
     the rate's fat tails nor its changing volatility. Exploratory. Takes about
-    half a minute.
+    a second.
     """
 
     def test_the_declared_specification(self, power, rate: CrossRate) -> None:
@@ -1045,6 +1047,20 @@ class TestTheWindowPower:
         assert one.clear10[0] == int((stats < ADF_CRIT_CONST["10%"]).sum())
         assert one.clear5[0] == int((stats < ADF_CRIT_CONST["5%"]).sum())
         assert one.whole_rejects5[0] == (adf_tstat(path, LAGS)[0] < ADF_CRIT_CONST["5%"])
+
+    def test_the_batched_statistic_is_the_engine_s(self, rate: CrossRate) -> None:
+        """The closed form the simulation runs gives ``adf_tstat``'s statistic
+        on every window of five simulated paths, on each whole path, and on the
+        rate itself and each of its 226 windows."""
+        z = simulated_paths(rate.half_life, len(rate.log_rate), 5, POWER_SEED)
+        for e in range(WINDOW, z.shape[1] + 1, STEP):
+            want = [adf_tstat(p[e - WINDOW : e], LAGS)[0] for p in z]
+            assert batched_adf(z[:, e - WINDOW : e]) == pytest.approx(want, abs=1e-9)
+        assert batched_adf(z) == pytest.approx([adf_tstat(p, LAGS)[0] for p in z], abs=1e-9)
+        values = rate.log_rate.to_numpy(dtype=float)
+        assert batched_adf(values[None, :])[0] == pytest.approx(rate.adf_stat, abs=1e-9)
+        windows = np.array([values[e - WINDOW + 1 : e + 1] for e in rate.scan.end_idx])
+        assert batched_adf(windows) == pytest.approx(rate.scan.adf_stat, abs=1e-9)
 
     def test_a_long_path_reverts_at_the_rate_s_half_life(self, rate: CrossRate) -> None:
         """Measured the way the rate's is, two million simulated days give the
