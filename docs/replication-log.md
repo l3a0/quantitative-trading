@@ -3482,6 +3482,15 @@ moves with it, since that post quotes most of these figures. So does its
 figure of every year of both trades, which
 `uv run python -m chan.commodity_seasonals_figures` redraws.
 
+The post also carries two whiteboard sketches that draw this entry's run, and
+`uv run python -m chan.commodity_seasonals_whiteboard` redraws both. One draws
+the natural gas streaks of 13 and 14, counted from 1995 and from 1994, against
+the 2009 loss and the first edition's release. The other draws which numbered
+file holds the June contract on the entry and exit days of 2008 and 2006.
+[tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
+reads both from the run, so a change to the streak counts or the expiry rule
+moves them too.
+
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
