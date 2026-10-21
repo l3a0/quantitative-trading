@@ -537,6 +537,23 @@ For Heston and Sadka’s rotation, the same kind of test on the S&P 500 as it st
 
 ![An animated whiteboard sketch titled “Two verdicts”, drawn slowly stroke by stroke, with two number lines. Each line has its own scale. The upper line, labelled “January effect” and “per January”, has a zero tick, “0”, and a brown bracket from “−0.1047” to “0.0879” that straddles it, with the words “free data cannot decide”. The lower line, labelled “Heston and Sadka” and “per year”, has its own “0”, a pale green band from zero to a brown tick labelled “about 4.2% a year”, and a black dot at zero labelled “measured”, with the words “could pass unseen” beneath the band. A red arrow under the band points back toward zero and stops halfway, labelled “costs lower it, not measured”. The words “not shown dead, and no edge a trader can count on” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_two_verdicts.gif)
 
+## Further work
+
+The January effect is the question this post leaves open. Its registered test could not decide it. Deciding it needs data that keeps the companies that left the index, on a larger sample, and the sample can grow in three ways.
+
+1. **Every member’s price.** At the year-ends from 2008 to 2025, 741 member-years of the S&P 600 had no price free data could check. Filling them with bounds is what spreads the two versions from a loss of 10.47 percent to a gain of 8.79 percent a January. A source that keeps delisted stocks under their own identity, such as Norgate Data, carries those prices. With them the two versions become one series, and the registered test, unchanged, gives one verdict.
+2. **More Januaries.** Example 7.6 trades once a year, so more Januaries means reaching further back. The S&P 600 began in October 1994, so the index’s own history allows 32 Januaries, from 1995 to 2026. If those Januaries swing as much as the two versions’ do, the smallest average the test would catch four times in five falls from 0.0547 to 0.0615 at 18 Januaries to 0.0403 to 0.0453 at 32. Before 1995 there is no S&P 600 to rank, so the test would move to small caps defined by size, such as the smallest fifth of US stocks in CRSP’s database, which reaches back to 1926. About 100 Januaries would bring it to 0.0224 to 0.0252.
+3. **More stocks each January.** Each tenth of the S&P 600 holds about 60 stocks. A universe of every US small cap holds thousands, so a tenth of it averages out more of what each single stock does by chance. Each January’s return then swings less, which lowers the smallest effect the test can catch for the same number of Januaries. How much less is unmeasured here. The gain also has a limit, because the part of a January’s return that every small cap shares does not average out.
+
+Both strategies could also be split by market regime. An effect can live in one kind of market and not another, such as rising markets against falling ones, or calm markets against turbulent ones, and a split asks whether either effect does. The split has two prices.
+
+1. **A smaller sample in each regime.** 9 of the 18 Januaries would catch only an average of 0.0815 to 0.0916, and half of the 213 months only about 6.0 percent a year, against 4.2 percent for all of them.
+2. **More chances for luck.** Every regime tried is another chance for a pattern to appear by luck, as the split at 2002 in Lesson 2 shows.
+
+So the regimes, how each is measured from data available at the time of the trade, and how the batch of results is judged would all be written down before any return is split.
+
+A wider universe changes the strategy as well as the sample, so its result would test the January effect rather than reproduce Example 7.6. As with the 18 Januaries, the claim, the test and the wording of each verdict would be written down before any return is computed, so the result is registered rather than exploratory. Costs need the same care. The smallest stocks cost more to trade than the S&P 600’s members, and costs only lower the return.
+
 ## References
 
 - Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Examples 7.6 and 7.7, cited by MATLAB script as `example7_6.m` and `example7_7.m` at commit `1a71950` of the egorpe/EPChan-QuantitativeTrading mirror.

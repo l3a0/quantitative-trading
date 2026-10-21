@@ -1159,7 +1159,7 @@ class TestThePost:
             assert paragraphs[index - 1] == heading
 
     def test_every_sketch_is_embedded_once_and_the_verdicts_twice(self) -> None:
-        """The verdicts sketch opens the post and closes it, with one alt text."""
+        """The verdicts sketch opens the post and closes its conclusion, with one alt text."""
         text = POST.read_text(encoding="utf-8")
         for name in GIFS:
             twice = name == "equity_seasonals_two_verdicts.gif"
@@ -2450,6 +2450,14 @@ class TestTheJanuaryPowerSketches:
         assert PINNED_POWER.detectable(72) == pytest.approx(
             (0.02651321756997502, 0.029802435776136182), abs=1e-12
         )
+        # The post's further work: the S&P 600's 32 Januaries from 1995, and
+        # about 100 on a small-cap universe from CRSP's 1926 start.
+        assert PINNED_POWER.detectable(32) == pytest.approx(
+            (0.040278086955294064, 0.0452749688529), abs=1e-12
+        )
+        assert PINNED_POWER.detectable(100) == pytest.approx(
+            (0.02243563837979174, 0.02521899389033639), abs=1e-12
+        )
 
     def test_each_says_what_it_should(self, power) -> None:
         catch, years = power
@@ -3570,6 +3578,8 @@ def test_the_post_quotes_the_pinned_figures() -> None:
     reader. Each fragment carries enough words to say which figure it is."""
     p, ivv, shift, osap, broad = PINNED, PINNED_IVV, PINNED_SHIFT, PINNED_OSAP, PINNED_BROAD
     f, (x_low, x_high) = FiveYearFigures(), PINNED_POWER.detectable()
+    months = np.array([r for _, r in ivv.months])
+    half = seasonals.detectable_mean(months.std(ddof=1), len(months) // 2)
     fragments = [
         f"averages between {_minus(p.january_low, 4)} and {_minus(p.january_high, 4)}"
         " a January before costs",
@@ -3600,6 +3610,19 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         f"is {x_low:.4f} for the low version and {x_high:.4f} for the high one,"
         f" a gain of about {100 * x_low:.1f} to {100 * x_high:.1f} percent",
         f"and so is their mean, {f.january_mean:.4f}",
+        *[
+            f"{low:.4f} to {high:.4f} at {n}"
+            for n in (18, 32)
+            for low, high in [PINNED_POWER.detectable(n)]
+        ],
+        "About 100 Januaries would bring it to {:.4f} to {:.4f}.".format(
+            *PINNED_POWER.detectable(100)
+        ),
+        "9 of the 18 Januaries would catch only an average of {:.4f} to {:.4f}".format(
+            *PINNED_POWER.detectable(9)
+        ),
+        f"half of the {len(ivv.months)} months only about {1200 * half:.1f} percent a year,"
+        f" against {100 * p.detectable:.1f} percent for all of them",
     ]
     text = POST.read_text(encoding="utf-8")
     assert [fragment for fragment in fragments if fragment not in text] == []
