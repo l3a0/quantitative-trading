@@ -171,13 +171,13 @@ The script sorts the stocks by return, then checks each one for a missing close.
 
 #### Rule 3: empty months in the mean, a bug in the first edition
 
-The first edition’s MATLAB averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the summed monthly returns, so dropping them leaves that sum unchanged and divides it by 83 instead of 95. The annual return is twelve times the monthly mean, so write `S` for twelve times the sum. The annual return is then S/95 before the drop and S/83 after it.
+The first edition’s MATLAB averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the summed monthly returns, so dropping them leaves that sum unchanged and divides it by 83 instead of 95. The annual return is twelve times the monthly mean, so write `S` for twelve times the sum. The annual return is then `S/95` before the drop and `S/83` after it.
 
 ```math
 \frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
 ```
 
-Multiplying the old annual return by 95/83 cancels its 95. `S` is −87.08 as a sum over positions and −0.9944 in rule 1’s units of capital:
+Multiplying the old annual return by `95/83` cancels its 95. `S` is −87.08 as a sum over positions and −0.9944 in rule 1’s units of capital:
 
 ```math
 \begin{aligned}
