@@ -3391,8 +3391,10 @@ no count. Three of the rules carry the result, so they are stated here.
    file counts neither way, rather than moving to another day.
 
 Every result here is **exploratory**. Chan chose both trades after looking at
-the history the run reads, so the entry says whether his counts reproduce and
-nothing about whether either trade pays today.
+years before his book, which the run also reads, so on those years the entry
+says whether his counts reproduce. Nobody wrote down a test for the years after
+the book before the run computed them, so the entry says nothing about whether
+either trade pays today.
 
 ### What the book printed
 

@@ -21,8 +21,9 @@ month into a file number on one day. :data:`NATURAL_GAS_CONTRACTS` and
 :data:`RBOB_CONTRACTS` name each product's four files and its expiry rule.
 
 **The calendar is computed rather than read from the files.** The natural gas
-files carry exchange holidays as rows repeating the day before's settlement, so
-a row's presence does not say the exchange was open. :func:`is_trading_day`
+files hold a row repeating the day before's settlement on every exchange holiday
+from January 2018 to November 2019, and on almost none in other years, so a
+row's presence does not say the exchange was open. :func:`is_trading_day`
 uses NYMEX's holiday rules instead.
 
 **The expiry rules were checked two ways.** Against the last trading days the

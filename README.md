@@ -3587,7 +3587,7 @@ replication log.
    checked against something the files do not supply.
 
 It cites the revised edition by page, while the replication log cites the
-same passages by Kindle location. Four groups of its figures are not pinned
+passages on pp. 183 to 185 by Kindle location. Four groups of its figures are not pinned
 here.
 
 1. Chan's words, each cited by its page in the revised edition. The pairing

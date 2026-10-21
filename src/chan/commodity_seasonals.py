@@ -42,16 +42,19 @@ and RBOB from 2006. :func:`gasoline_trade` takes the other contract for 2006
 when asked, which the run prints as a side row.
 
 **The calendar is computed rather than read from the files.** The natural gas
-files carry exchange holidays as rows repeating the day before's settlement, so
-a row's presence does not say the exchange was open.
+files hold a row repeating the day before's settlement on every exchange holiday
+from January 2018 to November 2019, and on almost none in other years, so a
+row's presence does not say the exchange was open.
 :func:`chan.futures.is_trading_day` uses NYMEX's holiday rules instead. Of
 those holidays only Good Friday can land on a date this module reads. The
 calendar and the expiry rules live in :mod:`chan.futures`, because the
 calendar-spread test reads them too.
 
 Every result here is **exploratory**. Chan chose both trades after looking at
-the same history the run reads, so the run says whether his counts reproduce
-and nothing about whether either trade pays today.
+years before his book, which the run also reads, so on those years the run says
+whether his counts reproduce. Nobody wrote down a test for the years after the
+book before the run computed them, so the run says nothing about whether either
+trade pays today.
 
 A settlement is a ``Decimal`` as its file spells it, which
 :func:`chan.futures.settlements` reads, so a zero change reads as zero rather

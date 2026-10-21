@@ -247,10 +247,9 @@ class TestTheWords:
             f"EIA's NYMEX settlements, downloaded 2026-10-02: {', '.join(symbols)}. "
             "One contract a year with no costs, so a bar above zero is a profitable year, "
             "and the marks along each foot point up for a profit and down for a loss. "
-            "Chan chose both trades after looking at these years' history. "
             "The dashed line is where the book's years end: 2015 for gasoline, and 2008 for "
             "natural gas under the reading that both of its counts were written for the "
-            "first edition."
+            "first edition. Chan chose both trades after looking at years before the line."
         )
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:

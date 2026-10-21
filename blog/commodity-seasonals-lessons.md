@@ -14,7 +14,7 @@ Chan gives two trades, each with a count of profitable years. This repository ra
 2. **Gasoline fits Chan’s count in every year the files have prices for.** Chan prints 19 profitable years of 21. The data shows the 2 losing years his count allows and no third, plus 3 years with no price on a trade date.
 3. **Both trades win fewer years after the years Chan counted.** Natural gas wins 15 of 15 years through 2008 and 7 of 15 after.
 
-Every result here is **exploratory**. Chan chose both trades after looking at the same years of history this run reads, so the run can say whether his counts reproduce and nothing about whether either trade pays today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Every result here is **exploratory**. Chan chose both trades after looking at years before his book, which this run also reads, so on those years the run can say only whether his counts reproduce. Nobody wrote down a test for the years after the book before this repository computed them, and the run charges no costs, so those years cannot say whether either trade pays today. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two trades and the files
 
@@ -31,7 +31,7 @@ The book gives each trade twice, once in the main text and once in a sidebar tha
 
 EIA publishes the settlement prices for free, for the nearest four contracts of each product. It numbers them by expiry rather than by month: contract 1 is whichever contract stops trading next. Each contract number has its own file, with a row for each day the file has a price, giving the date and that day’s settlement price.
 
-So the run has to work out which numbered file holds the May or June contract on each trade date, which Lesson 4 comes back to. The run reads five files from three series, all downloaded on 2 October 2026:
+So the run has to work out which numbered file holds the May or June contract on each trade date, which Lesson 4 comes back to. The run reads five files, covering three products, all downloaded on 2 October 2026:
 
 1. New York Harbor regular gasoline, contract 1, through 2005.
 2. RBOB gasoline, contract 1, from 2006. RBOB is the gasoline contract that replaced the New York Harbor one, and it began trading in October 2005.
@@ -113,7 +113,7 @@ For natural gas the trade went from winning every year to winning fewer than hal
 
 For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sample. The trade won 7 of those 9, and both of its losing years fall among them. From 2016 to 2023, after the revised edition’s count ends, it won 3 of 8. Natural gas won 4 of the same 8.
 
-![Two panels of bar charts, one bar per year at the change in settlement price from entry to exit. The upper panel is gasoline, the May contract from the close of April 13 to the close of April 25, from 1995 to 2023 in dollars a gallon. Its years 1997, 1998 and 1999 are empty slots labelled “no row”. A dashed line after 2015 divides 1995 to 2015, 16 of 21 profitable with 3 with no row, from 2016 to 2023, 3 of 8 profitable. Bars before the line are mostly small and positive, with losses in 2009 and 2012, and five of the eight after it are losses. The lower panel is natural gas, the June contract from the close of February 25 to the close of April 15, from 1994 to 2023 in dollars per million Btu. A dashed line after 2008 divides 1994 to 2008, 15 of 15 profitable, from 2009 to 2023, 7 of 15 profitable. Every bar before the line is positive, and after it losses alternate with gains, including one gain near three dollars in 2022. Marks along the foot of each panel point up for each profitable year and down for each losing one.](../docs/figures/commodity_seasonals_years.png)
+![Two panels of bar charts, one bar per year at the change in settlement price from entry to exit. The upper panel is gasoline, the May contract from the close of April 13 to the close of April 25, from 1995 to 2023 in dollars a gallon. Its years 1997, 1998 and 1999 are empty slots labelled “no row”. A dashed line after 2015 divides 1995 to 2015, 16 of 21 profitable with 3 with no row, from 2016 to 2023, 3 of 8 profitable. Bars before the line are mostly small and positive, with losses in 2009 and 2012, and five of the eight after it are losses. The lower panel is natural gas, the June contract from the close of February 25 to the close of April 15, from 1994 to 2023 in dollars per million Btu. A dashed line after 2008 divides 1994 to 2008, 15 of 15 profitable, from 2009 to 2023, 7 of 15 profitable. Every bar before the line is positive. After it, 8 years are losses and 7 are gains, in no regular order, including one gain near three dollars in 2022. Marks along the foot of each panel point up for each profitable year and down for each losing one.](../docs/figures/commodity_seasonals_years.png)
 
 *Every year of both trades. Each dashed line is where the book’s years end, and the marks along each foot give every year’s sign, including years too small to see as bars.*
 
@@ -134,12 +134,12 @@ For gasoline the answer is simple. The May contract trades until the last busine
 Because the June contract moves between files, the expiry rule is part of the result, so the run checks it three ways.
 
 1. **Against the exchange’s own dates.** Massive, a market data vendor, records the last trading day the exchange set for each contract. For 16 contracts, March to June of 2017, 2018, 2021 and 2024, the rule gives the date Massive recorded. This repository read those 16 dates on 3 October 2026, and nothing in it can read them again, so the tests carry them as a measurement.
-2. **Against the files’ own handovers.** When a contract expires, every later contract moves up one number. So on the day after an expiry, each file’s price should carry on from the price the next-higher file showed the day before. Before mid-1997 the files show contracts stopping five or six trading days before delivery rather than three. In March 1996 the price handover fits a five-day rule and not a three-day one. Following the files moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either contract.
+2. **Against the files’ own handovers.** When a contract expires, every later contract moves up one number. So on the day after an expiry, each file’s price should carry on from the price the next-higher file showed the day before. Before mid-1997 the files show contracts stopping five or six trading days before delivery rather than three. For the March 1996 contract, the price handover in late February 1996 fits a five-day rule and not a three-day one. Following the files moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either contract.
 3. **Against the edge cases.** In 10 of the 30 years, the entry date falls on the March contract’s last trading day. Reading contract 3 instead of contract 4 on those days flips no year’s result, so on these files the choice between the two moves no count.
 
 A review after the first run made the correction in item 2, and it changed no count.
 
-The run computes its calendar of trading days and expiries rather than reading it from the files, for one more reason. The natural gas files carry exchange holidays as rows that repeat the day before’s settlement, so a row’s presence does not mean the exchange was open. Of NYMEX’s holidays, only Good Friday can land on a trade date, and it moved six trade dates between 1994 and 2023.
+The run computes its calendar of trading days and expiries rather than reading it from the files, for one more reason. On every exchange holiday from January 2018 to November 2019, the natural gas files hold a row that repeats the day before’s settlement, so a row’s presence does not mean the exchange was open. In other years they hold a row on almost no holiday. Of NYMEX’s holidays, only Good Friday can land on a trade date, and it moved six trade dates between 1994 and 2023.
 
 The same map from dates to contracts serves Chan’s calendar spreads, trades that buy one delivery month and sell another, tested on the same files. [The calendar spreads post](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md) reports what those spreads showed.
 
@@ -160,12 +160,12 @@ Three habits follow from the lessons above.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
 2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighbouring day would decide the answer instead of checking it.
-3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 and fewer than half after, and the earlier years are the ones Chan picked its rule from.
+3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 and fewer than half after, and Chan picked its rule from years before the book.
 
 ## References
 
 - Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Released in November 2008.
-- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 175 and 183 to 186. Page numbers here are the revised edition’s. The replication log cites the same passages by Kindle location, 4303 for p. 175 and 4529 to 4637 for pp. 183 to 186.
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 175 and 183 to 186. Page numbers here are the revised edition’s. The replication log cites the passages on pp. 183 to 185 by Kindle location, 4529 to 4632.
 - US Energy Information Administration. NYMEX futures settlement prices, daily, for New York Harbor regular gasoline, RBOB gasoline and Henry Hub natural gas, contracts 1 to 4. Downloaded 2 October 2026.
 
 *Not investment advice. Code: [the two trades](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals.py), [the calendar and expiry rules](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/futures.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals_figures.py), with the checks behind [the trades’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals_figures.py), and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) that sets each of Chan’s figures beside the one reproduced here.*

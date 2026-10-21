@@ -80,6 +80,28 @@ class TestTheCalendar:
         assert rows[date(2018, 12, 25)] == rows[date(2018, 12, 24)]
         assert not is_trading_day(date(2018, 12, 25))
 
+    def test_holiday_rows_fill_2018_and_most_of_2019_and_almost_nothing_else(self) -> None:
+        """Which of NYMEX's 261 holidays from 1994 to 2023 the natural gas files hold a row on.
+
+        Every holiday from January 2018 to November 2019 has one, repeating the day
+        before in all four files, and outside those years only 2014-01-20 does. So
+        only 2 of the 30 Good Fridays have a row, and the post says so.
+        """
+        files = [settlements(NATURAL_GAS[number])[1] for number in (1, 2, 3, 4)]
+        holidays = sorted(day for year in range(1994, 2024) for day in futures.nymex_holidays(year))
+        rowed = [day for day in holidays if any(day in rows for rows in files)]
+        assert len(holidays) == 261
+        late = [day for day in holidays if date(2018, 1, 1) <= day <= date(2019, 11, 30)]
+        assert rowed == [date(2014, 1, 20), *late]
+        for day in rowed:
+            before = futures.previous_trading_day(day)
+            assert all(rows[day] == rows[before] for rows in files)
+        good_fridays = [futures.good_friday(year) for year in range(1994, 2024)]
+        assert [day for day in good_fridays if day in rowed] == [
+            date(2018, 3, 30),
+            date(2019, 4, 19),
+        ]
+
     def test_good_friday_moves_exactly_these_trade_dates(self) -> None:
         """Every trade date in 1994 to 2023 that Good Friday moved, against weekends alone."""
         moved = []
