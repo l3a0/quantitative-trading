@@ -26,6 +26,10 @@ under `tests/fixtures/substack/`, converts every committed post, and checks
 that the two files agree. The Python
 file's docstring lists what each Markdown shape becomes.
 
+A third file, `substack_sync.js`, syncs an existing draft from the page in one
+call. `tests/test_substack_sync.py` runs it against a fake server and pins
+each check it makes and each refusal.
+
 ## This file and the owner's notes
 
 The owner keeps private notes outside this repository with a record per post.
@@ -145,6 +149,45 @@ Three limits of the browser decide how the scripts are built.
 When the extension cannot script the page, stop and tell the owner. Do not
 route around the extension to reach the signed-in page another way.
 
+## Restore the page's functions
+
+A page keeps what a script defined only until its tab closes, and a closed
+browser pane closes the tab. Pasting the functions back in cost about 10 KB of
+script each time, twice on 2026-10-21. So the page fetches both files from
+`raw.githubusercontent.com` instead, checks each one's sha256 and evaluates it.
+
+1. **Pick a pushed commit that holds both files**, such as the head of
+   `main`, and hash them there.
+
+   ```bash
+   for f in md2substack.js substack_sync.js; do git show <commit>:.claude/skills/sync-substack/$f | shasum -a 256; done
+   ```
+
+2. **Send the restore.** A hash may be cut to its first 8 or more digits. A
+   file that does not hash as given is never evaluated, and the call names it.
+
+```javascript
+await (async () => {
+  const COMMIT = "<full commit sha>";
+  const WANT = { "md2substack.js": "<sha256>", "substack_sync.js": "<sha256>" };
+  const sha = async (s) => Array.from(new Uint8Array(await crypto.subtle.digest(
+    "SHA-256", new TextEncoder().encode(s)))).map((b) => b.toString(16).padStart(2, "0")).join("");
+  for (const [name, want] of Object.entries(WANT)) {
+    const r = await fetch(
+      `https://raw.githubusercontent.com/l3a0/quantitative-trading/${COMMIT}/.claude/skills/sync-substack/${name}`);
+    const src = r.ok ? await r.text() : "";
+    if (!/^[0-9a-f]{8,64}$/.test(want) || !(await sha(src)).startsWith(want)) return { refused: name };
+    (0, eval)(src);
+  }
+  return { ready: typeof M2S === "object" && typeof SYNC === "object" };
+})()
+```
+
+The eval is indirect, so each file's top-level `var` becomes a property of the
+page's global object and outlives the call. A `ready` of false means a file
+evaluated without defining its name, so read the page's console before going
+on.
+
 ## Create a draft
 
 1. **Upload each figure.** In the page, fetch the figure from
@@ -258,6 +301,11 @@ reproduces the draft's image nodes. The one exception is a GIF node synced
 before 2026-10-13, which carries `image/png` where the conversion writes
 `image/gif`, as `## When the converter's output changes` says.
 
+Most syncs push the owner's latest Markdown edit to a draft nobody touched in
+the editor. For those, `SYNC.syncTo` runs the steps below in one call, as
+`### Sync in one call` says. It refuses whenever a step needs judgement, and
+then the steps are the procedure.
+
 1. **Read the live draft and compare it with its baseline.** Walk its body
    with `M2S.walkLines` and hash the lines in the page. A walk hash equal to
    the baseline in the owner's notes means the draft carries no text edits
@@ -319,6 +367,64 @@ A run-level patch can split one text run into two neighbours with the same
 marks. They read identically but walk as two lines. When a draft's walk differs
 by only such a split, merge neighbouring runs that carry the same marks on both
 sides before comparing, and say in the notes that this draft needs it.
+
+### Sync in one call
+
+`SYNC.syncTo`, from `substack_sync.js`, needs the page restored as
+`## Restore the page's functions` says. Its header comment lists what it
+checks. It takes what the owner's notes and a local conversion already hold,
+and nothing else, so no part of a post is pasted into the page.
+
+```javascript
+await SYNC.syncTo({
+  draft: "<draft id from the notes>",
+  post: "blog/<post>.md",
+  base: "<full sha of the commit the notes say was last synced>",
+  commit: "<full sha of the commit to sync to>",
+  expect: {
+    md: "<md_sha256>", conversion: "<conversion_sha256>",
+    body: "<body_sha256>", walk: "<walk_sha256>",
+    liveBody: "<the body hash the notes recorded at the last sync>",
+  },
+  write: true,
+})
+```
+
+The four hashes from `--summary` describe the post at `commit`, so convert
+that commit's copy of the post rather than the working tree's, with
+`images.json` built as the start of this section says. Each hash may be cut to
+its first 8 or more digits. Without `write: true` the call checks everything
+and writes nothing.
+
+The function builds its own map of figures in the page. It pairs the figure
+names in the Markdown at `base` with the live draft's image nodes, in order,
+so no image URL is pasted or committed. A figure that is new at `commit` has
+no uploaded image yet, and the call refuses.
+
+It refuses with a `refused` reason, before any write, in these cases.
+
+1. The Markdown or its conversion does not hash as expected.
+2. The live body does not hash to `liveBody`, so the draft moved since the
+   last sync. Step 1 above applies.
+3. The live body differs from the conversion of `base` in anything but its
+   subscribe widgets. That covers every node the owner added that Markdown
+   cannot express, such as a highlight, which the splice would otherwise
+   drop. It also covers a draft last synced with an older converter. Step 4
+   above applies.
+4. The change would add or drop a widget, or the patched body or its walk
+   does not hash as expected.
+5. The title or subtitle differs from the conversion's. Step 2 above
+   applies, including a subtitle the notes say is blank on purpose.
+6. The draft moved between the first read and the write.
+
+A call that writes reads the draft back. `readBack` says the stored body is
+the one sent, and `backWalkOk` that its walk is the local `walk_sha256`.
+`bodyAfter` is the first 12 digits of the stored body's hash, and goes into
+the notes as the next `liveBody`, with `commit` as the next `base`.
+`backIsConversion` is true when that hash is the local `body_sha256`, which
+holds whenever the draft's widgets are the converter's. Where the extension
+hides `bodyAfter` as a hash and `backIsConversion` is true, record
+`body_sha256` instead.
 
 ## When the converter's output changes
 
