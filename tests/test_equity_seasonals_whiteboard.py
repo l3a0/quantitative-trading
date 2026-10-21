@@ -2206,14 +2206,14 @@ class TestTheSurvivorSketches:
         panels = survivors[2]
         left, right = sketches.SAVED_PANEL, sketches.STOOD_PANEL
         saved = [s for s in panels.strokes if s.gid.startswith("saved-")]
-        assert len(saved) == 7
+        assert len(saved) == sketches.STAYERS + 1
         for line in saved:
             assert (line.x.min(), line.x.max()) == pytest.approx(left)
         assert _stroke(panels, "saved-joiner").color == GOOD
-        for k in range(6):
+        for k in range(sketches.STAYERS):
             assert _stroke(panels, f"saved-{k}").color == whiteboard.INK
         stood = [s for s in panels.strokes if s.gid.startswith("stood-")]
-        assert len(stood) == 9
+        assert len(stood) == sketches.STAYERS + 3
         for line, (a, b), colour in zip(
             stood, sketches.STOOD_SPANS, sketches.STOOD_COLOURS, strict=True
         ):
@@ -2222,7 +2222,8 @@ class TestTheSurvivorSketches:
             )
             assert line.color == colour
         assert sketches.STOOD_COLOURS.count(LOST) == 2
-        assert sketches.STOOD_SPANS[6][0] > 0 and sketches.STOOD_COLOURS[6] == GOOD
+        joiner = sketches.STAYERS
+        assert sketches.STOOD_SPANS[joiner][0] > 0 and sketches.STOOD_COLOURS[joiner] == GOOD
         for (a, b), colour in zip(sketches.STOOD_SPANS, sketches.STOOD_COLOURS, strict=True):
             if colour == whiteboard.INK:
                 assert (a, b) == (0, 1)
@@ -2243,6 +2244,10 @@ class TestTheSurvivorSketches:
         saved = _alt(text, survivors[0]).lower()
         assert f"{_count_word(len(sketches.SURVIVOR_ROWS))} black lines" in saved
         assert f"{_count_word(len(sketches.LEAVERS))} red lines" in saved
+        panels = _alt(text, survivors[2]).lower()
+        stayers = _count_word(sketches.STAYERS)
+        assert f"{stayers} black lines and one green line" in panels
+        assert f"the same {stayers} black lines" in panels
         ranking = _alt(text, survivors[1]).lower()
         assert f"ranks {_count_word(sketches.SURVIVOR_RANKED)} stocks" in ranking
         assert f"{_count_word(len(sketches.GONE))} of the stocks are drawn as red rings" in ranking
@@ -2257,7 +2262,7 @@ def _alt(text: str, scene) -> str:
 
 
 def _count_word(n: int) -> str:
-    return {3: "three", 6: "six", 18: "eighteen", 20: "twenty"}.get(n, str(n))
+    return {2: "two", 3: "three", 6: "six", 18: "eighteen", 20: "twenty"}.get(n, str(n))
 
 
 class TestTheJanuarySketches:

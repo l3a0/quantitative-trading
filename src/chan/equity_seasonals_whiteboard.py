@@ -77,9 +77,9 @@ The next three are about survivorship bias and are schematic. The post places
 the first in its opening, beside its explanation of the bias, and the other
 two in Lesson 3:
 
-1. What a saved file can see: six companies' lines run to the save in 2007
+1. What a saved file can see: two companies' lines run to the save in 2007
    and three stop early, because the company was acquired, shrank out of the
-   index or failed, and a bracket shows only the six are in the file.
+   index or failed, and a bracket shows only the two are in the file.
 2. The ranking only sees survivors: one month's ranking as it stood, with
    the stocks that later left ringed in red, above the same ranking as the
    file holds it, whose worst tenth is a different set.
@@ -1587,12 +1587,12 @@ def five_year_scenes(figures: FiveYearFigures | None = None) -> tuple[Scene, ...
 
 
 #: The saved-file scene's board: its companies' lines run from 1999 to the
-#: save, the save line stands just past them, and the rows hold the six
+#: save, the save line stands just past them, and the rows hold two
 #: companies that survived and the three that left, each with how far along
 #: the years it got and why it left.
 SAVED_FROM_X, SAVED_TO_X = 1.0, 7.0
 SAVE_X = SAVED_TO_X + 0.2
-SURVIVOR_ROWS = (3.5, 3.25, 3.0, 2.75, 2.5, 2.25)
+SURVIVOR_ROWS = (2.65, 2.35)
 LEAVERS = ((1.8, 0.3, "acquired"), (1.5, 0.55, "shrank out of the index"), (1.2, 0.8, "failed"))
 SAVED_AXIS_Y = 0.75
 
@@ -1633,7 +1633,11 @@ def _survivors_file() -> Scene:
     last_survivor = f"survivor-{len(SURVIVOR_ROWS) - 1}"
     steps.append(
         Label(
-            "companies still in the index in 2007", SAVED_FROM_X, 3.9, names=last_survivor, size=11
+            "companies still in the index in 2007",
+            SAVED_FROM_X,
+            SURVIVOR_ROWS[0] + 0.45,
+            names=last_survivor,
+            size=11,
         )
     )
     for k, (y, share, why) in enumerate(LEAVERS):
@@ -1760,13 +1764,16 @@ def _survivors_ranking() -> Scene:
     return Scene("The ranking only sees survivors", "survivors_ranking", tuple(steps))
 
 
-#: The panels scene's two panels, its nine rows, and the right panel's spans
-#: as shares of the years: six members throughout, one that joined, two that
-#: left.
+#: The panels scene's two panels, its rows, and the right panel's spans as
+#: shares of the years: :data:`STAYERS` members throughout, one that joined,
+#: two that left.
 SAVED_PANEL, STOOD_PANEL = (0.6, 4.4), (5.4, 9.2)
-PANEL_ROWS = tuple(3.4 - 0.29 * k for k in range(9))
-STOOD_SPANS = ((0, 1),) * 6 + ((0.45, 1), (0, 0.35), (0, 0.6))
-STOOD_COLOURS = (INK,) * 6 + (GOOD, LOST, LOST)
+#: How many members that stayed each panel draws. Two make the point, and
+#: more only add black rows.
+STAYERS = 2
+PANEL_ROWS = tuple(3.3 - 0.42 * k for k in range(STAYERS + 3))
+STOOD_SPANS = ((0, 1),) * STAYERS + ((0.45, 1), (0, 0.35), (0, 0.6))
+STOOD_COLOURS = (INK,) * STAYERS + (GOOD, LOST, LOST)
 
 
 def _panel_x(panel: tuple[float, float], share: float) -> float:
@@ -1777,11 +1784,11 @@ def _survivors_panels() -> Scene:
     """Lesson 3: a file saved in 2007 against the index as it stood each month."""
     left, right = SAVED_PANEL, STOOD_PANEL
     steps: list[Stroke | Fill | Label] = []
-    for k, y in enumerate(PANEL_ROWS[:6]):
+    for k, y in enumerate(PANEL_ROWS[:STAYERS]):
         steps.append(
             _stroke(f"saved-{k}", _line([(left[0], y), (left[1], y)]), frames=9, width=3.0)
         )
-    joiner_y = PANEL_ROWS[6]
+    joiner_y = PANEL_ROWS[STAYERS]
     steps.append(
         _stroke(
             "saved-joiner",
@@ -1798,7 +1805,7 @@ def _survivors_panels() -> Scene:
         Label(
             "joined later, carried back",
             left[0],
-            PANEL_ROWS[7] - 0.05,
+            PANEL_ROWS[STAYERS + 1] - 0.05,
             names="saved-joiner",
             color=GOOD,
             size=10,
@@ -1833,15 +1840,15 @@ def _survivors_panels() -> Scene:
     steps.append(
         Label(
             "joined",
-            _panel_x(right, STOOD_SPANS[6][0]) - 0.3,
-            PANEL_ROWS[6],
-            names="stood-6",
+            _panel_x(right, STOOD_SPANS[STAYERS][0]) - 0.3,
+            PANEL_ROWS[STAYERS],
+            names=f"stood-{STAYERS}",
             color=GOOD,
             ha="right",
             size=10,
         )
     )
-    for k in (7, 8):
+    for k in (STAYERS + 1, STAYERS + 2):
         steps.append(
             Label(
                 "left",
@@ -1857,7 +1864,7 @@ def _survivors_panels() -> Scene:
             "members at each ranking date",
             sum(right) / 2,
             0.7,
-            names="stood-8",
+            names=f"stood-{STAYERS + 2}",
             color=MUTED,
             ha="center",
             size=10,
@@ -1868,7 +1875,7 @@ def _survivors_panels() -> Scene:
             "the later runs, from 2009, used the data on the right",
             0.3,
             0.25,
-            names="stood-8",
+            names=f"stood-{STAYERS + 2}",
             color=ACCENT,
             size=11,
         )
