@@ -3352,7 +3352,7 @@ Ten rows, all derivable from
 
 **Both natural gas figures reproduce under the reading the issue pinned, and
 the gasoline count agrees with the book on every year the file can read.** Chan says commodity seasonal trades still pay where
-the equity ones have died, and gives two. Gasoline buys the May contract at the
+much of the equity seasonality has weakened or disappeared, and gives two. Gasoline buys the May contract at the
 close of April 13 and sells at the close of April 25. Natural gas buys the June
 contract at the close of February 25 and sells at the close of April 15.
 
@@ -3450,7 +3450,7 @@ Three things.
    2015 holds the 2 losing years 19 of 21 allows and no third. The three
    unreadable years are gaps in EIA's file, not losses.
 3. **In this exploratory record, both trades win fewer years after the years
-   Chan read.** Natural gas wins 15 of 15 through 2008 and 7 of 15 after, which
+   Chan counted.** Natural gas wins 15 of 15 through 2008 and 7 of 15 after, which
    agrees with his remark at location 4632. Gasoline wins 3 of 8 from 2016 to
    2023. Eight years with no costs charged can show the change and cannot
    measure it.

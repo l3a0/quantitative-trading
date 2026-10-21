@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -85,7 +86,7 @@ class TestTheCalendar:
 
         Every holiday from January 2018 to November 2019 has one, repeating the day
         before in all four files, and outside those years only 2014-01-20 does. So
-        only 2 of the 30 Good Fridays have a row, and the post says so.
+        only 2 of the 30 Good Fridays have a row.
         """
         files = [settlements(NATURAL_GAS[number])[1] for number in (1, 2, 3, 4)]
         holidays = sorted(day for year in range(1994, 2024) for day in futures.nymex_holidays(year))
@@ -329,3 +330,81 @@ def test_the_report_prints_the_derived_counts(capsys: pytest.CaptureFixture[str]
     assert "1995 to 2015: 16 of 21 profitable   (the book prints 19 of 21)" in out
     assert "the run ending in 2007: 13   (the main text prints 13)" in out
     assert "the run ending in 2008: 14   (the sidebar prints 14)" in out
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "commodity-seasonals-lessons.md"
+
+
+def _tally(trades, first: int, last: int) -> tuple[int, int]:
+    years = [trade for trade in trades if first <= trade.year <= last]
+    return profitable_count(years), len(years)
+
+
+def _day(day: date) -> str:
+    return f"{day.day} {day:%B} {day.year}"
+
+
+class TestThePostQuotesThePins:
+    """The post's copies of the figures above, read from the post itself.
+
+    The prose states these numbers and the tests above derive them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review changed 26 of its numbers one at a time, and none failed a test.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_natural_gas_before_and_after_2008(self) -> None:
+        won, of = _tally(GAS, 1994, 2008)
+        later, later_of = _tally(GAS, 2009, 2023)
+        assert (
+            f"Natural gas wins {won} of {of} years through 2008 and {later} of {later_of} after."
+            in self.text
+        )
+        assert f"\\text{{1994 to 2008}} & {won} \\text{{ of }} {of} & 0" in self.text
+        assert f"\\text{{2009 to 2023}} & {later} \\text{{ of }} {later_of} & 0" in self.text
+        assert f"The files give {later} of {later_of} for 2009 to 2023" in self.text
+
+    def test_the_streak_table_and_the_start_years(self) -> None:
+        from_1995 = runs_ending([trade for trade in GAS if trade.year >= RUN_START])
+        from_1994 = runs_ending(GAS)
+        for year in (2007, 2008):
+            assert f"{year} & {from_1995[year]} & {from_1994[year]}" in self.text
+        ends = [min(year for year, run in from_1994.items() if run == count) for count in (13, 14)]
+        assert f"the streaks of 13 and 14 end in {ends[0]} and {ends[1]} instead" in self.text
+
+    def test_the_gasoline_count_and_its_gaps(self) -> None:
+        years = [trade for trade in GASOLINE if trade.year <= 2015]
+        losses = [trade.year for trade in years if trade.profitable is False]
+        missing = [trade for trade in years if trade.profitable is None]
+        assert f"\\text{{Profitable}} & {profitable_count(years)} \\\\" in self.text
+        assert f"\\text{{Losing, {losses[0]} and {losses[1]}}} & {len(losses)}" in self.text
+        assert (
+            f"\\text{{No row, {missing[0].year} to {missing[-1].year}}} & {len(missing)}"
+            in self.text
+        )
+        assert f"\\text{{Total}} & {len(years)}" in self.text
+        won, of = _tally(GASOLINE, 1995, 2015)
+        assert f"\\text{{1995 to 2015}} & {won} \\text{{ of }} {of} & {len(missing)}" in self.text
+        entry_gap = [trade.entry_day for trade in missing if trade.entry_price is None]
+        exit_gap = [trade.exit_day for trade in missing if trade.exit_price is None]
+        assert (
+            f"no row on {_day(entry_gap[0])}, the entry date that year, or on "
+            f"{_day(exit_gap[0])} and {_day(exit_gap[1])}, the exit dates those years"
+        ) in self.text
+
+    def test_the_years_inside_and_after_the_book(self) -> None:
+        early = [trade for trade in GASOLINE if trade.year <= 2008]
+        assert (
+            f"{profitable_count(early)} profitable years and "
+            f"{sum(trade.profitable is None for trade in early)} with no price on a trade date"
+        ) in self.text
+        won, of = _tally(GASOLINE, 2007, 2015)
+        assert f"The trade won {won} of those {of}" in self.text
+        gasoline, gasoline_of = _tally(GASOLINE, 2016, 2023)
+        gas, gas_of = _tally(GAS, 2016, 2023)
+        assert (
+            f"it won {gasoline} of {gasoline_of}. Natural gas won {gas} of the same {gas_of}."
+            in self.text
+        )
+        assert f"\\text{{2016 to 2023}} & {gasoline} \\text{{ of }} {gasoline_of} & 0" in self.text

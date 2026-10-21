@@ -20,11 +20,14 @@ from 1994, both to 2023, the last year whose exit the files hold.
    under the reading pinned on issue 19 that both of Chan's counts were written
    for the first edition, and after 2015 for gasoline, the year the revised
    edition's count runs to. Each side is labelled with its count.
+4. **A mark along each panel's foot** for every year with a price on both
+   trade dates, pointing up for a profit and down for a loss, so a year too
+   small to see as a bar still shows its sign.
 
 Every bar takes one ink whatever its sign, and nothing is drawn in the verdict
 colours, because the figure grades nothing. The title says the record is
 exploratory, for the reason ``chan.commodity_seasonals`` gives: Chan chose both
-trades after looking at the years before the book, and nobody wrote down a test
+trades after looking at years before the book, and nobody wrote down a test
 for the years after it.
 
 Every value comes from :mod:`chan.commodity_seasonals`, so the figure can only

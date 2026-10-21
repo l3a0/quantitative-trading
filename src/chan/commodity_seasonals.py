@@ -1,10 +1,10 @@
 """Chan's two commodity seasonal trades, gasoline in April and natural gas in spring.
 
-Chan argues that seasonal trades in commodity futures still pay where the
-equity ones have died, because the demand behind them is physical: drivers
-before summer for gasoline, power generators before air conditioning season
-for natural gas. Entry 7 reproduced the equity seasonals and found them dead
-as he said. This module checks the two he says are alive.
+Chan argues that seasonal trades in commodity futures still pay where much of
+the equity seasonality has weakened or disappeared, because the demand behind
+them is physical: drivers before summer for gasoline, power generators before
+air conditioning season for natural gas. Entry 7 tested two equity seasonals.
+This module checks the two commodity trades he says are alive.
 
 The rules are the revised edition's sidebars.
 

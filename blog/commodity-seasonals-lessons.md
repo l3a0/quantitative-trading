@@ -97,7 +97,7 @@ The verdict [the replication log](https://github.com/l3a0/quantitative-trading/b
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
-Chan picked both trades by studying past prices. The gasoline sidebar says he found the best trade after scanning the literature, and both rules name exact days. A rule chosen from the past tends to look good on the past, so the years it was chosen on cannot test it. The years after the book can.
+Chan picked both trades by studying past prices. The gasoline sidebar says he found the best trade after scanning the literature, and both rules name exact days. A rule chosen from the past tends to look good on the past, so the years it was chosen on cannot test it. The years after the book can. Here the book’s years end where Chan’s counts end: 2015 for gasoline, the year his revised edition’s count runs to, and 2008 for natural gas, under Lesson 1’s reading.
 
 ```math
 \small\begin{array}{l|l|r|r}
@@ -156,7 +156,7 @@ Six questions are beyond it.
 
 ## What this means for a trader
 
-Three habits follow from the lessons above.
+Three habits follow from the first three lessons.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
 2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighbouring day would decide the answer instead of checking it.

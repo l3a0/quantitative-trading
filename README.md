@@ -179,15 +179,15 @@ where they were first built. The other forty-five were built here.
     121.5 on the closes and 127.65 on the opens, and on Example 3.7 it prints
     0.9578 rather than the book's 0.25. Every figure is exploratory and about
     survivors.
-11. Chan's two commodity seasonal trades, which he says still pay where the
-    equity ones have died: the May gasoline contract from April 13 to April 25,
+11. Chan's two commodity seasonal trades, which he says still pay where much
+    of the equity seasonality has weakened or disappeared: the May gasoline contract from April 13 to April 25,
     and the June natural gas contract from February 25 to April 15. On EIA's
     NYMEX settlements, natural gas is profitable in every year from 1995 to
     2008, which reproduces both the main text's 13 consecutive years and the
     sidebar's 14, read as first-edition figures counted from 1995. Gasoline from 1995 to 2015 holds the 2 losing years that
     Chan's 19 of 21 allows, and shows 16 profitable rather than 19, because
     EIA's file has no row on the trade date in 1997, 1998 or 1999. Both trades
-    win fewer years after the years he read. Every figure is exploratory.
+    win fewer years after the years he counted. Every figure is exploratory.
 12. Post-earnings announcement drift, Example 7.2 of *Algorithmic Trading*,
     which buys or shorts a stock at the open after an earnings announcement
     when the overnight gap is large, and sells at the close. On Chan's own
@@ -3587,8 +3587,8 @@ replication log.
    checked against something the files do not supply.
 
 It cites the revised edition by page, while the replication log cites the
-passages on pp. 183 to 185 by Kindle location. Four groups of its figures are not pinned
-here.
+passages on pp. 183 to 185 by Kindle location. Five groups of its figures are
+not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. The pairing
    of equity and commodity seasonals is on p. 175. "Alive and well", the
@@ -3616,6 +3616,10 @@ here.
    2007 to 2015, that 7 of 15 is fewer than half, and that 2016 to 2023 is
    eight years.
 4. Its references. The three citations are cited rather than computed.
+5. Three dates no test asserts: the files' last row on 5 April 2024, which
+   their file names record, the day the 16 exchange dates were read, 3
+   October 2026, and 13 April 2006, the older contract's missing entry,
+   which Entry 11 records.
 
 Every other number in the post traces to an assertion in
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py), or to
