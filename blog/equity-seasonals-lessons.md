@@ -226,7 +226,7 @@ On this file some months land on a half, so the half matters. Rounding every hal
 
 #### Rule 7: dividing by n or n − 1, a choice in all three revised scripts
 
-The standard deviation of n monthly returns divides their summed squared deviations from the mean by `n` or by `n − 1`.
+The standard deviation of `n` monthly returns divides their summed squared deviations from the mean by `n` or by `n − 1`.
 
 ```math
 \begin{aligned}
@@ -255,6 +255,18 @@ Every printout’s whole-period figure for Example 7.7 is negative on Chan’s f
    - It reaches back only to late 1999.
    - Its closes are adjusted in a way the file does not record, where CRSP’s returns include dividends.
    - Chan’s revised scripts divide each month by every position, long and short together, so they earn half the gap between the best tenth and the worst that Heston and Sadka report.
+
+The last difference comes from how each month is computed. Example 7.7 buys `n` stocks from the best tenth and shorts `n` from the worst. Write `rᵢ` for stock `i`’s return that month. A short gains when its stock falls, so a shorted stock’s return enters with its sign flipped, and Chan’s revised month divides the sum by all `2n` positions:
+
+```math
+\begin{aligned}
+\text{Chan's month} &= \frac{1}{2n}\Big(\sum_{\text{best}} r_i - \sum_{\text{worst}} r_i\Big) \\
+&= \frac{1}{2}\big(\bar r_{\text{best}} - \bar r_{\text{worst}}\big) \\
+&= \frac{1}{2} \times \text{gap}
+\end{aligned}
+```
+
+Each barred term is a tenth’s average return, and the difference between them is the gap Heston and Sadka report, what a dollar bought and a dollar shorted earn together. Chan spreads one dollar across both sides, half on each, so his month earns half the gap.
 
 What the file can give is a split, and it is **exploratory, with no verdict**. The revised Python keeps 83 months for its statistics, from December 2000 to October 2007. Cut at the start of 2002:
 
