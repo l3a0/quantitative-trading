@@ -503,6 +503,27 @@ step 3 above, and its report names each node it rewrote. A post whose
 figures are all PNGs converts to the hashes it had before, which on that day
 was every committed post.
 
+The subscribe widget's caption has changed twice. On 2026-10-17 it became
+"come along on my learning journey. enjoy the ride!", and on 2026-10-21 it
+became "join my learning journey. enjoy the ride!". Every post carries
+widgets, so each change moved every post's conversion hash. The block-by-block
+comparison is unaffected by either change, because it treats any two widgets
+as equal. A sync keeps each live widget as it is, so it never changes a live
+caption. Only a new draft takes the caption from the converter. The walk check
+in `SYNC.syncTo` does see the caption, though, because the patched body keeps
+the live widgets and the walk reads their text. So the one-call sync refuses
+any draft whose caption differs from the converter's, with "the patched body".
+Restore the page's functions from a commit whose converter writes the caption
+the drafts carry.
+
+So changing the caption on drafts that already exist is a write of its own.
+Each one replaces the caption text in the raw body and changes nothing else,
+guarded on the draft's save time and body being unchanged since the read. That
+write moves the draft's body and walk hashes, since the walk reads each
+caption's text. A hash recorded before it matches the live body once the new
+caption is mapped back to the old one. A published or scheduled post waits for
+the owner's approval, as for any other write to one.
+
 ## Update a published post
 
 Every write here waits for the owner's approval in chat. The standing approval
