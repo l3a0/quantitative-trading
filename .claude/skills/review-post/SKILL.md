@@ -1,6 +1,6 @@
 ---
 name: review-post
-description: Review one unpublished blog/*.md post before the owner reads it for publishing, in rounds that loop until nothing significant is left. Each round runs five independent lenses (accuracy, consistency, easy comprehension, suggested sketch notes, suggested subheadings) and a verifier per lens that tries to refute every finding, then applies what survives on the post's branch, syncs its unpublished draft and re-reviews. Use when asked to review a post before the owner edits or publishes it, to check a post for accuracy, consistency or ease of reading, or to suggest sketch notes or subheadings for a post. Not for reviewing a pull request's code, which CLAUDE.md's `## Pull requests` covers.
+description: Review one unpublished blog/*.md post before the owner reads it for publishing, in rounds that loop until nothing significant is left. Full rounds run five independent lenses (accuracy, consistency, easy comprehension, suggested sketch notes, suggested subheadings) and a verifier per lens that tries to refute every finding, then apply what survives on the post's branch and sync its unpublished draft. Once a full round finds only errors in the loop's own edits, later rounds review just the last round's diff and stop when one is clean. Use when asked to review a post before the owner edits or publishes it, to check a post for accuracy, consistency or ease of reading, or to suggest sketch notes or subheadings for a post. Not for reviewing a pull request's code, which CLAUDE.md's `## Pull requests` covers.
 ---
 
 # Review a post before the owner reads it
@@ -26,38 +26,60 @@ still wait for the owner, as `sync-substack` says.
 
 Each round has four steps.
 
-1. **Review.** The five lenses run at the round's commit, then a verifier per
-   lens.
+1. **Review.** The lenses run at the round's commit, then a verifier per lens.
 2. **Decide and apply.** Apply every confirmed or changed finding on the
    post's branch, and drop the rest with a reason. Sync the unpublished draft
    once the round's commits are pushed.
 3. **Post the round's comment** on the tracking issue.
 4. **Repeat** from the new commit, or stop.
 
-The loop stops on the first round whose verified findings hold nothing
-significant. A finding is significant when it is one of three kinds.
+A finding is significant when it is one of three kinds.
 
-1. Any accuracy or consistency finding.
+1. Any accuracy or consistency finding where some surface states something
+   false.
 2. A comprehension finding a reader would misread, as the verifier grades it
    below.
 3. A display equation or table wider than 320 pixels at the round's commit,
    because a phone reader sees it cut off.
 
 A suggestion an earlier round dropped does not count, and neither does a
-cosmetic point, such as a line that wraps short in a docstring. A consistency
-finding counts when some surface states something false.
+cosmetic point, such as a line that wraps short in a docstring.
 
-The loop has no cap on its rounds. The first run stopped at a five-round cap
-with one significant finding still in round 5, and on 2026-10-21 the owner
-removed the cap. So the stop rule is the only way the loop ends. Each round's
-comment names what the round cost, so the owner can see the price of every
-further round as it is spent.
+The rounds run in two phases, by the owner's ruling of 2026-10-21. A loop
+review settles the post's original text first, then checks only its own
+edits.
 
-On the commodity seasonals post the first five rounds found 15, 7, 6, 6 and
-1 significant findings. From round 3 on, nearly every one came from the last
-round's own rewrites, or from a README list describing the post that a rewrite made
-stale. So a rewrite is applied together with a sweep of every surface that
-describes the sentence it changes, as `## Decide and apply` says.
+1. **Full rounds.** All five lenses read the whole post and everything that
+   describes it. The loop leaves this phase after the first full round whose
+   significant findings all sit in text the loop itself wrote. That includes
+   a README list that an earlier round's rewrite made stale.
+2. **Diff rounds.** Each later round reads only the previous round's diff,
+   plus every surface that describes a sentence the diff changed: README's
+   lists, the replication log's entry, `data/README.md`, the module
+   docstrings and the tests that read the post. Two lenses run, accuracy and
+   consistency, with one verifier between them. Comprehension runs only on
+   rewritten prose sentences in the post. Fixes in this phase are minimal: a
+   correction changes only the words that are wrong, and cosmetic points are
+   recorded and not applied, since every applied rewrite is new text the next
+   round must check.
+
+The loop stops on the first diff round that holds nothing significant. The
+diff shrinks each round, so the loop converges. The loop has no cap on its
+rounds, because the owner removed a five-round cap on 2026-10-21, and each
+round's comment names what the round cost.
+
+The price is that a diff round cannot catch an error in untouched text that
+the full rounds missed. The full rounds read that text several times over, so
+the risk is small. One last full round before hand-over removes it, when the
+owner asks for that.
+
+The first run, on the commodity seasonals post, predates this rule and ran
+eight full rounds. They found 15, 7, 6, 6, 1, 3, 1 and 0 significant findings.
+Rounds 1 and 2 found errors that were in the post before the loop began. From
+round 3 on, nearly every finding sat in a sentence the round before had just
+written, or in a README list that sentence had made stale. Each of rounds 5 to
+8 cost about 3 to 5 US dollars to find one or two slips in a few lines. Under
+this rule round 3 would have been the last full round.
 
 The comment that ends the loop says it ended and why, with the count of
 significant findings in each round, so the owner can see each round adding
@@ -127,10 +149,11 @@ Then measure the post's math blocks, as the next section says.
 Write the round's context to one file in the scratchpad, and have every lens
 read it first. It names the round's commit, links the earlier rounds'
 comments, and lists everything already decided: the owner's choices and every
-item an earlier round dropped. A later round reviews the post as it now
-stands, so it also asks each lens to check what the last round rewrote, since
-a rewrite can bring in a new error. Measure the math blocks again at the
-round's commit.
+item an earlier round dropped. A full round asks each lens to check what the
+last round rewrote, since a rewrite can bring in a new error. A diff round
+gives the lenses the previous round's `git diff` and the surfaces that
+describe each changed sentence, and nothing else. Measure the math blocks
+again at the round's commit when the diff touched one.
 
 ## Measure phone width
 
@@ -171,8 +194,10 @@ then took it to 319, one pixel under the limit.
 
 ## The five lenses
 
-Each lens runs as its own background sub-agent, started in one message so all
-five run at once, and none sees another's prompt or result. Each prompt stands
+A full round runs all five lenses below. A diff round runs only accuracy and
+consistency, scoped to the diff, as `## The loop` says. Each lens runs as its
+own background sub-agent, started in one message so all run at once, and none
+sees another's prompt or result. Each prompt stands
 alone, per the owner's rules for a sub-agent. It names the post, the commit,
 the tracking issue, the draft's state, what the owner already decided, the
 inbound links, and a scratch folder of the lens's own under the session
@@ -315,8 +340,9 @@ both.
    draft too, as step 6 of `## Before round 1` checks this one. When it is
    published or scheduled, its change waits on the owner, and the round's
    comment lists it as dropped for that reason.
-2. **Comprehension.** Apply misread and reread findings. Apply a cosmetic one
-   only when the post reads clearer with it, and drop it otherwise.
+2. **Comprehension.** Apply misread and reread findings. In a full round,
+   apply a cosmetic one only when the post reads clearer with it. In a diff
+   round, record every cosmetic point and apply none.
 3. **Phone width.** Fix every block over 320 pixels with one of the three
    fixes `sync-substack` gives, measured before it is applied.
 4. **Sketch notes.** Draw the strongest through `sketch-notes`. Round 1 of
