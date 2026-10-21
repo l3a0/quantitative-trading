@@ -44,8 +44,16 @@ significant. A finding is significant when it is one of three kinds.
    because a phone reader sees it cut off.
 
 A suggestion an earlier round dropped does not count, and neither does a
-cosmetic point. The loop also stops after five rounds, even if the last one
-still found something, so a lens that never runs dry cannot keep it going.
+cosmetic point, such as a line that wraps short in a docstring. A consistency
+finding counts when some surface states something false. The loop also stops
+after five rounds, even if the last one still found something, so a lens that
+never runs dry cannot keep it going.
+
+On the commodity seasonals post the five rounds found 15, 7, 6, 6 and 1
+significant findings, and the loop stopped at the cap. From round 3 on, nearly every one came from the last round's own
+rewrites, or from a README list describing the post that a rewrite made
+stale. So a rewrite is applied together with a sweep of every surface that
+describes the sentence it changes, as `## Decide and apply` says.
 
 The comment that ends the loop says it ended and why, with the count of
 significant findings in each round, so the owner can see each round adding
@@ -201,7 +209,9 @@ comment reports that too.
    at the round's commit, anchors included. The posts that link here say
    nothing this post contradicts. This lens also mutates numbers in the post
    and runs the tests, to report which numbers no test holds, so it runs with
-   `isolation: "worktree"` and checks out the round's commit first.
+   `isolation: "worktree"` and checks out the round's commit first. On the
+   commodity seasonals post it took 10 to 33 minutes a round, the longest of
+   the five, so the round applies the other lenses' changes while it runs.
 3. **Easy comprehension.** It reports:
    - terms used before they are explained
    - ambiguous references, such as "this" or "it" with two candidates
@@ -280,6 +290,21 @@ both.
    change to text a figure draws means redrawing the PNG in the same commit
    and updating the test that pins it. A sentence that now states a measured
    fact gets a test that derives it.
+
+   A post's numbers are usually held by no test at all. On the commodity
+   seasonals post 26 of 26 single-number mutants of the prose passed every
+   test before round 1 added a class that reads the post and checks its
+   counts, streaks, gap dates and splits against the run. That class reads one
+   copy of each figure, which is the affordable bound. Pinning every second
+   copy would have added about 65 assertions, each repeating a derived value.
+   Whatever README and the class's docstring say it reads must match what it
+   reads, because round 3 and round 4 each found that claim overstated.
+
+   Every change to the post is swept against the surfaces that describe it:
+   README's lists of what no test asserts and of facts from outside the data,
+   the replication log's entry, and the module docstrings. A sentence that
+   gains a number, a fact or a piece of arithmetic changes one of those lists
+   in the same commit.
 
    A fix can reach another post. When that post is unpublished, the fix is
    part of the round: the commit and the pull request write `Part of #M` for
