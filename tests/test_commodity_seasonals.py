@@ -269,7 +269,8 @@ class TestNaturalGas:
         """
         runs = runs_ending(GAS)
         assert (runs[2006], runs[2007], runs[2008]) == (13, 14, 15)
-        assert natural_gas_trade(1993).profitable is None
+        assert natural_gas_trade(1993).entry_price is None
+        assert natural_gas_trade(1993).exit_price is None
 
     def test_a_missing_year_breaks_a_run_in_any_order(self) -> None:
         trades = [gasoline_trade(year) for year in (2000, 1997, 1996, 1995)]
@@ -405,6 +406,9 @@ class TestThePostQuotesThePins:
             f"no row on {_day(entry_gap[0])}, the entry date that year, or on "
             f"{_day(exit_gap[0])} and {_day(exit_gap[1])}, the exit dates those years"
         ) in self.text
+        side = gasoline_trade(2006, symbol=HARBOR_GASOLINE)
+        assert side.entry_price is None
+        assert f"its file has no row on {_day(side.entry_day)}" in self.text
 
     def test_the_years_inside_and_after_the_book(self) -> None:
         early = [trade for trade in GASOLINE if trade.year <= 2008]

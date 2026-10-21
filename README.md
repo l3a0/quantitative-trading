@@ -3621,10 +3621,9 @@ not pinned here.
    are 2016 to 2023, that 2008 is a year after 2007, and that 1994 is one
    year before 1995.
 4. Its references. The three citations are cited rather than computed.
-5. Three dates no test asserts: the files' last row on 5 April 2024, which
-   their file names record, the day the 16 exchange dates were read, 3
-   October 2026, and 13 April 2006, the older contract's missing entry,
-   which Entry 11 records.
+5. Two dates no test asserts: the files' last row on 5 April 2024, which
+   their file names record, and the day the 16 exchange dates were read, 3
+   October 2026.
 
 Every other number in the post traces to an assertion in
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py), or to
