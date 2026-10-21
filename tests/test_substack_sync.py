@@ -26,7 +26,6 @@ own ``crypto.subtle`` path is the one part no test runs.
 
 from __future__ import annotations
 
-import copy
 import hashlib
 import json
 import subprocess
@@ -111,12 +110,10 @@ def _body(md: str, images: dict = IMAGES) -> dict:
 
 def _live_body(md: str = BASE_MD) -> dict:
     """The base conversion as the editor stores it, each widget's url rewritten."""
-    body = copy.deepcopy(_body(md))
+    body = _body(md)
     for i, block in enumerate(body["content"]):
         if block["type"] == "subscribeWidget":
-            # A new block, since the converter's two widgets are one object.
-            url = f"{EDITOR_WIDGET_URL}-{i}"
-            body["content"][i] = {**block, "attrs": {**block["attrs"], "url": url}}
+            block["attrs"]["url"] = f"{EDITOR_WIDGET_URL}-{i}"
     return body
 
 
