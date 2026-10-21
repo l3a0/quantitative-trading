@@ -5,7 +5,9 @@ file reading it runs on one worker, and nothing else in the suite would
 notice if they stopped. The pins run xdist's own ``schedule`` through
 :class:`tests.conftest.JoinedFileScheduling`, with two stub workers that
 record which tests each is sent, so they fail when xdist stops calling the
-method the class overrides as well as when the mapping is wrong.
+method the class overrides as well as when the mapping is wrong. One more pin
+holds the fixture at session scope, since a fixture rebuilt for each file
+would build the run twice on that one worker.
 """
 
 from __future__ import annotations
@@ -104,3 +106,13 @@ def test_only_loadfile_is_scheduled_here() -> None:
     assert isinstance(pytest_xdist_make_scheduler(_config(), None), JoinedFileScheduling)
     for dist in ("load", "loadscope", "loadgroup", "worksteal", "no"):
         assert pytest_xdist_make_scheduler(_config(dist), None) is None
+
+
+def test_the_shared_run_is_built_once_per_session(request) -> None:
+    """One work unit saves nothing if the fixture is rebuilt for each file in it.
+
+    ``_fixturemanager`` is private to pytest, the same price the scheduling
+    pins pay for ``_split_scope``.
+    """
+    (definition,) = request._fixturemanager.getfixturedefs("pca_factor_momentum_run", request.node)
+    assert definition.scope == "session"
