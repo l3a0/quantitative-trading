@@ -76,7 +76,7 @@ Eleven classes and one test.
    ``residual_check``, held on a synthetic series.
 10. ``TestTheWindowPower``, the simulation issue 212 declared before it ran:
     how often a series that truly reverts at the rate's half-life rejects in
-    the rate's scan.
+    the rate's scan, and the closed form it runs, held to ``adf_tstat``.
 11. ``TestTheKnownMeanRule``, what a known-mean version of Chan's linear rule
     earns on the rate's half-life, set beside a 36-day half-life.
 
@@ -1026,8 +1026,8 @@ class TestTheWindowPower:
     20261002, scanned as the rate is. It answers the hypothesis Lesson 4 of
     the blog post offered for why so few of the rate's windows reject. It does
     not show that slow reversion is the reason, because the model has neither
-    the rate's fat tails nor its changing volatility. Exploratory. Takes about
-    a second.
+    the rate's fat tails nor its changing volatility. Exploratory. The
+    simulation takes about a second.
     """
 
     def test_the_declared_specification(self, power, rate: CrossRate) -> None:

@@ -534,10 +534,11 @@ def window_power(
 
     The windows are :func:`rolling_adf`'s, 252 days stepped by 21 at one lag
     with a constant, and so is the statistic. Only the statistic is computed,
-    because the half-life ``rolling_adf`` also fits in each window would double
-    the run time and the simulation reports nothing about it. Each window end
-    is one call of :func:`batched_adf` across every path.
-    ``tests/test_stationary_candidates.py`` holds that the two agree.
+    because the simulation reports nothing about the half-life ``rolling_adf``
+    also fits in each window. ``test_the_scan_is_the_rate_s_scan`` holds the
+    counts to ``rolling_adf``'s scan on the first path. The statistic comes
+    from :func:`batched_adf`, called once per window end across every path and
+    once over the whole paths.
     """
     z = simulated_paths(half_life, length, paths, seed)
     ends = range(WINDOW, length + 1, STEP)

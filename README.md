@@ -2993,8 +2993,8 @@ no pin before it, and `tests/test_stationary_candidates.py` now pins them.
 4. The window-power simulation behind Lesson 4: 1,000 series that truly
    revert at the rate's half-life, scanned as the rate is, on a specification
    [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) fixed
-   before it ran. `TestTheWindowPower` holds its counts. It takes about a
-   second of the suite's run.
+   before it ran. `TestTheWindowPower` holds its counts. The simulation takes
+   about a second of the suite's run.
 5. The two checks behind Lesson 2's other choices: the rate's one-lag
    statistic with a trend and the trend's bars, and the test without a
    constant on the rate quoted per 100.
