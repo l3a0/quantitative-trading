@@ -25,17 +25,20 @@ Every ``make_*`` function writes to ``docs/figures`` when ``out`` is None, so
 each draw here passes a path under ``tmp_path``. Drawing without one would
 overwrite the file being checked.
 
-Three figures need more than a call with ``out``.
+Four figures need more than a call with ``out``, in three ways.
 
-1. Two makers take an input their module's ``main()`` computes, and the draws
-   below compute it the way ``main()`` does.
+1. One maker takes an input its module's ``main()`` computes, and the draw
+   below computes it the way ``main()`` does.
 2. ``low_beta_holdout.png`` reads the owner's archive of minute bars, so its
    comparison skips where ``archive_skip_reason()`` in ``tests/conftest.py``
    gives a reason, as its other archive pins do.
-3. ``cpo_cells.png`` needs a full run of Example 7.1 on the archive. Its
-   comparison sits in ``tests/test_cpo_figures.py``, which already reads the
-   ``cpo_result`` fixture, because a third test file reading it would build
-   that run once more in its own worker.
+3. Two figures are compared in the test file that already builds their run,
+   because a third file reading it would build that run once more in its own
+   worker. ``cpo_cells.png`` needs a full run of Example 7.1 on the archive,
+   and its comparison sits in ``tests/test_cpo_figures.py``.
+   ``pca_factor_momentum.png`` needs the factor momentum run, about a minute
+   on the owner's Mac, and its comparison sits in
+   ``tests/test_pca_factor_momentum_figures.py``.
 """
 
 from __future__ import annotations
@@ -76,7 +79,6 @@ from chan import (
     momentum_factor_figures,
     monte_carlo_leverage_figures,
     opening_gap_figures,
-    pca_factor_momentum_figures,
     pead_figures,
     pead_rerun_figures,
     price_spread_figures,
@@ -99,15 +101,9 @@ from chan import (
 from chan.cpo_figures import CELLS_FIGURE
 from chan.momentum_factor import autocorrelations, build_factors, read_sources
 from chan.paths import FIGURES_DIR
-from chan.pca_factor import SMALL_CAPS
-from chan.pca_factor_momentum import (
-    compute_both,
-    daily_components,
-    file_returns,
-    weight_statistics,
-)
-from chan.series import load_panel
+from chan.pca_factor_momentum_figures import PCA_FACTOR_MOMENTUM_FIGURE
 from tests import test_cpo_figures as cpo_figure_tests
+from tests import test_pca_factor_momentum_figures as pca_figure_tests
 from tests.conftest import archive_skip_reason
 from tests.support.figure_pixels import (
     assert_same_pixels,
@@ -122,15 +118,6 @@ def _factor_momentum(out: Path) -> object:
     _, closes, _, spy, _, bills = read_sources()
     comparison = autocorrelations(build_factors(closes, spy, bills))
     return momentum_factor_figures.make_autocorrelation_figure(comparison, out=out)
-
-
-def _pca_factor_momentum(out: Path) -> object:
-    """``chan.pca_factor_momentum_figures.main`` without the write to the repo."""
-    _, closes = load_panel(SMALL_CAPS, field="Close")
-    returns = file_returns(closes)
-    results = compute_both(closes)
-    weights = weight_statistics(returns, daily_components(returns))
-    return pca_factor_momentum_figures.make_pca_factor_momentum_figure(results, weights, out=out)
 
 
 rp = risk_parity_figures
@@ -195,7 +182,6 @@ DRAWS: dict[str, Callable[[Path], object]] = {
         monte_carlo_leverage_figures.make_monte_carlo_leverage_figure(out=out)
     ),
     "opening_gap.png": lambda out: opening_gap_figures.make_opening_gap_figure(out=out),
-    "pca_factor_momentum.png": _pca_factor_momentum,
     "pead_cumulative_return.png": lambda out: pead_figures.make_cumulative_figure(out=out),
     "pead_edgar_rerun.png": lambda out: pead_rerun_figures.make_rerun_figure(out=out),
     "price_spread_signals.png": lambda out: price_spread_figures.make_signals_figure(out=out),
@@ -241,11 +227,12 @@ DRAWS: dict[str, Callable[[Path], object]] = {
 #: where the archive pins skip.
 ON_THE_ARCHIVE = {"low_beta_holdout.png"}
 
-#: The figure compared in another file, with the test there that compares it,
-#: so renaming that test fails this file rather than leaving the figure
+#: The figures compared in another file, with the test there that compares
+#: each, so renaming that test fails this file rather than leaving the figure
 #: unchecked.
 COMPARED_ELSEWHERE = {
     CELLS_FIGURE: cpo_figure_tests.TestOnTheArchive.test_the_committed_figure_is_what_the_run_draws,
+    PCA_FACTOR_MOMENTUM_FIGURE: pca_figure_tests.test_the_committed_figure_is_what_the_run_draws,
 }
 
 

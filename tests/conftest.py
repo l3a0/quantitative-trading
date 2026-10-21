@@ -16,7 +16,10 @@ its own, so the run is built once in every worker that draws a test reading
 it. ``--dist loadfile`` keeps each file on one worker, so an archive run builds
 it at most twice, once for each of the two files, at the same time. ``-n 0``
 runs the suite in one process and builds it once. The design doc's
-considered-and-rejected register says why one worker for both files was cut.
+considered-and-rejected register says why ``--dist loadgroup`` was cut for
+this, and [issue 692](https://github.com/l3a0/quantitative-trading/issues/692)
+measures joining the two files the way the factor momentum pair below is
+joined.
 
 One run of Example 1.1's three hypothesis tests takes about half a minute, a
 time no test holds, and two files pin what it computes:
