@@ -2464,6 +2464,7 @@ class TestTheJanuaryPowerSketches:
             "2006: −0.0244",
             "2007: −0.0068",
             "2008: +0.0881",
+            "their mean: +0.0190",
             "dots: Chan’s three Januaries, one trade each, after costs",
             "bracket: what the registered run’s 18 Januaries catch, before costs",
         ]
@@ -2498,6 +2499,7 @@ class TestTheJanuaryPowerSketches:
             LOST,
             GOOD,
             sketches.INK,
+            sketches.INK,
             sketches.MUTED,
         ]
         assert colors[years.slug] == [
@@ -2518,7 +2520,8 @@ class TestTheJanuaryPowerSketches:
         assert (above.x0, above.x1) == pytest.approx((zero, sketches._on_catch(x_low)))
         assert (below.x0, below.x1) == pytest.approx((sketches._on_catch(-x_low), zero))
         assert above.color == below.color == sketches.TINT
-        assert _labelled(catch, "could pass unseen").x == pytest.approx(zero)
+        # Over the lower half, so the mark at Chan's mean above zero keeps its own label.
+        assert _labelled(catch, "could pass unseen").x == pytest.approx((below.x0 + zero) / 2)
         bracket = _stroke(catch, "caught")
         assert bracket.color == ACCENT
         assert (bracket.x.min(), bracket.x.max()) == pytest.approx(
@@ -2534,6 +2537,19 @@ class TestTheJanuaryPowerSketches:
             assert dot.color == (GOOD if r > 0 else LOST)
         below = [r for _, r in FiveYearFigures().januaries if r < 0]
         assert all(-PINNED_POWER.detectable()[0] < r < 0 for r in below)
+
+    def test_chans_mean_january_stands_at_the_mean_of_his_three(self, power) -> None:
+        """The fair comparison for a detectable average is an average, so the
+        sketch marks the mean of Chan's three Januaries, 0.0190, inside the
+        tint."""
+        chan = FiveYearFigures()
+        assert chan.january_mean == pytest.approx(0.0189714446581901, abs=1e-15)
+        assert f"{chan.january_mean:.4f}" == "0.0190"
+        mark = _stroke(power[0], "chan-mean")
+        assert mark.color == sketches.INK
+        assert mark.x == pytest.approx(sketches._on_catch(chan.january_mean))
+        assert mark.y.min() < sketches.CATCH_Y < mark.y.max()
+        assert 0 < chan.january_mean < PINNED_POWER.detectable()[0]
 
     def test_each_curve_is_its_versions_x_at_every_count(self, power) -> None:
         years = power[1]
@@ -3321,7 +3337,7 @@ class TestTheBroaderSeriesSketches:
             "0",
             "2009",
             "2024",
-            "the project’s series",
+            "Open Source Asset Pricing’s series",
             "the IVV run",
             "both added up, neither halved",
         ]
@@ -3336,7 +3352,7 @@ class TestTheBroaderSeriesSketches:
             "NYSE and AMEX with the ones that left",
         ]
         assert together.labels == [
-            "the project’s month",
+            "Open Source Asset Pricing’s month",
             "the IVV run’s month",
             "192 months,",
             "2009 to 2024",
@@ -3350,7 +3366,7 @@ class TestTheBroaderSeriesSketches:
         assert _stroke(running, "theirs").color == ACCENT
         assert _stroke(running, "ours").color == whiteboard.INK
         assert _stroke(running, "zero").color == whiteboard.MUTED
-        assert _labelled(running, "the project’s series").color == ACCENT
+        assert _labelled(running, "Open Source Asset Pricing’s series").color == ACCENT
         assert [_fill(before_after, gid).color for gid in ("before", "after")] == [ACCENT, ACCENT]
         for gid in ("before-error", "after-error", "zero"):
             ink = whiteboard.MUTED if gid == "zero" else whiteboard.INK
@@ -3360,7 +3376,7 @@ class TestTheBroaderSeriesSketches:
         months = _stroke(together, "months")
         assert (months.color, months.dots > 0) == (whiteboard.INK, True)
         assert _labelled(together, "correlation 0.59").color == GOOD
-        assert _labelled(together, "the project’s month").color == ACCENT
+        assert _labelled(together, "Open Source Asset Pricing’s month").color == ACCENT
 
     @pytest.mark.parametrize(
         "figures",

@@ -114,9 +114,9 @@ each after the paragraph it draws:
 1. What eighteen Januaries can catch: a tint over the January returns from
    minus the low version's X to plus it, the sizes that could pass unseen,
    each version's X as a bracket, and Chan's three Januaries as dots labelled
-   by year, all on one scale, with a key naming the dots and the bracket. The
-   test is one-sided. The half below zero only mirrors the half above to show
-   a size, not a second test.
+   by year with a mark at their mean, all on one scale, with a key naming the
+   dots and the bracket. The test is one-sided. The half below zero only
+   mirrors the half above to show a size, not a second test.
 2. More Januaries take more years: each version's X against the count of
    Januaries, from :func:`chan.equity_seasonals.detectable_mean` of the run's
    spread, marked at 18 and at four times 18.
@@ -1253,6 +1253,11 @@ class FiveYearFigures:
         (2008, 0.08807964565655355),
     )
 
+    @property
+    def january_mean(self) -> float:
+        """The average of Example 7.6's three Januaries, after costs."""
+        return sum(r for _, r in self.januaries) / len(self.januaries)
+
 
 #: The months sketch's board: the kept months run from the start of December
 #: 2000 to the end of October 2007, each month a twelfth of a year along it.
@@ -2177,11 +2182,13 @@ def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
     y = CATCH_Y
     x_low, x_high = power.detectable()
     zero = _on_catch(0.0)
-    ticks = []
+    line = [(CATCH_X[0], y)]
     for value in CATCH_TICKS:
-        ticks += [(_on_catch(value), y), (_on_catch(value), y - 0.12), (_on_catch(value), y)]
+        line += [(_on_catch(value), y), (_on_catch(value), y - 0.12), (_on_catch(value), y)]
+    line.append((CATCH_X[1], y))
+    mean = _on_catch(chan.january_mean)
     steps: list[Stroke | Fill | Label] = [
-        _stroke("line", _line([(CATCH_X[0], y), (CATCH_X[1], y)] + ticks), color=MUTED, frames=12),
+        _stroke("line", _line(line), color=MUTED, frames=12),
         *[
             Label(
                 _signed(value, 2) if value else "0",
@@ -2198,7 +2205,7 @@ def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
         Fill("unseen-below", _on_catch(-x_low), y + 0.04, zero, y + 0.34, TINT),
         Label(
             "could pass unseen",
-            zero,
+            (_on_catch(-x_low) + zero) / 2,
             y + 0.62,
             names="unseen",
             color=GOOD,
@@ -2246,7 +2253,18 @@ def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
                 size=10,
             )
         )
-    last = f"chan-{chan.januaries[-1][0]}"
+    steps += [
+        _stroke("chan-mean", _line([(mean, y - 0.18), (mean, y + 0.5)], per_unit=12), frames=3),
+        Label(
+            f"their mean: {_with_sign(chan.january_mean, 4)}",
+            mean,
+            y + 0.8,
+            names="chan-mean",
+            ha="center",
+            size=10,
+        ),
+    ]
+    last = "chan-mean"
     steps += [
         Label(
             "dots: Chan’s three Januaries, one trade each, after costs",
@@ -3336,8 +3354,8 @@ def _together_at(theirs: float | np.ndarray, ours: float | np.ndarray) -> tuple:
 
 
 def _broad_together(t: Together) -> Scene:
-    """A dot for each shared month, the project's return across and the IVV
-    run's up, with the correlation."""
+    """A dot for each shared month, Open Source Asset Pricing's return across
+    and the IVV run's up, with the correlation."""
     (cx, cy), (rx, ry) = TOGETHER_CENTRE, TOGETHER_REACH
     theirs = np.array([m[1] for m in t.months])
     ours = np.array([m[2] for m in t.months])
@@ -3347,13 +3365,13 @@ def _broad_together(t: Together) -> Scene:
         _stroke("across", _line([(cx - rx - 0.1, cy), (cx + rx + 0.1, cy)]), color=MUTED, frames=4),
         _stroke("up", _line([(cx, cy - ry - 0.05), (cx, cy + ry + 0.05)]), color=MUTED, frames=4),
         Label(
-            "the project’s month",
-            cx + rx + 0.1,
-            cy - 0.5,
+            "Open Source Asset Pricing’s month",
+            9.75,
+            cy - 1.3,
             names="across",
             color=ACCENT,
             ha="right",
-            size=10,
+            size=9,
         ),
         Label("the IVV run’s month", cx + 0.25, cy + ry, names="up", size=10),
         Stroke("months", xs, ys, color=INK, frames=12, dots=3.5),
@@ -3378,7 +3396,7 @@ def _running_sums_up(total: float | np.ndarray) -> float | np.ndarray:
 
 def _broad_running(t: Together) -> Scene:
     """Both series' shared months added up, each in its own units, to one
-    vertical scale: the project's long-short gap, and the IVV run's rule,
+    vertical scale: Open Source Asset Pricing's long-short gap, and the IVV run's rule,
     which earns half of it."""
     theirs = np.concatenate([[0.0], np.cumsum([m[1] for m in t.months])])
     ours = np.concatenate([[0.0], np.cumsum([m[2] for m in t.months])])
@@ -3393,11 +3411,12 @@ def _broad_running(t: Together) -> Scene:
         Label(last, x1, 0.3, names="zero", color=MUTED, ha="center", size=10),
         _stroke("theirs", (xs, _running_sums_up(theirs)), color=ACCENT, width=2.2, frames=20),
         Label(
-            "the project’s series",
-            x1 + 0.15,
-            float(_running_sums_up(theirs[-1])) + 0.2,
+            "Open Source Asset Pricing’s series",
+            9.6,
+            float(_running_sums_up(theirs[-1])) + 0.55,
             names="theirs",
             color=ACCENT,
+            ha="right",
             size=9,
         ),
         _stroke("ours", (xs, _running_sums_up(ours)), width=2.4, frames=20),
