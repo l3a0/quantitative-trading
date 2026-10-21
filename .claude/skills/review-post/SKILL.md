@@ -45,20 +45,23 @@ significant. A finding is significant when it is one of three kinds.
 
 A suggestion an earlier round dropped does not count, and neither does a
 cosmetic point, such as a line that wraps short in a docstring. A consistency
-finding counts when some surface states something false. The loop also stops
-after five rounds, even if the last one still found something, so a lens that
-never runs dry cannot keep it going.
+finding counts when some surface states something false.
 
-On the commodity seasonals post the five rounds found 15, 7, 6, 6 and 1
-significant findings, and the loop stopped at the cap. From round 3 on, nearly every one came from the last round's own
-rewrites, or from a README list describing the post that a rewrite made
+The loop has no cap on its rounds. The first run stopped at a five-round cap
+with one significant finding still in round 5, and on 2026-10-21 the owner
+removed the cap. So the stop rule is the only way the loop ends. Each round's
+comment names what the round cost, so the owner can see the price of every
+further round as it is spent.
+
+On the commodity seasonals post the first five rounds found 15, 7, 6, 6 and
+1 significant findings. From round 3 on, nearly every one came from the last
+round's own rewrites, or from a README list describing the post that a rewrite made
 stale. So a rewrite is applied together with a sweep of every surface that
 describes the sentence it changes, as `## Decide and apply` says.
 
 The comment that ends the loop says it ended and why, with the count of
 significant findings in each round, so the owner can see each round adding
-less. A loop that stopped at the cap also lists what round 5 applied, since no
-later round has read it.
+less.
 
 ## Before round 1
 
@@ -87,8 +90,8 @@ reads none of the conversation and needs the answers in its prompt.
    `band:3`, and the milestone of the write-up issue the post came from.
 3. **Mark the card.** Add `working:build` to the tracking issue, as the
    moment for a build session starting on a card in `update-build-board`
-   says. The loop pushes to an open pull request for up to five rounds, and
-   the label is the only thing on the board saying the branch is still
+   says. The loop pushes to an open pull request for as many rounds as it
+   takes, and the label is the only thing on the board saying the branch is still
    moving.
 4. **Branch.** Cut the post's branch from `origin/main` in a worktree of its
    own, so the post's commits stay apart from any other work in the session.
@@ -368,7 +371,7 @@ Post one comment per round on the tracking issue, as
 [issue 694](https://github.com/l3a0/quantitative-trading/issues/694) asks. Its
 first line is `## Review`, so a later round can find every round by that line.
 The build board reads `## Review` only on a pull request, so this comment
-moves no card. The comment holds five things, in this order.
+moves no card. The comment holds six things, in this order.
 
 1. **What was read.** The round number, the commit, the draft's state and the
    phone widths.
@@ -380,6 +383,8 @@ moves no card. The comment holds five things, in this order.
    list and does not raise a dropped item again unless the text under it
    changed.
 5. **The count of significant findings,** and whether the loop goes on.
+6. **What the round cost**, priced per `loop-cost` from its agents'
+   transcripts.
 
 Link the comment for the owner in chat as soon as it is posted.
 
