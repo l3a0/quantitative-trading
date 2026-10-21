@@ -401,7 +401,7 @@ Settling the January effect needs more Januaries as well as better prices, and m
 
 Chan’s file holds 13 months before 2002, all on survivors. Testing the effect in those years needs monthly returns from long before 2002 for every stock listed at the time, including the companies that later failed, merged or delisted. Three sources come close.
 
-1. **CRSP**, Heston and Sadka’s own source. It licenses its data to universities, government agencies and investment firms, which usually reach it through WRDS, a data service the Wharton School runs for subscribers. It publishes no price for individuals.
+1. **CRSP**, Heston and Sadka’s own source, which carries past S&P 500 membership. It licenses its data to universities, government agencies and investment firms, which usually reach it through WRDS, a data service the Wharton School runs for subscribers. It publishes no price for individuals.
 2. **Norgate Data’s Diamond tier**, at $787.50 a year in October 2026. It carries US stocks back to 1950, delisted ones included, with past index membership. Whether its early decades cover as many stocks as CRSP’s is unchecked.
 3. **[The Open Source Asset Pricing project](https://www.openassetpricing.com/)**, free. It rebuilds Heston and Sadka’s signal from CRSP and publishes the monthly returns of portfolios sorted on it. Those are its portfolios rather than Chan’s rule, so they test the effect rather than reproduce Example 7.7.
 
