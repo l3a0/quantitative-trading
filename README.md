@@ -3618,8 +3618,7 @@ not pinned here.
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
    all three unreadable years profitable, that 21 less the 3 unreadable years
    is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 7 of 15 is
-   fewer than half, that the 8 later gasoline years in Lesson 3's caveat
-   are 2016 to 2023, that 2008 is a year after 2007, and that 1994 is one
+   fewer than half, that 2008 is a year after 2007, and that 1994 is one
    year before 1995.
 4. Its references. The three citations are cited rather than computed.
 5. Two dates no test asserts: the files' last row on 5 April 2024, which
@@ -3636,7 +3635,7 @@ for the sketches' labels and the dates their alt text gives. One had no pin befo
 counted from 1994, the run of 13 profitable years ends in 2006.
 `TestThePostQuotesThePins` reads one copy of each count, streak, gap date and
 split in the post, and fails when that copy drifts from the run. A second copy
-of the same figure elsewhere in the post is not read.
+of the same figure elsewhere in the post is not always read.
 
 Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).

@@ -3455,8 +3455,8 @@ Three things.
    after the years Chan counted.** Natural gas wins 15 of 15 through 2008 and 7
    of 15 after, which agrees with his remark at location 4632. Gasoline wins 3
    of 8 from 2016 to 2023. Each trade's earlier years include the years Chan
-   chose its rule on, so the drop can overstate how much it weakened, and no
-   costs are charged.
+   chose its rule on, so the drop can overstate how much it weakened. No costs
+   are charged on either side of the split.
 
 ### What this entry cannot say
 

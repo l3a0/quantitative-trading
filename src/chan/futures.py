@@ -21,10 +21,10 @@ month into a file number on one day. :data:`NATURAL_GAS_CONTRACTS` and
 :data:`RBOB_CONTRACTS` name each product's four files and its expiry rule.
 
 **The calendar is computed rather than read from the files.** The natural gas
-files hold a row repeating the day before's settlement on every exchange holiday
-from January 2018 to November 2019, and on almost none in other years, so a
-row's presence does not say the exchange was open. :func:`is_trading_day`
-uses NYMEX's holiday rules instead.
+files hold a row repeating the previous trading day's settlement on every
+exchange holiday from January 2018 to November 2019, and on almost none in
+other years, so a row's presence does not say the exchange was open.
+:func:`is_trading_day` uses NYMEX's holiday rules instead.
 
 **The expiry rules were checked two ways.** Against the last trading days the
 Massive futures API recorded for 16 natural gas contracts, which
@@ -64,7 +64,7 @@ PRICE_BASIS = "raw"
 #: Three days this list used to carry are gone: 2012-10-29 and 2012-10-30, when
 #: Hurricane Sandy closed the trading floor, and 2018-12-05. All eight natural
 #: gas and RBOB files hold a settlement on each, and on each day most of them
-#: differ from the day before, which a holiday row repeating a settlement does
+#: differ from the previous trading day, which a holiday row repeating a settlement does
 #: not. Counted as closed, the Sandy days put the November 2012 natural gas
 #: expiry on 2012-10-25, two trading days before the files hand over.
 #: ``tests/test_stationary_candidates.py`` pins that every file settled on all

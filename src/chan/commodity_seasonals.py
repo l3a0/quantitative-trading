@@ -43,9 +43,9 @@ and RBOB from 2006. :func:`gasoline_trade` takes the other contract for 2006
 when asked, which the run prints as a side row.
 
 **The calendar is computed rather than read from the files.** The natural gas
-files hold a row repeating the day before's settlement on every exchange holiday
-from January 2018 to November 2019, and on almost none in other years, so a
-row's presence does not say the exchange was open.
+files hold a row repeating the previous trading day's settlement on every
+exchange holiday from January 2018 to November 2019, and on almost none in
+other years, so a row's presence does not say the exchange was open.
 :func:`chan.futures.is_trading_day` uses NYMEX's holiday rules instead. Of
 those holidays only Good Friday can land on a date this module reads. The
 calendar and the expiry rules live in :mod:`chan.futures`, because the

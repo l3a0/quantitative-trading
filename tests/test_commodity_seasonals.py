@@ -77,7 +77,7 @@ class TestTheCalendar:
         assert is_trading_day(date(2022, 4, 14))
 
     def test_a_holiday_row_in_the_files_is_not_a_trading_day(self) -> None:
-        """The natural gas files carry 2018-12-25 as a row repeating the day before."""
+        """The natural gas files carry 2018-12-25 as a row repeating the previous trading day."""
         _, rows = settlements(NATURAL_GAS[1])
         assert rows[date(2018, 12, 25)] == rows[date(2018, 12, 24)]
         assert not is_trading_day(date(2018, 12, 25))
@@ -85,9 +85,10 @@ class TestTheCalendar:
     def test_holiday_rows_fill_2018_and_most_of_2019_and_almost_nothing_else(self) -> None:
         """Which of NYMEX's 261 holidays from 1994 to 2023 the natural gas files hold a row on.
 
-        Every holiday from January 2018 to November 2019 has one, repeating the day
-        before in all four files, and outside those years only 2014-01-20 does. So
-        only 2 of the 30 Good Fridays have a row.
+        Every holiday from January 2018 to November 2019 has one, repeating the
+        previous trading day's settlement in all four files, and outside those
+        years only 2014-01-20 does. So only 2 of the 30 Good Fridays have a row.
+        The 2007-01-02 closure, which is not a holiday, carries one too.
         """
         files = [settlements(NATURAL_GAS[number])[1] for number in (1, 2, 3, 4)]
         holidays = sorted(day for year in range(1994, 2024) for day in futures.nymex_holidays(year))
@@ -103,6 +104,14 @@ class TestTheCalendar:
             date(2018, 3, 30),
             date(2019, 4, 19),
         ]
+        closed = [
+            day
+            for day in sorted(futures.UNSCHEDULED_CLOSURES)
+            if date(1994, 1, 1) <= day <= date(2023, 12, 31) and any(day in rows for rows in files)
+        ]
+        assert closed == [date(2007, 1, 2)]
+        before = futures.previous_trading_day(closed[0])
+        assert all(rows[closed[0]] == rows[before] for rows in files)
 
     def test_good_friday_moves_exactly_these_trade_dates(self) -> None:
         """Every trade date in 1994 to 2023 that Good Friday moved, against weekends alone."""
@@ -354,7 +363,7 @@ def _day(day: date) -> str:
 class TestThePostQuotesThePins:
     """One copy of each count, streak, gap date and split in the post, read from the post itself.
 
-    Other copies of the same figure elsewhere in the post are not read.
+    Other copies of the same figure elsewhere in the post are not always read.
 
     The prose states these numbers and the tests above derive them, so before
     this class a typo in the post passed every test. Round 1 of the post's
@@ -497,7 +506,10 @@ class TestThePostQuotesThePins:
         assert f"{first}, the first year the files hold a whole trade" in self.text
 
     def test_the_holiday_rows(self) -> None:
-        """The one unbroken run of NYMEX holidays the natural gas files hold a row on."""
+        """The longest unbroken run of NYMEX holidays the natural gas files hold a row on.
+
+        One rowed holiday, 2014-01-20, falls outside it.
+        """
         files = [settlements(NATURAL_GAS[number])[1] for number in (1, 2, 3, 4)]
         holidays = sorted(day for year in range(1994, 2024) for day in futures.nymex_holidays(year))
         rowed = [any(day in rows for rows in files) for day in holidays]

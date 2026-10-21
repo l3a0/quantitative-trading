@@ -507,9 +507,11 @@ to infer.
    files go the other way on some exchange holidays. On every NYMEX holiday
    from January 2018 to November 2019, and on 2014-01-20, they carry a row
    that repeats the previous trading day's settlement exactly, such as
-   2018-01-01, 2018-03-30 and 2018-12-25. They carry a row on no other holiday
-   from 1994 to 2023. The files keep those rows, so a return across one of
-   those days reads as zero. `scale_breaks` finds nothing on any of the twelve,
+   2018-01-01, 2018-03-30 and 2018-12-25. They carry one more such row, on
+   2007-01-02, when the exchange closed for the national day of mourning for
+   Gerald Ford. They carry a row on no other day the exchange was closed from
+   1994 to 2023. The files keep those rows, so a return across one of those
+   days reads as zero. `scale_breaks` finds nothing on any of the twelve files,
    though they widened the range of ordinary daily moves the bound was fitted
    to, which [tests/test_scale_breaks.py](../tests/test_scale_breaks.py) pins.
 
