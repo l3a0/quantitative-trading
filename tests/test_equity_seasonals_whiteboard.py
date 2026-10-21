@@ -1,9 +1,9 @@
-"""The pins for the thirty-three whiteboard GIFs in the equity-seasonals post.
+"""The pins for the thirty-five whiteboard GIFs in the equity-seasonals post.
 
 Four sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
 second lesson discusses, three its check of Chan's five-year claim, two its
-lesson on survivorship bias, two its question on whether the January effect
+lesson on survivorship bias, four its question on whether the January effect
 survived the book, two its question on whether Heston and Sadka's effect
 existed before 2002, and ten its question on whether Heston and Sadka's
 effect survived it, three of them on where its 4.2 percent comes from and
@@ -59,7 +59,7 @@ nine draw :data:`PINNED_IVV`. Section 2's sources sketch reads no run, and its s
 draws :data:`PINNED_OSAP`, which the committed Open Source Asset Pricing
 release gives, so its test reads the run itself. The three sketches of the
 4.2 percent's derivation draw the test's critical value and δ from
-:data:`PINNED_IVV`'s month count. Eighteen sketches build slowly, and their
+:data:`PINNED_IVV`'s month count. Twenty sketches build slowly, and their
 pace is pinned too. The broader series' three read the committed Open Source
 Asset Pricing release, and the last two also :data:`PINNED_IVV`'s months.
 
@@ -100,6 +100,7 @@ from chan.equity_seasonals_whiteboard import (
     Broad,
     FiveYearFigures,
     IvvFigures,
+    JanuaryPower,
     JanuaryRanges,
     OsapFigures,
     RuleFigures,
@@ -114,6 +115,7 @@ from chan.equity_seasonals_whiteboard import (
     five_year_scenes,
     gif_name,
     ivv_scenes,
+    january_power_scenes,
     january_scenes,
     main,
     make_equity_seasonals_whiteboards,
@@ -191,6 +193,7 @@ BROAD_GIFS = [
     "equity_seasonals_broad_together.gif",
     "equity_seasonals_broad_running.gif",
 ]
+POWER_GIFS = ["equity_seasonals_january_catch.gif", "equity_seasonals_january_years.gif"]
 GIFS = (
     OPENING_GIFS
     + STRATEGY_GIFS
@@ -203,6 +206,7 @@ GIFS = (
     + IVV_GIFS
     + DELTA_GIFS
     + BROAD_GIFS
+    + POWER_GIFS
 )
 #: The GIFs a redraw cannot write without the owner's archive.
 ARCHIVE_GIFS = {
@@ -214,6 +218,7 @@ ARCHIVE_GIFS = {
     *DELTA_GIFS,
     "equity_seasonals_broad_together.gif",
     "equity_seasonals_broad_running.gif",
+    *POWER_GIFS,
 }
 
 #: The registered runs' figures, as ``tests/test_equity_seasonals.py`` pins
@@ -232,6 +237,12 @@ PINNED = Verdicts(
     january_high_rejects=True,
     monthly_rejects=False,
 )
+
+#: The registered January run's count of Januaries and each version's standard
+#: deviation of a January before costs, as ``test_the_whiteboard_draws_these_runs_power``
+#: in ``tests/test_equity_seasonals.py`` holds the run gives them. Same vintage
+#: and specification as :data:`PINNED`'s January figures.
+PINNED_POWER = JanuaryPower(n=18, low_std=0.0896119544094856, high_std=0.10072917438308693)
 
 #: The registered January run's eighteen Januaries, each with its low and high
 #: return before costs, and then each January's return with every missing
@@ -627,6 +638,11 @@ def january():
 
 
 @pytest.fixture(scope="module")
+def power():
+    return january_power_scenes(PINNED_POWER)
+
+
+@pytest.fixture(scope="module")
 def osap():
     return osap_scenes(PINNED_OSAP)
 
@@ -657,8 +673,8 @@ def broad(project):
 
 
 @pytest.fixture(scope="module")
-def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, delta, broad):
-    """All thirty-three scenes in the order their GIFs are written."""
+def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, delta, broad, power):
+    """All thirty-five scenes in the order their GIFs are written."""
     return (
         *opening,
         *drawn,
@@ -671,6 +687,7 @@ def every(opening, drawn, rules, split, five, survivors, january, osap, ivv, del
         *ivv,
         *delta,
         *broad,
+        *power,
     )
 
 
@@ -688,6 +705,7 @@ def gifs(tmp_path_factory, spans, project):
         ranges=PINNED_RANGES,
         ivv=PINNED_IVV,
         osap=PINNED_OSAP,
+        power=PINNED_POWER,
         project=project,
     )
 
@@ -901,6 +919,7 @@ class TestTheGifs:
             ivv=PINNED_IVV,
             osap=PINNED_OSAP,
             project=project,
+            power=PINNED_POWER,
         )
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
@@ -1204,7 +1223,8 @@ class TestTheCommand:
             "equity_seasonals_ivv_checked.gif, equity_seasonals_ivv_leavers.gif, "
             "equity_seasonals_ivv_running_sum.gif, equity_seasonals_delta_scatter.gif, "
             "equity_seasonals_delta_shortcut.gif, equity_seasonals_delta_bracket.gif, "
-            "equity_seasonals_broad_together.gif, equity_seasonals_broad_running.gif "
+            "equity_seasonals_broad_together.gif, equity_seasonals_broad_running.gif, "
+            "equity_seasonals_january_catch.gif, equity_seasonals_january_years.gif "
             f"were not redrawn: {refusal}"
         )
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
@@ -2037,6 +2057,8 @@ class TestTheFiveYearSketches:
                     "broad_before_after",
                     "broad_together",
                     "broad_running",
+                    "january_catch",
+                    "january_years",
                 )
             )
             assert {f.ms for f in labels} <= {
@@ -2377,12 +2399,153 @@ class TestTheJanuarySketches:
         monkeypatch.setattr(
             sketches.JanuaryRanges, "from_run", classmethod(lambda cls, january: from_run(january))
         )
+        monkeypatch.setattr(
+            sketches.JanuaryPower, "from_run", classmethod(lambda cls, january: PINNED_POWER)
+        )
         written = make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans)
         assert sorted(path.name for path in written) == sorted(GIFS)
         assert seen == [run]
         seen.clear()
         make_equity_seasonals_whiteboards(out_dir=tmp_path, spans=spans, verdicts=PINNED)
         assert seen == [run], "the ranges are read from the run even when the verdicts are given"
+
+
+#: Made-up spreads for the two sketches under "What 18 Januaries can detect",
+#: so a count, a mark or a word that should follow the run is seen to.
+OTHER_POWER = JanuaryPower(n=12, low_std=0.05, high_std=0.06)
+
+
+class TestTheJanuaryPowerSketches:
+    """The two under "What 18 Januaries can detect": what the run's Januaries
+    can catch, and how many more Januaries a smaller effect takes."""
+
+    def test_they_are_two_in_the_order_the_post_reads_them(self, power) -> None:
+        assert [gif_name(scene) for scene in power] == POWER_GIFS
+
+    def test_the_pinned_spread_gives_the_runs_x(self) -> None:
+        """The X that ``TestThePointInTimePins`` pins, 0.0547 and 0.0615, and
+        the X at four times the Januaries the years sketch marks."""
+        assert PINNED_POWER.detectable() == pytest.approx(
+            (0.05474237393477483, 0.06153368896545796), abs=1e-12
+        )
+        assert PINNED_POWER.detectable(72) == pytest.approx(
+            (0.02651321756997502, 0.029802435776136182), abs=1e-12
+        )
+
+    def test_each_says_what_it_should(self, power) -> None:
+        catch, years = power
+        assert catch.title == "What eighteen Januaries can catch"
+        assert catch.labels == [
+            "−0.04",
+            "0",
+            "0.04",
+            "0.08",
+            "could pass unseen",
+            "0.0547 to 0.0615",
+            "caught four times in five",
+            "−0.0244",
+            "−0.0068",
+            "+0.0881",
+            "Chan’s three Januaries, after costs",
+            "the registered run’s 18 Januaries, before costs",
+        ]
+        assert years.title == "More Januaries take more years"
+        assert years.labels == [
+            "Januaries",
+            "X",
+            "high",
+            "low",
+            "18",
+            "0.0547 to 0.0615",
+            "72",
+            "0.0265 to 0.0298",
+            "Four times the Januaries, about half the X",
+            "one January a year, so 72 Januaries take 72 years",
+        ]
+
+    def test_the_tint_runs_the_same_size_each_side_of_zero(self, power) -> None:
+        catch = power[0]
+        x_low, x_high = PINNED_POWER.detectable()
+        above, below = _fill(catch, "unseen"), _fill(catch, "unseen-below")
+        zero = sketches._on_catch(0.0)
+        assert (above.x0, above.x1) == pytest.approx((zero, sketches._on_catch(x_low)))
+        assert (below.x0, below.x1) == pytest.approx((sketches._on_catch(-x_low), zero))
+        assert above.color == below.color == sketches.TINT
+        assert _labelled(catch, "could pass unseen").x == pytest.approx(zero)
+        bracket = _stroke(catch, "caught")
+        assert bracket.color == ACCENT
+        assert (bracket.x.min(), bracket.x.max()) == pytest.approx(
+            (sketches._on_catch(x_low), sketches._on_catch(x_high))
+        )
+
+    def test_chans_januaries_sit_at_their_returns_in_their_signs_colour(self, power) -> None:
+        catch = power[0]
+        for year, r in FiveYearFigures().januaries:
+            dot = _stroke(catch, f"chan-{year}")
+            assert dot.x[0] == pytest.approx(sketches._on_catch(r))
+            assert dot.y[0] == pytest.approx(sketches.CATCH_Y)
+            assert dot.color == (GOOD if r > 0 else LOST)
+        below = [r for _, r in FiveYearFigures().januaries if r < 0]
+        assert all(-PINNED_POWER.detectable()[0] < r < 0 for r in below)
+
+    def test_each_curve_is_its_versions_x_at_every_count(self, power) -> None:
+        years = power[1]
+        for gid, side in (("low", 0), ("high", 1)):
+            curve = _stroke(years, gid)
+            counts = range(sketches.POWER_FROM, sketches.POWER_N[1] + 1)
+            assert curve.x == pytest.approx([sketches._power_at(k) for k in counts])
+            assert curve.y == pytest.approx(
+                [sketches._power_up(PINNED_POWER.detectable(k)[side]) for k in counts]
+            )
+        assert _stroke(years, "low").color == sketches.MUTED
+        assert _stroke(years, "high").color == sketches.INK
+
+    def test_each_mark_spans_both_versions_at_its_count(self, power) -> None:
+        years = power[1]
+        for gid, n in (("now", 18), ("more", 72)):
+            mark = _stroke(years, gid)
+            low, high = PINNED_POWER.detectable(n)
+            assert mark.color == ACCENT
+            assert mark.x == pytest.approx(sketches._power_at(n))
+            assert (mark.y.min(), mark.y.max()) == pytest.approx(
+                (sketches._power_up(low), sketches._power_up(high))
+            )
+
+    def test_other_spreads_move_the_count_the_marks_and_the_words(self) -> None:
+        catch, years = january_power_scenes(OTHER_POWER)
+        assert catch.title == "What twelve Januaries can catch"
+        assert "the registered run’s 12 Januaries, before costs" in catch.labels
+        assert _stroke(years, "more").x == pytest.approx(sketches._power_at(48))
+        assert "one January a year, so 48 Januaries take 48 years" in years.labels
+        low, high = OTHER_POWER.detectable()
+        assert f"{low:.4f} to {high:.4f}" in catch.labels
+
+    def test_each_follows_the_paragraph_it_draws(self) -> None:
+        paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
+        for opening, name in zip(
+            (
+                "Even with every price checked, 18 Januaries could not show",
+                "Settling the January effect needs more Januaries",
+            ),
+            POWER_GIFS,
+            strict=True,
+        ):
+            (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(opening)]
+            embed = paragraphs[index + 1]
+            assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
+
+    def test_each_alt_text_quotes_its_labels_in_drawing_order(self, power) -> None:
+        text = POST.read_text(encoding="utf-8")
+        for scene in power:
+            alt = _alt(text, scene)
+            places = [alt.find(f"“{label}”") for label in scene.labels]
+            assert -1 not in places, [
+                w for w, at in zip(scene.labels, places, strict=True) if at < 0
+            ]
+            assert places == sorted(places), scene.slug
+        catch_alt = _alt(text, power[0])
+        assert "Two red dots sit inside the tint below zero" in catch_alt
+        assert "a green dot sits past the bracket" in catch_alt
 
 
 def _fill(scene, gid):
@@ -2586,7 +2749,7 @@ class TestTheSection3Sketches:
             sketches.IvvFigures, "from_run", classmethod(lambda cls, m: from_run(m))
         )
         written = make_equity_seasonals_whiteboards(
-            out_dir=tmp_path, spans=spans, verdicts=PINNED, ranges=PINNED_RANGES
+            out_dir=tmp_path, spans=spans, verdicts=PINNED, ranges=PINNED_RANGES, power=PINNED_POWER
         )
         assert sorted(path.name for path in written) == sorted(GIFS)
         assert seen == [monthly]

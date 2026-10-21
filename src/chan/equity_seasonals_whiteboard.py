@@ -4,7 +4,7 @@
 is worth testing, which sources can say anything about that, and what two
 later runs found. Its section "The two strategies" then describes Example 7.6
 and Example 7.7, and its first lesson lists the rules behind each printout.
-This module draws thirty-three scenes, and the post places each right after the
+This module draws thirty-five scenes, and the post places each right after the
 text it draws. The first four are the opening's years and verdicts sketches and
 the two strategies' sketches. The opening also holds the first survivorship
 sketch and the first January sketch, which are listed below with their groups.
@@ -108,6 +108,21 @@ paragraph it illustrates:
 The fill and ranges sketches build slowly as well. The registered and fill
 sketches are schematic and carry no figures.
 
+The next two sit under "What 18 Januaries can detect", in the same question,
+each after the paragraph it draws:
+
+1. What eighteen Januaries can catch: a tint over the January returns from
+   minus the low version's X to plus it, the sizes that could pass unseen,
+   each version's X as a bracket, and Chan's three Januaries as dots, all on
+   one scale. The test is one-sided, so the half below zero mirrors the half
+   above to show a size rather than a second test.
+2. More Januaries take more years: each version's X against the count of
+   Januaries, from :func:`chan.equity_seasonals.detectable_mean` of the run's
+   spread, marked at 18 and at four times 18.
+
+Both read :class:`JanuaryPower` from the January run on the owner's archive,
+and both build slowly.
+
 The next two sit under the question on whether Heston and Sadka's effect
 existed before 2002, each after the paragraph it illustrates:
 
@@ -200,10 +215,10 @@ scenes and the file names are this module's. Each GIF is named
 :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all thirty-three with the command below.
-Ten sketches read the archive, so on a machine
+with no change is a no-op diff. Redraw all thirty-five with the command below.
+Twelve sketches read the archive, so on a machine
 without it the command redraws the other twenty-three and exits non-zero
-naming the ten it left, :data:`ARCHIVE_SLUGS`::
+naming the twelve it left, :data:`ARCHIVE_SLUGS`::
 
     uv run python -m chan.equity_seasonals_whiteboard
 """
@@ -2102,6 +2117,309 @@ def january_scenes(ranges: JanuaryRanges) -> tuple[Scene, ...]:
     return (_january_registered(), _january_fill(), _january_ranges(ranges))
 
 
+@dataclass(frozen=True)
+class JanuaryPower:
+    """The registered January run's spread, from which each version's X follows.
+
+    ``n`` is the Januaries the run holds, and ``low_std`` and ``high_std``
+    each version's standard deviation of a January before costs. X, the
+    smallest mean the one-sided test catches with :data:`seasonals.POWER`,
+    is :func:`chan.equity_seasonals.detectable_mean` of a spread and a count,
+    so the sketches recompute it rather than carry it.
+    """
+
+    n: int
+    low_std: float
+    high_std: float
+
+    @classmethod
+    def from_run(cls, january: seasonals.PointInTimeRun) -> JanuaryPower:
+        return cls(january.low.n, january.low.std, january.high.std)
+
+    def detectable(self, n: int | None = None) -> tuple[float, float]:
+        """The low and the high version's X at ``n`` Januaries, the run's own by default."""
+        count = self.n if n is None else n
+        return (
+            seasonals.detectable_mean(self.low_std, count),
+            seasonals.detectable_mean(self.high_std, count),
+        )
+
+
+#: The catch sketch's number line: its span on the board, its height, and the
+#: January returns at its ends.
+CATCH_X, CATCH_Y, CATCH_RANGE = (1.0, 9.2), 2.1, (-0.07, 0.1)
+#: The ticks the catch sketch labels.
+CATCH_TICKS = (-0.04, 0.0, 0.04, 0.08)
+
+
+def _along(value: float, ends: tuple[float, float], board: tuple[float, float]) -> float:
+    """Where ``value`` sits on a board span that runs from ``ends[0]`` to ``ends[1]``."""
+    (lo, hi), (x0, x1) = ends, board
+    if not lo <= value <= hi:
+        raise ValueError(f"{value} lies outside {lo} to {hi}")
+    return x0 + (value - lo) / (hi - lo) * (x1 - x0)
+
+
+def _on_catch(value: float) -> float:
+    return _along(value, CATCH_RANGE, CATCH_X)
+
+
+def _january_catch(power: JanuaryPower, chan: FiveYearFigures) -> Scene:
+    """What 18 Januaries can catch: the run's X for each version, and Chan's
+    three Januaries on one scale.
+
+    The tint runs from minus the low version's X to plus it, the sizes that
+    could pass unseen. The test is one-sided and never looks below zero, so
+    the half below zero mirrors the half above to show a size, as the post's
+    "inside that range" does, rather than a second test.
+    """
+    y = CATCH_Y
+    x_low, x_high = power.detectable()
+    zero = _on_catch(0.0)
+    ticks = []
+    for value in CATCH_TICKS:
+        ticks += [(_on_catch(value), y), (_on_catch(value), y - 0.12), (_on_catch(value), y)]
+    steps: list[Stroke | Fill | Label] = [
+        _stroke("line", _line([(CATCH_X[0], y), (CATCH_X[1], y)] + ticks), color=MUTED, frames=12),
+        *[
+            Label(
+                _signed(value, 2) if value else "0",
+                _on_catch(value),
+                y - 0.45,
+                names="line",
+                color=MUTED,
+                ha="center",
+                size=10,
+            )
+            for value in CATCH_TICKS
+        ],
+        Fill("unseen", zero, y + 0.04, _on_catch(x_low), y + 0.34, TINT),
+        Fill("unseen-below", _on_catch(-x_low), y + 0.04, zero, y + 0.34, TINT),
+        Label(
+            "could pass unseen",
+            zero,
+            y + 0.62,
+            names="unseen",
+            color=GOOD,
+            ha="center",
+            size=11,
+        ),
+        _stroke(
+            "caught",
+            _span(_on_catch(x_low), _on_catch(x_high), y + 0.85, tick=0.08),
+            color=ACCENT,
+            width=3.0,
+            frames=4,
+        ),
+        Label(
+            f"{_signed(x_low, 4)} to {_signed(x_high, 4)}",
+            (_on_catch(x_low) + _on_catch(x_high)) / 2,
+            y + 1.3,
+            names="caught",
+            color=ACCENT,
+            ha="center",
+            size=11,
+        ),
+        Label(
+            "caught four times in five",
+            (_on_catch(x_low) + _on_catch(x_high)) / 2,
+            y + 1.65,
+            names="caught",
+            color=ACCENT,
+            ha="center",
+            size=11,
+        ),
+    ]
+    for year, r in chan.januaries:
+        gid = f"chan-{year}"
+        steps.append(_dot(gid, _on_catch(r), y, color=_sign_color(r)))
+    for k, (year, r) in enumerate(chan.januaries):
+        steps.append(
+            Label(
+                _with_sign(r, 4),
+                _on_catch(r),
+                y - 0.85 - 0.32 * (k % 2),
+                names=f"chan-{year}",
+                color=_sign_color(r),
+                ha="center",
+                size=10,
+            )
+        )
+    last = f"chan-{chan.januaries[-1][0]}"
+    steps += [
+        Label("Chan’s three Januaries, after costs", 0.3, 0.55, names=last, size=10),
+        Label(
+            f"the registered run’s {power.n} Januaries, before costs",
+            0.3,
+            0.2,
+            names=last,
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    return Scene(
+        f"What {_number_word(power.n).lower()} Januaries can catch", "january_catch", tuple(steps)
+    )
+
+
+#: The years sketch's axes: the board both span, the Januaries along the
+#: bottom, the returns up the side, and the counts it marks.
+POWER_X, POWER_Y = (1.6, 9.2), (1.4, 3.6)
+POWER_N, POWER_X_RANGE = (0, 80), (0.0, 0.1)
+POWER_FROM, POWER_MORE = 10, 4
+
+
+def _power_at(n: float) -> float:
+    return _along(n, POWER_N, POWER_X)
+
+
+def _power_up(x: float) -> float:
+    return _along(x, POWER_X_RANGE, POWER_Y)
+
+
+def _january_years(power: JanuaryPower) -> Scene:
+    """X against the count of Januaries for each version: four times the
+    Januaries roughly halves it, and a January comes once a year."""
+    more = POWER_MORE * power.n
+    counts = np.arange(POWER_FROM, POWER_N[1] + 1)
+    lows = [power.detectable(int(k))[0] for k in counts]
+    highs = [power.detectable(int(k))[1] for k in counts]
+    (low_now, high_now), (low_more, high_more) = power.detectable(), power.detectable(more)
+    x0, x1 = POWER_X
+    y0 = POWER_Y[0]
+    ticks = []
+    for k in (power.n, more):
+        ticks += [(_power_at(k), y0), (_power_at(k), y0 - 0.12), (_power_at(k), y0)]
+    return Scene(
+        "More Januaries take more years",
+        "january_years",
+        (
+            _stroke("axis", _line([(x0, y0), (x1, y0)] + ticks), color=MUTED, frames=6),
+            _stroke("side", _line([(x0, y0), (x0, POWER_Y[1])]), color=MUTED, frames=4),
+            Label(
+                "Januaries",
+                _power_at((power.n + more) / 2),
+                y0 - 0.45,
+                names="axis",
+                color=MUTED,
+                ha="center",
+                size=10,
+            ),
+            Label("X", x0 - 0.25, POWER_Y[1], names="side", color=MUTED, ha="right", size=11),
+            _stroke(
+                "high",
+                (np.array([_power_at(k) for k in counts]), np.array([_power_up(v) for v in highs])),
+                width=2.0,
+                frames=12,
+            ),
+            _stroke(
+                "low",
+                (np.array([_power_at(k) for k in counts]), np.array([_power_up(v) for v in lows])),
+                color=MUTED,
+                width=2.0,
+                frames=12,
+            ),
+            Label(
+                "high",
+                _power_at(POWER_FROM) + 0.2,
+                _power_up(highs[0]) + 0.15,
+                names="high",
+                size=10,
+            ),
+            Label(
+                "low",
+                _power_at(POWER_FROM) - 0.2,
+                _power_up(lows[0]) - 0.15,
+                names="low",
+                color=MUTED,
+                ha="right",
+                size=10,
+            ),
+            _stroke(
+                "now",
+                _line(
+                    [
+                        (_power_at(power.n), _power_up(low_now)),
+                        (_power_at(power.n), _power_up(high_now)),
+                    ],
+                    per_unit=30,
+                ),
+                color=ACCENT,
+                width=3.0,
+                frames=3,
+            ),
+            Label(
+                str(power.n),
+                _power_at(power.n),
+                y0 - 0.45,
+                names="now",
+                color=ACCENT,
+                ha="center",
+                size=10,
+            ),
+            Label(
+                f"{_signed(low_now, 4)} to {_signed(high_now, 4)}",
+                _power_at(power.n) + 0.35,
+                _power_up(high_now) + 0.3,
+                names="now",
+                color=ACCENT,
+                size=10,
+            ),
+            _stroke(
+                "more",
+                _line(
+                    [
+                        (_power_at(more), _power_up(low_more)),
+                        (_power_at(more), _power_up(high_more)),
+                    ],
+                    per_unit=30,
+                ),
+                color=ACCENT,
+                width=3.0,
+                frames=3,
+            ),
+            Label(
+                str(more),
+                _power_at(more),
+                y0 - 0.45,
+                names="more",
+                color=ACCENT,
+                ha="center",
+                size=10,
+            ),
+            Label(
+                f"{_signed(low_more, 4)} to {_signed(high_more, 4)}",
+                _power_at(more),
+                _power_up(high_more) + 0.4,
+                names="more",
+                color=ACCENT,
+                ha="center",
+                size=10,
+            ),
+            Label(
+                f"{_number_word(POWER_MORE)} times the Januaries, about half the X",
+                0.3,
+                0.55,
+                names="more",
+                size=10,
+            ),
+            Label(
+                f"one January a year, so {more} Januaries take {more} years",
+                0.3,
+                0.2,
+                names="more",
+                color=MUTED,
+                size=10,
+            ),
+        ),
+    )
+
+
+def january_power_scenes(power: JanuaryPower) -> tuple[Scene, ...]:
+    """The two under "What 18 Januaries can detect", in reading order."""
+    return (_january_catch(power, FiveYearFigures()), _january_years(power))
+
+
 # --- Section 2: whether Heston and Sadka's effect existed before 2002 --------
 
 #: The three sources the section names, as the grid's columns.
@@ -3118,6 +3436,8 @@ PACED = (
     "broad_before_after",
     "broad_together",
     "broad_running",
+    "january_catch",
+    "january_years",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
@@ -3540,17 +3860,19 @@ def make_equity_seasonals_whiteboards(
     ivv: IvvFigures | None = None,
     osap: OsapFigures | None = None,
     project: seasonals.OpenAssetPricingRun | None = None,
+    power: JanuaryPower | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, the
     opening's years and verdicts sketches first, then the two strategies',
     then the seven rules', then the split's, then the five-year check's three,
     then the three survivorship sketches, then the January question's three,
-    then section 2's two, then section 3's ten.
+    then section 2's two, then section 3's ten, then the two under "What 18
+    Januaries can detect".
 
     ``spans`` is read from Chan's two committed files when it is not handed
     in. ``verdicts`` is read from the two registered runs on the owner's
-    archive, about twenty seconds, ``ranges`` from the January run among
-    them, and ``ivv`` from the IVV run. ``osap`` and the broader series'
+    archive, about twenty seconds, ``ranges`` and ``power`` from the January
+    run among them, and ``ivv`` from the IVV run. ``osap`` and the broader series'
     figures are read from ``project``, the committed Open Source Asset
     Pricing release, when it is not handed in. Every GIF that needs no
     archive is written before that read, so a refused or missing archive
@@ -3570,12 +3892,15 @@ def make_equity_seasonals_whiteboards(
     broad = [_write(_broad_before_after(Broad.from_run(project)), folder)]
     january = [_write(_january_registered(), folder), _write(_january_fill(), folder)]
     section_3 = [_write(_ivv_carry(), folder)]
-    run = seasonals.run_point_in_time() if verdicts is None or ranges is None else None
+    needs_run = verdicts is None or ranges is None or power is None
+    run = seasonals.run_point_in_time() if needs_run else None
     monthly = seasonals.run_monthly_point_in_time() if verdicts is None or ivv is None else None
     if verdicts is None:
         verdicts = Verdicts.from_runs(run, monthly)
     if ranges is None:
         ranges = JanuaryRanges.from_run(run)
+    if power is None:
+        power = JanuaryPower.from_run(run)
     if ivv is None:
         ivv = IvvFigures.from_run(monthly)
     paths.append(_write(_two_verdicts(verdicts), folder))
@@ -3595,6 +3920,7 @@ def make_equity_seasonals_whiteboards(
         + section_2
         + section_3
         + broad
+        + [_write(scene, folder) for scene in january_power_scenes(power)]
     )
 
 
@@ -3611,6 +3937,8 @@ ARCHIVE_SLUGS = (
     "delta_bracket",
     "broad_together",
     "broad_running",
+    "january_catch",
+    "january_years",
 )
 
 #: The refusals a redraw can meet in reading the archive, the ones
@@ -3629,7 +3957,7 @@ def main() -> None:
     try:
         paths = make_equity_seasonals_whiteboards()
     except REFUSALS as refused:
-        # The other twenty-three GIFs are already written. The ten left stale
+        # The other twenty-three GIFs are already written. The twelve left stale
         # are named, and the exit is non-zero, so a redraw on a machine
         # without the archive does not read as a full one.
         stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)

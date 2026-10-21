@@ -2839,10 +2839,10 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one figure,
 which `uv run python -m chan.equity_seasonals_figures` redraws. So do the
 whiteboard sketches that print figures, which `uv run python -m
-chan.equity_seasonals_whiteboard` redraws, ten of them on a machine with the
+chan.equity_seasonals_whiteboard` redraws, twelve of them on a machine with the
 archive. Those are the opening's years and verdicts sketches, four of the seven rule sketches,
-the split sketch, the five-year check's three, the January ranges sketch and
-eight of the ten sketches on whether Heston and Sadka's effect survived the
+the split sketch, the five-year check's three, the January ranges sketch, the
+two under "What 18 Januaries can detect", and eight of the ten sketches on whether Heston and Sadka's effect survived the
 book, three of them on where its 4.2 percent comes from and two on what a
 broader series shows. The third on the broader series, "Before 2002 and
 after", draws only Entry 52's figures, as the sketches on whether the effect

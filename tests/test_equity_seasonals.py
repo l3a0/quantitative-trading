@@ -3426,6 +3426,23 @@ def test_the_whiteboard_draws_these_runs_ivv_figures(monthly) -> None:
     assert drawn.detectable == pytest.approx(PINNED_IVV.detectable, abs=1e-12)
 
 
+def test_the_whiteboard_draws_these_runs_power(point_in_time) -> None:
+    """The two sketches under "What 18 Januaries can detect" in
+    ``tests/test_equity_seasonals_whiteboard.py`` draw from its ``PINNED_POWER``,
+    so they run without the archive. This holds that the registered January
+    run gives that count and those spreads, and that they give the run's X."""
+    from chan.equity_seasonals_whiteboard import JanuaryPower
+    from tests.test_equity_seasonals_whiteboard import PINNED_POWER
+
+    drawn = JanuaryPower.from_run(point_in_time)
+    assert drawn.n == PINNED_POWER.n
+    assert drawn.low_std == pytest.approx(PINNED_POWER.low_std, abs=1e-12)
+    assert drawn.high_std == pytest.approx(PINNED_POWER.high_std, abs=1e-12)
+    assert drawn.detectable() == pytest.approx(
+        (point_in_time.x_low, point_in_time.x_high), abs=1e-12
+    )
+
+
 def test_the_whiteboard_draws_these_runs_ranges(point_in_time) -> None:
     """The January ranges sketch in ``tests/test_equity_seasonals_whiteboard.py``
     draws from its ``PINNED_RANGES``, so it runs without the archive. This holds

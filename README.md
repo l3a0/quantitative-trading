@@ -2608,7 +2608,7 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's thirty-three GIFs are checked the same way by
+equity seasonals post's thirty-five GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
 which also fails on any GIF in the folder that neither module draws.
 
@@ -3204,7 +3204,7 @@ uv run python -m chan.equity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries thirty-three looping whiteboard sketches, drawn by
+The post also carries thirty-five looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -3312,11 +3312,17 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 33. `equity_seasonals_broad_running.gif`, the same 192 months added up, neither
     halved. The project's months swing about twice as far as the IVV run's,
     and its sum ends above zero where the run's ends below it.
+34. `equity_seasonals_january_catch.gif`, under "What 18 Januaries can
+    detect", the sizes 18 Januaries could miss, tinted the same size each side
+    of zero, each version's X as a bracket, and Chan's three Januaries as dots,
+    all on one scale.
+35. `equity_seasonals_january_years.gif`, each version's X against the count of
+    Januaries, marked at 18 and at 72, which take 72 years.
 
 Like the strategy sketches, the three survivorship sketches, the January registered and fill
 sketches and the carry-forward sketch are schematic and carry no figures. The
 sources sketch carries no figure a run computes, only each source's cost.
-Eighteen sketches build more slowly than the rest and hold their finished
+Twenty sketches build more slowly than the rest and hold their finished
 drawings for twelve seconds, because each carries more than the usual pace lets
 a reader take in.
 
@@ -3330,17 +3336,19 @@ a reader take in.
 7. The leavers sketch, 26.
 8. The three sketches of the 4.2 percent's derivation, 28 to 30.
 9. The three broader-series sketches, 31 to 33.
+10. The two sketches under "What 18 Januaries can detect", 34 and 35.
 
 ```bash
 uv run python -m chan.equity_seasonals_whiteboard
 ```
 
-Ten sketches read the owner's archive: the verdicts sketch, the ranges sketch,
+Twelve sketches read the owner's archive: the verdicts sketch, the ranges sketch,
 section 3's checked, leavers and running-sum sketches, the three of the 4.2
-percent's derivation, which read the run's month count, and the broader series'
-scatter and running sums, which read the run's months. On a machine without it
-the command redraws the other twenty-three and exits non-zero, naming the ten
-it left.
+percent's derivation, which read the run's month count, the broader series'
+scatter and running sums, which read the run's months, and the two under "What
+18 Januaries can detect", which read the January run's spread. On a machine
+without it the command redraws the other twenty-three and exits non-zero,
+naming the twelve it left.
 
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
 holds which tenth each strategy sketch buys and shorts, which way each points
@@ -3356,8 +3364,10 @@ sketches tick and cross each source as the post describes it and draw each bar
 at its figure, that the 4.2 percent's three sketches put the critical value, δ
 and each bracket where the test's figures say, that the broader series' bars,
 dots and running sums stand at the release's and the run's figures, that
-eighteen sketches build slowly and hold for twelve seconds, that the ranges
-sketch draws each January from its low to its high, that section 3's sketches
+twenty sketches build slowly and hold for twelve seconds, that the ranges
+sketch draws each January from its low to its high, that the catch sketch
+tints the same size each side of zero and the years sketch draws each
+version's X at every count, that section 3's sketches
 hold a change until the next filing, split each bar at its share and add up the
 held months to one scale, that no label touches a line, another label or the
 frame's edge, and that each GIF follows its text in the post. The rule

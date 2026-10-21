@@ -389,7 +389,13 @@ Leaving the unchecked members out, with each tenth taken of the checked members 
 
 #### What 18 Januaries can detect
 
-Even with every price checked, 18 Januaries could not show a small effect. Example 7.6 trades once a year, so its test has 18 numbers to work with. The smallest average January the test would catch four times in five is 0.0547 for the low version and 0.0615 for the high one, a gain of about 5.5 to 6 percent each January. A true effect smaller than that could pass unseen, and Chan’s own three Januaries, −0.0244, −0.0068 and 0.0881, sit mostly inside that range. Settling the January effect needs more Januaries as well as better prices, and more Januaries take more years.
+Even with every price checked, 18 Januaries could not show a small effect. Example 7.6 trades once a year, so its test has 18 numbers to work with. The smallest average January the test would catch four times in five is 0.0547 for the low version and 0.0615 for the high one, a gain of about 5.5 to 6 percent each January. A true effect smaller than that could pass unseen, and Chan’s own three Januaries, −0.0244, −0.0068 and 0.0881, sit mostly inside that range.
+
+![An animated whiteboard sketch titled “What eighteen Januaries can catch”, drawn slowly stroke by stroke. A grey number line runs from below −0.04 to above 0.08, with ticks labelled “−0.04”, “0”, “0.04” and “0.08”. A pale green tint runs from about −0.055 to about 0.055, labelled “could pass unseen”. Above its right end a brown bracket is labelled “0.0547 to 0.0615” and “caught four times in five”. Two red dots sit inside the tint below zero, labelled “−0.0244” and “−0.0068”, and a green dot sits past the bracket, labelled “+0.0881”. The words “Chan’s three Januaries, after costs” and “the registered run’s 18 Januaries, before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_catch.gif)
+
+Settling the January effect needs more Januaries as well as better prices, and more Januaries take more years.
+
+![An animated whiteboard sketch titled “More Januaries take more years”, drawn slowly stroke by stroke. A grey axis along the bottom is labelled “Januaries”, and a grey axis up the side “X”. A black curve labelled “high” and a grey one labelled “low” fall from left to right and flatten as the count grows. A brown mark between them at “18” is labelled “0.0547 to 0.0615”, and another at “72” is labelled “0.0265 to 0.0298”. The words “Four times the Januaries, about half the X” and “one January a year, so 72 Januaries take 72 years” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_years.gif)
 
 ### Whether Heston and Sadka’s effect existed before 2002
 
