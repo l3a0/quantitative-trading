@@ -1700,6 +1700,16 @@ def _survivors_ranking() -> Scene:
             "lowest return", xs[0], STOOD_Y + 0.5, names="stood", color=MUTED, ha="center", size=10
         ),
         Label("highest", xs[-1], STOOD_Y + 0.5, names="stood", color=MUTED, ha="center", size=10),
+        # The key comes before the rings it explains, so a reader knows what
+        # a red ring means when the first one is drawn.
+        Label(
+            "red rings: companies that left the index before the file was saved",
+            0.3,
+            0.45,
+            names="stood",
+            color=LOST,
+            size=10,
+        ),
     ]
     for k in GONE:
         steps.append(
@@ -1744,16 +1754,6 @@ def _survivors_ranking() -> Scene:
             IN_FILE_Y - 0.5,
             names="file-tenth",
             color=ACCENT,
-            size=10,
-        )
-    )
-    steps.append(
-        Label(
-            "red rings: companies that left the index before the file was saved",
-            0.3,
-            0.45,
-            names="file-tenth",
-            color=LOST,
             size=10,
         )
     )

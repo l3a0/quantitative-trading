@@ -2139,10 +2139,10 @@ class TestTheSurvivorSketches:
             "as it stood",
             "lowest return",
             "highest",
+            "red rings: companies that left the index before the file was saved",
             "worst tenth",
             "in the file",
             "the file’s worst tenth: a different set",
-            "red rings: companies that left the index before the file was saved",
         ]
         assert panels.labels == [
             "a file saved in 2007",
@@ -2245,7 +2245,7 @@ class TestTheSurvivorSketches:
         assert f"{_count_word(len(sketches.LEAVERS))} red lines" in saved
         ranking = _alt(text, survivors[1]).lower()
         assert f"ranks {_count_word(sketches.SURVIVOR_RANKED)} stocks" in ranking
-        assert f"{_count_word(len(sketches.GONE))} of them drawn as red rings" in ranking
+        assert f"{_count_word(len(sketches.GONE))} of the stocks are drawn as red rings" in ranking
 
 
 def _alt(text: str, scene) -> str:
