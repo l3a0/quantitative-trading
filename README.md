@@ -99,9 +99,10 @@ where they were first built. The other forty-five were built here.
    the first lag count whose residuals pass, against a bar of −2.86, so the
    claim reproduces. Its half-life is 141.6 trading days, and only 23 of 226
    one-year windows reject at 10%.
-7. The equity seasonals, Examples 7.6 and 7.7, which Chan publishes as already
-   dead: the January effect on his S&P 600 file and Heston and Sadka's
-   year-on-year rotation on his S&P 500 file. He prints them in the first
+7. The equity seasonals, Examples 7.6 and 7.7: the January effect on his
+   S&P 600 file, which he reports failing in two Januaries before working in
+   the third, and Heston and Sadka's year-on-year rotation on his S&P 500
+   file, which he publishes as already dead. He prints them in the first
    edition's MATLAB and in the revised edition's MATLAB, Python and R, and all
    seventeen figures his files reach reproduce to the digits printed. None
    lands from the strategy as described. The revised MATLAB and R rules follow

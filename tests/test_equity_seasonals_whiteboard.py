@@ -1051,7 +1051,7 @@ class TestThePost:
         for opening, name in zip(
             (
                 "That sits beside the split without contradicting it.",
-                "The five-year verdict is narrow.",
+                "The five-year result is narrow.",
                 "Example 7.6 meets the same limit from another side.",
             ),
             FIVE_YEAR_GIFS,
@@ -1234,7 +1234,7 @@ class TestTheCommand:
         assert len(list(tmp_path.glob("*.gif"))) == len(GIFS) - len(ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
 
-    def test_without_the_archive_it_still_writes_the_other_twenty_two(
+    def test_without_the_archive_it_still_writes_the_other_twenty_three(
         self, monkeypatch, tmp_path, spans
     ) -> None:
         def absent():
@@ -2987,7 +2987,7 @@ class TestTheSection2Sketches:
         assert all(rows["keeps the companies that left"]) and all(rows["reaches back to 1965"])
         assert _stroke(sources, "mark-0-0").color == GOOD
         alt = _alt(text, before)
-        assert "A black bar for “Heston and Sadka printed”" in alt
+        assert "a black bar for “Heston and Sadka printed”" in alt
         assert "a brown bar for “1965 to 2002, their sample”" in alt
         assert "A second brown bar, “1965 to 2001, before Chan’s 2002”" in alt
         assert [_fill(before, gid).color for gid in ("printed", "sample", "prior")] == [
@@ -3538,6 +3538,83 @@ def test_each_alt_text_quotes_its_labels_in_drawing_order(group, request) -> Non
         alt = _alt(text, scene)
         places = [alt.index(f"“{label}”") for label in scene.labels]
         assert places == sorted(places), (scene.slug, scene.labels)
+
+
+def test_every_alt_text_quotes_the_labels_it_names_in_drawing_order(every) -> None:
+    """Every sketch's alt text follows the frames. A label the alt text leaves
+    unquoted, such as an axis tick, is allowed, but each one it quotes comes
+    after the one drawn before it. A label drawn twice, such as "0" on two
+    number lines, is found again further along when the alt text quotes it
+    twice, and once is enough when the alt text quotes it once."""
+    text = POST.read_text(encoding="utf-8")
+    for scene in every:
+        alt, at, seen = _alt(text, scene), 0, set()
+        for label in scene.labels:
+            quoted = f"“{label}”"
+            found = alt.find(quoted, at)
+            if found < 0 and (label in seen or quoted not in alt):
+                continue
+            assert found >= 0, (scene.slug, label, "quoted before an earlier label")
+            at, seen = found + len(quoted), seen | {label}
+
+
+def _minus(value: float, places: int) -> str:
+    return f"{value:.{places}f}".replace("-", "−")
+
+
+def test_the_post_quotes_the_pinned_figures() -> None:
+    """The post's body quotes these figures, and each comes from a pin that a
+    test elsewhere holds the run or Chan's files give. So a typo in the post,
+    or a re-pin the post was not moved with, fails here rather than reaching a
+    reader. Each fragment carries enough words to say which figure it is."""
+    p, ivv, shift, osap, broad = PINNED, PINNED_IVV, PINNED_SHIFT, PINNED_OSAP, PINNED_BROAD
+    f, (x_low, x_high) = FiveYearFigures(), PINNED_POWER.detectable()
+    fragments = [
+        f"averages between {_minus(p.january_low, 4)} and {_minus(p.january_high, 4)}"
+        " a January before costs",
+        f"The low series averages {_minus(p.january_low, 4)} a January before costs",
+        f"The high series averages {_minus(p.january_high, 4)}, with",
+        f"The {len(ivv.months)} months average {_minus(p.monthly_mean, 4)} a month before costs",
+        f"no return detectable above about {100 * p.detectable:.1f} percent a year",
+        f"a checked price for {ivv.covered:,} of its {ivv.members:,} member-months",
+        f"its t-statistic clears {shift.critical:.3f}",
+        f"The normal-curve shortcut gives {shift.critical + shift.z:.4f}"
+        f" and the exact answer {shift.shift:.4f}",
+        f"land above −{shift.z:.3f}",
+        f"it earned {100 * osap.sample:.2f} percent a month before costs,"
+        f" where they printed {100 * osap.printed:.2f} percent."
+        f" Its t-statistic of {osap.sample_t:.2f}",
+        f"it earned {100 * osap.before:.2f} percent a month,"
+        f" about {1200 * osap.before:.1f} percent a year",
+        f"earned {100 * broad.after:.2f} percent a month,"
+        f" with a t-statistic of {broad.after / broad.after_error:.2f}",
+        f"The two halves’ annual returns, {_minus(f.before_2002, 6)} and {_minus(f.from_2002, 6)}",
+        f"the rerun keeps {f.rerun_months} months",
+        f"returns {_minus(f.rerun_matlab, 4)} a year"
+        f" against the whole period’s {_minus(f.whole_matlab, 4)}",
+        f"the figures are {_minus(f.rerun_python, 6)} and {_minus(f.whole_python, 6)}",
+        f"those {f.between_months} return {_minus(f.between, 6)} a year",
+        f"The gap between the two figures is {abs(f.rerun_matlab - f.whole_matlab):.4f}"
+        f" a year, and the rerun’s annual return has a standard error of {f.rerun_error:.4f}",
+        f"is {x_low:.4f} for the low version and {x_high:.4f} for the high one,"
+        f" a gain of about {100 * x_low:.1f} to {100 * x_high:.1f} percent",
+        f"and so is their mean, {f.january_mean:.4f}",
+    ]
+    text = POST.read_text(encoding="utf-8")
+    assert [fragment for fragment in fragments if fragment not in text] == []
+
+
+def test_every_section_the_post_points_to_is_a_heading() -> None:
+    """The post's prose sends a reader to a section by name, quoted after
+    "under" or in italics after "section". A renamed heading would leave the
+    pointer naming nothing, so each name must match a heading. Alt texts quote
+    sketch labels after "under" too, so they are left out."""
+    text = POST.read_text(encoding="utf-8")
+    headings = {line.lstrip("#").strip() for line in text.splitlines() if line.startswith("#")}
+    prose = "\n\n".join(p for p in text.split("\n\n") if not p.startswith("!["))
+    named = re.findall(r"under “([^”]+)”", prose) + re.findall(r"section, \*([^*]+)\*", prose)
+    assert len(named) >= 2, named
+    assert [name for name in named if name not in headings] == []
 
 
 def test_the_broader_series_sentence_says_what_the_months_show(project) -> None:

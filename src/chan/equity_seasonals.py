@@ -1,8 +1,9 @@
 """Chan's two equity seasonals, Examples 7.6 and 7.7, on his files and on IJR's members.
 
-Chan publishes both strategies as already dead. At Kindle location 4425 he says
-the Heston and Sadka strategy returned more than 13 percent a year before 2002
-and "has disappeared since then". Example 7.6 trades the January effect, and
+Chan publishes Example 7.7 as already dead and reports Example 7.6 failing in
+two Januaries before working in the third. At Kindle location 4425 he says the
+Heston and Sadka strategy returned more than 13 percent a year before 2002 and
+"has disappeared since then". Example 7.6 trades the January effect, and
 location 766 says a reader's backtest of it failed and Chan's own confirmed the
 failure. So reproducing these checks whether a documented disappearance is
 visible in data a reader can get, rather than whether a published edge

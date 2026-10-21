@@ -203,9 +203,10 @@ the scene says the trade moves on to the next one.
 The opening's years and verdicts scenes carry data. :meth:`Verdicts.from_runs` reads the
 registered runs on the owner's archive, about twenty seconds, and
 :meth:`Spans.read` reads Chan's committed files and the runs' constants. The
-bar for Heston and Sadka's 13 percent ends at Chan's 2002 split rather than at
-any date read from their paper, and its start is drawn dashed, because nothing
-here has checked where their sample starts or ends. A run whose verdicts
+bar for Heston and Sadka's 13 percent ends at Chan's 2002 split, and its start
+is drawn dashed, because the bar stands for Chan's "before 2002" rather than
+for their sample. The post gives that sample as January 1965 to December 2002,
+from their October 2006 working paper. A run whose verdicts
 differ from the ones the scene's words state is refused rather than drawn.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
@@ -3727,8 +3728,9 @@ YEARS = (1960, 2030)
 TIMELINE_X = (0.6, 9.6)
 AXIS_Y = 0.75
 #: The bar for Heston and Sadka's 13 percent is drawn solid from this year,
-#: with a dashed lead-in before it, because nothing here has checked where
-#: their sample starts.
+#: with a dashed lead-in before it, because Chan's "before 2002" names no start.
+#: Their own sample starts in January 1965, three years before this one, so the
+#: solid part does not mark their sample's start.
 SAMPLE_FROM = 1968
 #: The book's first edition, which the post cites as Chan (2009).
 BOOK_YEAR = 2009
