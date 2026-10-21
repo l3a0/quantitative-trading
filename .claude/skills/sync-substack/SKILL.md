@@ -509,7 +509,12 @@ became "join my learning journey. enjoy the ride!". Every post carries
 widgets, so each change moved every post's conversion hash. The block-by-block
 comparison is unaffected by either change, because it treats any two widgets
 as equal. A sync keeps each live widget as it is, so it never changes a live
-caption. Only a new draft takes the caption from the converter.
+caption. Only a new draft takes the caption from the converter. The walk check
+in `SYNC.syncTo` does see the caption, though, because the patched body keeps
+the live widgets and the walk reads their text. So the one-call sync refuses
+any draft whose caption differs from the converter's, with "the patched body".
+Restore the page's functions from a commit whose converter writes the caption
+the drafts carry.
 
 So changing the caption on drafts that already exist is a write of its own.
 Each one replaces the caption text in the raw body and changes nothing else,
