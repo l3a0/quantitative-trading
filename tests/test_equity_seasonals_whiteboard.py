@@ -3471,7 +3471,10 @@ def test_the_broader_series_sentence_says_what_the_months_show(project) -> None:
     """The post's "about twice as far" is the months' spread, which the run and
     the release give, and the sentence names the months."""
     text = POST.read_text(encoding="utf-8")
-    assert "Month to month, the project’s series swings about twice as far as the run’s" in text
+    assert (
+        "Month to month, Open Source Asset Pricing’s series swings"
+        " about twice as far as the IVV run’s." in text
+    )
     together = Together.from_runs(PINNED_IVV, project)
     months = np.array([(m[1], m[2]) for m in together.months])
     ratio = months[:, 0].std(ddof=1) / months[:, 1].std(ddof=1)
