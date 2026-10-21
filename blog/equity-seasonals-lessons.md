@@ -563,7 +563,7 @@ A wider universe changes the strategy as well as the sample, so its result would
 
 ### By market regime
 
-Both strategies could also be split by market regime. An effect can live in one kind of market and not another, such as rising markets against falling ones, or calm markets against turbulent ones, and a split asks whether either effect does. The split has two prices.
+Both strategies could also be split by market regime. An effect can live in one kind of market and not another, such as rising markets against falling ones, or calm markets against turbulent ones, and a split asks whether either effect does. The split has two trade offs.
 
 1. **A smaller sample in each regime.** 9 of the 18 Januaries would catch only an average of 0.0815 to 0.0916, and half of the 213 months only about 6.0 percent a year, against 4.2 percent for all of them.
 2. **More chances for luck.** Every regime tried is another chance for a pattern to appear by luck, as the split at 2002 in Lesson 2 shows.
