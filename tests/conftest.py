@@ -16,7 +16,10 @@ its own, so the run is built once in every worker that draws a test reading
 it. ``--dist loadfile`` keeps each file on one worker, so an archive run builds
 it at most twice, once for each of the two files, at the same time. ``-n 0``
 runs the suite in one process and builds it once. The design doc's
-considered-and-rejected register says why one worker for both files was cut.
+considered-and-rejected register says why ``--dist loadgroup`` was cut for
+this, and [issue 692](https://github.com/l3a0/quantitative-trading/issues/692)
+measures joining the two files the way the factor momentum pair below is
+joined.
 
 One run of Example 1.1's three hypothesis tests takes about half a minute, a
 time no test holds, and two files pin what it computes:
@@ -25,11 +28,23 @@ time no test holds, and two files pin what it computes:
 ``tu_hypothesis_run`` shares that run as ``cpo_result`` does, under the same
 rules, and ``--dist loadfile`` computes it at most twice.
 
-The hook below caps each worker's numerical thread pools at one thread. A
-pool sizes itself to every core, so four workers on four cores ran up to four
-threads each. Two paired runs on CI's 4-core runner, measured on 2026-10-05,
-took 334 and 338 seconds with the cap and 465 and 557 without it, against 719
-and 769 serially.
+Example 7.4's factor momentum run on Chan's S&P 600 file takes about 100
+seconds on CI, and two files pin what it computes:
+``tests/test_pca_factor_momentum.py`` its figures, and
+``tests/test_pca_factor_momentum_figures.py`` what its figure draws.
+``pca_factor_momentum_run`` shares it, and the scheduler hook below puts both
+files in one ``loadfile`` work unit, so one worker builds it once per run.
+Every other file keeps its own unit. That is the difference from
+``--dist loadgroup``, which the register cut because it hands every test
+outside a group out one at a time. ``tests/test_pca_factor.py`` reads the same
+file and stays out, because ``chan.pca_factor.compute`` is a different
+computation and the two share only the panel read.
+
+The ``pytest_configure`` hook below caps each worker's numerical thread
+pools at one thread. A pool sizes itself to every core, so four workers on
+four cores ran up to four threads each. Two paired runs on CI's 4-core
+runner, measured on 2026-10-05, took 334 and 338 seconds with the cap and 465
+and 557 without it, against 719 and 769 serially.
 """
 
 from __future__ import annotations
@@ -41,9 +56,21 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 import pytest
+from xdist.scheduler import LoadFileScheduling
 
 from chan import cpo, tu_hypothesis_tests
 from chan.archive import ArchiveUnavailable, archive_dir
+from chan.pca_factor import SMALL_CAPS
+from chan.pca_factor_momentum import (
+    Decomposition,
+    Results,
+    WeightStatistics,
+    compute_both,
+    daily_components,
+    file_returns,
+    weight_statistics,
+)
+from chan.series import load_panel
 
 #: The thread-count variables of OpenMP, OpenBLAS, MKL and Apple's Accelerate,
 #: which between them size every numerical thread pool this suite reaches.
@@ -65,6 +92,36 @@ def pytest_configure(config: pytest.Config) -> None:
     if getattr(config.option, "numprocesses", 0) and not hasattr(config, "workerinput"):
         for name in THREAD_ENVS:
             os.environ.setdefault(name, "1")
+
+
+#: Test files that join another file's ``loadfile`` work unit, keyed by their
+#: own path and mapped to the path whose unit they join, because both read one
+#: session fixture.
+JOINED_FILES = {
+    "tests/test_pca_factor_momentum_figures.py": "tests/test_pca_factor_momentum.py",
+}
+
+
+class JoinedFileScheduling(LoadFileScheduling):
+    """``--dist loadfile``, with each file in :data:`JOINED_FILES` run beside its partner.
+
+    ``_split_scope`` is where xdist turns a test's node id into its work unit.
+    The method is private, so ``tests/test_conftest.py`` runs xdist's own
+    ``schedule`` through this class, and a release that stops calling it fails
+    there rather than quietly building the shared run twice.
+    """
+
+    def _split_scope(self, nodeid: str) -> str:
+        scope = super()._split_scope(nodeid)
+        return JOINED_FILES.get(scope, scope)
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_xdist_make_scheduler(config: pytest.Config, log) -> LoadFileScheduling | None:
+    """Schedule ``--dist loadfile`` with :class:`JoinedFileScheduling`, and leave the rest."""
+    if config.getvalue("dist") == "loadfile":
+        return JoinedFileScheduling(config, log)
+    return None
 
 
 #: Set to 1 to run the archive pins. Example 7.1's full run takes minutes, so
@@ -113,3 +170,17 @@ def tu_hypothesis_run() -> tuple[tu_hypothesis_tests.HypothesisTests, str]:
     with redirect_stdout(out):
         result = tu_hypothesis_tests.run()
     return result, out.getvalue()
+
+
+@pytest.fixture(scope="session")
+def pca_factor_momentum_run() -> tuple[Results, list[Decomposition], WeightStatistics]:
+    """``compute_both``, every fitting day's decomposition, and the weight statistics.
+
+    All three read the Close column of :data:`chan.pca_factor.SMALL_CAPS`.
+    The 753 decompositions and the 1,504 more inside ``weight_statistics``
+    are most of the time. Every test reading it treats it as read-only.
+    """
+    _, closes = load_panel(SMALL_CAPS, field="Close")
+    returns = file_returns(closes)
+    components = daily_components(returns)
+    return compute_both(closes), components, weight_statistics(returns, components)

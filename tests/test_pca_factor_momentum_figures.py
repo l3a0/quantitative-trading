@@ -30,10 +30,6 @@ from chan.pca_factor_momentum import (
     NAMES,
     Results,
     WeightStatistics,
-    compute_both,
-    daily_components,
-    file_returns,
-    weight_statistics,
 )
 from chan.pca_factor_momentum_figures import (
     LABEL_SPOTS,
@@ -43,26 +39,19 @@ from chan.pca_factor_momentum_figures import (
     make_pca_factor_momentum_figure,
 )
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
-from chan.series import load_panel
 from chan.vintage import VintageUnavailable
+from tests.support.figure_pixels import assert_same_pixels, platform_skip_reason
 
 
 @pytest.fixture(scope="module")
-def drawn_from() -> tuple[Results, WeightStatistics]:
-    """Computed once, because each takes hundreds of decompositions."""
-    _, closes = load_panel(SMALL_CAPS, field="Close")
-    returns = file_returns(closes)
-    return compute_both(closes), weight_statistics(returns, daily_components(returns))
+def results(pca_factor_momentum_run) -> Results:
+    """The run ``tests/test_pca_factor_momentum.py`` pins, shared through ``tests/conftest.py``."""
+    return pca_factor_momentum_run[0]
 
 
 @pytest.fixture(scope="module")
-def results(drawn_from) -> Results:
-    return drawn_from[0]
-
-
-@pytest.fixture(scope="module")
-def weights(drawn_from) -> WeightStatistics:
-    return drawn_from[1]
+def weights(pca_factor_momentum_run) -> WeightStatistics:
+    return pca_factor_momentum_run[2]
 
 
 @pytest.fixture(scope="module")
@@ -378,6 +367,18 @@ def test_drawing_reads_only_what_it_is_given(monkeypatch, tmp_path, results, wei
 
 def test_the_committed_figure_exists() -> None:
     assert (FIGURES_DIR / PCA_FACTOR_MOMENTUM_FIGURE).is_file()
+
+
+def test_the_committed_figure_is_what_the_run_draws(results, weights, tmp_path) -> None:
+    """``tests/test_figures_match_code.py`` compares every other figure. This
+    one sits here so the comparison reads the run this file already shares."""
+    if (reason := platform_skip_reason()) is not None:
+        pytest.skip(reason)
+    out = tmp_path / PCA_FACTOR_MOMENTUM_FIGURE
+
+    make_pca_factor_momentum_figure(results, weights, out=out)
+
+    assert_same_pixels(out, FIGURES_DIR / PCA_FACTOR_MOMENTUM_FIGURE)
 
 
 def test_the_command_reads_the_vintage_once_and_draws(monkeypatch, capsys) -> None:
