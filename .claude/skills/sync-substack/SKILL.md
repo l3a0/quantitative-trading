@@ -503,6 +503,17 @@ step 3 above, and its report names each node it rewrote. A post whose
 figures are all PNGs converts to the hashes it had before, which on that day
 was every committed post.
 
+The subscribe widget's caption has changed twice. On 2026-10-17 it became
+"come along on my learning journey. enjoy the ride!", and on 2026-10-21 it
+became "join my learning journey. enjoy the ride!". Every post carries
+widgets, so each change moved every post's conversion, body and walk hashes,
+since the walk reads each caption's text. Comparing two bodies block by block
+still holds across it, because the comparison treats any two widgets as
+equal. A hash recorded before a change matches a live body only after the new
+caption in that body is put back to the old one. Each live draft got the new
+caption the day the converter did, by a write that changed the caption text
+and nothing else, and the owner's notes record the new hashes.
+
 ## Update a published post
 
 Every write here waits for the owner's approval in chat. The standing approval

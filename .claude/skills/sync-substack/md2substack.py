@@ -162,7 +162,7 @@ WIDGET = {
             "content": [
                 {
                     "type": "text",
-                    "text": "come along on my learning journey. enjoy the ride!",
+                    "text": "join my learning journey. enjoy the ride!",
                 }
             ],
         }
