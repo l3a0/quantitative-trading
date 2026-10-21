@@ -1,14 +1,14 @@
 ---
 name: review-post
-description: Review one blog/*.md post before the owner reads it for publishing, in rounds that loop until nothing significant is left. Each round runs five independent lenses (accuracy, consistency, easy comprehension, suggested sketch notes, suggested subheadings) and a verifier per lens that tries to refute every finding, then applies what survives on the post's branch, syncs its unpublished draft and re-reviews. Use when asked to review a post before the owner edits or publishes it, to check a post for accuracy, consistency or ease of reading, or to suggest sketch notes or subheadings for a post. Not for reviewing a pull request's code, which CLAUDE.md's `## Pull requests` covers.
+description: Review one unpublished blog/*.md post before the owner reads it for publishing, in rounds that loop until nothing significant is left. Each round runs five independent lenses (accuracy, consistency, easy comprehension, suggested sketch notes, suggested subheadings) and a verifier per lens that tries to refute every finding, then applies what survives on the post's branch, syncs its unpublished draft and re-reviews. Use when asked to review a post before the owner edits or publishes it, to check a post for accuracy, consistency or ease of reading, or to suggest sketch notes or subheadings for a post. Not for reviewing a pull request's code, which CLAUDE.md's `## Pull requests` covers.
 ---
 
 # Review a post before the owner reads it
 
 The owner reads every unpublished post before publishing it, and one tracking
-issue per post records that pass. A review that lands first lets the owner
-read a post that is already right and already easy to follow. The equity
-seasonals post took four rounds of review on
+issue per unpublished post records that pass. A review that lands first lets
+the owner read a post that is already right and already easy to follow. The
+equity seasonals post took four rounds of review on
 [PR #618](https://github.com/l3a0/quantitative-trading/pull/618), assembled
 by hand, with the owner picking batches of wording between rounds. On
 2026-10-21 the owner asked for the rounds to loop until nothing significant is
@@ -35,21 +35,35 @@ Each round has four steps.
 4. **Repeat** from the new commit, or stop.
 
 The loop stops on the first round whose verified findings hold nothing
-significant. A finding is significant when it is any accuracy or consistency
-finding, or a comprehension finding a reader would misread rather than merely
-reread. A suggestion an earlier round dropped does not count, and neither does
-a cosmetic point. The loop also stops after five rounds, even if the last one
+significant. A finding is significant when it is one of three kinds.
+
+1. Any accuracy or consistency finding.
+2. A comprehension finding a reader would misread, as the verifier grades it
+   below.
+3. A display equation or table wider than 320 pixels at the round's commit,
+   because a phone reader sees it cut off.
+
+A suggestion an earlier round dropped does not count, and neither does a
+cosmetic point. The loop also stops after five rounds, even if the last one
 still found something, so a lens that never runs dry cannot keep it going.
 
 The comment that ends the loop says it ended and why, with the count of
-findings in each round, so the owner can see each round adding less.
+significant findings in each round, so the owner can see each round adding
+less. A loop that stopped at the cap also lists what round 5 applied, since no
+later round has read it.
 
 ## Before round 1
 
-The main thread does six things before any lens starts, because each lens
+The main thread does seven things before any lens starts, because each lens
 reads none of the conversation and needs the answers in its prompt.
 
-1. **Find the tracking issue.** Each unpublished post has one, titled
+1. **Check that the post is unpublished.** Look it up in the drafts,
+   scheduled and published lists, as step 2 of `sync-substack`'s
+   `## Before any write` gives them. A published or scheduled post gets no
+   loop, because every change to it waits on the owner. Run round 1 alone,
+   apply nothing, post its findings with each proposed change written out,
+   and stop.
+2. **Find the tracking issue.** Each unpublished post has one, titled
    "Edit blog/X.md before publishing it on Substack".
 
    ```bash
@@ -57,32 +71,45 @@ reads none of the conversation and needs the answers in its prompt.
      --search 'in:title "Edit blog/<post>.md before publishing"' --json number,title,state
    ```
 
-   A closed one means the post is published, so every change waits on the
-   owner and the loop does not apply anything. Where none exists, file one in
-   the form of the others, with their body, the `documentation` label,
+   On 2026-10-21 all 40 such issues were open, and the 8 posts with none were
+   mostly published already, so a missing issue is no proof the post is
+   unpublished. Step 1 decides that. An unpublished post with no issue gets
+   one, in the form of the others, as the moment for a filed issue in
+   `update-build-board` says: their body, the `documentation` label,
    `band:3`, and the milestone of the write-up issue the post came from.
-2. **Branch.** Cut the post's branch from `origin/main` in a worktree of its
+3. **Mark the card.** Add `working:build` to the tracking issue, as the
+   moment for a build session starting on a card in `update-build-board`
+   says. The loop pushes to an open pull request for up to five rounds, and
+   the label is the only thing on the board saying the branch is still
+   moving.
+4. **Branch.** Cut the post's branch from `origin/main` in a worktree of its
    own, so the post's commits stay apart from any other work in the session.
    Every commit on it writes `Part of #N` for the tracking issue, and so does
    the pull request, because the issue closes only when the owner publishes.
-3. **Read what the owner already decided.** The tracking issue's comments, the
+5. **Read what the owner already decided.** The tracking issue's comments, the
    pull requests that touched the post, and earlier review rounds hold choices
-   the owner made, such as a heading picked to pair with another post's. Pass
-   them to every lens as fixed, so no lens re-proposes them.
-4. **Read the live draft, and change nothing.** Compare its
-   `draft_updated_at` and the hash of its raw `draft_body` with the baseline
-   in the owner's notes. Equal means no edits by the owner since the last
-   sync, which is the usual case and costs one read. A draft that differs
-   holds edits the owner made in the Substack editor, and those are part of
-   the post. Find them with step 3 of `sync-substack`'s
-   `## Sync an existing draft`, and pull them into the Markdown before the
-   lenses read it. Check too whether the draft lags the Markdown, by comparing
-   the commit it was last synced to with the post's last commit.
-5. **Measure every math block's width on a phone,** as below.
-6. **Collect what surrounds the post.** Name the open issues that name it.
-   Name the posts that link to it, by file and by anchor, and when each
-   publishes. Name any session editing a neighbouring file, so no lens is
-   told to touch it.
+   the owner made, such as a heading picked to pair with another post's. An
+   `## Owner decisions` comment, below, lists changes the owner declined.
+   Pass all of them to every lens as fixed, so no lens re-proposes them.
+6. **Read the live draft, and change nothing.** Run `SYNC.syncTo` without
+   `write: true`, from the commit the owner's notes say was last synced to the
+   post's last commit, as `sync-substack`'s `### Sync in one call` says. The
+   owner's notes are the private records that skill's
+   `## This file and the owner's notes` describes. No refusal means the draft
+   matches its last sync. A refusal names the check that failed, and it is
+   not by itself an owner edit. On the commodity seasonals post it refused on
+   two text runs that an earlier patch had split, which the notes recorded.
+   Find out why with steps 3 and 4 of `sync-substack`'s
+   `## Sync an existing draft`, merging split runs as its last paragraph
+   says, and pull only text the owner changed into the Markdown before the
+   lenses read it. A last-synced commit older than the post's last commit
+   means the draft lags.
+7. **Collect what surrounds the post.** Name the open issues that name it.
+   Name the posts that link to it, with the slug sweep under
+   `## Decide and apply`, and whether each is published. Name any session
+   editing a neighbouring file, so no lens is told to touch it.
+
+Then measure the post's math blocks, as the next section says.
 
 ## Before each later round
 
@@ -91,20 +118,22 @@ read it first. It names the round's commit, links the earlier rounds'
 comments, and lists everything already decided: the owner's choices and every
 item an earlier round dropped. A later round reviews the post as it now
 stands, so it also asks each lens to check what the last round rewrote, since
-a rewrite can bring in a new error. The four read-only lenses can share the
-post's worktree, as long as nothing writes to it while they run.
+a rewrite can bring in a new error. Measure the math blocks again at the
+round's commit.
 
 ## Measure phone width
 
-The owner's rule of 2026-10-20 keeps each display equation and table at or
-under 320 pixels, and `sync-substack`'s `## Check the post before converting
-it` gives the rule and the measuring method. The main thread measures, because
-it needs the one browser, and the result goes straight into the round's
-comment rather than to a lens.
+`sync-substack`'s `## Check the post before converting it` gives the owner's 320-pixel rule of 2026-10-20 and the measuring method. The main thread
+measures, because it needs the one browser, and the result goes straight into
+the round's comment rather than to a lens.
 
-The draft's own LaTeX can be measured without pasting it. Open any published
-post page in the built-in browser at a 375 by 812 viewport, then fetch the
-draft from that page, since the API shares its origin.
+The script below reads the draft's own LaTeX, so nothing is pasted. Run it
+only once the draft matches the round's commit, because a lagging draft
+measures older text. Otherwise put the round's LaTeX, from
+`md2substack.py`'s conversion of the commit, in `exprs`. Open a published
+post page that holds at least one LaTeX block in the built-in browser, at a
+375 by 812 viewport, and fetch the draft from that page, since the API shares
+its origin. The draft id is in the owner's notes.
 
 ```javascript
 const d = await (await fetch('/api/v1/drafts/<draft id>')).json();
@@ -136,8 +165,12 @@ five run at once, and none sees another's prompt or result. Each prompt stands
 alone, per the owner's rules for a sub-agent. It names the post, the commit,
 the tracking issue, the draft's state, what the owner already decided, the
 inbound links, and a scratch folder of the lens's own under the session
-scratchpad. It also says what is out of scope: editing the post, the draft, or
-any file another session holds.
+scratchpad. It also says what is out of scope: committing to the post's
+branch, writing to the draft, or touching any file another session holds.
+
+Four lenses only read, so they can share the post's worktree: accuracy, easy
+comprehension, sketch notes and subheadings. The consistency lens writes, so
+it runs in a worktree of its own, as below.
 
 Every lens returns each finding in the same form, so its verifier can use it
 unchanged.
@@ -159,7 +192,8 @@ comment reports that too.
    Check a quotation against `research/book-notes/`, which holds the book's
    highlights by Kindle location, and name any the repository cannot check. A
    claim about what this repository did or did not do is checked against the
-   repository, including the open issues collected above.
+   repository, including the open issues collected above. A claim of logic,
+   such as "only if", is checked as logic.
 2. **Consistency.** The post agrees with README, its entry in
    `docs/replication-log.md`, the module docstrings, the tests, its alt texts
    and its own internal references and headings. Each alt text is checked
@@ -167,8 +201,7 @@ comment reports that too.
    at the round's commit, anchors included. The posts that link here say
    nothing this post contradicts. This lens also mutates numbers in the post
    and runs the tests, to report which numbers no test holds, so it runs with
-   `isolation: "worktree"`. It is the slowest lens, at about 15 minutes on
-   the commodity seasonals post against 2 to 7 for the others.
+   `isolation: "worktree"` and checks out the round's commit first.
 3. **Easy comprehension.** It reports:
    - terms used before they are explained
    - ambiguous references, such as "this" or "it" with two candidates
@@ -179,13 +212,14 @@ comment reports that too.
    - paragraphs that carry three or more ideas, or put them in an order that
      sends the reader backwards
 
-   It ranks its findings, because it returns the most. The commodity
-   seasonals post drew 58.
+   It ranks its findings, because it returns the most. Round 1 of the
+   commodity seasonals post drew 58.
 4. **Suggested sketch notes.** It names the passages where a whiteboard
    sketch would make a rule, bug or statistic easier to follow, what each
    sketch would draw, and the paragraph it would follow. One idea per sketch,
    at most six, and each says whether it carries figures from the run or is
-   schematic. It draws nothing.
+   schematic. From round 2 on it also reviews the sketches already drawn, by
+   rendering each GIF's last frame. It draws nothing.
 5. **Suggested subheadings.** It proposes a `###` subheading where a section
    runs several ideas together, with the text of each and the line it goes
    above. It names any anchor a renamed `##` heading would break.
@@ -193,14 +227,22 @@ comment reports that too.
 ## Verify each finding
 
 Each lens's findings go to a verifier of their own as soon as that lens
-reports, so verifying overlaps the lenses still running. A verifier sees one
+reports, so verifying overlaps the lenses still running. A verifier is a
+background sub-agent whose prompt stands alone, like a lens's. It sees one
 lens's findings and nothing else, and tries to refute each one. It executes
 wherever it can: it reruns the command, recomputes the number, opens the
-figure, or follows the link. It checks the proposed text as hard as the
-finding, because on the commodity seasonals post the verifiers caught three
-wrong rewrites behind right findings. One credited Chan's own date rolls to
-the run, one said a file held a row for every trading day when holidays and
-gaps break that, and one sent a Substack reader to a file in the repository.
+figure, or follows the link. A verifier that writes any file, such as one
+rerunning a mutation, runs with `isolation: "worktree"`, because the
+read-only lenses still running share the post's worktree.
+
+It checks the proposed text as hard as the finding. On round 1 of the
+commodity seasonals post the verifiers caught three wrong rewrites behind
+right findings.
+
+1. One credited Chan's own date rolls to the run.
+2. One said a file held a row for every trading day, when holidays and gaps
+   break that.
+3. One sent a Substack reader to a file in the repository.
 
 It returns one verdict per finding.
 
@@ -210,8 +252,9 @@ It returns one verdict per finding.
    the corrected text.
 
 The comprehension verifier also grades each finding, because the stop rule
-needs it: **misread**, where a reader would take a wrong meaning away,
-**reread**, or **cosmetic**.
+needs it. **Misread** means a reader would take a wrong meaning away.
+**Reread** means a reader gets it right on a second pass. **Cosmetic** means
+the sentence reads right on the first pass and could only read better.
 
 For the two suggestion lenses, the verifier checks the premise rather than the
 taste. It checks that the passage is where the line says, that every figure a
@@ -220,47 +263,75 @@ heading neither repeats the first sentence under it nor leaves a "that" or
 "this" pointing back across it.
 
 A lens's side remark about another lens's ground goes to that lens's verifier.
-On the commodity seasonals post the sketch lens noticed that Good Friday has
-no row in the natural gas files, and that became an accuracy fix in three
-files.
+On round 1 of the commodity seasonals post the sketch lens noticed that Good
+Friday 2022 has no row in a natural gas file, which the post's sentence about
+holiday rows did not allow, and that became an accuracy fix in three files.
 
 ## Decide and apply
 
-Apply every confirmed or changed finding, and drop the rest. Two lenses often
-find the same thing. On the commodity seasonals post accuracy and consistency
-both found three, so merge them before applying and credit both.
+Apply every confirmed or changed finding, and drop the rest. Two lenses can
+find the same thing. On round 1 of the commodity seasonals post accuracy and
+consistency found the same three, so merge overlaps before applying and credit
+both.
 
 1. **Accuracy and consistency** are corrections of fact. Fix the class, not
-   the instance: a false claim usually sits in the post, the replication log,
-   a module docstring and a figure's note at once. A change to text a figure
-   draws means redrawing the PNG in the same commit and updating the test
-   that pins it, and a sentence that now states a measured fact gets a test
-   that derives it.
+   the instance. On the commodity seasonals post one false claim sat in five
+   places: the post, Entry 11, two module docstrings and a figure's note. A
+   change to text a figure draws means redrawing the PNG in the same commit
+   and updating the test that pins it. A sentence that now states a measured
+   fact gets a test that derives it.
+
+   A fix can reach another post. When that post is unpublished, the fix is
+   part of the round: the commit and the pull request write `Part of #M` for
+   that post's tracking issue, and the round checks and syncs that post's
+   draft too, as step 6 of `## Before round 1` checks this one. When it is
+   published or scheduled, its change waits on the owner, and the round's
+   comment lists it as dropped for that reason.
 2. **Comprehension.** Apply misread and reread findings. Apply a cosmetic one
    only when the post reads clearer with it, and drop it otherwise.
-3. **Sketch notes.** Draw the strongest, usually two or three, through
-   `sketch-notes`. That skill's step 3 shows each sketch to the owner before
-   it is placed. In this loop the pull request does that job, by the owner's
-   ruling on [issue 694](https://github.com/l3a0/quantitative-trading/issues/694),
-   so the sketch is placed, tested and committed without waiting. A sketch
-   takes its own module and tests, so it suits a sub-agent with
-   `isolation: "worktree"` that commits on a branch of its own, which the
-   round then merges.
-4. **Subheadings.** Add the confirmed ones. Leave a `##` heading's text
-   alone unless the gain is large, because another post may link its anchor
-   by an absolute GitHub URL, and no test checks one of those.
-   `test_every_fragment_link_resolves_to_a_heading` skips any link with a
-   scheme, which [issue 586](https://github.com/l3a0/quantitative-trading/issues/586)
-   tracks. Until it closes, sweep for the slug instead.
+3. **Phone width.** Fix every block over 320 pixels with one of the three
+   fixes `sync-substack` gives, measured before it is applied.
+4. **Sketch notes.** Draw the strongest through `sketch-notes`. Round 1 of
+   the commodity seasonals post drew two of five suggestions. The owner's
+   ruling on [issue 694](https://github.com/l3a0/quantitative-trading/issues/694)
+   changes four of that skill's seven steps, and the sub-agent's prompt says
+   so.
+   - Step 1's wait for a choice: the round has chosen.
+   - Step 3's showing: the pull request does that job, so the sketch is
+     placed, tested and committed without waiting.
+   - Step 6: the sub-agent opens no pull request and syncs nothing. It
+     commits on a branch of its own, and the round merges it, pushes and
+     syncs once, uploading the GIFs.
+   - Step 7: its review runs before the round merges the sketch, and its
+     findings go in the round's comment rather than on the pull request.
+
+   Steps 2, 4 and 5 run as written. A sketch takes its own module and tests,
+   so the sub-agent runs with `isolation: "worktree"`.
+5. **Subheadings.** Add the confirmed ones. A renamed `##` heading changes
+   its anchor, and other posts link anchors by absolute GitHub URL, which
+   `test_every_fragment_link_resolves_to_a_heading` skips because the link
+   has a scheme. [Issue 586](https://github.com/l3a0/quantitative-trading/issues/586)
+   tracks that gap. So sweep for the slug before any rename.
 
    ```bash
    rg -o '<post>\.md#[a-z0-9-]+' blog/ docs/ README.md
    ```
 
-Commit each lens's changes on their own, so the pull request reads by kind,
-and name the round in each commit message. Run the checks each commit needs:
-`tests/test_markdown_hygiene.py` and the converter test for prose, and the
-post's own test files whenever a number, a pinned figure or a test changes.
+   Rename only when every post the sweep finds is unpublished, and in the
+   same commit update each link and sync each of those drafts. A published
+   or scheduled post linking the anchor blocks the rename.
+
+Commit accuracy and consistency each on their own, and the reading changes
+(comprehension, subheadings and phone width) together, so the pull request
+reads by kind. A sketch arrives as its own merged branch. Name the round in
+each commit message. Run the checks each commit needs. Prose needs
+`tests/test_markdown_hygiene.py` and `tests/test_substack_converter.py`. A
+change to a number, a pinned figure or a test also needs the post's own test
+files, which this lists.
+
+```bash
+rg -l '<module>|<post>' tests
+```
 
 Sync the draft once the round's commits are pushed, per `sync-substack`. A
 redrawn figure or a new sketch is a figure uploaded again since the last sync,
@@ -268,9 +339,11 @@ so it goes in that skill's `images` argument.
 
 ## The round's comment
 
-Post one comment per round on the tracking issue. Its first line is
-`## Review`, so the build board reads it as a review. It holds five things, in
-this order.
+Post one comment per round on the tracking issue, as
+[issue 694](https://github.com/l3a0/quantitative-trading/issues/694) asks. Its
+first line is `## Review`, so a later round can find every round by that line.
+The build board reads `## Review` only on a pull request, so this comment
+moves no card. The comment holds five things, in this order.
 
 1. **What was read.** The round number, the commit, the draft's state and the
    phone widths.
@@ -287,14 +360,29 @@ Link the comment for the owner in chat as soon as it is posted.
 
 ## The pull request
 
-Open the post's pull request after round 1's commits are pushed, and keep
-pushing later rounds to it. Its body lists every change by round, with its
-reason, and every suggestion dropped, so the owner reviews the whole loop in
-one place. Review it as `CLAUDE.md`'s `## Pull requests` says, and watch its
-checks.
+Open the post's pull request after round 1's commits are pushed, and send the
+owner its link with the tracking issue beside it. Keep pushing later rounds to
+it. Its body lists every change by round, with its reason, and every
+suggestion dropped, so the owner reviews the whole loop in one place.
+
+Once the loop stops, review the pull request as `CLAUDE.md`'s
+`## Pull requests` says. The rounds read the post, and this review reads the
+diff, which also holds the tests, docstrings and modules the fixes touched.
+So run a completeness lens and an over-reach lens on the diff, and mutate
+every test the loop added. Post the review as a comment on the pull request,
+whose first line the board reads, and watch the checks until they settle. Then hand it over, and take `working:build` off the tracking issue, as
+the moment for a hand-over in `update-build-board` says.
+
+When the owner declines or reverts a change in the pull request, the session
+acting on it posts one comment on the tracking issue that opens
+`## Owner decisions`. It lists each declined change with the owner's words.
+Step 5 of `## Before round 1` reads it as fixed in any later run.
 
 ## What it cost
 
-Price each round's lenses and verifiers per `loop-cost` once the round's last
-verifier reports, and post the `## Cost` comment on the tracking issue when the
-loop ends, with one line per round.
+Price the loop per `loop-cost`, counting every agent it ran: each round's
+lenses, verifiers and sketch sub-agents, and the pull request's review as a
+loop of its own. The main thread's applying, measuring and syncing count only
+when its transcript is passed, so say whether they are included. At hand-over,
+give one line per round and one for the review in the report to the owner, and
+post the same lines as the `## Cost` comment on the tracking issue.
