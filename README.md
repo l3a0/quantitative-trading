@@ -2611,7 +2611,9 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that neither module draws.
+which also fails on any GIF in the folder that none of the three sketch modules
+draws. The commodity seasonals post's two GIFs are checked the same way by
+[tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py).
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3624,7 +3626,9 @@ not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py), or to
 [tests/test_commodity_seasonals_figures.py](tests/test_commodity_seasonals_figures.py)
-for the figure's own labels. One had no pin before it, and
+for the figure's own labels, or to
+[tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
+for the sketches' labels and the dates their alt text gives. One had no pin before it, and
 `TestNaturalGas::test_the_runs_counted_from_the_files_first_year` now pins it:
 counted from 1994, the run of 13 profitable years ends in 2006.
 
@@ -3641,6 +3645,31 @@ uv run python -m chan.commodity_seasonals_figures
 [tests/test_commodity_seasonals_figures.py](tests/test_commodity_seasonals_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `commodity_sketch_streak_start.gif`, in Lesson 1, a year axis from 1994 to
+   the 2009 loss with a dot for each profitable year, a dashed mark for the
+   first edition's release in November 2008, and brackets for the streaks of
+   13 and 14, counted from 1995 above the axis and from 1994 below it.
+2. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
+   gas contracts as bars ending at their last trading days in 2008 and 2006,
+   with a dashed line at each entry and exit, so June's number is how many
+   bars each line crosses.
+
+Neither is schematic. Both read the natural gas run on the committed EIA
+files, so neither needs the owner's archive. Redraw both with:
+
+```bash
+uv run python -m chan.commodity_seasonals_whiteboard
+```
+
+[tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
+holds that each bracket ends where the run's streak reaches Chan's count, that
+June's number in each label is how many bars its line crosses and the file the
+run reads, and that each GIF follows the paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
