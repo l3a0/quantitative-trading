@@ -193,11 +193,10 @@ review finds whichever one was missed.
 
 1. The sketch module's docstring, which lists its scenes and counts them.
 2. The test module's GIF list, and its docstring.
-3. The check that `docs/figures` holds exactly the GIFs the modules draw. On
-   `main` it lives in `tests/test_usdcad_tests_whiteboard.py`. Once [PR #618](https://github.com/l3a0/quantitative-trading/pull/618)
-   lands, the USD.CAD test module checks only its own `GIF_PREFIX`, and the
-   newest post's test module compares the whole folder with every module's
-   list, so a new post adds its list there.
+3. The check that `docs/figures` holds exactly the GIFs the modules draw. The
+   USD.CAD test module checks only its own `GIF_PREFIX`, and
+   `tests/test_equity_seasonals_whiteboard.py` compares the whole folder with
+   every module's list, so a new post adds its list there.
 4. `tests/test_figures_match_code.py`'s docstring, which names the whiteboard
    test modules.
 5. README's list of sketches and its counts, including the list of paced

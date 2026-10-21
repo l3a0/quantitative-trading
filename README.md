@@ -3631,8 +3631,10 @@ for the figure's own labels, or to
 for the sketches' labels and the dates their alt text gives. One had no pin before it, and
 `TestNaturalGas::test_the_runs_counted_from_the_files_first_year` now pins it:
 counted from 1994, the run of 13 profitable years ends in 2006.
+`TestThePostQuotesThePins` reads the post's own copies of the counts, the
+streaks, the gap dates and the splits, and fails when one drifts from the run.
 
-Its one figure is drawn from the committed EIA files by
+Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).
 It draws every year of both trades as a bar at its settlement change, with the
 three unreadable gasoline years as labelled empty slots, a mark giving each
