@@ -999,7 +999,7 @@ class TestThePost:
         paragraphs = [p for p in opening.split("\n\n") if p.strip()]
         for start, name in (
             ("Running Chan’s code on his own data files", SURVIVOR_GIFS[0]),
-            ("For each, this repository wrote down the claim", JANUARY_GIFS[0]),
+            ("For each, the repository wrote down the claim", JANUARY_GIFS[0]),
         ):
             (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(start)]
             assert re.fullmatch(
@@ -1050,7 +1050,7 @@ class TestThePost:
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         for opening, name in zip(
             (
-                "That sits beside the split without contradicting it.",
+                "The five-year result does not contradict the split.",
                 "The five-year result is narrow.",
                 "Example 7.6 meets the same limit from another side.",
             ),
@@ -1124,10 +1124,10 @@ class TestThePost:
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
         for heading, opening, name in zip(
             (
-                "#### How the run was built",
+                "#### How the IVV run was built",
                 "#### Which companies it kept",
                 "#### Whether dropping the rest matters",
-                "#### What the run found",
+                "#### What the IVV run found",
             ),
             (
                 "The second later run, the IVV run below, tested Example 7.7",
@@ -1147,7 +1147,7 @@ class TestThePost:
         (verdict,) = [
             k for k, p in enumerate(paragraphs) if p.startswith("The verdict, in the words written")
         ]
-        assert paragraphs[verdict - 1] == "#### What the verdict says"
+        assert paragraphs[verdict - 1] == "#### What the IVV verdict says"
         for heading, opening in (
             (
                 "##### Where the 4.2 percent comes from",
@@ -1174,9 +1174,10 @@ class TestThePost:
         start = text.index("## What this means for a trader")
         end = text.index("\n## ", start + 1)
         paragraphs = [p for p in text[start:end].split("\n\n") if p.strip()]
-        assert paragraphs[-2].startswith(
+        assert paragraphs[-3].startswith(
             "On Chan’s own files, all seventeen figures his code prints"
         )
+        assert paragraphs[-2].startswith("For Heston and Sadka’s rotation")
         assert (
             "A return the test would likely miss is under about 4.2 percent a year before "
             "costs, and costs only lower it, so it is not an edge a trader can count on."

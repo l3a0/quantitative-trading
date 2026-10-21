@@ -12,11 +12,11 @@ Running Chan’s code on his own data files reproduces every figure it printed. 
 
 ![An animated whiteboard sketch titled “What a saved file can see”, drawn stroke by stroke over a timeline from 1999 to 2007. Six black lines labelled “companies still in the index in 2007” run the whole way to 2007. Below them three red lines stop early, labelled “acquired”, “shrank out of the index” and “failed”. A dashed brown line at the end is labelled “Chan saves the file”. A black bracket beside the six is labelled “in the file”, and a red bracket beside the three is labelled “missing from it”.](../docs/figures/equity_seasonals_survivors_file.gif)
 
-Two later runs asked whether either effect still works. Each tested one example on its index as it stood from 2009 on. The companies that later left the index remain in the sample wherever free data could check their price.
+Two later runs asked whether either effect still works. The open-source repository behind this post, linked at the end of this section, ran them. Each tested one example on its index as it stood from 2009 on. The companies that later left the index remain in the sample wherever free data could check their price.
 
 ![An animated whiteboard sketch titled “Which years each source reads”, drawn slowly stroke by stroke. A grey axis runs from 1960 to 2030 with a tick at each decade. A thick black bar labelled “Heston and Sadka’s 13%, before 2002” runs to the start of 2002, with a dashed grey lead-in at its left end, and a dashed brown line at 2002 is labelled “disappeared since then”. Below it two short black bars run from late 1999 to late 2007, labelled “Example 7.7, S&P 500”, and from early 2004 to early 2008, labelled “Example 7.6, S&P 600”, with “Chan’s files, survivors only” beside them. A brown dot on the axis at 2009 is labelled “the book”, and a green bar from there to late 2026 is labelled “two later runs, index as it stood”. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_which_years.gif)
 
-For each, this repository wrote down the claim, the test and the wording of the verdict before computing any return. A result tested that way is called registered, and only a registered result can confirm an effect. A result computed first and judged afterwards is exploratory. It can kill an idea or justify a closer look, but it carries no verdict.
+For each, the repository wrote down the claim, the test and the wording of the verdict before computing any return. A result tested that way is called registered, and only a registered result can confirm an effect. A result computed first and judged afterwards is exploratory. It can kill an idea or justify a closer look, but it carries no verdict.
 
 ![An animated whiteboard sketch titled “What registered means”, drawn stroke by stroke. Three boxes joined by arrows, “claim”, “test” and “verdict’s words”, stand before a dashed brown line labelled “all written down”, and past it a green box reads “then returns computed”. The word “registered” heads that row. Below the row, a red box “returns computed” leads to a box “no claim written down first”, under the word “exploratory”. The words “exploratory can kill an idea, only registered can confirm one” close the sketch.](../docs/figures/equity_seasonals_january_registered.gif)
 
@@ -86,7 +86,7 @@ So a backtest that misses a published figure may differ only in rules like these
 
 ### Example 7.6, the January effect
 
-Here is every printout of Example 7.6, at the precision each source prints, one row for each of its three Januaries and one column for each script. The MATLAB column holds both editions, which print the same figures, and the Python and R columns hold the revised edition’s. Each number is the return on one trade, held from a December year-end close to the last close of the January its row names, after a cost of 5 basis points to enter and another 5 to exit. It is a fraction of the capital, split evenly between the long side and the short side. So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81 percent over January 2008.
+Here is every printout of Example 7.6, at the precision each source prints, one row for each of its three Januaries and one column for each script. The MATLAB column holds both editions, which print the same figures, and the Python and R columns hold the revised edition’s. Each number is the return on one trade, held from a December year-end close to the last close of the January its row names, after a cost of 5 basis points to enter and another 5 to exit. Each return is a fraction of the capital, and the capital is split evenly between the long side and the short side. So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81 percent over January 2008.
 
 ```math
 \small\begin{array}{l|r|r|r}
@@ -115,7 +115,7 @@ Rounding down to 57 of each gives −0.0234 instead of the printed −0.0244.
 
 #### Rule 2: two fewer winners shorted, a bug in the revised Python
 
-It slices its winners as `topN - 2` stocks rather than a full tenth, so in January 2006 it shorts 56 winners against the 58 losers it buys, of 579 ranked, one more than the MATLAB’s 578, because of the fill rule 3 describes. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
+The revised Python shorts two fewer winners than it buys. Where a full tenth is `topN` stocks, it shorts `topN - 2`. In January 2006 it ranks 579 stocks, one more than the MATLAB’s 578 because of the fill that rule 3 describes, and it buys the 58 worst but shorts only 56 of the best. Taking the full tenth gives the MATLAB’s figures for 2006 and 2007 to every digit.
 
 ![An animated whiteboard sketch titled “Two fewer winners shorted”, drawn slowly stroke by stroke. A green bar labelled “buy the 58 worst” sits above a red bar labelled “short 56 of the 58 best”. A dashed brown line labelled “a tenth: 58” marks where the green bar ends, and the red bar stops two stocks short of it. A dashed grey segment fills the difference, labelled “2 left out: the best and the 58th”. Beneath them are the words “the winners are sliced as topN − 2” and “January 2006, 579 stocks ranked”. The finished drawing holds for twelve seconds.](../docs/figures/equity_seasonals_rule_short_side.gif)
 
@@ -150,7 +150,7 @@ So one strategy in three languages gives three answers.
 
 #### Rule 1: summing without dividing, a bug in the first edition
 
-It adds up every position held each month and never divides by how many there were. Write `rᵢ,ₜ` for the return of position `i` in month `t`, signed so that a short gains when its stock falls, and `Nₜ` for the number of positions that month.
+The first edition’s MATLAB adds up every position held each month and never divides by how many there were. Write `rᵢ,ₜ` for the return of position `i` in month `t`, signed so that a short gains when its stock falls, and `Nₜ` for the number of positions that month.
 
 ```math
 \begin{aligned}
@@ -165,13 +165,13 @@ So −0.9167 is a sum over positions, not a return on capital. Dividing each mon
 
 #### Rule 2: the wrong stock’s close, a bug in the first edition
 
-The script sorts the stocks by return, then checks each one for a missing close. It finds that close by position in the file’s column order rather than by stock. So the check for the stock in third place reads whichever stock sits in the third column. A stock can be dropped because another has no close, and a stock with no close can stay in. Keeping each stock on its own close gives an annual return of −1.0822, a sum over positions like the −0.9167 it replaces. Dividing each month by its positions turns that into −0.0113 a year in units of capital.
+The script sorts the stocks by return, then checks each one for a missing close. It finds that close by position in the file’s column order rather than by stock. So the check for the stock in third place reads whichever stock sits in the third column. A stock can be dropped because another has no close, and a stock with no close can stay in. Checking each stock’s own close gives an annual return of −1.0822, a sum over positions like the −0.9167 it replaces. Dividing each month by its positions turns that into −0.0113 a year in units of capital.
 
 ![An animated whiteboard sketch titled “Checking the wrong stock’s close”, drawn stroke by stroke. A row of five cells labelled “sorted by return” holds D, B, E, A and C. Below it a row labelled “column order” holds A, B, C, D and E, with a red cross under C labelled “no close”. Grey arrows join each upper cell to the cell beneath it, and a red arrow rises from C to E. A red ring circles E, labelled “E dropped: C has no close”, and a brown ring circles C in the upper row, labelled “C ranked anyway”. The words “each check reads the column, not the stock” close the sketch.](../docs/figures/equity_seasonals_rule_wrong_close.gif)
 
 #### Rule 3: empty months in the mean, a bug in the first edition
 
-It averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the summed monthly returns, so dropping them leaves that sum unchanged and divides it by 83 instead of 95. The annual return is twelve times the monthly mean, so write `S` for twelve times the sum. The annual return is then S/95 before the drop and S/83 after it.
+The first edition’s MATLAB averages over 95 months, counting as zero the 12 that hold no position because the ranking does not yet have its year of history. The revised edition drops those months. The 12 add nothing to the summed monthly returns, so dropping them leaves that sum unchanged and divides it by 83 instead of 95. The annual return is twelve times the monthly mean, so write `S` for twelve times the sum. The annual return is then S/95 before the drop and S/83 after it.
 
 ```math
 \frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
@@ -212,7 +212,7 @@ The revised Python reads each stock’s own last priced day in the month, and th
 
 #### Rule 6: rounding halves to even, a choice in the revised R
 
-It rounds a tenth to the nearest whole number, and sends an exact half to the even neighbour.
+The revised R rounds a tenth to the nearest whole number, and sends an exact half to the even neighbour.
 
 ```math
 \begin{array}{r|r|r|r}
@@ -239,18 +239,18 @@ The revised Python divides by the number of months, `n`, and dividing by `n − 
 
 #### Rule 8: the month-end lookup, a bug repaired in the revised MATLAB
 
-The listing on p. 179 keeps only the 96 month-end rows, then looks each month up by its row number among the daily rows. On its first pass it asks for row 258, past the end of the 96, and stops. Reading the month-end row instead, which on the first pass is row 13, with the second book’s `smartstd`, gives Chan’s figures. The R on p. 181 needs no repair. The pages leave two questions open: whether the script Chan ran reads the month-end row, and which `smartstd` it calls. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) answers both. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
+The listing on p. 179 keeps only the 96 month-end rows, then looks each month up by its row number among the daily rows. On its first pass it asks for row 258, past the end of the 96, and stops. The repair reads the month-end row instead, which on the first pass is row 13. With that repair and the second book’s `smartstd`, the script gives Chan’s figures. The R on p. 181 needs no repair. The pages leave two questions open: whether the script Chan ran reads the month-end row, and which `smartstd` it calls. [A public copy of the revised edition’s code](https://github.com/pinhaocheng/epchan-quant_trading_MATLAB_codes/tree/7430b84) answers both. Its Example 7.7 already reads the month-end row, and it ships the second book’s `smartstd`.
 
 ![An animated whiteboard sketch titled “A lookup past the end”, drawn stroke by stroke. A strip of cells labelled “96 month-end rows” runs from “row 1” to “row 96”. A dashed grey line continues past its end to a red cross labelled “row 258”, with the words “the first pass asks for it and stops”. A green arrow points up near the strip’s left end, at row 13 of 96, labelled “the repair reads row m − 1, here 13”.](../docs/figures/equity_seasonals_rule_month_end_lookup.gif)
 
 ## Lesson 2: To test whether an effect died, fix the criterion and the sample first
 
-Every printout’s whole-period figure for Example 7.7 is negative on Chan’s file, as he printed it. That is consistent with an effect that died. It is also consistent with one that never lived on these stocks over these years. A reproduction cannot tell those apart, for three reasons.
+Every whole-period figure Chan printed for Example 7.7 is negative. That is consistent with an effect that died. It is also consistent with one that never lived on these stocks over these years. A reproduction cannot tell those apart, for three reasons.
 
 ### Why a reproduction cannot decide it
 
 1. **This repository wrote no criterion for “disappeared” first.** A claim that an effect “disappeared” needs a test stated before any number is seen: which statistic, over which periods, crossing which bar. The repository’s rule is that a figure computed before its criterion carries no verdict, and it computed the split below first.
-2. **The file barely reaches the period before.** The S&P 500 file starts on 1999-11-24. After the twelve months the ranking needs, it holds 13 months before 2002.
+2. **The file barely reaches the years before 2002.** The S&P 500 file starts on 1999-11-24. After the twelve months the ranking needs, it holds 13 months before 2002.
 3. **The 13 percent comes from a sample this file does not hold.** Heston and Sadka measured it on NYSE- and AMEX-listed stocks in CRSP, the Center for Research in Security Prices’ database of US stock returns, from January 1965 to December 2002. Each month they used only the firms listed by then, so firms that later failed or delisted stay in, which reduces the survivorship bias that Lesson 3 describes. Ranked on the return a year earlier, their best tenth beat their worst by 1.15 percent a month before costs, about 13.8 percent a year, which fits Chan’s “more than 13 percent”. Running the same rule on Chan’s file is no test of that figure, because the file differs from their sample in several ways at once.
    - It holds only the 500 companies still in the S&P 500 when Chan saved it in 2007, so no firm that left is in it.
    - Those are large companies on any exchange, where theirs are NYSE and AMEX stocks of every size.
@@ -291,7 +291,7 @@ The figure below adds up the 83 months one at a time, so the line rises in a mon
 
 *The running sum climbs through 2002, peaks in January 2006 and falls to the end of the file. The labels give each half’s annual return and Sharpe ratio.*
 
-The 70 months from 2002 are not a steady small gain. Between the climb through 2002 and the peak in January 2006, their running sum slips through 2003 and 2004. Two single years inside them sit further apart than the two halves do. The best full year, 2002, adds up to a gain of 0.2227 and the worst, 2006, to a loss of 0.1319, so they are 0.3546 apart. The two halves’ annual returns, −0.145387 and 0.011967, are only 0.1574 apart. Without 2002, the other 58 months from 2002 lose 0.031640 a year, so the small gain after 2002 rests on that one year.
+The 70 months from 2002 are not a steady small gain. Between the climb through 2002 and the peak in January 2006, their running sum slips through 2003 and 2004. Two single years inside them sit further apart than the two halves do. The best full year, 2002, adds up to a gain of 0.2227 and the worst, 2006, to a loss of 0.1319, so they are 0.3546 apart. The two halves’ annual returns, −0.145387 and 0.011967, are only 0.1574 apart. Without 2002, the 58 months from 2003 on lose 0.031640 a year, so the small gain after 2002 rests on that one year.
 
 ![An animated whiteboard sketch titled “Two years sit further apart than the halves”, drawn stroke by stroke, with bars to one scale. On the left, under “the two halves, an average year”, a red bar labelled “before 2002” hangs below a zero line to −0.145387, and a short green bar labelled “from 2002” rises to +0.011967. A brown bracket beside them is labelled “0.1574 apart”. On the right, under “two single years, 12 months each”, a tall green bar labelled “2002” rises to +0.2227, and a red bar labelled “2006” hangs to −0.1319. A brown bracket more than twice as long is labelled “0.3546 apart”. The words “before costs” close the sketch.](../docs/figures/equity_seasonals_split_swing.gif)
 
@@ -299,13 +299,13 @@ The 70 months from 2002 are not a steady small gain. Between the climb through 2
 
 Chan makes one claim about timing that the file can check. He suggests running the program on “the most recent five years instead of the entire data period” and says the average returns are even worse (p. 180).
 
-This repository wrote the check down before computing any five-year figure. The running-sum figure above was already published then, so the shape of those years was in view, and the check was chosen because it runs Chan’s program exactly as his sentence says. The file ends on 2007-11-23, so its most recent five years start after 2002-11-23. Rerun the revised MATLAB’s rules unchanged on the rows after that date, and call the claim reproduced if the annual return comes out below the whole period’s. The first year of those rows only builds the ranking’s history, so the rerun keeps 47 months, from December 2003 to October 2007, and returns −0.0165 a year against the whole period’s −0.0129. The claim holds on this file. The check is still exploratory, because those months had already been computed and drawn in the running-sum figure. Writing its criterion first lets it say whether Chan’s comparison holds on his file, and nothing more. Under the revised Python’s rules, reported beside it with no verdict, the figures are −0.016431 and −0.012679.
+This repository wrote the check down before computing any five-year figure. The running-sum figure above was already published then, so the shape of those years was in view, and the check was chosen because it runs Chan’s program exactly as his sentence says. The file ends on 2007-11-23, so its most recent five years start after 2002-11-23. The check reruns the revised MATLAB’s rules unchanged on the rows after that date and calls the claim reproduced if the annual return comes out below the whole period’s. The first year of those rows only builds the ranking’s history, so the rerun keeps 47 months, from December 2003 to October 2007, and returns −0.0165 a year against the whole period’s −0.0129. The claim holds on this file. The check is still exploratory, because those months had already been computed and drawn in the running-sum figure. Writing its criterion first lets it say whether Chan’s comparison holds on his file, and nothing more. Under the revised Python’s rules, reported beside it with no verdict, the figures are −0.016431 and −0.012679.
 
-That sits beside the split without contradicting it. The 70 months from 2002 include 23, from January 2002 to November 2003, that the five-year rerun leaves out. Under the revised Python’s rules those 23 return 0.069997 a year, also an exploratory figure. Without them, the months that remain lose money.
+The five-year result does not contradict the split. The 70 months from 2002 include 23, from January 2002 to November 2003, that the five-year rerun leaves out. Under the revised Python’s rules those 23 return 0.069997 a year, also an exploratory figure. Without them, the months that remain lose money.
 
 ![An animated whiteboard sketch titled “Which months each figure covers”, drawn slowly stroke by stroke over a timeline from 2001 to 2007. A black bar for the whole period is labelled “whole period: 83 months, −0.012679”. Below it the split’s two bars meet at the start of 2002: a short red one labelled “before 2002: 13 months, −0.145387” and a long green one labelled “from 2002: 70 months, +0.011967”. Below that the five-year rerun starts with a dashed grey stretch from late 2002 to late 2003, labelled “first year only ranks”, then a brown bar to the end, labelled “five-year rerun: 47 months, −0.016431”. A green bracket from the start of 2002 to the start of the brown bar is labelled “23 months the rerun leaves out: +0.069997”. The words “revised Python’s rules, a year, before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_five_year_months.gif)
 
-The five-year result is narrow. The gap between the two figures is 0.0036 a year, and the rerun’s annual return has a standard error of 0.0281 a year, about eight times larger. A standard error is how far a measured average typically lands from the true one by chance alone, so a gap eight times smaller than it is well inside the noise. So the check shows that Chan’s comparison holds on his own file of survivors. It does not show that the effect weakened.
+The five-year result is narrow. The gap between the two figures is 0.0036 a year, and the rerun’s annual return has a standard error of 0.0281 a year, about eight times larger. A standard error is how far a measured average typically lands from the true one by chance alone, so a gap one eighth its size is well inside the noise. So the check shows that Chan’s comparison holds on his own file of survivors. It does not show that the effect weakened.
 
 ![An animated whiteboard sketch titled “A gap far smaller than the noise”, drawn slowly stroke by stroke. A number line runs from below −0.04 to above 0, with ticks at −0.04, −0.02 and 0. A pale green band labelled “one standard error each way, 0.0281” stretches from about −0.045 to about +0.012 around a brown dot labelled “five-year rerun −0.0165”. Beside it a black dot is labelled “whole period −0.0129”. A small red bracket above the two dots is labelled “0.0036 apart”. The words “revised MATLAB’s rules, a year, before costs” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_five_year_noise.gif)
 
@@ -317,13 +317,13 @@ Example 7.6 meets the same limit from another side. All three of its Januaries r
 
 ## Lesson 3: Rule out survivorship bias before trusting a backtest
 
-The opening named the bias: Chan’s files hold only the companies still in their index on the day he saved them. Each company in them has its prices carried back to the start of the file, so a company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not in a file saved in 2007.
+The opening named the bias: Chan’s files hold only the companies still in their index on the day he saved them. Each file lists the index’s members on the day it was saved and carries their prices back to its start. A company that left the S&P 500 in 2003, because it was acquired, shrank or failed, is not on a list made in 2007.
 
 Both strategies trade the tenth at each end of a ranking, so a company missing from the file is one they could never trade, whatever its returns were. Every figure this post computes from Chan’s files is about companies that survived to the end of the file.
 
 ![An animated whiteboard sketch titled “The ranking only sees survivors”, drawn slowly stroke by stroke. A row labelled “as it stood” ranks twenty stocks from “lowest return” to “highest”, three of them drawn as red rings, and a dashed grey ring round the lowest two is labelled “worst tenth”. Below it a row labelled “in the file” holds the same stocks without the three, and a brown ring round its lowest two is labelled “the file’s worst tenth: a different set”. The words “red rings: companies that left the index before the file was saved” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_survivors_ranking.gif)
 
-[The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) shows how large the bias can be: on two tables Chan prints for the purpose, a database of survivors turns a loss into a large gain. Chan’s rule has not been run here on 1965 to 2002 with the companies that left the index kept in. Open Source Asset Pricing’s version of the signal has been, as the section on whether Heston and Sadka’s effect existed before 2002 describes. The two later runs kept those companies too, but only from 2009.
+[The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) shows how large the bias can be: on two tables Chan prints for the purpose, a database of survivors turns a loss into a large gain. Chan’s rule has not been run here on 1965 to 2002 with the companies that left the index kept in. Open Source Asset Pricing, a research project that rebuilds published trading signals from CRSP and gives the returns away, has run its own version of the signal, as the section on whether Heston and Sadka’s effect existed before 2002 describes. The two later runs kept those companies too, but only from 2009.
 
 ![An animated whiteboard sketch titled “Two ways to build the data”, drawn slowly stroke by stroke. On the left, under “a file saved in 2007”, six black lines and one green line run the full width, the green one labelled “joined later, carried back”, with “2007’s members, carried back” beneath. On the right, under “the index as it stood”, the same six black lines run the full width, a green line labelled “joined” starts partway, and two red lines labelled “left” stop early, with “members at each ranking date” beneath. The words “the later runs, from 2009, used the data on the right” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_survivors_panels.gif)
 
@@ -339,7 +339,7 @@ To survive the book means to keep working after the book’s first edition, whic
 
 ### Whether the January effect survived the book
 
-#### How the run was built
+#### How the January run was built
 
 The first later run, the January run below, tested Example 7.6 on the S&P 600 as it stood at each year-end, January 2009 to January 2026, so the companies that later left the index are in it. The membership comes from IJR, an iShares fund that holds the index and files its holdings with the SEC.
 
@@ -369,13 +369,13 @@ A lower and an upper bound show how far the answer could move, so each January w
 
 ![An animated whiteboard sketch titled “Two ways to fill a gap”, drawn slowly stroke by stroke. A row of twenty ranked stocks has a green ring round its lowest two, labelled “buy the worst tenth”, and a red ring round its highest two, labelled “short the best tenth”. Above the row a question mark, labelled “a member with no checked price”, sends a grey arrow to each ring, and beneath the row are the words “could land in a traded tenth”. To the right, in red, “low version”, then “if bought: near the worst January return” and “if shorted: near the best”. Below it, in green, “high version”, then “if bought: near the best January return” and “if shorted: near the worst”. The words “so each January gets a low and a high result” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_fill.gif)
 
-#### What the run found
+#### What the January run found
 
 Each version goes through the same test. The low series averages −0.1047 a January before costs, with a p of 1.000, so it shows no sign of an effect. The high series averages 0.0879, with a p of 0.001, which rejects H₀ and would read as a January effect on its own.
 
 ![An animated whiteboard sketch titled “Eighteen Januaries, each a range”, drawn slowly stroke by stroke. Eighteen vertical bars stand along a grey zero line from 2009 to 2026, each running from that January’s low version to its high, under the words “each bar runs from a January’s low version to its high”. The bars are tallest in the first years and shrink to almost nothing by 2026. Most are black and straddle zero. The bars for 2020, 2021 and 2024 are red and sit wholly below zero, and the bar for 2023 is green and sits wholly above it. The words “black: straddles zero, so free data cannot tell which side” and “before costs” follow. Then a brown dot appears beside each bar, at that January’s return with the unchecked members left out, and every dot falls inside its bar’s range. The words “brown dot: the unchecked members left out” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_january_ranges.gif)
 
-#### What the verdict says
+#### What the January verdict says
 
 The wording written before the run covers three outcomes.
 
@@ -385,7 +385,7 @@ The wording written before the run covers three outcomes.
 
 The two versions disagree, so the verdict is the third. Free data cannot decide whether the January effect survived the book. Prices for the members that could have fallen in a traded tenth are what could decide it.
 
-Leaving the unchecked members out, with each tenth taken of the checked members alone, averages −0.0083, near zero and between the two. That figure carries the survivorship bias described above, and no rule for it was written before the run, so it is exploratory rather than registered.
+A third series leaves the unchecked members out and takes each tenth of the checked members alone. It averages −0.0083 a January, near zero and between the two. That figure carries the survivorship bias described above, and no rule for it was written before the run, so it is exploratory rather than registered.
 
 #### What 18 Januaries can detect
 
@@ -411,13 +411,13 @@ The two paid sources’ licences bar republishing their data. Every result here 
 
 #### What the free source found
 
-This repository has since read the free source. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on data that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, where they printed 1.15 percent. Its t-statistic of 8.63 puts that average more than eight standard errors above zero. From 1965 to 2001, before Chan’s 2002, it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on data without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, a gap small enough to arise by chance, so the comparison cannot tell the two figures apart. That is the project’s construction rather than Chan’s rule, and the comparison was run after a first look at these numbers, so it is exploratory.
+This repository has since read the free source. The Open Source Asset Pricing project’s portfolio goes long the tenth of NYSE and AMEX stocks that did best in the same month a year earlier and short the tenth that did worst, re-formed each month, on data that keeps the companies that later failed, merged or delisted. Over Heston and Sadka’s own sample, 1965 to 2002, it earned 1.36 percent a month before costs, where they printed 1.15 percent. Its t-statistic of 8.63 puts that average more than eight standard errors above zero. From 1965 to 2001, before Chan’s 2002, it earned 1.31 percent a month, about 15.8 percent a year, consistent with Chan’s “more than 13 percent”. So on data without survivorship bias the signal earned well above zero before 2002. Its 1.36 percent sits about 1.3 standard errors above Heston and Sadka’s figure, a gap small enough to arise by chance, so the comparison cannot tell the two figures apart. The portfolio is the project’s own construction rather than Chan’s rule, and both comparisons were run after a first look at these numbers, so they are exploratory.
 
 ![An animated whiteboard sketch titled “Before 2002, without survivors”, drawn slowly stroke by stroke, with three bars in percent a month to one scale. The words “Open Source Asset Pricing:” head the two lower bars. Above them, a black bar for “Heston and Sadka printed” reaches “1.15%”. Below, a brown bar for “1965 to 2002, their sample” reaches “1.36%”, with a bracket below it marking “one standard error each way”, which stops just short of 1.15. A second brown bar, “1965 to 2001, before Chan’s 2002”, reaches “1.31%”, past a green dashed mark for “Chan’s “more than 13%” a year, 1.08% a month”. The words “a month, before costs, NYSE and AMEX stocks with the ones that left” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_osap_before.gif)
 
 ### Whether Heston and Sadka’s effect survived the book
 
-#### How the run was built
+#### How the IVV run was built
 
 The second later run, the IVV run below, tested Example 7.7 under the revised MATLAB’s rules on the S&P 500 as it stood each month, from January 2009 to September 2026, so the companies that later left the index are in it. The membership comes from IVV, an iShares fund that holds the index and files its holdings with the SEC each quarter. Each filing’s list stands for the months until the next, so a company that joins or leaves between two filings counts as doing so at the next one. This run is **registered** too, for the same reason as the January run.
 
@@ -435,7 +435,7 @@ Dropping the rest is harmless only if leaving the index has little to do with wh
 
 ![An animated whiteboard sketch titled “Leavers land in the tenths”, drawn slowly stroke by stroke, with two bars split into green, red and grey shares of member-months. The bar for companies that “left within a year” is “long 12.0%”, “short 16.5%” and “neither” for the rest. The bar for those that “stayed” is “long 9.8%”, “short 9.6%” and “neither”. The words “leavers sit in a traded tenth more often, most of all the short one” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_ivv_leavers.gif)
 
-#### What the run found
+#### What the IVV run found
 
 The 213 months average −0.0001 a month before costs. A strategy that truly earns nothing would give a t-statistic at least that high more than half the time, which is a one-sided p of 0.539. The revised Python’s rules give the same return in every one of the 213 months.
 
@@ -443,7 +443,7 @@ The 213 months average −0.0001 a month before costs. A strategy that truly ear
 
 The green line draws the book’s 13 percent as printed. Read as Heston and Sadka’s figure, that is the gap between the best tenth and the worst, and Chan’s rule earns half that gap, so at the rule’s scale it is about 6.5 percent a year. The run falls well short of either.
 
-#### What the verdict says
+#### What the IVV verdict says
 
 The verdict, in the words written before the run, is “no return detectable above about 4.2% a year”. The 4.2 percent is the smallest annual return the test detects 80 percent of the time, so a smaller true return could pass unseen, and the verdict does not say the effect died. It also leaves out costs, which can only lower the return, and the last return a failing company takes as it leaves the index, which free data does not carry.
 
@@ -531,7 +531,9 @@ Three habits follow from the lessons above.
 2. **Write the criterion and fix the sample before reading a split.** A split computed first carries no verdict, and through 83 months of survivors it swings with a single year.
 3. **Rule out survivorship bias before reading a result as an effect that died or lived.** A file saved after the fact holds only the stocks that made it.
 
-On Chan’s own files, all seventeen figures his code prints reproduce to the digit. Whether the strategies died is a separate question, which these files cannot answer. For the January effect, a criterion written in advance and data that keeps the companies that left the index reach a bound, and the bound is too wide to read. It does not show that the effect died, and it does not show that it lived. For Heston and Sadka’s rotation, the same kind of test on the S&P 500 as it stood each month finds no return detectable above about 4.2 percent a year before costs, on the companies with a checked price. A smaller return could pass unseen, so it does not show that the effect died. It does back the title, though. A return the test would likely miss is under about 4.2 percent a year before costs, and costs only lower it, so it is not an edge a trader can count on. A January effect that free data cannot confirm is not one to count on either.
+On Chan’s own files, all seventeen figures his code prints reproduce to the digit. Whether the strategies died is a separate question, which these files cannot answer. For the January effect, a test written in advance, on data that keeps the companies that left the index, gives a range from a loss of 10.47 percent to a gain of 8.79 percent a January. That is too wide to say which side of zero the effect sits. It does not show that the effect died, and it does not show that it lived.
+
+For Heston and Sadka’s rotation, the same kind of test on the S&P 500 as it stood each month finds no return detectable above about 4.2 percent a year before costs, on the companies with a checked price. A smaller return could pass unseen, so it does not show that the effect died. It does back the title, though. A return the test would likely miss is under about 4.2 percent a year before costs, and costs only lower it, so it is not an edge a trader can count on. A January effect that free data cannot confirm is not one to count on either.
 
 ![An animated whiteboard sketch titled “Two verdicts”, drawn slowly stroke by stroke, with two number lines. Each line has its own scale. The upper line, labelled “January effect” and “per January”, has a zero tick, “0”, and a brown bracket from “−0.1047” to “0.0879” that straddles it, with the words “free data cannot decide”. The lower line, labelled “Heston and Sadka” and “per year”, has its own “0”, a pale green band from zero to a brown tick labelled “about 4.2% a year”, and a black dot at zero labelled “measured”, with the words “could pass unseen” beneath the band. A red arrow under the band points back toward zero and stops halfway, labelled “costs lower it, not measured”. The words “not shown dead, and no edge a trader can count on” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_two_verdicts.gif)
 
