@@ -203,6 +203,19 @@ BAD_CONFIGS = {
     "short commit": {"commit": "b" * 39},
     "upper-case hash": {"expect": {**_expect(ONE_PARAGRAPH, _live_body()), "md": "ABCDEF12"}},
     "short liveBody": {"expect": {**_expect(ONE_PARAGRAPH, _live_body()), "liveBody": "abc"}},
+    "empty draft id": {"draft": ""},
+    "draft id reaching another path": {"draft": "1/../../posts/123"},
+    "post climbing out of blog": {"post": "blog/a/../b.md"},
+    "post with a trailing path": {"post": "blog/sync-fixture.md/x"},
+    "long commit": {"commit": "b" * 41},
+    "hash over 64 digits": {"expect": {**_expect(ONE_PARAGRAPH, _live_body()), "md": "a" * 65}},
+    "hash with a letter past f": {
+        "expect": {**_expect(ONE_PARAGRAPH, _live_body()), "md": "z" + "a" * 8}
+    },
+    **{
+        f"empty {key}": {"expect": {**_expect(ONE_PARAGRAPH, _live_body()), key: ""}}
+        for key in ("md", "conversion", "body", "walk", "liveBody")
+    },
     "images not a map": {"images": "sync_chart.png"},
 }
 
@@ -215,6 +228,12 @@ REFUSALS = [
     ("draft body moves before the write", "the draft moved", None),
     ("conversion hash differs", "the conversion", "convOk"),
     ("markdown hash differs", "the Markdown", "mdOk"),
+    ("markdown hash matches mid-way", "the Markdown", "mdOk"),
+    (
+        "live body shorter than the base",
+        "the live draft differs from the base commit's conversion",
+        "baseOk",
+    ),
     ("patched body hash differs", "the patched body", "patchOk"),
     ("patched walk hash differs", "the patched body", "walkOk"),
     (
@@ -231,6 +250,7 @@ REFUSALS = [
     ("markdown not found", "a read failed: the Markdown at commit", None),
     ("base markdown not found", "a read failed: the Markdown at base", None),
     ("draft body not json", "a read failed: the draft", None),
+    ("draft not found", "a read failed: the draft", None),
     ("published", "the draft is published", None),
     ("scheduled", "the draft is scheduled", None),
     ("no post_date", "the draft does not say whether it is published", None),
@@ -260,6 +280,17 @@ def _cases() -> list[dict]:
         ),
         _case("conversion hash differs", expect={"conversion": "0" * 8}),
         _case("markdown hash differs", expect={"md": "0" * 64}),
+        _case(
+            "markdown hash matches mid-way",
+            expect={"md": _expect(ONE_PARAGRAPH, live)["md"][4:16]},
+        ),
+        _case("live body shorter than the base", live={**live, "content": live["content"][:-1]}),
+        _case(
+            "one figure used twice",
+            md=FIGURE_TWICE.replace("The paragraph that changes.", "Changed."),
+            base_md=FIGURE_TWICE,
+            live=_live_body(FIGURE_TWICE),
+        ),
         _case("patched body hash differs", expect={"body": "0" * 8}),
         _case("patched walk hash differs", expect={"walk": "0" * 8}),
         _case("nothing changed", md=BASE_MD, cfg={"commit": BASE_SHA}),
@@ -283,6 +314,7 @@ def _cases() -> list[dict]:
         _case("markdown not found", missing=RAW + NEW_SHA + "/" + POST),
         _case("base markdown not found", missing=RAW + BASE_SHA + "/" + POST),
         _case("draft body not json", draft=_draft(live, draft_body="not json")),
+        _case("draft not found", missing="/api/v1/drafts/" + DRAFT_ID),
         _case("published", draft=_draft(live, post_date="2026-10-02T12:03:26.000Z")),
         _case(
             "scheduled", draft=_draft(live, postSchedules=[{"trigger_at": "2026-11-01T12:00:00Z"}])
@@ -291,6 +323,7 @@ def _cases() -> list[dict]:
         _case("write fails", putStatus=500),
         _case("read-back differs", alterOnPut=True),
         _case("read-back fails", failReadAfterPut=True),
+        _case("write keeps its timestamp", keepUpdatedAt=True),
     ]
     cases += [_case("bad config: " + name, cfg=change) for name, change in BAD_CONFIGS.items()]
     return cases
@@ -392,13 +425,14 @@ DRIVER = """
   for (var k = 0; k < __CASES.length; k++) {
     var c = __CASES[k];
     var state = JSON.parse(JSON.stringify(c.draft)), reads = 0, log = [];
-    var put = null, written = false;
+    var put = null, written = false, inits = [];
     var draftUrl = "/api/v1/drafts/" + c.cfg.draft;
     var io = {
       sha: async function (s) { return __sha256(s); },
       fetch: async function (url, init) {
         var method = (init && init.method) || "GET";
         log.push(method + " " + url);
+        inits.push(init || null);
         if (url === draftUrl && method === "PUT") {
           put = JSON.parse(init.body).draft_body;
           if (c.putStatus) return reply(c.putStatus, null);
@@ -406,11 +440,11 @@ DRIVER = """
           var stored = JSON.parse(put);
           if (c.alterOnPut) stored.content.pop();
           state.draft_body = JSON.stringify(stored);
-          state.draft_updated_at = "2026-10-21T10:05:00.000Z";
+          if (!c.keepUpdatedAt) state.draft_updated_at = "2026-10-21T10:05:00.000Z";
           return reply(200, null);
         }
-        if (url === draftUrl) {
-          if (written && c.failReadAfterPut) return reply(500, null);
+        if (url === draftUrl && url !== c.missing) {
+          if (written && c.failReadAfterPut) return reply(500, { error: "failed" });
           reads++;
           var snapshot = JSON.parse(JSON.stringify(state));
           if (c.moveAfterRead === reads) state.draft_updated_at = "2026-10-21T10:01:00.000Z";
@@ -422,7 +456,7 @@ DRIVER = """
         if (url !== c.missing && Object.prototype.hasOwnProperty.call(c.files, url)) {
           return reply(200, c.files[url]);
         }
-        return reply(404, null);
+        return reply(404, url === draftUrl ? { error: "not found" } : "404: Not Found");
       },
     };
     var result = { name: c.name, error: null, log: log };
@@ -430,6 +464,7 @@ DRIVER = """
       result.out = await SYNC.syncTo(c.cfg, io);
     } catch (e) { result.error = String(e) + (e && e.stack ? "\\n" + e.stack : ""); }
     result.put = put;
+    result.inits = inits;
     emit("SYNC_RESULT " + JSON.stringify(result));
   }
 })();
@@ -627,6 +662,22 @@ def test_a_figure_can_be_added_or_replaced_by_passing_it_in(run: dict) -> None:
     )
 
 
+def test_one_figure_used_twice_with_one_upload_syncs(run: dict) -> None:
+    out = run["cases"]["one figure used twice"]["out"]
+    assert "refused" not in out
+    assert out["images"] == 1 and out["put"] == 200
+
+
+def test_every_read_skips_the_cache_and_the_write_is_json(run: dict) -> None:
+    """A cached draft could pass the re-read before the write and hide an owner edit."""
+    result = run["cases"]["writes one paragraph"]
+    for entry, init in zip(result["log"], result["inits"], strict=True):
+        if entry.startswith("GET "):
+            assert init == {"cache": "no-store"}, entry
+        else:
+            assert init["headers"] == {"Content-Type": "application/json"}, entry
+
+
 def test_without_write_true_it_only_reports(run: dict) -> None:
     for name in ("dry run", "write must be true"):
         result = run["cases"][name]
@@ -682,6 +733,11 @@ def test_a_failed_write_says_so_and_gives_no_baseline(run: dict, name: str, fail
     assert "refused" not in out
     assert "bodyAfter" not in out and "backIsConversion" not in out
     assert "PUT" in _methods(run["cases"][name])
+
+
+def test_a_write_that_leaves_the_timestamp_says_so(run: dict) -> None:
+    out = run["cases"]["write keeps its timestamp"]["out"]
+    assert out["readBack"] is True and out["updatedChanged"] is False
 
 
 def test_nothing_changed_writes_nothing(run: dict) -> None:
