@@ -3613,10 +3613,10 @@ not pinned here.
    [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
-   all three unreadable years profitable, that four contracts in four years
-   are 16, that 1994 to 2023 is 30 years, that the last 9 of 1995 to 2015 are
-   2007 to 2015, that 7 of 15 is fewer than half, and that 2016 to 2023 is
-   eight years.
+   all three unreadable years profitable, that four contracts in four years are
+   16, that 21 less the 3 unreadable years is 18, that 1994 to 2023 is 30
+   years, that the last 9 of 1995 to 2015 are 2007 to 2015, that 7 of 15 is
+   fewer than half, and that 2016 to 2023 is eight years.
 4. Its references. The three citations are cited rather than computed.
 5. Three dates no test asserts: the files' last row on 5 April 2024, which
    their file names record, the day the 16 exchange dates were read, 3

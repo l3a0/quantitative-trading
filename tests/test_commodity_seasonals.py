@@ -11,6 +11,7 @@ before a trade was computed.
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -408,3 +409,71 @@ class TestThePostQuotesThePins:
             in self.text
         )
         assert f"\\text{{2016 to 2023}} & {gasoline} \\text{{ of }} {gasoline_of} & 0" in self.text
+
+    def test_lesson_4_s_counts(self) -> None:
+        """The edge years, the Good Friday moves, the exchange's contracts and the lead days."""
+        words = {3: "three", 5: "five", 6: "six"}
+        years = range(1994, 2024)
+        edge = [y for y in years if on_or_after(date(y, 2, 25)) == ng_last_trade(y, 3)]
+        assert (
+            f"In {len(edge)} of the {len(years)} years, the entry date falls on the March "
+            "contract’s last trading day"
+        ) in self.text
+        moved = [
+            asked
+            for y in years
+            for asked, roll in (
+                (date(y, 4, 13), on_or_after),
+                (date(y, 4, 25), on_or_before),
+                (date(y, 2, 25), on_or_after),
+                (date(y, 4, 15), on_or_before),
+            )
+            if roll(asked) != _weekend_roll(asked, roll is on_or_after)
+        ]
+        assert f"it moved {words[len(moved)]} trade dates between 1994 and 2023" in self.text
+        exchange = sorted(TestTheNaturalGasExpiries.EXCHANGE)
+        listed = ", ".join(str(y) for y in exchange[:-1]) + f" and {exchange[-1]}"
+        assert (
+            f"For {4 * len(exchange)} contracts, March to June of {listed}, the rule gives"
+            in self.text
+        )
+        early = sorted({ng_lead_days(1996, 1), ng_lead_days(1996, 2)})
+        assert (
+            f"stopping {words[early[0]]} or {words[early[1]]} trading days before delivery "
+            f"rather than {words[ng_lead_days(1998, 6)]}"
+        ) in self.text
+        shifted = [y for y in (1996, 1997) if natural_gas_trade(y).entry_symbol == NATURAL_GAS[3]]
+        assert f"moves the {shifted[0]} and {shifted[1]} entries from contract 4 to contract 3" in (
+            self.text
+        )
+
+    def test_the_chart_s_alt_text(self) -> None:
+        """The chart's alt text restates its labels in words, so it reads the same tallies."""
+        words = {5: "five", 8: "eight"}
+        alt = re.search(r"!\[(Two panels[^\]]*)\]\(\.\./docs/figures/", self.text).group(1)
+        missing = [t.year for t in GASOLINE if t.year <= 2015 and t.profitable is None]
+        losses = [t.year for t in GASOLINE if t.year <= 2015 and t.profitable is False]
+        later = [t for t in GASOLINE if t.year >= 2016]
+        won, of = _tally(GASOLINE, 1995, 2015)
+        assert f"Its years {missing[0]}, {missing[1]} and {missing[2]} are empty slots" in alt
+        assert f"{won} of {of} profitable with {len(missing)} with no row" in alt
+        assert f"{profitable_count(later)} of {len(later)} profitable" in alt
+        assert f"with losses in {losses[0]} and {losses[1]}" in alt
+        lost = sum(t.profitable is False for t in later)
+        assert f"{words[lost]} of the {words[len(later)]} after it are losses" in alt
+        gas_won, gas_of = _tally(GAS, 1994, 2008)
+        after = [t for t in GAS if t.year >= 2009]
+        assert f"{gas_won} of {gas_of} profitable, from 2009 to 2023" in alt
+        assert f"{profitable_count(after)} of {len(after)} profitable" in alt
+        gains = profitable_count(after)
+        assert f"After it, {len(after) - gains} years are losses and {gains} are gains" in alt
+        biggest = max(after, key=lambda t: t.change)
+        assert round(biggest.change) == 3
+        assert f"one gain near three dollars in {biggest.year}" in alt
+
+
+def _weekend_roll(day: date, forward: bool) -> date:
+    """``day`` moved past weekends alone, the calendar without NYMEX's holidays."""
+    while day.weekday() >= 5:
+        day = date.fromordinal(day.toordinal() + (1 if forward else -1))
+    return day
