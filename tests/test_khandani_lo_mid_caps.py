@@ -63,6 +63,7 @@ computed. It first ran on 2026-10-11.
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import hashlib
 import io
 import math
@@ -580,6 +581,18 @@ class TestTheGapsToBothNeighbours:
             assert ladder.mid_gap.b_sharpe == ladder.large.before_costs
             assert ladder.small_gap.a_sharpe == ladder.small.before_costs
             assert ladder.small_gap.b_sharpe == ladder.mid.before_costs
+
+    def test_the_whiteboard_draws_this_runs_figures(self, result) -> None:
+        """The size-order sketch in ``tests/test_khandani_lo_small_caps_whiteboard.py``
+        draws its ``PINNED_MID`` figures, so it runs without the archive. This
+        holds that this run gives them, to the bit the sketch was drawn from."""
+        from chan.khandani_lo_small_caps_whiteboard import MidCaps
+        from tests.test_khandani_lo_small_caps_whiteboard import PINNED_MID
+
+        drawn = MidCaps.from_run(result)
+        for field in dataclasses.fields(MidCaps):
+            name = field.name
+            assert getattr(drawn, name) == pytest.approx(getattr(PINNED_MID, name), abs=1e-12), name
 
 
 class TestTheControl:
