@@ -127,7 +127,8 @@ batches once.
 10. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
 11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
 12. ``TestTheFirstRbobPairs``, the two RBOB pairs that read the wrong
-    contracts on their 2005 days, until issue 704 fixes the reading.
+    contracts on every day they keep before December 2005, until issue 704
+    fixes the reading.
 13. ``TestTheCalendarSpreadPostQuotesThePins``, read from the calendar spreads
     post itself: one copy of its verdicts, bars, null medians and seeds, its
     pairs' counts, months and kept days, its critical value, residual check,
@@ -1937,7 +1938,8 @@ class TestTheCalendarSpreadCommandLine:
 
 
 class TestTheFirstRbobPairs:
-    """The two RBOB pairs whose windows open in 2005 read the wrong contracts there.
+    """The first two RBOB pairs read the wrong contracts on every day they keep
+    before December 2005.
 
     The RBOB files start on 2005-10-03 and hold the January 2006 contract as
     contract 1 until 2005-12-30, while the rule gives November and December 2005
