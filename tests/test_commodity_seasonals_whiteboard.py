@@ -20,8 +20,8 @@ quotes, such as test_the_run_gives_these_dates_and_files.
    March note follows the dates.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
-hand font and the fallback, each GIF's size, frames, loop and timing, the
-calendar sketch's slower pace, that two draws give the same bytes, and that
+hand font and the fallback, each GIF's size, frames, loop and timing, both
+sketches' slower pace, that two draws give the same bytes, and that
 each committed GIF is a fresh draw, a comparison that runs only on macOS
 arm64 with Comic Sans MS, as
 ``tests/test_usdcad_tests_whiteboard.py`` explains. The check that
@@ -280,9 +280,9 @@ class TestTheGifs:
             hold = sketches.PACED_HOLD_MS if scene.slug in sketches.PACED else HOLD_MS
             assert steps[-1].ms == hold, scene.slug
 
-    def test_the_calendar_sketch_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
-        """The pace the owner asked for: each label alone for 0.9 s, the drawing for
-        12 s, the equity post's slow pace. The streak sketch keeps the usual one."""
+    def test_both_sketches_build_slowly_and_hold_twelve_seconds(self, every) -> None:
+        """The pace the owner asked for, for each sketch in turn: each label alone
+        for 0.9 s and the drawing for 12 s, the equity post's slow pace."""
         from chan import equity_seasonals_whiteboard as equity
 
         assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
@@ -290,7 +290,7 @@ class TestTheGifs:
             equity.PACED_LABEL_MS,
             equity.PACED_HOLD_MS,
         )
-        assert sketches.PACED == ("june_file",)
+        assert sketches.PACED == ("streak_start", "june_file")
         for scene in every:
             frames = sketch_timeline(scene)
             paced = scene.slug in sketches.PACED
@@ -310,7 +310,7 @@ class TestTheGifs:
 
     def test_the_alt_text_says_slow_exactly_when_the_sketch_is_paced(self, every) -> None:
         """A reader learns the pace from the alt text: "drawn slowly" and a
-        twelve-second hold for the paced sketch, and neither for the other."""
+        twelve-second hold for each paced sketch, and neither for the rest."""
         text = POST.read_text(encoding="utf-8")
         for scene in every:
             alt = _alt(text, scene)

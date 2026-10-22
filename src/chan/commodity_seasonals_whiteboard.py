@@ -43,12 +43,11 @@ Both years' calendars are drawn on one axis of month and day.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
-The streak sketch shares its pace and hold too. The calendar sketch carries
-more than a reader takes in at that pace, so it is in :data:`PACED`, and
-:func:`sketch_timeline` holds each of its labels longer and its finished
-drawing for twelve seconds, as :mod:`chan.equity_seasonals_whiteboard` does
-for its slow sketches. Only the scenes, the pacing and the file names are
-this module's. Each GIF is
+Each sketch carries more than a reader takes in at that post's pace, so
+both are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+labels longer and their finished drawings for twelve seconds, as
+:mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
+the scenes, the pacing and the file names are this module's. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
@@ -424,7 +423,7 @@ def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
-PACED = ("june_file",)
+PACED = ("streak_start", "june_file")
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 

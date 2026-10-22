@@ -3664,9 +3664,9 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.
 
-The second builds more slowly than the first and holds its finished drawing
-for twelve seconds, because it carries more than the usual pace lets a reader
-take in.
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in.
 
 Neither is schematic. Both read the natural gas run on the committed EIA
 files, so neither needs the owner's archive. Redraw both with:
