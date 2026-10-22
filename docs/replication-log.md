@@ -5157,8 +5157,10 @@ numbers reproduce on his file and nothing about whether the rule pays today.
 ### What the book printed
 
 Each script closes on a comment holding the six decimals its
-`fprintf('APR=%f Sharpe=%f')` prints. Location 1505 rounds the first two
-scripts' figures and prints no number for the ratio.
+`fprintf('APR=%f Sharpe=%f')` prints. Location 1505 prints the first two
+scripts' figures at fewer decimals. Three of them are the scripts' figures
+rounded. The fourth, the price spread's "about 10.9 percent", is not, since
+0.108335 rounds to 10.8 percent. It prints no number for the ratio.
 
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |

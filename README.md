@@ -4088,9 +4088,9 @@ The post also carries one looping whiteboard sketch, in Lesson 4, drawn by
 the USD.CAD post's sketch machinery. It shows why the spread is mostly the
 20-day fit's intercept. Two real windows a trading week apart, the second
 ending on the day the spread is lowest, have clouds of points that barely
-move, while the fitted line turns. The clouds sit about 90 dollars from
-GLD = 0, so the intercept falls 109.95 dollars, while the leftover moves by
-half a dollar. It draws each axis on its left to its own linear scale, the
+move, while the fitted line turns. The clouds sit about 91.5 dollars from
+GLD = 0 and h rises 1.20, so the intercept falls about 1.20 × 91.5 dollars,
+109.95 in the run, while the leftover moves by half a dollar. It draws each axis on its left to its own linear scale, the
 right magnifies the points, and it closes on the whole run's correlation and standard deviations. Every figure it
 prints is read from the committed file through the same `read_sources`, and
 the intercept from `rolling_intercept`, which
