@@ -4270,8 +4270,8 @@ Seven groups of what it says are not pinned here.
    dollars per point, the four figures, the long 0.3906 VX contracts and one
    ES contract, the band of one training deviation, and "particularly
    profitable" around the downgrade are at 2559. "0.3906 front contracts of
-   VX" in the roll-return trade is at 2754. The book's figures are pinned, and
-   its words are not.
+   VX" in the roll-return trade is at 2754. The book's Figures 5.10 to 5.12
+   are at 2546 and 2559. The book's figures are pinned, and its words are not.
 2. The search behind the window. Its 22,446 windows across the three saves,
    and the one window among them that rounds to both fitted figures, are
    recorded in Entry 28 and on the issue that shipped the run. No test reruns
@@ -4288,12 +4288,15 @@ Seven groups of what it says are not pinned here.
    `VX_ES_rollreturn.m` anchors at 2008-08-04, tests from the 501st row on,
    computes every day's return before keeping those rows, reads ES from the
    2012-05-07 save, and trades one VX contract against one ES contract with
-   every line holding 0.3906 commented out. That `bollinger.m` exits at a
-   z-score of 0.
+   every line holding 0.3906 commented out. That `bollinger.m`, Example 3.2's
+   script, trades GLD against USO and exits at a z-score of 0.
    [src/chan/vx_es.py](src/chan/vx_es.py)'s docstring and
-   [data/README.md](data/README.md) record the first two.
+   [data/README.md](data/README.md) record the first two, apart from the
+   commented-out 0.3906 lines and the live one-to-one lines, which
+   [src/chan/vx_es_roll_return.py](src/chan/vx_es_roll_return.py)'s docstring
+   records, and [src/chan/bollinger.py](src/chan/bollinger.py) records the
+   third.
 5. Arithmetic on pinned numbers that no test asserts as written: the
-   APR of 0.122811 being 12.28 percent, the
    deviation missing by about a tenth of a percent, the APR on the later saves
    falling by more than half, the 449 test days making about a year and three
    quarters, and 236 of 449 days being more than half.
@@ -4305,7 +4308,14 @@ Seven groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_vx_es.py](tests/test_vx_es.py), or to
 [tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) for the figure's
-own numbers. Three groups had no pin before it, and
+own numbers. `TestThePostQuotesTheRun` in
+[tests/test_vx_es.py](tests/test_vx_es.py) reads the post itself, so a figure
+edited in the post alone fails. It reads every row of the four tables with its
+verdict, though not the column headings that name Lesson 2's saves, and one
+copy of each figure the run computes that the prose writes in numerals. It
+does not read the subtitle or the closing list, which only repeat figures, nor
+a count written as a word, such as the four bets. Three groups had no pin
+before the post, and
 [tests/test_vx_es.py](tests/test_vx_es.py) now pins them.
 
 1. The test set around the downgrade. It is down 0.045935 at the close of

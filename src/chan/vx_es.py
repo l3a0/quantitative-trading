@@ -3,7 +3,8 @@
 Volatility rises when the stock market falls, so a VX future, which tracks the
 VIX index, and an ES future, the E-mini S&P 500, should move against each
 other. Chan plots the two front-month series against each other at Kindle
-location 2546 and finds two regimes, 2004 to May 2008 and August 2008 to 2012.
+location 2546, and at location 2552 finds two regimes, 2004 to May 2008 and
+August 2008 to 2012.
 At location 2559 he regresses one on the other over the second regime, with VX
 multiplied by its $1,000 point value and ES by its $50, and reports that "a
 portfolio that is long 0.3906 contracts of VX and long one contract of ES
