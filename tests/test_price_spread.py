@@ -41,7 +41,7 @@ them.
 
 ``TestThePairDoesNotCointegrate`` holds location 1505's statement that the
 pair does not cointegrate, and what the 20-day fit does instead: its hedge
-ratio changes sign, and the spread the scripts trade leaves out the fit's
+ratio changes sign, and the spread the scripts trade never subtracts the fit's
 intercept, which carries almost all of it.
 
 Exploratory. Reproducing Chan's figures spends the 2006 to 2012 sample on a

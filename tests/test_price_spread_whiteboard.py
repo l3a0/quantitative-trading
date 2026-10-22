@@ -641,7 +641,7 @@ class TestThePost:
             rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[0])}\)", paragraphs[index + 1]
         )
         assert paragraphs[index + 2].startswith("*Two real 20-day windows")
-        assert paragraphs[index + 3].startswith("So the spread in the figure’s second panel")
+        assert paragraphs[index + 3].startswith("So the spread in the second panel of Lesson 1’s figure")
         assert sum(GIFS[0] in p for p in paragraphs) == 1
 
     def test_its_alt_text_quotes_the_title_and_every_label_in_order(self, scene) -> None:

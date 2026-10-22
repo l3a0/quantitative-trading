@@ -5246,7 +5246,7 @@ against a 10% bar of −3.04, which
 `TestThePairDoesNotCointegrate::test_engle_granger_does_not_reject_at_10_percent`
 holds. The 20-day hedge ratio is below zero on 334 of the 1,480 traded days,
 which `::test_the_20_day_hedge_ratio_changes_sign` holds. The spread the
-scripts trade leaves out the 20-day fit's intercept, which tracks it at a
+scripts trade never subtracts the 20-day fit's intercept, which tracks it at a
 correlation of 0.9987, and the fit's leftover traded alone earns an APR of
 −0.005130, which `::test_the_spread_is_almost_all_the_fits_intercept` holds.
 Nothing here separates a real short-term reversion from what a 20-day fit
