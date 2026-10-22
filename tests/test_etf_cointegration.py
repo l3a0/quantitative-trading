@@ -633,9 +633,10 @@ class TestWhatThePostQuotes:
             post,
             first,
             _table(johansen_rows),
-            f"a CADF statistic of about {BOOK_CADF_T.replace('-', '−')}, a half-life of "
-            f"{BOOK_HALF_LIFE_DAYS} days, an APR of {BOOK_APR_PERCENT} percent and a Sharpe "
-            f"ratio of {BOOK_SHARPE}",
+            f"1. A CADF statistic of about {BOOK_CADF_T.replace('-', '−')}.\n"
+            f"2. A half-life of {BOOK_HALF_LIFE_DAYS} days.\n"
+            f"3. An APR of {BOOK_APR_PERCENT} percent.\n"
+            f"4. A Sharpe ratio of {BOOK_SHARPE}.",
         )
 
     def test_lesson_1_s_cadf_bars_and_the_sign(self, post, result) -> None:
