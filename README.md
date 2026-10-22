@@ -4001,9 +4001,9 @@ Five groups of its figures are not pinned here.
    weights rebalanced every day is at 1435. That a ratio or its logarithm is
    stationary in "a special case", when the two hedge ratios are equal and
    opposite, that a ratio needs no hedge ratio, that a ratio is unchanged
-   when both prices scale together, a point Chan credits to a reader, and
-   that Chan knows no general answer to whether a ratio beats a spread with
-   an adaptive hedge ratio are at 1476. "Are not, in fact, cointegrated", the
+   when both prices are multiplied by the same factor, a point Chan credits
+   to a reader, and that Chan knows no general answer to whether a ratio
+   beats a spread with an adaptive hedge ratio are at 1476. "Are not, in fact, cointegrated", the
    question whether enough short-term mean reversion remains to trade, that
    the rule is the linear mean reversion of Chapter 2, "near-optimal" with "the
    benefit of hindsight", the word stationary for the spread, "actually

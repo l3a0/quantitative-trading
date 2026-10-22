@@ -825,9 +825,9 @@ class TestThePost:
             f"{rise:.2f} × {mean:.1f} dollars. Over the same week the leftover e on each "
             f"window’s last day moved only from {sketch._signed(before.leftover, 2)} to "
             f"{sketch._signed(after.leftover, 2)}, so c makes up nearly all of the spread’s fall. "
-            f"Every figure comes from the run, and the closing lines are figures over all "
-            f"{lever.days:,} traded days, not over these two windows. The frame on the right "
-            f"draws each dollar of USO about {round(taller())} times taller than the left "
+            f"Every figure comes from the run, and the three lines under the frame are figures "
+            f"over all {lever.days:,} traded days, not over these two windows. The frame on the "
+            f"right draws each dollar of USO about {round(taller())} times taller than the left "
             f"side does.*"
         )
 

@@ -55,7 +55,7 @@ Here is each figure, computed, beside the script’s comment and the book.
 
 All four match the scripts to the last digit printed. Each of the three scripts, and the ratio with GLD and USO swapped, sets its first position on 2006-06-21, the first day the 20-day standard deviation of the signal exists, and earns its first return on 2006-06-22. The standard deviation needs 20 days of the signal, so that first return comes 20 trading days after the traded days begin.
 
-One figure in the book does not follow from its own script. The price spread’s comment prints 0.108335, which is 10.8 percent at one decimal, and the book prints “about 10.9 percent”. The difference is small and the word “about” covers it. It still matters for anyone checking a book against its code: the script is the record of what ran, and a rounded figure in the prose is a second copy that can drift from it.
+One figure in the book does not follow from its own script. The price spread’s comment prints 0.108335, which is 10.8 percent at one decimal, and the book prints “about 10.9 percent”. The difference is small and the word “about” covers it. It still matters for anyone checking a book against its code: the script is the record of what ran, and a figure repeated in the prose is a second copy that can drift from it.
 
 ### The figure
 
@@ -84,15 +84,15 @@ The log price spread is different. Chan shows that a stationary mix of log price
 
 The ratio holds the same portfolio as the log price spread would with h fixed at 1, long a dollar of USO and short a dollar of GLD. It trades on USO/GLD itself rather than on its logarithm.
 
-Chan notes that when a stationary mix weights the two prices equally and with opposite signs, the ratio or its logarithm is stationary. That holds exactly for a mix of log prices, because with those weights the mix is a fixed multiple of the ratio’s logarithm. Chan calls equal and opposite weights “a special case”, so a ratio need not be stationary (Chan, 2013, location 1476).
+Chan notes that when a stationary mix weights the two prices equally and with opposite signs, the ratio or its logarithm is stationary. That holds exactly only for a mix of log prices, because with those weights the mix is a fixed multiple of the ratio’s logarithm. Chan calls equal and opposite weights “a special case”, so a ratio need not be stationary (Chan, 2013, location 1476).
 
-He also argues for using a ratio. It stays the same when both prices scale up together, a point he credits to a reader, and it needs no hedge ratio at all. He says he knows no general answer to whether a ratio beats a price spread or log price spread whose hedge ratio adapts as the prices move, as the 20-day refit here does.
+He also argues for using a ratio. It stays the same when both prices are multiplied by the same factor, a point he credits to a reader, and it needs no hedge ratio at all. He says he knows no general answer to whether a ratio beats a price spread or log price spread whose hedge ratio adapts as the prices move, as the 20-day refit here does.
 
 On GLD and USO the ratio loses money, and the third panel of the figure shows the fall the rule kept betting against. USO’s price was 1.03 times GLD’s on the first traded day and 0.24 times it on the last, and the ratio’s highest after 2008 was 0.44.
 
 ## Lesson 3: the ratio’s printed figures match a run with GLD and USO swapped
 
-`Ratio.m`, the ratio’s MATLAB script, closes on the comment `APR=-0.141522 Sharpe=-0.746663`. The transcription, run on Chan’s file, gives −0.134608 and −0.702522. The same code matches the other two scripts to six decimals, and the data is Chan’s own file, so a later, restated download of the prices cannot explain the miss.
+`Ratio.m`, the ratio’s MATLAB script, closes on the comment `APR=-0.141522 Sharpe=-0.746663`. The transcription, run on Chan’s file, gives −0.134608 and −0.702522. The same code matches the other two scripts to six decimals, and the data is Chan’s own file rather than a later download whose prices a vendor may since have revised, so a difference in the data cannot explain the miss.
 
 This repository tried three other versions of the run after the miss, in this order.
 
@@ -115,7 +115,7 @@ This post reports the swap as a cause the evidence favours, not as a reproductio
 
 ## Lesson 4: no cointegration, and a spread that is mostly the fit’s intercept
 
-The data agree with Chan that GLD and USO do not cointegrate. The Engle-Granger test regresses USO on GLD over all 1,500 days and asks whether the leftover, the part of USO the fitted line does not explain, is stationary. Its statistic is −1.5150. The critical value, at the 10 percent significance level, is −3.04. To reject the hypothesis of no cointegration, the statistic must be more negative than the critical value, so the test does not come close to finding any. Even the whole-period hedge ratio is negative, at −0.2669. A test that fails to reject cannot prove there is no relationship, but it gives the rule no fixed mix of the two prices known to keep returning to its average.
+The Engle-Granger test agrees with Chan and finds no cointegration between GLD and USO. It regresses USO on GLD over all 1,500 days and asks whether the leftover, the part of USO the fitted line does not explain, is stationary. Its statistic is −1.5150. The critical value, at the 10 percent significance level, is −3.04. To reject the hypothesis of no cointegration, the statistic must be more negative than the critical value, so the test does not come close to finding any. A test that fails to reject cannot prove there is no relationship, but it gives the rule no fixed mix of the two prices known to keep returning to its average. Even the whole-period hedge ratio is negative, at −0.2669.
 
 ### A hedge ratio that changes sign
 
@@ -134,9 +134,9 @@ The spread is not the regression’s leftover. Each 20-day regression fits USO =
 
 ![An animated whiteboard sketch titled “Why c carries the spread”, drawn slowly stroke by stroke. On the left, a grey vertical axis is labelled “USO”, and a second label, “GLD = 0”, says the axis stands where GLD is zero. A grey horizontal axis is labelled “GLD”. A small grey box sits near the right end of the GLD axis, around GLD of 91.5 dollars, and two grey lines run from it to a larger grey frame on the right that shows what is inside the box, magnified. Inside the frame’s top right, a grey label reads “12× taller”. In the frame, a grey cloud of 20 points appears with its fitted line, labelled “7 July, h 0.97”. On the left, the same line, grey and dashed, runs from the box back to the USO axis, where a brown dot is labelled “c −51.65”. A black cloud then appears in the frame, the second window, which shares fifteen days with the first. Fifteen of its points are the grey cloud’s own and turn black, and its five newest sit below the rest. The grey cloud’s five oldest stay grey, mostly at the top and right. The black cloud’s line is steeper and is labelled “14 July, h 2.17”. On the left, its dashed black line lands much lower on the USO axis, at a brown dot labelled “c −161.60”. A brown bracket joins the two dots, labelled “c fell 109.95”. A grey span along the GLD axis, from GLD = 0 to the clouds, is labelled “91.5 dollars”. Under “c fell 109.95”, a brown label reads “≈ 1.20 × 91.5”, and under that another reads “h rose 1.20”. In the frame, a black ring circles the last black point, and a short black tick runs from the black line down to it, labelled “e −3.21, a week before −2.71”. Below a grey rule under the frame, the sketch closes on three lines: “over all 1,480 traded days”, “correlation of c and the spread 0.9987” and “SD of the spread 45.37 dollars, of e 2.27”. Each axis on the left is drawn to its own linear scale, and neither is broken. The frame magnifies the points to a scale of its own. The finished sketch holds for twelve seconds before it redraws.](../docs/figures/price_spread_intercept_lever.gif)
 
-*Two real 20-day windows from Chan’s file, ending 7 and 14 July 2009, the second on the day the spread is lowest in the whole run. Between them the slope h rose by 1.20, from 0.97 to 2.17. Both clouds sit about 91.5 dollars to the right of GLD = 0, where c is read. Steepening the line by 1.20 while it still runs through the clouds moved c down by about 1.20 × 91.5 dollars. Over the same week the leftover e on each window’s last day moved only from −2.71 to −3.21, so c makes up nearly all of the spread’s fall. Every figure comes from the run, and the closing lines are figures over all 1,480 traded days, not over these two windows. The frame on the right draws each dollar of USO about 12 times taller than the left side does.*
+*Two real 20-day windows from Chan’s file, ending 7 and 14 July 2009, the second on the day the spread is lowest in the whole run. Between them the slope h rose by 1.20, from 0.97 to 2.17. Both clouds sit about 91.5 dollars to the right of GLD = 0, where c is read. Steepening the line by 1.20 while it still runs through the clouds moved c down by about 1.20 × 91.5 dollars. Over the same week the leftover e on each window’s last day moved only from −2.71 to −3.21, so c makes up nearly all of the spread’s fall. Every figure comes from the run, and the three lines under the frame are figures over all 1,480 traded days, not over these two windows. The frame on the right draws each dollar of USO about 12 times taller than the left side does.*
 
-So the spread in the second panel of Lesson 1’s figure, which Chan says looks stationary (Chan, 2013, location 1505), is mostly the 20-day intercept moving. The backtest cannot say whether trading it captures a real short-term reversion between gold and oil or only what a 20-day fit produces.
+So the spread in the second panel of Lesson 1’s figure, which Chan says looks stationary (Chan, 2013, location 1505), is mostly the 20-day intercept moving. The backtest cannot say whether trading it captures a real short-term reversion between gold and oil or only a pattern that refitting a line every day on the last 20 days creates by itself.
 
 ## Lesson 5: a return that cannot see its own scale
 
@@ -153,9 +153,9 @@ That has a consequence for checking the code. Chan’s book code computes a stan
 1. The plain `movingStd` divides by n − 1.
 2. `smartMovingStd`, which skips missing values, divides by n.
 
-Over 20 days, dividing by n rather than n − 1 rescales every z-score by the same factor, so the two functions give the same daily returns here to within 10⁻¹², and the same figures. Nothing in this rule compares the z-score with a threshold, so these figures are no evidence about whether `movingStd` or `smartMovingStd` is right.
+Over 20 days, dividing by n rather than n − 1 rescales every z-score by the same factor, so the two functions give the same daily returns here to within 10⁻¹², and the same figures. Nothing in this rule compares the z-score with a threshold, so these figures cannot tell a transcription that calls `movingStd` from one that calls `smartMovingStd`.
 
-The posts on [post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) and [buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md) were different. There a stock’s move was compared with a fixed multiple of its standard deviation, so the deviation’s scale mattered. The choice there was between two versions of a function named `smartstd`, and it moved printed figures. One version ships with the first edition of Chan’s first book, *Quantitative Trading*, and the other with *Algorithmic Trading*.
+The posts on [post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) and [buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md) were different. In those posts a stock’s move was compared with a fixed multiple of its standard deviation, so the deviation’s scale mattered. The choice was between two versions of a function named `smartstd`, and it moved printed figures. One version ships with the first edition of Chan’s first book, *Quantitative Trading*, and the other with *Algorithmic Trading*.
 
 The next example in the book, Example 3.2, trades the same spread with Bollinger bands. It enters when the z-score crosses a fixed threshold, so there the scale does not cancel, and the choice between `movingStd` and `smartMovingStd` can move its figures. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md#lesson-3-a-fixed-threshold-makes-the-divisor-matter) found that dividing by n rather than n − 1 lifts Example 3.2’s APR from Chan’s 0.178249 to 0.183306 and its Sharpe ratio from his 0.964673 to 0.984872.
 
@@ -173,7 +173,7 @@ Two scripts that match to six decimals show that the code, the data and the scri
 Four questions are beyond it.
 
 1. **Which run produced `Ratio.m`’s comment.** Swapping GLD and USO matches both figures. Neither public copy holds another version of the script, so whether Chan edited the script after running it, or ran an earlier version, cannot be recovered here.
-2. **Whether the reversion is real.** The Engle-Granger test finds no cointegration over the whole file, and nothing here tests for it over shorter stretches of the file or separates real reversion from what a 20-day fit produces.
+2. **Whether the reversion is real.** The Engle-Granger test finds no cointegration over the whole file, and nothing here tests for it over shorter stretches of the file or separates real reversion from a pattern the daily 20-day refit creates by itself.
 3. **How much costs would take from the returns.** Nothing here charges any or measures how much each signal trades.
 4. **Whether 20 days was a fair choice.** The lookback was fitted to this sample, and nothing here tries it on data it was not chosen on.
 
@@ -185,7 +185,7 @@ One habit for each lesson.
 2. **Ask what one unit of the signal holds.** The three signals here hold three different portfolios, even when they share a chart.
 3. **Treat a printed result as a record of one run.** A comment can outlive the code it came from, and a version that matches after a miss is evidence, not a reproduction.
 4. **Look at the fit, not only the spread.** A hedge ratio that changes sign is not hedging, and a spread that never subtracts the fit’s intercept can be mostly that intercept.
-5. **Know what a matching figure can see.** A return that cancels any scale on its positions cannot tell two scaling choices apart, however well it matches.
+5. **Know what a matching figure can see.** A return that cancels any scale on its positions cannot tell apart two choices that differ only by that scale, such as a standard deviation that divides by n and one that divides by n − 1.
 6. **Treat an exact reproduction as a check on arithmetic.** Whether trading gold against oil pays needs costs, a lookback fixed in writing before the test, and data the rule has not seen.
 
 ## References
