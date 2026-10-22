@@ -4405,8 +4405,16 @@ low and high, where the two cumulative returns end, and their deepest fall
 from 2008-07-30 to 2008-10-08. `TestThePostQuotesThePins` in
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) reads one
 copy of each of those numbers from the post itself, keyed on the words around
-it, so a mistyped copy it reads fails a test. Three had no pin before the
-post, and
+it, so a mistyped copy it reads fails a test. Four kinds are the exception.
+The tests compute with them, and the class reads none of them from the post.
+
+1. The 20-day window.
+2. The 252 trading days a year.
+3. The divisor of 100 that turns a rate in percent into a fraction.
+4. The months and years that bound a period, such as July 2007 for the
+   monthly averages and April 2012 for the days with no AUD rate.
+
+Three numbers had no pin before the post, and
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) now pins
 them.
 

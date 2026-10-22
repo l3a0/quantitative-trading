@@ -72,6 +72,9 @@ from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import PYTHON_PORT, committed_copy
 
+#: The constant every close is multiplied by in the scale test, which the post quotes.
+CLOSE_SCALE = 1.7
+
 
 @pytest.fixture(scope="module")
 def sources():
@@ -381,7 +384,7 @@ class TestTheRule:
 
     def test_a_constant_scale_on_every_close_moves_no_figure(self, sources, result) -> None:
         """Log moves and the sign of z cannot see it, so rows 1 to 4 are no evidence about scale."""
-        scaled = aud_cad_rollover(1.7 * sources.closes[1], sources.aud[1], sources.cad[1])
+        scaled = aud_cad_rollover(CLOSE_SCALE * sources.closes[1], sources.aud[1], sources.cad[1])
         for moved, held in (
             (scaled.with_rollover, result.with_rollover),
             (scaled.without_rollover, result.without_rollover),
@@ -673,4 +676,41 @@ class TestThePostQuotesThePins:
         assert (
             f"loses {_percent(-falls[0], 2)} percent of its value with rollover interest and "
             f"{_percent(-falls[1], 2)} percent without"
+        ) in self.text
+
+    def test_the_printed_figures_and_the_pass_mark(self) -> None:
+        assert f"an APR of {SCRIPT_APR} and a Sharpe ratio of {SCRIPT_SHARPE}" in self.text
+        assert f"“an APR of {BOOK_APR_PERCENT} percent, with a Sharpe ratio of {BOOK_SHARPE}”" in (
+            self.text
+        )
+        assert (
+            f"rise only to {BOOK_APR_WITHOUT_PERCENT} percent and the Sharpe ratio to "
+            f"{BOOK_SHARPE_WITHOUT}"
+        ) in self.text
+        assert f"& {SCRIPT_APR} & {BOOK_APR_PERCENT}\\% &" in self.text
+        assert f"& {SCRIPT_SHARPE} & {BOOK_SHARPE} &" in self.text
+        assert f"& \\text{{none}} & {BOOK_APR_WITHOUT_PERCENT}\\% &" in self.text
+        assert f"& \\text{{none}} & {BOOK_SHARPE_WITHOUT} &" in self.text
+        floor, ceiling = f"{100 * ROLLOVER_FLOOR:.1f}", f"{100 * ROLLOVER_CEILING:.0f}"
+        assert f"at least {floor} percent a year and below {ceiling}" in self.text
+        assert f"at least {floor} percent and below {ceiling} percent a year" in self.text
+        assert f"below the floor of {floor} percent" in self.text
+
+    def test_the_absent_weekdays(self, sources) -> None:
+        days = sources.closes[1].index
+        absent = pd.bdate_range(days[0], days[-1]).difference(days)
+        christmas = [day.year for day in absent if (day.month, day.day) == (12, 25)]
+        new_year = [day.year for day in absent if (day.month, day.day) == (1, 1)]
+        other = [day for day in absent if (day.month, day.day) not in ((12, 25), (1, 1))]
+        assert (len(absent), len(christmas), len(new_year), len(other)) == (7, 3, 3, 1)
+        assert "Seven weekdays are absent from the closing-price file" in self.text
+        assert f"Christmas Day in {christmas[0]}, {christmas[1]} and {christmas[2]}" in self.text
+        assert f"New Year’s Day in {new_year[0]}, {new_year[1]} and {new_year[2]}" in self.text
+        assert f"{other[0].date()}, an early close rather than a holiday" in self.text
+
+    def test_the_scale_and_the_files_date(self, sources) -> None:
+        assert f"multiplying every close by {CLOSE_SCALE} moves none" in self.text
+        (saved,) = {entry.saved_date for entry in sources.entries}
+        assert (
+            f"Chan’s {saved[:4]} Python version of the book’s code, each dated {saved} in the zip"
         ) in self.text
