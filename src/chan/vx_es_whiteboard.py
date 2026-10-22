@@ -22,14 +22,18 @@ paragraph it draws.
 Both sketches are schematic and carry no figures from the run. The dots, the
 shifts and the path are made up to show a shape, so no position, slope or
 date on them is a value of the hedge, the deviation or the z-score. What
-they draw is a fact about the arithmetic that holds whatever the data. Adding
-one constant to every VX close moves only the intercept of a regression on
-it, so the hedge, the deviation and the z-score are unchanged. Closing at the
+the shift sketch draws is a fact about the arithmetic that holds whatever the
+data. Adding one constant to every VX close moves only the intercept of a
+regression on it, so the hedge, the deviation and the z-score are unchanged.
+What the exits sketch draws holds along the drawn path. There, closing at the
 mean opens the same positions at the same crossings as holding until the
-opposite band, and stays flat between the zero crossing and the next band.
-The flat stretches are drawn short beside the held ones, since in the run the
-mean exit is flat on fewer than one test day in five. The path crosses each
-band once, so the strips alternate here, which the rule does not promise.
+opposite band, and stays flat from each zero crossing to the next band. On
+other data the mean exit can also open a second long, or a second short,
+where the opposite-band rule already holds one. The flat stretches are drawn
+short beside the held ones, since in the run the mean exit starts fewer than
+one test day in five with no position. After each dip below −1 the drawn path
+next reaches +1, and after +1 it next reaches −1, so the strips alternate
+here, which the rule does not promise.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.

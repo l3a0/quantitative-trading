@@ -17,8 +17,8 @@ reader takes from them, and that the facts they draw hold on the run.
    :func:`chan.vx_es.opposite_band_units` and :func:`chan.vx_es.mean_exit_units`
    hold along the drawn path, that each flat stretch starts where the path
    crosses zero and ends where it reaches the next band, and that the flat
-   stretches are short beside the held ones, as the mean exit is flat on 77 of
-   the run's 449 test days.
+   stretches are short beside the held ones, as the mean exit starts 77 of the
+   run's 449 test days with no position.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both
@@ -60,6 +60,7 @@ from chan.usdcad_tests_whiteboard import (
 )
 from chan.vx_es_whiteboard import (
     CROSSINGS,
+    ORIGIN,
     PATH_X,
     SAME,
     SAVE_X,
@@ -427,6 +428,21 @@ class TestTheShiftSketch:
     def test_the_dots_fall(self) -> None:
         assert fit(SAVE_X, SAVE_Y)[1] < 0
 
+    def test_each_axis_is_named_at_its_own_end(self, every) -> None:
+        """1000·VX runs across and 50·ES up, the way the regression puts them."""
+        scene = every[0]
+        across, up = _stroke(scene, "x-axis"), _stroke(scene, "y-axis")
+        vx, es = _label(scene, "1000·VX"), _label(scene, "50·ES")
+        assert set(across.y) == {ORIGIN[1]} and set(up.x) == {ORIGIN[0]}
+        assert vx.names == "x-axis" and es.names == "y-axis"
+        assert vx.x == pytest.approx(across.x.max()) and vx.y < ORIGIN[1]
+        assert es.y == pytest.approx(up.y.max()) and es.x > ORIGIN[0]
+
+    def test_each_cloud_is_drawn_before_its_fit(self, every) -> None:
+        gids = [s.gid for s in every[0].strokes]
+        for cloud in ("save", "same", "uneven"):
+            assert gids.index(cloud) + 1 == gids.index(f"{cloud}-fit"), cloud
+
     def test_the_brass_copy_moves_every_dot_right_by_one_amount(self, every) -> None:
         scene = every[0]
         save, same = _stroke(scene, "save"), _stroke(scene, "same")
@@ -483,7 +499,8 @@ class TestTheShiftSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
-        assert "Black dots fall" in alt
+        assert "A grey axis across is labelled “1000·VX” and a grey axis up" in alt
+        assert "Black dots fall from upper left to lower right" in alt
         assert "each moved right by the same amount" in alt
         assert "parallel to the black one" in alt
         assert "each moved right by a different amount" in alt
@@ -666,5 +683,6 @@ class TestTheExitsSketch:
         assert "a green bar marked “long” from the dip below −1 to the rise above +1" in alt
         assert "a red bar marked “short” from there to the next dip below −1" in alt
         assert "a green bar marked “long” from the dip below −1 to the crossing of 0" in alt
+        assert "a red bar marked “short” until the path falls back through 0" in alt
         assert alt.count("short thin grey stretch marked “flat”") == 1
         assert alt.count("short grey stretch marked “flat”") == 1

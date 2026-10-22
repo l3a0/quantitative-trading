@@ -4366,7 +4366,8 @@ uv run python -m chan.vx_es_whiteboard
 [tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) holds that
 each strip holds what `chan.vx_es`'s two exit rules hold along the drawn path,
 that one constant added to every VX close on the 2012-05-07 save moves only
-the intercept, and that the mean exit is flat on 77 of the 449 test days.
+the intercept, and that the mean exit starts 77 of the 449 test days with no
+position.
 
 [blog/aud-cad-rollover-lessons.md](blog/aud-cad-rollover-lessons.md) is a
 twentieth post, about Example 5.2 of Chan's *Algorithmic Trading*, which adds
