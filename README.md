@@ -4413,7 +4413,7 @@ it, so a mistyped copy it reads fails a test. Four kinds are the exception.
 The tests compute with them, and the class reads none of them from the post.
 
 1. The 20-day window.
-2. The 252 trading days a year.
+2. The 252 days a year the script annualises by.
 3. The divisor of 100 that turns a rate in percent into a fraction.
 4. The month the monthly averages start from, July 2007, and the periods the
    missing rates fall in, 2012 for CAD and April 2012 for AUD.

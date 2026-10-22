@@ -147,6 +147,9 @@ class TestTheRates:
         aud, cad = _shown(sources.aud[1]), _shown(sources.cad[1])
         assert aud.max() == pytest.approx(7.25001675398684, abs=1e-12)
         assert str(aud.idxmax().date()) == "2008-07-01"
+        assert aud.min() == 3.0
+        assert cad.max() == 4.51
+        assert cad.min() == 0.24
         printed_aud, printed_cad = aud.round(2), cad.round(2)
         assert [str(d.date()) for d in printed_aud.index[printed_aud == 7.25]] == [
             "2008-04-01",

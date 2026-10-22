@@ -124,8 +124,8 @@ def _extremes(series: pd.Series) -> str:
     """Where a rate series peaks and bottoms at the two decimals printed, each at its first month.
 
     The rounding comes first. AUD's file holds 7.25 from April to August 2008
-    as monthly averages that differ only in the fifth decimal, and the raw
-    maximum would name July for a level the panel shows from April.
+    as monthly averages between 7.2497 and 7.2500, and the raw maximum would
+    name July for a level the panel shows from April.
     """
     shown = series.round(2)
     return (
