@@ -1,11 +1,12 @@
 """The pins for the price spread, log price spread and ratio, *Algorithmic Trading*'s Example 3.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 3.1, with two exceptions, both in
+about Example 3.1, with three exceptions, all in
 ``blog/price-spread-ratio-lessons.md``. The post's figure has its own pins in
-``tests/test_price_spread_figures.py``, and what the post says about the file
-itself, its 67 ETFs, its dividends subtracted in dollars and GLD paying none,
-is held in ``tests/test_series.py``. README lists what the post says that
+``tests/test_price_spread_figures.py``, its whiteboard sketch's two windows
+have theirs in ``tests/test_price_spread_whiteboard.py``, and what the post
+says about the file itself, its 67 ETFs, its dividends subtracted in dollars
+and GLD paying none, is held in ``tests/test_series.py``. README lists what the post says that
 nothing pins. ``docs/replication-log.md`` Entry 21 carries the verdicts and
 points here row by row.
 
@@ -516,7 +517,9 @@ class TestTheRule:
 
     def test_a_window_too_short_to_fit_a_slope_and_an_intercept_is_refused(self) -> None:
         """Two rows fit both exactly, and one leaves the slope undetermined."""
-        with pytest.raises(ValueError, match="at least 3 rows, not 2"):
+        with pytest.raises(
+            ValueError, match="rolling_hedge_ratio takes a window of at least 3 rows, not 2"
+        ):
             rolling_hedge_ratio(np.arange(5.0), np.arange(5.0), 2)
 
     def test_a_window_holding_a_nan_gives_a_nan_slope_and_the_rest_still_fit(self) -> None:

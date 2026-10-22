@@ -51,7 +51,7 @@ from PIL import Image
 from chan import price_spread_whiteboard as sketch
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.price_spread import LOOKBACK, X_SYMBOL, Y_SYMBOL, read_sources
+from chan.price_spread import LOOKBACK, X_SYMBOL, Y_SYMBOL, price_spread, read_sources
 from chan.price_spread_whiteboard import (
     GLD_TOP,
     MAIN_X,
@@ -124,6 +124,7 @@ STROKES = [
     "c-after",
     "drop",
     "distance",
+    "last-day",
     "leftover",
     "rule",
 ]
@@ -253,6 +254,11 @@ class TestTheRun:
         """The spread is lowest on 14 July 2009, the hedge ratio highest the same day,
         and the first window ends a trading week before."""
         closes = sources[1]
+        signal = price_spread(
+            closes.index, closes[X_SYMBOL].to_numpy(), closes[Y_SYMBOL].to_numpy()
+        )
+        assert lever.after.end == signal.days[np.argmin(signal.value)]
+        assert lever.after.end == signal.days[np.argmax(signal.hedge)]
         assert (lever.before.end, lever.after.end) == (
             pd.Timestamp("2009-07-07"),
             pd.Timestamp("2009-07-14"),
@@ -338,6 +344,7 @@ class TestTheInks:
             "cloud-after",
             "fit-after",
             "reach-after",
+            "last-day",
             "leftover",
         }
         assert all(colours[g] == MUTED for g in STROKES if colours[g] not in (ACCENT, INK))
@@ -441,6 +448,18 @@ class TestTheGeometry:
         assert bottom == pytest.approx(after.uso[-1])
         assert bottom - top == pytest.approx(after.leftover)
 
+    def test_a_ring_marks_the_last_point_among_its_neighbours(self, scene, lever) -> None:
+        """Two other points sit within a tenth of a dollar of GLD from the last one, so
+        the ring, centred on it, says which point the tick ends at."""
+        after = lever.after
+        assert np.sum(np.abs(after.gld - after.gld[-1]) <= 0.1 + 1e-9) == 3
+        ring, tick = _stroke(scene, "last-day"), _stroke(scene, "leftover")
+        centre = ((ring.x.max() + ring.x.min()) / 2, (ring.y.max() + ring.y.min()) / 2)
+        assert centre == pytest.approx((tick.x[-1], tick.y[-1]), abs=1e-3)
+        assert np.hypot(ring.x - tick.x[-1], ring.y - tick.y[-1]) == pytest.approx(
+            sketch.RING, abs=1e-9
+        )
+
     def test_the_whole_runs_figures_sit_below_the_magnified_points(self, scene) -> None:
         """They describe every traded day, so none sits inside the panel beside one
         window's points."""
@@ -490,6 +509,24 @@ class TestOtherFigures:
         )
         with pytest.raises(ValueError, match="window to 2010-03-01"):
             scenes(moved)
+        left = dataclasses.replace(
+            MADE_UP, before=dataclasses.replace(MADE_UP.before, gld=MADE_UP.before.gld - 2.0)
+        )
+        with pytest.raises(ValueError, match="window to 2010-03-01"):
+            scenes(left)
+        for shift in (-10.0, 10.0):
+            off = dataclasses.replace(
+                MADE_UP, after=dataclasses.replace(MADE_UP.after, uso=MADE_UP.after.uso + shift)
+            )
+            with pytest.raises(ValueError, match="window to 2010-03-08"):
+                scenes(off)
+        for shift in (-10.0, 10.0):
+            line = dataclasses.replace(
+                MADE_UP,
+                after=dataclasses.replace(MADE_UP.after, intercept=MADE_UP.after.intercept + shift),
+            )
+            with pytest.raises(ValueError, match="window to 2010-03-08"):
+                scenes(line)
 
 
 class TestTheLabelsStayClearOfTheLines:
@@ -615,8 +652,16 @@ class TestThePost:
     def test_its_alt_text_gives_the_pace_and_the_scales(self, scene) -> None:
         alt = _alt(scene)
         assert "drawn slowly" in alt and "twelve seconds" in alt
-        assert "to scale on both axes" in alt and "neither axis is broken" in alt
-        assert "a scale of its own" in alt
+        assert "Each axis on the left is drawn to its own linear scale" in alt
+        assert "neither is broken" in alt and "a scale of its own" in alt
+
+    def test_its_alt_text_names_the_inks_the_sketch_draws(self, scene) -> None:
+        """Brown for each ``c``, grey for the first window and black for the second."""
+        alt = _alt(scene)
+        assert [_stroke(scene, g).color for g in ("c-before", "c-after")] == [ACCENT, ACCENT]
+        assert alt.count("brown dot") == 2
+        assert "a grey cloud" in alt and "A black cloud" in alt
+        assert "a black ring circles the last black point" in alt
 
     def test_its_alt_text_counts_the_points_each_window_shares(self, scene) -> None:
         alt = _alt(scene)
@@ -630,6 +675,7 @@ class TestThePost:
         before, after = lever.before.end, lever.after.end
         assert f"ending {before.day} and {after.day} {after:%B} {after.year}" in caption
         assert f"all {lever.days:,} traded days" in caption
+        assert "the second on the day the spread is lowest" in caption
         assert caption.endswith("*") and "\n" not in caption
 
 

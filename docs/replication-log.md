@@ -5266,8 +5266,8 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.price_spread_figures` redraws, and its one
 whiteboard sketch in Lesson 4, which `uv run python -m chan.price_spread_whiteboard`
-redraws from the intercept `::test_the_spread_is_almost_all_the_fits_intercept`
-holds.
+redraws through the same `rolling_intercept` that
+`::test_the_spread_is_almost_all_the_fits_intercept` reads.
 
 ## Entry 22: the stationarity tests on USD.CAD, Chan's *Algorithmic Trading*
 

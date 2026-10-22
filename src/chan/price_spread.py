@@ -244,10 +244,9 @@ def rolling_intercept(
     """The intercept of the regression :func:`rolling_hedge_ratio` takes its slope from.
 
     Each window fits ``dependent = c + h·independent + e``, and the scripts
-    trade ``dependent − h·independent``, which is ``c + e``, so the intercept
-    ``c`` is part of the spread rather than left out of it. No script computes
-    it. The post's Lesson 4 and :mod:`chan.price_spread_whiteboard` read it to
-    show how much of the spread it carries. Its rows line up with
+    trade ``dependent − h·independent``, which is ``c + e``, so the spread
+    carries the intercept ``c``. No script computes it, and it is read here to
+    show how much of the spread it is. Its rows line up with
     :func:`rolling_hedge_ratio`'s, NaN where the slope is.
     """
     return _rolling_fit(dependent, independent, lookback, "rolling_intercept")[:, 1]

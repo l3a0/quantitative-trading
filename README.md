@@ -4044,8 +4044,8 @@ for the whiteboard sketch's. Seven had no pin before it.
    −0.140674 and −0.744310, and Chan's Python port, −0.140674 and −0.749583.
 6. The figure's own lines and labels.
 7. The sketch's two 20-day windows, ending 7 and 14 July 2009, with their
-   hedge ratios of 0.97 and 2.17, intercepts of −51.65 and −161.60, a fall of
-   109.95 between them, leftovers of −2.71 and −3.21, and their clouds' mean
+   hedge ratios of 0.97 and 2.17, a rise of 1.20 between them, intercepts of
+   −51.65 and −161.60, a fall of 109.95 between them, leftovers of −2.71 and −3.21, and their clouds' mean
    GLD of 91.5 dollars.
 
 Its one figure is drawn from the committed file by
@@ -4073,9 +4073,9 @@ the USD.CAD post's sketch machinery. It shows why the spread is mostly the
 20-day fit's intercept. Two real windows a trading week apart, the second
 ending on the day the spread is lowest, have clouds of points that barely
 move, while the fitted line turns. The clouds sit about 90 dollars from
-GLD = 0, so the intercept falls 109.95 dollars and the leftover moves by half
-a dollar. Its left side is to scale and the right magnifies the points, and it
-closes on the whole run's correlation and standard deviations. Every figure it
+GLD = 0, so the intercept falls 109.95 dollars, while the leftover moves by
+half a dollar. It draws each axis on its left to its own linear scale, the
+right magnifies the points, and it closes on the whole run's correlation and standard deviations. Every figure it
 prints is read from the committed file through the same `read_sources`, and
 the intercept from `rolling_intercept`, which
 [tests/test_price_spread.py](tests/test_price_spread.py) uses too. It builds

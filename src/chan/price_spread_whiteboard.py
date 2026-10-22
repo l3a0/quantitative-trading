@@ -18,7 +18,8 @@ post places it right after the list that ends on the leftover earning nothing.
    extended dashed back to GLD = 0 and landing at its ``c``, and a bracket for
    how far ``c`` fell. On the right, the clouds magnified, where the second
    barely moves from the first while its line turns steeper, and the second
-   window's ``e`` as a tick from its line to its last day's point. It closes
+   window's ``e`` as a tick from its line to its last day's point, which a
+   ring marks. It closes
    on the whole run's figures, the correlation of ``c`` with the spread and the
    two standard deviations, labelled as figures over every traded day rather
    than placed beside one window's points.
@@ -31,14 +32,15 @@ Every figure the scene prints and every point it places comes from
 :class:`Lever`, which :meth:`Lever.from_run` reads from the committed vintage
 through :func:`chan.price_spread.read_sources`, scale-break guard included, and
 :func:`chan.price_spread.rolling_intercept`, the same intercept
-``tests/test_price_spread.py`` pins. Which two windows are drawn is read from
+``tests/test_price_spread.py`` reads. Which two windows are drawn is read from
 the run too: the day of the spread's lowest value and the day
 :data:`WEEK` rows before it. The left panel is to scale on both axes, each its
 own affine map, so a line straight in dollars is straight on the board. The
 right panel magnifies the clouds, each axis its own affine map again. Neither
 axis is broken. The arithmetic label rounds ``h``'s change and the clouds'
-mean GLD, so it reads as approximate, and the post's text gives the exact
-figures.
+mean GLD, and it leaves out two smaller terms that nearly cancel, the change
+in mean USO and the mean ``h`` times the change in mean GLD, so it carries an
+approximate sign.
 
 Exploratory, like everything Example 3.1 runs here.
 """
@@ -198,6 +200,13 @@ ZOOM_Y = (1.5, 4.4)
 #: below its flatter line, and the second's in its upper left, above its
 #: steeper one. ``e``'s label runs along the panel's foot, below every point.
 BEFORE_TAG_Y, AFTER_TAG_Y, LEFTOVER_Y = 2.45, 4.1, 1.8
+#: The "GLD = 0" label sits below the origin, beside USO's axis and clear of the
+#: span above the GLD axis, so it reads as naming the upright axis.
+GLD_ZERO_Y = 2.8
+#: The ring round the second window's last point, the one its ``e`` is
+#: measured on. Two other points sit within a tenth of a dollar of GLD from it,
+#: so the tick alone could end at any of three.
+RING = 0.1
 #: The rule under the right panel that the whole run's figures sit beneath.
 RULE_X, RULE_Y = 5.65, 1.32
 
@@ -252,6 +261,12 @@ def _reach(window: Window) -> tuple[np.ndarray, np.ndarray]:
     return _line(list(zip(x, y, strict=True)), per_unit=4)
 
 
+def _ring(x: float, y: float, radius: float = RING) -> tuple[np.ndarray, np.ndarray]:
+    """A circle round (x, y) on the board, drawn from its right-hand point."""
+    turn = np.linspace(0.0, 2 * np.pi, 25)
+    return x + radius * np.cos(turn), y + radius * np.sin(turn)
+
+
 def _points(gid: str, window: Window, color: str) -> Stroke:
     x, y = _zoom(window.gld, window.uso)
     return Stroke(gid, x, y, color=color, dots=4.5, frames=5)
@@ -284,7 +299,7 @@ def _lever(lever: Lever) -> Scene:
                 frames=6,
             ),
             Label("USO", left, 3.8, names="uso-axis", color=MUTED, ha="right", size=12),
-            Label("GLD = 0", left, 3.45, names="uso-axis", color=MUTED, ha="right", size=12),
+            Label("GLD = 0", left, GLD_ZERO_Y, names="uso-axis", color=MUTED, ha="right", size=12),
             _stroke(
                 "gld-axis",
                 _line([(axis_x, zero_y), (axis_end, zero_y)]),
@@ -418,6 +433,13 @@ def _lever(lever: Lever) -> Scene:
                 color=ACCENT,
                 ha="right",
                 size=11,
+            ),
+            _stroke(
+                "last-day",
+                _ring(tick_x, last_y),
+                color=INK,
+                width=1.4,
+                frames=4,
             ),
             _stroke(
                 "leftover",
