@@ -759,8 +759,10 @@ class TestWhatThePostQuotes:
         assert p.eigen[1] == pytest.approx(p.trace[1], abs=1e-12), SPEC
         assert p.eigen_critical[1, 1] == p.trace_critical[1, 1], SPEC
         assert p.relations("trace", 95) == p.relations("eigen", 95), SPEC
+        assert p.relations("trace", 99) != p.relations("eigen", 99), SPEC
         self._holds(
             post,
+            "On the pair, both tests agree at 95 percent. "
             f"The trace test rejects r ≤ 0 with {p.trace[0]:.3f}, past even its 99 percent "
             f"bar of {p.trace_critical[0, 2]:.3f}, and the eigen test rejects it with "
             f"{p.eigen[0]:.3f} against {p.eigen_critical[0, 1]:.3f} at 95. Both then reject "
