@@ -52,6 +52,7 @@ printed figures. The run first ran on 2026-10-05.
 from __future__ import annotations
 
 import io
+import re
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -734,6 +735,15 @@ def post_fragments(legs, script_legs, result) -> list[str]:
     return fragments
 
 
+def _quoted(fragment: str, text: str) -> bool:
+    """Whether ``text`` holds ``fragment`` with no digit run on at either end.
+
+    A plain substring test lets 0.0581041 stand for 0.058104, or 128.84 for
+    28.84, so a digit typed beside a figure would pass.
+    """
+    return re.search(rf"(?<!\d){re.escape(fragment)}(?!\d)", text) is not None
+
+
 class TestThePostQuotesTheRun:
     """``blog/vx-es-lessons.md`` prints what the run computes, read here from the run.
 
@@ -746,4 +756,4 @@ class TestThePostQuotesTheRun:
 
     def test_the_post_prints_each_figure_the_run_computes(self, legs, script_legs, result) -> None:
         text = POST.read_text(encoding="utf-8")
-        assert [f for f in post_fragments(legs, script_legs, result) if f not in text] == []
+        assert [f for f in post_fragments(legs, script_legs, result) if not _quoted(f, text)] == []
