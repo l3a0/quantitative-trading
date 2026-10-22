@@ -4054,7 +4054,8 @@ for the whiteboard sketch's. Seven had no pin before it.
 7. The sketch's two 20-day windows, ending 7 and 14 July 2009, with their
    hedge ratios of 0.97 and 2.17, a rise of 1.20 between them, intercepts of
    −51.65 and −161.60, a fall of 109.95 between them, leftovers of −2.71 and
-   −3.21, and their clouds' mean GLD of 91.5 dollars.
+   −3.21, their clouds' mean GLD of 91.5 dollars, and the frame's heights
+   drawn 12 times taller than the left panel's.
 
 `TestThePostQuotesThePins` in
 [tests/test_price_spread.py](tests/test_price_spread.py) reads one copy of
