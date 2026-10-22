@@ -326,6 +326,9 @@ class TestFiveDaysPayForSeven:
     def test_the_script_triples_aud_on_wednesday_and_cad_on_thursday(self) -> None:
         assert [day.strftime("%a") for day in WEEK] == ["Mon", "Tue", "Wed", "Thu", "Fri"]
         assert week_days_paid(rollover.AUD_TRIPLE_WEEKDAY) == (1, 1, 3, 1, 1)
+        # Any other weekday moves the 3, so the cells follow the rule, not a constant.
+        assert week_days_paid(0) == (3, 1, 1, 1, 1)
+        assert week_days_paid(4) == (1, 1, 1, 1, 3)
         assert week_days_paid(rollover.CAD_TRIPLE_WEEKDAY) == (1, 1, 1, 3, 1)
 
     def test_each_row_prints_the_days_each_weekday_pays(self, drawn) -> None:
@@ -706,7 +709,9 @@ class TestThePost:
             (
                 [
                     "outlined in brown and holds “3”",
+                    "holds five boxes",
                     "A grey brace",
+                    "between the two rows",
                     "a green arrow labelled “average of AUD less CAD”",
                     "a red arrow labelled “the same average × 365",
                     "A grey note",
@@ -716,7 +721,7 @@ class TestThePost:
                     f"the {figures.held_days:,} days the rule holds a position",
                     f"a green part labelled “{figures.long_days:,} days long",
                     f"a red part labelled “{figures.short_days:,} days short",
-                    "A grey bracket",
+                    "A grey bracket under the bar",
                     "a thinner grey line",
                     "A red bracket",
                     "a green tick",

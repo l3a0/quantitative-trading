@@ -34,6 +34,7 @@ from chan.aud_cad_rollover_figures import (
     HELD_COLOURS,
     RATE_COLOURS,
     ROLLOVER_FIGURE,
+    _extremes,
     cumulative,
     held_position,
     main,
@@ -137,6 +138,18 @@ class TestTheRates:
             assert list(lines[name].get_xdata()) == list(shown.index)
             np.testing.assert_array_equal(lines[name].get_ydata(), shown.to_numpy())
         assert (len(_shown(sources.aud[1])), len(_shown(sources.cad[1]))) == (57, 54)
+
+    def test_a_level_held_across_months_is_named_at_its_first_month(self) -> None:
+        """The rounding comes first for the trough as well as the peak.
+
+        The committed files' troughs are exact, so only made-up months whose
+        extremes differ past the second decimal show the order matters.
+        """
+        months = pd.date_range("2008-01-01", periods=6, freq="MS")
+        rates = pd.Series([5.004, 5.0001, 5.0049, 2.9999, 3.0001, 4.0], index=months)
+        assert _extremes(rates) == "peaks at 5.00 in January 2008 and bottoms at 3.00 in April 2008"
+        rates = pd.Series([4.0, 3.004, 3.0001, 2.9999, 5.0001, 5.0049], index=months)
+        assert _extremes(rates) == "peaks at 5.00 in May 2008 and bottoms at 3.00 in February 2008"
 
     def test_the_rates_peak_and_bottom_where_the_heading_says(self, sources) -> None:
         """Each at its first month at two decimals, since every extreme lasts several months.

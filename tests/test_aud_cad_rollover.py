@@ -669,6 +669,30 @@ class TestThePostQuotesThePins:
             f"{cad_trough:%B %Y}"
         ) in self.text
 
+    def test_the_copies_the_pull_request_review_found_unread(self, sources, result) -> None:
+        """Second copies the review's mutation run changed with no test failing.
+
+        The figure's alt text carries the AUD peak month, the very figure the
+        review loop moved from July to April, so it is read here too.
+        """
+        aud, aud_peak, _ = _first_extremes(sources.aud[1])
+        held = _held(result)
+        short, long = int(np.count_nonzero(held < 0)), int(np.count_nonzero(held > 0))
+        days = f"{len(result.days):,}"
+        rollover = _percent(result.rollover, 2)
+        for phrase in (
+            f"reaches {aud.max():.2f} in {aud_peak:%B %Y}",
+            f"green on the {long} days held long, red on the {short} held short",
+            f"over {days} days.*",
+            f"Averaged over all {days} days",
+            f"is {rollover} percent a year on these files, not almost 5",
+            f"the {rollover} percent a year from Lesson 2",
+            f"above the {rollover} percent averaged over all {days} days",
+            f"than the {_percent(-result.rollover_drag, 3)} percent a year",
+            f"The book’s {BOOK_SHARPE} is what",
+        ):
+            assert phrase in self.text, phrase
+
     def test_the_close_s_low_and_high(self, sources) -> None:
         closes = sources.closes[1]
         assert (
