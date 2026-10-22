@@ -106,16 +106,16 @@ PINNED_MID = MidCaps(
 )
 
 NARROWING_LABELS = [
-    "−2",
+    "−1",
     "0",
-    "+2",
+    "+1",
     "gap in Sharpe ratio",
     "unrelated, ρ = 0: standard error 1.4252",
     "2 standard errors each way",
     "measured ρ = 0.5258: standard error 0.9872",
     "gap +3.1576",
-    "z 2.2155, barely past 2",
-    "z 3.1987",
+    "z +2.2155, barely past 2",
+    "z +3.1987",
     "closes, before costs, 251 days",
 ]
 
@@ -124,6 +124,7 @@ SIZE_ORDER_LABELS = [
     "S&P 400",
     "S&P 600",
     "predicted: rises as the companies get smaller",
+    "Sharpe ratios before costs",
     "0.2510",
     "2.1973 standard errors",
     "2.0338",
@@ -335,16 +336,16 @@ class TestTheNarrowing:
             assert _stroke(scene, f"{gid}-edge").color == GOOD
         colours = {step.text: step.color for step in scene.steps if isinstance(step, Label)}
         assert colours == {
-            "−2": MUTED,
+            "−1": MUTED,
             "0": MUTED,
-            "+2": MUTED,
+            "+1": MUTED,
             "gap in Sharpe ratio": MUTED,
             "unrelated, ρ = 0: standard error 1.4252": INK,
             "2 standard errors each way": GOOD,
             "measured ρ = 0.5258: standard error 0.9872": INK,
             "gap +3.1576": ACCENT,
-            "z 2.2155, barely past 2": INK,
-            "z 3.1987": INK,
+            "z +2.2155, barely past 2": INK,
+            "z +3.1987": INK,
             "closes, before costs, 251 days": MUTED,
         }
 
@@ -391,8 +392,8 @@ class TestTheNarrowing:
             "2 standard errors each way",
             "measured ρ = 0.7000: standard error 0.8000",
             "gap +2.5000",
-            "z 2.1739, barely past 2",
-            "z 3.1250",
+            "z +2.1739, barely past 2",
+            "z +3.1250",
             "closes, before costs, 250 days",
         ]
         assert set(_stroke(scene, "gap").x) == {_on_gap(2.5)}
@@ -513,7 +514,7 @@ class TestTheSizeOrder:
         scene = every[1]
         assert _stroke(scene, "axis").color == _stroke(scene, "predicted").color == MUTED
         for text in (
-            *SIZE_ORDER_LABELS[:4],
+            *SIZE_ORDER_LABELS[:5],
             "S&P 400: Alpha Vantage files downloaded in 2026",
         ):
             assert _label(scene, text).color == MUTED, text
@@ -526,7 +527,7 @@ class TestTheSizeOrder:
         scene = sketches._size_order(HOLDS)
         assert scene.title == "The size order: pointing the way Chan says"
         assert scene.labels == [
-            *SIZE_ORDER_LABELS[:4],
+            *SIZE_ORDER_LABELS[:5],
             "0.5000",
             "1.5000",
             "2.6000 standard errors",
@@ -672,8 +673,8 @@ class TestThePost:
         for words in (
             "climbs in green, labelled “2.1973 standard errors”",
             "falls in red, labelled “breaks the order, about one standard error”",
-            "then in black to a dot labelled “3.4086”",
-            "then climbs in black to a dot labelled “5.3052”",
+            "then in black, a rise inside one year’s noise, to a dot labelled “3.4086”",
+            "then climbs in black, again inside the noise, to a dot labelled “5.3052”",
         ):
             assert words in alt, words
 

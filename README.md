@@ -6271,7 +6271,9 @@ seconds. Neither is schematic.
    correlation set to 0 and at its measured 0.5258, from the committed files.
 2. One in Lesson 6, `khandani_lo_small_caps_size_order.gif`, which draws the
    three indexes' Sharpe ratios before costs at both prices to one scale and
-   colours each step by whether it keeps the predicted order. Its S&P 400
+   colours each step by what it says about the predicted order: red where it
+   falls and breaks the order, green where it rises by more than one year's
+   noise, and black where it rises inside that noise. Its S&P 400
    figures read the owner's archive, so on a machine without it the command
    redraws only the first and exits non-zero, naming the one it left.
 

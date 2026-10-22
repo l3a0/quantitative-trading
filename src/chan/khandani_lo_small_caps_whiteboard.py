@@ -138,7 +138,7 @@ class Narrowing:
 #: :data:`NARROW_X`'s left end to its right.
 NARROW_RANGE = (-3.0, 3.5)
 NARROW_X = (0.5, 6.5)
-NARROW_TICKS = (-2.0, 0.0, 2.0)
+NARROW_TICKS = (-1.0, 0.0, 1.0)
 #: The axis's height, and each row's band, from its bottom to its top.
 NARROW_AXIS_Y = 1.25
 UNRELATED_ROW = (3.2, 3.6)
@@ -245,7 +245,7 @@ def _correlation_narrows(n: Narrowing) -> Scene:
         ),
     ]
     for gid, (y0, y1), _, z in rows:
-        text = f"z {z:.4f}, barely past {m:g}" if gid == "unrelated" else f"z {z:.4f}"
+        text = f"z {_signed(z, 4)}, barely past {m:g}" if gid == "unrelated" else f"z {_signed(z, 4)}"
         steps.append(Label(text, gap_x + 0.22, (y0 + y1) / 2, names="gap", size=11))
     steps.append(
         Label(
@@ -414,6 +414,15 @@ def _size_order(order: SizeOrder) -> Scene:
             1.3,
             names="predicted",
             color=MUTED,
+            size=10,
+        ),
+        Label(
+            "Sharpe ratios before costs",
+            INDEX_X[-1] + 0.7,
+            0.22,
+            names="axis",
+            color=MUTED,
+            ha="right",
             size=10,
         ),
     ]
