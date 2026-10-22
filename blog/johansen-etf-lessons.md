@@ -172,7 +172,7 @@ Chan’s text reads these statistics differently. “Both Trace statistic and Ei
 
 ## Lesson 4: two relations between two series claim each ETF reverts alone
 
-On the pair, both tests agree. The trace test rejects r ≤ 0 with 19.983, past even its 99 percent bar of 19.935, and the eigen test rejects it with 16.000 against 14.264 at 95. Both then reject r ≤ 1 with 3.983 against 3.841. So both count two relations between EWA and EWC.
+On the pair, both tests agree at 95 percent. The trace test rejects r ≤ 0 with 19.983, past even its 99 percent bar of 19.935, and the eigen test rejects it with 16.000 against 14.264 at 95. Both then reject r ≤ 1 with 3.983 against 3.841. So both count two relations between EWA and EWC.
 
 Chan reads the two relations as two hedge ratios, one from each order of the regression, “which are not necessarily reciprocal of each other” (Chan, 2013, location 1324). The test says something stronger. Two relations between two series is a full rank, r = n. A full rank means every combination of the two prices reverts, and holding EWA alone, a weight of one on EWA and zero on EWC, is one such combination. So the test is saying that each ETF reverts to a stable level on its own. The triplet’s trace count of three says the same of all three.
 

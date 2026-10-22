@@ -754,7 +754,7 @@ class TestWhatThePostQuotes:
         )
 
     def test_lesson_4(self, post, result) -> None:
-        p, adf = result.pair, result.adf
+        p, adf, t = result.pair, result.adf, result.triplet
         margin = p.trace[1] - p.trace_critical[1, 1]
         assert p.eigen[1] == pytest.approx(p.trace[1], abs=1e-12), SPEC
         assert p.eigen_critical[1, 1] == p.trace_critical[1, 1], SPEC
@@ -775,6 +775,8 @@ class TestWhatThePostQuotes:
             f"{p.trace_critical[1, 2]:.3f}, and the trace test counts "
             f"{_WORDS[p.relations('trace', 99)]} relation rather than "
             f"{_WORDS[p.relations('trace', 95)]}.",
+            f"The triplet’s trace count of {_WORDS[t.relations('trace', 95)]} says the same of "
+            f"all {_WORDS[len(t.trace)]}.",
         )
 
     def test_lesson_5(self, sources, post, result) -> None:
