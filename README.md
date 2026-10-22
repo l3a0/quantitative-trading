@@ -4051,8 +4051,9 @@ for the whiteboard sketch's. Seven had no pin before it.
    −0.005130 and 0.082065.
 4. The ratio's 1.03 on the first traded day, 0.24 on the last, 1.30 at its
    highest and 0.44 at its highest after 2008.
-5. The two readings tried after the ratio missed: keeping the first 20 days,
-   −0.140674 and −0.744310, and Chan's Python port, −0.140674 and −0.749583.
+5. Two of the three readings tried after the ratio missed: keeping the first
+   20 days, −0.140674 and −0.744310, and Chan's Python port, −0.140674 and
+   −0.749583.
 6. The figure's own lines and labels.
 7. The sketch's two 20-day windows, ending 7 and 14 July 2009, with their
    hedge ratios of 0.97 and 2.17, a rise of 1.20 between them, intercepts of
