@@ -1,7 +1,7 @@
 """The pins for the two whiteboard GIFs in the post on Chan's Johansen test on three ETFs.
 
 One sketches Lesson 3, the trace statistic stacking the eigen statistics, and
-one Lesson 4, the pair's two relations spanning EWA held alone.
+one Lesson 4, the pair's two relations mixing into EWA held alone.
 
 The trace-stack sketch draws the triplet's Johansen test, which
 :mod:`chan.etf_cointegration` computes from the committed vintage, so its

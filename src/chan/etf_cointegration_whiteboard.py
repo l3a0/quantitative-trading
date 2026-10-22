@@ -16,7 +16,7 @@ paragraph it draws.
    :class:`TraceStack`, read from the triplet's Johansen test in
    :mod:`chan.etf_cointegration` on the committed vintage. Figures that would
    make its words false are refused rather than drawn.
-2. The test's two relations span every portfolio, in Lesson 4 after the
+2. Every portfolio is a mix of the test's two relations, in Lesson 4 after the
    paragraph that opens "Chan reads the two relations as two hedge ratios". It
    is schematic and carries none of the run's figures. A plane of shares of
    EWA across and shares of EWC up holds two arrows for the pair's two
@@ -251,7 +251,7 @@ def _two_relations() -> Scene:
     ox, oy = ORIGIN
     (ax, ay), (bx, by), (tx, ty) = RELATION_1, RELATION_2, EWA_ALONE
     return Scene(
-        "The test’s two relations span every portfolio",
+        "Every portfolio is a mix of the test’s two relations",
         "two_relations",
         (
             _stroke("ewa-axis", _line([(0.6, oy), (7.4, oy)]), color=MUTED, frames=6),

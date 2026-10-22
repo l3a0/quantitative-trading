@@ -5717,7 +5717,7 @@ its first whiteboard sketch. That sketch draws row 8's three eigen statistics,
 row 7's trace statistic for r ≤ 0, and the 90 percent eigen and 95 percent
 trace critical values pinned beside those rows, all to one scale.
 `uv run python -m chan.etf_cointegration_whiteboard` redraws it and the post's
-second sketch, the pair's two relations spanning EWA held alone, which is
+second sketch, the pair's two relations mixing into EWA held alone, which is
 schematic.
 [tests/test_etf_cointegration_whiteboard.py](../tests/test_etf_cointegration_whiteboard.py)
 reads the first sketch's figures from the run.
