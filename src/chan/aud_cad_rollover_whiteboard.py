@@ -172,8 +172,10 @@ BRACE_LABEL_DROP = 0.6
 
 #: Where the two branches and the note sit, on the right of the rows. Both
 #: arrows sit between the two rows, because each multiplies the average of AUD
-#: less CAD. An arrow level with one row reads as that currency's figure. The
-#: green one's words sit above it and the red one's below it.
+#: less CAD. An arrow level with one row reads as that currency's figure, and
+#: so do words, which have no room between the rows. So the green one's words,
+#: above it, open by naming the average of AUD less CAD, and the red one's,
+#: below it, call it the same average.
 BRANCH_X = (5.45, 7.3)
 GREEN_Y, RED_Y = 2.8, 2.17
 #: The grey note under the red branch's words, on two lines.
@@ -304,7 +306,15 @@ def _five_pay_seven(f: RunFigures) -> Scene:
             *_week_row("CAD", CAD_Y, cad),
             _stroke("by-252", _arrow(x0, GREEN_Y, x1, GREEN_Y), color=GOOD, frames=5),
             Label(
-                f"average × {TRADING_DAYS} trading days",
+                "average of AUD less CAD",
+                x0,
+                GREEN_Y + 0.8,
+                names="by-252",
+                color=GOOD,
+                size=12,
+            ),
+            Label(
+                f"× {TRADING_DAYS} trading days",
                 x0,
                 GREEN_Y + 0.45,
                 names="by-252",
@@ -321,7 +331,7 @@ def _five_pay_seven(f: RunFigures) -> Scene:
             ),
             _stroke("by-365", _arrow(x0, RED_Y, x1, RED_Y), color=LOST, frames=5),
             Label(
-                f"average × {DAYS_IN_YEAR} counts",
+                f"the same average × {DAYS_IN_YEAR} counts",
                 x0,
                 RED_Y - 0.43,
                 names="by-365",

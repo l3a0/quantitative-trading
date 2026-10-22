@@ -104,9 +104,10 @@ LABELS = [
         "3",
         "1",
         BRACE_WORDS,
-        "average × 252 trading days",
+        "average of AUD less CAD",
+        "× 252 trading days",
         "3.26 percent",
-        "average × 365 counts",
+        "the same average × 365 counts",
         "every weekend again",
         "4.73 percent",
         "365 / 252 is about 1.45,",
@@ -133,7 +134,7 @@ LABEL_INKS = [
     [INK] * 6
     + [INK, INK, ACCENT, INK, INK, MUTED]
     + [INK, INK, INK, INK, ACCENT, INK, MUTED]
-    + [GOOD, GOOD, LOST, LOST, LOST, MUTED, MUTED, ACCENT],
+    + [GOOD, GOOD, GOOD, LOST, LOST, LOST, MUTED, MUTED, ACCENT],
     [GOOD, LOST, MUTED, LOST, LOST, INK, INK, GOOD, MUTED, ACCENT],
 ]
 STROKE_INKS = [
@@ -386,6 +387,26 @@ class TestFiveDaysPayForSeven:
             arrow = _stroke(scene, gid)
             assert above_cad < arrow.y.min() and arrow.y.max() < below_aud, gid
             assert above_cad < _label(scene, result).y < below_aud, result
+
+    def test_words_beside_a_row_name_the_average_of_aud_less_cad(self, drawn) -> None:
+        """Words level with one row read as that currency's figure, as an arrow
+        does. The branches' words have no room between the rows, so wherever
+        a branch's words sit beside a row, its top line, read first, names the
+        average both branches multiply."""
+        scene = drawn[0]
+        rows = [_stroke(scene, gid).y for gid in ("aud-row", "cad-row")]
+        for gid, opening in (
+            ("by-252", "average of AUD less CAD"),
+            ("by-365", "the same average × "),
+        ):
+            words = [
+                s
+                for s in scene.steps
+                if isinstance(s, Label) and s.names == gid and not s.text.endswith(" percent")
+            ]
+            if any(row.min() <= w.y <= row.max() for w in words for row in rows):
+                top = max(words, key=lambda w: w.y)
+                assert words[0] is top and top.text.startswith(opening), (gid, top.text)
 
     def test_other_figures_move_the_percentages(self) -> None:
         labels = scenes(MOVED)[0].labels
@@ -686,8 +707,8 @@ class TestThePost:
                 [
                     "outlined in brown and holds “3”",
                     "A grey brace",
-                    "a green arrow labelled “average × 252",
-                    "a red arrow labelled “average × 365",
+                    "a green arrow labelled “average of AUD less CAD”",
+                    "a red arrow labelled “the same average × 365",
                     "A grey note",
                     "a brown line closes",
                 ],
