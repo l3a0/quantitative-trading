@@ -610,7 +610,7 @@ class TestTheGifs:
         assert [path.name for path in gifs] == GIFS
 
     def test_a_handed_in_mid_never_reads_the_archive(self, monkeypatch, tmp_path, result) -> None:
-        """Every test here draws from PINNED_MID, so a draw handed it must not read the archive,
+        """Every draw here is handed PINNED_MID, so a draw handed it must not read the archive,
         or the file stops running on a machine without one."""
 
         def refuse(*args, **kwargs):
