@@ -52,8 +52,8 @@ computes.
    the same days, which :func:`sharpe_gap` computes. A gap more than twice its
    standard error reads as larger than one year's noise. The size reading adds
    no verdict.
-3. **Khandani and Lo's 4.47 is printed and judged against nothing.** Their
-   universe and window are not this file's.
+3. **Khandani and Lo's 4.47 is printed and judged against nothing.** It is a
+   figure for 2006 too, but on their own universe, which this file is not.
 
 The primary reading is before costs, because Chan's explanation is about
 where the returns come from. The after-cost figures are printed and read the

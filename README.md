@@ -6167,8 +6167,8 @@ Entry 50 found on the S&P 400.
    400 is the third point, and its run sits between the other two on the
    closes and below both on the opens. The reading written down before that
    run calls this mixed. The S&P 600 rebuilt the same way, as a check on the
-   change of vendor, passes its rule only with one stock set aside on each
-   of three days, decided in advance.
+   change of vendor, passes its rule only with three exclusions decided in
+   advance, two unadjusted splits and one bad price.
 
 Five groups of what it says are not pinned here.
 
