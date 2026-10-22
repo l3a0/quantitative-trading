@@ -2611,7 +2611,9 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that neither module draws.
+which also fails on any GIF in the folder that no whiteboard module draws, and
+the AUD.CAD rollover post's two by
+[tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py).
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -4376,8 +4378,9 @@ Six groups of what it says are not pinned here.
    two more readings of the script: that its line 44, the return without
    rollover interest, is commented out, and that it computes no rollover
    figure.
-3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day, and
-   that each week's five trading days pay for seven calendar days.
+3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day. That
+   each week's five trading days pay for seven calendar days is held by the
+   Lesson 2 sketch's test rather than read from the post.
 4. Three readings no test asserts: that the tripled day already pays for the
    weekends, so annualising over 365 days overstates the year, that long and
    short days cancel in total when they see about the same rollover interest,
@@ -4434,6 +4437,34 @@ uv run python -m chan.aud_cad_rollover_figures
 [tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/aud_cad_rollover_whiteboard.py](src/chan/aud_cad_rollover_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `aud_cad_rollover_five_pay_seven.gif`, in Lesson 2, the days of interest
+   each weekday pays, read from the script's tripling rule on a week at a
+   constant rate, and the 252-day and 365-day readings of the run. The week
+   is schematic.
+2. `aud_cad_rollover_long_short_cancel.gif`, in Lesson 3, the days held long
+   and short as one bar to scale, the long days cancelling as many short
+   ones, and the net short share times the rollover interest beside what
+   rollover interest added to the returns. It groups the days by side rather
+   than by date, and it builds slowly and holds its finished drawing for
+   twelve seconds.
+
+```bash
+uv run python -m chan.aud_cad_rollover_whiteboard
+```
+
+[tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py)
+reads the run on the committed files and holds that each sketch prints the
+run's figures and puts each mark where they say, that figures its words would
+misdescribe are refused, that no label touches a line, another label or the
+frame's edge, and that each GIF follows its text in the post. It compares each
+committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic
+Sans MS, as the USD.CAD sketches' test does.
+
 [blog/bollinger-band-lessons.md](blog/bollinger-band-lessons.md) is a
 twenty-first post, about Example 3.2 of Chan's *Algorithmic Trading*, which
 trades Example 3.1's GLD and USO price spread with a Bollinger band instead of

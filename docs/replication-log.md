@@ -6933,7 +6933,9 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/aud-cad-rollover-lessons.md](../blog/aud-cad-rollover-lessons.md) moves
 with it, since that post quotes most of these figures. The post's one figure
-moves too, and `uv run python -m chan.aud_cad_rollover_figures` redraws it.
+moves too, and `uv run python -m chan.aud_cad_rollover_figures` redraws it. So
+do the post's two whiteboard sketches, which print the run's figures, and
+`uv run python -m chan.aud_cad_rollover_whiteboard` redraws them.
 
 ## Entry 31: crude oil reversal joined to momentum, Chan's *Algorithmic Trading*
 
