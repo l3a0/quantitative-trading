@@ -198,9 +198,9 @@ All three build slowly.
 The last four sit under "Further work", each after the part of it it draws:
 
 1. One series instead of two: the January bracket the two versions leave,
-   beside the count of member-years free data could not check, and the one
-   series checked prices would give. Where that series lands is not known,
-   so the lower line is schematic and its mark says so.
+   beside the count of unchecked member-years that could change a traded
+   tenth, and the one series checked prices would give. Where that series
+   lands is not known, so the lower line is schematic and its mark says so.
 2. Where more Januaries come from: three spans on a timeline from the 1920s,
    the run's Januaries from 2009, the S&P 600's from 1995 and a size-defined
    universe's from 1927, each with the X its count gives on the run's two

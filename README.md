@@ -3322,8 +3322,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     Januaries, marked at 18 and at 72, which take 72 years.
 36. `equity_seasonals_further_one_series.gif`, under "Every member's price"
     in "Further work", the January bracket the two versions leave beside the
-    741 member-years free data could not check, and the one series checked
-    prices would give, whose place is not known yet.
+    741 unchecked member-years that could have fallen in a traded tenth, and
+    the one series checked prices would give, whose place is not known yet.
 37. `equity_seasonals_further_more_januaries.gif`, under "More Januaries",
     three spans on a timeline, the run's 18 Januaries, the S&P 600's 32 from
     1995 and about 100 on size-defined small caps from 1927, each with the X

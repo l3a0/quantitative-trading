@@ -3838,7 +3838,7 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         f" a year, and the rerun’s annual return has a standard error of {f.rerun_error:.4f}",
         f"is {x_low:.4f} for the low version and {x_high:.4f} for the high one,"
         f" a gain of about {100 * x_low:.1f} to {100 * x_high:.1f} percent",
-        f"and so is their mean, {f.january_mean:.4f}",
+        f"and so is the mean of all three, {f.january_mean:.4f}",
         *[
             f"{low:.4f} to {high:.4f} at {n}"
             for n in (18, 32)

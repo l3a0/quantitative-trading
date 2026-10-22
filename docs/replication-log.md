@@ -2863,7 +2863,8 @@ count and its two versions' spreads, from which row 38's X follows, so
 `PINNED_POWER` there moves with a re-pin of it.
 Three of the four under "Further work" draw rows 35 and 38's figures through
 `PINNED` and `PINNED_POWER`, row 41's months through `PINNED_IVV`, and the 741
-member-years the January run could not check, so each moves with a re-pin of
+member-years the January run could not check that could change a traded
+tenth, so each moves with a re-pin of
 those.
 The checked, leavers and running-sum sketches draw row 41's months and
 coverage and row 49's departures from the IVV run, the 4.2 percent's three
