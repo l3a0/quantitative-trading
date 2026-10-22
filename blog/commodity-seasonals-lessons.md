@@ -42,7 +42,7 @@ So the run has to work out which numbered file holds the May or June contract on
 This repository wrote down the rules that decide each result before it computed any trade, as [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) records. That log sets each of Chan’s figures beside the figure this repository reproduced. After the first run, a review corrected one of the rules, the rule that decides which numbered file holds the June natural gas contract. The correction changed no count, as Lesson 4 says. Two of the rules carry most of what follows:
 
 1. **Profitable** means the exit settlement is strictly above the entry settlement, on one contract, with no costs. A zero change is not a profit.
-2. **A missing row stays missing.** A year whose trade date has no row in its file counts neither as a profit nor as a loss. The run does not move it to a neighbouring day.
+2. **A missing row stays missing.** A year whose trade date has no row in its file counts neither as a profit nor as a loss. The run does not move it to a neighboring day.
 
 ## Lesson 1: a count of consecutive years needs its start year and its edition
 
