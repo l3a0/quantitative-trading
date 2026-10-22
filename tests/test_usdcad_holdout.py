@@ -870,9 +870,11 @@ class TestWhatThePostQuotes:
             f"USD.CAD rose from {h.closes[d.peak]} to {h.closes[d.trough]}, so the US dollar "
             f"gained {100 * rise:.1f} percent",
             f"short the US dollar on {int((fall < 0).sum())} of the {len(fall)} days of the fall",
+            "so this time it was mostly short.",
             f"its {d.peak.year} high again until {regained.index[0].date()}",
             f"passes its {d.peak.year} high in {regained.index[0].year}",
         ]
+        assert (fall < 0).mean() > 0.5, "mostly short"
         assert self.missing(text, fragments) == []
 
     def test_the_positions(self, holdout, chan_run, text) -> None:
@@ -908,11 +910,16 @@ class TestWhatThePostQuotes:
         held = market_value(chan_run.closes.to_numpy(dtype=float), chan_run.lookback)
         chan_held = held[chan_run.lookback - 1 : -1]
         cumulative = h.traded.cumsum()
-        d = h.drawdown
+        d, c = h.drawdown, chan_run.drawdown
         regained = cumulative[(cumulative.index > d.trough) & (cumulative >= cumulative[d.peak])]
         assert 14 <= years < 15, "fourteen years"
+        assert h.total_pnl > 0, "still ends positive"
         assert 4 < d.depth / h.total_pnl < 5, "more than four times the final P&L"
-        assert 5 < chan_run.drawdown.depth / chan_run.total_pnl < 6, "more than five times"
+        assert 5 < c.depth / chan_run.total_pnl < 6, "more than five times"
+        assert d.depth < c.depth, "at a smaller scale"
+        assert chan_run.closes[c.trough] > chan_run.closes[c.peak], "as in Chan's sample"
+        assert h.closes[d.trough] > h.closes[d.peak], "while the US dollar rose"
+        assert h.short_share > 0.5, "leaned the other way"
         assert 3.9 < h.half_life / chan_run.half_life < 4, "almost four times as long"
         assert 0.24 < h.lookback / h.half_life < 0.26, "about a quarter of the later half-life"
         assert h.largest_position > 5, "more than five moving standard deviations"
@@ -928,6 +935,13 @@ class TestWhatThePostQuotes:
             "not on fourteen years of them",
             "So fourteen more years of closes",
             "ends positive over fourteen years",
+            "Chan’s trade still ends positive",
+            "**The fall is again several times the final P&L.**",
+            "## Lesson 5: the fall is again several times the final P&L",
+            "After 2012 it happened again at a smaller scale.",
+            f"As in Chan’s sample, whose fall came in {c.peak.year}, this fall came while the US "
+            "dollar rose.",
+            "The rule also leaned the other way from Chan’s sample.",
             "fell from its high by more than four times its final value here",
             "more than five times what it ended with",
             "and by more than five times in Chan’s sample",
