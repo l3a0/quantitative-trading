@@ -3779,11 +3779,12 @@ Five groups of its figures are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py),
 which pins Entry 15's rows and whose `TestTheCalendarSpreadPostQuotesThePins`
-reads from the post itself one copy of its verdicts, bars, null medians and
-seeds, its pairs' counts, months and kept days, its critical value, residual
-check, leg correlations, rejections in each orientation, null sets reaching
-each verdict, slow-reversion means and handover tallies, and what a rule two
-days off would misread, to
+reads from the post itself one copy of its verdicts, bars, the bar's rank
+among the 1,000 null sets, null medians and seeds, its pairs' counts, months and
+kept days, its critical value, residual check, leg correlations, rejections in
+each orientation, null sets reaching each verdict, slow-reversion means,
+handover tallies and the months they span, and what a rule two days off would
+misread, to
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) for the
 16 contracts whose exchange dates check the expiry rule, to
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)

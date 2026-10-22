@@ -130,11 +130,12 @@ batches once.
     contracts on every day they keep before December 2005, until issue 704
     fixes the reading.
 13. ``TestTheCalendarSpreadPostQuotesThePins``, read from the calendar spreads
-    post itself: one copy of its verdicts, bars, null medians and seeds, its
-    pairs' counts, months and kept days, its critical value, residual check,
-    leg correlations, rejections in each orientation, null sets reaching each
-    verdict, slow-reversion means and handover tallies, and what a rule two
-    days off would misread.
+    post itself: one copy of its verdicts, bars, the bar's rank among the
+    1,000 null sets, null medians and seeds, its pairs' counts, months and kept
+    days, its critical value, residual check, leg correlations, rejections in
+    each orientation, null sets reaching each verdict, slow-reversion means,
+    handover tallies and the months they span, and what a rule two days off
+    would misread.
 
 A replication under the claim route, so exploratory. The batch takes about
 seven seconds, before the eight single-orientation nulls. First run on
@@ -1985,9 +1986,42 @@ class TestTheFirstRbobPairs:
             assert RBOB_CONTRACTS.last_trade(day.year, day.month + 1) == day
             fit = handover_fit(RBOB_CONTRACTS, day)
             assert fit is not None and fit > 0, day
-        fit = handover_fit(RBOB_CONTRACTS, date(2005, 12, 30))
+        handover = RBOB_CONTRACTS.last_trade(2006, 1)
+        assert handover == date(2005, 12, 30)
+        fit = handover_fit(RBOB_CONTRACTS, handover)
         assert fit is not None and fit < 0
-        assert min(sorted(f)[0] for f in RBOB_CONTRACTS.files()) == date(2005, 10, 3)
+        start = min(sorted(f)[0] for f in RBOB_CONTRACTS.files())
+        assert start == date(2005, 10, 3)
+        assert (
+            f"The RBOB files start on {start.day} {start:%B %Y} and hold the "
+            f"{_month((2006, 1))} contract in file 1 until {handover.day} {handover:%B}. So they "
+            "never hand over on the rule’s dates for the November and December 2005 contracts"
+        ) in CALENDAR_POST.read_text("utf-8")
+
+    def test_they_misread_every_day_they_keep_before_december_2005(self, spreads) -> None:
+        """On a 2005 day the files hold January to April 2006 as contracts 1 to 4.
+
+        The rule agrees from the day after its December 2005 contract expires,
+        so every kept day before then reads the wrong contracts, and only the
+        first two pairs keep any.
+        """
+        agree = next_trading_day(RBOB_CONTRACTS.last_trade(2005, 12))
+        wrong = {
+            (t.pair.near, day)
+            for t in spreads[RBOB].tests
+            for day in t.pair.kept
+            if day.year == 2005
+            and contract_number(day, *t.pair.near, RBOB_CONTRACTS.last_trade)
+            != (t.pair.near[0] - 2006) * 12 + t.pair.near[1]
+        }
+        early = {
+            (t.pair.near, day) for t in spreads[RBOB].tests for day in t.pair.kept if day < agree
+        }
+        assert wrong == early
+        assert {near for near, _ in wrong} == {(2006, 1), (2006, 2)}
+        assert (
+            f"therefore read the wrong contracts on every day they keep before {agree:%B %Y}."
+        ) in CALENDAR_POST.read_text("utf-8")
 
     def test_neither_pair_rejects_as_read_and_one_does_as_held(self, spreads) -> None:
         tests = {t.pair.near: t for t in spreads[RBOB].tests}
@@ -2012,11 +2046,12 @@ def _month(month: tuple[int, int]) -> str:
 
 
 class TestTheCalendarSpreadPostQuotesThePins:
-    """The verdicts, bars, null medians and seeds in the calendar spreads post,
-    its pairs' counts, months and kept days, its critical value, residual check,
-    leg correlations, rejections in each orientation, null sets reaching each
-    verdict, slow-reversion means and handover tallies, and what a rule two days
-    off would misread, one copy of each read from the post itself.
+    """The verdicts, bars, the bar's rank among the 1,000 null sets, null medians
+    and seeds in the calendar spreads post, its pairs' counts, months and kept
+    days, its critical value, residual check, leg correlations, rejections in
+    each orientation, null sets reaching each verdict, slow-reversion means,
+    handover tallies and the months they span, and what a rule two days off
+    would misread, one copy of each read from the post itself.
 
     Other copies of the same figure elsewhere in the post are not always read.
     The prose states these numbers and the classes above derive them, so
