@@ -11827,7 +11827,7 @@ Four things carry the result.
    equal-weighted top tenth less the bottom tenth of NYSE and AMEX stocks,
    re-formed monthly, before costs, as [data/README.md](../data/README.md)
    records from the release's `SignalDoc.csv`. The signal they are sorted on
-   is the return in the same calendar month a year earlier, by the project's
+   is the return in the month a year before the month held, by the project's
    description of it, which
    [issue 661](https://github.com/l3a0/quantitative-trading/issues/661)'s
    table quotes. The file writes

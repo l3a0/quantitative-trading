@@ -3257,8 +3257,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     cover, with the 23 months the rerun leaves out of the split.
 14. `equity_seasonals_five_year_noise.gif`, the verdict's gap of 0.0036
     against the rerun's standard error of 0.0281, on one number line.
-15. `equity_seasonals_five_year_januaries.gif`, Example 7.6's three
-    reproduced Januaries as three bars.
+15. `equity_seasonals_five_year_januaries.gif`, under "Example 7.6's three
+    Januaries", its three reproduced Januaries as three bars.
 16. `equity_seasonals_survivors_file.gif`, in the opening beside its
     explanation of survivorship bias, the companies a file saved in 2007 holds
     against the ones that left before the save.

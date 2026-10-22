@@ -69,7 +69,8 @@ pace is pinned too. The broader series' three read the committed Open Source
 Asset Pricing release, and the last two also :data:`PINNED_IVV`'s months.
 Three of the four further-work sketches draw :data:`PINNED`,
 :data:`PINNED_POWER` and :data:`PINNED_IVV`, and the count of unchecked
-member-years that ``tests/test_equity_seasonals.py`` holds the run gives. The
+member-years that could change a traded tenth, which
+``tests/test_equity_seasonals.py`` holds the run gives. The
 cross-section sketch is schematic.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
@@ -3840,7 +3841,10 @@ def test_the_post_quotes_the_pinned_figures() -> None:
     """The post's body quotes these figures, and each comes from a pin that a
     test elsewhere holds the run or Chan's files give. So a typo in the post,
     or a re-pin the post was not moved with, fails here rather than reaching a
-    reader. Each fragment carries enough words to say which figure it is."""
+    reader. Each fragment carries enough words to say which figure it is. The
+    January bracket and the headline each appear three times, and counting
+    them catches a typo in any one copy, so adding or removing a copy means
+    editing the count."""
     p, ivv, shift, osap, broad = PINNED, PINNED_IVV, PINNED_SHIFT, PINNED_OSAP, PINNED_BROAD
     f, (x_low, x_high) = FiveYearFigures(), PINNED_POWER.detectable()
     months = np.array([r for _, r in ivv.months])

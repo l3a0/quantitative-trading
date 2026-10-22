@@ -3585,8 +3585,8 @@ class TestTheOpenAssetPricingPins:
        specification is the project's own: equal-weighted tenths of NYSE and
        AMEX stocks, re-formed monthly, the top tenth less the bottom, before
        costs, which ``data/README.md`` records from the release's
-       ``SignalDoc.csv``. The sort is on the return in the same calendar month
-       a year earlier, by the project's description, which issue 661 quotes.
+       ``SignalDoc.csv``. The sort is on the return in the month a year before
+       the month held, by the project's description, which issue 661 quotes.
        The file writes percent and the pins read fractions.
     2. **This repo's side.** :data:`chan.equity_seasonals.REVISED_MATLAB`
        unchanged and before costs, on Chan's ``SPX_20071123.mat`` over its 83
