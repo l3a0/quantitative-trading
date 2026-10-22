@@ -9,7 +9,7 @@ of, that no label touches a line, leaves the board or touches another label in
 the hand font or the fallback, and each file's size, frame count, loop and
 timing.
 
-Its three figures are read from the run on the committed vintage, which takes
+Its sum and its t are read from the run on the committed vintage, which takes
 a second, so the tests read the run itself rather than a frozen copy. The sum
 is ``holdout.total_pnl`` and the t is the Newey-West t, which
 ``tests/test_usdcad_holdout.py`` pins under its ``SPEC`` as 0.11316189494446321
@@ -230,6 +230,12 @@ class TestTheNumbersComeFromTheRun:
         with pytest.raises(ValueError, match="checks the sum off as above 0"):
             _sign_and_t(total, 0.2)
 
+    @pytest.mark.parametrize("t", [0.0, -0.3], ids=["zero", "below zero"])
+    def test_a_t_not_above_0_is_refused(self, t) -> None:
+        """The dot is drawn right of the 0 tick, as a positive sum implies."""
+        with pytest.raises(ValueError, match="draws the t right of 0"):
+            _sign_and_t(0.1, t)
+
     @pytest.mark.parametrize("t", [1.645, 2.1], ids=["on it", "past it"])
     def test_a_t_not_short_of_the_critical_value_is_refused(self, t) -> None:
         """The dot is drawn short of the zone, which would be false of a t inside it."""
@@ -413,6 +419,7 @@ class TestThePost:
         caption = paragraphs[index + 2]
         assert caption.startswith("*") and caption.endswith("*")
         assert "drawn to scale" in caption
+        assert f"the t falls far short of {NEWEY_WEST_CRITICAL:.3f}" in caption
 
     def test_it_is_embedded_once(self) -> None:
         assert POST.read_text(encoding="utf-8").count(f"docs/figures/{GIFS[0]})") == 1
@@ -427,7 +434,12 @@ class TestThePost:
         places = [alt.find(f"“{label}”") for label in scene.labels]
         assert -1 not in places, [w for w, at in zip(scene.labels, places, strict=True) if at < 0]
         assert places == sorted(places)
-        assert "far left of the zone" in alt
+        assert "A green check mark comes first" in alt
+        assert (
+            "A red hatched zone above the line runs from the 1.645 tick to the line’s right end"
+            in alt
+        )
+        assert "A brown dot lands on the line just right of the 0 tick, far left of the zone" in alt
         assert alt.endswith("holds for four seconds before it redraws.")
 
 

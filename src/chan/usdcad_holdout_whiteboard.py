@@ -15,16 +15,18 @@ after the paragraph that opens "The t is 0.2670, far below 1.645".
 
 The gauge is drawn to scale, as Chan's reading is in
 :mod:`chan.usdcad_tests_whiteboard`, whose layout it copies. The line maps the
-span from 0 to the higher of the t and the critical value, with a quarter of
-that span added at each end, onto the board, so every position on it is an
+span from 0 to the critical value, with a quarter of that span added at each
+end, onto the board, so every position on it is an
 affine function of the value it marks. Every number it prints is read rather
 than written in. The sum is :attr:`chan.usdcad_holdout.Holdout.total_pnl`, the
 t is the run's Newey-West t, the critical value is
 :data:`chan.usdcad_holdout.NEWEY_WEST_CRITICAL`, and the zone's 5 percent is
 the normal tail beyond that value. The 0 is the pass mark itself. A run whose
 figures would make the words false is refused rather than drawn: a sum at or
-below 0 would turn the check mark false, and a t at or past the critical value
-would leave the dot inside the zone the sketch says it falls short of.
+below 0 would turn the check mark false, a t at or below 0 would put the dot
+left of the 0 tick that a positive sum implies it sits right of, and a t at or
+past the critical value would leave the dot inside the zone the sketch says it
+falls short of.
 
 The strokes, the timeline and the renderer are
 :mod:`chan.usdcad_tests_whiteboard`'s, so an edit there changes this GIF too,
@@ -84,11 +86,16 @@ def _sign_and_t(total_pnl: float, t: float, critical: float = NEWEY_WEST_CRITICA
     """Lesson 1's verdict: the sum passes its mark of 0, and the t falls short of its own.
 
     A check mark says the sum is above 0, and the dot's place says the t is
-    short of the zone, so a run that breaks either is refused.
+    above 0 and short of the zone, so a run that breaks any of those is refused.
     """
     if total_pnl <= 0:
         raise ValueError(
             f"The sign and the t checks the sum off as above 0, and this run's is {total_pnl:.6f}"
+        )
+    if t <= 0:
+        raise ValueError(
+            f"The sign and the t draws the t right of 0, as a positive sum implies, "
+            f"and this run's is {t:.6f}"
         )
     if t >= critical:
         raise ValueError(

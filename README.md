@@ -3423,8 +3423,8 @@ tests in [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold
 that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
-the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-both redraw commands.
+the USD.CAD module's strokes, timeline and renderer, as the USD.CAD holdout
+post's sketch does, so an edit there needs all three redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -7331,7 +7331,7 @@ the committed file with a fresh draw.
 The post also carries one looping whiteboard sketch,
 `usdcad_holdout_sign_and_t.gif`, drawn by
 [src/chan/usdcad_holdout_whiteboard.py](src/chan/usdcad_holdout_whiteboard.py)
-on the USD.CAD post's sketch machinery. It sits in Lesson 1, after the
+on the earlier USD.CAD post's sketch machinery. It sits in Lesson 1, after the
 paragraph on the t, and sets the sum of 0.1132, above 0 with a check mark,
 over a t gauge drawn to scale, where the t of 0.2670 sits far left of the
 zone past 1.645. It reads the sum and the t from the same `read_holdout` as
@@ -7343,9 +7343,10 @@ uv run python -m chan.usdcad_holdout_whiteboard
 
 [tests/test_usdcad_holdout_whiteboard.py](tests/test_usdcad_holdout_whiteboard.py)
 holds what the sketch says and draws, that each mark on the gauge stands at
-its value to one scale, that its labels follow other figures, and that a sum
-at or below 0 or a t at or past 1.645 is refused. It compares the committed
-GIF with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS.
+its value to one scale, that its labels change with the figures handed to it,
+and that a sum at or below 0, or a t at or below 0 or at or past 1.645, is
+refused. It compares the committed GIF with a fresh draw byte for byte only
+on macOS arm64 in Comic Sans MS.
 
 ## Where the book's numbers come from
 
