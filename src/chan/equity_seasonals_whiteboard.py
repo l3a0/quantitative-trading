@@ -177,9 +177,10 @@ question, each after the text it draws:
 All three draw the critical value and δ from :class:`Shift`, which reads only
 the IVV run's month count, and all three build slowly.
 
-The next three sit under "What a broader series shows". The first two follow
-its first two paragraphs, and the third follows the second sketch, ahead of
-the paragraph that explains why its two lines differ in scale:
+The next three sit under "What a broader series shows", each after the
+paragraph it draws. The first two follow its first two paragraphs, and the
+third follows the paragraph that explains why the project's months swing
+about twice as far as the IVV run's:
 
 1. Before 2002 and after: Open Source Asset Pricing's mean a month from 1965
    to 2001 and from 2002 to 2024, as bars to one scale with one standard

@@ -3758,11 +3758,14 @@ class TestTheOpenAssetPricingCommand:
 
 
 def test_the_post_quotes_the_figures_this_file_pins() -> None:
-    """The post's copies of figures the tests above pin at their printed
-    precision: Lesson 1's two tables and its rules, the split, the years inside
-    it, and the registered runs' p values. Each is a printed string another
-    test here asserts, so a typo in the post fails here. A re-pin moves the
-    string in both places, which a search for it finds."""
+    """The post's copies of figures the tests above pin, at their printed
+    precision: Lesson 1's two tables, the figures its rules quote and their
+    second copies elsewhere in the post, the split and the years inside it,
+    Example 7.6's three Januaries where Lesson 2 and "What 18 Januaries can
+    detect" quote them, the registered runs' p values, the January run's third
+    series, and the broader series' overlap with the IVV run. Each comes from a
+    value another test here asserts, so a typo in the post fails here. A re-pin
+    moves the string in both places, which a search for it finds."""
     fragments = [
         "2006 & -0.0244 & -0.023853 & -0.0244",
         "2007 & -0.0068 & -0.003641 & -0.0068",
@@ -3792,8 +3795,33 @@ def test_the_post_quotes_the_figures_this_file_pins() -> None:
         "with a p of 0.001",
         "It averages −0.0083 a January",
         "which is a one-sided p of 0.539",
-        "with a t of 0.39",
+        "it earned 0.12 percent a month with a t of 0.39",
         "at a correlation of 0.59",
+        "A tenth of the 578 stocks",
+        "the MATLAB ranks for January 2006 is 57.8, and it rounds that to 58",
+        "So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81",
+        "Its last close before then, 6.02, comes before",
+        "its close at the end of 2007 is 13.88",
+        "The fill carries 6.02 through both missing year-ends",
+        "as if it rose from 6.02 to 13.88",
+        "gives the MATLAB’s 0.0881, so all three printouts match",
+        "so −0.0129 is a loss of 1.29 percent a year. The first edition’s −0.9167 is not a loss",
+        "of 91.67 percent a year",
+        "So −0.9167 is a sum over positions",
+        "a sum over positions like the −0.9167 it replaces",
+        "`S` is −87.08 as a sum over positions and −0.9944 in rule 1’s units of capital",
+        "&\\quad \\frac{-87.08}{95",
+        "\\frac{-87.08}{83} = -1.0492",
+        "&\\quad \\frac{-0.9944}{95",
+        "\\frac{-0.9944}{83} = -0.0120",
+        "That rounds to the MATLAB’s printed −0.0129, but",
+        "The MATLAB gives exactly −0.012917 when it keeps a stock on its return",
+        "divides by `n` and gives the printed −0.1243",
+        "are only 0.1574 apart",
+        "at 0.0881 in both editions’ MATLAB and in the revised R, and at 0.088486 in the revised",
+        "Two of Chan’s own three Januaries, −0.0244 and −0.0068, are smaller",
+        "Only 0.0881 is larger.",
+        "the first edition’s −0.9167 is not a return on capital",
     ]
     text = POST.read_text(encoding="utf-8")
     assert [fragment for fragment in fragments if fragment not in text] == []

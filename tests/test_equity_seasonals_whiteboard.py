@@ -1075,7 +1075,7 @@ class TestThePost:
             (
                 "The five-year result does not contradict the split.",
                 "The five-year result is narrow.",
-                "Example 7.6 meets the same limit from another side.",
+                "Example 7.6 meets the five-year check’s limit from another side.",
             ),
             FIVE_YEAR_GIFS,
             strict=True,
@@ -1117,7 +1117,7 @@ class TestThePost:
         for opening, name in zip(
             (
                 "A lower and an upper bound show how far the answer could move",
-                "Each version goes through the same test",
+                "A third series leaves the unchecked members out",
             ),
             JANUARY_GIFS[1:],
             strict=True,
