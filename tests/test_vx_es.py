@@ -716,6 +716,7 @@ def post_fragments(legs, script_legs, result) -> list[str]:
         f" down {-100 * cumulative.min():.2f} percent, and the z-score reached"
         f" {_minus(t.zscore.min(), 2)}",
         f"grew {100 * after:.2f} percent in {len(cumulative.loc[downgrade:]) - 1} days",
+        f"{100 * after:.2f} percent against {100 * cumulative.iloc[-1]:.2f}, because",
         f"spent its {bets[0][3]} test days earning {100 * bets[0][4]:.2f} percent,"
         f" and was down {-100 * bets[0][5]:.2f} percent at its worst",
         f"on {beyond[TRAINING_DAYS:].sum()} of the {n} test days, against"
