@@ -119,7 +119,7 @@ Neoforma’s annual report for 2001 states a 1-for-10 reverse split effective 27
 
 The lesson survives the correction, since a 41.72% loss against a 100.91% gain is still a loss turned into a gain. The effect is far smaller than the printed table shows. Both numbers belong in a report, side by side: 388% reproduces from the table as printed, and 100.91% is what the same picks return once one row is fixed. This repository checked only NEOF against a filing, so the other nineteen rows are taken as printed.
 
-Chan tells the same toy again in his other book, *Algorithmic Trading* (Chan, 2013) and keeps the 388%, but describes the honest outcome as “almost 100 percent loss” rather than 42%.
+Chan tells the same toy again in his other book, *Algorithmic Trading* (Chan, 2013), and keeps the 388%, but describes the honest outcome as “almost 100 percent loss” rather than 42%.
 
 ## Lesson 5: the toy cannot measure survivorship’s effect on the reversal
 
