@@ -7279,17 +7279,20 @@ Four groups of what it says are not pinned here.
 1. Chan's words, each cited by its page in the 2013 print edition, as the
    earlier post cites them: the claim on 49, unlimited capital on 50 and the
    half-life depending on the series itself on 60.
-2. Readings no test asserts: that a rule with no edge can end positive by
-   chance, that the rule holds much the same position for weeks, that a
-   position of 1 held through a 1 percent rise earns 0.01, and that the
-   random walks' spread on Chan's closes was wider than on the later ones.
+2. Readings no test asserts: that a z-score of 2 means a short position
+   worth 2, that a rule with no edge can end positive by chance, that the rule
+   holds much the same position for weeks, that a position of 1 held through
+   a 1 percent rise earns 0.01, and that the random walks' spread on Chan's
+   closes was wider than on the later ones.
 3. Facts Entry 51 states rather than pins: that the other vendor's minute
    bars reach back only to 2024-10-13 on the current subscription and cannot
    yet be downloaded as one complete file, that an earlier run had read about
    20 of the holdout's first days, through 2012-04-26, and that a check of
    those minute bars read one day, 2026-10-12.
-4. The figure's alt text, whose readings of the lines, such as "near 1.43 in
-   2026" and "between about 1.20 and 1.45", are approximate by design.
+4. The alt text's readings of where the figure's lines run, such as "near
+   1.43 in 2026" and "between about 1.20 and 1.45", which are approximate by
+   design. Its dates, its lookback, its half-life and its P&L values are
+   checked against the run like the prose.
 
 Every other number traces to an assertion in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py), to
@@ -7299,8 +7302,9 @@ for the figure's own numbers, or, for Chan's closes, to
 Six had no pin before the post, and `TestWhatThePostMeasured` in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) pins them, all
 measured after the run. `TestWhatThePostQuotes` in the same file checks the
-post's copies of every figure against the run, and the words the post puts on
-pairs of them, such as "more than four times".
+post's copies of every figure the run computes against the run, along with the
+pass mark of 1.645 and the file checks' factor of 1.6, and the words the post
+puts on pairs of them, such as "more than four times".
 
 1. The closes on the drawdown's two dates, 1.0445 and 1.45699, a rise of 39.5
    percent.

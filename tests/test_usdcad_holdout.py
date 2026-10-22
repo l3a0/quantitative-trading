@@ -63,11 +63,12 @@ from ithildincore.timeseries import ou_half_life
 from chan import fetch_alphavantage, usdcad_holdout
 from chan.fetch_alphavantage import KEY_ENV, RunStopped
 from chan.khandani_lo import plain_sharpe
-from chan.series import WindowCrossesScaleBreak
+from chan.series import SCALE_BREAK_BOUND, WindowCrossesScaleBreak
 from chan.stationarity_tests import genhurst, jplv7_adf, vratiotest
 from chan.usdcad_holdout import (
     DOWNLOAD_DATE,
     LOOKBACK,
+    NEWEY_WEST_CRITICAL,
     Band,
     Gap,
     HoldoutRefused,
@@ -697,9 +698,12 @@ class TestWhatThePostQuotes:
     The classes above pin each figure once, and the post copies it by hand. A
     typo in the post, or a re-pin that leaves the post behind, fails here. Each
     fragment carries enough of the sentence around its number to name one copy,
-    and every copy of a run figure in the prose and the tables has one. The
-    figure's alt text gets only the P&L's two turning points, because its
-    readings of the lines are approximate by design. Chan's side comes from
+    and every copy of a run figure in the prose and the tables has one, as do
+    the pass mark of 1.645 and the file checks' factor of 1.6. The figure's alt
+    text gets its first traded day, its lookback, its half-life, the P&L's two
+    turning points, the years of its old high and of the day it passes it, and
+    its final value. Its readings of where the lines run are approximate by
+    design and get none. Chan's side comes from
     :func:`chan.usdcad_mean_reversion.stationarity_tests`, the run
     ``tests/test_usdcad_mean_reversion.py`` pins.
     """
@@ -743,18 +747,24 @@ class TestWhatThePostQuotes:
             f"{thousands(len(h.traded), latex=True)} \\\\",
             f"Chan’s {chan_closes} closes give {thousands(chan_days)} days with P&L, because the "
             f"first {chan_run.lookback} only fill the window",
-            f"It counts links between days up to {h.newey_west.lag} apart",
+            f"It allows for days up to {h.newey_west.lag} apart moving together",
             f"each {days} closes long",
             f"the same {printed(h.adf.critical[2], 4)} on Chan’s {chan_closes} closes",
             f"for the {days} later closes only",
+            f"the {h.lookback}-day moving average, trails the closes",
             f"A dashed vertical line through both charts marks the first traded day, {first}.",
+            f"the cumulative P&L of the linear rule as a green line from {first}.",
+            f"the half-life of the traded closes as {printed(h.half_life, 1)} days",
             f"USD.CAD’s closes after Chan’s sample with their {h.lookback}-day moving average",
             f"computed anything on the closes after {warm[-1].date()}, its plan wrote down",
             f"The plan also fixed the lookback at {h.lookback}",
             f"compared its closes with Chan’s only on the days the two share, up to {c[-1].date()}",
+            f"no close moves by more than a factor of {math.exp(SCALE_BREAK_BOUND):g} from the one "
+            "before",
             f"kept measuring its deviations over {h.lookback} days",
             f"Anything about a lookback other than {h.lookback}.",
-            f"Alpha Vantage’s `FX_DAILY` close for USD.CAD, downloaded {entry.download_date}.",
+            f"`{entry.path}`, Alpha Vantage’s `FX_DAILY` close for USD.CAD, downloaded "
+            f"{entry.download_date}.",
         ]
         assert h.missing_weekdays == 2, "the post spells the count out"
         assert self.missing(text, fragments) == []
@@ -763,15 +773,17 @@ class TestWhatThePostQuotes:
         h = holdout
         pnl, chan_pnl = printed(h.total_pnl, 4), printed(chan_run.total_pnl, 4)
         t = printed(h.newey_west.t_newey_west, 4)
+        bar = f"{NEWEY_WEST_CRITICAL:.3f}"
         fragments = [
+            f"so it needs a t above {bar}.",
             f"The P&L ends at {pnl}, above 0, and its mean daily value",
             f"is above 0. It is {pnl}. So Chan’s claim",
             f"On his own closes the P&L ended at {chan_pnl}.",
             f"\\text{{Final P}}\\&\\text{{L}} & {chan_pnl} & {pnl} \\\\",
             f"\\text{{Newey-West t}} & \\text{{not computed}} & {t} \\\\",
-            f"The t is {t}, far below 1.645",
+            f"The t is {t}, far below {bar}",
             f"This is Chan’s claim. It is {pnl}.",
-            f"is not above 1.645.** It is {t}.",
+            f"is not above {bar}.** It is {t}.",
             f"a t of {t} cannot separate",
             f"and ends at {pnl}. A horizontal line marks zero.",
         ]
@@ -810,7 +822,9 @@ class TestWhatThePostQuotes:
             f"{printed(band.mean, 4)} ± {printed(2 * band.sd, 4)}, and the Hurst exponent sits "
             f"{printed(band.mean - h.hurst, 4)} below the average",
             f"critical value is the same {critical} on Chan’s",
+            f"to {printed(chan_run.adf.critical[2], 3)}",
         ]
+        assert chan_run.adf.critical[2] == h.adf.critical[2], "the same critical value"
         assert self.missing(text, fragments) == []
 
     def test_the_half_lives(self, holdout, chan_run, text) -> None:
@@ -852,6 +866,7 @@ class TestWhatThePostQuotes:
             f"gained {100 * rise:.1f} percent",
             f"short the US dollar on {int((fall < 0).sum())} of the {len(fall)} days of the fall",
             f"its {d.peak.year} high again until {regained.index[0].date()}",
+            f"passes its {d.peak.year} high in {regained.index[0].year}",
         ]
         assert self.missing(text, fragments) == []
 
@@ -862,14 +877,21 @@ class TestWhatThePostQuotes:
         chan_closes = chan_run.closes.to_numpy(dtype=float)
         chan_held = market_value(chan_closes, chan_run.lookback)[chan_run.lookback - 1 : -1]
         chan_days = len(chan_held)
+        c = chan_run.drawdown
+        earning = pd.Series(chan_held, index=chan_run.closes.index[chan_run.lookback :])
+        chan_fall = earning[(earning.index > c.peak) & (earning.index <= c.trough)]
         fragments = [
             f"a short of {printed(-held[largest], 4)}, taken at the close of {largest.date()}",
             f"On Chan’s closes the largest was a short of {printed(-np.min(chan_held), 2)}.",
             f"short on {int((chan_held < 0).sum())} of the {thousands(chan_days)} days it held",
+            f"In {c.peak.year} ",
+            f"short on all {len(chan_fall)} days of the fall",
             f"short on {100 * h.short_share:.2f} percent of the traded days and long on "
             f"{100 * h.long_share:.2f} percent",
         ]
         assert held[largest] < 0 and np.min(chan_held) < 0
+        assert (chan_fall < 0).all(), "short on all of them"
+        assert c.peak.year == c.trough.year, "the fall came in one year"
         assert int(np.sum(h.held == 0)) == 0, "the post says the rule was never flat"
         assert self.missing(text, fragments) == []
 
@@ -891,7 +913,7 @@ class TestWhatThePostQuotes:
         assert (chan_held < 0).sum() < len(chan_held) / 2, "fewer than half"
         assert (regained.index[0] - d.peak).days > 3652, "more than ten years later"
         assert h.vratio.p_value > 2 / 5, "more than two times in five"
-        assert h.newey_west.t_newey_west < 1.645 / 2, "far below 1.645"
+        assert h.newey_west.t_newey_west < NEWEY_WEST_CRITICAL / 2, "far below 1.645"
 
 
 class TestTheReport:
