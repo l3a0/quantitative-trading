@@ -4216,8 +4216,8 @@ them.
 3. The first eigenvector's dollars per unit on 2012-04-09, 28.72 of EWC
    against −17.43 of EWA and −8.49 of IGE.
 4. The strategy's deepest drawdown of −0.101249 on 2010-08-16, and its longest
-   spell below a high, 598 days from 2009-04-02 to 2011-08-15 after a high on
-   2009-04-01.
+   spell below a high, 598 trading days from 2009-04-02 to 2011-08-15 after a
+   high on 2009-04-01.
 
 `TestWhatThePostQuotes` in
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) reads the
