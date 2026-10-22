@@ -4369,18 +4369,15 @@ Six groups of what it says are not pinned here.
    the rates' sources are at 2303.
 2. Facts outside the committed data. What T + 2 settlement is and why it makes
    one weekday pay three days, and that the MATLAB script kept the 16:59 bar
-   of a minute file no public copy holds, which
+   of a minute file neither public copy of Chan's code holds, which
    [src/chan/aud_cad_rollover.py](src/chan/aud_cad_rollover.py)'s docstring
    records. The script's line 50, `APR=0.061564 Sharpe=0.541802`, is pinned
    through its constants, and its line number was read at `e4bc46f`. So were
    two more readings of the script: that its line 44, the return without
    rollover interest, is commented out, and that it computes no rollover
    figure.
-3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day, that
-   the two monthly averages of 4.908 and 1.592 percent differ by about 3.3
-   points, that the reading over 365 days is the one over 252 scaled by
-   365 / 252, about 1.45, and that the rule holds short on 197 more days than
-   long.
+3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day, and
+   that each week's five trading days pay for seven calendar days.
 4. Three readings no test asserts: that the tripled day already pays for the
    weekends, so annualising over 365 days overstates the year, that long and
    short days cancel in total when they see about the same rollover interest,
@@ -4402,7 +4399,11 @@ Every other number in the post traces to an assertion in
 [tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
 for the figure's own numbers, among them the rates' extremes, the close's
 low and high, where the two cumulative returns end, and their deepest fall
-from 2008-07-30 to 2008-10-08. Three had no pin before it, and
+from 2008-07-30 to 2008-10-08. `TestThePostQuotesThePins` in
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) reads one
+copy of each of those numbers from the post itself, keyed on the words around
+it, so a mistyped copy it reads fails a test. Three had no pin before the
+post, and
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) now pins
 them.
 
@@ -4418,7 +4419,7 @@ Its one figure is drawn from the committed files by
 [src/chan/aud_cad_rollover_figures.py](src/chan/aud_cad_rollover_figures.py),
 which reads them through the same `read_sources` and `aud_cad_rollover` as
 `python -m chan.aud_cad_rollover`, scale-break guard included. It draws three
-panels on one date axis, for Lessons 1, 3 and 4.
+panels on one date axis, for Lessons 1 to 4.
 
 1. The AUD and CAD monthly rates from July 2007, with the months each file
    lacks marked.

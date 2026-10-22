@@ -6905,16 +6905,17 @@ Four things.
 Four things.
 
 **Whether the script's settlement rule is the right one.** Location 2273 says
-a cross triples its rollover when day T + 3 is a weekend, which is Wednesday
-for both currencies, and names T + 1 settlement as the exception for USD.CAD.
+a cross multiplies its rollover when day T + 3 is a weekend or holiday, which
+makes Wednesday the tripled day for both currencies, and names T + 1 settlement as the exception for USD.CAD.
 The script triples CAD on Thursday, which is the USD.CAD rule applied to one
 leg of a cross. The run transcribes the script, and no row runs the book's
 rule, because choosing between the two after seeing the figures would be a
 search.
 
-**What holidays would add.** No day multiplies its rollover for a holiday.
+**What holidays would add.** Location 2273 multiplies the rollover for a
+holiday too, but no day in the script does.
 Seven weekdays are absent from the file: Christmas Day in 2007, 2008 and 2009,
-New Year's Day in 2008, 2009 and 2010, and 2011-12-23, an early close.
+New Year's Day in 2008, 2009 and 2010, and 2011-12-23, an early close rather than a holiday.
 `TestTheVintages::test_seven_weekdays_are_absent_and_none_is_a_weekend` holds
 the list. A position held across Christmas earns nothing for the day the
 market was shut.

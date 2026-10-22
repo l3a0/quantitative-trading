@@ -35,6 +35,8 @@ rule he chose. The example first ran on 2026-10-05.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -63,6 +65,7 @@ from chan.aud_cad_rollover import (
     run,
     zscore,
 )
+from chan.aud_cad_rollover_figures import cumulative, held_position, spells
 from chan.khandani_lo_book_two import matches
 from chan.matlab_helpers import lag1
 from chan.series import WindowCrossesScaleBreak
@@ -289,6 +292,18 @@ class TestBesideTheReplication:
         assert 252 * term[held > 0].mean() == pytest.approx(0.0328995788, abs=1e-10)
         assert 252 * term[held < 0].mean() == pytest.approx(0.0328677609, abs=1e-10)
 
+    def test_the_first_20_days_pull_row_5_below_both_held_averages(self, result) -> None:
+        """Row 5 averages every row, the first 20 included, which hold no position.
+
+        Those days see a narrower difference, so row 5 sits below the averages
+        over the days held long and short, which the post explains.
+        """
+        term = lag1(np.log(1 + result.aud) - np.log(1 + result.cad))
+        term[0] = 0.0
+        assert 252 * term[:SCRIPT_LOOKBACK].mean() == pytest.approx(0.0180739396, abs=1e-10)
+        assert 252 * term.mean() == pytest.approx(result.rollover, abs=1e-15)
+        assert 252 * term[:SCRIPT_LOOKBACK].mean() < result.rollover < 0.0328677609
+
     def test_rows_1_and_2_with_each_missing_month_carried_forward(self, result) -> None:
         assert result.carried.apr == pytest.approx(0.0620850756, abs=1e-10)
         assert result.carried.sharpe == pytest.approx(0.5457420240, abs=1e-10)
@@ -489,3 +504,173 @@ class TestTheGuardAndTheReads:
         assert "rollover the strategy earned     -0.005221 a year" in out
         assert "APR 0.062085, Sharpe 0.545742" in out
         assert "Exploratory." in out
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "aud-cad-rollover-lessons.md"
+
+
+def _percent(value: float, places: int) -> str:
+    """A fraction as the post prints it in percent, with a true minus sign when negative."""
+    printed = f"{100 * abs(value):.{places}f}"
+    return f"−{printed}" if value < 0 else printed
+
+
+def _held(result: Rollover) -> np.ndarray:
+    return lag1(result.position)[SCRIPT_LOOKBACK:]
+
+
+def _first_extremes(monthly: pd.Series) -> tuple[pd.Series, pd.Timestamp, pd.Timestamp]:
+    """A rate file from July 2007 at two decimals, with its first peak and trough months."""
+    shown = monthly[monthly.index >= "2007-07-01"].round(2)
+    return shown, shown.idxmax(), shown.idxmin()
+
+
+class TestThePostQuotesThePins:
+    """One copy of each figure in ``blog/aud-cad-rollover-lessons.md``, read from the post itself.
+
+    The tests above derive these numbers and the post states them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review shifted every number in it, and none failed a test.
+    Each check reads one copy and keys it on a short phrase, so another copy of
+    the same figure elsewhere in the post is not always read.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_four_figures_for_the_strategy(self, result) -> None:
+        for value in (
+            result.with_rollover.apr,
+            result.with_rollover.sharpe,
+            result.without_rollover.apr,
+            result.without_rollover.sharpe,
+        ):
+            assert f"& {value:.10f}" in self.text
+
+    def test_the_three_annualised_readings(self, result) -> None:
+        for value in (result.rollover, result.aud_alone, result.over_365_days):
+            assert f"& {value:.10f}" in self.text
+        assert f"comes to {_percent(result.rollover, 2)} percent a year" in self.text
+        assert f"alone, {_percent(result.aud_alone, 2)} percent" in self.text
+        assert f"365 days, {_percent(result.over_365_days, 2)} percent" in self.text
+
+    def test_the_365_day_reading_is_the_252_day_one_scaled(self, result) -> None:
+        ratio = result.over_365_days / result.rollover
+        assert ratio == pytest.approx(365 / 252, rel=1e-12)
+        assert f"about {ratio:.2f} times" in self.text
+
+    def test_the_closes_span(self, result) -> None:
+        days = result.days
+        assert (
+            f"The closes hold {len(days):,} days from {days[0].date()} to {days[-1].date()}"
+            in self.text
+        )
+
+    def test_the_rate_files_months(self, sources) -> None:
+        for name, (_, monthly) in (("AUD", sources.aud), ("CAD", sources.cad)):
+            assert f"{len(monthly)} months and stops at {monthly.index[-1]:%B %Y}" in self.text, (
+                name
+            )
+
+    def test_the_monthly_averages_the_pass_mark_was_written_knowing(self, sources) -> None:
+        aud, cad = (rates[rates.index >= "2007-07-01"] for _, rates in (sources.aud, sources.cad))
+        assert f"{aud.mean():.3f} percent for AUD and {cad.mean():.3f} percent for CAD" in (
+            self.text
+        )
+        assert f"differ by about {aud.mean() - cad.mean():.1f} points" in self.text
+
+    def test_the_days_held_each_way(self, result) -> None:
+        held = _held(result)
+        short, long = int(np.count_nonzero(held < 0)), int(np.count_nonzero(held > 0))
+        assert f"position on {len(held):,} days" in self.text
+        assert f"short on {short} of them and long on {long}" in self.text
+        assert f"short on {short - long} more days" in self.text
+        assert f"net share of {_percent((long - short) / len(held), 1)} percent" in self.text
+
+    def test_the_rollover_the_strategy_earned_and_what_the_net_share_predicts(self, result) -> None:
+        held = _held(result)
+        net = (np.count_nonzero(held > 0) - np.count_nonzero(held < 0)) / len(held)
+        assert f"comes to {_percent(result.rollover_drag, 3)} percent a year" in self.text
+        assert f"gives {_percent(net * result.rollover, 3)} percent" in self.text
+
+    def test_the_rate_difference_over_the_days_held_each_way(self, result) -> None:
+        held = _held(result)
+        term = lag1(np.log(1 + result.aud) - np.log(1 + result.cad))[SCRIPT_LOOKBACK:]
+        on_long, on_short = 252 * term[held > 0].mean(), 252 * term[held < 0].mean()
+        assert f"{_percent(on_long, 3)} percent a year averaged over the days held long" in (
+            self.text
+        )
+        assert f"{_percent(on_short, 3)} percent over the days held short" in self.text
+
+    def test_the_reversals(self, result) -> None:
+        reversals = len(spells(held_position(result))) - 1
+        held = lag1(result.position)[SCRIPT_LOOKBACK:]
+        assert f"reverses its position {reversals} times over the {len(held):,} days" in self.text
+
+    def test_the_two_aprs_and_their_difference(self, result) -> None:
+        without, have = result.without_rollover.apr, result.with_rollover.apr
+        assert f"the APR is {_percent(without, 2)} percent, and with it {_percent(have, 2)}" in (
+            self.text
+        )
+        assert f"is {_percent(without - have, 3)} points" in self.text
+
+    def test_the_days_with_no_rate(self, result) -> None:
+        no_cad = result.days[result.cad == 0]
+        no_aud = result.days[result.aud == 0]
+        assert list(no_cad) == list(result.days[result.days.year == 2012])
+        assert list(no_aud) == list(result.days[result.days.to_period("M") == "2012-04"])
+        assert f"So {len(no_cad)} days have no CAD rate" in self.text
+        assert f"and {len(no_aud)} have no AUD rate" in self.text
+
+    def test_the_months_carried_forward(self, result) -> None:
+        carried, have = result.carried, result.with_rollover
+        assert (
+            f"APR of {_percent(carried.apr, 2)} percent and a Sharpe ratio of "
+            f"{carried.sharpe:.4f}, against the script’s {_percent(have.apr, 2)} percent "
+            f"and {have.sharpe:.4f}"
+        ) in self.text
+        assert f"rounds to {carried.sharpe:.2f} rather than {have.sharpe:.2f}" in self.text
+
+    def test_the_rates_extremes(self, sources) -> None:
+        """At two decimals and at each extreme's first month, as the figure's heading says."""
+        aud, aud_peak, aud_trough = _first_extremes(sources.aud[1])
+        cad, cad_peak, cad_trough = _first_extremes(sources.cad[1])
+        held_at_peak = aud.index[aud == aud.max()]
+        months = held_at_peak.to_period("M")
+        assert list(months) == list(pd.period_range(months[0], months[-1], freq="M"))
+        assert (
+            f"{aud.max():.2f} percent, held from {held_at_peak[0]:%B} to "
+            f"{held_at_peak[-1]:%B %Y}, down to {aud.min():.2f} in {aud_trough:%B %Y}"
+        ) in self.text
+        assert (
+            f"{cad.max():.2f} percent in {cad_peak:%B %Y} down to {cad.min():.2f} in "
+            f"{cad_trough:%B %Y}"
+        ) in self.text
+
+    def test_the_close_s_low_and_high(self, sources) -> None:
+        closes = sources.closes[1]
+        assert (
+            f"low of {closes.min():.5f} on {closes.idxmin().date()} to a high of "
+            f"{closes.max():.5f} on {closes.idxmax().date()}"
+        ) in self.text
+
+    def test_where_the_cumulative_returns_end_and_fall(self, sources, result) -> None:
+        ends = [cumulative(r)[-1] for r in (result.returns, result.without)]
+        assert (
+            f"end at {_percent(ends[0], 2)} percent with rollover interest and "
+            f"{_percent(ends[1], 2)} percent without"
+        ) in self.text
+        falls, dates = [], set()
+        for returns in (result.returns, result.without):
+            wealth = np.cumprod(1 + returns)
+            fall = wealth / np.maximum.accumulate(wealth) - 1
+            trough = int(fall.argmin())
+            peak = int(wealth[: trough + 1].argmax())
+            falls.append(fall[trough])
+            dates.add((result.days[peak].date(), result.days[trough].date()))
+        ((peak_day, trough_day),) = dates
+        assert trough_day == sources.closes[1].idxmin().date()
+        assert f"from {peak_day} to {trough_day}, the day of the close’s low" in self.text
+        assert (
+            f"by {_percent(-falls[0], 2)} percent with rollover interest and "
+            f"{_percent(-falls[1], 2)} percent without"
+        ) in self.text
