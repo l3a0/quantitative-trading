@@ -104,7 +104,7 @@ The calendar-spread pins read eight vintages and one specification.
   corrected, after the result and on the owner's ruling, to correlate as the
   files' two legs do, and the declared null's figures are pinned beside it.
 
-Twelve classes. Most read the module fixture ``spreads``, which runs both
+Thirteen classes. Most read the module fixture ``spreads``, which runs both
 batches once.
 
 1. ``TestTheCalendarSpreadVintages``, the eight files, and the three days the
@@ -126,7 +126,9 @@ batches once.
    time, which decides nothing either and which the post's sketch draws.
 10. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
 11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
-12. ``TestTheCalendarSpreadPostQuotesThePins``, one copy of each count, bar,
+12. ``TestTheFirstRbobPairs``, the two RBOB pairs that read the wrong
+    contracts on their 2005 days, until issue 704 fixes the reading.
+13. ``TestTheCalendarSpreadPostQuotesThePins``, one copy of each count, bar,
     median, seed and handover tally the calendar spreads post quotes, read
     from the post itself, and what a rule two days off would misread.
 
@@ -197,6 +199,8 @@ from chan.stationary_candidates import (
     CalendarSpread,
     CrossRate,
     Orientation,
+    PairTest,
+    SpreadPair,
     _orientation,
     batched_adf,
     batched_engle_granger,
@@ -209,6 +213,7 @@ from chan.stationary_candidates import (
     leg_correlation,
     main,
     measure_cross_rate,
+    measure_pair,
     null_shares,
     report_calendar_spread,
     report_cross_rate,
@@ -1341,7 +1346,11 @@ class TestTheContractNumber:
 
 
 class TestTheExpiryMapAgainstTheFiles:
-    """Whether the files hand over on the day each rule says, over every expiry.
+    """Whether the files hand over on the day each rule says.
+
+    Natural gas is read from its February 1994 expiry and RBOB from its January
+    2006 one, which leaves out the two 2005 RBOB expiries ``TestTheFirstRbobPairs``
+    holds.
 
     A negative :func:`handover_fit` says the handover fits. At the rule's day
     about 94% of readable handovers fit, and a day either side between 4% and
@@ -1914,6 +1923,72 @@ class TestTheCalendarSpreadCommandLine:
         assert "no eia RNGC1 raw vintage is recorded" in str(stopped.value)
 
 
+class TestTheFirstRbobPairs:
+    """The two RBOB pairs whose windows open in 2005 read the wrong contracts there.
+
+    The RBOB files start on 2005-10-03 and hold the January 2006 contract as
+    contract 1 until 2005-12-30, while the rule gives November and December 2005
+    contracts expiring on 2005-10-31 and 2005-11-30. The expiry check starts at
+    January 2006 and never reads those two. Issue 704 fixes the reading. Until
+    then this class holds the gap the calendar spreads post and Entry 15 state,
+    on the vintage downloaded 2026-10-02, at one lag against the 10% bar.
+    """
+
+    @staticmethod
+    def as_held(near: tuple[int, int]) -> PairTest:
+        """The pair read with the files' own numbering on its 2005 days."""
+        files = RBOB_CONTRACTS.files()
+        band = guard_band(RBOB_CONTRACTS, near)
+        window = spread_window(RBOB_CONTRACTS, near)
+        kept, a, b = [], [], []
+        for day in window:
+            if day in band:
+                continue
+            if day < date(2006, 1, 1):
+                n = (near[0] - 2006) * 12 + near[1]
+            else:
+                n = contract_number(day, *near, RBOB_CONTRACTS.last_trade)
+            x, y = files[n - 1].get(day), files[n].get(day)
+            if x is None or y is None:
+                continue
+            kept.append(day)
+            a.append(float(x))
+            b.append(float(y))
+        return measure_pair(
+            SpreadPair(
+                product=RBOB_CONTRACTS.name,
+                near=near,
+                window=window,
+                kept=tuple(kept),
+                near_prices=np.array(a),
+                far_prices=np.array(b),
+            )
+        )
+
+    def test_the_files_do_not_hand_over_on_the_rule_s_2005_days(self) -> None:
+        for day in (date(2005, 10, 31), date(2005, 11, 30)):
+            assert RBOB_CONTRACTS.last_trade(day.year, day.month + 1) == day
+            fit = handover_fit(RBOB_CONTRACTS, day)
+            assert fit is not None and fit > 0, day
+        fit = handover_fit(RBOB_CONTRACTS, date(2005, 12, 30))
+        assert fit is not None and fit < 0
+        assert min(sorted(f)[0] for f in RBOB_CONTRACTS.files()) == date(2005, 10, 3)
+
+    def test_neither_pair_rejects_as_read_and_one_does_as_held(self, spreads) -> None:
+        tests = {t.pair.near: t for t in spreads[RBOB].tests}
+        assert min(tests) == (2006, 1)
+        assert not tests[2006, 1].rejects and not tests[2006, 2].rejects
+        assert not self.as_held((2006, 1)).rejects
+        assert self.as_held((2006, 2)).rejects
+        rbob = count(spreads[RBOB].share, 220)
+        text = CALENDAR_POST.read_text("utf-8")
+        assert (
+            f"Read as the files hold them, the February pair rejects in both orientations, "
+            f"which would raise RBOB’s {rbob} to {rbob + 1}, still far under its bar of "
+            f"{count(spreads[RBOB].cut, 220)}."
+        ) in text
+
+
 CALENDAR_POST = Path(__file__).resolve().parents[1] / "blog" / "calendar-spreads-lessons.md"
 
 
@@ -1951,9 +2026,7 @@ class TestTheCalendarSpreadPostQuotesThePins:
             f"pairs, from {_month(rbob[0].pair.near)} to {_month(rbob[-1].pair.near)}."
         ) in self.text
         kept = {name: [len(t.pair.kept) for t in spreads[name].tests] for name in (NG, RBOB)}
-        a, b = (
-            f"{min(k)} to {max(k)}" for k in kept.values()
-        )
+        a, b = (f"{min(k)} to {max(k)}" for k in kept.values())
         ng_median, rbob_median = (f"{np.median(k):g}" for k in kept.values())
         assert (
             f"Natural gas pairs keep {a} days, a median of {ng_median}, and RBOB pairs keep "
@@ -1974,7 +2047,7 @@ class TestTheCalendarSpreadPostQuotesThePins:
         words = {10: "ten"}
         assert (
             f"gives a p-value above {RESIDUAL_PASS_P:.2f} and none of the first "
-            f"{words[RESIDUAL_LAGS]} residual autocorrelations"
+            f"{words[RESIDUAL_LAGS]} autocorrelations falls outside a band of ±1.96/√n"
         ) in self.text
         assert (
             f"{count(ng.near_on_far_residuals_pass, 360)} of 360 with the near month regressed "
@@ -2001,6 +2074,23 @@ class TestTheCalendarSpreadPostQuotesThePins:
         )
         assert f"\\quad\\text{{median, bar}} & {declared}" in self.text
         assert f"\\quad\\text{{median, bar}} & {corrected}" in self.text
+
+    def test_what_requiring_both_removes(self, spreads, alone) -> None:
+        ng = spreads[NG]
+        each = {
+            count(float(np.median(alone[NG, null, side])), 360)
+            for null in ("independent", "correlated")
+            for side in ("near", "far")
+        }
+        assert len(each) == 1
+        assert (
+            f"each orientation alone rejects in a median of {each.pop()} of natural gas’s 360 "
+            "pairs, whether the simulated walks are independent or correlate as the files do."
+        ) in self.text
+        assert (
+            f"whose median rises from {count(ng.declared_null_median, 360)} pairs to "
+            f"{count(ng.null_median, 360)}."
+        ) in self.text
 
     def test_what_the_check_found(self, spreads) -> None:
         ng, rbob = spreads[NG], spreads[RBOB]
@@ -2036,7 +2126,9 @@ class TestTheCalendarSpreadPostQuotesThePins:
             for shift in (0, -1, 1)
         }
         (ng, ng_of), (rbob, rbob_of) = tallies[NG, 0], tallies[RBOB, 0]
-        assert f"for {ng} of the {ng_of} natural gas expiries the files have rows to check" in self.text
+        assert (
+            f"for {ng} of the {ng_of} natural gas expiries the files have rows to check"
+        ) in self.text
         assert f"it does for {rbob} of {rbob_of} RBOB expiries" in self.text
         early = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, -1], tallies[RBOB, -1]))
         late = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, 1], tallies[RBOB, 1]))
@@ -2065,18 +2157,23 @@ class TestTheCalendarSpreadPostQuotesThePins:
                         except ValueError:
                             off = None
                         if right != off:
-                            back = min(
-                                range(-4, 1),
-                                key=lambda k: (
-                                    abs((product.last_trade(*month_step(*pair.near, k)) - day).days),
-                                    k,
-                                ),
-                            )
+
+                            def gap(
+                                k: int,
+                                pair: SpreadPair = pair,
+                                day: date = day,
+                                product: Product = product,
+                            ) -> int:
+                                expiry = product.last_trade(*month_step(*pair.near, k))
+                                return abs((expiry - day).days)
+
+                            back = min(range(-4, 1), key=lambda k: (gap(k), k))
                             per_pair = misread.setdefault(month_step(*pair.near, back), {})
                             per_pair[pair.near] = per_pair.get(pair.near, 0) + 1
                 assert misread, (name, days)
                 assert max(len(pairs) for pairs in misread.values()) == 3, (name, days)
-                assert {n for pairs in misread.values() for n in pairs.values()} == {1}, (name, days)
+                days_each = {n for pairs in misread.values() for n in pairs.values()}
+                assert days_each == {1}, (name, days)
         assert (
             "on one kept day in each of up to three pairs around an expiry, and these counts do "
             "not exclude that."

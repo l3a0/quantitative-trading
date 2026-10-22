@@ -29,8 +29,9 @@ uses NYMEX's holiday rules instead.
 Massive futures API recorded for 16 natural gas contracts, which
 ``tests/test_commodity_seasonals.py`` pins. And against the files themselves,
 through :func:`handover_fit`, which asks whether the files' prices hand over
-from one contract to the next on the day the rule says. Read over every expiry
-both products' files cover, the rule's day fits about nine times in ten and a
+from one contract to the next on the day the rule says. Read over every
+natural gas expiry from February 1994 and every RBOB expiry from January 2006,
+the rule's day fits about nine times in ten and a
 day either side about one in ten. ``tests/test_stationary_candidates.py`` pins
 those counts.
 

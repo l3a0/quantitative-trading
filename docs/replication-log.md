@@ -4107,7 +4107,7 @@ surprise in either direction.
 | 11 | none, not a replication | If every RBOB pair reverted at 36 days, 13.5 of 220 would reject on average. The real 14 is about what reversion that slow would give, and also about what no reversion at all gives under row 2's null, so a 56-day window cannot tell the two apart for RBOB. Rows 10 and 11 build each pair's legs from a spread as volatile as the walk, so the legs move together far less closely than the files' contracts, the omission the corrected null fixed. On legs that move together as the files' do, reversion this slow would likely give more than 14. That has not been rerun. |
 | 12 | none, not a replication | Added after the verdicts were seen, because a bar alone does not say how close a verdict sat to it. |
 | 13 | none, not a replication | The rule's day fits 298 of 316 handovers, about 94%, and a day either side fits between 4% and 12% of them, so the map reads the right contract on almost every day. Whether each of the 18 that do not fit is noise or a rule one day off is not settled here, and one day is what the dropped days absorb. A rule two days off would read a neighbouring contract on one kept day in each of up to three pairs around an expiry, which these counts do not rule out. |
-| 14 | none, not a replication | The same reading for RBOB, with 11 that do not fit. |
+| 14 | none, not a replication | The same reading for RBOB, with 11 that do not fit. The check starts at the January 2006 expiry, but the first two pairs also read the October, November and December 2005 expiries. From 3 October to 30 December 2005 the files hold the January to April 2006 contracts, so no handover falls on the rule's day for November or December 2005, and the pairs at January and February 2006 read the wrong contracts on their 2005 days. As read, neither rejects. Read as the files hold them, the February pair rejects in both orientations, which would make row 2's 14 a 15, far under the bar of 31. `TestTheFirstRbobPairs` pins this, and [issue 704](https://github.com/l3a0/quantitative-trading/issues/704) fixes the reading. |
 
 ### What the entry concludes
 
@@ -4131,7 +4131,8 @@ Three things, and the first is the verdict.
    and RBOB file settled. Counted closed, they put the November 2012 natural
    gas expiry two trading days early, beyond what the dropped days absorb, so
    the calendar no longer counts them closed. No figure in Entry 11 reads any
-   of the three.
+   of the three. The check did not read RBOB's 2005 expiries, and the map is
+   wrong there, as row 14 says.
 
 ### What this entry cannot say
 

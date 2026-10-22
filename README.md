@@ -3734,8 +3734,8 @@ draws four lessons from Entry 15 of the replication log.
 3. About 56 days cannot tell slow reversion from none, so RBOB's verdict is
    not evidence that its spreads fail to cointegrate.
 4. A calendar that is one day wrong should cost nothing. The days each window
-   drops make that true, and the check of the expiry rule over every handover
-   forced one correction.
+   drops make that true, and the check of the expiry rule against the files
+   forced one correction and found one gap, in RBOB's first two pairs.
 
 Five groups of its figures are not pinned here.
 
