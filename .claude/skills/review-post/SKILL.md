@@ -272,8 +272,9 @@ comment reports that too.
 Each lens's findings go to a verifier of their own as soon as that lens
 reports, so verifying overlaps the lenses still running. A diff round sends
 both lenses' findings to one verifier. A verifier is a
-background sub-agent whose prompt stands alone, like a lens's. It sees one
-lens's findings and nothing else, and tries to refute each one. It executes
+background sub-agent whose prompt stands alone, like a lens's. In a full
+round it sees one lens's findings and nothing else. In a diff round it sees
+both lenses' findings and nothing else. It tries to refute each one. It executes
 wherever it can: it reruns the command, recomputes the number, opens the
 figure, or follows the link. A verifier that writes any file, such as one
 rerunning a mutation, runs with `isolation: "worktree"`, because the
@@ -296,7 +297,8 @@ It returns one verdict per finding.
    the corrected text.
 
 The comprehension verifier also grades each finding, because the stop rule
-needs it. **Misread** means a reader would take a wrong meaning away.
+needs it. In a diff round the one verifier grades the comprehension findings
+too. **Misread** means a reader would take a wrong meaning away.
 **Reread** means a reader gets it right on a second pass. **Cosmetic** means
 the sentence reads right on the first pass and could only read better.
 
