@@ -5581,7 +5581,7 @@ construction.
 | 3 | 2.6, the pair cointegrates at 95 percent | a claim, against jplv7's −3.359 | location 1292 |
 | 4 | 2.7, pair trace statistics, r ≤ 0 and r ≤ 1 | 19.983 and 3.983 | script lines 51 and 52 |
 | 5 | 2.7, pair eigen statistics | 16.000 and 3.983 | script lines 55 and 56 |
-| 6 | 2.7, both tests find two relations for the pair | a claim, with the trace's r ≤ 0 rejected at 99 percent | location 1324 |
+| 6 | 2.7, both tests find two relations for the pair at 95 percent | a claim, with the trace's r ≤ 0 rejected at 99 percent | location 1324 |
 | 7 | 2.7, triplet trace statistics | 34.429, 17.532 and 4.471 | script lines 73 to 75 |
 | 8 | 2.7, triplet eigen statistics | 16.897, 13.061 and 4.471 | script lines 78 to 80 |
 | 9 | 2.7, both tests find three relations for the triplet at 95 percent | a claim | location 1337 |

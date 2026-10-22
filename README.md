@@ -4199,6 +4199,9 @@ Five groups of its figures are not pinned here.
    equations.
 4. The book's Figures 2.4, 2.6 and 2.7, which the post's figure redraws from
    the script's `plot` calls and which nothing compares with the book's own.
+   That the script draws four charts, and that the one the figure leaves out
+   is its second, the Figure 2.5 scatter of EWC against EWA, is read from the
+   script, which the repository does not keep.
    The alt text's description of shapes in the figure, such as EWC sitting
    above EWA and both falling in late 2008, is read off the drawing rather
    than asserted.

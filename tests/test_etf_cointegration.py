@@ -646,9 +646,8 @@ class TestWhatThePostQuotes:
         self._holds(
             post,
             f"{_minus(one, 3)} at 99 percent and {_minus(five, 3)} at 95. The computed "
-            f"{_minus(result.cadf.t, 4)} is below {_minus(five, 3)} but above {_minus(one, 3)}, "
-            "and a CADF statistic clears its bar by falling below it. So the pair "
-            "cointegrates at 95 percent",
+            f"{_minus(result.cadf.t, 4)} is below {_minus(five, 3)} but above {_minus(one, 3)}",
+            "So the pair cointegrates at 95 percent",
             "and not at 99, which he does not claim",
             f"MATLAB gave {SCRIPT_EIGENVECTORS[0][0].replace('-', '−')} there",
         )
@@ -816,7 +815,6 @@ class TestWhatThePostQuotes:
         self._holds(
             post,
             f"the same {len(result.days):,} days the rule then trades",
-            f"and it leaves the {BOOK_APR_PERCENT} percent in-sample",
             f"the deepest drawdown is {_minus(deepest, 6)}, with its trough on {trough}. Its "
             f"longest spell below a high runs {longest} trading days, from {first} to {end}",
             f"and the pair’s full rank clears its bar by only {margin:.3f}.",
