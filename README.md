@@ -3073,7 +3073,7 @@ revised edition's, read in the Kindle Cloud Reader on 2026-10-03.
 3. Chan's *Algorithmic Trading*, cited through
    [its committed notes](research/book-notes/algorithmic-trading.md):
    his argument at location 432 that survivorship flatters a long-short
-   reversal by less than a buy-only rule, and his second telling of the toy at
+   reversal by less than a buy-only rule, and his other telling of the toy at
    location 704, with "almost 100 percent loss".
 4. Arithmetic no test asserts: that −3.1822 rounds to −3.18, that a
    41.72% loss against a 100.91% gain is still a loss turned into a gain,
