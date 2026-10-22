@@ -602,7 +602,8 @@ class TestWhatThePostQuotes:
 
     def test_lesson_1_s_tables(self, post, result) -> None:
         p, t, s, cadf = result.pair, result.triplet, result.strategy, result.cadf
-        first = _table(
+        header = r" & \text{Computed} & \text{Printed} \\ \hline" + "\n"
+        first = rf"\text{{Figure}}{header}" + _table(
             [
                 rf"\text{{CADF statistic}} & {cadf.t:.10f} & {SCRIPT_CADF_T}",
                 rf"\text{{CADF }} \lambda & {cadf.ar1:.10f} & {SCRIPT_CADF_AR1}",
@@ -632,7 +633,7 @@ class TestWhatThePostQuotes:
         self._holds(
             post,
             first,
-            _table(johansen_rows),
+            rf"\text{{Johansen figure}}{header}" + _table(johansen_rows),
             f"1. A CADF statistic of about {BOOK_CADF_T.replace('-', '−')}.\n"
             f"2. A half-life of {BOOK_HALF_LIFE_DAYS} days.\n"
             f"3. An APR of {BOOK_APR_PERCENT} percent.\n"
@@ -727,7 +728,10 @@ class TestWhatThePostQuotes:
             ]
 
         table = (
-            " \\\\\n".join(block("Trace", t.trace, t.trace_critical))
+            r"\text{Null} & "
+            + " & ".join(rf"r \le {i}" for i in range(len(t.trace)))
+            + " \\\\ \\hline\n"
+            + " \\\\\n".join(block("Trace", t.trace, t.trace_critical))
             + " \\\\ \\hline\n"
             + _table(block("Eigen", t.eigen, t.eigen_critical))
         )

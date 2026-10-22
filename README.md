@@ -2611,9 +2611,10 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that none of the three sketch modules
-draws. The Johansen ETF post's two GIFs are checked the same way by
+and the Johansen ETF post's two by
 [tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py).
+The equity seasonals test also fails on any GIF in the folder that none of the
+three sketch modules draws.
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3419,7 +3420,7 @@ that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-both redraw commands.
+the USD.CAD, equity seasonals and Johansen ETF redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -4181,17 +4182,21 @@ Five groups of its figures are not pinned here.
    fastest at 1340. "No parameters to optimize", "continuously enters and
    exits positions" and "obviously not a practical strategy" are at 1350, and
    "the same data for parameter optimization (such as finding the best hedge
-   ratio) and for backtest" is at 1429. The book's figures are pinned, and its
-   words are not.
+   ratio) and for backtest" is at 1429. The sentence giving the half-life of 23
+   days is at 1347, and the one giving the APR of 12.6 percent and the Sharpe
+   ratio of 1.4 is at 1368. The book's figures are pinned, and its words and
+   their locations are not.
 2. Facts outside the committed data. That jplv7 is James LeSage's toolbox and
    that statsmodels multiplies the eigenvector matrix by the sign of its
    top-left element, which `src/chan/johansen.py`'s docstring records, and
    that the file subtracts dividends in dollars, which
    [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that a full rank makes every combination
-   stationary, including one ETF held alone, that the test's eigenvalues lie
-   between 0 and 1, and the two formulas for the trace and eigen statistics,
-   which the post shows as equations.
+   stationary, including one ETF held alone, that any mix of the counted
+   relations' weights also reverts, that the rank is the number of eigenvalues
+   that are not zero, that the test's eigenvalues lie between 0 and 1, and the
+   two formulas for the trace and eigen statistics, which the post shows as
+   equations.
 4. The book's Figures 2.4, 2.6 and 2.7, which the post's figure redraws from
    the script's `plot` calls and which nothing compares with the book's own.
    The alt text's description of shapes in the figure, such as EWC sitting
@@ -4225,8 +4230,9 @@ post itself. It rebuilds each number the post quotes from this run, the
 figure's alt text included, and fails when the post no longer says it. Of the
 numbers the post quotes from a run, it leaves two groups to other tests.
 
-1. The two Entry 24 counts Lesson 4 cites to
-   [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py).
+1. The two Entry 24 counts Lesson 4 cites.
+   [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) pins them
+   from that entry's run, and no test reads this post's sentence about them.
 2. The figures in the first sketch's labels and alt text, which
    [tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py)
    reads from the run.
