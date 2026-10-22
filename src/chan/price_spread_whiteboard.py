@@ -47,7 +47,7 @@ how much taller it draws, a figure :func:`taller` computes from the two
 panels' scales and rounds to a whole number. It names heights only, since the
 widths are magnified by a different figure. The arithmetic label rounds
 ``h``'s change and the clouds' mean GLD, and it leaves out two smaller terms
-that nearly cancel, the change in mean USO and the mean ``h`` times the change
+that partly cancel, the change in mean USO and the mean ``h`` times the change
 in mean GLD, so it carries an approximate sign. The label under it says which
 way ``h`` moved and by how much, with its verb taken from the run.
 

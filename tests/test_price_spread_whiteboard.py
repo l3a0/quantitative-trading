@@ -494,7 +494,7 @@ class TestTheGeometry:
             10,
             "panel",
         )
-        assert ZOOM_Y[0] < TALLER_Y < ZOOM_Y[1]
+        assert TALLER_Y == 4.1 and ZOOM_Y[0] < TALLER_Y < ZOOM_Y[1]
         for gid in ("cloud-before", "cloud-after"):
             assert _stroke(scene, gid).y.max() < TALLER_Y, gid
 
@@ -566,7 +566,8 @@ class TestOtherFigures:
         assert round(wider, 2) == 16.71 and round(wider) != round(taller())
 
     def test_the_taller_label_follows_the_scales(self, monkeypatch) -> None:
-        """Halving the left panel's height doubles the magnification the frame names."""
+        """Halving the left panel's height doubles the magnification the frame names, and
+        a ratio of 11.08 prints 11, so the label rounds rather than rounding up."""
         monkeypatch.setattr(sketch, "MAIN_Y", (MAIN_Y[0], MAIN_Y[0] + (MAIN_Y[1] - MAIN_Y[0]) / 2))
         assert round(taller(), 2) == 23.63
         (scene,) = scenes(MADE_UP)
@@ -576,6 +577,10 @@ class TestOtherFigures:
         assert round(taller(), 2) == 5.91
         (scene,) = scenes(MADE_UP)
         assert "6× taller" in scene.labels
+        monkeypatch.setattr(sketch, "ZOOM_USO", (ZOOM_USO[0], ZOOM_USO[0] + 16.0))
+        assert round(taller(), 2) == 11.08
+        (scene,) = scenes(MADE_UP)
+        assert "11× taller" in scene.labels
 
     def test_the_change_in_h_takes_its_verb_from_its_own_sign(self) -> None:
         """``h`` fell where ``c`` rose, so each verb follows its own figure."""
@@ -797,6 +802,22 @@ class TestThePost:
         assert f"moved c down by about {rise:.2f} × {mean:.1f} dollars" in caption
         assert (f"{rise:.2f}", f"{mean:.1f}") == ("1.20", "91.5")
         assert caption.endswith("*") and "\n" not in caption
+
+    def test_its_caption_is_the_run_in_words(self, lever) -> None:
+        """The whole caption, with every figure and date read from the run."""
+        (caption,) = [p for p in _paragraphs() if p.startswith("*Two real 20-day windows")]
+        before, after = lever.before, lever.after
+        rise, mean = after.hedge - before.hedge, lever.mean_gld
+        assert caption == (
+            f"*Two real 20-day windows from Chan’s file, ending {before.end.day} and "
+            f"{after.end.day} {after.end:%B} {after.end.year}, the second on the day the "
+            f"spread is lowest in the whole run. Between them the slope h rose by {rise:.2f}, "
+            f"from {before.hedge:.2f} to {after.hedge:.2f}. Both clouds sit about {mean:.1f} "
+            f"dollars to the right of GLD = 0, where c is read, so turning the line that much "
+            f"about them moved c down by about {rise:.2f} × {mean:.1f} dollars. Every figure "
+            f"comes from the run, and the closing lines are figures over all {lever.days:,} "
+            f"traded days, not over these two windows.*"
+        )
 
 
 class TestTheCommand:
