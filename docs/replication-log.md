@@ -11676,7 +11676,7 @@ was read,
 [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) wrote
 down each prediction, its statistic, comparator and slice, the lookback, and
 the mapping from H1 to a verdict, and the owner called the issue a
-pre-registration that day. Three reads came before the run, and none decided
+pre-registration that day. Four reads came before the run, and none decided
 anything.
 
 1. `chan.aud_cad_johansen` already read about 20 of the holdout's first days,
@@ -11684,7 +11684,9 @@ anything.
    different feed under a different rule.
 2. The issue's coverage probe compared the vendor's closes with Chan's only
    on the days the two share up to 2012-03-28.
-3. The manifest, scale-break and column read-back tests read every committed
+3. A probe of Massive's `C:USDCAD` minute bars read one day, 2026-10-12, to
+   confirm the 16:59 bar exists, and computed no statistic.
+4. The manifest, scale-break and column read-back tests read every committed
    close, so they read this vintage in the commit that landed it, and only
    their pass or fail was looked at.
 
@@ -11725,7 +11727,7 @@ hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | Registered. The criterion written on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) before any holdout close was read holds: the P&L ends at 0.1132, above 0. The issue mapped H1 holding to this value before the run. It takes the claim route, and it is a single-feed result, because H2 did not run. |
-| 2 | not run, moved to [#608](https://github.com/l3a0/quantitative-trading/issues/608) | Holdout A needs Massive's minute bars from 2012, and the current plan reaches back only to 2024-10-13. |
+| 2 | not run, moved to [#608](https://github.com/l3a0/quantitative-trading/issues/608) | Holdout A reads Massive's minute bars from 2024-10-13, the earliest the current plan reaches. It waits for the whole minute file to be recorded, which the connector cannot write and no API key in the shell can fetch yet. A plan reaching back to 2012 would extend it. |
 | 3 | none, not a replication | Registered, and it decides nothing. The prediction was that the t would not clear 1.645, and at 0.2670 it does not. |
 | 4 | none, not a replication | Registered, and it decides nothing. The prediction was that the ADF would not reject, and −2.0814 sits above −2.5937. |
 | 5 | none, not a replication | Registered, and it decides nothing. The prediction was that the variance ratio would not reject, and its p-value is 0.4343. |

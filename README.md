@@ -7250,8 +7250,9 @@ redraw it.
 forty-eighth post, about Example 2.5 of Chan's *Algorithmic Trading* run on
 USD.CAD after his sample, with the lookback frozen at the 115 days his closes
 give. It reads Alpha Vantage's `FX_DAILY` closes, downloaded 2026-10-13, and
-trades 3,791 days from 2012-03-29 to 2026-10-12. Its verdict and four of the
-predictions beside it are registered, and every other figure is exploratory.
+trades 3,791 days from 2012-03-29 to 2026-10-12. Its verdict and the four
+predictions beside it that ran are registered, and every other figure is
+exploratory.
 The post links the earlier USD.CAD post for the tests and the rule rather than
 repeating them, and draws five lessons from Entry 51 of the replication log.
 
@@ -7259,12 +7260,12 @@ repeating them, and draws five lessons from Entry 51 of the replication log.
    the Newey-West t of its mean daily value is 0.2670. Its Sharpe ratio is
    0.0715, against 0.12 on Chan's closes.
 2. Writing the predictions down first is what makes it a check. Six
-   predictions and one figure to report were filed before any later close was
-   read, and the three earlier reads of those closes decided nothing. The
-   prediction on Chan's 16:59 bar did not run.
+   predictions and one figure to report were filed before the run computed
+   anything on the later closes, and the four earlier reads of those days
+   decided nothing. The prediction on Chan's 16:59 bar did not run.
 3. The later closes read as a random walk, as predicted. The ADF statistic of
    −2.0814 does not reject at 10 percent, the variance ratio test's p-value is
-   0.4343, and H of 0.4974 sits inside its random-walk band.
+   0.4343, and the Hurst exponent of 0.4974 sits inside its random-walk band.
 4. The frozen lookback is about a quarter of the later half-life, 457.8077
    days, which the plan did not predict.
 5. The fall is again several times the final P&L. The drawdown of 0.5033 ran
@@ -7275,18 +7276,20 @@ Four groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its page in the 2013 print edition, as the
    earlier post cites them: the claim on 49, unlimited capital on 50 and the
-   lookback with no parameters to optimize on 60.
+   half-life depending on the series itself on 60.
 2. Readings no test asserts: that a rule with no edge can end positive by
    chance, that the rule holds much the same position for weeks, that a
    p-value of 0.4343 means a random walk gives a ratio this far from 1 more
-   than two times in five, that 488 of 1,101 days is fewer than half, and
-   that 2013-11-20 to 2024-03-06 is more than ten years.
+   than two times in five, that 488 of 1,101 days is fewer than half, that
+   2013-11-20 to 2024-03-06 is more than ten years, and that a position of 1
+   held through a 1 percent rise earns 0.01.
 3. Facts Entry 51 states rather than pins: that the other vendor's minute
-   bars reach back only to 2024-10-13 on the current subscription, and that
-   an earlier run had read about 20 of the holdout's first days, through
-   2012-04-26.
+   bars reach back only to 2024-10-13 on the current subscription and cannot
+   yet be downloaded as one complete file, that an earlier run had read about
+   20 of the holdout's first days, through 2012-04-26, and that a check of
+   those minute bars read one day, 2026-10-12.
 4. The figure's alt text, whose readings of the lines, such as "near 1.43 in
-   2026" and "between about 1.21 and 1.45", are approximate by design.
+   2026" and "between about 1.20 and 1.45", are approximate by design.
 
 Every other number traces to an assertion in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py), to
