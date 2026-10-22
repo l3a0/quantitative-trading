@@ -4382,12 +4382,14 @@ Six groups of what it says are not pinned here.
    each week's five trading days pay for seven calendar days is held by the
    Lesson 2 sketch's test, which reads the sketch's title and labels from its
    alt text. No test reads Lesson 2's own sentence saying so.
-4. Three readings no test asserts: that the tripled day already pays for the
-   weekends, so annualising over 365 days overstates the year, that long and
-   short days cancel in total when they see about the same rollover interest,
-   and that the stationary-candidates post finds the CAD/AUD rate reverting,
-   which that post's own tests pin. That neither location 2303 nor the script
-   mentions the zero fill is read from the book notes and the script.
+4. Four readings no test asserts: that the T + 3 rule at location 2273, read
+   word for word, would also multiply a Thursday, that the tripled day already
+   pays for the weekends, so annualising over 365 days overstates the year,
+   that long and short days cancel in total when they see about the same
+   rollover interest, and that the stationary-candidates post finds the
+   CAD/AUD rate reverting, which that post's own tests pin. That neither
+   location 2303 nor the script mentions the zero fill is read from the book
+   notes and the script.
 5. The figure's alt text, whose readings of the lines, such as AUD staying
    above CAD in every month that both files hold and the line without
    rollover interest sitting above the line with it on every day after
