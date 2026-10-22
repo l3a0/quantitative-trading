@@ -9,14 +9,17 @@ about 90 dollars to the right of GLD = 0, where ``c`` is read. A small turn of
 the fitted line about its cloud moves the place it meets GLD = 0 a long way,
 by about the change in ``h`` times that distance, while the leftover ``e`` of
 the last day stays a few dollars. This module draws that as one scene, and the
-post places it right after the list that ends on the leftover earning nothing.
+post places it right after the list that ends on the leftover earning close to
+nothing.
 
 1. Why c carries the spread: two real 20-day windows one trading week apart,
    the second ending on the day the spread reaches its lowest value, which is
    also the day the hedge ratio reaches its highest. On the left, GLD and USO
    axes to scale, with GLD = 0 drawn as USO's axis, each window's fitted line
    extended dashed back to GLD = 0 and landing at its ``c``, and a bracket for
-   how far ``c`` fell. On the right, the clouds magnified, where the second
+   how far ``c`` fell, with the change in ``h`` that moved it. On the right,
+   the clouds magnified, with a label for how many times taller the frame
+   draws a dollar of USO than the left panel does, where the second cloud
    barely moves from the first while its line turns steeper, and the second
    window's ``e`` as a tick from its line to its last day's point, which a
    ring marks. It closes
@@ -37,10 +40,16 @@ the run too: the day of the spread's lowest value and the day
 :data:`WEEK` rows before it. The left panel is to scale on both axes, each its
 own affine map, so a line straight in dollars is straight on the board. The
 right panel magnifies the clouds, each axis its own affine map again. Neither
-axis is broken. The arithmetic label rounds ``h``'s change and the clouds'
-mean GLD, and it leaves out two smaller terms that nearly cancel, the change
-in mean USO and the mean ``h`` times the change in mean GLD, so it carries an
-approximate sign.
+axis is broken. The frame draws heights about 12 times taller and widths about
+17 times wider than the left panel, so ``e``'s tick looks about a third of
+``c``'s fall when it is about a thirty-fourth of it. That is why the frame says
+how much taller it draws, a figure :func:`taller` computes from the two
+panels' scales and rounds to a whole number. It names heights only, since the
+widths are magnified by a different figure. The arithmetic label rounds
+``h``'s change and the clouds' mean GLD, and it leaves out two smaller terms
+that nearly cancel, the change in mean USO and the mean ``h`` times the change
+in mean GLD, so it carries an approximate sign. The label under it says which
+way ``h`` moved and by how much, with its verb taken from the run.
 
 Exploratory, like everything Example 3.1 runs here.
 """
@@ -200,15 +209,29 @@ ZOOM_Y = (1.5, 4.4)
 #: below its flatter line, and the second's in its upper left, above its
 #: steeper one. ``e``'s label runs along the panel's foot, below every point.
 BEFORE_TAG_Y, AFTER_TAG_Y, LEFTOVER_Y = 2.45, 4.1, 1.8
-#: The "GLD = 0" label sits below the origin, beside USO's axis and clear of the
-#: span above the GLD axis, so it reads as naming the upright axis.
-GLD_ZERO_Y = 2.8
+#: The "GLD = 0" label stacks directly under "USO", above the origin, so it
+#: reads as the upright axis's second name rather than as a height beside the
+#: ``c`` labels.
+GLD_ZERO_Y = 3.45
+#: The frame's label for how much taller it draws USO, inside its top right.
+TALLER_Y = 4.1
 #: The ring round the second window's last point, the one its ``e`` is
 #: measured on. Two other points sit within a tenth of a dollar of GLD from it,
 #: so the tick alone could end at any of three.
 RING = 0.1
 #: The rule under the right panel that the whole run's figures sit beneath.
 RULE_X, RULE_Y = 5.65, 1.32
+
+
+def taller() -> float:
+    """How many times taller the right panel draws a dollar of USO than the left panel does.
+
+    It is the right panel's board units per dollar of USO over the left panel's,
+    read from the scales at call time.
+    """
+    zoom = (ZOOM_Y[1] - ZOOM_Y[0]) / (ZOOM_USO[1] - ZOOM_USO[0])
+    main = (MAIN_Y[1] - MAIN_Y[0]) / (USO_SPAN[1] - USO_SPAN[0])
+    return zoom / main
 
 
 def _affine(value, source: tuple[float, float], board: tuple[float, float]):
@@ -287,6 +310,7 @@ def _lever(lever: Lever) -> Scene:
     left = drop_x - 0.2
     middle = (c_before + c_after) / 2
     moved = "fell" if after.intercept < before.intercept else "rose"
+    turned = "rose" if after.hedge > before.hedge else "fell"
     return Scene(
         "Why c carries the spread",
         "intercept_lever",
@@ -343,6 +367,15 @@ def _lever(lever: Lever) -> Scene:
                 color=MUTED,
                 width=1.2,
                 frames=6,
+            ),
+            Label(
+                f"{round(taller())}× taller",
+                ZOOM_X[1] - 0.2,
+                TALLER_Y,
+                names="panel",
+                color=MUTED,
+                ha="right",
+                size=10,
             ),
             _points("cloud-before", before, MUTED),
             _stroke("fit-before", _fit(before, _zoom), color=MUTED, frames=5),
@@ -433,6 +466,15 @@ def _lever(lever: Lever) -> Scene:
                 color=ACCENT,
                 ha="right",
                 size=11,
+            ),
+            Label(
+                f"h {turned} {abs(after.hedge - before.hedge):.2f}",
+                left,
+                middle - 0.47,
+                names="distance",
+                color=ACCENT,
+                ha="right",
+                size=10,
             ),
             _stroke(
                 "last-day",

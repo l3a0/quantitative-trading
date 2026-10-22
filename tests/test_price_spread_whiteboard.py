@@ -1,10 +1,11 @@
 """The pins for the whiteboard GIF in the price spread post.
 
 ``blog/price-spread-ratio-lessons.md`` carries one sketch, in Lesson 4, right
-after the list that ends on the leftover earning nothing. It draws why the
-spread is mostly the 20-day fit's intercept ``c``: two real windows a trading
-week apart, whose fitted lines turn about clouds that sit about 90 dollars from
-GLD = 0, so ``c`` moves a long way while the leftover ``e`` stays small.
+after the list that ends on the leftover earning close to nothing. It draws why
+the spread is mostly the 20-day fit's intercept ``c``: two real windows a
+trading week apart, whose fitted lines turn about clouds that sit about 90
+dollars from GLD = 0, so ``c`` moves a long way while the leftover ``e`` stays
+small.
 
 Every figure it prints and every point it places comes from
 :class:`chan.price_spread_whiteboard.Lever`, which reads the committed vintage
@@ -17,14 +18,18 @@ whole run's figures it closes on, a correlation of 0.9987 and standard
 deviations of 45.37 and 2.27 dollars, are the ones
 ``test_the_spread_is_almost_all_the_fits_intercept`` there pins, so a re-pin
 there moves them here. A second, made-up :class:`Lever` holds that the words,
-the dates, the verb and the figures follow the data rather than being typed in.
+the dates, the verbs and the figures follow the data rather than being typed in,
+and made-up scales hold that the frame's "12× taller" follows the two panels'
+scales.
 
 What else is pinned is what a reader takes from it: the labels in order, the
 ink of each mark, that each panel places every point by an affine map of its
 dollars, that each ``c`` sits where its line meets GLD = 0, that the whole
 run's figures sit below the magnified panel rather than beside one window's
-points, the shared layout rules, the GIF's size, frames, loop and pace, and
-where the post places it and what its alt text says.
+points, that "GLD = 0" stacks under "USO" as the upright axis's second name,
+the shared layout rules, the GIF's size, frames, loop and pace, and where the
+post places it, what its alt text says and that its caption's figures are the
+run's.
 
 Two draws on one machine give the same bytes. Whether the committed GIF equals
 a fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -59,6 +64,7 @@ from chan.price_spread_whiteboard import (
     PACED_HOLD_MS,
     PACED_LABEL_MS,
     RULE_Y,
+    TALLER_Y,
     USO_SPAN,
     WEEK,
     ZOOM_GLD,
@@ -72,6 +78,7 @@ from chan.price_spread_whiteboard import (
     make_price_spread_whiteboards,
     scenes,
     sketch_timeline,
+    taller,
 )
 from chan.regime_figure import ACCENT, INK, MUTED
 from chan.usdcad_tests_whiteboard import (
@@ -95,6 +102,7 @@ LABELS = [
     "USO",
     "GLD = 0",
     "GLD",
+    "12× taller",
     "7 July, h 0.97",
     "c −51.65",
     "14 July, h 2.17",
@@ -102,6 +110,7 @@ LABELS = [
     "c fell 109.95",
     "91.5 dollars",
     "≈ 1.20 × 91.5",
+    "h rose 1.20",
     "e −3.21, a week before −2.71",
     "over all 1,480 traded days",
     "correlation of c and the spread 0.9987",
@@ -352,15 +361,17 @@ class TestTheInks:
         assert not (_stroke(scene, "fit-before").dashed or _stroke(scene, "fit-after").dashed)
 
     def test_each_label_takes_the_ink_of_what_it_names(self, scene) -> None:
-        """The arithmetic label is brass like the bracket beside it, though it names the
-        grey span whose distance it multiplies, and the whole run's two figures are black
-        under a grey heading."""
+        """The arithmetic label and the change in ``h`` under it are brass like the
+        bracket beside them, though they name the grey span whose distance the first
+        multiplies, and the whole run's two figures are black under a grey heading."""
         colours = {s.gid: s.color for s in scene.strokes}
         for step in scene.steps:
             if not isinstance(step, Label) or step.names in ("distance", "rule"):
                 continue
             assert step.color == colours[step.names], step.text
         assert _label(scene, "≈").color == ACCENT
+        assert _label(scene, "h rose").color == ACCENT
+        assert _label(scene, "12×").color == MUTED
         assert _label(scene, "91.5").color == MUTED
         assert [_label(scene, t).color for t in ("over", "correlation", "SD")] == [MUTED, INK, INK]
 
@@ -371,6 +382,16 @@ class TestTheGeometry:
         assert np.allclose(axis.x, MAIN_X[0])
         assert np.allclose(gld.y, _main_y(0.0))
         assert gld.x.min() == pytest.approx(MAIN_X[0])
+
+    def test_gld_0_stacks_under_uso_as_the_axis_second_name(self, scene) -> None:
+        """It sits right under "USO", above the origin, so it reads as naming the
+        upright axis rather than as a height beside the ``c`` labels."""
+        uso, zero = _label(scene, "USO"), _label(scene, "GLD = 0")
+        assert (zero.x, zero.ha, zero.names, zero.size) == (uso.x, uso.ha, "uso-axis", uso.size)
+        assert zero.y == sketch.GLD_ZERO_Y == 3.45
+        assert float(_main_y(0.0)) < zero.y < uso.y
+        assert uso.y - zero.y == pytest.approx(0.35)
+        assert all(zero.y > _label(scene, t).y for t in ("c −51.65", "c −161.60", "c fell"))
 
     def test_each_c_sits_where_its_line_meets_gld_0(self, scene, lever) -> None:
         for window, dot, reach in (
@@ -460,6 +481,38 @@ class TestTheGeometry:
             sketch.RING, abs=1e-9
         )
 
+    def test_the_frame_says_how_much_taller_it_draws_inside_its_top_right(self, scene) -> None:
+        """Right after the frame is drawn, inside its top right corner and above every
+        magnified point."""
+        steps = list(scene.steps)
+        label = _label(scene, "12×")
+        assert steps.index(label) == steps.index(_stroke(scene, "panel")) + 1
+        assert (label.x, label.y, label.ha, label.size, label.names) == (
+            pytest.approx(ZOOM_X[1] - 0.2),
+            TALLER_Y,
+            "right",
+            10,
+            "panel",
+        )
+        assert ZOOM_Y[0] < TALLER_Y < ZOOM_Y[1]
+        for gid in ("cloud-before", "cloud-after"):
+            assert _stroke(scene, gid).y.max() < TALLER_Y, gid
+
+    def test_the_change_in_h_sits_under_the_arithmetic_it_multiplies(self, scene) -> None:
+        """Right after "≈ 1.20 × 91.5" in the steps, at its x and below it, naming the
+        same span."""
+        steps = list(scene.steps)
+        approx, turned = _label(scene, "≈"), _label(scene, "h rose")
+        assert steps.index(turned) == steps.index(approx) + 1
+        assert (turned.x, turned.ha, turned.names, turned.size) == (
+            approx.x,
+            "right",
+            approx.names,
+            10,
+        )
+        assert turned.y == pytest.approx(approx.y - 0.3)
+        assert turned.y > float(_main_y(-161.60)) + 0.1
+
     def test_the_whole_runs_figures_sit_below_the_magnified_points(self, scene) -> None:
         """They describe every traded day, so none sits inside the panel beside one
         window's points."""
@@ -478,6 +531,7 @@ class TestOtherFigures:
             "USO",
             "GLD = 0",
             "GLD",
+            "12× taller",
             "1 March, h 1.50",
             "c −100.00",
             "8 March, h 0.40",
@@ -485,6 +539,7 @@ class TestOtherFigures:
             "c rose 100.00",
             "92.0 dollars",
             "≈ 1.10 × 92.0",
+            "h fell 1.10",
             "e 2.50, a week before −1.25",
             "over all 300 traded days",
             "correlation of c and the spread 0.5000",
@@ -497,6 +552,42 @@ class TestOtherFigures:
         assert _stroke(scene, "c-before").y[0] == pytest.approx(float(_main_y(-100.0)))
         tick = _stroke(scene, "leftover")
         assert float(_zoom_uso(tick.y[-1]) - _zoom_uso(tick.y[0])) == pytest.approx(2.5)
+
+    def test_taller_is_the_ratio_of_the_two_panels_heights_per_dollar(self) -> None:
+        """The frame draws a dollar of USO 11.81 times as tall as the left panel does,
+        and a dollar of GLD 16.71 times as wide, so the label names heights only."""
+        zoom = (ZOOM_Y[1] - ZOOM_Y[0]) / (ZOOM_USO[1] - ZOOM_USO[0])
+        main = (MAIN_Y[1] - MAIN_Y[0]) / (USO_SPAN[1] - USO_SPAN[0])
+        assert taller() == pytest.approx(zoom / main)
+        assert round(taller(), 2) == 11.81 and round(taller()) == 12
+        wider = ((ZOOM_X[1] - ZOOM_X[0]) / (ZOOM_GLD[1] - ZOOM_GLD[0])) / (
+            (MAIN_X[1] - MAIN_X[0]) / GLD_TOP
+        )
+        assert round(wider, 2) == 16.71 and round(wider) != round(taller())
+
+    def test_the_taller_label_follows_the_scales(self, monkeypatch) -> None:
+        """Halving the left panel's height doubles the magnification the frame names."""
+        monkeypatch.setattr(sketch, "MAIN_Y", (MAIN_Y[0], MAIN_Y[0] + (MAIN_Y[1] - MAIN_Y[0]) / 2))
+        assert round(taller(), 2) == 23.63
+        (scene,) = scenes(MADE_UP)
+        assert "24× taller" in scene.labels
+        monkeypatch.setattr(sketch, "MAIN_Y", MAIN_Y)
+        monkeypatch.setattr(sketch, "ZOOM_USO", (ZOOM_USO[0] - 15.0, ZOOM_USO[1]))
+        assert round(taller(), 2) == 5.91
+        (scene,) = scenes(MADE_UP)
+        assert "6× taller" in scene.labels
+
+    def test_the_change_in_h_takes_its_verb_from_its_own_sign(self) -> None:
+        """``h`` fell where ``c`` rose, so each verb follows its own figure."""
+        (scene,) = scenes(MADE_UP)
+        assert ("c rose 100.00", "h fell 1.10") == (
+            _label(scene, "c rose").text,
+            _label(scene, "h fell").text,
+        )
+        both = dataclasses.replace(MADE_UP, before=_made_up_window("2010-03-01", 0.39, -3.0, -1.25))
+        (scene,) = scenes(both)
+        assert _label(scene, "c rose").text == "c rose 3.00"
+        assert _label(scene, "h rose").text == "h rose 0.01"
 
     def test_a_window_that_would_fall_off_the_board_is_refused(self) -> None:
         """A ``c`` below the left panel, or points outside the magnified one, would be
@@ -574,7 +665,7 @@ class TestTheGifs:
         assert _durations(path) == [f.ms for f in frames]
 
     def test_it_opens_on_its_title_and_builds_slowly(self, scene, frames) -> None:
-        """It carries fourteen labels, so each shows on its own for 900 ms and the
+        """It carries sixteen labels, so each shows on its own for 900 ms and the
         finished drawing holds twelve seconds."""
         assert scene.slug in sketch.PACED
         assert (frames[0].done, frames[0].ms) == (0, TITLE_MS)
@@ -641,7 +732,9 @@ class TestThePost:
             rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[0])}\)", paragraphs[index + 1]
         )
         assert paragraphs[index + 2].startswith("*Two real 20-day windows")
-        assert paragraphs[index + 3].startswith("So the spread in the second panel of Lesson 1’s figure")
+        assert paragraphs[index + 3].startswith(
+            "So the spread in the second panel of Lesson 1’s figure"
+        )
         assert sum(GIFS[0] in p for p in paragraphs) == 1
 
     def test_its_alt_text_quotes_the_title_and_every_label_in_order(self, scene) -> None:
@@ -663,8 +756,20 @@ class TestThePost:
         assert "a grey cloud" in alt and "A black cloud" in alt
         assert "a black ring circles the last black point" in alt
 
+    def test_its_alt_text_says_where_the_new_labels_sit(self, scene) -> None:
+        """ "GLD = 0" names the upright axis, "12× taller" sits in the frame and the change
+        in ``h`` under the arithmetic."""
+        alt = _alt(scene)
+        assert "a second label, “GLD = 0”, says the axis stands where GLD is zero" in alt
+        assert (
+            f"Inside the frame’s top right, a grey label reads “{round(taller())}× taller”" in alt
+        )
+        assert _label(scene, "12×").color == MUTED
+        assert "“≈ 1.20 × 91.5”, and under that another reads “h rose 1.20”" in alt
+
     def test_its_alt_text_counts_the_points_each_window_shares(self, scene) -> None:
         alt = _alt(scene)
+        assert "the second window, which shares fifteen days with the first" in alt
         assert f"cloud of {LOOKBACK} points" in alt
         assert "Fifteen of its points" in alt and LOOKBACK - WEEK == 15
         assert "its five newest" in alt and "five oldest" in alt and WEEK == 5
@@ -675,7 +780,22 @@ class TestThePost:
         before, after = lever.before.end, lever.after.end
         assert f"ending {before.day} and {after.day} {after:%B} {after.year}" in caption
         assert f"all {lever.days:,} traded days" in caption
-        assert "the second on the day the spread is lowest" in caption
+        assert "the second on the day the spread is lowest in the whole run" in caption
+
+    def test_its_caption_takes_the_turn_and_the_distance_from_the_run(self, lever) -> None:
+        """The rise in ``h``, both slopes, the clouds' mean GLD and the product they make
+        are the run's, at the precision the sketch prints them."""
+        (caption,) = [p for p in _paragraphs() if p.startswith("*Two real 20-day windows")]
+        before, after = lever.before, lever.after
+        rise, mean = after.hedge - before.hedge, lever.mean_gld
+        assert rise > 0 and after.intercept < before.intercept
+        assert (
+            f"the slope h rose by {rise:.2f}, from {before.hedge:.2f} to {after.hedge:.2f}"
+            in caption
+        )
+        assert f"about {mean:.1f} dollars to the right of GLD = 0" in caption
+        assert f"moved c down by about {rise:.2f} × {mean:.1f} dollars" in caption
+        assert (f"{rise:.2f}", f"{mean:.1f}") == ("1.20", "91.5")
         assert caption.endswith("*") and "\n" not in caption
 
 
