@@ -102,7 +102,7 @@ RELATION_LABELS = [
     "relation 1",
     "relation 2",
     "a mix of relations 1 and 2",
-    "EWA alone (1, 0)",
+    "EWA alone",
     "if both relations revert, so does EWA alone",
 ]
 
@@ -490,6 +490,15 @@ class TestTheStackSketch:
             assert line.x.min() <= column.x.min() and line.x.max() >= column.x.max(), bar
             assert line.x.max() < away.x.min() or line.x.min() > away.x.max(), bar
 
+    def test_the_trace_bar_runs_clear_of_its_column(self, stack) -> None:
+        """On the run's figures the trace bar sits about a pixel below the
+        second block's top, so across the column its dashes merge with that
+        edge. It reads as its own line only where it runs in from the left,
+        clear of the column, by more than the eigen bar's 0.3 overhang."""
+        scene = _trace_stack(stack)
+        line, column = _stroke(scene, "trace-bar"), _stroke(scene, "trace-1")
+        assert column.x.min() - line.x.min() >= 0.5
+
     def test_the_same_piece_arrow_runs_from_one_column_to_the_other(self, stack) -> None:
         scene = _trace_stack(stack)
         same, left, right = (_stroke(scene, g) for g in ("same", "eigen-1", "trace-1"))
@@ -549,7 +558,7 @@ class TestTheTwoRelationsSketch:
             ("relation 1", INK),
             ("relation 2", INK),
             ("a mix of relations 1 and 2", MUTED),
-            ("EWA alone (1, 0)", ACCENT),
+            ("EWA alone", ACCENT),
             ("if both relations revert, so does EWA alone", INK),
         ]
 

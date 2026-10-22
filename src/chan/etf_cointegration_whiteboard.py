@@ -21,7 +21,7 @@ paragraph it draws.
    is schematic and carries none of the run's figures. A plane of shares of
    EWA across and shares of EWC up holds two arrows for the pair's two
    relations, pointing different ways, and a dashed parallelogram builds EWA
-   held alone, (1, 0), from the two. Its closing words state the test's claim
+   held alone from the two. Its closing words state the test's claim
    as a condition, "if both relations revert, so does EWA alone", because the
    post calls the claim a tension the run does not settle: a plain ADF test on
    EWA alone does not reject a unit root. Each arrow falls in the quadrant of
@@ -207,14 +207,14 @@ def _trace_stack(f: TraceStack) -> Scene:
             ),
             _stroke(
                 "trace-bar",
-                _line([(t0 - 0.15, trace_bar), (t1, trace_bar)]),
+                _line([(t0 - 0.6, trace_bar), (t1, trace_bar)]),
                 dashed=True,
                 width=2.6,
                 frames=4,
             ),
             Label(
                 f"95% trace bar, {f.trace_bar:.3f}",
-                t0 - 0.35,
+                t0 - 0.8,
                 trace_bar,
                 names="trace-bar",
                 ha="right",
@@ -247,7 +247,7 @@ EWA_ALONE = (
 
 
 def _two_relations() -> Scene:
-    """EWA held alone, (1, 0), built from the pair's two relations."""
+    """EWA held alone, built from the pair's two relations."""
     ox, oy = ORIGIN
     (ax, ay), (bx, by), (tx, ty) = RELATION_1, RELATION_2, EWA_ALONE
     return Scene(
@@ -266,10 +266,15 @@ def _two_relations() -> Scene:
                 "mix", _line([(ax, ay), (tx, ty), (bx, by)]), color=MUTED, dashed=True, frames=8
             ),
             Label(
-                "a mix of relations 1 and 2", tx + 0.2, ty - 0.35, names="mix", color=MUTED, size=12
+                "a mix of relations 1 and 2",
+                (ax + tx) / 2 + 0.35,
+                (ay + ty) / 2 - 0.3,
+                names="mix",
+                color=MUTED,
+                size=12,
             ),
             _stroke("ewa", _arrow(ox, oy, tx, ty), color=ACCENT, width=3.5, frames=6),
-            Label("EWA alone (1, 0)", tx + 0.2, ty + 0.35, names="ewa", color=ACCENT, size=12),
+            Label("EWA alone", tx + 0.2, ty + 0.35, names="ewa", color=ACCENT, size=12),
             Label(
                 "if both relations revert, so does EWA alone",
                 9.7,
