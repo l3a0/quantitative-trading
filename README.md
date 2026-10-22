@@ -4297,7 +4297,7 @@ Seven groups of what it says are not pinned here.
    falling by more than half, the 449 test days making about a year and three
    quarters, and 236 of 449 days being more than half.
 6. The figure's alt text, whose readings of the points and lines, such as
-   "about 56,000 and 77,000 dollars" and "about minus 8 percent", are
+   "about 56,000 and 76,000 dollars" and "about minus 8 percent", are
    approximate by design.
 7. Its references, cited rather than computed.
 

@@ -36,7 +36,7 @@ This repository ran the trade on Chan’s own data, which comes as files he save
 
 A futures contract expires, so a price history running for years has to be stitched from one contract after another. At each switch, called a roll, the next contract usually trades at a different price from the one expiring. A **continuous future** shifts the whole earlier history by that difference so the series has no jump at the roll. So every roll rewrites the history, and the same day can carry a different price in a file saved a week later.
 
-Each of Chan’s saves is a MATLAB file of continuous futures. Three of them hold VX and ES.
+Chan saved several MATLAB files of continuous futures, and three of them hold both VX and ES.
 
 1. **The 2012-05-07 save**, `inputDataOHLCDaily_20120507.mat`. VX and ES share 1,999 trading days, from 2004-06-02 to 2012-05-08. Its last day is the last day of the book’s test set.
 2. **The 2012-05-11 save.**
@@ -147,7 +147,7 @@ The band changes position at the close of 2011-11-08, 2011-12-19 and 2012-02-17,
 
 Chan writes that the trade “was particularly profitable” from around Standard and Poor’s downgrade of the U.S. credit rating (location 2559). The agency announced it after the close of Friday 2011-08-05. At that close, after 259 of the 449 test days, the trade was down 4.59 percent. On Monday 2011-08-08 it reached its lowest point, down 7.76 percent, and the z-score reached −3.89, its lowest since the fit’s first day in 2008. From the close of 2011-08-05 to the end of the test, the trade grew 28.84 percent in 190 days. So the trade earned all of its gain after that close, and more, since it was losing before it. That fits Chan’s sentence, but the split falls one trading day before the trade’s low, and any split there would show the same. It dates when the trade made its money and says nothing about what the downgrade did.
 
-The bottom panel of the figure shows that shape. The first bet, the long carried in from training, spent 325 days earning 5.81 percent, and was down 7.76 percent at its worst along the way. It paid off only because the band held it through the worst day.
+The bottom panel of the figure shows that shape. The first bet, the long carried in from training, spent its 325 test days earning 5.81 percent, and was down 7.76 percent at its worst along the way. It paid off only because the band held it through the worst day.
 
 One more count suggests the test set behaved differently from training. The z-score sits beyond a band on 236 of the 449 test days, against 113 of the 500 training days. A portfolio that reverted as reliably in the test as in training would stray past one deviation about as often. This one spent more than half the test beyond the band.
 
