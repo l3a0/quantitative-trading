@@ -1,7 +1,7 @@
 """The pins for the two whiteboard GIFs in the AUD.CAD rollover post.
 
 One sketches Lesson 2's reason the 365-day reading overstates the year, and one
-Lesson 3's reason the strategy earns rollover interest only on its net
+Lesson 3's reason the strategy earns rollover interest roughly on its net
 position. Both print figures from the run on Chan's committed files, and the
 tests here read that run rather than a copy of its figures. The vintage and the
 specification are the ones ``tests/test_aud_cad_rollover.py`` states, and a
@@ -114,10 +114,11 @@ LABELS = [
         "the tripled day already paid for the weekend",
     ],
     [
-        "510 days long: earn the rollover",
+        "510 days long: earn rollover interest",
         "707 days short: pay it",
         "cancel",
-        "197 more days short: a net share of −16.2 percent",
+        "197 more days short:",
+        "a net share of −16.2 percent",
         "× 3.26 percent a year",
         "−0.528 percent",
         "rollover added: −0.522 percent",
@@ -133,7 +134,7 @@ LABEL_INKS = [
     + [INK, INK, ACCENT, INK, INK, MUTED]
     + [INK, INK, INK, INK, ACCENT, INK, MUTED]
     + [GOOD, GOOD, LOST, LOST, LOST, MUTED, MUTED, ACCENT],
-    [GOOD, LOST, MUTED, LOST, INK, INK, GOOD, MUTED, ACCENT],
+    [GOOD, LOST, MUTED, LOST, LOST, INK, INK, GOOD, MUTED, ACCENT],
 ]
 STROKE_INKS = [
     {
@@ -480,11 +481,12 @@ class TestLongAndShortDaysCancel:
 
     def test_other_figures_move_the_words(self) -> None:
         labels = scenes(MOVED)[1].labels
-        assert labels[:4] == [
-            "350 days long: earn the rollover",
+        assert labels[:5] == [
+            "350 days long: earn rollover interest",
             "650 days short: pay it",
             "cancel",
-            "300 more days short: a net share of −30.0 percent",
+            "300 more days short:",
+            "a net share of −30.0 percent",
         ]
         assert "× 4.10 percent a year" in labels
         assert "−1.230 percent" in labels
@@ -492,6 +494,28 @@ class TestLongAndShortDaysCancel:
         assert (
             "they cancel because long days see 4.050 and short days 4.120 percent a year" in labels
         )
+
+    @pytest.mark.parametrize("fallback", [False, True], ids=["installed font", "fallback font"])
+    def test_the_leftover_words_hang_under_the_short_half_from_the_bars_end(
+        self, either, monkeypatch, fallback
+    ) -> None:
+        """Red is the only ink tying them to the leftover span, and to a reader who
+        cannot tell red from grey their place has to do it. Two lines, each ending at
+        the bar's right end, keep them clear of the long half and of the grey label."""
+        _font(monkeypatch, fallback)
+        scene = scenes(either)[1]
+        words = [s for s in scene.steps if isinstance(s, Label) and s.names == "leftover"]
+        assert [w.text for w in words] == [
+            f"{either.short_days - either.long_days:,} more days short:",
+            f"a net share of {100 * either.net_share:.1f} percent".replace("-", "−"),
+        ]
+        assert all((w.ha, w.x, w.color) == ("right", BAR_X[1], LOST) for w in words)
+        assert words[0].y > words[1].y > PRODUCT_Y
+        to_px = WIDTH / (whiteboard.XLIM[1] - whiteboard.XLIM[0])
+        middle = (_x_at(either.long_days, either) - whiteboard.XLIM[0]) * to_px
+        boxes = dict(_boxes(scene))
+        for w in words:
+            assert boxes[w.text].x0 > middle, (w.text, round(boxes[w.text].x0), round(middle))
 
     @pytest.mark.parametrize("long_days", [707, 800])
     def test_a_net_long_or_flat_run_is_refused(self, figures, long_days) -> None:

@@ -638,8 +638,8 @@ class TestThePostQuotesThePins:
         months = held_at_peak.to_period("M")
         assert list(months) == list(pd.period_range(months[0], months[-1], freq="M"))
         assert (
-            f"{aud.max():.2f} percent, held from {held_at_peak[0]:%B} to "
-            f"{held_at_peak[-1]:%B %Y}, down to {aud.min():.2f} in {aud_trough:%B %Y}"
+            f"{aud.max():.2f} percent from {held_at_peak[0]:%B} to "
+            f"{held_at_peak[-1]:%B %Y} and fell to {aud.min():.2f} in {aud_trough:%B %Y}"
         ) in self.text
         assert (
             f"{cad.max():.2f} percent in {cad_peak:%B %Y} down to {cad.min():.2f} in "

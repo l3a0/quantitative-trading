@@ -3,7 +3,7 @@
 ``blog/aud-cad-rollover-lessons.md`` explains in Lesson 2 why annualising the
 average daily rollover interest over 365 days overstates the year, and in
 Lesson 3 why a strategy that is long and short in turns earns rollover
-interest only on its net position. This module draws two scenes, and the post
+interest roughly on its net position. This module draws two scenes, and the post
 places each right after the text it draws.
 
 1. Five trading days pay for seven, after Lesson 2's list of the two readings
@@ -369,8 +369,13 @@ BAR_X = (0.5, 9.5)
 BAR_Y = 3.3
 BAR_WIDTH = 14.0
 BRACKET_Y = 2.85
+#: How far below the bracket the two lines naming the leftover days sit. Two
+#: short lines ending at the bar's right end keep the words close to the red
+#: span they name. On one line they reached back past the bracket's middle tick,
+#: under the long days, and only their red ink tied them to the leftover.
+LEFTOVER_DROP = (0.45, 0.79)
 #: The row that multiplies the net share by the rate, and the row that checks it.
-PRODUCT_Y, ADDED_Y = 1.75, 1.2
+PRODUCT_Y, ADDED_Y = 1.64, 1.15
 PRODUCT_ARROW = (6.6, 7.35)
 #: Where the two results end, so their figures sit one above the other.
 RESULTS_RIGHT = 9.6
@@ -442,7 +447,7 @@ def _long_short_cancel(f: RunFigures) -> Scene:
                 frames=6,
             ),
             Label(
-                f"{f.long_days:,} days long: earn the rollover",
+                f"{f.long_days:,} days long: earn rollover interest",
                 left,
                 BAR_Y + 0.45,
                 names="long",
@@ -478,10 +483,18 @@ def _long_short_cancel(f: RunFigures) -> Scene:
             Label("cancel", left + 0.3, BRACKET_Y - 0.45, names="cancel", color=MUTED),
             _stroke("leftover", _span(paired_end, right, BRACKET_Y), color=LOST, frames=4),
             Label(
-                f"{f.short_days - f.long_days:,} more days short: "
+                f"{f.short_days - f.long_days:,} more days short:",
+                right,
+                BRACKET_Y - LEFTOVER_DROP[0],
+                names="leftover",
+                color=LOST,
+                ha="right",
+                size=12,
+            ),
+            Label(
                 f"a net share of {_signed(100 * f.net_share, 1)} percent",
                 right,
-                BRACKET_Y - 0.45,
+                BRACKET_Y - LEFTOVER_DROP[1],
                 names="leftover",
                 color=LOST,
                 ha="right",
