@@ -90,7 +90,7 @@ Example 5.2 says the annualised average rollover interest “would amount to alm
 
 The pass mark was not written blind. Its author already knew the monthly rates averaged 4.908 percent for AUD and 1.592 percent for CAD from July 2007 to the end of each file. Those two averages differ by about 3.3 points, below the pass mark’s floor of 4.5 percent, so a miss was likely. When writing the pass mark down, its author also named the AUD rate alone as the likely reason the book’s figure was higher.
 
-**The defined figure misses.** The computation follows the book’s definition. Take the rollover interest a long position would earn each day, yesterday’s daily AUD rate less yesterday’s daily CAD rate, with AUD’s tripled on Wednesdays and CAD’s on Thursdays, over all 1,237 days. Average it and multiply by 252, the trading days a year the script uses to annualise its returns. Rollover interest comes to 3.26 percent a year, below the floor of 4.5 percent.
+**The defined figure misses.** The computation follows the book’s definition. Take the rollover interest a long position would earn each day, yesterday’s daily AUD rate less yesterday’s daily CAD rate, with AUD’s tripled on Wednesdays and CAD’s on Thursdays as the script does, over all 1,237 days. Average it and multiply by 252, the trading days a year the script uses to annualise its returns. Rollover interest comes to 3.26 percent a year, below the floor of 4.5 percent.
 
 Two other readings fall inside the pass mark.
 

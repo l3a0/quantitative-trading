@@ -422,7 +422,7 @@ where they were first built. The other forty-five were built here.
     other readings land near 5 percent: the AUD rate alone at 0.046648, and
     the differential annualised over 365 days at 0.047279. Every figure is
     exploratory, and the script triples CAD's rollover on Thursdays where the
-    book's own settlement rule says Wednesday.
+    book names Wednesday.
 31. Crude oil reversal joined to momentum, from *Algorithmic Trading*'s
     Chapter 6, on Chan's own continuous futures. The rule buys CL at the
     close when it is below its price 30 trading days ago and above its price
