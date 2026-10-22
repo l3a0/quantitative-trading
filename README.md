@@ -2609,9 +2609,13 @@ are checked by
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
 instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's thirty-nine GIFs are checked the same way by
-[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that neither module draws.
+equity seasonals post's thirty-nine GIFs and the calendar spreads post's two
+are checked the same way by
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
+and
+[tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py).
+The first of those also fails on any GIF in the folder that none of the three
+posts' modules draws.
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3778,11 +3782,13 @@ Every other number in the post traces to an assertion in
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py),
 which pins Entry 15's rows, to
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) for the
-16 contracts whose exchange dates check the expiry rule, or to
+16 contracts whose exchange dates check the expiry rule, to
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
-for the figure's own labels.
+for the figure's own labels, or to
+[tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py)
+for the sketches' labels and the alt texts that quote them.
 
-Its one figure is drawn from the committed EIA files by
+Its one chart is drawn from the committed EIA files by
 [src/chan/calendar_spread_figures.py](src/chan/calendar_spread_figures.py),
 which reads them through the same `calendar_spread` as
 `python -m chan.stationary_candidates calendar-spread`. It draws one panel per
@@ -3797,6 +3803,41 @@ uv run python -m chan.calendar_spread_figures
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/calendar_spreads_whiteboard.py](src/chan/calendar_spreads_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `calendar_spreads_both_orientations.gif`, in Lesson 2 after the figure's
+   caption, draws natural gas's null counts as circles whose areas stand for
+   them. Each orientation alone rejects in a median of 38 null pairs under
+   either null. Both orientations reject in 12 against independent walks and
+   in 35 against correlated ones, so the circles overlap by about a third in
+   the first panel and almost wholly in the second. It closes on the files' 62, 62 and
+   57.
+2. `calendar_spreads_one_window.gif`, in Lesson 4 after the list under "The
+   six days each window drops", draws the June 2018 natural gas pair's window
+   on an axis of trading days: the four expiries it rests on, which numbered
+   file each leg reads on each day, its 58 kept days, and its six dropped days
+   as red crosses.
+
+Neither sketch is schematic.
+[tests/test_stationary_candidates.py](tests/test_stationary_candidates.py)
+pins the single-orientation medians in `TestTheNullInEachOrientation`, and
+holds that the run gives `PINNED`, the figures the first sketch's test draws.
+The second sketch reads its dates and counts from the committed files through
+the run's own calendar.
+[tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py)
+holds what each sketch says, its inks, that each circle's area and each
+overlap stand to one scale for their counts, that each tick, stretch, dot and
+cross stands at its trading day, where each sits in the post, and that each
+alt text quotes every label in the order it is drawn. It compares each
+committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic Sans
+MS, as the USD.CAD sketches' test does.
+
+```bash
+uv run python -m chan.calendar_spreads_whiteboard
+```
 
 [blog/conditional-parameter-optimization-lessons.md](blog/conditional-parameter-optimization-lessons.md)
 is a fourteenth post, about Conditional Parameter Optimization, Example 7.1 of
