@@ -4148,8 +4148,9 @@ EWA, EWC and IGE for cointegration with the CADF and Johansen tests and trade
 the triplet's first eigenvector with a linear mean-reversion rule. Chan reports
 a CADF statistic of about −3.64, a half-life of 23 days, and an APR of 12.6
 percent with a Sharpe ratio of 1.4. It is the blog's explanation of the
-Johansen test, built from the Engle-Granger test the earlier posts teach, which Chan's MATLAB code runs as the CADF test. The post
-draws six lessons from Entry 23 of the replication log.
+Johansen test, built from the Engle-Granger test the earlier posts teach,
+which Chan's MATLAB code runs as the CADF test. The post draws six lessons
+from Entry 23 of the replication log.
 
 1. Every figure `cointegrationTests.m` prints reproduces to its last digit,
    the eigenvectors with their signs flipped.
@@ -4215,6 +4216,13 @@ them.
 4. The strategy's deepest drawdown of −0.101249 on 2010-08-16, and its longest
    spell below a high, 598 days from 2009-04-02 to 2011-08-15 after a high on
    2009-04-01.
+
+`TestWhatThePostQuotes` in
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) reads the
+post itself. It rebuilds each number the post quotes from this run, the alt
+text's included, and fails when the post no longer says it. Of the numbers
+the post quotes from a run, it leaves only the two Entry 24 counts Lesson 4
+cites to [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py).
 
 Its one figure is drawn from the committed file by
 [src/chan/etf_cointegration_figures.py](src/chan/etf_cointegration_figures.py),

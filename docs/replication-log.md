@@ -5701,14 +5701,18 @@ location 1350 calls it impractical for that reason. No cost is charged here, as
 none is in the script.
 
 **Whether another lag count changes the counts.** Every Johansen call in a
-book-two script uses `k = 1`, and so does this entry. The relation counts in rows 6 and 9 are for
-that lag alone, and row 6's rests on a margin of 0.141.
+book-two script uses `k = 1`, and so does this entry. The relation counts in
+rows 6 and 9 are for that lag alone, and row 6's rests on a margin of 0.141.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit, and
-[blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) moves with
-it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.etf_cointegration_figures` redraws.
+change to any assertion named above moves this entry in the same commit.
+[blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) quotes most of
+these figures, and the suite does check that post. `TestWhatThePostQuotes` in
+[tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) rebuilds
+each figure the post quotes from the run and fails when the post no longer
+says it. So a re-pin that leaves the post behind fails the suite, while one
+that leaves this entry behind does not. The post's one figure moves with it
+too, and `uv run python -m chan.etf_cointegration_figures` redraws it.
 
 ## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
 
