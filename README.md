@@ -4250,7 +4250,8 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 2. `etf_cointegration_two_relations.gif`, in Lesson 4, the pair's two
    relations as two arrows on a plane of shares of EWA and EWC, with EWA held
    alone built from them by a dashed parallelogram. It is schematic and
-   carries no figures, and its words state the test's claim as a condition.
+   carries none of the run's figures, and its words state the test's claim as
+   a condition.
 
 ```bash
 uv run python -m chan.etf_cointegration_whiteboard
@@ -4262,7 +4263,8 @@ the run on the committed file, and holds that each block's height is affine in
 its statistic, that the stack's top is the trace statistic, and that figures
 which would make its words false are refused. It compares each committed GIF
 with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS, as the
-USD.CAD sketches' test does.
+USD.CAD sketches' test does. The sketches draw with the USD.CAD module's
+strokes, timeline and renderer, so an edit there needs this redraw too.
 
 [blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
 locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the

@@ -16,15 +16,18 @@ paragraph it draws.
    :class:`TraceStack`, read from the triplet's Johansen test in
    :mod:`chan.etf_cointegration` on the committed vintage. Figures that would
    make its words false are refused rather than drawn.
-2. Two relations span every portfolio, in Lesson 4 after the paragraph that
-   opens "Chan reads the two relations as two hedge ratios". It is schematic
-   and carries no figures. A plane of shares of EWA across and shares of EWC
-   up holds two arrows for the pair's two relations, pointing different ways,
-   and a dashed parallelogram builds EWA held alone, (1, 0), from the two. Its
-   closing words state the test's claim as a condition, "if both relations
-   revert, so does EWA alone", because the post calls the claim a tension the
-   run does not settle: a plain ADF test on EWA alone does not reject a unit
-   root. The arrows' lengths and directions are not the run's eigenvectors.
+2. The test's two relations span every portfolio, in Lesson 4 after the
+   paragraph that opens "Chan reads the two relations as two hedge ratios". It
+   is schematic and carries none of the run's figures. A plane of shares of
+   EWA across and shares of EWC up holds two arrows for the pair's two
+   relations, pointing different ways, and a dashed parallelogram builds EWA
+   held alone, (1, 0), from the two. Its closing words state the test's claim
+   as a condition, "if both relations revert, so does EWA alone", because the
+   post calls the claim a tension the run does not settle: a plain ADF test on
+   EWA alone does not reject a unit root. Each arrow falls in the quadrant of
+   the run's eigenvector, up to its sign: relation 1 is long one ETF and short
+   the other, and relation 2 is long both. Their lengths and angles are
+   schematic.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied: its strokes, labels, timeline, renderer and palette, so these
@@ -230,10 +233,13 @@ def _trace_stack(f: TraceStack) -> Scene:
 
 #: The plane's origin, and where each arrow of the two-relations sketch ends.
 #: The two relations point different ways, and EWA alone is their sum, the
-#: far corner of the parallelogram they make. The lengths are schematic.
+#: far corner of the parallelogram they make. Relation 1, the pair's first
+#: eigenvector, is long one ETF and short the other, so it points down and to
+#: the right. Relation 2 is long both, so it points up and to the right. The
+#: lengths and angles are schematic.
 ORIGIN = (1.4, 2.2)
-RELATION_1 = (3.6, 3.4)
-RELATION_2 = (3.2, 1.0)
+RELATION_1 = (3.2, 1.0)
+RELATION_2 = (3.6, 3.4)
 EWA_ALONE = (
     RELATION_1[0] + RELATION_2[0] - ORIGIN[0],
     RELATION_1[1] + RELATION_2[1] - ORIGIN[1],
@@ -245,7 +251,7 @@ def _two_relations() -> Scene:
     ox, oy = ORIGIN
     (ax, ay), (bx, by), (tx, ty) = RELATION_1, RELATION_2, EWA_ALONE
     return Scene(
-        "Two relations span every portfolio",
+        "The test’s two relations span every portfolio",
         "two_relations",
         (
             _stroke("ewa-axis", _line([(0.6, oy), (7.4, oy)]), color=MUTED, frames=6),
@@ -253,9 +259,9 @@ def _two_relations() -> Scene:
             _stroke("ewc-axis", _line([(ox, 0.3), (ox, 3.9)]), color=MUTED, frames=6),
             Label("shares of EWC", ox + 0.2, 3.85, names="ewc-axis", color=MUTED, size=12),
             _stroke("relation-1", _arrow(ox, oy, ax, ay), width=2.6, frames=6),
-            Label("relation 1", ax + 0.1, ay + 0.3, names="relation-1", size=12),
+            Label("relation 1", ax, ay - 0.35, names="relation-1", ha="center", size=12),
             _stroke("relation-2", _arrow(ox, oy, bx, by), width=2.6, frames=6),
-            Label("relation 2", bx, by - 0.35, names="relation-2", ha="center", size=12),
+            Label("relation 2", bx + 0.1, by + 0.3, names="relation-2", size=12),
             _stroke(
                 "mix", _line([(ax, ay), (tx, ty), (bx, by)]), color=MUTED, dashed=True, frames=8
             ),

@@ -15,10 +15,11 @@ them: each block's height is affine in its statistic, the stack's top is the
 trace statistic, each bar sits at its critical value, and made-up figures move
 the marks and the words.
 
-The two-relations sketch is schematic and carries no figures, so what is
-pinned for it is what a reader takes from it: two relations pointing different
-ways, EWA alone as the far corner of the parallelogram they make, and the
-test's claim stated as a condition.
+The two-relations sketch is schematic and carries none of the run's figures,
+so what is pinned for it is what a reader takes from it: two relations
+pointing different ways, each in its eigenvector's quadrant, EWA alone as the
+far corner of the parallelogram they make, and the test's claim stated as a
+condition.
 
 The rules every sketch shares are pinned too: no label touches a line, leaves
 the board or touches another label, in the installed hand font and in the
@@ -336,8 +337,17 @@ class TestThePost:
                 assert found >= 0, (scene.slug, label)
                 at = found + 1
 
+    def test_the_stack_alt_text_says_the_piece_stops_short_and_the_stack_clears(
+        self, every
+    ) -> None:
+        """The words the alt text uses for the two verdicts, which
+        ``test_the_piece_stops_short_and_the_stack_clears`` holds the drawing to."""
+        alt = _alt(POST.read_text(encoding="utf-8"), every[0])
+        assert "stops just below a dashed line labelled “90% eigen bar" in alt
+        assert "“34.429 clears it”" in alt
+
     def test_the_two_relations_alt_text_says_it_is_schematic(self, every) -> None:
-        assert "It is schematic and carries no figures." in _alt(
+        assert "It is schematic and carries none of the run’s figures." in _alt(
             POST.read_text(encoding="utf-8"), every[1]
         )
 
@@ -370,8 +380,16 @@ class TestTheStackFigures:
             {"trace": 28.5},
             {"eigen_bar": 11.0},
             {"trace_bar": 29.0},
+            {"eigen_bar": 12.0},
+            {"trace_bar": 28.0},
         ],
-        ids=["pieces not adding up", "first piece clearing", "stack short of its bar"],
+        ids=[
+            "pieces not adding up",
+            "first piece clearing",
+            "stack short of its bar",
+            "first piece on its bar",
+            "stack on its bar",
+        ],
     )
     def test_figures_the_words_would_misdescribe_are_refused(self, changes) -> None:
         with pytest.raises(StackRefused):
@@ -407,10 +425,19 @@ class TestTheStackSketch:
             "trace-bar": INK,
         }
         assert [_stroke(scene, g).dashed for g in ("eigen-bar", "trace-bar")] == [True, True]
-        assert _labels(scene, "falls short")[0].color == LOST
-        assert _labels(scene, "34.429 clears it")[0].color == GOOD
-        for text in ("+ 13.061", "+ 4.471"):
-            assert _labels(scene, text)[0].color == ACCENT
+        assert [(s.text, s.color) for s in scene.steps if isinstance(s, Label)] == [
+            ("16.897", INK),
+            ("eigen test, r ≤ 0", INK),
+            ("90% eigen bar, 18.893", INK),
+            ("falls short", LOST),
+            ("the same piece", MUTED),
+            ("16.897", INK),
+            ("trace test, r ≤ 0", INK),
+            ("+ 13.061", ACCENT),
+            ("+ 4.471", ACCENT),
+            ("95% trace bar, 29.796", INK),
+            ("34.429 clears it", GOOD),
+        ]
 
     def test_each_block_is_affine_in_its_value(self, stack) -> None:
         """Every block's height is its statistic times one scale, on the run's
@@ -516,7 +543,15 @@ class TestTheTwoRelationsSketch:
             "ewa": ACCENT,
         }
         assert _stroke(scene, "mix").dashed
-        assert _labels(scene, "EWA alone (1, 0)")[0].color == ACCENT
+        assert [(s.text, s.color) for s in scene.steps if isinstance(s, Label)] == [
+            ("shares of EWA", MUTED),
+            ("shares of EWC", MUTED),
+            ("relation 1", INK),
+            ("relation 2", INK),
+            ("a mix of relations 1 and 2", MUTED),
+            ("EWA alone (1, 0)", ACCENT),
+            ("if both relations revert, so does EWA alone", INK),
+        ]
 
     def test_the_relations_point_different_ways_from_the_origin(self, every) -> None:
         scene = every[1]
@@ -526,7 +561,19 @@ class TestTheTwoRelationsSketch:
         a = np.array(sketches.RELATION_1) - origin
         b = np.array(sketches.RELATION_2) - origin
         assert abs(a[0] * b[1] - a[1] * b[0]) > 1.0
-        assert (a[1] > 0, b[1] < 0) == (True, True)
+
+    def test_each_relation_falls_in_its_eigenvectors_quadrant(self, result) -> None:
+        """Up to its sign, the pair's first eigenvector is long one ETF and
+        short the other, and its second is long both. The arrows follow: the
+        first points down and to the right, the second up and to the right.
+        The eigenvector rows run EWC, EWA, and the plane is EWA across, EWC up."""
+        vectors = result.pair.eigenvectors
+        origin = np.array(sketches.ORIGIN)
+        for column, end in enumerate((sketches.RELATION_1, sketches.RELATION_2)):
+            ewc, ewa = vectors[:, column]
+            across, up = np.array(end) - origin
+            assert np.sign(across * up) == np.sign(ewa * ewc), column
+        assert np.array(sketches.RELATION_1)[1] < origin[1] < np.array(sketches.RELATION_2)[1]
 
     def test_ewa_alone_lies_on_its_axis_at_the_parallelograms_far_corner(self, every) -> None:
         """EWA alone has no EWC, so its arrow runs along the EWA axis, and it
