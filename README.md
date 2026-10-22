@@ -3772,15 +3772,15 @@ Five groups of its figures are not pinned here.
    less 202 is 11, that 580 is 360 and 220, that 2012-10-25 is two trading
    days before 2012-10-29, and that a window opening after one expiry,
    crossing two more and closing on a fourth rests on four, so each expiry
-   falls inside four pairs' windows, that a pair's window, from the day after
-   one expiry to the near contract's last day, spans about three months, and
-   that a rule two days off would misread one kept day in each of three pairs
-   around an expiry.
+   falls inside four pairs' windows, and that a pair's window, from the day
+   after one expiry to the near contract's last day, spans about three months.
 5. Its references. The four citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py),
-which pins Entry 15's rows, to
+which pins Entry 15's rows and whose `TestTheCalendarSpreadPostQuotesThePins`
+reads one copy of each count, bar, median, seed and handover tally from the
+post itself, to
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) for the
 16 contracts whose exchange dates check the expiry rule, to
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)

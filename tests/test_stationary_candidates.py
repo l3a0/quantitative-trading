@@ -104,7 +104,7 @@ The calendar-spread pins read eight vintages and one specification.
   corrected, after the result and on the owner's ruling, to correlate as the
   files' two legs do, and the declared null's figures are pinned beside it.
 
-Eleven classes. Most read the module fixture ``spreads``, which runs both
+Twelve classes. Most read the module fixture ``spreads``, which runs both
 batches once.
 
 1. ``TestTheCalendarSpreadVintages``, the eight files, and the three days the
@@ -126,6 +126,9 @@ batches once.
    time, which decides nothing either and which the post's sketch draws.
 10. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
 11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
+12. ``TestTheCalendarSpreadPostQuotesThePins``, one copy of each count, bar,
+    median, seed and handover tally the calendar spreads post quotes, read
+    from the post itself, and what a rule two days off would misread.
 
 A replication under the claim route, so exploratory. The batch takes about
 seven seconds, before the eight single-orientation nulls. First run on
@@ -141,6 +144,7 @@ import math
 import re
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -167,7 +171,7 @@ from chan.futures import (
     shifted,
     trading_days,
 )
-from chan.pair_cointegration import ResidualCheck, engle_granger, residual_check
+from chan.pair_cointegration import RESIDUAL_LAGS, ResidualCheck, engle_granger, residual_check
 from chan.series import WindowCrossesScaleBreak, aligned_closes, load_vintage
 from chan.stationary_candidates import (
     CROSS_RATE,
@@ -1908,3 +1912,172 @@ class TestTheCalendarSpreadCommandLine:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert "no eia RNGC1 raw vintage is recorded" in str(stopped.value)
+
+
+CALENDAR_POST = Path(__file__).resolve().parents[1] / "blog" / "calendar-spreads-lessons.md"
+
+
+def _month(month: tuple[int, int]) -> str:
+    return date(*month, 1).strftime("%B %Y")
+
+
+class TestTheCalendarSpreadPostQuotesThePins:
+    """One copy of each count, bar, median and handover tally in the calendar
+    spreads post, read from the post itself.
+
+    Other copies of the same figure elsewhere in the post are not always read.
+    The prose states these numbers and the classes above derive them, so
+    before this class a typo in the post passed every test.
+    """
+
+    text = CALENDAR_POST.read_text("utf-8")
+
+    def test_the_verdicts_in_the_opening(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"{count(ng.share, 360)} of its {len(ng.tests)} pairs reject the hypothesis of no "
+            f"cointegration, against a pass mark of {count(ng.cut, 360)}."
+        ) in self.text
+        assert (
+            f"{count(rbob.share, 220)} of its {len(rbob.tests)} pairs reject, against a pass "
+            f"mark of {count(rbob.cut, 220)}."
+        ) in self.text
+
+    def test_the_pairs_and_their_days(self, spreads) -> None:
+        ng, rbob = (spreads[name].tests for name in (NG, RBOB))
+        assert (
+            f"That gives {len(ng)} natural gas pairs, with near months from "
+            f"{_month(ng[0].pair.near)} to {_month(ng[-1].pair.near)}, and {len(rbob)} RBOB "
+            f"pairs, from {_month(rbob[0].pair.near)} to {_month(rbob[-1].pair.near)}."
+        ) in self.text
+        kept = {name: [len(t.pair.kept) for t in spreads[name].tests] for name in (NG, RBOB)}
+        a, b = (
+            f"{min(k)} to {max(k)}" for k in kept.values()
+        )
+        ng_median, rbob_median = (f"{np.median(k):g}" for k in kept.values())
+        assert (
+            f"Natural gas pairs keep {a} days, a median of {ng_median}, and RBOB pairs keep "
+            f"{b}, a median of {rbob_median}."
+        ) in self.text
+        assert f"A pair keeps about {ng_median} days, which gives" in self.text
+        assert f"Testing {len(ng) + len(rbob)} pairs at 10%" in self.text
+
+    def test_the_test_and_the_seeds(self) -> None:
+        bar = f"{EG_CRIT_N2[SPREAD_LEVEL]:.2f}".replace("-", "−")
+        assert f"the 10% critical value of {bar}." in self.text
+        assert f"with seed {NULL_SEED}, read each set" in self.text
+        assert f"is the {NULL_RANK}th smallest of those {NULL_SETS:,} counts" in self.text
+        assert f"truly cointegrates, with seed {SPREAD_POWER_SEED}." in self.text
+
+    def test_the_residual_check(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        words = {10: "ten"}
+        assert (
+            f"gives a p-value above {RESIDUAL_PASS_P:.2f} and none of the first "
+            f"{words[RESIDUAL_LAGS]} residual autocorrelations"
+        ) in self.text
+        assert (
+            f"{count(ng.near_on_far_residuals_pass, 360)} of 360 with the near month regressed "
+            f"on the far, and {count(ng.far_on_near_residuals_pass, 360)} the other way round"
+        ) in self.text
+        assert (
+            f"{count(rbob.near_on_far_residuals_pass, 220)} and "
+            f"{count(rbob.far_on_near_residuals_pass, 220)} of 220 in the same order"
+        ) in self.text
+
+    def test_the_table(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"& {count(ng.share, 360)} \\text{{ of }} 360 & {count(rbob.share, 220)} "
+            "\\text{ of } 220 \\\\"
+        ) in self.text
+        declared = (
+            f"{count(ng.declared_null_median, 360)}, \\ {count(ng.declared_cut, 360)} & "
+            f"{count(rbob.declared_null_median, 220)}, \\ {count(rbob.declared_cut, 220)} \\\\"
+        )
+        corrected = (
+            f"{count(ng.null_median, 360)}, \\ {count(ng.cut, 360)} & "
+            f"{rbob.null_median * 220:g}, \\ {count(rbob.cut, 220)} \\\\"
+        )
+        assert f"\\quad\\text{{median, bar}} & {declared}" in self.text
+        assert f"\\quad\\text{{median, bar}} & {corrected}" in self.text
+
+    def test_what_the_check_found(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"is {ng.correlation:.4f} for natural gas and {rbob.correlation:.4f} for RBOB."
+        ) in self.text
+        assert (
+            f"Natural gas rejects in {count(ng.near_on_far_share, 360)} pairs with the near "
+            f"month as the dependent leg and {count(ng.far_on_near_share, 360)} the other way "
+            f"round, against {count(ng.share, 360)} in both. RBOB rejects in "
+            f"{count(rbob.near_on_far_share, 220)} and {count(rbob.far_on_near_share, 220)}, "
+            f"against {count(rbob.share, 220)}."
+        ) in self.text
+        assert ng.null_reaching == 0
+        assert (
+            f"None of the 1,000 correlated null sets reaches natural gas’s "
+            f"{count(ng.share, 360)}, and {rbob.null_reaching} of them reach RBOB’s "
+            f"{count(rbob.share, 220)}."
+        ) in self.text
+
+    def test_the_slow_reversion_sets(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"averaged {float(ng.power.mean()) * 360:.1f} rejecting pairs of 360 for natural gas "
+            f"and {float(rbob.power.mean()) * 220:.1f} of 220 for RBOB."
+        ) in self.text
+
+    def test_the_handovers(self) -> None:
+        survey = TestTheExpiryMapAgainstTheFiles.survey
+        tallies = {
+            (product.name, shift): survey(product, first, shift)[1:]
+            for product, first in ((NATURAL_GAS_CONTRACTS, (1994, 2)), (RBOB_CONTRACTS, (2006, 1)))
+            for shift in (0, -1, 1)
+        }
+        (ng, ng_of), (rbob, rbob_of) = tallies[NG, 0], tallies[RBOB, 0]
+        assert f"for {ng} of the {ng_of} natural gas expiries the files have rows to check" in self.text
+        assert f"it does for {rbob} of {rbob_of} RBOB expiries" in self.text
+        early = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, -1], tallies[RBOB, -1]))
+        late = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, 1], tallies[RBOB, 1]))
+        assert f"a day earlier it fits {early}, and a day later {late}." in self.text
+        assert (
+            f"each of the {ng_of - ng} natural gas and {rbob_of - rbob} RBOB handovers that do "
+            "not fit"
+        ) in self.text
+
+    def test_a_rule_two_days_off(self, spreads) -> None:
+        """Around an expiry, a rule two days off misreads one kept day in each of up to three pairs.
+
+        Each misread day is credited to the expiry nearest it among the four a
+        pair's window rests on.
+        """
+        for name, product in ((NG, NATURAL_GAS_CONTRACTS), (RBOB, RBOB_CONTRACTS)):
+            for days in (2, -2):
+                wrong = shifted(product, days)
+                misread: dict[tuple[int, int], dict[tuple[int, int], int]] = {}
+                for test in spreads[name].tests:
+                    pair = test.pair
+                    for day in pair.kept:
+                        right = contract_number(day, *pair.near, product.last_trade)
+                        try:
+                            off = contract_number(day, *pair.near, wrong.last_trade)
+                        except ValueError:
+                            off = None
+                        if right != off:
+                            back = min(
+                                range(-4, 1),
+                                key=lambda k: (
+                                    abs((product.last_trade(*month_step(*pair.near, k)) - day).days),
+                                    k,
+                                ),
+                            )
+                            per_pair = misread.setdefault(month_step(*pair.near, back), {})
+                            per_pair[pair.near] = per_pair.get(pair.near, 0) + 1
+                assert misread, (name, days)
+                assert max(len(pairs) for pairs in misread.values()) == 3, (name, days)
+                assert {n for pairs in misread.values() for n in pairs.values()} == {1}, (name, days)
+        assert (
+            "on one kept day in each of up to three pairs around an expiry, and these counts do "
+            "not exclude that."
+        ) in self.text
