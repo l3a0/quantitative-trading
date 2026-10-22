@@ -6492,7 +6492,7 @@ and it misses the printed deviation.
 | 4 | `√252 · mean(ret) / std(ret)` | 1.393201 | `TestTheSpecification::test_the_sharpe_ratio` |
 | 5 | rows 1 to 4 fitted on training rows 2 to 500, from 2008-08-05 | 0.390635, $2,046.93, 0.122804 and 1.393228 | `TestTheDiagnostics::test_dropping_the_first_training_row_reaches_both_printed_figures` |
 | 6 | rows 3 and 4 with each position closed when the z-score crosses 0, as `bollinger.m` exits | 0.068463 and 0.870716 | `TestTheDiagnostics::test_an_exit_at_the_mean_misses` |
-| 7 | rows 3 and 4 with the band started flat on 2010-07-29 | 0.124916 and 1.415772 | `TestTheDiagnostics::test_starting_flat_on_the_first_test_day_misses` |
+| 7 | rows 3 and 4 with the rule started flat on 2010-07-29 | 0.124916 and 1.415772 | `TestTheDiagnostics::test_starting_flat_on_the_first_test_day_misses` |
 | 8 | rows 3 and 4 trading the printed 0.3906 in place of the fitted hedge | 0.122810 and 1.393205 | `TestTheDiagnostics::test_the_printed_constant_moves_nothing_that_prints` |
 | 9 | rows 1 to 4 on the 2012-05-17 save, the test cut at 2012-05-08, and on the 2012-05-11 save | 0.376431, $2,291.00, 0.056582 and 0.673910 on both | `TestTheDiagnostics::test_the_2012_05_17_save_misses` and `::test_the_2012_05_11_save_agrees_with_the_2012_05_17_save` |
 | 10 | `VX_ES.m` as shipped, 957 days from 2008-08-01 to 2012-05-17 on the 2012-05-17 save | 0.350731 and $2,373.59, and no trade | `TestTheDiagnostics::test_the_script_as_shipped` |
@@ -6529,7 +6529,7 @@ Three things.
    exit were chosen because they land the figures.
 3. **The trade's figures rest on four bets.** The portfolio enters the test
    already long and changes position three times in 449 days. An APR of 12.3
-   percent from four holding periods says little about how often the band
+   percent from four holding periods says little about how often the rule
    pays.
 
 ### What this entry cannot say
@@ -6538,7 +6538,7 @@ Three things.
 
 **Whether the portfolio is stationary.** The book argues it from a plot,
 Figure 5.11, and prints no statistic, and this run takes no test. The z-score
-sits beyond a band on 236 of the 449 test days against 113 of the 500
+sits outside the band on 236 of the 449 test days against 113 of the 500
 training days, which `TestTheTrade` holds, so the test set strays more often
 than training did.
 

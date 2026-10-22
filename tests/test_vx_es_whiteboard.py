@@ -683,7 +683,7 @@ class TestTheExitsSketch:
             "and dips below −1 again"
         ) in alt
         assert "then turns back up to end just above it" in alt
-        assert -1.0 < KNOTS[-1][1] < 0.0
+        assert -1.0 < KNOTS[-1][1] < -0.75
         assert "a green bar marked “long” from the dip below −1 to the rise above +1" in alt
         assert "a red bar marked “short” from there to the next dip below −1" in alt
         assert "a green bar marked “long” from the dip below −1 to the crossing of 0" in alt

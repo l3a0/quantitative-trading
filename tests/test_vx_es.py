@@ -1,10 +1,11 @@
 """The pins for VX against ES, *Algorithmic Trading*'s hedge from August 2008.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the diagnostics beside it, with one exception, in
-``blog/vx-es-lessons.md``. The post's figure has its own pins in
-``tests/test_vx_es_figures.py``. README lists what the post says that nothing
-pins. ``blog/crude-oil-reversal-momentum-lessons.md`` cites the APR on the
+about this replication and the diagnostics beside it, with two exceptions,
+both in ``blog/vx-es-lessons.md``. The post's chart has its own pins in
+``tests/test_vx_es_figures.py``, and its two sketches have theirs in
+``tests/test_vx_es_whiteboard.py``. README lists what the post says that
+nothing pins. ``blog/crude-oil-reversal-momentum-lessons.md`` cites the APR on the
 2012-05-07 save and on the 2012-05-17 save, falling by more than half, from
 the pins here. ``docs/replication-log.md`` Entry 28 carries the verdicts and
 points here row by row.
@@ -722,6 +723,8 @@ def post_fragments(legs, script_legs, result) -> list[str]:
         f"on {beyond[TRAINING_DAYS:].sum()} of the {n} test days, against"
         f" {beyond[:TRAINING_DAYS].sum()} of the {TRAINING_DAYS} training days",
         f"Each unit also holds {h.hedge:.2f} of a VX contract",
+        f"compounds the daily returns to a year of {module.TRADING_DAYS} trading days",
+        f"scaled by √{module.TRADING_DAYS}",
     ]
     fragments += [
         f"\\text{{{'Long' if units > 0 else 'Short'}}} & \\text{{{first}}} & {days} & {earned:.6f}"

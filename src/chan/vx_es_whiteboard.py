@@ -16,8 +16,8 @@ paragraph it draws.
    until the opposite band stays long from the dip below −1 to the rise above
    +1, then short until the next dip. Closing at the mean, as ``bollinger.m``
    does, closes each position where the path crosses zero and waits flat for
-   the next band. It sits in Lesson 3, after the paragraph opening "Closing
-   each position when the z-score crosses zero".
+   the next band. It sits in Lesson 3, after the paragraph opening "Chan’s
+   script for Example 3.2, `bollinger.m`, closes each position".
 
 Both sketches are schematic and carry no figures from the run. The dots, the
 shifts and the path are made up to show a shape, so no position, slope or

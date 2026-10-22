@@ -387,8 +387,8 @@ where they were first built. The other forty-five were built here.
     takes the VX strip, which has no spot. Every figure is exploratory.
 28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
     Chapter 5, on Chan's own continuous futures. A regression of ES on VX
-    from August 2008 gives the hedge, and a band from −1 to +1 training
-    deviations trades the residual. On the save of 2012-05-07, fitted on the
+    from August 2008 gives the hedge, and a rule trades the residual against
+    a band from −1 to +1 training deviations. On the save of 2012-05-07, fitted on the
     first 500 days from 2008-08-04, the hedge of 0.390594, the APR of
     0.122811 and the Sharpe ratio of 1.393201 reproduce the book's 0.3906,
     12.3 percent and 1.4. The residual's deviation of $2,044.91 misses the book's $2,047, and
@@ -1107,7 +1107,7 @@ the exception, and what it says that nothing here asserts is listed below.
 [tests/test_vx_es.py](tests/test_vx_es.py) does it for VX against ES. It pins
 the four figures on the 2012-05-07 save at the precision that is real and at
 the book's, and each diagnostic beside them: the first training day dropped,
-an exit at the mean, a band started flat on the first test day, the printed
+an exit at the mean, the rule started flat on the first test day, the printed
 hedge traded, the 2012-05-11 and 2012-05-17 saves, and `VX_ES.m` as it ships.
 It also holds the training and test spans, the four positions, and the
 scale-break guard on each leg of each save. The blog post about it is the
