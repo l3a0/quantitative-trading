@@ -947,6 +947,10 @@ def power_shares(
     reverting at ``half_life``, unit innovations on both. Each pair draws its
     far leg's steps and then its spread's, in delivery order, and is read on
     the days the real pair keeps.
+
+    Unlike the corrected null, it does not match the files' correlation. With
+    the spread's innovations as large as the walk's, the two legs' daily
+    changes correlate at about 0.7, where the files' do at about 0.99.
     """
     phi = 1.0 - math.log(2.0) / half_life
     rng = np.random.default_rng(seed)

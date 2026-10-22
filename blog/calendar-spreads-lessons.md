@@ -6,7 +6,7 @@
 
 Ernest Chan’s *Quantitative Trading* names calendar spreads as “the simplest examples of cointegrating futures pairs” (Chan, 2021, location 3951). A calendar spread is a long position in one commodity’s futures for one delivery month and a short position in the same commodity for another. Two prices **cointegrate** when some combination of them keeps returning to a fixed average, which is what a trade on the spread between them needs. Chan prints no figure for the claim and works no example.
 
-His later book, *Algorithmic Trading*, qualifies it. Calendar spreads “do not generally mean-revert”, he writes there (Chan, 2013, location 2321). A few pages on he finds one that does. The 12-month calendar spread of crude oil, taken in logs, keeps returning to its average at 99% confidence, with a **half-life** of 36 days, the time a gap from the average takes to close halfway (locations 2461 and 2471). So the later book doubts the earlier claim in general and then finds an exception. This repository wrote that doubt down before computing any statistic, so neither verdict below can be presented afterwards as a surprise.
+His other book, *Algorithmic Trading*, published in 2013 between the two editions of *Quantitative Trading*, qualifies it. Calendar spreads “do not generally mean-revert”, he writes there (Chan, 2013, location 2321). A few pages on he finds one that does. The 12-month calendar spread of crude oil, taken in logs, keeps returning to its average at 99% confidence, with a **half-life** of 36 days, the time a gap from the average takes to close halfway (locations 2461 and 2471). So *Algorithmic Trading* doubts the claim in general and then finds an exception. This repository wrote that doubt down before computing any statistic, so neither verdict below can be presented afterwards as a surprise.
 
 A sentence with no number is still a claim a reader might act on, so it is worth checking. This repository tested every pair of neighbouring contracts in the free settlement prices the US Energy Information Administration (EIA) publishes for natural gas and RBOB gasoline futures, both traded on the New York Mercantile Exchange (NYMEX). In short:
 
@@ -16,7 +16,7 @@ A sentence with no number is still a claim a reader might act on, so it is worth
 
 Each commodity is judged alone. Every result here is **exploratory**. The data was spent checking a claim Chan chose, so it can say whether these spreads behaved as he said over these windows and nothing about whether trading them pays. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
-[The stationary candidates post](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md) covers the two other places Chan names in the same sentence, a currency rate and a pair of bonds. This post leans on it for the machinery. [Its section on how the test reads](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md#how-the-test-reads) defines the Engle-Granger test and the critical values it is read against, and [How to test whether a price spread mean-reverts](https://baowebdev.substack.com/p/how-to-test-whether-a-price-spread) builds the test step by step.
+[The stationary candidates post](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md) covers the two other places Chan names in the same passage, a currency rate and a pair of bonds. This post leans on it for the machinery. [Its section on how the test reads](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md#how-the-test-reads) defines the Engle-Granger test and the critical values it is read against, and [How to test whether a price spread mean-reverts](https://baowebdev.substack.com/p/how-to-test-whether-a-price-spread) builds the test step by step.
 
 ## The claim and the files
 
@@ -37,7 +37,7 @@ Two facts settle what the run computes on each pair.
    - **One lag** means the test’s regression on the residuals includes one earlier day’s change. It was written down before any statistic, as it was for the currency rate and the bond pair.
 2. **The residual check at one lag.** [The stationary candidates post’s Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md#lesson-3-checking-for-leftover-autocorrelation-can-strengthen-a-finding-shrink-a-margin-or-reverse-a-verdict) teaches that leftover autocorrelation in a fit’s residuals can reverse a verdict, because the critical values no longer apply. Its check passes a fit when a Breusch-Godfrey test for autocorrelation gives a p-value above 0.10 and none of the first ten residual autocorrelations falls outside a band of ±1.96/√n. About seven fits in ten pass for natural gas: 250 of 360 with the near month regressed on the far, and 255 the other way round. About three in four pass for RBOB, 168 and 166 of 220 in the same order. The rest are read against critical values that may not apply. The simulated contracts in Lesson 2 are tested at one lag too, so neither the real pairs nor the simulated ones had their lag count searched for until the check passed.
 
-The rules that decide each result are in [Entry 15 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-15-calendar-spreads-chans-quantitative-trading), which records each figure below beside the assertion that computes it.
+The rules behind every result are in [Entry 15 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-15-calendar-spreads-chans-quantitative-trading), which names the test that checks each one.
 
 ## Lesson 1: a claim with no number still needs a pass mark written down first
 
@@ -57,7 +57,7 @@ This answers a question the stationary candidates post raises. [Its Lesson 1](ht
 
 ## Lesson 2: the simulated contracts have to move together like real ones
 
-The pass mark written down first simulated every contract as an independent random walk, a price that takes random steps with no pull toward any level. Under it, both commodities passed. A check made after the first run found that real neighbouring contracts move together, and the simulated ones did not.
+The bar written down first came from simulating every contract as an independent random walk, a price that takes random steps with no pull toward any level. Under it, both commodities passed. What was written down with it already said that real contracts of one commodity move together, and expected that to matter only between pairs that share a contract. A check made after the first run found that it matters inside each pair, because it changes how often both orientations reject.
 
 ```math
 \small\begin{array}{l|r|r}
@@ -79,7 +79,7 @@ Four points explain how the result moved from the first reading to the second.
 3. **The correction.** The repository’s owner ruled on 3 October 2026 to judge both commodities again, against walks whose daily changes correlate at each commodity’s own median. Each simulated contract became the square root of that correlation times one walk shared by the whole commodity, plus the square root of one minus it times a walk of its own. In symbols, contract i is Xᵢ = √ρ · W + √(1 − ρ) · Zᵢ, where ρ is the commodity’s median correlation, W is the shared walk and Zᵢ is contract i’s own. The correction raised both bars, so it made a pass harder rather than easier, and it was not chosen to make the claim pass. It moved RBOB’s verdict and left natural gas’s where it was.
 4. **How far each verdict sits from its bar.** None of the 1,000 correlated null sets reaches natural gas’s 57, and 973 of them reach RBOB’s 14. Natural gas clears its bar by ten pairs, and RBOB falls seventeen short. That count of null sets was added after the verdicts were seen, because a bar alone does not say how close a verdict sat to it.
 
-![Two panels of histograms, one per commodity, counting pairs that reject in both orientations at 10% on the horizontal axis and null sets of 1,000 on the vertical. The upper panel is natural gas, 57 of 360 pairs. A grey histogram of 1,000 sets of independent walks is centred near its median of 12 pairs, with its 975th set marked as a dashed grey line at 19. A brass histogram of 1,000 sets of walks correlated as the files are is centred near its median of 35, with its dashed line at 47. A solid dark line at 57 sits past both. The lower panel is RBOB gasoline, 14 of 220 pairs. Its grey histogram is centred near its median of 7 with its bar at 13, and its brass histogram near its median of 21.5 with its bar at 31. The solid line at 14 sits just past the grey bar and well inside the brass histogram.](../docs/figures/calendar_spread_nulls.png)
+![Two panels of histograms, one per commodity, counting pairs that reject in both orientations at 10% on the horizontal axis, and on the vertical the number of null sets, out of 1,000, giving each count. The upper panel is natural gas, 57 of 360 pairs. A grey histogram of 1,000 sets of independent walks is centred near its median of 12 pairs, with the 975th smallest of its 1,000 counts marked as a dashed grey line at 19. A brass histogram of 1,000 sets of walks correlated as the files are is centred near its median of 35, with its dashed line at 47. A solid dark line at 57 sits past both. The lower panel is RBOB gasoline, 14 of 220 pairs. Its grey histogram is centred near its median of 7 with its bar at 13, and its brass histogram near its median of 21.5 with its bar at 31. The solid line at 14 sits just past the grey bar and at the low end of the brass histogram, with 973 of the 1,000 brass sets at or above it.](../docs/figures/calendar_spread_nulls.png)
 
 *Each histogram is 1,000 sets of simulated contracts that do not cointegrate. Correlating them as the files are moves the whole histogram right. Natural gas stays past both bars, and gasoline falls short of the corrected bar, well inside its histogram.*
 
@@ -94,7 +94,9 @@ The run simulated 1,000 sets in which every pair truly cointegrates, with seed 2
 The two commodities read differently against that.
 
 1. **Natural gas’s 57 is far more than reversion that slow gives.** Whatever produces it reverts faster within these windows, or comes from something that neither the correlated null nor the slow-reversion simulation models. The run cannot say which.
-2. **RBOB’s 14 sits at what slow reversion gives**, and also inside what no reversion gives, since 973 of the 1,000 correlated null sets reach it. A window of about 56 days cannot separate the two.
+2. **RBOB’s 14 sits at what these slow-reversion sets give**, and also inside what no reversion gives, since 973 of the 1,000 correlated null sets reach it. A window of about 56 days cannot separate the two.
+
+These slow-reversion sets were not corrected the way the null was. Each pair’s two legs move together far less closely than the files’ contracts do, and Lesson 2 showed, for walks that do not cointegrate, that legs moving closely together reject in both orientations more often. So on contracts like the files’, reversion this slow would likely give more rejections than these sets do, and RBOB’s 14 may sit below it rather than at it. That simulation has not been rerun.
 
 So “did not reproduce” is not evidence that RBOB spreads fail to cointegrate. It says this test, on windows this short, could not show that they do.
 
@@ -114,7 +116,7 @@ EIA numbers its files by expiry, so contract 1 is whichever contract stops tradi
 
 Four questions are beyond it.
 
-1. **Whether a pair cointegrates over its whole life.** The nearest four hold a pair for about three months. A contract’s full history, and pairs more than a month apart, need contract-level data EIA does not publish. A request to the Massive futures data service on 3 October 2026 returned no prices for the three natural gas contracts it asked for, and no other source for that data is known here.
+1. **Whether a pair cointegrates over its whole life.** The nearest four hold a pair for about three months. A contract’s full history, and pairs more than a month apart, need contract-level data EIA does not publish. A request to the Massive futures data service on 3 October 2026 returned no prices for the three natural gas contracts it asked for, and no free source for that data is known here.
 2. **How much the corrected null leaves out.** It gives every pair in a commodity the same correlation, the median, and gives both legs the same volatility. Real correlations and volatilities vary from pair to pair and over time. Natural gas clears its bar by ten pairs and RBOB misses by seventeen, and how far a richer null could move either bar has not been measured.
 3. **Which pairs cointegrate.** No pair is singled out as cointegrating, for the two reasons Lesson 1 gives for judging none alone.
 4. **Whether trading a calendar spread pays.** Cointegration is a statement about two price series. A trade adds costs, the timing of each roll to the next pair, and margin, and none of those is modelled here.
@@ -128,7 +130,7 @@ Two habits carry over to any claim that prints no number.
 1. **Write the pass mark down first.** The count, the 975th of 1,000 simulated counts as the bar and the split across two commodities were fixed before any statistic was computed. Only the simulation behind the bar changed afterwards, and natural gas passes under both, which is what lets its verdict mean something.
 2. **Ask what the simulation leaves out.** Against independent walks, both commodities passed. Against walks that move together as real contracts do, only natural gas did. The second simulation is closer to the data, and it is the harder one to pass.
 
-Chan’s later book said calendar spreads do not generally mean-revert, then found one that does. On EIA’s free settlements, natural gas reproduces his earlier claim and RBOB gasoline does not, and both results are exploratory.
+In *Algorithmic Trading* Chan said calendar spreads do not generally mean-revert, then found one that does. On EIA’s free settlements, natural gas reproduces his claim in *Quantitative Trading*, and RBOB gasoline does not on windows this short, which leaves open whether its spreads cointegrate. Both results are exploratory.
 
 ## References
 
