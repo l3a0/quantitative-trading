@@ -54,6 +54,10 @@ A positive sum says less than it seems to, because a rule with no edge can end p
 
 The t is 0.2670, far below 1.645, as the registration predicted. So the mean daily P&L cannot be told from zero. The claim survives on the sign of the sum and on nothing stronger.
 
+![An animated whiteboard sketch titled “The sign and the t”, drawn stroke by stroke. A green check mark comes first, with the words “sum 0.1132 > 0” beside it. Below them a number line carries two ticks, labelled “0” and “1.645”. A red hatched zone above the line runs from the 1.645 tick to the line’s right end, under the words “beats chance, one-sided 5%”. A brown dot lands on the line just right of the 0 tick, far left of the zone, labelled “t = 0.2670”, with “mean daily P&L” above that. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_holdout_sign_and_t.gif)
+
+*The sum clears its mark of 0, and the t falls far short of 1.645. The line is drawn to scale, so the gap between any two marks is in proportion to the gap between their values. The sum and the t come from the run.*
+
 The Sharpe ratio says the same thing in the form most traders use. It is the mean daily P&L over its standard deviation, times the square root of 252 trading days. Dividing every day’s P&L by any fixed account size leaves it unchanged, so it needs no account. After 2012 it is 0.0715, against 0.12 on Chan’s closes. Both leave out the transaction costs and the overnight interest, as the P&L does.
 
 ## Lesson 2: writing the predictions down first is what makes it a check
