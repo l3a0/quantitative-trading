@@ -655,7 +655,7 @@ class TestThePost:
         assert re.fullmatch(
             rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[0])}\)", paragraphs[index + 1]
         )
-        assert paragraphs[index + 2].startswith("Build the null from what the data does")
+        assert paragraphs[index + 2].startswith("Give the null every feature the data has")
 
     def test_the_window_sketch_closes_the_six_days_list(self) -> None:
         """After the two-item list under its heading and before the next heading."""
