@@ -3175,9 +3175,9 @@ Four groups of its figures are not pinned here.
    kept ones.
    Halving Chan's 13 percent to about 6.5 percent a year is arithmetic no test
    asserts either.
-3. Its references. The four citations, including the publication details the
-   post gives for Heston and Sadka and for Singal, are cited rather than
-   computed.
+3. Its references. The five citations, including the publication details the
+   post gives for Cohen, for Heston and Sadka and for Singal, are cited rather
+   than computed.
 4. Heston and Sadka's own figures, read from their October 2006 working
    paper: NYSE- and AMEX-listed stocks in CRSP from January 1965 to December
    2002, only firms listed before each month, and the 1.15 percent a month in

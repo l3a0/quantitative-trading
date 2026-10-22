@@ -2235,7 +2235,8 @@ class TestTheSurvivorSketches:
 
     def test_each_alt_text_quotes_its_sketchs_words(self, survivors) -> None:
         """Every label but the axis years appears in the alt text word for word,
-        and the alt text's counts are the sketch's."""
+        and the alt text's counts and the places it names for the rings are the
+        sketch's."""
         text = POST.read_text(encoding="utf-8")
         for scene in survivors:
             alt = _alt(text, scene)
