@@ -3812,6 +3812,15 @@ def test_every_alt_text_quotes_each_label_that_carries_a_figure(every) -> None:
         and label not in _alt(text, scene)
     ]
     assert missing == []
+    unquoted = [
+        (scene.slug, label)
+        for scene in every
+        for label in scene.labels
+        if re.search(r"\d", label)
+        and re.search(r"[^\W\d_]", label)
+        and f"“{label}”" not in _alt(text, scene)
+    ]
+    assert unquoted == []
 
 
 def _minus(value: float, places: int) -> str:
@@ -3843,6 +3852,10 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         f"The low series averages {_minus(p.january_low, 4)} a January before costs",
         f"The high series averages {_minus(p.january_high, 4)}, with",
         f"The {len(ivv.months)} months average {_minus(p.monthly_mean, 4)} a month before costs",
+        f"over the {len(ivv.months)} months from January 2009 to September 2026",
+        f"the same return in every one of the {len(ivv.months)} months",
+        f"Each version goes through the one-sided t-test on the {PINNED_POWER.n} Januaries.",
+        f"It is a one-sided t-test on the {PINNED_POWER.n} Januaries.",
         headline,
         f"a checked price for {ivv.covered:,} of its {ivv.members:,} member-months",
         f"its t-statistic clears {shift.critical:.3f}",

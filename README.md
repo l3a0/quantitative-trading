@@ -3158,10 +3158,7 @@ Four groups of its figures are not pinned here.
 2. Counts, arithmetic and facts no test asserts. Nothing counts the seventeen
    reproduced figures, nine for Example 7.6 and eight for Example 7.7, or
    Lesson 1's rules, which of them are bugs, and the six it copies and one it
-   repairs, or the
-   first edition's 95 months with a return and 83 with a position, which are
-   its 96 months less the one with no return and less the twelve with no
-   position. Nothing states that a stretch's slope in the figure is its
+   repairs. Nothing states that a stretch's slope in the figure is its
    average monthly return, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
