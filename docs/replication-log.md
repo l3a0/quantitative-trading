@@ -2650,8 +2650,8 @@ code behind rows 9, 10, 13 and 14 traces to
 | --- | --- | --- | --- | --- |
 | 1 | `MATLAB_JANUARY`: month-ends by row, the number of stocks in a tenth rounded half away from zero, 58 long and 58 short of 578 ranked | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_three_januaries_reproduce` |
 | 2 | as row 1, 59 long and 59 short of 592 ranked | −0.0068 | 0.0000 | as row 1 |
-| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best and the 58th best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_three_januaries_reproduce` |
-| 4 | as row 3 | −0.003641 | 0.000000 | as row 3 |
+| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best and the weakest of the best tenth, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_three_januaries_reproduce` |
+| 4 | as row 3, 59 long and 57 short of 593 ranked | −0.003641 | 0.000000 | as row 3 |
 | 5 | `R_JANUARY`: row 1's rules with R's half-to-even rounding | −0.0244 | 0.0000 | `TestJanuaryR::test_the_three_januaries_reproduce` |
 | 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
 | 7 | `FIRST_EDITION_MATLAB`: month-ends by row, a stock kept or dropped on another stock's close because a sorted row is read against one in column order, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
