@@ -20,9 +20,10 @@ quotes, such as test_the_run_gives_these_dates_and_files.
    March note follows the dates.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
-hand font and the fallback, each GIF's size, frames, loop and timing, that two
-draws give the same bytes, and that each committed GIF is a fresh draw, a
-comparison that runs only on macOS arm64 with Comic Sans MS, as
+hand font and the fallback, each GIF's size, frames, loop and timing, the
+calendar sketch's slower pace, that two draws give the same bytes, and that
+each committed GIF is a fresh draw, a comparison that runs only on macOS
+arm64 with Comic Sans MS, as
 ``tests/test_usdcad_tests_whiteboard.py`` explains. The check that
 ``docs/figures`` holds exactly the GIFs the modules draw lives in
 ``tests/test_equity_seasonals_whiteboard.py``, which reads :data:`GIFS` from
@@ -61,6 +62,7 @@ from chan.commodity_seasonals_whiteboard import (
     main,
     make_commodity_seasonals_whiteboards,
     scenes,
+    sketch_timeline,
 )
 from chan.futures import ng_last_trade
 from chan.paths import FIGURES_DIR, REPO_ROOT
@@ -262,7 +264,7 @@ class TestTheGifs:
 
     def test_each_is_680_by_320_and_loops_forever(self, gifs, every) -> None:
         for path, scene in zip(gifs, every, strict=True):
-            steps = timeline(scene)
+            steps = sketch_timeline(scene)
             with Image.open(path) as image:
                 assert (image.size, image.n_frames, image.info["loop"]) == (
                     (WIDTH, HEIGHT),
@@ -273,9 +275,48 @@ class TestTheGifs:
 
     def test_each_opens_on_its_title_and_holds_its_drawing(self, every) -> None:
         for scene in every:
-            steps = timeline(scene)
+            steps = sketch_timeline(scene)
             assert (steps[0].done, steps[0].ms) == (0, TITLE_MS)
-            assert steps[-1].ms == HOLD_MS, scene.slug
+            hold = sketches.PACED_HOLD_MS if scene.slug in sketches.PACED else HOLD_MS
+            assert steps[-1].ms == hold, scene.slug
+
+    def test_the_calendar_sketch_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
+        """The pace the owner asked for: each label alone for 0.9 s, the drawing for
+        12 s, the equity post's slow pace. The streak sketch keeps the usual one."""
+        from chan import equity_seasonals_whiteboard as equity
+
+        assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
+        assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (
+            equity.PACED_LABEL_MS,
+            equity.PACED_HOLD_MS,
+        )
+        assert sketches.PACED == ("june_file",)
+        for scene in every:
+            frames = sketch_timeline(scene)
+            paced = scene.slug in sketches.PACED
+            labels = [
+                f
+                for f in frames[:-1]
+                if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
+            ]
+            assert labels, scene.slug
+            assert {f.ms for f in labels} == {
+                sketches.PACED_LABEL_MS if paced else whiteboard.LABEL_MS
+            }, scene.slug
+            assert frames[-1].ms == (sketches.PACED_HOLD_MS if paced else HOLD_MS)
+            assert [(f.done, f.partial) for f in frames] == [
+                (f.done, f.partial) for f in timeline(scene)
+            ]
+
+    def test_the_alt_text_says_slow_exactly_when_the_sketch_is_paced(self, every) -> None:
+        """A reader learns the pace from the alt text: "drawn slowly" and a
+        twelve-second hold for the paced sketch, and neither for the other."""
+        text = POST.read_text(encoding="utf-8")
+        for scene in every:
+            alt = _alt(text, scene)
+            paced = scene.slug in sketches.PACED
+            assert ("drawn slowly" in alt) == paced, scene.slug
+            assert ("twelve seconds" in alt) == paced, scene.slug
 
     def test_each_is_under_1_mb(self, gifs) -> None:
         for path in gifs:
@@ -290,7 +331,7 @@ class TestTheGifs:
 class TestTheCommittedGifs:
     def test_each_has_the_size_frames_loop_and_timing_of_a_fresh_draw(self, every) -> None:
         for name, scene in zip(GIFS, every, strict=True):
-            steps = timeline(scene)
+            steps = sketch_timeline(scene)
             committed = FIGURES_DIR / name
             with Image.open(committed) as image:
                 assert (image.size, image.n_frames, image.info["loop"]) == (

@@ -42,8 +42,13 @@ last day, the edge case the post's third check of the expiry rule covers.
 Both years' calendars are drawn on one axis of month and day.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look, frame rate, colours, pace
-and hold. Only the scenes and the file names are this module's. Each GIF is
+than copied, so these GIFs share that post's look, frame rate and colours.
+The streak sketch shares its pace and hold too. The calendar sketch carries
+more than a reader takes in at that pace, so it is in :data:`PACED`, and
+:func:`sketch_timeline` holds each of its labels longer and its finished
+drawing for twelve seconds, as :mod:`chan.equity_seasonals_whiteboard` does
+for its slow sketches. Only the scenes, the pacing and the file names are
+this module's. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
@@ -66,6 +71,7 @@ from chan.futures import ng_last_trade
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
+    Frame,
     Label,
     Scene,
     Stroke,
@@ -414,6 +420,30 @@ def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
     return Scene("Which file holds the June contract", "june_file", tuple(steps))
 
 
+#: The scenes that build slowly, because each carries more than a reader takes
+#: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
+#: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
+#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+PACED = ("june_file",)
+PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
+
+
+def sketch_timeline(scene: Scene) -> list[Frame]:
+    """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
+    frames = timeline(scene)
+    if scene.slug not in PACED:
+        return frames
+    paced = [
+        Frame(f.done, f.partial, PACED_LABEL_MS)
+        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
+        else f
+        for f in frames
+    ]
+    last = paced[-1]
+    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
+    return paced
+
+
 def june_years() -> tuple[JuneYear, JuneYear]:
     """The two years the calendar sketch draws, read from the run."""
     return JuneYear.from_run(STILL_TRADING_YEAR), JuneYear.from_run(EXPIRED_YEAR)
@@ -429,7 +459,7 @@ def scenes(
 
 
 def _write(scene: Scene, folder: Path) -> Path:
-    frames = timeline(scene)
+    frames = sketch_timeline(scene)
     first, *rest = render(scene, frames)
     path = folder / gif_name(scene)
     first.save(
