@@ -6182,8 +6182,8 @@ Five groups of what it says are not pinned here.
    without news reverting at 3109.
 2. Facts about the book and the code rather than the data: that Example 7.4
    reads the same S&P 600 file, that the notebook's rule fills each gap with
-   the last price seen, and that a split halves a price the file may not
-   adjust.
+   the last price seen, that a split halves a price the file may not adjust,
+   and that the S&P 600 file holds prices and volumes but no market values.
 3. Readings no test asserts: that the open's lift removes most of what
    separated the two universes at the close, that the rule replaces about the
    same share of its book in every universe, that one cost on both universes
@@ -6193,19 +6193,21 @@ Five groups of what it says are not pinned here.
    no cause to expect a bounce, that the daily profits are neither independent
    nor normal, that the 2012 panel's rule is a close cousin of this one, that
    the distance between two running totals says nothing about how much the
-   daily profits swing, that a reversal buys exactly the stocks that fell, and
-   that ignoring the correlation understates the noise in a gap when two
-   books' daily profits move against each other.
+   daily profits swing, that a reversal buys exactly the stocks that fell,
+   that Chan's explanation predicts a Sharpe ratio that rises as the
+   companies get smaller, that the rule for the change of source assumes the
+   change moves the S&P 400 about as much as it moved the S&P 600, and that
+   ignoring the correlation understates the noise in a gap when two books'
+   daily profits move against each other.
 4. Facts from outside the data and figures stated in words: the two news
    reports on BCSI and SCUR, their dates and what they say, that no source
-   states SCUR's close, the bound written as 0.625 for 1/1.6, and words such
-   as far more, barely past the line, about the same, about one standard
+   states SCUR's close, that the 116 holdings left out include companies
+   bought or failed after 2007, and words such as far more, far less, barely
+   past the line, just past the bound, about the same, about one standard
    error, most of the 116 left out, and many of the vendor's histories. The
-   prose writes
-   pinned fractions in percent, such as 98 percent for 0.98. The figure's alt
-   text reads its curves approximately too, such as the S&P 500's dashed line
-   on the opens dipping below zero in the middle of the year and the S&P
-   600's on the closes falling below zero in the spring.
+   figure's alt text reads its curves approximately too, such as the S&P
+   500's dashed line on the opens dipping below zero in the middle of the
+   year and the S&P 600's on the closes falling below zero in the spring.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6241,6 +6243,35 @@ measured after the run.
    gap's 2.2155 standard errors against it, and the share of Memmel's
    bracket the correlation term carries, 0.98 on the closes and 0.94 on the
    opens.
+
+Three classes read the post's own text, each building what it looks for from
+the run at the precision the post prints, so a typo in a figure they read
+fails a test.
+
+1. `TestThePostQuotesTheRun` in
+   [tests/test_khandani_lo_small_caps.py](tests/test_khandani_lo_small_caps.py)
+   reads the tables of Lessons 1, 2 and 4 whole. It also reads one prose copy
+   each of the window and its 251 days, the stocks priced on its first and
+   last days, the eight that miss a price, the open's lift, Lesson 3's two
+   shares of the bracket and its standard error with the correlation set to
+   0, Lesson 4's ranges of turnover and cost, and Lesson 5's bound and two
+   flagged days.
+2. `TestTheAltText` in
+   [tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
+   reads the figure's alt text, its nine percentages and both headings'
+   figures.
+3. `TestThePostQuotesTheLadder` in
+   [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py)
+   reads Lesson 6's S&P 400 figures: the 401 holdings, the 285 kept and the
+   116 left out, the three indexes' Sharpe ratios at both prices, the step of
+   2.1973 standard errors, the rebuilt S&P 600's two gaps and the two
+   distances to the nearer neighbour. It needs the owner's archive, so it
+   skips without it.
+
+The italic summary, the prose that repeats a table and the figure's caption
+are not read. `TestThePost` in
+[tests/test_khandani_lo_small_caps_whiteboard.py](tests/test_khandani_lo_small_caps_whiteboard.py)
+reads the two sketches' alt text.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/khandani_lo_small_caps_figures.py](src/chan/khandani_lo_small_caps_figures.py),

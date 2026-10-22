@@ -56,7 +56,7 @@ On the closes, before costs, the two universes are far apart.
 \end{array}
 ```
 
-This post rounds every figure, and each gap, ratio and z comes from the unrounded figures, so arithmetic on the printed cells can differ in the last digit.
+This post rounds every figure it prints, and each figure computed from others comes from the unrounded values. So arithmetic on the printed cells can differ in the last digit or two. The largest difference is in Lesson 4’s cost over profit for the S&P 500’s closes, because dividing by a profit as small as 0.5276 magnifies that profit’s rounding.
 
 A Sharpe ratio measured on 251 days is an estimate, and another year would give another number. The gap of +3.1576 is 3.1987 standard errors, a ratio the tables call z, past the line of 2 written down before the run. So one year of the closes can tell the S&P 600 from the S&P 500.
 

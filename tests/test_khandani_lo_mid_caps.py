@@ -72,7 +72,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from chan import archive, khandani_lo, khandani_lo_small_caps, sp400_panel
+from chan import archive, khandani_lo, khandani_lo_small_caps, paths, sp400_panel
 from chan import khandani_lo_mid_caps as mid_caps
 from chan.fund_panel import numbered_members
 from chan.khandani_lo import daily_returns, reversal, reversal_weights
@@ -840,3 +840,49 @@ class TestTheCommand:
         with pytest.raises(SystemExit) as stopped:
             mid_caps.main()
         assert str(stopped.value).startswith("no data archive is configured")
+
+
+# --- what the post quotes ----------------------------------------------------------------
+
+POST = paths.REPO_ROOT / "blog" / "khandani-lo-small-caps-lessons.md"
+
+
+@pytest.fixture(scope="module")
+def post() -> str:
+    return POST.read_text(encoding="utf-8")
+
+
+class TestThePostQuotesTheLadder:
+    """Lesson 6 of ``blog/khandani-lo-small-caps-lessons.md`` quotes this run, each figure once.
+
+    Each fragment is built from the run at the precision the post prints, so
+    a typo in the post fails here. It needs the archive, so it skips with the
+    archive pins above. Its words, such as "about one standard error" and
+    "most of the 116", are not asserted, and the size-order sketch's alt text
+    is held by ``tests/test_khandani_lo_small_caps_whiteboard.py``.
+    """
+
+    def test_the_holdings(self, post, read) -> None:
+        _, (mid, _), _ = read
+        holdings = len(sp400_panel.load(sp400_panel.IJH_PANEL))
+        fragments = [
+            f"That run starts from the {holdings} holdings",
+            f"Of the {holdings}, {len(mid)} pass both. Most of the {holdings - len(mid)} left out",
+        ]
+        assert [f for f in fragments if f not in post] == []
+
+    def test_the_ladder_and_the_control(self, post, result) -> None:
+        c, o = result.closes, result.opens
+        assert c.control_gap.gap > 0 > o.control_gap.gap
+        fragments = [
+            f"Before costs the S&P 400’s Sharpe ratio is {c.mid.before_costs:.4f} on the closes, "
+            f"between the S&P 500’s {c.large.before_costs:.4f} and the S&P 600’s "
+            f"{c.small.before_costs:.4f}.",
+            f"On the opens it is {o.mid.before_costs:.4f}, below both the S&P 500’s "
+            f"{o.large.before_costs:.4f} and the S&P 600’s {o.small.before_costs:.4f}.",
+            f"at {c.mid_gap.z:.4f} standard errors.",
+            f"lands {c.control_gap.gap:.4f} above that file’s on the closes and "
+            f"{-o.control_gap.gap:.4f} below it on the opens.",
+            f"{c.nearer_step:.4f} on the closes and {o.nearer_step:.4f} on the opens.",
+        ]
+        assert [f for f in fragments if f not in post] == []

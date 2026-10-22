@@ -9627,7 +9627,7 @@ can tell the two universes apart and one year of the opens cannot.
 
 **The comparison was declared before any S&P 600 figure was computed**, in
 [the declaration comment on issue 249](https://github.com/l3a0/quantitative-trading/issues/249#issuecomment-6104832067).
-It fixes three things.
+It fixes four things.
 
 1. **What each figure is read against.** Every S&P 600 figure is read
    against the S&P 500 figure with the same price, the same cost treatment and
@@ -9642,6 +9642,9 @@ It fixes three things.
    Memmel's (2003) correction of Jobson and Korkie (1981). A gap more than
    twice its standard error reads as larger than one year's noise. The size
    reading adds no verdict.
+4. **Khandani and Lo's 4.47.** It is a figure for 2006 too, but on their own
+   universe, so the entry prints it beside the result and judges nothing
+   against it.
 
 Entry 50 runs the S&P 400 half under
 [issue 303](https://github.com/l3a0/quantitative-trading/issues/303), with the

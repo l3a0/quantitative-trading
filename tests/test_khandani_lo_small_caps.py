@@ -91,6 +91,7 @@ from chan.khandani_lo_small_caps import (
     sharpe_gap,
 )
 from chan.series import (
+    SCALE_BREAK_BOUND,
     WindowCrossesScaleBreak,
     load_panel,
     refuse_window_crossing_a_break,
@@ -938,3 +939,188 @@ class TestWhatThePostMeasured:
             )
             shares[price] = f"{2 * (1 - gap.correlation) / bracket:.2f}"
         assert shares == {"closes": "0.98", "opens": "0.94"}
+
+
+# --- what the post quotes --------------------------------------------------------------
+
+POST = paths.REPO_ROOT / "blog" / "khandani-lo-small-caps-lessons.md"
+
+
+@pytest.fixture(scope="module")
+def post() -> str:
+    return POST.read_text(encoding="utf-8")
+
+
+def _latex_row(label: str, *cells: str) -> str:
+    """One row of a post's ``array``, with ``S&P`` written the way the post's LaTeX writes it."""
+    escaped = label.replace("S&P", "S}\\&\\text{P")
+    return " & ".join([f"\\text{{{escaped}}}", *cells])
+
+
+def _latex_rows(*rows: str) -> str:
+    """A table's rows in order, down to the line that ends its ``array``."""
+    return " \\\\\n".join(rows) + "\n\\end{array}"
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure ``blog/khandani-lo-small-caps-lessons.md`` quotes from this run.
+
+    Each fragment is built from the value the run computes, at the precision
+    the post prints, so a typo in the post fails here and a re-pin moves the
+    post in the same change. It reads one copy of each figure: the tables of
+    Lessons 1, 2 and 4 whole, and the first prose copy of the rest. The italic
+    summary, the prose that repeats a table and the figure's caption are not
+    read. The S&P 400 figures Lesson 6 quotes are held by
+    ``TestThePostQuotesTheLadder`` in ``tests/test_khandani_lo_mid_caps.py``,
+    the figure's alt text by ``TestTheAltText`` in
+    ``tests/test_khandani_lo_small_caps_figures.py``, and the two sketches'
+    alt text by ``TestThePost`` in
+    ``tests/test_khandani_lo_small_caps_whiteboard.py``.
+    """
+
+    def test_the_files_and_the_window(self, post, small_closes, result) -> None:
+        _, frame = small_closes
+        window = frame.loc[START:END]
+        days = result.small_closes.days
+        words = {8: "Eight", 6: "Six", 2: "two"}
+        missing = int(window.isna().any().sum())
+        none_all_year = int(window.isna().all().sum())
+        fragments = [
+            f"window of {len(days)} trading days, {days[0].date()} to {days[-1].date()}.",
+            f"On the window’s first day {frame.loc[START].notna().sum()} of them have a price, "
+            f"and on its last day {frame.loc[END].notna().sum()}.",
+            f"{words[missing]} of the {frame.shape[1]} stocks miss a price somewhere in 2006. "
+            f"{words[none_all_year]} have none all year, and {words[missing - none_all_year]} "
+            "start trading during it.",
+        ]
+        assert [f for f in fragments if f not in post] == []
+
+    def test_lesson_1s_table(self, post, result) -> None:
+        g = result.closes_gap
+        assert (
+            _latex_rows(
+                _latex_row("S&P 600, Sharpe ratio", f"{g.a_sharpe:.4f}"),
+                _latex_row("S&P 500, Sharpe ratio", f"{g.b_sharpe:.4f}"),
+                _latex_row("Gap", f"{g.gap:+.4f}"),
+                _latex_row("Correlation of daily profits", f"{g.correlation:.4f}"),
+                _latex_row("Standard error of the gap", f"{g.standard_error:.4f}"),
+                _latex_row("Gap in standard errors, z", f"{g.z:+.4f}"),
+            )
+            in post
+        )
+
+    def test_lesson_2s_table(self, post, result) -> None:
+        """Both prices' Sharpe ratios, gaps, correlations, standard errors and z values."""
+        c, o = result.closes_gap, result.opens_gap
+        assert (
+            _latex_rows(
+                _latex_row("S&P 600, Sharpe ratio", f"{c.a_sharpe:.4f}", f"{o.a_sharpe:.4f}"),
+                _latex_row("S&P 500, Sharpe ratio", f"{c.b_sharpe:.4f}", f"{o.b_sharpe:.4f}"),
+                _latex_row("Gap", f"{c.gap:+.4f}", f"{o.gap:+.4f}"),
+                _latex_row("Correlation", f"{c.correlation:.4f}", f"{o.correlation:.4f}"),
+                _latex_row(
+                    "Standard error of the gap",
+                    f"{c.standard_error:.4f}",
+                    f"{o.standard_error:.4f}",
+                ),
+                _latex_row("Gap in standard errors, z", f"{c.z:+.4f}", f"{o.z:+.4f}"),
+            )
+            in post
+        )
+
+    def test_the_opens_lift(self, post, result) -> None:
+        lc, lo = result.large_closes.before_costs, result.large_opens.before_costs
+        sc, so = result.small_closes.before_costs, result.small_opens.before_costs
+        assert (
+            f"The S&P 500 rises by {lo - lc:.4f}, from {lc:.4f} to {lo:.4f}, "
+            f"and the S&P 600 by {so - sc:.4f}, from {sc:.4f} to {so:.4f}."
+        ) in post
+
+    def test_lesson_3s_figures(self, post, result) -> None:
+        """The correlation term's share of the bracket, and the closes with the correlation at 0."""
+        daily = TestWhatThePostMeasured._daily
+        shares = []
+        for price in ("closes", "opens"):
+            gap = getattr(result, f"{price}_gap")
+            small = getattr(result, f"small_{price}").pnl
+            large = getattr(result, f"large_{price}").pnl
+            bracket = gap.days * memmel_variance(
+                daily(small), daily(large), gap.correlation, gap.days
+            )
+            shares.append(round(100 * 2 * (1 - gap.correlation) / bracket))
+        g = result.closes_gap
+        unrelated = math.sqrt(
+            TRADING_DAYS
+            * memmel_variance(
+                daily(result.small_closes.pnl), daily(result.large_closes.pnl), 0, g.days
+            )
+        )
+        fragments = [
+            f"carries {shares[0]} percent of the bracket on the closes and {shares[1]} percent "
+            "on the opens",
+            f"the standard error would be {unrelated:.4f}, and the gap of {g.gap:+.4f} would sit "
+            f"{g.gap / unrelated:.4f} standard errors out",
+        ]
+        assert [f for f in fragments if f not in post] == []
+
+    def test_lesson_4s_after_cost_table(self, post, result) -> None:
+        """Each price's heading row, then Chan's uncharged row and the charged one."""
+        blocks = []
+        for price in ("closes", "opens"):
+            small, large = getattr(result, f"small_{price}"), getattr(result, f"large_{price}")
+            rows = [f"\\text{{{price.capitalize()}}} & & &"]
+            for field, words in (("after_costs", "uncharged"), ("after_costs_charged", "charged")):
+                a, b = getattr(small, field), getattr(large, field)
+                rows.append(f"\\quad\\text{{{words}}} & {a:.4f} & {b:.4f} & {a - b:+.4f}")
+            blocks.append(" \\\\\n".join(rows))
+        assert " \\\\ \\hline\n".join(blocks) + "\n\\end{array}" in post
+
+    def test_lesson_4s_average_day_tables(self, post, result) -> None:
+        """Profit, cost and turnover in one table, cost over profit and break-even in the next."""
+        books = {
+            "S&P 600, closes": daily_book(result.small_closes),
+            "S&P 600, opens": daily_book(result.small_opens),
+            "S&P 500, opens": daily_book(result.large_opens),
+            "S&P 500, closes": daily_book(result.large_closes),
+        }
+        first = [
+            _latex_row(label, f"{d.profit * 1e4:.4f}", f"{d.cost * 1e4:.4f}", f"{d.turnover:.4f}")
+            for label, d in books.items()
+        ]
+        second = [
+            _latex_row(label, f"{d.cost_per_profit:.4f}", f"{d.profit / d.turnover * 1e4:.2f}")
+            for label, d in books.items()
+        ]
+        assert [t for t in (first, second) if _latex_rows(*t) not in post] == []
+
+    def test_lesson_4s_ranges(self, post, result) -> None:
+        days = [
+            daily_book(getattr(result, b))
+            for b in ("small_closes", "small_opens", "large_closes", "large_opens")
+        ]
+        turnovers = [d.turnover for d in days]
+        costs = [d.cost * 1e4 for d in days]
+        assert (
+            f"Every book trades between {min(turnovers):.4f} and {max(turnovers):.4f} times its "
+            f"average gross position a day, so every book pays between {min(costs):.4f} and "
+            f"{max(costs):.4f} basis points a day."
+        ) in post
+
+    def test_lesson_5s_bound_and_two_days(self, post, small_closes) -> None:
+        _, frame = small_closes
+        factor = math.exp(SCALE_BREAK_BOUND)
+        fragments = [
+            f"moves by more than a factor of {factor:.1f} from the day before, which means a "
+            f"close below 1/{factor:.1f}, or {1 / factor:.3f}, of the previous one",
+        ]
+        for symbol, day, tail in (
+            ("BCSI", "2006-02-06", " the day before"),
+            ("SCUR", "2006-07-12", ""),
+        ):
+            row = frame.index.get_loc(pd.Timestamp(day))
+            before, after = frame[symbol].iloc[row - 1], frame[symbol].iloc[row]
+            fragments.append(
+                f"**{symbol} on {day}** closes at {after:g} against {before:g}{tail}, "
+                f"a ratio of {after / before:.4f}."
+            )
+        assert [f for f in fragments if f not in post] == []
