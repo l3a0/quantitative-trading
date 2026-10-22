@@ -3998,25 +3998,29 @@ Five groups of its figures are not pinned here.
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    That a stationary mix of log prices is a portfolio of constant dollar
-   weights rebalanced every day is at 1435. That a ratio is stationary in "a
-   special case", when the two hedge ratios are equal and opposite, that a
-   ratio needs no hedge ratio, that a ratio is unchanged when both prices
-   scale together, a point Chan credits to a reader, and that Chan knows no
-   general answer to whether a ratio beats a spread with an adaptive hedge
-   ratio are at 1476. "Are not, in fact, cointegrated", the question whether
+   weights rebalanced every day is at 1435. That a ratio or its logarithm is
+   stationary in "a special case", when the two hedge ratios are equal and
+   opposite, that a ratio needs no hedge ratio, that a ratio is unchanged
+   when both prices scale together, a point Chan credits to a reader, and
+   that Chan knows no general answer to whether a ratio beats a spread with
+   an adaptive hedge ratio are at 1476. "Are not, in fact, cointegrated", the question whether
    enough short-term mean reversion remains to trade, that the rule is the
    linear mean reversion of Chapter 2, "near-optimal" with "the benefit of
    hindsight", the word stationary for the spread, "actually lower", the extra
    cost of the log price spread, "a negative APR" and the caption "Ratio =
    USO/GLD" are at 1505. The book's figures are pinned, and its words are not.
 2. Facts outside the committed data. That two public copies of Chan's code
-   hold the three scripts byte for byte and neither holds another version of
-   `Ratio.m`, which `src/chan/price_spread.py`'s docstring records, and that
-   the copy of the two closes in Chan's Python port equals the committed
-   closes, which [data/README.md](data/README.md) records.
+   hold the three scripts byte for byte, which `src/chan/price_spread.py`'s
+   docstring records, that neither holds another version of `Ratio.m`, which
+   Entry 21 of [docs/replication-log.md](docs/replication-log.md) records,
+   and that the copy of the two closes in Chan's Python port equals the
+   committed closes, which [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that any positive constant on the positions
-   cancels out of the return, which the equation shows. The tests check a
-   factor of 2 on synthetic arrays and the two divisors on Chan's file.
+   cancels out of the return, which the equation shows, and that the
+   leftover's standard deviation is about a twentieth of the spread's, which
+   dividing the pinned 2.27 by the pinned 45.37 shows. For the first, the
+   tests check a factor of 2 on synthetic arrays and the two divisors on
+   Chan's file.
 4. The book's Figures 3.1 and 3.2, which the post's figure redraws from the
    scripts' `plot` calls and which nothing compares with the book's own.
 5. Its references, cited rather than computed.
