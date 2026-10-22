@@ -3807,11 +3807,13 @@ def test_every_alt_text_quotes_the_labels_it_names_in_drawing_order(every) -> No
 
 def test_every_alt_text_quotes_each_label_that_carries_a_figure(every) -> None:
     """A label with a figure in it is what a reader who cannot see the GIF
-    relies on, so its alt text must carry it exactly. The drawing-order test
-    skips a label it cannot find, so a mistyped figure passes there. A bare
-    year is an axis tick, which an alt text may leave out. A label that mixes a
-    figure with words must also appear in quotes, because a bare match finds
-    "row 1" inside "row 13"."""
+    relies on, so its alt text must carry it. The drawing-order test skips a
+    label it cannot find, so a mistyped figure passes there. A bare year is an
+    axis tick, which an alt text may leave out. A label that mixes a figure
+    with words must appear in quotes, because a bare match finds "row 1" inside
+    "row 13". A label that is only a number is matched as a substring, so a
+    mistyped tick still passes when its text sits inside another figure in the
+    same alt text, such as "0.05" inside "0.0547"."""
     text = POST.read_text(encoding="utf-8")
     missing = [
         (scene.slug, label)
