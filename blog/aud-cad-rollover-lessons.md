@@ -20,7 +20,7 @@ Chan published the MATLAB script behind the example, `AUDCAD_daily.m`, and its l
 
 The four figures for the strategy, its APR and Sharpe ratio with and without rollover interest, match every digit the script and the book print. The book’s rollover figure does not. Before computing it, this repository wrote down a pass mark, the range the computed figure would have to fall in for “almost 5 percent” to count as a match: at least 4.5 percent a year and below 5. The rollover interest as the book defines it, averaged and scaled to a year by 252 trading days, comes to 3.26 percent a year on these files, below that range. Two other readings of “almost 5 percent” fall inside it: the AUD rate alone, and the rate difference scaled to a year by 365 days rather than 252 trading days. Nothing in the book or the script says which, if either, Chan computed.
 
-**Every result here is exploratory.** An exploratory result can rule an idea out or justify a closer look, and it confirms nothing. Chan chose the rule and the 2007 to 2012 sample, and the reproduction tests the rule on the same days he did. So it can say whether his numbers follow from his files, and nothing about whether the cross rate still returns to its average today.
+**Every result here is exploratory.** An exploratory result can rule an idea out or justify a closer look, and it is never a verdict on whether a rule makes money. Chan chose the rule and the 2007 to 2012 sample, and the reproduction tests the rule on the same days he did. So it can say whether his numbers follow from his files, and nothing about whether the cross rate still returns to its average today.
 
 The five lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -90,7 +90,7 @@ Example 5.2 says the annualised average rollover interest “would amount to alm
 
 The pass mark was not written blind. Its author already knew the monthly rates averaged 4.908 percent for AUD and 1.592 percent for CAD from July 2007 to the end of each file. Those two averages differ by about 3.3 points, below the pass mark’s floor of 4.5 percent, so a miss was likely. When writing the pass mark down, its author also named the AUD rate alone as the likely reason the book’s figure was higher.
 
-**The defined figure misses.** The computation follows the book’s definition. Take the rollover interest a long position would earn each day, yesterday’s daily AUD rate less yesterday’s daily CAD rate, over all 1,237 days. Average it and multiply by 252, the trading days a year the script uses to annualise its returns. Rollover interest comes to 3.26 percent a year, below the floor of 4.5 percent.
+**The defined figure misses.** The computation follows the book’s definition. Take the rollover interest a long position would earn each day, yesterday’s daily AUD rate less yesterday’s daily CAD rate, with AUD’s tripled on Wednesdays and CAD’s on Thursdays, over all 1,237 days. Average it and multiply by 252, the trading days a year the script uses to annualise its returns. Rollover interest comes to 3.26 percent a year, below the floor of 4.5 percent.
 
 Two other readings fall inside the pass mark.
 
