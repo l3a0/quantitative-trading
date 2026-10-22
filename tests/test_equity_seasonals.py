@@ -3781,6 +3781,7 @@ def test_the_post_quotes_the_figures_this_file_pins() -> None:
         "−0.0113 a year in units of capital",
         "a Sharpe ratio of −0.1049, against the printed −0.1055",
         "the Python gives an annual return of −0.012917",
+        "but the MATLAB itself gives −0.012923",
         "gives an annual return of −0.0118031",
         "gives a Sharpe ratio of −0.121508",
         "dividing by `n` gives −0.1101755",

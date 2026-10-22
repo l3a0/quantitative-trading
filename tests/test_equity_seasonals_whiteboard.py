@@ -3873,7 +3873,8 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         "a test on 9 of the 18 Januaries would catch rises to between {:.4f} and {:.4f}".format(
             *PINNED_POWER.detectable(9)
         ),
-        f"half of the {len(ivv.months)} months to about {1200 * half:.1f} percent a year,"
+        f"half of the {len(ivv.months)} months, the smallest average it would catch rises to about"
+        f" {1200 * half:.1f} percent a year,"
         f" against {100 * p.detectable:.1f} percent for all of them",
         f"The months have a standard deviation of {months.std(ddof=1):.4f}",
         f"\\frac{{{months.std(ddof=1):.4f}}}{{\\sqrt{{{len(months)}}}}} = {error:.5f}",
