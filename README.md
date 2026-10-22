@@ -3169,7 +3169,12 @@ Four groups of its figures are not pinned here.
    the sources' facts either: CRSP's licensing, or Norgate Diamond's $787.50 a
    year in October 2026 and its US stocks back to 1950, which
    [issue 196](https://github.com/l3a0/quantitative-trading/issues/196)
-   records.
+   records. Nor does anything assert CRSP's returns reaching back to 1926, the
+   S&P 600's start in October 1994, the first edition's release in November
+   2008 with a 2009 date, Alpha Vantage's terms of personal, non-commercial
+   use, or that pandas filled a missing close by default before version 3.0.
+   Halving Chan's 13 percent to about 6.5 percent a year is arithmetic no test
+   asserts either.
 3. Its references. The four citations, including the publication details the
    post gives for Heston and Sadka and for Singal, are cited rather than
    computed.

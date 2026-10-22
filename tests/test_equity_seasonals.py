@@ -124,6 +124,7 @@ from chan.vintage import VintageUnavailable
 
 #: The earlier save of Chan's S&P 600 file, which the mirror holds and his script does not load.
 EARLIER_SMALL_CAPS = "IJR_20080114.mat"
+POST = Path(__file__).parents[1] / "blog" / "equity-seasonals-lessons.md"
 
 
 @pytest.fixture(scope="module")
@@ -1960,8 +1961,7 @@ class TestThePointInTimeFlags:
 
         total = sum(sum(pin[2:]) for pin in PIT_THREATS)
         assert total == 741 == UNCHECKED_MEMBER_YEARS
-        post = Path(__file__).parents[1] / "blog" / "equity-seasonals-lessons.md"
-        assert f"{total} member-years of the S&P 600" in post.read_text(encoding="utf-8")
+        assert f"{total} member-years of the S&P 600" in POST.read_text(encoding="utf-8")
         assert PIT_THREATS[0][:2] == ("2008-12-31", 161)
         assert sum(PIT_THREATS[0][2:]) == 89
 
@@ -3755,3 +3755,44 @@ class TestTheOpenAssetPricingCommand:
         with pytest.raises(SystemExit) as stopped:
             seasonals.main(["--open-asset-pricing"])
         assert stopped.value.code == str(refusal)
+
+
+def test_the_post_quotes_the_figures_this_file_pins() -> None:
+    """The post's copies of figures the tests above pin at their printed
+    precision: Lesson 1's two tables and its rules, the split, the years inside
+    it, and the registered runs' p values. Each is a printed string another
+    test here asserts, so a typo in the post fails here. A re-pin moves the
+    string in both places, which a search for it finds."""
+    fragments = [
+        "2006 & -0.0244 & -0.023853 & -0.0244",
+        "2007 & -0.0068 & -0.003641 & -0.0068",
+        "2008 & 0.0881 & 0.088486 & 0.0881",
+        "\\text{MATLAB, first} & -0.9167 & -0.1055",
+        "\\text{MATLAB, revised} & -0.0129 & -0.1243",
+        "\\text{Python, revised} & -0.012679 & -0.122247",
+        "\\text{R, revised} & -0.01139674 & -0.1095098",
+        "\\text{Annual return} & -0.145387 & 0.011967",
+        "\\text{Sharpe ratio} & -0.859993 & 0.141777",
+        "gives −0.0234 instead of the printed −0.0244",
+        "a gain of 1.3056, or 130.56 percent",
+        "Dropping the fill alone gives 0.090908 for January 2008",
+        "at −0.0105 a year",
+        "an annual return of −1.0822",
+        "−0.0113 a year in units of capital",
+        "a Sharpe ratio of −0.1049, against the printed −0.1055",
+        "the Python gives an annual return of −0.012917",
+        "gives an annual return of −0.0118031",
+        "gives a Sharpe ratio of −0.121508",
+        "dividing by `n` gives −0.1101755",
+        "divides by `n − 1` and gives −0.1236",
+        "the 58 months from 2003 on lose 0.031640 a year",
+        "a gain of 0.2227 and the worst, 2006, to a loss of 0.1319, so they are 0.3546 apart",
+        "with a p of 1.000",
+        "with a p of 0.001",
+        "It averages −0.0083 a January",
+        "which is a one-sided p of 0.539",
+        "with a t of 0.39",
+        "at a correlation of 0.59",
+    ]
+    text = POST.read_text(encoding="utf-8")
+    assert [fragment for fragment in fragments if fragment not in text] == []

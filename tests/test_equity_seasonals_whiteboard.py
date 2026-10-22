@@ -3796,6 +3796,23 @@ def test_every_alt_text_quotes_the_labels_it_names_in_drawing_order(every) -> No
             at, seen = found + len(quoted), seen | {label}
 
 
+def test_every_alt_text_quotes_each_label_that_carries_a_figure(every) -> None:
+    """A label with a figure in it is what a reader who cannot see the GIF
+    relies on, so its alt text must carry it exactly. The drawing-order test
+    skips a label it cannot find, so a mistyped figure passes there. A bare
+    year is an axis tick, which an alt text may leave out."""
+    text = POST.read_text(encoding="utf-8")
+    missing = [
+        (scene.slug, label)
+        for scene in every
+        for label in scene.labels
+        if re.search(r"\d", label)
+        and not re.fullmatch(r"\d{4}", label)
+        and label not in _alt(text, scene)
+    ]
+    assert missing == []
+
+
 def _minus(value: float, places: int) -> str:
     return f"{value:.{places}f}".replace("-", "−")
 
@@ -3809,7 +3826,13 @@ def test_the_post_quotes_the_pinned_figures() -> None:
     f, (x_low, x_high) = FiveYearFigures(), PINNED_POWER.detectable()
     months = np.array([r for _, r in ivv.months])
     half = seasonals.detectable_mean(months.std(ddof=1), len(months) // 2)
+    error = months.std(ddof=1) / np.sqrt(len(months))
+    bracket = (
+        f"a loss of {-100 * p.january_low:.2f} percent"
+        f" to a gain of {100 * p.january_high:.2f} percent"
+    )
     fragments = [
+        bracket,
         f"averages between {_minus(p.january_low, 4)} and {_minus(p.january_high, 4)}"
         " a January before costs",
         f"The low series averages {_minus(p.january_low, 4)} a January before costs",
@@ -3852,9 +3875,16 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         ),
         f"half of the {len(ivv.months)} months to about {1200 * half:.1f} percent a year,"
         f" against {100 * p.detectable:.1f} percent for all of them",
+        f"The months have a standard deviation of {months.std(ddof=1):.4f}",
+        f"\\frac{{{months.std(ddof=1):.4f}}}{{\\sqrt{{{len(months)}}}}} = {error:.5f}",
+        f"&= {shift.shift * error:.5f} \\text{{ a month}}",
+        f"12X &= {p.detectable:.4f} \\text{{ a year}}",
+        f"Its {100 * osap.sample:.2f} percent sits about"
+        f" {(osap.sample - osap.printed) / osap.error:.1f} standard errors",
     ]
     text = POST.read_text(encoding="utf-8")
     assert [fragment for fragment in fragments if fragment not in text] == []
+    assert text.count(bracket) == 3
 
 
 def test_every_section_the_post_points_to_is_a_heading() -> None:

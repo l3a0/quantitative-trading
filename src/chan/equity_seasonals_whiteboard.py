@@ -58,8 +58,9 @@ draws the two halves' annual returns beside the sums of 2002 and 2006, to
 one scale, with a bracket for each pair's gap. Its figures come from
 :class:`SplitFigures`, which ``TestTheYearsInsideTheSplit`` derives.
 
-The next three follow Lesson 2's check of Chan's five-year claim, one after
-each of its paragraphs:
+The next three sit in Lesson 2, each after the paragraph it draws, the first
+two under "Chan's five-year claim" and the third under "Example 7.6's three
+Januaries":
 
 1. Which months each figure covers: the whole period, the split's two halves
    and the five-year rerun on one timeline, with the rerun's first year,
