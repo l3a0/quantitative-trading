@@ -43,7 +43,7 @@ The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/q
 
 ![An animated whiteboard sketch titled “The January trade”, drawn stroke by stroke. A long black bar labelled “a year of returns” ends at a brown dot, and a short thick brown segment one twelfth as long runs on from it, labelled “hold January”. A grey arrow labelled “rank at the year’s last close” points down to a rising row of twenty grey dots, the stocks sorted from the lowest return at the lower left to the highest at the upper right. A green ring circles the lowest two, labelled “buy the worst tenth”, and a red ring the highest two, labelled “short the best tenth”. On the right a green arrow pointing up, labelled “losers up”, sits below a red arrow pointing down, labelled “winners down”, and the words “mean reversion” close the sketch.](../docs/figures/equity_seasonals_january_trade.gif)
 
-**Example 7.7, Heston and Sadka.** It is a **seasonal momentum** trade, betting the other way, that a stock’s return in a calendar month repeats in the same month the next year. At each month-end, rank the S&P 500’s stocks on their return in the same calendar month a year earlier. Buy the best tenth and short the worst tenth, and hold for the month.
+**Example 7.7, Heston and Sadka.** It is a **seasonal momentum** trade, betting the other way, that a stock’s return in a calendar month repeats in the same month the next year. At each month-end, rank the S&P 500’s stocks on their return in the month a year before the one ahead, so the ranking at the end of February reads last year’s March. Buy the best tenth and short the worst tenth, and hold them for the month ahead.
 
 ![An animated whiteboard sketch titled “The same-month trade”, drawn stroke by stroke. Two strips of twelve cells stand one above the other, labelled “last year” and “this year”. March is outlined in brown on the upper strip and labelled “March”, and a brown arrow drops from it to March on the lower strip. The upper strip ends with the words “rank on” and the lower with “hold”. April is then outlined in grey on both strips, labelled “then April, May, …”. Below, a rising row of twenty grey dots sorts the stocks from the lowest return to the highest. A green ring circles the highest two, labelled “buy the best tenth”, and a red ring the lowest two, labelled “short the worst tenth”. On the right a green arrow points up, labelled “winners up”, above a red arrow pointing down, labelled “losers down”, and the words “seasonal momentum” close the sketch.](../docs/figures/equity_seasonals_same_month_trade.gif)
 
@@ -222,7 +222,7 @@ The revised R rounds a tenth to the nearest whole number, and sends an exact hal
 \end{array}
 ```
 
-On this file some months land on a half, so the half matters. In the R, rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down instead, as the revised MATLAB and Python do, gives the R the revised MATLAB’s annual return.
+On this file some months land on a half, so the half matters. In the R, rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down whatever the fraction, as the revised MATLAB and Python do, makes the R give the revised MATLAB’s annual return.
 
 #### Rule 7: dividing by n or n − 1, a choice in all three revised scripts
 
