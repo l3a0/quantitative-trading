@@ -535,7 +535,9 @@ class TestThePostQuotesThePins:
     this class a typo in the post passed every test. Round 1 of the post's
     review shifted every number in it, and none failed a test.
     Each check reads one copy and keys it on a short phrase, so another copy of
-    the same figure elsewhere in the post is not always read.
+    the same figure elsewhere in the post is not always read. Where one phrase
+    would match two copies, each copy gets its own phrase, because a phrase
+    both copies share passes as long as either copy is right.
     """
 
     text = POST.read_text("utf-8")
@@ -586,8 +588,16 @@ class TestThePostQuotesThePins:
         short, long = int(np.count_nonzero(held < 0)), int(np.count_nonzero(held > 0))
         assert f"position on {len(held):,} days" in self.text
         assert f"short on {short} of them and long on {long}" in self.text
-        assert f"short on {short - long} more days" in self.text
-        assert f"net share of {_percent((long - short) / len(held), 1)} percent" in self.text
+        # Lesson 3 states the leftover days and their share twice, once where it
+        # explains the cost and once where it answers the book.
+        assert f"holds short on {short - long} more days than it holds long" in self.text
+        assert f"held short on {short - long} more days than long" in self.text
+        assert f"that is a net share of {_percent((long - short) / len(held), 1)} percent" in (
+            self.text
+        )
+        assert (
+            f"{_percent((short - long) / len(held), 1)} percent of the {len(held):,} days it held"
+        ) in self.text
 
     def test_the_rollover_the_strategy_earned_and_what_the_net_share_predicts(self, result) -> None:
         held = _held(result)
@@ -658,9 +668,14 @@ class TestThePostQuotesThePins:
 
     def test_where_the_cumulative_returns_end_and_fall(self, sources, result) -> None:
         ends = [cumulative(r)[-1] for r in (result.returns, result.without)]
+        # Once in the paragraph under the figure and once in its alt text.
         assert (
-            f"end at {_percent(ends[0], 2)} percent with rollover interest and "
-            f"{_percent(ends[1], 2)} percent without"
+            f"returns end at {_percent(ends[0], 2)} percent with rollover interest and "
+            f"{_percent(ends[1], 2)} percent without."
+        ) in self.text
+        assert (
+            f"and end at {_percent(ends[0], 2)} percent with rollover interest and "
+            f"{_percent(ends[1], 2)} percent without, with the dashed line"
         ) in self.text
         falls, dates = [], set()
         for returns in (result.returns, result.without):

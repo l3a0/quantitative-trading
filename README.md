@@ -4380,7 +4380,8 @@ Six groups of what it says are not pinned here.
    figure.
 3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day. That
    each week's five trading days pay for seven calendar days is held by the
-   Lesson 2 sketch's test rather than read from the post.
+   Lesson 2 sketch's test, which reads the sketch's title and labels from its
+   alt text. No test reads Lesson 2's own sentence saying so.
 4. Three readings no test asserts: that the tripled day already pays for the
    weekends, so annualising over 365 days overstates the year, that long and
    short days cancel in total when they see about the same rollover interest,

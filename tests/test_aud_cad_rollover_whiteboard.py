@@ -376,6 +376,17 @@ class TestFiveDaysPayForSeven:
         scene = drawn[0]
         assert _stroke(scene, "by-252").y.min() > _stroke(scene, "by-365").y.max()
 
+    def test_both_branches_and_their_results_sit_between_the_rows(self, drawn) -> None:
+        """Each multiplies the average of AUD less CAD, so neither sits level with
+        one row, where it would read as that currency's figure."""
+        scene = drawn[0]
+        below_aud = _stroke(scene, "aud-row").y.min()
+        above_cad = _stroke(scene, "cad-row").y.max()
+        for gid, result in (("by-252", "3.26 percent"), ("by-365", "4.73 percent")):
+            arrow = _stroke(scene, gid)
+            assert above_cad < arrow.y.min() and arrow.y.max() < below_aud, gid
+            assert above_cad < _label(scene, result).y < below_aud, result
+
     def test_other_figures_move_the_percentages(self) -> None:
         labels = scenes(MOVED)[0].labels
         assert "4.10 percent" in labels and "5.94 percent" in labels

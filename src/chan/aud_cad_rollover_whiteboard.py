@@ -10,13 +10,14 @@ places each right after the text it draws.
    that land inside the pass mark. Two rows of five weekdays, AUD above CAD,
    each day holding the days of interest it pays: one, except AUD's Wednesday
    and CAD's Thursday, which pay three. A brace under each row says the five
-   trading days pay seven days of interest. A green branch multiplies the
-   average by 252 trading days and ends at 3.26 percent, and a red one
-   multiplies it by 365 and ends at 4.73 percent, which counts every weekend
-   again. The rows are schematic, a week at a constant rate, but each day's
-   count is read from :func:`chan.aud_cad_rollover.daily_rates` on that rate,
-   so the tripling the script applies is what the rows draw. The two
-   percentages and the ratio 365 / 252 are the run's.
+   trading days pay seven days of interest. Between the two rows, a green
+   branch multiplies the average of AUD less CAD by 252 trading days and ends
+   at 3.26 percent, and a red one multiplies it by 365 and ends at 4.73
+   percent, which counts every weekend again. The rows are schematic, a week
+   at a constant rate, but each day's count is read from
+   :func:`chan.aud_cad_rollover.daily_rates` on that rate, so the tripling the
+   script applies is what the rows draw. The two percentages and the ratio
+   365 / 252 are the run's.
 2. Long and short days cancel, after Lesson 3's paragraph opening "Net
    position explains the cost." One bar of the 1,217 days the rule holds a
    position, to scale, green for the 510 days long and red for the 707 short.
@@ -169,11 +170,14 @@ AUD_Y, CAD_Y = 3.25, 1.62
 BRACE_DROP = (0.12, 0.28)
 BRACE_LABEL_DROP = 0.6
 
-#: Where the two branches and the note sit, on the right of the rows.
-BRANCH_X = (5.3, 7.3)
-GREEN_Y, RED_Y = 3.35, 1.9
-#: The grey note under the red branch, on two lines.
-NOTE_Y = 1.45
+#: Where the two branches and the note sit, on the right of the rows. Both
+#: arrows sit between the two rows, because each multiplies the average of AUD
+#: less CAD. An arrow level with one row reads as that currency's figure. The
+#: green one's words sit above it and the red one's below it.
+BRANCH_X = (5.45, 7.3)
+GREEN_Y, RED_Y = 2.8, 2.17
+#: The grey note under the red branch's words, on two lines.
+NOTE_Y = 1.0
 
 
 NUMBER_WORDS = {5: "five", 7: "seven"}
@@ -319,12 +323,12 @@ def _five_pay_seven(f: RunFigures) -> Scene:
             Label(
                 f"average × {DAYS_IN_YEAR} counts",
                 x0,
-                RED_Y + 0.78,
+                RED_Y - 0.43,
                 names="by-365",
                 color=LOST,
                 size=12,
             ),
-            Label("every weekend again", x0, RED_Y + 0.42, names="by-365", color=LOST, size=12),
+            Label("every weekend again", x0, RED_Y - 0.79, names="by-365", color=LOST, size=12),
             Label(
                 f"{100 * f.over_365_days:.2f} percent",
                 x1 + 0.2,
