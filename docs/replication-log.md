@@ -5700,8 +5700,8 @@ issue to file.
 location 1350 calls it impractical for that reason. No cost is charged here, as
 none is in the script.
 
-**Whether another lag count changes the counts.** Every book-two script uses
-`k = 1`, and so does this entry. The relation counts in rows 6 and 9 are for
+**Whether another lag count changes the counts.** Every Johansen call in a
+book-two script uses `k = 1`, and so does this entry. The relation counts in rows 6 and 9 are for
 that lag alone, and row 6's rests on a margin of 0.141.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A

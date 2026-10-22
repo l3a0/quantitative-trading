@@ -4148,7 +4148,7 @@ EWA, EWC and IGE for cointegration with the CADF and Johansen tests and trade
 the triplet's first eigenvector with a linear mean-reversion rule. Chan reports
 a CADF statistic of about −3.64, a half-life of 23 days, and an APR of 12.6
 percent with a Sharpe ratio of 1.4. It is the blog's explanation of the
-Johansen test, built from the CADF test the earlier posts teach. The post
+Johansen test, built from the Engle-Granger test the earlier posts teach, which Chan's MATLAB code runs as the CADF test. The post
 draws six lessons from Entry 23 of the replication log.
 
 1. Every figure `cointegrationTests.m` prints reproduces to its last digit,

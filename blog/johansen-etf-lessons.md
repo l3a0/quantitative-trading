@@ -4,13 +4,13 @@
 
 ## Why test three ETFs at once
 
-A pair trade needs two prices that drift apart and come back. The earlier posts on [GLD and GDX](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gdx-cointegration-lessons.md) and on [testing a price spread](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-mean-reversion.md) test that with the cointegrated augmented Dickey-Fuller test, or CADF test. It regresses one price on the other to get a hedge ratio, then tests whether the leftover spread returns to a stable level. Two prices that wander on their own but hold such a spread are said to cointegrate.
+A pair trade needs two prices that drift apart and come back. The earlier posts on [GLD and GDX](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gdx-cointegration-lessons.md) and on [testing a price spread](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-mean-reversion.md) test that with the Engle-Granger test. Chan’s MATLAB code runs a version of it called the cointegrated augmented Dickey-Fuller test, or CADF test. It regresses one price on the other to get a hedge ratio, then tests whether the leftover spread returns to a stable level. Two prices that wander on their own but hold such a spread are said to cointegrate.
 
 Ernest Chan’s second book, *Algorithmic Trading*, asks the same question of more than two prices. Canada and Australia both have economies that are “commodity based, so they seem likely to cointegrate” (Chan, 2013, location 1264). So EWA and EWC, the two countries’ stock ETFs, should form a pair. Chan then adds IGE, an ETF of natural resource stocks, to see how many stationary combinations the three hold together (Chan, 2013, location 1334).
 
 A pair test cannot answer that. One regression gives one hedge ratio, so it finds at most one combination. With three prices it also has to pick one of them to put on the left, and each choice can give a different answer. The Johansen test takes all three prices at once, counts every independent stationary combination they hold, and returns the weights of each.
 
-Chan published the script for all three examples, `cointegrationTests.m`, and the data file it reads. This repository keeps a copy of the file and ran a line-by-line Python transcription of the script on it. Every figure the script prints lands to its last digit, the eigenvectors with their signs flipped. The CADF statistic is −3.64346635, the portfolio’s half-life is 22.662578 days, and the strategy built on it earns an annual percentage rate, or APR, of 0.125739 with a Sharpe ratio of 1.391310, the book’s 12.6 percent and 1.4. The Sharpe ratio divides the average daily return by its standard deviation and scales the result to a year, so it measures return per unit of risk.
+Chan published the script for all three examples, `cointegrationTests.m`, and the data file it reads. This repository keeps the file’s prices as one table per ETF, which together rebuild the file exactly, and ran a line-by-line Python transcription of the script on them. Every figure the script prints lands to its last digit, the eigenvectors with their signs flipped. The CADF statistic is −3.64346635, the portfolio’s half-life is 22.662578 days, and the strategy built on it earns an annual percentage rate, or APR, of 0.125739 with a Sharpe ratio of 1.391310, the book’s 12.6 percent and 1.4 (Chan, 2013, location 1368). The Sharpe ratio divides the average daily return by its standard deviation and scales the result to a year, so it measures return per unit of risk.
 
 **Every result here is exploratory.** Chan chose the ETFs, the test settings and the portfolio, and the reproduction tests them on the same days he did. It can say whether his numbers follow from his file and nothing about whether the portfolio pays.
 
@@ -96,7 +96,7 @@ The figure below redraws three of the book’s charts and adds the statistics Le
 
 ![Four charts stacked over the file’s 1,500 trading days, from April 2006 to April 2012. The first, Figure 2.4, plots the adjusted closes of EWA and EWC in dollars. The two lines move together, EWC a few dollars above EWA throughout, and both fall sharply in late 2008. The second, Figure 2.6, plots the residual EWC − 0.9624·EWA, which crosses a dashed line at its mean of 6.41, the regression’s intercept, many times. Its heading gives the CADF statistic of −3.6435 against the 95 percent bar of −3.359. The third is a bar chart of the Johansen test on EWC, EWA and IGE, with a trace column and an eigen column for each of the nulls r ≤ 0, r ≤ 1 and r ≤ 2, each crossed by dotted, solid and dashed lines at its 90, 95 and 99 percent critical values. Every trace column, 34.429, 17.532 and 4.471, rises above its 95 percent line, and the first stops below its 99 percent line. The first eigen column, 16.897, stops below even its 90 percent line, and a note reads 16.897, short of 18.893, its 90 percent bar. The fourth, Figure 2.7, plots the strategy’s compounded cumulative return, which climbs from 0 to a high on 2009-04-01, sits below that high in a shaded band labelled 598 days, from 2009-04-02 to 2011-08-15, with its deepest drawdown of −0.101249 marked on 2010-08-16, and ends near 102 percent. Its heading gives an APR of 0.125739 and a Sharpe ratio of 1.3913 against the book’s 12.6 percent and 1.4. The title calls the redraw exploratory, and the note says the eigenvector is fitted on the days the strategy trades, so every figure is in-sample.](../docs/figures/etf_cointegration.png)
 
-*`cointegrationTests.m`’s three charts redrawn on Chan’s file, the prices, the pair’s residual and the strategy’s cumulative return, with the triplet’s Johansen statistics added as the third panel. The shaded band in the last panel is the longest spell below a high.*
+*Three of `cointegrationTests.m`’s four charts redrawn on Chan’s file, the prices, the pair’s residual and the strategy’s cumulative return, with the triplet’s Johansen statistics added as the third panel. The script’s fourth chart, the Figure 2.5 scatter of EWC against EWA, is left out. The shaded band in the last panel is the longest spell below a high.*
 
 ## Lesson 2: one regression depends on its order, the Johansen test does not
 
@@ -143,7 +143,7 @@ The first eigenvector sets the portfolio, in shares: 1.0460 of EWC, −0.7600 of
 
 Chan picks the first eigenvector because it has the largest eigenvalue, and so he expects it to revert fastest, with the shortest half-life (Chan, 2013, location 1340). It does. Its half-life is 22.7 days, against 43.7 for the second eigenvector’s portfolio and 151.5 for the third’s.
 
-The rule rounds 22.7 to a lookback of 23 days. Its first return comes on 2006-05-30, the day after the 23-day moving standard deviation first has 23 days to use, and it earns a return on every one of the 1,477 days from there on. The return each day is the profit on the positions held, divided by their total value long and short.
+The rule rounds 22.7 to a lookback of 23 days. Its first return comes on 2006-05-30, the trading day after the 23-day moving standard deviation first has 23 days to use, and it earns a return on every one of the 1,477 days from there on. The return each day is the profit on the positions held, divided by their total value long and short.
 
 ## Lesson 6: an exact reproduction checks the arithmetic, not the edge
 
@@ -152,7 +152,7 @@ That every printed figure matches says the code, the data and the book agree. It
 1. **The weights and the lookback come from the days they trade.** The eigenvector is fitted on the same 1,500 days the rule then trades, and so is the half-life that sets the lookback. Chan names this himself. Of the same rule in an earlier example, he says the lookback carries look-ahead bias from “the use of in-sample data to find the half-life” (Chan, 2013, location 1225). Of the book’s backtests in general, he says they sometimes use “the same data for parameter optimization (such as finding the best hedge ratio) and for backtest” (Chan, 2013, location 1429). His claim that the rule has “no parameters to optimize” is a different one, that nothing was searched over (Chan, 2013, location 1350). Both hold, and the 12.6 percent is in-sample either way.
 2. **No cost is charged, though the rule never stops trading.** It resizes its position whenever the z-score moves, and Chan says it “continuously enters and exits positions”. He also calls it “obviously not a practical strategy”, since its capital has no ceiling and it trades on every small move (Chan, 2013, location 1350).
 
-A drawdown is a fall from the highest value reached so far, and this return came with a long one. On the compounded cumulative return, the deepest drawdown is −0.101249, with its trough on 2010-08-16. Its longest spell below a high runs 598 days, from 2009-04-02 to 2011-08-15, which the figure’s last panel shades.
+A drawdown is a fall from the highest value reached so far, and this return came with a long one. On the compounded cumulative return, the deepest drawdown is −0.101249, with its trough on 2010-08-16. Its longest spell below a high runs 598 trading days, from 2009-04-02 to 2011-08-15, which the figure’s last panel shades.
 
 So the result stays exploratory. Reproducing Chan’s figures on his window tests his arithmetic. A result that could confirm the portfolio would need weights fitted on one stretch of days, fixed in writing, and traded on days the fit never saw.
 
@@ -162,7 +162,7 @@ Three questions are beyond it.
 
 1. **Whether the portfolio works out of sample.** Nothing here fits the eigenvector on one window and trades it on the next. That is the run that would price the look-ahead in Lesson 6, and it is a different experiment.
 2. **What costs would take.** The linear rule trades every day by construction, and no cost is charged here, as none is in the script.
-3. **Whether another lag count changes the counts.** Every one of the book’s scripts uses one lagged daily change, and so does this run. The counts in Lessons 3 and 4 hold for that lag alone, and the pair’s full rank clears its bar by only 0.141.
+3. **Whether another lag count changes the counts.** Every Johansen call in the book’s scripts uses one lagged daily change, and so does this run. The counts in Lessons 3 and 4 hold for that lag alone, and the pair’s full rank clears its bar by only 0.141.
 
 ## What this means for a trader
 
@@ -177,7 +177,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 2.6 to 2.8 and Kindle locations 1225, 1264, 1282, 1292, 1295, 1324, 1334, 1337, 1340, 1350 and 1429.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 2.6 to 2.8 and Kindle locations 1225, 1264, 1282, 1292, 1295, 1324, 1334, 1337, 1340, 1347, 1350, 1368 and 1429.
 2. `cointegrationTests.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. Johansen, S. (1991). Estimation and hypothesis testing of cointegration vectors in Gaussian vector autoregressive models. *Econometrica*, 59(6), 1551–1580.
 4. MacKinnon, J. G. (2010). Critical values for cointegration tests. Queen’s Economics Department Working Paper No. 1227.
