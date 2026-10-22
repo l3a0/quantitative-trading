@@ -113,12 +113,14 @@ fallback, and font rasterising varies across platforms. Redraw all fourteen with
     uv run python -m chan.usdcad_tests_whiteboard
 
 :mod:`chan.equity_seasonals_whiteboard` draws its thirty-nine sketches with this
-module's strokes, timeline and renderer, so an edit to those changes its GIFs
-too. Redraw both sets after one. The second command needs the owner's archive
-for fifteen of its thirty-nine GIFs, and says so when it is missing::
+module's strokes, timeline and renderer, and :mod:`chan.etf_cointegration_whiteboard`
+its two, so an edit to those changes their GIFs too. Redraw all three sets after
+one. The second command needs the owner's archive for fifteen of its thirty-nine
+GIFs, and says so when it is missing::
 
     uv run python -m chan.usdcad_tests_whiteboard
     uv run python -m chan.equity_seasonals_whiteboard
+    uv run python -m chan.etf_cointegration_whiteboard
 """
 
 from __future__ import annotations

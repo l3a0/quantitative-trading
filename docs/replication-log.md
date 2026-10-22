@@ -5712,7 +5712,15 @@ these figures, and the suite does check that post. `TestWhatThePostQuotes` in
 each figure the post quotes from the run and fails when the post no longer
 says it. So a re-pin that leaves the post behind fails the suite, while one
 that leaves this entry behind does not. The post's one figure moves with it
-too, and `uv run python -m chan.etf_cointegration_figures` redraws it.
+too, and `uv run python -m chan.etf_cointegration_figures` redraws it. So does
+its first whiteboard sketch. That sketch draws row 8's three eigen statistics,
+row 7's trace statistic for r ≤ 0, and the 90 percent eigen and 95 percent
+trace critical values pinned beside those rows, all to one scale.
+`uv run python -m chan.etf_cointegration_whiteboard` redraws it and the post's
+second sketch, the pair's two relations spanning EWA held alone, which is
+schematic.
+[tests/test_etf_cointegration_whiteboard.py](../tests/test_etf_cointegration_whiteboard.py)
+reads the first sketch's figures from the run.
 
 ## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
 

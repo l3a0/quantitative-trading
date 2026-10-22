@@ -149,6 +149,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from tests.test_etf_cointegration_whiteboard import GIFS as ETF_GIFS
 from tests.test_usdcad_tests_whiteboard import GIFS as USDCAD_GIFS
 
 POST = REPO_ROOT / "blog" / "equity-seasonals-lessons.md"
@@ -962,9 +963,12 @@ def _durations(path) -> list[int]:
 
 
 class TestTheCommittedGifs:
-    def test_every_gif_in_the_figures_folder_is_drawn_by_one_of_the_two_modules(self) -> None:
-        """A GIF no module draws is a figure nothing regenerates."""
-        assert {path.name for path in FIGURES_DIR.glob("*.gif")} == set(GIFS) | set(USDCAD_GIFS)
+    def test_every_gif_in_the_figures_folder_is_drawn_by_one_of_the_modules(self) -> None:
+        """A GIF no module draws is a figure nothing regenerates. Three modules
+        draw them: the USD.CAD post's, this post's and the Johansen ETF post's."""
+        assert {path.name for path in FIGURES_DIR.glob("*.gif")} == (
+            set(GIFS) | set(USDCAD_GIFS) | set(ETF_GIFS)
+        )
 
     def test_each_has_the_size_frames_loop_and_timing_of_a_fresh_draw(self, frames) -> None:
         for name, steps in zip(GIFS, frames, strict=True):
