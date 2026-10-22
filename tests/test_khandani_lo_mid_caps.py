@@ -874,6 +874,9 @@ class TestThePostQuotesTheLadder:
     def test_the_ladder_and_the_control(self, post, result) -> None:
         c, o = result.closes, result.opens
         assert c.control_gap.gap > 0 > o.control_gap.gap
+        # The post names the nearer neighbour at each price, the S&P 600 on the
+        # closes and the S&P 500 on the opens.
+        assert c.nearer_step == c.small_gap.gap and o.nearer_step == -o.mid_gap.gap
         fragments = [
             f"Before costs the S&P 400’s Sharpe ratio is {c.mid.before_costs:.4f} on the closes, "
             f"between the S&P 500’s {c.large.before_costs:.4f} and the S&P 600’s "
@@ -883,6 +886,7 @@ class TestThePostQuotesTheLadder:
             f"at {c.mid_gap.z:.4f} standard errors.",
             f"lands {c.control_gap.gap:.4f} above that file’s on the closes and "
             f"{-o.control_gap.gap:.4f} below it on the opens.",
-            f"{c.nearer_step:.4f} on the closes and {o.nearer_step:.4f} on the opens.",
+            f"On the closes that neighbour is the S&P 600, {c.nearer_step:.4f} away, "
+            f"and on the opens it is the S&P 500, {o.nearer_step:.4f} away.",
         ]
         assert [f for f in fragments if f not in post] == []
