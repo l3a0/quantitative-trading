@@ -3173,6 +3173,8 @@ Four groups of its figures are not pinned here.
    S&P 600's start in October 1994, the first edition's release in November
    2008 with a 2009 date, Alpha Vantage's terms of personal, non-commercial
    use, or that pandas filled a missing close by default before version 3.0.
+   Nor does anything assert that companies leaving the S&P 500 within a year
+   make up more of the IVV run's dropped member-months than of its kept ones.
    Halving Chan's 13 percent to about 6.5 percent a year is arithmetic no test
    asserts either.
 3. Its references. The four citations, including the publication details the

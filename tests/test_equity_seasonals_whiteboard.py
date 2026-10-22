@@ -1075,7 +1075,7 @@ class TestThePost:
             (
                 "The five-year result does not contradict the split.",
                 "The five-year result is narrow.",
-                "Example 7.6 meets the five-year check’s limit from another side.",
+                "Example 7.6 runs into the same limit as the five-year check.",
             ),
             FIVE_YEAR_GIFS,
             strict=True,
