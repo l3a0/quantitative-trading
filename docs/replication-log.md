@@ -11671,8 +11671,8 @@ Three things carry the result, so they are stated here.
    issue had said that H1 and H2 disagreeing would make the result
    feed-dependent, and with H2 unrun that check is not made.
 
-Rows 1 and 3 to 6 are **registered**. On 2026-10-13, before any holdout close
-was read,
+Rows 1 and 3 to 6 are **registered**. On 2026-10-13, before the run computed
+anything on a holdout close,
 [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) wrote
 down each prediction, its statistic, comparator and slice, the lookback, and
 the mapping from H1 to a verdict, and the owner called the issue a
@@ -11726,7 +11726,7 @@ hold in any row and are dropped, under
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | reproduced | Registered. The criterion written on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) before any holdout close was read holds: the P&L ends at 0.1132, above 0. The issue mapped H1 holding to this value before the run. It takes the claim route, and it is a single-feed result, because H2 did not run. |
+| 1 | reproduced | Registered. [Issue 607](https://github.com/l3a0/quantitative-trading/issues/607) wrote the criterion down before the run computed anything on a holdout close, and it holds: the P&L ends at 0.1132, above 0. The issue mapped H1 holding to this value before the run. It takes the claim route, and it is a single-feed result, because H2 did not run. |
 | 2 | not run, moved to [#608](https://github.com/l3a0/quantitative-trading/issues/608) | Holdout A reads Massive's minute bars from 2024-10-13, the earliest the current plan reaches. It waits for the whole minute file to be recorded, which the connector cannot write and no API key in the shell can fetch yet. A plan reaching back to 2012 would extend it. |
 | 3 | none, not a replication | Registered, and it decides nothing. The prediction was that the t would not clear 1.645, and at 0.2670 it does not. |
 | 4 | none, not a replication | Registered, and it decides nothing. The prediction was that the ADF would not reject, and −2.0814 sits above −2.5937. |

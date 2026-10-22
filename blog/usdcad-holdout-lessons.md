@@ -33,9 +33,9 @@ The rule needs 115 closes before it can hold a position, so the run starts on th
 
 Everything else carried over unchanged. Each day’s P&L is yesterday’s position times today’s percent change in the close. The script treats the position as a market value. So a position of 1 held through a 1 percent rise earns 0.01, and every P&L in this post is a sum of those daily amounts rather than a percent of an account. The rule pays no transaction cost and earns or pays no overnight interest on the currencies it holds, as in Chan’s script.
 
-![Two charts stacked on one shared date axis from October 2011 to October 2026. The top chart shows USD.CAD’s daily closes, starting near 1.00 in 2012, climbing to about 1.46 by early 2016, swinging between about 1.20 and 1.45 through 2020 and 2021, and ending near 1.43 in 2026. A smoother brown line, the 115-day moving average, trails the closes from the end of March 2012. A dashed vertical line marks the first traded day, 2012-03-29. The bottom chart shows the cumulative P&L of the linear rule as a green line from 2012-03-29. It rises to 0.1035 on 2013-11-20, marked with a dot, then falls inside a shaded band to −0.3998 on 2016-01-19, marked with a red dot. It climbs back with sharp drops in early 2020 and in 2022, passes its 2013 high in 2024, and ends at 0.1132. A horizontal line marks zero. The title calls the verdict registered and the path exploratory, and the note says the curve, the fall and the half-life are exploratory.](../docs/figures/usdcad_holdout.png)
+![Two charts stacked on one shared date axis from October 2011 to October 2026. The top chart shows USD.CAD’s daily closes, starting near 1.00 in 2012, climbing to about 1.46 by early 2016, swinging between about 1.20 and 1.45 through 2020 and 2021, and ending near 1.43 in 2026. A smoother brown line, the 115-day moving average, trails the closes from the end of March 2012. A dashed vertical line through both charts marks the first traded day, 2012-03-29. The bottom chart shows the cumulative P&L of the linear rule as a green line from 2012-03-29. It rises to 0.1035 on 2013-11-20, marked with a dot, then falls inside a shaded band to −0.3998 on 2016-01-19, marked with a red dot. It climbs back with sharp drops in early 2020 and in 2022, passes its 2013 high in 2024, and ends at 0.1132. A horizontal line marks zero. The heading above the top chart gives the half-life of the traded closes as 457.8 days, and the heading above the bottom chart calls the P&L unlevered and before costs. The title calls the verdict registered and the path exploratory, and the note says the curve, the fall and the half-life are exploratory.](../docs/figures/usdcad_holdout.png)
 
-*USD.CAD’s closes after Chan’s sample with their 115-day moving average, and the linear rule’s cumulative P&L with its deepest fall shaded. The lookback is frozen at the half-life of Chan’s closes, and only the sign of the final P&L was predicted.*
+*USD.CAD’s closes after Chan’s sample with their 115-day moving average, and the linear rule’s cumulative P&L with its deepest fall shaded. The lookback is frozen at the half-life of Chan’s closes, and of what the chart shows, only the sign of the final P&L was predicted.*
 
 ## Lesson 1: the claim survives on its sign alone
 
@@ -89,7 +89,7 @@ The plan names four reads of the later days, because a prediction written down f
 1. **The Johansen test on AUD.USD against CAD.USD** in this repository, a test of whether some mix of two prices keeps returning to a level, had already read about 20 of the holdout’s first days. CAD.USD is USD.CAD turned over, and Chan’s file for it runs to 2012-04-26. That run used a different rule on Chan’s feed. The [post on that test](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-johansen-lessons.md) covers it.
 2. **A check of the vendor’s coverage** compared its closes with Chan’s only on the days the two share, up to 2012-03-28.
 3. **A check of the other vendor’s minute bars** read one day, 2026-10-12, to confirm that its 16:59 bar exists, and computed nothing on it.
-4. **The file checks** read every close as the file went into the repository, to confirm its checksum and its columns, and reported only whether each passed.
+4. **The file checks** read every close as the file went into the repository, to confirm its checksum, its columns and that no close moves by more than a factor of 1.6 from the one before, and reported only whether each passed.
 
 None of them computed the rule’s P&L or any predicted statistic on the later days.
 
@@ -116,11 +116,11 @@ So fourteen more years of closes did not turn USD.CAD into a series a test can c
 
 ## Lesson 4: the frozen lookback is about a quarter of the later half-life
 
-On Chan’s closes the half-life was 115.2 days, which the rule rounds to its lookback. On the closes after 2012 it is 457.8077 days, almost four times as long.
+On Chan’s closes the half-life was 115.209794 days, which the rule rounds to its lookback. On the closes after 2012 it is 457.8077 days, almost four times as long.
 
 ```math
 \small\begin{array}{l|r}
-\text{Half-life on Chan's closes} & 115.2 \text{ days} \\
+\text{Half-life on Chan's closes} & 115.209794 \text{ days} \\
 \text{Lookback the rule trades at} & 115 \text{ days} \\
 \text{Half-life after 2012} & 457.8077 \text{ days}
 \end{array}
@@ -134,9 +134,9 @@ The 457.8077-day half-life also cannot be read as the right lookback. The tests 
 
 On Chan’s closes the P&L fell 0.6425 from its high, more than five times what it ended with. After 2012 it happened again at a smaller scale. The P&L rose to 0.1035 on 2013-11-20 and fell to −0.3998 on 2016-01-19, a drawdown of 0.5033, more than four times the final 0.1132.
 
-As in Chan’s sample, whose fall came in 2008, this fall came while the dollar rose and the rule was mostly short. Across it USD.CAD rose from 1.0445 to 1.45699, so the US dollar gained 39.5 percent on the Canadian dollar. The rule bets that the close returns to its average, so it was short the US dollar on 458 of the 562 days of the fall. The P&L did not pass its 2013 high again until 2024-03-06, more than ten years later.
+As in Chan’s sample, whose fall came in 2008, this fall came while the dollar rose. In 2008 the rule was short on all 69 days of the fall, and this time it was mostly short. Across this fall USD.CAD rose from 1.0445 to 1.45699, so the US dollar gained 39.5 percent on the Canadian dollar. The rule bets that the close returns to its average, so it was short the US dollar on 458 of the 562 days of the fall. The P&L did not pass its 2013 high again until 2024-03-06, more than ten years later.
 
-Chan also cautions that “an unlimited amount of capital may be needed”, because nothing caps the position (Chan, 2013, p. 50). The largest position after 2012 was a short of 5.4054, held on 2020-03-19. The close the day before had stood more than five moving standard deviations above its average. On Chan’s closes the largest was a short of 4.12.
+Chan also cautions that “an unlimited amount of capital may be needed”, because nothing caps the position (Chan, 2013, p. 50). The largest position after 2012 was a short of 5.4054, taken at the close of 2020-03-18, which stood more than five moving standard deviations above its average. On Chan’s closes the largest was a short of 4.12.
 
 The rule also leaned the other way from Chan’s sample. On his closes it was short on 488 of the 1,101 days it held a position, fewer than half. After 2012 it was short on 60.06 percent of the traded days and long on 39.94 percent, and it was never flat.
 

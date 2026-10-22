@@ -30,8 +30,8 @@ before the download day, and the positions that earn them are
 the same span, which leaves the warm-up out because it falls inside Chan's
 window.
 
-**The predictions**, registered on the issue before any holdout close was
-read. Each one's statistic, comparator and slice was fixed there too.
+**The predictions**, registered on the issue before the run computed anything
+on a holdout close. Each one's statistic, comparator and slice was fixed there too.
 
 1. H1, the claim: ``pnl[115:].sum() > 0``. It decides the verdict.
 2. H3: the Newey-West t of the mean daily P&L,
@@ -475,12 +475,13 @@ def report(holdout: Holdout, band: Band) -> None:
         f"short on {h.short_share:.4f} of the traded days."
     )
     print()
+    print("  Registered on issue 607 before the run computed anything on a holdout close.")
     print(
-        "  Registered on issue 607 before any holdout close was read. chan.aud_cad_johansen "
-        "already read about 20 of the"
+        "  chan.aud_cad_johansen already read about 20 of the holdout's first days, "
+        "through 2012-04-26,"
     )
     print(
-        "  holdout's first days, through 2012-04-26, on Chan's feed under a different rule. "
+        "  on Chan's feed under a different rule. "
         "docs/replication-log.md Entry 51 carries the verdict."
     )
 

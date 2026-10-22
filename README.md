@@ -727,10 +727,10 @@ where they were first built. The other forty-five were built here.
     final P&L. On the later closes the ADF, variance ratio and Hurst tests
     read as a random walk, and each of those three landed as
     [issue 607](https://github.com/l3a0/quantitative-trading/issues/607)
-    registered it before any holdout close was read. The half-life is
-    457.8077 days against the frozen 115, and the issue registered no
-    prediction for it. The result is
-    registered and comes from one feed, the vendor's daily close rather than
+    registered it before the run computed anything on a holdout close. The
+    half-life is 457.8077 days against the frozen 115, and the issue
+    registered no prediction for it. The result is registered and comes from
+    one feed, the vendor's daily close rather than
     Chan's 16:59 bar, because the holdout on his bar moved to
     [issue 608](https://github.com/l3a0/quantitative-trading/issues/608).
 
@@ -2241,9 +2241,9 @@ uv run python -m chan.usdcad_holdout run
 
 `run` takes no option, because
 [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) fixed
-the window, the lookback of 115 and every prediction before any holdout close
-was read. It prints the vintage, the warm-up, the traded days and their
-weekday gaps, and each of H1 to H7 with its outcome and whether it landed as
+the window, the lookback of 115 and every prediction before the run computed
+anything on a holdout close. It prints the vintage, the warm-up, the traded
+days and their weekday gaps, and each of H1 to H7 with its outcome and whether it landed as
 registered. Then it prints the drawdown, the Sharpe ratio, the largest
 position and the shares long and short, which decide nothing. Every refusal
 of either command prints one line.
@@ -7281,10 +7281,8 @@ Four groups of what it says are not pinned here.
    half-life depending on the series itself on 60.
 2. Readings no test asserts: that a rule with no edge can end positive by
    chance, that the rule holds much the same position for weeks, that a
-   p-value of 0.4343 means a random walk gives a ratio this far from 1 more
-   than two times in five, that 488 of 1,101 days is fewer than half, that
-   2013-11-20 to 2024-03-06 is more than ten years, and that a position of 1
-   held through a 1 percent rise earns 0.01.
+   position of 1 held through a 1 percent rise earns 0.01, and that the
+   random walks' spread on Chan's closes was wider than on the later ones.
 3. Facts Entry 51 states rather than pins: that the other vendor's minute
    bars reach back only to 2024-10-13 on the current subscription and cannot
    yet be downloaded as one complete file, that an earlier run had read about
@@ -7300,13 +7298,15 @@ for the figure's own numbers, or, for Chan's closes, to
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py).
 Six had no pin before the post, and `TestWhatThePostMeasured` in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) pins them, all
-measured after the run.
+measured after the run. `TestWhatThePostQuotes` in the same file checks the
+post's copies of every figure against the run, and the words the post puts on
+pairs of them, such as "more than four times".
 
 1. The closes on the drawdown's two dates, 1.0445 and 1.45699, a rise of 39.5
    percent.
 2. The rule is short on 458 of the 562 days of the fall.
 3. The P&L first passes its 2013 high again on 2024-03-06.
-4. The largest position is a short of 5.4054 on 2020-03-19.
+4. The largest position is a short of 5.4054, taken at the close of 2020-03-18.
 5. H sits 0.0014 below the random walks' mean.
 6. The band is 0.4987 ± 0.0260, twice the walks' standard deviation.
 
