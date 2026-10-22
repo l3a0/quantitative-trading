@@ -29,13 +29,13 @@ The rule is the linear mean reversion of Chan’s Chapter 2, applied to each sig
 3. **The units.** The z-score is how many 20-day standard deviations the signal sits from its 20-day average. The rule holds minus the z-score in units of the signal’s portfolio. One unit of the price spread holds one share of USO and −h shares of GLD, and Lesson 2 gives what a unit holds for the other two signals. So the further the signal falls below its average, the more units the rule holds long, and the further it rises above, the more it holds short.
 4. **The return.** Each day’s profit on yesterday’s positions, divided by the gross dollars those positions held, meaning the long and short dollar amounts added together without their signs. No cost is charged.
 
-Each script also throws away its first 20 days, where the first hedge ratio is still being fitted, so all three trade the same 1,480 days.
+Each script also throws away its first 20 days, the window the first hedge ratio is fitted on, so all three trade the same 1,480 days.
 
 The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputData_ETF.mat`, saved on 2012-04-10. This repository converted it to one file per ETF. It holds 67 ETFs over 1,500 trading days, from 2006-04-26 to 2012-04-09, and the scripts read two of them. The traded days run from 2006-05-24. The file folds dividends in by subtracting them in dollars, and GLD pays none.
 
 This repository transcribed the scripts from a public copy of Chan’s code, `ericnberwick/EpchanPreview` at commit `e4bc46f`. A second public copy holds the same three scripts byte for byte.
 
-## Lesson 1: two scripts land to six decimals, and the book rounds one of them up
+## Lesson 1: two scripts land to six decimals, and one of the book’s figures does not follow from its script
 
 Here is each figure, computed, beside the script’s comment and the book.
 
@@ -82,7 +82,7 @@ The price spread is the market value of a portfolio holding a fixed number of sh
 
 The log price spread is different. Chan shows that a stationary mix of log prices is the value of a portfolio holding a constant dollar amount in each asset, with cash making up the rest (Chan, 2013, location 1435). Keeping the dollar amounts constant means rebalancing every day as the prices move. Chan names the extra cost of that daily rebalancing, and the backtest charges nothing for it. The log price spread’s figures are lower even so, an APR of 0.088863 against 0.108335 and a Sharpe ratio of 0.504153 against 0.589651, before any trade is priced. Chan’s sentence that the log price spread’s APR and Sharpe ratio are both “actually lower” holds on his file.
 
-The ratio holds the same portfolio as the log price spread would with h fixed at 1, long a dollar of USO and short a dollar of GLD. It trades on USO/GLD itself rather than on its logarithm. Chan notes that a ratio is stationary when the stationary mix weights the two prices equally and with opposite signs. That is “a special case”, so a ratio need not be stationary (Chan, 2013, location 1476). He also gives the argument for using a ratio: it does not need a hedge ratio at all, and it stays the same when both prices double. He says he knows no general answer to whether a ratio beats a price spread or log price spread whose hedge ratio adapts as the prices move, as the 20-day refit here does.
+The ratio holds the same portfolio as the log price spread would with h fixed at 1, long a dollar of USO and short a dollar of GLD. It trades on USO/GLD itself rather than on its logarithm. Chan notes that a ratio is stationary when the stationary mix weights the two prices equally and with opposite signs. That is “a special case”, so a ratio need not be stationary (Chan, 2013, location 1476). He also gives two arguments for using a ratio. It stays the same when both prices scale up together, a point he credits to a reader, and it needs no hedge ratio at all. He says he knows no general answer to whether a ratio beats a price spread or log price spread whose hedge ratio adapts as the prices move, as the 20-day refit here does.
 
 On GLD and USO the ratio loses money, and the third panel of the figure shows the fall it was trading against. USO’s price was 1.03 times GLD’s on the first traded day and 0.24 times it on the last, and the ratio’s highest after 2008 was 0.44.
 
@@ -140,14 +140,14 @@ r_t = \frac{\sum_i P_{i,t-1}\,\Delta p_{i,t} / p_{i,t-1}}{\sum_i |P_{i,t-1}|}
 
 Here capital P is a dollar position and lower-case p is a price. The subscript i names the ETF and t names the day. The top line adds up, over the two ETFs, yesterday’s dollar position times today’s return on that ETF, which is the day’s profit. The bottom line adds up the sizes of yesterday’s positions, long and short alike, which are the gross dollars that step 4 of the rule divides by. Multiply every position by any positive constant and rₜ does not move.
 
-That has a consequence for checking the code. Of the functions in Chan’s book code that compute a standard deviation, two take it over the last n days.
+That has a consequence for checking the code. Chan’s book code computes a standard deviation over the last n days with two different functions.
 
 1. The plain `movingStd` divides by n − 1.
 2. `smartMovingStd`, which skips missing values, divides by n.
 
-Over 20 days that rescales every z-score by the same factor, so the two give the same daily returns here to within 10⁻¹², and the same figures. In the posts on [post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) and [buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md), a stock’s move was compared with a fixed multiple of its standard deviation, so the deviation’s scale mattered and the choice of function behind it moved printed figures. Here nothing compares the z-score with a threshold, so these figures are no evidence about which function is right.
+Over 20 days that rescales every z-score by the same factor, so the two give the same daily returns here to within 10⁻¹², and the same figures. In the posts on [post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) and [buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md), a stock’s move was compared with a fixed multiple of its standard deviation, so the deviation’s scale mattered. There the choice was between two versions of a helper named `smartstd`, one from each of Chan’s two books, and it moved printed figures. Here nothing compares the z-score with a threshold, so these figures are no evidence about which function is right.
 
-The next example in the book, Example 3.2, trades the same spread with Bollinger bands. It enters when the z-score crosses a fixed threshold, so there the scale does not cancel, and the choice of helper can move its figures. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md#lesson-3-a-fixed-threshold-makes-the-divisor-matter) found that dividing by n rather than n − 1 lifts Example 3.2’s APR from Chan’s 0.178249 to 0.183306 and its Sharpe ratio from his 0.964673 to 0.984872.
+The next example in the book, Example 3.2, trades the same spread with Bollinger bands. It enters when the z-score crosses a fixed threshold, so there the scale does not cancel, and the choice between the two functions can move its figures. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md#lesson-3-a-fixed-threshold-makes-the-divisor-matter) found that dividing by n rather than n − 1 lifts Example 3.2’s APR from Chan’s 0.178249 to 0.183306 and its Sharpe ratio from his 0.964673 to 0.984872.
 
 ## Lesson 6: an exact reproduction checks the arithmetic, not the edge
 
@@ -171,7 +171,7 @@ Four questions are beyond it.
 
 One habit for each lesson.
 
-1. **Check the script before the prose.** The book’s prose matches the scripts here except for one rounding, and when they disagree the script is the record of what ran.
+1. **Check the script before the prose.** The book’s prose matches the scripts here except for one figure, 10.9 percent where its script gives 10.8, and when they disagree the script is the record of what ran.
 2. **Ask what one unit of the signal holds.** The three signals here hold three different portfolios, even when they share a chart.
 3. **Treat a printed result as a record of one run.** A comment can outlive the code it came from, and a reading that matches after a miss is evidence, not a reproduction.
 4. **Look at the fit, not only the spread.** A hedge ratio that changes sign is not hedging, and a spread that leaves out the fit’s intercept can be mostly that intercept.

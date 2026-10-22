@@ -3979,7 +3979,7 @@ the price spread, 9 percent and 0.5 for the log price spread, and a negative
 APR for the ratio, and each script's closing comment prints six decimals. The
 post draws six lessons from Entry 21 of the replication log.
 
-1. Two scripts land to six digits, and the book's 10.9 percent is not its
+1. Two scripts land to six decimals, and the book's 10.9 percent is not its
    script's 0.108335 rounded.
 2. The three signals hold three portfolios, fixed shares, fixed dollars and
    equal dollars.
@@ -3998,12 +3998,15 @@ Five groups of its figures are not pinned here.
    That a stationary mix of log prices is a portfolio of constant dollar
    weights rebalanced every day is at 1435. That a ratio is stationary in "a
    special case", when the two hedge ratios are equal and opposite, that a
-   ratio is unchanged when both prices scale together, and that Chan knows no
-   general answer are at 1476. "Are not, in
-   fact, cointegrated", "near-optimal" with "the benefit of hindsight", the
-   word stationary for the spread, "actually lower", the extra cost of the log
-   price spread, "a negative APR" and the caption "Ratio = USO/GLD" are at
-   1505. The book's figures are pinned, and its words are not.
+   ratio needs no hedge ratio, that a ratio is unchanged when both prices
+   scale together, a point Chan credits to a reader, and that Chan knows no
+   general answer to whether a ratio beats a spread with an adaptive hedge
+   ratio are at 1476. "Are not, in fact, cointegrated", the question whether
+   enough short-term mean reversion remains to trade, that the rule is the
+   linear mean reversion of Chapter 2, "near-optimal" with "the benefit of
+   hindsight", the word stationary for the spread, "actually lower", the extra
+   cost of the log price spread, "a negative APR" and the caption "Ratio =
+   USO/GLD" are at 1505. The book's figures are pinned, and its words are not.
 2. Facts outside the committed data. That two public copies of Chan's code
    hold the three scripts byte for byte and neither holds another version of
    `Ratio.m`, which `src/chan/price_spread.py`'s docstring records, and that

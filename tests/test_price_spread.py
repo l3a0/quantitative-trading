@@ -316,7 +316,7 @@ def _rolling_intercept(closes: pd.DataFrame) -> np.ndarray:
 
 class TestThePairDoesNotCointegrate:
     """Location 1505 says GLD and USO "are not, in fact, cointegrated", and the rule trades
-    them anyway on a hedge ratio refitted every 20 days.
+    them anyway on a hedge ratio refitted every day over the last 20 days.
 
     The test is :func:`chan.pair_cointegration.engle_granger` at one lag, USO regressed on
     GLD with an intercept over all 1,500 days, its residual's ADF statistic compared with
