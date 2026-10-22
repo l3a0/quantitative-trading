@@ -4517,8 +4517,9 @@ Five groups of what it says are not pinned here.
    benefit of hindsight" and "about 10.9 percent" are at 1505. The book's
    figures are pinned, and its words are not.
 2. Facts outside the committed data. That a second public copy of Chan's code
-   holds `bollinger.m` byte for byte, which `src/chan/bollinger.py`'s docstring
-   records, and that the file was converted to one file per ETF, which
+   holds `bollinger.m` and `fillMissingData.m` byte for byte, which
+   `src/chan/bollinger.py`'s docstring records, and that the file was converted
+   to one file per ETF, which
    [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that a z-score such as 0.99 moves beyond 1
    once multiplied by 1.0260, and that the factor cancels from the linear
