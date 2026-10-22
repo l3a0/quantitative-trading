@@ -2937,8 +2937,8 @@ given above for the regime map.
 is a sixth post, about two of Chan's three stationary candidates at Kindle
 location 3951, the CAD/AUD cross rate and the bond pair tested on TLT and IEF.
 It draws six lessons from Entries 5 and 6 of the replication log. Its opening
-and its close also state the third candidate's verdicts, the calendar spreads
-of Entry 15, which `TestTheCalendarSpreadVerdicts` holds.
+and its close also state the remaining candidate's verdicts, the calendar
+spreads of Entry 15, which `TestTheCalendarSpreadVerdicts` holds.
 [blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md), the
 thirteenth post below, is the one that covers them.
 
@@ -3716,7 +3716,7 @@ what it draws rather than its bytes, for the reason given above for the regime
 map.
 
 [blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md) is a
-thirteenth post, about the third of Chan's stationary candidates at Kindle
+thirteenth post, about the second of Chan's stationary candidates at Kindle
 location 3951, the futures calendar spreads, tested on every pair of
 neighbouring natural gas and RBOB gasoline contracts in EIA's settlements. It
 draws four lessons from Entry 15 of the replication log.
@@ -3768,7 +3768,10 @@ Five groups of its figures are not pinned here.
    less 202 is 11, that 580 is 360 and 220, that 2012-10-25 is two trading
    days before 2012-10-29, and that a window opening after one expiry,
    crossing two more and closing on a fourth rests on four, so each expiry
-   falls inside four pairs' windows.
+   falls inside four pairs' windows, that a pair's window, from the day after
+   one expiry to the near contract's last day, spans about three months, and
+   that a rule two days off would misread one kept day in each of three pairs
+   around an expiry.
 5. Its references. The four citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
