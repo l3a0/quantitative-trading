@@ -9885,7 +9885,12 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
-figure, which `uv run python -m chan.khandani_lo_small_caps_figures` redraws.
+figure, which `uv run python -m chan.khandani_lo_small_caps_figures` redraws,
+and its two whiteboard sketches, which
+`uv run python -m chan.khandani_lo_small_caps_whiteboard` redraws: one in
+Lesson 3 on how the correlation narrows the closes' standard error, and one in
+Lesson 6 on the three indexes' order at the closes and the opens, which also
+draws Entry 50's S&P 400 figures.
 
 ## Entry 45: a levered low-beta portfolio against an unlevered high-beta one, Chan's *Quantitative Trading*
 

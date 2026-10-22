@@ -2611,7 +2611,9 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that neither module draws.
+which also fails on any GIF in the folder that none of the three whiteboard
+modules draws. The small-caps post's two GIFs are checked the same way by
+[tests/test_khandani_lo_small_caps_whiteboard.py](tests/test_khandani_lo_small_caps_whiteboard.py).
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3422,7 +3424,7 @@ that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-both redraw commands.
+every post's redraw command.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -6257,6 +6259,35 @@ uv run python -m chan.khandani_lo_small_caps_figures
 [tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/khandani_lo_small_caps_whiteboard.py](src/chan/khandani_lo_small_caps_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+draws, and both build slowly and hold their finished drawing for twelve
+seconds. Neither is schematic.
+
+1. One in Lesson 3, `khandani_lo_small_caps_correlation_narrows.gif`, which
+   draws the closes' gap against two standard errors each way, with the
+   correlation set to 0 and at its measured 0.5258, from the committed files.
+2. One in Lesson 6, `khandani_lo_small_caps_size_order.gif`, which draws the
+   three indexes' Sharpe ratios before costs at both prices to one scale and
+   colours each step by whether it keeps the predicted order. Its S&P 400
+   figures read the owner's archive, so on a machine without it the command
+   redraws only the first and exits non-zero, naming the one it left.
+
+```bash
+uv run python -m chan.khandani_lo_small_caps_whiteboard
+```
+
+[tests/test_khandani_lo_small_caps_whiteboard.py](tests/test_khandani_lo_small_caps_whiteboard.py)
+holds what each sketch says and draws, reads the first sketch's figures from
+the run, and refuses figures that would make a sketch's words false. It draws
+the S&P 400 from `PINNED_MID`, so it runs without the archive, and
+`test_the_whiteboard_draws_this_runs_figures` in
+[tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py)
+holds that the run gives those figures where the archive is. It compares each
+committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic
+Sans MS, as the USD.CAD sketches' test does.
 
 [blog/pead-edgar-rerun-lessons.md](blog/pead-edgar-rerun-lessons.md) is a
 thirty-ninth post, about Example 7.2 of Chan's *Algorithmic Trading* rerun
