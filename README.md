@@ -2611,7 +2611,9 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that neither module draws.
+which also fails on any GIF in the folder that none of the three sketch modules
+draws. The VX against ES post's two GIFs are checked the same way by
+[tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py).
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -4308,7 +4310,9 @@ Seven groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_vx_es.py](tests/test_vx_es.py), or to
 [tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) for the figure's
-own numbers. `TestThePostQuotesTheRun` in
+own numbers, or to
+[tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) for the
+sketches' labels and pace. `TestThePostQuotesTheRun` in
 [tests/test_vx_es.py](tests/test_vx_es.py) reads the post itself, so a figure
 edited in the post alone fails. It reads every row of the four tables with its
 verdict, though not the column headings that name Lesson 2's saves, and one
@@ -4347,6 +4351,33 @@ uv run python -m chan.vx_es_figures
 
 [tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) holds what it draws
 rather than its bytes, for the reason given above for the regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/vx_es_whiteboard.py](src/chan/vx_es_whiteboard.py) on the USD.CAD
+post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `vx_es_sketch_one_shift.gif`, in Lesson 2, falling dots and their fit, the
+   same dots moved right by one amount with a parallel fit, and the same dots
+   moved by uneven amounts with a fit whose slope differs.
+2. `vx_es_sketch_two_exits.gif`, in Lesson 3, a z-score path against the band
+   above two strips, one holding until the opposite band and one closing at
+   the mean, so the second waits flat from each zero crossing to the next band.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in.
+
+Both are schematic and carry no figures from the run. Redraw both with:
+
+```bash
+uv run python -m chan.vx_es_whiteboard
+```
+
+[tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) holds that
+each strip holds what `chan.vx_es`'s two exit rules hold along the drawn path,
+that one constant added to every VX close on the 2012-05-07 save moves only
+the intercept, and that the mean exit starts 77 of the 449 test days with no
+position.
 
 [blog/aud-cad-rollover-lessons.md](blog/aud-cad-rollover-lessons.md) is a
 twentieth post, about Example 5.2 of Chan's *Algorithmic Trading*, which adds
