@@ -2,12 +2,13 @@
 
 Four sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
-second lesson discusses, three its check of Chan's five-year claim, two its
-lesson on survivorship bias, four its question on whether the January effect
-still worked after 2008, two its question on whether Heston and Sadka's effect
-existed before 2002, and ten its question on whether Heston and Sadka's
-effect survived it, three of them on where its 4.2 percent comes from and
-three on what a broader series shows, and four its further work. The
+second lesson discusses, two its check of Chan's five-year claim, one its
+section on Example 7.6's three Januaries, two its lesson on survivorship
+bias, four its question on whether the January effect still worked after
+2008, two its question on whether Heston and Sadka's effect existed before
+2002, and ten its question on whether Heston and Sadka's effect still worked
+after 2008, three of them on where its 4.2 percent comes from and three on
+what a broader series shows, and four its further work. The
 opening's timeline places each source's years to scale, from Chan's committed
 files and the registered runs' constants, and its verdicts sketch draws the
 two registered runs' figures to scale. Those figures are pinned here as
@@ -3827,6 +3828,10 @@ def test_the_post_quotes_the_pinned_figures() -> None:
     months = np.array([r for _, r in ivv.months])
     half = seasonals.detectable_mean(months.std(ddof=1), len(months) // 2)
     error = months.std(ddof=1) / np.sqrt(len(months))
+    c, z, d, df = f"{shift.critical:.3f}", f"{shift.z:.3f}", f"{shift.shift:.3f}", shift.df
+    start, stop = seasonals.SHIFT_BRACKET
+    detectable = f"{100 * p.detectable:.1f}"
+    headline = f"no return detectable above about {detectable} percent a year"
     bracket = (
         f"a loss of {-100 * p.january_low:.2f} percent"
         f" to a gain of {100 * p.january_high:.2f} percent"
@@ -3838,12 +3843,37 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         f"The low series averages {_minus(p.january_low, 4)} a January before costs",
         f"The high series averages {_minus(p.january_high, 4)}, with",
         f"The {len(ivv.months)} months average {_minus(p.monthly_mean, 4)} a month before costs",
-        f"no return detectable above about {100 * p.detectable:.1f} percent a year",
+        headline,
         f"a checked price for {ivv.covered:,} of its {ivv.members:,} member-months",
         f"its t-statistic clears {shift.critical:.3f}",
         f"The normal-curve shortcut gives {shift.critical + shift.z:.4f}"
         f" and the exact answer {shift.shift:.4f}",
         f"land above −{shift.z:.3f}",
+        f"is “no return detectable above about {detectable}% a year”."
+        f" The {detectable} percent is the smallest",
+        f"The {detectable} percent follows from the noise in the {len(months)} months",
+        f"{c} comes from the t distribution for {df} degrees of freedom,"
+        f" one fewer than the {df + 1} months",
+        f"it would clear {c} only 5 percent of the time",
+        f"The {detectable} percent comes from asking how far the scatter must shift"
+        f" for the statistic to clear {c} four times in five",
+        f"because {z} is the normal curve’s 80th percentile",
+        f"clears {c} four times in five when {c} sits {z} below the centre,"
+        f" which puts the centre at {z} past {c}:",
+        f"& \\delta + Z > {c} \\\\",
+        f"& P(Z > -{z}) = 0.80 \\\\",
+        f"& {c} - \\delta = -{z} \\\\",
+        f"& \\delta \\approx {c} + {z} = {shift.critical + shift.z:.3f}",
+        f"With {df} degrees of freedom and a shift of δ",
+        f"T_{{{df}}}(\\delta) = \\frac{{Z + \\delta}}{{\\sqrt{{V / {df}}}}}",
+        f"chi-squared distribution with {df} degrees of freedom, so V / {df} averages 1",
+        f"the way a spread measured from {len(months)} months wanders",
+        f"P\\left(T_{{{df}}}(\\delta) > {c}\\right) = 0.80 \\\\",
+        f"\\Rightarrow\\quad \\delta = {d}",
+        f"The chance of clearing {c} rises as δ grows. At δ = {start:g} it is"
+        f" {seasonals.SIGNIFICANCE:.2f}, the 5 percent bar, and at δ = {stop:g}",
+        f"a slightly bigger shift to clear {c} four times in five",
+        f"X &= {d} \\times {error:.5f} \\\\",
         f"it earned {100 * osap.sample:.2f} percent a month before costs,"
         f" where they printed {100 * osap.printed:.2f} percent."
         f" Its t-statistic of {osap.sample_t:.2f}",
@@ -3886,6 +3916,7 @@ def test_the_post_quotes_the_pinned_figures() -> None:
     text = POST.read_text(encoding="utf-8")
     assert [fragment for fragment in fragments if fragment not in text] == []
     assert text.count(bracket) == 3
+    assert text.count(headline) == 3
 
 
 def test_every_section_the_post_points_to_is_a_heading() -> None:
