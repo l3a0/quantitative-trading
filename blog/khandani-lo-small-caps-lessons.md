@@ -17,7 +17,7 @@ No earlier run in [this post’s code repository](https://github.com/l3a0/quanti
 5. **A check for split prices flags two real moves**, and same-day news is what shows they were real.
 6. **By the reading written down in advance, the S&P 600’s result points the way Chan says, and that is all it can say.** A later run on the S&P 400 finds that on the closes, but not on the opens, the Sharpe ratio rises as the companies get smaller.
 
-**Every result here is exploratory**, meaning it can justify a closer look but cannot settle a question on its own. The run applies a rule Chan published, unchanged, to the small-cap stocks his exercise names, for which he prints no figure. It can say which way the gap points on one year of survivors and how the gap compares with that year’s noise. Each file holds only survivors, the companies in its index on the day the file records. It confirms nothing about Chan’s explanation. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+**Every result here is exploratory**, meaning it can justify a closer look but cannot settle a question on its own. The run applies a rule Chan published, unchanged, to the small-cap stocks his exercise names, for which he prints no figure. It can say which way the gap points on one year of survivors and how the gap compares with that year’s noise. Each file holds only survivors, the companies in its index on the day the file records. The run confirms nothing about Chan’s explanation. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The rule and the files
 
@@ -92,7 +92,7 @@ Two books traded on the same days earn on the same market moves, so their daily 
 &\qquad + \tfrac{1}{2}\left(s_1^2 + s_2^2 - 2 s_1 s_2 \rho^2\right) \Big]\end{aligned}
 ```
 
-To get the standard error of the annual gap, multiply that variance by 252 and take the square root. A daily Sharpe ratio is small, and the second term is built from squares and products of the two, so the first term in the brackets, 2(1 − ρ), carries 98 percent of the bracket on the closes and 94 percent on the opens. The correlation is therefore what sets the standard error. The higher the correlation, the more of each book’s noise the other shares, and the less of that noise lands in the gap.
+To get the standard error of the annual gap, multiply that variance by 252 and take the square root. The second term in the brackets is built from squares and products of s₁ and s₂, and a daily Sharpe ratio is small. So the first term, 2(1 − ρ), carries 98 percent of the bracket on the closes and 94 percent on the opens. The correlation is therefore what sets the standard error. The higher the correlation, the more of each book’s noise the other shares, and the less of that noise lands in the gap.
 
 On the closes, had the two books been unrelated, with ρ set to 0, the standard error would be 1.4252, and the gap of +3.1576 would sit 2.2155 standard errors out, barely past the line. The measured correlation of 0.5258 narrows the standard error to 0.9872.
 
@@ -195,7 +195,7 @@ Before costs the S&P 400’s Sharpe ratio is 2.0338 on the closes, between the S
 
 ### Whether the change of source explains the S&P 400’s place
 
-The S&P 400’s prices come from a different vendor than Chan’s two files do, and were downloaded in 2026, where his were saved in 2007 and 2008. So the S&P 400 run also rebuilds the S&P 600 from the iShares S&P 600 fund’s holdings on 2007-12-31, priced from Alpha Vantage like the S&P 400, and reads it against Chan’s S&P 600 file. The rebuilt S&P 600’s Sharpe ratio lands 0.1108 above that file’s on the closes and 0.7244 below it on the opens. Both differences are smaller than the S&P 400’s distance to its nearer neighbour at that price. On the closes that neighbour is the S&P 600, 1.3748 away, and on the opens it is the S&P 500, 0.9669 away. A change of source that moved the S&P 400 by as little could not carry it past either neighbour. By the rule written down before the run, a change of source that small does not stop the run from reading the S&P 400’s place in the order.
+The S&P 400’s prices come from a different vendor than Chan’s two files do, and were downloaded in 2026, where his were saved in 2007 and 2008. So the S&P 400 run also rebuilds the S&P 600 from the iShares S&P 600 fund’s holdings on 2007-12-31, priced from Alpha Vantage like the S&P 400, and reads it against Chan’s S&P 600 file. The rebuilt S&P 600’s Sharpe ratio lands 0.1108 above that file’s on the closes and 0.7244 below it on the opens. Both differences are smaller than the S&P 400’s distance to its nearer neighbour at that price. On the closes that neighbour is the S&P 600, 1.3748 away, and on the opens it is the S&P 500, 0.9669 away. A change of source that moved the S&P 400 by no more than those differences could not carry it past either neighbour. By the rule written down before the run, a change of source that small does not stop the run from reading the S&P 400’s place in the order.
 
 That rule assumes the change of source moves the S&P 400 about as much as it moved the S&P 600, which the run cannot measure. Passing the rule also rests on three exclusions in the rebuilt S&P 600. This repository decided each one before computing any strategy figure.
 
