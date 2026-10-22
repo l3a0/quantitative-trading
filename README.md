@@ -4049,10 +4049,17 @@ for the whiteboard sketch's. Seven had no pin before it.
 6. The figure's own lines and labels.
 7. The sketch's two 20-day windows, ending 7 and 14 July 2009, with their
    hedge ratios of 0.97 and 2.17, a rise of 1.20 between them, intercepts of
-   −51.65 and −161.60, a fall of 109.95 between them, leftovers of −2.71 and −3.21, and their clouds' mean
-   GLD of 91.5 dollars.
+   −51.65 and −161.60, a fall of 109.95 between them, leftovers of −2.71 and
+   −3.21, and their clouds' mean GLD of 91.5 dollars.
 
-Its one figure is drawn from the committed file by
+`TestThePostQuotesThePins` in
+[tests/test_price_spread.py](tests/test_price_spread.py) reads one copy of
+each figure the post takes from the run, and fails when that copy drifts from
+the run. A second copy of the same figure elsewhere in the post is not always
+read, and neither are Chan's Python port, "a quarter of a percent" and "about
+a twentieth", or Lesson 5's Example 3.2 figures.
+
+Its chart is drawn from the committed file by
 [src/chan/price_spread_figures.py](src/chan/price_spread_figures.py), which
 reads it through the same `read_sources` and `example_three_one` as
 `python -m chan.price_spread`, scale-break guard included. It draws four panels
