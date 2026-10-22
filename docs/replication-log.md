@@ -11620,6 +11620,13 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
 moves with it, since the closing paragraphs of that post's Lesson 6 quote
 its before-cost figures, its one step beyond noise and the control's gaps.
+So does the post's Lesson 6 sketch, which draws this run's S&P 400 figures
+from `PINNED_MID` in
+[tests/test_khandani_lo_small_caps_whiteboard.py](../tests/test_khandani_lo_small_caps_whiteboard.py).
+`test_the_whiteboard_draws_this_runs_figures` in
+[tests/test_khandani_lo_mid_caps.py](../tests/test_khandani_lo_mid_caps.py)
+holds the two together, and a re-pin here redraws it with
+`uv run python -m chan.khandani_lo_small_caps_whiteboard`.
 
 ## Entry 51: Example 2.5's linear rule on USD/CAD after 2012, Chan's *Algorithmic Trading*
 

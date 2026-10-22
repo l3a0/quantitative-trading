@@ -404,14 +404,16 @@ class TestTheNarrowing:
         [
             {"standard_error": 1.5},
             {"unrelated_error": 1.6},
-            {"unrelated_error": 1.2},
-            {"gap": 4.0, "unrelated_error": 1.9, "standard_error": 1.0},
+            {"unrelated_error": 1.24},
+            {"gap": 3.2, "unrelated_error": 1.55, "standard_error": 1.0},
+            {"gap": 3.6, "unrelated_error": 1.49, "standard_error": 1.0},
         ],
         ids=[
             "the correlation widens the error",
             "the unrelated gap inside 2",
             "the unrelated gap far past 2",
-            "off the axis",
+            "the unrelated band off the left end",
+            "the gap off the right end",
         ],
     )
     def test_figures_the_words_would_misdescribe_are_refused(self, narrowing, changes) -> None:
@@ -510,6 +512,38 @@ class TestTheSizeOrder:
         for price in ("closes", "opens"):
             assert _label(scene, price).names == f"{price}-2"
 
+    def test_every_label_takes_its_ink(self, every) -> None:
+        scene = every[1]
+        colours = {step.text: step.color for step in scene.steps if isinstance(step, Label)}
+        assert colours == {
+            "S&P 500": MUTED,
+            "S&P 400": MUTED,
+            "S&P 600": MUTED,
+            "predicted: rises as the companies get smaller": MUTED,
+            "Sharpe ratios before costs": MUTED,
+            "0.2510": INK,
+            "2.1973 standard errors": GOOD,
+            "2.0338": INK,
+            "3.4086": INK,
+            "closes": INK,
+            "4.4202": INK,
+            "breaks the order, about one standard error": LOST,
+            "3.4533": INK,
+            "5.3052": INK,
+            "opens": INK,
+            "S&P 400: Alpha Vantage files downloaded in 2026": MUTED,
+        }
+
+    def test_each_steps_words_sit_beside_it(self, every) -> None:
+        scene = every[1]
+        for text, gid in (
+            ("2.1973 standard errors", "closes-step-1"),
+            ("breaks the order, about one standard error", "opens-step-1"),
+        ):
+            step, label = _stroke(scene, gid), _label(scene, text)
+            middle = ((step.x[0] + step.x[-1]) / 2, (step.y[0] + step.y[-1]) / 2)
+            assert math.hypot(label.x - middle[0], label.y - middle[1]) < 1.0, text
+
     def test_the_notes_are_grey(self, every) -> None:
         scene = every[1]
         assert _stroke(scene, "axis").color == _stroke(scene, "predicted").color == MUTED
@@ -556,7 +590,7 @@ class TestTheSizeOrder:
             {"opens_z": (-0.3, 1.55)},
             {"opens_z": (1.08, 1.55)},
             {"closes": (0.25, 2.03, 6.0)},
-            {"opens": (-0.1, 3.45, 5.31)},
+            {"opens": (-0.1, 3.45, 5.31), "opens_z": (1.08, 1.55)},
         ],
         ids=[
             "a fall beyond the noise",
@@ -667,6 +701,31 @@ class TestThePost:
     def test_the_narrowing_alt_text_says_where_the_gap_stands(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
         assert "just past the upper band’s right end and well past the lower band’s" in alt
+
+    def test_each_alt_text_names_what_its_colours_and_places_mean(self, every) -> None:
+        """Each phrase states a fact another test here holds of the drawing."""
+        text = POST.read_text(encoding="utf-8")
+        for scene, phrases in zip(
+            every,
+            (
+                (
+                    "runs from about −3 to about +3.5",
+                    "The upper row, labelled “unrelated",
+                    "is a pale green band with a green edge centred on 0",
+                    "is a narrower band of the same kind",
+                    "A brass vertical line",
+                ),
+                (
+                    "from the largest companies to the smallest",
+                    "A short grey arrow points up and to the right",
+                    "Above it a line for the opens",
+                ),
+            ),
+            strict=True,
+        ):
+            alt = _alt(text, scene)
+            for words in phrases:
+                assert words in alt, (scene.slug, words)
 
     def test_the_size_order_alt_text_names_each_steps_colour(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])

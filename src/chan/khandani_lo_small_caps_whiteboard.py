@@ -245,7 +245,9 @@ def _correlation_narrows(n: Narrowing) -> Scene:
         ),
     ]
     for gid, (y0, y1), _, z in rows:
-        text = f"z {_signed(z, 4)}, barely past {m:g}" if gid == "unrelated" else f"z {_signed(z, 4)}"
+        text = f"z {_signed(z, 4)}"
+        if gid == "unrelated":
+            text += f", barely past {m:g}"
         steps.append(Label(text, gap_x + 0.22, (y0 + y1) / 2, names="gap", size=11))
     steps.append(
         Label(
