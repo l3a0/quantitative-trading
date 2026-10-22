@@ -561,8 +561,8 @@ class TestThePostQuotesThePins:
     def test_the_closes_span(self, result) -> None:
         days = result.days
         assert (
-            f"The closing prices cover {len(days):,} days from {days[0].date()} to {days[-1].date()}"
-            in self.text
+            f"The closing prices cover {len(days):,} days "
+            f"from {days[0].date()} to {days[-1].date()}" in self.text
         )
 
     def test_the_rate_files_months(self, sources) -> None:
