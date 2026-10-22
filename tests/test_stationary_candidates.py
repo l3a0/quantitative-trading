@@ -128,9 +128,12 @@ batches once.
 11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
 12. ``TestTheFirstRbobPairs``, the two RBOB pairs that read the wrong
     contracts on their 2005 days, until issue 704 fixes the reading.
-13. ``TestTheCalendarSpreadPostQuotesThePins``, one copy of each count, bar,
-    median, seed and handover tally the calendar spreads post quotes, read
-    from the post itself, and what a rule two days off would misread.
+13. ``TestTheCalendarSpreadPostQuotesThePins``, read from the calendar spreads
+    post itself: one copy of its verdicts, bars, null medians and seeds, its
+    pairs' counts, months and kept days, its critical value, residual check,
+    leg correlations, rejections in each orientation, null sets reaching each
+    verdict, slow-reversion means and handover tallies, and what a rule two
+    days off would misread.
 
 A replication under the claim route, so exploratory. The batch takes about
 seven seconds, before the eight single-orientation nulls. First run on
@@ -1712,6 +1715,16 @@ class TestTheCalendarSpreadDescriptions:
         assert float(spreads[NG].power.mean()) * 360 == pytest.approx(21.9, abs=0.05)
         assert float(spreads[RBOB].power.mean()) * 220 == pytest.approx(13.5, abs=0.05)
 
+    def test_the_power_legs_move_together_far_less_than_the_files(self, spreads) -> None:
+        """Each near leg is the far walk plus an AR(1) spread starting from its
+        stationary distribution, both with unit innovations, so the legs' daily
+        changes correlate at 1/√(1 + 2/(1 + φ)), with φ the spread's daily
+        persistence at the 36-day half-life. That is about 0.7, against the
+        files' 0.99."""
+        phi = 1.0 - math.log(2.0) / SPREAD_POWER_HALF_LIFE
+        assert round(1.0 / math.sqrt(1.0 + 2.0 / (1.0 + phi)), 1) == 0.7
+        assert all(0.99 < spreads[name].correlation < 1.0 for name in (NG, RBOB))
+
 
 @pytest.fixture(scope="module")
 def alone(spreads) -> dict[tuple[str, str, str], np.ndarray]:
@@ -1997,8 +2010,11 @@ def _month(month: tuple[int, int]) -> str:
 
 
 class TestTheCalendarSpreadPostQuotesThePins:
-    """One copy of each count, bar, median and handover tally in the calendar
-    spreads post, read from the post itself.
+    """The verdicts, bars, null medians and seeds in the calendar spreads post,
+    its pairs' counts, months and kept days, its critical value, residual check,
+    leg correlations, rejections in each orientation, null sets reaching each
+    verdict, slow-reversion means and handover tallies, and what a rule two days
+    off would misread, one copy of each read from the post itself.
 
     Other copies of the same figure elsewhere in the post are not always read.
     The prose states these numbers and the classes above derive them, so
@@ -2045,9 +2061,13 @@ class TestTheCalendarSpreadPostQuotesThePins:
     def test_the_residual_check(self, spreads) -> None:
         ng, rbob = spreads[NG], spreads[RBOB]
         words = {10: "ten"}
+        unit = ResidualCheck(
+            lags=1, adf_stat=0.0, nobs=1, autocorrelation=np.zeros(0), breusch_godfrey_p=1.0
+        )
         assert (
             f"gives a p-value above {RESIDUAL_PASS_P:.2f} and none of the first "
-            f"{words[RESIDUAL_LAGS]} autocorrelations falls outside a band of ±1.96/√n"
+            f"{words[RESIDUAL_LAGS]} autocorrelations falls outside a band of "
+            f"±{unit.band:.2f}/√n"
         ) in self.text
         assert (
             f"{count(ng.near_on_far_residuals_pass, 360)} of 360 with the near month regressed "
@@ -2120,16 +2140,22 @@ class TestTheCalendarSpreadPostQuotesThePins:
 
     def test_the_handovers(self) -> None:
         survey = TestTheExpiryMapAgainstTheFiles.survey
+        first = {NG: (1994, 2), RBOB: (2006, 1)}
         tallies = {
-            (product.name, shift): survey(product, first, shift)[1:]
-            for product, first in ((NATURAL_GAS_CONTRACTS, (1994, 2)), (RBOB_CONTRACTS, (2006, 1)))
+            (product.name, shift): survey(product, first[product.name], shift)[1:]
+            for product in (NATURAL_GAS_CONTRACTS, RBOB_CONTRACTS)
             for shift in (0, -1, 1)
         }
         (ng, ng_of), (rbob, rbob_of) = tallies[NG, 0], tallies[RBOB, 0]
+        last = _month((2024, 4))
         assert (
-            f"for {ng} of the {ng_of} natural gas expiries the files have rows to check"
+            f"Over the contracts delivered from {_month(first[NG])} to {last}, the handover "
+            f"falls on the rule’s expiry date for {ng} of the {ng_of} natural gas expiries the "
+            "files have rows to check."
         ) in self.text
-        assert f"it does for {rbob} of {rbob_of} RBOB expiries" in self.text
+        assert (
+            f"Over {_month(first[RBOB])} to {last} it does for {rbob} of {rbob_of} RBOB expiries."
+        ) in self.text
         early = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, -1], tallies[RBOB, -1]))
         late = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, 1], tallies[RBOB, 1]))
         assert f"a day earlier it fits {early}, and a day later {late}." in self.text

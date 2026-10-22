@@ -3761,26 +3761,29 @@ Five groups of its figures are not pinned here.
    which returned no prices for the three natural gas contracts it asked for,
    both of which
    [issue 137](https://github.com/l3a0/quantitative-trading/issues/137)
-   records.
+   records. So is *Algorithmic Trading* appearing between the two editions of
+   *Quantitative Trading*.
 4. Arithmetic no test asserts. That 57 against 47 is ten pairs clear and 14
    against 31 seventeen short, that 14 against 13 is one pair clear under the
    declared null, that the 975th of 1,000 rather than the 950th splits a 5%
    chance of a false pass across two commodities, that requiring both
    orientations costs natural gas five pairs and RBOB three against the
    near-on-far orientation, that 250 and 255 of 360 are about seven in ten and
-   168 and 166 of 220 about three in four, that 316 less 298 is 18 and 213
-   less 202 is 11, that 580 is 360 and 220, that 2012-10-25 is two trading
-   days before 2012-10-29, and that a window opening after one expiry,
-   crossing two more and closing on a fourth rests on four, so each expiry
-   falls inside four pairs' windows, and that a pair's window, from the day
-   after one expiry to the near contract's last day, spans about three months.
+   168 and 166 of 220 about three in four, that 2012-10-25 is two trading
+   days before 2012-10-29, that a window opening after one expiry, crossing
+   two more and closing on a fourth rests on four, and that a pair's window,
+   from the day after one expiry to the near contract's last day, spans about
+   three months.
 5. Its references. The four citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py),
 which pins Entry 15's rows and whose `TestTheCalendarSpreadPostQuotesThePins`
-reads one copy of each count, bar, median, seed and handover tally from the
-post itself, to
+reads from the post itself one copy of its verdicts, bars, null medians and
+seeds, its pairs' counts, months and kept days, its critical value, residual
+check, leg correlations, rejections in each orientation, null sets reaching
+each verdict, slow-reversion means and handover tallies, and what a rule two
+days off would misread, to
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) for the
 16 contracts whose exchange dates check the expiry rule, to
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
