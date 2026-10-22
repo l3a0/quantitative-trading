@@ -9642,9 +9642,12 @@ It fixes four things.
    Memmel's (2003) correction of Jobson and Korkie (1981). A gap more than
    twice its standard error reads as larger than one year's noise. The size
    reading adds no verdict.
-4. **Khandani and Lo's 4.47.** It is a figure for 2006 too, but on their own
-   universe, so the entry prints it beside the result and judges nothing
-   against it.
+4. **Khandani and Lo's 4.47.** The entry prints it beside the result and
+   judges nothing against it, because their universe and window are not this
+   file's.
+
+The declaration's second reason does not hold. Chan dates their figure to
+2006 too, at location 2099, so only the universe differs.
 
 Entry 50 runs the S&P 400 half under
 [issue 303](https://github.com/l3a0/quantitative-trading/issues/303), with the
@@ -9809,9 +9812,10 @@ does not change when a book is scaled, so the two books need no matching,
 unlike Entry 4's test of a mean difference.
 
 The price is the formula's assumption. It treats each day's profit as
-independent of the day before and normal, and a reversal's daily profits need
-not be either. So the standard errors are approximations, and nothing here measures
-how far off they are. The closes' gap sits at z +3.1987, past the declared
+independent of the day before and normal. Neither universe's daily profits are
+normal, and the S&P 500's are not independent from day to day either. So the
+standard errors are approximations, and nothing here measures how far off they
+are. The closes' gap sits at z +3.1987, past the declared
 line of 2 standard errors, and the opens' gap at z +0.7603 sits inside it.
 
 ### What the entry concludes
@@ -11212,7 +11216,8 @@ stated once here.
    costs with the first day charged.
 
 Every result here is **EXPLORATORY**. The run applies a rule Chan published,
-unchanged, to the mid-cap and small-cap stocks his exercise names, so it says
+unchanged, to stocks from the S&P 400 and S&P 600, the two universes his
+exercise names, so it says
 which way each step points on one year of survivors and how each compares with
 that year's noise. It confirms nothing about Chan's explanation, and a reading
 that pointed his way would earn a registered test on data the run has not

@@ -52,10 +52,11 @@ computes.
    the same days, which :func:`sharpe_gap` computes. A gap more than twice its
    standard error reads as larger than one year's noise. The size reading adds
    no verdict.
-3. **Khandani and Lo's 4.47 is printed and judged against nothing.** It is a
-   figure for 2006 too, but on their own universe, which this file is not.
+3. **Khandani and Lo's 4.47 is printed and judged against nothing.** The
+   declaration gives their universe and window as the reason.
 
-The primary reading is before costs, because Chan's explanation is about
+Chan dates their figure to 2006 too, so of those two reasons only the universe
+holds. The primary reading is before costs, because Chan's explanation is about
 where the returns come from. The after-cost figures are printed and read the
 same way. They flatter the small caps, because the run charges both
 universes the same 5 basis points while a trader pays more to trade small
@@ -213,8 +214,10 @@ def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
     difference needs and this one does not.
 
     The formula assumes the daily profits are independent from day to day and
-    jointly normal. A reversal's daily profits need not be either, so the standard
-    error is an approximation, and a reading of it says so.
+    jointly normal. On the two files this module compares, neither universe's
+    daily profits are normal, and the S&P 500's are not independent from day to
+    day either, so the standard error is an approximation, and a reading of it
+    says so.
 
     It pairs the two series by position, so the caller pairs the dates first,
     the way :func:`same_days` does for two :class:`chan.khandani_lo.Reversal`

@@ -54,8 +54,9 @@ not 1, the way ``tests/conftest.py``'s ``archive_skip_reason`` decides. The
 readings and the exclusions are also tested on frames built by hand, which
 run everywhere.
 
-EXPLORATORY. The run applies a rule Chan published, unchanged, to the mid-cap
-and small-cap stocks his exercise names, and Chan prints no figure for either
+EXPLORATORY. The run applies a rule Chan published, unchanged, to stocks from
+the S&P 400 and S&P 600, the two universes his exercise names, and Chan prints
+no figure for either
 universe, so no figure carries a verdict. Every reading was declared on issue
 303 before any figure was computed. It first ran on 2026-10-11.
 """
@@ -585,7 +586,8 @@ class TestTheGapsToBothNeighbours:
     def test_the_whiteboard_draws_this_runs_figures(self, result) -> None:
         """The size-order sketch in ``tests/test_khandani_lo_small_caps_whiteboard.py``
         draws its ``PINNED_MID`` figures, so it runs without the archive. This
-        holds that this run gives them, to the bit the sketch was drawn from."""
+        holds that this run gives them, each within 1e-12 of the figure the sketch
+        was drawn from."""
         from chan.khandani_lo_small_caps_whiteboard import MidCaps
         from tests.test_khandani_lo_small_caps_whiteboard import PINNED_MID
 

@@ -39,7 +39,9 @@ Before computing any S&P 600 figure, this repository wrote down how to read the 
 1. **What each figure is read against.** Each S&P 600 figure is read against the S&P 500’s at the same price, close or open, and with the same costs. A gap is the S&P 600’s figure minus the S&P 500’s.
 2. **Direction.** If the S&P 600’s Sharpe ratio before costs is above the S&P 500’s at both prices, the result points the way Chan says. If it is above at one price only, the reading is mixed, and if it is above at neither, the result points against Chan’s explanation. The reading uses the figure before costs, because Chan’s explanation is about where the returns come from.
 3. **Size.** Each gap before costs is read against its own standard error, which says how far apart two Sharpe ratios measured on one year could land by chance alone. Lesson 3 shows how it is computed. A gap more than twice its standard error reads as larger than one year’s noise.
-4. **The run prints Khandani and Lo’s 4.47 and compares it with nothing.** It is a figure for 2006 too, but computed on the stocks they tested, which this repository does not hold.
+4. **The run prints Khandani and Lo’s 4.47 and compares it with nothing.**
+
+Khandani and Lo’s figure is for 2006 too, but it comes from the stocks they tested, which this repository does not hold.
 
 ## Lesson 1: at the close, the S&P 600 earns far more, beyond one year’s noise
 
@@ -100,7 +102,7 @@ On the closes, had the two books been unrelated, with ρ set to 0, the standard 
 
 The test needs no matching of the two books’ sizes. Chan’s weights are never scaled to a dollar amount, so the S&P 600 book and the S&P 500 book differ in total size. Multiplying a book by a constant scales its mean and its standard deviation together, so its Sharpe ratio does not change. Neither does the gap or its standard error.
 
-The test rests on an assumption. The formula treats each day’s profit as independent of the day before and drawn from a normal distribution, and a reversal’s daily profits need not be either. So both standard errors are approximations, and nothing here measures how far off they are.
+The test rests on an assumption. The formula treats each day’s profit as independent of the day before and drawn from a normal distribution. Neither universe’s daily profits are normal, and the S&P 500’s are not independent from day to day either. So both standard errors are approximations, and nothing here measures how far off they are.
 
 ## Lesson 4: after 5 basis points a side, the closes lose and the opens keep a profit
 

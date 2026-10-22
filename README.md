@@ -755,8 +755,8 @@ at both prices under the reading declared before the run. The gap on the
 closes, +3.1576, is more than three times its standard error of 0.9872, and
 the gap on the opens, +0.8850, is smaller than its 1.1640, so one year of the
 opens cannot tell the two universes apart. The standard error assumes
-independent, normal days, which a reversal's are not, so it is an
-approximation. After 5 basis points a side the S&P 600's closes lose only a
+independent, normal days. Neither universe's days are normal, and the S&P
+500's are not independent either, so it is an approximation. After 5 basis points a side the S&P 600's closes lose only a
 little. The rule trades about the same amount a day on both files at both
 prices, so the profit decides, and the S&P 600's average day on the closes
 pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
@@ -901,8 +901,9 @@ books `tests/test_khandani_lo.py` does not already pin, the cost a side at
 which each of the four breaks even, the open's lift in each universe, the
 closes' standard error with the correlation set to 0, and the share of
 Memmel's bracket the correlation term carries on each price, with the helper
-behind them worked by hand. The blog post about it is the exception, and what
-it says that nothing here asserts is listed below.
+behind them worked by hand. It also reads the post's tables and quoted
+figures against the run, and what the post says that nothing here asserts is
+listed below.
 
 [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py) does
 it for the reversal on the S&P 400, between Chan's two files. It pins the
@@ -6194,8 +6195,9 @@ Five groups of what it says are not pinned here.
    flatters the S&P 600, that the S&P 600 adds a company only above a
    minimum size and does not drop a member just because it later shrank, that
    the reversal bought the two flagged stocks on days Chan's reasoning gives
-   no cause to expect a bounce, that the daily profits need not be independent
-   or normal, that the post on *Algorithmic Trading*'s run found the data and
+   no cause to expect a bounce, that neither universe's daily profits are
+   normal and that the S&P 500's are not independent from day to day, that the
+   post on *Algorithmic Trading*'s run found the data and
    the window moved the Sharpe ratio more than the rule did, that
    the distance between two running totals says nothing about how much the
    daily profits swing, that a reversal buys exactly the stocks that fell,
@@ -6232,7 +6234,7 @@ the 5 basis points a side and the 252 days a year to `TestTheFigures` in the
 same file, and the factor of 1.6 to
 [tests/test_scale_breaks.py](tests/test_scale_breaks.py). The S&P 400's
 figures, its steps to both neighbours, the control's gaps with and without
-the three stocks set aside, and the reading of mixed trace to
+its three exclusions, and the reading of mixed trace to
 [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py). Its
 fund, holdings date, vendor and download date, its 401 holdings, the rule a run
 keeps them by, the vendor's 2006-12-28 start and the 285 a run keeps trace to

@@ -609,6 +609,19 @@ class TestTheGifs:
     def test_there_is_one_named_for_each_scene(self, gifs) -> None:
         assert [path.name for path in gifs] == GIFS
 
+    def test_a_handed_in_mid_never_reads_the_archive(self, monkeypatch, tmp_path, result) -> None:
+        """Every test here draws from PINNED_MID, so a draw handed it must not read the archive,
+        or the file stops running on a machine without one."""
+
+        def refuse(*args, **kwargs):
+            raise AssertionError("the archive was read although mid was handed in")
+
+        monkeypatch.setattr(mid_caps, "read", refuse)
+        paths = make_khandani_lo_small_caps_whiteboards(
+            out_dir=tmp_path, comparison=result, mid=PINNED_MID
+        )
+        assert [path.name for path in paths] == GIFS
+
     def test_each_is_680_by_320_and_loops_forever(self, gifs, frames) -> None:
         for path, steps in zip(gifs, frames, strict=True):
             with Image.open(path) as image:

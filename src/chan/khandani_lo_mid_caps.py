@@ -108,8 +108,9 @@ days was already decided in writing. Chan's two files are read as
 :mod:`chan.khandani_lo_small_caps` reads them, and its docstring says why that
 module does not call the guard either.
 
-**EXPLORATORY.** The run applies a rule Chan published, unchanged, to the
-mid-cap and small-cap stocks his exercise names, and Chan prints no figure for
+**EXPLORATORY.** The run applies a rule Chan published, unchanged, to stocks
+from the S&P 400 and S&P 600, the two universes his exercise names, and Chan
+prints no figure for
 either universe, so no figure carries a verdict. A reading that points the way
 Chan says earns a registered test on data the run has not seen.
 
