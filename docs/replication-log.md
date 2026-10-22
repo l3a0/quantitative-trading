@@ -11780,8 +11780,11 @@ a new run, and an exploratory one.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/usdcad-holdout-lessons.md](../blog/usdcad-holdout-lessons.md) moves with
-it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.usdcad_holdout_figures` redraws.
+it, since that post quotes most of these figures. So do its one figure,
+which `uv run python -m chan.usdcad_holdout_figures` redraws, and its one
+whiteboard sketch, which prints the final P&L, the Newey-West t and the 1.645
+it falls short of, and which `uv run python -m chan.usdcad_holdout_whiteboard`
+redraws.
 
 ## Entry 52: Example 7.7 against Open Source Asset Pricing's `MomSeasonShort`
 

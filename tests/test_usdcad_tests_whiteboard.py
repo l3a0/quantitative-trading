@@ -1610,8 +1610,9 @@ class TestTheCommittedGifs:
         """A GIF left behind by a renamed or retired scene fails here.
 
         It reads this module's prefix, because the equity-seasonals post's
-        sketches share the folder. ``tests/test_equity_seasonals_whiteboard.py``
-        holds that every GIF there carries one of the two prefixes.
+        sketches and the USD.CAD holdout post's share the folder.
+        ``tests/test_equity_seasonals_whiteboard.py`` holds that every GIF there
+        is drawn by one of the three modules.
         """
         assert {path.name for path in FIGURES_DIR.glob("usdcad_tests_*.gif")} == set(GIFS)
 

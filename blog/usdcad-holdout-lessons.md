@@ -60,6 +60,10 @@ Chan’s 1,216 closes give 1,101 days with P&L, because the first 115 only fill 
 
 The t is 0.2670, far below 1.645, as the plan predicted. So the mean daily P&L cannot be told from zero.
 
+![An animated whiteboard sketch titled “The sign and the t”, drawn stroke by stroke. A green check mark comes first, with the words “sum 0.1132 > 0” beside it. Below them a number line carries two ticks, labelled “0” and “1.645”. A red hatched zone above the line runs from the 1.645 tick to the line’s right end, under the words “beats chance, one-sided 5%”. A brown dot lands on the line just right of the 0 tick, far left of the zone, labelled “t = 0.2670”, with “mean daily P&L” above that. The finished sketch holds for four seconds before it redraws.](../docs/figures/usdcad_holdout_sign_and_t.gif)
+
+*The sum clears its pass mark of 0, and the t falls far short of 1.645. The line is drawn to scale, so the gap between any two points on it is in proportion to the gap between their values. The sum and the t come from the run.*
+
 The Sharpe ratio says the same thing in the form most traders use. It is the mean daily P&L over its standard deviation, times the square root of 252 trading days. Dividing every day’s P&L by a fixed account size leaves the ratio unchanged, so it can be computed without choosing an account size. After 2012 it is 0.0715, against 0.12 on Chan’s closes. Both Sharpe ratios leave out the transaction costs and the overnight interest, as the P&L does.
 
 ## Lesson 2: writing the predictions down first is what makes it a check
