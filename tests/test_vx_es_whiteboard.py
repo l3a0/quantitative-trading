@@ -83,7 +83,7 @@ GIFS = ["vx_es_sketch_one_shift.gif", "vx_es_sketch_two_exits.gif"]
 #: The paragraph each GIF follows, by its opening words.
 FOLLOWS = (
     "[The post on GLD and GDX]",
-    "Closing each position when the z-score crosses zero",
+    "Chan’s script for Example 3.2, `bollinger.m`, closes each position",
 )
 
 SHIFT_LABELS = [

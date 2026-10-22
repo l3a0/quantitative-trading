@@ -4279,7 +4279,7 @@ Seven groups of what it says are not pinned here.
    recorded in Entry 28 and on the issue that shipped the run. No test reruns
    the search.
 3. Facts outside the committed data. What ES and VX are and what the VIX
-   index measures. That Standard and Poor's announced its downgrade of the
+   index measures, and that GLD is a gold fund and USO an oil fund. That Standard and Poor's announced its downgrade of the
    U.S. credit rating after the close of Friday 2011-08-05. That a continuous
    future shifts its history at each roll, and that VX's and ES's closes do
    not move by one constant between saves, so how Chan's source rebuilt them
