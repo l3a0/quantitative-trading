@@ -312,6 +312,7 @@ class TestTheRun:
         """``test_the_spread_is_almost_all_the_fits_intercept`` pins these."""
         assert round(lever.correlation, 4) == 0.9987
         assert (round(lever.spread_sd, 2), round(lever.leftover_sd, 2)) == (45.37, 2.27)
+        assert round(lever.leftover_sd, 4) == 2.2707, "the n - 1 deviation, not the n one"
         assert lever.days == 1480
 
 
@@ -766,6 +767,22 @@ class TestThePost:
         assert alt.count("brown dot") == 2
         assert "a grey cloud" in alt and "A black cloud" in alt
         assert "a black ring circles the last black point" in alt
+
+    def test_its_alt_text_directions_follow_the_scene(self, scene, lever) -> None:
+        """Each word of direction, place or ink the alt text uses holds in the run or the scene."""
+        alt = _alt(scene)
+        before, after = lever.before, lever.after
+        assert "black line down to it" in alt and after.leftover < 0
+        assert "line is steeper" in alt and after.hedge > before.hedge
+        assert "lands much lower" in alt and after.intercept < before.intercept
+        assert "A brown bracket joins" in alt and _stroke(scene, "drop").color == ACCENT
+        assert "Below a grey rule under the frame" in alt and RULE_Y < ZOOM_Y[0]
+        assert "its five newest sit below the rest" in alt
+        assert after.uso[-WEEK:].max() < after.uso[:-WEEK].min()
+        assert "mostly at the top and right" in alt
+        oldest_gld, oldest_uso = before.gld[:WEEK], before.uso[:WEEK]
+        assert (oldest_gld > before.gld.mean()).sum() >= 3
+        assert (oldest_uso > before.uso.mean()).sum() >= 3
 
     def test_its_alt_text_says_where_the_new_labels_sit(self, scene) -> None:
         """ "GLD = 0" names the upright axis, "12× taller" sits in the frame and the change

@@ -681,6 +681,8 @@ class TestThePostQuotesThePins:
         assert f"\\text{{about }} {apr:g}\\% & \\text{{about }} {sharpe:g}" in self.text
         apr, sharpe = BOOK_LOG_PRICE_SPREAD
         assert f"\\text{{Book}} & {apr:g}\\% & {sharpe:g}" in self.text
+        for apr, sharpe in (SCRIPT_PRICE_SPREAD, SCRIPT_LOG_PRICE_SPREAD):
+            assert f"\\text{{Comment}} & {apr} & {sharpe}" in self.text
 
     def test_the_first_position_and_the_first_return(self, result: ExampleThreeOne) -> None:
         for each in _runs(result):
@@ -722,6 +724,7 @@ class TestThePostQuotesThePins:
 
     def test_lesson_3_s_runs(self, sources, result: ExampleThreeOne) -> None:
         published, swapped = result.ratio, result.swapped_ratio
+        assert f"\\text{{Comment}} & {SCRIPT_RATIO[0]} & {SCRIPT_RATIO[1]}" in self.text
         assert (
             f"The transcription, run on Chan’s file, gives {_prose(published.apr, 6)} and "
             f"{_prose(published.sharpe, 6)}."
