@@ -75,7 +75,13 @@ from chan.calendar_spreads_whiteboard import (
     scenes,
     sketch_timeline,
 )
-from chan.futures import NATURAL_GAS_CONTRACTS, contract_number, month_step, next_trading_day
+from chan.futures import (
+    NATURAL_GAS_CONTRACTS,
+    contract_number,
+    month_step,
+    next_trading_day,
+    previous_trading_day,
+)
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, INK, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
@@ -537,6 +543,15 @@ class TestOneWindow:
             cross = _stroke(scene, f"dropped-{k}")
             assert cross.x.max() - cross.x.min() == pytest.approx(2 * CROSS)
             assert cross.y.max() - cross.y.min() == pytest.approx(2 * CROSS)
+            cx, cy = _centre(cross)
+            assert np.allclose(abs(cross.x - cx), abs(cross.y - cy)), k
+
+    def test_the_axis_runs_a_trading_day_past_each_end(self, drawn, window) -> None:
+        first = previous_trading_day(window.expiries[0][1])
+        last = next_trading_day(window.window[-1])
+        assert (day_x(window, first), day_x(window, last)) == pytest.approx(sketches.DAYS_X)
+        axis = _stroke(drawn[1], "axis")
+        assert (axis.x.min(), axis.x.max()) == pytest.approx(sketches.DAYS_X)
 
     def test_its_inks(self, drawn, window) -> None:
         scene = drawn[1]

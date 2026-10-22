@@ -1709,8 +1709,9 @@ class TestTheCalendarSpreadDescriptions:
 
     def test_the_power_row(self, spreads) -> None:
         """Every pair reverting at Chan's 36-day half-life, seed 20261004. The
-        mean share is 0.0609 for natural gas and 0.0614 for RBOB, so a window
-        this short sees reversion that slow in about one pair in sixteen."""
+        mean share is 0.0609 for natural gas and 0.0614 for RBOB, so on legs that
+        move together far less closely than the files', a window this short sees
+        reversion that slow in about one pair in sixteen."""
         assert (SPREAD_POWER_SEED, SPREAD_POWER_HALF_LIFE) == (20261004, 36.0)
         assert float(spreads[NG].power.mean()) == pytest.approx(0.0609, abs=5e-5)
         assert float(spreads[RBOB].power.mean()) == pytest.approx(0.0614, abs=5e-5)
