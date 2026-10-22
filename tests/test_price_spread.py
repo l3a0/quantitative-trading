@@ -80,6 +80,7 @@ from chan.price_spread import (
     ratio,
     read_sources,
     rolling_hedge_ratio,
+    rolling_intercept,
     run,
     zscore,
 )
@@ -295,25 +296,6 @@ class TestTheClaims:
         assert result.log_price_spread.sharpe < result.price_spread.sharpe, SPEC
 
 
-def _rolling_intercept(closes: pd.DataFrame) -> np.ndarray:
-    """The intercept of the 20-day regression the hedge ratio comes from, on the kept rows.
-
-    Each kept row's window reaches back into the 20 rows the scripts drop, so it is
-    fitted on the full closes and then cut the way the hedge ratio is.
-    """
-    gld, uso = closes[X_SYMBOL].to_numpy(), closes[Y_SYMBOL].to_numpy()
-    ones = np.ones(LOOKBACK)
-    return np.array(
-        [
-            ols(
-                uso[t - LOOKBACK + 1 : t + 1],
-                np.column_stack([gld[t - LOOKBACK + 1 : t + 1], ones]),
-            ).beta[1]
-            for t in range(LOOKBACK, len(gld))
-        ]
-    )
-
-
 class TestThePairDoesNotCointegrate:
     """Location 1505 says GLD and USO "are not, in fact, cointegrated", and the rule trades
     them anyway on a hedge ratio refitted every 20 days.
@@ -345,7 +327,8 @@ class TestThePairDoesNotCointegrate:
         it carries all but a quarter of a percent of the spread's variance. Traded alone by
         the same rule, the leftover ``e`` earns nothing."""
         signal = result.price_spread.signal
-        intercept = _rolling_intercept(sources[1])
+        gld, uso = sources[1][X_SYMBOL].to_numpy(), sources[1][Y_SYMBOL].to_numpy()
+        intercept = rolling_intercept(uso, gld)[LOOKBACK:]
         np.testing.assert_allclose(
             signal.value - intercept,
             [
@@ -475,6 +458,15 @@ class TestTheRule:
         """Through the origin, ``y = x + 10`` would give a slope far from 1."""
         x = np.array([1.0, 2.0, 3.0, 4.0])
         assert rolling_hedge_ratio(x + 10.0, x, 4)[3] == pytest.approx(1.0, abs=1e-12)
+
+    def test_the_intercept_comes_from_the_same_fit(self) -> None:
+        """``y = 2.5·x + 3`` fits an intercept of 3 on every full window, and NaN before."""
+        x = np.array([1.0, 3.0, 2.0, 5.0, 4.0])
+        intercept = rolling_intercept(2.5 * x + 3.0, x, 3)
+        assert np.isnan(intercept[:2]).all()
+        np.testing.assert_allclose(intercept[2:], 3.0, rtol=0, atol=1e-12)
+        with pytest.raises(ValueError, match="rolling_intercept takes a window of at least 3"):
+            rolling_intercept(x, x, 2)
 
     def test_the_hedge_ratios_window_ends_on_its_own_row(self) -> None:
         """Row 2 of a window of 3 reads rows 0 to 2. A shock on row 3 moves rows 3 on only."""

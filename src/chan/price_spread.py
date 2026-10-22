@@ -198,6 +198,33 @@ class ExampleThreeOne:
     swapped_ratio: Run
 
 
+def _rolling_fit(
+    dependent: np.ndarray, independent: np.ndarray, lookback: int, name: str
+) -> np.ndarray:
+    """The slope and intercept of ``ols(dependent, [independent ones])`` over each trailing
+    ``lookback`` rows, one row of the two per row of the series.
+
+    ``name`` is the public function asking, so a refusal names what was called.
+    """
+    dependent = np.asarray(dependent, dtype=float)
+    independent = np.asarray(independent, dtype=float)
+    if dependent.shape != independent.shape or dependent.ndim != 1:
+        raise ValueError(f"{name} takes two series of one shape")
+    if lookback < 3:
+        raise ValueError(
+            f"{name} takes a window of at least 3 rows, not {lookback}, because a "
+            "slope and an intercept leave no degree of freedom in fewer"
+        )
+    fit = np.full((len(dependent), 2), np.nan)
+    ones = np.ones(lookback)
+    for t in range(lookback - 1, len(dependent)):
+        window = slice(t - lookback + 1, t + 1)
+        if not (np.isfinite(dependent[window]).all() and np.isfinite(independent[window]).all()):
+            continue
+        fit[t] = ols(dependent[window], np.column_stack([independent[window], ones])).beta
+    return fit
+
+
 def rolling_hedge_ratio(
     dependent: np.ndarray, independent: np.ndarray, lookback: int = LOOKBACK
 ) -> np.ndarray:
@@ -208,23 +235,22 @@ def rolling_hedge_ratio(
     and the rows before it are NaN. A window holding a NaN gives a NaN slope
     rather than stopping the run.
     """
-    dependent = np.asarray(dependent, dtype=float)
-    independent = np.asarray(independent, dtype=float)
-    if dependent.shape != independent.shape or dependent.ndim != 1:
-        raise ValueError("rolling_hedge_ratio takes two series of one shape")
-    if lookback < 3:
-        raise ValueError(
-            f"rolling_hedge_ratio takes a window of at least 3 rows, not {lookback}, because a "
-            "slope and an intercept leave no degree of freedom in fewer"
-        )
-    hedge = np.full(len(dependent), np.nan)
-    ones = np.ones(lookback)
-    for t in range(lookback - 1, len(dependent)):
-        window = slice(t - lookback + 1, t + 1)
-        if not (np.isfinite(dependent[window]).all() and np.isfinite(independent[window]).all()):
-            continue
-        hedge[t] = ols(dependent[window], np.column_stack([independent[window], ones])).beta[0]
-    return hedge
+    return _rolling_fit(dependent, independent, lookback, "rolling_hedge_ratio")[:, 0]
+
+
+def rolling_intercept(
+    dependent: np.ndarray, independent: np.ndarray, lookback: int = LOOKBACK
+) -> np.ndarray:
+    """The intercept of the regression :func:`rolling_hedge_ratio` takes its slope from.
+
+    Each window fits ``dependent = c + h·independent + e``, and the scripts
+    trade ``dependent − h·independent``, which is ``c + e``, so the intercept
+    ``c`` is part of the spread rather than left out of it. No script computes
+    it. The post's Lesson 4 and :mod:`chan.price_spread_whiteboard` read it to
+    show how much of the spread it carries. Its rows line up with
+    :func:`rolling_hedge_ratio`'s, NaN where the slope is.
+    """
+    return _rolling_fit(dependent, independent, lookback, "rolling_intercept")[:, 1]
 
 
 def _kept(days: pd.DatetimeIndex, x: np.ndarray, y: np.ndarray, lookback: int) -> pd.DatetimeIndex:

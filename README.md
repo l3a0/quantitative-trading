@@ -2611,7 +2611,9 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that neither module draws.
+which also fails on any GIF in the folder that no sketch module draws. The
+price spread post's one GIF is checked the same way by
+[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py).
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -4023,7 +4025,9 @@ dividends subtracted in dollars and GLD paying none, to
 Sharpe ratio under either divisor, which Lesson 5's link to the Bollinger band
 post quotes, or to
 [tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) for
-the figure's own numbers. Six had no pin before it.
+the figure's own numbers, or to
+[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py)
+for the whiteboard sketch's. Seven had no pin before it.
 
 1. Engle-Granger's −1.5150 for USO on GLD over all 1,500 days, that it does
    not reach the 10% bar of −3.04, and its whole-period hedge ratio of
@@ -4039,6 +4043,10 @@ the figure's own numbers. Six had no pin before it.
 5. The two readings tried after the ratio missed: keeping the first 20 days,
    −0.140674 and −0.744310, and Chan's Python port, −0.140674 and −0.749583.
 6. The figure's own lines and labels.
+7. The sketch's two 20-day windows, ending 7 and 14 July 2009, with their
+   hedge ratios of 0.97 and 2.17, intercepts of −51.65 and −161.60, a fall of
+   109.95 between them, leftovers of −2.71 and −3.21, and their clouds' mean
+   GLD of 91.5 dollars.
 
 Its one figure is drawn from the committed file by
 [src/chan/price_spread_figures.py](src/chan/price_spread_figures.py), which
@@ -4058,6 +4066,31 @@ uv run python -m chan.price_spread_figures
 [tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries one looping whiteboard sketch, in Lesson 4, drawn by
+[src/chan/price_spread_whiteboard.py](src/chan/price_spread_whiteboard.py) on
+the USD.CAD post's sketch machinery. It shows why the spread is mostly the
+20-day fit's intercept. Two real windows a trading week apart, the second
+ending on the day the spread is lowest, have clouds of points that barely
+move, while the fitted line turns. The clouds sit about 90 dollars from
+GLD = 0, so the intercept falls 109.95 dollars and the leftover moves by half
+a dollar. Its left side is to scale and the right magnifies the points, and it
+closes on the whole run's correlation and standard deviations. Every figure it
+prints is read from the committed file through the same `read_sources`, and
+the intercept from `rolling_intercept`, which
+[tests/test_price_spread.py](tests/test_price_spread.py) uses too. It builds
+slowly and holds its finished drawing for twelve seconds.
+
+```bash
+uv run python -m chan.price_spread_whiteboard
+```
+
+[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py)
+holds which two windows it draws and their figures, that each panel places
+every point to its own scale, that each intercept sits where its line meets
+GLD = 0, that the whole run's figures sit below the magnified points, that
+made-up figures move its words, and that its GIF is a fresh draw byte for byte
+on the owner's Mac.
 
 [blog/gold-miners-oil-lessons.md](blog/gold-miners-oil-lessons.md) is a
 seventeenth post, about location 1922 of Chan's *Algorithmic Trading*, where
