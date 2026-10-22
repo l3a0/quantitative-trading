@@ -3809,8 +3809,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    caption, draws natural gas's null counts as circles whose areas stand for
    them. Each orientation alone rejects in a median of 38 null pairs under
    either null. Both orientations reject in 12 against independent walks and
-   in 35 against correlated ones, so the circles overlap a little in the first
-   panel and almost wholly in the second. It closes on the files' 62, 62 and
+   in 35 against correlated ones, so the circles overlap by about a third in
+   the first panel and almost wholly in the second. It closes on the files' 62, 62 and
    57.
 2. `calendar_spreads_one_window.gif`, in Lesson 4 after the list under "The
    six days each window drops", draws the June 2018 natural gas pair's window

@@ -128,8 +128,8 @@ batches once.
 11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
 
 A replication under the claim route, so exploratory. The batch takes about
-seven seconds, and the eight single-orientation nulls about thirty more. First
-run on 2026-10-03, after the criterion was fixed on issue 137.
+seven seconds, before the eight single-orientation nulls. First run on
+2026-10-03, after the criterion was fixed on issue 137.
 """
 
 from __future__ import annotations
@@ -1705,7 +1705,7 @@ def alone(spreads) -> dict[tuple[str, str, str], np.ndarray]:
     """Each commodity's two nulls counted in one orientation at a time.
 
     Keyed by commodity, ``"independent"`` or ``"correlated"``, and ``"near"``
-    or ``"far"``. Eight more runs of the null, about four seconds each.
+    or ``"far"``. Eight more runs of the null.
     """
     out = {}
     for name, r in spreads.items():

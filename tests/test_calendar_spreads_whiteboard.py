@@ -40,6 +40,7 @@ import math
 import platform
 import re
 from datetime import date
+from types import SimpleNamespace
 
 import matplotlib
 import numpy as np
@@ -53,7 +54,12 @@ from chan.calendar_spreads_whiteboard import (
     AREA_PER_PAIR,
     AXIS_Y,
     CIRCLES_Y,
+    CROSS,
+    FAR_Y,
     KEPT_Y,
+    NEAR_Y,
+    TICK,
+    WINDOW_Y,
     BothOrientations,
     OneWindow,
     Stretch,
@@ -105,15 +111,16 @@ PINNED = BothOrientations(
 )
 
 #: Made-up figures with unequal circles and a half, so a label or a size that
-#: should follow the data does.
+#: should follow the data does. The near circle is the larger in the first
+#: panel and the far one in the second.
 OTHER = BothOrientations(
     pairs=220,
     sets=500,
     independent_near=30.0,
     independent_far=20.0,
     independent_both=6.5,
-    correlated_near=28.0,
-    correlated_far=25.0,
+    correlated_near=25.0,
+    correlated_far=28.0,
     correlated_both=21.5,
     files_near=17,
     files_far=16,
@@ -340,22 +347,63 @@ class TestBothOrientations:
             assert near[0] == pytest.approx(far[0])
             assert (near[1] + far[1]) / 2 == pytest.approx(CIRCLES_Y)
 
-    def test_the_lens_lies_inside_both_circles(self, drawn) -> None:
-        scene = drawn[0]
+    @pytest.mark.parametrize("figures", [PINNED, OTHER], ids=["pinned", "other"])
+    def test_the_lens_runs_along_each_circle_between_their_crossings(self, figures, window) -> None:
+        """Its first half lies on the near circle and its second on the far
+        one, every point inside both, and the two halves meet where the
+        circles cross, on both of them."""
+        scene = scenes(figures, window)[0]
         for key in ("independent", "correlated"):
             lens = _stroke(scene, f"{key}-both")
-            for o in ("near", "far"):
-                circle = _stroke(scene, f"{key}-{o}")
-                cx, cy, r = _circle(circle)
-                assert np.all(np.hypot(lens.x - cx, lens.y - cy) <= r + 1e-6), (key, o)
+            near, far = _stroke(scene, f"{key}-near"), _stroke(scene, f"{key}-far")
+            (nx, ny, nr), (fx, fy, fr) = _circle(near), _circle(far)
+            to_near = np.hypot(lens.x - nx, lens.y - ny)
+            to_far = np.hypot(lens.x - fx, lens.y - fy)
+            assert np.all(to_near <= nr + 1e-6) and np.all(to_far <= fr + 1e-6), key
+            half = (len(lens.x) - 1) // 2
+            assert to_near[:half] == pytest.approx(radius(getattr(figures, f"{key}_near")))
+            assert to_far[half:-1] == pytest.approx(radius(getattr(figures, f"{key}_far")))
+            for k in (0, half - 1, half, -2):
+                assert (to_near[k], to_far[k]) == pytest.approx((nr, fr), rel=1e-3), (key, k)
 
-    def test_each_both_label_sits_beside_its_overlap(self, drawn) -> None:
-        scene = drawn[0]
-        for key, text in (("independent", "both: 12"), ("correlated", "both: 35")):
-            label, lens = _labelled(scene, text), _stroke(scene, f"{key}-both")
+    @pytest.mark.parametrize("figures", [PINNED, OTHER], ids=["pinned", "other"])
+    def test_each_both_label_sits_beside_its_overlap(self, figures, window) -> None:
+        """At the circles' waist, clear of whichever circle is wider."""
+        scene = scenes(figures, window)[0]
+        for key in ("independent", "correlated"):
+            both = sketches._count(getattr(figures, f"{key}_both"))
+            label, lens = _labelled(scene, f"both: {both}"), _stroke(scene, f"{key}-both")
+            widest = max(_stroke(scene, f"{key}-{o}").x.max() for o in ("near", "far"))
             assert label.y == CIRCLES_Y
-            assert label.x > _stroke(scene, f"{key}-near").x.max()
+            assert label.x == pytest.approx(widest + sketches.LABEL_GAP, abs=1e-3)
             assert lens.y.min() < CIRCLES_Y < lens.y.max()
+
+    def test_a_median_between_two_pairs_stays_a_half(self) -> None:
+        assert sketches._pairs(6.5 / 220, 220) == 6.5
+        assert (sketches._count(21.5), sketches._count(38.0)) == ("21.5", "38")
+
+    def test_read_hands_each_null_to_its_own_field(self, monkeypatch) -> None:
+        """Every figure differs here, so a swapped or misrouted null shows,
+        which the natural gas figures, 38 in all four single orientations,
+        cannot."""
+        spread = SimpleNamespace(
+            tests=[SimpleNamespace(pair=k) for k in range(100)],
+            null=np.full(10, 0.07),
+            declared_null=np.full(10, 0.03),
+            correlation=0.9,
+            near_on_far_share=0.21,
+            far_on_near_share=0.19,
+            share=0.15,
+        )
+        shares = {(0.0, "near"): 0.11, (0.0, "far"): 0.12, (0.9, "near"): 0.13, (0.9, "far"): 0.14}
+
+        def null_shares(pairs, *, correlation, orientation):
+            return np.full(10, shares[correlation, orientation])
+
+        monkeypatch.setattr(sc, "calendar_spread", lambda product: spread)
+        monkeypatch.setattr(sc, "null_shares", null_shares)
+        want = BothOrientations(100, 10, 11, 12, 3, 13, 14, 7, 21, 19, 15)
+        assert BothOrientations.read() == want
 
     def test_its_inks(self, drawn) -> None:
         scene = drawn[0]
@@ -462,8 +510,38 @@ class TestOneWindow:
             assert label.x == pytest.approx((lane.x[0] + lane.x[-1]) / 2)
             assert label.y > lane.y[0]
 
+    def test_the_near_lane_sits_above_the_far_one_beside_its_name(self, drawn, window) -> None:
+        scene = drawn[1]
+        for k in range(len(window.stretches)):
+            near, far = _stroke(scene, f"near-{k}"), _stroke(scene, f"far-{k}")
+            assert np.all(near.y == NEAR_Y) and np.all(far.y == FAR_Y)
+        assert WINDOW_Y > NEAR_Y > FAR_Y > KEPT_Y > AXIS_Y
+        assert _labelled(scene, "June, near").y == NEAR_Y
+        assert _labelled(scene, "July, far").y == FAR_Y
+
+    def test_each_guide_rises_dashed_from_its_tick_to_the_window(self, drawn, window) -> None:
+        scene = drawn[1]
+        for k, (_, day) in enumerate(window.expiries):
+            guide = _stroke(scene, f"expiry-{k}-guide")
+            assert np.allclose(guide.x, day_x(window, day))
+            assert guide.dashed
+            assert (guide.y.min(), guide.y.max()) == pytest.approx((AXIS_Y + TICK, WINDOW_Y))
+
+    def test_kept_days_are_dots_and_each_cross_has_its_size(self, drawn, window) -> None:
+        scene = drawn[1]
+        assert _stroke(scene, "kept").dots > 0
+        for k in range(len(window.dropped)):
+            cross = _stroke(scene, f"dropped-{k}")
+            assert cross.x.max() - cross.x.min() == pytest.approx(2 * CROSS)
+            assert cross.y.max() - cross.y.min() == pytest.approx(2 * CROSS)
+
     def test_its_inks(self, drawn, window) -> None:
         scene = drawn[1]
+        for label in scene.steps:
+            if not isinstance(label, Label) or label.names.startswith("dropped-"):
+                continue
+            grey = "expires" in label.text or label.text.endswith(" kept")
+            assert label.color == (MUTED if grey else INK), label.text
         for stroke in scene.strokes:
             if stroke.gid.startswith("dropped-"):
                 assert stroke.color == LOST, stroke.gid
@@ -612,11 +690,21 @@ class TestThePost:
 
     def test_the_orientations_alt_text_says_what_the_circles_show(self, drawn) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), drawn[0])
+        assert "“near on far: 38” above a black circle labelled “far on near: 38”" in alt
+        assert round(3 * PINNED.independent_both / PINNED.independent_near) == 1
+        assert "about a third of each circle" in alt
         assert "each circle’s area to scale" in alt
         assert "almost on top of each other" in alt
 
     def test_the_window_alt_text_names_the_crossed_days(self, drawn, window) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), drawn[1])
+        words = {3: "three", 4: "Four"}
+        start = window.window[0]
+        assert f"from late {start:%B} to late" in alt and start.day > 20
+        assert f"{words[len(window.expiries)]} grey ticks with dashed guides" in alt
+        assert f"breaks into {words[len(window.stretches)]} stretches" in alt
+        assert "a new one starting the day after each expiry inside the window" in alt
+        assert "Beneath it a lane labelled “July, far”" in alt
         assert f"{ {6: 'six'}[len(window.dropped)] } red crosses" in alt
         assert "on each expiry inside it and the day after" in alt
         assert f"late May {window.window[-1].year}" in alt
