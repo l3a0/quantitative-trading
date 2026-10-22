@@ -7263,7 +7263,7 @@ repeating them, and draws five lessons from Entry 51 of the replication log.
    0.0715, against 0.12 on Chan's closes.
 2. Writing the predictions down first is what makes it a check. Six
    predictions and one figure to report were filed before the run computed
-   anything on the later closes, and the four earlier reads of those days
+   anything on the later closes, and the four reads made before the run
    decided nothing. The prediction on Chan's 16:59 bar did not run.
 3. The later closes read as a random walk, as predicted. The ADF statistic of
    −2.0814 does not reject at 10 percent, the variance ratio test's p-value is
@@ -7303,8 +7303,8 @@ Six had no pin before the post, and `TestWhatThePostMeasured` in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) pins them, all
 measured after the run. `TestWhatThePostQuotes` in the same file checks the
 post's copies of every figure the run computes against the run, along with the
-pass mark of 1.645 and the file checks' factor of 1.6, and the words the post
-puts on pairs of them, such as "more than four times".
+pass marks of 1.645 and 0.05 and the file checks' factor of 1.6, and the
+words the post puts on pairs of them, such as "more than four times".
 
 1. The closes on the drawdown's two dates, 1.0445 and 1.45699, a rise of 39.5
    percent.

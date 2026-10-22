@@ -64,7 +64,7 @@ from chan import fetch_alphavantage, usdcad_holdout
 from chan.fetch_alphavantage import KEY_ENV, RunStopped
 from chan.khandani_lo import plain_sharpe
 from chan.series import SCALE_BREAK_BOUND, WindowCrossesScaleBreak
-from chan.stationarity_tests import genhurst, jplv7_adf, vratiotest
+from chan.stationarity_tests import VRATIO_ALPHA, genhurst, jplv7_adf, vratiotest
 from chan.usdcad_holdout import (
     DOWNLOAD_DATE,
     LOOKBACK,
@@ -699,11 +699,12 @@ class TestWhatThePostQuotes:
     typo in the post, or a re-pin that leaves the post behind, fails here. Each
     fragment carries enough of the sentence around its number to name one copy,
     and every copy of a run figure in the prose and the tables has one, as do
-    the pass mark of 1.645 and the file checks' factor of 1.6. The figure's alt
-    text gets its first traded day, its lookback, its half-life, the P&L's two
-    turning points, the years of its old high and of the day it passes it, and
-    its final value. Its readings of where the lines run are approximate by
-    design and get none. Chan's side comes from
+    the pass marks of 1.645 and 0.05 and the file checks' factor of 1.6. The
+    figure's alt text gets its date axis, the month its average starts, its
+    first traded day, its lookback, its half-life, the P&L's two turning
+    points, the years of its old high and of the day it passes it, and its
+    final value. Its readings of where the lines run are approximate by design
+    and get none. Chan's side comes from
     :func:`chan.usdcad_mean_reversion.stationarity_tests`, the run
     ``tests/test_usdcad_mean_reversion.py`` pins.
     """
@@ -751,7 +752,9 @@ class TestWhatThePostQuotes:
             f"each {days} closes long",
             f"the same {printed(h.adf.critical[2], 4)} on Chan’s {chan_closes} closes",
             f"for the {days} later closes only",
-            f"the {h.lookback}-day moving average, trails the closes",
+            f"one shared date axis from {warm[0]:%B %Y} to {last:%B %Y}.",
+            f"the {h.lookback}-day moving average, trails the closes from the end of "
+            f"{warm[-1]:%B %Y}.",
             f"A dashed vertical line through both charts marks the first traded day, {first}.",
             f"the cumulative P&L of the linear rule as a green line from {first}.",
             f"the half-life of the traded closes as {printed(h.half_life, 1)} days",
@@ -767,6 +770,7 @@ class TestWhatThePostQuotes:
             f"{entry.download_date}.",
         ]
         assert h.missing_weekdays == 2, "the post spells the count out"
+        assert warm[-1].days_in_month - warm[-1].day < 7, "the end of the month"
         assert self.missing(text, fragments) == []
 
     def test_the_claim_and_the_t(self, holdout, chan_run, text) -> None:
@@ -815,6 +819,7 @@ class TestWhatThePostQuotes:
             f"allowing for one earlier day’s change, it gives {adf}. That is above its 10 percent "
             f"critical value of {critical}, so it does not reject",
             f"gives {printed(h.adfuller_statistic, 4)} on the same closes",
+            f"It rejects when its p-value falls to {VRATIO_ALPHA:g} or below.",
             f"It gives a p-value of {vr}, so a random walk",
             f"**The Hurst exponent** is {hurst}, from `genhurst`",
             f"On {band.paths:,} simulated random walks",
@@ -887,7 +892,7 @@ class TestWhatThePostQuotes:
             f"In {c.peak.year} ",
             f"short on all {len(chan_fall)} days of the fall",
             f"short on {100 * h.short_share:.2f} percent of the traded days and long on "
-            f"{100 * h.long_share:.2f} percent",
+            f"{100 * h.long_share:.2f} percent, and it held a position on every traded day.",
         ]
         assert held[largest] < 0 and np.min(chan_held) < 0
         assert (chan_fall < 0).all(), "short on all of them"
@@ -895,9 +900,10 @@ class TestWhatThePostQuotes:
         assert int(np.sum(h.held == 0)) == 0, "the post says the rule was never flat"
         assert self.missing(text, fragments) == []
 
-    def test_the_comparisons_the_post_draws(self, holdout, chan_run) -> None:
+    def test_the_comparisons_the_post_draws(self, holdout, chan_run, text) -> None:
         """The words the post puts on pairs of the figures above."""
         h = holdout
+        gone = pd.bdate_range(h.tested.index[0], h.tested.index[-1]).difference(h.tested.index)
         years = (h.tested.index[-1] - h.tested.index[0]).days / 365.25
         held = market_value(chan_run.closes.to_numpy(dtype=float), chan_run.lookback)
         chan_held = held[chan_run.lookback - 1 : -1]
@@ -914,6 +920,29 @@ class TestWhatThePostQuotes:
         assert (regained.index[0] - d.peak).days > 3652, "more than ten years later"
         assert h.vratio.p_value > 2 / 5, "more than two times in five"
         assert h.newey_west.t_newey_west < NEWEY_WEST_CRITICAL / 2, "far below 1.645"
+        assert (gone[1] - gone[0]).days > 365, "more than a year apart"
+        fragments = [
+            "for fourteen years after Chan’s sample",
+            "On fourteen years of closes kept back",
+            "holds on the fourteen years after his sample",
+            "not on fourteen years of them",
+            "So fourteen more years of closes",
+            "ends positive over fourteen years",
+            "fell from its high by more than four times its final value here",
+            "more than five times what it ended with",
+            "and by more than five times in Chan’s sample",
+            "almost four times as long",
+            "the estimate came out almost four times longer",
+            "**The frozen lookback is about a quarter of the later half-life.**",
+            "## Lesson 4: the frozen lookback is about a quarter of the later half-life",
+            "can be a quarter of what the next period measures",
+            "more than five moving standard deviations above its average",
+            "days it held a position, fewer than half",
+            "more than ten years later",
+            "more than two times in five",
+            "The two are more than a year apart",
+        ]
+        assert self.missing(text, fragments) == []
 
 
 class TestTheReport:
