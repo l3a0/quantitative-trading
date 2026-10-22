@@ -3812,6 +3812,7 @@ def test_the_post_quotes_the_figures_this_file_pins() -> None:
         "Rounding down to 57 of each gives",
         "In January 2006 it ranks 579 stocks, one more than the MATLAB’s 578",
         "it buys the 58 worst but shorts only 56 of the best",
+        "The two it leaves out are the single best and the 58th best",
         "comes before a gap of 851 trading days in its prices",
         "That is fourth best of 595, so the script holds PMC short",
         "and a tenth of the 594 left rounds to 59 rather than 60",

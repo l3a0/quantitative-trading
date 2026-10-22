@@ -2650,7 +2650,7 @@ code behind rows 9, 10, 13 and 14 traces to
 | --- | --- | --- | --- | --- |
 | 1 | `MATLAB_JANUARY`: month-ends by row, the number of stocks in a tenth rounded half away from zero, 58 long and 58 short of 578 ranked | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_three_januaries_reproduce` |
 | 2 | as row 1, 59 long and 59 short of 592 ranked | −0.0068 | 0.0000 | as row 1 |
-| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_three_januaries_reproduce` |
+| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best and the 58th best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_three_januaries_reproduce` |
 | 4 | as row 3 | −0.003641 | 0.000000 | as row 3 |
 | 5 | `R_JANUARY`: row 1's rules with R's half-to-even rounding | −0.0244 | 0.0000 | `TestJanuaryR::test_the_three_januaries_reproduce` |
 | 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
@@ -2752,7 +2752,7 @@ Seven things.
    2. a monthly sum rather than a mean over positions,
    3. months with no position counted as zero in the mean,
    4. a standard deviation that counts a NaN month as zero,
-   5. a winners' slice that leaves out the best stock,
+   5. a winners' slice that leaves out the best stock and the weakest of the best tenth,
    6. year-end closes forward-filled before ranking, which moves January 2008.
 2. **The four Heston and Sadka printouts disagree on units and agree on sign.**
    The first edition's −0.9167 is a sum over positions. The revised edition
