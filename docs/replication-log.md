@@ -9809,8 +9809,8 @@ does not change when a book is scaled, so the two books need no matching,
 unlike Entry 4's test of a mean difference.
 
 The price is the formula's assumption. It treats each day's profit as
-independent of the day before and normal, and a reversal's daily profits are
-neither. So the standard errors are approximations, and nothing here measures
+independent of the day before and normal, and a reversal's daily profits need
+not be either. So the standard errors are approximations, and nothing here measures
 how far off they are. The closes' gap sits at z +3.1987, past the declared
 line of 2 standard errors, and the opens' gap at z +0.7603 sits inside it.
 

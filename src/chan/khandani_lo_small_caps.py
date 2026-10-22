@@ -213,7 +213,7 @@ def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
     difference needs and this one does not.
 
     The formula assumes the daily profits are independent from day to day and
-    jointly normal. A reversal's daily profits are neither, so the standard
+    jointly normal. A reversal's daily profits need not be either, so the standard
     error is an approximation, and a reading of it says so.
 
     It pairs the two series by position, so the caller pairs the dates first,

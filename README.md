@@ -6190,8 +6190,8 @@ Five groups of what it says are not pinned here.
    flatters the S&P 600, that the S&P 600 adds a company only above a
    minimum size and does not drop a member just because it later shrank, that
    the reversal bought the two flagged stocks on days Chan's reasoning gives
-   no cause to expect a bounce, that the daily profits are neither independent
-   nor normal, that the 2012 panel's rule is a close cousin of this one, that
+   no cause to expect a bounce, that the daily profits need not be independent
+   or normal, that the rule in Chan's later book is a version of this one, that
    the distance between two running totals says nothing about how much the
    daily profits swing, that a reversal buys exactly the stocks that fell,
    that Chan's explanation predicts a Sharpe ratio that rises as the

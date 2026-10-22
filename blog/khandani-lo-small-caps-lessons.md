@@ -21,7 +21,7 @@ Nothing in that explanation had been tested here. Chan’s own code reads a file
 
 ## The rule and the files
 
-The rule is the one in Chan’s book, the code behind his printed 0.25. Each day every stock gets a weight equal to minus its return against the day’s average, divided by the number of stocks priced, and the weights are held for one day. Its Sharpe ratio is √252 times the mean daily profit over the standard deviation of daily profit, with no interest rate subtracted. A basis point, written bp in the tables, is a hundredth of a percent. Each change in weight costs 5 basis points of the amount traded, which is Chan’s cost on each side of a trade, the buy and the sell alike. The [earlier post’s “How the examples work”](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md#how-the-examples-work) builds each of these up.
+The rule is the one in Chan’s book, the code behind his printed 0.25. Each day every stock gets a weight equal to minus its return against the day’s average, divided by the number of stocks priced, and the weights are held for one day. Its Sharpe ratio is √252 times the mean daily profit over the standard deviation of daily profit, with no interest rate subtracted. A basis point is a hundredth of a percent. Each change in weight costs 5 basis points of the amount traded, which is Chan’s cost on each side of a trade, the buy and the sell alike. The [earlier post’s “How the examples work”](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md#how-the-examples-work) builds each of these up.
 
 The rule runs twice on each file, once on the closing prices and once on the opening prices. The second is Example 3.8, which updates the positions at the open, and the [earlier post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md#lesson-6-on-the-books-rule-trading-at-the-open-misses-chans-claim-after-costs) covers it. That lesson also describes a second version of the rule, the one Chan’s Python notebook runs. It is left out here, because it fills each stretch of missing prices with the last price seen, and so reads a stretch of any length as one day’s move.
 
@@ -34,11 +34,12 @@ Eight of the 600 stocks miss a price somewhere in 2006. Six have none all year, 
 
 ### What would point Chan’s way, and what would be noise
 
-This repository wrote down how to read the run before computing any S&P 600 figure, in three parts. [Entry 44 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-44-the-khandani-lo-reversal-on-the-sp-600-chans-quantitative-trading) records them beside every figure.
+This repository wrote down how to read the run before computing any S&P 600 figure, in four parts. [Entry 44 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-44-the-khandani-lo-reversal-on-the-sp-600-chans-quantitative-trading) records them beside every figure.
 
-1. **Direction.** If the S&P 600’s Sharpe ratio before costs is above the S&P 500’s at both prices, the result points the way Chan says. If it is above at one price only, the reading is mixed, and if it is above at neither, the result points against Chan’s explanation. The reading uses the figure before costs, because Chan’s explanation is about where the returns come from.
-2. **Size.** Each gap before costs is read against its own standard error, which says how far apart two Sharpe ratios measured on one year could land by chance alone. Lesson 3 shows how it is computed. A gap more than twice its standard error reads as larger than one year’s noise.
-3. **The run prints Khandani and Lo’s 4.47 and compares it with nothing.** It is a figure for 2006 too, but computed on their own universe, the set of stocks they tested, which this repository does not hold.
+1. **What each figure is read against.** Each S&P 600 figure is read against the S&P 500’s at the same price and with the same costs.
+2. **Direction.** If the S&P 600’s Sharpe ratio before costs is above the S&P 500’s at both prices, the result points the way Chan says. If it is above at one price only, the reading is mixed, and if it is above at neither, the result points against Chan’s explanation. The reading uses the figure before costs, because Chan’s explanation is about where the returns come from.
+3. **Size.** Each gap before costs is read against its own standard error, which says how far apart two Sharpe ratios measured on one year could land by chance alone. Lesson 3 shows how it is computed. A gap more than twice its standard error reads as larger than one year’s noise.
+4. **The run prints Khandani and Lo’s 4.47 and compares it with nothing.** It is a figure for 2006 too, but computed on their own universe, the set of stocks they tested, which this repository does not hold.
 
 ## Lesson 1: at the close, the S&P 600 earns far more, beyond one year’s noise
 
@@ -99,7 +100,7 @@ On the closes, had the two books been unrelated, with ρ set to 0, the standard 
 
 The test needs no matching of the two books’ sizes. Chan’s weights are never scaled to a dollar amount, so the S&P 600 book and the S&P 500 book differ in total size. Multiplying a book by a constant scales its mean and its standard deviation together, so its Sharpe ratio does not change. Neither does the gap or its standard error.
 
-The test rests on an assumption. The formula treats each day’s profit as independent of the day before and drawn from a normal distribution, and a reversal’s daily profits are neither. So both standard errors are approximations, and nothing here measures how far off they are.
+The test rests on an assumption. The formula treats each day’s profit as independent of the day before and drawn from a normal distribution, and a reversal’s daily profits need not be either. So both standard errors are approximations, and nothing here measures how far off they are.
 
 ## Lesson 4: after 5 basis points a side, the closes lose and the opens keep a profit
 
@@ -179,7 +180,7 @@ The S&P 600’s result points Chan’s way. That earns it a registered test, one
 
 Chan’s exercise also names the S&P 400, the mid-cap index, which is the third point between the other two. His explanation predicts that the Sharpe ratio rises as the companies get smaller, from the S&P 500 through the S&P 400 to the S&P 600. A [later run in this repository](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-50-the-khandani-lo-reversal-on-the-sp-400-chans-quantitative-trading) tests that prediction over the same 251 days. Like the S&P 600 run, it is exploratory and holds survivors only.
 
-That run starts from the 401 holdings the iShares S&P 400 fund, IJH, reported on 2007-12-31, with prices from Alpha Vantage files downloaded in 2026. A holding stays in the run only when it passes two checks.
+That run starts from the 401 holdings that the iShares S&P 400 fund, IJH, reported as of 2007-12-31, with prices from Alpha Vantage files downloaded in 2026. A holding stays in the run only when it passes two checks.
 
 1. Its price at the end of 2007 times the shares the fund held matches the value the fund reported.
 2. Its prices start before 2006-12-28, a day on which the vendor begins many of its histories whatever the company’s age.
