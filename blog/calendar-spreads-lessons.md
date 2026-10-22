@@ -96,12 +96,12 @@ The run simulated 1,000 sets in which every pair truly cointegrates, with seed 2
 
 The two commodities read differently against that.
 
-1. **Natural gas’s 57 is far more than reversion that slow gives.** Either these spreads revert faster than that within these windows, or the count comes from something that neither the correlated null nor the slow-reversion simulation models. The run cannot say which.
+1. **Natural gas’s 57 is far more than these slow-reversion sets give.** Either these spreads revert faster than that within these windows, or the count comes from something that neither the correlated null nor the slow-reversion simulation models. The run cannot say which.
 2. **RBOB’s 14 sits at what these slow-reversion sets give**, and also inside what no reversion gives, since 973 of the 1,000 correlated null sets reach it. A window of about 56 days cannot separate the two.
 
 So “did not reproduce” is not evidence that RBOB spreads fail to cointegrate. It says this test, on windows this short, could not show that they do.
 
-These slow-reversion sets were not corrected the way the null was. In them, each simulated pair’s two legs move together far less closely than the files’ contracts do. Lesson 2 showed, for walks that do not cointegrate, that legs moving closely together reject in both orientations more often. So on contracts like the files’, reversion this slow would likely give more rejections than these sets do, and RBOB’s 14 may sit below that higher count rather than at it. No run has repeated the slow-reversion simulation with legs correlated as the files are.
+These slow-reversion sets were not corrected the way the null was. In them, each simulated pair’s two legs move together far less closely than the files’ contracts do. Lesson 2 showed, for walks that do not cointegrate, that legs moving closely together reject in both orientations more often. So on contracts like the files’, reversion this slow would likely give more rejections than these sets do. Natural gas’s 57 would then sit closer to that higher count, and RBOB’s 14 may sit below it rather than at it. No run has repeated the slow-reversion simulation with legs correlated as the files are.
 
 A 36-day half-life is also slow for trading, not only for testing. [The stationary candidates post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/stationary-candidates-lessons.md#lesson-6-a-reversion-as-slow-as-the-rates-is-hard-to-size) works through what a half-life does to the size and the return of a trade on it, with the same 36 days as one of its two speeds.
 

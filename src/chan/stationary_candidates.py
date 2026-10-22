@@ -101,8 +101,9 @@ earns on a series reverting at that half-life, and it runs no trade on the rate.
 **The calendar spreads** are every adjacent pair of delivery months, contract m
 against m+1, of natural gas and of RBOB gasoline on EIA's nearest four
 contracts. :mod:`chan.futures` says which numbered file holds each contract on
-each day. No pair overlaps long enough to test alone, so each commodity is one
-batch, and no pair's result is a finding about that pair.
+each day. No pair overlaps long enough for its own result to count as a
+verdict, so each commodity is one batch, and no pair's result is a finding
+about that pair.
 
 1. **The days.** A pair reads every trading day both contracts sit in the
    nearest four, less a six-day :func:`guard_band` around the window's ends
