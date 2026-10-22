@@ -9,8 +9,8 @@ paragraph it draws.
 1. One shift slides, it does not tilt: falling dots for one save's days with
    their fit, the same dots shifted right by one amount with a parallel fit,
    and the same dots shifted by uneven amounts with a fit whose slope differs
-   by about four percent. It sits in Lesson 2, after the paragraph opening
-   "[The post on GLD and GDX]".
+   by about a quarter, exaggerated so the eye can see it. It sits in Lesson
+   2, after the paragraph opening "[The post on GLD and GDX]".
 2. Two ways to close a position: a z-score path against the band at −1, 0
    and +1, above two strips that show what each exit holds along it. Holding
    until the opposite band stays long from the dip below −1 to the rise above
@@ -91,9 +91,10 @@ SAVE_X = np.array([1.3, 1.6, 1.85, 2.2, 2.45, 2.75, 3.05, 3.35, 3.7])
 SAVE_Y = np.array([3.3, 3.12, 2.78, 2.86, 2.5, 2.28, 2.34, 1.98, 1.82])
 #: The one amount every close moves by, in board units.
 SAME = 2.6
-#: The uneven amounts, one for each day. They wobble and grow a little along
-#: the row, so the copy stretches and its fit tilts by about four percent.
-UNEVEN = np.array([5.22, 5.32, 5.18, 5.3, 5.22, 5.35, 5.24, 5.37, 5.3])
+#: The uneven amounts, one for each day. They wobble and grow along the row,
+#: so the copy stretches and its fit tilts by about a quarter, enough to see.
+#: The run's own change, 3.6 percent, would draw as one degree.
+UNEVEN = np.array([5.02, 5.20, 5.18, 5.40, 5.38, 5.56, 5.54, 5.72, 5.74])
 #: How far each fit runs past its first and last dot.
 FIT_PAST = 0.15
 

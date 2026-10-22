@@ -7,8 +7,8 @@ reader takes from them, and that the facts they draw hold on the run.
 
 1. The shift sketch draws one save's falling dots and their fit, the same dots
    moved right by one amount with a fit of the same slope, and the same dots
-   moved by uneven amounts with a fit whose slope differs by about four
-   percent. Each line is the least-squares fit of its own dots.
+   moved by uneven amounts with a fit whose slope differs by about a quarter,
+   exaggerated so the eye can see it. Each line is the least-squares fit of its own dots.
    test_one_constant_on_every_vx_close_moves_only_the_intercept holds the fact
    behind it on the 2012-05-07 save: the hedge, the deviation and the z-score
    do not move.
@@ -60,6 +60,7 @@ from chan.usdcad_tests_whiteboard import (
 )
 from chan.vx_es_whiteboard import (
     CROSSINGS,
+    KNOTS,
     ORIGIN,
     PATH_X,
     SAME,
@@ -474,12 +475,13 @@ class TestTheShiftSketch:
         assert brass_slope == pytest.approx(black_slope, abs=1e-9)
         assert fit(SAVE_X + SAME, SAVE_Y)[0] != pytest.approx(fit(SAVE_X, SAVE_Y)[0])
 
-    def test_the_red_fit_tilts_by_about_four_percent(self, every) -> None:
-        """A modest tilt, so the sketch does not overstate what uneven shifts did."""
+    def test_the_red_fit_tilts_enough_to_see(self, every) -> None:
+        """A tilt large enough to see on a phone. The sketch is schematic, and the
+        run's 3.6 percent would draw as about one degree."""
         scene = every[0]
         black, red = (_stroke(scene, gid) for gid in ("save-fit", "uneven-fit"))
         change = np.polyfit(red.x, red.y, 1)[0] / np.polyfit(black.x, black.y, 1)[0] - 1
-        assert 0.03 < abs(change) < 0.05
+        assert 0.15 < abs(change) < 0.35
 
     def test_one_constant_on_every_vx_close_moves_only_the_intercept(self) -> None:
         """The fact the sketch draws, on the 2012-05-07 save: three points added
@@ -504,7 +506,7 @@ class TestTheShiftSketch:
         assert "each moved right by the same amount" in alt
         assert "parallel to the black one" in alt
         assert "each moved right by a different amount" in alt
-        assert "a little less steep than the other two" in alt
+        assert "less steep than the other two" in alt
 
     def test_the_red_fit_is_less_steep_as_the_alt_text_says(self, every) -> None:
         scene = every[0]
@@ -680,6 +682,8 @@ class TestTheExitsSketch:
             "dips below −1, climbs back through 0, rises above +1, falls back through 0 "
             "and dips below −1 again"
         ) in alt
+        assert "then turns back up to end just above it" in alt
+        assert -1.0 < KNOTS[-1][1] < 0.0
         assert "a green bar marked “long” from the dip below −1 to the rise above +1" in alt
         assert "a red bar marked “short” from there to the next dip below −1" in alt
         assert "a green bar marked “long” from the dip below −1 to the crossing of 0" in alt
