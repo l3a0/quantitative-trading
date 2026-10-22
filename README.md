@@ -2611,7 +2611,9 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that neither module draws.
+which also fails on any GIF in the folder that none of the three sketch modules
+draws. The Johansen ETF post's two GIFs are checked the same way by
+[tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py).
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -4236,6 +4238,31 @@ uv run python -m chan.etf_cointegration_figures
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/etf_cointegration_whiteboard.py](src/chan/etf_cointegration_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `etf_cointegration_trace_stack.gif`, in Lesson 3, the eigen test's one
+   piece of 16.897 stopping short of its 90 percent bar beside the trace
+   test's stack of 16.897, 13.061 and 4.471, which reaches 34.429 and clears
+   its 95 percent bar, all to one scale.
+2. `etf_cointegration_two_relations.gif`, in Lesson 4, the pair's two
+   relations as two arrows on a plane of shares of EWA and EWC, with EWA held
+   alone built from them by a dashed parallelogram. It is schematic and
+   carries no figures, and its words state the test's claim as a condition.
+
+```bash
+uv run python -m chan.etf_cointegration_whiteboard
+```
+
+[tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py)
+holds what each sketch says and draws, reads the first sketch's figures from
+the run on the committed file, and holds that each block's height is affine in
+its statistic, that the stack's top is the trace statistic, and that figures
+which would make its words false are refused. It compares each committed GIF
+with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS, as the
+USD.CAD sketches' test does.
 
 [blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
 locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the

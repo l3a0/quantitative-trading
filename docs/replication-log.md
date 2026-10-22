@@ -5708,7 +5708,15 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) moves with
 it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.etf_cointegration_figures` redraws.
+which `uv run python -m chan.etf_cointegration_figures` redraws, and its first
+whiteboard sketch. That sketch draws row 8's three eigen statistics, row 7's
+trace statistic for r ≤ 0, and the 90 percent eigen and 95 percent trace
+critical values pinned beside those rows, all to one scale.
+`uv run python -m chan.etf_cointegration_whiteboard` redraws it and the post's
+second sketch, the pair's two relations spanning EWA held alone, which is
+schematic.
+[tests/test_etf_cointegration_whiteboard.py](../tests/test_etf_cointegration_whiteboard.py)
+reads the first sketch's figures from the run.
 
 ## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
 
