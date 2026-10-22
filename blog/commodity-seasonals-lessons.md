@@ -87,7 +87,7 @@ Chan’s gasoline count is 19 profitable years of 21, from 1995 to 2015. The run
 
 Three years have no price on a trade date. EIA’s New York Harbor file holds no row on 14 April 1997, the entry date that year, or on 24 April 1998 and 23 April 1999, the exit dates those years. Each was a trading day. Under the missing-row rule above, those years count neither way.
 
-Taking a neighbouring day’s price instead would turn a gap into a guess, and a guess that decides the count it is meant to check. So the files show 16 profitable years and 2 losses, and they bound Chan’s count between 16 and 19 without settling it.
+Taking a neighboring day’s price instead would turn a gap into a guess, and a guess that decides the count it is meant to check. So the files show 16 profitable years and 2 losses, and they bound Chan’s count between 16 and 19 without settling it.
 
 One more missing row leaves a question open without changing the count. RBOB began trading in October 2005, so the first April it covers is 2006, and the run reads RBOB from then. The older New York Harbor contract still traded in April 2006, but its file has no row on 13 April 2006, so the files cannot say whether reading the older contract that year would change the 2006 result.
 
@@ -163,7 +163,7 @@ Six questions are beyond it.
 Three habits follow from the first three lessons.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
-2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighbouring day would decide the answer instead of checking it.
+2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighboring day would decide the answer instead of checking it.
 3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 and fewer than half after, and Chan picked its rule from years before the book.
 
 ## References
