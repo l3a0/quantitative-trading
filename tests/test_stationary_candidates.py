@@ -1951,9 +1951,7 @@ class TestTheCalendarSpreadPostQuotesThePins:
             f"pairs, from {_month(rbob[0].pair.near)} to {_month(rbob[-1].pair.near)}."
         ) in self.text
         kept = {name: [len(t.pair.kept) for t in spreads[name].tests] for name in (NG, RBOB)}
-        a, b = (
-            f"{min(k)} to {max(k)}" for k in kept.values()
-        )
+        a, b = (f"{min(k)} to {max(k)}" for k in kept.values())
         ng_median, rbob_median = (f"{np.median(k):g}" for k in kept.values())
         assert (
             f"Natural gas pairs keep {a} days, a median of {ng_median}, and RBOB pairs keep "
@@ -2036,7 +2034,10 @@ class TestTheCalendarSpreadPostQuotesThePins:
             for shift in (0, -1, 1)
         }
         (ng, ng_of), (rbob, rbob_of) = tallies[NG, 0], tallies[RBOB, 0]
-        assert f"for {ng} of the {ng_of} natural gas expiries the files have rows to check" in self.text
+        assert (
+            f"for {ng} of the {ng_of} natural gas expiries the files have rows to check"
+            in self.text
+        )
         assert f"it does for {rbob} of {rbob_of} RBOB expiries" in self.text
         early = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, -1], tallies[RBOB, -1]))
         late = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, 1], tallies[RBOB, 1]))
@@ -2068,7 +2069,9 @@ class TestTheCalendarSpreadPostQuotesThePins:
                             back = min(
                                 range(-4, 1),
                                 key=lambda k: (
-                                    abs((product.last_trade(*month_step(*pair.near, k)) - day).days),
+                                    abs(
+                                        (product.last_trade(*month_step(*pair.near, k)) - day).days
+                                    ),
                                     k,
                                 ),
                             )
@@ -2076,7 +2079,10 @@ class TestTheCalendarSpreadPostQuotesThePins:
                             per_pair[pair.near] = per_pair.get(pair.near, 0) + 1
                 assert misread, (name, days)
                 assert max(len(pairs) for pairs in misread.values()) == 3, (name, days)
-                assert {n for pairs in misread.values() for n in pairs.values()} == {1}, (name, days)
+                assert {n for pairs in misread.values() for n in pairs.values()} == {1}, (
+                    name,
+                    days,
+                )
         assert (
             "on one kept day in each of up to three pairs around an expiry, and these counts do "
             "not exclude that."
