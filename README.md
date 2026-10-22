@@ -3821,6 +3821,11 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    file each leg reads on each day, its 58 kept days, and its six dropped days
    as red crosses.
 
+Both sketches build more slowly than the USD.CAD post's and hold their
+finished drawings for twelve seconds, because each carries more than the usual
+pace lets a reader take in. Each label shows on its own for 900 ms rather than
+350, the pace of the equity seasonals post's slower sketches.
+
 Neither sketch is schematic.
 [tests/test_stationary_candidates.py](tests/test_stationary_candidates.py)
 pins the single-orientation medians in `TestTheNullInEachOrientation`, and
@@ -3830,8 +3835,9 @@ the run's own calendar.
 [tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py)
 holds what each sketch says, its inks, that each circle's area and each
 overlap stand to one scale for their counts, that each tick, stretch, dot and
-cross stands at its trading day, where each sits in the post, and that each
-alt text quotes every label in the order it is drawn. It compares each
+cross stands at its trading day, that both build slowly and hold for twelve
+seconds, where each sits in the post, and that each alt text quotes every label
+in the order it is drawn and says when the sketch is slow. It compares each
 committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic Sans
 MS, as the USD.CAD sketches' test does.
 

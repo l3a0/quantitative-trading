@@ -27,6 +27,8 @@ What is pinned for each:
    in the installed hand font and in the wider fallback.
 5. Each file's size, frame count, loop and timing, and that it sits in the
    post right after the passage it draws, with alt text quoting its labels.
+6. That both build slowly, each label shown on its own for 900 ms and the
+   finished drawing held for twelve seconds, and that each alt text says so.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
 fresh draw depends on the font, as ``tests/test_usdcad_tests_whiteboard.py``
@@ -71,6 +73,7 @@ from chan.calendar_spreads_whiteboard import (
     make_calendar_spreads_whiteboards,
     radius,
     scenes,
+    sketch_timeline,
 )
 from chan.futures import NATURAL_GAS_CONTRACTS, contract_number, month_step, next_trading_day
 from chan.paths import FIGURES_DIR, REPO_ROOT
@@ -177,7 +180,7 @@ def drawn(window):
 
 @pytest.fixture(scope="module")
 def frames(drawn):
-    return [timeline(scene) for scene in drawn]
+    return [sketch_timeline(scene) for scene in drawn]
 
 
 @pytest.fixture(scope="module")
@@ -602,10 +605,34 @@ class TestTheGifs:
                 )
             assert _durations(path) == [f.ms for f in steps], path.name
 
-    def test_each_opens_on_its_title_and_holds_its_drawing(self, frames) -> None:
-        for steps in frames:
+    def test_each_opens_on_its_title_and_holds_its_drawing(self, drawn, frames) -> None:
+        for scene, steps in zip(drawn, frames, strict=True):
             assert (steps[0].done, steps[0].ms) == (0, TITLE_MS)
-            assert steps[-1].ms == HOLD_MS
+            hold = sketches.PACED_HOLD_MS if scene.slug in sketches.PACED else HOLD_MS
+            assert steps[-1].ms == hold, scene.slug
+
+    def test_the_paced_sketches_build_slowly_and_hold_twelve_seconds(self, drawn) -> None:
+        """The pace the equity seasonals post's slower sketches use: each label
+        alone for 0.9 s, the drawing for 12 s, and both of this post's sketches
+        paced, since each carries more than the usual pace lets a reader take in."""
+        assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
+        for scene in drawn:
+            frames = sketch_timeline(scene)
+            labels = [
+                f
+                for f in frames[:-1]
+                if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
+            ]
+            paced = scene.slug in sketches.PACED
+            assert paced == (scene.slug in ("both_orientations", "one_window"))
+            assert labels, scene.slug
+            assert {f.ms for f in labels} <= {
+                sketches.PACED_LABEL_MS if paced else whiteboard.LABEL_MS
+            }
+            assert frames[-1].ms == (sketches.PACED_HOLD_MS if paced else HOLD_MS)
+            assert [(f.done, f.partial) for f in frames] == [
+                (f.done, f.partial) for f in timeline(scene)
+            ]
 
     def test_each_is_under_1_mb(self, gifs) -> None:
         for path in gifs:
@@ -687,6 +714,16 @@ class TestThePost:
                 found = alt.find(f"“{label}”", at)
                 assert found >= 0, (scene.slug, label)
                 at = found + 1
+
+    def test_the_alt_text_says_slow_exactly_when_the_sketch_is_paced(self, drawn) -> None:
+        """A reader learns the pace from the alt text: "drawn slowly" and a
+        twelve-second hold for each paced sketch, and neither for the rest."""
+        text = POST.read_text(encoding="utf-8")
+        for scene in drawn:
+            alt = _alt(text, scene)
+            paced = scene.slug in sketches.PACED
+            assert ("drawn slowly" in alt) == paced, scene.slug
+            assert ("twelve seconds" in alt) == paced, scene.slug
 
     def test_the_orientations_alt_text_says_what_the_circles_show(self, drawn) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), drawn[0])

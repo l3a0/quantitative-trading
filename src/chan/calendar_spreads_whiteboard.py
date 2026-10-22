@@ -30,9 +30,15 @@ size and position the counts and dates set, comes from those two classes. The
 June 2018 pair is the one ``tests/test_stationary_candidates.py`` already pins
 the window and the dropped days of.
 
+Both scenes carry more than the usual pace lets a reader take in, so
+:func:`sketch_timeline` shows each of their labels on its own for 900 ms
+rather than 350 and holds their finished drawings for twelve seconds rather
+than four, as :data:`PACED` lists. That is the pace
+:mod:`chan.equity_seasonals_whiteboard` gives its slower sketches.
+
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look, frame rate, pace and
-colours. Only the scenes and the file names are this module's. Each GIF is
+than copied, so these GIFs share that post's look, frame rate and colours.
+Only the scenes, their pace and the file names are this module's. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug. The sketches are deterministic
 for the reason that module gives, so a redraw with no change is a no-op diff.
 Redraw both with::
@@ -66,6 +72,7 @@ from chan.futures import (
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
+    Frame,
     Label,
     Scene,
     Stroke,
@@ -488,8 +495,31 @@ def scenes(orientations: BothOrientations, window: OneWindow) -> tuple[Scene, ..
     return (_both_orientations(orientations), _one_window(window))
 
 
-def _write(scene: Scene, folder: Path) -> Path:
+#: The scenes that build slowly, because each carries more than a reader takes
+#: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
+#: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
+PACED = ("both_orientations", "one_window")
+PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
+
+
+def sketch_timeline(scene: Scene) -> list[Frame]:
+    """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
     frames = timeline(scene)
+    if scene.slug not in PACED:
+        return frames
+    paced = [
+        Frame(f.done, f.partial, PACED_LABEL_MS)
+        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
+        else f
+        for f in frames
+    ]
+    last = paced[-1]
+    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
+    return paced
+
+
+def _write(scene: Scene, folder: Path) -> Path:
+    frames = sketch_timeline(scene)
     first, *rest = render(scene, frames)
     path = folder / gif_name(scene)
     first.save(
