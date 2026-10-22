@@ -329,7 +329,7 @@ class TestThePairDoesNotCointegrate:
         """The 20-day regression fits ``USO = c + h·GLD + e``, and the scripts trade
         ``USO − h·GLD``, which is ``c + e``. The intercept ``c`` moves with the window, and
         it carries all but a quarter of a percent of the spread's variance. Traded alone by
-        the same rule, the leftover ``e`` earns nothing."""
+        the same rule, the leftover ``e`` earns close to nothing."""
         signal = result.price_spread.signal
         gld, uso = sources[1][X_SYMBOL].to_numpy(), sources[1][Y_SYMBOL].to_numpy()
         intercept = rolling_intercept(uso, gld)[LOOKBACK:]

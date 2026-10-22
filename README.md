@@ -4003,12 +4003,12 @@ Five groups of its figures are not pinned here.
    opposite, that a ratio needs no hedge ratio, that a ratio is unchanged
    when both prices scale together, a point Chan credits to a reader, and
    that Chan knows no general answer to whether a ratio beats a spread with
-   an adaptive hedge ratio are at 1476. "Are not, in fact, cointegrated", the question whether
-   enough short-term mean reversion remains to trade, that the rule is the
-   linear mean reversion of Chapter 2, "near-optimal" with "the benefit of
-   hindsight", the word stationary for the spread, "actually lower", the extra
-   cost of the log price spread, "a negative APR" and the caption "Ratio =
-   USO/GLD" are at 1505. The book's figures are pinned, and its words are not.
+   an adaptive hedge ratio are at 1476. "Are not, in fact, cointegrated", the
+   question whether enough short-term mean reversion remains to trade, that
+   the rule is the linear mean reversion of Chapter 2, "near-optimal" with "the
+   benefit of hindsight", the word stationary for the spread, "actually
+   lower", the extra cost of the log price spread, "a negative APR" and the
+   caption "Ratio = USO/GLD" are at 1505. The book's figures are pinned, and its words are not.
 2. Facts outside the committed data. That two public copies of Chan's code
    hold the three scripts byte for byte, which `src/chan/price_spread.py`'s
    docstring records, that neither holds another version of `Ratio.m`, which

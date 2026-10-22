@@ -62,11 +62,11 @@ dollars, which is NaN too, and either NaN is set to 0.
 pads with NaN.
 
 **The ratio's printed figures match swapped legs.** The price spread and
-the log price spread land all four printed figures to six digits. ``Ratio.m``
+the log price spread land all four printed figures to six decimals. ``Ratio.m``
 as published gives −0.134608 and −0.702522 against its closing comment's
 −0.141522 and −0.746663. The same script with GLD and USO swapped, so the
 signal is GLD/USO and a positive ``numUnits`` buys GLD, lands both to all six
-digits. The book captions its Figure 3.2 "Ratio = USO/GLD" and the published
+decimals. The book captions its Figure 3.2 "Ratio = USO/GLD" and the published
 script computes USO/GLD, so the evidence favours the comment coming from a
 run with the legs swapped. The swap was the third reading tried, after the
 miss was seen, and
