@@ -189,6 +189,7 @@ class TestTheScenes:
                 if isinstance(step, Label):
                     earlier = [s.gid for s in scene.steps[:index] if not isinstance(s, Label)]
                     assert step.names in earlier, (scene.title, step.text)
+                    assert step.names == earlier[-1], (scene.title, step.text)
 
     def test_no_label_is_parsed_as_math(self, every) -> None:
         assert not [s.text for scene in every for s in scene.steps if getattr(s, "math", 0)]
@@ -347,9 +348,10 @@ class TestThePost:
         assert "“34.429 clears it”" in alt
 
     def test_the_two_relations_alt_text_says_it_is_schematic(self, every) -> None:
-        assert "It is schematic and carries none of the run’s figures." in _alt(
-            POST.read_text(encoding="utf-8"), every[1]
-        )
+        alt = _alt(POST.read_text(encoding="utf-8"), every[1])
+        assert "It is schematic and carries none of the run’s figures." in alt
+        assert "“relation 1” points down and to the right" in alt
+        assert "“relation 2” points up and to the right" in alt
 
 
 class TestTheStackFigures:
@@ -378,6 +380,7 @@ class TestTheStackFigures:
         "changes",
         [
             {"trace": 28.5},
+            {"trace": 27.5},
             {"eigen_bar": 11.0},
             {"trace_bar": 29.0},
             {"eigen_bar": 12.0},
@@ -385,6 +388,7 @@ class TestTheStackFigures:
         ],
         ids=[
             "pieces not adding up",
+            "pieces adding past the trace",
             "first piece clearing",
             "stack short of its bar",
             "first piece on its bar",

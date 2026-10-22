@@ -589,8 +589,11 @@ class TestWhatThePostQuotes:
         etfs = len(list((paths.DATA_DIR / folder).glob("*.csv")))
         (saved,) = {m.obtained for m in members}
         assert np.isfinite(closes.to_numpy()).all(), SPEC
+        one, five = (float(v) for v in SCRIPT_CADF_CRITICAL[:2])
+        assert one < result.cadf.t < five, SPEC
         self._holds(
             post,
+            "The CADF test finds that EWC and EWA cointegrate at 95 percent confidence. "
             f"The CADF statistic is {_minus(result.cadf.t, 8)}. The portfolio Chan builds "
             f"from the three ETFs takes {s.half_life:.6f} days to close half its distance",
             f"an annual percentage rate, or APR, of {s.apr:.6f} with a Sharpe ratio of "
@@ -643,6 +646,11 @@ class TestWhatThePostQuotes:
     def test_lesson_1_s_cadf_bars_and_the_sign(self, post, result) -> None:
         one, five = (float(v) for v in SCRIPT_CADF_CRITICAL[:2])
         assert one < result.cadf.t < five, SPEC
+        printed = np.array(SCRIPT_EIGENVECTORS, dtype=float)
+        assert (np.sign(result.triplet.eigenvectors) == -np.sign(printed)).all(), SPEC
+        self._holds(
+            post, "Every one of the three eigenvectors comes back with all its signs flipped."
+        )
         self._holds(
             post,
             f"{_minus(one, 3)} at 99 percent and {_minus(five, 3)} at 95. The computed "
@@ -737,6 +745,14 @@ class TestWhatThePostQuotes:
         assert [t.relations("eigen", level) for level in levels] == [0, 0, 0], SPEC
         assert t.eigen[2] > t.eigen_critical[2, 1], SPEC
         assert t.relations("trace", 99) == 0, SPEC
+        assert t.eigen[0] < t.eigen_critical[0, 0], SPEC
+        assert t.trace_critical[0, 1] < t.trace[0] < t.trace_critical[0, 2], SPEC
+        self._holds(
+            post,
+            "The first eigenvalue alone is not strong enough to clear the eigen test’s bar, "
+            "even at 90 percent. The trace test adds the second and third eigenvalues’ "
+            "evidence to it, and the total clears the trace test’s bar at 95 percent.",
+        )
         self._holds(
             post,
             f"so the triplet’s {t.trace[0]:.3f} is {t.eigen[0]:.3f} plus {t.eigen[1]:.3f} "
