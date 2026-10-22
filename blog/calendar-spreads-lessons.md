@@ -73,6 +73,8 @@ Four steps took the result from the first reading to the second.
 
 *Each histogram is 1,000 sets of simulated contracts that do not cointegrate. Correlating them as the files are moves the whole histogram right. Natural gas stays past both bars, and gasoline falls inside the corrected one.*
 
+![An animated whiteboard sketch titled “What requiring both orientations removes”, drawn stroke by stroke in two panels, with each circle’s area to scale with a count of natural gas pairs. The left panel, “independent walks”, draws a black circle labelled “near on far: 38” above a black circle labelled “far on near: 38”. They overlap in a narrow brown lens labelled “both: 12”. The right panel, “walks correlated as the files are”, draws the same two circles, “near on far: 38” and “far on near: 38”, almost on top of each other, so their brown lens, labelled “both: 35”, fills nearly all of each. A grey note reads “medians of 1,000 null sets of 360 natural gas pairs”, and the brown words “the files: 62 and 62 alone, 57 both” close the sketch.](../docs/figures/calendar_spreads_both_orientations.gif)
+
 Build the null from what the data does that the claim does not explain. When the null is corrected after the result is seen, report both verdicts.
 
 ## Lesson 3: about 56 days cannot tell slow reversion from none
@@ -98,6 +100,8 @@ EIA numbers its files by expiry, so contract 1 is whichever contract stops tradi
 
 1. **Each pair rests on four expiries.** A pair reads its two contracts through the numbered files for about three months. Its window opens the day after the expiry of the contract three months ahead of the near one, crosses two more expiries, and closes on the near contract’s own last day.
 2. **Where a one-day error lands.** Each window drops its first and last days, and each expiry inside it together with the day after. Those six are the only days a rule one day wrong could misread. On every day a pair keeps, a rule moved a day either way reads the same two prices.
+
+![An animated whiteboard sketch titled “One window, four expiries”, drawn stroke by stroke on a grey axis of trading days from late February to late May 2018. Four grey ticks with dashed guides mark the expiries the June pair rests on, labelled “Mar expires 26 Feb”, “Apr expires 27 Mar”, “May expires 26 Apr” and “Jun expires 29 May”. A black bracket from the day after the first expiry to the last is labelled “the window: 64 trading days”. A thick black lane labelled “June, near” breaks into three stretches, “file 3”, “file 2” and “file 1”, a new one starting the day after each expiry inside the window. Beneath it a lane labelled “July, far” breaks on the same days into “file 4”, “file 3” and “file 2”. A row of grey dots under both lanes is labelled “58 kept”, and six red crosses sit on the window’s first day, on each expiry inside it and the day after, and on its last day. The brown words “a rule a day off misreads only the crossed days” close the sketch.](../docs/figures/calendar_spreads_one_window.gif)
 
 ### The rule checked against the files
 

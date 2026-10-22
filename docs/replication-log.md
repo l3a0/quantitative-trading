@@ -4161,13 +4161,33 @@ chance.
 two price series. A trade adds costs, roll timing and margin, and none of
 those are here.
 
+### The post's sketches
+
+The calendar spreads post carries two whiteboard sketches, added in its review
+before publishing on 2026-10-21.
+
+1. **Each orientation alone.** It draws natural gas's null counts as circles
+   whose areas stand for them. Each orientation alone rejects in a median of
+   38 of 360 null pairs under either null, so correlating the walks leaves each
+   orientation where it was, and the rise from 12 to 35 in row 3's and row 1's
+   medians is the requirement for both losing its effect.
+   `TestTheNullInEachOrientation` pins those medians beside RBOB's, 24 and 23
+   under the declared null and 23 and 23 under the corrected one. They read the
+   vintages and specification of rows 1 to 12, counting one orientation at a
+   time on the same walks. They describe the nulls, decide nothing, and were
+   computed after the verdicts were seen.
+2. **One window.** It draws the June 2018 natural gas pair's window, its four
+   expiries, the numbered file each leg reads on each day, and the six days it
+   drops. `TestThePairs` already pins that window and those days.
+
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
 [blog/calendar-spreads-lessons.md](../blog/calendar-spreads-lessons.md) moves
 with it, since that post writes up every row, and so does
 [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md),
-since that post quotes the verdicts. So does the calendar spreads post's
-figure, which `uv run python -m chan.calendar_spread_figures` redraws.
+since that post quotes the verdicts. So do the calendar spreads post's figure
+and its two sketches, which `uv run python -m chan.calendar_spread_figures` and
+`uv run python -m chan.calendar_spreads_whiteboard` redraw.
 
 ## Entry 16: Conditional Parameter Optimization, Chan's *Quantitative Trading*
 

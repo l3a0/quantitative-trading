@@ -123,7 +123,7 @@ batches once.
 8. ``TestTheCalendarSpreadDescriptions``, each orientation alone, the residual
    check and the power row, which decide nothing.
 9. ``TestTheNullInEachOrientation``, each null counted in one orientation at a
-   time, which decides nothing either.
+   time, which decides nothing either and which the post's sketch draws.
 10. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
 11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
 
@@ -1778,6 +1778,22 @@ class TestTheNullInEachOrientation:
         pair = spread_pair(NATURAL_GAS_CONTRACTS, (1997, 6))
         with pytest.raises(ValueError, match="orientation"):
             null_shares((pair,), sets=10, orientation="either")
+
+    def test_the_whiteboard_draws_these_figures(self, spreads, alone) -> None:
+        """The sketch's tests draw from ``PINNED`` in
+        ``tests/test_calendar_spreads_whiteboard.py``, so they run without the
+        nulls. This holds that the run gives those figures."""
+        from chan.calendar_spreads_whiteboard import BothOrientations
+        from tests.test_calendar_spreads_whiteboard import PINNED
+
+        drawn = BothOrientations.from_nulls(
+            spreads[NG],
+            alone[NG, "independent", "near"],
+            alone[NG, "independent", "far"],
+            alone[NG, "correlated", "near"],
+            alone[NG, "correlated", "far"],
+        )
+        assert drawn == PINNED
 
 
 @pytest.fixture(scope="module")
