@@ -177,7 +177,7 @@ The first edition’s MATLAB averages over 95 months, counting as zero the 12 th
 \frac{S}{83} = \frac{S}{95} \times \frac{95}{83}
 ```
 
-Multiplying the old annual return by `95/83` cancels its 95. `S` is −87.08 as a sum over positions and −0.9944 in rule 1’s units of capital:
+Multiplying the old annual return by `95/83` cancels its 95. This rule starts from the printed script rather than from rule 2’s fix. `S` is −87.08 as a sum over positions and −0.9944 in rule 1’s units of capital:
 
 ```math
 \begin{aligned}
@@ -222,7 +222,7 @@ The revised R rounds a tenth to the nearest whole number, and sends an exact hal
 \end{array}
 ```
 
-On this file some months land on a half, so the half matters. Rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down, as the revised MATLAB and Python do, gives the revised MATLAB’s annual return.
+On this file some months land on a half, so the half matters. In the R, rounding every half up, as school rounding does, gives an annual return of −0.0118031. Rounding down instead, as the revised MATLAB and Python do, gives the R the revised MATLAB’s annual return.
 
 #### Rule 7: dividing by n or n − 1, a choice in all three revised scripts
 
@@ -435,7 +435,7 @@ Free daily prices gave a checked price for 98,321 of its 107,115 member-months, 
 
 #### Whether dropping the rest matters
 
-Dropping the rest is harmless only if the dropped members would have ranked like the kept ones. Companies that left the index within a year make up more of the dropped members than of the kept ones. No dropped member can be ranked, so the run compared two groups among the companies it kept: those that left within a year and those that stayed. The ones that left landed in a traded tenth more often, most of all in the short tenth. That comparison is described rather than tested. It counts against the drop being harmless, and which way the drop moves the result is not measured.
+Dropping the rest is harmless only if the dropped members would have ranked like the kept ones. Companies that left the index within a year make up a larger share of the dropped members than of the kept ones. No dropped member can be ranked, so the run compared two groups among the companies it kept: those that left within a year and those that stayed. The ones that left landed in a traded tenth more often, most of all in the short tenth. That comparison is described rather than tested. It counts against the drop being harmless, and which way the drop moves the result is not measured.
 
 ![An animated whiteboard sketch titled “Leavers land in the tenths”, drawn slowly stroke by stroke, with two bars split into green, red and grey shares of member-months. The bar for companies that “left within a year” is “long 12.0%”, “short 16.5%” and “neither” for the rest. The bar for those that “stayed” is “long 9.8%”, “short 9.6%” and “neither”. The words “leavers sit in a traded tenth more often, most of all the short one” close the sketch, which holds for twelve seconds.](../docs/figures/equity_seasonals_ivv_leavers.gif)
 
@@ -484,7 +484,7 @@ The exact answer uses the shifted scatter itself. With 212 degrees of freedom an
 T_{212}(\delta) = \frac{Z + \delta}{\sqrt{V / 212}}
 ```
 
-Z is a draw from a normal curve with a spread of 1. V is a draw from a chi-squared distribution with 212 degrees of freedom, so V / 212 averages 1 and wanders around it, the way a spread measured from 213 months wanders around the true spread. That wandering widens the scatter a little beyond the normal curve’s.
+Z is a draw from a normal curve with a spread of 1. V is a draw from a chi-squared distribution with 212 degrees of freedom, so V / 212 averages 1 and wanders around it. Its square root, the ratio in the denominator, wanders around 1 the way a spread measured from 213 months wanders around the true spread. That wandering widens the scatter a little beyond the normal curve’s.
 
 No formula turns the 0.80 back into δ, so a solver searches for it:
 
