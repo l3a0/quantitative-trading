@@ -26,7 +26,8 @@ still wait for the owner, as `sync-substack` says.
 
 Each round has four steps.
 
-1. **Review.** The lenses run at the round's commit, then a verifier per lens.
+1. **Review.** The lenses run at the round's commit, then the round's
+   verifiers: one per lens in a full round, one in a diff round.
 2. **Decide and apply.** Apply every confirmed or changed finding on the
    post's branch, and drop the rest with a reason. Sync the unpublished draft
    once the round's commits are pushed.
@@ -54,31 +55,34 @@ edits.
    significant findings all sit in text the loop itself wrote. That includes
    a README list that an earlier round's rewrite made stale.
 2. **Diff rounds.** Each later round reads only the previous round's diff,
-   plus every surface that describes a sentence the diff changed: README's
-   lists, the replication log's entry, `data/README.md`, the module
-   docstrings and the tests that read the post. Two lenses run, accuracy and
-   consistency, with one verifier between them. Comprehension runs only on
-   rewritten prose sentences in the post. Fixes in this phase are minimal: a
+   plus every surface that describes a sentence the diff changed: the post's
+   own title, summary, alt texts and captions, README's lists, the
+   replication log's entry, `data/README.md`, the module docstrings and the
+   tests that read the post. Two lenses run, accuracy and consistency, with
+   one verifier between them. The comprehension rules apply only to prose
+   sentences the diff rewrote, and those two lenses check them. Fixes in this phase are minimal: a
    correction changes only the words that are wrong, and cosmetic points are
    recorded and not applied, since every applied rewrite is new text the next
    round must check.
 
 The loop stops on the first diff round that holds nothing significant. The
-diff shrinks each round, so the loop converges. The loop has no cap on its
+diff should shrink each round, since its fixes are minimal. The loop has no cap on its
 rounds, because the owner removed a five-round cap on 2026-10-21, and each
 round's comment names what the round cost.
 
 The price is that a diff round cannot catch an error in untouched text that
-the full rounds missed. The full rounds read that text several times over, so
-the risk is small. One last full round before hand-over removes it, when the
-owner asks for that.
+the full rounds missed. In the first run, the pull request's own review found
+two errors that three full rounds had read, so that review, under
+`## The pull request`, is the backstop. One last full round before hand-over
+removes the risk, when the owner asks for that.
 
 The first run, on the commodity seasonals post, predates this rule and ran
 eight full rounds. They found 15, 7, 6, 6, 1, 3, 1 and 0 significant findings.
 Rounds 1 and 2 found errors that were in the post before the loop began. From
 round 3 on, nearly every finding sat in a sentence the round before had just
-written, or in a README list that sentence had made stale. Each of rounds 5 to
-8 cost about 3 to 5 US dollars to find one or two slips in a few lines. Under
+written, or in a README list that sentence had made stale. Rounds 5 to 8
+cost at least 3 to 5 US dollars each and found 1, 3, 1 and 0 significant
+findings, nearly all in lines the round before had written. Under
 this rule round 3 would have been the last full round.
 
 The comment that ends the loop says it ended and why, with the count of
@@ -107,9 +111,10 @@ reads none of the conversation and needs the answers in its prompt.
    On 2026-10-21 all 40 such issues were open, and the 8 posts with none were
    mostly published already, so a missing issue is no proof the post is
    unpublished. Step 1 decides that. An unpublished post with no issue gets
-   one, in the form of the others, as the moment for a filed issue in
-   `update-build-board` says: their body, the `documentation` label,
-   `band:3`, and the milestone of the write-up issue the post came from.
+   one, in the form of the others: their body, the `documentation` label and
+   the milestone of the write-up issue the post came from, as `CLAUDE.md`'s
+   `## Pull requests` asks, and `band:3`, as the moment for a filed issue in
+   `update-build-board` says.
 3. **Mark the card.** Add `working:build` to the tracking issue, as the
    moment for a build session starting on a card in `update-build-board`
    says. The loop pushes to an open pull request for as many rounds as it
@@ -133,8 +138,8 @@ reads none of the conversation and needs the answers in its prompt.
    not by itself an owner edit. On the commodity seasonals post it refused on
    two text runs that an earlier patch had split, which the notes recorded.
    Find out why with steps 3 and 4 of `sync-substack`'s
-   `## Sync an existing draft`, merging split runs as its last paragraph
-   says, and pull only text the owner changed into the Markdown before the
+   `## Sync an existing draft`, merging split runs as the paragraph before
+   its `### Sync in one call` says, and pull only text the owner changed into the Markdown before the
    lenses read it. A last-synced commit older than the post's last commit
    means the draft lags.
 7. **Collect what surrounds the post.** Name the open issues that name it.
@@ -237,9 +242,9 @@ comment reports that too.
    at the round's commit, anchors included. The posts that link here say
    nothing this post contradicts. This lens also mutates numbers in the post
    and runs the tests, to report which numbers no test holds, so it runs with
-   `isolation: "worktree"` and checks out the round's commit first. On the
-   commodity seasonals post it took 10 to 33 minutes a round, the longest of
-   the five, so the round applies the other lenses' changes while it runs.
+   `isolation: "worktree"` and checks out the round's commit first. In
+   rounds 1 to 4 of the commodity seasonals post it took 10 to 33 minutes,
+   the longest of the five, so the round applies the other lenses' changes while it runs.
 3. **Easy comprehension.** It reports:
    - terms used before they are explained
    - ambiguous references, such as "this" or "it" with two candidates
@@ -265,7 +270,8 @@ comment reports that too.
 ## Verify each finding
 
 Each lens's findings go to a verifier of their own as soon as that lens
-reports, so verifying overlaps the lenses still running. A verifier is a
+reports, so verifying overlaps the lenses still running. A diff round sends
+both lenses' findings to one verifier. A verifier is a
 background sub-agent whose prompt stands alone, like a lens's. It sees one
 lens's findings and nothing else, and tries to refute each one. It executes
 wherever it can: it reruns the command, recomputes the number, opens the
@@ -342,7 +348,7 @@ both.
    comment lists it as dropped for that reason.
 2. **Comprehension.** Apply misread and reread findings. In a full round,
    apply a cosmetic one only when the post reads clearer with it. In a diff
-   round, record every cosmetic point and apply none.
+   round, record every cosmetic point from either lens and apply none.
 3. **Phone width.** Fix every block over 320 pixels with one of the three
    fixes `sync-substack` gives, measured before it is applied.
 4. **Sketch notes.** Draw the strongest through `sketch-notes`. Round 1 of
