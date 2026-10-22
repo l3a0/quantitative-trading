@@ -42,9 +42,10 @@ and the two flagged days were classified there before the run. Khandani and
 Lo's 4.47 is printed by the report and judged against nothing, so it is cited
 here as unpinned.
 
-EXPLORATORY. The run varies a published rule on data Chan left as an
-exercise, so it says which way the gap points and how it compares with one
-year's noise, and no figure carries a verdict. It first ran on 2026-10-10.
+EXPLORATORY. The run applies a rule Chan published, unchanged, to the
+small-cap stocks his exercise names, so it says which way the gap points and
+how it compares with one year's noise, and no figure carries a verdict. It
+first ran on 2026-10-10.
 """
 
 from __future__ import annotations

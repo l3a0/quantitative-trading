@@ -108,10 +108,10 @@ days was already decided in writing. Chan's two files are read as
 :mod:`chan.khandani_lo_small_caps` reads them, and its docstring says why that
 module does not call the guard either.
 
-**EXPLORATORY.** The run varies a published rule on data Chan left as an
-exercise, and Chan prints no figure for either universe, so no figure carries
-a verdict. A reading that points the way Chan says earns a registered test on
-data the run has not seen.
+**EXPLORATORY.** The run applies a rule Chan published, unchanged, to the
+mid-cap and small-cap stocks his exercise names, and Chan prints no figure for
+either universe, so no figure carries a verdict. A reading that points the way
+Chan says earns a registered test on data the run has not seen.
 
 ```bash
 QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.khandani_lo_mid_caps
@@ -570,7 +570,7 @@ def report(members, held_tickers, result: MidCapComparison) -> None:
         "so the after-cost figures flatter the smaller indexes."
     )
     print(
-        "  EXPLORATORY. A rule Chan published, run on data he left as an exercise, "
+        "  EXPLORATORY. A rule Chan published, run unchanged on stocks his exercise names, "
         "so no figure carries a verdict."
     )
 

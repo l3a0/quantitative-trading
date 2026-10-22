@@ -93,11 +93,11 @@ price in 2006, and rule B already weights a return that is not finite at 0, so
 no gap reaches a weight. ``TestTheScaleBreakDecision`` in
 ``tests/test_khandani_lo_small_caps.py`` runs both refusals.
 
-**EXPLORATORY.** The run varies a published rule on data Chan left as an
-exercise, so it can say which way the gap points and how it compares with one
-year's noise, and nothing more. No figure carries a verdict. A reading that
-points the way Chan says earns a registered test on data the run has not
-seen.
+**EXPLORATORY.** The run applies a rule Chan published, unchanged, to the
+small-cap stocks his exercise names, so it can say which way the gap points
+and how it compares with one year's noise, and nothing more. No figure carries
+a verdict. A reading that points the way Chan says earns a registered test on
+data the run has not seen.
 """
 
 from __future__ import annotations
@@ -433,7 +433,7 @@ def report(small_members, large_members, result: Comparison) -> None:
         "so it cannot say how many S&P 600 members were microcaps, and no figure speaks for them."
     )
     print(
-        "  EXPLORATORY. A rule Chan published, run on data he left as an exercise, "
+        "  EXPLORATORY. A rule Chan published, run unchanged on stocks his exercise names, "
         "so no figure carries a verdict."
     )
 

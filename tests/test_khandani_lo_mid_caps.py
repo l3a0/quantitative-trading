@@ -54,10 +54,10 @@ not 1, the way ``tests/conftest.py``'s ``archive_skip_reason`` decides. The
 readings and the exclusions are also tested on frames built by hand, which
 run everywhere.
 
-EXPLORATORY. The run varies a published rule on data Chan left as an
-exercise, and Chan prints no figure for either universe, so no figure carries
-a verdict. Every reading was declared on issue 303 before any figure was
-computed. It first ran on 2026-10-11.
+EXPLORATORY. The run applies a rule Chan published, unchanged, to the mid-cap
+and small-cap stocks his exercise names, and Chan prints no figure for either
+universe, so no figure carries a verdict. Every reading was declared on issue
+303 before any figure was computed. It first ran on 2026-10-11.
 """
 
 from __future__ import annotations
@@ -883,6 +883,7 @@ class TestThePostQuotesTheLadder:
             f"{c.small.before_costs:.4f}.",
             f"On the opens it is {o.mid.before_costs:.4f}, below both the S&P 500’s "
             f"{o.large.before_costs:.4f} and the S&P 600’s {o.small.before_costs:.4f}.",
+            "the step on the closes from the S&P 500 to the S&P 400, "
             f"at {c.mid_gap.z:.4f} standard errors.",
             f"lands {c.control_gap.gap:.4f} above that file’s on the closes and "
             f"{-o.control_gap.gap:.4f} below it on the opens.",

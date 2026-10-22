@@ -9674,11 +9674,11 @@ stated once here.
    Entry 8's three figures: before costs, after costs with Chan's two quirks
    kept, and after costs with the first day charged.
 
-Every result here is **EXPLORATORY**. The run varies a published rule on data
-Chan left as an exercise, so it says which way the gap points on one year of
-survivors and how it compares with that year's noise. It confirms nothing
-about Chan's explanation. A reading that points his way earns a registered
-test on data the run has not seen.
+Every result here is **EXPLORATORY**. The run applies a rule Chan published,
+unchanged, to the small-cap stocks his exercise names, so it says which way
+the gap points on one year of survivors and how it compares with that year's
+noise. It confirms nothing about Chan's explanation. A reading that points his
+way earns a registered test on data the run has not seen.
 
 ### What the book stated
 
@@ -11211,11 +11211,12 @@ stated once here.
    figures: before costs, after costs with Chan's two quirks kept, and after
    costs with the first day charged.
 
-Every result here is **EXPLORATORY**. The run varies a published rule on data
-Chan left as an exercise, so it says which way each step points on one year
-of survivors and how each compares with that year's noise. It confirms
-nothing about Chan's explanation, and a reading that pointed his way would
-earn a registered test on data the run has not seen.
+Every result here is **EXPLORATORY**. The run applies a rule Chan published,
+unchanged, to the mid-cap and small-cap stocks his exercise names, so it says
+which way each step points on one year of survivors and how each compares with
+that year's noise. It confirms nothing about Chan's explanation, and a reading
+that pointed his way would earn a registered test on data the run has not
+seen.
 
 ### What the book stated
 

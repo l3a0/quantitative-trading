@@ -6167,8 +6167,8 @@ Entry 50 found on the S&P 400.
 6. By the reading written down in advance, the S&P 600's result points the
    way Chan says, on one year of survivors.
    Nothing here measures how many S&P 600 members were microcaps. The S&P
-   400 is the third point, and its run sits between the other two on the
-   closes and below both on the opens. The reading written down before that
+   400's run sits between the other two on the closes and below both on the
+   opens. The reading written down before that
    run calls this mixed. The S&P 600 rebuilt the same way, as a check on the
    change of vendor, passes its rule only with three exclusions decided in
    advance, two unadjusted splits and one bad price.
@@ -6184,8 +6184,9 @@ Five groups of what it says are not pinned here.
 2. Facts about the book and the code rather than the data: that Example 7.4
    reads the same S&P 600 file, that the notebook's rule fills each gap with
    the last price seen, that a split halves a price the file may not adjust,
-   that the S&P 600 file holds prices and volumes but no market values, and
-   that *Algorithmic Trading* runs its version of the rule on Chan's file of
+   that the S&P 600 file holds prices and volumes but no market values, that
+   a daily Sharpe ratio is the mean daily profit over its standard deviation
+   without the √252, and that *Algorithmic Trading* runs its version of the rule on Chan's file of
    497 stocks from 2007 to 2011.
 3. Readings no test asserts: that the open's lift removes most of what
    separated the two universes at the close, that the rule replaces about the
@@ -6200,15 +6201,20 @@ Five groups of what it says are not pinned here.
    daily profits swing, that a reversal buys exactly the stocks that fell,
    that Chan's explanation predicts a Sharpe ratio that rises as the
    companies get smaller, that the rule for the change of source assumes the
-   change moves the S&P 400 about as much as it moved the S&P 600, and that
-   ignoring the correlation understates the noise in a gap when two books'
+   change moves the S&P 400 about as much as it moved the S&P 600, that
+   arithmetic on the printed cells misses the 13.7453 by the most, giving
+   13.7462, because a small profit magnifies its rounding, and that ignoring
+   the correlation understates the noise in a gap when two books'
    daily profits move against each other.
-4. Facts from outside the data and figures stated in words: the two news
-   reports on BCSI and SCUR, their dates and what they say, that no source
-   states SCUR's close, that the 116 holdings left out include companies
-   bought or failed after 2007, and words such as far more, far less, barely
-   past the line, just past the bound, about the same, about one standard
-   error, most of the 116 left out, and many of the vendor's histories. The
+4. Facts from outside the data and figures stated in words: that vendors
+   restate price history, the two news reports on BCSI and SCUR, their dates
+   and what they say, that no source states SCUR's close, that the 116
+   holdings left out include companies bought or failed after 2007, that the
+   S&P 400's companies sit in size between those of the other two indexes,
+   the 5 basis points written as 0.05 percent, and words such as far more,
+   far less, only a little, barely past the line, just past the bound, about
+   the same, about one standard error, most of the 116 left out, many of the
+   vendor's histories, and nearly all of 2006. The
    figure's alt text reads its curves approximately too, such as the S&P
    500's dashed line on the opens dipping below zero in the middle of the
    year and the S&P 600's on the closes falling below zero in the spring.
@@ -6228,7 +6234,7 @@ same file, and the factor of 1.6 to
 figures, its steps to both neighbours, the control's gaps with and without
 the three stocks set aside, and the reading of mixed trace to
 [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py). Its
-fund, filing date, vendor and download date, its 401 holdings, the rule a run
+fund, holdings date, vendor and download date, its 401 holdings, the rule a run
 keeps them by, the vendor's 2006-12-28 start and the 285 a run keeps trace to
 [tests/test_sp400_panel.py](tests/test_sp400_panel.py).
 `TestWhatThePostMeasured` in
