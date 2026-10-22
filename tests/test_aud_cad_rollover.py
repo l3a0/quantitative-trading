@@ -554,7 +554,11 @@ class TestThePostQuotesThePins:
     def test_the_three_annualised_readings(self, result) -> None:
         for value in (result.rollover, result.aud_alone, result.over_365_days):
             assert f"& {value:.10f}" in self.text
-        assert f"comes to {_percent(result.rollover, 2)} percent a year" in self.text
+        # The opening and Lesson 2 both say the rollover interest "comes to" it,
+        # so each copy gets its own phrase.
+        rollover = _percent(result.rollover, 2)
+        assert f"comes to {rollover} percent a year on these files" in self.text
+        assert f"Rollover interest comes to {rollover} percent a year, below the floor" in self.text
         assert f"alone, {_percent(result.aud_alone, 2)} percent" in self.text
         assert f"365 days, {_percent(result.over_365_days, 2)} percent" in self.text
 
@@ -633,6 +637,12 @@ class TestThePostQuotesThePins:
         assert list(no_aud) == list(result.days[result.days.to_period("M") == "2012-04"])
         assert f"So {len(no_cad)} days have no CAD rate" in self.text
         assert f"and {len(no_aud)} have no AUD rate" in self.text
+        # Lesson 4 counts the months a carried-forward rate fills, which are
+        # CAD's four months of 2012, and AUD's April falls among them.
+        cad_months, aud_months = set(no_cad.to_period("M")), set(no_aud.to_period("M"))
+        assert aud_months <= cad_months
+        assert (len(cad_months), len(aud_months)) == (4, 1)
+        assert "the missing months, four of CAD’s and one of AUD’s" in self.text
 
     def test_the_months_carried_forward(self, result) -> None:
         carried, have = result.carried, result.with_rollover

@@ -6905,8 +6905,8 @@ Four things.
 Four things.
 
 **Whether the script's settlement rule is the right one.** Location 2273 says
-a cross multiplies its rollover when day T + 3 is a weekend or holiday, which
-makes Wednesday the tripled day for both currencies, and names T + 1 settlement as the exception for USD.CAD.
+a cross multiplies its rollover when day T + 3 is a weekend or holiday, names
+Wednesday as the tripled day for both currencies, and names T + 1 settlement as the exception for USD.CAD.
 The script triples CAD on Thursday, which is the USD.CAD rule applied to one
 leg of a cross. The run transcribes the script, and no row runs the book's
 rule, because choosing between the two after seeing the figures would be a

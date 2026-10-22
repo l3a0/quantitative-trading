@@ -4389,9 +4389,10 @@ Six groups of what it says are not pinned here.
    which that post's own tests pin. That neither location 2303 nor the script
    mentions the zero fill is read from the book notes and the script.
 5. The figure's alt text, whose readings of the lines, such as AUD staying
-   above CAD in every month and the line without rollover interest sitting
-   above the line with it on every day after January 2008, were measured once
-   on the committed files and are not asserted.
+   above CAD in every month that both files hold and the line without
+   rollover interest sitting above the line with it on every day after
+   January 2008, were measured once on the committed files and are not
+   asserted.
 6. Its references, cited rather than computed. Location 2287 cites Dueker
    and Neely's working paper as Dueker (2006). The book's bibliography, on
    page 192 of the print edition, names both authors and the series number,
@@ -4412,8 +4413,8 @@ The tests compute with them, and the class reads none of them from the post.
 1. The 20-day window.
 2. The 252 trading days a year.
 3. The divisor of 100 that turns a rate in percent into a fraction.
-4. The months and years that bound a period, such as July 2007 for the
-   monthly averages and April 2012 for the days with no AUD rate.
+4. The month the monthly averages start from, July 2007, and the periods the
+   missing rates fall in, 2012 for CAD and April 2012 for AUD.
 
 Three numbers had no pin before the post, and
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) now pins
