@@ -124,6 +124,7 @@ from chan.vintage import VintageUnavailable
 
 #: The earlier save of Chan's S&P 600 file, which the mirror holds and his script does not load.
 EARLIER_SMALL_CAPS = "IJR_20080114.mat"
+POST = Path(__file__).parents[1] / "blog" / "equity-seasonals-lessons.md"
 
 
 @pytest.fixture(scope="module")
@@ -1960,8 +1961,7 @@ class TestThePointInTimeFlags:
 
         total = sum(sum(pin[2:]) for pin in PIT_THREATS)
         assert total == 741 == UNCHECKED_MEMBER_YEARS
-        post = Path(__file__).parents[1] / "blog" / "equity-seasonals-lessons.md"
-        assert f"{total} member-years of the S&P 600" in post.read_text(encoding="utf-8")
+        assert f"{total} member-years of the S&P 600" in POST.read_text(encoding="utf-8")
         assert PIT_THREATS[0][:2] == ("2008-12-31", 161)
         assert sum(PIT_THREATS[0][2:]) == 89
 
@@ -3585,8 +3585,8 @@ class TestTheOpenAssetPricingPins:
        specification is the project's own: equal-weighted tenths of NYSE and
        AMEX stocks, re-formed monthly, the top tenth less the bottom, before
        costs, which ``data/README.md`` records from the release's
-       ``SignalDoc.csv``. The sort is on the return in the same calendar month
-       a year earlier, by the project's description, which issue 661 quotes.
+       ``SignalDoc.csv``. The sort is on the return in the month a year before
+       the month held, by the project's description, which issue 661 quotes.
        The file writes percent and the pins read fractions.
     2. **This repo's side.** :data:`chan.equity_seasonals.REVISED_MATLAB`
        unchanged and before costs, on Chan's ``SPX_20071123.mat`` over its 83
@@ -3755,3 +3755,108 @@ class TestTheOpenAssetPricingCommand:
         with pytest.raises(SystemExit) as stopped:
             seasonals.main(["--open-asset-pricing"])
         assert stopped.value.code == str(refusal)
+
+
+def test_the_post_quotes_the_figures_this_file_pins() -> None:
+    """The post's copies of figures the tests above pin, at their printed
+    precision: Lesson 1's two tables, the figures its rules quote and their
+    second copies elsewhere in the post, the split and the years inside it,
+    Example 7.6's three Januaries where Lesson 2 and "What 18 Januaries can
+    detect" quote them, the registered runs' p values, the January run's third
+    series, and the broader series' overlap with the IVV run. Each comes from a
+    value another test here asserts, so a typo in the post fails here. A re-pin
+    moves the string in both places, which a search for it finds."""
+    strike = "\\llap{\\rule[0.32em]{1.05em}{0.06em}}"
+    fragments = [
+        "2006 & -0.0244 & -0.023853 & -0.0244",
+        "2007 & -0.0068 & -0.003641 & -0.0068",
+        "2008 & 0.0881 & 0.088486 & 0.0881",
+        "\\text{MATLAB, first} & -0.9167 & -0.1055",
+        "\\text{MATLAB, revised} & -0.0129 & -0.1243",
+        "\\text{Python, revised} & -0.012679 & -0.122247",
+        "\\text{R, revised} & -0.01139674 & -0.1095098",
+        "\\text{Annual return} & -0.145387 & 0.011967",
+        "\\text{Sharpe ratio} & -0.859993 & 0.141777",
+        "\\text{Months} & 13 & 70 \\\\",
+        "The revised Python keeps 83 months for its statistics, from December 2000 to October 2007",
+        "labelled 13 months before 2002 at −0.145387 a year and a Sharpe ratio of −0.859993",
+        "labelled 70 months from 2002 at 0.011967 a year and a Sharpe ratio of 0.141777",
+        "The 70 months from 2002 are not a steady small gain",
+        "gives −0.0234 instead of the printed −0.0244",
+        "a gain of 1.3056, or 130.56 percent",
+        "Dropping the fill alone gives 0.090908 for January 2008",
+        "at −0.0105 a year",
+        "an annual return of −1.0822",
+        "−0.0113 a year in units of capital",
+        "a Sharpe ratio of −0.1049, against the printed −0.1055",
+        "the Python gives an annual return of −0.012917",
+        "but the MATLAB computes −0.012923 before rounding",
+        "gives an annual return of −0.0118031",
+        "gives a Sharpe ratio of −0.121508",
+        "dividing by `n` gives −0.1101755",
+        "divides by `n − 1` and gives −0.1236",
+        "the 58 months from 2003 on lose 0.031640 a year",
+        "a gain of 0.2227 and the worst, 2006, to a loss of 0.1319, so they are 0.3546 apart",
+        "with a p of 1.000",
+        "with a p of 0.001",
+        "It averages −0.0083 a January",
+        "which is a one-sided p of 0.539",
+        "it earned 0.12 percent a month with a t of 0.39",
+        "at a correlation of 0.59",
+        "A tenth of the 578 stocks",
+        "the MATLAB ranks for January 2006 is 57.8, and it rounds that to 58",
+        "so it buys the 58 worst and shorts the 58 best",
+        "\\frac{578}{10} = 57.8 \\\\",
+        "\\text{rounded: } 58 \\\\",
+        "\\text{rounded down: } 57",
+        "Rounding down to 57 of each gives",
+        "In January 2006 it ranks 579 stocks, one more than the MATLAB’s 578",
+        "it buys the 58 worst but shorts only 56 of the best",
+        "The two it leaves out are the single best and the 58th best",
+        "comes before a gap of 851 trading days in its prices",
+        "That is fourth best of 595, so the script holds PMC short",
+        "and a tenth of the 594 left rounds to 59 rather than 60",
+        "averages over 95 months, counting as zero the 12 that hold no position",
+        "The 12 add nothing to the summed monthly returns",
+        "divides it by 83 instead of 95",
+        "\\frac{S}{83} = \\frac{S}{95} \\times \\frac{95}{83}",
+        "Multiplying the old annual return by `95/83` cancels its 95",
+        "A row of 96 dots runs across the board",
+        "then 12 grey dots labelled",
+        "then 83 black dots labelled",
+        "A black bracket under months 2 to 96",
+        "a brown bracket under the last 83",
+        "Month 1 has no return.",
+        "\\bar{r} &= \\frac{1}{95} \\sum_{t=2}^{96} r_t \\quad \\text{month 1 skipped}",
+        "s &= \\operatorname{std}(0, r_2, \\dots, r_{96})",
+        "\\text{month 1 counted as } 0",
+        "keeps only the 96 month-end rows",
+        "it asks for row 258, past the end of the 96, and stops",
+        "On month m it reads row m − 1, so on its first pass, month 14, it reads row 13",
+        "at row 13 of 96",
+        "So −0.0244 is a loss of 2.44 percent over January 2006, and 0.0881 is a gain of 8.81",
+        "Its last close before then, 6.02, comes before",
+        "its close at the end of 2007 is 13.88",
+        "The fill carries 6.02 through both missing year-ends",
+        "as if it rose from 6.02 to 13.88",
+        "gives the MATLAB’s 0.0881, so all three printouts match",
+        "so −0.0129 is a loss of 1.29 percent a year. The first edition’s −0.9167 is not a loss",
+        "of 91.67 percent a year",
+        "So −0.9167 is a sum over positions",
+        "a sum over positions like the −0.9167 it replaces",
+        "`S` is −87.08 as a sum over positions and −0.9944 in rule 1’s units of capital",
+        f"&\\quad \\frac{{-87.08}}{{95{strike}}} \\times \\frac{{95{strike}}}{{83}}"
+        " = \\frac{-87.08}{83} = -1.0492",
+        f"&\\quad \\frac{{-0.9944}}{{95{strike}}} \\times \\frac{{95{strike}}}{{83}}"
+        " = \\frac{-0.9944}{83} = -0.0120",
+        "That rounds to the MATLAB’s printed −0.0129, but",
+        "The MATLAB gives exactly −0.012917 when it keeps a stock on its return",
+        "divides by `n` and gives the printed −0.1243",
+        "are only 0.1574 apart",
+        "at 0.0881 in both editions’ MATLAB and in the revised R, and at 0.088486 in the revised",
+        "Two of Chan’s own three Januaries, −0.0244 and −0.0068, are smaller",
+        "Only 0.0881 is larger.",
+        "the first edition’s −0.9167 is not a return on capital",
+    ]
+    text = POST.read_text(encoding="utf-8")
+    assert [fragment for fragment in fragments if fragment not in text] == []

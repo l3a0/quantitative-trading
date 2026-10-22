@@ -3158,10 +3158,7 @@ Four groups of its figures are not pinned here.
 2. Counts, arithmetic and facts no test asserts. Nothing counts the seventeen
    reproduced figures, nine for Example 7.6 and eight for Example 7.7, or
    Lesson 1's rules, which of them are bugs, and the six it copies and one it
-   repairs, or the
-   first edition's 95 months with a return and 83 with a position, which are
-   its 96 months less the one with no return and less the twelve with no
-   position. Nothing states that a stretch's slope in the figure is its
+   repairs. Nothing states that a stretch's slope in the figure is its
    average monthly return, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
@@ -3169,10 +3166,18 @@ Four groups of its figures are not pinned here.
    the sources' facts either: CRSP's licensing, or Norgate Diamond's $787.50 a
    year in October 2026 and its US stocks back to 1950, which
    [issue 196](https://github.com/l3a0/quantitative-trading/issues/196)
-   records.
-3. Its references. The four citations, including the publication details the
-   post gives for Heston and Sadka and for Singal, are cited rather than
-   computed.
+   records. Nor does anything assert CRSP's returns reaching back to 1926, the
+   S&P 600's start in October 1994, the first edition's release in November
+   2008 with a 2009 date, Alpha Vantage's terms of personal, non-commercial
+   use, or that pandas filled a missing close by default before version 3.0.
+   Nor does anything assert that companies leaving the S&P 500 within a year
+   make up a larger share of the IVV run's dropped member-months than of its
+   kept ones.
+   Halving Chan's 13 percent to about 6.5 percent a year is arithmetic no test
+   asserts either.
+3. Its references. The five citations, including the publication details the
+   post gives for Cohen, for Heston and Sadka and for Singal, are cited rather
+   than computed.
 4. Heston and Sadka's own figures, read from their October 2006 working
    paper: NYSE- and AMEX-listed stocks in CRSP from January 1965 to December
    2002, only firms listed before each month, and the 1.15 percent a month in
@@ -3252,8 +3257,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     cover, with the 23 months the rerun leaves out of the split.
 14. `equity_seasonals_five_year_noise.gif`, the verdict's gap of 0.0036
     against the rerun's standard error of 0.0281, on one number line.
-15. `equity_seasonals_five_year_januaries.gif`, Example 7.6's three
-    reproduced Januaries as three bars.
+15. `equity_seasonals_five_year_januaries.gif`, under "Example 7.6's three
+    Januaries", its three reproduced Januaries as three bars.
 16. `equity_seasonals_survivors_file.gif`, in the opening beside its
     explanation of survivorship bias, the companies a file saved in 2007 holds
     against the ones that left before the save.
@@ -3322,8 +3327,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     Januaries, marked at 18 and at 72, which take 72 years.
 36. `equity_seasonals_further_one_series.gif`, under "Every member's price"
     in "Further work", the January bracket the two versions leave beside the
-    741 member-years free data could not check, and the one series checked
-    prices would give, whose place is not known yet.
+    741 unchecked member-years that could have fallen in a traded tenth, and
+    the one series checked prices would give, whose place is not known yet.
 37. `equity_seasonals_further_more_januaries.gif`, under "More Januaries",
     three spans on a timeline, the run's 18 Januaries, the S&P 600's 32 from
     1995 and about 100 on size-defined small caps from 1927, each with the X
