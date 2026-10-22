@@ -4293,6 +4293,7 @@ Seven groups of what it says are not pinned here.
    [src/chan/vx_es.py](src/chan/vx_es.py)'s docstring and
    [data/README.md](data/README.md) record the first two.
 5. Arithmetic on pinned numbers that no test asserts as written: the
+   APR of 0.122811 being 12.28 percent, the
    deviation missing by about a tenth of a percent, the APR on the later saves
    falling by more than half, the 449 test days making about a year and three
    quarters, and 236 of 449 days being more than half.
