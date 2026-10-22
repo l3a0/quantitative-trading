@@ -42,13 +42,19 @@ from chan import aud_cad_rollover_whiteboard as sketches
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.aud_cad_rollover import aud_cad_rollover, read_sources
 from chan.aud_cad_rollover_whiteboard import (
+    BAR_WIDTH,
     BAR_X,
     CELLS_X,
+    CHECK_X,
     GIF_PREFIX,
     PACED,
     PACED_HOLD_MS,
+    PAIRED_WIDTH,
+    PRODUCT_ARROW,
+    PRODUCT_Y,
     WEEK,
     RunFigures,
+    cap,
     gif_name,
     main,
     make_aud_cad_rollover_whiteboards,
@@ -103,20 +109,52 @@ LABELS = [
         "average × 365 counts",
         "every weekend again",
         "4.73 percent",
-        "4.73 = 3.26 × 365 / 252, about 1.45 times",
+        "365 / 252 is about 1.45,",
+        "so 3.26 becomes 4.73",
         "the tripled day already paid for the weekend",
     ],
     [
         "510 days long: earn the rollover",
         "707 days short: pay it",
         "cancel",
-        "197 more days short: −16.2 percent of days held",
+        "197 more days short: a net share of −16.2 percent",
         "× 3.26 percent a year",
         "−0.528 percent",
         "rollover added: −0.522 percent",
         "they cancel because long days see 3.290 and short days 3.287 percent a year",
         "what is left is the net position",
     ],
+]
+#: The ink of each label, in the order of :data:`LABELS`: green for what earns
+#: or checks out, red for what pays or overstates, grey for context, brown for
+#: the tripled days and the closing words, black for the rest.
+LABEL_INKS = [
+    [INK] * 6
+    + [INK, INK, ACCENT, INK, INK, MUTED]
+    + [INK, INK, INK, INK, ACCENT, INK, MUTED]
+    + [GOOD, GOOD, LOST, LOST, LOST, MUTED, MUTED, ACCENT],
+    [GOOD, LOST, MUTED, LOST, INK, INK, GOOD, MUTED, ACCENT],
+]
+STROKE_INKS = [
+    {
+        "aud-row": INK,
+        "aud-tripled": ACCENT,
+        "aud-brace": MUTED,
+        "cad-row": INK,
+        "cad-tripled": ACCENT,
+        "cad-brace": MUTED,
+        "by-252": GOOD,
+        "by-365": LOST,
+    },
+    {
+        "long": GOOD,
+        "short": LOST,
+        "cancel": MUTED,
+        "paired": MUTED,
+        "leftover": LOST,
+        "times-rate": INK,
+        "checks-out": GOOD,
+    },
 ]
 STROKES = [
     [
@@ -254,6 +292,14 @@ class TestTheScenes:
     def test_each_says_what_it_should(self, drawn) -> None:
         assert [scene.labels for scene in drawn] == LABELS
 
+    def test_each_label_and_stroke_is_in_the_ink_its_meaning_calls_for(self, drawn) -> None:
+        for scene, labels, strokes in zip(drawn, LABEL_INKS, STROKE_INKS, strict=True):
+            found = [s.color for s in scene.steps if isinstance(s, Label)]
+            assert list(zip(scene.labels, found, strict=True)) == list(
+                zip(scene.labels, labels, strict=True)
+            ), scene.slug
+            assert {s.gid: s.color for s in scene.strokes} == strokes, scene.slug
+
     def test_every_label_names_a_stroke_drawn_before_it(self, drawn) -> None:
         for scene in drawn:
             for index, step in enumerate(scene.steps):
@@ -332,7 +378,7 @@ class TestFiveDaysPayForSeven:
     def test_other_figures_move_the_percentages(self) -> None:
         labels = scenes(MOVED)[0].labels
         assert "4.10 percent" in labels and "5.94 percent" in labels
-        assert "5.94 = 4.10 × 365 / 252, about 1.45 times" in labels
+        assert "so 4.10 becomes 5.94" in labels
 
     def test_rows_that_pay_different_days_are_refused(self, monkeypatch, figures) -> None:
         monkeypatch.setattr(
@@ -357,10 +403,13 @@ class TestLongAndShortDaysCancel:
     def test_the_bar_is_to_scale_on_the_days_held(self, either) -> None:
         scene = scenes(either)[1]
         long, short = _stroke(scene, "long"), _stroke(scene, "short")
-        assert (long.x.min(), long.x.max()) == pytest.approx(
+        # The ink runs half the line's width past each end, as a round cap.
+        reach = cap(BAR_WIDTH)
+        assert reach == pytest.approx(BAR_WIDTH * 100 / 72 / 2 / 68)
+        assert (long.x.min() - reach, long.x.max() + reach) == pytest.approx(
             (BAR_X[0], _x_at(either.long_days, either))
         )
-        assert (short.x.min(), short.x.max()) == pytest.approx(
+        assert (short.x.min() - reach, short.x.max() + reach) == pytest.approx(
             (_x_at(either.long_days, either), BAR_X[1])
         )
         assert set(long.y) == set(short.y)
@@ -369,12 +418,14 @@ class TestLongAndShortDaysCancel:
         scene = scenes(either)[1]
         paired, cancel = _stroke(scene, "paired"), _stroke(scene, "cancel")
         end = _x_at(2 * either.long_days, either)
-        assert (paired.x.min(), paired.x.max()) == pytest.approx((BAR_X[0], end))
+        reach = cap(PAIRED_WIDTH)
+        assert (paired.x.min() - reach, paired.x.max() + reach) == pytest.approx((BAR_X[0], end))
         assert (cancel.x.min(), cancel.x.max()) == pytest.approx((BAR_X[0], end))
         # The bracket's middle tick sits where the long days end.
         middle = _x_at(either.long_days, either)
         assert np.isclose(cancel.x, middle).sum() >= 3
-        assert paired.width < _stroke(scene, "long").width
+        # Thin enough that the colours of the days it pairs show either side of it.
+        assert paired.width <= _stroke(scene, "long").width / 2
 
     def test_the_leftover_runs_from_the_pairs_to_the_end(self, either) -> None:
         scene = scenes(either)[1]
@@ -402,6 +453,23 @@ class TestLongAndShortDaysCancel:
         assert scene.steps[-1].text == "what is left is the net position"
         assert scene.steps[-1].color == ACCENT
 
+    def test_the_product_arrow_points_from_the_rate_to_the_result(self, drawn) -> None:
+        scene = drawn[1]
+        arrow = _stroke(scene, "times-rate")
+        start, end = PRODUCT_ARROW
+        assert (arrow.x[0], arrow.x.max()) == pytest.approx((start, end))
+        assert set(np.round(arrow.y[: np.argmax(arrow.x) + 1], 9)) == {PRODUCT_Y}
+        rate, result = _label(scene, "× 3.26 percent a year"), _label(scene, "−0.528 percent")
+        assert (rate.ha, rate.y) == ("right", PRODUCT_Y) and rate.x < start
+        assert (result.ha, result.y) == ("right", PRODUCT_Y) and result.x > end
+
+    def test_the_check_sits_on_the_row_it_marks_left_of_its_words(self, drawn) -> None:
+        scene = drawn[1]
+        check, added = _stroke(scene, "checks-out"), _label(scene, "rollover added: −0.522 percent")
+        assert check.y.min() < added.y < check.y.max()
+        assert check.x.min() == CHECK_X
+        assert PRODUCT_ARROW[0] - 2 < check.x.min() and check.x.max() < added.x - 3.5
+
     def test_the_two_results_end_together_so_their_figures_line_up(self, drawn) -> None:
         scene = drawn[1]
         predicted = _label(scene, "−0.528 percent")
@@ -416,7 +484,7 @@ class TestLongAndShortDaysCancel:
             "350 days long: earn the rollover",
             "650 days short: pay it",
             "cancel",
-            "300 more days short: −30.0 percent of days held",
+            "300 more days short: a net share of −30.0 percent",
         ]
         assert "× 4.10 percent a year" in labels
         assert "−1.230 percent" in labels
@@ -486,7 +554,7 @@ class TestTheGifs:
             assert steps[-1].ms == hold, scene.slug
 
     def test_only_the_cancel_sketch_builds_slowly(self, drawn) -> None:
-        """It carries seven of the run's figures, more than the usual pace lets a reader take in."""
+        """It prints nine of the run's figures, more than the usual pace lets a reader take in."""
         assert [scene.slug in PACED for scene in drawn] == [False, True]
         assert PACED_HOLD_MS == 12000
 
@@ -574,6 +642,37 @@ class TestThePost:
     def test_the_cancel_sketchs_alt_text_says_the_bar_is_grouped_by_side(self, drawn) -> None:
         alt = _alt(drawn[1])
         assert "to scale, with the days grouped by side rather than by date" in alt
+
+    def test_each_alt_text_names_each_marks_ink_and_the_days_held(self, drawn, figures) -> None:
+        """The label-order test skips the words between quotes, so these are held here."""
+        for scene, phrases in zip(
+            drawn,
+            (
+                [
+                    "outlined in brown and holds “3”",
+                    "A grey brace",
+                    "a green arrow labelled “average × 252",
+                    "a red arrow labelled “average × 365",
+                    "A grey note",
+                    "a brown line closes",
+                ],
+                [
+                    f"the {figures.held_days:,} days the rule holds a position",
+                    f"a green part labelled “{figures.long_days:,} days long",
+                    f"a red part labelled “{figures.short_days:,} days short",
+                    "A grey bracket",
+                    "a thinner grey line",
+                    "A red bracket",
+                    "a green tick",
+                    "A grey note",
+                    "a brown line closes",
+                ],
+            ),
+            strict=True,
+        ):
+            alt = _alt(scene)
+            for phrase in phrases:
+                assert phrase in alt, (scene.slug, phrase)
 
     def test_the_five_days_alt_text_names_the_tripled_days(self, drawn) -> None:
         alt = _alt(drawn[0])

@@ -4462,6 +4462,7 @@ misdescribe are refused, that no label touches a line, another label or the
 frame's edge, and that each GIF follows its text in the post. It compares each
 committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic
 Sans MS, as the USD.CAD sketches' test does.
+
 [blog/bollinger-band-lessons.md](blog/bollinger-band-lessons.md) is a
 twenty-first post, about Example 3.2 of Chan's *Algorithmic Trading*, which
 trades Example 3.1's GLD and USO price spread with a Bollinger band instead of

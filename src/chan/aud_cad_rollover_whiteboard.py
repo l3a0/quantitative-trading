@@ -35,7 +35,7 @@ the same run, so no figure is typed into a scene.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours. The
-second sketch carries seven figures, so it is in :data:`PACED`: each label
+second sketch prints nine figures, so it is in :data:`PACED`: each label
 shows 900 ms rather than 350, and the finished drawing holds 12 seconds rather
 than 4, as :func:`sketch_timeline` sets. Each GIF is named :data:`GIF_PREFIX`
 plus the scene's slug, and a redraw with no change is a no-op diff. Redraw
@@ -67,6 +67,9 @@ from chan.matlab_helpers import lag1
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
+    DPI,
+    WIDTH,
+    XLIM,
     Frame,
     Label,
     Scene,
@@ -99,9 +102,10 @@ class RunFigures:
     """The figures the two sketches print, all from the run on Chan's files.
 
     ``long_days`` and ``short_days`` count the days the lagged position is
-    long and short, over the days after the first ``SCRIPT_LOOKBACK``, which
-    is the position each day's return carries. The unlagged position gives a
-    different count, because it is one day earlier. ``long_rate`` and
+    long and short, over the days after the first ``SCRIPT_LOOKBACK``, because
+    the lagged position is the one each day's return carries. On Chan's files
+    the unlagged position over the same rows happens to give the same counts.
+    ``long_rate`` and
     ``short_rate`` are the rollover interest annualised over 252 days and
     averaged over the days held long and the days held short.
     """
@@ -167,7 +171,9 @@ BRACE_LABEL_DROP = 0.6
 
 #: Where the two branches and the note sit, on the right of the rows.
 BRANCH_X = (5.3, 7.3)
-GREEN_Y, RED_Y = 3.15, 1.9
+GREEN_Y, RED_Y = 3.35, 1.9
+#: The grey note under the red branch, on two lines.
+NOTE_Y = 1.45
 
 
 NUMBER_WORDS = {5: "five", 7: "seven"}
@@ -313,12 +319,12 @@ def _five_pay_seven(f: RunFigures) -> Scene:
             Label(
                 f"average × {DAYS_IN_YEAR} counts",
                 x0,
-                RED_Y + 0.82,
+                RED_Y + 0.78,
                 names="by-365",
                 color=LOST,
                 size=12,
             ),
-            Label("every weekend again", x0, RED_Y + 0.46, names="by-365", color=LOST, size=12),
+            Label("every weekend again", x0, RED_Y + 0.42, names="by-365", color=LOST, size=12),
             Label(
                 f"{100 * f.over_365_days:.2f} percent",
                 x1 + 0.2,
@@ -328,13 +334,19 @@ def _five_pay_seven(f: RunFigures) -> Scene:
                 size=14,
             ),
             Label(
-                f"{100 * f.over_365_days:.2f} = {100 * f.rollover:.2f} × {DAYS_IN_YEAR} / "
-                f"{TRADING_DAYS}, about {ratio:.2f} times",
-                9.7,
-                1.35,
+                f"{DAYS_IN_YEAR} / {TRADING_DAYS} is about {ratio:.2f},",
+                x0,
+                NOTE_Y,
                 names="by-365",
                 color=MUTED,
-                ha="right",
+                size=11,
+            ),
+            Label(
+                f"so {100 * f.rollover:.2f} becomes {100 * f.over_365_days:.2f}",
+                x0,
+                NOTE_Y - 0.36,
+                names="by-365",
+                color=MUTED,
                 size=11,
             ),
             Label(
@@ -373,6 +385,22 @@ def _day_x(days: float, f: RunFigures) -> float:
     return BAR_X[0] + (BAR_X[1] - BAR_X[0]) * days / f.held_days
 
 
+def cap(width: float) -> float:
+    """How far a line's round cap reaches past its end, in board units across.
+
+    The cap is half the line's width, in points, out from the end. A part of
+    the bar drawn from its true end would spill this far over its neighbour,
+    so :func:`_bar` pulls each end in by it.
+    """
+    return width * DPI / 72 / 2 * (XLIM[1] - XLIM[0]) / WIDTH
+
+
+def _bar(x0: float, x1: float, width: float) -> tuple:
+    """A thick line whose ink, caps included, runs from ``x0`` to ``x1``."""
+    reach = cap(width)
+    return _line([(x0 + reach, BAR_Y), (x1 - reach, BAR_Y)])
+
+
 def _bracket(x0: float, middle: float, x1: float, y: float, tick: float = 0.13) -> tuple:
     """A span from ``x0`` to ``x1`` with an upright tick at each end and at ``middle``."""
     return _line(
@@ -408,7 +436,7 @@ def _long_short_cancel(f: RunFigures) -> Scene:
         (
             _stroke(
                 "long",
-                _line([(left, BAR_Y), (long_end, BAR_Y)]),
+                _bar(left, long_end, BAR_WIDTH),
                 color=GOOD,
                 width=BAR_WIDTH,
                 frames=6,
@@ -423,7 +451,7 @@ def _long_short_cancel(f: RunFigures) -> Scene:
             ),
             _stroke(
                 "short",
-                _line([(long_end, BAR_Y), (right, BAR_Y)]),
+                _bar(long_end, right, BAR_WIDTH),
                 color=LOST,
                 width=BAR_WIDTH,
                 frames=6,
@@ -442,16 +470,16 @@ def _long_short_cancel(f: RunFigures) -> Scene:
             ),
             _stroke(
                 "paired",
-                _line([(left, BAR_Y), (paired_end, BAR_Y)]),
+                _bar(left, paired_end, PAIRED_WIDTH),
                 color=MUTED,
                 width=PAIRED_WIDTH,
                 frames=6,
             ),
-            Label("cancel", (left + long_end) / 2, BRACKET_Y - 0.45, names="cancel", color=MUTED),
+            Label("cancel", left + 0.3, BRACKET_Y - 0.45, names="cancel", color=MUTED),
             _stroke("leftover", _span(paired_end, right, BRACKET_Y), color=LOST, frames=4),
             Label(
                 f"{f.short_days - f.long_days:,} more days short: "
-                f"{_signed(100 * f.net_share, 1)} percent of days held",
+                f"a net share of {_signed(100 * f.net_share, 1)} percent",
                 right,
                 BRACKET_Y - 0.45,
                 names="leftover",
