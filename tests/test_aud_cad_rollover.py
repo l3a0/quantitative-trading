@@ -561,7 +561,7 @@ class TestThePostQuotesThePins:
     def test_the_closes_span(self, result) -> None:
         days = result.days
         assert (
-            f"The closes hold {len(days):,} days from {days[0].date()} to {days[-1].date()}"
+            f"The closing prices cover {len(days):,} days from {days[0].date()} to {days[-1].date()}"
             in self.text
         )
 
@@ -671,6 +671,6 @@ class TestThePostQuotesThePins:
         assert trough_day == sources.closes[1].idxmin().date()
         assert f"from {peak_day} to {trough_day}, the day of the close’s low" in self.text
         assert (
-            f"by {_percent(-falls[0], 2)} percent with rollover interest and "
+            f"loses {_percent(-falls[0], 2)} percent of its value with rollover interest and "
             f"{_percent(-falls[1], 2)} percent without"
         ) in self.text
