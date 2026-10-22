@@ -387,11 +387,11 @@ where they were first built. The other forty-five were built here.
     takes the VX strip, which has no spot. Every figure is exploratory.
 28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
     Chapter 5, on Chan's own continuous futures. A regression of ES on VX
-    from August 2008 gives the hedge, and a band one training deviation wide
-    trades the residual. On the save of 2012-05-07, fitted on the first 500
-    days from 2008-08-04, the hedge of 0.390594, the APR of 0.122811 and the
-    Sharpe ratio of 1.393201 reproduce the book's 0.3906, 12.3 percent and
-    1.4. The residual's deviation of $2,044.91 misses the book's $2,047, and
+    from August 2008 gives the hedge, and a band from −1 to +1 training
+    deviations trades the residual. On the save of 2012-05-07, fitted on the
+    first 500 days from 2008-08-04, the hedge of 0.390594, the APR of
+    0.122811 and the Sharpe ratio of 1.393201 reproduce the book's 0.3906,
+    12.3 percent and 1.4. The residual's deviation of $2,044.91 misses the book's $2,047, and
     dropping the first training day reaches $2,046.93. `VX_ES.m` as it ships
     loads a later save, fits on the test days too and runs no trade. The
     window comes from Chan's `VX_ES_rollreturn.m`, while the save and the exit
@@ -4247,7 +4247,7 @@ regime map.
 [blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
 locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
 VIX future, against ES, the E-mini S&P 500 future, from August 2008 and trade
-the portfolio against a band one deviation wide. Chan reports a hedge of
+the portfolio against a band from −1 to +1 deviations. Chan reports a hedge of
 0.3906 VX contracts per ES contract, a residual standard deviation of \$2,047,
 and an APR of 12.3 percent with a Sharpe ratio of 1.4. The post draws four
 lessons from Entry 28 of the replication log.
@@ -4302,9 +4302,13 @@ Seven groups of what it says are not pinned here.
    deviation missing by about a tenth of a percent, the APR on the later saves
    falling by more than half, the 449 test days making about a year and three
    quarters, and 236 of 449 days being more than half.
-6. The figure's alt text, whose readings of the points and lines, such as
+6. The alt texts. The chart's readings of the points and lines, such as
    "about 56,000 and 76,000 dollars" and "about minus 8 percent", are
-   approximate by design.
+   approximate by design. Of the sketches' alt texts,
+   [tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) reads
+   the quoted labels, the pace and the phrases it quotes about each drawing.
+   It does not read every level the rest of each description mentions, such
+   as the z-score path starting just above 0.
 7. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -4315,10 +4319,11 @@ own numbers, or to
 sketches' labels and pace. `TestThePostQuotesTheRun` in
 [tests/test_vx_es.py](tests/test_vx_es.py) reads the post itself, so a figure
 edited in the post alone fails. It reads every row of the four tables with its
-verdict, though not the column headings that name Lesson 2's saves, and one
-copy of each figure the run computes that the prose writes in numerals. It
-does not read the subtitle or the closing list, which only repeat figures, nor
-a count written as a word, such as the four bets. Three groups had no pin
+verdict, and one copy of each figure the run computes that the prose writes in
+numerals. It does not read the subtitle or the closing list, which only repeat
+figures. Nor does it read the dates that name the saves, in the prose or in
+Lesson 2's column headings, or a count written as a word, such as the four
+bets. Three groups had no pin
 before the post, and
 [tests/test_vx_es.py](tests/test_vx_es.py) now pins them.
 
@@ -4341,7 +4346,7 @@ included. It draws three panels after the book's Figures 5.10 to 5.12.
 1. 50·ES against 1000·VX on the 1,999 common days, coloured by the two
    regimes, with the fit on the 500 training days.
 2. The z-score from 2008-08-04 with the band at ±1, the last training day
-   marked, and each position the band holds shaded.
+   marked, and each position the rule holds shaded.
 3. The test set's compounded cumulative return, with the three changes of
    position and 2011-08-05 marked.
 

@@ -167,7 +167,7 @@ class TestTheVintages:
         assert np.isfinite(legs.to_numpy()).all()
 
     def test_the_saves_rewrite_the_history(self, legs, script_legs) -> None:
-        """Issue 313's finding, on this window: the back-adjusted closes differ between saves."""
+        """Issue 313's finding, on this window: the closes differ between saves."""
         shared = legs.index.intersection(script_legs.index)
         assert not np.allclose(legs.loc[shared, VX], script_legs.loc[shared, VX])
 

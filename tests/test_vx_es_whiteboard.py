@@ -301,8 +301,8 @@ class TestTheCommittedGifs:
         assert found == set(GIFS)
 
     def test_the_prefix_is_clear_of_the_charts_and_the_roll_return_post(self) -> None:
-        """No chart or sibling GIF starts like these, so the prefix checks above
-        and in the equity seasonals tests read only this module's GIFs."""
+        """No chart or sibling GIF starts like these, so the prefix check above
+        reads only this module's GIFs."""
         names = {path.name for path in FIGURES_DIR.iterdir()} - set(GIFS)
         assert not [name for name in names if name.startswith(sketches.GIF_PREFIX)]
         assert not "vx_es_roll_return".startswith(sketches.GIF_PREFIX)

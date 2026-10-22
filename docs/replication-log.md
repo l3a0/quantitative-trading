@@ -6440,7 +6440,7 @@ Every row reads one of three vintages and one of two specifications, so they
 are stated once here.
 
 1. **The vintages.** Three saves of Chan's continuous futures, each rolled
-   from contract to contract and shifted at each roll, read for VX and ES
+   from contract to contract and rewritten between saves, read for VX and ES
    through `chan.series.load_panel`. Each leg keeps its own calendar, so each
    is cut to its own rows and the two are intersected, as the script does.
    1. `inputdataohlcdaily_20120507/`, saved 2012-05-09, 1,999 common days
@@ -6508,9 +6508,9 @@ and it misses the printed deviation.
 | 4 | 0.0 | reproduced | 1.393201 rounds to 1.4. |
 | 5 | none | none, not a replication | Fitting from 2008-08-05 lands both of row 1's and row 2's printed figures and moves rows 3 and 4 by less than their last printed digit. It is the one window of the sweep's 22,446 that lands both, so it was found by searching and is not evidence of anything else. Rows 1 to 4 keep the window a script of Chan's states. |
 | 6 | none | none, not a replication | The exit is what decides the trade's figures. Closing at the mean, the rule Chan's other Bollinger band uses, gives 6.8 percent against the printed 12.3. Holding until the opposite band is the one rule tried that lands both of rows 3 and 4. |
-| 7 | none | none, not a replication | On 2010-07-28 the z-score is −1.041, so the band is already long. Carrying that position into the test is what `VX_ES_rollreturn.m`'s slicing does, and starting flat moves the APR to 12.5 percent. |
+| 7 | none | none, not a replication | On 2010-07-28 the z-score is −1.041, so the position is already long. Carrying that position into the test is what `VX_ES_rollreturn.m`'s slicing does, and starting flat moves the APR to 12.5 percent. |
 | 8 | none | none, not a replication | Trading the printed constant moves nothing that prints, so a run that takes 0.3906 as given, as the roll-return trade does, trades the same portfolio to the book's precision. |
-| 9 | none | none, not a replication | The 2012-05-11 and 2012-05-17 saves agree with each other over these days and disagree with the 2012-05-07 save, because the back-adjusted history was rewritten between them. On either, the specification misses all four figures. |
+| 9 | none | none, not a replication | The 2012-05-11 and 2012-05-17 saves agree with each other over these days and disagree with the 2012-05-07 save, because the history was rewritten between them. VX's and ES's closes change by neither one constant nor one factor, so how they were rewritten was not measured, as [data/README.md](../data/README.md) records. On either, the specification misses all four figures. |
 | 10 | none | none, not a replication | The script as shipped fits on days that include the whole test set and runs no trade, so it cannot be the source of rows 3 and 4. Its hedge and deviation miss rows 1 and 2 as well. |
 | 11 | none | none, not a replication | The portfolio is in the market on all 449 test days and holds four positions. |
 
