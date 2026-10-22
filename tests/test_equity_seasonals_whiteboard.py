@@ -2252,6 +2252,12 @@ class TestTheSurvivorSketches:
         ranking = _alt(text, survivors[1]).lower()
         assert f"ranks {_count_word(sketches.SURVIVOR_RANKED)} stocks" in ranking
         assert f"{_count_word(len(sketches.GONE))} of the stocks are drawn as red rings" in ranking
+        kept = [k for k in range(sketches.SURVIVOR_RANKED) if k not in sketches.GONE]
+        # The alt text names where the rings sit, so it moves with these.
+        assert (sketches.GONE, kept[: sketches.SURVIVOR_TENTH]) == ((0, 2, 17), [1, 3])
+        assert "red rings: the lowest, the third lowest and the third highest" in ranking
+        assert "round the lowest two, one of them red" in ranking
+        assert "the second and fourth lowest of the twenty" in ranking
 
 
 def _alt(text: str, scene) -> str:
@@ -3801,7 +3807,9 @@ def test_every_alt_text_quotes_each_label_that_carries_a_figure(every) -> None:
     """A label with a figure in it is what a reader who cannot see the GIF
     relies on, so its alt text must carry it exactly. The drawing-order test
     skips a label it cannot find, so a mistyped figure passes there. A bare
-    year is an axis tick, which an alt text may leave out."""
+    year is an axis tick, which an alt text may leave out. A label that mixes a
+    figure with words must also appear in quotes, because a bare match finds
+    "row 1" inside "row 13"."""
     text = POST.read_text(encoding="utf-8")
     missing = [
         (scene.slug, label)

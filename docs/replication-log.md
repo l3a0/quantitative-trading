@@ -11785,11 +11785,12 @@ which `uv run python -m chan.usdcad_holdout_figures` redraws.
 
 Sources: Ernest P. Chan, *Quantitative Trading*, Kindle location 4425, for
 the "more than 13 percent" a year before 2002. Steven Heston and Ronnie
-Sadka, "Seasonality in the Cross-Section of Stock Returns", *Journal of
-Financial Economics*, 2008, Table 2, for 1.15 percent a month with a t of 7.6
+Sadka, "Seasonality in the Cross-Section of Stock Returns", October 2006
+working paper, Table 2, for 1.15 percent a month with a t of 7.6
 over 1965 to 2002, as
 [issue 661](https://github.com/l3a0/quantitative-trading/issues/661) records
-it. This repository holds no copy of the paper. Shipped under
+it. The paper was published in the *Journal of Financial Economics* in 2008.
+This repository holds no copy of either version. Shipped under
 [issue 661](https://github.com/l3a0/quantitative-trading/issues/661).
 
 Entry 7 reproduces Example 7.7 on Chan's S&P 500 file and tests it on IVV's
