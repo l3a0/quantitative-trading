@@ -962,6 +962,12 @@ def _latex_rows(*rows: str) -> str:
     return " \\\\\n".join(rows) + "\n\\end{array}"
 
 
+def _latex_head(*heads: str) -> str:
+    """A table's line of column heads and the rule under it, so a swapped head fails too."""
+    cells = [h.replace("S&P", "S}\\&\\text{P") for h in heads]
+    return " & ".join(f"\\text{{{c}}}" for c in cells) + " \\\\ \\hline\n"
+
+
 class TestThePostQuotesTheRun:
     """One copy of each figure ``blog/khandani-lo-small-caps-lessons.md`` quotes from this run.
 
@@ -998,7 +1004,8 @@ class TestThePostQuotesTheRun:
     def test_lesson_1s_table(self, post, result) -> None:
         g = result.closes_gap
         assert (
-            _latex_rows(
+            _latex_head("On the closes, before costs", "Figure")
+            + _latex_rows(
                 _latex_row("S&P 600, Sharpe ratio", f"{g.a_sharpe:.4f}"),
                 _latex_row("S&P 500, Sharpe ratio", f"{g.b_sharpe:.4f}"),
                 _latex_row("Gap", f"{g.gap:+.4f}"),
@@ -1013,7 +1020,8 @@ class TestThePostQuotesTheRun:
         """Both prices' Sharpe ratios, gaps, correlations, standard errors and z values."""
         c, o = result.closes_gap, result.opens_gap
         assert (
-            _latex_rows(
+            _latex_head("Before costs", "Closes", "Opens")
+            + _latex_rows(
                 _latex_row("S&P 600, Sharpe ratio", f"{c.a_sharpe:.4f}", f"{o.a_sharpe:.4f}"),
                 _latex_row("S&P 500, Sharpe ratio", f"{c.b_sharpe:.4f}", f"{o.b_sharpe:.4f}"),
                 _latex_row("Gap", f"{c.gap:+.4f}", f"{o.gap:+.4f}"),
@@ -1073,7 +1081,8 @@ class TestThePostQuotesTheRun:
                 a, b = getattr(small, field), getattr(large, field)
                 rows.append(f"\\quad\\text{{{words}}} & {a:.4f} & {b:.4f} & {a - b:+.4f}")
             blocks.append(" \\\\\n".join(rows))
-        assert " \\\\ \\hline\n".join(blocks) + "\n\\end{array}" in post
+        head = _latex_head("After costs", "S&P 600", "S&P 500", "Gap")
+        assert head + " \\\\ \\hline\n".join(blocks) + "\n\\end{array}" in post
 
     def test_lesson_4s_average_day_tables(self, post, result) -> None:
         """Profit, cost and turnover in one table, cost over profit and break-even in the next."""
@@ -1091,7 +1100,11 @@ class TestThePostQuotesTheRun:
             _latex_row(label, f"{d.cost_per_profit:.4f}", f"{d.profit / d.turnover * 1e4:.2f}")
             for label, d in books.items()
         ]
-        assert [t for t in (first, second) if _latex_rows(*t) not in post] == []
+        tables = (
+            _latex_head("Book", "Profit", "Cost", "Turnover") + _latex_rows(*first),
+            _latex_head("Book", "Cost over profit", "Break-even") + _latex_rows(*second),
+        )
+        assert [t for t in tables if t not in post] == []
 
     def test_lesson_4s_ranges(self, post, result) -> None:
         days = [

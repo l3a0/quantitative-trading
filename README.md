@@ -6164,7 +6164,8 @@ Entry 50 found on the S&P 400.
 5. The check for split prices flags BCSI on 2006-02-06 and SCUR on
    2006-07-12, and same-day news shows both were earnings warnings that
    traded.
-6. The declared reading points the way Chan says, on one year of survivors.
+6. By the reading written down in advance, the S&P 600's result points the
+   way Chan says, on one year of survivors.
    Nothing here measures how many S&P 600 members were microcaps. The S&P
    400 is the third point, and its run sits between the other two on the
    closes and below both on the opens. The reading written down before that
@@ -6183,7 +6184,9 @@ Five groups of what it says are not pinned here.
 2. Facts about the book and the code rather than the data: that Example 7.4
    reads the same S&P 600 file, that the notebook's rule fills each gap with
    the last price seen, that a split halves a price the file may not adjust,
-   and that the S&P 600 file holds prices and volumes but no market values.
+   that the S&P 600 file holds prices and volumes but no market values, and
+   that *Algorithmic Trading* runs its version of the rule on Chan's file of
+   497 stocks from 2007 to 2011.
 3. Readings no test asserts: that the open's lift removes most of what
    separated the two universes at the close, that the rule replaces about the
    same share of its book in every universe, that one cost on both universes
@@ -6191,7 +6194,8 @@ Five groups of what it says are not pinned here.
    minimum size and does not drop a member just because it later shrank, that
    the reversal bought the two flagged stocks on days Chan's reasoning gives
    no cause to expect a bounce, that the daily profits need not be independent
-   or normal, that the rule in Chan's later book is a version of this one, that
+   or normal, that the post on *Algorithmic Trading*'s run found the data and
+   the window moved the Sharpe ratio more than the rule did, that
    the distance between two running totals says nothing about how much the
    daily profits swing, that a reversal buys exactly the stocks that fell,
    that Chan's explanation predicts a Sharpe ratio that rises as the
@@ -6217,8 +6221,10 @@ or to
 for the figure's own numbers, which include the low of the S&P 600's dashed
 line on the closes, −6.3% on 2006-06-30. The S&P 500's average day on the
 closes traces to `TestWhatAnAverageDayCosts` in
-[tests/test_khandani_lo.py](tests/test_khandani_lo.py), and the factor of 1.6
-to [tests/test_scale_breaks.py](tests/test_scale_breaks.py). The S&P 400's
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py), Chan's printed 0.25,
+the 5 basis points a side and the 252 days a year to `TestTheFigures` in the
+same file, and the factor of 1.6 to
+[tests/test_scale_breaks.py](tests/test_scale_breaks.py). The S&P 400's
 figures, its steps to both neighbours, the control's gaps with and without
 the three stocks set aside, and the reading of mixed trace to
 [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py). Its
@@ -6253,8 +6259,8 @@ fails a test.
    reads the tables of Lessons 1, 2 and 4 whole. It also reads one prose copy
    each of the window and its 251 days, the stocks priced on its first and
    last days, the eight that miss a price, the open's lift, Lesson 3's two
-   shares of the bracket and its standard error with the correlation set to
-   0, Lesson 4's ranges of turnover and cost, and Lesson 5's bound and two
+   shares of the bracket, its standard error with the correlation set to 0
+   and the gap's distance in those standard errors, Lesson 4's ranges of turnover and cost, and Lesson 5's bound and two
    flagged days.
 2. `TestTheAltText` in
    [tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)

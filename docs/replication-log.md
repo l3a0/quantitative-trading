@@ -9879,9 +9879,10 @@ different and stronger result.
 universes 5 basis points a side, while small caps cost more to trade. So the
 after-cost gaps flatter the S&P 600, and nothing here prices by how much.
 
-**Whether Khandani and Lo's 4.47 came from small caps.** Their universe and
-window are not this file's, so the S&P 600 reaching their figure or not says
-nothing about where their returns came from. The report prints 4.47 and judges
+**Whether Khandani and Lo's 4.47 came from small caps.** Their figure is for
+2006 too, but it comes from their own universe, which is not this file's. So
+the S&P 600 reaching their figure or not says nothing about where their
+returns came from. The report prints 4.47 and judges
 it against nothing.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
@@ -11611,15 +11612,17 @@ year of Chan's S&P 500 figures, and three of its four steps are within that
 year's noise. An order that held across years would be a different and
 stronger result.
 
-**Whether Khandani and Lo's 4.47 came from small caps.** Their universe and
-window are not these panels', so nothing here says where their returns came
-from. The report prints 4.47 and judges it against nothing.
+**Whether Khandani and Lo's 4.47 came from small caps.** Their figure is for
+2006 too, but it comes from their own universe, which is not these panels'. So
+nothing here says where their returns came from. The report prints 4.47 and judges it against nothing.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/khandani-lo-small-caps-lessons.md](../blog/khandani-lo-small-caps-lessons.md)
 moves with it, since the closing paragraphs of that post's Lesson 6 quote
-its before-cost figures, its one step beyond noise and the control's gaps.
+the holdings it starts from, keeps and leaves out, the vendor's 2006-12-28
+start, its before-cost figures, its one step beyond noise, the control's gaps
+and the S&P 400's distances to its nearer neighbour.
 So does the post's Lesson 6 sketch, which draws this run's S&P 400 figures
 from `PINNED_MID` in
 [tests/test_khandani_lo_small_caps_whiteboard.py](../tests/test_khandani_lo_small_caps_whiteboard.py).
