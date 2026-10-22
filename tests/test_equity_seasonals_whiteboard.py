@@ -3840,17 +3840,17 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         f" a gain of about {100 * x_low:.1f} to {100 * x_high:.1f} percent",
         f"and so is the mean of all three, {f.january_mean:.4f}",
         *[
-            f"{low:.4f} to {high:.4f} at {n}"
+            f"between {low:.4f} and {high:.4f} at {n}"
             for n in (18, 32)
             for low, high in [PINNED_POWER.detectable(n)]
         ],
-        "About 100 Januaries would bring it to {:.4f} to {:.4f}.".format(
+        "About 100 Januaries would bring it to between {:.4f} and {:.4f}.".format(
             *PINNED_POWER.detectable(100)
         ),
-        "9 of the 18 Januaries would catch only an average of {:.4f} to {:.4f}".format(
+        "a test on 9 of the 18 Januaries would catch rises to between {:.4f} and {:.4f}".format(
             *PINNED_POWER.detectable(9)
         ),
-        f"half of the {len(ivv.months)} months only about {1200 * half:.1f} percent a year,"
+        f"half of the {len(ivv.months)} months to about {1200 * half:.1f} percent a year,"
         f" against {100 * p.detectable:.1f} percent for all of them",
     ]
     text = POST.read_text(encoding="utf-8")
