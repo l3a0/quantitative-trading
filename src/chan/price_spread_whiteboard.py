@@ -324,7 +324,15 @@ def _lever(lever: Lever) -> Scene:
                 frames=6,
             ),
             Label("USO", left, 3.8, names="uso-axis", color=MUTED, ha="right", size=12),
-            Label("GLD = 0", axis_x + 0.25, GLD_ZERO_Y, names="uso-axis", color=MUTED, ha="left", size=12),
+            Label(
+                "GLD = 0",
+                axis_x + 0.25,
+                GLD_ZERO_Y,
+                names="uso-axis",
+                color=MUTED,
+                ha="left",
+                size=12,
+            ),
             _stroke(
                 "gld-axis",
                 _line([(axis_x, zero_y), (axis_end, zero_y)]),
