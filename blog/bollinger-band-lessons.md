@@ -67,7 +67,7 @@ The reproduction’s test of that claim was written after the first transcriptio
 
 ## Lesson 3: a fixed threshold makes the divisor matter
 
-Lesson 5 of [the Example 3.1 post](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-ratio-lessons.md) pointed ahead to this example. Chan’s code ships two moving standard deviation helpers. A standard deviation over n days adds up each day’s squared distance from the average, divides that sum, and takes the square root. The plain `movingStd` divides by n − 1, and `smartMovingStd`, which skips missing values, divides by n. Over 20 days the deviation divided by n is the one divided by n − 1 times √(19/20). So every z-score built from it is the other multiplied by √(20/19), larger in size whatever its sign.
+Lesson 5 of [the Example 3.1 post](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-ratio-lessons.md) pointed ahead to this example. Of the standard deviation helpers Chan’s code ships, two take it over the last n days. A standard deviation over n days adds up each day’s squared distance from the average, divides that sum, and takes the square root. The plain `movingStd` divides by n − 1, and `smartMovingStd`, which skips missing values, divides by n. Over 20 days the deviation divided by n is the one divided by n − 1 times √(19/20). So every z-score built from it is the other multiplied by √(20/19), larger in size whatever its sign.
 
 ```math
 z^{(n)}_t = \sqrt{\tfrac{20}{19}}\; z^{(n-1)}_t \approx 1.0260\, z^{(n-1)}_t

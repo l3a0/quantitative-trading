@@ -1,6 +1,6 @@
 # Trading gold against oil three ways, on Chan’s own file
 
-*A pair that fails a cointegration test can still be traded on a spread refitted every 20 days. Reproducing Chan’s Example 3.1 shows what that spread is, what each signal holds, and which printed figure came from a different run.*
+*A pair that fails a cointegration test can still be traded on a spread refitted every day on the last 20 days. Reproducing Chan’s Example 3.1 shows what that spread is, what each signal holds, and which printed figures came from a different run.*
 
 ## Why trade a pair that does not cointegrate
 
@@ -12,7 +12,7 @@ His Example 3.1 takes the gold ETF GLD and the oil ETF USO, which he says “are
 2. **The log price spread**, the same construction on the logarithms of the prices. He reports an APR of 9 percent and a Sharpe ratio of 0.5.
 3. **The ratio**, USO divided by GLD, with equal dollars on each side. He reports “a negative APR”.
 
-Chan published a script for each signal and the data file they read. Each script ends on a comment holding the six decimals its print statement shows. This repository keeps a copy of the file and ran a line-by-line transcription of each script on it.
+Chan published a script for each signal and the data file they read. Each script ends on a comment recording the APR and Sharpe ratio its print statement shows, to six decimals. This repository keeps the file’s contents and ran a Python transcription of each script on them.
 
 The price spread and the log price spread match all four of their scripts’ figures to six decimals. The ratio’s script, run on the same file, does not reproduce the figures in its own comment. The same script with GLD and USO swapped matches them exactly, which this repository found only after the miss.
 
@@ -31,7 +31,9 @@ The rule is the linear mean reversion of Chan’s Chapter 2, applied to each sig
 
 Each script also throws away its first 20 days, where the first hedge ratio is still being fitted, so all three trade the same 1,480 days.
 
-The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputData_ETF.mat`, saved on 2012-04-10 and converted here to one file per ETF. It holds 67 ETFs over 1,500 trading days, from 2006-04-26 to 2012-04-09, and the scripts read two of them. The traded days run from 2006-05-24. The file folds dividends in by subtracting them in dollars, and GLD pays none. This repository transcribed the scripts from a public copy of Chan’s code, `ericnberwick/EpchanPreview` at commit `e4bc46f`, which a second copy holds byte for byte.
+The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputData_ETF.mat`, saved on 2012-04-10. This repository converted it to one file per ETF. It holds 67 ETFs over 1,500 trading days, from 2006-04-26 to 2012-04-09, and the scripts read two of them. The traded days run from 2006-05-24. The file folds dividends in by subtracting them in dollars, and GLD pays none.
+
+This repository transcribed the scripts from a public copy of Chan’s code, `ericnberwick/EpchanPreview` at commit `e4bc46f`. A second public copy holds the same three scripts byte for byte.
 
 ## Lesson 1: two scripts land to six decimals, and the book rounds one of them up
 
@@ -51,7 +53,7 @@ Here is each figure, computed, beside the script’s comment and the book.
 \end{array}
 ```
 
-All four match the scripts to the last digit printed. The first position is held into 2006-06-22, the day after the 20-day standard deviation first exists, and every run has it there.
+All four match the scripts to the last digit printed. Each of the three scripts, and the ratio with GLD and USO swapped, sets its first position on 2006-06-21, the first day the 20-day standard deviation of the signal exists, and earns its first return on 2006-06-22. The standard deviation needs 20 days of the signal, so that first return comes 20 trading days after the traded days begin.
 
 One figure in the book does not follow from its own script. The price spread’s comment prints 0.108335, which is 10.8 percent at one decimal, and the book prints “about 10.9 percent”. The difference is small and the word “about” covers it. It still matters for anyone checking a book against its code: the script is the record of what ran, and a rounded figure in the prose is a second copy that can drift from it.
 
@@ -80,7 +82,9 @@ The price spread is the market value of a portfolio holding a fixed number of sh
 
 The log price spread is different. Chan shows that a stationary mix of log prices is the value of a portfolio holding a constant dollar amount in each asset, with cash making up the rest (Chan, 2013, location 1435). Keeping the dollar amounts constant means rebalancing every day as the prices move. Chan names the extra cost of that daily rebalancing, and the backtest charges nothing for it. The log price spread’s figures are lower even so, an APR of 0.088863 against 0.108335 and a Sharpe ratio of 0.504153 against 0.589651, before any trade is priced. Chan’s sentence that the log price spread’s APR and Sharpe ratio are both “actually lower” holds on his file.
 
-The ratio holds the same portfolio as the log price spread would with h fixed at 1, equal dollars on each side, but it trades on USO/GLD itself rather than on its logarithm. Chan notes that a ratio is stationary only when the two hedge ratios are equal and opposite, which is “a special case” (Chan, 2013, location 1476). He also gives the argument for it: a ratio does not need a hedge ratio at all, and it stays the same when both prices double. Whether a ratio beats an adaptive hedge ratio, he says he knows no general answer. On GLD and USO the ratio loses money, and the third panel of the figure shows what it was trading against. USO’s price was 1.03 times GLD’s on the first traded day and 0.24 times it on the last, and after 2008 the ratio never rose above 0.44.
+The ratio holds the same portfolio as the log price spread would with h fixed at 1, long a dollar of USO and short a dollar of GLD. It trades on USO/GLD itself rather than on its logarithm. Chan notes that a ratio is stationary when the stationary mix weights the two prices equally and with opposite signs. That is “a special case”, so a ratio need not be stationary (Chan, 2013, location 1476). He also gives the argument for using a ratio: it does not need a hedge ratio at all, and it stays the same when both prices double. He says he knows no general answer to whether a ratio beats a price spread or log price spread whose hedge ratio adapts as the prices move, as the 20-day refit here does.
+
+On GLD and USO the ratio loses money, and the third panel of the figure shows the fall it was trading against. USO’s price was 1.03 times GLD’s on the first traded day and 0.24 times it on the last, and the ratio’s highest after 2008 was 0.44.
 
 ## Lesson 3: the ratio’s printed figures match GLD and USO swapped
 
@@ -136,7 +140,12 @@ r_t = \frac{\sum_i P_{i,t-1}\,\Delta p_{i,t} / p_{i,t-1}}{\sum_i |P_{i,t-1}|}
 
 Here capital P is a dollar position and lower-case p is a price. The subscript i names the ETF and t names the day. The top line adds up, over the two ETFs, yesterday’s dollar position times today’s return on that ETF, which is the day’s profit. The bottom line adds up the sizes of yesterday’s positions, long and short alike, which are the gross dollars that step 4 of the rule divides by. Multiply every position by any positive constant and rₜ does not move.
 
-That has a consequence for checking the code. Chan’s book ships two standard deviation helpers. The plain `movingStd` divides by n − 1, and `smartMovingStd`, which skips missing values, divides by n. Over 20 days that rescales every z-score by the same factor, so the two give the same daily returns here to within 10⁻¹², and the same figures. In the posts on [post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) and [buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md), a standard deviation helper fed a fixed threshold, so its scale mattered and the choice of helper moved printed figures. Here nothing compares the z-score with a threshold, so these figures are no evidence about which helper is right. A matching figure only checks the parts of the code it can see.
+That has a consequence for checking the code. Of the functions in Chan’s book code that compute a standard deviation, two take it over the last n days.
+
+1. The plain `movingStd` divides by n − 1.
+2. `smartMovingStd`, which skips missing values, divides by n.
+
+Over 20 days that rescales every z-score by the same factor, so the two give the same daily returns here to within 10⁻¹², and the same figures. In the posts on [post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) and [buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md), a stock’s move was compared with a fixed multiple of its standard deviation, so the deviation’s scale mattered and the choice of function behind it moved printed figures. Here nothing compares the z-score with a threshold, so these figures are no evidence about which function is right.
 
 The next example in the book, Example 3.2, trades the same spread with Bollinger bands. It enters when the z-score crosses a fixed threshold, so there the scale does not cancel, and the choice of helper can move its figures. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md#lesson-3-a-fixed-threshold-makes-the-divisor-matter) found that dividing by n rather than n − 1 lifts Example 3.2’s APR from Chan’s 0.178249 to 0.183306 and its Sharpe ratio from his 0.964673 to 0.984872.
 

@@ -3996,9 +3996,10 @@ Five groups of its figures are not pinned here.
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    That a stationary mix of log prices is a portfolio of constant dollar
-   weights rebalanced every day is at 1435. That a ratio is stationary only in
-   "a special case", that a ratio is unchanged when both prices scale
-   together, and that Chan knows no general answer are at 1476. "Are not, in
+   weights rebalanced every day is at 1435. That a ratio is stationary in "a
+   special case", when the two hedge ratios are equal and opposite, that a
+   ratio is unchanged when both prices scale together, and that Chan knows no
+   general answer are at 1476. "Are not, in
    fact, cointegrated", "near-optimal" with "the benefit of hindsight", the
    word stationary for the spread, "actually lower", the extra cost of the log
    price spread, "a negative APR" and the caption "Ratio = USO/GLD" are at
