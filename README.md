@@ -2611,7 +2611,7 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that none of the three sketch modules
+which also fails on any GIF in the folder that no sketch module
 draws. The VX against ES post's two GIFs are checked the same way by
 [tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py).
 
@@ -3424,7 +3424,7 @@ that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-both redraw commands.
+every sketch module's redraw command.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic

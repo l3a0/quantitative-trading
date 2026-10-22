@@ -966,8 +966,8 @@ def _durations(path) -> list[int]:
 
 class TestTheCommittedGifs:
     def test_every_gif_in_the_figures_folder_is_drawn_by_one_of_the_modules(self) -> None:
-        """A GIF no module draws is a figure nothing regenerates. Three modules
-        draw them: the USD.CAD post's, this post's and the VX against ES post's."""
+        """A GIF no module draws is a figure nothing regenerates. Each sketch
+        module's list of GIFs joins the union below."""
         assert {path.name for path in FIGURES_DIR.glob("*.gif")} == (
             set(GIFS) | set(USDCAD_GIFS) | set(VX_ES_GIFS)
         )

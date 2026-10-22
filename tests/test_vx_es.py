@@ -171,6 +171,7 @@ class TestTheVintages:
         """Issue 313's finding, on this window: the closes differ between saves."""
         shared = legs.index.intersection(script_legs.index)
         assert not np.allclose(legs.loc[shared, VX], script_legs.loc[shared, VX])
+        assert not np.allclose(legs.loc[shared, ES], script_legs.loc[shared, ES])
 
 
 class TestTheSpans:

@@ -334,7 +334,7 @@ class TestEveryCommittedFigureIsCompared:
         ``tests/test_equity_seasonals_whiteboard.py`` and
         ``tests/test_vx_es_whiteboard.py`` each compare their own GIFs with a
         fresh draw byte for byte, and the equity seasonals one fails on any GIF
-        in the folder that none of the three modules draws.
+        in the folder that no sketch module draws.
         """
         committed = {path.name for path in FIGURES_DIR.glob("*.png")}
 
