@@ -3,7 +3,7 @@
 ``blog/price-spread-ratio-lessons.md`` carries one sketch, in Lesson 4, right
 after the list that ends on the leftover earning close to nothing. It draws why
 the spread is mostly the 20-day fit's intercept ``c``: two real windows a
-trading week apart, whose fitted lines turn about clouds that sit about 90
+trading week apart, whose fitted lines turn about clouds that sit about 91.5
 dollars from GLD = 0, so ``c`` moves a long way while the leftover ``e`` stays
 small.
 
@@ -777,6 +777,7 @@ class TestThePost:
         )
         assert _label(scene, "12×").color == MUTED
         assert "“≈ 1.20 × 91.5”, and under that another reads “h rose 1.20”" in alt
+        assert f"around GLD of {sum(ZOOM_GLD) / 2:.1f} dollars" in alt
 
     def test_its_alt_text_counts_the_points_each_window_shares(self, scene) -> None:
         alt = _alt(scene)

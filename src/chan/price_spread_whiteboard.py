@@ -4,8 +4,9 @@
 regression fits ``USO = c + h·GLD + e`` and the scripts trade ``USO − h·GLD``,
 which is ``c + e``, and that ``c`` carries almost all of it. A reader can take
 that as a fact about the run without seeing why it happens. The reason is
-geometric. GLD traded near 90 dollars, so every 20-day cloud of points sits
-about 90 dollars to the right of GLD = 0, where ``c`` is read. A small turn of
+geometric. GLD never traded near zero, so every 20-day cloud of points sits
+far to the right of GLD = 0, where ``c`` is read, and the two windows the scene
+draws sit about 91.5 dollars from it. A small turn of
 the fitted line about its cloud moves the place it meets GLD = 0 a long way,
 by about the change in ``h`` times that distance, while the leftover ``e`` of
 the last day stays a few dollars. This module draws that as one scene, and the

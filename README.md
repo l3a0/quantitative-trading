@@ -4015,6 +4015,9 @@ Five groups of its figures are not pinned here.
    Entry 21 of [docs/replication-log.md](docs/replication-log.md) records,
    and that the copy of the two closes in Chan's Python port equals the
    committed closes, which [data/README.md](data/README.md) records.
+   `src/chan/matlab_helpers.py`'s docstring records that one `smartstd`
+   ships with the first edition of *Quantitative Trading* and the other with
+   *Algorithmic Trading*.
 3. Arithmetic no test asserts: that any positive constant on the positions
    cancels out of the return, which the equation shows, and that the
    leftover's standard deviation is about a twentieth of the spread's, which

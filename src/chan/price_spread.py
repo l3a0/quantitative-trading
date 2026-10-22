@@ -104,7 +104,8 @@ so does :mod:`chan.kalman_hedge`, under
 1. The file is read as committed vintages through
    :func:`chan.series.load_panel` rather than loaded from the ``.mat``.
 2. The plots are not carried. The run prints and draws nothing, and
-   :mod:`chan.price_spread_figures` draws them for the post.
+   :mod:`chan.price_spread_figures` redraws most of them for the post, adding
+   the hedge ratio, which no script plots.
 3. The three scripts share one code path, so the 20-row drop, the units and
    the return are written once rather than three times.
 4. The ratio runs a second time with the legs swapped, as a diagnostic.

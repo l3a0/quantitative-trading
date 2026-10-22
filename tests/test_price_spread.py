@@ -661,9 +661,11 @@ class TestThePostQuotesThePins:
     def test_the_file_and_the_traded_days(self, sources, result: ExampleThreeOne) -> None:
         _, closes = sources
         days = result.price_spread.signal.days
+        _, _, saved, _, count = LIFTED_SOURCES[SOURCE_FILE]
+        assert f"Chan’s own MATLAB file `{SOURCE_FILE}`, saved on {saved}." in self.text
         assert (
-            f"over {len(closes):,} trading days, from {closes.index[0].date()} to "
-            f"{closes.index[-1].date()}"
+            f"Chan’s file holds {count} ETFs over {len(closes):,} trading days, from "
+            f"{closes.index[0].date()} to {closes.index[-1].date()}"
         ) in self.text
         assert f"The traded days run from {days[0].date()}." in self.text
         assert (

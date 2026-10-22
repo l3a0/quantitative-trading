@@ -10,7 +10,7 @@ Ernest Chan’s second book, *Algorithmic Trading*, offers a rule for practical 
 
 His Example 3.2 trades the GLD and USO spread with that band and reports an APR of 17.8 percent and a Sharpe ratio of 0.96, “quite an improvement from the linear mean reversal strategy” (Chan, 2013, location 1559). The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk.
 
-Chan published the script, `bollinger.m`, and the data file it reads. This repository keeps a copy of the file and ran a line-by-line transcription of the script on it. Both figures the script prints land to six decimals, an APR of 0.178249 and a Sharpe ratio of 0.964673.
+Chan published the script, `bollinger.m`, and the data file it reads. This repository keeps the file’s contents, as one CSV per ETF, and ran a Python transcription of the script on them. Both figures the script prints land to six decimals, an APR of 0.178249 and a Sharpe ratio of 0.964673.
 
 **Every result here is exploratory.** Chan chose the pair, the thresholds and a lookback he calls “near-optimal” with “the benefit of hindsight” (Chan, 2013, location 1505), and the reproduction tests them on the same days he did. It can say whether his numbers follow from his file and nothing about whether the trade pays today.
 
