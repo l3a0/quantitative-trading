@@ -1,11 +1,12 @@
 """The pins for the price spread, log price spread and ratio, *Algorithmic Trading*'s Example 3.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 3.1, with two exceptions, both in
+about Example 3.1, with three exceptions, all in
 ``blog/price-spread-ratio-lessons.md``. The post's figure has its own pins in
-``tests/test_price_spread_figures.py``, and what the post says about the file
-itself, its 67 ETFs, its dividends subtracted in dollars and GLD paying none,
-is held in ``tests/test_series.py``. README lists what the post says that
+``tests/test_price_spread_figures.py``, its whiteboard sketch's two windows
+have theirs in ``tests/test_price_spread_whiteboard.py``, and what the post
+says about the file itself, its 67 ETFs, its dividends subtracted in dollars
+and GLD paying none, is held in ``tests/test_series.py``. README lists what the post says that
 nothing pins. ``docs/replication-log.md`` Entry 21 carries the verdicts and
 points here row by row.
 
@@ -80,6 +81,7 @@ from chan.price_spread import (
     ratio,
     read_sources,
     rolling_hedge_ratio,
+    rolling_intercept,
     run,
     zscore,
 )
@@ -295,25 +297,6 @@ class TestTheClaims:
         assert result.log_price_spread.sharpe < result.price_spread.sharpe, SPEC
 
 
-def _rolling_intercept(closes: pd.DataFrame) -> np.ndarray:
-    """The intercept of the 20-day regression the hedge ratio comes from, on the kept rows.
-
-    Each kept row's window reaches back into the 20 rows the scripts drop, so it is
-    fitted on the full closes and then cut the way the hedge ratio is.
-    """
-    gld, uso = closes[X_SYMBOL].to_numpy(), closes[Y_SYMBOL].to_numpy()
-    ones = np.ones(LOOKBACK)
-    return np.array(
-        [
-            ols(
-                uso[t - LOOKBACK + 1 : t + 1],
-                np.column_stack([gld[t - LOOKBACK + 1 : t + 1], ones]),
-            ).beta[1]
-            for t in range(LOOKBACK, len(gld))
-        ]
-    )
-
-
 class TestThePairDoesNotCointegrate:
     """Location 1505 says GLD and USO "are not, in fact, cointegrated", and the rule trades
     them anyway on a hedge ratio refitted every day over the last 20 days.
@@ -345,7 +328,8 @@ class TestThePairDoesNotCointegrate:
         it carries all but a quarter of a percent of the spread's variance. Traded alone by
         the same rule, the leftover ``e`` earns nothing."""
         signal = result.price_spread.signal
-        intercept = _rolling_intercept(sources[1])
+        gld, uso = sources[1][X_SYMBOL].to_numpy(), sources[1][Y_SYMBOL].to_numpy()
+        intercept = rolling_intercept(uso, gld)[LOOKBACK:]
         np.testing.assert_allclose(
             signal.value - intercept,
             [
@@ -476,6 +460,15 @@ class TestTheRule:
         x = np.array([1.0, 2.0, 3.0, 4.0])
         assert rolling_hedge_ratio(x + 10.0, x, 4)[3] == pytest.approx(1.0, abs=1e-12)
 
+    def test_the_intercept_comes_from_the_same_fit(self) -> None:
+        """``y = 2.5·x + 3`` fits an intercept of 3 on every full window, and NaN before."""
+        x = np.array([1.0, 3.0, 2.0, 5.0, 4.0])
+        intercept = rolling_intercept(2.5 * x + 3.0, x, 3)
+        assert np.isnan(intercept[:2]).all()
+        np.testing.assert_allclose(intercept[2:], 3.0, rtol=0, atol=1e-12)
+        with pytest.raises(ValueError, match="rolling_intercept takes a window of at least 3"):
+            rolling_intercept(x, x, 2)
+
     def test_the_hedge_ratios_window_ends_on_its_own_row(self) -> None:
         """Row 2 of a window of 3 reads rows 0 to 2. A shock on row 3 moves rows 3 on only."""
         x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
@@ -524,7 +517,9 @@ class TestTheRule:
 
     def test_a_window_too_short_to_fit_a_slope_and_an_intercept_is_refused(self) -> None:
         """Two rows fit both exactly, and one leaves the slope undetermined."""
-        with pytest.raises(ValueError, match="at least 3 rows, not 2"):
+        with pytest.raises(
+            ValueError, match="rolling_hedge_ratio takes a window of at least 3 rows, not 2"
+        ):
             rolling_hedge_ratio(np.arange(5.0), np.arange(5.0), 2)
 
     def test_a_window_holding_a_nan_gives_a_nan_slope_and_the_rest_still_fit(self) -> None:
