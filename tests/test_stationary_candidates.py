@@ -104,8 +104,8 @@ The calendar-spread pins read eight vintages and one specification.
   corrected, after the result and on the owner's ruling, to correlate as the
   files' two legs do, and the declared null's figures are pinned beside it.
 
-Ten classes. Most read the module fixture ``spreads``, which runs both batches
-once.
+Eleven classes. Most read the module fixture ``spreads``, which runs both
+batches once.
 
 1. ``TestTheCalendarSpreadVintages``, the eight files, and the three days the
    calendar used to count closed on which every file settled.
@@ -122,12 +122,14 @@ once.
 7. ``TestTheCalendarSpreadNull``, how the null draws and reads its walks.
 8. ``TestTheCalendarSpreadDescriptions``, each orientation alone, the residual
    check and the power row, which decide nothing.
-9. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
-10. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
+9. ``TestTheNullInEachOrientation``, each null counted in one orientation at a
+   time, which decides nothing either.
+10. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
+11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
 
 A replication under the claim route, so exploratory. The batch takes about
-seven seconds. First run on 2026-10-03, after the criterion was fixed on
-issue 137.
+seven seconds, and the eight single-orientation nulls about thirty more. First
+run on 2026-10-03, after the criterion was fixed on issue 137.
 """
 
 from __future__ import annotations
@@ -1696,6 +1698,86 @@ class TestTheCalendarSpreadDescriptions:
         assert float(spreads[RBOB].power.mean()) == pytest.approx(0.0614, abs=5e-5)
         assert float(spreads[NG].power.mean()) * 360 == pytest.approx(21.9, abs=0.05)
         assert float(spreads[RBOB].power.mean()) * 220 == pytest.approx(13.5, abs=0.05)
+
+
+@pytest.fixture(scope="module")
+def alone(spreads) -> dict[tuple[str, str, str], np.ndarray]:
+    """Each commodity's two nulls counted in one orientation at a time.
+
+    Keyed by commodity, ``"independent"`` or ``"correlated"``, and ``"near"``
+    or ``"far"``. Eight more runs of the null, about four seconds each.
+    """
+    out = {}
+    for name, r in spreads.items():
+        pairs = tuple(t.pair for t in r.tests)
+        for null, rho in (("independent", 0.0), ("correlated", r.correlation)):
+            for orientation in ("near", "far"):
+                out[name, null, orientation] = null_shares(
+                    pairs, correlation=rho, orientation=orientation
+                )
+    return out
+
+
+class TestTheNullInEachOrientation:
+    """Each null counted in one orientation alone, which decides nothing.
+
+    The vintages are the eight EIA files downloaded 2026-10-02, the null is
+    1,000 sets from seed 20261003, and a pair counts when its one orientation
+    clears the 10% bar of -3.04 at one lag. Only the reject rule differs from
+    the verdicts' null, so the walks are the same draws. The calendar spreads
+    post's sketch of the two orientations draws natural gas's medians.
+    """
+
+    @pytest.mark.parametrize(
+        ("name", "n", "null", "near_on_far", "far_on_near"),
+        [
+            (NG, 360, "independent", 38, 38),
+            (NG, 360, "correlated", 38, 38),
+            (RBOB, 220, "independent", 24, 23),
+            (RBOB, 220, "correlated", 23, 23),
+        ],
+    )
+    def test_each_orientation_alone_rejects_as_often_under_either_null(
+        self, alone, name, n, null, near_on_far, far_on_near
+    ) -> None:
+        """Correlating the walks barely moves either orientation alone, so
+        the rise in the null's count is the requirement for both."""
+        medians = tuple(float(np.median(alone[name, null, o])) * n for o in ("near", "far"))
+        assert medians == pytest.approx((near_on_far, far_on_near), abs=1e-9)
+
+    @pytest.mark.parametrize("name", [NG, RBOB])
+    @pytest.mark.parametrize("null", ["independent", "correlated"])
+    def test_both_counts_the_pairs_each_alone_counts(self, spreads, alone, name, null) -> None:
+        """Set by set, the count rejecting both ways is at most either count
+        alone, and it differs from near on far's, so the keyword reached the
+        rule."""
+        r, n = spreads[name], len(spreads[name].tests)
+        both = (r.declared_null if null == "independent" else r.null) * n
+        near, far = alone[name, null, "near"] * n, alone[name, null, "far"] * n
+        assert np.all(both <= np.minimum(near, far) + 1e-9)
+        assert not np.array_equal(both, near)
+
+    def test_one_pair_counts_each_orientation_on_the_same_walks(self) -> None:
+        """For a lone pair the walks are the ones the default draws, so both
+        is exactly near and far together, set by set."""
+        pair = spread_pair(NATURAL_GAS_CONTRACTS, (1997, 6))
+        rng = np.random.default_rng(NULL_SEED)
+        n = len(pair.window)
+        near = np.cumsum(rng.standard_normal((200, n)), axis=1)[:, pair.kept_index]
+        far = np.cumsum(rng.standard_normal((200, n)), axis=1)[:, pair.kept_index]
+        bar = EG_CRIT_N2[SPREAD_LEVEL]
+        near_on_far = batched_engle_granger(near, far) < bar
+        far_on_near = batched_engle_granger(far, near) < bar
+        got = {o: null_shares((pair,), sets=200, orientation=o) for o in ("both", "near", "far")}
+        assert np.array_equal(got["near"], near_on_far.astype(float))
+        assert np.array_equal(got["far"], far_on_near.astype(float))
+        assert np.array_equal(got["both"], (near_on_far & far_on_near).astype(float))
+        assert np.array_equal(got["both"], null_shares((pair,), sets=200))
+
+    def test_an_unknown_orientation_is_refused(self) -> None:
+        pair = spread_pair(NATURAL_GAS_CONTRACTS, (1997, 6))
+        with pytest.raises(ValueError, match="orientation"):
+            null_shares((pair,), sets=10, orientation="either")
 
 
 @pytest.fixture(scope="module")
