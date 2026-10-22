@@ -26,7 +26,7 @@ What else is pinned is what a reader takes from it: the labels in order, the
 ink of each mark, that each panel places every point by an affine map of its
 dollars, that each ``c`` sits where its line meets GLD = 0, that the whole
 run's figures sit below the magnified panel rather than beside one window's
-points, that "GLD = 0" stacks under "USO" as the upright axis's second name,
+points, that "GLD = 0" sits at the upright axis's foot as its second name,
 the shared layout rules, the GIF's size, frames, loop and pace, and where the
 post places it, what its alt text says and that its caption's figures are the
 run's.
@@ -383,15 +383,21 @@ class TestTheGeometry:
         assert np.allclose(gld.y, _main_y(0.0))
         assert gld.x.min() == pytest.approx(MAIN_X[0])
 
-    def test_gld_0_stacks_under_uso_as_the_axis_second_name(self, scene) -> None:
-        """It sits right under "USO", above the origin, so it reads as naming the
-        upright axis rather than as a height beside the ``c`` labels."""
+    def test_gld_0_sits_at_the_upright_axis_foot_as_its_second_name(self, scene) -> None:
+        """It sits just right of the upright axis's foot, below the lower ``c`` dot, so
+        it reads as naming the axis rather than as a height beside the ``c`` labels or
+        as the name of the span, which runs level with where it sat before."""
         uso, zero = _label(scene, "USO"), _label(scene, "GLD = 0")
-        assert (zero.x, zero.ha, zero.names, zero.size) == (uso.x, uso.ha, "uso-axis", uso.size)
-        assert zero.y == sketch.GLD_ZERO_Y == 3.45
-        assert float(_main_y(0.0)) < zero.y < uso.y
-        assert uso.y - zero.y == pytest.approx(0.35)
-        assert all(zero.y > _label(scene, t).y for t in ("c −51.65", "c −161.60", "c fell"))
+        assert (zero.x, zero.ha, zero.names, zero.size) == (
+            MAIN_X[0] + 0.25,
+            "left",
+            "uso-axis",
+            uso.size,
+        )
+        assert zero.y == sketch.GLD_ZERO_Y == 0.22
+        assert zero.y < MAIN_Y[0]
+        assert all(zero.y < _label(scene, t).y for t in ("c −51.65", "c −161.60", "c fell"))
+        assert abs(zero.y - (float(_main_y(0.0)) + 0.3)) > 2.0
 
     def test_each_c_sits_where_its_line_meets_gld_0(self, scene, lever) -> None:
         for window, dot, reach in (
@@ -813,10 +819,15 @@ class TestThePost:
             f"{after.end.day} {after.end:%B} {after.end.year}, the second on the day the "
             f"spread is lowest in the whole run. Between them the slope h rose by {rise:.2f}, "
             f"from {before.hedge:.2f} to {after.hedge:.2f}. Both clouds sit about {mean:.1f} "
-            f"dollars to the right of GLD = 0, where c is read, so turning the line that much "
-            f"about them moved c down by about {rise:.2f} × {mean:.1f} dollars. Every figure "
-            f"comes from the run, and the closing lines are figures over all {lever.days:,} "
-            f"traded days, not over these two windows.*"
+            f"dollars to the right of GLD = 0, where c is read. Steepening the line by "
+            f"{rise:.2f} while it still runs through the clouds moved c down by about "
+            f"{rise:.2f} × {mean:.1f} dollars. Over the same week the leftover e on each "
+            f"window’s last day moved only from {sketch._signed(before.leftover, 2)} to "
+            f"{sketch._signed(after.leftover, 2)}, so c makes up nearly all of the spread’s fall. "
+            f"Every figure comes from the run, and the closing lines are figures over all "
+            f"{lever.days:,} traded days, not over these two windows. The frame on the right "
+            f"draws each dollar of USO about {round(taller())} times taller than the left "
+            f"side does.*"
         )
 
 

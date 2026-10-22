@@ -209,10 +209,10 @@ ZOOM_Y = (1.5, 4.4)
 #: below its flatter line, and the second's in its upper left, above its
 #: steeper one. ``e``'s label runs along the panel's foot, below every point.
 BEFORE_TAG_Y, AFTER_TAG_Y, LEFTOVER_Y = 2.45, 4.1, 1.8
-#: The "GLD = 0" label stacks directly under "USO", above the origin, so it
-#: reads as the upright axis's second name rather than as a height beside the
-#: ``c`` labels.
-GLD_ZERO_Y = 3.45
+#: The "GLD = 0" label sits just right of the upright axis's foot, below the
+#: lower ``c`` dot, so it reads as the axis's second name rather than as a
+#: height beside the ``c`` labels or as the name of the 91.5-dollar span.
+GLD_ZERO_Y = 0.22
 #: The frame's label for how much taller it draws USO, inside its top right.
 TALLER_Y = 4.1
 #: The ring round the second window's last point, the one its ``e`` is
@@ -323,7 +323,7 @@ def _lever(lever: Lever) -> Scene:
                 frames=6,
             ),
             Label("USO", left, 3.8, names="uso-axis", color=MUTED, ha="right", size=12),
-            Label("GLD = 0", left, GLD_ZERO_Y, names="uso-axis", color=MUTED, ha="right", size=12),
+            Label("GLD = 0", axis_x + 0.25, GLD_ZERO_Y, names="uso-axis", color=MUTED, ha="left", size=12),
             _stroke(
                 "gld-axis",
                 _line([(axis_x, zero_y), (axis_end, zero_y)]),
