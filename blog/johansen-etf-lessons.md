@@ -223,7 +223,7 @@ One habit for each lesson.
 2. **Use the Johansen test when more than two prices are in play.** A regression depends on which price goes on the left and finds at most one combination per run. The Johansen test gives every relation in one run, whatever the column order.
 3. **Read the trace and eigen statistics separately.** They answer different questions of the same eigenvalues, and here one counts three relations where the other counts none.
 4. **Treat a full rank as a claim that each price reverts alone.** Check it against a test on each price, and look at how far the last relation clears its bar.
-5. **Look at what the eigenvector holds in dollars.** The weights are in shares, so the long and short sides are only visible once each is multiplied by its price.
+5. **Look at what the eigenvector holds in dollars.** The weights are in shares, so the size of each side in dollars is only visible once each weight is multiplied by its price.
 6. **Treat an exact reproduction as a check on arithmetic.** Whether this portfolio pays needs weights fitted before the days they trade, and a charge for trading every day.
 
 ## References
