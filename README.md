@@ -2611,8 +2611,10 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that no whiteboard module draws, the
-AUD.CAD rollover post's two by
+which also fails on any GIF in the folder that no whiteboard module draws. The
+price spread post's one GIF is checked the same way by
+[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py),
+the AUD.CAD rollover post's two by
 [tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py),
 and the calendar spreads post's two by
 [tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py).
@@ -4038,7 +4040,7 @@ the price spread, 9 percent and 0.5 for the log price spread, and a negative
 APR for the ratio, and each script's closing comment prints six decimals. The
 post draws six lessons from Entry 21 of the replication log.
 
-1. Two scripts land to six digits, and the book's 10.9 percent is not its
+1. Two scripts land to six decimals, and the book's 10.9 percent is not its
    script's 0.108335 rounded.
 2. The three signals hold three portfolios, fixed shares, fixed dollars and
    equal dollars.
@@ -4055,21 +4057,32 @@ Five groups of its figures are not pinned here.
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    That a stationary mix of log prices is a portfolio of constant dollar
-   weights rebalanced every day is at 1435. That a ratio is stationary only in
-   "a special case", that a ratio is unchanged when both prices scale
-   together, and that Chan knows no general answer are at 1476. "Are not, in
-   fact, cointegrated", "near-optimal" with "the benefit of hindsight", the
-   word stationary for the spread, "actually lower", the extra cost of the log
-   price spread, "a negative APR" and the caption "Ratio = USO/GLD" are at
-   1505. The book's figures are pinned, and its words are not.
+   weights rebalanced every day is at 1435. That a ratio or its logarithm is
+   stationary in "a special case", when the two hedge ratios are equal and
+   opposite, that a ratio needs no hedge ratio, that a ratio is unchanged
+   when both prices are multiplied by the same factor, a point Chan credits
+   to a reader, and that Chan knows no general answer to whether a ratio
+   beats a spread with an adaptive hedge ratio are at 1476. "Are not, in fact, cointegrated", the
+   question whether enough short-term mean reversion remains to trade, that
+   the rule is the linear mean reversion of Chapter 2, "near-optimal" with "the
+   benefit of hindsight", the word stationary for the spread, "actually
+   lower", the extra cost of the log price spread, "a negative APR" and the
+   caption "Ratio = USO/GLD" are at 1505. The book's figures are pinned, and its words are not.
 2. Facts outside the committed data. That two public copies of Chan's code
-   hold the three scripts byte for byte and neither holds another version of
-   `Ratio.m`, which `src/chan/price_spread.py`'s docstring records, and that
-   the copy of the two closes in Chan's Python port equals the committed
-   closes, which [data/README.md](data/README.md) records.
+   hold the three scripts byte for byte, which `src/chan/price_spread.py`'s
+   docstring records, that neither holds another version of `Ratio.m`, which
+   Entry 21 of [docs/replication-log.md](docs/replication-log.md) records,
+   and that the copy of the two closes in Chan's Python port equals the
+   committed closes, which [data/README.md](data/README.md) records.
+   `src/chan/matlab_helpers.py`'s docstring records that one `smartstd`
+   ships with the first edition of *Quantitative Trading* and the other with
+   *Algorithmic Trading*.
 3. Arithmetic no test asserts: that any positive constant on the positions
-   cancels out of the return, which the equation shows. The tests check a
-   factor of 2 on synthetic arrays and the two divisors on Chan's file.
+   cancels out of the return, which the equation shows, and that the
+   leftover's standard deviation is about a twentieth of the spread's, which
+   dividing the pinned 2.27 by the pinned 45.37 shows. For the first, the
+   tests check a factor of 2 on synthetic arrays and the two divisors on
+   Chan's file.
 4. The book's Figures 3.1 and 3.2, which the post's figure redraws from the
    scripts' `plot` calls and which nothing compares with the book's own.
 5. Its references, cited rather than computed.
@@ -4082,7 +4095,9 @@ dividends subtracted in dollars and GLD paying none, to
 Sharpe ratio under either divisor, which Lesson 5's link to the Bollinger band
 post quotes, or to
 [tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) for
-the figure's own numbers. Six had no pin before it.
+the figure's own numbers, or to
+[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py)
+for the whiteboard sketch's. Seven had no pin before it.
 
 1. Engle-Granger's −1.5150 for USO on GLD over all 1,500 days, that it does
    not reach the 10% bar of −3.04, and its whole-period hedge ratio of
@@ -4095,11 +4110,24 @@ the figure's own numbers. Six had no pin before it.
    −0.005130 and 0.082065.
 4. The ratio's 1.03 on the first traded day, 0.24 on the last, 1.30 at its
    highest and 0.44 at its highest after 2008.
-5. The two readings tried after the ratio missed: keeping the first 20 days,
-   −0.140674 and −0.744310, and Chan's Python port, −0.140674 and −0.749583.
+5. Two of the three readings tried after the ratio missed: keeping the first
+   20 days, −0.140674 and −0.744310, and Chan's Python port, −0.140674 and
+   −0.749583.
 6. The figure's own lines and labels.
+7. The sketch's two 20-day windows, ending 7 and 14 July 2009, with their
+   hedge ratios of 0.97 and 2.17, a rise of 1.20 between them, intercepts of
+   −51.65 and −161.60, a fall of 109.95 between them, leftovers of −2.71 and
+   −3.21, their clouds' mean GLD of 91.5 dollars, and the frame's heights
+   drawn 12 times taller than the left panel's.
 
-Its one figure is drawn from the committed file by
+`TestThePostQuotesThePins` in
+[tests/test_price_spread.py](tests/test_price_spread.py) reads one copy of
+each figure the post takes from the run, and fails when that copy drifts from
+the run. A second copy of the same figure elsewhere in the post is not always
+read, and neither are Chan's Python port, "a quarter of a percent" and "about
+a twentieth", or Lesson 5's Example 3.2 figures.
+
+Its chart is drawn from the committed file by
 [src/chan/price_spread_figures.py](src/chan/price_spread_figures.py), which
 reads it through the same `read_sources` and `example_three_one` as
 `python -m chan.price_spread`, scale-break guard included. It draws four panels
@@ -4117,6 +4145,31 @@ uv run python -m chan.price_spread_figures
 [tests/test_price_spread_figures.py](tests/test_price_spread_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries one looping whiteboard sketch, in Lesson 4, drawn by
+[src/chan/price_spread_whiteboard.py](src/chan/price_spread_whiteboard.py) on
+the USD.CAD post's sketch machinery. It shows why the spread is mostly the
+20-day fit's intercept. Two real windows a trading week apart, the second
+ending on the day the spread is lowest, have clouds of points that barely
+move, while the fitted line turns. The clouds sit about 91.5 dollars from
+GLD = 0 and h rises 1.20, so the intercept falls about 1.20 × 91.5 dollars,
+109.95 in the run, while the leftover moves by half a dollar. It draws each axis on its left to its own linear scale, the
+right magnifies the points, and it closes on the whole run's correlation and standard deviations. Every figure it
+prints is read from the committed file through the same `read_sources`, and
+the intercept from `rolling_intercept`, which
+[tests/test_price_spread.py](tests/test_price_spread.py) uses too. It builds
+slowly and holds its finished drawing for twelve seconds.
+
+```bash
+uv run python -m chan.price_spread_whiteboard
+```
+
+[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py)
+holds which two windows it draws and their figures, that each panel places
+every point to its own scale, that each intercept sits where its line meets
+GLD = 0, that the whole run's figures sit below the magnified points, that
+made-up figures move its words, and that its GIF is a fresh draw byte for byte
+on the owner's Mac.
 
 [blog/gold-miners-oil-lessons.md](blog/gold-miners-oil-lessons.md) is a
 seventeenth post, about location 1922 of Chan's *Algorithmic Trading*, where
@@ -4565,8 +4618,9 @@ Five groups of what it says are not pinned here.
    benefit of hindsight" and "about 10.9 percent" are at 1505. The book's
    figures are pinned, and its words are not.
 2. Facts outside the committed data. That a second public copy of Chan's code
-   holds `bollinger.m` byte for byte, which `src/chan/bollinger.py`'s docstring
-   records, and that the file was converted to one file per ETF, which
+   holds `bollinger.m` and `fillMissingData.m` byte for byte, which
+   `src/chan/bollinger.py`'s docstring records, and that the file was converted
+   to one file per ETF, which
    [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that a z-score such as 0.99 moves beyond 1
    once multiplied by 1.0260, and that the factor cancels from the linear

@@ -1,11 +1,12 @@
 """The pins for the price spread, log price spread and ratio, *Algorithmic Trading*'s Example 3.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 3.1, with two exceptions, both in
+about Example 3.1, with three exceptions, all in
 ``blog/price-spread-ratio-lessons.md``. The post's figure has its own pins in
-``tests/test_price_spread_figures.py``, and what the post says about the file
-itself, its 67 ETFs, its dividends subtracted in dollars and GLD paying none,
-is held in ``tests/test_series.py``. README lists what the post says that
+``tests/test_price_spread_figures.py``, its whiteboard sketch's two windows
+have theirs in ``tests/test_price_spread_whiteboard.py``, and what the post
+says about the file itself, its 67 ETFs, its dividends subtracted in dollars
+and GLD paying none, is held in ``tests/test_series.py``. README lists what the post says that
 nothing pins. ``docs/replication-log.md`` Entry 21 carries the verdicts and
 points here row by row.
 
@@ -40,7 +41,7 @@ them.
 
 ``TestThePairDoesNotCointegrate`` holds location 1505's statement that the
 pair does not cointegrate, and what the 20-day fit does instead: its hedge
-ratio changes sign, and the spread the scripts trade leaves out the fit's
+ratio changes sign, and the spread the scripts trade never subtracts the fit's
 intercept, which carries almost all of it.
 
 Exploratory. Reproducing Chan's figures spends the 2006 to 2012 sample on a
@@ -48,6 +49,9 @@ rule he chose. It first ran here on 2026-10-05.
 """
 
 from __future__ import annotations
+
+import re
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -80,6 +84,7 @@ from chan.price_spread import (
     ratio,
     read_sources,
     rolling_hedge_ratio,
+    rolling_intercept,
     run,
     zscore,
 )
@@ -295,28 +300,9 @@ class TestTheClaims:
         assert result.log_price_spread.sharpe < result.price_spread.sharpe, SPEC
 
 
-def _rolling_intercept(closes: pd.DataFrame) -> np.ndarray:
-    """The intercept of the 20-day regression the hedge ratio comes from, on the kept rows.
-
-    Each kept row's window reaches back into the 20 rows the scripts drop, so it is
-    fitted on the full closes and then cut the way the hedge ratio is.
-    """
-    gld, uso = closes[X_SYMBOL].to_numpy(), closes[Y_SYMBOL].to_numpy()
-    ones = np.ones(LOOKBACK)
-    return np.array(
-        [
-            ols(
-                uso[t - LOOKBACK + 1 : t + 1],
-                np.column_stack([gld[t - LOOKBACK + 1 : t + 1], ones]),
-            ).beta[1]
-            for t in range(LOOKBACK, len(gld))
-        ]
-    )
-
-
 class TestThePairDoesNotCointegrate:
     """Location 1505 says GLD and USO "are not, in fact, cointegrated", and the rule trades
-    them anyway on a hedge ratio refitted every 20 days.
+    them anyway on a hedge ratio refitted every day over the last 20 days.
 
     The test is :func:`chan.pair_cointegration.engle_granger` at one lag, USO regressed on
     GLD with an intercept over all 1,500 days, its residual's ADF statistic compared with
@@ -343,9 +329,10 @@ class TestThePairDoesNotCointegrate:
         """The 20-day regression fits ``USO = c + h·GLD + e``, and the scripts trade
         ``USO − h·GLD``, which is ``c + e``. The intercept ``c`` moves with the window, and
         it carries all but a quarter of a percent of the spread's variance. Traded alone by
-        the same rule, the leftover ``e`` earns nothing."""
+        the same rule, the leftover ``e`` earns close to nothing."""
         signal = result.price_spread.signal
-        intercept = _rolling_intercept(sources[1])
+        gld, uso = sources[1][X_SYMBOL].to_numpy(), sources[1][Y_SYMBOL].to_numpy()
+        intercept = rolling_intercept(uso, gld)[LOOKBACK:]
         np.testing.assert_allclose(
             signal.value - intercept,
             [
@@ -476,6 +463,15 @@ class TestTheRule:
         x = np.array([1.0, 2.0, 3.0, 4.0])
         assert rolling_hedge_ratio(x + 10.0, x, 4)[3] == pytest.approx(1.0, abs=1e-12)
 
+    def test_the_intercept_comes_from_the_same_fit(self) -> None:
+        """``y = 2.5·x + 3`` fits an intercept of 3 on every full window, and NaN before."""
+        x = np.array([1.0, 3.0, 2.0, 5.0, 4.0])
+        intercept = rolling_intercept(2.5 * x + 3.0, x, 3)
+        assert np.isnan(intercept[:2]).all()
+        np.testing.assert_allclose(intercept[2:], 3.0, rtol=0, atol=1e-12)
+        with pytest.raises(ValueError, match="rolling_intercept takes a window of at least 3"):
+            rolling_intercept(x, x, 2)
+
     def test_the_hedge_ratios_window_ends_on_its_own_row(self) -> None:
         """Row 2 of a window of 3 reads rows 0 to 2. A shock on row 3 moves rows 3 on only."""
         x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
@@ -524,7 +520,9 @@ class TestTheRule:
 
     def test_a_window_too_short_to_fit_a_slope_and_an_intercept_is_refused(self) -> None:
         """Two rows fit both exactly, and one leaves the slope undetermined."""
-        with pytest.raises(ValueError, match="at least 3 rows, not 2"):
+        with pytest.raises(
+            ValueError, match="rolling_hedge_ratio takes a window of at least 3 rows, not 2"
+        ):
             rolling_hedge_ratio(np.arange(5.0), np.arange(5.0), 2)
 
     def test_a_window_holding_a_nan_gives_a_nan_slope_and_the_rest_still_fit(self) -> None:
@@ -634,3 +632,169 @@ class TestTheRefusals:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert str(stopped.value) == str(refusal)
+
+
+# --- the post ------------------------------------------------------------------
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "price-spread-ratio-lessons.md"
+
+
+def _prose(x: float, places: int) -> str:
+    """A figure as the post's prose prints it, with a Unicode minus."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+class TestThePostQuotesThePins:
+    """One copy of each figure the post takes from the run, read from the post itself.
+
+    Other copies of the same figure elsewhere in the post are not always read.
+    The prose states these numbers and the tests above derive them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review changed 204 of its numbers one at a time, and none failed a test.
+    Chan's Python port, the post's "a quarter of a percent" and "about a
+    twentieth", and Lesson 5's Example 3.2 figures, which
+    ``tests/test_bollinger.py`` pins, are not read here.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_file_and_the_traded_days(self, sources, result: ExampleThreeOne) -> None:
+        _, closes = sources
+        days = result.price_spread.signal.days
+        _, _, saved, _, count = LIFTED_SOURCES[SOURCE_FILE]
+        assert f"Chan’s own MATLAB file `{SOURCE_FILE}`, saved on {saved}." in self.text
+        assert (
+            f"Chan’s file holds {count} ETFs over {len(closes):,} trading days, from "
+            f"{closes.index[0].date()} to {closes.index[-1].date()}"
+        ) in self.text
+        assert f"The traded days run from {days[0].date()}." in self.text
+        assert (
+            f"throws away its first {LOOKBACK} days, the window the first hedge ratio is "
+            f"fitted on, so all three trade the same {len(days):,} days"
+        ) in self.text
+
+    def test_lesson_1_s_table(self, result: ExampleThreeOne) -> None:
+        for run_ in (result.price_spread, result.log_price_spread):
+            row = f"{run_.apr:.6f} & {run_.sharpe:.6f}"
+            assert f"\\text{{Computed}} & {row}" in self.text, run_.signal.name
+        apr, sharpe = BOOK_PRICE_SPREAD
+        assert f"\\text{{about }} {apr:g}\\% & \\text{{about }} {sharpe:g}" in self.text
+        apr, sharpe = BOOK_LOG_PRICE_SPREAD
+        assert f"\\text{{Book}} & {apr:g}\\% & {sharpe:g}" in self.text
+        for apr, sharpe in (SCRIPT_PRICE_SPREAD, SCRIPT_LOG_PRICE_SPREAD):
+            assert f"\\text{{Comment}} & {apr} & {sharpe}" in self.text
+
+    def test_the_first_position_and_the_first_return(self, result: ExampleThreeOne) -> None:
+        for each in _runs(result):
+            days = each.signal.days
+            first_units = int(np.flatnonzero(np.isfinite(each.units))[0])
+            first_return = int(np.flatnonzero(each.daily)[0])
+            assert (
+                f"sets its first position on {days[first_units].date()}, the first day the "
+                f"{LOOKBACK}-day standard deviation of the signal exists, and earns its first "
+                f"return on {days[first_return].date()}"
+            ) in self.text, each.signal.name
+            assert (
+                f"so that first return comes {first_return} trading days after the traded "
+                "days begin"
+            ) in self.text
+
+    def test_the_book_s_figure_against_its_script_s(self, result: ExampleThreeOne) -> None:
+        apr = result.price_spread.apr
+        assert (
+            f"The price spread’s comment prints {apr:.6f}, which is {100 * apr:.1f} percent at "
+            f"one decimal, and the book prints “about {BOOK_PRICE_SPREAD[0]:g} percent”"
+        ) in self.text
+
+    def test_lesson_2_s_comparison(self, result: ExampleThreeOne) -> None:
+        ps, lps = result.price_spread, result.log_price_spread
+        assert (
+            f"an APR of {lps.apr:.6f} against {ps.apr:.6f} and a Sharpe ratio of "
+            f"{lps.sharpe:.6f} against {ps.sharpe:.6f}"
+        ) in self.text
+
+    def test_the_ratio_s_path(self, result: ExampleThreeOne) -> None:
+        signal = result.ratio.signal
+        after = signal.value[signal.days > "2008-12-31"].max()
+        assert (
+            f"USO’s price was {signal.value[0]:.2f} times GLD’s on the first traded day and "
+            f"{signal.value[-1]:.2f} times it on the last, and the ratio’s highest after 2008 "
+            f"was {after:.2f}."
+        ) in self.text
+
+    def test_lesson_3_s_runs(self, sources, result: ExampleThreeOne) -> None:
+        published, swapped = result.ratio, result.swapped_ratio
+        assert f"\\text{{Comment}} & {SCRIPT_RATIO[0]} & {SCRIPT_RATIO[1]}" in self.text
+        assert (
+            f"The transcription, run on Chan’s file, gives {_prose(published.apr, 6)} and "
+            f"{_prose(published.sharpe, 6)}."
+        ) in self.text
+        assert f"`APR={SCRIPT_RATIO[0]} Sharpe={SCRIPT_RATIO[1]}`" in self.text
+        _, closes = sources
+        kept = linear_mean_reversion(ratio(closes.index, closes[X_SYMBOL], closes[Y_SYMBOL], 0))
+        assert (
+            f"**Keeping the first {LOOKBACK} days.** It gives {_prose(kept.apr, 6)} and "
+            f"{_prose(kept.sharpe, 6)}"
+        ) in self.text
+        assert (
+            f"\\text{{Published, USO/GLD}} & {published.apr:.6f} & {published.sharpe:.6f}"
+        ) in self.text
+        assert f"\\text{{Swapped, GLD/USO}} & {swapped.apr:.6f} & {swapped.sharpe:.6f}" in self.text
+        assert (
+            f"The ratio loses {-100 * published.apr:.1f} percent a year as published and "
+            f"{-100 * swapped.apr:.1f} percent with GLD and USO swapped."
+        ) in self.text
+
+    def test_lesson_4_s_cointegration_test(self, sources) -> None:
+        _, closes = sources
+        eg = engle_granger(closes[Y_SYMBOL].to_numpy(), closes[X_SYMBOL].to_numpy())
+        assert f"regresses USO on GLD over all {len(closes):,} days" in self.text
+        assert f"Its statistic is {_prose(eg.adf_stat, 4)}." in self.text
+        assert (
+            f"at the 10 percent significance level, is {_prose(EG_CRIT_N2['10%'], 2)}."
+        ) in self.text
+        assert f"negative, at {_prose(eg.hedge_ratio, 4)}." in self.text
+
+    def test_lesson_4_s_hedge_ratio(self, result: ExampleThreeOne) -> None:
+        hedge = result.price_spread.signal.hedge
+        assert f"runs from {_prose(hedge.min(), 3)} to {_prose(hedge.max(), 3)}." in self.text
+        assert (
+            f"below zero on {int((hedge < 0).sum())} of the {len(hedge):,} traded days"
+        ) in self.text
+
+    def test_lesson_4_s_intercept(self, sources, result: ExampleThreeOne) -> None:
+        _, closes = sources
+        signal = result.price_spread.signal
+        intercept = rolling_intercept(closes[Y_SYMBOL].to_numpy(), closes[X_SYMBOL].to_numpy())
+        leftover = signal.value - intercept[LOOKBACK:]
+        corr = np.corrcoef(signal.value, intercept[LOOKBACK:])[0, 1]
+        assert f"Their correlation is {corr:.4f}." in self.text
+        assert (
+            f"The spread’s standard deviation is {signal.value.std(ddof=1):.2f} dollars and the "
+            f"leftover’s is {leftover.std(ddof=1):.2f}"
+        ) in self.text
+        alone = linear_mean_reversion(
+            Signal(
+                "leftover", signal.days, signal.prices, signal.hedge, leftover, signal.unit_dollars
+            )
+        )
+        assert (
+            f"an APR of {_prose(alone.apr, 6)} and a Sharpe ratio of {_prose(alone.sharpe, 6)}."
+        ) in self.text
+
+    def test_the_figure_s_alt_text(self, result: ExampleThreeOne) -> None:
+        alt = re.search(r"!\[(Four line charts[^\]]*)\]\(\.\./docs/figures/", self.text).group(1)
+        hedge = result.price_spread.signal.hedge
+        assert f"between {_prose(hedge.min(), 3)} and {_prose(hedge.max(), 3)}" in alt
+        assert f"below zero on {int((hedge < 0).sum())} of {len(hedge):,} days" in alt
+        value = result.ratio.signal.value
+        assert (
+            f"starts at {value[0]:.2f}, peaks at {value.max():.2f}, falls steeply through late "
+            f"2008 and ends at {value[-1]:.2f}"
+        ) in alt
+        pairs = ", ".join(
+            f"{_prose(r.apr, 6)} and {_prose(r.sharpe, 6)}"
+            for r in (result.price_spread, result.log_price_spread, result.ratio)
+        )
+        last = result.swapped_ratio
+        assert f"{pairs}, and {_prose(last.apr, 6)} and {_prose(last.sharpe, 6)}" in alt
