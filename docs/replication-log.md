@@ -5611,7 +5611,7 @@ construction.
 | 3 | 2.6, the pair cointegrates at 95 percent | a claim, against jplv7's −3.359 | location 1292 |
 | 4 | 2.7, pair trace statistics, r ≤ 0 and r ≤ 1 | 19.983 and 3.983 | script lines 51 and 52 |
 | 5 | 2.7, pair eigen statistics | 16.000 and 3.983 | script lines 55 and 56 |
-| 6 | 2.7, both tests find two relations for the pair | a claim, with the trace's r ≤ 0 rejected at 99 percent | location 1324 |
+| 6 | 2.7, both tests find two relations for the pair at 95 percent | a claim, with the trace's r ≤ 0 rejected at 99 percent | location 1324 |
 | 7 | 2.7, triplet trace statistics | 34.429, 17.532 and 4.471 | script lines 73 to 75 |
 | 8 | 2.7, triplet eigen statistics | 16.897, 13.061 and 4.471 | script lines 78 to 80 |
 | 9 | 2.7, both tests find three relations for the triplet at 95 percent | a claim | location 1337 |
@@ -5730,15 +5730,27 @@ issue to file.
 location 1350 calls it impractical for that reason. No cost is charged here, as
 none is in the script.
 
-**Whether another lag count changes the counts.** Every book-two script uses
-`k = 1`, and so does this entry. The relation counts in rows 6 and 9 are for
-that lag alone, and row 6's rests on a margin of 0.141.
+**Whether another lag count changes the counts.** Every Johansen call in a
+book-two script uses `k = 1`, and so does this entry. The relation counts in
+rows 6 and 9 are for that lag alone, and row 6's rests on a margin of 0.141.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
-change to any assertion named above moves this entry in the same commit, and
-[blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) moves with
-it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.etf_cointegration_figures` redraws.
+change to any assertion named above moves this entry in the same commit.
+[blog/johansen-etf-lessons.md](../blog/johansen-etf-lessons.md) quotes most of
+these figures, and the suite does check that post. `TestWhatThePostQuotes` in
+[tests/test_etf_cointegration.py](../tests/test_etf_cointegration.py) rebuilds
+each figure the post quotes from the run and fails when the post no longer
+says it. So a re-pin that leaves the post behind fails the suite, while one
+that leaves this entry behind does not. The post's one figure moves with it
+too, and `uv run python -m chan.etf_cointegration_figures` redraws it. So does
+its first whiteboard sketch. That sketch draws row 8's three eigen statistics,
+row 7's trace statistic for r ≤ 0, and the 90 percent eigen and 95 percent
+trace critical values pinned beside those rows, all to one scale.
+`uv run python -m chan.etf_cointegration_whiteboard` redraws it and the post's
+second sketch, the pair's two relations mixing into EWA held alone, which is
+schematic.
+[tests/test_etf_cointegration_whiteboard.py](../tests/test_etf_cointegration_whiteboard.py)
+reads the first sketch's figures from the run.
 
 ## Entry 24: SPY against its component stocks, Chan's *Algorithmic Trading*
 
