@@ -152,6 +152,7 @@ from chan.usdcad_tests_whiteboard import (
     timeline,
 )
 from tests.test_aud_cad_rollover_whiteboard import GIFS as AUD_CAD_ROLLOVER_GIFS
+from tests.test_calendar_spreads_whiteboard import GIFS as CALENDAR_SPREADS_GIFS
 from tests.test_khandani_lo_small_caps_whiteboard import GIFS as SMALL_CAPS_GIFS
 from tests.test_price_spread_whiteboard import GIFS as PRICE_SPREAD_GIFS
 from tests.test_usdcad_tests_whiteboard import GIFS as USDCAD_GIFS
@@ -974,6 +975,7 @@ class TestTheCommittedGifs:
             *USDCAD_GIFS,
             *PRICE_SPREAD_GIFS,
             *AUD_CAD_ROLLOVER_GIFS,
+            *CALENDAR_SPREADS_GIFS,
             *SMALL_CAPS_GIFS,
         }
         assert {path.name for path in FIGURES_DIR.glob("*.gif")} == drawn

@@ -101,8 +101,9 @@ earns on a series reverting at that half-life, and it runs no trade on the rate.
 **The calendar spreads** are every adjacent pair of delivery months, contract m
 against m+1, of natural gas and of RBOB gasoline on EIA's nearest four
 contracts. :mod:`chan.futures` says which numbered file holds each contract on
-each day. No pair overlaps long enough to test alone, so each commodity is one
-batch, and no pair's result is a finding about that pair.
+each day. No pair overlaps long enough for its own result to count as a
+verdict, so each commodity is one batch, and no pair's result is a finding
+about that pair.
 
 1. **The days.** A pair reads every trading day both contracts sit in the
    nearest four, less a six-day :func:`guard_band` around the window's ends
@@ -854,6 +855,23 @@ def _both_reject(near: NDArray[np.float64], far: NDArray[np.float64]) -> NDArray
     return (batched_engle_granger(near, far) < bar) & (batched_engle_granger(far, near) < bar)
 
 
+#: The reject rules :func:`null_shares` can count: both orientations, which
+#: the criterion reads, or one alone, near on far or far on near, which
+#: describe the null and decide nothing.
+NULL_ORIENTATIONS = ("both", "near", "far")
+
+
+def _rejects(
+    near: NDArray[np.float64], far: NDArray[np.float64], orientation: str
+) -> NDArray[np.bool_]:
+    bar = EG_CRIT_N2[SPREAD_LEVEL]
+    if orientation == "near":
+        return batched_engle_granger(near, far) < bar
+    if orientation == "far":
+        return batched_engle_granger(far, near) < bar
+    return _both_reject(near, far)
+
+
 def leg_correlation(pairs: tuple[SpreadPair, ...]) -> float:
     """The median, over ``pairs``, of the correlation of the two legs' daily changes.
 
@@ -871,14 +889,15 @@ def null_shares(
     sets: int = NULL_SETS,
     seed: int = NULL_SEED,
     correlation: float = 0.0,
+    orientation: str = "both",
 ) -> NDArray[np.float64]:
-    """The share of pairs rejecting in both orientations, in each of ``sets`` simulated sets.
+    """The share of pairs rejecting, in both orientations unless told otherwise, in each set.
 
-    Every contract walks with unit Gaussian innovations on every trading day of
-    its run, which is every day of each window it appears in. A contract shared
-    by two pairs carries one walk through both. Each pair reads its walks on
-    the days the real pair keeps, so a dropped day spans two steps as it does
-    in the files.
+    There are ``sets`` simulated sets. Every contract walks with unit Gaussian
+    innovations on every trading day of its run, which is every day of each
+    window it appears in. A contract shared by two pairs carries one walk
+    through both. Each pair reads its walks on the days the real pair keeps,
+    so a dropped day spans two steps as it does in the files.
 
     At ``correlation`` 0, the null issue 137 declared, every contract's walk is
     independent, drawn contract by contract in delivery order. Otherwise each
@@ -888,7 +907,17 @@ def null_shares(
     changes then correlate at ``correlation``. That is the corrected null the
     owner ruled for on 2026-10-03, after the declared one was seen to leave out
     how closely neighbouring contracts move together.
+
+    ``orientation`` picks the reject rule counted, one of
+    :data:`NULL_ORIENTATIONS`. ``"both"``, the criterion's, counts a pair when
+    near on far and far on near both clear the bar. ``"near"`` counts near on
+    far alone and ``"far"`` far on near alone. The rule only reads the walks,
+    so every orientation draws the same walks from the same seed, and
+    ``"both"`` counts exactly the pairs ``"near"`` and ``"far"`` both count.
+    The single orientations describe the null and decide nothing.
     """
+    if orientation not in NULL_ORIENTATIONS:
+        raise ValueError(f"orientation must be one of {NULL_ORIENTATIONS}, not {orientation!r}")
     for first, second in zip(pairs, pairs[1:], strict=False):
         if second.near != first.far:
             raise ValueError("the pairs must be adjacent and in delivery order")
@@ -919,7 +948,7 @@ def null_shares(
             position, walk = walks[month]
             return walk[:, [position[day] for day in pair.kept]]
 
-        count += _both_reject(legs(pair.near), legs(pair.far))
+        count += _rejects(legs(pair.near), legs(pair.far), orientation)
         del walks[pair.near]
     return count / len(pairs)
 
@@ -947,6 +976,10 @@ def power_shares(
     reverting at ``half_life``, unit innovations on both. Each pair draws its
     far leg's steps and then its spread's, in delivery order, and is read on
     the days the real pair keeps.
+
+    Unlike the corrected null, it does not match the files' correlation. With
+    the spread's innovations as large as the walk's, the two legs' daily
+    changes correlate at about 0.7, where the files' do at about 0.99.
     """
     phi = 1.0 - math.log(2.0) / half_life
     rng = np.random.default_rng(seed)
