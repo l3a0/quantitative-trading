@@ -4039,8 +4039,8 @@ once here.
    median, over its pairs, of the correlation between the two legs' daily
    changes on the days the pair keeps. Everything else in item 5 is unchanged.
 
-No pair is tested alone, because 56 days give one pair little power, and no
-pair's result is a finding about that pair. Every result here is
+No single pair's result counts as a verdict, because 56 days give one pair
+little power, and none is a finding about that pair. Every result here is
 **exploratory**. The sample was spent on a claim Chan stated, so the entry says
 whether these spreads behaved as he said over these windows and nothing about
 whether trading them pays.
@@ -4049,9 +4049,9 @@ whether trading them pays.
 
 The book prints no number for this claim, so the published-figure and gap
 columns have nothing to hold in any row and are dropped, under
-`### What a second entry does to this file`. Chan's later book qualifies the
-sentence, at *Algorithmic Trading* location 2321, saying calendar spreads "do
-not generally mean-revert". The issue recorded that as a prior against the
+`### What a second entry does to this file`. *Algorithmic Trading* (2013),
+published between this book's two editions, qualifies the sentence at its
+location 2321, saying calendar spreads "do not generally mean-revert". The issue recorded that as a prior against the
 claim before any statistic, so the result cannot be presented afterwards as a
 surprise in either direction.
 
@@ -4104,11 +4104,11 @@ surprise in either direction.
 | 7 | none, not a replication | Requiring both costs three pairs against the near-on-far orientation alone. Reading either orientation would have been the search [issue 16](https://github.com/l3a0/quantitative-trading/issues/16) forbids. |
 | 8 | none, not a replication | About seven fits in ten pass. The rest fail the check, so their statistics are read against critical values that may not apply. The criterion reads lag 1 and the null is tested at lag 1 too, so the search for a passing lag count was left out rather than run on one side only. |
 | 9 | none, not a replication | About three fits in four pass, the same reading as row 8. |
-| 10 | none, not a replication | A measure of power. If every natural gas pair reverted at 36 days, 21.9 of 360 would reject on average. The real 57 is far more than spreads reverting that slowly would give, so whatever produces the rejections reverts faster within these windows, or comes from something neither simulation models. The row decides neither. |
-| 11 | none, not a replication | If every RBOB pair reverted at 36 days, 13.5 of 220 would reject on average. The real 14 is about what reversion that slow would give, and also about what no reversion at all gives under row 2's null, so a 56-day window cannot tell the two apart for RBOB. |
+| 10 | none, not a replication | A measure of power. If every natural gas pair reverted at 36 days, 21.9 of 360 would reject on average. The real 57 is far more than these sets give, so whatever produces the rejections reverts faster within these windows, or comes from something neither simulation models. The row decides neither. |
+| 11 | none, not a replication | If every RBOB pair reverted at 36 days, 13.5 of 220 would reject on average. The real 14 is about what reversion that slow would give, and also about what no reversion at all gives under row 2's null, so a 56-day window cannot tell the two apart for RBOB. Rows 10 and 11 build each pair's legs from a spread as volatile as the walk, so the legs move together far less closely than the files' contracts, the omission the corrected null fixed. On legs that move together as the files' do, reversion this slow would likely give more in both commodities, above RBOB's 14 and closer to natural gas's 57. That has not been rerun, and [issue 707](https://github.com/l3a0/quantitative-trading/issues/707) pins it. |
 | 12 | none, not a replication | Added after the verdicts were seen, because a bar alone does not say how close a verdict sat to it. |
-| 13 | none, not a replication | The rule's day fits 298 of 316 handovers, about 94%, and a day either side fits between 4% and 12% of them, so the map reads the right contract on almost every day. Whether each of the 18 that do not fit is noise or a rule one day off is not settled here, and one day is what the dropped days absorb. A rule two days off would put a neighbouring contract into a day or two of four pairs, which these counts do not rule out. |
-| 14 | none, not a replication | The same reading for RBOB, with 11 that do not fit. |
+| 13 | none, not a replication | The rule's day fits 298 of 316 handovers, about 94%, and a day either side fits between 4% and 12% of them, so the map reads the right contract on almost every day. Whether each of the 18 that do not fit is noise or a rule one day off is not settled here, and one day is what the dropped days absorb. A rule two days off would read a neighbouring contract on one kept day in each of up to three pairs around an expiry, which these counts do not rule out. |
+| 14 | none, not a replication | The same reading for RBOB, with 11 that do not fit. The check starts at the January 2006 expiry, but the first two pairs also read the October, November and December 2005 expiries. From 3 October to 30 December 2005 the files hold the January to April 2006 contracts, so no handover falls on the rule's day for November or December 2005, and the pairs at January and February 2006 read the wrong contracts on every day they keep before December 2005. As read, neither rejects. Read as the files hold them, the February pair rejects in both orientations, which would make row 2's 14 a 15, far under the bar of 31. `TestTheFirstRbobPairs` pins this, and [issue 704](https://github.com/l3a0/quantitative-trading/issues/704) fixes the reading. |
 
 ### What the entry concludes
 
@@ -4124,7 +4124,8 @@ Three things, and the first is the verdict.
    after the fact. Two contracts a month apart move almost as one, and then
    the two orientations nearly agree, so the requirement removes little. With
    no cointegration, a null of independent walks has a median of 12 natural
-   gas pairs rejecting, and a null at the files' correlation has 35. The
+   gas pairs rejecting in both orientations, and a null at the files'
+   correlation has 35. The
    declared null missed that, and it is why the bars were corrected.
 3. **The expiry map holds where it was checked, and one correction to it was
    owed.** Three days the calendar listed as closures, the two days of
@@ -4132,7 +4133,8 @@ Three things, and the first is the verdict.
    and RBOB file settled. Counted closed, they put the November 2012 natural
    gas expiry two trading days early, beyond what the dropped days absorb, so
    the calendar no longer counts them closed. No figure in Entry 11 reads any
-   of the three.
+   of the three. The check did not read RBOB's 2005 expiries, and the map is
+   wrong there, as row 14 says.
 
 ### What this entry cannot say
 
@@ -4162,13 +4164,33 @@ chance.
 two price series. A trade adds costs, roll timing and margin, and none of
 those are here.
 
+### The post's sketches
+
+The calendar spreads post carries two whiteboard sketches, added in its review
+before publishing on 2026-10-21.
+
+1. **Each orientation alone.** It draws natural gas's null counts as circles
+   whose areas stand for them. Each orientation alone rejects in a median of
+   38 of 360 null pairs under either null, so correlating the walks leaves each
+   orientation where it was, and the rise from 12 to 35 in row 3's and row 1's
+   medians is the requirement for both losing its effect.
+   `TestTheNullInEachOrientation` pins those medians beside RBOB's, 24 and 23
+   under the declared null and 23 and 23 under the corrected one. They read the
+   vintages and specification of rows 1 to 12, counting one orientation at a
+   time on the same walks. They describe the nulls, decide nothing, and were
+   computed after the verdicts were seen.
+2. **One window.** It draws the June 2018 natural gas pair's window, its four
+   expiries, the numbered file each leg reads on each day, and the six days it
+   drops. `TestThePairs` already pins that window and those days.
+
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit.
 [blog/calendar-spreads-lessons.md](../blog/calendar-spreads-lessons.md) moves
 with it, since that post writes up every row, and so does
 [blog/stationary-candidates-lessons.md](../blog/stationary-candidates-lessons.md),
-since that post quotes the verdicts. So does the calendar spreads post's
-figure, which `uv run python -m chan.calendar_spread_figures` redraws.
+since that post quotes the verdicts. So do the calendar spreads post's figure
+and its two sketches, which `uv run python -m chan.calendar_spread_figures` and
+`uv run python -m chan.calendar_spreads_whiteboard` redraw.
 
 ## Entry 16: Conditional Parameter Optimization, Chan's *Quantitative Trading*
 
