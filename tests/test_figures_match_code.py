@@ -332,9 +332,10 @@ class TestEveryCommittedFigureIsCompared:
         Finder leaves there does not fail it, and an untracked new PNG still
         does. The GIFs are not read here. ``tests/test_usdcad_tests_whiteboard.py``,
         ``tests/test_equity_seasonals_whiteboard.py`` and
+        ``tests/test_aud_cad_rollover_whiteboard.py`` and
         ``tests/test_khandani_lo_small_caps_whiteboard.py`` each compare their own
         GIFs with a fresh draw byte for byte, and the second fails on any GIF in
-        the folder that none of the three modules draws.
+        the folder that no whiteboard module draws.
         """
         committed = {path.name for path in FIGURES_DIR.glob("*.png")}
 
