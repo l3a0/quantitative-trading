@@ -113,15 +113,17 @@ fallback, and font rasterising varies across platforms. Redraw all fourteen with
     uv run python -m chan.usdcad_tests_whiteboard
 
 :mod:`chan.equity_seasonals_whiteboard` draws its thirty-nine sketches,
-:mod:`chan.usdcad_holdout_whiteboard` its one and
+:mod:`chan.usdcad_holdout_whiteboard` its one,
+:mod:`chan.price_spread_whiteboard` its one and
 :mod:`chan.aud_cad_rollover_whiteboard` its two, with this module's strokes,
 timeline and renderer, so an edit to those changes their GIFs too. Redraw all
-four sets after one. The second command needs the owner's archive for fifteen
+five sets after one. The second command needs the owner's archive for fifteen
 of its thirty-nine GIFs, and says so when it is missing::
 
     uv run python -m chan.usdcad_tests_whiteboard
     uv run python -m chan.equity_seasonals_whiteboard
     uv run python -m chan.usdcad_holdout_whiteboard
+    uv run python -m chan.price_spread_whiteboard
     uv run python -m chan.aud_cad_rollover_whiteboard
 """
 
