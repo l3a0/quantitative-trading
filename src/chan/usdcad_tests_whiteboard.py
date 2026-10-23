@@ -122,6 +122,7 @@ it left when the archive is missing::
     uv run python -m chan.equity_seasonals_whiteboard
     uv run python -m chan.khandani_lo_small_caps_whiteboard
     uv run python -m chan.aud_cad_rollover_whiteboard
+    uv run python -m chan.price_spread_whiteboard
 """
 
 from __future__ import annotations
