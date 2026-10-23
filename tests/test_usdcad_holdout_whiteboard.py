@@ -42,10 +42,12 @@ from chan import usdcad_holdout_whiteboard as sketches
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST
+from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_holdout import NEWEY_WEST_CRITICAL, HoldoutRefused, read_holdout
 from chan.usdcad_holdout_whiteboard import (
     GIF_PREFIX,
     LINE_X,
+    SCALE_X,
     _sign_and_t,
     gif_name,
     main,
@@ -64,6 +66,7 @@ from chan.usdcad_tests_whiteboard import (
     render,
     timeline,
 )
+from chan.vintage import VintageUnavailable
 
 POST = REPO_ROOT / "blog" / "usdcad-holdout-lessons.md"
 
@@ -263,6 +266,17 @@ class TestTheGauge:
         assert slopes == pytest.approx([slopes[0]] * len(slopes), rel=1e-12)
         line = _stroke(scene, "line")
         assert line.x.min() < min(xs) and max(xs) < line.x.max()
+
+    @pytest.mark.parametrize("figures", [None, (0.05, 1.2, 2.326)], ids=["run", "made up"])
+    def test_a_quarter_of_the_span_pads_each_end_of_the_scale(self, drawn, figures) -> None:
+        """The span from 0 to the critical value, plus a quarter of it at each
+        end, fills the scale, so 0 stands a sixth of the way along it and the
+        critical value five sixths."""
+        scene = drawn[0] if figures is None else _sign_and_t(*figures[:2], critical=figures[2])
+        left, right = SCALE_X
+        zero, edge = (_x(scene, gid) for gid in ("tick-zero", "tick-critical"))
+        assert (zero - left) / (right - left) == pytest.approx(1 / 6, rel=1e-12)
+        assert (edge - left) / (right - left) == pytest.approx(5 / 6, rel=1e-12)
 
     def test_the_dot_sits_on_the_line_far_left_of_the_zone(self, drawn) -> None:
         """Right of the 0 tick, and nearer it than the zone by more than four to one."""
@@ -466,8 +480,9 @@ class TestTheCommand:
         paths = make_usdcad_holdout_whiteboards()
         assert paths == saved == [FIGURES_DIR / name for name in GIFS]
 
-    def test_a_refusal_reaches_the_operator_as_one_line(self, monkeypatch) -> None:
-        refusal = HoldoutRefused("the vintage's rows are out of date order")
+    @pytest.mark.parametrize("kind", [HoldoutRefused, WindowCrossesScaleBreak, VintageUnavailable])
+    def test_a_refusal_reaches_the_operator_as_one_line(self, monkeypatch, kind) -> None:
+        refusal = kind("the vintage's rows are out of date order")
 
         def refuse(*_a, **_k):
             raise refusal

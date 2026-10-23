@@ -64,10 +64,12 @@ more than a factor of 1.6. A zero close would otherwise make H1's sum infinite
 and pass it. No gap threshold is set, because Chan's own closes skip 250 days.
 
 The result is **registered**, on the owner's calling the issue a
-pre-registration on 2026-10-13. :mod:`chan.aud_cad_johansen` already read
-about 20 of the holdout's first days, through 2012-04-26, from Chan's own
-``inputData_USDCAD_20120426.csv`` under a different rule, and the manifest
-tests read the vintage in the commit that landed it.
+pre-registration on 2026-10-13. Four reads came before the run, and Entry 51
+of the log lists them. None decided anything. Among them,
+:mod:`chan.aud_cad_johansen` already read about 20 of the holdout's first
+days, through 2012-04-26, from Chan's own ``inputData_USDCAD_20120426.csv``
+under a different rule, and the manifest tests read the vintage in the commit
+that landed it.
 ``tests/test_usdcad_holdout.py`` is the single authority for every number any
 prose surface quotes about it, and Entry 51 of the log carries the verdict. It
 first ran here on 2026-10-13. The write-up, ``blog/usdcad-holdout-lessons.md``,
@@ -480,10 +482,8 @@ def report(holdout: Holdout, band: Band) -> None:
         "  chan.aud_cad_johansen already read about 20 of the holdout's first days, "
         "through 2012-04-26,"
     )
-    print(
-        "  on Chan's feed under a different rule. "
-        "docs/replication-log.md Entry 51 carries the verdict."
-    )
+    print("  on Chan's feed under a different rule. It is one of four reads before the run,")
+    print("  which docs/replication-log.md Entry 51 lists beside the verdict.")
 
 
 def run(

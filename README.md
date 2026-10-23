@@ -7274,7 +7274,7 @@ repeating them, and draws five lessons from Entry 51 of the replication log.
    from 2013-11-20 to 2016-01-19, while USD.CAD rose 39.5 percent and the rule
    was short on 458 of its 562 days.
 
-Four groups of what it says are not pinned here.
+Five groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its page in the 2013 print edition, as the
    earlier post cites them: the claim on 49, unlimited capital on 50 and the
@@ -7287,12 +7287,15 @@ Four groups of what it says are not pinned here.
 3. Facts Entry 51 states rather than pins: that the other vendor's minute
    bars reach back only to 2024-10-13 on the current subscription and cannot
    yet be downloaded as one complete file, that an earlier run had read about
-   20 of the holdout's first days, through 2012-04-26, and that a check of
-   those minute bars read one day, 2026-10-12.
+   20 of the holdout's first days, through 2012-04-26, that a check of those
+   minute bars read one day, 2026-10-12, and that three of the four reads
+   made before the run came before the plan was written.
 4. The alt text's readings of where the figure's lines run, such as "near
    1.43 in 2026" and "between about 1.20 and 1.45", which are approximate by
-   design. Its dates, its lookback, its half-life and its P&L values are
-   checked against the run like the prose.
+   design.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states most figures more than once, in the lessons list, a lesson, a table
+   or the alt text, and a typo in a copy the class does not read passes.
 
 Every other number traces to an assertion in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py), to
@@ -7301,17 +7304,19 @@ for the figure's own numbers, or, for Chan's closes, to
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py).
 Six had no pin before the post, and `TestWhatThePostMeasured` in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) pins them, all
-measured after the run. `TestWhatThePostQuotes` in the same file checks the
-post's copies of every figure the run computes against the run, along with the
-pass marks of 1.645 and 0.05 and the file checks' factor of 1.6, and the
-words the post puts on pairs of them, such as "more than four times".
+measured after the run. `TestWhatThePostQuotes` in the same file reads one
+copy of each figure the run computes and checks it against the run, along
+with the pass marks of 1.645 and 0.05, the one-sided 5 percent, the band's two
+standard deviations and the file checks' factor of 1.6. It asserts on the run
+each comparison the post's words draw, such as "more than four times", and
+reads one copy of those words.
 
 1. The closes on the drawdown's two dates, 1.0445 and 1.45699, a rise of 39.5
    percent.
 2. The rule is short on 458 of the 562 days of the fall.
 3. The P&L first passes its 2013 high again on 2024-03-06.
 4. The largest position is a short of 5.4054, taken at the close of 2020-03-18.
-5. H sits 0.0014 below the random walks' mean.
+5. The Hurst exponent sits 0.0014 below the random walks' mean.
 6. The band is 0.4987 ± 0.0260, twice the walks' standard deviation.
 
 Its one figure, `usdcad_holdout.png`, is drawn from the committed file by
