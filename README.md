@@ -2604,22 +2604,15 @@ each fresh draw's decoded pixels exactly against the committed file. So a
 figure whose code moved without a redraw fails the suite. The comparison runs
 only on macOS arm64, where the committed figures are drawn. CI's Linux runner
 draws some figures slightly differently, so CI skips it, and only a run on
-the owner's machine catches a stale figure. The USD.CAD post's animated GIFs
-are checked by
+the owner's machine catches a stale figure. The posts' animated GIFs are
+checked instead by one `tests/test_*_whiteboard.py` per post, such as
 [tests/test_usdcad_tests_whiteboard.py](tests/test_usdcad_tests_whiteboard.py)
-instead, which compares each fresh draw with the committed GIF byte for byte,
-also only on macOS arm64 and only with the hand font they were drawn in. The
-equity seasonals post's thirty-nine GIFs are checked the same way by
-[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that no whiteboard module draws. The
-price spread post's one GIF is checked the same way by
-[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py),
-the AUD.CAD rollover post's two by
-[tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py),
-the calendar spreads post's two by
-[tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py),
-and the Johansen ETF post's two by
-[tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py).
+for the USD.CAD post. Each one compares its own GIFs with a fresh draw byte for
+byte, also only on macOS arm64 and only with the hand font they were drawn in.
+[tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py)
+also reads every one of those modules' lists of GIFs and fails unless the folder
+holds exactly the GIFs they name. It finds the modules by their file names, so a
+post that adds sketches edits neither that test nor this paragraph.
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
