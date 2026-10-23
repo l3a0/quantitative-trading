@@ -34,6 +34,7 @@ from chan.aud_cad_rollover_figures import (
     HELD_COLOURS,
     RATE_COLOURS,
     ROLLOVER_FIGURE,
+    _extremes,
     cumulative,
     held_position,
     main,
@@ -138,20 +139,52 @@ class TestTheRates:
             np.testing.assert_array_equal(lines[name].get_ydata(), shown.to_numpy())
         assert (len(_shown(sources.aud[1])), len(_shown(sources.cad[1]))) == (57, 54)
 
-    def test_the_rates_peak_and_bottom_where_the_heading_says(self, sources) -> None:
-        """Each at its first month, since AUD holds 3.00 and CAD 0.24 for several months.
+    def test_a_level_held_across_months_is_named_at_its_first_month(self) -> None:
+        """The rounding comes first for the trough as well as the peak.
 
-        AUD's peak is the file's own number, which prints as 7.25 at two decimals.
+        The committed files' troughs are exact, so only made-up months whose
+        extremes differ past the second decimal show the order matters.
+        """
+        months = pd.date_range("2008-01-01", periods=6, freq="MS")
+        rates = pd.Series([5.004, 5.0001, 5.0049, 2.9999, 3.0001, 4.0], index=months)
+        assert _extremes(rates) == "peaks at 5.00 in January 2008 and bottoms at 3.00 in April 2008"
+        rates = pd.Series([4.0, 3.004, 3.0001, 2.9999, 5.0001, 5.0049], index=months)
+        assert _extremes(rates) == "peaks at 5.00 in May 2008 and bottoms at 3.00 in February 2008"
+
+    def test_the_rates_peak_and_bottom_where_the_heading_says(self, sources) -> None:
+        """Each at its first month at two decimals, since every extreme lasts several months.
+
+        AUD's raw maximum, 7.25001675 in July 2008, is one of five monthly
+        averages that print as 7.25, so the heading names the first of them.
         """
         aud, cad = _shown(sources.aud[1]), _shown(sources.cad[1])
         assert aud.max() == pytest.approx(7.25001675398684, abs=1e-12)
+        assert str(aud.idxmax().date()) == "2008-07-01"
         assert aud.min() == 3.0
         assert cad.max() == 4.51
         assert cad.min() == 0.24
-        assert [
-            str(d.date()) for d in (aud.idxmax(), aud.idxmin(), cad.idxmax(), cad.idxmin())
-        ] == [
+        printed_aud, printed_cad = aud.round(2), cad.round(2)
+        assert [str(d.date()) for d in printed_aud.index[printed_aud == 7.25]] == [
+            "2008-04-01",
+            "2008-05-01",
+            "2008-06-01",
             "2008-07-01",
+            "2008-08-01",
+        ]
+        assert printed_aud.max() == 7.25
+        assert printed_aud.min() == 3.0
+        assert printed_cad.max() == 4.51
+        assert printed_cad.min() == 0.24
+        assert [
+            str(d.date())
+            for d in (
+                printed_aud.idxmax(),
+                printed_aud.idxmin(),
+                printed_cad.idxmax(),
+                printed_cad.idxmin(),
+            )
+        ] == [
+            "2008-04-01",
             "2009-05-01",
             "2007-10-01",
             "2009-05-01",
@@ -218,7 +251,7 @@ class TestTheRates:
 
     def test_the_heading_names_each_extreme(self, axes) -> None:
         assert _title(axes["rates"]) == (
-            "The monthly rates from July 2007. AUD peaks at 7.25 in July 2008 and bottoms at "
+            "The monthly rates from July 2007. AUD peaks at 7.25 in April 2008 and bottoms at "
             "3.00 in May 2009.\nCAD peaks at 4.51 in October 2007 and bottoms at 0.24 in May "
             "2009.\nThe script reads a month a file lacks as 0, drawn dotted to a hollow ring."
         )
@@ -275,7 +308,7 @@ class TestTheHeldPositions:
         )
         sides = [gid for _, gid in ordered]
         assert all(a != b for a, b in zip(sides, sides[1:], strict=False))
-        assert len(sides) == 181
+        assert len(sides) - 1 == 180
 
     def test_the_first_20_days_are_shaded_as_holding_nothing(self, axes, result) -> None:
         (unfilled,) = _spans(axes["close"], "unfilled")

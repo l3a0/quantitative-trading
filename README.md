@@ -422,7 +422,7 @@ where they were first built. The other forty-five were built here.
     other readings land near 5 percent: the AUD rate alone at 0.046648, and
     the differential annualised over 365 days at 0.047279. Every figure is
     exploratory, and the script triples CAD's rollover on Thursdays where the
-    book's own settlement rule says Wednesday.
+    book names Wednesday.
 31. Crude oil reversal joined to momentum, from *Algorithmic Trading*'s
     Chapter 6, on Chan's own continuous futures. The rule buys CL at the
     close when it is below its price 30 trading days ago and above its price
@@ -2611,9 +2611,11 @@ instead, which compares each fresh draw with the committed GIF byte for byte,
 also only on macOS arm64 and only with the hand font they were drawn in. The
 equity seasonals post's thirty-nine GIFs are checked the same way by
 [tests/test_equity_seasonals_whiteboard.py](tests/test_equity_seasonals_whiteboard.py),
-which also fails on any GIF in the folder that no sketch module draws. The
+which also fails on any GIF in the folder that no whiteboard module draws. The
 price spread post's one GIF is checked the same way by
-[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py).
+[tests/test_price_spread_whiteboard.py](tests/test_price_spread_whiteboard.py),
+and the AUD.CAD rollover post's two by
+[tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py).
 
 Both documents were written in the sibling
 [trading-strategies](https://github.com/l3a0/trading-strategies) repo, where
@@ -3160,10 +3162,7 @@ Four groups of its figures are not pinned here.
 2. Counts, arithmetic and facts no test asserts. Nothing counts the seventeen
    reproduced figures, nine for Example 7.6 and eight for Example 7.7, or
    Lesson 1's rules, which of them are bugs, and the six it copies and one it
-   repairs, or the
-   first edition's 95 months with a return and 83 with a position, which are
-   its 96 months less the one with no return and less the twelve with no
-   position. Nothing states that a stretch's slope in the figure is its
+   repairs. Nothing states that a stretch's slope in the figure is its
    average monthly return, that the revised Python copy's five printed figures match the book,
    that the mirror lacks `IJR_20080131.mat`, or that the repost it comes from
    carries the earlier save byte for byte as the mirror has it, which
@@ -3171,10 +3170,18 @@ Four groups of its figures are not pinned here.
    the sources' facts either: CRSP's licensing, or Norgate Diamond's $787.50 a
    year in October 2026 and its US stocks back to 1950, which
    [issue 196](https://github.com/l3a0/quantitative-trading/issues/196)
-   records.
-3. Its references. The four citations, including the publication details the
-   post gives for Heston and Sadka and for Singal, are cited rather than
-   computed.
+   records. Nor does anything assert CRSP's returns reaching back to 1926, the
+   S&P 600's start in October 1994, the first edition's release in November
+   2008 with a 2009 date, Alpha Vantage's terms of personal, non-commercial
+   use, or that pandas filled a missing close by default before version 3.0.
+   Nor does anything assert that companies leaving the S&P 500 within a year
+   make up a larger share of the IVV run's dropped member-months than of its
+   kept ones.
+   Halving Chan's 13 percent to about 6.5 percent a year is arithmetic no test
+   asserts either.
+3. Its references. The five citations, including the publication details the
+   post gives for Cohen, for Heston and Sadka and for Singal, are cited rather
+   than computed.
 4. Heston and Sadka's own figures, read from their October 2006 working
    paper: NYSE- and AMEX-listed stocks in CRSP from January 1965 to December
    2002, only firms listed before each month, and the 1.15 percent a month in
@@ -3254,8 +3261,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     cover, with the 23 months the rerun leaves out of the split.
 14. `equity_seasonals_five_year_noise.gif`, the verdict's gap of 0.0036
     against the rerun's standard error of 0.0281, on one number line.
-15. `equity_seasonals_five_year_januaries.gif`, Example 7.6's three
-    reproduced Januaries as three bars.
+15. `equity_seasonals_five_year_januaries.gif`, under "Example 7.6's three
+    Januaries", its three reproduced Januaries as three bars.
 16. `equity_seasonals_survivors_file.gif`, in the opening beside its
     explanation of survivorship bias, the companies a file saved in 2007 holds
     against the ones that left before the save.
@@ -3324,8 +3331,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
     Januaries, marked at 18 and at 72, which take 72 years.
 36. `equity_seasonals_further_one_series.gif`, under "Every member's price"
     in "Further work", the January bracket the two versions leave beside the
-    741 member-years free data could not check, and the one series checked
-    prices would give, whose place is not known yet.
+    741 unchecked member-years that could have fallen in a traded tenth, and
+    the one series checked prices would give, whose place is not known yet.
 37. `equity_seasonals_further_more_januaries.gif`, under "More Januaries",
     three spans on a timeline, the run's 18 Januaries, the S&P 600's 32 from
     1995 and about 100 on size-defined small caps from 1927, each with the X
@@ -4417,28 +4424,30 @@ Six groups of what it says are not pinned here.
    the rates' sources are at 2303.
 2. Facts outside the committed data. What T + 2 settlement is and why it makes
    one weekday pay three days, and that the MATLAB script kept the 16:59 bar
-   of a minute file no public copy holds, which
+   of a minute file neither public copy of Chan's code holds, which
    [src/chan/aud_cad_rollover.py](src/chan/aud_cad_rollover.py)'s docstring
    records. The script's line 50, `APR=0.061564 Sharpe=0.541802`, is pinned
    through its constants, and its line number was read at `e4bc46f`. So were
    two more readings of the script: that its line 44, the return without
    rollover interest, is commented out, and that it computes no rollover
    figure.
-3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day, that
-   the two monthly averages of 4.908 and 1.592 percent differ by about 3.3
-   points, that the reading over 365 days is the one over 252 scaled by
-   365 / 252, about 1.45, and that the rule holds short on 197 more days than
-   long.
-4. Three readings no test asserts: that the tripled day already pays for the
-   weekends, so annualising over 365 days overstates the year, that long and
-   short days cancel in total when they see about the same rollover interest,
-   and that the stationary-candidates post finds the CAD/AUD rate reverting,
-   which that post's own tests pin. That neither location 2303 nor the script
-   mentions the zero fill is read from the book notes and the script.
+3. Arithmetic no test asserts: that 3.65 percent a year is 0.0001 a day. That
+   each week's five trading days pay for seven calendar days is held by the
+   Lesson 2 sketch's test, which reads the sketch's title and labels from its
+   alt text. No test reads Lesson 2's own sentence saying so.
+4. Four readings no test asserts: that the T + 3 rule at location 2273, read
+   word for word, would also multiply a Thursday, that the tripled day already
+   pays for the weekends, so annualising over 365 days overstates the year,
+   that long and short days cancel in total when they see about the same
+   rollover interest, and that the stationary-candidates post finds the
+   CAD/AUD rate reverting, which that post's own tests pin. That neither
+   location 2303 nor the script mentions the zero fill is read from the book
+   notes and the script.
 5. The figure's alt text, whose readings of the lines, such as AUD staying
-   above CAD in every month and the line without rollover interest sitting
-   above the line with it on every day after January 2008, were measured once
-   on the committed files and are not asserted.
+   above CAD in every month that both files hold and the line without
+   rollover interest sitting above the line with it on every day after
+   January 2008, were measured once on the committed files and are not
+   asserted.
 6. Its references, cited rather than computed. Location 2287 cites Dueker
    and Neely's working paper as Dueker (2006). The book's bibliography, on
    page 192 of the print edition, names both authors and the series number,
@@ -4450,7 +4459,19 @@ Every other number in the post traces to an assertion in
 [tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
 for the figure's own numbers, among them the rates' extremes, the close's
 low and high, where the two cumulative returns end, and their deepest fall
-from 2008-07-30 to 2008-10-08. Three had no pin before it, and
+from 2008-07-30 to 2008-10-08. `TestThePostQuotesThePins` in
+[tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) reads one
+copy of each of those numbers from the post itself, keyed on the words around
+it, so a mistyped copy it reads fails a test. Four kinds are the exception.
+The tests compute with them, and the class reads none of them from the post.
+
+1. The 20-day window.
+2. The 252 days a year the script annualises by.
+3. The divisor of 100 that turns a rate in percent into a fraction.
+4. The month the monthly averages start from, July 2007, and the periods the
+   missing rates fall in, 2012 for CAD and April 2012 for AUD.
+
+Three numbers had no pin before the post, and
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) now pins
 them.
 
@@ -4466,7 +4487,7 @@ Its one figure is drawn from the committed files by
 [src/chan/aud_cad_rollover_figures.py](src/chan/aud_cad_rollover_figures.py),
 which reads them through the same `read_sources` and `aud_cad_rollover` as
 `python -m chan.aud_cad_rollover`, scale-break guard included. It draws three
-panels on one date axis, for Lessons 1, 3 and 4.
+panels on one date axis, for Lessons 1 to 4.
 
 1. The AUD and CAD monthly rates from July 2007, with the months each file
    lacks marked.
@@ -4481,6 +4502,34 @@ uv run python -m chan.aud_cad_rollover_figures
 [tests/test_aud_cad_rollover_figures.py](tests/test_aud_cad_rollover_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/aud_cad_rollover_whiteboard.py](src/chan/aud_cad_rollover_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `aud_cad_rollover_five_pay_seven.gif`, in Lesson 2, the days of interest
+   each weekday pays, read from the script's tripling rule on a week at a
+   constant rate, and the 252-day and 365-day readings of the run. The week
+   is schematic.
+2. `aud_cad_rollover_long_short_cancel.gif`, in Lesson 3, the days held long
+   and short as one bar to scale, the long days cancelling as many short
+   ones, and the net short share times the rollover interest beside what
+   rollover interest added to the returns. It groups the days by side rather
+   than by date, and it builds slowly and holds its finished drawing for
+   twelve seconds.
+
+```bash
+uv run python -m chan.aud_cad_rollover_whiteboard
+```
+
+[tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py)
+reads the run on the committed files and holds that each sketch prints the
+run's figures and puts each mark where they say, that figures its words would
+misdescribe are refused, that no label touches a line, another label or the
+frame's edge, and that each GIF follows its text in the post. It compares each
+committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic
+Sans MS, as the USD.CAD sketches' test does.
+
 [blog/bollinger-band-lessons.md](blog/bollinger-band-lessons.md) is a
 twenty-first post, about Example 3.2 of Chan's *Algorithmic Trading*, which
 trades Example 3.1's GLD and USO price spread with a Bollinger band instead of

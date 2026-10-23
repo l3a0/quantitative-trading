@@ -1611,7 +1611,7 @@ class TestTheCommittedGifs:
 
         It reads this module's prefix, because other posts' sketches share the
         folder. ``tests/test_equity_seasonals_whiteboard.py`` holds that every GIF
-        there is one a sketch module draws.
+        there is one that some whiteboard module draws.
         """
         assert {path.name for path in FIGURES_DIR.glob("usdcad_tests_*.gif")} == set(GIFS)
 
