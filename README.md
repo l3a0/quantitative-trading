@@ -2619,6 +2619,8 @@ the AUD.CAD rollover post's two by
 [tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py),
 the calendar spreads post's two by
 [tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py),
+the Johansen ETF post's two by
+[tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py),
 and the small-caps post's two by
 [tests/test_khandani_lo_small_caps_whiteboard.py](tests/test_khandani_lo_small_caps_whiteboard.py).
 
@@ -3082,7 +3084,7 @@ revised edition's, read in the Kindle Cloud Reader on 2026-10-03.
 3. Chan's *Algorithmic Trading*, cited through
    [its committed notes](research/book-notes/algorithmic-trading.md):
    his argument at location 432 that survivorship flatters a long-short
-   reversal by less than a buy-only rule, and his second telling of the toy at
+   reversal by less than a buy-only rule, and his other telling of the toy at
    location 704, with "almost 100 percent loss".
 4. Arithmetic no test asserts: that −3.1822 rounds to −3.18, that a
    41.72% loss against a 100.91% gain is still a loss turned into a gain,
@@ -3431,7 +3433,8 @@ that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-every post's redraw command.
+the USD.CAD, equity seasonals, price spread, AUD.CAD rollover, calendar spreads,
+Johansen ETF and small-caps redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -4263,8 +4266,9 @@ EWA, EWC and IGE for cointegration with the CADF and Johansen tests and trade
 the triplet's first eigenvector with a linear mean-reversion rule. Chan reports
 a CADF statistic of about −3.64, a half-life of 23 days, and an APR of 12.6
 percent with a Sharpe ratio of 1.4. It is the blog's explanation of the
-Johansen test, built from the CADF test the earlier posts teach. The post
-draws six lessons from Entry 23 of the replication log.
+Johansen test, built from the Engle-Granger test the earlier posts teach,
+which Chan's MATLAB code runs as the CADF test. The post draws six lessons
+from Entry 23 of the replication log.
 
 1. Every figure `cointegrationTests.m` prints reproduces to its last digit,
    the eigenvectors with their signs flipped.
@@ -4293,19 +4297,26 @@ Five groups of its figures are not pinned here.
    fastest at 1340. "No parameters to optimize", "continuously enters and
    exits positions" and "obviously not a practical strategy" are at 1350, and
    "the same data for parameter optimization (such as finding the best hedge
-   ratio) and for backtest" is at 1429. The book's figures are pinned, and its
-   words are not.
+   ratio) and for backtest" is at 1429. The sentence giving the half-life of 23
+   days is at 1347, and the one giving the APR of 12.6 percent and the Sharpe
+   ratio of 1.4 is at 1368. The book's figures are pinned, and its words and
+   their locations are not.
 2. Facts outside the committed data. That jplv7 is James LeSage's toolbox and
    that statsmodels multiplies the eigenvector matrix by the sign of its
    top-left element, which `src/chan/johansen.py`'s docstring records, and
    that the file subtracts dividends in dollars, which
    [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that a full rank makes every combination
-   stationary, including one ETF held alone, that the test's eigenvalues lie
-   between 0 and 1, and the two formulas for the trace and eigen statistics,
-   which the post shows as equations.
+   stationary, including one ETF held alone, that any mix of the counted
+   relations' weights also reverts, that the rank is the number of eigenvalues
+   that are not zero, that the test's eigenvalues lie between 0 and 1, and the
+   two formulas for the trace and eigen statistics, which the post shows as
+   equations.
 4. The book's Figures 2.4, 2.6 and 2.7, which the post's figure redraws from
    the script's `plot` calls and which nothing compares with the book's own.
+   That the script draws four charts, and that the one the figure leaves out
+   is its second, the Figure 2.5 scatter of EWC against EWA, is read from the
+   script, which the repository does not keep.
    The alt text's description of shapes in the figure, such as EWC sitting
    above EWA and both falling in late 2008, is read off the drawing rather
    than asserted.
@@ -4328,8 +4339,21 @@ them.
 3. The first eigenvector's dollars per unit on 2012-04-09, 28.72 of EWC
    against −17.43 of EWA and −8.49 of IGE.
 4. The strategy's deepest drawdown of −0.101249 on 2010-08-16, and its longest
-   spell below a high, 598 days from 2009-04-02 to 2011-08-15 after a high on
-   2009-04-01.
+   spell below a high, 598 trading days from 2009-04-02 to 2011-08-15 after a
+   high on 2009-04-01.
+
+`TestWhatThePostQuotes` in
+[tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) reads the
+post itself. It rebuilds each number the post quotes from this run, the
+figure's alt text included, and fails when the post no longer says it. Of the
+numbers the post quotes from a run, it leaves two groups to other tests.
+
+1. The two Entry 24 counts Lesson 4 cites.
+   [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) pins them
+   from that entry's run, and no test reads this post's sentence about them.
+2. The figures in the first sketch's labels and alt text, which
+   [tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py)
+   reads from the run.
 
 Its one figure is drawn from the committed file by
 [src/chan/etf_cointegration_figures.py](src/chan/etf_cointegration_figures.py),
@@ -4351,6 +4375,33 @@ uv run python -m chan.etf_cointegration_figures
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/etf_cointegration_whiteboard.py](src/chan/etf_cointegration_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `etf_cointegration_trace_stack.gif`, in Lesson 3, the eigen test's one
+   piece of 16.897 stopping short of its 90 percent bar beside the trace
+   test's stack of 16.897, 13.061 and 4.471, which reaches 34.429 and clears
+   its 95 percent bar, all to one scale.
+2. `etf_cointegration_two_relations.gif`, in Lesson 4, the pair's two
+   relations as two arrows on a plane of shares of EWA and EWC, with EWA held
+   alone built from them by a dashed parallelogram. It is schematic and
+   carries none of the run's figures, and its words state the test's claim as
+   a condition.
+
+```bash
+uv run python -m chan.etf_cointegration_whiteboard
+```
+
+[tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py)
+holds what each sketch says and draws, reads the first sketch's figures from
+the run on the committed file, and holds that each block's height is affine in
+its statistic, that the stack's top is the trace statistic, and that figures
+which would make its words false are refused. It compares each committed GIF
+with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS, as the
+USD.CAD sketches' test does. The sketches draw with the USD.CAD module's
+strokes, timeline and renderer, so an edit there needs this redraw too.
 
 [blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
 locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
