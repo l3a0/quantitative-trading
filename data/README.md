@@ -387,8 +387,8 @@ stating rather than leaving a reader to infer.
 
 The five `openassetpricing-202510_` files are monthly long-short portfolio
 returns from the Open Source Asset Pricing project. Andrew Chen and Tom
-Zimmermann rebuild published stock-return predictors from CRSP, sort stocks on
-each one, and publish the portfolios' returns. Their paper is "Open Source
+Zimmermann rebuild published stock-return predictors from CRSP and other
+databases, sort stocks on each one, and publish the portfolios' returns. Their paper is "Open Source
 Cross-Sectional Asset Pricing", *Critical Finance Review*, 2022, and the
 project asks anyone using its data to cite it.
 [Issue 660](https://github.com/l3a0/quantitative-trading/issues/660) committed

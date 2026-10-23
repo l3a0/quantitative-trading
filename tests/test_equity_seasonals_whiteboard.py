@@ -2,12 +2,13 @@
 
 Four sketch the post's opening section, two its section "The two strategies",
 seven the rules its first lesson lists, one rule each, one the split that its
-second lesson discusses, three its check of Chan's five-year claim, two its
-lesson on survivorship bias, four its question on whether the January effect
-still worked after 2008, two its question on whether Heston and Sadka's effect
-existed before 2002, and ten its question on whether Heston and Sadka's
-effect survived it, three of them on where its 4.2 percent comes from and
-three on what a broader series shows, and four its further work. The
+second lesson discusses, two its check of Chan's five-year claim, one its
+section on Example 7.6's three Januaries, two its lesson on survivorship
+bias, four its question on whether the January effect still worked after
+2008, two its question on whether Heston and Sadka's effect existed before
+2002, and ten its question on whether Heston and Sadka's effect still worked
+after 2008, three of them on where its 4.2 percent comes from and three on
+what a broader series shows, and four its further work. The
 opening's timeline places each source's years to scale, from Chan's committed
 files and the registered runs' constants, and its verdicts sketch draws the
 two registered runs' figures to scale. Those figures are pinned here as
@@ -68,7 +69,8 @@ pace is pinned too. The broader series' three read the committed Open Source
 Asset Pricing release, and the last two also :data:`PINNED_IVV`'s months.
 Three of the four further-work sketches draw :data:`PINNED`,
 :data:`PINNED_POWER` and :data:`PINNED_IVV`, and the count of unchecked
-member-years that ``tests/test_equity_seasonals.py`` holds the run gives. The
+member-years that could change a traded tenth, which
+``tests/test_equity_seasonals.py`` holds the run gives. The
 cross-section sketch is schematic.
 
 Two draws on one machine give the same bytes. Whether a committed GIF equals a
@@ -149,6 +151,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from tests.test_aud_cad_rollover_whiteboard import GIFS as AUD_CAD_ROLLOVER_GIFS
 from tests.test_commodity_seasonals_whiteboard import GIFS as COMMODITY_GIFS
 from tests.test_usdcad_tests_whiteboard import GIFS as USDCAD_GIFS
 
@@ -964,12 +967,9 @@ def _durations(path) -> list[int]:
 
 class TestTheCommittedGifs:
     def test_every_gif_in_the_figures_folder_is_drawn_by_one_of_the_modules(self) -> None:
-        """A GIF no module draws is a figure nothing regenerates. Three modules
-        draw them: the USD.CAD post's, this post's and the commodity seasonals
-        post's."""
-        assert {path.name for path in FIGURES_DIR.glob("*.gif")} == (
-            set(GIFS) | set(USDCAD_GIFS) | set(COMMODITY_GIFS)
-        )
+        """A GIF no module draws is a figure nothing regenerates."""
+        drawn = {*GIFS, *USDCAD_GIFS, *AUD_CAD_ROLLOVER_GIFS, *COMMODITY_GIFS}
+        assert {path.name for path in FIGURES_DIR.glob("*.gif")} == drawn
 
     def test_each_has_the_size_frames_loop_and_timing_of_a_fresh_draw(self, frames) -> None:
         for name, steps in zip(GIFS, frames, strict=True):
@@ -1080,7 +1080,7 @@ class TestThePost:
             (
                 "The five-year result does not contradict the split.",
                 "The five-year result is narrow.",
-                "Example 7.6 meets the same limit from another side.",
+                "Example 7.6 runs into the same limit as the five-year check.",
             ),
             FIVE_YEAR_GIFS,
             strict=True,
@@ -1122,7 +1122,7 @@ class TestThePost:
         for opening, name in zip(
             (
                 "A lower and an upper bound show how far the answer could move",
-                "Each version goes through the same test",
+                "A third series leaves the unchecked members out",
             ),
             JANUARY_GIFS[1:],
             strict=True,
@@ -2239,7 +2239,8 @@ class TestTheSurvivorSketches:
 
     def test_each_alt_text_quotes_its_sketchs_words(self, survivors) -> None:
         """Every label but the axis years appears in the alt text word for word,
-        and the alt text's counts are the sketch's."""
+        and the alt text's counts and the places it names for the rings are the
+        sketch's."""
         text = POST.read_text(encoding="utf-8")
         for scene in survivors:
             alt = _alt(text, scene)
@@ -2256,6 +2257,12 @@ class TestTheSurvivorSketches:
         ranking = _alt(text, survivors[1]).lower()
         assert f"ranks {_count_word(sketches.SURVIVOR_RANKED)} stocks" in ranking
         assert f"{_count_word(len(sketches.GONE))} of the stocks are drawn as red rings" in ranking
+        kept = [k for k in range(sketches.SURVIVOR_RANKED) if k not in sketches.GONE]
+        # The alt text names where the rings sit, so it moves with these.
+        assert (sketches.GONE, kept[: sketches.SURVIVOR_TENTH]) == ((0, 2, 17), [1, 3])
+        assert "red rings: the lowest, the third lowest and the third highest" in ranking
+        assert "round the lowest two, one of them red" in ranking
+        assert "the second and fourth lowest of the twenty" in ranking
 
 
 def _alt(text: str, scene) -> str:
@@ -3801,6 +3808,36 @@ def test_every_alt_text_quotes_the_labels_it_names_in_drawing_order(every) -> No
             at, seen = found + len(quoted), seen | {label}
 
 
+def test_every_alt_text_quotes_each_label_that_carries_a_figure(every) -> None:
+    """A label with a figure in it is what a reader who cannot see the GIF
+    relies on, so its alt text must carry it. The drawing-order test skips a
+    label it cannot find, so a mistyped figure passes there. A bare year is an
+    axis tick, which an alt text may leave out. A label that mixes a figure
+    with words must appear in quotes, because a bare match finds "row 1" inside
+    "row 13". A label that is only a number is matched as a substring, so a
+    mistyped tick still passes when its text sits inside another figure in the
+    same alt text, such as "0.05" inside "0.0547"."""
+    text = POST.read_text(encoding="utf-8")
+    missing = [
+        (scene.slug, label)
+        for scene in every
+        for label in scene.labels
+        if re.search(r"\d", label)
+        and not re.fullmatch(r"\d{4}", label)
+        and label not in _alt(text, scene)
+    ]
+    assert missing == []
+    unquoted = [
+        (scene.slug, label)
+        for scene in every
+        for label in scene.labels
+        if re.search(r"\d", label)
+        and re.search(r"[^\W\d_]", label)
+        and f"“{label}”" not in _alt(text, scene)
+    ]
+    assert unquoted == []
+
+
 def _minus(value: float, places: int) -> str:
     return f"{value:.{places}f}".replace("-", "−")
 
@@ -3809,23 +3846,65 @@ def test_the_post_quotes_the_pinned_figures() -> None:
     """The post's body quotes these figures, and each comes from a pin that a
     test elsewhere holds the run or Chan's files give. So a typo in the post,
     or a re-pin the post was not moved with, fails here rather than reaching a
-    reader. Each fragment carries enough words to say which figure it is."""
+    reader. Each fragment carries enough words to say which figure it is. The
+    January bracket and the headline each appear three times, and counting
+    them catches a typo in any one copy, so adding or removing a copy means
+    editing the count."""
     p, ivv, shift, osap, broad = PINNED, PINNED_IVV, PINNED_SHIFT, PINNED_OSAP, PINNED_BROAD
     f, (x_low, x_high) = FiveYearFigures(), PINNED_POWER.detectable()
     months = np.array([r for _, r in ivv.months])
     half = seasonals.detectable_mean(months.std(ddof=1), len(months) // 2)
+    error = months.std(ddof=1) / np.sqrt(len(months))
+    c, z, d, df = f"{shift.critical:.3f}", f"{shift.z:.3f}", f"{shift.shift:.3f}", shift.df
+    start, stop = seasonals.SHIFT_BRACKET
+    detectable = f"{100 * p.detectable:.1f}"
+    headline = f"no return detectable above about {detectable} percent a year"
+    bracket = (
+        f"a loss of {-100 * p.january_low:.2f} percent"
+        f" to a gain of {100 * p.january_high:.2f} percent"
+    )
     fragments = [
+        bracket,
         f"averages between {_minus(p.january_low, 4)} and {_minus(p.january_high, 4)}"
         " a January before costs",
         f"The low series averages {_minus(p.january_low, 4)} a January before costs",
         f"The high series averages {_minus(p.january_high, 4)}, with",
         f"The {len(ivv.months)} months average {_minus(p.monthly_mean, 4)} a month before costs",
-        f"no return detectable above about {100 * p.detectable:.1f} percent a year",
+        f"over the {len(ivv.months)} months from January 2009 to September 2026",
+        f"the same return in every one of the {len(ivv.months)} months",
+        f"Each version goes through the one-sided t-test on the {PINNED_POWER.n} Januaries.",
+        f"It is a one-sided t-test on the {PINNED_POWER.n} Januaries.",
+        headline,
         f"a checked price for {ivv.covered:,} of its {ivv.members:,} member-months",
         f"its t-statistic clears {shift.critical:.3f}",
         f"The normal-curve shortcut gives {shift.critical + shift.z:.4f}"
         f" and the exact answer {shift.shift:.4f}",
         f"land above −{shift.z:.3f}",
+        f"is “no return detectable above about {detectable}% a year”."
+        f" The {detectable} percent is the smallest",
+        f"The {detectable} percent follows from the noise in the {len(months)} months",
+        f"{c} comes from the t distribution for {df} degrees of freedom,"
+        f" one fewer than the {df + 1} months",
+        f"it would clear {c} only 5 percent of the time",
+        f"The {detectable} percent comes from asking how far the scatter must shift"
+        f" for the statistic to clear {c} four times in five",
+        f"because {z} is the normal curve’s 80th percentile",
+        f"clears {c} four times in five when {c} sits {z} below the centre,"
+        f" which puts the centre at {z} past {c}:",
+        f"& \\delta + Z > {c} \\\\",
+        f"& P(Z > -{z}) = 0.80 \\\\",
+        f"& {c} - \\delta = -{z} \\\\",
+        f"& \\delta \\approx {c} + {z} = {shift.critical + shift.z:.3f}",
+        f"With {df} degrees of freedom and a shift of δ",
+        f"T_{{{df}}}(\\delta) = \\frac{{Z + \\delta}}{{\\sqrt{{V / {df}}}}}",
+        f"chi-squared distribution with {df} degrees of freedom, so V / {df} averages 1",
+        f"the way a spread measured from {len(months)} months wanders",
+        f"P\\left(T_{{{df}}}(\\delta) > {c}\\right) = 0.80 \\\\",
+        f"\\Rightarrow\\quad \\delta = {d}",
+        f"The chance of clearing {c} rises as δ grows. At δ = {start:g} it is"
+        f" {seasonals.SIGNIFICANCE:.2f}, the 5 percent bar, and at δ = {stop:g}",
+        f"a slightly bigger shift to clear {c} four times in five",
+        f"X &= {d} \\times {error:.5f} \\\\",
         f"it earned {100 * osap.sample:.2f} percent a month before costs,"
         f" where they printed {100 * osap.printed:.2f} percent."
         f" Its t-statistic of {osap.sample_t:.2f}",
@@ -3843,23 +3922,32 @@ def test_the_post_quotes_the_pinned_figures() -> None:
         f" a year, and the rerun’s annual return has a standard error of {f.rerun_error:.4f}",
         f"is {x_low:.4f} for the low version and {x_high:.4f} for the high one,"
         f" a gain of about {100 * x_low:.1f} to {100 * x_high:.1f} percent",
-        f"and so is their mean, {f.january_mean:.4f}",
+        f"and so is the mean of all three, {f.january_mean:.4f}",
         *[
-            f"{low:.4f} to {high:.4f} at {n}"
+            f"between {low:.4f} and {high:.4f} at {n}"
             for n in (18, 32)
             for low, high in [PINNED_POWER.detectable(n)]
         ],
-        "About 100 Januaries would bring it to {:.4f} to {:.4f}.".format(
+        "About 100 Januaries would bring it to between {:.4f} and {:.4f}.".format(
             *PINNED_POWER.detectable(100)
         ),
-        "9 of the 18 Januaries would catch only an average of {:.4f} to {:.4f}".format(
+        "a test on 9 of the 18 Januaries would catch rises to between {:.4f} and {:.4f}".format(
             *PINNED_POWER.detectable(9)
         ),
-        f"half of the {len(ivv.months)} months only about {1200 * half:.1f} percent a year,"
+        f"half of the {len(ivv.months)} months, the smallest average it would catch rises to about"
+        f" {1200 * half:.1f} percent a year,"
         f" against {100 * p.detectable:.1f} percent for all of them",
+        f"The months have a standard deviation of {months.std(ddof=1):.4f}",
+        f"\\frac{{{months.std(ddof=1):.4f}}}{{\\sqrt{{{len(months)}}}}} = {error:.5f}",
+        f"&= {shift.shift * error:.5f} \\text{{ a month}}",
+        f"12X &= {p.detectable:.4f} \\text{{ a year}}",
+        f"Its {100 * osap.sample:.2f} percent sits about"
+        f" {(osap.sample - osap.printed) / osap.error:.1f} standard errors",
     ]
     text = POST.read_text(encoding="utf-8")
     assert [fragment for fragment in fragments if fragment not in text] == []
+    assert text.count(bracket) == 3
+    assert text.count(headline) == 3
 
 
 def test_every_section_the_post_points_to_is_a_heading() -> None:

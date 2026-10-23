@@ -12,33 +12,35 @@ those files and reachable in the rest, so which run a test read would depend on
 which file it sat in.
 
 The suite runs across pytest-xdist workers, and each worker holds a session of
-its own, so the run is built once in every worker that draws a test reading
-it. ``--dist loadfile`` keeps each file on one worker, so an archive run builds
-it at most twice, once for each of the two files, at the same time. ``-n 0``
-runs the suite in one process and builds it once. The design doc's
-considered-and-rejected register says why ``--dist loadgroup`` was cut for
-this, and [issue 692](https://github.com/l3a0/quantitative-trading/issues/692)
-measures joining the two files the way the factor momentum pair below is
-joined.
+its own, so a shared run is built once in every worker that draws a test
+reading it. ``--dist loadfile`` keeps each file on one worker, and the
+scheduler hook below puts both files reading ``cpo_result`` in one work unit,
+so one worker builds the run once per run of the suite. Every other file keeps
+its own unit. That is the difference from ``--dist loadgroup``, which the
+design doc's considered-and-rejected register cut because it hands every test
+outside a group out one at a time. ``-n 0`` runs the suite in one process and
+builds the run once as well. The register row also gives what
+[issue 692](https://github.com/l3a0/quantitative-trading/issues/692) measured
+before joining the pair.
 
 One run of Example 1.1's three hypothesis tests takes about half a minute, a
 time no test holds, and two files pin what it computes:
 ``tests/test_tu_hypothesis_tests.py`` its figures, and
 ``tests/test_tu_hypothesis_tests_figures.py`` what its figure draws. So
-``tu_hypothesis_run`` shares that run as ``cpo_result`` does, under the same
-rules, and ``--dist loadfile`` computes it at most twice.
+``tu_hypothesis_run`` shares that run as ``cpo_result`` does. Its two files are
+not joined, because it never reached the 30 slowest tests of a CI run, which
+puts each build under 12 seconds there. So ``--dist loadfile`` computes it at
+most twice.
 
 Example 7.4's factor momentum run on Chan's S&P 600 file takes about 100
 seconds on CI, and two files pin what it computes:
 ``tests/test_pca_factor_momentum.py`` its figures, and
 ``tests/test_pca_factor_momentum_figures.py`` what its figure draws.
-``pca_factor_momentum_run`` shares it, and the scheduler hook below puts both
-files in one ``loadfile`` work unit, so one worker builds it once per run.
-Every other file keeps its own unit. That is the difference from
-``--dist loadgroup``, which the register cut because it hands every test
-outside a group out one at a time. ``tests/test_pca_factor.py`` reads the same
-file and stays out, because ``chan.pca_factor.compute`` is a different
-computation and the two share only the panel read.
+``pca_factor_momentum_run`` shares it, and the scheduler hook joins its two
+files the way it joins the readers of ``cpo_result``.
+``tests/test_pca_factor.py`` reads the same file and stays out, because
+``chan.pca_factor.compute`` is a different computation and the two share only
+the panel read.
 
 The ``pytest_configure`` hook below caps each worker's numerical thread
 pools at one thread. A pool sizes itself to every core, so four workers on
@@ -96,9 +98,10 @@ def pytest_configure(config: pytest.Config) -> None:
 
 #: Test files that join another file's ``loadfile`` work unit, keyed by their
 #: own path and mapped to the path whose unit they join, because both read one
-#: session fixture.
+#: session fixture. ``tests/test_conftest.py`` names each pair and its fixture.
 JOINED_FILES = {
     "tests/test_pca_factor_momentum_figures.py": "tests/test_pca_factor_momentum.py",
+    "tests/test_cpo_figures.py": "tests/test_cpo.py",
 }
 
 
