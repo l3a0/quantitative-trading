@@ -104,8 +104,8 @@ The calendar-spread pins read eight vintages and one specification.
   corrected, after the result and on the owner's ruling, to correlate as the
   files' two legs do, and the declared null's figures are pinned beside it.
 
-Ten classes. Most read the module fixture ``spreads``, which runs both batches
-once.
+Thirteen classes. Most read the module fixture ``spreads``, which runs both
+batches once.
 
 1. ``TestTheCalendarSpreadVintages``, the eight files, and the three days the
    calendar used to count closed on which every file settled.
@@ -122,12 +122,24 @@ once.
 7. ``TestTheCalendarSpreadNull``, how the null draws and reads its walks.
 8. ``TestTheCalendarSpreadDescriptions``, each orientation alone, the residual
    check and the power row, which decide nothing.
-9. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
-10. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
+9. ``TestTheNullInEachOrientation``, each null counted in one orientation at a
+   time, which decides nothing either and which the post's sketch draws.
+10. ``TestTheCalendarSpreadReport``, the vintage lines and the verdict lines.
+11. ``TestTheCalendarSpreadCommandLine``, what the command runs and refuses.
+12. ``TestTheFirstRbobPairs``, the two RBOB pairs that read the wrong
+    contracts on every day they keep before December 2005, until issue 704
+    fixes the reading.
+13. ``TestTheCalendarSpreadPostQuotesThePins``, read from the calendar spreads
+    post itself: one copy of its verdicts, bars, the bar's rank among the
+    1,000 null sets, null medians and seeds, its pairs' counts, months and kept
+    days, its critical value, residual check, leg correlations, rejections in
+    each orientation, null sets reaching each verdict, slow-reversion means,
+    handover tallies and the months they span, and what a rule two days off
+    would misread.
 
 A replication under the claim route, so exploratory. The batch takes about
-seven seconds. First run on 2026-10-03, after the criterion was fixed on
-issue 137.
+seven seconds, before the eight single-orientation nulls. First run on
+2026-10-03, after the criterion was fixed on issue 137.
 """
 
 from __future__ import annotations
@@ -139,6 +151,7 @@ import math
 import re
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -165,7 +178,7 @@ from chan.futures import (
     shifted,
     trading_days,
 )
-from chan.pair_cointegration import ResidualCheck, engle_granger, residual_check
+from chan.pair_cointegration import RESIDUAL_LAGS, ResidualCheck, engle_granger, residual_check
 from chan.series import WindowCrossesScaleBreak, aligned_closes, load_vintage
 from chan.stationary_candidates import (
     CROSS_RATE,
@@ -191,6 +204,8 @@ from chan.stationary_candidates import (
     CalendarSpread,
     CrossRate,
     Orientation,
+    PairTest,
+    SpreadPair,
     _orientation,
     batched_adf,
     batched_engle_granger,
@@ -203,6 +218,7 @@ from chan.stationary_candidates import (
     leg_correlation,
     main,
     measure_cross_rate,
+    measure_pair,
     null_shares,
     report_calendar_spread,
     report_cross_rate,
@@ -1335,7 +1351,11 @@ class TestTheContractNumber:
 
 
 class TestTheExpiryMapAgainstTheFiles:
-    """Whether the files hand over on the day each rule says, over every expiry.
+    """Whether the files hand over on the day each rule says.
+
+    Natural gas is read from its February 1994 expiry and RBOB from its January
+    2006 one, which leaves out the two 2005 RBOB expiries ``TestTheFirstRbobPairs``
+    holds.
 
     A negative :func:`handover_fit` says the handover fits. At the rule's day
     about 94% of readable handovers fit, and a day either side between 4% and
@@ -1689,13 +1709,120 @@ class TestTheCalendarSpreadDescriptions:
 
     def test_the_power_row(self, spreads) -> None:
         """Every pair reverting at Chan's 36-day half-life, seed 20261004. The
-        mean share is 0.0609 for natural gas and 0.0614 for RBOB, so a window
-        this short sees reversion that slow in about one pair in sixteen."""
+        mean share is 0.0609 for natural gas and 0.0614 for RBOB, so on legs that
+        move together far less closely than the files', a window this short sees
+        reversion that slow in about one pair in sixteen."""
         assert (SPREAD_POWER_SEED, SPREAD_POWER_HALF_LIFE) == (20261004, 36.0)
         assert float(spreads[NG].power.mean()) == pytest.approx(0.0609, abs=5e-5)
         assert float(spreads[RBOB].power.mean()) == pytest.approx(0.0614, abs=5e-5)
         assert float(spreads[NG].power.mean()) * 360 == pytest.approx(21.9, abs=0.05)
         assert float(spreads[RBOB].power.mean()) * 220 == pytest.approx(13.5, abs=0.05)
+
+    def test_the_power_legs_move_together_far_less_than_the_files(self, spreads) -> None:
+        """Each near leg is the far walk plus an AR(1) spread starting from its
+        stationary distribution, both with unit innovations, so the legs' daily
+        changes correlate at 1/√(1 + 2/(1 + φ)), with φ the spread's daily
+        persistence at the 36-day half-life. That is about 0.7, against the
+        files' 0.99."""
+        phi = 1.0 - math.log(2.0) / SPREAD_POWER_HALF_LIFE
+        assert round(1.0 / math.sqrt(1.0 + 2.0 / (1.0 + phi)), 1) == 0.7
+        assert all(0.99 < spreads[name].correlation < 1.0 for name in (NG, RBOB))
+
+
+@pytest.fixture(scope="module")
+def alone(spreads) -> dict[tuple[str, str, str], np.ndarray]:
+    """Each commodity's two nulls counted in one orientation at a time.
+
+    Keyed by commodity, ``"independent"`` or ``"correlated"``, and ``"near"``
+    or ``"far"``. Eight more runs of the null.
+    """
+    out = {}
+    for name, r in spreads.items():
+        pairs = tuple(t.pair for t in r.tests)
+        for null, rho in (("independent", 0.0), ("correlated", r.correlation)):
+            for orientation in ("near", "far"):
+                out[name, null, orientation] = null_shares(
+                    pairs, correlation=rho, orientation=orientation
+                )
+    return out
+
+
+class TestTheNullInEachOrientation:
+    """Each null counted in one orientation alone, which decides nothing.
+
+    The vintages are the eight EIA files downloaded 2026-10-02, the null is
+    1,000 sets from seed 20261003, and a pair counts when its one orientation
+    clears the 10% bar of -3.04 at one lag. Only the reject rule differs from
+    the verdicts' null, so the walks are the same draws. The calendar spreads
+    post's sketch of the two orientations draws natural gas's medians.
+    """
+
+    @pytest.mark.parametrize(
+        ("name", "n", "null", "near_on_far", "far_on_near"),
+        [
+            (NG, 360, "independent", 38, 38),
+            (NG, 360, "correlated", 38, 38),
+            (RBOB, 220, "independent", 24, 23),
+            (RBOB, 220, "correlated", 23, 23),
+        ],
+    )
+    def test_each_orientation_alone_rejects_as_often_under_either_null(
+        self, alone, name, n, null, near_on_far, far_on_near
+    ) -> None:
+        """Correlating the walks barely moves either orientation alone, so
+        the rise in the null's count is the requirement for both."""
+        medians = tuple(float(np.median(alone[name, null, o])) * n for o in ("near", "far"))
+        assert medians == pytest.approx((near_on_far, far_on_near), abs=1e-9)
+
+    @pytest.mark.parametrize("name", [NG, RBOB])
+    @pytest.mark.parametrize("null", ["independent", "correlated"])
+    def test_both_counts_the_pairs_each_alone_counts(self, spreads, alone, name, null) -> None:
+        """Set by set, the count rejecting both ways is at most either count
+        alone, and it differs from near on far's, so the keyword reached the
+        rule."""
+        r, n = spreads[name], len(spreads[name].tests)
+        both = (r.declared_null if null == "independent" else r.null) * n
+        near, far = alone[name, null, "near"] * n, alone[name, null, "far"] * n
+        assert np.all(both <= np.minimum(near, far) + 1e-9)
+        assert not np.array_equal(both, near)
+
+    def test_one_pair_counts_each_orientation_on_the_same_walks(self) -> None:
+        """For a lone pair the walks are the ones the default draws, so both
+        is exactly near and far together, set by set."""
+        pair = spread_pair(NATURAL_GAS_CONTRACTS, (1997, 6))
+        rng = np.random.default_rng(NULL_SEED)
+        n = len(pair.window)
+        near = np.cumsum(rng.standard_normal((200, n)), axis=1)[:, pair.kept_index]
+        far = np.cumsum(rng.standard_normal((200, n)), axis=1)[:, pair.kept_index]
+        bar = EG_CRIT_N2[SPREAD_LEVEL]
+        near_on_far = batched_engle_granger(near, far) < bar
+        far_on_near = batched_engle_granger(far, near) < bar
+        got = {o: null_shares((pair,), sets=200, orientation=o) for o in ("both", "near", "far")}
+        assert np.array_equal(got["near"], near_on_far.astype(float))
+        assert np.array_equal(got["far"], far_on_near.astype(float))
+        assert np.array_equal(got["both"], (near_on_far & far_on_near).astype(float))
+        assert np.array_equal(got["both"], null_shares((pair,), sets=200))
+
+    def test_an_unknown_orientation_is_refused(self) -> None:
+        pair = spread_pair(NATURAL_GAS_CONTRACTS, (1997, 6))
+        with pytest.raises(ValueError, match="orientation"):
+            null_shares((pair,), sets=10, orientation="either")
+
+    def test_the_whiteboard_draws_these_figures(self, spreads, alone) -> None:
+        """The sketch's tests draw from ``PINNED`` in
+        ``tests/test_calendar_spreads_whiteboard.py``, so they run without the
+        nulls. This holds that the run gives those figures."""
+        from chan.calendar_spreads_whiteboard import BothOrientations
+        from tests.test_calendar_spreads_whiteboard import PINNED
+
+        drawn = BothOrientations.from_nulls(
+            spreads[NG],
+            alone[NG, "independent", "near"],
+            alone[NG, "independent", "far"],
+            alone[NG, "correlated", "near"],
+            alone[NG, "correlated", "far"],
+        )
+        assert drawn == PINNED
 
 
 @pytest.fixture(scope="module")
@@ -1810,3 +1937,308 @@ class TestTheCalendarSpreadCommandLine:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert "no eia RNGC1 raw vintage is recorded" in str(stopped.value)
+
+
+class TestTheFirstRbobPairs:
+    """The first two RBOB pairs read the wrong contracts on every day they keep
+    before December 2005.
+
+    The RBOB files start on 2005-10-03 and hold the January 2006 contract as
+    contract 1 until 2005-12-30, while the rule gives November and December 2005
+    contracts expiring on 2005-10-31 and 2005-11-30. The expiry check starts at
+    January 2006 and never reads those two. Issue 704 fixes the reading. Until
+    then this class holds the gap the calendar spreads post and Entry 15 state,
+    on the vintage downloaded 2026-10-02, at one lag against the 10% bar.
+    """
+
+    @staticmethod
+    def as_held(near: tuple[int, int]) -> PairTest:
+        """The pair read with the files' own numbering on its 2005 days."""
+        files = RBOB_CONTRACTS.files()
+        band = guard_band(RBOB_CONTRACTS, near)
+        window = spread_window(RBOB_CONTRACTS, near)
+        kept, a, b = [], [], []
+        for day in window:
+            if day in band:
+                continue
+            if day < date(2006, 1, 1):
+                n = (near[0] - 2006) * 12 + near[1]
+            else:
+                n = contract_number(day, *near, RBOB_CONTRACTS.last_trade)
+            x, y = files[n - 1].get(day), files[n].get(day)
+            if x is None or y is None:
+                continue
+            kept.append(day)
+            a.append(float(x))
+            b.append(float(y))
+        return measure_pair(
+            SpreadPair(
+                product=RBOB_CONTRACTS.name,
+                near=near,
+                window=window,
+                kept=tuple(kept),
+                near_prices=np.array(a),
+                far_prices=np.array(b),
+            )
+        )
+
+    def test_the_files_do_not_hand_over_on_the_rule_s_2005_days(self) -> None:
+        for day in (date(2005, 10, 31), date(2005, 11, 30)):
+            assert RBOB_CONTRACTS.last_trade(day.year, day.month + 1) == day
+            fit = handover_fit(RBOB_CONTRACTS, day)
+            assert fit is not None and fit > 0, day
+        handover = RBOB_CONTRACTS.last_trade(2006, 1)
+        assert handover == date(2005, 12, 30)
+        fit = handover_fit(RBOB_CONTRACTS, handover)
+        assert fit is not None and fit < 0
+        start = min(sorted(f)[0] for f in RBOB_CONTRACTS.files())
+        assert start == date(2005, 10, 3)
+        assert (
+            f"The RBOB files start on {start.day} {start:%B %Y} and hold the "
+            f"{_month((2006, 1))} contract in file 1 until {handover.day} {handover:%B}. So they "
+            "never hand over on the rule’s dates for the November and December 2005 contracts"
+        ) in CALENDAR_POST.read_text("utf-8")
+
+    def test_they_misread_every_day_they_keep_before_december_2005(self, spreads) -> None:
+        """On a 2005 day the files hold January to April 2006 as contracts 1 to 4.
+
+        The rule agrees from the day after its December 2005 contract expires,
+        so every kept day before then reads the wrong contracts, and only the
+        first two pairs keep any.
+        """
+        agree = next_trading_day(RBOB_CONTRACTS.last_trade(2005, 12))
+        wrong = {
+            (t.pair.near, day)
+            for t in spreads[RBOB].tests
+            for day in t.pair.kept
+            if day.year == 2005
+            and contract_number(day, *t.pair.near, RBOB_CONTRACTS.last_trade)
+            != (t.pair.near[0] - 2006) * 12 + t.pair.near[1]
+        }
+        early = {
+            (t.pair.near, day) for t in spreads[RBOB].tests for day in t.pair.kept if day < agree
+        }
+        assert wrong == early
+        assert {near for near, _ in wrong} == {(2006, 1), (2006, 2)}
+        assert (
+            f"therefore read the wrong contracts on every day they keep before {agree:%B %Y}."
+        ) in CALENDAR_POST.read_text("utf-8")
+
+    def test_neither_pair_rejects_as_read_and_one_does_as_held(self, spreads) -> None:
+        tests = {t.pair.near: t for t in spreads[RBOB].tests}
+        assert min(tests) == (2006, 1)
+        assert not tests[2006, 1].rejects and not tests[2006, 2].rejects
+        assert not self.as_held((2006, 1)).rejects
+        assert self.as_held((2006, 2)).rejects
+        rbob = count(spreads[RBOB].share, 220)
+        text = CALENDAR_POST.read_text("utf-8")
+        assert (
+            f"Read as the files hold them, the February pair rejects in both orientations, "
+            f"which would raise RBOB’s {rbob} to {rbob + 1}, still far under its bar of "
+            f"{count(spreads[RBOB].cut, 220)}."
+        ) in text
+
+
+CALENDAR_POST = Path(__file__).resolve().parents[1] / "blog" / "calendar-spreads-lessons.md"
+
+
+def _month(month: tuple[int, int]) -> str:
+    return date(*month, 1).strftime("%B %Y")
+
+
+class TestTheCalendarSpreadPostQuotesThePins:
+    """The verdicts, bars, the bar's rank among the 1,000 null sets, null medians
+    and seeds in the calendar spreads post, its pairs' counts, months and kept
+    days, its critical value, residual check, leg correlations, rejections in
+    each orientation, null sets reaching each verdict, slow-reversion means,
+    handover tallies and the months they span, and what a rule two days off
+    would misread, one copy of each read from the post itself.
+
+    Other copies of the same figure elsewhere in the post are not always read.
+    The prose states these numbers and the classes above derive them, so
+    before this class a typo in the post passed every test.
+    """
+
+    text = CALENDAR_POST.read_text("utf-8")
+
+    def test_the_verdicts_in_the_opening(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"{count(ng.share, 360)} of its {len(ng.tests)} pairs reject the hypothesis of no "
+            f"cointegration, against a pass mark of {count(ng.cut, 360)}."
+        ) in self.text
+        assert (
+            f"{count(rbob.share, 220)} of its {len(rbob.tests)} pairs reject, against a pass "
+            f"mark of {count(rbob.cut, 220)}."
+        ) in self.text
+
+    def test_the_pairs_and_their_days(self, spreads) -> None:
+        ng, rbob = (spreads[name].tests for name in (NG, RBOB))
+        assert (
+            f"That gives {len(ng)} natural gas pairs, with near months from "
+            f"{_month(ng[0].pair.near)} to {_month(ng[-1].pair.near)}, and {len(rbob)} RBOB "
+            f"pairs, from {_month(rbob[0].pair.near)} to {_month(rbob[-1].pair.near)}."
+        ) in self.text
+        kept = {name: [len(t.pair.kept) for t in spreads[name].tests] for name in (NG, RBOB)}
+        a, b = (f"{min(k)} to {max(k)}" for k in kept.values())
+        ng_median, rbob_median = (f"{np.median(k):g}" for k in kept.values())
+        assert (
+            f"Natural gas pairs keep {a} days, a median of {ng_median}, and RBOB pairs keep "
+            f"{b}, a median of {rbob_median}."
+        ) in self.text
+        assert f"A pair keeps about {ng_median} days, which gives" in self.text
+        assert f"Testing {len(ng) + len(rbob)} pairs at 10%" in self.text
+
+    def test_the_test_and_the_seeds(self) -> None:
+        bar = f"{EG_CRIT_N2[SPREAD_LEVEL]:.2f}".replace("-", "−")
+        assert f"the 10% critical value of {bar}." in self.text
+        assert f"with seed {NULL_SEED}, read each set" in self.text
+        assert f"is the {NULL_RANK}th smallest of those {NULL_SETS:,} counts" in self.text
+        assert f"truly cointegrates, with seed {SPREAD_POWER_SEED}." in self.text
+
+    def test_the_residual_check(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        words = {10: "ten"}
+        unit = ResidualCheck(
+            lags=1, adf_stat=0.0, nobs=1, autocorrelation=np.zeros(0), breusch_godfrey_p=1.0
+        )
+        assert (
+            f"gives a p-value above {RESIDUAL_PASS_P:.2f} and none of the first "
+            f"{words[RESIDUAL_LAGS]} autocorrelations falls outside a band of "
+            f"±{unit.band:.2f}/√n"
+        ) in self.text
+        assert (
+            f"{count(ng.near_on_far_residuals_pass, 360)} of 360 with the near month regressed "
+            f"on the far, and {count(ng.far_on_near_residuals_pass, 360)} the other way round"
+        ) in self.text
+        assert (
+            f"{count(rbob.near_on_far_residuals_pass, 220)} and "
+            f"{count(rbob.far_on_near_residuals_pass, 220)} of 220 in the same order"
+        ) in self.text
+
+    def test_the_table(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"& {count(ng.share, 360)} \\text{{ of }} 360 & {count(rbob.share, 220)} "
+            "\\text{ of } 220 \\\\"
+        ) in self.text
+        declared = (
+            f"{count(ng.declared_null_median, 360)}, \\ {count(ng.declared_cut, 360)} & "
+            f"{count(rbob.declared_null_median, 220)}, \\ {count(rbob.declared_cut, 220)} \\\\"
+        )
+        corrected = (
+            f"{count(ng.null_median, 360)}, \\ {count(ng.cut, 360)} & "
+            f"{rbob.null_median * 220:g}, \\ {count(rbob.cut, 220)} \\\\"
+        )
+        assert f"\\quad\\text{{median, bar}} & {declared}" in self.text
+        assert f"\\quad\\text{{median, bar}} & {corrected}" in self.text
+
+    def test_what_requiring_both_removes(self, spreads, alone) -> None:
+        ng = spreads[NG]
+        each = {
+            count(float(np.median(alone[NG, null, side])), 360)
+            for null in ("independent", "correlated")
+            for side in ("near", "far")
+        }
+        assert len(each) == 1
+        assert (
+            f"each orientation alone rejects in a median of {each.pop()} of natural gas’s 360 "
+            "pairs, whether the simulated walks are independent or correlate as the files do."
+        ) in self.text
+        assert (
+            f"whose median rises from {count(ng.declared_null_median, 360)} pairs to "
+            f"{count(ng.null_median, 360)}."
+        ) in self.text
+
+    def test_what_the_check_found(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"is {ng.correlation:.4f} for natural gas and {rbob.correlation:.4f} for RBOB."
+        ) in self.text
+        assert (
+            f"Natural gas rejects in {count(ng.near_on_far_share, 360)} pairs with the near "
+            f"month as the dependent leg and {count(ng.far_on_near_share, 360)} the other way "
+            f"round, against {count(ng.share, 360)} in both. RBOB rejects in "
+            f"{count(rbob.near_on_far_share, 220)} and {count(rbob.far_on_near_share, 220)}, "
+            f"against {count(rbob.share, 220)}."
+        ) in self.text
+        assert ng.null_reaching == 0
+        assert (
+            f"None of the 1,000 correlated null sets reaches natural gas’s "
+            f"{count(ng.share, 360)}, and {rbob.null_reaching} of them reach RBOB’s "
+            f"{count(rbob.share, 220)}."
+        ) in self.text
+
+    def test_the_slow_reversion_sets(self, spreads) -> None:
+        ng, rbob = spreads[NG], spreads[RBOB]
+        assert (
+            f"averaged {float(ng.power.mean()) * 360:.1f} rejecting pairs of 360 for natural gas "
+            f"and {float(rbob.power.mean()) * 220:.1f} of 220 for RBOB."
+        ) in self.text
+
+    def test_the_handovers(self) -> None:
+        survey = TestTheExpiryMapAgainstTheFiles.survey
+        first = {NG: (1994, 2), RBOB: (2006, 1)}
+        tallies = {
+            (product.name, shift): survey(product, first[product.name], shift)[1:]
+            for product in (NATURAL_GAS_CONTRACTS, RBOB_CONTRACTS)
+            for shift in (0, -1, 1)
+        }
+        (ng, ng_of), (rbob, rbob_of) = tallies[NG, 0], tallies[RBOB, 0]
+        last = _month((2024, 4))
+        assert (
+            f"Over the contracts delivered from {_month(first[NG])} to {last}, the handover "
+            f"falls on the rule’s expiry date for {ng} of the {ng_of} natural gas expiries the "
+            "files have rows to check."
+        ) in self.text
+        assert (
+            f"Over {_month(first[RBOB])} to {last} it does for {rbob} of {rbob_of} RBOB expiries."
+        ) in self.text
+        early = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, -1], tallies[RBOB, -1]))
+        late = " and ".join(f"{a} of {b}" for a, b in (tallies[NG, 1], tallies[RBOB, 1]))
+        assert f"a day earlier it fits {early}, and a day later {late}." in self.text
+        assert (
+            f"each of the {ng_of - ng} natural gas and {rbob_of - rbob} RBOB handovers that do "
+            "not fit"
+        ) in self.text
+
+    def test_a_rule_two_days_off(self, spreads) -> None:
+        """Around an expiry, a rule two days off misreads one kept day in each of up to three pairs.
+
+        Each misread day is credited to the expiry nearest it among the four a
+        pair's window rests on.
+        """
+        for name, product in ((NG, NATURAL_GAS_CONTRACTS), (RBOB, RBOB_CONTRACTS)):
+            for days in (2, -2):
+                wrong = shifted(product, days)
+                misread: dict[tuple[int, int], dict[tuple[int, int], int]] = {}
+                for test in spreads[name].tests:
+                    pair = test.pair
+                    for day in pair.kept:
+                        right = contract_number(day, *pair.near, product.last_trade)
+                        try:
+                            off = contract_number(day, *pair.near, wrong.last_trade)
+                        except ValueError:
+                            off = None
+                        if right != off:
+
+                            def gap(
+                                k: int,
+                                pair: SpreadPair = pair,
+                                day: date = day,
+                                product: Product = product,
+                            ) -> int:
+                                expiry = product.last_trade(*month_step(*pair.near, k))
+                                return abs((expiry - day).days)
+
+                            back = min(range(-4, 1), key=lambda k: (gap(k), k))
+                            per_pair = misread.setdefault(month_step(*pair.near, back), {})
+                            per_pair[pair.near] = per_pair.get(pair.near, 0) + 1
+                assert misread, (name, days)
+                assert max(len(pairs) for pairs in misread.values()) == 3, (name, days)
+                days_each = {n for pairs in misread.values() for n in pairs.values()}
+                assert days_each == {1}, (name, days)
+        assert (
+            "on one kept day in each of up to three pairs around an expiry, and these counts do "
+            "not exclude that."
+        ) in self.text
