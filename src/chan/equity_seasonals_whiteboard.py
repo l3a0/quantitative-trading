@@ -58,8 +58,9 @@ draws the two halves' annual returns beside the sums of 2002 and 2006, to
 one scale, with a bracket for each pair's gap. Its figures come from
 :class:`SplitFigures`, which ``TestTheYearsInsideTheSplit`` derives.
 
-The next three follow Lesson 2's check of Chan's five-year claim, one after
-each of its paragraphs:
+The next three sit in Lesson 2, each after the paragraph it draws, the first
+two under "Chan's five-year claim" and the third under "Example 7.6's three
+Januaries":
 
 1. Which months each figure covers: the whole period, the split's two halves
    and the five-year rerun on one timeline, with the rerun's first year,
@@ -176,9 +177,10 @@ question, each after the text it draws:
 All three draw the critical value and δ from :class:`Shift`, which reads only
 the IVV run's month count, and all three build slowly.
 
-The next three sit under "What a broader series shows". The first two follow
-its first two paragraphs, and the third follows the second sketch, ahead of
-the paragraph that explains why its two lines differ in scale:
+The next three sit under "What a broader series shows", each after the
+paragraph it draws. The first two follow its first two paragraphs, and the
+third follows the paragraph that explains why the project's months swing
+about twice as far as the IVV run's:
 
 1. Before 2002 and after: Open Source Asset Pricing's mean a month from 1965
    to 2001 and from 2002 to 2024, as bars to one scale with one standard
@@ -198,9 +200,9 @@ All three build slowly.
 The last four sit under "Further work", each after the part of it it draws:
 
 1. One series instead of two: the January bracket the two versions leave,
-   beside the count of member-years free data could not check, and the one
-   series checked prices would give. Where that series lands is not known,
-   so the lower line is schematic and its mark says so.
+   beside the count of unchecked member-years that could change a traded
+   tenth, and the one series checked prices would give. Where that series
+   lands is not known, so the lower line is schematic and its mark says so.
 2. Where more Januaries come from: three spans on a timeline from the 1920s,
    the run's Januaries from 2009, the S&P 600's from 1995 and a size-defined
    universe's from 1927, each with the X its count gives on the run's two
