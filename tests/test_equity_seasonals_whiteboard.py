@@ -153,6 +153,7 @@ from chan.usdcad_tests_whiteboard import (
 )
 from tests.test_aud_cad_rollover_whiteboard import GIFS as AUD_CAD_ROLLOVER_GIFS
 from tests.test_calendar_spreads_whiteboard import GIFS as CALENDAR_SPREADS_GIFS
+from tests.test_etf_cointegration_whiteboard import GIFS as ETF_GIFS
 from tests.test_price_spread_whiteboard import GIFS as PRICE_SPREAD_GIFS
 from tests.test_usdcad_tests_whiteboard import GIFS as USDCAD_GIFS
 from tests.test_vx_es_whiteboard import GIFS as VX_ES_GIFS
@@ -976,6 +977,7 @@ class TestTheCommittedGifs:
             *PRICE_SPREAD_GIFS,
             *AUD_CAD_ROLLOVER_GIFS,
             *CALENDAR_SPREADS_GIFS,
+            *ETF_GIFS,
             *VX_ES_GIFS,
         }
         assert {path.name for path in FIGURES_DIR.glob("*.gif")} == drawn
