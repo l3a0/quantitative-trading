@@ -61,11 +61,11 @@ numbers count from the script's first line, ``clear;``.
    replication below.
 
 **The settlement rule the script applies is not the one the book states.**
-Location 2273 says a cross triples its rollover when day T + 3 is a weekend,
-which is Wednesday for both currencies, and names T + 1 settlement as the
-exception for USD.CAD. The script triples CAD on Thursday, which is the USD.CAD
-rule applied to one leg of a cross. The run transcribes the script, because the
-script is what printed the figures.
+Location 2273 says a cross multiplies its rollover when day T + 3 is a weekend
+or holiday, names Wednesday as the tripled day for both currencies, and
+names T + 1 settlement as the exception for USD.CAD. The script triples CAD on
+Thursday, which is the USD.CAD rule applied to one leg of a cross. The run
+transcribes the script, because the script is what printed the figures.
 
 **Row 5's criterion was written before the row was computed.** Location 2273
 defines the rollover on a long B.Q position as the differential iB − iQ. So the

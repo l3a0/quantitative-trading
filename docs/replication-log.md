@@ -2650,8 +2650,8 @@ code behind rows 9, 10, 13 and 14 traces to
 | --- | --- | --- | --- | --- |
 | 1 | `MATLAB_JANUARY`: month-ends by row, the number of stocks in a tenth rounded half away from zero, 58 long and 58 short of 578 ranked | −0.0244 | 0.0000 | `TestJanuaryMatlab::test_the_three_januaries_reproduce` |
 | 2 | as row 1, 59 long and 59 short of 592 ranked | −0.0068 | 0.0000 | as row 1 |
-| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_three_januaries_reproduce` |
-| 4 | as row 3 | −0.003641 | 0.000000 | as row 3 |
+| 3 | `PYTHON_JANUARY`: year-end closes forward-filled before ranking, as pandas before 3.0 did, and a winners' slice of `topN - 2` that leaves out the best and the weakest of the best tenth, 58 long and 56 short of 579 ranked | −0.023853 | 0.000000 | `TestJanuaryPython::test_the_three_januaries_reproduce` |
+| 4 | as row 3, 59 long and 57 short of 593 ranked | −0.003641 | 0.000000 | as row 3 |
 | 5 | `R_JANUARY`: row 1's rules with R's half-to-even rounding | −0.0244 | 0.0000 | `TestJanuaryR::test_the_three_januaries_reproduce` |
 | 6 | as row 5 | −0.0068 | 0.0000 | as row 5 |
 | 7 | `FIRST_EDITION_MATLAB`: month-ends by row, a stock kept or dropped on another stock's close because a sorted row is read against one in column order, a monthly sum over positions, `smartmean` over 95 months and `smartstd` | −0.9167 | 0.0000 | `TestHestonSadkaFirstEdition::test_both_figures_reproduce` |
@@ -2752,7 +2752,7 @@ Seven things.
    2. a monthly sum rather than a mean over positions,
    3. months with no position counted as zero in the mean,
    4. a standard deviation that counts a NaN month as zero,
-   5. a winners' slice that leaves out the best stock,
+   5. a winners' slice that leaves out the best stock and the weakest of the best tenth,
    6. year-end closes forward-filled before ranking, which moves January 2008.
 2. **The four Heston and Sadka printouts disagree on units and agree on sign.**
    The first edition's −0.9167 is a sum over positions. The revised edition
@@ -2863,7 +2863,8 @@ count and its two versions' spreads, from which row 38's X follows, so
 `PINNED_POWER` there moves with a re-pin of it.
 Three of the four under "Further work" draw rows 35 and 38's figures through
 `PINNED` and `PINNED_POWER`, row 41's months through `PINNED_IVV`, and the 741
-member-years the January run could not check, so each moves with a re-pin of
+member-years the January run could not check that could change a traded
+tenth, so each moves with a re-pin of
 those.
 The checked, leavers and running-sum sketches draw row 41's months and
 coverage and row 49's departures from the IVV run, the 4.2 percent's three
@@ -6926,16 +6927,17 @@ Four things.
 Four things.
 
 **Whether the script's settlement rule is the right one.** Location 2273 says
-a cross triples its rollover when day T + 3 is a weekend, which is Wednesday
-for both currencies, and names T + 1 settlement as the exception for USD.CAD.
+a cross multiplies its rollover when day T + 3 is a weekend or holiday, names
+Wednesday as the tripled day for both currencies, and names T + 1 settlement as the exception for USD.CAD.
 The script triples CAD on Thursday, which is the USD.CAD rule applied to one
 leg of a cross. The run transcribes the script, and no row runs the book's
 rule, because choosing between the two after seeing the figures would be a
 search.
 
-**What holidays would add.** No day multiplies its rollover for a holiday.
+**What holidays would add.** Location 2273 multiplies the rollover for a
+holiday too, but no day in the script does.
 Seven weekdays are absent from the file: Christmas Day in 2007, 2008 and 2009,
-New Year's Day in 2008, 2009 and 2010, and 2011-12-23, an early close.
+New Year's Day in 2008, 2009 and 2010, and 2011-12-23, an early close rather than a holiday.
 `TestTheVintages::test_seven_weekdays_are_absent_and_none_is_a_weekend` holds
 the list. A position held across Christmas earns nothing for the day the
 market was shut.
@@ -6953,7 +6955,9 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/aud-cad-rollover-lessons.md](../blog/aud-cad-rollover-lessons.md) moves
 with it, since that post quotes most of these figures. The post's one figure
-moves too, and `uv run python -m chan.aud_cad_rollover_figures` redraws it.
+moves too, and `uv run python -m chan.aud_cad_rollover_figures` redraws it. So
+do the post's two whiteboard sketches, which print the run's figures, and
+`uv run python -m chan.aud_cad_rollover_whiteboard` redraws them.
 
 ## Entry 31: crude oil reversal joined to momentum, Chan's *Algorithmic Trading*
 
@@ -11806,11 +11810,12 @@ which `uv run python -m chan.usdcad_holdout_figures` redraws.
 
 Sources: Ernest P. Chan, *Quantitative Trading*, Kindle location 4425, for
 the "more than 13 percent" a year before 2002. Steven Heston and Ronnie
-Sadka, "Seasonality in the Cross-Section of Stock Returns", *Journal of
-Financial Economics*, 2008, Table 2, for 1.15 percent a month with a t of 7.6
+Sadka, "Seasonality in the Cross-Section of Stock Returns", October 2006
+working paper, Table 2, for 1.15 percent a month with a t of 7.6
 over 1965 to 2002, as
 [issue 661](https://github.com/l3a0/quantitative-trading/issues/661) records
-it. This repository holds no copy of the paper. Shipped under
+it. The paper was published in the *Journal of Financial Economics* in 2008.
+This repository holds no copy of either version. Shipped under
 [issue 661](https://github.com/l3a0/quantitative-trading/issues/661).
 
 Entry 7 reproduces Example 7.7 on Chan's S&P 500 file and tests it on IVV's
@@ -11847,7 +11852,7 @@ Four things carry the result.
    equal-weighted top tenth less the bottom tenth of NYSE and AMEX stocks,
    re-formed monthly, before costs, as [data/README.md](../data/README.md)
    records from the release's `SignalDoc.csv`. The signal they are sorted on
-   is the return in the same calendar month a year earlier, by the project's
+   is the return in the month a year before the month held, by the project's
    description of it, which
    [issue 661](https://github.com/l3a0/quantitative-trading/issues/661)'s
    table quotes. The file writes
