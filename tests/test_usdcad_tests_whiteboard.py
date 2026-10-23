@@ -1609,10 +1609,9 @@ class TestTheCommittedGifs:
     def test_the_figures_folder_holds_these_gifs_and_no_others(self) -> None:
         """A GIF left behind by a renamed or retired scene fails here.
 
-        It reads this module's prefix, because the equity-seasonals post's
-        sketches and the USD.CAD holdout post's share the folder.
-        ``tests/test_equity_seasonals_whiteboard.py`` holds that every GIF there
-        is drawn by one of the three modules.
+        It reads this module's prefix, because other posts'
+        sketches share the folder. ``tests/test_equity_seasonals_whiteboard.py``
+        holds that every GIF there is one that some whiteboard module draws.
         """
         assert {path.name for path in FIGURES_DIR.glob("usdcad_tests_*.gif")} == set(GIFS)
 

@@ -151,6 +151,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from tests.test_aud_cad_rollover_whiteboard import GIFS as AUD_CAD_ROLLOVER_GIFS
 from tests.test_usdcad_holdout_whiteboard import GIFS as HOLDOUT_GIFS
 from tests.test_usdcad_tests_whiteboard import GIFS as USDCAD_GIFS
 
@@ -965,10 +966,9 @@ def _durations(path) -> list[int]:
 
 
 class TestTheCommittedGifs:
-    def test_every_gif_in_the_figures_folder_is_drawn_by_one_of_the_three_modules(self) -> None:
-        """A GIF no module draws is a figure nothing regenerates. The three are
-        this post's, the USD.CAD post's and the USD.CAD holdout post's."""
-        drawn = set(GIFS) | set(USDCAD_GIFS) | set(HOLDOUT_GIFS)
+    def test_every_gif_in_the_figures_folder_is_drawn_by_one_of_the_modules(self) -> None:
+        """A GIF no module draws is a figure nothing regenerates."""
+        drawn = {*GIFS, *USDCAD_GIFS, *HOLDOUT_GIFS, *AUD_CAD_ROLLOVER_GIFS}
         assert {path.name for path in FIGURES_DIR.glob("*.gif")} == drawn
 
     def test_each_has_the_size_frames_loop_and_timing_of_a_fresh_draw(self, frames) -> None:
