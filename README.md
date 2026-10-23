@@ -3430,8 +3430,8 @@ that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-the USD.CAD, equity seasonals, price spread, AUD.CAD rollover and Johansen ETF
-redraw commands.
+the USD.CAD, equity seasonals, price spread, AUD.CAD rollover, calendar spreads
+and Johansen ETF redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
