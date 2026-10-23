@@ -82,6 +82,7 @@ from __future__ import annotations
 
 import dataclasses
 import hashlib
+import importlib
 import math
 import platform
 import re
@@ -151,11 +152,6 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
-from tests.test_aud_cad_rollover_whiteboard import GIFS as AUD_CAD_ROLLOVER_GIFS
-from tests.test_calendar_spreads_whiteboard import GIFS as CALENDAR_SPREADS_GIFS
-from tests.test_etf_cointegration_whiteboard import GIFS as ETF_GIFS
-from tests.test_price_spread_whiteboard import GIFS as PRICE_SPREAD_GIFS
-from tests.test_usdcad_tests_whiteboard import GIFS as USDCAD_GIFS
 
 POST = REPO_ROOT / "blog" / "equity-seasonals-lessons.md"
 
@@ -969,14 +965,16 @@ def _durations(path) -> list[int]:
 
 class TestTheCommittedGifs:
     def test_every_gif_in_the_figures_folder_is_drawn_by_one_of_the_modules(self) -> None:
-        """A GIF no module draws is a figure nothing regenerates."""
+        """A GIF no module draws is a figure nothing regenerates.
+
+        Every ``tests/test_*_whiteboard.py`` lists its own GIFs in ``GIFS``,
+        and this reads each one it finds, so a post that adds sketches adds a
+        test module and edits nothing here. A module with no ``GIFS`` fails
+        rather than counting as drawing nothing.
+        """
+        modules = sorted((REPO_ROOT / "tests").glob("test_*_whiteboard.py"))
         drawn = {
-            *GIFS,
-            *USDCAD_GIFS,
-            *PRICE_SPREAD_GIFS,
-            *AUD_CAD_ROLLOVER_GIFS,
-            *CALENDAR_SPREADS_GIFS,
-            *ETF_GIFS,
+            name for path in modules for name in importlib.import_module(f"tests.{path.stem}").GIFS
         }
         assert {path.name for path in FIGURES_DIR.glob("*.gif")} == drawn
 
