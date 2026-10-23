@@ -49,11 +49,10 @@ such as `chan.usdcad_tests_whiteboard` and `tests/test_usdcad_tests_whiteboard.p
 Each module sets a `GIF_PREFIX` that every one of its GIFs starts with. Copy
 both files' shape from the newest post rather than starting from nothing. The
 test module carries the shared tests listed below, and they apply to a new
-post's sketches only once they are copied. `chan.equity_seasonals_whiteboard`,
-which arrives with [PR #618](https://github.com/l3a0/quantitative-trading/pull/618), adds a `PACED` list of slower
-sketches, a `sketch_timeline` that paces them, `_write` that saves one GIF, and
-a `main` that redraws every GIF the post embeds. Until it lands, `main` has no
-`PACED` list, and a slow sketch on another post adds one the same way.
+post's sketches only once they are copied. `chan.equity_seasonals_whiteboard`
+adds a `PACED` list of slower sketches, a `sketch_timeline` that paces them,
+`_write` that saves one GIF, and a `main` that redraws every GIF the post
+embeds. A slow sketch on another post adds a `PACED` list the same way.
 
 An edit to `chan.usdcad_tests_whiteboard` itself changes how every post's GIFs
 draw, so it is followed by a redraw of every post's sketches, not only the one
