@@ -195,7 +195,8 @@ review finds whichever one was missed.
    `docs/figures` holds exactly the GIFs the modules draw, in
    `tests/test_equity_seasonals_whiteboard.py`, reads `GIFS` from every
    `tests/test_*_whiteboard.py` it finds. So a new post's test module must be
-   named that way and must define `GIFS`, and nothing else names it.
+   named that way and must define `GIFS`. No shared list of modules needs an
+   entry for it, because the check finds it by its file name.
 3. README's list of sketches and its counts, including the list of paced
    sketches.
 4. The replication log entry's paragraph on its sketches.
