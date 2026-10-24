@@ -3985,10 +3985,10 @@ Five groups of its figures are not pinned here.
    same `kentdaniel.m`, which `src/chan/cross_sectional_momentum.py`'s
    docstring records. Whether ETFC's move from 85.9 to 35.5 was a real move or
    a bad print, which nothing checks.
-3. Arithmetic no test asserts: that 0.40 is about a tenth of 4.1 and of
-   4.0530, so either helper's Sharpe ratio is ten times the comment's, that
-   2007-05-15 to 2007-12-31 is seven and a half months, and that 1947 to 2007
-   is sixty years.
+3. Arithmetic no test asserts: that 0.40 is about a tenth of the book's 4.1,
+   of 4.0657 and of 4.0530, so either helper's Sharpe ratio is ten times the
+   comment's, that 2007-05-15 to 2007-12-31 is seven and a half months, and
+   that 1947 to 2007 is sixty years.
 4. The book's Figure 6.6, which the post's figure redraws from
    `kentdaniel.m`'s `plot(cumret)` and which nothing compares with the book's
    own.

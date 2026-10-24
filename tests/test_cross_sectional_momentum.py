@@ -758,7 +758,7 @@ class TestWhatThePostQuotes:
     def test_the_comments_longest_drawdown_cannot_come_from_the_window(self, script, text) -> None:
         """``calculateMaxDD`` counts at most one fewer days than its window holds."""
         rows = len(script.days)
-        falling = np.linspace(0.0, -0.5, rows)
+        falling = np.linspace(-0.01, -0.5, rows)
         assert calculate_max_dd(falling)[1] == rows - 1
         assert SCRIPT_MAX_DDD > rows - 1
         fragment = (
