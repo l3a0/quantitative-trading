@@ -54,15 +54,17 @@ not 1, the way ``tests/conftest.py``'s ``archive_skip_reason`` decides. The
 readings and the exclusions are also tested on frames built by hand, which
 run everywhere.
 
-EXPLORATORY. The run varies a published rule on data Chan left as an
-exercise, and Chan prints no figure for either universe, so no figure carries
-a verdict. Every reading was declared on issue 303 before any figure was
-computed. It first ran on 2026-10-11.
+EXPLORATORY. The run applies a rule Chan published, unchanged, to stocks from
+the S&P 400 and S&P 600, the two universes his exercise names, and Chan prints
+no figure for either
+universe, so no figure carries a verdict. Every reading was declared on issue
+303 before any figure was computed. It first ran on 2026-10-11.
 """
 
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import hashlib
 import io
 import math
@@ -71,7 +73,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from chan import archive, khandani_lo, khandani_lo_small_caps, sp400_panel
+from chan import archive, khandani_lo, khandani_lo_small_caps, paths, sp400_panel
 from chan import khandani_lo_mid_caps as mid_caps
 from chan.fund_panel import numbered_members
 from chan.khandani_lo import daily_returns, reversal, reversal_weights
@@ -581,6 +583,19 @@ class TestTheGapsToBothNeighbours:
             assert ladder.small_gap.a_sharpe == ladder.small.before_costs
             assert ladder.small_gap.b_sharpe == ladder.mid.before_costs
 
+    def test_the_whiteboard_draws_this_runs_figures(self, result) -> None:
+        """The size-order sketch in ``tests/test_khandani_lo_small_caps_whiteboard.py``
+        draws its ``PINNED_MID`` figures, so it runs without the archive. This
+        holds that this run gives them, each within 1e-12 of the figure the sketch
+        was drawn from."""
+        from chan.khandani_lo_small_caps_whiteboard import MidCaps
+        from tests.test_khandani_lo_small_caps_whiteboard import PINNED_MID
+
+        drawn = MidCaps.from_run(result)
+        for field in dataclasses.fields(MidCaps):
+            name = field.name
+            assert getattr(drawn, name) == pytest.approx(getattr(PINNED_MID, name), abs=1e-12), name
+
 
 class TestTheControl:
     """IJR's 385 held members, built as the S&P 400 panel is, against Chan's S&P 600 file."""
@@ -827,3 +842,54 @@ class TestTheCommand:
         with pytest.raises(SystemExit) as stopped:
             mid_caps.main()
         assert str(stopped.value).startswith("no data archive is configured")
+
+
+# --- what the post quotes ----------------------------------------------------------------
+
+POST = paths.REPO_ROOT / "blog" / "khandani-lo-small-caps-lessons.md"
+
+
+@pytest.fixture(scope="module")
+def post() -> str:
+    return POST.read_text(encoding="utf-8")
+
+
+class TestThePostQuotesTheLadder:
+    """Lesson 6 of ``blog/khandani-lo-small-caps-lessons.md`` quotes this run, each figure once.
+
+    Each fragment is built from the run at the precision the post prints, so
+    a typo in the post fails here. It needs the archive, so it skips with the
+    archive pins above. Its words, such as "about one standard error" and
+    "most of the 116", are not asserted, and the size-order sketch's alt text
+    is held by ``tests/test_khandani_lo_small_caps_whiteboard.py``.
+    """
+
+    def test_the_holdings(self, post, read) -> None:
+        _, (mid, _), _ = read
+        holdings = len(sp400_panel.load(sp400_panel.IJH_PANEL))
+        fragments = [
+            f"That run starts from the {holdings} holdings",
+            f"Of the {holdings}, {len(mid)} pass both. Most of the {holdings - len(mid)} left out",
+        ]
+        assert [f for f in fragments if f not in post] == []
+
+    def test_the_ladder_and_the_control(self, post, result) -> None:
+        c, o = result.closes, result.opens
+        assert c.control_gap.gap > 0 > o.control_gap.gap
+        # The post names the nearer neighbour at each price, the S&P 600 on the
+        # closes and the S&P 500 on the opens.
+        assert c.nearer_step == c.small_gap.gap and o.nearer_step == -o.mid_gap.gap
+        fragments = [
+            f"Before costs the S&P 400’s Sharpe ratio is {c.mid.before_costs:.4f} on the closes, "
+            f"between the S&P 500’s {c.large.before_costs:.4f} and the S&P 600’s "
+            f"{c.small.before_costs:.4f}.",
+            f"On the opens it is {o.mid.before_costs:.4f}, below both the S&P 500’s "
+            f"{o.large.before_costs:.4f} and the S&P 600’s {o.small.before_costs:.4f}.",
+            "the step on the closes from the S&P 500 to the S&P 400, "
+            f"at {c.mid_gap.z:.4f} standard errors.",
+            f"lands {c.control_gap.gap:.4f} above that file’s on the closes and "
+            f"{-o.control_gap.gap:.4f} below it on the opens.",
+            f"On the closes that neighbour is the S&P 600, {c.nearer_step:.4f} away, "
+            f"and on the opens it is the S&P 500, {o.nearer_step:.4f} away.",
+        ]
+        assert [f for f in fragments if f not in post] == []

@@ -335,8 +335,9 @@ class TestEveryCommittedFigureIsCompared:
         ``tests/test_usdcad_holdout_whiteboard.py``,
         ``tests/test_price_spread_whiteboard.py``,
         ``tests/test_aud_cad_rollover_whiteboard.py``,
-        ``tests/test_calendar_spreads_whiteboard.py`` and
-        ``tests/test_etf_cointegration_whiteboard.py`` each compare their own
+        ``tests/test_calendar_spreads_whiteboard.py``,
+        ``tests/test_etf_cointegration_whiteboard.py`` and
+        ``tests/test_khandani_lo_small_caps_whiteboard.py`` each compare their own
         GIFs with a fresh draw byte for byte, and the second fails on any GIF in
         the folder that no whiteboard module draws.
         """

@@ -25,6 +25,8 @@ in the headings are Entry 44's rows 7 and 8, declared before any figure.
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -44,7 +46,7 @@ from chan.khandani_lo_small_caps_figures import (
     saved,
     signed,
 )
-from chan.paths import FIGURES_DIR
+from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, INK, MUTED
 from chan.vintage import VintageUnavailable
 from tests.test_regime_figure import png_size
@@ -339,3 +341,55 @@ class TestTheFile:
         monkeypatch.setattr(module, "make_khandani_lo_small_caps_figure", lambda: None)
         main()
         assert capsys.readouterr().out == f"wrote {FIGURES_DIR / KHANDANI_LO_SMALL_CAPS_FIGURE}\n"
+
+
+POST = REPO_ROOT / "blog" / "khandani-lo-small-caps-lessons.md"
+
+
+@pytest.fixture(scope="module")
+def alt() -> str:
+    post = POST.read_text(encoding="utf-8")
+    found = re.findall(
+        r"!\[([^\]]*)\]\(\.\./docs/figures/" + re.escape(KHANDANI_LO_SMALL_CAPS_FIGURE) + r"\)",
+        post,
+    )
+    assert len(found) == 1
+    return found[0]
+
+
+class TestTheAltText:
+    """The post's alt text quotes the figure's numbers, so it is held against what the figure draws.
+
+    The alt text reads each line's end, and the low of the closes' dashed
+    S&P 600 line, as signed percentages in the order below, and each heading's
+    five figures. Its words about a line's shape, such as wandering around zero
+    or dipping below it in the middle of the year, are read off the chart and
+    not asserted.
+    """
+
+    def test_the_percentages_in_the_order_the_alt_text_reads_them(self, alt, axes) -> None:
+        def ydata(price: str, key: str) -> np.ndarray:
+            return _by_gid(axes[price].lines)[key].get_ydata()
+
+        expected = [
+            percent(ydata("closes", "small-before")[-1]),
+            percent(ydata("closes", "small-after").min()),
+            percent(ydata("closes", "small-after")[-1]),
+            percent(ydata("closes", "large-before")[-1]),
+            percent(ydata("closes", "large-after")[-1]),
+            percent(ydata("opens", "small-before")[-1]),
+            percent(ydata("opens", "large-before")[-1]),
+            percent(ydata("opens", "small-after")[-1]),
+            percent(ydata("opens", "large-after")[-1]),
+        ]
+        assert re.findall(r"[+−]\d+\.\d%", alt) == expected, SPEC
+
+    def test_each_headings_figures(self, alt, result) -> None:
+        for price in PRICES:
+            g = getattr(result, f"{price}_gap")
+            word = "beyond" if g.beyond_noise else "within"
+            assert (
+                f"Sharpe ratios of {g.a_sharpe:.4f} and {g.b_sharpe:.4f}, "
+                f"a gap of {signed(g.gap)}, a standard error of {g.standard_error:.4f} "
+                f"and a z of {signed(g.z)}, {word}"
+            ) in alt, price
