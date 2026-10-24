@@ -3697,6 +3697,7 @@ Five groups of its figures are not pinned here.
    stock in the file was in the S&P 500 in late 2011, which rests on the
    examples `TestTheListDatesFromLate2011` holds and on a count of
    497 = 500 − 8 + 5 that the review reconciled against the index by hand.
+   The class also reads the post's sentences that date the list.
    That the same
    script's return line sells the upward jump is not among them, since
    [tests/test_opening_gap.py](tests/test_opening_gap.py) holds that sign.

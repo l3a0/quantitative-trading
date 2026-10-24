@@ -216,6 +216,8 @@ class TestTheListDatesFromLate2011:
     those examples. The universal claim, that every member was in
     the index in late 2011, rests on them plus a count the review reconciled
     against the index by hand, 497 = 500 − 8 + 5, which nothing here asserts.
+    The post's sentences that date the list are read here too, so a post that
+    drifts back to 2012-04-24 fails.
     """
 
     LEFT_IN_DECEMBER_2011 = {
@@ -261,6 +263,19 @@ class TestTheListDatesFromLate2011:
         assert frames["Close"].index[-1] == pd.Timestamp("2012-04-24")
         assert _named("Medco", _schedule_names("2012-03-31"))
         assert not _named("Medco", _schedule_names("2012-06-30"))
+
+    def test_the_post_dates_the_list_to_late_2011(self, sources) -> None:
+        members, _ = sources
+        post = POST.read_text(encoding="utf-8")
+        for fragment in (
+            f"The file holds {len(members)} stocks that were in the S&P 500 in late 2011",
+            "A company that was out of the index for all of late 2011 is not in the file",
+            "The date in its name is the last day of its prices, not the date of its list "
+            "of stocks, which is from late 2011.",
+            "A company that was out of the S&P 500 for all of late 2011 is absent",
+            "Every stock here was in the S&P 500 in late 2011.",
+        ):
+            assert fragment in post, fragment
 
 
 class TestTheFigures:
