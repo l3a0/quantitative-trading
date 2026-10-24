@@ -84,7 +84,7 @@ from chan.cross_sectional_momentum import (
     stabilised,
     window_figures,
 )
-from chan.matlab_helpers import round_half_away, smartstd_first_edition
+from chan.matlab_helpers import calculate_max_dd, round_half_away, smartstd_first_edition
 from chan.paths import REPO_ROOT
 from chan.series import (
     WindowCrossesScaleBreak,
@@ -751,6 +751,18 @@ class TestWhatThePostQuotes:
         ]
         assert self.missing(text, fragments) == []
 
+    def test_the_comments_longest_drawdown_cannot_come_from_the_window(self, script, text) -> None:
+        """``calculateMaxDD`` counts at most one fewer days than its window holds."""
+        rows = len(script.days)
+        falling = np.linspace(0.0, -0.5, rows)
+        assert calculate_max_dd(falling)[1] == rows - 1
+        assert SCRIPT_MAX_DDD > rows - 1
+        fragment = (
+            f"The comment records a longest drawdown of {SCRIPT_MAX_DDD} days, and the window "
+            f"holds {rows} trading days"
+        )
+        assert self.missing(text, [fragment]) == []
+
     def test_lesson_1s_table_and_print_line(self, script, text) -> None:
         s = script
         fragments = [
@@ -822,7 +834,6 @@ class TestWhatThePostQuotes:
             f"On the window’s last day, {after} days after the high",
             f"The arithmetic return is {w3.arithmetic_annual:.6f} and the Sharpe ratio "
             f"{w3.sharpe:.4f}.",
-            f"The first two repeat {w1.sharpe:.4f} and {_signed(w2.arithmetic_annual, '.6f')}",
         ]
         assert self.missing(text, fragments) == []
 

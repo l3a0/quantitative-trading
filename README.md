@@ -4042,14 +4042,16 @@ on the USD.CAD post's sketch machinery, and neither is schematic.
    days, makes 2,500 picks held one unit of capital through the script's
    divisor, and marks the 2007 window's first 24 days, which hold fewer than
    25 cohorts.
-2. `cross_sectional_momentum_two_returns.gif` follows Lesson 1's table. It
-   adds the 2007 window's 160 daily returns to 0.2032 and scales them to
-   0.3200, and multiplies their 1 + r to 1.2227 and annualizes that to
-   0.3726. It carries none of the book's figures, which the post holds back
-   until Lesson 2.
+2. `cross_sectional_momentum_two_returns.gif` follows the sentence after
+   Lesson 1's table. It adds the 2007 window's 160 daily returns to 0.2032
+   and scales them to 0.3200, and multiplies their 1 + r to 1.2227 and
+   annualizes that to 0.3726. It carries none of the book's figures, which
+   the post holds back until Lesson 2.
 
-Both read their counts and figures from the same `read_closes` and
-`script_as_printed` as the run.
+Both read the committed closes through the same `read_closes` as the run.
+The cohorts sketch takes its counts from `formations` and `cohorts_held`,
+and the returns sketch takes its figures from `script_as_printed` over the
+2007 window.
 
 ```bash
 uv run python -m chan.cross_sectional_momentum_whiteboard

@@ -4571,10 +4571,10 @@ Three things.
    compounded one in Example 6.2, in one book by one author. The rule declared
    in advance followed the first example, so the verdicts on rows 6 to 8 say
    what that rule gives, and row 10 says what was seen afterwards.
-3. **The crash Chan describes is in the file.** The strategy that earned a
-   Sharpe ratio of 4.0657 over 2007 had an arithmetic return of −0.323195 over
-   2008 and 2009, which rows 7 and 8 judge. Seen only after the run, and
-   deciding nothing, it fell into a drawdown of −0.606634 from a high on
+3. **The crash Chan describes is in the file.** The strategy earned a Sharpe
+   ratio of 4.0657 over 2007, which row 7 judges, and an arithmetic return of
+   −0.323195 over 2008 and 2009, which row 8 judges. Seen only after the run,
+   and deciding nothing, it fell into a drawdown of −0.606634 from a high on
    2008-07-14 and was still below that high 371 days later, when the window
    ended, so the drawdown had not finished. Its arithmetic return from 2010 to
    2012 was 0.016244, which row 9's rule, fixed before the run, reads as
@@ -4587,7 +4587,10 @@ Six things.
 
 **Which run printed the comment.** A different file, window or version of the
 script could each print 0.0315, and trying them until one did would be the
-search the issue's rule forbids, so none was tried.
+search the issue's rule forbids, so none was tried. The comment's 182-day
+longest drawdown cannot come from the 2007 window as the script computes it.
+`calculateMaxDD` over a window's rows counts at most one fewer days than the
+window holds, and the window holds 160.
 
 **What survivorship does to these figures.** Every stock here survived to
 2012-04-24, and the two legs lose different stocks.
