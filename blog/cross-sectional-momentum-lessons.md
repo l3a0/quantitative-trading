@@ -17,7 +17,7 @@ The APR is harder. Before any run, this repository wrote down a rule that read t
 Two labels apply to every figure below.
 
 1. **Every result is exploratory.** Chan chose the strategy and its settings, and the reproduction tests them on the same days he did. It can say whether his numbers follow from his file and nothing about whether momentum pays.
-2. **Every figure is about survivors.** The file is Chan’s list of the S&P 500 stocks on 2012-04-24, with each one’s earlier closes. So every stock in it lasted until 2012-04-24, and any stock the file holds in 2008 and 2009 survived them.
+2. **Every figure is about survivors.** The file is Chan’s list of the S&P 500 stocks on 2012-04-24, with each one’s earlier closes. So every stock in it lasted until 2012-04-24, and none of them drops out during 2008 and 2009.
 
 The four lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -25,7 +25,7 @@ The four lessons below say what the reproduction does teach. The code is open so
 
 Chan’s sentence describes deciles held for a month. `kentdaniel.m` makes that concrete in four steps.
 
-1. **The ranking.** Each stock’s return over the last 252 trading days, about a year.
+1. **The ranking.** Rank the stocks by their return over the last 252 trading days, about a year.
 2. **The picks.** Every day, buy the 50 stocks with the highest return and short the 50 with the lowest.
 3. **The holding.** Hold each day’s 100 picks, called a cohort, for 25 days. So once 25 days of picks exist, the portfolio holds 25 overlapping cohorts.
 4. **The sizing.** Sum each day’s returns across every position and divide by 2 · 50 · 25, so a full portfolio of 25 cohorts is one unit of capital.
@@ -48,9 +48,9 @@ Survivorship pushes the strategy’s two halves in opposite directions. The shor
 
 ## Lesson 1: the 0.40 is the comment’s, not the code’s
 
-`kentdaniel.m` prints five figures for the 2007 window, and its closing comment lines record five values for them. The first is the arithmetic annual return, 252 times the average daily return, which the script labels `Avg Ann Ret=`. Second comes the Sharpe ratio. Third is the compounded APR, which the script labels `APR=`. It grows the daily returns into a total over the window and annualizes that total at 252 days a year.
+`kentdaniel.m` prints five figures for the 2007 window, and its closing comment lines record five values for them. The first is the arithmetic annual return, 252 times the average daily return, which the script labels `Avg Ann Ret=`. Second comes the Sharpe ratio. Third is the compounded APR, which the script labels `APR=`. It comes from growing the daily returns into a total over the window and annualizing that total at 252 days a year.
 
-The last two figures measure drawdowns. A drawdown is how far the compounded value has fallen below its highest point so far, as a fraction of that high. The maximum drawdown is the deepest, and the longest drawdown is the longest run of consecutive trading days spent below a high.
+The last two figures measure drawdowns. A drawdown is how far the strategy’s compounded value has fallen below its highest point so far, as a fraction of that high. The maximum drawdown is the deepest, and the longest drawdown is the longest run of consecutive trading days spent below a high.
 
 The table gives each figure as the code computes it and as the comment records it. The book’s figures wait for Lesson 2, because which of these they match is that lesson’s question.
 
@@ -78,7 +78,7 @@ Four things bear on whether to believe the code or the comment.
 1. **A second implementation agrees.** The same strategy, written separately in pandas and sharing no code with the transcription, matches it on every day to within 10⁻¹⁵. It shares the transcription’s reading of one function, `lag`, which neither public copy of Chan’s code ships. Both implementations read `lag` as a shift of one row, which is how the first edition of Chan’s first book defines a `lag1.m`. So the agreement rules out a slip in the code and not a misreading of the MATLAB.
 2. **None of the four readings written down in advance comes near 0.40.** Before any run, this repository expected the script to print its comment’s 0.40. It wrote down four readings, R1 to R4, that could reach the book’s 37 percent and 4.1 instead, each changing one thing from the script. The table after this list sets their 2007 figures beside the script as transcribed, R0. They sit around the script’s and nowhere near the comment’s.
 3. **The helper moves the second decimal, not the first digit.** The Sharpe ratio’s standard deviation comes from a helper named `smartstd`, and Chan’s two books ship two different files under that name. With the file from the first edition of his first book, the Sharpe ratio is 4.0530, which prints as 4.05 rather than 4.07. [The post on buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md) teaches the helper in its Lesson 2, where it moves both figures that post’s script prints. Here it moves only the Sharpe ratio’s second decimal, and either helper’s figure is still ten times the comment’s.
-4. **Which run printed the comment is not known.** One of its figures rules out the 2007 window as the script computes it. The comment records a longest drawdown of 182 days, and the window holds 160 trading days, so no file of daily closes read over that window could print it. A different window or a different version of the script might have printed the comment’s figures. Trying them until one did would not settle the question. Try enough variants and one matches by chance, and that match would say nothing about what Chan ran. So none was tried.
+4. **The comment cannot come from the 2007 window as the script computes it.** The comment records a longest drawdown of 182 days, and the window holds 160 trading days, so no file of daily closes read over that window could print it. Which run did print the comment is not known. A different window or a different version of the script might have. Trying them until one did would not settle the question. Try enough variants and one matches by chance, and that match would say nothing about what Chan ran. So none was tried.
 
 The script as transcribed and the four readings beside it, over 2007:
 
@@ -86,7 +86,7 @@ The script as transcribed and the four readings beside it, over 2007:
 - **R1** holds one portfolio at a time, re-formed every 25 days.
 - **R2** ranks on the return from 252 days back to 21 days back, so the latest 21 days do not count.
 - **R3** lets a day’s picks earn that same day, which looks ahead.
-- **R4** divides each day by the cohorts held, not 25.
+- **R4** divides each day’s sum by 2 · 50 times the cohorts held, not by 2 · 50 · 25.
 
 ```math
 \small\begin{array}{l|r|r}
@@ -101,9 +101,14 @@ The script as transcribed and the four readings beside it, over 2007:
 
 ## Lesson 2: a rule taken from one example did not carry to another
 
-Lesson 1 left two candidates for the book’s 37 percent: the arithmetic return the script labels `Avg Ann Ret`, and the compounded figure it labels `APR`. Which one Chan meant decides whether his figure reproduces. This lesson takes the steps in the order they happened, because the order is what decides which match counts.
+Lesson 1 left two candidates for the book’s 37 percent: the arithmetic return the script labels `Avg Ann Ret`, and the compounded figure it labels `APR`. Set against one of them, his figure matches, and set against the other, it misses. This lesson takes the steps in the order they happened, because the order is what decides which match counts.
 
-**The rule came first.** Before any run, this repository wrote down [a rule](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-17-cross-sectional-momentum-chans-algorithmic-trading) that read the book’s “APR” as the arithmetic return. The reason was Example 7.2 in the same book, where the 6.7 percent Chan calls an APR is the arithmetic figure from his script `pead.m` and not its compounded one (Chan, 2013, location 3024). [The post on post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) teaches that in its Lesson 1. `kentdaniel.m`’s own print line labels the compounded figure `APR=`, and so does `pead.m`’s. The rule followed Example 7.2’s prose over both scripts’ labels. For the 37 percent and the 4.1 to count as reproduced, one reading had to give a 2007 arithmetic return that rounds to 37 percent and a Sharpe ratio that rounds to 4.1, both together. For the −30 percent to count, the script as transcribed had to give a 2008 and 2009 arithmetic return that rounds to −30 percent.
+**The rule came first.** Before any run, this repository wrote down [a rule](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-17-cross-sectional-momentum-chans-algorithmic-trading) that read the book’s “APR” as the arithmetic return. The reason was Example 7.2 in the same book, where the 6.7 percent Chan calls an APR is the arithmetic figure from his script `pead.m` and not its compounded one (Chan, 2013, location 3024). [The post on post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) teaches that in its Lesson 1. `kentdaniel.m`’s own print line labels the compounded figure `APR=`, and so does `pead.m`’s. The rule followed Example 7.2’s prose over both scripts’ labels.
+
+The rule set two conditions, one for each window the book gives figures for.
+
+1. For the 37 percent and the 4.1 to count as reproduced, one of R0 to R4 had to give a 2007 arithmetic return that rounds to 37 percent and a Sharpe ratio that rounds to 4.1, both together.
+2. For the −30 percent to count, the script as transcribed had to give a 2008 and 2009 arithmetic return that rounds to −30 percent.
 
 **Under that rule, none of the book’s three figures reproduces.** The table sets each beside both formulas, with the rows in the order they were looked at: the book, then the rule’s arithmetic return, then the compounded return seen afterwards.
 
@@ -119,13 +124,15 @@ Lesson 1 left two candidates for the book’s 37 percent: the arithmetic return 
 
 The Sharpe ratio comes from the daily returns, not from either annual return, so it has one value. The table gives it once, in the Arithmetic row, because its numerator is the same average daily return that the arithmetic return annualizes.
 
-The arithmetic return is 32 percent against 37, and −32 against −30. R0 to R4’s 2007 arithmetic returns round to 32, 32, 29, 34 and 32 percent, so none reaches 37. The Sharpe ratio rounds to 4.1 for R0 and R4 alone, which the rule counted as only a partial match, because it needed 37 and 4.1 together.
+The arithmetic return is 32 percent against 37, and −32 against −30. R0 to R4’s 2007 arithmetic returns round to 32, 32, 29, 34 and 32 percent, so none reaches 37. The Sharpe ratio rounds to 4.1 for R0 and R4 alone, which the rule counted as only a partial match.
 
-**Afterwards, the compounded figures matched.** 0.372577 and −0.298789 round to 37 and −30 percent, both of the book’s. They are reported beside the rule’s results and do not change whether the book’s figures count as reproduced.
+**Afterwards, the compounded figures matched.** 0.372577 and −0.298789 round to 37 and −30 percent, both of the book’s APRs. They are reported beside the rule’s results and do not change whether the book’s figures count as reproduced.
 
 **Why the order stays visible.** Choose between two formulas after looking, and the one chosen is the one that matches, whatever Chan computed. A rule picked that way is set by the answer it was meant to test. So the verdicts stand as the rule written in advance gave them. The match is still worth something. One formula matching both windows is a hypothesis about how Chan labels a return. A rule for his next example can state that hypothesis before that run, which is what would test it.
 
-**The scripts are the consistent party.** The book’s own paragraph at location 2800 calls Chan’s 37 percent an “APR” and Daniel and Moskowitz’s 16.7 percent an “annualized average return”. [The post on buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md) works through that second phrase in its Lesson 3, which shows that phrase, like “APR”, naming both formulas in this book. `kentdaniel.m`, `pead.m` and the buy-on-gap script `bog.m` each label the compounded figure `APR`. The buy-on-gap example’s prose uses the word the same way, and Example 7.2’s departs from it. Example 6.2’s prose follows the scripts only if the match seen afterwards holds up. So in these examples the script is the only place that says which formula produced a return.
+**The scripts are the consistent party.** The book’s own paragraph at location 2800 calls Chan’s 37 percent an “APR” and Daniel and Moskowitz’s 16.7 percent an “annualized average return”. [The post on buy on gap](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md) works through that second phrase in its Lesson 3. It shows that phrase naming both formulas in this book, as “APR” does.
+
+`kentdaniel.m`, `pead.m` and the buy-on-gap script `bog.m` each label the compounded figure `APR`. The buy-on-gap example’s prose uses the word the same way, and Example 7.2’s departs from it. Example 6.2’s prose follows the scripts only if the match seen afterwards holds up. So in these examples the script is the only place that says which formula produced a return.
 
 ## Lesson 3: the crash Chan describes is in the file
 
@@ -134,7 +141,7 @@ The arithmetic return is 32 percent against 37, and −32 against −30. R0 to R
 The four observations below take the three windows in order, then set Chan’s own account of the strategy beside them.
 
 1. **2007.** The strategy earns a Sharpe ratio of 4.0657 over the window the book reports. Lesson 2 already judged that figure.
-2. **2008 and 2009.** The arithmetic return is −0.323195 and the Sharpe ratio −1.2930. Lesson 2 already judged the return. The cumulative return rises to a high on 2008-07-14, then falls to its deepest drawdown, −0.606634, on 2009-09-22. On the window’s last day, 371 days after the high, it is still below it. So the drawdown did not end inside the window. The Sharpe ratio and the drawdown were seen only after the run and decide nothing.
+2. **2008 and 2009.** The arithmetic return is −0.323195 and the Sharpe ratio −1.2930. Lesson 2 already judged the return. The cumulative return rises to a high on 2008-07-14, then falls to its deepest drawdown, −0.606634, on 2009-09-22. On the window’s last day, 371 days after the high, it is still below that high. So the drawdown did not end inside the window. The Sharpe ratio and the drawdown were seen only after the run and decide nothing.
 3. **2010 to 2012.** The arithmetic return is 0.016244 and the Sharpe ratio 0.2004. Chan says the return after 2009 “did stabilize, though it hasn’t returned to its former high level yet” (Chan, 2013, location 2800). The rule for that claim, a return of at least zero and below 2007’s, was written down before the run, and it holds. It is the one claim from the book that reproduces.
 4. **Chan’s own account.** Later in the chapter, he says the strategy “performed similarly well pre-2008” to the reversal strategy of Chapter 4 on the same stocks, whose Sharpe ratio he gives as 4.7. Then cross-sectional momentum “vanished during the aftermath of the stock market crash in 2008–2009” (Chan, 2013, location 2890). [Entry 19 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-19-the-khandani-lo-reversal-on-the-2012-panel-chans-algorithmic-trading) reproduced that 4.7 on this same file as 4.713284.
 

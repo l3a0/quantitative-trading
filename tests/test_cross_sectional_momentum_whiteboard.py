@@ -91,7 +91,7 @@ GIFS = ["cross_sectional_momentum_cohorts.gif", "cross_sectional_momentum_two_re
 
 #: The paragraph each GIF follows, by its opening words.
 FOLLOWS = (
-    "1. **The ranking.** Each stock’s return over the last 252 trading days",
+    "1. **The ranking.** Rank the stocks by their return over the last 252 trading days",
     "The script’s print statements round the first three",
 )
 
