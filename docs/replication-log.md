@@ -3608,12 +3608,12 @@ Two things.
 Four things.
 
 **What the drift earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24.
+is on the S&P 500 list Chan held on 2012-04-24.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) reruns the
 rule on a point-in-time universe, which waits on a purchase.
 
 **Whether Chan's flags are the announcement calendar.** They catch three of
-Apple's five releases inside the window, a measurement recorded on
+the five Apple releases whose next morning falls inside the window, a measurement recorded on
 [issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
 Entry 46 reruns the rule on a calendar read from EDGAR's filings and on the
 archive's Alpha Vantage prices, under
@@ -3623,7 +3623,8 @@ archive's Alpha Vantage prices, under
 round trip inside one day.
 
 **How large the look-ahead in the 30 is.** Chan argues it is small because the
-number of announcements a day is predictable, and nothing here tests that.
+maximum number of announcements a day is predictable, and nothing here tests
+that.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

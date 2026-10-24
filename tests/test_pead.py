@@ -212,7 +212,11 @@ class TestTheFigures:
         assert np.isfinite(drift.daily).all(), SPEC
 
     def test_157_of_the_330_days_hold_a_position_from_2011_05_11(self, drift: Drift) -> None:
-        """More than half the days hold nothing, because each position gets a thirtieth."""
+        """Fewer than half the days hold a position, whatever the divisor.
+
+        The first 89 cannot, because the 90-day deviation has not filled. After
+        that a day holds one only when a flagged stock clears half a deviation.
+        """
         held = np.count_nonzero(drift.positions, axis=1) > 0
         assert int(held.sum()) == 157, SPEC
         assert str(drift.days[held][0].date()) == "2011-05-11", SPEC

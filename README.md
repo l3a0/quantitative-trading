@@ -3435,7 +3435,7 @@ APR of 6.7 percent and a Sharpe ratio of 1.5. It is the first post whose
 experiment comes from that book. The post draws five lessons from Entry 12 of
 the replication log.
 
-1. Every figure Chan prints reproduces on his own files.
+1. Every number Chan prints reproduces on his own files.
 2. The gap from the previous close to the open stands in for the surprise,
    and Chan's flags stand in for the announcement calendar.
 3. The 30 Chan divides by and the leverage he applies are facts about the run.
@@ -3465,8 +3465,9 @@ Every other number in the post traces to an assertion in
 [tests/test_pead.py](tests/test_pead.py), to
 [tests/test_series.py](tests/test_series.py) for the 1,885 flags, Apple's
 three flagged days and the 29 stocks with none, to
-[tests/test_pead_rerun.py](tests/test_pead_rerun.py) for Apple's five
-releases inside the window and the two of them the rerun's calendar flags,
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py) for the five mornings
+inside the window after Apple's releases, which the rerun's calendar flags,
+and the two of them Chan's file misses,
 and for the 488 stocks and the 1,540, 311 and 914 flags that the rerun's
 calendar and Chan's file share or hold alone, read from the committed Item
 2.02 record against Chan's flag file, to
