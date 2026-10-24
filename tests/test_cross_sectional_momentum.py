@@ -735,7 +735,7 @@ class TestWhatThePostQuotes:
         first, last = closes.index[0].date(), closes.index[-1].date()
         fragments = [
             f"daily closes of {stocks} stocks over {rows:,} trading days, from {first} to {last}",
-            f"and {late} begin after the first day",
+            f"None of them stops before the last day, and {late} begin after the first day",
         ]
         for n, (window, (start, end)) in enumerate(WINDOWS.items(), start=1):
             days = len(results["R0"][window].days)

@@ -456,6 +456,11 @@ class TestThePost:
         assert f"The same {returns.days} daily returns" in second
         assert f"scaling by {returns.trading_days}/{returns.days}" in second
         assert f"multiplying the {returns.days} values of 1 + r together" in second
+        assert (
+            f"scaling by {returns.trading_days}/{returns.days} gives the arithmetic return"
+            in second
+        )
+        assert "annualizing the product gives the compounded one" in second
 
     def test_every_day_after_the_line_holds_a_full_book(self, run, figures) -> None:
         """The cohorts caption says later cohorts keep every day from the brown
@@ -708,9 +713,10 @@ class TestTheCohortsSketch:
             ({"short_days": 23}, "23 days short of 25"),
             ({"picks_held": 2400}, "and it divides by"),
             ({"divisor": 100}, "and it divides by 100"),
+            ({"picks_held": 2400, "divisor": 2400}, "are 2400 and that"),
             ({"longs": 60, "picks": 100}, "hold 60 long and 40 short"),
         ],
-        ids=["opens on two", "fills unevenly", "picks", "divisor", "uneven sides"],
+        ids=["opens on two", "fills unevenly", "picks", "divisor", "picks only", "uneven sides"],
     )
     def test_counts_that_would_make_the_drawing_false_are_refused(
         self, figures, change, match
@@ -877,3 +883,38 @@ class TestTheReturnsSketch:
         assert "one for each daily return, rises above and dips below a baseline" in alt
         assert "Below it, in black," in alt and "Under that, in brown," in alt
         assert "A row of small grey bars" in alt
+
+
+class TestCohortFiguresRefusals:
+    """Mutation-lens additions: each refusal in cohort_figures, fed formations it must refuse."""
+
+    def _patch(self, monkeypatch, run, edit):
+        longs, shorts = run.longs.copy(), run.shorts.copy()
+        edit(longs, shorts, momentum.LOOKBACK + 3)
+        monkeypatch.setattr(momentum, "formations", lambda _: (longs, shorts))
+
+    def test_a_cohort_of_another_size_is_refused(self, run, monkeypatch) -> None:
+        def edit(longs, shorts, row):
+            shorts[row, np.flatnonzero(~(longs[row] | shorts[row]))[0]] = True
+
+        self._patch(monkeypatch, run, edit)
+        with pytest.raises(ValueError, match="one size of cohort"):
+            sketches.cohort_figures(run.closes)
+
+    def test_a_cohort_with_more_longs_than_another_is_refused(self, run, monkeypatch) -> None:
+        def edit(longs, shorts, row):
+            longs[row, np.flatnonzero(~(longs[row] | shorts[row]))[0]] = True
+            shorts[row, np.flatnonzero(shorts[row])[0]] = False
+
+        self._patch(monkeypatch, run, edit)
+        with pytest.raises(ValueError, match="one size of cohort"):
+            sketches.cohort_figures(run.closes)
+
+    def test_a_day_with_a_missing_cohort_is_refused(self, run, monkeypatch) -> None:
+        def edit(longs, shorts, row):
+            longs[row + 40] = False
+            shorts[row + 40] = False
+
+        self._patch(monkeypatch, run, edit)
+        with pytest.raises(ValueError, match="one full book"):
+            sketches.cohort_figures(run.closes)
