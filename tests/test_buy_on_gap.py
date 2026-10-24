@@ -418,7 +418,7 @@ def _minus(x: float, places: int) -> str:
 
 
 class TestWhatThePostQuotes:
-    """One copy of each run figure ``blog/buy-on-gap-lessons.md`` quotes, read against the run.
+    """One copy of each run figure the post quotes outside its sketch, read against the run.
 
     The classes above pin each figure once, and the post copies it by hand.
     Here each figure the run computes is built from the run's value at the
@@ -426,7 +426,9 @@ class TestWhatThePostQuotes:
     holding the number and the few words that name one place in the post. A
     typo in that copy, or a re-pin that leaves the post behind, fails here.
     The post states several figures more than once, in its opening, a lesson,
-    a table or the alt text, and the other copies are not read. The book's
+    a table or the figure's alt text, and the other copies are not read. The
+    sketch's caption and alt text are read in ``tests/test_buy_on_gap_whiteboard.py``
+    instead. The book's
     figures, the Kindle locations and the facts outside the data are not read
     either, and README lists them.
     """

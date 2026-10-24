@@ -42,7 +42,7 @@ Chan gives a reason for rule 2, which he calls “a momentum filter superimposed
 
 The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily open, high, low and close of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24.
 
-The script loads the file under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`. The two public copies of Chan’s code that this repository read both hold Chan’s file. Only one of them also holds a file under the name `bog.m` loads, and it holds the same bytes. This repository transcribed `bog.m` line by line from the other copy, `ivanliu1989/algorithmic_trading` at commit `45670240`.
+The script loads the file under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`. Two public copies of Chan’s code that this repository has read hold Chan’s file. Only one of them also holds a file under the name `bog.m` loads, and it holds the same bytes. This repository transcribed `bog.m` line by line from the other copy, `ivanliu1989/algorithmic_trading` at commit `45670240`.
 
 ## Lesson 1: both figures bog.m prints reproduce on Chan’s own file
 
@@ -92,7 +92,7 @@ This repository’s earlier replications from Chan’s first book used the first
 
 ## Lesson 3: one phrase names two formulas
 
-In a later chapter, on risk management, Chan returns to this strategy as an example of a risk indicator, and says it “had an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” over the same dates (Chan, 2013, location 3509).
+In a later chapter, on risk management, Chan returns to this strategy to try a risk indicator on it, the VIX, an index of how far options traders expect the S&P 500 to move. He says the strategy “had an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” over the same dates (Chan, 2013, location 3509).
 
 The phrase “annualized average return” has a history in this book. In Example 7.2, Chan calls 252 times the average daily return an APR, and then calls the same figure levered four times, as if trading four times the capital, an “annualized average return” (Chan, 2013, location 3024). The [replication log’s Entry 12](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-12-post-earnings-drift-chans-algorithmic-trading), where this repository records each reproduction, found that his 6.7 percent there is that arithmetic figure, and not the compounded one.
 
@@ -131,7 +131,7 @@ Suppose Chan computed his two figures for the mirror with the formulas `bog.m` u
 
 Start from how `bog.m` computes the two figures. Over n days of returns rₜ, the APR is the compounded total annualized, and the Sharpe ratio S is √252 times the mean return over its standard deviation. The annual volatility σ is √252 times that standard deviation. Because S is √252 times the mean over that standard deviation, σ also equals 252 times the mean, the arithmetic annual return, divided by S.
 
-The link between the two returns is the natural logarithm, ln. Taking the log of one plus the APR turns the product of daily growth into a sum, so ln(1 + APR) is 252 / n times the sum of ln(1 + rₜ). Each term of that sum is at most rₜ, because ln(1 + r) ≤ r for every daily return. So ln(1 + APR) ≤ 252 · mean, and the arithmetic return is at least the log of one plus the APR. Dividing by S then gives a floor on the volatility.
+The link between the two returns is the natural logarithm, ln. Taking the log of one plus the APR turns the product of daily growth into a sum, so ln(1 + APR) is 252 / n times the sum of ln(1 + rₜ). Each term of that sum is at most rₜ, because ln(1 + r) ≤ r for every daily return. So ln(1 + APR) ≤ 252 · mean, and the arithmetic return is at least the log of one plus the APR. Dividing by S, which is positive here, then gives a floor on the volatility.
 
 ```math
 \sigma \ge \frac{\ln(1 + \text{APR})}{S}
@@ -160,7 +160,7 @@ Every printed buy-side figure matches, which says the code, the data and the boo
 Five questions are beyond it.
 
 1. **Which rule Chan ran for the mirror.** This repository named two other readings of his sentence in advance and ran neither, for the reason Lesson 4 gives.
-2. **Which file Chan ran in 2012.** Only one public copy of his code holds a file under the name `bog.m` loads, and that file has the same bytes as Chan’s file, whose contents this repository keeps. That says what the name means in the code he published, not that it is the file he ran when he wrote the book. That both figures match is consistent with his having run that file, and does not prove it.
+2. **Which file Chan ran in 2012.** Only one public copy of his code that this repository has read holds a file under the name `bog.m` loads, and that file has the same bytes as Chan’s file, whose contents this repository keeps. That says what the name means in the code he published, not that it is the file he ran when he wrote the book. That both figures match is consistent with his having run that file, and does not prove it.
 3. **How much costs and execution would take from the return.** Nothing here charges any, and nothing models the difference between the preopen price and the open.
 4. **What the rule earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24. Measuring it needs prices for the companies that left.
 5. **Whether one flagged day’s price is correct.** A check this repository runs on other strategies flags Morgan Stanley’s rise from its close on 2008-10-10 to its close on 2008-10-13 as too large for an ordinary day, and the mirror shorted Morgan Stanley that day. The strategy’s run does not apply that check, which would refuse the whole window, because the job is to reproduce what Chan’s script computed on the prices as they stand. Nothing here checks that price against another source.
@@ -173,7 +173,7 @@ One habit for each lesson.
 2. **Find out which version of a helper the author ran.** A helper’s name does not identify it, and here the wrong one moves both figures `bog.m` prints.
 3. **Read the formula, not the label.** “APR” and “annualized average return” each name both a compounded and an arithmetic figure in this one book.
 4. **Write a rule down before running it.** A strategy described in one sentence is many strategies, and trying them until one matches is a search, not a test.
-5. **Test a published pair of figures against each other.** A compounded annual return and a Sharpe ratio with no risk-free rate together set a floor on annual volatility. A rule whose annual volatility falls below that floor cannot have produced both.
+5. **Test a published pair of figures against each other.** A compounded annual return and a positive Sharpe ratio with no risk-free rate together set a floor on annual volatility. A rule whose annual volatility falls below that floor cannot have produced both.
 6. **Treat an exact reproduction as a check on arithmetic.** Whether buying a panic pays needs prices for the companies that left, a charge for costs and for trading on the preopen price, and a rule fixed in writing before it meets new data.
 
 ## References

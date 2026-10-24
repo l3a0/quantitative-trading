@@ -4644,7 +4644,8 @@ here.
    the open, high, low and close through `chan.series.load_panel`, all 1,500
    days from 2006-05-11 to 2012-04-24. `bog.m` loads
    `inputDataOHLCDaily_20120424`, with no `_stocks`, and the only file of that
-   name in either public mirror of Chan's code is the same bytes, which
+   name in either of the two public mirrors data/README.md names is the same
+   bytes, which
    [data/README.md](../data/README.md) records. **Every figure here is about
    survivors**, because the file is the S&P 500 as Chan held it on 2012-04-24,
    carried backwards, and location 1974 says so.
@@ -4754,7 +4755,8 @@ were named on [issue 295](https://github.com/l3a0/quantitative-trading/issues/29
 search the honesty rail forbids.
 
 **Which file Chan ran in 2012.** The name `bog.m` loads points, in the one
-public mirror that holds a file of that name, at the same bytes as the
+public mirror this repository has read that holds a file of that name, at the
+same bytes as the
 committed panel's source. That says
 what the name means in the code he published, not that the file he ran when
 he wrote the book was this one. Both figures reproducing is consistent with

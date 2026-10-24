@@ -3681,10 +3681,11 @@ Five groups of its figures are not pinned here.
    levered figure is at 3024. The book's figures are pinned, and its words
    are not.
 2. Facts outside the committed data. That `gapFutures_FSTX.m` measures a jump
-   from the previous high, and that the one public mirror holding a file of
-   the name `bog.m` loads holds the same bytes as Chan's
-   `inputDataOHLCDaily_stocks_20120424.mat`, which `src/chan/buy_on_gap.py`'s
-   docstring and [data/README.md](data/README.md) record. That MS, the stock
+   from the previous high, and that, of the public mirrors this repository has
+   read, only one holds a file of the name `bog.m` loads, and it holds the same
+   bytes as Chan's `inputDataOHLCDaily_stocks_20120424.mat`, which
+   `src/chan/buy_on_gap.py`'s docstring and [data/README.md](data/README.md)
+   record. That burakbayramli/books at `43c0bb4` holds neither file name. That MS, the stock
    the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That the same
    script's return line sells the upward jump is not among them, since
    [tests/test_opening_gap.py](tests/test_opening_gap.py) holds that sign.
@@ -3703,8 +3704,9 @@ arithmetic figure, or to
 figure's own numbers, or to
 [tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
 for the whiteboard sketch's. `TestWhatThePostQuotes` in the first of those
-files reads one copy of each run figure the post quotes, the alt text's spell
-dates included, and checks it against the run. Three had no pin before the
+files reads one copy of each run figure the post quotes outside the sketch and
+its caption, the figure's alt-text spell dates included, and checks it against
+the run. The sketch's test reads the sketch's caption and alt text. Three had no pin before the
 post. The figure's test now pins the first two, for each side, and the
 sketch's test the third.
 
