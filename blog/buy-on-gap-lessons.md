@@ -90,7 +90,7 @@ Rule 1’s 90-day standard deviation comes from a helper, a short function in Ch
 
 [The post on post-earnings drift](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md) teaches this on Example 7.2 from the same book, where the wrong helper moves one printed digit. Here it moves both printed figures. With the first edition’s helper behind the standard deviation, the APR becomes 0.083629 and the Sharpe ratio 1.6503. Those round to 8.4 percent and 1.7, against Chan’s 8.7 and 1.5, and the strategy takes 693 positions rather than 695.
 
-This repository’s earlier replications from Chan’s first book used the first edition’s helper, so it was the one a Python rewrite of the script would reach for first. A rewrite that used it would miss both of Chan’s figures, and the miss would look like a disagreement with his data when the helper caused it. Checking which helper ships with the script’s own book finds that cause. So does running both helpers and comparing each result with the book.
+This repository’s replications from the first edition of *Quantitative Trading* use the first edition’s helper, so a Python rewrite of the script could reach for it by mistake. A rewrite that used it would miss both of Chan’s figures, and the miss would look like a disagreement with his data when the helper caused it. Checking which helper ships with the script’s own book finds that cause. So does running both helpers and comparing each result with the book.
 
 ## Lesson 3: one phrase names two formulas
 
