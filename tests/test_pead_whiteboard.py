@@ -369,6 +369,7 @@ class TestThePost:
         )
         caption = paragraphs[index + 2]
         assert caption.startswith("*The sketch is schematic.") and caption.endswith("*")
+        assert "and none comes from the run" in caption
         assert paragraphs[index + 3].startswith("Two files carry the data")
 
     def test_the_flip_sketch_follows_its_paragraph_with_a_caption(self) -> None:
@@ -379,6 +380,7 @@ class TestThePost:
         )
         caption = paragraphs[index + 2]
         assert caption.startswith("*Drawn to one scale from the run.") and caption.endswith("*")
+        assert "The black dot is PNW’s gap." in caption
         for mark in ("black dot", "green tick", "red tick"):
             assert mark in caption, mark
         assert (
@@ -680,3 +682,42 @@ class TestTheFlipSketch:
         )
         with pytest.raises(ValueError, match="positions differ between the helpers, not one"):
             HelperFlip.from_run()
+
+    @pytest.mark.parametrize("pair", [(1.0, -1.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)], ids=str)
+    def test_it_refuses_a_flip_that_is_not_a_long_only_book_two_takes(
+        self, monkeypatch, pair
+    ) -> None:
+        """One position differs, but not as book two long and the first edition flat."""
+        from chan import pead
+
+        real, calls = pead.drift_positions, []
+
+        def one_cell(gaps, spread, flags):
+            held = real(gaps, spread, flags)
+            cell = (pead.LOOKBACK, 0)
+            if not calls:
+                held[cell] = pair[0]
+            else:
+                held = calls[0].copy()
+                held[cell] = pair[1]
+            calls.append(held)
+            return held
+
+        monkeypatch.setattr(pead, "drift_positions", one_cell)
+        with pytest.raises(ValueError, match="a long that only book two's helper takes"):
+            HelperFlip.from_run()
+
+    def test_it_guards_the_window_the_run_reads(self, monkeypatch) -> None:
+        from chan import pead
+
+        expected = pead.guarded_drift()[2].days
+        real, seen = pead.refuse_scale_breaks, []
+
+        def spy(prices, opens, closes, days):
+            seen.append(days)
+            return real(prices, opens, closes, days)
+
+        monkeypatch.setattr(pead, "refuse_scale_breaks", spy)
+        HelperFlip.from_run()
+        (days,) = seen
+        assert days.equals(expected)
