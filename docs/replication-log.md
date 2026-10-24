@@ -3496,7 +3496,7 @@ in [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithm
 
 Eleven rows, all derivable from [tests/test_pead.py](../tests/test_pead.py).
 
-**Every figure Chan prints reproduces on his own files.** Prices drift in the
+**Every number Chan prints reproduces on his own files.** Prices drift in the
 direction of an earnings surprise after the announcement, and Chan trades the
 first day of that drift without knowing what was announced. On a day a stock
 announced after the previous close and before the open, the gap from that
@@ -3510,9 +3510,9 @@ prints.
 
 One choice decides a printed digit. Chan's two books ship two helpers called
 `smartstd`. The first edition's, which Entries 8 and 10 and Entry 7's
-first-edition rows run, counts a missing value as zero and divides by n − 1.
-Book two's, which Entry 7's revised MATLAB rows run too, skips it and divides
-by n. With book two's, the arithmetic return is 0.066743, which prints as
+first-edition rows run, counts a missing value as zero and divides by n − 1, where n counts every
+value. Book two's, which Entry 7's revised MATLAB rows run too, skips it and
+divides by n, the number of values it kept. With book two's, the arithmetic return is 0.066743, which prints as
 Chan's 0.0667. With the first edition's it is 0.066833, which prints as
 0.0668, and row 11 holds that.
 
@@ -3525,8 +3525,8 @@ here.
    `earnannFile.mat`, saved 2012-05-15. Both are read through
    `chan.series.load_panel`, and [data/README.md](../data/README.md) records
    where each came from and what it holds. **Every figure here is about
-   survivors**, because the price file is the S&P 500 as Chan held it on
-   2012-04-24, carried backwards.
+   survivors**, because the price file is Chan's list of the S&P 500, closest
+   to the index as it stood in late 2011, carried back from 2012-04-24.
 2. **The specification.** `pead.m` at `45670240` in
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
    The prices are cut to the flag file's 330 days, 2011-01-03 to 2012-04-24,
@@ -3571,7 +3571,7 @@ quotes two of them rounded.
 | 8 | the most nonzero positions on one of the 330 days | 30 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` |
 | 9 | four times row 1 | 0.266970 | `TestTheFigures::test_levered_four_times_it_is_close_to_27_percent` |
 | 10 | the nonzero positions across the window, none in its first 89 days | 1,072 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` and `::test_no_stock_trades_before_its_window_fills` |
-| 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833, and 1,071 positions | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit` and `::test_the_other_printed_figures_survive_the_swap` |
+| 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833, and 1,071 positions | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit`, `::test_the_other_printed_figures_survive_the_swap` and `::test_the_one_position_that_moves_is_pnws_long_on_2012_02_24` |
 
 ### The verdicts
 
@@ -3608,12 +3608,13 @@ Two things.
 Four things.
 
 **What the drift earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24.
+is on Chan's S&P 500 list, which is closest to the index of late 2011 rather
+than of 2012-04-24.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) reruns the
 rule on a point-in-time universe, which waits on a purchase.
 
 **Whether Chan's flags are the announcement calendar.** They catch three of
-Apple's five releases inside the window, a measurement recorded on
+the five Apple releases whose next morning falls inside the window, a measurement recorded on
 [issue 20](https://github.com/l3a0/quantitative-trading/issues/20).
 Entry 46 reruns the rule on a calendar read from EDGAR's filings and on the
 archive's Alpha Vantage prices, under
@@ -3623,13 +3624,18 @@ archive's Alpha Vantage prices, under
 round trip inside one day.
 
 **How large the look-ahead in the 30 is.** Chan argues it is small because the
-number of announcements a day is predictable, and nothing here tests that.
+maximum number of announcements a day is predictable, and nothing here tests
+that.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/post-earnings-drift-lessons.md](../blog/post-earnings-drift-lessons.md)
 moves with it, since that post quotes most of these figures. So does the
-post's one figure, which `uv run python -m chan.pead_figures` redraws.
+post's one figure, which `uv run python -m chan.pead_figures` redraws. Its two
+whiteboard sketches move too, and `uv run python -m chan.pead_whiteboard`
+redraws them. The one after the strategy's rules is schematic and draws none
+of these figures. The one in Lesson 4 draws the single position the first
+edition's helper drops, PNW's long on 2012-02-24, from the run.
 
 ## Entry 13: the PCA factor model, Chan's *Quantitative Trading*
 

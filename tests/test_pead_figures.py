@@ -10,7 +10,8 @@ reason ``tests/test_regime_figure.py`` gives.
 The figure reads the vintages and the specification ``tests/test_pead.py``
 names as its ``SPEC``, which every failure message here carries too.
 
-Three things are pinned here and nowhere else.
+Three things are pinned here first. ``TestWhatThePostQuotes`` in
+``tests/test_pead.py`` reads the post's copy of each against the same run.
 
 1. The dates of the longest spell below the high.
 2. The high it falls from.

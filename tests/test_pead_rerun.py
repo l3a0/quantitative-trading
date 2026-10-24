@@ -922,7 +922,10 @@ class TestTheCalendarsAgainstChans:
         assert counts == Agreement(both=1694, chan_only=157, derived_only=1124, neither=158065)
 
     def test_r1_catches_the_two_apple_releases_chans_flags_miss(self, sources) -> None:
-        """Chan's flags hold three of Apple's five in-window releases, as issue 20 measured."""
+        """Chan's flags hold three of the five Apple releases whose next morning is in the window.
+
+        Issue 20 measured it.
+        """
         r1 = sources.calendar_flags("R1")["AAPL"]
         his = sources.flags["AAPL"]
         assert list(r1.index[r1 == 1].strftime("%Y-%m-%d")) == [

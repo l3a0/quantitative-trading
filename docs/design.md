@@ -752,8 +752,8 @@ is the authority for every figure.
 ### A record that reads a company's earnings filings
 
 Example 7.2 trades a stock on the day it announced earnings, and the only
-calendar Chan saved is his own flag file, which catches three of Apple's five
-releases inside his window.
+calendar Chan saved is his own flag file, which catches three of the five Apple
+releases whose next morning falls inside his window.
 [Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) reruns the
 example on a calendar nobody hand-collected. A company releasing its results
 files a Form 8-K carrying Item 2.02, and EDGAR records the second it accepted
