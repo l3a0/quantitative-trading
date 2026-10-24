@@ -25,7 +25,7 @@ Chan says the drift has been “known and studied since 1968”, citing a 1989 p
 His version measures the surprise from the price alone. Call the move from one day’s close to the next day’s open the gap. In this post, gap means only that.
 
 1. **The announcement.** The trade needs a stock that announced after the previous close and before today’s open, between 4:00 p.m. and 9:30 a.m. Eastern (Chan, 2013, locations 3002 and 3010). An announcement during a trading day does not count. One made during the previous day’s session is already in that day’s close, so the gap does not carry it. One made after today’s open comes too late for a trade entered at the open.
-2. **The threshold.** The gap has to be large against the stock’s own recent gaps. Chan measures that with the gap’s 90-day moving standard deviation, which is the standard deviation of the stock’s gaps over the most recent 90 trading days, recomputed each day. It is the yardstick for whether an announcement was “surprising” enough (Chan, 2013, location 3019). A gap of at least half that deviation goes long. A gap of at most minus half goes short.
+2. **The threshold.** The gap has to be large against the stock’s own recent gaps. Chan measures that with the gap’s 90-day moving standard deviation, which is the standard deviation of the stock’s gaps over the 90 trading days up to and including today, recomputed each day. It is the yardstick for whether an announcement was “surprising” enough (Chan, 2013, location 3019). A gap of at least half that deviation goes long. A gap of at most minus half goes short.
 3. **The holding period.** The position opens at the open and closes at the same day’s close. In the chapter before this example, Chan writes that momentum from earnings announcements “used to last several days” and now lasts “barely until the market closes” (Chan, 2013, location 2890). That is why the strategy exits at the close.
 4. **The sizing.** The strategy sums each day’s returns across stocks and divides by 30, so every position gets a thirtieth of the capital. Lesson 3 says where the 30 comes from.
 
@@ -82,7 +82,7 @@ EDGAR, the SEC’s public database of company filings, records the time it accep
 
 ## Lesson 3: the 30 and the leverage are facts about the run
 
-Two of Chan’s figures depend on this one run. The 30 comes out of the backtest and then goes back into it. The levered 27 percent multiplies a return that the 30 divided.
+Two of Chan’s figures depend on this one run. The 30 comes out of the backtest and then goes back into it, because the script divides every day’s return by it. So the 6.7 percent depends on the 30, and so does the levered 27 percent, which is four times the 6.7.
 
 1. **The 30.** The busiest day of the run holds 30 positions, and that is the number Chan divides each day’s return by, because “there is a maximum of 30 positions in one day” (Chan, 2013, location 3024). Nobody trading in January 2011 could have known the busiest day ahead would hold 30. Chan names the problem himself, “a certain degree of look-ahead bias”, and argues it is “not a very grievous bias” because “the maximum number of announcements per day is quite predictable” (Chan, 2013, location 3024). The reproduction confirms the 30 and cannot measure the bias.
 2. **The leverage.** Because the strategy holds nothing overnight, Chan says it can be levered “by at least four times, giving an annualized average return of close to 27 percent” (Chan, 2013, location 3024). Leverage multiplies every day’s return, so it multiplies the arithmetic annual return. At exactly four, the figure is 0.266970, which rounds to his 27. This post uses four because it is the floor Chan states.
@@ -132,7 +132,7 @@ One habit for each lesson.
 
 1. **Reproduce the printed figures before arguing with them.** Every number Chan prints for this example matches on his files, so any disagreement with his result is about the data or the edge, not his arithmetic.
 2. **Check each stand-in a strategy reads.** The gap stands in for the surprise and a flag file stands in for the announcement calendar. Each can be wrong in its own way, and here the flag file decides most of what gets traded.
-3. **Ask which numbers were chosen after the backtest ran.** The 30 is the busiest day of the very window it sizes, and the 27 percent depends on it, since leverage multiplies a return that was divided by 30.
+3. **Ask which numbers were chosen after the backtest ran.** The 30 is the position count of the busiest day in the window it sizes. The script divides every day’s return by it, so both the 6.7 percent and the 27 percent depend on it.
 4. **Find out which version of a helper the author ran.** A helper’s name does not identify it, and the wrong one can cost one printed digit and look like noise.
 5. **Treat an exact reproduction as a check on arithmetic.** Whether the drift pays needs the companies that left the index put back, costs charged and a rule written down before new data is read.
 
