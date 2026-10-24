@@ -3496,7 +3496,7 @@ in [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithm
 
 Eleven rows, all derivable from [tests/test_pead.py](../tests/test_pead.py).
 
-**Every figure Chan prints reproduces on his own files.** Prices drift in the
+**Every number Chan prints reproduces on his own files.** Prices drift in the
 direction of an earnings surprise after the announcement, and Chan trades the
 first day of that drift without knowing what was announced. On a day a stock
 announced after the previous close and before the open, the gap from that

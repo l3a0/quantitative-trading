@@ -3452,9 +3452,11 @@ Three groups of its figures are not pinned here.
    1968" and the trader needing no view of expectations are at 2994. The
    earnings.com calendar and the window from the previous close to the open
    are at 3002 and 3010. The 90-day deviation as the test of "surprising" is
-   at 3019. "A very respectable 1.5", "a certain degree of look-ahead bias",
-   "not a very grievous bias" and "at least four times" are at 3024. "The
-   overnight returns are negative on average" is at 3039. The book's figures
+   at 3019. "A very respectable 1.5", "there is a maximum of 30 positions in
+   one day", "a certain degree of look-ahead bias", "not a very grievous
+   bias", "the maximum number of announcements per day is quite predictable"
+   and "at least four times" are at 3024. "The overnight returns are negative
+   on average" and "may be" are at 3039. The book's figures
    at 3024 are pinned, and its words are not. The *Quantitative Trading* quotation the plan named, at
    location 3360 of the revised edition, was dropped, because the Kindle
    Cloud Reader could not be reached on 2026-10-03 to read its page.

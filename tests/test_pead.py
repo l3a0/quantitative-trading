@@ -2,10 +2,10 @@
 
 This file is the single authority for every number any prose surface quotes
 about Example 7.2's run on Chan's files. ``blog/post-earnings-drift-lessons.md``
-also quotes figures that four other files pin.
+also quotes figures that five other files pin.
 
 1. ``tests/test_pead_figures.py`` pins the dates of the longest spell below
-   the high.
+   the high, of the high it falls from and of the deepest drawdown inside it.
 2. ``tests/test_series.py`` pins the flag file's 1,885 flags, Apple's three
    flagged days and the 29 stocks with none, as facts about the committed
    flags.
@@ -516,9 +516,12 @@ class TestWhatThePostQuotes:
         assert spell.depth == pytest.approx(drift.max_drawdown, abs=1e-15), SPEC
         assert spell.first <= spell.trough <= spell.last, "on this run they do"
         assert cumret[spell.last + 1] >= cumret[spell.high], "climbs back to the high"
+        assert cumret.max() > cumret[spell.high], "rises past it"
         fragments = [
             f"to a high marked on {day(spell.high)}",
-            f"The line climbs back to the high in {drift.days[spell.last + 1]:%B %Y}.",
+            f"The line climbs back to the high in {drift.days[spell.last + 1]:%B %Y}, rises "
+            f"past it, and ends near {round(100 * cumret[-1])} percent in "
+            f"{drift.days[-1]:%B %Y}.",
             f"The red band runs {spell.rows} trading days, from {day(spell.first)} to "
             f"{day(spell.last)}, and the deepest drawdown, {_minus(spell.depth, 6)}, falls "
             f"inside it on {day(spell.trough)}.",
