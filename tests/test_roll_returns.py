@@ -875,7 +875,7 @@ class TestThePostQuotesTheRun:
         assert abs((expired - flat).days - 365) < 31, SPEC
         fragments = [
             f"CL’s file holds no contract earlier than {_month(first):%B %Y}. So until that "
-            f"contract expired on {expired.date()}, the five nearest were always the "
+            f"contract expired on {expired.date()}, the five nearest in the file were always the "
             f"{start:%B} to {end:%B %Y} contracts, more than two years out when the panel "
             f"starts and about a year out on {flat.date()}",
         ]

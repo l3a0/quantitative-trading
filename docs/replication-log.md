@@ -6416,11 +6416,12 @@ location 2399 already says the fitted γ drifts from day to day. A mean of a
 drifting series is a summary, and this entry reproduces the summary without
 testing the model.
 
-**Whether the month-spaced γ is what Chan meant.** Rows 15 and 16 are this
-repo's reading of the book's sentence, declared on
+**Whether the month-spaced γ is what Chan meant.** Row 15 is this repo's
+reading of the book's sentence, declared on
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) before the
-build.
-Chan printed no figure for them, so they carry no verdict.
+build. Row 16 judges it by row 14's criterion, declared there too, and by
+row 13's, added at the build. Chan printed no figure for either row, so
+neither carries a verdict.
 
 **Whether a roll return persists.** Every row is in-sample on 1986 to 2012.
 The two experiments that trade on γ, Example 5.4 and the TU momentum test,

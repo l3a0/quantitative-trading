@@ -153,10 +153,10 @@ Under the fit in months, each claim fails for one future.
 1. **C fails the first claim.** Its roll return is 1.89 times its spot return, short of twice.
 2. **HG fails the second.** Its roll return of 3.86 percent is smaller than its spot return of 5.06 percent. So Chapter 6’s explanation for HG rests on a comparison that holds only under the script’s arithmetic.
 
-BR and TU hold either way. Nothing here scores these results as a pass or a fail, for two reasons.
+BR and TU hold either way. Nothing here scores the results under the fit in months as a pass or a fail, for two reasons.
 
 1. Chan printed no figure for the fit in months.
-2. The replication applied the first claim’s pass mark, a roll return at least twice the spot return, to the fit in months only once its code existed. It wrote down the second claim’s pass mark, a roll return bigger than the spot return, for the fit in months before the code existed. Both came after a first rough run had already measured the figures.
+2. The pass mark of twice, written down before the code existed, was for the script’s γ alone. The replication applied it to the fit in months only once the code had run, so C’s failure rests on a test added after the figures were known.
 
 Even where a claim holds, it does not test what Chapter 6 uses the table for, which is explaining why these futures trend. Comparing two averages says nothing about whether a roll return causes any of that trending.
 
@@ -174,7 +174,7 @@ Table 5.1 prints one number per future, and the model behind it says γ is const
 2. **Long runs, with many breaks.** It changes sign 29 times. Its longest run of one sign is contango, from 2008-10-09 to 2011-10-21, 766 trading days.
 3. **Extremes far from the mean.** Its highest value is 0.258871, on 2008-09-22. Its lowest is −1.121372, on 2009-01-15, less than four months later. The mean is −0.070592.
 
-CL’s file holds no contract earlier than January 2007. So until that contract expired on 2006-12-19, the five nearest were always the January to May 2007 contracts, more than two years out when the panel starts and about a year out on 2006-01-05. The contracts then nearest to expiry, the ones a holder sells and replaces as each nears expiry, are not in the file.
+CL’s file holds no contract earlier than January 2007. So until that contract expired on 2006-12-19, the five nearest in the file were always the January to May 2007 contracts, more than two years out when the panel starts and about a year out on 2006-01-05. For most of that span, the contracts nearest to expiry, the ones a holder sells and replaces as each nears expiry, are not in the file.
 
 Chapter 6’s explanation needs the sign to stay put. Location 2683 says “the sign of roll returns does not vary very often”, so holding a future for a long time collects a roll return of one sign. BR and HG, both named there, differ sharply on that.
 
