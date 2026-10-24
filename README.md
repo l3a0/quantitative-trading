@@ -3700,16 +3700,23 @@ Every other number in the post traces to an assertion in
 [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as the
 arithmetic figure, or to
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) for the
-figure's own numbers. `TestWhatThePostQuotes` in the first of those files
-reads one copy of each run figure the post quotes, the alt text's spell dates
-included, and checks it against the run. Two had no pin before the post, and
-the figure's test now pins both, for each side.
+figure's own numbers, or to
+[tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
+for the whiteboard sketch's. `TestWhatThePostQuotes` in the first of those
+files reads one copy of each run figure the post quotes, the alt text's spell
+dates included, and checks it against the run. Three had no pin before the
+post. The figure's test now pins the first two, for each side, and the
+sketch's test the third.
 
 1. That the longest spell below the high runs from 2008-09-02 to 2009-04-20
    after a high on 2008-08-29 for buy on gap, and from 2008-11-24 to
    2010-05-05 after a high on 2008-11-21 for the mirror.
 2. That each side's deepest drawdown falls inside that spell, on 2008-12-09
    and 2009-02-03.
+3. The sketch's day, PCS on 2011-01-06, the only stock bought that day, with
+   its previous low of 13.68, its standard deviation of 0.020967, its dashed
+   line at 13.39, its open of 13.01, its 20-day average of 12.70, its close of
+   13.30 and its gain of 2.2 percent from the open to the close.
 
 Its one figure is drawn from the committed file by
 [src/chan/buy_on_gap_figures.py](src/chan/buy_on_gap_figures.py), which reads
@@ -3725,6 +3732,31 @@ uv run python -m chan.buy_on_gap_figures
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries one looping whiteboard sketch,
+`buy_on_gap_where_the_open_lands.gif`, drawn by
+[src/chan/buy_on_gap_whiteboard.py](src/chan/buy_on_gap_whiteboard.py) on the
+USD.CAD post's sketch machinery. It sits after the paragraph on Chan's reason
+for rule 2, and draws to scale the two levels an open has to land between, on
+PCS on 2011-01-06. The open of 13.01 lands in a green band under the dashed
+line at 13.39, one standard deviation below the previous low of 13.68, and
+above the 20-day average of 12.70, with a red zone below the average for
+Chan's reason and an arrow to the close of 13.30. It reads every price from
+the committed file through `chan.buy_on_gap`'s own functions, so the dashed
+line is the price the run compares the open against.
+
+```bash
+uv run python -m chan.buy_on_gap_whiteboard
+```
+
+[tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
+holds what the sketch says and draws, that each price stands at its value to
+one scale, that its labels change with the figures handed to it, and that a
+day is refused when another stock was bought, when its dashed line is not
+below the previous low, when its open is not strictly between the dashed line
+and the average, or when its close is not above the open and under the dashed
+line. It compares the committed GIF with a fresh
+draw byte for byte only on macOS arm64 in Comic Sans MS.
 
 [blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md) is a
 thirteenth post, about the second of Chan's stationary candidates at Kindle

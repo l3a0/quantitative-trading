@@ -233,6 +233,14 @@ def trailing_average(closes: np.ndarray) -> np.ndarray:
     return backshift(1, smart_moving_avg(closes, AVERAGE_LOOKBACK))
 
 
+def entry_price(lows: np.ndarray, spread: np.ndarray) -> np.ndarray:
+    """``buyPrice``: the previous day's low times one less ``ENTRY_ZSCORE`` spreads.
+
+    An open has to fall strictly below it to qualify.
+    """
+    return backshift(1, lows) * (1 - ENTRY_ZSCORE * spread)
+
+
 def drop_qualifiers(
     opens: np.ndarray, lows: np.ndarray, spread: np.ndarray, average: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -246,7 +254,7 @@ def drop_qualifiers(
     """
     previous = backshift(1, lows)
     with np.errstate(invalid="ignore", divide="ignore"):
-        buy_price = previous * (1 - ENTRY_ZSCORE * spread)
+        buy_price = entry_price(lows, spread)
         drop = (opens - previous) / previous
         qualifies = np.isfinite(drop) & (opens < buy_price) & (opens > average)
     return qualifies, drop

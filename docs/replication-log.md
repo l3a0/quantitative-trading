@@ -4778,7 +4778,10 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/buy-on-gap-lessons.md](../blog/buy-on-gap-lessons.md) moves with it,
 since that post quotes most of these figures. So does its one figure, which
-`uv run python -m chan.buy_on_gap_figures` redraws.
+`uv run python -m chan.buy_on_gap_figures` redraws, and its one whiteboard
+sketch, after the strategy's rules, which draws PCS on 2011-01-06 to scale and
+which `uv run python -m chan.buy_on_gap_whiteboard` redraws through the same
+`entry_price` that `drop_qualifiers` compares the open against.
 
 ## Entry 19: the Khandani-Lo reversal on the 2012 panel, Chan's *Algorithmic Trading*
 
