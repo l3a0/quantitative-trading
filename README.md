@@ -387,11 +387,11 @@ where they were first built. The other forty-five were built here.
     takes the VX strip, which has no spot. Every figure is exploratory.
 28. VX futures against E-mini S&P 500 futures, from *Algorithmic Trading*'s
     Chapter 5, on Chan's own continuous futures. A regression of ES on VX
-    from August 2008 gives the hedge, and a band one training deviation wide
-    trades the residual. On the save of 2012-05-07, fitted on the first 500
-    days from 2008-08-04, the hedge of 0.390594, the APR of 0.122811 and the
-    Sharpe ratio of 1.393201 reproduce the book's 0.3906, 12.3 percent and
-    1.4. The residual's deviation of $2,044.91 misses the book's $2,047, and
+    from August 2008 gives the hedge, and a rule trades the residual against
+    a band from −1 to +1 training deviations. On the save of 2012-05-07, fitted on the
+    first 500 days from 2008-08-04, the hedge of 0.390594, the APR of
+    0.122811 and the Sharpe ratio of 1.393201 reproduce the book's 0.3906,
+    12.3 percent and 1.4. The residual's deviation of $2,044.91 misses the book's $2,047, and
     dropping the first training day reaches $2,046.93. `VX_ES.m` as it ships
     loads a later save, fits on the test days too and runs no trade. The
     window comes from Chan's `VX_ES_rollreturn.m`, while the save and the exit
@@ -1108,7 +1108,7 @@ the exception, and what it says that nothing here asserts is listed below.
 [tests/test_vx_es.py](tests/test_vx_es.py) does it for VX against ES. It pins
 the four figures on the 2012-05-07 save at the precision that is real and at
 the book's, and each diagnostic beside them: the first training day dropped,
-an exit at the mean, a band started flat on the first test day, the printed
+an exit at the mean, the rule started flat on the first test day, the printed
 hedge traded, the 2012-05-11 and 2012-05-17 saves, and `VX_ES.m` as it ships.
 It also holds the training and test spans, the four positions, and the
 scale-break guard on each leg of each save. The blog post about it is the
@@ -3425,7 +3425,7 @@ compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
 the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
-calendar spreads, Johansen ETF and small-caps redraw commands.
+calendar spreads, Johansen ETF, VX against ES and small-caps redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -4397,7 +4397,7 @@ strokes, timeline and renderer, so an edit there needs this redraw too.
 [blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
 locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
 VIX future, against ES, the E-mini S&P 500 future, from August 2008 and trade
-the portfolio against a band one deviation wide. Chan reports a hedge of
+the portfolio against a band from −1 to +1 deviations. Chan reports a hedge of
 0.3906 VX contracts per ES contract, a residual standard deviation of \$2,047,
 and an APR of 12.3 percent with a Sharpe ratio of 1.4. The post draws four
 lessons from Entry 28 of the replication log.
@@ -4422,14 +4422,14 @@ Seven groups of what it says are not pinned here.
    dollars per point, the four figures, the long 0.3906 VX contracts and one
    ES contract, the band of one training deviation, and "particularly
    profitable" around the downgrade are at 2559. "0.3906 front contracts of
-   VX" in the roll-return trade is at 2754. The book's figures are pinned, and
-   its words are not.
+   VX" in the roll-return trade is at 2754. The book's Figures 5.10 to 5.12
+   are at 2546 and 2559. The book's figures are pinned, and its words are not.
 2. The search behind the window. Its 22,446 windows across the three saves,
    and the one window among them that rounds to both fitted figures, are
    recorded in Entry 28 and on the issue that shipped the run. No test reruns
    the search.
 3. Facts outside the committed data. What ES and VX are and what the VIX
-   index measures. That Standard and Poor's announced its downgrade of the
+   index measures, and that GLD is a gold fund and USO an oil fund. That Standard and Poor's announced its downgrade of the
    U.S. credit rating after the close of Friday 2011-08-05. That a continuous
    future shifts its history at each roll, and that VX's and ES's closes do
    not move by one constant between saves, so how Chan's source rebuilt them
@@ -4440,23 +4440,41 @@ Seven groups of what it says are not pinned here.
    `VX_ES_rollreturn.m` anchors at 2008-08-04, tests from the 501st row on,
    computes every day's return before keeping those rows, reads ES from the
    2012-05-07 save, and trades one VX contract against one ES contract with
-   every line holding 0.3906 commented out. That `bollinger.m` exits at a
-   z-score of 0.
+   every line holding 0.3906 commented out. That `bollinger.m`, Example 3.2's
+   script, trades GLD against USO and exits at a z-score of 0.
    [src/chan/vx_es.py](src/chan/vx_es.py)'s docstring and
-   [data/README.md](data/README.md) record the first two.
+   [data/README.md](data/README.md) record the first two, apart from the
+   commented-out 0.3906 lines and the live one-to-one lines, which
+   [src/chan/vx_es_roll_return.py](src/chan/vx_es_roll_return.py)'s docstring
+   records, and [src/chan/bollinger.py](src/chan/bollinger.py) records the
+   third.
 5. Arithmetic on pinned numbers that no test asserts as written: the
    deviation missing by about a tenth of a percent, the APR on the later saves
    falling by more than half, the 449 test days making about a year and three
    quarters, and 236 of 449 days being more than half.
-6. The figure's alt text, whose readings of the points and lines, such as
-   "about 56,000 and 77,000 dollars" and "about minus 8 percent", are
-   approximate by design.
+6. The alt texts. The chart's readings of the points and lines, such as
+   "about 56,000 and 76,000 dollars" and "about minus 8 percent", are
+   approximate by design. Of the sketches' alt texts,
+   [tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) reads
+   the quoted labels, the pace and the phrases it quotes about each drawing.
+   It does not read every level the rest of each description mentions, such
+   as the z-score path starting just above 0.
 7. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_vx_es.py](tests/test_vx_es.py), or to
 [tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) for the figure's
-own numbers. Three groups had no pin before it, and
+own numbers, or to
+[tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) for the
+sketches' labels and pace. `TestThePostQuotesTheRun` in
+[tests/test_vx_es.py](tests/test_vx_es.py) reads the post itself, so a figure
+edited in the post alone fails. It reads every row of the four tables with its
+verdict, and one copy of each figure the run computes that the prose writes in
+numerals. It does not read the subtitle or the closing list, which only repeat
+figures. Nor does it read the dates that name the saves, in the prose or in
+Lesson 2's column headings, or a count written as a word, such as the four
+bets. Three groups had no pin
+before the post, and
 [tests/test_vx_es.py](tests/test_vx_es.py) now pins them.
 
 1. The test set around the downgrade. It is down 0.045935 at the close of
@@ -4478,7 +4496,7 @@ included. It draws three panels after the book's Figures 5.10 to 5.12.
 1. 50·ES against 1000·VX on the 1,999 common days, coloured by the two
    regimes, with the fit on the 500 training days.
 2. The z-score from 2008-08-04 with the band at ±1, the last training day
-   marked, and each position the band holds shaded.
+   marked, and each position the rule holds shaded.
 3. The test set's compounded cumulative return, with the three changes of
    position and 2011-08-05 marked.
 
@@ -4488,6 +4506,33 @@ uv run python -m chan.vx_es_figures
 
 [tests/test_vx_es_figures.py](tests/test_vx_es_figures.py) holds what it draws
 rather than its bytes, for the reason given above for the regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/vx_es_whiteboard.py](src/chan/vx_es_whiteboard.py) on the USD.CAD
+post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `vx_es_sketch_one_shift.gif`, in Lesson 2, falling dots and their fit, the
+   same dots moved right by one amount with a parallel fit, and the same dots
+   moved by uneven amounts with a fit whose slope differs.
+2. `vx_es_sketch_two_exits.gif`, in Lesson 3, a z-score path against the band
+   above two strips, one holding until the opposite band and one closing at
+   the mean, so the second waits flat from each zero crossing to the next band.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in.
+
+Both are schematic and carry no figures from the run. Redraw both with:
+
+```bash
+uv run python -m chan.vx_es_whiteboard
+```
+
+[tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) holds that
+each strip holds what `chan.vx_es`'s two exit rules hold along the drawn path,
+that one constant added to every VX close on the 2012-05-07 save moves only
+the intercept, and that the mean exit starts 77 of the 449 test days with no
+position.
 
 [blog/aud-cad-rollover-lessons.md](blog/aud-cad-rollover-lessons.md) is a
 twentieth post, about Example 5.2 of Chan's *Algorithmic Trading*, which adds

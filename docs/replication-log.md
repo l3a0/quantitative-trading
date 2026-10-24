@@ -6481,7 +6481,7 @@ Every row reads one of three vintages and one of two specifications, so they
 are stated once here.
 
 1. **The vintages.** Three saves of Chan's continuous futures, each rolled
-   from contract to contract and shifted at each roll, read for VX and ES
+   from contract to contract and rewritten between saves, read for VX and ES
    through `chan.series.load_panel`. Each leg keeps its own calendar, so each
    is cut to its own rows and the two are intersected, as the script does.
    1. `inputdataohlcdaily_20120507/`, saved 2012-05-09, 1,999 common days
@@ -6533,7 +6533,7 @@ and it misses the printed deviation.
 | 4 | `√252 · mean(ret) / std(ret)` | 1.393201 | `TestTheSpecification::test_the_sharpe_ratio` |
 | 5 | rows 1 to 4 fitted on training rows 2 to 500, from 2008-08-05 | 0.390635, $2,046.93, 0.122804 and 1.393228 | `TestTheDiagnostics::test_dropping_the_first_training_row_reaches_both_printed_figures` |
 | 6 | rows 3 and 4 with each position closed when the z-score crosses 0, as `bollinger.m` exits | 0.068463 and 0.870716 | `TestTheDiagnostics::test_an_exit_at_the_mean_misses` |
-| 7 | rows 3 and 4 with the band started flat on 2010-07-29 | 0.124916 and 1.415772 | `TestTheDiagnostics::test_starting_flat_on_the_first_test_day_misses` |
+| 7 | rows 3 and 4 with the rule started flat on 2010-07-29 | 0.124916 and 1.415772 | `TestTheDiagnostics::test_starting_flat_on_the_first_test_day_misses` |
 | 8 | rows 3 and 4 trading the printed 0.3906 in place of the fitted hedge | 0.122810 and 1.393205 | `TestTheDiagnostics::test_the_printed_constant_moves_nothing_that_prints` |
 | 9 | rows 1 to 4 on the 2012-05-17 save, the test cut at 2012-05-08, and on the 2012-05-11 save | 0.376431, $2,291.00, 0.056582 and 0.673910 on both | `TestTheDiagnostics::test_the_2012_05_17_save_misses` and `::test_the_2012_05_11_save_agrees_with_the_2012_05_17_save` |
 | 10 | `VX_ES.m` as shipped, 957 days from 2008-08-01 to 2012-05-17 on the 2012-05-17 save | 0.350731 and $2,373.59, and no trade | `TestTheDiagnostics::test_the_script_as_shipped` |
@@ -6549,9 +6549,9 @@ and it misses the printed deviation.
 | 4 | 0.0 | reproduced | 1.393201 rounds to 1.4. |
 | 5 | none | none, not a replication | Fitting from 2008-08-05 lands both of row 1's and row 2's printed figures and moves rows 3 and 4 by less than their last printed digit. It is the one window of the sweep's 22,446 that lands both, so it was found by searching and is not evidence of anything else. Rows 1 to 4 keep the window a script of Chan's states. |
 | 6 | none | none, not a replication | The exit is what decides the trade's figures. Closing at the mean, the rule Chan's other Bollinger band uses, gives 6.8 percent against the printed 12.3. Holding until the opposite band is the one rule tried that lands both of rows 3 and 4. |
-| 7 | none | none, not a replication | On 2010-07-28 the z-score is −1.041, so the band is already long. Carrying that position into the test is what `VX_ES_rollreturn.m`'s slicing does, and starting flat moves the APR to 12.5 percent. |
+| 7 | none | none, not a replication | On 2010-07-28 the z-score is −1.041, so the position is already long. Carrying that position into the test is what `VX_ES_rollreturn.m`'s slicing does, and starting flat moves the APR to 12.5 percent. |
 | 8 | none | none, not a replication | Trading the printed constant moves nothing that prints, so a run that takes 0.3906 as given, as the roll-return trade does, trades the same portfolio to the book's precision. |
-| 9 | none | none, not a replication | The 2012-05-11 and 2012-05-17 saves agree with each other over these days and disagree with the 2012-05-07 save, because the back-adjusted history was rewritten between them. On either, the specification misses all four figures. |
+| 9 | none | none, not a replication | The 2012-05-11 and 2012-05-17 saves agree with each other over these days and disagree with the 2012-05-07 save, because the history was rewritten between them. VX's and ES's closes change by neither one constant nor one factor, so how they were rewritten was not measured, as [data/README.md](../data/README.md) records. On either, the specification misses all four figures. |
 | 10 | none | none, not a replication | The script as shipped fits on days that include the whole test set and runs no trade, so it cannot be the source of rows 3 and 4. Its hedge and deviation miss rows 1 and 2 as well. |
 | 11 | none | none, not a replication | The portfolio is in the market on all 449 test days and holds four positions. |
 
@@ -6570,7 +6570,7 @@ Three things.
    exit were chosen because they land the figures.
 3. **The trade's figures rest on four bets.** The portfolio enters the test
    already long and changes position three times in 449 days. An APR of 12.3
-   percent from four holding periods says little about how often the band
+   percent from four holding periods says little about how often the rule
    pays.
 
 ### What this entry cannot say
@@ -6579,7 +6579,7 @@ Three things.
 
 **Whether the portfolio is stationary.** The book argues it from a plot,
 Figure 5.11, and prints no statistic, and this run takes no test. The z-score
-sits beyond a band on 236 of the 449 test days against 113 of the 500
+sits outside the band on 236 of the 449 test days against 113 of the 500
 training days, which `TestTheTrade` holds, so the test set strays more often
 than training did.
 
@@ -6597,7 +6597,10 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/vx-es-lessons.md](../blog/vx-es-lessons.md), this entry's write-up,
 moves with it, since that post quotes most of these figures. The post's one
-figure moves too, and `uv run python -m chan.vx_es_figures` redraws it.
+figure moves too, and `uv run python -m chan.vx_es_figures` redraws it. Its
+two whiteboard sketches, one in Lesson 2 and one in Lesson 3, are schematic
+and draw none of these figures, and `uv run python -m chan.vx_es_whiteboard`
+redraws them.
 
 ## Entry 29: GLD, GDX and USO around July 2008, Chan's *Algorithmic Trading*
 

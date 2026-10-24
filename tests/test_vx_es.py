@@ -1,10 +1,11 @@
 """The pins for VX against ES, *Algorithmic Trading*'s hedge from August 2008.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the diagnostics beside it, with one exception, in
-``blog/vx-es-lessons.md``. The post's figure has its own pins in
-``tests/test_vx_es_figures.py``. README lists what the post says that nothing
-pins. ``blog/crude-oil-reversal-momentum-lessons.md`` cites the APR on the
+about this replication and the diagnostics beside it, with two exceptions,
+both in ``blog/vx-es-lessons.md``. The post's chart has its own pins in
+``tests/test_vx_es_figures.py``, and its two sketches have theirs in
+``tests/test_vx_es_whiteboard.py``. README lists what the post says that
+nothing pins. ``blog/crude-oil-reversal-momentum-lessons.md`` cites the APR on the
 2012-05-07 save and on the 2012-05-17 save, falling by more than half, from
 the pins here. ``docs/replication-log.md`` Entry 28 carries the verdicts and
 points here row by row.
@@ -51,7 +52,9 @@ printed figures. The run first ran on 2026-10-05.
 from __future__ import annotations
 
 import io
+import re
 from contextlib import redirect_stdout
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -166,9 +169,10 @@ class TestTheVintages:
         assert np.isfinite(legs.to_numpy()).all()
 
     def test_the_saves_rewrite_the_history(self, legs, script_legs) -> None:
-        """Issue 313's finding, on this window: the back-adjusted closes differ between saves."""
+        """Issue 313's finding, on this window: the closes differ between saves."""
         shared = legs.index.intersection(script_legs.index)
         assert not np.allclose(legs.loc[shared, VX], script_legs.loc[shared, VX])
+        assert not np.allclose(legs.loc[shared, ES], script_legs.loc[shared, ES])
 
 
 class TestTheSpans:
@@ -604,3 +608,152 @@ class TestTheReport:
         ):
             row = next(r for r in out.splitlines() if r.strip().startswith(label))
             assert row.split()[-4:] == figures, row
+
+
+POST = Path(__file__).parents[1] / "blog" / "vx-es-lessons.md"
+
+
+def _minus(x: float, places: int) -> str:
+    """A number as the post prints it, with a true minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _tex_dollars(x: float) -> str:
+    """Dollars as the post's tables print them, ``\\$2{,}044.91``."""
+    return f"\\${x:,.2f}".replace(",", "{,}")
+
+
+def _lands(traded) -> str:
+    """Lesson 3's last column: which of the book's APR and Sharpe ratio a rule lands."""
+    apr = matches(100 * traded.apr, BOOK_APR_PERCENT)
+    sharpe = matches(traded.sharpe, BOOK_SHARPE)
+    return {(True, True): "both", (False, False): "neither"}.get(
+        (apr, sharpe), "APR" if apr else "Sharpe"
+    )
+
+
+def _bets(traded) -> list[tuple[str, str, float, int, float, float]]:
+    """Each holding period's first and last test day earned, units, days, return and worst."""
+    held = traded.units[TRAINING_DAYS - 1 : -1]
+    daily = pd.Series(traded.daily, index=traded.test_days)
+    starts = [0, *(np.flatnonzero(np.diff(held)) + 1), len(held)]
+    return [
+        (
+            str(daily.index[a].date()),
+            str(daily.index[b - 1].date()),
+            held[a],
+            b - a,
+            float(np.prod(1 + daily.iloc[a:b]) - 1),
+            float(np.min(np.cumprod(1 + daily.iloc[a:b])) - 1),
+        )
+        for a, b in zip(starts, starts[1:], strict=False)
+    ]
+
+
+def post_fragments(legs, script_legs, result) -> list[str]:
+    """The sentences and table rows of ``blog/vx-es-lessons.md`` that quote the run."""
+    h, t = result.hedge, result.trade
+    dropped, _ = result.first_row_dropped
+    later_hedge, later_trade = specification(script_legs)
+    shipped = script_as_shipped(script_legs)
+    mean, flat, printed = result.exit_at_mean, result.flat_at_test, result.book_hedge
+    cumulative = pd.Series(np.cumprod(1 + t.daily) - 1, index=t.test_days)
+    downgrade = pd.Timestamp("2011-08-05")
+    at_close = cumulative.loc[downgrade]
+    after = (1 + cumulative.iloc[-1]) / (1 + at_close) - 1
+    beyond = np.abs(t.zscore) > 1
+    held = t.units[TRAINING_DAYS - 1 : -1]
+    changes = [str(day.date()) for day, _ in position_changes(t)]
+    bets = _bets(t)
+    n = len(t.test_days)
+
+    def verdict(value: float, book: str) -> str:
+        plain = _book(book)
+        return (
+            "\\text{lands}"
+            if matches(value, plain)
+            else f"\\text{{misses by }}\\${abs(value - float(plain)):.2f}"
+        )
+
+    fragments = [
+        f"VX and ES share {len(legs):,} trading days, from {legs.index[0].date()}"
+        f" to {legs.index[-1].date()}",
+        f"It also holds {len(script_legs):,} common days, ending {script_legs.index[-1].date()}",
+        f"over the {len(h.days)} common days from {h.days[0].date()} to {h.days[-1].date()}",
+        f"The {n} days from {t.test_days[0].date()} to {t.test_days[-1].date()}",
+        # Lesson 1's table, each figure beside the book's and the verdict between them.
+        f"\\text{{Hedge}} & {h.hedge:.6f} & {BOOK_HEDGE} & {verdict(h.hedge, BOOK_HEDGE)}",
+        f"\\text{{Deviation}} & {_tex_dollars(h.residual_std)}"
+        f" & \\${BOOK_RESIDUAL_STD.replace(',', '{,}')}"
+        f" & {verdict(h.residual_std, BOOK_RESIDUAL_STD)}",
+        f"\\text{{APR}} & {t.apr:.6f} & {BOOK_APR_PERCENT}\\%"
+        f" & {verdict(100 * t.apr, BOOK_APR_PERCENT)}",
+        f"\\text{{Sharpe}} & {t.sharpe:.6f} & {BOOK_SHARPE} & {verdict(t.sharpe, BOOK_SHARPE)}",
+        f"so {t.apr:.6f} is {100 * t.apr:.2f} percent",
+        f"from {dropped.days[0].date()}, lands both, at {dropped.hedge:.6f}"
+        f" and \\${dropped.residual_std:,.2f}",
+        f"gives an APR of {printed.apr:.6f} and a Sharpe ratio of {printed.sharpe:.6f}",
+        # Lesson 2's table, the 2012-05-07 save beside the later saves and the script.
+        f"\\text{{Hedge}} & {h.hedge:.6f} & {later_hedge.hedge:.6f} & {shipped.hedge:.6f}",
+        f"\\text{{Deviation}} & {_tex_dollars(h.residual_std)}"
+        f" & {_tex_dollars(later_hedge.residual_std)} & {_tex_dollars(shipped.residual_std)}",
+        f"\\text{{APR}} & {t.apr:.6f} & {later_trade.apr:.6f} & \\text{{no trade}}",
+        f"\\text{{Sharpe}} & {t.sharpe:.6f} & {later_trade.sharpe:.6f} & \\text{{no trade}}",
+        f"every day from {shipped.days[0].date()} to the end of the file",
+        f"That fit runs over {len(shipped.days)} days, through {shipped.days[-1].date()}",
+        # Lesson 3's table and the sentences after it.
+        f"\\text{{Opposite band}} & {t.apr:.6f} & {t.sharpe:.6f} & \\text{{{_lands(t)}}}",
+        f"\\text{{Mean}} & {mean.apr:.6f} & {mean.sharpe:.6f} & \\text{{{_lands(mean)}}}",
+        f"\\text{{Flat start}} & {flat.apr:.6f} & {flat.sharpe:.6f} & \\text{{{_lands(flat)}}}",
+        f"this trade earns {100 * mean.apr:.1f} percent a year rather than {BOOK_APR_PERCENT}",
+        f"the z-score is {_minus(t.zscore[TRAINING_DAYS - 1], 3)}",
+        f"misses the APR, at {100 * flat.apr:.1f} percent",
+        # Lesson 4: the four bets, the downgrade and the band.
+        f"changes position at the close of {', '.join(changes[:-1])} and {changes[-1]}",
+        f"the last one earns through {bets[-1][1]}",
+        f"in the market on all {np.count_nonzero(held)} test days",
+        f"make the test set’s {100 * cumulative.iloc[-1]:.2f} percent",
+        f"after {len(cumulative.loc[:downgrade])} of the {n} test days, the trade was down"
+        f" {-100 * at_close:.2f} percent",
+        f"On Monday {cumulative.idxmin().date()} it reached its lowest point,"
+        f" down {-100 * cumulative.min():.2f} percent, and the z-score reached"
+        f" {_minus(t.zscore.min(), 2)}",
+        f"grew {100 * after:.2f} percent in {len(cumulative.loc[downgrade:]) - 1} days",
+        f"{100 * after:.2f} percent against {100 * cumulative.iloc[-1]:.2f}, because",
+        f"spent its {bets[0][3]} test days earning {100 * bets[0][4]:.2f} percent,"
+        f" and was down {-100 * bets[0][5]:.2f} percent at its worst",
+        f"on {beyond[TRAINING_DAYS:].sum()} of the {n} test days, against"
+        f" {beyond[:TRAINING_DAYS].sum()} of the {TRAINING_DAYS} training days",
+        f"Each unit also holds {h.hedge:.2f} of a VX contract",
+        f"compounds the daily returns to a year of {module.TRADING_DAYS} trading days",
+        f"scaled by √{module.TRADING_DAYS}",
+    ]
+    fragments += [
+        f"\\text{{{'Long' if units > 0 else 'Short'}}} & \\text{{{first}}} & {days} & {earned:.6f}"
+        for first, _, units, days, earned, _ in bets
+    ]
+    return fragments
+
+
+def _quoted(fragment: str, text: str) -> bool:
+    """Whether ``text`` holds ``fragment`` with no digit run on at either end.
+
+    A plain substring test lets 0.0581041 stand for 0.058104, or 128.84 for
+    28.84, so a digit typed beside a figure would pass.
+    """
+    return re.search(rf"(?<!\d){re.escape(fragment)}(?!\d)", text) is not None
+
+
+class TestThePostQuotesTheRun:
+    """``blog/vx-es-lessons.md`` prints what the run computes, read here from the run.
+
+    The pins above hold the run's numbers. This class holds that the post
+    prints them, so a figure edited in the post alone fails here. It reads
+    every row of the four tables with its verdict, and one copy of each figure
+    the run computes that the prose writes in numerals. README says what it
+    does not read.
+    """
+
+    def test_the_post_prints_each_figure_the_run_computes(self, legs, script_legs, result) -> None:
+        text = POST.read_text(encoding="utf-8")
+        assert [f for f in post_fragments(legs, script_legs, result) if not _quoted(f, text)] == []
