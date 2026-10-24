@@ -1,13 +1,23 @@
 """The pins for buy on gap and its mirror, *Algorithmic Trading*'s Example 4.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 4.1, with two exceptions, both in ``blog/buy-on-gap-lessons.md``.
-The post quotes the dates of each side's longest spell below the high and of
-its deepest drawdown, which ``tests/test_buy_on_gap_figures.py`` holds. And it
-recalls Example 7.2's 6.7 percent as the arithmetic figure, which
-``tests/test_pead.py`` holds. README lists what the post says that nothing
-pins. ``docs/replication-log.md`` Entry 18 carries the verdicts and points
-here row by row.
+about Example 4.1, with four exceptions, three of them in
+``blog/buy-on-gap-lessons.md``.
+
+1. The post quotes the dates of each side's longest spell below the high and
+   of its deepest drawdown, which ``tests/test_buy_on_gap_figures.py`` holds.
+2. It recalls Example 7.2's 6.7 percent as the arithmetic figure, which
+   ``tests/test_pead.py`` holds.
+3. Its whiteboard sketch and the sketch's caption quote one day's prices, PCS
+   on 2011-01-06, which ``tests/test_buy_on_gap_whiteboard.py`` holds.
+4. ``blog/vix-filter-lessons.md`` and Entry 47 of ``docs/replication-log.md``
+   quote buy on gap's figures under location 3509's VIX filter, and its Sharpe
+   ratio over every day at six decimals, 1.537063, all of which
+   ``tests/test_vix_filter.py`` holds.
+
+README.md repeats the figures of all four, and the same files hold them there.
+README lists what the post says that nothing pins. ``docs/replication-log.md``
+Entry 18 carries the verdicts and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -17,8 +27,8 @@ both are stated once here and carried in every figure's failure message as
   from Chan's ``inputDataOHLCDaily_stocks_20120424.mat``, read for the Open,
   High, Low and Close columns. Its identity is the row of ``LIFTED_SOURCES``
   in ``tests/support/committed_vintages.py``, which ``TestTheVintages`` holds
-  the members to. The file is the S&P 500 as Chan held it on 2012-04-24, so
-  every figure is a figure about survivors.
+  the members to. The file holds stocks that were in the S&P 500 in late
+  2011, so every figure is a figure about survivors.
 - **Specification.** ``bog.m`` at the mirror commit :mod:`chan.buy_on_gap`
   names, over all 1,500 days. The spread is book two's ``smartMovingStd`` over
   90 rows of close-to-close returns and the average is ``smartMovingAvg`` over
@@ -30,14 +40,23 @@ both are stated once here and carried in every figure's failure message as
 
 The buy side's two figures are pinned at the precision that is real, six
 decimals for a return and four for the Sharpe ratio, and again at the one
-decimal ``bog.m``'s closing comment and location 1974 print. ``bog.m``'s
-``fprintf`` would print more, but nothing records what it printed, so the
-comment is the published figure. The mirror's are pinned against location
-1993's whole percent and two decimals.
+decimal that location 1974 and the comment after ``bog.m``'s last print
+statement give. ``bog.m``'s ``fprintf`` would print more, but nothing records
+what it printed, so the comment is the published figure. The mirror's are
+pinned against location 1993's whole percent and two decimals.
 
 ``TestTheHelperMovesBothFigures`` holds the mistake a port is most likely to
 make. The first edition's ``smartstd`` carries the same MATLAB name, and with
 it neither printed figure lands.
+
+``TestWhatThePostQuotes`` reads the post and checks at least one copy of each
+run figure it quotes outside the sketch against the run. Those include the
+file's saved date, the figure's alt-text spell dates and its mirror climbing more
+steeply through 2007 and 2008, and the two dates of the flagged day the mirror
+shorted. The sketch's caption and alt text are read in
+``tests/test_buy_on_gap_whiteboard.py``. Of the book's figures, it reads only
+the 8.7 percent and 1.5, in one copy beside the computed APR and Sharpe ratio.
+It checks no Kindle location and no fact outside the data.
 
 Exploratory. Reproducing Chan's figures spends the 2006 to 2012 sample on a
 rule he chose. It first ran here on 2026-10-04.
@@ -45,6 +64,7 @@ rule he chose. It first ran here on 2026-10-04.
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -79,6 +99,8 @@ from chan.buy_on_gap import (
     trailing_average,
 )
 from chan.matlab_helpers import calculate_returns, smartstd_first_edition
+from chan.paths import REPO_ROOT
+from chan.pead_figures import cumulative_return, longest_spell
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
@@ -168,6 +190,125 @@ class TestTheVintages:
         mask = frames["Open"].isna()
         assert int(mask.to_numpy().sum()) == 10981
         assert all(frame.isna().equals(mask) for frame in frames.values())
+
+
+def _schedule_names(report_date: str) -> list[str]:
+    """The lower-cased company names in one quarter's committed IVV holdings schedule."""
+    schedule = pd.read_csv(REPO_ROOT / "research" / "filings" / "ivv" / f"{report_date}.csv")
+    return [str(name).lower() for name in schedule["name"]]
+
+
+def _named(word: str, names: list[str]) -> bool:
+    return any(word.lower() in name for name in names)
+
+
+class TestTheListDatesFromLate2011:
+    """Every stock in the file was in the S&P 500 in late 2011, though not all on 2012-04-24.
+
+    2012-04-24 is the date in the file's name. The schedules name companies
+    rather than tickers, so each check matches a distinctive word of the
+    company's name. Five stocks that left the index in the December 2011
+    rebalance are in the file, three of the stocks that joined then are not,
+    and Medco, which left on 2012-04-02 when Express Scripts bought it, is in
+    the file with its prices frozen at the deal's value after that. Nor is the
+    file the whole index of late 2011. Electronic Arts and Constellation Energy
+    were members at both of its quarter-ends and are absent. These tests hold
+    those examples. The universal claim, that every member was in
+    the index in late 2011, rests on them plus a count the review reconciled
+    against the index by hand, 497 = 500 − 8 + 5, which nothing here asserts.
+    The post's sentences that date the list are read here too, so a post that
+    drifts back to 2012-04-24 fails.
+    """
+
+    LEFT_IN_DECEMBER_2011 = {
+        "AKS": "AK Steel",
+        "CPWR": "Compuware",
+        "WFR": "MEMC",
+        "MWW": "Monster Worldwide",
+        "TLAB": "Tellabs",
+    }
+    JOINED_IN_DECEMBER_2011 = {"BWA": "BorgWarner", "DLTR": "Dollar Tree", "PRGO": "Perrigo"}
+    MEMBERS_ABSENT = {"EA": "Electronic Arts", "CEG": "Constellation Energy"}
+
+    def test_five_stocks_that_left_in_december_2011_are_in_the_file(self, sources) -> None:
+        _, frames = sources
+        before, after = _schedule_names("2011-09-30"), _schedule_names("2011-12-31")
+        for ticker, word in self.LEFT_IN_DECEMBER_2011.items():
+            assert ticker in frames["Close"].columns, ticker
+            assert _named(word, before), word
+            assert not _named(word, after), word
+
+    def test_three_stocks_that_joined_in_december_2011_are_not(self, sources) -> None:
+        _, frames = sources
+        before, after = _schedule_names("2011-09-30"), _schedule_names("2011-12-31")
+        for ticker, word in self.JOINED_IN_DECEMBER_2011.items():
+            assert ticker not in frames["Close"].columns, ticker
+            assert _named(word, after), word
+            assert not _named(word, before), word
+
+    def test_each_ticker_is_the_company_the_schedule_names(self) -> None:
+        members = pd.read_csv(REPO_ROOT / "research" / "filings" / "ivv" / "members.csv")
+        cases = [
+            ("2011-09-30", self.LEFT_IN_DECEMBER_2011),
+            ("2011-12-31", self.JOINED_IN_DECEMBER_2011),
+            ("2011-12-31", self.MEMBERS_ABSENT),
+        ]
+        for quarter, pairs in cases:
+            names = _schedule_names(quarter)
+            rows = members[members["report_date"] == quarter].set_index("row")["ticker"]
+            for ticker, word in pairs.items():
+                (row,) = [k for k, name in enumerate(names, start=1) if word.lower() in name]
+                # MEMC traded as WFR in 2011 and members.csv carries its later SUNE.
+                assert rows[row] == {"WFR": "SUNE"}.get(ticker, ticker), (ticker, word)
+
+    def test_two_members_of_late_2011_are_not_in_the_file(self, sources) -> None:
+        _, frames = sources
+        for quarter in ("2011-09-30", "2011-12-31"):
+            names = _schedule_names(quarter)
+            for ticker, word in self.MEMBERS_ABSENT.items():
+                assert ticker not in frames["Close"].columns, ticker
+                assert _named(word, names), word
+
+    def test_medco_is_in_the_file_frozen_after_it_left(self, sources) -> None:
+        _, frames = sources
+        after_the_merger = slice("2012-04-03", None)
+        for field in ("Open", "High", "Low", "Close"):
+            frozen = frames[field]["MHS"].loc[after_the_merger]
+            assert len(frozen) == 15
+            assert (frozen == 73.75).all(), field
+        assert frames["Close"].index[-1] == pd.Timestamp("2012-04-24")
+        assert _named("Medco", _schedule_names("2012-03-31"))
+        assert not _named("Medco", _schedule_names("2012-06-30"))
+
+    def test_the_post_dates_the_list_to_late_2011(self, sources) -> None:
+        """Each place the post dates the list, read by the clause that dates it.
+
+        The old dating to 2012-04-24 is also looked for anywhere in the post,
+        so a sentence added elsewhere that restores it fails as well."""
+        members, _ = sources
+        post = POST.read_text(encoding="utf-8")
+        missing = [
+            fragment
+            for fragment in (
+                f"The file holds {len(members)} stocks that were in the S&P 500 in late 2011",
+                "out of the index for all of late 2011 is not in the file",
+                "not the date of its list of stocks, which is from late 2011",
+                "out of the S&P 500 for all of late 2011 is absent",
+                "Every stock here was in the S&P 500 in late 2011",
+            )
+            if fragment not in post
+        ]
+        assert missing == []
+        restored = [
+            old
+            for old in (
+                "as Chan held it on 2012-04-24",
+                "S&P 500 on 2012-04-24",
+                "index on 2012-04-24",
+            )
+            if old in post
+        ]
+        assert restored == []
 
 
 class TestTheFigures:
@@ -360,7 +501,10 @@ class TestTheLateListings:
 
 
 class TestTheScaleBreakDecision:
-    """Issue 295 decided the guard is not called. These hold what that decision rests on."""
+    """Issue 295 decided the run does not call the guard.
+
+    These hold what that decision rests on.
+    """
 
     @staticmethod
     def _from_first_price(members, closes: pd.DataFrame):
@@ -399,6 +543,172 @@ class TestTheScaleBreakDecision:
         ], SPEC
 
 
+POST = Path(__file__).parents[1] / "blog" / "buy-on-gap-lessons.md"
+
+#: Small counts as the post spells them out, indexed by the count.
+SPELLED = {10: "ten"}
+
+
+def _minus(x: float, places: int) -> str:
+    """A negative figure with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+class TestWhatThePostQuotes:
+    """Each run figure the post quotes outside its sketch, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure the run computes is built from the run's value at the
+    precision the post prints it, and looked for in at least one copy: a short
+    fragment holding the number and the few words that name one place in the
+    post. A typo in a copy that is read, or a re-pin that leaves the post
+    behind, fails here. The file's saved date, the figure's alt-text dates and
+    climb, and the two dates of the flagged day the mirror shorted are read the
+    same way.
+
+    The post states several figures more than once, and only some copies are
+    read. Several figures are read in more than one copy, among them the spell
+    lengths and deepest drawdowns, in the figure's alt text and in Lesson 4,
+    the arithmetic annual return, and the buy side's positions taken and days
+    held. Other copies, such as the APR and Sharpe ratio in the alt text, are
+    not read. The sketch's caption and alt text are read in
+    ``tests/test_buy_on_gap_whiteboard.py`` instead. Of the book's figures,
+    only the 8.7 percent and 1.5 are read, in one copy beside the computed APR
+    and Sharpe ratio. The Kindle locations and the facts outside the data are
+    checked by nothing, and README lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_file_and_the_buy_side(self, sources, arrays, long: Side, text) -> None:
+        members, _ = sources
+        days = long.days
+        qualifiers = int(
+            drop_qualifiers(
+                arrays["Open"],
+                arrays["Low"],
+                entry_spread(arrays["Close"]),
+                trailing_average(arrays["Close"]),
+            )[0].sum()
+        )
+        full = int((np.count_nonzero(long.positions, axis=1) == TOP_N).sum())
+        (saved,) = {m.obtained for m in members}
+        fragments = [
+            f"`{PRICE_FILE}`, saved on {saved} and converted here to one file per stock",
+            f"{len(members)} stocks over {len(days):,} trading days, from {days[0].date()} "
+            f"to {days[-1].date()}",
+            f"The computed APR is {long.apr:.6f}, the book’s {BOOK_APR_PERCENT} percent, "
+            f"and the computed Sharpe ratio is {long.sharpe:.4f}, the book’s {BOOK_SHARPE}.",
+            f"\\text{{Arithmetic annual return}} & {long.arithmetic_annual:.6f}",
+            f"\\text{{Maximum drawdown}} & {long.max_drawdown:.6f}",
+            f"\\text{{Longest drawdown, days}} & {long.max_drawdown_days}",
+            f"\\text{{Positions taken}} & {long.trades}",
+            f"\\text{{Days holding any}} & {long.days_held}",
+            f"the first two rules pass a stock {qualifiers} times, and {long.trades} of those "
+            f"passes become purchases. The strategy holds at least one stock on "
+            f"{long.days_held} days, and buys the full {SPELLED[TOP_N]} stocks on only "
+            f"{SPELLED[full]} of them.",
+            f"before {days[SPREAD_LOOKBACK].date()}, the first day a {SPREAD_LOOKBACK}-day "
+            f"standard deviation exists, and the first position comes on {_first_held(long)}.",
+            f"the arithmetic annual return, {long.arithmetic_annual:.6f}. At the book’s one "
+            f"decimal that is {100 * long.arithmetic_annual:.1f} percent",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_helper(self, first_edition: tuple[Side, Side], long: Side, text) -> None:
+        swapped, _ = first_edition
+        fragments = [
+            f"the APR becomes {swapped.apr:.6f} and the Sharpe ratio {swapped.sharpe:.4f}. "
+            f"Those round to {100 * swapped.apr:.1f} percent and {swapped.sharpe:.1f}",
+            f"takes {swapped.trades} positions rather than {long.trades}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_mirror(self, arrays, long: Side, short: Side, text) -> None:
+        rises = int(
+            jump_qualifiers(
+                arrays["Open"],
+                arrays["High"],
+                entry_spread(arrays["Close"]),
+                trailing_average(arrays["Close"]),
+            )[0].sum()
+        )
+        full = int((np.count_nonzero(short.positions, axis=1) == TOP_N).sum())
+        floor = np.log(1 + MIRROR_BOOK_APR_PERCENT / 100) / MIRROR_BOOK_SHARPE
+        volatility = short.arithmetic_annual / short.sharpe
+        assert floor / volatility >= 4.5, SPEC
+        assert short.max_drawdown < long.max_drawdown, SPEC
+        assert short.max_drawdown_days > long.max_drawdown_days, SPEC
+        fragments = [
+            f"lands at an APR of {round(100 * short.apr)} percent and a Sharpe ratio of "
+            f"{short.sharpe:.2f}.",
+            f"the mirror lands at an APR of {short.apr:.6f} and a Sharpe ratio of "
+            f"{short.sharpe:.4f}.",
+            f"stocks qualify {rises:,} times in all, and {short.trades} of those are shorted.",
+            f"deepest drawdown is {_minus(short.max_drawdown, 6)} against the buy "
+            f"side’s {_minus(long.max_drawdown, 6)}, so it is the steeper",
+            f"Its longest drawdown runs {short.max_drawdown_days} days against "
+            f"{long.max_drawdown_days}",
+            f"the floor is {floor:.4f}. The declared rule has an annual volatility of "
+            f"{volatility:.4f}, so whatever rule Chan ran moved at least four and a half times",
+            f"It holds a position on {short.days_held} of the {len(short.days):,} days, shorts "
+            f"the full {SPELLED[TOP_N]} stocks on only {full} of them",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_flagged_day(self, sources, short: Side, text) -> None:
+        members, frames = sources
+        closes = frames["Close"]
+        shorted = [
+            (series, series.index[series.index.get_loc(day) - 1], day)
+            for entry, series in TestTheScaleBreakDecision._from_first_price(members, closes)
+            for day in scale_breaks(series)
+            if short.positions[closes.index.get_loc(day), closes.columns.get_loc(entry.symbol)]
+        ]
+        ((series, before, on),) = shorted
+        assert series.name == "MS" and series[on] > series[before], SPEC
+        fragments = [
+            f"Morgan Stanley’s rise from its close on {before.date()} to its close on "
+            f"{on.date()} as too large for an ordinary day, and the mirror shorted Morgan "
+            f"Stanley on {on.date()}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_mirror_climbs_more_steeply(self, long: Side, short: Side, text) -> None:
+        years = (2007, 2008)
+        for year in years:
+            gains = []
+            for side in (long, short):
+                cumulative = pd.Series(cumulative_return(side), index=side.days)
+                gains.append(
+                    cumulative[cumulative.index.year == year].iloc[-1]
+                    - cumulative[cumulative.index.year < year].iloc[-1]
+                )
+            assert gains[1] > gains[0], (year, gains, SPEC)
+        assert self.missing(text, [f"climbs more steeply through {years[0]} and {years[1]}"]) == []
+
+    def test_the_alt_text_dates(self, long: Side, short: Side, text) -> None:
+        fragments = []
+        for side in (long, short):
+            spell = longest_spell(cumulative_return(side))
+            high, first, last, trough = (
+                side.days[row].date() for row in (spell.high, spell.first, spell.last, spell.trough)
+            )
+            fragments += [
+                f"a high marked on {high}",
+                f"labelled {spell.rows} days below the high, from {first} to {last}, with its "
+                f"deepest drawdown of {_minus(spell.depth, 6)} marked on {trough}",
+            ]
+        assert self.missing(text, fragments) == []
+
+
 class TestTheRun:
     def test_it_prints_each_figure_beside_chans(self, sources, monkeypatch, capsys) -> None:
         monkeypatch.setattr(buy_on_gap, "read_sources", lambda data_dir=None: sources)
@@ -418,6 +728,7 @@ class TestTheRun:
             (row,) = [each for each in out.splitlines() if line in each]
             assert all(figure in row.split() for figure in figures), row
         assert "about survivors" in out
+        assert "stocks that were in the index in late 2011" in out
         assert "Exploratory." in out
 
 

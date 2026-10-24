@@ -4620,7 +4620,7 @@ Twelve rows, all derivable from
 **Both figures `bog.m` prints reproduce on Chan's own file, and the mirror
 does not.** Chan argues that a stock's open can overshoot on a morning of panic
 selling and drift back during the day. So each day the rule buys at the open
-the ten stocks that opened furthest below their previous day's low, by more
+up to ten stocks that opened furthest below their previous day's low, by more
 than one 90-day standard deviation of their daily returns, provided the open is
 still above the 20-day moving average of closes, and sells them at the close.
 The book reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and the
@@ -4644,10 +4644,12 @@ here.
    the open, high, low and close through `chan.series.load_panel`, all 1,500
    days from 2006-05-11 to 2012-04-24. `bog.m` loads
    `inputDataOHLCDaily_20120424`, with no `_stocks`, and the only file of that
-   name in either public mirror of Chan's code is the same bytes, which
+   name in either of the two public mirrors data/README.md names is the same
+   bytes, which
    [data/README.md](../data/README.md) records. **Every figure here is about
-   survivors**, because the file is the S&P 500 as Chan held it on 2012-04-24,
-   carried backwards, and location 1974 says so.
+   survivors**, because the file holds stocks that were in the S&P 500 in late
+   2011, carried backwards, and location 1974 says the universe has
+   survivorship bias.
 2. **The specification.** `bog.m` at `45670240` in
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
    The spread is book two's `smartMovingStd` over 90 rows of close-to-close
@@ -4668,7 +4670,8 @@ one sentence rather than a hypothesis tested on held-out data.
 
 ### What the book printed
 
-`bog.m` closes on the comment `% APR=8.7%, Sharpe=1.5`. Its `fprintf` lines
+`bog.m`'s last `fprintf` line is followed by the comment
+`% APR=8.7%, Sharpe=1.5`. Its `fprintf` lines
 would print more digits, but nothing records what they printed, so the
 comment's one decimal is the precision the source carries.
 
@@ -4715,7 +4718,7 @@ comment's one decimal is the precision the source carries.
 | 9 | none | none, not a replication | No position can come before 2006-09-19, the first day a 90-row spread exists. |
 | 10 | none | none, not a replication | The first edition's helper moves both printed figures off Chan's, to 8.4 percent and 1.7, and takes two buy positions fewer. |
 | 11 | none | none, not a replication | A stock listed inside the window reaches the rule before 90 returns stand behind its spread, which is what Chan's helper does. Of the 23 late listings, three positions come from it. |
-| 12 | none | none, not a replication | The guard is not called, so this counts what it would have refused. The issue decided not to call it on the reasoning [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) and [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) give. |
+| 12 | none | none, not a replication | The run does not call the guard. `TestTheScaleBreakDecision` calls it, and this row counts what it would have refused. The issue decided not to call it on the reasoning [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) and [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) give. |
 
 ### What the entry concludes
 
@@ -4752,8 +4755,10 @@ Five things.
 were named on [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) and not run. Trying readings until one matched would be the
 search the honesty rail forbids.
 
-**Which file Chan ran in 2012.** The name `bog.m` loads points, in both
-public mirrors, at the same bytes as the committed panel's source. That says
+**Which file Chan ran in 2012.** The name `bog.m` loads points, in the one
+public mirror this repository has read that holds a file of that name, at the
+same bytes as the
+committed panel's source. That says
 what the name means in the code he published, not that the file he ran when
 he wrote the book was this one. Both figures reproducing is consistent with
 it and does not prove it.
@@ -4764,7 +4769,7 @@ names the signal noise of deciding on the official open, which cannot be known
 before the trade at that open.
 
 **What the rule earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24. The point-in-time panel
+was in the S&P 500 in late 2011. The point-in-time panel
 [issue 252](https://github.com/l3a0/quantitative-trading/issues/252) waits on
 would answer it for this rule too.
 
@@ -4776,7 +4781,10 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/buy-on-gap-lessons.md](../blog/buy-on-gap-lessons.md) moves with it,
 since that post quotes most of these figures. So does its one figure, which
-`uv run python -m chan.buy_on_gap_figures` redraws.
+`uv run python -m chan.buy_on_gap_figures` redraws, and its one whiteboard
+sketch, after the strategy's rules, which draws PCS on 2011-01-06 to scale and
+which `uv run python -m chan.buy_on_gap_whiteboard` redraws through the same
+`entry_price` that `drop_qualifiers` compares the open against.
 
 ## Entry 19: the Khandani-Lo reversal on the 2012 panel, Chan's *Algorithmic Trading*
 

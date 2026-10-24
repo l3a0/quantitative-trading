@@ -263,8 +263,9 @@ where they were first built. The other forty-five were built here.
     afterwards. None of the four readings declared to explain the gap lands.
     Every figure is exploratory and about survivors.
 18. Buy on gap, Example 4.1 of *Algorithmic Trading*, which buys at the open
-    the ten stocks that opened furthest below their previous day's low, while
-    still above their 20-day moving average, and sells at the close. On Chan's
+    up to ten stocks that opened furthest below their previous day's low, by
+    more than one 90-day standard deviation of their daily returns, while still
+    above their 20-day moving average, and sells at the close. On Chan's
     own S&P 500 file both figures his script prints reproduce: an APR of
     0.087385, his 8.7 percent, and a Sharpe ratio of 1.5371, his 1.5. Book
     two's `smartstd` is what lands them, and the first edition's moves both.
@@ -1004,7 +1005,7 @@ the exception, and what it says that nothing here asserts is listed below.
 It pins both figures `bog.m` prints at the precision that is real and at the
 book's, the declared mirror's figures beside Chan's, and both sides under the
 first edition's `smartstd`, so a port that reaches for the helper this repo
-already held fails a test. It also holds the decision not to call the
+held first fails a test. It also holds the decision not to call the
 scale-break guard, by running it and pinning what it would refuse. The blog
 post about it is the exception, and what it says that nothing here asserts is
 listed below.
@@ -3648,8 +3649,9 @@ regime map.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
-strategy buys at the open the stocks that fell furthest below the previous
-day's low, while still above their 20-day average, and sells at the close.
+strategy buys at the open up to ten of the stocks that fell furthest below the
+previous day's low, by more than one 90-day standard deviation of their daily
+returns, while still above their 20-day average, and sells at the close.
 Chan reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and 46 percent
 and 1.27 for a mirror he prints no script for. The post draws six lessons
 from Entry 18 of the replication log.
@@ -3660,8 +3662,8 @@ from Entry 18 of the replication log.
 3. One phrase, "annualized average return", names two formulas in this book.
 4. The mirror, written down before any run, lands at 12 percent and not 46,
    though its drawdown is the steeper as Chan says.
-5. Chan's own pair of figures implies at least four and a half times the
-   written rule's volatility, from arithmetic alone.
+5. If Chan computed his pair of figures with `bog.m`'s formulas, they imply
+   at least four and a half times the written rule's volatility.
 6. An exact reproduction checks the arithmetic and not the edge.
 
 Five groups of its figures are not pinned here.
@@ -3678,13 +3680,25 @@ Five groups of its figures are not pinned here.
    drawdown" and "suffered from" are at 1993. "An annualized average return
    of around 8.7 percent", in a later chapter on risk management, is at 3509,
    and the same phrase for Example 7.2's
-   levered figure is at 3024. The book's figures are pinned, and its words
-   are not.
+   levered figure is at 3024. That Example 4.2 trades a basket of this same
+   file's stocks against SPY is at 2035. The book's figures are pinned, and
+   its words are not.
 2. Facts outside the committed data. That `gapFutures_FSTX.m` measures a jump
-   from the previous high, and that the name `bog.m` loads is the same bytes as
-   the committed file in both public mirrors, which `src/chan/buy_on_gap.py`'s
-   docstring and [data/README.md](data/README.md) record. That MS, the stock
-   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That the same
+   from the previous high, and that, of the public mirrors this repository has
+   read, two hold Chan's `inputDataOHLCDaily_stocks_20120424.mat` and only one
+   holds a file of the name `bog.m` loads, with the same bytes as Chan's file,
+   which `src/chan/buy_on_gap.py`'s docstring and
+   [data/README.md](data/README.md) record. That burakbayramli/books at
+   `43c0bb4` holds neither file name. That the committed members rebuild all
+   five of the file's arrays exactly, which `chan.mat_columns.round_trip_differs`
+   found where the `.mat` was recorded and data/README.md records. The `.mat`
+   is not committed, so no test runs that check on this file. That MS, the stock
+   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That every
+   stock in the file was in the S&P 500 in late 2011, which rests on the
+   examples `TestTheListDatesFromLate2011` holds and on a count of
+   497 = 500 − 8 + 5 that the review reconciled against the index by hand.
+   The class also reads the post's sentences that date the list.
+   That the same
    script's return line sells the upward jump is not among them, since
    [tests/test_opening_gap.py](tests/test_opening_gap.py) holds that sign.
 3. Arithmetic no test asserts: that ln(1 + r) ≤ r for every daily return,
@@ -3699,14 +3713,30 @@ Every other number in the post traces to an assertion in
 [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as the
 arithmetic figure, or to
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) for the
-figure's own numbers. Two had no pin before it, and the figure's test now pins
-both, for each side.
+figure's own numbers, or to
+[tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
+for the whiteboard sketch's. `TestWhatThePostQuotes` in the first of those
+files reads at least one copy of each run figure the post quotes outside the
+sketch and its caption, and checks it against the run. Those include the file's saved
+date, the figure's alt-text spell dates and its mirror climbing more steeply
+through 2007 and 2008, and the two dates of the flagged day the mirror
+shorted. The sketch's test reads the sketch's caption and alt text. Five had
+no pin before the post. The figure's test now pins the first two, for each
+side, the sketch's test the third, and `TestWhatThePostQuotes` the last two.
 
 1. That the longest spell below the high runs from 2008-09-02 to 2009-04-20
    after a high on 2008-08-29 for buy on gap, and from 2008-11-24 to
    2010-05-05 after a high on 2008-11-21 for the mirror.
 2. That each side's deepest drawdown falls inside that spell, on 2008-12-09
    and 2009-02-03.
+3. The sketch's day, PCS on 2011-01-06, the only stock bought that day, with
+   its previous low of 13.68, its standard deviation of 0.020967, its dashed
+   line at 13.39, its open of 13.01, its 20-day average of 12.70, its close of
+   13.30 and its gain of 2.2 percent from the open to the close.
+4. That the mirror's cumulative return gains more than the buy side's in
+   each of 2007 and 2008.
+5. That the flagged move into 2008-10-13 is a rise, from Morgan Stanley's
+   close on 2008-10-10, the trading day before.
 
 Its one figure is drawn from the committed file by
 [src/chan/buy_on_gap_figures.py](src/chan/buy_on_gap_figures.py), which reads
@@ -3722,6 +3752,31 @@ uv run python -m chan.buy_on_gap_figures
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries one looping whiteboard sketch,
+`buy_on_gap_where_the_open_lands.gif`, drawn by
+[src/chan/buy_on_gap_whiteboard.py](src/chan/buy_on_gap_whiteboard.py) on the
+USD.CAD post's sketch machinery. It sits after the paragraph on Chan's reason
+for rule 2, and draws to scale the two levels an open has to land between, on
+PCS on 2011-01-06. The open of 13.01 lands in a green band under the dashed
+line at 13.39, one standard deviation below the previous low of 13.68, and
+above the 20-day average of 12.70, with a red zone below the average for
+Chan's reason and an arrow to the close of 13.30. It reads every price from
+the committed file through `chan.buy_on_gap`'s own functions, so the dashed
+line is the price the run compares the open against.
+
+```bash
+uv run python -m chan.buy_on_gap_whiteboard
+```
+
+[tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
+holds what the sketch says and draws, that each price stands at its value to
+one scale, that its labels change with the figures handed to it, and that a
+day is refused when another stock was bought, when its dashed line is not
+below the previous low, when its open is not strictly between the dashed line
+and the average, or when its close is not above the open and under the dashed
+line. It compares the committed GIF with a fresh
+draw byte for byte only on macOS arm64 in Comic Sans MS.
 
 [blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md) is a
 thirteenth post, about the second of Chan's stationary candidates at Kindle
