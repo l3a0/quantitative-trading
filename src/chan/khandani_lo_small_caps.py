@@ -52,10 +52,11 @@ computes.
    the same days, which :func:`sharpe_gap` computes. A gap more than twice its
    standard error reads as larger than one year's noise. The size reading adds
    no verdict.
-3. **Khandani and Lo's 4.47 is printed and judged against nothing.** Their
-   universe and window are not this file's.
+3. **Khandani and Lo's 4.47 is printed and judged against nothing.** The
+   declaration gives their universe and window as the reason.
 
-The primary reading is before costs, because Chan's explanation is about
+Chan dates their figure to 2006 too, so of those two reasons only the universe
+holds. The primary reading is before costs, because Chan's explanation is about
 where the returns come from. The after-cost figures are printed and read the
 same way. They flatter the small caps, because the run charges both
 universes the same 5 basis points while a trader pays more to trade small
@@ -93,11 +94,11 @@ price in 2006, and rule B already weights a return that is not finite at 0, so
 no gap reaches a weight. ``TestTheScaleBreakDecision`` in
 ``tests/test_khandani_lo_small_caps.py`` runs both refusals.
 
-**EXPLORATORY.** The run varies a published rule on data Chan left as an
-exercise, so it can say which way the gap points and how it compares with one
-year's noise, and nothing more. No figure carries a verdict. A reading that
-points the way Chan says earns a registered test on data the run has not
-seen.
+**EXPLORATORY.** The run applies a rule Chan published, unchanged, to the
+small-cap stocks his exercise names, so it can say which way the gap points
+and how it compares with one year's noise, and nothing more. No figure carries
+a verdict. A reading that points the way Chan says earns a registered test on
+data the run has not seen.
 """
 
 from __future__ import annotations
@@ -213,8 +214,10 @@ def sharpe_gap(a: np.ndarray, b: np.ndarray) -> SharpeGap:
     difference needs and this one does not.
 
     The formula assumes the daily profits are independent from day to day and
-    jointly normal. A reversal's daily profits are neither, so the standard
-    error is an approximation, and a reading of it says so.
+    jointly normal. On the two files this module compares, neither universe's
+    daily profits are normal, and the S&P 500's are not independent from day to
+    day either, so the standard error is an approximation, and a reading of it
+    says so.
 
     It pairs the two series by position, so the caller pairs the dates first,
     the way :func:`same_days` does for two :class:`chan.khandani_lo.Reversal`
@@ -433,7 +436,7 @@ def report(small_members, large_members, result: Comparison) -> None:
         "so it cannot say how many S&P 600 members were microcaps, and no figure speaks for them."
     )
     print(
-        "  EXPLORATORY. A rule Chan published, run on data he left as an exercise, "
+        "  EXPLORATORY. A rule Chan published, run unchanged on stocks his exercise names, "
         "so no figure carries a verdict."
     )
 

@@ -117,7 +117,8 @@ module's strokes, timeline and renderer, so an edit to those changes their GIFs
 too. Redraw every set after one. This loop runs each module in ``src/chan``
 whose name ends in ``_whiteboard``, so a new post joins it without an edit
 here. :mod:`chan.equity_seasonals_whiteboard` needs the owner's archive for
-fifteen of its thirty-nine GIFs, and says so when it is missing::
+fifteen of its thirty-nine GIFs and :mod:`chan.khandani_lo_small_caps_whiteboard`
+for one of its two, and each says so when it is missing::
 
     for f in src/chan/*_whiteboard.py; do uv run python -m "chan.$(basename "$f" .py)"; done
 """
