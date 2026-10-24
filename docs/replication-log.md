@@ -6257,10 +6257,10 @@ this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
 Eighteen rows, all derivable from
-[tests/test_roll_returns.py](../tests/test_roll_returns.py). Five do not match
+[tests/test_roll_returns.py](../tests/test_roll_returns.py). Seven do not match
 one printed figure to one computation, and each says so in its own cells. Row
-12 covers two figures from one computation, and rows 15 to 18 carry no
-published figure.
+12 covers two figures from one computation, rows 13 and 14 test claims that
+print no statistic, and rows 15 to 18 carry no published figure.
 
 A future's return splits into the move of the spot price under it and the
 return it earns by converging on that spot as it nears expiry, the roll return.
