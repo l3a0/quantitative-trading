@@ -40,10 +40,10 @@ both are stated once here and carried in every figure's failure message as
 
 The buy side's two figures are pinned at the precision that is real, six
 decimals for a return and four for the Sharpe ratio, and again at the one
-decimal ``bog.m``'s closing comment and location 1974 print. ``bog.m``'s
-``fprintf`` would print more, but nothing records what it printed, so the
-comment is the published figure. The mirror's are pinned against location
-1993's whole percent and two decimals.
+decimal that location 1974 and the comment after ``bog.m``'s last print
+statement give. ``bog.m``'s ``fprintf`` would print more, but nothing records
+what it printed, so the comment is the published figure. The mirror's are
+pinned against location 1993's whole percent and two decimals.
 
 ``TestTheHelperMovesBothFigures`` holds the mistake a port is most likely to
 make. The first edition's ``smartstd`` carries the same MATLAB name, and with
@@ -265,17 +265,34 @@ class TestTheListDatesFromLate2011:
         assert not _named("Medco", _schedule_names("2012-06-30"))
 
     def test_the_post_dates_the_list_to_late_2011(self, sources) -> None:
+        """Each place the post dates the list, read by the clause that dates it.
+
+        The old dating to 2012-04-24 is also looked for anywhere in the post,
+        so a sentence added elsewhere that restores it fails as well."""
         members, _ = sources
         post = POST.read_text(encoding="utf-8")
-        for fragment in (
-            f"The file holds {len(members)} stocks that were in the S&P 500 in late 2011",
-            "A company that was out of the index for all of late 2011 is not in the file",
-            "The date in its name is the last day of its prices, not the date of its list "
-            "of stocks, which is from late 2011.",
-            "A company that was out of the S&P 500 for all of late 2011 is absent",
-            "Every stock here was in the S&P 500 in late 2011.",
-        ):
-            assert fragment in post, fragment
+        missing = [
+            fragment
+            for fragment in (
+                f"The file holds {len(members)} stocks that were in the S&P 500 in late 2011",
+                "out of the index for all of late 2011 is not in the file",
+                "not the date of its list of stocks, which is from late 2011",
+                "out of the S&P 500 for all of late 2011 is absent",
+                "Every stock here was in the S&P 500 in late 2011",
+            )
+            if fragment not in post
+        ]
+        assert missing == []
+        restored = [
+            old
+            for old in (
+                "as Chan held it on 2012-04-24",
+                "S&P 500 on 2012-04-24",
+                "index on 2012-04-24",
+            )
+            if old in post
+        ]
+        assert restored == []
 
 
 class TestTheFigures:
@@ -468,7 +485,10 @@ class TestTheLateListings:
 
 
 class TestTheScaleBreakDecision:
-    """Issue 295 decided the guard is not called. These hold what that decision rests on."""
+    """Issue 295 decided the run does not call the guard.
+
+    These hold what that decision rests on.
+    """
 
     @staticmethod
     def _from_first_price(members, closes: pd.DataFrame):

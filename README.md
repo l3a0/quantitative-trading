@@ -1005,7 +1005,7 @@ the exception, and what it says that nothing here asserts is listed below.
 It pins both figures `bog.m` prints at the precision that is real and at the
 book's, the declared mirror's figures beside Chan's, and both sides under the
 first edition's `smartstd`, so a port that reaches for the helper this repo
-already held fails a test. It also holds the decision not to call the
+held first fails a test. It also holds the decision not to call the
 scale-break guard, by running it and pinning what it would refuse. The blog
 post about it is the exception, and what it says that nothing here asserts is
 listed below.

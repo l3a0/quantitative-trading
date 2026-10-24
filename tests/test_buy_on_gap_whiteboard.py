@@ -344,8 +344,8 @@ class TestTheNumbersComeFromTheRun:
         ids=["on the dashed line", "above it", "on the average", "below it"],
     )
     def test_an_open_not_strictly_inside_the_band_is_refused(self, opened) -> None:
-        """``bog.m``'s two comparisons are strict, so an open on either line is
-        not bought, and the sketch says an open in the band is."""
+        """``bog.m``'s two comparisons are strict, so an open on either line does
+        not qualify, and the sketch says an open in the band does."""
         with pytest.raises(ValueError, match="open strictly between the dashed line"):
             _where_the_open_lands(dataclasses.replace(MADE_UP, open=opened, close=47.9))
 

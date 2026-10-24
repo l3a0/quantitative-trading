@@ -44,7 +44,8 @@ holds three tenths of the book and leaves the rest idle. Example 7.2's fixed
 ``bog.m`` prints two figures, and :class:`Side` carries both.
 
 1. ``prod(1 + ret)^(252 / n) − 1`` over all 1,500 days, the compounded APR.
-   The script labels it APR and its closing comment gives 8.7 percent.
+   The script labels it APR, and the comment after its last print statement
+   gives 8.7 percent.
 2. ``mean(ret) · √252 / std(ret)``, the Sharpe ratio, with MATLAB's own
    ``std``, which divides by n − 1. That is
    :func:`chan.khandani_lo.plain_sharpe` exactly, so it is called rather than
@@ -101,16 +102,16 @@ against its manifest entry before parsing it. ``bog.m`` loads
 ``inputDataOHLCDaily_20120424``, with no ``_stocks``. EpchanPreview at
 ``e4bc46f`` ships a file of exactly that name, under
 ``public/img/book3/Chap3 Time Series/``, and it is the same git blob as the
-``_stocks`` file, with the sha256 ``data/README.md`` records for it. Neither
-public mirror holds another file of that name. That shows what the name
-points at in the code Chan published, not that the file he ran in 2012 is the
-one he later shipped under it.
+``_stocks`` file, with the sha256 ``data/README.md`` records for it. No other
+public mirror this repository has read holds a file of that name. That shows
+what the name points at in the code Chan published, not that the file he ran
+in 2012 is the one he later shipped under it.
 
 **Every figure here is about survivors.** The price file holds stocks that
 were in the S&P 500 in late 2011, carried backwards, and location 1974 says
 the universe has survivorship bias.
 
-**The scale-break guard is not called, and issue 295 decided that.**
+**The run does not call the scale-break guard, and issue 295 decided that.**
 :func:`chan.series.refuse_window_crossing_a_break` flags 30 days in 17 of this
 file's stocks, every one between 2007 and 2009, and this window holds all 30,
 so calling it the way :mod:`chan.pead` does would refuse the run. Issues 18,
@@ -176,7 +177,8 @@ SPREAD_LOOKBACK = 90
 #: The annualisation in both figures ``bog.m`` prints.
 TRADING_DAYS = 252
 
-#: What location 1974 and ``bog.m``'s closing comment print for buy on gap.
+#: What location 1974 and the comment after ``bog.m``'s last print statement
+#: give for buy on gap.
 BOOK_APR_PERCENT = 8.7
 BOOK_SHARPE = 1.5
 SCRIPT_COMMENT = "APR=8.7%, Sharpe=1.5"

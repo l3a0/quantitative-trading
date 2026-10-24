@@ -4718,7 +4718,7 @@ comment's one decimal is the precision the source carries.
 | 9 | none | none, not a replication | No position can come before 2006-09-19, the first day a 90-row spread exists. |
 | 10 | none | none, not a replication | The first edition's helper moves both printed figures off Chan's, to 8.4 percent and 1.7, and takes two buy positions fewer. |
 | 11 | none | none, not a replication | A stock listed inside the window reaches the rule before 90 returns stand behind its spread, which is what Chan's helper does. Of the 23 late listings, three positions come from it. |
-| 12 | none | none, not a replication | The guard is not called, so this counts what it would have refused. The issue decided not to call it on the reasoning [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) and [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) give. |
+| 12 | none | none, not a replication | The run does not call the guard. `TestTheScaleBreakDecision` calls it, and this row counts what it would have refused. The issue decided not to call it on the reasoning [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) and [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) give. |
 
 ### What the entry concludes
 
