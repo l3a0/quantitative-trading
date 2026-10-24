@@ -1,9 +1,9 @@
 """The pins for cross-sectional momentum, *Algorithmic Trading*'s Example 6.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 6.2, with four exceptions, all in
-``blog/cross-sectional-momentum-lessons.md``. The post quotes each window's
-deepest drawdown and the dates of the 2008 and 2009 spell below the high, which
+about Example 6.2, with four exceptions.
+``blog/cross-sectional-momentum-lessons.md`` quotes each window's deepest
+drawdown and the dates of the 2008 and 2009 spell below the high, which
 ``tests/test_cross_sectional_momentum_figures.py`` holds. It recalls Example
 7.2's 6.7 percent as the arithmetic figure, which ``tests/test_pead.py`` holds.
 It quotes Example 4.4's Sharpe ratio of 4.713284 on the same file, which

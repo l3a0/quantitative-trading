@@ -4586,13 +4586,14 @@ Three things.
 Six things.
 
 **Which run printed the comment.** The comment's 182-day longest drawdown
-cannot come from the 2007 window as the script computes it, so no file of
-daily closes read over that window could have printed the comment.
-`calculateMaxDD` over a window's rows counts at most one fewer days than the
-window holds, and the window holds 160. A different window or version of the
-script, read from this file or another, might have printed the comment's
-figures. Trying them until one did would be the search the issue's rule
-forbids, so none was tried.
+cannot come from the 2007 window as the script computes it, so no file with
+one row per trading day, read over that window, could have printed the
+comment. `calculateMaxDD` over a window's rows counts at most one fewer days
+than the window holds, and the window holds 160.
+`TestWhatThePostQuotes::test_the_comments_longest_drawdown_cannot_come_from_the_window`
+asserts both. A different window or version of the script, read from this
+file or another, might have printed the comment's figures. Trying them until
+one did would be the search the issue's rule forbids, so none was tried.
 
 **What survivorship does to these figures.** Every stock here survived to
 2012-04-24, and the two legs lose different stocks.

@@ -3963,7 +3963,7 @@ Entry 17 of the replication log.
    stabilized below 2007's.
 4. A reproduction checks the arithmetic and not the edge.
 
-Five groups of its figures are not pinned here.
+Six groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -3992,7 +3992,10 @@ Five groups of its figures are not pinned here.
 4. The book's Figure 6.6, which the post's figure redraws from
    `kentdaniel.m`'s `plot(cumret)` and which nothing compares with the book's
    own.
-5. Its references, cited rather than computed.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a list, a
+   table or the alt text, and a typo in a copy the class does not read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py),
@@ -4017,7 +4020,10 @@ for the sketches'. Three of them had no pin before the post.
 `TestWhatThePostQuotes` in
 [tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
 reads one copy of each run figure in the post, its tables and its figure's alt
-text against the run, so a typo in that copy fails a test.
+text against the run, so a typo in that copy fails a test. It also asserts on
+the run several comparisons the post's words draw, such as that the comment's
+182 days cannot fit in the 160-day 2007 window and that only R0 and R4 round
+to 4.1, and reads one copy of those words.
 
 Its one figure is drawn from the committed file by
 [src/chan/cross_sectional_momentum_figures.py](src/chan/cross_sectional_momentum_figures.py),
