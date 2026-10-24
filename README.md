@@ -3748,9 +3748,10 @@ uv run python -m chan.buy_on_gap_whiteboard
 [tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
 holds what the sketch says and draws, that each price stands at its value to
 one scale, that its labels change with the figures handed to it, and that a
-day is refused when another stock was bought, when its open is not strictly
-between the dashed line and the average, or when its close is not above the
-open and under the dashed line. It compares the committed GIF with a fresh
+day is refused when another stock was bought, when its dashed line is not
+below the previous low, when its open is not strictly between the dashed line
+and the average, or when its close is not above the open and under the dashed
+line. It compares the committed GIF with a fresh
 draw byte for byte only on macOS arm64 in Comic Sans MS.
 
 [blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md) is a

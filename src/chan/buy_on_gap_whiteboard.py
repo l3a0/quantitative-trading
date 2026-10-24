@@ -12,10 +12,13 @@ post places right after the paragraph that opens "Chan gives a reason for rule
 1. Where the open has to land: a price axis with three levels across it, the
    previous day's low, a dashed line at that low times one less the standard
    deviation, and the 20-day average lower still. A green band between the
-   dashed line and the average is where an open is bought, and a brown dot
-   for the day's open lands in it. A red hatched zone below the average
-   carries Chan's reason for the second rule, and a brown arrow from the
-   open to the close says the position is sold at the close.
+   dashed line and the average is where an open qualifies, and a brown dot
+   for the day's open lands in it. Rule 3 then buys the ten deepest drops
+   among the day's qualifiers, so an open in the band is not always bought,
+   which is why the band says it qualifies rather than that it is bought. A
+   red hatched zone below the average carries Chan's reason for the second
+   rule, and a brown arrow from the open to the close says the position is
+   sold at the close.
 
 The sketch is not schematic. It draws one real stock on one real day to
 scale, so every level stands at an affine function of its price. That day is
@@ -38,8 +41,9 @@ functions, so the dashed line is the same ``buyPrice`` the run compares the
 open against. A day whose figures would make the words false is refused rather
 than drawn. The open has to sit strictly between the dashed line and the
 average, as ``bog.m``'s comparisons require, so an open exactly on either line
-is refused. The close has to sit above the open and below the dashed line, and
-the stock has to be the only one bought that day.
+is refused. The dashed line has to sit below the previous low, the close has
+to sit above the open and below the dashed line, and the stock has to be the
+only one bought that day.
 
 The strokes, the timeline and the renderer are
 :mod:`chan.usdcad_tests_whiteboard`'s, so an edit there changes this GIF too,
@@ -65,7 +69,7 @@ from chan.buy_on_gap import (
 )
 from chan.matlab_helpers import backshift
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import ACCENT, GOOD, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
     TINT,
     Fill,
@@ -257,7 +261,7 @@ def _where_the_open_lands(day: GapDay) -> Scene:
         Label(f"20-day average {day.average:.2f}", RIGHT_X, average, names="average"),
         *_tinted("band", *band),
         Label(
-            "an open in this band is bought",
+            "an open in this band qualifies",
             RIGHT_X,
             (band[1] + band[3]) / 2,
             names="band",

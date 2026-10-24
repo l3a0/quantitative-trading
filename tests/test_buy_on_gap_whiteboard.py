@@ -43,6 +43,7 @@ from chan import usdcad_tests_whiteboard as whiteboard
 from chan.buy_on_gap import drop_qualifiers, entry_spread, read_sources, trailing_average
 from chan.buy_on_gap_whiteboard import (
     AVERAGE_Y,
+    AXIS_X,
     EXAMPLE_DAY,
     EXAMPLE_SYMBOL,
     GIF_PREFIX,
@@ -85,7 +86,7 @@ LABELS = [
     "yesterday’s low 13.68",
     "low × (1 − σ) 13.39",
     "20-day average 12.70",
-    "an open in this band is bought",
+    "an open in this band qualifies",
     "open 13.01",
     "not bought",
     "a large drop often carries bad news",
@@ -234,7 +235,7 @@ class TestTheScene:
 class TestTheColours:
     def test_each_stroke_and_label_is_in_the_ink_its_meaning_calls_for(self, drawn) -> None:
         """The axis and the note are grey context, the three levels black, the
-        band that is bought green, the zone that is not red, and the open and
+        band where an open qualifies green, the zone that is not red, and the open and
         its path to the close brown."""
         scene = drawn[0]
         inks = {"axis": MUTED, "low": INK, "entry": INK, "average": INK}
@@ -266,8 +267,10 @@ class TestTheNumbersComeFromTheRun:
 
     def test_the_dashed_line_is_the_price_the_run_compares_the_open_against(self) -> None:
         """Read back through ``drop_qualifiers``, which takes the same
-        ``entry_price``: PCS qualifies that day, and nudging its open up to the
-        dashed line takes it out, as nudging it down to the average does."""
+        ``entry_price``: PCS qualifies that day, an open one step under the
+        dashed line still does, and nudging its open up to the dashed line takes
+        it out, as nudging it down to the average does. The first two hold the
+        line from below and the third from above."""
         _, frames = read_sources()
         op, lo, cl = (frames[k].to_numpy(dtype=float) for k in ("Open", "Low", "Close"))
         spread, average = entry_spread(cl), trailing_average(cl)
@@ -275,10 +278,26 @@ class TestTheNumbersComeFromTheRun:
         j = frames["Open"].columns.get_loc(EXAMPLE_SYMBOL)
         assert drop_qualifiers(op, lo, spread, average)[0][t, j]
         day = read_gap_day()
+        under = op.copy()
+        under[t, j] = np.nextafter(day.entry, -np.inf)
+        assert drop_qualifiers(under, lo, spread, average)[0][t, j]
         for price in (day.entry, day.average):
             moved = op.copy()
             moved[t, j] = price
             assert not drop_qualifiers(moved, lo, spread, average)[0][t, j], price
+
+    def test_the_dashed_line_is_read_through_entry_price(self, monkeypatch) -> None:
+        """The sketch calls the run's own ``entry_price`` rather than a copy of
+        its formula, so a change to the formula reaches the drawing."""
+        calls = []
+
+        def marked(lows, spread):
+            calls.append(1)
+            return np.full(np.shape(lows), 13.5)
+
+        monkeypatch.setattr(sketches, "entry_price", marked)
+        assert read_gap_day().entry == 13.5
+        assert calls == [1]
 
     def test_the_labels_print_the_days_figures(self, day, drawn) -> None:
         labels = drawn[0].labels
@@ -374,6 +393,7 @@ class TestTheScale:
         average, entry = _y(scene, "average"), _y(scene, "entry")
         assert (band.y0, band.y1) == pytest.approx((average + INSET, entry - INSET))
         assert zone.y.max() == pytest.approx(average - INSET)
+        assert band.x0 == zone.x.min() == AXIS_X + INSET
         assert band.x1 == zone.x.max() == LINES_END
 
     def test_the_arrow_rises_and_ends_under_the_dashed_line_and_the_low(self, drawn) -> None:
@@ -532,6 +552,8 @@ class TestThePost:
         assert "drawn to scale" in caption
         assert f"one standard deviation of its daily returns, {day.spread:.6f}," in caption
         assert f"gained {100 * day.open_to_close:.1f} percent by the close" in caption
+        assert "below the previous low and still above the 20-day average" in caption
+        assert "without getting back to that low" in caption
 
     def test_it_is_embedded_once(self) -> None:
         assert POST.read_text(encoding="utf-8").count(f"docs/figures/{GIFS[0]})") == 1
@@ -547,7 +569,9 @@ class TestThePost:
         assert -1 not in places, [w for w, at in zip(scene.labels, places, strict=True) if at < 0]
         assert places == sorted(places)
         assert "drawn to scale" in alt
+        assert "A pale green band with a green edge fills the space between" in alt
         assert "A brown dot lands inside the band" in alt
+        assert "a brown arrow rises from the dot to the right" in alt
         assert "A red hatched zone below the average" in alt
         assert "ends inside the band, just under the dashed line and well under" in alt
         assert alt.endswith("holds for four seconds before it redraws.")

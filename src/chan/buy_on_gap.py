@@ -234,7 +234,10 @@ def trailing_average(closes: np.ndarray) -> np.ndarray:
 
 
 def entry_price(lows: np.ndarray, spread: np.ndarray) -> np.ndarray:
-    """``buyPrice``: the previous day's low times one less the spread, which an open must fall below."""
+    """``buyPrice``: the previous day's low times one less ``ENTRY_ZSCORE`` spreads.
+
+    An open has to fall strictly below it to qualify.
+    """
     return backshift(1, lows) * (1 - ENTRY_ZSCORE * spread)
 
 
