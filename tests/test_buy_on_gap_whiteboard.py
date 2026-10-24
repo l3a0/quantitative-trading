@@ -84,7 +84,7 @@ LABELS = [
     "price",
     "PCS on 2011-01-06, the only stock bought",
     "yesterday’s low 13.68",
-    "low × (1 − σ) 13.39",
+    "low × (1 − 0.020967) 13.39",
     "20-day average 12.70",
     "an open in this band qualifies",
     "open 13.01",
@@ -303,7 +303,7 @@ class TestTheNumbersComeFromTheRun:
         labels = drawn[0].labels
         assert labels[1] == f"{day.symbol} on {day.day.date()}, the only stock bought"
         assert labels[2] == f"yesterday’s low {day.previous_low:.2f}"
-        assert labels[3] == f"low × (1 − σ) {day.entry:.2f}"
+        assert labels[3] == f"low × (1 − {day.spread:.6f}) {day.entry:.2f}"
         assert labels[4] == f"20-day average {day.average:.2f}"
         assert labels[6] == f"open {day.open:.2f}"
         assert labels[10] == f"sell at the close {day.close:.2f}"
@@ -313,7 +313,7 @@ class TestTheNumbersComeFromTheRun:
         assert labels[1:5] == [
             "XYZ on 2009-03-02, the only stock bought",
             "yesterday’s low 50.00",
-            "low × (1 − σ) 48.00",
+            "low × (1 − 0.040000) 48.00",
             "20-day average 45.00",
         ]
         assert (labels[6], labels[10]) == ("open 46.50", "sell at the close 47.25")
@@ -463,7 +463,7 @@ class TestTheLabelsStayClearOfTheLines:
                     assert gap >= APART_LABELS_PX, (one, other, round(gap, 1))
 
     def test_no_glyph_falls_back_to_an_empty_box(self, drawn, caplog) -> None:
-        """σ, the typographic minus and the curly apostrophe are all drawn."""
+        """The multiplication sign, the typographic minus and the curly apostrophe are all drawn."""
         with warnings.catch_warnings(record=True) as caught, caplog.at_level(logging.WARNING):
             warnings.simplefilter("always")
             for scene in drawn:

@@ -256,7 +256,7 @@ def _where_the_open_lands(day: GapDay) -> Scene:
         _stroke("low", _line([(AXIS_X, low), (LINES_END, low)]), frames=6),
         Label(f"yesterday’s low {day.previous_low:.2f}", RIGHT_X, low_at, names="low"),
         _stroke("entry", _line([(AXIS_X, entry), (LINES_END, entry)]), dashed=True, frames=6),
-        Label(f"low × (1 − σ) {day.entry:.2f}", RIGHT_X, entry_at, names="entry"),
+        Label(f"low × (1 − {day.spread:.6f}) {day.entry:.2f}", RIGHT_X, entry_at, names="entry"),
         _stroke("average", _line([(AXIS_X, average), (LINES_END, average)]), frames=6),
         Label(f"20-day average {day.average:.2f}", RIGHT_X, average, names="average"),
         *_tinted("band", *band),
