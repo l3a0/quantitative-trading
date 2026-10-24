@@ -16,8 +16,9 @@ the text it draws.
    trade opened at the open. It sits in "The strategy and the two files",
    after the list item opening "4. **The sizing.**". This sketch is
    schematic and carries no figures from the run. Its price path, the size
-   of its gap and the places of its marks are made up to show the order of
-   events in one trading day.
+   of its gap and the exact times of its red marks inside their sessions
+   are made up to show the order of events in one trading day. A schematic
+   caption under it in the post says so.
 2. One position the helper flips: a number line around 0.42 percent with
    PNW's gap on 2012-02-24 as a black dot, half the 90-day deviation that
    *Algorithmic Trading*'s ``smartstd`` gives as a green tick marked "long",

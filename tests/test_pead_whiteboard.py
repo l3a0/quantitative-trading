@@ -366,7 +366,9 @@ class TestThePost:
         assert re.fullmatch(
             rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[0])}\)", paragraphs[index + 1]
         )
-        assert paragraphs[index + 2].startswith("Two files carry the data")
+        caption = paragraphs[index + 2]
+        assert caption.startswith("*The sketch is schematic.") and caption.endswith("*")
+        assert paragraphs[index + 3].startswith("Two files carry the data")
 
     def test_the_flip_sketch_follows_its_paragraph_with_a_caption(self) -> None:
         paragraphs = _paragraphs()
@@ -378,7 +380,10 @@ class TestThePost:
         assert caption.startswith("*Drawn to one scale from the run.") and caption.endswith("*")
         for mark in ("black dot", "green tick", "red tick"):
             assert mark in caption, mark
-        assert "past the green tick, so with the *Algorithmic Trading* helper the rule goes long" in caption
+        assert (
+            "past the green tick, so with the *Algorithmic Trading* helper the rule goes long"
+            in caption
+        )
         assert (
             "short of the red tick, so with the first edition’s helper it takes no trade" in caption
         )
@@ -644,8 +649,9 @@ class TestTheFlipSketch:
         assert alt.count("above and “long” below") == 1
         assert alt.count("above and “no trade” below") == 1
         assert "Near its right end a taller red upright tick" in alt
-        assert "A black dot sits on the line just left of the red tick" in alt
-        assert "past the green one and short of the red one" in alt
+        assert (
+            "A black dot sits on the line between the two ticks, just short of the red one" in alt
+        )
         scene = every[1]
         long_tick, no_trade = _stroke(scene, "long-tick"), _stroke(scene, "no-trade-tick")
         assert no_trade.y.max() > long_tick.y.max()
