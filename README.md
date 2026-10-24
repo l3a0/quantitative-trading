@@ -3681,8 +3681,9 @@ Five groups of its figures are not pinned here.
    levered figure is at 3024. The book's figures are pinned, and its words
    are not.
 2. Facts outside the committed data. That `gapFutures_FSTX.m` measures a jump
-   from the previous high, and that the name `bog.m` loads is the same bytes as
-   the committed file in both public mirrors, which `src/chan/buy_on_gap.py`'s
+   from the previous high, and that the one public mirror holding a file of
+   the name `bog.m` loads holds the same bytes as Chan's
+   `inputDataOHLCDaily_stocks_20120424.mat`, which `src/chan/buy_on_gap.py`'s
    docstring and [data/README.md](data/README.md) record. That MS, the stock
    the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That the same
    script's return line sells the upward jump is not among them, since

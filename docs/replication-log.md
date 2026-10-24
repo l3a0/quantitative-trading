@@ -4668,7 +4668,8 @@ one sentence rather than a hypothesis tested on held-out data.
 
 ### What the book printed
 
-`bog.m` closes on the comment `% APR=8.7%, Sharpe=1.5`. Its `fprintf` lines
+`bog.m`'s last `fprintf` line is followed by the comment
+`% APR=8.7%, Sharpe=1.5`. Its `fprintf` lines
 would print more digits, but nothing records what they printed, so the
 comment's one decimal is the precision the source carries.
 
@@ -4752,8 +4753,9 @@ Five things.
 were named on [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) and not run. Trying readings until one matched would be the
 search the honesty rail forbids.
 
-**Which file Chan ran in 2012.** The name `bog.m` loads points, in both
-public mirrors, at the same bytes as the committed panel's source. That says
+**Which file Chan ran in 2012.** The name `bog.m` loads points, in the one
+public mirror that holds a file of that name, at the same bytes as the
+committed panel's source. That says
 what the name means in the code he published, not that the file he ran when
 he wrote the book was this one. Both figures reproducing is consistent with
 it and does not prove it.

@@ -8,7 +8,7 @@ Ernest Chan’s second book, *Algorithmic Trading*, has a strategy in its chapte
 
 He reports that on the S&P 500 from May 2006 to April 2012, the strategy earned an annual percentage rate, or APR, of 8.7 percent, with a Sharpe ratio of 1.5 (Chan, 2013, location 1974). The Sharpe ratio divides the average daily return by its standard deviation and scales the result to a year, so it measures return per unit of risk. He also reports the mirror image, which shorts stocks that open far above the day before, at 46 percent and 1.27 (Chan, 2013, location 1993).
 
-Chan published the script for the first strategy and the data file it reads, so a reader can check whether his figures follow from them before arguing about the strategy. This repository keeps a copy of the file and ran the script on it. He published no script for the mirror, so this repository wrote a rule down from his one sentence about it before running anything.
+Chan published the script for the first strategy and the data file it reads, so a reader can check whether his figures follow from them before arguing about the strategy. This repository keeps the file’s contents as one table per stock, which together rebuild its open, high, low, close and volume arrays exactly, and ran a line-by-line Python transcription of the script on them. He published no script for the mirror, so this repository wrote a rule down from his one sentence about it before running anything.
 
 Both figures Chan prints for the first strategy match. The computed APR is 0.087385, the book’s 8.7 percent, and the computed Sharpe ratio is 1.5371, the book’s 1.5. The mirror does not match. The rule written down here lands at 12 percent and 1.79.
 
@@ -32,11 +32,11 @@ The script, `bog.m`, adds a fifth rule about sizing. It sums each day’s return
 
 Chan gives a reason for rule 2. He calls it “a momentum filter superimposed on a mean-reverting strategy”. A stock that dropped “just a little” is more likely to recover than one that dropped “a lot”, because a large drop often carries bad news, and a drop caused by news is less likely to revert (Chan, 2013, location 1948).
 
-The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily open, high, low and close of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24. The script loads it under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`. Two public copies of Chan’s code exist on GitHub, and the only file of that name in either holds the same bytes as Chan’s file. This repository transcribed `bog.m` line by line from one of those copies, `ivanliu1989/algorithmic_trading` at commit `45670240`.
+The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily open, high, low and close of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24. The script loads it under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`. The two public copies of Chan’s code that this repository read both hold Chan’s file. Only one of them also holds a file under the name `bog.m` loads, and it holds the same bytes. This repository transcribed `bog.m` line by line from the other copy, `ivanliu1989/algorithmic_trading` at commit `45670240`.
 
 ## Lesson 1: both figures bog.m prints reproduce on Chan’s own file
 
-`bog.m` closes on a comment that reads `APR=8.7%, Sharpe=1.5`. Its print statements would show more digits, but nothing records what they printed, so the comment’s one decimal is the precision the source carries. Here is each figure, computed, beside the comment and the book.
+`bog.m`’s last print statement is followed by a comment that reads `APR=8.7%, Sharpe=1.5`. Its print statements would show more digits, but nothing records what they printed, so the comment’s one decimal is the precision the source carries. Here is each figure, computed, beside the comment and the book.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -137,17 +137,17 @@ That every printed buy-side figure matches says the code, the data and the book 
 Five questions are beyond it.
 
 1. **Which rule Chan ran for the mirror.** This repository named two other readings of his sentence in advance and ran neither, for the reason Lesson 4 gives.
-2. **Which file Chan ran in 2012.** The name `bog.m` loads points, in both public copies of his code, at the same bytes as the committed file. That says what the name means in the code he published, not that it is the file he ran when he wrote the book. That both figures match is consistent with it and does not prove it.
+2. **Which file Chan ran in 2012.** The name `bog.m` loads points, in the one public copy of his code that holds a file of that name, at the same bytes as Chan’s file. That says what the name means in the code he published, not that it is the file he ran when he wrote the book. That both figures match is consistent with it and does not prove it.
 3. **What costs and execution would take.** Nothing here charges any, and nothing models the difference between the preopen price and the open.
 4. **What the rule earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24. Measuring it needs prices for the companies that left.
-5. **Whether one flagged day was a clean print.** A check this repository runs on other strategies flags Morgan Stanley’s move into 2008-10-13 as too large for an ordinary day, and the mirror shorted Morgan Stanley that day. This repository does not run the check here, because the job is to reproduce what Chan’s script computed on the prices as they stand. Nothing here checks that print against another source.
+5. **Whether one flagged day was a clean print.** A check this repository runs on other strategies flags Morgan Stanley’s move into 2008-10-13 as too large for an ordinary day, and the mirror shorted Morgan Stanley that day. The strategy’s run does not apply that check, which would refuse the whole window, because the job is to reproduce what Chan’s script computed on the prices as they stand. Nothing here checks that print against another source.
 
 ## What this means for a trader
 
 One habit for each lesson.
 
 1. **Reproduce the printed figures before arguing with them.** Both of Chan’s buy-side figures match on his file, so any disagreement with his result is about the data or the edge, not his arithmetic.
-2. **Find out which version of a helper the author ran.** A helper’s name does not identify it, and here the wrong one moves every printed figure.
+2. **Find out which version of a helper the author ran.** A helper’s name does not identify it, and here the wrong one moves both figures `bog.m` prints.
 3. **Read the formula, not the label.** “APR” and “annualized average return” each name both a compounded and an arithmetic figure in this one book.
 4. **Write a rule down before running it.** A strategy described in one sentence is many strategies, and trying them until one matches is a search, not a test.
 5. **Test a published pair of figures against each other.** A return and a Sharpe ratio together imply a floor on volatility, and a floor can rule out a reading without running it.
@@ -155,7 +155,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.1 and 4.2 and Kindle locations 1948, 1974, 1988, 1993, 2035, 3024 and 3509.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.1, 4.2, 6.2 and 7.2 and Kindle locations 1948, 1974, 1988, 1993, 2035, 3024 and 3509.
 2. `bog.m`, at commit `45670240` of ivanliu1989/algorithmic_trading, a public copy of Chan’s code.
 
 *Not investment advice. Code: [the strategy](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/buy_on_gap.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/buy_on_gap_figures.py), with the checks behind [the strategy’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_buy_on_gap.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_buy_on_gap_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-18-buy-on-gap-and-its-mirror-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*
