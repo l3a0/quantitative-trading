@@ -169,7 +169,7 @@ One habit for each lesson.
 2. **Find out which version of a helper the author ran.** A helper’s name does not identify it, and here the wrong one moves both figures `bog.m` prints.
 3. **Read the formula, not the label.** “APR” and “annualized average return” each name both a compounded and an arithmetic figure in this one book.
 4. **Write a rule down before running it.** A strategy described in one sentence is many strategies, and trying them until one matches is a search, not a test.
-5. **Test a published pair of figures against each other.** A return and a Sharpe ratio together imply a floor on volatility, and a floor can rule out a reading without running it.
+5. **Test a published pair of figures against each other.** A compounded annual return and a Sharpe ratio with no risk-free rate together set a floor on annual volatility. A rule whose annual volatility falls below that floor cannot have produced both.
 6. **Treat an exact reproduction as a check on arithmetic.** Whether buying a panic pays needs prices for the companies that left, a charge for costs and for trading on the preopen price, and a rule fixed in writing before it meets new data.
 
 ## References

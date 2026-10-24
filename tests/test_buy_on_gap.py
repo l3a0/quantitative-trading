@@ -39,12 +39,18 @@ comment is the published figure. The mirror's are pinned against location
 make. The first edition's ``smartstd`` carries the same MATLAB name, and with
 it neither printed figure lands.
 
+``TestWhatThePostQuotes`` reads the post and checks one copy of each run
+figure it quotes against the run, the alt text's spell dates included. The
+book's figures, the Kindle locations and the facts outside the data are not
+among them.
+
 Exploratory. Reproducing Chan's figures spends the 2006 to 2012 sample on a
 rule he chose. It first ran here on 2026-10-04.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -79,6 +85,7 @@ from chan.buy_on_gap import (
     trailing_average,
 )
 from chan.matlab_helpers import calculate_returns, smartstd_first_edition
+from chan.pead_figures import cumulative_return, longest_spell
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
@@ -397,6 +404,129 @@ class TestTheScaleBreakDecision:
         assert [(str(closes.index[i].date()), closes.columns[j]) for i, j in hits] == [
             ("2008-10-13", "MS")
         ], SPEC
+
+
+POST = Path(__file__).parents[1] / "blog" / "buy-on-gap-lessons.md"
+
+#: Small counts as the post spells them out, indexed by the count.
+SPELLED = {10: "ten"}
+
+
+def _minus(x: float, places: int) -> str:
+    """A negative figure with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/buy-on-gap-lessons.md`` quotes, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure the run computes is built from the run's value at the
+    precision the post prints it, and looked for in one copy: a short fragment
+    holding the number and the few words that name one place in the post. A
+    typo in that copy, or a re-pin that leaves the post behind, fails here.
+    The post states several figures more than once, in its opening, a lesson,
+    a table or the alt text, and the other copies are not read. The book's
+    figures, the Kindle locations and the facts outside the data are not read
+    either, and README lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_file_and_the_buy_side(self, sources, arrays, long: Side, text) -> None:
+        members, _ = sources
+        days = long.days
+        qualifiers = int(
+            drop_qualifiers(
+                arrays["Open"],
+                arrays["Low"],
+                entry_spread(arrays["Close"]),
+                trailing_average(arrays["Close"]),
+            )[0].sum()
+        )
+        full = int((np.count_nonzero(long.positions, axis=1) == TOP_N).sum())
+        fragments = [
+            f"{len(members)} stocks over {len(days):,} trading days, from {days[0].date()} "
+            f"to {days[-1].date()}",
+            f"The computed APR is {long.apr:.6f}, the book’s {BOOK_APR_PERCENT} percent, "
+            f"and the computed Sharpe ratio is {long.sharpe:.4f}, the book’s {BOOK_SHARPE}.",
+            f"\\text{{Arithmetic annual return}} & {long.arithmetic_annual:.6f}",
+            f"\\text{{Maximum drawdown}} & {long.max_drawdown:.6f}",
+            f"\\text{{Longest drawdown, days}} & {long.max_drawdown_days}",
+            f"\\text{{Positions taken}} & {long.trades}",
+            f"\\text{{Days holding any}} & {long.days_held}",
+            f"the first two rules pass a stock {qualifiers} times, and {long.trades} of those "
+            f"passes become purchases. The strategy holds at least one stock on "
+            f"{long.days_held} days, and buys the full {SPELLED[TOP_N]} on only "
+            f"{SPELLED[full]} of them.",
+            f"before {days[SPREAD_LOOKBACK].date()}, the first day a {SPREAD_LOOKBACK}-day "
+            f"standard deviation exists, and the first position comes on {_first_held(long)}.",
+            f"the arithmetic annual return, {long.arithmetic_annual:.6f}. At the book’s one "
+            f"decimal that is {100 * long.arithmetic_annual:.1f} percent",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_helper(self, first_edition: tuple[Side, Side], long: Side, text) -> None:
+        swapped, _ = first_edition
+        fragments = [
+            f"the APR becomes {swapped.apr:.6f} and the Sharpe ratio {swapped.sharpe:.4f}. "
+            f"Those round to {100 * swapped.apr:.1f} percent and {swapped.sharpe:.1f}",
+            f"takes {swapped.trades} positions rather than {long.trades}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_mirror(self, arrays, long: Side, short: Side, text) -> None:
+        rises = int(
+            jump_qualifiers(
+                arrays["Open"],
+                arrays["High"],
+                entry_spread(arrays["Close"]),
+                trailing_average(arrays["Close"]),
+            )[0].sum()
+        )
+        full = int((np.count_nonzero(short.positions, axis=1) == TOP_N).sum())
+        floor = np.log(1 + MIRROR_BOOK_APR_PERCENT / 100) / MIRROR_BOOK_SHARPE
+        volatility = short.arithmetic_annual / short.sharpe
+        assert floor / volatility >= 4.5, SPEC
+        assert short.max_drawdown < long.max_drawdown, SPEC
+        assert short.max_drawdown_days > long.max_drawdown_days, SPEC
+        fragments = [
+            f"lands at an APR of {round(100 * short.apr)} percent and a Sharpe ratio of "
+            f"{short.sharpe:.2f}.",
+            f"the mirror lands at an APR of {short.apr:.6f} and a Sharpe ratio of "
+            f"{short.sharpe:.4f}.",
+            f"stocks qualify {rises:,} times in all, and {short.trades} of those are shorted.",
+            f"deepest drawdown is {_minus(short.max_drawdown, 6)} against the buy "
+            f"side’s {_minus(long.max_drawdown, 6)}, so it is the steeper",
+            f"Its longest drawdown runs {short.max_drawdown_days} days against "
+            f"{long.max_drawdown_days}",
+            f"the floor is {floor:.4f}. The declared rule has an annual volatility of "
+            f"{volatility:.4f}, so whatever rule Chan ran moved at least four and a half times",
+            f"It holds a position on {short.days_held} of the {len(short.days):,} days, shorts "
+            f"the full {SPELLED[TOP_N]} stocks on only {full} of them",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_alt_text_dates(self, long: Side, short: Side, text) -> None:
+        fragments = []
+        for side in (long, short):
+            spell = longest_spell(cumulative_return(side))
+            high, first, last, trough = (
+                side.days[row].date() for row in (spell.high, spell.first, spell.last, spell.trough)
+            )
+            fragments += [
+                f"a high marked on {high}",
+                f"labelled {spell.rows} days below the high, from {first} to {last}, with its "
+                f"deepest drawdown of {_minus(spell.depth, 6)} marked on {trough}",
+            ]
+        assert self.missing(text, fragments) == []
 
 
 class TestTheRun:

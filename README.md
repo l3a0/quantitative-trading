@@ -3700,8 +3700,10 @@ Every other number in the post traces to an assertion in
 [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as the
 arithmetic figure, or to
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) for the
-figure's own numbers. Two had no pin before it, and the figure's test now pins
-both, for each side.
+figure's own numbers. `TestWhatThePostQuotes` in the first of those files
+reads one copy of each run figure the post quotes, the alt text's spell dates
+included, and checks it against the run. Two had no pin before the post, and
+the figure's test now pins both, for each side.
 
 1. That the longest spell below the high runs from 2008-09-02 to 2009-04-20
    after a high on 2008-08-29 for buy on gap, and from 2008-11-24 to
