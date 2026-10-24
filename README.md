@@ -263,8 +263,9 @@ where they were first built. The other forty-five were built here.
     afterwards. None of the four readings declared to explain the gap lands.
     Every figure is exploratory and about survivors.
 18. Buy on gap, Example 4.1 of *Algorithmic Trading*, which buys at the open
-    the ten stocks that opened furthest below their previous day's low, while
-    still above their 20-day moving average, and sells at the close. On Chan's
+    up to ten stocks that opened furthest below their previous day's low, by
+    more than one 90-day standard deviation of their daily returns, while still
+    above their 20-day moving average, and sells at the close. On Chan's
     own S&P 500 file both figures his script prints reproduce: an APR of
     0.087385, his 8.7 percent, and a Sharpe ratio of 1.5371, his 1.5. Book
     two's `smartstd` is what lands them, and the first edition's moves both.
@@ -3648,8 +3649,9 @@ regime map.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
-strategy buys at the open the stocks that fell furthest below the previous
-day's low, while still above their 20-day average, and sells at the close.
+strategy buys at the open up to ten of the stocks that fell furthest below the
+previous day's low, by more than one 90-day standard deviation of their daily
+returns, while still above their 20-day average, and sells at the close.
 Chan reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and 46 percent
 and 1.27 for a mirror he prints no script for. The post draws six lessons
 from Entry 18 of the replication log.

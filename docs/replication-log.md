@@ -4620,7 +4620,7 @@ Twelve rows, all derivable from
 **Both figures `bog.m` prints reproduce on Chan's own file, and the mirror
 does not.** Chan argues that a stock's open can overshoot on a morning of panic
 selling and drift back during the day. So each day the rule buys at the open
-the ten stocks that opened furthest below their previous day's low, by more
+up to ten stocks that opened furthest below their previous day's low, by more
 than one 90-day standard deviation of their daily returns, provided the open is
 still above the 20-day moving average of closes, and sells them at the close.
 The book reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and the

@@ -4,7 +4,7 @@ Daily closes of a stock follow something close to a random walk, but Chan
 argues at Kindle location 1948 that the open can overshoot. On a morning when
 index futures are down, some stocks open far below the previous day's low
 under panic selling, and drift back up once it is over. So each day the rule
-buys at the open the ten stocks that dropped furthest below their previous low,
+buys at the open up to ten stocks that dropped furthest below their previous low,
 by more than one 90-day standard deviation of their daily returns, provided the
 open is still above the 20-day moving average of closes, and sells them at the
 same day's close. At location 1974 Chan reports an APR of 8.7 percent and a

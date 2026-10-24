@@ -15,6 +15,7 @@ about Example 4.1, with four exceptions, three of them in
    ratio over every day at six decimals, 1.537063, all of which
    ``tests/test_vix_filter.py`` holds.
 
+README.md repeats the figures of all four, and the same files hold them there.
 README lists what the post says that nothing pins. ``docs/replication-log.md``
 Entry 18 carries the verdicts and points here row by row.
 
@@ -53,8 +54,9 @@ run figure it quotes outside the sketch against the run. Those include the
 file's saved date, the figure's alt-text spell dates and its mirror climbing more
 steeply through 2007 and 2008, and the two dates of the flagged day the mirror
 shorted. The sketch's caption and alt text are read in
-``tests/test_buy_on_gap_whiteboard.py``. The book's figures, the Kindle
-locations and the facts outside the data are not among them.
+``tests/test_buy_on_gap_whiteboard.py``. Of the book's figures, it reads only
+the 8.7 percent and 1.5, in one copy beside the computed APR and Sharpe ratio.
+It checks no Kindle location and no fact outside the data.
 
 Exploratory. Reproducing Chan's figures spends the 2006 to 2012 sample on a
 rule he chose. It first ran here on 2026-10-04.
@@ -507,9 +509,10 @@ class TestWhatThePostQuotes:
     the arithmetic annual return, and the buy side's positions taken and days
     held. Other copies, such as the APR and Sharpe ratio in the alt text, are
     not read. The sketch's caption and alt text are read in
-    ``tests/test_buy_on_gap_whiteboard.py`` instead. The book's figures, the
-    Kindle locations and the facts outside the data are not read either, and
-    README lists them.
+    ``tests/test_buy_on_gap_whiteboard.py`` instead. Of the book's figures,
+    only the 8.7 percent and 1.5 are read, in one copy beside the computed APR
+    and Sharpe ratio. The Kindle locations and the facts outside the data are
+    checked by nothing, and README lists them.
     """
 
     @pytest.fixture(scope="class")
