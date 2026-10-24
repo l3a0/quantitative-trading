@@ -17,7 +17,7 @@ Chapter 6 then leans on the split to explain why some futures trend. Their roll 
 Chan’s Example 5.3 measures the spot and roll returns of five futures: the Brazilian real (BR), corn (C), WTI crude oil (CL), copper (HG) and the two-year US Treasury note (TU). Table 5.1 prints each future’s average spot and roll return. This repository ran his script, `estimateFuturesReturns.m`, on his own data files and found three things.
 
 1. **Eight of Table 5.1’s ten cells match.** Only HG’s and TU’s spot returns miss, even on the files Chan saved himself. HG’s is a tenth of a percentage point off, and TU’s has the opposite sign.
-2. **The script counts contracts, not months.** The time to maturity is the time left until a contract expires, and the text says it is measured in months. The script instead numbers the five contracts nearest to expiry from 1 to 5, which treats neighbouring contracts as one month apart. For the three futures whose contracts are not all a month apart, that overstates the roll return by 2.0 to 3.0 times.
+2. **The script counts contracts, not months.** The roll return comes from how one day’s prices change with each contract’s time to maturity, the time left until it expires, and the text says to measure that time in months. The script instead numbers the five contracts nearest to expiry from 1 to 5, which treats neighbouring contracts as one month apart. For the three futures whose contracts are not all a month apart, that overstates the roll return by 2.0 to 3.0 times.
 3. **With maturity measured in months, each of the book’s two claims fails for one future.** The first says BR, C and TU have roll returns much larger in size than their spot returns. The replication reads “much larger” as at least twice, and C’s falls short of twice. The second says BR, HG and TU have roll returns bigger in size than their spot returns, and HG’s falls below its spot return.
 
 **Every result here is exploratory.** Chan chose the model, the futures and the dates, and the reproduction runs them on the same files. It can say whether his numbers follow from his data and nothing about whether a roll return persists after 2012.
@@ -31,7 +31,7 @@ The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/q
 
 ## The model and the files
 
-Chan’s model assumes both returns are constant (location 2364). On a log scale a steady percentage return draws a straight line, so the model works with log prices. Take a contract that expires at time T, priced on day t. Its log price, the natural logarithm of its price, is a constant, plus the spot return α times the date, minus the roll return γ times the time left to expiry. The book calls that time the time to maturity. In symbols:
+Chan’s model assumes both returns are constant (location 2364). On a log scale a steady percentage return draws a straight line, so the model works with log prices, the natural logarithm of each price. Take a contract that expires at time T, priced on day t. Its log price is a constant, plus the spot return α times the date t, minus the roll return γ times the time left to expiry. The book calls that time the time to maturity. In symbols:
 
 ```math
 \ln F(t, T) = c + \alpha\, t - \gamma\, (T - t)
@@ -40,7 +40,7 @@ Chan’s model assumes both returns are constant (location 2364). On a log scale
 Two readings of that one equation give the two returns.
 
 1. **Hold one contract.** T is fixed, so as t moves forward a year the log price rises by α from the spot and by γ from the shrinking time to expiry. The contract’s total return is α + γ, which is the sentence “total return = spot return + roll return” in symbols (location 2364).
-2. **Hold one day.** Every contract trading that day shares t, so the log prices of contracts with later expiries fall on a straight line against their time to expiry, with slope −γ. Positive γ means the later contracts are cheaper, which is backwardation.
+2. **Hold one day.** Every contract trading that day shares t, so that day’s log prices lie on a straight line against each contract’s time to expiry, with slope −γ. Positive γ means the later contracts are cheaper, which is backwardation.
 
 ![An animated whiteboard sketch titled “One line, read two ways”, drawn slowly stroke by stroke. It is schematic and carries no figures from the run. A grey axis across is labelled “date t” and a grey axis up is labelled “log price”. A black line rising gently from left to right is labelled “spot: rises at the spot return”. Three grey lines start lower at the left edge, each below the one before. Each climbs more steeply than the spot line until it meets the spot line and ends in a grey dot. The first meets it about a third of the way across, the second past the middle and the third near the right end. A grey label reads “each contract ends at the spot”. The lowest grey line is then retraced in brown with an arrowhead where it meets the spot line, labelled “hold one contract: spot return + roll return”. A dashed black vertical line near the left edge crosses all four lines, with a black dot at each crossing, the spot highest and each later contract lower. A black label beneath reads “hold one day: one roll return lower per year to expiry”, and a last green label reads “roll return above 0: backwardation”. The finished drawing holds for twelve seconds.](../docs/figures/roll_returns_sketch_one_line.gif)
 
@@ -49,7 +49,7 @@ Two readings of that one equation give the two returns.
 Two kinds of regression estimate the two returns. Each fits a straight line through points and reads off its slope.
 
 1. **The spot return α** is the slope of the log spot price against the day number, which counts the trading days 1, 2, 3 and on. That slope is a return per trading day, and multiplying it by 252 trading days a year turns it into a return per year.
-2. **The roll return γ** comes from one day at a time. On each day, the script takes from the file the five contracts nearest to expiry that have prices that day, provided no contract between them lacks a price. Their prices that day trace the day’s **forward curve**, which location 2399 glosses as “the future price as a function of maturity date”. The book says to fit that curve against time to maturity, measured in months. The script fits the log prices, which the model puts on a straight line against time to maturity, and multiplies the fitted slope by −12. The 12 turns a slope per month into a return per year, and the minus sign turns the slope, which is −γ, into γ. The figure the table reports is the mean of γ over every day the fit runs. Lesson 2 shows that the script fits against something simpler than months.
+2. **The roll return γ** comes from one day at a time. On each day, the script takes from the file the five contracts nearest to expiry that have prices that day, provided no contract between them lacks a price. Their prices that day trace the day’s **forward curve**, which location 2399 glosses as “the future price as a function of maturity date”. The book says to fit that curve against time to maturity, measured in months. The script fits the log prices, since the model says they lie on a straight line, and multiplies the fitted slope by −12. The 12 turns a slope per month into a return per year, and the minus sign turns the slope, which is −γ, into γ. The figure the table reports is the mean of γ over every day the fit runs. Lesson 2 shows that the script fits against something simpler than months.
 
 ### The data files
 
@@ -59,7 +59,7 @@ The files start as early as 1986. γ is defined on 1,087 to 6,028 days per file,
 
 ## Lesson 1: eight of ten cells match on Chan’s own files
 
-A cell **matches** when the computed figure rounds to the book’s at its one decimal of a percent, sign included. Here are the script’s figures beside Table 5.1, at the six decimal places the script’s `%f` format prints, the spot returns first and then the roll returns. The script prints each return as a fraction a year, so 0.050567 is 5.06 percent.
+A cell **matches** when the computed figure, rounded to one decimal of a percent as the book prints it, equals the book’s figure, sign included. Here are the script’s figures beside Table 5.1, at the six decimal places the script’s `%f` format prints, the spot returns first and then the roll returns. The script prints each return as a fraction a year, so 0.050567 is 5.06 percent.
 
 ```math
 \begin{array}{l|r|r}
