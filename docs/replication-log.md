@@ -4578,8 +4578,8 @@ Three things.
    2008-07-14 and was still below that high 371 days later, when the window
    ended, so the drawdown had not finished. Its arithmetic return from 2010 to
    2012 was 0.016244, which row 9's rule, fixed before the run, reads as
-   stabilised below 2007's. That is the collapse location 2890 describes, where momentum "vanished during the aftermath of the stock
-   market crash".
+   stabilised below 2007's. That is the collapse location 2890 describes,
+   where momentum "vanished during the aftermath of the stock market crash".
 
 ### What this entry cannot say
 

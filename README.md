@@ -4003,9 +4003,7 @@ the reversal's 4.713284 on the same file, to
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
 for the figure's own numbers, or to
 [tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
-for the sketches'. `TestWhatThePostQuotes` in the first of those reads one
-copy of each run figure in the post, its tables and its figure's alt text
-against the run, so a typo in that copy fails a test. Three had no pin before it.
+for the sketches'. Three of them had no pin before the post.
 
 1. That the 2008 and 2009 spell below the high runs from 2008-07-15, after a
    high on 2008-07-14, to the window's last day, 2009-12-31, so it was still
@@ -4015,6 +4013,11 @@ against the run, so a typo in that copy fails a test. Three had no pin before it
 3. ETFC's closes of 85.9 on 2007-11-09 and 35.5 on 2007-11-12, and the
    strategy's position of −25 in it on 2007-11-09, which
    `TestTheScaleBreakDecision` now pins.
+
+`TestWhatThePostQuotes` in
+[tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
+reads one copy of each run figure in the post, its tables and its figure's alt
+text against the run, so a typo in that copy fails a test.
 
 Its one figure is drawn from the committed file by
 [src/chan/cross_sectional_momentum_figures.py](src/chan/cross_sectional_momentum_figures.py),

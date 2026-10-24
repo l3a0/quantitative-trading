@@ -1,16 +1,19 @@
 """The pins for cross-sectional momentum, *Algorithmic Trading*'s Example 6.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 6.2, with three exceptions, all in
+about Example 6.2, with four exceptions, all in
 ``blog/cross-sectional-momentum-lessons.md``. The post quotes each window's
 deepest drawdown and the dates of the 2008 and 2009 spell below the high, which
 ``tests/test_cross_sectional_momentum_figures.py`` holds. It recalls Example
 7.2's 6.7 percent as the arithmetic figure, which ``tests/test_pead.py`` holds.
-And it quotes Example 4.4's Sharpe ratio of 4.713284 on the same file, which
-``tests/test_khandani_lo_book_two.py`` holds. :class:`TestWhatThePostQuotes`
-reads one copy of each run figure the post quotes against the run, and README
-lists what the post says that nothing pins. ``docs/replication-log.md`` Entry
-17 carries the verdicts and points here row by row.
+It quotes Example 4.4's Sharpe ratio of 4.713284 on the same file, which
+``tests/test_khandani_lo_book_two.py`` holds. And its two whiteboard sketches
+print the 2007 window's sum, product and cohort counts, which
+``tests/test_cross_sectional_momentum_whiteboard.py`` holds.
+:class:`TestWhatThePostQuotes` reads one copy of each run figure the post
+quotes against the run, and README lists what the post says that nothing pins.
+``docs/replication-log.md`` Entry 17 carries the verdicts and points here row
+by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -84,6 +87,7 @@ from chan.cross_sectional_momentum import (
     stabilised,
     window_figures,
 )
+from chan.khandani_lo_book_two import BOOK_44_SHARPE, SCRIPT_44_SHARPE
 from chan.matlab_helpers import calculate_max_dd, round_half_away, smartstd_first_edition
 from chan.paths import REPO_ROOT
 from chan.series import (
@@ -811,6 +815,8 @@ class TestWhatThePostQuotes:
         fragments = [
             f"\\text{{Arithmetic}} & {w1.arithmetic_annual:.6f} & {w1.sharpe:.4f} & "
             f"{w2.arithmetic_annual:.6f}",
+            f"\\text{{Book}} & {BOOK_APR_PERCENT}\\% & {BOOK_SHARPE} & "
+            f"{BOOK_CRISIS_APR_PERCENT}\\%",
             f"\\text{{Compounded}} & {w1.compounded_apr:.6f} & \\text{{n/a}} & "
             f"{w2.compounded_apr:.6f}",
             f"The arithmetic return is {arithmetic[0]} percent against {BOOK_APR_PERCENT}, and "
@@ -834,6 +840,7 @@ class TestWhatThePostQuotes:
             f"On the window’s last day, {after} days after the high",
             f"The arithmetic return is {w3.arithmetic_annual:.6f} and the Sharpe ratio "
             f"{w3.sharpe:.4f}.",
+            f"reproduced that {BOOK_44_SHARPE} on this same file as {SCRIPT_44_SHARPE}.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -898,7 +905,6 @@ class TestWhatThePostQuotes:
         fragments = [
             f"flags {len(flagged)} closes that moved too far for an ordinary day, one in 2007 "
             f"and {len(crisis)} in 2008 and 2009",
-            f"held ETFC short in all {HOLD_DAYS} cohorts going into it",
         ]
         assert len(inside) == 1
         ((symbol, day),) = [(s, d) for s, d in flagged if start <= d <= end]
@@ -907,4 +913,9 @@ class TestWhatThePostQuotes:
             f"{symbol}’s close on {day.date()}, which fell from {before} to "
             f"{closes[symbol].loc[day]}"
         )
+        positions = overlapping_positions(*formations(ranking_returns(closes.to_numpy())))
+        row = closes.index.get_loc(day) - 1
+        short = int(-positions[row, list(closes.columns).index(symbol)])
+        assert short == HOLD_DAYS, SPEC
+        fragments.append(f"held {symbol} short in all {short} cohorts going into it")
         assert self.missing(text, fragments) == []
