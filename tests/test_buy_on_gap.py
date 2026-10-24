@@ -430,24 +430,26 @@ def _minus(x: float, places: int) -> str:
 
 
 class TestWhatThePostQuotes:
-    """One copy of each run figure the post quotes outside its sketch, read against the run.
+    """Each run figure the post quotes outside its sketch, read against the run.
 
     The classes above pin each figure once, and the post copies it by hand.
     Here each figure the run computes is built from the run's value at the
-    precision the post prints it, and looked for in one copy: a short fragment
-    holding the number and the few words that name one place in the post. A
-    typo in that copy, or a re-pin that leaves the post behind, fails here.
-    The file's saved date, the figure's alt-text dates and climb, and the two
-    dates of the flagged day the mirror shorted are read the same way.
-    The post states several figures more than once, in its opening, a lesson,
-    a table or the figure's alt text, and the other copies are not read. The
-    exception is the figure's alt text, whose two spell lengths and two deepest
-    drawdowns are read there as well as in Lesson 4, and the buy side's in
-    Lesson 1's table too. The
-    sketch's caption and alt text are read in ``tests/test_buy_on_gap_whiteboard.py``
-    instead. The book's
-    figures, the Kindle locations and the facts outside the data are not read
-    either, and README lists them.
+    precision the post prints it, and looked for in at least one copy: a short
+    fragment holding the number and the few words that name one place in the
+    post. A typo in a copy that is read, or a re-pin that leaves the post
+    behind, fails here. The file's saved date, the figure's alt-text dates and
+    climb, and the two dates of the flagged day the mirror shorted are read the
+    same way.
+
+    The post states several figures more than once, and only some copies are
+    read. Several figures are read in more than one copy, among them the spell
+    lengths and deepest drawdowns, in the figure's alt text and in Lesson 4,
+    the arithmetic annual return, and the buy side's positions taken and days
+    held. Other copies, such as the APR and Sharpe ratio in the alt text, are
+    not read. The sketch's caption and alt text are read in
+    ``tests/test_buy_on_gap_whiteboard.py`` instead. The book's figures, the
+    Kindle locations and the facts outside the data are not read either, and
+    README lists them.
     """
 
     @pytest.fixture(scope="class")
