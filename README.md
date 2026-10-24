@@ -376,8 +376,8 @@ where they were first built. The other forty-five were built here.
     rounds to 5.1 percent against the book's 5.0, and TU's 0.000039 is
     positive where the book prints −0.0. Corn's two figures agree with the
     ones Chan's Python port printed to within 10⁻¹². `estimateFuturesReturns.m`
-    measures a contract's maturity in columns rather than months, so beside
-    the replication runs the same fit in months, and the script's figures
+    measures a contract's maturity in columns rather than months, so the run
+    also fits each strip with maturity in months, and the script's figures
     overstate corn's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
     Under months, HG's falls below its spot return, so the comparison
     Chapter 6 rests its explanation of HG's momentum on holds only under the
@@ -1102,8 +1102,10 @@ pins the month-spaced roll return, the month gaps each day's fit reads, and
 the three readings of the spot return tried after HG's and TU's missed. On
 synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
-and a gap in the spot still counted as elapsed days. The blog post about it is
-the exception, and what it says that nothing here asserts is listed below.
+and a gap in the spot still counted as elapsed days. It also pins what the post
+reads off γ day by day, in `TestBesideThePost`, and `TestThePostQuotesTheRun`
+reads one copy of each figure the post prints from the run, so editing that copy
+alone fails. What the post says that nothing here asserts is listed below.
 
 [tests/test_vx_es.py](tests/test_vx_es.py) does it for VX against ES. It pins
 the four figures on the 2012-05-07 save at the precision that is real and at
@@ -3425,7 +3427,8 @@ compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
 the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
-calendar spreads, Johansen ETF, VX against ES and small-caps redraw commands.
+calendar spreads, Johansen ETF, VX against ES, small-caps and roll returns
+redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -5318,7 +5321,7 @@ links the earlier posts on calendar spreads and on VX against ES for what a
 futures contract and a roll are, and draws four lessons from Entry 27 of the
 replication log.
 
-1. Eight of Table 5.1's ten cells land on Chan's own files, and HG's and TU's
+1. Eight of Table 5.1's ten cells match on Chan's own files, and HG's and TU's
    spot returns miss there, so no vendor's revision explains either.
 2. The script regresses on contract columns where the text says months, so it
    overstates C's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
@@ -5330,7 +5333,7 @@ replication log.
    sign 198 times, with no criterion for location 2683's "does not vary very
    often" written down before the counts.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -5350,37 +5353,61 @@ Five groups of what it says are not pinned here.
    location 2399, which
    [tests/test_book_notes.py](tests/test_book_notes.py) holds, and the book's
    chart is compared with the redraw only by its first and last days.
-3. Readings no test asserts: the algebra of the model, that a held contract
-   earns α + γ and that one day's log prices fall on a line of slope −γ, and
-   the reading of location 2385 that the roll return separates a producer
-   ETF from the commodity's future.
-4. Figures the post rounds from pinned ones or takes between them in words:
-   0.0039 percent, "a little over half", and "less than four months later".
-   The figure's heading test holds 5.06 and 3.86 percent. The figure's alt text reads its bars and its line
-   approximately too, such as "about 5.3" and "about −1.1".
+3. Readings no test asserts on the run: the algebra of the model, that a held
+   contract earns α + γ and that one day's log prices fall on a line of slope
+   −γ, which
+   [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+   holds only on the first sketch's made-up slopes, the reading of location
+   2385 that the roll return separates a producer ETF from the commodity's
+   future, and the reading that for most of the time before 2006-12-19 the
+   market's nearest CL contracts are not in the file.
+4. The figure's alt text, which reads its bars and its line approximately,
+   such as "about 5.3" and "about −1.1". The sketches' alt texts place their
+   lines in words, such as "about a third of the way across", and
+   [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+   reads their quoted labels, their pace and a few phrases rather than every
+   position.
 5. Its references, cited rather than computed.
+6. The history of its pass marks, which
+   [issue 347](https://github.com/l3a0/quantitative-trading/issues/347), its
+   edit history and
+   [issue 458](https://github.com/l3a0/quantitative-trading/issues/458) record
+   and no test can read: that the pass mark of twice was written down before
+   the code existed but after a first rough run had measured the figures, that
+   it reached the fit in months only once the code had run, and that none was
+   written down for "does not vary very often" before the counts.
 
 Every other number in the post traces to an assertion in
 [tests/test_roll_returns.py](tests/test_roll_returns.py), or to
 [tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) for
-the figure's own numbers. Four had no pin before it, and
-`TestBesideThePost` there now pins them all.
+the figure's own numbers, or to
+[tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+for the sketches' labels and the planted prices' 50.00 and 48.52. Five had
+no pin before it, and `TestBesideThePost` there now pins them all.
 
 1. CL's γ is negative on 1,388 of its 1,941 days and positive on 552. On
    2006-01-05 its five settlements run 65.38 to 65.41 and back, so it is zero
    apart from rounding, and the sign counts skip that day.
 2. It changes sign 29 times, and its longest run of one sign is contango from
-   2008-10-09 to 2011-10-21, 766 days.
+   2008-10-09 to 2011-10-21, 766 trading days.
 3. Its highest value is 0.258871 on 2008-09-22 and its lowest −1.121372 on
    2009-01-15.
 4. BR's γ is negative on 3 of its 4,210 days, and HG's is positive on 3,139 of
    its 6,028 days and changes sign 198 times.
+5. Until 2006-12-19, the last day of CL's January 2007 contract, the five
+   nearest contracts in the file on each of the first 519 days with γ are
+   January to May 2007.
+
+`TestThePostQuotesTheRun` there reads the post itself against the run. It
+reads Lesson 1's two tables and Lesson 2's table row by row, and one prose
+copy of every other figure the run computes. It does not read the italic
+summary, the list of three findings, the headings or the alt text.
 
 Its one figure is drawn from the committed strips by
 [src/chan/roll_returns_figures.py](src/chan/roll_returns_figures.py), which
 reads them through the same `load_strip` and `strip_returns` as
 `python -m chan.roll_returns`, scale-break guard included. It draws two panels,
-for Lessons 3 and 4.
+the first for Lessons 2 and 3 and the second for Lesson 4.
 
 1. Each strip's spot return, the script's roll return and the month-spaced
    roll return as bars, with a tick at twice the spot return over BR, C and TU.
@@ -5394,6 +5421,34 @@ uv run python -m chan.roll_returns_figures
 [tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/roll_returns_whiteboard.py](src/chan/roll_returns_whiteboard.py) on
+the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+
+1. `roll_returns_sketch_one_line.gif`, in "The model and the files", a spot
+   line rising at α and three contracts below it, each rising at α + γ to end
+   on the spot line at its own expiry, read once along one contract and once
+   down one day. It is schematic and carries no figures from the run, and it
+   builds more slowly than the USD.CAD post's sketches and holds its finished
+   drawing for twelve seconds.
+2. `roll_returns_sketch_same_five_prices.gif`, in Lesson 2, the made-up
+   quarterly example's five prices at their months with the fit in months,
+   then the same prices one month apart with the script's fit, three times
+   as steep. It reads its 0.03 and 0.09 from the two fits run on the planted
+   frame, and draws the prices' drop larger than it is.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.roll_returns_whiteboard
+```
+
+[tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+holds that each contract line ends on the spot line at its expiry, that the
+script's fit is drawn three times as steep as the fit in months from the same
+first price, and that the planted frame is the one
+[tests/test_roll_returns.py](tests/test_roll_returns.py) builds.
 
 [blog/tu-hypothesis-tests-lessons.md](blog/tu-hypothesis-tests-lessons.md) is
 a twenty-eighth post, about Example 1.1 of Chan's *Algorithmic Trading*, which

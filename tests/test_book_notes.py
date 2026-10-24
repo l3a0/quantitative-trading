@@ -160,6 +160,6 @@ def test_the_roll_returns_post_cites_the_figure_number_the_notes_record() -> Non
     recorded = re.search(r"FIGURE (\d+\.\d+) Values of the Roll Return γ for CL\.", entry)
     assert recorded, "location 2399 holds no caption for CL's roll return"
     post = (NOTES_DIR.parents[1] / "blog" / "roll-returns-lessons.md").read_text(encoding="utf-8")
-    captions = [line for line in post.splitlines() if line.startswith("*Each strip’s spot return")]
+    captions = [line for line in post.splitlines() if line.startswith("*Each future’s spot return")]
     assert len(captions) == 1
     assert re.findall(r"Figure (\d+\.\d+)", captions[0]) == [recorded.group(1)]
