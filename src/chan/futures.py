@@ -21,9 +21,10 @@ month into a file number on one day. :data:`NATURAL_GAS_CONTRACTS` and
 :data:`RBOB_CONTRACTS` name each product's four files and its expiry rule.
 
 **The calendar is computed rather than read from the files.** The natural gas
-files carry exchange holidays as rows repeating the day before's settlement, so
-a row's presence does not say the exchange was open. :func:`is_trading_day`
-uses NYMEX's holiday rules instead.
+files hold a row repeating the previous trading day's settlement on every
+exchange holiday from January 2018 to November 2019, and on almost none in
+other years, so a row's presence does not say the exchange was open.
+:func:`is_trading_day` uses NYMEX's holiday rules instead.
 
 **The expiry rules were checked two ways.** Against the last trading days the
 Massive futures API recorded for 16 natural gas contracts, which
@@ -56,15 +57,16 @@ from chan.vintage import VintageEntry, read_vintage, resolve_vintage
 VENDOR = "eia"
 PRICE_BASIS = "raw"
 
-#: Days NYMEX closed outside its holiday rules. The only one between February
-#: 20 and April 30 is 1994-04-27, Richard Nixon's funeral, which moves the May
+#: Days outside NYMEX's holiday rules when its trading floor closed and the
+#: natural gas files hold no new settlement. The only one between February 20
+#: and April 30 is 1994-04-27, Richard Nixon's funeral, which moves the May
 #: 1994 natural gas expiry and no trade date. They are listed so the calendar is
 #: the exchange's rather than one tuned to these trades.
 #:
 #: Three days this list used to carry are gone: 2012-10-29 and 2012-10-30, when
 #: Hurricane Sandy closed the trading floor, and 2018-12-05. All eight natural
 #: gas and RBOB files hold a settlement on each, and on each day most of them
-#: differ from the day before, which a holiday row repeating a settlement does
+#: differ from the previous trading day's settlement, which a holiday row does
 #: not. Counted as closed, the Sandy days put the November 2012 natural gas
 #: expiry on 2012-10-25, two trading days before the files hand over.
 #: ``tests/test_stationary_candidates.py`` pins that every file settled on all

@@ -179,15 +179,17 @@ where they were first built. The other forty-five were built here.
     121.5 on the closes and 127.65 on the opens, and on Example 3.7 it prints
     0.9578 rather than the book's 0.25. Every figure is exploratory and about
     survivors.
-11. Chan's two commodity seasonal trades, which he says still pay where the
-    equity ones have died: the May gasoline contract from April 13 to April 25,
-    and the June natural gas contract from February 25 to April 15. On EIA's
+11. Chan's two commodity seasonal trades, which he says still pay where
+    much of the equity seasonality has weakened or disappeared: the May
+    gasoline contract from April 13 to April 25, and the June natural gas
+    contract from February 25 to April 15. On EIA's
     NYMEX settlements, natural gas is profitable in every year from 1995 to
     2008, which reproduces both the main text's 13 consecutive years and the
     sidebar's 14, read as first-edition figures counted from 1995. Gasoline from 1995 to 2015 holds the 2 losing years that
     Chan's 19 of 21 allows, and shows 16 profitable rather than 19, because
     EIA's file has no row on the trade date in 1997, 1998 or 1999. Both trades
-    win fewer years after the years he read. Every figure is exploratory.
+    win a smaller share of years after the years he counted. Every figure is
+    exploratory.
 12. Post-earnings announcement drift, Example 7.2 of *Algorithmic Trading*,
     which buys or shorts a stock at the open after an earnings announcement
     when the overnight gap is large, and sells at the close. On Chan's own
@@ -3590,13 +3592,13 @@ replication log.
 2. A missing row is not a losing year, so three gaps in EIA's file bound the
    gasoline count between 16 and 19 rather than settling it.
 3. A trade chosen after looking at the history is tested by the years after
-   the book, and both trades win fewer of them.
+   the book, and both trades win a smaller share of them.
 4. Reading one named contract from files numbered by expiry needs a calendar
    checked against something the files do not supply.
 
 It cites the revised edition by page, while the replication log cites the
-same passages by Kindle location. Four groups of its figures are not pinned
-here.
+passages on pp. 183 to 185 by Kindle location. Five groups of its figures are
+not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. The pairing
    of equity and commodity seasonals is on p. 175. "Alive and well", the
@@ -3611,28 +3613,37 @@ here.
 2. Facts outside the committed data. RBOB beginning to trade in October 2005,
    the first edition's release in November 2008 and its 2009 date, RB as the
    symbol RBOB trades under, a natural gas contract stopping three trading days
-   before delivery and the May gasoline contract trading until the last
-   business day of April as the exchange's rules, Good Friday as the only NYMEX
-   holiday that can land on a trade date, EIA publishing the nearest four
-   contracts numbered by expiry, EIA's statement that its source is NYMEX, and
+   before delivery and the April and May gasoline contracts trading until the
+   last trading day of the month before delivery as the exchange's rules, Good
+   Friday as the only NYMEX holiday that can land on a trade date, EIA
+   publishing the nearest four contracts numbered by expiry, EIA's statement
+   that its source is NYMEX, and
    the Massive futures data service returning April 2025 gasoline prices, which
    [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
-   all three unreadable years profitable, that four contracts in four years
-   are 16, that 1994 to 2023 is 30 years, that the last 9 of 1995 to 2015 are
-   2007 to 2015, that 7 of 15 is fewer than half, and that 2016 to 2023 is
-   eight years.
+   all three unreadable years profitable, that 21 less the 3 unreadable years
+   is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 7 of 15 is
+   fewer than half, that 2008 is a year after 2007, and that 1994 is one
+   year before 1995.
 4. Its references. The three citations are cited rather than computed.
+5. Two dates no test asserts: the files' last row on 5 April 2024, which
+   their file names record, and the day the 16 exchange dates were read, 3
+   October 2026.
 
 Every other number in the post traces to an assertion in
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py), or to
 [tests/test_commodity_seasonals_figures.py](tests/test_commodity_seasonals_figures.py)
-for the figure's own labels. One had no pin before it, and
+for the figure's own labels, or to
+[tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
+for the sketches' labels and the dates their alt text gives. One had no pin before it, and
 `TestNaturalGas::test_the_runs_counted_from_the_files_first_year` now pins it:
 counted from 1994, the run of 13 profitable years ends in 2006.
+`TestThePostQuotesThePins` reads one copy of each count, streak, gap date and
+split in the post, and fails when that copy drifts from the run. A second copy
+of the same figure elsewhere in the post is not always read.
 
-Its one figure is drawn from the committed EIA files by
+Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).
 It draws every year of both trades as a bar at its settlement change, with the
 three unreadable gasoline years as labelled empty slots, a mark giving each
@@ -3645,6 +3656,35 @@ uv run python -m chan.commodity_seasonals_figures
 [tests/test_commodity_seasonals_figures.py](tests/test_commodity_seasonals_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `commodity_sketch_streak_start.gif`, in Lesson 1, a year axis from 1994 to
+   the 2009 loss with a dot for each profitable year, a dashed mark for the
+   first edition's release in November 2008, and brackets for the streaks of
+   13 and 14, counted from 1995 above the axis and from 1994 below it.
+2. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
+   gas contracts as bars ending at their last trading days in 2008 and 2006,
+   with a dashed line at each entry and exit, so June's number is how many
+   bars each line crosses.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in.
+
+Neither is schematic. Both read the natural gas run on the committed EIA
+files, so neither needs the owner's archive. Redraw both with:
+
+```bash
+uv run python -m chan.commodity_seasonals_whiteboard
+```
+
+[tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
+holds that each bracket ends where the run's streak reaches Chan's count, that
+June's number in each label is how many bars its line crosses and the file the
+run reads, and that each GIF follows the paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the

@@ -3352,10 +3352,12 @@ Ten rows, all derivable from
 [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py).
 
 **Both natural gas figures reproduce under the reading the issue pinned, and
-the gasoline count agrees with the book on every year the file can read.** Chan says commodity seasonal trades still pay where
-the equity ones have died, and gives two. Gasoline buys the May contract at the
-close of April 13 and sells at the close of April 25. Natural gas buys the June
-contract at the close of February 25 and sells at the close of April 15.
+the gasoline count agrees with the book on every year the file can read.**
+Chan says commodity seasonal trades still pay where much of the equity
+seasonality has weakened or disappeared, and gives two. Gasoline buys the May
+contract at the close of April 13 and sells at the close of April 25. Natural
+gas buys the June contract at the close of February 25 and sells at the close
+of April 15.
 
 1. **Natural gas.** Every year from 1994 to 2008 is profitable. Counted from
    1995, the run is 13 years ending in 2007 and 14 ending in 2008, the main
@@ -3392,8 +3394,10 @@ no count. Three of the rules carry the result, so they are stated here.
    file counts neither way, rather than moving to another day.
 
 Every result here is **exploratory**. Chan chose both trades after looking at
-the history the run reads, so the entry says whether his counts reproduce and
-nothing about whether either trade pays today.
+years before his book, which the run also reads, so on those years the entry
+says whether his counts reproduce. Nobody wrote down a test for the years after
+the book before the run computed them, so the entry says nothing about whether
+either trade pays today.
 
 ### What the book printed
 
@@ -3448,11 +3452,12 @@ Three things.
 2. **Gasoline agrees with the book on every year the file can read.** 1995 to
    2015 holds the 2 losing years 19 of 21 allows and no third. The three
    unreadable years are gaps in EIA's file, not losses.
-3. **In this exploratory record, both trades win fewer years after the years
-   Chan read.** Natural gas wins 15 of 15 through 2008 and 7 of 15 after, which
-   agrees with his remark at location 4632. Gasoline wins 3 of 8 from 2016 to
-   2023. Eight years with no costs charged can show the change and cannot
-   measure it.
+3. **In this exploratory record, both trades win a smaller share of years
+   after the years Chan counted.** Natural gas wins 15 of 15 through 2008 and 7
+   of 15 after, which agrees with his remark at location 4632. Gasoline wins 3
+   of 8 from 2016 to 2023. Each trade's earlier years include the years Chan
+   chose its rule on, so the drop can overstate how much it weakened. No costs
+   are charged on either side of the split.
 
 ### What this entry cannot say
 
@@ -3482,6 +3487,15 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its
 figure of every year of both trades, which
 `uv run python -m chan.commodity_seasonals_figures` redraws.
+
+The post also carries two whiteboard sketches that draw this entry's run, and
+`uv run python -m chan.commodity_seasonals_whiteboard` redraws both. One draws
+the natural gas streaks of 13 and 14, counted from 1995 and from 1994, against
+the 2009 loss and the first edition's release. The other draws which numbered
+file holds the June contract on the entry and exit days of 2008 and 2006.
+[tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
+reads both from the run, so a change to the streak counts or the expiry rule
+moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
 

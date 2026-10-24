@@ -1,10 +1,10 @@
 """Chan's two commodity seasonal trades, gasoline in April and natural gas in spring.
 
-Chan argues that seasonal trades in commodity futures still pay where the
-equity ones have died, because the demand behind them is physical: drivers
-before summer for gasoline, power generators before air conditioning season
-for natural gas. Entry 7 reproduced the equity seasonals and found them dead
-as he said. This module checks the two he says are alive.
+Chan argues that seasonal trades in commodity futures still pay where much of
+the equity seasonality has weakened or disappeared, because the demand behind
+them is physical: drivers before summer for gasoline, power generators before
+air conditioning season for natural gas. Entry 7 tested two equity seasonals.
+This module checks the two commodity trades he says are alive.
 
 The rules are the revised edition's sidebars.
 
@@ -25,8 +25,9 @@ is reported as missing rather than moved.
 **The data is EIA's contract-numbered settlements, not one file per contract.**
 Contract 1 is whichever contract expires next, so the module has to say which
 numbered file holds the May or June contract on a given day. The May gasoline
-contract is contract 1 on both gasoline dates, because it trades until the last
-business day of April. The June natural gas contract is contract 4 or 3 at the
+contract is contract 1 on both gasoline dates. The April contract stops trading
+on the last trading day of March, and the May contract trades until the last
+trading day of April. The June natural gas contract is contract 4 or 3 at the
 entry, depending on whether the March contract has expired, and contract 2 at
 the exit. :func:`chan.futures.ng_last_trade` gives each expiry. Today a
 contract stops three trading days before delivery, and before mid-1997 it
@@ -42,16 +43,19 @@ and RBOB from 2006. :func:`gasoline_trade` takes the other contract for 2006
 when asked, which the run prints as a side row.
 
 **The calendar is computed rather than read from the files.** The natural gas
-files carry exchange holidays as rows repeating the day before's settlement, so
-a row's presence does not say the exchange was open.
+files hold a row repeating the previous trading day's settlement on every
+exchange holiday from January 2018 to November 2019, and on almost none in
+other years, so a row's presence does not say the exchange was open.
 :func:`chan.futures.is_trading_day` uses NYMEX's holiday rules instead. Of
 those holidays only Good Friday can land on a date this module reads. The
 calendar and the expiry rules live in :mod:`chan.futures`, because the
 calendar-spread test reads them too.
 
 Every result here is **exploratory**. Chan chose both trades after looking at
-the same history the run reads, so the run says whether his counts reproduce
-and nothing about whether either trade pays today.
+years before his book, which the run also reads, so on those years the run says
+whether his counts reproduce. Nobody wrote down a test for the years after the
+book before the run computed them, so the run says nothing about whether either
+trade pays today.
 
 A settlement is a ``Decimal`` as its file spells it, which
 :func:`chan.futures.settlements` reads, so a zero change reads as zero rather

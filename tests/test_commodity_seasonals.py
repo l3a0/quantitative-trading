@@ -11,8 +11,10 @@ before a trade was computed.
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -75,10 +77,41 @@ class TestTheCalendar:
         assert is_trading_day(date(2022, 4, 14))
 
     def test_a_holiday_row_in_the_files_is_not_a_trading_day(self) -> None:
-        """The natural gas files carry 2018-12-25 as a row repeating the day before."""
+        """The natural gas files carry 2018-12-25 as a row repeating the previous trading day."""
         _, rows = settlements(NATURAL_GAS[1])
         assert rows[date(2018, 12, 25)] == rows[date(2018, 12, 24)]
         assert not is_trading_day(date(2018, 12, 25))
+
+    def test_holiday_rows_fill_2018_and_most_of_2019_and_almost_nothing_else(self) -> None:
+        """Which of NYMEX's 261 holidays from 1994 to 2023 the natural gas files hold a row on.
+
+        Every holiday from January 2018 to November 2019 has one, repeating the
+        previous trading day's settlement in all four files, and outside those
+        years only 2014-01-20 does. So only 2 of the 30 Good Fridays have a row.
+        The 2007-01-02 closure, which is not a holiday, carries one too.
+        """
+        files = [settlements(NATURAL_GAS[number])[1] for number in (1, 2, 3, 4)]
+        holidays = sorted(day for year in range(1994, 2024) for day in futures.nymex_holidays(year))
+        rowed = [day for day in holidays if any(day in rows for rows in files)]
+        assert len(holidays) == 261
+        late = [day for day in holidays if date(2018, 1, 1) <= day <= date(2019, 11, 30)]
+        assert rowed == [date(2014, 1, 20), *late]
+        for day in rowed:
+            before = futures.previous_trading_day(day)
+            assert all(rows[day] == rows[before] for rows in files)
+        good_fridays = [futures.good_friday(year) for year in range(1994, 2024)]
+        assert [day for day in good_fridays if day in rowed] == [
+            date(2018, 3, 30),
+            date(2019, 4, 19),
+        ]
+        closed = [
+            day
+            for day in sorted(futures.UNSCHEDULED_CLOSURES)
+            if date(1994, 1, 1) <= day <= date(2023, 12, 31) and any(day in rows for rows in files)
+        ]
+        assert closed == [date(2007, 1, 2)]
+        before = futures.previous_trading_day(closed[0])
+        assert all(rows[closed[0]] == rows[before] for rows in files)
 
     def test_good_friday_moves_exactly_these_trade_dates(self) -> None:
         """Every trade date in 1994 to 2023 that Good Friday moved, against weekends alone."""
@@ -238,9 +271,15 @@ class TestNaturalGas:
         assert {year: run for year, run in runs.items() if run >= 13} == {2007: 13, 2008: 14}
 
     def test_the_runs_counted_from_the_files_first_year(self) -> None:
-        """Counted from 1994, the runs of 13 and 14 end a year early, in 2006 and 2007."""
+        """Counted from 1994, the runs of 13 and 14 end a year early, in 2006 and 2007.
+
+        1994 is the files' first whole trade, which the post says twice: 1993 has
+        neither price.
+        """
         runs = runs_ending(GAS)
         assert (runs[2006], runs[2007], runs[2008]) == (13, 14, 15)
+        assert natural_gas_trade(1993).entry_price is None
+        assert natural_gas_trade(1993).exit_price is None
 
     def test_a_missing_year_breaks_a_run_in_any_order(self) -> None:
         trades = [gasoline_trade(year) for year in (2000, 1997, 1996, 1995)]
@@ -307,3 +346,204 @@ def test_the_report_prints_the_derived_counts(capsys: pytest.CaptureFixture[str]
     assert "1995 to 2015: 16 of 21 profitable   (the book prints 19 of 21)" in out
     assert "the run ending in 2007: 13   (the main text prints 13)" in out
     assert "the run ending in 2008: 14   (the sidebar prints 14)" in out
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "commodity-seasonals-lessons.md"
+
+
+def _tally(trades, first: int, last: int) -> tuple[int, int]:
+    years = [trade for trade in trades if first <= trade.year <= last]
+    return profitable_count(years), len(years)
+
+
+def _day(day: date) -> str:
+    return f"{day.day} {day:%B} {day.year}"
+
+
+class TestThePostQuotesThePins:
+    """One copy of each count, streak, gap date and split in the post, read from the post itself.
+
+    Other copies of the same figure elsewhere in the post are not always read.
+
+    The prose states these numbers and the tests above derive them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review changed 26 of its numbers one at a time, and none failed a test.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_natural_gas_before_and_after_2008(self) -> None:
+        won, of = _tally(GAS, 1994, 2008)
+        later, later_of = _tally(GAS, 2009, 2023)
+        assert (
+            f"Natural gas wins {won} of {of} years through 2008 and {later} of {later_of} after."
+            in self.text
+        )
+        assert f"\\text{{1994 to 2008}} & {won} \\text{{ of }} {of} & 0" in self.text
+        assert f"\\text{{2009 to 2023}} & {later} \\text{{ of }} {later_of} & 0" in self.text
+        assert f"The files give {later} of {later_of} for 2009 to 2023" in self.text
+
+    def test_the_streak_table_and_the_start_years(self) -> None:
+        from_1995 = runs_ending([trade for trade in GAS if trade.year >= RUN_START])
+        from_1994 = runs_ending(GAS)
+        for year in (2007, 2008):
+            assert f"{year} & {from_1995[year]} & {from_1994[year]}" in self.text
+        ends = [min(year for year, run in from_1994.items() if run == count) for count in (13, 14)]
+        assert f"the streaks of 13 and 14 end in {ends[0]} and {ends[1]} instead" in self.text
+        main_text, sidebar = (min(y for y, run in from_1995.items() if run == n) for n in (13, 14))
+        assert (
+            f"The main text’s 13 is the streak ending in {main_text} and the sidebar’s 14 "
+            f"is the streak ending in {sidebar}"
+        ) in self.text
+
+    def test_the_gasoline_count_and_its_gaps(self) -> None:
+        years = [trade for trade in GASOLINE if trade.year <= 2015]
+        losses = [trade.year for trade in years if trade.profitable is False]
+        missing = [trade for trade in years if trade.profitable is None]
+        assert f"\\text{{Profitable}} & {profitable_count(years)} \\\\" in self.text
+        assert f"\\text{{Losing, {losses[0]} and {losses[1]}}} & {len(losses)}" in self.text
+        assert (
+            f"\\text{{No row, {missing[0].year} to {missing[-1].year}}} & {len(missing)}"
+            in self.text
+        )
+        assert f"\\text{{Total}} & {len(years)}" in self.text
+        won, of = _tally(GASOLINE, 1995, 2015)
+        assert f"\\text{{1995 to 2015}} & {won} \\text{{ of }} {of} & {len(missing)}" in self.text
+        entry_gap = [trade.entry_day for trade in missing if trade.entry_price is None]
+        exit_gap = [trade.exit_day for trade in missing if trade.exit_price is None]
+        assert (
+            f"no row on {_day(entry_gap[0])}, the entry date that year, or on "
+            f"{_day(exit_gap[0])} and {_day(exit_gap[1])}, the exit dates those years"
+        ) in self.text
+        side = gasoline_trade(2006, symbol=HARBOR_GASOLINE)
+        assert side.entry_price is None
+        assert f"its file has no row on {_day(side.entry_day)}" in self.text
+
+    def test_the_years_inside_and_after_the_book(self) -> None:
+        early = [trade for trade in GASOLINE if trade.year <= 2008]
+        assert (
+            f"{profitable_count(early)} profitable years and "
+            f"{sum(trade.profitable is None for trade in early)} with no price on a trade date"
+        ) in self.text
+        won, of = _tally(GASOLINE, 2007, 2015)
+        assert f"The trade won {won} of those {of}" in self.text
+        gasoline, gasoline_of = _tally(GASOLINE, 2016, 2023)
+        gas, gas_of = _tally(GAS, 2016, 2023)
+        assert (
+            f"it won {gasoline} of {gasoline_of}. Natural gas won {gas} of the same {gas_of}."
+            in self.text
+        )
+        assert f"\\text{{2016 to 2023}} & {gasoline} \\text{{ of }} {gasoline_of} & 0" in self.text
+
+    def test_lesson_4_s_counts(self) -> None:
+        """The edge years, the Good Friday moves, the exchange's contracts and the lead days."""
+        words = {3: "three", 5: "five", 6: "six"}
+        years = range(1994, 2024)
+        edge = [y for y in years if on_or_after(date(y, 2, 25)) == ng_last_trade(y, 3)]
+        assert (
+            f"In {len(edge)} of the {len(years)} years, the entry date falls on the March "
+            "contract’s last trading day"
+        ) in self.text
+        moved = [
+            asked
+            for y in years
+            for asked, roll in (
+                (date(y, 4, 13), on_or_after),
+                (date(y, 4, 25), on_or_before),
+                (date(y, 2, 25), on_or_after),
+                (date(y, 4, 15), on_or_before),
+            )
+            if roll(asked) != _weekend_roll(asked, roll is on_or_after)
+        ]
+        assert f"it moved {words[len(moved)]} trade dates between 1994 and 2023" in self.text
+        exchange = sorted(TestTheNaturalGasExpiries.EXCHANGE)
+        listed = ", ".join(str(y) for y in exchange[:-1]) + f" and {exchange[-1]}"
+        assert (
+            f"For {4 * len(exchange)} contracts, March to June of {listed}, the rule gives"
+            in self.text
+        )
+        early = sorted({ng_lead_days(1996, 1), ng_lead_days(1996, 2)})
+        assert (
+            f"stopping {words[early[0]]} or {words[early[1]]} trading days before delivery "
+            f"rather than {words[ng_lead_days(1998, 6)]}"
+        ) in self.text
+        shifted = [y for y in (1996, 1997) if natural_gas_trade(y).entry_symbol == NATURAL_GAS[3]]
+        assert f"moves the {shifted[0]} and {shifted[1]} entries from contract 4 to contract 3" in (
+            self.text
+        )
+
+    def test_the_chart_s_alt_text(self) -> None:
+        """The chart's alt text restates its labels in words, so it reads the same tallies."""
+        words = {5: "five", 8: "eight"}
+        alt = re.search(r"!\[(Two panels[^\]]*)\]\(\.\./docs/figures/", self.text).group(1)
+        missing = [t.year for t in GASOLINE if t.year <= 2015 and t.profitable is None]
+        losses = [t.year for t in GASOLINE if t.year <= 2015 and t.profitable is False]
+        later = [t for t in GASOLINE if t.year >= 2016]
+        won, of = _tally(GASOLINE, 1995, 2015)
+        assert f"Its years {missing[0]}, {missing[1]} and {missing[2]} are empty slots" in alt
+        assert f"{won} of {of} profitable and {len(missing)} with no row" in alt
+        assert f"{profitable_count(later)} of {len(later)} profitable" in alt
+        assert f"with losses in {losses[0]} and {losses[1]}" in alt
+        lost = sum(t.profitable is False for t in later)
+        assert f"{words[lost]} of the {words[len(later)]} after it are losses" in alt
+        gas_won, gas_of = _tally(GAS, 1994, 2008)
+        after = [t for t in GAS if t.year >= 2009]
+        assert f"{gas_won} of {gas_of} profitable, from 2009 to 2023" in alt
+        assert f"{profitable_count(after)} of {len(after)} profitable" in alt
+        gains = profitable_count(after)
+        assert f"After it, {len(after) - gains} years are losses and {gains} are gains" in alt
+        biggest = max(after, key=lambda t: t.change)
+        assert round(biggest.change) == 3
+        assert f"one gain near three dollars in {biggest.year}" in alt
+
+    def test_the_files_first_whole_trade(self) -> None:
+        """1993's trade has neither price and 1994's has both, which the post says twice."""
+        first = NG_YEARS[0]
+        before, trade = natural_gas_trade(first - 1), natural_gas_trade(first)
+        assert (before.entry_price, before.exit_price) == (None, None)
+        assert trade.entry_price is not None and trade.exit_price is not None
+        assert f"The natural gas files first hold a whole trade in {first}." in self.text
+        assert f"{first}, the first year the files hold a whole trade" in self.text
+
+    def test_the_holiday_rows(self) -> None:
+        """The longest unbroken run of NYMEX holidays the natural gas files hold a row on.
+
+        One rowed holiday, 2014-01-20, falls outside it.
+        """
+        files = [settlements(NATURAL_GAS[number])[1] for number in (1, 2, 3, 4)]
+        holidays = sorted(day for year in range(1994, 2024) for day in futures.nymex_holidays(year))
+        rowed = [any(day in rows for rows in files) for day in holidays]
+        runs, start = [], None
+        for k, has in enumerate([*rowed, False]):
+            if has and start is None:
+                start = k
+            elif not has and start is not None:
+                runs.append((start, k - 1))
+                start = None
+        first, last = max(runs, key=lambda run: run[1] - run[0])
+        assert sum(rowed) - (last - first + 1) == 1
+        assert (
+            f"On every exchange holiday from {holidays[first]:%B %Y} to "
+            f"{holidays[last]:%B %Y}, the natural gas files hold a row"
+        ) in self.text
+
+    def test_the_june_caption_s_2006_dates(self) -> None:
+        """The June sketch's caption says why 2006's entry and exit moved."""
+        trade = natural_gas_trade(2006)
+        asked_entry, asked_exit = date(2006, 2, 25), date(2006, 4, 15)
+        good_friday = futures.good_friday(2006)
+        assert trade.entry_day > ng_last_trade(2006, 3)
+        assert trade.exit_day < good_friday < asked_exit
+        assert (
+            f"In 2006, February 25 fell on a {asked_entry:%A}, so the trade entered on "
+            f"{trade.entry_day:%A} the {trade.entry_day.day}th, after March had expired. "
+            f"April 15 was a {asked_exit:%A} and the {good_friday.day}th was Good Friday, "
+            f"so the exit moved back to the {trade.exit_day.day}th."
+        ) in self.text
+
+
+def _weekend_roll(day: date, forward: bool) -> date:
+    """``day`` moved past weekends alone, the calendar without NYMEX's holidays."""
+    while day.weekday() >= 5:
+        day = date.fromordinal(day.toordinal() + (1 if forward else -1))
+    return day
