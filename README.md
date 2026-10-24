@@ -755,8 +755,8 @@ at both prices under the reading declared before the run. The gap on the
 closes, +3.1576, is more than three times its standard error of 0.9872, and
 the gap on the opens, +0.8850, is smaller than its 1.1640, so one year of the
 opens cannot tell the two universes apart. The standard error assumes
-independent, normal days, which a reversal's are not, so it is an
-approximation. After 5 basis points a side the S&P 600's closes lose only a
+independent, normal days. Neither universe's days are normal, and the S&P
+500's are not independent either, so it is an approximation. After 5 basis points a side the S&P 600's closes lose only a
 little. The rule trades about the same amount a day on both files at both
 prices, so the profit decides, and the S&P 600's average day on the closes
 pays 1.0945 times its profit in cost, against the S&P 500's 13.7453. It is
@@ -901,8 +901,9 @@ books `tests/test_khandani_lo.py` does not already pin, the cost a side at
 which each of the four breaks even, the open's lift in each universe, the
 closes' standard error with the correlation set to 0, and the share of
 Memmel's bracket the correlation term carries on each price, with the helper
-behind them worked by hand. The blog post about it is the exception, and what
-it says that nothing here asserts is listed below.
+behind them worked by hand. It also reads the post's tables and quoted
+figures against the run, and what the post says that nothing here asserts is
+listed below.
 
 [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py) does
 it for the reversal on the S&P 400, between Chan's two files. It pins the
@@ -2618,8 +2619,10 @@ the AUD.CAD rollover post's two by
 [tests/test_aud_cad_rollover_whiteboard.py](tests/test_aud_cad_rollover_whiteboard.py),
 the calendar spreads post's two by
 [tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py),
-and the Johansen ETF post's two by
-[tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py).
+the Johansen ETF post's two by
+[tests/test_etf_cointegration_whiteboard.py](tests/test_etf_cointegration_whiteboard.py),
+and the small-caps post's two by
+[tests/test_khandani_lo_small_caps_whiteboard.py](tests/test_khandani_lo_small_caps_whiteboard.py).
 The VX against ES post's two GIFs are checked the same way by
 [tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py).
 
@@ -3433,7 +3436,7 @@ compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
 the USD.CAD, equity seasonals, price spread, AUD.CAD rollover, calendar spreads,
-Johansen ETF and VX against ES redraw commands.
+Johansen ETF, VX against ES and small-caps redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -6410,13 +6413,14 @@ Entry 50 found on the S&P 400.
 5. The check for split prices flags BCSI on 2006-02-06 and SCUR on
    2006-07-12, and same-day news shows both were earnings warnings that
    traded.
-6. The declared reading points the way Chan says, on one year of survivors.
+6. By the reading written down in advance, the S&P 600's result points the
+   way Chan says, on one year of survivors.
    Nothing here measures how many S&P 600 members were microcaps. The S&P
-   400 is the third point, and its run sits between the other two on the
-   closes and below both on the opens. The reading written down before that
+   400's run sits between the other two on the closes and below both on the
+   opens. The reading written down before that
    run calls this mixed. The S&P 600 rebuilt the same way, as a check on the
-   change of vendor, passes its rule only with one stock set aside on each
-   of three days, decided in advance.
+   change of vendor, passes its rule only with three exclusions decided in
+   advance, two unadjusted splits and one bad price.
 
 Five groups of what it says are not pinned here.
 
@@ -6428,30 +6432,42 @@ Five groups of what it says are not pinned here.
    without news reverting at 3109.
 2. Facts about the book and the code rather than the data: that Example 7.4
    reads the same S&P 600 file, that the notebook's rule fills each gap with
-   the last price seen, and that a split halves a price the file may not
-   adjust.
+   the last price seen, that a split halves a price the file may not adjust,
+   that the S&P 600 file holds prices and volumes but no market values, that
+   a daily Sharpe ratio is the mean daily profit over its standard deviation
+   without the √252, and that *Algorithmic Trading* runs its version of the rule on Chan's file of
+   497 stocks from 2007 to 2011.
 3. Readings no test asserts: that the open's lift removes most of what
    separated the two universes at the close, that the rule replaces about the
    same share of its book in every universe, that one cost on both universes
    flatters the S&P 600, that the S&P 600 adds a company only above a
    minimum size and does not drop a member just because it later shrank, that
    the reversal bought the two flagged stocks on days Chan's reasoning gives
-   no cause to expect a bounce, that the daily profits are neither independent
-   nor normal, that the 2012 panel's rule is a close cousin of this one, that
+   no cause to expect a bounce, that neither universe's daily profits are
+   normal and that the S&P 500's are not independent from day to day, that the
+   post on *Algorithmic Trading*'s run found the data and
+   the window moved the Sharpe ratio more than the rule did, that
    the distance between two running totals says nothing about how much the
-   daily profits swing, that a reversal buys exactly the stocks that fell, and
-   that ignoring the correlation understates the noise in a gap when two
-   books' daily profits move against each other.
-4. Facts from outside the data and figures stated in words: the two news
-   reports on BCSI and SCUR, their dates and what they say, that no source
-   states SCUR's close, the bound written as 0.625 for 1/1.6, and words such
-   as far more, barely past the line, about the same, about one standard
-   error, most of the 116 left out, and many of the vendor's histories. The
-   prose writes
-   pinned fractions in percent, such as 98 percent for 0.98. The figure's alt
-   text reads its curves approximately too, such as the S&P 500's dashed line
-   on the opens dipping below zero in the middle of the year and the S&P
-   600's on the closes falling below zero in the spring.
+   daily profits swing, that a reversal buys exactly the stocks that fell,
+   that Chan's explanation predicts a Sharpe ratio that rises as the
+   companies get smaller, that the rule for the change of source assumes the
+   change moves the S&P 400 about as much as it moved the S&P 600, that
+   arithmetic on the printed cells misses the 13.7453 by the most, giving
+   13.7462, because a small profit magnifies its rounding, and that ignoring
+   the correlation understates the noise in a gap when two books'
+   daily profits move against each other.
+4. Facts from outside the data and figures stated in words: that vendors
+   restate price history, the two news reports on BCSI and SCUR, their dates
+   and what they say, that no source states SCUR's close, that the 116
+   holdings left out include companies bought or failed after 2007, that the
+   S&P 400's companies sit in size between those of the other two indexes,
+   the 5 basis points written as 0.05 percent, and words such as far more,
+   far less, only a little, barely past the line, just past the bound, about
+   the same, about one standard error, most of the 116 left out, many of the
+   vendor's histories, and nearly all of 2006. The
+   figure's alt text reads its curves approximately too, such as the S&P
+   500's dashed line on the opens dipping below zero in the middle of the
+   year and the S&P 600's on the closes falling below zero in the spring.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6461,12 +6477,14 @@ or to
 for the figure's own numbers, which include the low of the S&P 600's dashed
 line on the closes, −6.3% on 2006-06-30. The S&P 500's average day on the
 closes traces to `TestWhatAnAverageDayCosts` in
-[tests/test_khandani_lo.py](tests/test_khandani_lo.py), and the factor of 1.6
-to [tests/test_scale_breaks.py](tests/test_scale_breaks.py). The S&P 400's
+[tests/test_khandani_lo.py](tests/test_khandani_lo.py), Chan's printed 0.25,
+the 5 basis points a side and the 252 days a year to `TestTheFigures` in the
+same file, and the factor of 1.6 to
+[tests/test_scale_breaks.py](tests/test_scale_breaks.py). The S&P 400's
 figures, its steps to both neighbours, the control's gaps with and without
-the three stocks set aside, and the reading of mixed trace to
+its three exclusions, and the reading of mixed trace to
 [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py). Its
-fund, filing date, vendor and download date, its 401 holdings, the rule a run
+fund, holdings date, vendor and download date, its 401 holdings, the rule a run
 keeps them by, the vendor's 2006-12-28 start and the 285 a run keeps trace to
 [tests/test_sp400_panel.py](tests/test_sp400_panel.py).
 `TestWhatThePostMeasured` in
@@ -6488,6 +6506,35 @@ measured after the run.
    bracket the correlation term carries, 0.98 on the closes and 0.94 on the
    opens.
 
+Three classes read the post's own text, each building what it looks for from
+the run at the precision the post prints, so a typo in a figure they read
+fails a test.
+
+1. `TestThePostQuotesTheRun` in
+   [tests/test_khandani_lo_small_caps.py](tests/test_khandani_lo_small_caps.py)
+   reads the tables of Lessons 1, 2 and 4 whole. It also reads one prose copy
+   each of the window and its 251 days, the stocks priced on its first and
+   last days, the eight that miss a price, the open's lift, Lesson 3's two
+   shares of the bracket, its standard error with the correlation set to 0
+   and the gap's distance in those standard errors, Lesson 4's ranges of turnover and cost, and Lesson 5's bound and two
+   flagged days.
+2. `TestTheAltText` in
+   [tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
+   reads the figure's alt text, its nine percentages and both headings'
+   figures.
+3. `TestThePostQuotesTheLadder` in
+   [tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py)
+   reads Lesson 6's S&P 400 figures: the 401 holdings, the 285 kept and the
+   116 left out, the three indexes' Sharpe ratios at both prices, the step of
+   2.1973 standard errors, the rebuilt S&P 600's two gaps and the two
+   distances to the nearer neighbour. It needs the owner's archive, so it
+   skips without it.
+
+The italic summary, the prose that repeats a table and the figure's caption
+are not read. `TestThePost` in
+[tests/test_khandani_lo_small_caps_whiteboard.py](tests/test_khandani_lo_small_caps_whiteboard.py)
+reads the two sketches' alt text.
+
 Its one figure is drawn from the committed vintages by
 [src/chan/khandani_lo_small_caps_figures.py](src/chan/khandani_lo_small_caps_figures.py),
 which reads them through the same `compare` as
@@ -6505,6 +6552,37 @@ uv run python -m chan.khandani_lo_small_caps_figures
 [tests/test_khandani_lo_small_caps_figures.py](tests/test_khandani_lo_small_caps_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/khandani_lo_small_caps_whiteboard.py](src/chan/khandani_lo_small_caps_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+draws, and both build slowly and hold their finished drawing for twelve
+seconds. Neither is schematic.
+
+1. One in Lesson 3, `khandani_lo_small_caps_correlation_narrows.gif`, which
+   draws the closes' gap against two standard errors each way, with the
+   correlation set to 0 and at its measured 0.5258, from the committed files.
+2. One in Lesson 6, `khandani_lo_small_caps_size_order.gif`, which draws the
+   three indexes' Sharpe ratios before costs at both prices to one scale and
+   colours each step by what it says about the predicted order: red where it
+   falls and breaks the order, green where it rises by more than one year's
+   noise, and black where it rises inside that noise. Its S&P 400
+   figures read the owner's archive, so on a machine without it the command
+   redraws only the first and exits non-zero, naming the one it left.
+
+```bash
+uv run python -m chan.khandani_lo_small_caps_whiteboard
+```
+
+[tests/test_khandani_lo_small_caps_whiteboard.py](tests/test_khandani_lo_small_caps_whiteboard.py)
+holds what each sketch says and draws, reads the first sketch's figures from
+the run, and refuses figures that would make a sketch's words false. It draws
+the S&P 400 from `PINNED_MID`, so it runs without the archive, and
+`test_the_whiteboard_draws_this_runs_figures` in
+[tests/test_khandani_lo_mid_caps.py](tests/test_khandani_lo_mid_caps.py)
+holds that the run gives those figures where the archive is. It compares each
+committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic
+Sans MS, as the USD.CAD sketches' test does.
 
 [blog/pead-edgar-rerun-lessons.md](blog/pead-edgar-rerun-lessons.md) is a
 thirty-ninth post, about Example 7.2 of Chan's *Algorithmic Trading* rerun
