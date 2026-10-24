@@ -727,10 +727,10 @@ where they were first built. The other forty-five were built here.
     final P&L. On the later closes the ADF, variance ratio and Hurst tests
     read as a random walk, and each of those three landed as
     [issue 607](https://github.com/l3a0/quantitative-trading/issues/607)
-    registered it before any holdout close was read. The half-life is
-    457.8077 days against the frozen 115, and the issue registered no
-    prediction for it. The result is
-    registered and comes from one feed, the vendor's daily close rather than
+    registered it before the run computed anything on a holdout close. The
+    half-life is 457.8077 days against the frozen 115, and the issue
+    registered no prediction for it. The result is registered and comes from
+    one feed, the vendor's daily close rather than
     Chan's 16:59 bar, because the holdout on his bar moved to
     [issue 608](https://github.com/l3a0/quantitative-trading/issues/608).
 
@@ -2242,9 +2242,9 @@ uv run python -m chan.usdcad_holdout run
 
 `run` takes no option, because
 [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) fixed
-the window, the lookback of 115 and every prediction before any holdout close
-was read. It prints the vintage, the warm-up, the traded days and their
-weekday gaps, and each of H1 to H7 with its outcome and whether it landed as
+the window, the lookback of 115 and every prediction before the run computed
+anything on a holdout close. It prints the vintage, the warm-up, the traded
+days and their weekday gaps, and each of H1 to H7 with its outcome and whether it landed as
 registered. Then it prints the drawdown, the Sharpe ratio, the largest
 position and the shares long and short, which decide nothing. Every refusal
 of either command prints one line.
@@ -3424,8 +3424,8 @@ that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-the USD.CAD, equity seasonals, price spread, AUD.CAD rollover, calendar spreads,
-Johansen ETF, VX against ES and small-caps redraw commands.
+the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
+calendar spreads, Johansen ETF, VX against ES and small-caps redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -7565,8 +7565,9 @@ redraw it.
 forty-eighth post, about Example 2.5 of Chan's *Algorithmic Trading* run on
 USD.CAD after his sample, with the lookback frozen at the 115 days his closes
 give. It reads Alpha Vantage's `FX_DAILY` closes, downloaded 2026-10-13, and
-trades 3,791 days from 2012-03-29 to 2026-10-12. Its verdict and four of the
-predictions beside it are registered, and every other figure is exploratory.
+trades 3,791 days from 2012-03-29 to 2026-10-12. Its verdict and the four
+predictions beside it that ran are registered, and every other figure is
+exploratory.
 The post links the earlier USD.CAD post for the tests and the rule rather than
 repeating them, and draws five lessons from Entry 51 of the replication log.
 
@@ -7574,34 +7575,40 @@ repeating them, and draws five lessons from Entry 51 of the replication log.
    the Newey-West t of its mean daily value is 0.2670. Its Sharpe ratio is
    0.0715, against 0.12 on Chan's closes.
 2. Writing the predictions down first is what makes it a check. Six
-   predictions and one figure to report were filed before any later close was
-   read, and the three earlier reads of those closes decided nothing. The
-   prediction on Chan's 16:59 bar did not run.
+   predictions and one figure to report were filed before the run computed
+   anything on the later closes, and the four reads made before the run
+   decided nothing. The prediction on Chan's 16:59 bar did not run.
 3. The later closes read as a random walk, as predicted. The ADF statistic of
    −2.0814 does not reject at 10 percent, the variance ratio test's p-value is
-   0.4343, and H of 0.4974 sits inside its random-walk band.
+   0.4343, and the Hurst exponent of 0.4974 sits inside its random-walk band.
 4. The frozen lookback is about a quarter of the later half-life, 457.8077
    days, which the plan did not predict.
 5. The fall is again several times the final P&L. The drawdown of 0.5033 ran
    from 2013-11-20 to 2016-01-19, while USD.CAD rose 39.5 percent and the rule
    was short on 458 of its 562 days.
 
-Four groups of what it says are not pinned here.
+Five groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its page in the 2013 print edition, as the
    earlier post cites them: the claim on 49, unlimited capital on 50 and the
-   lookback with no parameters to optimize on 60.
-2. Readings no test asserts: that a rule with no edge can end positive by
-   chance, that the rule holds much the same position for weeks, that a
-   p-value of 0.4343 means a random walk gives a ratio this far from 1 more
-   than two times in five, that 488 of 1,101 days is fewer than half, and
-   that 2013-11-20 to 2024-03-06 is more than ten years.
+   half-life depending on the series itself on 60.
+2. Readings no test asserts: that a z-score of 2 means a short position
+   worth 2, that a rule with no edge can end positive by chance, that the rule
+   holds much the same position for weeks, that a position of 1 held through
+   a 1 percent rise earns 0.01, and that the random walks' spread on Chan's
+   closes was wider than on the later ones.
 3. Facts Entry 51 states rather than pins: that the other vendor's minute
-   bars reach back only to 2024-10-13 on the current subscription, and that
-   an earlier run had read about 20 of the holdout's first days, through
-   2012-04-26.
-4. The figure's alt text, whose readings of the lines, such as "near 1.43 in
-   2026" and "between about 1.21 and 1.45", are approximate by design.
+   bars reach back only to 2024-10-13 on the current subscription and cannot
+   yet be downloaded as one complete file, that an earlier run had read about
+   20 of the holdout's first days, through 2012-04-26, that a check of those
+   minute bars read one day, 2026-10-12, and that three of the four reads
+   made before the run came before the plan was written.
+4. The alt text's readings of where the figure's lines run, such as "near
+   1.43 in 2026" and "between about 1.20 and 1.45", which are approximate by
+   design.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states most figures more than once, in the lessons list, a lesson, a table
+   or the alt text, and a typo in a copy the class does not read passes.
 
 Every other number traces to an assertion in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py), to
@@ -7610,14 +7617,19 @@ for the figure's own numbers, or, for Chan's closes, to
 [tests/test_usdcad_mean_reversion.py](tests/test_usdcad_mean_reversion.py).
 Six had no pin before the post, and `TestWhatThePostMeasured` in
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) pins them, all
-measured after the run.
+measured after the run. `TestWhatThePostQuotes` in the same file reads one
+copy of each figure the run computes and checks it against the run, along
+with the pass marks of 1.645 and 0.05, the one-sided 5 percent, the band's two
+standard deviations and the file checks' factor of 1.6. It asserts on the run
+each comparison the post's words draw, such as "more than four times", and
+reads one copy of those words.
 
 1. The closes on the drawdown's two dates, 1.0445 and 1.45699, a rise of 39.5
    percent.
 2. The rule is short on 458 of the 562 days of the fall.
 3. The P&L first passes its 2013 high again on 2024-03-06.
-4. The largest position is a short of 5.4054 on 2020-03-19.
-5. H sits 0.0014 below the random walks' mean.
+4. The largest position is a short of 5.4054, taken at the close of 2020-03-18.
+5. The Hurst exponent sits 0.0014 below the random walks' mean.
 6. The band is 0.4987 ± 0.0260, twice the walks' standard deviation.
 
 Its one figure, `usdcad_holdout.png`, is drawn from the committed file by
@@ -7640,6 +7652,26 @@ holds what it draws rather than its bytes, for the reason given above for the
 regime map, and
 [tests/test_figures_match_code.py](tests/test_figures_match_code.py) compares
 the committed file with a fresh draw.
+
+The post also carries one looping whiteboard sketch,
+`usdcad_holdout_sign_and_t.gif`, drawn by
+[src/chan/usdcad_holdout_whiteboard.py](src/chan/usdcad_holdout_whiteboard.py)
+on the earlier USD.CAD post's sketch machinery. It sits in Lesson 1, after the
+paragraph on the t, and sets the sum of 0.1132, above 0 with a check mark,
+over a t gauge drawn to scale, where the t of 0.2670 sits far left of the
+zone past 1.645. It reads the sum and the t from the same `read_holdout` as
+the run, and the critical value from the run's own constant.
+
+```bash
+uv run python -m chan.usdcad_holdout_whiteboard
+```
+
+[tests/test_usdcad_holdout_whiteboard.py](tests/test_usdcad_holdout_whiteboard.py)
+holds what the sketch says and draws, that each mark on the gauge stands at
+its value to one scale, that its labels change with the figures handed to it,
+and that a sum at or below 0, or a t at or below 0 or at or past 1.645, is
+refused. It compares the committed GIF with a fresh draw byte for byte only
+on macOS arm64 in Comic Sans MS.
 
 ## Where the book's numbers come from
 
