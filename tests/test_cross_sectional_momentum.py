@@ -851,9 +851,9 @@ class TestWhatThePostQuotes:
         assert left.cumret.argmax() != d1.high
         fragments = [
             f"{widths} and {len(right.days)} trading days",
-            f"ends at about {about(left)} percent, with the high its deepest drawdown fell "
-            f"from marked on {left.days[d1.high].date()} and that drawdown, "
-            f"{_signed(d1.depth, '.6f')}, marked on {left.days[d1.trough].date()}",
+            f"ends at about {about(left)} percent, with two marks: the high its deepest drawdown "
+            f"fell from, on {left.days[d1.high].date()}, and that drawdown, "
+            f"{_signed(d1.depth, '.6f')}, on {left.days[d1.trough].date()}",
             f"the compounded figure {left.figures.compounded_apr:.6f}, the arithmetic "
             f"{left.figures.arithmetic_annual:.6f} and the Sharpe ratio "
             f"{left.figures.sharpe:.4f}",

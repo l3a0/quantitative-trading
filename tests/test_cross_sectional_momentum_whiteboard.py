@@ -170,7 +170,7 @@ def _cohort_labels(
         f"divide by 2 · {longs} · {n} = {held:,}",
         "one unit of capital",
         f"first {short_days} days of {year}:",
-        f"fewer than {n}",
+        f"fewer than {n} cohorts",
     ]
 
 
@@ -181,7 +181,7 @@ def _return_labels(n: int, total: float, growth: float, arithmetic: float, apr: 
         f"× 252/{n}",
         f"{arithmetic:.4f}, Avg Ann Ret",
         f"multiply the 1 + r: {growth:.4f}",
-        f"^(252/{n}), less 1",
+        f"to the power 252/{n}, less 1",
         f"{apr:.4f}, APR",
     ]
 
@@ -472,8 +472,8 @@ class TestThePost:
         strategy = text.index("## The strategy and the file")
         lesson_1 = text.index("## Lesson 1:")
         lesson_2 = text.index("## Lesson 2:")
-        assert strategy < cohorts < text.index("The data is [one file]") < lesson_1
-        assert lesson_1 < returns < text.index("Four things bear on which side") < lesson_2
+        assert strategy < cohorts < text.index("The data comes from [one file]") < lesson_1
+        assert lesson_1 < returns < text.index("Four things bear on whether to believe") < lesson_2
 
     def test_each_gif_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -647,7 +647,7 @@ class TestTheCohortsSketch:
         assert np.diff([cohort_y(k) for k in range(n)]) == pytest.approx(
             [-sketches.PITCH] * (n - 1)
         )
-        assert sketches.PITCH > 2 * HALF
+        assert sketches.PITCH > 4 * HALF
 
     def test_the_first_cohort_draws_first_and_the_rest_one_at_a_time(self, every, figures) -> None:
         n = figures[0].hold_days

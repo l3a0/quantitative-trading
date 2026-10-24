@@ -197,7 +197,7 @@ X0, DX = 1.7, 0.085
 #: The height of the first cohort, and how far each later one sits below it.
 Y_TOP, PITCH = 3.4, 0.1
 #: How far the green and red halves of a bar sit above and below its middle.
-HALF = 0.035
+HALF = 0.02
 #: The day axis's height.
 AXIS_Y = 0.75
 #: Where the arithmetic's labels start across the board.
@@ -293,7 +293,7 @@ def _cohorts(figures: Cohorts) -> Scene:
                     f"cohort-{k}-{side}",
                     _line([(day_x(k), y + dy), (day_x(k + n), y + dy)], per_unit=8),
                     color=ink,
-                    width=2.4,
+                    width=1.6,
                     frames=frames,
                 )
             )
@@ -368,7 +368,7 @@ def _cohorts(figures: Cohorts) -> Scene:
             color=LOST,
             size=12,
         ),
-        Label(f"fewer than {n}", 0.15, 1.28, names="ramp", color=LOST, size=12),
+        Label(f"fewer than {n} cohorts", 0.15, 1.28, names="ramp", color=LOST, size=12),
     ]
     return Scene(f"{spelled(n).capitalize()} cohorts make one portfolio", "cohorts", tuple(steps))
 
@@ -434,7 +434,7 @@ def _two_returns(returns: Returns) -> Scene:
             ACCENT,
             MULTIPLY_Y,
             f"multiply the 1 + r: {returns.growth:.4f}",
-            f"^({year}/{n}), less 1",
+            f"to the power {year}/{n}, less 1",
             f"{returns.compounded:.4f}, APR",
         ),
     ):
