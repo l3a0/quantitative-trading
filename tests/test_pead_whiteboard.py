@@ -3,8 +3,9 @@
 One sketches the strategy's single trade across two days, and one Lesson 4's
 one position that the ``smartstd`` helper flips.
 
-1. The trade sketch is schematic: its price path, its gap and the places of
-   its marks are made up, so no test here reads a figure off it. What is
+1. The trade sketch is schematic: its price path, the size of its gap and
+   the exact times of its red marks inside their sessions are made up, so no
+   test here reads a figure off it. What is
    pinned is what a reader takes from it. The brass bracket spans the night
    from the close to the open, the gap is the jump at the open from the
    close's level, the green bar runs from the open to the close and nowhere
