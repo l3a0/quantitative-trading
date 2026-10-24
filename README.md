@@ -5369,12 +5369,13 @@ Six groups of what it says are not pinned here.
    position.
 5. Its references, cited rather than computed.
 6. The history of its pass marks, which
-   [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) and its
-   edit history record and no test can read: that the pass mark of twice was written down
-   before the code existed but after a first rough run had measured the
-   figures, that it reached the fit in months only once the code had run, and
-   that none was written down for "does not vary very often" before the
-   counts.
+   [issue 347](https://github.com/l3a0/quantitative-trading/issues/347), its
+   edit history and
+   [issue 458](https://github.com/l3a0/quantitative-trading/issues/458) record
+   and no test can read: that the pass mark of twice was written down before
+   the code existed but after a first rough run had measured the figures, that
+   it reached the fit in months only once the code had run, and that none was
+   written down for "does not vary very often" before the counts.
 
 Every other number in the post traces to an assertion in
 [tests/test_roll_returns.py](tests/test_roll_returns.py), or to
