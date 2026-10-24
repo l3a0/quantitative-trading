@@ -55,7 +55,8 @@ path and the two ruined months had been seen, which that entry states. Entry
 with no positive low-group beta was written after the first such formation
 had been seen, which that entry states too. Entry 51 trades Example 2.5's
 rule on USD/CAD's closes after Chan's sample at a lookback fixed from it, and
-every prediction it records was written before any of those closes was read.
+every prediction it records was written before the run computed anything on
+any of those closes.
 Its row 2 did not run and carries neither label. Entries 2 and 9 spend no
 sample at all and are outside that label and its opposite both, which each
 states rather than picking one. Entry 20 works arithmetic on inputs the book
@@ -914,8 +915,9 @@ after Chan's sample. Location 1225 says the P&L of the strategy it names
 "manages to be positive", and the criterion, the sum of the daily P&L over
 the traded days from 2012-03-29 above 0 at a lookback frozen at 115, was
 written on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607)
-before any of those closes was read. So were the four predictions beside it,
-which decide nothing, and the mapping from the criterion to a verdict.
+before the run computed anything on any of those closes. So were the four
+predictions beside it, which decide nothing, and the mapping from the
+criterion to a verdict.
 
 Entry 32's rows 3 and 4 do not take it, and like Entry 27's row 16 they test
 claims and carry no verdict. Location 1726 says the filter's slope
@@ -11730,27 +11732,31 @@ Three things carry the result, so they are stated here.
    them are `market_value(...)[114:-1]`, and the tested closes `y` cover the
    traded days' span. The warm-up falls inside Chan's window, so no test
    reads it.
-3. **The holdout the issue cut.** Holdout A, Chan's 16:59 specification on
-   Massive's minute bars, reaches back only to 2024-10-13 on the current
-   plan. The owner cut it, with its prediction H2, to
-   [issue 608](https://github.com/l3a0/quantitative-trading/issues/608). The
-   issue had said that H1 and H2 disagreeing would make the result
-   feed-dependent, and with H2 unrun that check is not made.
+3. **The holdout the issue cut.** Holdout A is Chan's 16:59 specification on
+   Massive's minute bars. The owner cut it, with its prediction H2, to
+   [issue 608](https://github.com/l3a0/quantitative-trading/issues/608). It
+   reads Massive's minute bars from 2024-10-13, and it waits until the whole
+   minute file can be recorded, as row 2's verdict says. The issue had said
+   that H1 and H2 disagreeing would make the result feed-dependent, and with
+   H2 unrun that check is not made.
 
-Rows 1 and 3 to 6 are **registered**. On 2026-10-13, before any holdout close
-was read,
+Rows 1 and 3 to 6 are **registered**. On 2026-10-13, before the run computed
+anything on a holdout close,
 [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) wrote
 down each prediction, its statistic, comparator and slice, the lookback, and
 the mapping from H1 to a verdict, and the owner called the issue a
-pre-registration that day. Three reads came before the run, and none decided
-anything.
+pre-registration that day. Four reads came before the run, and none decided
+anything. The first three came before the issue was written, which its body
+records, and the fourth after it.
 
 1. `chan.aud_cad_johansen` already read about 20 of the holdout's first days,
    through 2012-04-26, from Chan's own `inputData_USDCAD_20120426.csv`, a
    different feed under a different rule.
 2. The issue's coverage probe compared the vendor's closes with Chan's only
    on the days the two share up to 2012-03-28.
-3. The manifest, scale-break and column read-back tests read every committed
+3. A probe of Massive's `C:USDCAD` minute bars read one day, 2026-10-12, to
+   confirm the 16:59 bar exists, and computed no statistic.
+4. The manifest, scale-break and column read-back tests read every committed
    close, so they read this vintage in the commit that landed it, and only
    their pass or fail was looked at.
 
@@ -11790,8 +11796,8 @@ hold in any row and are dropped, under
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | reproduced | Registered. The criterion written on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607) before any holdout close was read holds: the P&L ends at 0.1132, above 0. The issue mapped H1 holding to this value before the run. It takes the claim route, and it is a single-feed result, because H2 did not run. |
-| 2 | not run, moved to [#608](https://github.com/l3a0/quantitative-trading/issues/608) | Holdout A needs Massive's minute bars from 2012, and the current plan reaches back only to 2024-10-13. |
+| 1 | reproduced | Registered. [Issue 607](https://github.com/l3a0/quantitative-trading/issues/607) wrote the criterion down before the run computed anything on a holdout close, and it holds: the P&L ends at 0.1132, above 0. The issue mapped H1 holding to this value before the run. It takes the claim route, and it is a single-feed result, because H2 did not run. |
+| 2 | not run, moved to [#608](https://github.com/l3a0/quantitative-trading/issues/608) | Holdout A reads Massive's minute bars from 2024-10-13, the earliest the current plan reaches. It waits until the whole minute file can be recorded, and [issue 608](https://github.com/l3a0/quantitative-trading/issues/608) names what would allow that. A plan reaching back to 2012 would extend it. |
 | 3 | none, not a replication | Registered, and it decides nothing. The prediction was that the t would not clear 1.645, and at 0.2670 it does not. |
 | 4 | none, not a replication | Registered, and it decides nothing. The prediction was that the ADF would not reject, and −2.0814 sits above −2.5937. |
 | 5 | none, not a replication | Registered, and it decides nothing. The prediction was that the variance ratio would not reject, and its p-value is 0.4343. |
@@ -11838,14 +11844,17 @@ position's own scale rather than a return on capital.
 of 0.2670 cannot separate the mean daily P&L from zero.
 
 **Anything about a lookback other than 115.** The issue froze it before the
-holdout was read, and a lookback chosen after seeing these numbers would make
-a new run, and an exploratory one.
+run read the holdout, and a lookback chosen after seeing these numbers would
+make a new run, and an exploratory one.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/usdcad-holdout-lessons.md](../blog/usdcad-holdout-lessons.md) moves with
-it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.usdcad_holdout_figures` redraws.
+it, since that post quotes most of these figures. So do its one figure,
+which `uv run python -m chan.usdcad_holdout_figures` redraws, and its one
+whiteboard sketch, which prints the final P&L, the Newey-West t and the 1.645
+it falls short of, and which `uv run python -m chan.usdcad_holdout_whiteboard`
+redraws.
 
 ## Entry 52: Example 7.7 against Open Source Asset Pricing's `MomSeasonShort`
 
