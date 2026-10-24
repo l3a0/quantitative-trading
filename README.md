@@ -3954,7 +3954,7 @@ Entry 17 of the replication log.
 
 1. The 0.40 is the comment's and not the code's, which computes 4.0657 on the
    file it loads.
-2. A rule taken from one example did not carry to the next. Read as the
+2. A rule taken from one example did not carry to another. Read as the
    arithmetic return, as Example 7.2's "APR" is, the book's APR reproduces in
    neither window, and the compounded figure that matches both was seen only
    afterwards.
