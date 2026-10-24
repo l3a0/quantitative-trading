@@ -6433,7 +6433,7 @@ change to any assertion named above moves this entry in the same commit, and
 since that post quotes most of these figures. So does its one figure, which
 `uv run python -m chan.roll_returns_figures` redraws. Its two whiteboard
 sketches draw none of these figures. The one in "The model and the files" is
-schematic, and the one in Lesson 2 draws the post's planted quarterly example,
+schematic, and the one in Lesson 2 draws the post's made-up quarterly example,
 reading its 0.03 and 0.09 from the two fits run on it.
 `uv run python -m chan.roll_returns_whiteboard` redraws them.
 

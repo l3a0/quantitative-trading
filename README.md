@@ -5389,7 +5389,7 @@ no pin before it, and `TestBesideThePost` there now pins them all.
    2006-01-05 its five settlements run 65.38 to 65.41 and back, so it is zero
    apart from rounding, and the sign counts skip that day.
 2. It changes sign 29 times, and its longest run of one sign is contango from
-   2008-10-09 to 2011-10-21, 766 days.
+   2008-10-09 to 2011-10-21, 766 trading days.
 3. Its highest value is 0.258871 on 2008-09-22 and its lowest −1.121372 on
    2009-01-15.
 4. BR's γ is negative on 3 of its 4,210 days, and HG's is positive on 3,139 of
@@ -5432,7 +5432,7 @@ the USD.CAD post's sketch machinery. Each sits after the passage it draws.
    down one day. It is schematic and carries no figures from the run, and it
    builds more slowly than the USD.CAD post's sketches and holds its finished
    drawing for twelve seconds.
-2. `roll_returns_sketch_same_five_prices.gif`, in Lesson 2, the planted
+2. `roll_returns_sketch_same_five_prices.gif`, in Lesson 2, the made-up
    quarterly example's five prices at their months with the fit in months,
    then the same prices one month apart with the script's fit, three times
    as steep. It reads its 0.03 and 0.09 from the two fits run on the planted
