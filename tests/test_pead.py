@@ -38,7 +38,9 @@ figures are pinned at the book's precision beside them.
 
 ``TestTheHelperMovesADigit`` holds the one thing a port is most likely to get
 wrong. The first edition's ``smartstd`` carries the same MATLAB name, and with
-it the arithmetic return prints as 0.0668 rather than 0.0667.
+it the arithmetic return prints as 0.0668 rather than 0.0667. It also names
+the one position the swap drops, PNW's long on 2012-02-24, which Lesson 4 and
+its sketch in ``chan.pead_whiteboard`` draw.
 
 Exploratory. Reproducing Chan's figures spends the 2011 and 2012 sample on a
 rule he chose. It first ran here on 2026-10-03.
@@ -247,6 +249,43 @@ class TestTheHelperMovesADigit:
         assert f"{first_edition.compounded_apr:10.4f}".strip() == SCRIPT_APR, SPEC
         assert f"{first_edition.max_drawdown:f}" == SCRIPT_MAX_DD, SPEC
         assert first_edition.max_drawdown_days == SCRIPT_MAX_DDD, SPEC
+
+    def test_the_one_position_that_moves_is_pnws_long_on_2012_02_24(
+        self, sources, drift: Drift, first_edition: Drift
+    ) -> None:
+        """Lesson 4's one position. PNW's gap of 0.4212 percent clears half book
+        two's deviation, 0.4189 percent, and misses half the first edition's,
+        0.4213 percent. All 90 gaps in its window are finite, so the first
+        edition's zero-fill plays no part, and its n − 1 divisor alone widens the
+        deviation, by √(90/89). That long lost 0.36 percent on the day, and no
+        other day's return moves."""
+        _, _, opens, closes, _ = sources
+        differ = np.argwhere(drift.positions != first_edition.positions)
+        assert len(differ) == 1, SPEC
+        ((row, column),) = differ
+        assert (opens.columns[column], str(drift.days[row].date())) == ("PNW", "2012-02-24")
+        assert (drift.positions[row, column], first_edition.positions[row, column]) == (1, 0)
+        op = opens.loc[drift.days].to_numpy(dtype=float)[:, column]
+        cl = closes.loc[drift.days].to_numpy(dtype=float)[:, column]
+        gaps = close_to_open(op[:, None], cl[:, None])[:, 0]
+        window = gaps[row - LOOKBACK + 1 : row + 1]
+        assert int(np.isfinite(window).sum()) == len(window) == LOOKBACK == 90, SPEC
+        gap = gaps[row]
+        half_two = ENTRY * float(matlab_helpers.smartstd_book_two(window))
+        half_first = ENTRY * float(smartstd_first_edition(window))
+        assert half_two <= gap < half_first, SPEC
+        assert [f"{100 * v:.4f}" for v in (gap, half_two, half_first)] == [
+            "0.4212",
+            "0.4189",
+            "0.4213",
+        ], SPEC
+        assert half_first / half_two == pytest.approx(np.sqrt(90 / 89), rel=1e-12), SPEC
+        day_return = (cl[row] - op[row]) / op[row]
+        assert f"{100 * day_return:.2f}" == "-0.36", SPEC
+        assert np.flatnonzero(drift.daily != first_edition.daily).tolist() == [row], SPEC
+        assert drift.daily[row] - first_edition.daily[row] == pytest.approx(
+            day_return / DENOMINATOR, abs=1e-15
+        ), SPEC
 
 
 class TestTheRun:

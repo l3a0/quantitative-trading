@@ -3629,7 +3629,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/post-earnings-drift-lessons.md](../blog/post-earnings-drift-lessons.md)
 moves with it, since that post quotes most of these figures. So does the
-post's one figure, which `uv run python -m chan.pead_figures` redraws.
+post's one figure, which `uv run python -m chan.pead_figures` redraws. Its two
+whiteboard sketches move too, and `uv run python -m chan.pead_whiteboard`
+redraws them. The one after the strategy's rules is schematic and draws none
+of these figures. The one in Lesson 4 draws the single position the first
+edition's helper drops, PNW's long on 2012-02-24, from the run.
 
 ## Entry 13: the PCA factor model, Chan's *Quantitative Trading*
 
