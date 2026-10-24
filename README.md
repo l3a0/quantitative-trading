@@ -5422,7 +5422,7 @@ the USD.CAD post's sketch machinery. Each sits after the passage it draws.
    drawing for twelve seconds.
 2. `roll_returns_sketch_same_five_prices.gif`, in Lesson 2, the planted
    quarterly example's five prices at their months with the fit in months,
-   then the same prices one column apart with the script's fit, three times
+   then the same prices one month apart with the script's fit, three times
    as steep. It reads its 0.03 and 0.09 from the two fits run on the planted
    frame, and draws the prices' drop larger than it is.
 

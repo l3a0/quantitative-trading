@@ -106,7 +106,7 @@ PLANTED_LABELS = [
     "Mar",
     "months from the nearest contract",
     "fit in months: 0.03 a year",
-    "same prices, one column apart",
+    "same prices, one month apart",
     "script’s fit: 0.09 a year, three times",
 ]
 
@@ -519,7 +519,7 @@ class TestTheModelSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
         assert "A black line rising gently from left to right" in alt
-        assert "each climbs more steeply than the spot line until it meets it" in alt
+        assert "Each climbs more steeply than the spot line until it meets the spot line" in alt
         assert "retraced in brown with an arrowhead" in alt
         assert "the spot highest and each later contract lower" in alt
 
@@ -613,7 +613,7 @@ class TestThePlantedSketch:
         for text in PLANTED_LABELS[:6]:
             assert _label(scene, text).color == MUTED, text
         assert _label(scene, "fit in months: 0.03 a year").color == GOOD
-        assert _label(scene, "same prices, one column apart").color == MUTED
+        assert _label(scene, "same prices, one month apart").color == MUTED
         assert _label(scene, "script’s fit: 0.09 a year, three times").color == LOST
 
     def test_each_cloud_comes_before_its_fit_and_the_slides_before_the_red_dots(

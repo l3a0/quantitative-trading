@@ -721,9 +721,9 @@ class TestThePostQuotesTheRun:
         assert len(saved) == 1 and len(rest_end) == 1, SPEC
         fragments = [
             f"five MATLAB files saved on {saved.pop()}",
-            f"The files start as early as {first.year}, and γ is defined on {lengths[0]:,} to "
-            f"{lengths[-1]:,} days per file, ending in {days['C2'][-1]:%B %Y} for C and in "
-            f"{rest_end.pop()} for the rest.",
+            f"The files start as early as {first.year}. γ is defined on {lengths[0]:,} to "
+            f"{lengths[-1]:,} days per file, and those days end in {days['C2'][-1]:%B %Y} for C "
+            f"and in {rest_end.pop()} for the rest.",
             f"computed on the same {first.year} to {last.year} data the book studied",
         ]
         assert self._missing(fragments, post) == [], SPEC

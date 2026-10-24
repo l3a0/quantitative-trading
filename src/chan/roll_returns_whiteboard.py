@@ -15,7 +15,7 @@ right after the passage it draws.
    numbered list under "Two readings of that one equation give the two returns."
 2. Same five prices, three times the slope: the five prices of a planted
    quarterly curve, March to the next March, at their months with the fit
-   in months through them, then the same prices slid one column apart with
+   in months through them, then the same prices slid one month apart with
    the script's fit through them, three times steeper. It sits in Lesson 2, after
    the paragraph opening "A made-up example shows how large the difference
    is."
@@ -316,7 +316,7 @@ def _fit(x: np.ndarray, y: np.ndarray) -> tuple:
 
 
 def _same_five_prices(run: Planted) -> Scene:
-    """Lesson 2: the planted prices at their months, then one column apart."""
+    """Lesson 2: the planted prices at their months, then one month apart."""
     word = TIMES_WORDS[run.times]
     months = np.asarray(run.months, dtype=float)
     columns = np.arange(len(months), dtype=float)
@@ -383,7 +383,7 @@ def _same_five_prices(run: Planted) -> Scene:
         )
     steps += [
         Label(
-            "same prices, one column apart",
+            "same prices, one month apart",
             5.8,
             1.8,
             names=f"slide-{len(months) - 1}",
