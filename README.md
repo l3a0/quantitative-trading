@@ -3425,7 +3425,8 @@ compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
 the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
-calendar spreads, Johansen ETF, VX against ES and small-caps redraw commands.
+calendar spreads, Johansen ETF, VX against ES, small-caps and post-earnings
+drift redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -3476,7 +3477,7 @@ each of Apple's filings was accepted, to
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) for the two
 Example 7.7 Sharpe ratios Lesson 4 recalls, or to
 [tests/test_pead_figures.py](tests/test_pead_figures.py) for the figure's own
-numbers. Four had no pin before it.
+numbers. Five had no pin before it.
 
 1. That 157 of the 330 days hold a position, the first on 2011-05-11, the
    first day the moving deviation can be computed.
@@ -3486,6 +3487,9 @@ numbers. Four had no pin before it.
 4. That the longest spell below the high runs from 2011-08-05 to 2012-01-10
    after a high on 2011-08-04, and that the deepest drawdown falls inside it
    on 2011-11-02.
+5. That the one position the first edition's helper drops is PNW's long on
+   2012-02-24, with its gap, both half deviations, the 90 finite gaps in its
+   window and the day's loss.
 
 Its one figure is drawn from the committed files by
 [src/chan/pead_figures.py](src/chan/pead_figures.py), which reads them
@@ -3500,6 +3504,32 @@ uv run python -m chan.pead_figures
 
 [tests/test_pead_figures.py](tests/test_pead_figures.py) holds what it draws
 rather than its bytes, for the reason given above for the regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/pead_whiteboard.py](src/chan/pead_whiteboard.py) on the USD.CAD
+post's sketch machinery. Each sits after the text it draws.
+
+1. `pead_sketch_one_trade.gif`, after the strategy's rules, one stock's price
+   across the day before and the trading day, with the gap read overnight and
+   only the open to the close held. It is schematic and carries no figures
+   from the run.
+2. `pead_sketch_helper_flip.gif`, in Lesson 4, PNW's gap on 2012-02-24 on a
+   number line between half of each helper's 90-day deviation, drawn to one
+   scale from the run.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in. Redraw both with:
+
+```bash
+uv run python -m chan.pead_whiteboard
+```
+
+[tests/test_pead_whiteboard.py](tests/test_pead_whiteboard.py) holds what
+each draws, that the second sketch's ticks and dot sit to one scale at the
+run's figures, and that each GIF follows its text in the post.
+`TestTheHelperMovesADigit` in [tests/test_pead.py](tests/test_pead.py) pins
+the second sketch's figures on its own derivation.
 
 [blog/factor-models-lessons.md](blog/factor-models-lessons.md) is a tenth
 post, about Chan's factor models: Example 7.4, the PCA factor model, and his
