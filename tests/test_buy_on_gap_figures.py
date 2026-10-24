@@ -293,6 +293,7 @@ class TestTheWords:
         assert "inputDataOHLCDaily_stocks_20120424.mat" in note
         assert "bog.m loads as inputDataOHLCDaily_20120424" in note
         assert "every stock is a survivor" in note
+        assert "stocks that were in the S&P 500 in late 2011" in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
         for text in [*figure.axes[0].texts, *figure.axes[1].texts, *figure.texts]:

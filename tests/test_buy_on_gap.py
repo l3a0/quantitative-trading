@@ -203,14 +203,17 @@ def _named(word: str, names: list[str]) -> bool:
 
 
 class TestTheListDatesFromLate2011:
-    """The file's stocks are the S&P 500 of late 2011, not of 2012-04-24, its name's date.
+    """Every stock in the file was in the S&P 500 in late 2011, though not all on 2012-04-24.
 
-    The schedules name companies rather than tickers, so each check matches a
-    distinctive word of the company's name. Five stocks that left the index in
-    the December 2011 rebalance are in the file, three that joined then are
-    not, and Medco, which left on 2012-04-02 when Express Scripts bought it, is
-    in the file with its prices frozen at the deal's value after that. These
-    tests hold those examples. The universal claim, that every member was in
+    2012-04-24 is the date in the file's name. The schedules name companies
+    rather than tickers, so each check matches a distinctive word of the
+    company's name. Five stocks that left the index in the December 2011
+    rebalance are in the file, three of the stocks that joined then are not,
+    and Medco, which left on 2012-04-02 when Express Scripts bought it, is in
+    the file with its prices frozen at the deal's value after that. Nor is the
+    file the whole index of late 2011. Electronic Arts and Constellation Energy
+    were members at both of its quarter-ends and are absent. These tests hold
+    those examples. The universal claim, that every member was in
     the index in late 2011, rests on them plus a count the review reconciled
     against the index by hand, 497 = 500 − 8 + 5, which nothing here asserts.
     """
@@ -223,6 +226,7 @@ class TestTheListDatesFromLate2011:
         "TLAB": "Tellabs",
     }
     JOINED_IN_DECEMBER_2011 = {"BWA": "BorgWarner", "DLTR": "Dollar Tree", "PRGO": "Perrigo"}
+    MEMBERS_ABSENT = {"EA": "Electronic Arts", "CEG": "Constellation Energy"}
 
     def test_five_stocks_that_left_in_december_2011_are_in_the_file(self, sources) -> None:
         _, frames = sources
@@ -238,6 +242,14 @@ class TestTheListDatesFromLate2011:
         for ticker, word in self.JOINED_IN_DECEMBER_2011.items():
             assert ticker not in frames["Close"].columns, ticker
             assert _named(word, after), word
+
+    def test_two_members_of_late_2011_are_not_in_the_file(self, sources) -> None:
+        _, frames = sources
+        for quarter in ("2011-09-30", "2011-12-31"):
+            names = _schedule_names(quarter)
+            for ticker, word in self.MEMBERS_ABSENT.items():
+                assert ticker not in frames["Close"].columns, ticker
+                assert _named(word, names), word
 
     def test_medco_is_in_the_file_frozen_after_it_left(self, sources) -> None:
         _, frames = sources
@@ -665,6 +677,7 @@ class TestTheRun:
             (row,) = [each for each in out.splitlines() if line in each]
             assert all(figure in row.split() for figure in figures), row
         assert "about survivors" in out
+        assert "stocks that were in the index in late 2011" in out
         assert "Exploratory." in out
 
 
