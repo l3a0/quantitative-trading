@@ -442,6 +442,20 @@ class TestBesideThePost:
         signs = np.sign(gamma.to_numpy())
         assert int((signs[1:] != signs[:-1]).sum()) == 29, SPEC
 
+    def test_cls_five_nearest_are_january_to_may_2007_until_2006_12_19(self, results) -> None:
+        """CL's strip starts at the January 2007 contract. So on each of the first
+        519 days with γ, through that contract's last day of 2006-12-19, the five
+        nearest priced contracts are January to May 2007, more than a year out for
+        most of the span, and the front months come in only after it."""
+        contracts = results["CL"].strip.contracts
+        assert contracts.columns[0] == "CL-2007F", SPEC
+        assert str(contracts["CL-2007F"].last_valid_index().date()) == "2006-12-19", SPEC
+        gamma = results["CL"].gamma.dropna()
+        before = gamma.index[gamma.index <= "2006-12-19"]
+        assert (len(before), str(before[0].date())) == (519, "2004-11-22"), SPEC
+        fives = {tuple(contracts.loc[day].dropna().index[:5]) for day in before}
+        assert fives == {("CL-2007F", "CL-2007G", "CL-2007H", "CL-2007J", "CL-2007K")}, SPEC
+
     def test_no_strip_the_post_counts_but_cl_has_a_flat_day(self, results) -> None:
         for root in ("BR", "C2", "HG"):
             assert not (results[root].gamma.dropna().abs() < FLAT).any(), (root, SPEC)
