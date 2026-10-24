@@ -42,7 +42,7 @@ Chan gives a reason for rule 2, which he calls “a momentum filter superimposed
 
 The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily open, high, low and close of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24.
 
-The script loads the file under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`, so the name alone does not show which file the script read. Of the public copies of Chan’s code that this repository has read, two hold Chan’s file.
+The script loads a file under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`, so the name alone does not show that the script read Chan’s file. Of the public copies of Chan’s code that this repository has read, two hold Chan’s file.
 
 1. Only one of them also holds a file under the name that `bog.m` loads, and that file has the same bytes as Chan’s file.
 2. The other, `ivanliu1989/algorithmic_trading` at commit `45670240`, holds no file under that name, and it is the copy this repository transcribed `bog.m` from, line by line.
@@ -81,7 +81,7 @@ The rule is selective. Across the 1,500 days, the first two rules pass a stock 9
 
 ### The cumulative return of the strategy and its mirror
 
-The figure below redraws what `bog.m` draws last, the cumulative return Chan prints as Figure 4.1. Its lower panel is the mirror Lesson 4 turns to. No check here compares the redraw with the chart the book prints, so it is a redraw of the script’s plot rather than a checked copy.
+The figure below redraws what `bog.m` draws last, the cumulative return Chan prints as Figure 4.1. The figure’s lower panel draws the mirror Lesson 4 turns to. No check here compares the redraw with the chart the book prints, so it is a redraw of the script’s plot rather than a checked copy.
 
 ![Two line charts stacked on one shared scale, each showing a strategy’s compounded cumulative return over 1,500 trading days from May 2006 to April 2012, in percent of capital, unlevered and before costs. In both, a grey band covers the first 90 days, before the 90-day standard deviation exists, and the line is flat at zero there. The top panel labels the band as holding no position. The top panel, Figure 4.1, buy on gap, climbs steadily to a high marked on 2008-08-29, then sits below it inside a red band labelled 159 days below the high, from 2008-09-02 to 2009-04-20, with its deepest drawdown of −0.052459 marked on 2008-12-09, and then climbs on to the end. The bottom panel, the mirror as declared here, climbs more steeply through 2007 and 2008 to a high marked on 2008-11-21, then sits below it inside a much wider red band labelled 363 days below the high, from 2008-11-24 to 2010-05-05, with its deepest drawdown of −0.064928 marked on 2009-02-03, and ends above where the top panel ends. Each panel’s heading sets its APR and Sharpe ratio beside the book’s: 0.087385 and 1.5371 against 8.7 percent and 1.5 on top, and 0.122030 and 1.7853 against 46 percent and 1.27 below. The title calls the redraw exploratory, and the note names Chan’s file and says every stock in it is a survivor.](../docs/figures/buy_on_gap_cumulative_returns.png)
 
