@@ -3427,7 +3427,8 @@ compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
 the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
-calendar spreads, Johansen ETF, VX against ES and small-caps redraw commands.
+calendar spreads, Johansen ETF, VX against ES, small-caps and roll returns
+redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -5357,14 +5358,20 @@ Five groups of what it says are not pinned here.
    the reading of location 2385 that the roll return separates a producer
    ETF from the commodity's future.
 4. The figure's alt text, which reads its bars and its line approximately,
-   such as "about 5.3" and "about −1.1".
+   such as "about 5.3" and "about −1.1". The sketches' alt texts place their
+   lines in words, such as "about a third of the way across", and
+   [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+   reads their quoted labels, their pace and a few phrases rather than every
+   position.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_roll_returns.py](tests/test_roll_returns.py), or to
 [tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) for
-the figure's own numbers. Five had no pin before it, and
-`TestBesideThePost` there now pins them all.
+the figure's own numbers, or to
+[tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+for the sketches' labels and the planted prices' 50.00 and 48.52. Five had
+no pin before it, and `TestBesideThePost` there now pins them all.
 
 1. CL's γ is negative on 1,388 of its 1,941 days and positive on 552. On
    2006-01-05 its five settlements run 65.38 to 65.41 and back, so it is zero
@@ -5402,6 +5409,34 @@ uv run python -m chan.roll_returns_figures
 [tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/roll_returns_whiteboard.py](src/chan/roll_returns_whiteboard.py) on
+the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+
+1. `roll_returns_sketch_one_line.gif`, in "The model and the files", a spot
+   line rising at α and three contracts below it, each rising at α + γ to end
+   on the spot line at its own expiry, read once along one contract and once
+   down one day. It is schematic and carries no figures from the run, and it
+   builds more slowly than the USD.CAD post's sketches and holds its finished
+   drawing for twelve seconds.
+2. `roll_returns_sketch_same_five_prices.gif`, in Lesson 2, the planted
+   quarterly example's five prices at their months with the fit in months,
+   then the same prices one column apart with the script's fit, three times
+   as steep. It reads its 0.03 and 0.09 from the two fits run on the planted
+   frame, and draws the prices' drop larger than it is.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.roll_returns_whiteboard
+```
+
+[tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+holds that each contract line ends on the spot line at its expiry, that the
+script's fit is drawn three times as steep as the fit in months from the same
+first price, and that the planted frame is the one
+[tests/test_roll_returns.py](tests/test_roll_returns.py) builds.
 
 [blog/tu-hypothesis-tests-lessons.md](blog/tu-hypothesis-tests-lessons.md) is
 a twenty-eighth post, about Example 1.1 of Chan's *Algorithmic Trading*, which
