@@ -5333,7 +5333,7 @@ replication log.
    sign 198 times, with no criterion for location 2683's "does not vary very
    often" written down before the counts.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -5357,9 +5357,10 @@ Five groups of what it says are not pinned here.
    contract earns α + γ and that one day's log prices fall on a line of slope
    −γ, which
    [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
-   holds only on the first sketch's made-up slopes, and the reading of
-   location 2385 that the roll return separates a producer ETF from the
-   commodity's future.
+   holds only on the first sketch's made-up slopes, the reading of location
+   2385 that the roll return separates a producer ETF from the commodity's
+   future, and the reading that for most of the time before 2006-12-19 the
+   market's nearest CL contracts are not in the file.
 4. The figure's alt text, which reads its bars and its line approximately,
    such as "about 5.3" and "about −1.1". The sketches' alt texts place their
    lines in words, such as "about a third of the way across", and
@@ -5367,6 +5368,13 @@ Five groups of what it says are not pinned here.
    reads their quoted labels, their pace and a few phrases rather than every
    position.
 5. Its references, cited rather than computed.
+6. The history of its pass marks, which
+   [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) and its
+   edit history record and no test can read: that the pass mark of twice was written down
+   before the code existed but after a first rough run had measured the
+   figures, that it reached the fit in months only once the code had run, and
+   that none was written down for "does not vary very often" before the
+   counts.
 
 Every other number in the post traces to an assertion in
 [tests/test_roll_returns.py](tests/test_roll_returns.py), or to
@@ -5386,8 +5394,8 @@ no pin before it, and `TestBesideThePost` there now pins them all.
 4. BR's γ is negative on 3 of its 4,210 days, and HG's is positive on 3,139 of
    its 6,028 days and changes sign 198 times.
 5. Until 2006-12-19, the last day of CL's January 2007 contract, the five
-   nearest contracts on each of the first 519 days with γ are January to May
-   2007.
+   nearest contracts in the file on each of the first 519 days with γ are
+   January to May 2007.
 
 `TestThePostQuotesTheRun` there reads the post itself against the run. It
 reads Lesson 1's two tables and Lesson 2's table row by row, and one prose

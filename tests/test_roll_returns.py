@@ -449,8 +449,9 @@ class TestBesideThePost:
     def test_cls_five_nearest_are_january_to_may_2007_until_2006_12_19(self, results) -> None:
         """CL's strip starts at the January 2007 contract. So on each of the first
         519 days with γ, through that contract's last day of 2006-12-19, the five
-        nearest priced contracts are January to May 2007, more than a year out for
-        most of the span, and the front months come in only after it."""
+        nearest priced contracts in the file are January to May 2007, more than a
+        year out for most of the span. For most of it the market's nearest contracts
+        are not in the file."""
         contracts = results["CL"].strip.contracts
         assert contracts.columns[0] == "CL-2007F", SPEC
         assert str(contracts["CL-2007F"].last_valid_index().date()) == "2006-12-19", SPEC
