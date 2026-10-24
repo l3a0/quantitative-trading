@@ -1,13 +1,17 @@
 """The pins for buy on gap and its mirror, *Algorithmic Trading*'s Example 4.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 4.1, with two exceptions, both in ``blog/buy-on-gap-lessons.md``.
-The post quotes the dates of each side's longest spell below the high and of
-its deepest drawdown, which ``tests/test_buy_on_gap_figures.py`` holds. And it
-recalls Example 7.2's 6.7 percent as the arithmetic figure, which
-``tests/test_pead.py`` holds. README lists what the post says that nothing
-pins. ``docs/replication-log.md`` Entry 18 carries the verdicts and points
-here row by row.
+about Example 4.1, with three exceptions, all in ``blog/buy-on-gap-lessons.md``.
+
+1. The post quotes the dates of each side's longest spell below the high and
+   of its deepest drawdown, which ``tests/test_buy_on_gap_figures.py`` holds.
+2. It recalls Example 7.2's 6.7 percent as the arithmetic figure, which
+   ``tests/test_pead.py`` holds.
+3. Its whiteboard sketch and the sketch's caption quote one day's prices, PCS
+   on 2011-01-06, which ``tests/test_buy_on_gap_whiteboard.py`` holds.
+
+README lists what the post says that nothing pins. ``docs/replication-log.md``
+Entry 18 carries the verdicts and points here row by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -40,9 +44,12 @@ make. The first edition's ``smartstd`` carries the same MATLAB name, and with
 it neither printed figure lands.
 
 ``TestWhatThePostQuotes`` reads the post and checks one copy of each run
-figure it quotes against the run, the alt text's spell dates included. The
-book's figures, the Kindle locations and the facts outside the data are not
-among them.
+figure it quotes outside the sketch against the run. Those include the file's
+saved date, the figure's alt-text spell dates and its mirror climbing more
+steeply through 2007 and 2008, and the two dates of the flagged day the mirror
+shorted. The sketch's caption and alt text are read in
+``tests/test_buy_on_gap_whiteboard.py``. The book's figures, the Kindle
+locations and the facts outside the data are not among them.
 
 Exploratory. Reproducing Chan's figures spends the 2006 to 2012 sample on a
 rule he chose. It first ran here on 2026-10-04.
@@ -425,6 +432,8 @@ class TestWhatThePostQuotes:
     precision the post prints it, and looked for in one copy: a short fragment
     holding the number and the few words that name one place in the post. A
     typo in that copy, or a re-pin that leaves the post behind, fails here.
+    The file's saved date, the figure's alt-text dates and climb, and the two
+    dates of the flagged day the mirror shorted are read the same way.
     The post states several figures more than once, in its opening, a lesson,
     a table or the figure's alt text, and the other copies are not read. The
     sketch's caption and alt text are read in ``tests/test_buy_on_gap_whiteboard.py``
@@ -454,7 +463,9 @@ class TestWhatThePostQuotes:
             )[0].sum()
         )
         full = int((np.count_nonzero(long.positions, axis=1) == TOP_N).sum())
+        (saved,) = {m.obtained for m in members}
         fragments = [
+            f"`{PRICE_FILE}`, saved on {saved} and converted here to one file per stock",
             f"{len(members)} stocks over {len(days):,} trading days, from {days[0].date()} "
             f"to {days[-1].date()}",
             f"The computed APR is {long.apr:.6f}, the book’s {BOOK_APR_PERCENT} percent, "
@@ -515,6 +526,37 @@ class TestWhatThePostQuotes:
             f"the full {SPELLED[TOP_N]} stocks on only {full} of them",
         ]
         assert self.missing(text, fragments) == []
+
+    def test_the_flagged_day(self, sources, short: Side, text) -> None:
+        members, frames = sources
+        closes = frames["Close"]
+        shorted = [
+            (series, series.index[series.index.get_loc(day) - 1], day)
+            for entry, series in TestTheScaleBreakDecision._from_first_price(members, closes)
+            for day in scale_breaks(series)
+            if short.positions[closes.index.get_loc(day), closes.columns.get_loc(entry.symbol)]
+        ]
+        ((series, before, on),) = shorted
+        assert series.name == "MS" and series[on] > series[before], SPEC
+        fragments = [
+            f"Morgan Stanley’s rise from its close on {before.date()} to its close on "
+            f"{on.date()} as too large for an ordinary day, and the mirror shorted Morgan "
+            f"Stanley on {on.date()}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_mirror_climbs_more_steeply(self, long: Side, short: Side, text) -> None:
+        years = (2007, 2008)
+        for year in years:
+            gains = []
+            for side in (long, short):
+                cumulative = pd.Series(cumulative_return(side), index=side.days)
+                gains.append(
+                    cumulative[cumulative.index.year == year].iloc[-1]
+                    - cumulative[cumulative.index.year < year].iloc[-1]
+                )
+            assert gains[1] > gains[0], (year, gains, SPEC)
+        assert self.missing(text, [f"climbs more steeply through {years[0]} and {years[1]}"]) == []
 
     def test_the_alt_text_dates(self, long: Side, short: Side, text) -> None:
         fragments = []

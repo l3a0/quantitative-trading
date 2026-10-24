@@ -3660,8 +3660,8 @@ from Entry 18 of the replication log.
 3. One phrase, "annualized average return", names two formulas in this book.
 4. The mirror, written down before any run, lands at 12 percent and not 46,
    though its drawdown is the steeper as Chan says.
-5. Chan's own pair of figures implies at least four and a half times the
-   written rule's volatility, from arithmetic alone.
+5. If Chan computed his pair of figures with `bog.m`'s formulas, they imply
+   at least four and a half times the written rule's volatility.
 6. An exact reproduction checks the arithmetic and not the edge.
 
 Five groups of its figures are not pinned here.
@@ -3678,14 +3678,19 @@ Five groups of its figures are not pinned here.
    drawdown" and "suffered from" are at 1993. "An annualized average return
    of around 8.7 percent", in a later chapter on risk management, is at 3509,
    and the same phrase for Example 7.2's
-   levered figure is at 3024. The book's figures are pinned, and its words
-   are not.
+   levered figure is at 3024. That Example 4.2 trades a basket of this same
+   file's stocks against SPY is at 2035. The book's figures are pinned, and
+   its words are not.
 2. Facts outside the committed data. That `gapFutures_FSTX.m` measures a jump
    from the previous high, and that, of the public mirrors this repository has
-   read, only one holds a file of the name `bog.m` loads, and it holds the same
-   bytes as Chan's `inputDataOHLCDaily_stocks_20120424.mat`, which
-   `src/chan/buy_on_gap.py`'s docstring and [data/README.md](data/README.md)
-   record. That burakbayramli/books at `43c0bb4` holds neither file name. That MS, the stock
+   read, two hold Chan's `inputDataOHLCDaily_stocks_20120424.mat` and only one
+   holds a file of the name `bog.m` loads, with the same bytes as Chan's file,
+   which `src/chan/buy_on_gap.py`'s docstring and
+   [data/README.md](data/README.md) record. That burakbayramli/books at
+   `43c0bb4` holds neither file name. That the committed members rebuild all
+   five of the file's arrays exactly, which `chan.mat_columns.round_trip_differs`
+   found where the `.mat` was recorded and data/README.md records. The `.mat`
+   is not committed, so no test runs that check on this file. That MS, the stock
    the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That the same
    script's return line sells the upward jump is not among them, since
    [tests/test_opening_gap.py](tests/test_opening_gap.py) holds that sign.
@@ -3705,10 +3710,12 @@ figure's own numbers, or to
 [tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
 for the whiteboard sketch's. `TestWhatThePostQuotes` in the first of those
 files reads one copy of each run figure the post quotes outside the sketch and
-its caption, the figure's alt-text spell dates included, and checks it against
-the run. The sketch's test reads the sketch's caption and alt text. Three had no pin before the
-post. The figure's test now pins the first two, for each side, and the
-sketch's test the third.
+its caption, and checks it against the run. Those include the file's saved
+date, the figure's alt-text spell dates and its mirror climbing more steeply
+through 2007 and 2008, and the two dates of the flagged day the mirror
+shorted. The sketch's test reads the sketch's caption and alt text. Five had
+no pin before the post. The figure's test now pins the first two, for each
+side, the sketch's test the third, and `TestWhatThePostQuotes` the last two.
 
 1. That the longest spell below the high runs from 2008-09-02 to 2009-04-20
    after a high on 2008-08-29 for buy on gap, and from 2008-11-24 to
@@ -3719,6 +3726,10 @@ sketch's test the third.
    its previous low of 13.68, its standard deviation of 0.020967, its dashed
    line at 13.39, its open of 13.01, its 20-day average of 12.70, its close of
    13.30 and its gain of 2.2 percent from the open to the close.
+4. That the mirror's cumulative return gains more than the buy side's in
+   each of 2007 and 2008.
+5. That the flagged move into 2008-10-13 starts from Morgan Stanley's close on
+   2008-10-10, the trading day before.
 
 Its one figure is drawn from the committed file by
 [src/chan/buy_on_gap_figures.py](src/chan/buy_on_gap_figures.py), which reads
