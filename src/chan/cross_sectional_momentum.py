@@ -5,8 +5,8 @@ those that fell most tend to keep falling. Chan trades that by buying the
 strongest stocks and shorting the weakest. At Kindle location 2800 he reports
 an APR of 37 percent and a Sharpe ratio of 4.1 from 2007-05-15 to 2007-12-31,
 and −30 percent from 2008-01-02 to 2009-12-31. The script the example names,
-``kentdaniel.m``, prints a Sharpe ratio of 0.40 over the same 2007 window, a
-tenth of the book's. This module reproduces the script and then runs four
+``kentdaniel.m``, ends on comment lines that record a Sharpe ratio of 0.40
+over the same 2007 window, a tenth of the book's. This module reproduces the script and then runs four
 readings, declared on
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297) before any
 of them was computed, that could explain the gap.
@@ -73,8 +73,8 @@ moves a figure.
    cells.
 3. ``lag(cl)`` is :func:`chan.matlab_helpers.lag1`. Neither mirror ships a
    ``lag.m``. The first edition's ``lag1.m`` defines ``lag`` as a one-row
-   shift padded with NaN. The script's printed figures would have confirmed
-   that reading, and they did not reproduce, so it stays a reading.
+   shift padded with NaN. The figures the script's comment records would have
+   confirmed that reading, and they did not reproduce, so it stays a reading.
 4. A row with fewer than 50 returns that are not NaN is refused, where MATLAB
    would stop on an index below 1. No row of Chan's file comes near that.
 5. ``plot(cumret)`` is not carried. The run prints and draws nothing.
@@ -152,8 +152,8 @@ BOOK_APR_PERCENT = 37
 BOOK_SHARPE = 4.1
 BOOK_CRISIS_APR_PERCENT = -30
 
-#: What ``kentdaniel.m`` prints for the 2007 window, in its comment lines, at
-#: the precision its ``fprintf`` formats give each figure.
+#: What the comment lines closing ``kentdaniel.m`` record for the 2007 window,
+#: at the precision its ``fprintf`` formats give each figure.
 SCRIPT_ARITHMETIC = "0.0315"
 SCRIPT_SHARPE = "0.40"
 SCRIPT_APR = "0.0288"

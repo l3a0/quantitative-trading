@@ -252,7 +252,7 @@ where they were first built. The other forty-five were built here.
 17. Cross-sectional momentum, Example 6.2 of *Algorithmic Trading*, which buys
     the 50 stocks with the highest 252-day return, shorts the 50 with the
     lowest, and holds each day's picks for 25 days. The script's closing
-    comment prints a Sharpe ratio of 0.40 against the book's 4.1. Transcribed
+    comment records a Sharpe ratio of 0.40 against the book's 4.1. Transcribed
     and run on the S&P 500 file it loads, the script prints none of its
     comment's five figures. It gives a Sharpe ratio of 4.0657, and compounded
     APRs of 0.372577 for 2007 and −0.298789 for 2008 and 2009, which round to
@@ -4003,7 +4003,9 @@ the reversal's 4.713284 on the same file, to
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
 for the figure's own numbers, or to
 [tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
-for the sketches'. Three had no pin before it.
+for the sketches'. `TestWhatThePostQuotes` in the first of those reads one
+copy of each run figure in the post, its tables and its figure's alt text
+against the run, so a typo in that copy fails a test. Three had no pin before it.
 
 1. That the 2008 and 2009 spell below the high runs from 2008-07-15, after a
    high on 2008-07-14, to the window's last day, 2009-12-31, so it was still

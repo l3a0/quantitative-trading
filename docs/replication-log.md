@@ -4423,11 +4423,11 @@ with the highest 252-day return and shorts the 50 with the lowest, holds each
 day's picks 25 days in overlapping cohorts, and divides each day's return by
 2 · 50 · 25. The book reports 37 percent and a Sharpe ratio of 4.1 from
 2007-05-15 to 2007-12-31, and −30 percent over 2008 and 2009. The comment
-lines that close `kentdaniel.m` print 0.0315 and 0.40 over the same 2007
+lines that close `kentdaniel.m` record 0.0315 and 0.40 over the same 2007
 window, which is where
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297) started.
 Transcribed and run on the file it loads, the script gives none of the five
-figures its comment prints. It gives a Sharpe ratio of 4.0657, and a
+figures its comment records. It gives a Sharpe ratio of 4.0657, and a
 compounded APR of 0.372577 in 2007 and −0.298789 over 2008 and 2009, which
 round to the book's 4.1, 37 percent and −30 percent. A second implementation
 written separately in pandas agrees with the transcription on every day, which
@@ -4480,8 +4480,8 @@ reproduce on his file and nothing about whether momentum pays today.
 
 ### What the book printed
 
-`kentdaniel.m` prints five figures for the 2007 window in the comment lines
-that close it. The book quotes two figures for that window, one for 2008 and
+The comment lines that close `kentdaniel.m` record five figures for the 2007
+window. The book quotes two figures for that window, one for 2008 and
 2009, and a claim about the years after.
 
 | # | Row | Published figure | Where |
@@ -4532,10 +4532,10 @@ that close it. The book quotes two figures for that window, one for 2008 and
 ### The declared readings
 
 [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) declared
-R1 to R4 as what could explain a script printing 0.40 against a book printing
-4.1, each changing one thing from the script, and no combination was run. Each
-cell is the arithmetic annual return and then the Sharpe ratio, from
-`TestTheReadings` and `TestTheScriptOverTheOtherWindows`. A reading lands when
+R1 to R4 as what could explain a script whose comment records 0.40 against a
+book printing 4.1, each changing one thing from the script, and no combination
+was run. Each cell is the arithmetic annual return and then the Sharpe ratio,
+from `TestTheReadings` and `TestTheScriptOverTheOtherWindows`. A reading lands when
 its 2007 return rounds to 37 percent and its 2007 Sharpe ratio to 4.1. The
 last column is each 2007 figure less the book's, from `TestTheDistances`, which
 also holds each reading's distance from −30 percent.
@@ -4548,10 +4548,10 @@ also holds each reading's distance from −30 percent.
 | R3 | a day's picks earn that same day, which looks ahead | 0.3371, 4.2779 | −0.2923, −1.1695 | 0.0332, 0.4093 | no | −0.0329, +0.1779 |
 | R4 | each day over the cohorts it holds rather than 25 | 0.3215, 4.0531 | R0's | R0's | no, 4.1 alone | −0.0485, −0.0469 |
 
-The readings were declared to explain a script printing 0.40 against a book
-printing 4.1. The code's own Sharpe ratio is 4.0657, and their 2007 Sharpe
-ratios span 3.82 to 4.28 around it. Long losers and
-short winners was declared too, and negating every position negates every
+The readings were declared to explain a script whose comment records 0.40
+against a book printing 4.1. The code's own Sharpe ratio is 4.0657, and their
+2007 Sharpe ratios span 3.82 to 4.28 around it. Long losers and short winners
+was declared too, and negating every position negates every
 day's return exactly, which `TestTheReadings::test_the_opposite_sign_negates_every_day`
 holds.
 
@@ -4571,18 +4571,19 @@ Three things.
    compounded one in Example 6.2, in one book by one author. The rule declared
    in advance followed the first example, so the verdicts on rows 6 to 8 say
    what that rule gives, and row 10 says what was seen afterwards.
-3. **Seen after the run and deciding nothing, the crash Chan describes is in
-   the file.** The strategy that earned a Sharpe ratio of 4.07 over 2007
-   lost 32 percent a year over 2008 and 2009, with a drawdown of −0.606634
-   from a high on 2008-07-14. It was still below that high 371 days later,
-   when the window ended, so the drawdown had not finished. The strategy
-   earned 1.6 percent a year from 2010 to 2012. That is the collapse location
-   2890 describes, where momentum "vanished during the aftermath of the stock
+3. **The crash Chan describes is in the file.** The strategy that earned a
+   Sharpe ratio of 4.0657 over 2007 had an arithmetic return of −0.323195 over
+   2008 and 2009, which rows 7 and 8 judge. Seen only after the run, and
+   deciding nothing, it fell into a drawdown of −0.606634 from a high on
+   2008-07-14 and was still below that high 371 days later, when the window
+   ended, so the drawdown had not finished. Its arithmetic return from 2010 to
+   2012 was 0.016244, which row 9's rule, fixed before the run, reads as
+   stabilised below 2007's. That is the collapse location 2890 describes, where momentum "vanished during the aftermath of the stock
    market crash".
 
 ### What this entry cannot say
 
-Four things.
+Six things.
 
 **Which run printed the comment.** A different file, window or version of the
 script could each print 0.0315, and trying them until one did would be the
@@ -4597,6 +4598,18 @@ a panel that could measure what that costs a cross-sectional rule.
 cohort of 100 picks enters and the one formed 25 days earlier leaves.
 
 **Whether momentum pays today.** The sample ends in April 2012.
+
+**Whether Chan's cause for momentum crashes holds here.** At location 2890 he
+writes that a crash "is mainly due to the strong rebound of short positions
+following a market crisis". No run here splits each day's return by the side
+of each position, so nothing tests that cause on this strategy.
+
+**Whether ETFC's close on 2007-11-12 was a real price.** It fell from 85.9 to
+35.5, the one close in the 2007 window that the scale-break guard flags as too
+far from the day before to be an ordinary move, and all 25 cohorts held ETFC
+short going into it, which `TestTheScaleBreakDecision` holds. The run does not
+call the guard, for the reason the module docstring gives, and no other source
+has been checked for that close.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
