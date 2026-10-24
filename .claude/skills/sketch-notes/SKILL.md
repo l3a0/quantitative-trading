@@ -49,11 +49,10 @@ such as `chan.usdcad_tests_whiteboard` and `tests/test_usdcad_tests_whiteboard.p
 Each module sets a `GIF_PREFIX` that every one of its GIFs starts with. Copy
 both files' shape from the newest post rather than starting from nothing. The
 test module carries the shared tests listed below, and they apply to a new
-post's sketches only once they are copied. `chan.equity_seasonals_whiteboard`,
-which arrives with [PR #618](https://github.com/l3a0/quantitative-trading/pull/618), adds a `PACED` list of slower
-sketches, a `sketch_timeline` that paces them, `_write` that saves one GIF, and
-a `main` that redraws every GIF the post embeds. Until it lands, `main` has no
-`PACED` list, and a slow sketch on another post adds one the same way.
+post's sketches only once they are copied. `chan.equity_seasonals_whiteboard`
+adds a `PACED` list of slower sketches, a `sketch_timeline` that paces them,
+`_write` that saves one GIF, and a `main` that redraws every GIF the post
+embeds. A slow sketch on another post adds a `PACED` list the same way.
 
 An edit to `chan.usdcad_tests_whiteboard` itself changes how every post's GIFs
 draw, so it is followed by a redraw of every post's sketches, not only the one
@@ -192,16 +191,15 @@ A new or removed sketch changes counts and lists in several places, and a
 review finds whichever one was missed.
 
 1. The sketch module's docstring, which lists its scenes and counts them.
-2. The test module's GIF list, and its docstring.
-3. The check that `docs/figures` holds exactly the GIFs the modules draw. The
-   USD.CAD test module checks only its own `GIF_PREFIX`, and
-   `tests/test_equity_seasonals_whiteboard.py` compares the whole folder with
-   every module's list, so a new post adds its list there.
-4. `tests/test_figures_match_code.py`'s docstring, which names the whiteboard
-   test modules.
-5. README's list of sketches and its counts, including the list of paced
+2. The test module's `GIFS` list, and its docstring. The check that
+   `docs/figures` holds exactly the GIFs the modules draw, in
+   `tests/test_equity_seasonals_whiteboard.py`, reads `GIFS` from every
+   `tests/test_*_whiteboard.py` it finds. So a new post's test module must be
+   named that way and must define `GIFS`. No shared list of modules needs an
+   entry for it, because the check finds it by its file name.
+3. README's list of sketches and its counts, including the list of paced
    sketches.
-6. The replication log entry's paragraph on its sketches.
-7. The post's alt text, and the Substack draft through `sync-substack`.
+4. The replication log entry's paragraph on its sketches.
+5. The post's alt text, and the Substack draft through `sync-substack`.
 
 Sweep for the old count in words and in digits before committing.
