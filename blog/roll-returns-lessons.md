@@ -49,7 +49,7 @@ Two readings of that one equation give the two returns.
 Two kinds of regression estimate the two returns. Each fits a straight line through points and reads off its slope.
 
 1. **The spot return α** is the slope of the log spot price against the day number, which counts the trading days 1, 2, 3 and on. That slope is a return per trading day, and multiplying it by 252 trading days a year turns it into a return per year.
-2. **The roll return γ** comes from one day at a time. The script takes the five contracts in the file nearest to expiry that have prices that day, provided no contract between them lacks a price. The book says to fit their log prices against their time to maturity, measured in months, and the script multiplies the fitted slope by −12. The 12 turns a slope per month into a return per year, and the minus sign turns the slope, which is −γ, into γ. The fitted line traces the day’s **forward curve**, which location 2399 glosses as “the future price as a function of maturity date”. The figure the table reports is the mean of γ over every day the fit runs. Lesson 2 shows that the script fits against something simpler than months.
+2. **The roll return γ** comes from one day at a time. On each day, the script takes from the file the five contracts nearest to expiry that have prices that day, provided no contract between them lacks a price. Their prices that day trace the day’s **forward curve**, which location 2399 glosses as “the future price as a function of maturity date”. The book says to fit that curve against time to maturity, measured in months. The script fits the log prices, which the model puts on a straight line against time to maturity, and multiplies the fitted slope by −12. The 12 turns a slope per month into a return per year, and the minus sign turns the slope, which is −γ, into γ. The figure the table reports is the mean of γ over every day the fit runs. Lesson 2 shows that the script fits against something simpler than months.
 
 ### The data files
 
@@ -153,7 +153,10 @@ Under the fit in months, each claim fails for one future.
 1. **C fails the first claim.** Its roll return is 1.89 times its spot return, short of twice.
 2. **HG fails the second.** Its roll return of 3.86 percent is smaller than its spot return of 5.06 percent. So Chapter 6’s explanation for HG rests on a comparison that holds only under the script’s arithmetic.
 
-BR and TU hold either way. Nothing here scores these results as a pass or a fail, because Chan printed no figure for the fit in months, and the order of the pass marks gives a second reason. The replication wrote down the second claim’s pass mark, a roll return bigger than the spot return, for the fit in months before its code existed. It applied the first claim’s pass mark, at least twice, to the fit in months only afterwards, once it had seen the figures.
+BR and TU hold either way. Nothing here scores these results as a pass or a fail, for two reasons.
+
+1. Chan printed no figure for the fit in months.
+2. The replication applied the first claim’s pass mark, a roll return at least twice the spot return, to the fit in months only once its code existed. It wrote down the second claim’s pass mark, a roll return bigger than the spot return, for the fit in months before the code existed. Both came after a first rough run had already measured the figures.
 
 Neither claim tests what Chapter 6 uses the table for, which is explaining why these futures trend. Comparing two averages says nothing about whether a roll return causes any of that trending.
 
