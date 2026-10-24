@@ -4601,9 +4601,11 @@ cohort of 100 picks enters and the one formed 25 days earlier leaves.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/cross-sectional-momentum-lessons.md](../blog/cross-sectional-momentum-lessons.md)
-moves with it, since that post quotes most of these figures. So does its one
+moves with it, since that post quotes most of these figures. So do its one
 figure, which `uv run python -m chan.cross_sectional_momentum_figures`
-redraws.
+redraws, and its two whiteboard sketches, which print the cohort counts and
+the 2007 window's sum, product and two annual returns, and which
+`uv run python -m chan.cross_sectional_momentum_whiteboard` redraws.
 
 ## Entry 18: buy on gap and its mirror, Chan's *Algorithmic Trading*
 

@@ -3999,9 +3999,11 @@ Every other number in the post traces to an assertion in
 to [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as
 the arithmetic figure, to
 [tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) for
-the reversal's 4.713284 on the same file, or to
+the reversal's 4.713284 on the same file, to
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, or to
+[tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
+for the sketches'. Three had no pin before it.
 
 1. That the 2008 and 2009 spell below the high runs from 2008-07-15, after a
    high on 2008-07-14, to the window's last day, 2009-12-31, so it was still
@@ -4028,6 +4030,34 @@ uv run python -m chan.cross_sectional_momentum_figures
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two whiteboard sketches, drawn slowly by
+[src/chan/cross_sectional_momentum_whiteboard.py](src/chan/cross_sectional_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery, and neither is schematic.
+
+1. `cross_sectional_momentum_cohorts.gif` follows the four steps of the
+   strategy. It stacks 25 cohorts of 50 longs and 50 shorts, each held 25
+   days, makes 2,500 picks held one unit of capital through the script's
+   divisor, and marks the 2007 window's first 24 days, which hold fewer than
+   25 cohorts.
+2. `cross_sectional_momentum_two_returns.gif` follows Lesson 1's table. It
+   adds the 2007 window's 160 daily returns to 0.2032 and scales them to
+   0.3200, and multiplies their 1 + r to 1.2227 and annualizes that to
+   0.3726. It carries none of the book's figures, which the post holds back
+   until Lesson 2.
+
+Both read their counts and figures from the same `read_closes` and
+`script_as_printed` as the run.
+
+```bash
+uv run python -m chan.cross_sectional_momentum_whiteboard
+```
+
+[tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
+holds what the sketches say and draw, their alt texts and captions against
+the run, and that a run whose figures would make a drawing false is refused.
+It compares the committed GIFs with a fresh draw byte for byte only on macOS
+arm64 in Comic Sans MS.
 
 [blog/price-spread-ratio-lessons.md](blog/price-spread-ratio-lessons.md) is a
 sixteenth post, about Example 3.1 of Chan's *Algorithmic Trading*, which trades
