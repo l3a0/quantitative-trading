@@ -26,8 +26,8 @@ both are stated once here and carried in every figure's failure message as
   from Chan's ``inputDataOHLCDaily_stocks_20120424.mat``, read for the Open,
   High, Low and Close columns. Its identity is the row of ``LIFTED_SOURCES``
   in ``tests/support/committed_vintages.py``, which ``TestTheVintages`` holds
-  the members to. The file is the S&P 500 as Chan held it on 2012-04-24, so
-  every figure is a figure about survivors.
+  the members to. The file holds stocks that were in the S&P 500 in late
+  2011, so every figure is a figure about survivors.
 - **Specification.** ``bog.m`` at the mirror commit :mod:`chan.buy_on_gap`
   names, over all 1,500 days. The spread is book two's ``smartMovingStd`` over
   90 rows of close-to-close returns and the average is ``smartMovingAvg`` over
@@ -97,6 +97,7 @@ from chan.buy_on_gap import (
     trailing_average,
 )
 from chan.matlab_helpers import calculate_returns, smartstd_first_edition
+from chan.paths import REPO_ROOT
 from chan.pead_figures import cumulative_return, longest_spell
 from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break, scale_breaks
 from chan.vintage import VintageUnavailable
@@ -187,6 +188,65 @@ class TestTheVintages:
         mask = frames["Open"].isna()
         assert int(mask.to_numpy().sum()) == 10981
         assert all(frame.isna().equals(mask) for frame in frames.values())
+
+
+def _schedule_names(report_date: str) -> list[str]:
+    """The lower-cased company names in one quarter's committed IVV holdings schedule."""
+    schedule = pd.read_csv(REPO_ROOT / "research" / "filings" / "ivv" / f"{report_date}.csv")
+    return [str(name).lower() for name in schedule["name"]]
+
+
+def _named(word: str, names: list[str]) -> bool:
+    return any(word.lower() in name for name in names)
+
+
+class TestTheListDatesFromLate2011:
+    """The file's stocks are the S&P 500 of late 2011, not of 2012-04-24, its name's date.
+
+    The schedules name companies rather than tickers, so each check matches a
+    distinctive word of the company's name. Five stocks that left the index in
+    the December 2011 rebalance are in the file, three that joined then are
+    not, and Medco, which left on 2012-04-02 when Express Scripts bought it, is
+    in the file with its prices frozen at the deal's value after that. These
+    tests hold those examples. The universal claim, that every member was in
+    the index in late 2011, rests on them plus a count the review reconciled
+    against the index by hand, 497 = 500 − 8 + 5, which nothing here asserts.
+    """
+
+    LEFT_IN_DECEMBER_2011 = {
+        "AKS": "AK Steel",
+        "CPWR": "Compuware",
+        "WFR": "MEMC",
+        "MWW": "Monster Worldwide",
+        "TLAB": "Tellabs",
+    }
+    JOINED_IN_DECEMBER_2011 = {"BWA": "BorgWarner", "DLTR": "Dollar Tree", "PRGO": "Perrigo"}
+
+    def test_five_stocks_that_left_in_december_2011_are_in_the_file(self, sources) -> None:
+        _, frames = sources
+        before, after = _schedule_names("2011-09-30"), _schedule_names("2011-12-31")
+        for ticker, word in self.LEFT_IN_DECEMBER_2011.items():
+            assert ticker in frames["Close"].columns, ticker
+            assert _named(word, before), word
+            assert not _named(word, after), word
+
+    def test_three_stocks_that_joined_in_december_2011_are_not(self, sources) -> None:
+        _, frames = sources
+        after = _schedule_names("2011-12-31")
+        for ticker, word in self.JOINED_IN_DECEMBER_2011.items():
+            assert ticker not in frames["Close"].columns, ticker
+            assert _named(word, after), word
+
+    def test_medco_is_in_the_file_frozen_after_it_left(self, sources) -> None:
+        _, frames = sources
+        after_the_merger = slice("2012-04-03", None)
+        for field in ("Open", "High", "Low", "Close"):
+            frozen = frames[field]["MHS"].loc[after_the_merger]
+            assert len(frozen) == 15
+            assert (frozen == 73.75).all(), field
+        assert frames["Close"].index[-1] == pd.Timestamp("2012-04-24")
+        assert _named("Medco", _schedule_names("2012-03-31"))
+        assert not _named("Medco", _schedule_names("2012-06-30"))
 
 
 class TestTheFigures:

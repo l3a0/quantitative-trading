@@ -106,8 +106,9 @@ public mirror holds another file of that name. That shows what the name
 points at in the code Chan published, not that the file he ran in 2012 is the
 one he later shipped under it.
 
-**Every figure here is about survivors.** The price file is the S&P 500 as
-Chan held it on 2012-04-24, carried backwards, and location 1974 says so.
+**Every figure here is about survivors.** The price file holds stocks that
+were in the S&P 500 in late 2011, carried backwards, and location 1974 says
+the universe has survivorship bias.
 
 **The scale-break guard is not called, and issue 295 decided that.**
 :func:`chan.series.refuse_window_crossing_a_break` flags 30 days in 17 of this
@@ -430,7 +431,7 @@ def report(members: list[VintageEntry], long: Side, short: Side) -> None:
         print(f"  {label:<32} {computed:>10} {printed:>10} {script:>8} {book:>12}")
     print()
     print(
-        "  The price file holds only the stocks in the index on 2012-04-24, "
+        "  The price file holds only stocks that were in the index in late 2011, "
         "so every figure above is about survivors."
     )
     print(

@@ -4647,8 +4647,9 @@ here.
    name in either of the two public mirrors data/README.md names is the same
    bytes, which
    [data/README.md](../data/README.md) records. **Every figure here is about
-   survivors**, because the file is the S&P 500 as Chan held it on 2012-04-24,
-   carried backwards, and location 1974 says so.
+   survivors**, because the file holds stocks that were in the S&P 500 in late
+   2011, carried backwards, and location 1974 says the universe has
+   survivorship bias.
 2. **The specification.** `bog.m` at `45670240` in
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
    The spread is book two's `smartMovingStd` over 90 rows of close-to-close
@@ -4768,7 +4769,7 @@ names the signal noise of deciding on the official open, which cannot be known
 before the trade at that open.
 
 **What the rule earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24. The point-in-time panel
+was in the S&P 500 in late 2011. The point-in-time panel
 [issue 252](https://github.com/l3a0/quantitative-trading/issues/252) waits on
 would answer it for this rule too.
 

@@ -192,7 +192,7 @@ def make_cumulative_figure(
         f"Example 4.1 of Algorithmic Trading, {days[0].date()} to {days[-1].date()}, each day's "
         f"summed return over {TOP_N}, unlevered and before costs.\n"
         f"Prices from {PRICE_FILE}, the file bog.m loads as {SCRIPT_PRICE_FILE}.\n"
-        "The file holds the S&P 500 as Chan held it on 2012-04-24, "
+        "The file holds stocks that were in the S&P 500 in late 2011, "
         "so every stock is a survivor.",
     )
     fig.tight_layout(rect=(0, 0.08, 1, 0.97))
