@@ -215,7 +215,7 @@ class TestFigure55:
     def test_the_mean_line_reads_the_script_gamma_not_the_month_gamma(
         self, tmp_path, results
     ) -> None:
-        """CL's contracts are a month apart, so its two γ agree to 1e-14 on the
+        """CL's contracts are a month apart, so its two γ agree to 1e-13 on the
         committed strip. Doubling the month-spaced series tells them apart."""
         cl = results["CL"]
         changed = dict(results)

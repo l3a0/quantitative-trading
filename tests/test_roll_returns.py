@@ -1,10 +1,11 @@
 """The pins for spot and roll returns of five futures, *Algorithmic Trading*'s Example 5.3.
 
 This file is the single authority for every number any prose surface quotes
-about Example 5.3, with one exception, in ``blog/roll-returns-lessons.md``.
-That post also quotes two kinds of number held elsewhere: its figure's labels,
-which ``tests/test_roll_returns_figures.py`` holds, and the figures README
-lists as asserted nowhere. ``docs/replication-log.md`` carries the verdicts
+about Example 5.3. ``TestThePostQuotesTheRun`` reads one copy of each figure
+the run computes in ``blog/roll-returns-lessons.md``, and its docstring names
+what it skips. That post also quotes two kinds of number held elsewhere: its
+figure's labels, which ``tests/test_roll_returns_figures.py`` holds, and the
+figures README lists as asserted nowhere. ``docs/replication-log.md`` carries the verdicts
 and points here row by row. The rows are the ones
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared
 before the build, under "The pins". ``blog/xle-uso-roll-return-lessons.md``
@@ -54,6 +55,7 @@ model he chose. It first ran here on 2026-10-05.
 from __future__ import annotations
 
 import math
+import re
 from pathlib import Path
 
 import numpy as np
@@ -646,6 +648,254 @@ class TestTheRun:
         monkeypatch.setattr(module, "report", lambda results: None)
         run(data_dir=Path("elsewhere"))
         assert asked == [Path("elsewhere")] * len(ROOTS)
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "roll-returns-lessons.md"
+NUMBER_WORDS = {1: "one", 2: "two", 3: "three", 5: "five", 6: "six", 8: "eight"}
+
+
+def _quoted(fragment: str, text: str) -> bool:
+    """Whether ``text`` holds ``fragment`` with no digit run on at either end.
+
+    A plain substring test lets 0.0581041 stand for 0.058104, or 128.84 for
+    28.84, so a digit typed beside a figure would pass.
+    """
+    return re.search(rf"(?<!\d){re.escape(fragment)}(?!\d)", text) is not None
+
+
+def _minus(text: str) -> str:
+    """The post's prose writes a true minus sign. Its LaTeX tables keep the hyphen."""
+    return text.replace("-", "−")
+
+
+def _label(root: str) -> str:
+    """The name the post and Table 5.1 give a strip. Chan's corn file is C2."""
+    return "C" if root == "C2" else root
+
+
+def _in_words(numbers: list[int]) -> str:
+    words = [NUMBER_WORDS[n] for n in numbers]
+    return " and ".join(words) if len(words) < 3 else f"{', '.join(words[:-1])} and {words[-1]}"
+
+
+def _month(symbol: str) -> pd.Timestamp:
+    """A contract's delivery month as a date, from :func:`chan.roll_returns.contract_month`."""
+    year, month = divmod(contract_month(symbol), 12)
+    return pd.Timestamp(year=year, month=month + 1, day=1)
+
+
+@pytest.fixture(scope="module")
+def post() -> str:
+    return POST.read_text(encoding="utf-8")
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure from the run that ``blog/roll-returns-lessons.md`` prints.
+
+    The pins above hold the run's numbers. This class reads one copy of each
+    in the post, so editing that copy alone fails here, and a re-pin fails here
+    until the post moves with it. Each fragment is built from the value the run
+    computes, at the precision the post prints, and none is typed in. It reads
+    Lesson 1's two tables and Lesson 2's table row by row, and one prose copy
+    of every other figure the run computes, with enough words around it that
+    only that copy matches. A figure the post prints twice, such as HG's 5.06
+    percent, is read where the fragment's words put it and nowhere else. The
+    italic summary, the list of three findings that repeats the lessons, the
+    alt text and the headings are not read, so a figure edited there alone
+    passes. The figure's own labels are held by
+    ``tests/test_roll_returns_figures.py``, and README lists what the post says
+    that nothing asserts.
+    """
+
+    @staticmethod
+    def _missing(fragments: list[str], post: str) -> list[str]:
+        return [f for f in fragments if not _quoted(f, post)]
+
+    def test_the_files(self, post, strips, results) -> None:
+        saved = {m.obtained for root in ROOTS for m in strips[root].members}
+        first = min(strips[root].contracts.index[0] for root in ROOTS)
+        last = max(strips[root].contracts.index[-1] for root in ROOTS)
+        days = {root: results[root].gamma.dropna().index for root in ROOTS}
+        lengths = sorted(len(d) for d in days.values())
+        rest_end = {d[-1].strftime("%B %Y") for root, d in days.items() if root != "C2"}
+        assert len(saved) == 1 and len(rest_end) == 1, SPEC
+        fragments = [
+            f"five MATLAB files saved on {saved.pop()}",
+            f"The files start as early as {first.year}, and γ is defined on {lengths[0]:,} to "
+            f"{lengths[-1]:,} days per file, ending in {days['C2'][-1]:%B %Y} for C and in "
+            f"{rest_end.pop()} for the rest.",
+            f"computed on the same {first.year} to {last.year} data the book studied",
+        ]
+        assert self._missing(fragments, post) == [], SPEC
+
+    def test_lesson_1s_tables(self, post, results) -> None:
+        spot, roll = [], []
+        for root in ROOTS:
+            book_alpha, book_gamma = BOOK_TABLE_5_1[root]
+            r = results[root]
+            spot.append(rf"\text{{{_label(root)}}} & {r.alpha:.6f} & {book_alpha:.1f}\%")
+            roll.append(rf"\text{{{_label(root)}}} & {r.mean_gamma:.6f} & {book_gamma:.1f}\%")
+        assert self._missing(spot + roll, post) == [], SPEC
+
+    def test_lesson_1s_prose(self, post, results, strips) -> None:
+        hg, tu, cl = results["HG"].alpha, results["TU"].alpha, results["CL"].gamma.dropna()
+        matched = sum(
+            lands(results[root].alpha, BOOK_TABLE_5_1[root][0])
+            + lands(results[root].mean_gamma, BOOK_TABLE_5_1[root][1])
+            for root in ROOTS
+        )
+        c, tu_book = results["C2"], _minus(f"{BOOK_TABLE_5_1['TU'][0]:.1f}")
+        assert abs(c.alpha - float(PORT_C2[0])) < 1e-12, SPEC
+        assert abs(c.mean_gamma - float(PORT_C2[1])) < 1e-12, SPEC
+        fragments = [
+            f"{NUMBER_WORDS[matched].capitalize()} cells match. "
+            f"{NUMBER_WORDS[10 - matched].capitalize()} miss.",
+            f"is {100 * hg:.2f} percent, which rounds to {round(100 * hg, 1)} against the "
+            f"printed {BOOK_TABLE_5_1['HG'][0]}",
+            f"The book prints {tu_book}, a negative number",
+            f"and {100 * tu:.4f} percent rounds to zero",
+            f"first defined on {cl.index[0].date()} and last on {cl.index[-1].date()}",
+            f"{PORT_C2[0]} and {_minus(PORT_C2[1])}. The run here agrees with both to within "
+            "10⁻¹².",
+            f"gives HG {_renumbered(strips['HG'].spot):.6f}",
+            f"gives {_single_precision(strips['HG'].spot):.6f}, unchanged",
+            f"gives {_calendar_days(strips['HG'].spot):.6f}, which matches HG’s cell",
+            f"moves C’s α to {_calendar_days(strips['C2'].spot):.6f}",
+        ]
+        assert tu > 0 and self._missing(fragments, post) == [], SPEC
+
+    def test_lesson_2s_planted_example(self, post) -> None:
+        prices = np.tile(_curve(0.03, np.arange(6.0) * 3), (4, 1))
+        frame = pd.DataFrame(prices, index=DAYS, columns=QUARTERLY)
+        script, months = roll_returns(frame).iloc[0], roll_returns_in_months(frame).iloc[0]
+        fragments = [
+            "a roll return of exactly 0.03 a year",
+            f"The fit in months recovers {months:.2f}.",
+            f"returns {script:.2f}, {NUMBER_WORDS[round(script / months)]} times too large",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_2s_spacings(self, post, strips) -> None:
+        found = {root: maturity_spacings(strips[root].contracts) for root in ROOTS}
+
+        def every_gap(root: str) -> list[int]:
+            return sorted({gap for pattern in found[root] for gap in pattern})
+
+        def days(root: str) -> int:
+            return sum(found[root].values())
+
+        assert every_gap("BR") == every_gap("CL") == [1] and every_gap("TU") == [3], SPEC
+        fragments = [
+            f"**BR** is one month apart on all {days('BR'):,} days, and **CL** on all "
+            f"{days('CL'):,}.",
+            f"**TU** is three months apart on all {days('TU'):,} days.",
+            f"**C** mixes gaps of {_in_words(every_gap('C2'))} months, in "
+            f"{NUMBER_WORDS[len(found['C2'])]} patterns.",
+            f"**HG** mixes gaps of {_in_words(every_gap('HG'))} months, in "
+            f"{NUMBER_WORDS[len(found['HG'])]} patterns.",
+        ]
+        assert self._missing(fragments, post) == [], SPEC
+
+    def test_lesson_2s_table(self, post, results) -> None:
+        rows = [
+            rf"\text{{{_label(root)}}} & {results[root].mean_gamma:.6f} & "
+            f"{results[root].mean_gamma_in_months:.6f}"
+            for root in ROOTS
+        ]
+        assert self._missing(rows, post) == [], SPEC
+
+    def test_lesson_2s_prose(self, post, results) -> None:
+        def by(root: str) -> str:
+            return f"{results[root].mean_gamma / results[root].mean_gamma_in_months:.1f}"
+
+        for root in ("BR", "CL"):
+            r = results[root]
+            assert np.nanmax(np.abs(r.gamma - r.gamma_in_months)) < 1e-13, SPEC
+        fragments = [
+            "BR’s and CL’s agree to within 10⁻¹³",
+            f"overstates C’s roll return by {by('C2')} times, HG’s by {by('HG')} and TU’s by "
+            f"{by('TU')}.",
+        ]
+        assert self._missing(fragments, post) == [], SPEC
+
+    def test_lesson_3s_prose(self, post, results) -> None:
+        def ratio(root: str, gamma: float) -> str:
+            return f"{abs(gamma) / abs(results[root].alpha):.2f}"
+
+        hg = results["HG"]
+        fragments = [
+            f"with a roll return {ratio('BR', results['BR'].mean_gamma)} times its spot return",
+            f"Its roll return is {ratio('C2', results['C2'].mean_gamma_in_months)} times its "
+            "spot return, short of twice.",
+            f"Its roll return of {100 * hg.mean_gamma_in_months:.2f} percent is smaller than "
+            f"its spot return of {100 * hg.alpha:.2f} percent.",
+        ]
+        assert self._missing(fragments, post) == [], SPEC
+
+    def test_the_caption(self, post, results) -> None:
+        days = results["CL"].gamma.dropna().index
+
+        def spoken(day: pd.Timestamp) -> str:
+            return f"{day:%B} {day.day}, {day.year}"
+
+        fragment = f"CL’s roll return from {spoken(days[0])}, to {spoken(days[-1])}."
+        assert self._missing([fragment], post) == [], SPEC
+
+    def test_lesson_4s_opening(self, post, results) -> None:
+        gamma = results["CL"].gamma.dropna()
+        contracts = results["CL"].strip.contracts
+        flat = gamma[gamma.abs() < FLAT].index[0]
+        first = contracts.columns[0]
+        expired = contracts[first].last_valid_index()
+        (five,) = {
+            tuple(contracts.loc[day].dropna().index[:5])
+            for day in gamma.index[gamma.index <= expired]
+        }
+        start, end = _month(five[0]), _month(five[-1])
+        assert five[0] == first and start.year == end.year, SPEC
+        assert expired - gamma.index[0] > pd.Timedelta(days=2 * 365), SPEC
+        assert abs((expired - flat).days - 365) < 31, SPEC
+        fragments = [
+            f"CL’s file holds no contract earlier than {_month(first):%B %Y}. So until that "
+            f"contract expired on {expired.date()}, the five nearest were always the "
+            f"{start:%B} to {end:%B %Y} contracts, more than two years out when the panel "
+            f"starts and about a year out on {flat.date()}",
+        ]
+        assert self._missing(fragments, post) == [], SPEC
+
+    def test_lesson_4s_cl(self, post, results) -> None:
+        gamma = results["CL"].gamma.dropna()
+        flat = gamma[gamma.abs() < FLAT]
+        signed = gamma[gamma.abs() >= FLAT]
+        settled = results["CL"].strip.contracts.loc[flat.index[0]].dropna().iloc[:5]
+        runs = _sign_runs(results["CL"].gamma)
+        sign, first, last, length = max(runs, key=lambda run: run[3])
+        high, low = gamma.idxmax(), gamma.idxmin()
+        lowest, mean = _minus(f"{gamma.min():.6f}"), _minus(f"{results['CL'].mean_gamma:.6f}")
+        assert len(flat) == 1 and sign == -1 and low < high + pd.DateOffset(months=4), SPEC
+        fragments = [
+            f"CL’s γ is negative on {(signed < 0).sum():,} of its {len(gamma):,} days and "
+            f"positive on {(signed > 0).sum():,}.",
+            f"On the remaining day, {flat.index[0].date()}, the five prices rise and fall "
+            f"back evenly, from {settled.iloc[0]:.2f} to {settled.max():.2f} and back to "
+            f"{settled.iloc[-1]:.2f}",
+            f"It changes sign {len(runs) - 1} times. Its longest run of one sign is contango, "
+            f"from {first.date()} to {last.date()}, {length:,} trading days.",
+            f"Its highest value is {gamma.max():.6f}, on {high.date()}. Its lowest is "
+            f"{lowest}, on {low.date()}, less than four months later. The mean is {mean}.",
+        ]
+        assert self._missing(fragments, post) == [], SPEC
+
+    def test_lesson_4s_br_and_hg(self, post, results) -> None:
+        br, hg = results["BR"].gamma.dropna(), results["HG"].gamma.dropna()
+        assert 0.5 < (hg > 0).mean() < 0.55, SPEC
+        fragments = [
+            f"**BR’s γ** is negative on {(br < 0).sum():,} of its {len(br):,} days.",
+            f"**HG’s γ** is positive on {(hg > 0).sum():,} of its {len(hg):,} days, a little "
+            f"over half, and changes sign {len(_sign_runs(results['HG'].gamma)) - 1} times, "
+            f"against CL’s {len(_sign_runs(results['CL'].gamma)) - 1}.",
+        ]
+        assert self._missing(fragments, post) == [], SPEC
 
 
 # --- the rule on synthetic frames ------------------------------------------------
