@@ -17,7 +17,7 @@ Both figures Chan prints for the first strategy match. The computed APR is 0.087
 Two labels apply to every figure below.
 
 1. **Every result is exploratory.** Chan chose the rule and its settings, and the reproduction tests them on the same days he did. The reproduction can say whether his numbers follow from his file and nothing about whether the rule pays.
-2. **Every figure is about survivors.** The file holds 497 stocks that were in the S&P 500 on 2012-04-24, as Chan held the list then, and treats them as the index on every earlier day too. A company that left the index before then is not in the file, and Chan says the universe “has survivorship bias” (Chan, 2013, location 1974).
+2. **Every figure is about survivors.** The file holds the 497 stocks Chan took to be the S&P 500 on 2012-04-24, and treats them as the index on every earlier day too. A company that left the index before then is not in the file, and Chan says the universe “has survivorship bias” (Chan, 2013, location 1974).
 
 The six lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -34,15 +34,18 @@ The script adds a fifth rule about sizing. It sums each day’s returns across t
 
 Chan gives a reason for rule 2, which he calls “a momentum filter superimposed on a mean-reverting strategy”. A mean-reverting strategy bets that a price returns toward where it was, and a momentum filter keeps only stocks still trading above their recent average, here an open above the 20-day moving average. Chan argues that a stock that dropped “just a little” is more likely to recover than one that dropped “a lot”, because a large drop often carries bad news, and a drop caused by news is less likely to revert (Chan, 2013, location 1948).
 
-![An animated whiteboard sketch titled “Where the open has to land”, drawn stroke by stroke and drawn to scale from one day’s prices. A grey price axis rises on the left, labelled “price”, and grey words at the top right read “PCS on 2011-01-06, the only stock bought”. Three lines run right from the axis. A solid line at the top is labelled “yesterday’s low 13.68”. A dashed line below it is labelled “low × (1 − 0.020967) 13.39”, the previous low less one 90-day standard deviation of the stock’s daily returns. A solid line lower still is labelled “20-day average 12.70”. A pale green band with a green edge fills the space between the dashed line and the average, labelled “an open in this band qualifies”. A brown dot lands inside the band, labelled “open 13.01” on the left of the axis. A red hatched zone below the average is labelled “not bought” on the left, with “a large drop often carries bad news” and “and is less likely to revert” beside it on the right. Last, a brown arrow rises from the dot to the right and ends inside the band, just under the dashed line and well under yesterday’s low, labelled “sell at the close 13.30”. The finished sketch holds for four seconds before it redraws.](../docs/figures/buy_on_gap_where_the_open_lands.gif)
+![An animated whiteboard sketch titled “Where the open has to land”, drawn stroke by stroke and drawn to scale from one day’s prices. A grey price axis rises on the left, labelled “price”, and grey words at the top right read “PCS on 2011-01-06, the only stock bought”. Three lines run right from the axis. A solid line at the top is labelled “yesterday’s low 13.68”. A dashed line below it is labelled “low × (1 − 0.020967) 13.39”, the previous low lowered by a fraction equal to one 90-day standard deviation of the stock’s daily returns. A solid line lower still is labelled “20-day average 12.70”. A pale green band with a green edge fills the space between the dashed line and the average, labelled “an open in this band qualifies”. A brown dot lands inside the band, labelled “open 13.01” on the left of the axis. A red hatched zone below the average is labelled “not bought” on the left, with “a large drop often carries bad news” and “and is less likely to revert” beside it on the right. Last, a brown arrow rises from the dot to the right and ends inside the band, just under the dashed line and well under yesterday’s low, labelled “sell at the close 13.30”. The finished sketch holds for four seconds before it redraws.](../docs/figures/buy_on_gap_where_the_open_lands.gif)
 
-*PCS on 2011-01-06, the only stock the reproduction bought that day, drawn to scale from Chan’s file. It opened more than one standard deviation of its daily returns, 0.020967, below the previous low and still above the 20-day average, so it qualified, and with no other stock qualifying that day the reproduction bought it. It gained 2.2 percent by the close without getting back to that low.*
+*PCS on 2011-01-06, the only stock the reproduction bought that day, drawn to scale from Chan’s file. It opened more than one standard deviation of its daily returns, 0.020967, below the previous low and still above the 20-day average. So it qualified, and the reproduction bought it as the day’s only qualifier. It gained 2.2 percent by the close without getting back to that low.*
 
 ### Where the prices and the script come from
 
 The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily open, high, low and close of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24.
 
-The script loads the file under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`. Two public copies of Chan’s code that this repository has read hold Chan’s file. Only one of them also holds a file under the name that `bog.m` loads, and that file has the same bytes as Chan’s file. This repository transcribed `bog.m` line by line from the other copy, `ivanliu1989/algorithmic_trading` at commit `45670240`.
+The script loads the file under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`, so the name alone does not show which file the script read. Of the public copies of Chan’s code that this repository has read, two hold Chan’s file.
+
+1. Only one of them also holds a file under the name that `bog.m` loads, and that file has the same bytes as Chan’s file.
+2. The other, `ivanliu1989/algorithmic_trading` at commit `45670240`, holds no file under that name, and it is the copy this repository transcribed `bog.m` from, line by line.
 
 ## Lesson 1: both figures bog.m prints reproduce on Chan’s own file
 
@@ -57,6 +60,8 @@ The script loads the file under a slightly different name, `inputDataOHLCDaily_2
 \end{array}
 ```
 
+Both printed figures match at the precision printed. The APR is compounded: it grows the daily returns into a total over all 1,500 days and annualizes it at 252 days a year. The Sharpe ratio subtracts no risk-free rate, the return cash would have earned over the same days.
+
 The run also computes five figures that neither the comment nor the book prints.
 
 ```math
@@ -70,11 +75,9 @@ The run also computes five figures that neither the comment nor the book prints.
 \end{array}
 ```
 
-Both printed figures match at the precision printed. The APR is compounded: it grows the daily returns into a total over all 1,500 days and annualizes it at 252 days a year. The Sharpe ratio subtracts no risk-free rate, the return cash would have earned over the same days.
-
 The arithmetic annual return, 252 times the average daily return, is the figure Lesson 3 needs. A drawdown is the fraction of its value the strategy has lost since its highest point so far, written here as a negative number. A drawdown’s length is the number of days the strategy stays below that high.
 
-The rule is selective. Across the 1,500 days, the first two rules pass a stock 972 times, and 695 of those passes become purchases. The strategy holds at least one stock on 391 days, and buys the full ten on only ten of them. No position can come before 2006-09-19, the first day a 90-day standard deviation exists, and the first position comes on 2006-09-22.
+The rule is selective. Across the 1,500 days, the first two rules pass a stock 972 times, and 695 of those passes become purchases. The strategy holds at least one stock on 391 days, and buys the full ten stocks on only ten of them. No position can come before 2006-09-19, the first day a 90-day standard deviation exists, and the first position comes on 2006-09-22.
 
 ### The cumulative return of the strategy and its mirror
 
@@ -94,7 +97,7 @@ This repository’s replications from the first edition of *Quantitative Trading
 
 ## Lesson 3: one phrase names two formulas
 
-In a later chapter, on risk management, Chan returns to this strategy to try a risk indicator on it, the VIX, an index of how far options traders expect the S&P 500 to move. He says the strategy “had an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” over the same dates (Chan, 2013, location 3509).
+In a later chapter, on risk management, Chan returns to this strategy to try the VIX on it as a risk indicator, a reading meant to predict how risky the next day’s return will be. The VIX is an index of how far options traders expect the S&P 500 to move. He says the strategy “had an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” over the same dates (Chan, 2013, location 3509).
 
 The phrase “annualized average return” has a history in this book. In Example 7.2, Chan reports an APR of 6.7 percent. He then levers that figure four times, as if trading four times the capital, and calls the result an “annualized average return” (Chan, 2013, location 3024). The [replication log’s Entry 12](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-12-post-earnings-drift-chans-algorithmic-trading), where this repository records each reproduction, found that the 6.7 percent is 252 times the average daily return, and not the compounded APR.
 
@@ -133,7 +136,7 @@ Suppose Chan computed his two figures for the mirror with the formulas `bog.m` u
 
 Start from how `bog.m` computes the two figures. Over n days of returns rₜ, the APR is the compounded total annualized, and the Sharpe ratio S is √252 times the mean return over its standard deviation. The annual volatility σ is √252 times that standard deviation. Multiplied together, σ and S give 252 times the mean, because the standard deviation cancels. That product is the arithmetic annual return, so σ is the arithmetic annual return divided by S.
 
-The link between the compounded APR and the arithmetic annual return is the natural logarithm, ln. Taking the log of one plus the APR turns the product of daily growth into a sum, so ln(1 + APR) is 252 / n times the sum of ln(1 + rₜ). Each term of that sum is at most rₜ, because ln(1 + r) ≤ r for every daily return, and the rₜ add up to n times the mean. So ln(1 + APR) ≤ 252 · mean, and the arithmetic return is at least the log of one plus the APR. Dividing by S, which is positive here, then gives a floor on the volatility.
+The link between the compounded APR and the arithmetic annual return is the natural logarithm, ln. Taking the log of one plus the APR turns the product of daily growth into a sum, so ln(1 + APR) is 252 / n times the sum of ln(1 + rₜ). Each term of that sum is at most rₜ, because ln(1 + r) ≤ r for every daily return. The rₜ themselves add up to n times the mean, so ln(1 + APR) ≤ 252 · mean. The arithmetic return is therefore at least the log of one plus the APR. Dividing by S, which is positive here, then gives a floor on the volatility.
 
 ```math
 \sigma \ge \frac{\ln(1 + \text{APR})}{S}
@@ -153,7 +156,7 @@ The floor rests on one assumption and has one limit.
 Every printed buy-side figure matches, which says the code, the data and the book agree. It says nothing about whether the strategy paid, for four reasons.
 
 1. **Every stock is a survivor.** A company that left the S&P 500 between 2006 and 2012, because it was acquired, shrank or failed, is absent, and the strategy could not have bought its panics. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day. Chan’s Example 4.2 builds a second strategy from this same file, a basket of its stocks traded against SPY, the exchange-traded fund that tracks the S&P 500 (Chan, 2013, location 2035). [The post on Chan’s SPY index arbitrage](https://github.com/l3a0/quantitative-trading/blob/main/blog/index-arbitrage-lessons.md) runs into the same limit.
-2. **`bog.m` charges no cost, and a trader cannot know the open in time.** Every position is a round trip inside one day. Chan names a cost of his own. A trader deciding on the open “can’t” be filled at that same official open, and has to decide on preopen prices, the quotes before the market opens, instead. Chan calls the difference between the signals the preopen prices give and those the official open would give “signal noise” (Chan, 2013, location 1988). The mirror also faces the short-sale constraint, the risk that a borrowed stock is recalled or that a rule bars selling it short, which he says it “suffered from” (Chan, 2013, location 1993).
+2. **`bog.m` charges no cost, and a trader cannot know the open in time.** Every position is a round trip inside one day. Chan names a cost of his own. A trader who picks the stocks from the official open price “can’t” then be filled at that same price, so has to pick them from preopen prices, the quotes before the market opens, instead. The stocks the preopen prices pick do not exactly match the ones the official open would pick, and Chan calls that difference “signal noise” (Chan, 2013, location 1988). The mirror also faces the short-sale constraint, the risk that a borrowed stock is recalled or that a rule bars selling it short, which he says it “suffered from” (Chan, 2013, location 1993).
 3. **Chan traded another version.** He traded a version “quite profitably”, but it did not include rule 2, and it “suffered from diminishing returns from 2009 onward”. The backtest here says nothing about that version. He adds that so few stocks trade each day that the strategy “does not have a large capacity”, meaning it cannot take much capital before its own trades move the prices (Chan, 2013, location 1974).
 4. **The rule was chosen on the same days it is tested on.** Reproducing Chan’s figures on his window tests his arithmetic, so the result is exploratory. A result that could confirm the edge would need a rule fixed in writing first and data the rule had never seen.
 
@@ -162,10 +165,10 @@ Every printed buy-side figure matches, which says the code, the data and the boo
 Five questions are beyond it.
 
 1. **Which rule Chan ran for the mirror.** This repository named two other readings of his sentence in advance and ran neither, for the reason Lesson 4 gives.
-2. **Which file Chan ran in 2012.** Only one public copy of his code that this repository has read holds a file under the name that `bog.m` loads, and that file has the same bytes as Chan’s file, whose contents this repository keeps. That says what the name means in the code he published, not that it is the file he ran when he wrote the book. That both figures match is consistent with his having run that file, and does not prove it.
+2. **Which file Chan ran in 2012.** Only one public copy of his code that this repository has read holds a file under the name that `bog.m` loads. That file has the same bytes as Chan’s file, whose contents this repository keeps. The match says what the name means in the code he published, not that it is the file he ran when he wrote the book. That both figures match is consistent with his having run that file, and does not prove it.
 3. **How much costs and execution would take from the return.** Nothing here charges any, and nothing models the difference between the preopen price and the open.
 4. **What the rule earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24. Measuring it needs prices for the companies that left.
-5. **Whether one flagged day’s price is correct.** A check this repository runs on other strategies flags Morgan Stanley’s rise from its close on 2008-10-10 to its close on 2008-10-13 as too large for an ordinary day, and the mirror shorted Morgan Stanley on 2008-10-13. The strategy’s run does not apply that check. Applied, the check would refuse the whole window, and the job here is to reproduce what Chan’s script computed on the prices as they stand. Nothing here checks that price against another source.
+5. **Whether one flagged day’s price is correct.** A check this repository runs on other strategies flags Morgan Stanley’s rise from its close on 2008-10-10 to its close on 2008-10-13 as too large for an ordinary day, and the mirror shorted Morgan Stanley on 2008-10-13. The strategy’s run does not apply that check, because the job here is to reproduce what Chan’s script computed on the prices as they stand. Applied, the check would refuse the whole run, since the window from 2006 to 2012 crosses a day it flags. Nothing here checks that price against another source.
 
 ## What this means for a trader
 

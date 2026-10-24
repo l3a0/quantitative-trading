@@ -477,7 +477,7 @@ class TestWhatThePostQuotes:
             f"\\text{{Days holding any}} & {long.days_held}",
             f"the first two rules pass a stock {qualifiers} times, and {long.trades} of those "
             f"passes become purchases. The strategy holds at least one stock on "
-            f"{long.days_held} days, and buys the full {SPELLED[TOP_N]} on only "
+            f"{long.days_held} days, and buys the full {SPELLED[TOP_N]} stocks on only "
             f"{SPELLED[full]} of them.",
             f"before {days[SPREAD_LOOKBACK].date()}, the first day a {SPREAD_LOOKBACK}-day "
             f"standard deviation exists, and the first position comes on {_first_held(long)}.",
