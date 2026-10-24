@@ -90,8 +90,8 @@ ranking is meant to see a real collapse, which is the decision
 ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py`` records it.
 
 **Every figure here is about survivors.** The file is the S&P 500 as Chan held
-it on 2012-04-24, carried backwards, so every stock in it survived 2008 and
-2009. That reaches the two legs in opposite directions. The short leg lacks
+it on 2012-04-24, carried backwards, so every stock in it lasted until that
+day, and any stock it holds in 2008 and 2009 survived them. That reaches the two legs in opposite directions. The short leg lacks
 stocks that fell and then left the index, which pushes the strategy down, and
 the long leg lacks past winners that later collapsed out of it, which pushes
 it up. Which dominates is not measured here.

@@ -4444,9 +4444,9 @@ and −32 percent. The rule needed 37 percent and 4.1 together, so none of the
 four readings lands and the 4.1 row does not reproduce either, though the
 script's own Sharpe ratio rounds to it. That the compounded figure is the one
 matching was seen only after the rule was fixed, so row 10 reports it and it
-decides nothing. Chan's word "APR" names the arithmetic figure in Example 7.2
-and the compounded one here, and a rule taken from one example did not carry
-to the next.
+decides nothing. Chan's word "APR" names the arithmetic figure in Example 7.2,
+and the figures seen afterwards point to the compounded one here. A rule taken
+from one example did not carry to the next.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -4728,9 +4728,9 @@ Three things.
    average return" is the arithmetic figure. At location 3509 the same phrase
    carries Example 4.1's compounded APR, which the arithmetic figure misses.
    Reading the label instead of the script would have pinned row 2 against
-   the arithmetic figure and called it a miss. Entry 17 found the same of the
-   word "APR", which names the arithmetic figure in Example 7.2 and the
-   compounded one in Example 6.2.
+   the arithmetic figure and called it a miss. Entry 17 found the word "APR"
+   naming the arithmetic figure in Example 7.2, while the figures it saw
+   afterwards point to the compounded one in Example 6.2.
 3. **The declared mirror is a different strategy from Chan's.** Its drawdown
    is steeper, as he says, and its return is not. His own pair of figures
    rules out the declared rule's scale on arithmetic alone, if he computed
