@@ -3462,7 +3462,8 @@ Three groups of its figures are not pinned here.
    Cloud Reader could not be reached on 2026-10-03 to read its page.
 2. The book's Figure 7.2, which the post's figure redraws from `pead.m`'s
    `plot(cumret)` and which nothing compares with the book's own.
-3. Its references, cited rather than computed.
+3. Its references and the mirror's commit, `45670240`, cited rather than
+   computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_pead.py](tests/test_pead.py), to

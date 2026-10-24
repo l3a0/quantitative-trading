@@ -18,7 +18,7 @@ also quotes figures that five other files pin.
 
 ``TestWhatThePostQuotes`` reads the post itself. It checks one copy of each
 figure the post quotes against the run, at the precision the post prints, and
-that includes the figures the first three files pin, read here from the same
+that includes the figures the first four files pin, read here from the same
 committed files. It does not read Example 7.7's two figures or any second
 copy of a figure, and its docstring names the runs it reads. README lists what
 the post says that nothing pins. ``docs/replication-log.md`` Entry 12 carries
@@ -389,13 +389,15 @@ class TestWhatThePostQuotes:
        1,071, 0.066833 and PNW's long on 2012-02-24.
     3. :func:`chan.pead_figures.longest_spell` on that run's cumulative
        return, for the spell's 109 days, its dates, the high before it and
-       the trough inside it.
+       the trough inside it. ``tests/test_pead_figures.py`` pins the same
+       dates.
     4. :func:`chan.pead_rerun.read_committed` on the same files, for the flag
        file's 1,885 flags, the 29 stocks with none and Apple's flagged days,
        for Apple's six releases and their acceptance times, and for the 488
        stocks and the 1,540, 311 and 914 flags of the rerun's calendar.
-       ``tests/test_series.py`` and ``tests/test_pead_rerun.py`` pin the same
-       figures, and this class reads the post's copy of them.
+       ``tests/test_series.py``, ``tests/test_pead_rerun.py`` and
+       ``tests/test_earnings_filings.py`` pin the same figures, and this class
+       reads the post's copy of them.
 
     The post states most figures more than once, in a lesson, the table, an
     alt text or the closing lists, and the other copies are not read, so a
