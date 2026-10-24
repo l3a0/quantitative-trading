@@ -6276,7 +6276,7 @@ TU's spot returns do not.** CL's γ starts on Figure 5.5's first day, and C's
 two figures agree with the ones Chan's Python port prints to within 10⁻¹².
 Separately, the script measures maturity in contract columns rather than
 months, which overstates the roll return of the three strips whose contracts
-are not one month apart.
+are not all one month apart.
 
 Every row reads the same vintage and specification, so both are stated once
 here.

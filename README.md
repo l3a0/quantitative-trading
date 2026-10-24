@@ -5353,10 +5353,13 @@ Five groups of what it says are not pinned here.
    location 2399, which
    [tests/test_book_notes.py](tests/test_book_notes.py) holds, and the book's
    chart is compared with the redraw only by its first and last days.
-3. Readings no test asserts: the algebra of the model, that a held contract
-   earns α + γ and that one day's log prices fall on a line of slope −γ, and
-   the reading of location 2385 that the roll return separates a producer
-   ETF from the commodity's future.
+3. Readings no test asserts on the run: the algebra of the model, that a held
+   contract earns α + γ and that one day's log prices fall on a line of slope
+   −γ, which
+   [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+   holds only on the first sketch's made-up slopes, and the reading of
+   location 2385 that the roll return separates a producer ETF from the
+   commodity's future.
 4. The figure's alt text, which reads its bars and its line approximately,
    such as "about 5.3" and "about −1.1". The sketches' alt texts place their
    lines in words, such as "about a third of the way across", and

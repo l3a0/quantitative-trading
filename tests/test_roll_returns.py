@@ -3,10 +3,12 @@
 This file is the single authority for every number any prose surface quotes
 about Example 5.3. ``TestThePostQuotesTheRun`` reads one copy of each figure
 the run computes in ``blog/roll-returns-lessons.md``, and its docstring names
-what it skips. That post also quotes two kinds of number held elsewhere: its
-figure's labels, which ``tests/test_roll_returns_figures.py`` holds, and the
-figures README lists as asserted nowhere. ``docs/replication-log.md`` carries the verdicts
-and points here row by row. The rows are the ones
+what it skips. That post also quotes three kinds of number held elsewhere: its
+figure's labels, which ``tests/test_roll_returns_figures.py`` holds, its
+sketches' labels and planted prices, which
+``tests/test_roll_returns_whiteboard.py`` holds, and the figures README lists
+as asserted nowhere. ``docs/replication-log.md`` carries the verdicts and
+points here row by row. The rows are the ones
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared
 before the build, under "The pins". ``blog/xle-uso-roll-return-lessons.md``
 quotes the 29 sign changes of CL's γ that
@@ -747,7 +749,16 @@ class TestThePostQuotesTheRun:
         c, tu_book = results["C2"], _minus(f"{BOOK_TABLE_5_1['TU'][0]:.1f}")
         assert abs(c.alpha - float(PORT_C2[0])) < 1e-12, SPEC
         assert abs(c.mean_gamma - float(PORT_C2[1])) < 1e-12, SPEC
+        readings = {"first": _renumbered, "second": _single_precision, "third": _calendar_days}
+        (matching,) = [
+            n for n, f in readings.items() if lands(f(strips["HG"].spot), BOOK_TABLE_5_1["HG"][0])
+        ]
+        assert not any(f(strips["TU"].spot) < 0 for f in readings.values()), SPEC
+        assert round(10 * (round(100 * hg, 1) - BOOK_TABLE_5_1["HG"][0])) == 1, SPEC
         fragments = [
+            "HG’s miss is a tenth of a percentage point",
+            f"The {matching} reading is the only one that matches HG",
+            f"None of the {NUMBER_WORDS[len(readings)]} turns TU’s α negative.",
             f"{NUMBER_WORDS[matched].capitalize()} cells match. "
             f"{NUMBER_WORDS[10 - matched].capitalize()} miss.",
             f"is {100 * hg:.2f} percent, which rounds to {round(100 * hg, 1)} against the "
@@ -759,7 +770,8 @@ class TestThePostQuotesTheRun:
             "10⁻¹².",
             f"gives HG {_renumbered(strips['HG'].spot):.6f}",
             f"gives {_single_precision(strips['HG'].spot):.6f}, unchanged",
-            f"gives {_calendar_days(strips['HG'].spot):.6f}, which matches HG’s cell",
+            f"annualizing by 365** gives {_calendar_days(strips['HG'].spot):.6f}, which matches "
+            "HG’s cell",
             f"moves C’s α to {_calendar_days(strips['C2'].spot):.6f}",
         ]
         assert tu > 0 and self._missing(fragments, post) == [], SPEC
@@ -785,7 +797,10 @@ class TestThePostQuotesTheRun:
             return sum(found[root].values())
 
         assert every_gap("BR") == every_gap("CL") == [1] and every_gap("TU") == [3], SPEC
+        monthly = [root for root in ROOTS if every_gap(root) == [1]]
         fragments = [
+            f"In Chan’s files, {NUMBER_WORDS[len(monthly)]} futures have a contract every month "
+            f"and {NUMBER_WORDS[len(ROOTS) - len(monthly)]} do not.",
             f"**BR** is one month apart on all {days('BR'):,} days, and **CL** on all "
             f"{days('CL'):,}.",
             f"**TU** is three months apart on all {days('TU'):,} days.",
@@ -823,7 +838,10 @@ class TestThePostQuotesTheRun:
             return f"{abs(gamma) / abs(results[root].alpha):.2f}"
 
         hg = results["HG"]
+        (smaller,) = [r for r in ROOTS if abs(results[r].mean_gamma) <= abs(results[r].alpha)]
         fragments = [
+            f"{_label(smaller)} is the one future whose roll return is smaller than its spot "
+            "return",
             f"with a roll return {ratio('BR', results['BR'].mean_gamma)} times its spot return",
             f"Its roll return is {ratio('C2', results['C2'].mean_gamma_in_months)} times its "
             "spot return, short of twice.",
