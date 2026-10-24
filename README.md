@@ -3709,8 +3709,8 @@ arithmetic figure, or to
 figure's own numbers, or to
 [tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
 for the whiteboard sketch's. `TestWhatThePostQuotes` in the first of those
-files reads one copy of each run figure the post quotes outside the sketch and
-its caption, and checks it against the run. Those include the file's saved
+files reads at least one copy of each run figure the post quotes outside the
+sketch and its caption, and checks it against the run. Those include the file's saved
 date, the figure's alt-text spell dates and its mirror climbing more steeply
 through 2007 and 2008, and the two dates of the flagged day the mirror
 shorted. The sketch's test reads the sketch's caption and alt text. Five had
@@ -3728,8 +3728,8 @@ side, the sketch's test the third, and `TestWhatThePostQuotes` the last two.
    13.30 and its gain of 2.2 percent from the open to the close.
 4. That the mirror's cumulative return gains more than the buy side's in
    each of 2007 and 2008.
-5. That the flagged move into 2008-10-13 starts from Morgan Stanley's close on
-   2008-10-10, the trading day before.
+5. That the flagged move into 2008-10-13 is a rise, from Morgan Stanley's
+   close on 2008-10-10, the trading day before.
 
 Its one figure is drawn from the committed file by
 [src/chan/buy_on_gap_figures.py](src/chan/buy_on_gap_figures.py), which reads

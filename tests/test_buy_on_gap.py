@@ -1,7 +1,8 @@
 """The pins for buy on gap and its mirror, *Algorithmic Trading*'s Example 4.1.
 
 This file is the single authority for every number any prose surface quotes
-about Example 4.1, with three exceptions, all in ``blog/buy-on-gap-lessons.md``.
+about Example 4.1, with four exceptions, three of them in
+``blog/buy-on-gap-lessons.md``.
 
 1. The post quotes the dates of each side's longest spell below the high and
    of its deepest drawdown, which ``tests/test_buy_on_gap_figures.py`` holds.
@@ -9,6 +10,10 @@ about Example 4.1, with three exceptions, all in ``blog/buy-on-gap-lessons.md``.
    ``tests/test_pead.py`` holds.
 3. Its whiteboard sketch and the sketch's caption quote one day's prices, PCS
    on 2011-01-06, which ``tests/test_buy_on_gap_whiteboard.py`` holds.
+4. ``blog/vix-filter-lessons.md`` and Entry 47 of ``docs/replication-log.md``
+   quote buy on gap's figures under location 3509's VIX filter, and its Sharpe
+   ratio over every day at six decimals, 1.537063, all of which
+   ``tests/test_vix_filter.py`` holds.
 
 README lists what the post says that nothing pins. ``docs/replication-log.md``
 Entry 18 carries the verdicts and points here row by row.
@@ -43,9 +48,9 @@ comment is the published figure. The mirror's are pinned against location
 make. The first edition's ``smartstd`` carries the same MATLAB name, and with
 it neither printed figure lands.
 
-``TestWhatThePostQuotes`` reads the post and checks one copy of each run
-figure it quotes outside the sketch against the run. Those include the file's
-saved date, the figure's alt-text spell dates and its mirror climbing more
+``TestWhatThePostQuotes`` reads the post and checks at least one copy of each
+run figure it quotes outside the sketch against the run. Those include the
+file's saved date, the figure's alt-text spell dates and its mirror climbing more
 steeply through 2007 and 2008, and the two dates of the flagged day the mirror
 shorted. The sketch's caption and alt text are read in
 ``tests/test_buy_on_gap_whiteboard.py``. The book's figures, the Kindle
@@ -436,6 +441,9 @@ class TestWhatThePostQuotes:
     dates of the flagged day the mirror shorted are read the same way.
     The post states several figures more than once, in its opening, a lesson,
     a table or the figure's alt text, and the other copies are not read. The
+    exception is the figure's alt text, whose two spell lengths and two deepest
+    drawdowns are read there as well as in Lesson 4, and the buy side's in
+    Lesson 1's table too. The
     sketch's caption and alt text are read in ``tests/test_buy_on_gap_whiteboard.py``
     instead. The book's
     figures, the Kindle locations and the facts outside the data are not read

@@ -9,7 +9,11 @@ reader takes from it: what it says and in which order, that every price stands
 at an affine function of its value, that the open sits inside the band and the
 close under the dashed line and the low, that no label touches a line, leaves
 the board or touches another label in the hand font or the fallback, and the
-file's size, frame count, loop and timing.
+file's size, frame count, loop and timing. ``TestThePost`` reads the post
+itself. It checks that the GIF sits right after that paragraph and is embedded
+once, that its caption names the day and quotes the standard deviation and the
+gain the run gives, and that its alt text quotes the title and every label in
+drawing order.
 
 Its figures are read from the run on the committed file, which takes a few
 seconds, so the tests read the run itself rather than a frozen copy, and pin
