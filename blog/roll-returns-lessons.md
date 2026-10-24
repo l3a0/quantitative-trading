@@ -14,7 +14,7 @@ Chapter 6 then leans on the split to explain why some futures trend. Their roll 
 
 ### What the reproduction found
 
-Chan’s Example 5.3 measures the spot and roll returns of five futures: the Brazilian real (BR), corn (C), WTI crude oil (CL), copper (HG) and the two-year US Treasury note (TU). Table 5.1 prints each future’s average spot and roll return. This repository ran his script, `estimateFuturesReturns.m`, on his own data files and found three things.
+Chan’s Example 5.3 measures the spot and roll returns of five futures: the Brazilian real (BR), corn (C), WTI crude oil (CL), copper (HG) and the two-year US Treasury note (TU). Table 5.1 prints each future’s average spot and roll return. This repository transcribed his script, `estimateFuturesReturns.m`, ran it on his own data files and found three things.
 
 1. **Eight of Table 5.1’s ten cells match.** Only HG’s and TU’s spot returns miss, even on the files Chan saved himself. HG’s is a tenth of a percentage point off, and TU’s has the opposite sign.
 2. **The script counts contracts, not months.** The roll return comes from how one day’s prices change with each contract’s time to maturity, the time left until it expires, and the text says to measure that time in months. The script instead numbers the five contracts nearest to expiry from 1 to 5, which treats neighbouring contracts as one month apart. For the three futures whose contracts are not all a month apart, that overstates the roll return by 2.0 to 3.0 times.
@@ -156,7 +156,7 @@ Under the fit in months, each claim fails for one future.
 BR and TU hold either way. Nothing here scores the results under the fit in months as a pass or a fail, for two reasons.
 
 1. Chan printed no figure for the fit in months.
-2. The pass mark of twice, written down before the code existed, was for the script’s γ alone. The replication applied it to the fit in months only once the code had run, so C’s failure rests on a test added after the figures were known.
+2. The pass mark of twice, written down before the code existed, was for the script’s γ alone. The replication applied it to the fit in months, where C fails, only once the code had run.
 
 Even where a claim holds, it does not test what Chapter 6 uses the table for, which is explaining why these futures trend. Comparing two averages says nothing about whether a roll return causes any of that trending.
 
@@ -174,7 +174,7 @@ Table 5.1 prints one number per future, and the model behind it says γ is const
 2. **Long runs, with many breaks.** It changes sign 29 times. Its longest run of one sign is contango, from 2008-10-09 to 2011-10-21, 766 trading days.
 3. **Extremes far from the mean.** Its highest value is 0.258871, on 2008-09-22. Its lowest is −1.121372, on 2009-01-15, less than four months later. The mean is −0.070592.
 
-CL’s file holds no contract earlier than January 2007. So until that contract expired on 2006-12-19, the five nearest in the file were always the January to May 2007 contracts, more than two years out when the panel starts and about a year out on 2006-01-05. For most of that span, the contracts nearest to expiry, the ones a holder sells and replaces as each nears expiry, are not in the file.
+CL’s file holds no contract earlier than January 2007. So until that contract expired on 2006-12-19, the five nearest in the file were always the January to May 2007 contracts, more than two years out when the panel starts and about a year out on 2006-01-05. For most of the time before 2006-12-19, the market’s nearest contracts, the ones a holder sells and replaces as each nears expiry, are not in the file.
 
 Chapter 6’s explanation needs the sign to stay put. Location 2683 says “the sign of roll returns does not vary very often”, so holding a future for a long time collects a roll return of one sign. BR and HG, both named there, differ sharply on that.
 
