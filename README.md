@@ -3691,7 +3691,11 @@ Five groups of its figures are not pinned here.
    five of the file's arrays exactly, which `chan.mat_columns.round_trip_differs`
    found where the `.mat` was recorded and data/README.md records. The `.mat`
    is not committed, so no test runs that check on this file. That MS, the stock
-   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That the same
+   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That every
+   stock in the file was in the S&P 500 in late 2011, which rests on the
+   examples `TestTheListDatesFromLate2011` holds and on a count of
+   497 = 500 − 8 + 5 that the review reconciled against the index by hand.
+   That the same
    script's return line sells the upward jump is not among them, since
    [tests/test_opening_gap.py](tests/test_opening_gap.py) holds that sign.
 3. Arithmetic no test asserts: that ln(1 + r) ≤ r for every daily return,
