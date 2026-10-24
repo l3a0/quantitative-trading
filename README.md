@@ -3981,10 +3981,10 @@ Five groups of its figures are not pinned here.
    `Avg Ann Ret=` for the arithmetic figure and `APR=` for the compounded one,
    in `kentdaniel.m` and `pead.m`, and `bog.m`'s label on its compounded
    figure. That neither public copy of Chan's code ships a `lag.m`, that the
-   first edition's `lag1.m` shifts by one row, and that both copies hold the
-   same `kentdaniel.m`, which `src/chan/cross_sectional_momentum.py`'s
-   docstring records. Whether ETFC's move from 85.9 to 35.5 was a real move or
-   a bad print, which nothing checks.
+   first edition's `lag1.m` defines a function named `lag` as a shift of one
+   row, and that both copies hold the same `kentdaniel.m`, which
+   `src/chan/cross_sectional_momentum.py`'s docstring records. Whether ETFC's
+   move from 85.9 to 35.5 was a real move or a bad print, which nothing checks.
 3. Arithmetic no test asserts: that 0.40 is about a tenth of the book's 4.1,
    of 4.0657 and of 4.0530, so either helper's Sharpe ratio is ten times the
    comment's, that 2007-05-15 to 2007-12-31 is seven and a half months, and
