@@ -593,7 +593,8 @@ class TestWhatThePostQuotes:
             f"The busiest day of the run holds {drift.most_held} positions",
             f"No position is possible in the first {LOOKBACK - 1} days, because the deviation "
             f"needs {LOOKBACK} days in its window",
-            f"The first position comes on {first.date()}, the first day the deviation gives a number.",
+            f"The first position comes on {first.date()}, the first day the deviation gives a "
+            "number.",
             f"Across the whole window, {int(held.sum())} of the {len(held)} days hold any "
             "position at all, so more than half the days hold none.",
             f"At exactly {SPELLED[BOOK_LEVERAGE]}, the figure is {drift.levered:.6f}, which "
