@@ -378,6 +378,10 @@ class TestThePost:
         assert caption.startswith("*Drawn to one scale from the run.") and caption.endswith("*")
         for mark in ("black dot", "green tick", "red tick"):
             assert mark in caption, mark
+        assert "past the green tick, so with the second book’s helper the rule goes long" in caption
+        assert (
+            "short of the red tick, so with the first edition’s helper it takes no trade" in caption
+        )
 
     def test_the_trade_sketch_sits_in_the_strategy_and_the_flip_in_lesson_4(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -500,6 +504,14 @@ class TestTheTradeSketch:
         assert ((green >= OPEN) & (green <= CLOSE)).all()
         assert held.width > 3
 
+    def test_each_session_is_named_under_its_own_span(self, every) -> None:
+        scene = every[0]
+        assert SESSION_START < _label(scene, "the day before").x < PREVIOUS_CLOSE
+        assert OPEN < _label(scene, "today").x < CLOSE
+
+    def test_the_closes_level_is_dashed(self, every) -> None:
+        assert _stroke(every[0], "close-level").dashed
+
     def test_each_red_mark_sits_inside_its_session_on_its_price(self, every) -> None:
         """One in the day before's session, so its news is in that close, and
         one in today's after the open, too late for a trade opened at it."""
@@ -514,6 +526,7 @@ class TestTheTradeSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
         assert "A brown bracket spans the night from that close to the next open" in alt
+        assert "A grey dashed line carries the close’s level across the night" in alt
         assert "a black arrow at the open climbs from it to the higher open" in alt
         assert "A thick green bar runs beneath it from the open to the close" in alt
         assert "a red mark crosses the day before’s price inside its session" in alt
@@ -531,7 +544,7 @@ class TestTheFlipSketch:
     def test_the_run_gives_the_figures_it_prints(self, flip: HelperFlip) -> None:
         """The figures ``tests/test_pead.py`` pins on its own derivation, read
         here from the run the sketch draws."""
-        assert (flip.symbol, flip.day, flip.finite_gaps) == ("PNW", "2012-02-24", 90)
+        assert (flip.symbol, flip.day) == ("PNW", "2012-02-24")
         assert [sketches.percent(v) for v in (flip.gap, flip.half_book_two)] == [
             "0.4212",
             "0.4189",
@@ -539,6 +552,7 @@ class TestTheFlipSketch:
         assert sketches.percent(flip.half_first_edition) == "0.4213"
         assert flip.half_book_two <= flip.gap < flip.half_first_edition
         assert f"{100 * flip.day_return:.2f}" == "-0.36"
+        assert flip.day_return == pytest.approx(-0.0035654362, abs=5e-11)
         assert flip.arithmetic_book_two == pytest.approx(0.066743, abs=5e-7)
         assert flip.arithmetic_first_edition == pytest.approx(0.066833, abs=5e-7)
         assert sketches.printed(flip.arithmetic_book_two) == "0.0667"
@@ -627,6 +641,8 @@ class TestTheFlipSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
         assert "Near its left end a green upright tick" in alt
+        assert alt.count("above and “long” below") == 1
+        assert alt.count("above and “no trade” below") == 1
         assert "Near its right end a taller red upright tick" in alt
         assert "A black dot sits on the line just left of the red tick" in alt
         assert "past the green one and short of the red one" in alt
@@ -635,3 +651,25 @@ class TestTheFlipSketch:
         assert no_trade.y.max() > long_tick.y.max()
         (x_dot,) = set(_stroke(scene, "gap-dot").x)
         assert no_trade.x[0] - x_dot < (x_dot - long_tick.x[0]) / 10
+
+    def test_it_reads_the_files_through_the_scale_break_guard(self, monkeypatch) -> None:
+        """Not a second read path that skips the guard :func:`chan.pead.guarded_drift` runs."""
+        from chan import pead
+
+        def refuse(*args, **kwargs):
+            raise RuntimeError("guard ran")
+
+        monkeypatch.setattr(pead, "refuse_scale_breaks", refuse)
+        with pytest.raises(RuntimeError, match="guard ran"):
+            HelperFlip.from_run()
+
+    def test_it_refuses_unless_one_long_alone_differs(self, monkeypatch) -> None:
+        """With a first-edition deviation far below book two's, many more
+        positions open, so the sketch's one-position premise fails."""
+        from chan.matlab_helpers import smartstd_book_two
+
+        monkeypatch.setattr(
+            sketches, "smartstd_first_edition", lambda x, axis=0: 0.5 * smartstd_book_two(x, axis)
+        )
+        with pytest.raises(ValueError, match="positions differ between the helpers, not one"):
+            HelperFlip.from_run()

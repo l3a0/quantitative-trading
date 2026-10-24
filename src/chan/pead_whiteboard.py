@@ -261,7 +261,6 @@ class HelperFlip:
 
     ``gap`` is the stock's close-to-open return that day, and each ``half_*``
     is half its 90-day moving deviation under that helper, all as fractions.
-    ``finite_gaps`` counts the finite gaps in that 90-day window.
     ``day_return`` is the stock's open-to-close return that day, which the
     position earns. ``arithmetic_*`` is ``pead.m``'s arithmetic annual return
     under each helper.
@@ -272,7 +271,6 @@ class HelperFlip:
     gap: float
     half_book_two: float
     half_first_edition: float
-    finite_gaps: int
     day_return: float
     arithmetic_book_two: float
     arithmetic_first_edition: float
@@ -307,7 +305,6 @@ class HelperFlip:
         ((row, column),) = differ
         if (drift.positions[row, column], held_first[row, column]) != (1.0, 0.0):
             raise ValueError("the sketch draws a long that only book two's helper takes")
-        window = gaps[row - pead.LOOKBACK + 1 : row + 1, column]
         daily_first = pead.daily_returns(held_first, op, cl)
         return cls(
             symbol=str(opens.columns[column]),
@@ -315,7 +312,6 @@ class HelperFlip:
             gap=float(gaps[row, column]),
             half_book_two=float(pead.ENTRY * book_two[row, column]),
             half_first_edition=float(pead.ENTRY * first[row, column]),
-            finite_gaps=int(np.isfinite(window).sum()),
             day_return=float((cl[row, column] - op[row, column]) / op[row, column]),
             arithmetic_book_two=drift.arithmetic_annual,
             arithmetic_first_edition=float(pead.TRADING_DAYS * smartmean(daily_first)),

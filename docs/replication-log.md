@@ -3571,7 +3571,7 @@ quotes two of them rounded.
 | 8 | the most nonzero positions on one of the 330 days | 30 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` |
 | 9 | four times row 1 | 0.266970 | `TestTheFigures::test_levered_four_times_it_is_close_to_27_percent` |
 | 10 | the nonzero positions across the window, none in its first 89 days | 1,072 | `TestTheFigures::test_the_busiest_day_holds_chans_denominator` and `::test_no_stock_trades_before_its_window_fills` |
-| 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833, and 1,071 positions | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit` and `::test_the_other_printed_figures_survive_the_swap` |
+| 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833, and 1,071 positions | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit`, `::test_the_other_printed_figures_survive_the_swap` and `::test_the_one_position_that_moves_is_pnws_long_on_2012_02_24` |
 
 ### The verdicts
 

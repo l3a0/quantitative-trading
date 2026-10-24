@@ -100,7 +100,7 @@ The one position that changes is PNW on 2012-02-24. Its gap was 0.4212 percent. 
 
 ![An animated whiteboard sketch titled “One position the helper flips”, drawn slowly stroke by stroke. Its marks are drawn to one scale from the run. A grey number line runs across the board. Near its left end a green upright tick is labelled “half the Algorithmic Trading helper’s deviation: 0.4189%” above and “long” below. Near its right end a taller red upright tick is labelled “half the first edition’s deviation: 0.4213%” above and “no trade” below. A black dot sits on the line just left of the red tick, past the green one and short of the red one, labelled “PNW’s gap on 2012-02-24: 0.4212%”. Last, a line beneath reads “the long lost 0.36%: annual return 0.0667 with it, 0.0668 without”. The finished drawing holds for twelve seconds.](../docs/figures/pead_sketch_helper_flip.gif)
 
-*Drawn to one scale from the run. The black dot is PNW’s gap. It lies past the green tick, so the second book’s rule goes long, and short of the red tick, so the first edition’s rule takes no trade.*
+*Drawn to one scale from the run. The black dot is PNW’s gap. It lies past the green tick, so with the second book’s helper the rule goes long, and short of the red tick, so with the first edition’s helper it takes no trade.*
 
 So a translation that used the wrong helper would match four of the five printed figures and miss the fifth by one digit. That looks like a near miss on the data. It is a wrong helper, and the only way to tell the two apart is to check which helper the script’s own book ships.
 
