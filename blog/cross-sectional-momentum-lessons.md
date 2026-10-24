@@ -30,7 +30,7 @@ Chan’s sentence describes deciles held for a month. `kentdaniel.m` makes that 
 
 ![An animated whiteboard sketch titled “Twenty-five cohorts make one portfolio”, drawn slowly stroke by stroke. Its counts come from the run. A grey axis runs along the bottom, labelled “trading days”. One bar 25 days long appears at the top left, a green line over a red line, with “50 long” beside the green and “50 short” beside the red, and “one cohort: one day’s 100 picks” to its right. Twenty-four more bars follow, each starting one day later and one row lower, a staircase of 25. A brown dashed line drops through all 25 bars on the day the first bar ends and the last begins, labelled “25 cohorts held” at its foot. To the right of the staircase come “25 cohorts × 100 picks”, “= 2,500 picks held”, “divide by 2 · 50 · 25 = 2,500” and “one unit of capital”. Last, a red stretch covers the axis from the first bar’s start to the dashed line, labelled “first 24 days of 2007:” and “fewer than 25”. The finished drawing holds for twelve seconds.](../docs/figures/cross_sectional_momentum_cohorts.gif)
 
-*Each bar is one cohort, one day’s picks held for 25 trading days. On a day holding all 25, the book holds 2,500 picks, and the script’s divisor makes that one unit of capital. The counts come from the run.*
+*Each bar is one cohort, one day’s picks held for 25 trading days. Only the first 25 cohorts are drawn, and later ones keep arriving, so every day from the brown line on holds all 25. On such a day the book holds 2,500 picks, and the script’s divisor makes that one unit of capital. The 2007 window opens the day after the first picks, so its first 24 days hold fewer. The counts come from the run.*
 
 The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily closes of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24. None of them stops before the last day, and 23 start late. This repository transcribed `kentdaniel.m` line by line from a public copy of Chan’s code, `ivanliu1989/algorithmic_trading` at commit `45670240`. A second public copy holds the same bytes.
 
@@ -57,7 +57,7 @@ None of the five prints what the comment says. The script’s first figure is th
 
 ![An animated whiteboard sketch titled “Add, or multiply: two annual returns, one window”, drawn slowly stroke by stroke. Its figures come from the run. A row of small grey bars, one for each daily return, rises above and dips below a baseline, labelled “2007: 160 days”. Below it, in black, “add the 160 returns: 0.2032” leads to an arrow marked “× 252/160” and on to “0.3200, Avg Ann Ret”. Under that, in brown, “multiply the 1 + r: 1.2227” leads to an arrow marked “^(252/160), less 1” and on to “0.3726, APR”. The finished drawing holds for twelve seconds.](../docs/figures/cross_sectional_momentum_two_returns.gif)
 
-*The same 160 daily returns give both annual figures. Adding them and scaling by 252/160 gives the arithmetic return, and multiplying each 1 + r and annualizing the product gives the compounded one. The figures come from the run.*
+*The same 160 daily returns give both annual figures. Adding them and scaling by 252/160 gives the arithmetic return, and multiplying the 160 values of 1 + r together and annualizing the product gives the compounded one. The figures come from the run.*
 
 Four things bear on which side to believe.
 

@@ -155,7 +155,9 @@ def _window(run: Run) -> tuple[pd.DatetimeIndex, np.ndarray]:
     return momentum.window_returns(run.daily, run.days, "2007")
 
 
-def _cohort_labels(n: int, longs: int, shorts: int, held: int, short_days: int) -> list[str]:
+def _cohort_labels(
+    n: int, longs: int, shorts: int, held: int, short_days: int, year: int
+) -> list[str]:
     picks = longs + shorts
     return [
         "trading days",
@@ -167,7 +169,7 @@ def _cohort_labels(n: int, longs: int, shorts: int, held: int, short_days: int) 
         f"= {held:,} picks held",
         f"divide by 2 · {longs} · {n} = {held:,}",
         "one unit of capital",
-        f"first {short_days} days of 2007:",
+        f"first {short_days} days of {year}:",
         f"fewer than {n}",
     ]
 
@@ -225,6 +227,13 @@ def _durations(path) -> list[int]:
 
 def _paragraphs() -> list[str]:
     return [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
+
+
+def _caption(name: str) -> str:
+    """The italic line right after the GIF's embed."""
+    paragraphs = _paragraphs()
+    (index,) = [k for k, p in enumerate(paragraphs) if f"(../docs/figures/{name})" in p]
+    return paragraphs[index + 1]
 
 
 def _alt(text: str, scene) -> str:
@@ -432,6 +441,31 @@ class TestThePost:
             assert caption.startswith("*") and caption.endswith("*"), name
             assert "\n" not in caption, name
 
+    def test_each_caption_states_the_runs_counts(self, figures) -> None:
+        """The captions repeat run figures, so each is built from the run."""
+        cohorts, returns = figures
+        n = cohorts.hold_days
+        first = _caption(GIFS[0])
+        assert f"one day’s picks held for {n} trading days" in first
+        assert f"Only the first {n} cohorts are drawn" in first
+        assert f"every day from the brown line on holds all {n}" in first
+        assert f"the book holds {cohorts.picks_held:,} picks" in first
+        assert f"The {cohorts.opens.year} window opens the day after the first picks" in first
+        assert f"its first {cohorts.short_days} days hold fewer" in first
+        second = _caption(GIFS[1])
+        assert f"The same {returns.days} daily returns" in second
+        assert f"scaling by {returns.trading_days}/{returns.days}" in second
+        assert f"multiplying the {returns.days} values of 1 + r together" in second
+
+    def test_every_day_after_the_line_holds_a_full_book(self, run, figures) -> None:
+        """The cohorts caption says later cohorts keep every day from the brown
+        line on at a full book, so the bars thinning out on the right are only
+        the cohorts the sketch leaves out."""
+        n = figures[0].hold_days
+        first_full = int(np.flatnonzero(run.held == n)[0])
+        assert (run.held[first_full:] == n).all()
+        assert run.days[first_full] == run.days[momentum.LOOKBACK + n]
+
     def test_the_cohorts_sketch_sits_in_the_strategy_and_the_returns_in_lesson_1(self) -> None:
         text = POST.read_text(encoding="utf-8")
         cohorts, returns = (text.index(f"(../docs/figures/{name})") for name in GIFS)
@@ -552,6 +586,7 @@ class TestTheCohortCounts:
             int(run.shorts[momentum.LOOKBACK].sum()),
             int(run.held.max()) * 2 * momentum.TOP_N,
             int((inside < run.held.max()).sum()),
+            window[0].year,
         )
 
     def test_the_title_spells_the_count(self, every, figures) -> None:
@@ -663,7 +698,7 @@ class TestTheCohortsSketch:
         )
         scene = _cohorts(made_up)
         assert scene.title == "Twenty cohorts make one portfolio"
-        assert scene.labels == _cohort_labels(20, 30, 30, 1200, 19)
+        assert scene.labels == _cohort_labels(20, 30, 30, 1200, 19, 2009)
         assert len(_bars(scene, "-long")) == 20
 
     @pytest.mark.parametrize(
@@ -673,8 +708,9 @@ class TestTheCohortsSketch:
             ({"short_days": 23}, "23 days short of 25"),
             ({"picks_held": 2400}, "and it divides by"),
             ({"divisor": 100}, "and it divides by 100"),
+            ({"longs": 60, "picks": 100}, "hold 60 long and 40 short"),
         ],
-        ids=["opens on two", "fills unevenly", "picks", "divisor"],
+        ids=["opens on two", "fills unevenly", "picks", "divisor", "uneven sides"],
     )
     def test_counts_that_would_make_the_drawing_false_are_refused(
         self, figures, change, match
@@ -693,6 +729,26 @@ class TestTheCohortsSketch:
         assert "on the day the first bar ends and the last begins" in alt
         assert "a red stretch covers the axis from the first bar’s start to the dashed line" in alt
         assert "positions" not in alt
+        assert "A grey axis runs along the bottom" in alt
+        assert "labelled “25 cohorts held” at its foot" in alt
+        assert "To the right of the staircase come" in alt
+
+    def test_the_held_label_sits_at_the_lines_foot(self, every, figures) -> None:
+        scene, n = every[0], figures[0].hold_days
+        line, label = _stroke(scene, "held"), _label(scene, f"{n} cohorts held")
+        assert label.y < line.y.min() < AXIS_Y
+
+    def test_the_arithmetic_sits_right_of_the_staircase(self, every) -> None:
+        """Each line of the arithmetic starts right of the end of every bar
+        within two rows of its height, so it reads beside the staircase."""
+        scene = every[0]
+        bars = _bars(scene, "-long") + _bars(scene, "-short")
+        for text in scene.labels[5:9]:
+            label = _label(scene, text)
+            near = [b for b in bars if abs(b.y[0] - label.y) < 0.2]
+            assert near, text
+            assert label.x > max(b.x.max() for b in near), text
+            assert label.x > _stroke(scene, "held").x[0], text
 
 
 # --- Lesson 1: add, or multiply ------------------------------------------------
@@ -760,6 +816,7 @@ class TestTheReturnsSketch:
         assert len(tips) == returns.days
         assert tips - DAILY_Y == pytest.approx(DAILY_TALLEST * r / np.abs(r).max())
         assert daily.y[0::3] == pytest.approx([DAILY_Y] * returns.days)
+        assert daily.y[2::3] == pytest.approx([DAILY_Y] * returns.days)
         assert daily.x[1::3] == pytest.approx(np.linspace(*DAILY_X, returns.days))
         assert (tips > DAILY_Y).any() and (tips < DAILY_Y).any()
 
@@ -775,6 +832,9 @@ class TestTheReturnsSketch:
             assert _label(scene, start).x < arrow.x.min() < arrow.x.max() < _label(scene, end).x
             assert _label(scene, start).y == pytest.approx(arrow.y[0])
             assert _label(scene, end).y == pytest.approx(arrow.y[0])
+            # The shaft starts on the left and the head is drawn at the right end.
+            assert arrow.x[0] == pytest.approx(sketches.ARROW_X[0])
+            assert arrow.x[-1] > sum(sketches.ARROW_X) / 2
         assert _stroke(scene, "add").y[0] > _stroke(scene, "multiply").y[0]
 
     def test_the_books_figures_are_not_on_it(self, every) -> None:
@@ -782,7 +842,7 @@ class TestTheReturnsSketch:
         of the book's figures."""
         words = " ".join([every[1].title, *every[1].labels])
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
-        for text in (words, alt):
+        for text in (words, alt, _caption(GIFS[1])):
             for figure in (r"(?<![.\d])37\b", r"\bpercent\b", r"\b4\.1\b", r"\bbook\b"):
                 assert not re.search(figure, text), figure
 
@@ -802,12 +862,18 @@ class TestTheReturnsSketch:
             4, r.sum(), np.prod(1 + r), 252 * r.mean(), np.prod(1 + r) ** 63 - 1
         )
 
-    def test_a_window_that_lost_is_refused(self, figures) -> None:
+    @pytest.mark.parametrize(
+        "change",
+        [{"total": -0.1, "growth": 0.9}, {"total": 0.0}, {"growth": 1.0}],
+        ids=["both", "sum only", "growth only"],
+    )
+    def test_a_window_that_lost_is_refused(self, figures, change) -> None:
         """The sketch's arrows run to two positive figures."""
         with pytest.raises(ValueError, match="draws a window that gained"):
-            _two_returns(dataclasses.replace(figures[1], total=-0.1, growth=0.9))
+            _two_returns(dataclasses.replace(figures[1], **change))
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, figures) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
         assert "one for each daily return, rises above and dips below a baseline" in alt
         assert "Below it, in black," in alt and "Under that, in brown," in alt
+        assert "A row of small grey bars" in alt

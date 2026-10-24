@@ -26,8 +26,9 @@ if on a whiteboard, and the post places each right after the passage it draws.
 Every number either sketch prints is read from the run on the committed
 vintage, through :func:`chan.cross_sectional_momentum.read_closes`, rather than
 written into the scene. :func:`cohort_figures` measures the cohorts from the
-script's own formations and positions, and :func:`return_figures` reads the
-script as printed over the 2007 window. The cohorts sketch is drawn to its
+script's own formations and :func:`chan.cross_sectional_momentum.cohorts_held`,
+and :func:`return_figures` reads the script as printed over the 2007 window.
+The cohorts sketch is drawn to its
 count rather than to its dates: each bar is one cohort and each step along the
 axis is one trading day, so the brass line falls where the first cohort's last
 day is the last cohort's first. The bars in the returns sketch are the
@@ -140,7 +141,7 @@ class Returns:
 
 
 def cohort_figures(closes: pd.DataFrame) -> Cohorts:
-    """The cohorts sketch's counts, from the script's formations and lagged positions."""
+    """The cohorts sketch's counts, from the script's formations and the cohorts it holds."""
     values = closes.to_numpy(dtype=float)
     days = pd.DatetimeIndex(closes.index)
     longs, shorts = momentum.formations(momentum.ranking_returns(values))
@@ -258,6 +259,11 @@ def _cohorts(figures: Cohorts) -> Scene:
             f"{figures.divisor}"
         )
     shorts = figures.picks - figures.longs
+    if shorts != figures.longs:
+        raise ValueError(
+            f"The cohorts sketch divides by 2 · {figures.longs} · {n}, which needs as many "
+            f"shorts as longs, and this run's cohorts hold {figures.longs} long and {shorts} short"
+        )
     # Where the one day that every cohort holds is: cohort 0's last day, and
     # cohort n − 1's first. The line runs down its middle.
     held_x = day_x(n - 0.5)
@@ -355,7 +361,7 @@ def _cohorts(figures: Cohorts) -> Scene:
             frames=5,
         ),
         Label(
-            f"first {figures.short_days} days of {WINDOW}:",
+            f"first {figures.short_days} days of {figures.opens.year}:",
             0.15,
             1.62,
             names="ramp",
