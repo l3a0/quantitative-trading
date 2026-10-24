@@ -40,7 +40,7 @@ Chan gives a reason for rule 2, which he calls “a momentum filter superimposed
 
 ### Where the prices and the script come from
 
-The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily open, high, low and close of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24.
+The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds the daily open, high, low and close of 497 stocks over 1,500 trading days, from 2006-05-11 to 2012-04-24. The date in its name is the last day of its prices, not the date of its list of stocks, which is from late 2011.
 
 The script loads a file under a slightly different name, `inputDataOHLCDaily_20120424`, with no `_stocks`, so the name alone does not show that the script read Chan’s file. Of the public copies of Chan’s code that this repository has read, two hold Chan’s file.
 
