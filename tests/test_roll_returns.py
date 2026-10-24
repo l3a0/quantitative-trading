@@ -755,7 +755,14 @@ class TestThePostQuotesTheRun:
         ]
         assert not any(f(strips["TU"].spot) < 0 for f in readings.values()), SPEC
         assert round(10 * (round(100 * hg, 1) - BOOK_TABLE_5_1["HG"][0])) == 1, SPEC
+        missed = [r for r in ROOTS if not lands(results[r].alpha, BOOK_TABLE_5_1[r][0])]
+        assert missed == ["HG", "TU"], SPEC
+        assert all(lands(results[r].mean_gamma, BOOK_TABLE_5_1[r][1]) for r in ROOTS), SPEC
+        first, other = (_label(r) for r in missed)
         fragments = [
+            f"{first}’s and {other}’s misses come from Chan’s own saved files",
+            f"**{first}’s spot return** is {100 * hg:.2f} percent",
+            f"**{other}’s spot return** is positive.",
             "HG’s miss is a tenth of a percentage point",
             f"The {matching} reading is the only one that matches HG",
             f"None of the {NUMBER_WORDS[len(readings)]} turns TU’s α negative.",
@@ -837,16 +844,37 @@ class TestThePostQuotesTheRun:
         def ratio(root: str, gamma: float) -> str:
             return f"{abs(gamma) / abs(results[root].alpha):.2f}"
 
-        hg = results["HG"]
-        (smaller,) = [r for r in ROOTS if abs(results[r].mean_gamma) <= abs(results[r].alpha)]
+        def twice(root: str, gamma: float) -> bool:
+            return abs(gamma) >= 2 * abs(results[root].alpha)
+
+        def bigger(root: str, gamma: float) -> bool:
+            return abs(gamma) > abs(results[root].alpha)
+
+        first, second = ("BR", "C2", "TU"), ("BR", "HG", "TU")
+        script = {r: results[r].mean_gamma for r in ROOTS}
+        months = {r: results[r].mean_gamma_in_months for r in ROOTS}
+        assert all(twice(r, script[r]) for r in first), SPEC
+        assert all(bigger(r, script[r]) for r in second), SPEC
+        narrowest = min(first, key=lambda r: abs(script[r]) / abs(results[r].alpha))
+        fails_first = [r for r in first if not twice(r, months[r])]
+        fails_second = [r for r in second if not bigger(r, months[r])]
+        assert len(fails_first) == len(fails_second) == 1, SPEC
+        either_way = [r for r in first if r in second and r not in fails_first + fails_second]
+        (c,), (hg,) = fails_first, fails_second
+        (smaller,) = [r for r in ROOTS if abs(script[r]) <= abs(results[r].alpha)]
         fragments = [
             f"{_label(smaller)} is the one future whose roll return is smaller than its spot "
             "return",
-            f"with a roll return {ratio('BR', results['BR'].mean_gamma)} times its spot return",
-            f"Its roll return is {ratio('C2', results['C2'].mean_gamma_in_months)} times its "
-            "spot return, short of twice.",
-            f"Its roll return of {100 * hg.mean_gamma_in_months:.2f} percent is smaller than "
-            f"its spot return of {100 * hg.alpha:.2f} percent.",
+            "Under the script’s γ, both hold.",
+            f"{_label(narrowest)} is the narrowest case for the first claim, with a roll return "
+            f"{ratio(narrowest, script[narrowest])} times its spot return",
+            f"Under the fit in months, each claim fails for {NUMBER_WORDS[len(fails_first)]} "
+            "future.",
+            f"**{_label(c)} fails the first claim.** Its roll return is {ratio(c, months[c])} "
+            "times its spot return, short of twice.",
+            f"**{_label(hg)} fails the second.** Its roll return of {100 * months[hg]:.2f} "
+            f"percent is smaller than its spot return of {100 * results[hg].alpha:.2f} percent.",
+            f"{' and '.join(_label(r) for r in either_way)} hold either way.",
         ]
         assert self._missing(fragments, post) == [], SPEC
 
@@ -891,9 +919,10 @@ class TestThePostQuotesTheRun:
         high, low = gamma.idxmax(), gamma.idxmin()
         lowest, mean = _minus(f"{gamma.min():.6f}"), _minus(f"{results['CL'].mean_gamma:.6f}")
         assert len(flat) == 1 and sign == -1 and low < high + pd.DateOffset(months=4), SPEC
+        assert (signed < 0).sum() > len(gamma) / 2, SPEC
         fragments = [
-            f"CL’s γ is negative on {(signed < 0).sum():,} of its {len(gamma):,} days and "
-            f"positive on {(signed > 0).sum():,}.",
+            f"**Mostly contango.** CL’s γ is negative on {(signed < 0).sum():,} of its "
+            f"{len(gamma):,} days and positive on {(signed > 0).sum():,}.",
             f"On the remaining day, {flat.index[0].date()}, the five prices rise and fall "
             f"back evenly, from {settled.iloc[0]:.2f} to {settled.max():.2f} and back to "
             f"{settled.iloc[-1]:.2f}",
