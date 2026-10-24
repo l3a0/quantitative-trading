@@ -40,7 +40,7 @@ Two files carry the data, both Chan’s own MATLAB files, converted here to one 
 
 The script, `pead.m`, cuts the prices down to the flag file’s 330 days and runs the rule. The translation follows the copy in a public mirror of Chan’s code, `ivanliu1989/algorithmic_trading` at commit `45670240`.
 
-The price file holds 497 stocks, Chan’s list of the S&P 500 on 2012-04-24, with each one’s prices running back from that day. A company that left the index during 2011 is not in the file. Lesson 5 comes back to that.
+The price file holds 497 stocks from Chan’s list of the S&P 500, with each one’s prices running back from 2012-04-24. The list is closest to the index as it stood in late 2011. A company that left the index before then is not in the file, and a few that left after then still are. Lesson 5 comes back to that.
 
 ## Lesson 1: every number Chan prints reproduces on his own files
 
@@ -116,7 +116,7 @@ So a translation that used the wrong helper would match four of the five printed
 
 The exact match shows that the code, the data and the book agree. It says nothing about whether the drift paid, for three reasons.
 
-1. **Every stock is a survivor.** The price file holds Chan’s list of the S&P 500 on 2012-04-24, with each stock’s prices running back from that day. A company that left the index during 2011, because it was acquired, shrank or failed, is absent. A trader in 2011 could have traded its announcements while it was still a member, but the backtest never sees them. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day.
+1. **Every stock is a survivor.** The price file holds Chan’s list of the S&P 500, which is closest to the index as it stood in late 2011, with each stock’s prices running back from 2012-04-24. A company that left the index before then, because it was acquired, shrank or failed, is absent. A trader at the time could have traded its announcements while it was still a member, but the backtest never sees them. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day.
 2. **No cost is charged.** `pead.m` charges nothing, and every position is a full round trip inside one day: a buy and a sell, or a short and a cover, each paying a spread and a commission. A strategy that takes 1,072 positions across 330 days at a thirtieth of capital each carries costs a reader would want priced before believing the 6.7 percent.
 3. **The rule was chosen on the same days it is tested on.** Chan chose the rule and its settings, and took the 30 from the same 330 days. Reproducing his figures on the same days tests his arithmetic, so the result is exploratory. A result that could confirm the drift would need a rule fixed in writing first and data the rule had never seen.
 
@@ -124,7 +124,7 @@ The exact match shows that the code, the data and the book agree. It says nothin
 
 Five questions are beyond it.
 
-1. **What the drift earned on the index as it stood each day.** Every stock here is on the S&P 500 list Chan held on 2012-04-24. Measuring it needs prices for the companies that left the index during the window.
+1. **What the drift earned on the index as it stood each day.** Every stock here is on Chan’s S&P 500 list, which is closest to the index of late 2011. Measuring it needs prices for the companies that left the index during the window.
 2. **Whether Chan’s flags are the announcement calendar.** They miss two of the five Apple releases whose next morning falls inside the window. The later rerun, which is exploratory, built a calendar from EDGAR’s filings by one rule. Over the 488 stocks it could match to a filer, that calendar and Chan’s share 1,540 flags. Chan’s file holds 311 that the rule does not give, and the rule gives 914 that his file lacks. Neither count says which calendar is right. The rule flags nothing for a filing accepted during the session. A filing can be accepted days after the release it reports. Nothing reads a filing’s text to check that it reports earnings. So his flags are one reading of the calendar rather than the calendar itself, and every figure in this post is computed on his flags.
 3. **What costs would take.** Nothing here charges any.
 4. **How large the look-ahead in the 30 is.** Chan argues it is small, and nothing here tests the argument.

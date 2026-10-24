@@ -61,10 +61,11 @@ only once the window has been seen. He argues the bias is small because the
 maximum number of announcements a day is predictable. Nothing here measures that.
 
 **The helper choice moves a printed digit.** ``smartstd`` here is book two's,
-which skips a NaN and divides by n. The first edition's,
-:func:`chan.matlab_helpers.smartstd_first_edition`, zero-fills and
-divides by n − 1, and with it the arithmetic return becomes 0.066833, which
-prints as 0.0668 rather than Chan's 0.0667. ``tests/test_pead.py`` pins both.
+which skips a NaN and divides by n, the number of values it kept. The first
+edition's, :func:`chan.matlab_helpers.smartstd_first_edition`, zero-fills and
+divides by n − 1, where n counts every value in the window, and with it the
+arithmetic return becomes 0.066833, which prints as 0.0668 rather than
+Chan's 0.0667. ``tests/test_pead.py`` pins both.
 :mod:`chan.matlab_helpers` says what each ``smartstd`` does and where each
 came from.
 
@@ -78,9 +79,11 @@ sources must name the same stocks in the same order, because ``pead.m`` pairs
 their columns by position, so a mismatch is refused by symbol rather than
 paired wrongly.
 
-**Every figure here is about survivors.** The price file is the S&P 500 as
-Chan held it on 2012-04-24, carried backwards, so a company that left the
-index during 2011 is absent. That is Chan's own universe, so it reproduces his
+**Every figure here is about survivors.** The price file is Chan's list of
+the S&P 500, closest to the index as it stood in late 2011, carried back from
+2012-04-24. A company that left the index before then is absent, and a few
+that left later are still in it. ``TestTheList`` in ``tests/test_pead.py``
+holds both against the index fund's holdings. That is Chan's own universe, so it reproduces his
 figure rather than approximating it, and it says nothing about what the rule
 earned on the index as it stood each day.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is where
@@ -387,8 +390,8 @@ def report(prices: list[VintageEntry], announcements: list[VintageEntry], drift:
         print(f"  {label:<38} {computed:>10} {printed:>10} {script:>10} {book:>12}")
     print()
     print(
-        "  The price file holds only the stocks on Chan's S&P 500 list of 2012-04-24, "
-        "so every figure above is about survivors."
+        "  The price file holds only the stocks on Chan's S&P 500 list, closest to the "
+        "index of late 2011, so every figure above is about survivors."
     )
     print(
         "  Exploratory. Reproducing Chan's figures spends the 2011 and 2012 sample on a rule he "

@@ -3510,9 +3510,9 @@ prints.
 
 One choice decides a printed digit. Chan's two books ship two helpers called
 `smartstd`. The first edition's, which Entries 8 and 10 and Entry 7's
-first-edition rows run, counts a missing value as zero and divides by n − 1.
-Book two's, which Entry 7's revised MATLAB rows run too, skips it and divides
-by n. With book two's, the arithmetic return is 0.066743, which prints as
+first-edition rows run, counts a missing value as zero and divides by n − 1, where n counts every
+value. Book two's, which Entry 7's revised MATLAB rows run too, skips it and
+divides by n, the number of values it kept. With book two's, the arithmetic return is 0.066743, which prints as
 Chan's 0.0667. With the first edition's it is 0.066833, which prints as
 0.0668, and row 11 holds that.
 
@@ -3525,8 +3525,8 @@ here.
    `earnannFile.mat`, saved 2012-05-15. Both are read through
    `chan.series.load_panel`, and [data/README.md](../data/README.md) records
    where each came from and what it holds. **Every figure here is about
-   survivors**, because the price file is the S&P 500 as Chan held it on
-   2012-04-24, carried backwards.
+   survivors**, because the price file is Chan's list of the S&P 500, closest
+   to the index as it stood in late 2011, carried back from 2012-04-24.
 2. **The specification.** `pead.m` at `45670240` in
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
    The prices are cut to the flag file's 330 days, 2011-01-03 to 2012-04-24,
@@ -3608,7 +3608,8 @@ Two things.
 Four things.
 
 **What the drift earned on the index as it stood each day.** Every stock here
-is on the S&P 500 list Chan held on 2012-04-24.
+is on Chan's S&P 500 list, which is closest to the index of late 2011 rather
+than of 2012-04-24.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) reruns the
 rule on a point-in-time universe, which waits on a purchase.
 

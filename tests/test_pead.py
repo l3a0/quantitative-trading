@@ -10,10 +10,10 @@ also quotes figures that five other files pin.
    flagged days and the 29 stocks with none, as facts about the committed
    flags.
 3. ``tests/test_pead_rerun.py`` pins what the rerun's calendar shares with
-   Chan's flags and the two Apple mornings his file misses, and
-   ``tests/test_earnings_filings.py`` when each of Apple's filings was
+   Chan's flags and the two Apple mornings his file misses.
+4. ``tests/test_earnings_filings.py`` pins when each of Apple's filings was
    accepted.
-4. ``tests/test_equity_seasonals.py`` pins Example 7.7's two Sharpe ratios,
+5. ``tests/test_equity_seasonals.py`` pins Example 7.7's two Sharpe ratios,
    which Lesson 4 recalls.
 
 ``TestWhatThePostQuotes`` reads the post itself. It checks one copy of each
@@ -33,8 +33,9 @@ both are stated once here and carried in every figure's failure message as
   Close columns, and ``earnannfile/``, the 497 flag series lifted from his
   ``earnannFile.mat``, read for the Flag column. Their identities are the two
   rows of ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``, which
-  ``TestTheVintages`` holds the members to. The price file is the S&P 500 as
-  Chan held it on 2012-04-24, so every figure is a figure about survivors.
+  ``TestTheVintages`` holds the members to. The price file is Chan's list of
+  the S&P 500, closest to the index of late 2011, which ``TestTheList``
+  holds, so every figure is a figure about survivors.
 - **Specification.** ``pead.m`` at the mirror commit :mod:`chan.pead` names.
   The prices are cut to the flag file's 330 days before the close-to-open gap
   is taken. The moving standard deviation is book two's ``smartMovingStd``
@@ -347,6 +348,8 @@ class TestTheRun:
 # --- what the post quotes ----------------------------------------------------------
 
 POST = Path(__file__).parents[1] / "blog" / "post-earnings-drift-lessons.md"
+IVV = Path(__file__).parents[1] / "research" / "filings" / "ivv"
+PRICES = Path(__file__).parents[1] / "data" / "inputdataohlcdaily_stocks_20120424"
 
 #: Small counts as the post spells them out, indexed by the count.
 SPELLED = ("no", "one", "two", "three", "four", "five", "six", "seven")
@@ -365,6 +368,54 @@ def _minus(x: float, places: int) -> str:
 def _afternoon(at: time) -> str:
     """A time after noon as the post writes it, such as 4:00 p.m."""
     return f"{at.hour - 12}:{at.minute:02d} p.m."
+
+
+class TestTheList:
+    """Chan's price file is his S&P 500 list of late 2011, not the index of 2012-04-24.
+
+    The post says the list is closest to the index as it stood in late 2011,
+    that a company that left before then is absent, and that a few that left
+    after then are still in it. The index fund's quarterly holdings under
+    ``research/filings/ivv/`` show it by name. Five companies held at
+    2011-09-30 and gone by 2011-12-31 still have a file of prices here, and
+    three that joined in that quarter have none, while Xylem, which joined in
+    the same quarter, has one. So the list was drawn up inside the fourth
+    quarter of 2011.
+    """
+
+    LEFT = {
+        "AK Steel": "aks",
+        "Compuware": "cpwr",
+        "Monster Worldwide": "mww",
+        "Tellabs": "tlab",
+        "MEMC": "wfr",
+    }
+    JOINED_ABSENT = {"BorgWarner": "bwa", "Dollar Tree": "dltr", "Perrigo": "prgo"}
+
+    @staticmethod
+    def held(quarter: str, name: str) -> bool:
+        return name in (IVV / f"{quarter}.csv").read_text(encoding="utf-8")
+
+    @staticmethod
+    def priced(symbol: str) -> bool:
+        return (PRICES / f"{symbol}.csv").is_file()
+
+    def test_five_that_left_in_the_fourth_quarter_of_2011_are_still_in_the_file(self) -> None:
+        for name, symbol in self.LEFT.items():
+            assert self.held("2011-09-30", name), name
+            assert not self.held("2011-12-31", name), name
+            assert self.priced(symbol), symbol
+
+    def test_three_that_joined_in_that_quarter_are_not(self) -> None:
+        for name, symbol in self.JOINED_ABSENT.items():
+            assert not self.held("2011-09-30", name), name
+            assert self.held("2011-12-31", name), name
+            assert not self.priced(symbol), symbol
+
+    def test_xylem_joined_in_that_quarter_and_is(self) -> None:
+        assert not self.held("2011-09-30", "Xylem")
+        assert self.held("2011-12-31", "Xylem")
+        assert self.priced("xyl")
 
 
 class TestWhatThePostQuotes:
@@ -439,9 +490,11 @@ class TestWhatThePostQuotes:
             f"Saved on {flags_saved}, it covers {len(days)} trading days, from "
             f"{days[0].date()} to {days[-1].date()}.",
             f"cuts the prices down to the flag file’s {len(days)} days",
-            f"A company that left the index during {days[0].year} is not in the file.",
-            f"The price file holds {opens.shape[1]} stocks, Chan’s list of the S&P 500 on "
-            f"{opens.index[-1].date()}",
+            f"The price file holds {opens.shape[1]} stocks from Chan’s list of the S&P 500, "
+            f"with each one’s prices running back from {opens.index[-1].date()}.",
+            "The list is closest to the index as it stood in late 2011. A company that left "
+            "the index before then is not in the file, and a few that left after then still "
+            "are.",
             f"between {_afternoon(pead_rerun.SESSION_CLOSE)} and "
             f"{pead_rerun.SESSION_OPEN.hour}:{pead_rerun.SESSION_OPEN.minute:02d} a.m. Eastern",
             f"the gap’s {LOOKBACK}-day moving standard deviation",
@@ -454,10 +507,10 @@ class TestWhatThePostQuotes:
     def test_the_opening(self, drift: Drift, text) -> None:
         d = drift
         fragments = [
-            f"an annual percentage rate, or APR, of {100 * d.arithmetic_annual:.1f} percent",
-            f"“a very respectable {d.sharpe:.1f}”",
-            f"is {d.arithmetic_annual:.6f}, the book’s {100 * d.arithmetic_annual:.1f} percent",
-            f"The Sharpe ratio is {d.sharpe:.4f}, the book’s {d.sharpe:.1f}.",
+            f"an annual percentage rate, or APR, of {BOOK_APR_PERCENT} percent",
+            f"“a very respectable {BOOK_SHARPE}”",
+            f"is {d.arithmetic_annual:.6f}, the book’s {BOOK_APR_PERCENT} percent",
+            f"The Sharpe ratio is {d.sharpe:.4f}, the book’s {BOOK_SHARPE}.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -468,15 +521,15 @@ class TestWhatThePostQuotes:
             (
                 "Arithmetic",
                 f"{d.arithmetic_annual:.6f}",
-                f"{d.arithmetic_annual:7.4f}".strip(),
-                rf"{100 * d.arithmetic_annual:.1f}\%",
+                SCRIPT_ARITHMETIC,
+                rf"{BOOK_APR_PERCENT}\%",
             ),
-            ("Sharpe ratio", f"{d.sharpe:.4f}", f"{d.sharpe:4.2f}", f"{d.sharpe:.1f}"),
-            ("Compounded", f"{d.compounded_apr:.6f}", f"{d.compounded_apr:10.4f}".strip(), none),
-            ("Max drawdown", f"{d.max_drawdown:.6f}", f"{d.max_drawdown:f}", none),
-            ("Longest, days", f"{d.max_drawdown_days}", f"{d.max_drawdown_days}", none),
-            ("Most positions", f"{d.most_held}", none, f"{d.most_held}"),
-            (f"Levered {BOOK_LEVERAGE}x", f"{d.levered:.6f}", none, rf"{round(100 * d.levered)}\%"),
+            ("Sharpe ratio", f"{d.sharpe:.4f}", SCRIPT_SHARPE, f"{BOOK_SHARPE}"),
+            ("Compounded", f"{d.compounded_apr:.6f}", SCRIPT_APR, none),
+            ("Max drawdown", f"{d.max_drawdown:.6f}", SCRIPT_MAX_DD, none),
+            ("Longest, days", f"{d.max_drawdown_days}", f"{SCRIPT_MAX_DDD}", none),
+            ("Most positions", f"{d.most_held}", none, f"{DENOMINATOR}"),
+            (f"Levered {BOOK_LEVERAGE}x", f"{d.levered:.6f}", none, rf"{BOOK_LEVERED_PERCENT}\%"),
         ]
         table = (
             r"\small\begin{array}{l|r|r|r}" + "\n"
@@ -496,17 +549,17 @@ class TestWhatThePostQuotes:
             f"{SPELLED[printed - quoted].capitalize()} more figures the script prints match too, "
             f"and so do {SPELLED[stated]} numbers Chan states in his text. Lesson 1’s table lists "
             f"all {SPELLED[len(rows)]}.",
-            f"the book calls close to {round(100 * d.levered)} percent",
+            f"the book calls close to {BOOK_LEVERED_PERCENT} percent",
         ]
         assert self.missing(text, fragments) == []
 
     def test_the_two_aprs(self, drift: Drift, text) -> None:
         arithmetic = f"{100 * drift.arithmetic_annual:.1f}"
         compounded = f"{100 * drift.compounded_apr:.1f}"
-        assert compounded != arithmetic, SPEC
+        assert arithmetic == f"{BOOK_APR_PERCENT}" != compounded, SPEC
         fragments = [
-            f"the compounded figure reads {compounded} percent, so the book’s {arithmetic} can "
-            "only be the arithmetic one",
+            f"the compounded figure reads {compounded} percent, so the book’s "
+            f"{BOOK_APR_PERCENT} can only be the arithmetic one",
         ]
         assert self.missing(text, fragments) == []
 
@@ -598,7 +651,7 @@ class TestWhatThePostQuotes:
             f"Across the whole window, {int(held.sum())} of the {len(held)} days hold any "
             "position at all, so more than half the days hold none.",
             f"At exactly {SPELLED[BOOK_LEVERAGE]}, the figure is {drift.levered:.6f}, which "
-            f"rounds to his {round(100 * drift.levered)}.",
+            f"rounds to his {BOOK_LEVERED_PERCENT}.",
         ]
         assert self.missing(text, fragments) == []
 
