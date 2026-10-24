@@ -202,12 +202,12 @@ def _one_line() -> Scene:
         steps.append(_dot(f"day-{expiry}", T0, float(contract_line(T0, expiry)), color=INK))
     steps.append(
         Label(
-            "hold one day: each year to expiry sits one roll return lower",
+            "hold one day: one roll return lower per year to expiry",
             2.9,
             1.05,
             names="day",
-            color=GOOD,
-            size=11,
+            color=INK,
+            size=12,
         )
     )
     steps.append(

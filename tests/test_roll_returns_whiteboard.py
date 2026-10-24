@@ -94,7 +94,7 @@ MODEL_LABELS = [
     "spot: rises at the spot return",
     "each contract ends at the spot",
     "hold one contract: spot return + roll return",
-    "hold one day: each year to expiry sits one roll return lower",
+    "hold one day: one roll return lower per year to expiry",
     "roll return above 0: backwardation",
 ]
 
@@ -428,7 +428,7 @@ class TestTheModelSketch:
         ):
             assert _stroke(scene, gid).color == ink, gid
         for text, ink in zip(
-            MODEL_LABELS, (MUTED, MUTED, INK, MUTED, ACCENT, GOOD, GOOD), strict=True
+            MODEL_LABELS, (MUTED, MUTED, INK, MUTED, ACCENT, INK, GOOD), strict=True
         ):
             assert _label(scene, text).color == ink, text
         assert _stroke(scene, "day").dashed
