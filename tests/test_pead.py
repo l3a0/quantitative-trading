@@ -1,15 +1,28 @@
 """The pins for post-earnings announcement drift, *Algorithmic Trading*'s Example 7.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 7.2, with three exceptions, all in
-``blog/post-earnings-drift-lessons.md``. The post quotes the dates of the
-longest spell below the high, which ``tests/test_pead_figures.py`` holds. It
-quotes the flag file's 1,885 flags, Apple's three flagged days and the 29
-stocks with none, which ``tests/test_series.py`` holds as facts about the
-committed flags. And it recalls Example 7.7's two Sharpe ratios, which
-``tests/test_equity_seasonals.py`` holds. README lists what the post says that
-nothing pins. ``docs/replication-log.md`` Entry 12 carries the verdicts and
-points here row by row.
+about Example 7.2's run on Chan's files. ``blog/post-earnings-drift-lessons.md``
+also quotes figures that four other files pin.
+
+1. ``tests/test_pead_figures.py`` pins the dates of the longest spell below
+   the high.
+2. ``tests/test_series.py`` pins the flag file's 1,885 flags, Apple's three
+   flagged days and the 29 stocks with none, as facts about the committed
+   flags.
+3. ``tests/test_pead_rerun.py`` pins what the rerun's calendar shares with
+   Chan's flags and the two Apple mornings his file misses, and
+   ``tests/test_earnings_filings.py`` when each of Apple's filings was
+   accepted.
+4. ``tests/test_equity_seasonals.py`` pins Example 7.7's two Sharpe ratios,
+   which Lesson 4 recalls.
+
+``TestWhatThePostQuotes`` reads the post itself. It checks one copy of each
+figure the post quotes against the run, at the precision the post prints, and
+that includes the figures the first three files pin, read here from the same
+committed files. It does not read Example 7.7's two figures or any second
+copy of a figure, and its docstring names the runs it reads. README lists what
+the post says that nothing pins. ``docs/replication-log.md`` Entry 12 carries
+the verdicts and points here row by row.
 
 Every pin on the committed files reads two vintages and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -48,13 +61,15 @@ rule he chose. It first ran here on 2026-10-03.
 
 from __future__ import annotations
 
+from datetime import time
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from chan import matlab_helpers, pead
+from chan import matlab_helpers, pead, pead_rerun
 from chan.matlab_helpers import smart_moving_std, smartstd_first_edition
 from chan.pead import (
     BOOK_APR_PERCENT,
@@ -81,6 +96,8 @@ from chan.pead import (
     refuse_scale_breaks,
     run,
 )
+from chan.pead_figures import cumulative_return, longest_spell
+from chan.pead_rerun import r1_day
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
@@ -325,6 +342,312 @@ class TestTheRun:
             assert all(figure in row.split() for figure in figures), row
         assert "about survivors" in out
         assert "Exploratory." in out
+
+
+# --- what the post quotes ----------------------------------------------------------
+
+POST = Path(__file__).parents[1] / "blog" / "post-earnings-drift-lessons.md"
+
+#: Small counts as the post spells them out, indexed by the count.
+SPELLED = ("no", "one", "two", "three", "four", "five", "six", "seven")
+
+
+def thousands(count: int) -> str:
+    """A count with its thousands comma, as the post's prose writes it."""
+    return f"{count:,}"
+
+
+def _minus(x: float, places: int) -> str:
+    """A figure at the post's precision, with the post's prose minus sign, U+2212."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _afternoon(at: time) -> str:
+    """A time after noon as the post writes it, such as 4:00 p.m."""
+    return f"{at.hour - 12}:{at.minute:02d} p.m."
+
+
+class TestWhatThePostQuotes:
+    """One copy of each figure ``blog/post-earnings-drift-lessons.md`` quotes, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in one copy: a short fragment holding the number and
+    the few words that name one place in the post. A typo in that copy, or a
+    re-pin that leaves the post behind, fails here. Lesson 1's table is
+    rebuilt whole from the run, so a digit added to a cell fails as well as a
+    digit changed. Each comparison the post's words draw on the run, such as
+    "more than half the days hold none", is asserted on the run, and one copy
+    of its words is read.
+
+    Four runs supply the figures, all on the committed files.
+
+    1. :func:`chan.pead.pead` on Chan's two files, the run the classes above
+       pin, for the five printed figures, the 30, the counts of positions and
+       days, and the window.
+    2. The same run with the first edition's ``smartstd``, for Lesson 4's
+       1,071, 0.066833 and PNW's long on 2012-02-24.
+    3. :func:`chan.pead_figures.longest_spell` on that run's cumulative
+       return, for the spell's 109 days, its dates, the high before it and
+       the trough inside it.
+    4. :func:`chan.pead_rerun.read_committed` on the same files, for the flag
+       file's 1,885 flags, the 29 stocks with none and Apple's flagged days,
+       for Apple's six releases and their acceptance times, and for the 488
+       stocks and the 1,540, 311 and 914 flags of the rerun's calendar.
+       ``tests/test_series.py`` and ``tests/test_pead_rerun.py`` pin the same
+       figures, and this class reads the post's copy of them.
+
+    The post states most figures more than once, in a lesson, the table, an
+    alt text or the closing lists, and the other copies are not read, so a
+    typo in one of them passes. The two sketches' alt texts are read against
+    their labels by ``tests/test_pead_whiteboard.py`` instead. Example 7.7's
+    two Sharpe ratios, which Lesson 4 recalls, are not read here, because
+    their run reads another book's data, and ``tests/test_equity_seasonals.py``
+    holds them. Chan's words, the Kindle locations, the mirror's commit and
+    the references stay unpinned, as README lists.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def rerun(cls, sources) -> pead_rerun.Sources:
+        """The rerun's committed sources, with Chan's two files read once for the module."""
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr(pead_rerun, "read_sources", lambda data_dir=None: sources)
+            return pead_rerun.read_committed()
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_files_and_the_window(self, sources, drift: Drift, text) -> None:
+        prices, announcements, opens, _, flags = sources
+        (prices_saved,) = {m.obtained for m in prices}
+        (flags_saved,) = {m.obtained for m in announcements}
+        days = drift.days
+        assert ENTRY == 0.5, "half that deviation"
+        fragments = [
+            f"on the S&P 500 from {days[0]:%B %Y} to {days[-1]:%B %Y}",
+            f"the opens and closes of {opens.shape[1]} stocks, saved on {prices_saved}",
+            f"for the same {flags.shape[1]} stocks",
+            f"Saved on {flags_saved}, it covers {len(days)} trading days, from "
+            f"{days[0].date()} to {days[-1].date()}.",
+            f"cuts the prices down to the flag file’s {len(days)} days",
+            f"A company that left the index during {days[0].year} is not in the file.",
+            f"The price file holds {opens.shape[1]} stocks, Chan’s list of the S&P 500 on "
+            f"{opens.index[-1].date()}",
+            f"between {_afternoon(pead_rerun.SESSION_CLOSE)} and "
+            f"{pead_rerun.SESSION_OPEN.hour}:{pead_rerun.SESSION_OPEN.minute:02d} a.m. Eastern",
+            f"the gap’s {LOOKBACK}-day moving standard deviation",
+            "A gap of at least half that deviation goes long",
+            f"sums each day’s returns across stocks and divides by {DENOMINATOR}",
+            f"times {TRADING_DAYS} trading days a year",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_opening(self, drift: Drift, text) -> None:
+        d = drift
+        fragments = [
+            f"an annual percentage rate, or APR, of {100 * d.arithmetic_annual:.1f} percent",
+            f"“a very respectable {d.sharpe:.1f}”",
+            f"is {d.arithmetic_annual:.6f}, the book’s {100 * d.arithmetic_annual:.1f} percent",
+            f"The Sharpe ratio is {d.sharpe:.4f}, the book’s {d.sharpe:.1f}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1_s_table(self, drift: Drift, text) -> None:
+        """Rebuilt whole from the run, each cell at the precision its column prints."""
+        d, none = drift, r"\text{none}"
+        rows = [
+            (
+                "Arithmetic",
+                f"{d.arithmetic_annual:.6f}",
+                f"{d.arithmetic_annual:7.4f}".strip(),
+                rf"{100 * d.arithmetic_annual:.1f}\%",
+            ),
+            ("Sharpe ratio", f"{d.sharpe:.4f}", f"{d.sharpe:4.2f}", f"{d.sharpe:.1f}"),
+            ("Compounded", f"{d.compounded_apr:.6f}", f"{d.compounded_apr:10.4f}".strip(), none),
+            ("Max drawdown", f"{d.max_drawdown:.6f}", f"{d.max_drawdown:f}", none),
+            ("Longest, days", f"{d.max_drawdown_days}", f"{d.max_drawdown_days}", none),
+            ("Most positions", f"{d.most_held}", none, f"{d.most_held}"),
+            (f"Levered {BOOK_LEVERAGE}x", f"{d.levered:.6f}", none, rf"{round(100 * d.levered)}\%"),
+        ]
+        table = (
+            r"\small\begin{array}{l|r|r|r}" + "\n"
+            r"\text{Figure} & \text{Computed} & \texttt{pead.m} & \text{Book} \\ \hline"
+            + "\n"
+            + " \\\\\n".join(rf"\text{{{name}}} & {a} & {b} & {c}" for name, a, b, c in rows)
+            + "\n\\end{array}"
+        )
+        printed = sum(script != none for _, _, script, _ in rows)
+        quoted = sum(script != none and book != none for _, _, script, book in rows)
+        stated = sum(script == none and book != none for _, _, script, book in rows)
+        fragments = [
+            table,
+            f"record {SPELLED[printed]} figures the script prints. The book quotes "
+            f"{SPELLED[quoted]} of them, rounded, and states {SPELLED[stated]} more numbers in "
+            "its text.",
+            f"{SPELLED[printed - quoted].capitalize()} more figures the script prints match too, "
+            f"and so do {SPELLED[stated]} numbers Chan states in his text. Lesson 1’s table lists "
+            f"all {SPELLED[len(rows)]}.",
+            f"the book calls close to {round(100 * d.levered)} percent",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_two_aprs(self, drift: Drift, text) -> None:
+        arithmetic = f"{100 * drift.arithmetic_annual:.1f}"
+        compounded = f"{100 * drift.compounded_apr:.1f}"
+        assert compounded != arithmetic, SPEC
+        fragments = [
+            f"the compounded figure reads {compounded} percent, so the book’s {arithmetic} can "
+            "only be the arithmetic one",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_spell_below_the_high(self, drift: Drift, text) -> None:
+        cumret = cumulative_return(drift)
+        spell = longest_spell(cumret)
+        day = lambda row: drift.days[row].date()  # noqa: E731
+        assert spell.rows == drift.max_drawdown_days, SPEC
+        assert spell.depth == pytest.approx(drift.max_drawdown, abs=1e-15), SPEC
+        assert spell.first <= spell.trough <= spell.last, "on this run they do"
+        assert cumret[spell.last + 1] >= cumret[spell.high], "climbs back to the high"
+        fragments = [
+            f"to a high marked on {day(spell.high)}",
+            f"The line climbs back to the high in {drift.days[spell.last + 1]:%B %Y}.",
+            f"The red band runs {spell.rows} trading days, from {day(spell.first)} to "
+            f"{day(spell.last)}, and the deepest drawdown, {_minus(spell.depth, 6)}, falls "
+            f"inside it on {day(spell.trough)}.",
+            "On this run they do.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2_s_gap(self, sources, drift: Drift, text) -> None:
+        flags = sources[4]
+        announced = flags.loc[drift.days].to_numpy() != 0
+        fillable = int(announced[LOOKBACK - 1 :].sum())
+        traded = int(np.count_nonzero(drift.positions[announced]))
+        assert traded == drift.trades, SPEC
+        assert traded > fillable / 2, "most flagged announcements get traded"
+        fragments = [
+            f"{thousands(fillable)} announcements fall on or after the first day the "
+            f"{LOOKBACK}-day deviation can be computed, and {thousands(traded)} of them clear "
+            "the bar and are traded. So most flagged announcements get traded",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2_s_flags(self, rerun, text) -> None:
+        flags, window = rerun.flags, rerun.window
+        unflagged = int((flags.to_numpy() == 0).all(axis=0).sum())
+        apple = [str(day.date()) for day in flags.index[flags["AAPL"] != 0]]
+        releases = [
+            pd.Timestamp(r.accepted)
+            for r in rerun.releases
+            if r.ticker == "AAPL"
+            and window[0] <= pd.Timestamp(r.accepted).normalize() <= window[-1]
+        ]
+        mornings = [r1_day(at, rerun.days) for at in releases]
+        inside = [day for day in mornings if day is not None and day in window]
+        missed = [str(day.date()) for day in inside if flags.at[day, "AAPL"] == 0]
+        (about,) = {at.round("30min").time() for at in releases}
+        assert all(at.time() > pead_rerun.SESSION_CLOSE for at in releases), "after the close"
+        assert set(np.unique(flags.to_numpy())) == {0.0, 1.0}, "a 1 or a 0"
+        assert releases[-1].normalize() == window[-1], "the last came on its final day"
+        derived = rerun.calendar_flags("R1")["AAPL"]
+        assert [str(d.date()) for d in derived.index[(derived == 1) & (flags["AAPL"] == 0)]] == (
+            missed
+        )
+        fragments = [
+            "a 1 on each day the stock announced between the previous close and the open, "
+            "and a 0 otherwise",
+            f"The file holds {thousands(int(flags.to_numpy().sum()))} flags across its "
+            f"{flags.shape[1]} stocks, and {unflagged} of the stocks carry none at all",
+            f"Apple is flagged on {SPELLED[len(apple)]} days: {apple[0]}, {apple[1]} and "
+            f"{apple[2]}.",
+            f"Apple released earnings {SPELLED[len(releases)]} times inside the window. The last "
+            f"came on its final day, {window[-1].date()}, so only {SPELLED[len(inside)]} have a "
+            f"next morning inside it, and {SPELLED[len(missed)]} of those "
+            f"{SPELLED[len(inside)]} mornings carry no flag.",
+            f"That calendar flags {missed[0]} and {missed[1]}, the mornings after the "
+            f"{SPELLED[len(missed)]} Apple releases Chan’s file misses.",
+            f"all {SPELLED[len(releases)]} of Apple’s filings inside the window were accepted "
+            f"at about {_afternoon(about)} Eastern, after the close",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3(self, drift: Drift, text) -> None:
+        held = np.count_nonzero(drift.positions, axis=1) > 0
+        first = drift.days[held][0]
+        assert first == drift.days[LOOKBACK - 1], "the first day one could"
+        assert held.sum() < len(held) / 2, "more than half the days hold none"
+        fragments = [
+            f"The busiest day of the run holds {drift.most_held} positions",
+            f"No position is possible in the first {LOOKBACK - 1} days, because the deviation "
+            f"needs {LOOKBACK} days in its window",
+            f"The first position comes on the first day one could, {first.date()}.",
+            f"Across the whole window, {int(held.sum())} of the {len(held)} days hold any "
+            "position at all, so more than half the days hold none.",
+            f"At exactly {SPELLED[BOOK_LEVERAGE]}, the figure is {drift.levered:.6f}, which "
+            f"rounds to his {round(100 * drift.levered)}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_4(self, sources, drift: Drift, first_edition: Drift, text) -> None:
+        d, f = drift, first_edition
+        assert round(f.arithmetic_annual - d.arithmetic_annual, 4) == 0.0001, "one unit off"
+        script = lambda r: (  # noqa: E731
+            f"{r.arithmetic_annual:7.4f}".strip(),
+            f"{r.sharpe:4.2f}",
+            f"{r.compounded_apr:10.4f}".strip(),
+            f"{r.max_drawdown:f}",
+            r.max_drawdown_days,
+        )
+        kept = sum(a == b for a, b in zip(script(d), script(f), strict=True))
+        ((row, column),) = np.argwhere(d.positions != f.positions)
+        _, _, opens, closes, _ = sources
+        op = opens.loc[d.days].to_numpy(dtype=float)[:, column]
+        cl = closes.loc[d.days].to_numpy(dtype=float)[:, column]
+        gaps = close_to_open(op[:, None], cl[:, None])[:, 0]
+        window = gaps[row - LOOKBACK + 1 : row + 1]
+        finite = int(np.isfinite(window).sum())
+        half_two = ENTRY * float(matlab_helpers.smartstd_book_two(window))
+        half_first = ENTRY * float(smartstd_first_edition(window))
+        loss = (cl[row] - op[row]) / op[row]
+        assert d.positions[row, column] == 1 and f.positions[row, column] == 0, "long, then not"
+        assert half_two <= gaps[row] < half_first, SPEC
+        assert loss < 0 and f.arithmetic_annual > d.arithmetic_annual, "raises the return"
+        fragments = [
+            f"the strategy takes {thousands(f.trades)} positions rather than "
+            f"{thousands(d.trades)}, and the arithmetic annual return becomes "
+            f"{f.arithmetic_annual:.6f}. That prints as {script(f)[0]}, one unit off the "
+            f"script’s {script(d)[0]}.",
+            f"The one position that changes is {opens.columns[column]} on "
+            f"{d.days[row].date()}. Its gap was {100 * gaps[row]:.4f} percent. Half the "
+            f"*Algorithmic Trading* helper’s deviation was {100 * half_two:.4f} percent, so it "
+            f"went long. Half the first edition’s was {100 * half_first:.4f} percent",
+            f"has a gap on all {finite} days of its window",
+            f"the divisor, {finite - 1} rather than {finite}, and that alone widens",
+            f"That long lost {-100 * loss:.2f} percent on the day, so dropping it raises the "
+            "return.",
+            f"would match {SPELLED[kept]} of the {SPELLED[len(script(d))]} printed figures and "
+            "miss the fifth by one digit",
+        ]
+        assert finite == LOOKBACK, "a gap on all of them"
+        assert self.missing(text, fragments) == []
+
+    def test_what_the_rerun_s_calendar_shares_with_chan_s(self, rerun, text) -> None:
+        counts = pead_rerun.agreement(rerun.calendar_flags("R1"), rerun.flags)
+        fragments = [
+            f"Over the {len(rerun.universe('CAL'))} stocks it could match to a filer, that "
+            f"calendar and Chan’s share {thousands(counts.both)} flags. Chan’s file holds "
+            f"{counts.chan_only} that the rule does not give, and the rule gives "
+            f"{counts.derived_only} that his file lacks.",
+        ]
+        assert self.missing(text, fragments) == []
 
 
 # --- the rule, on frames small enough to read ----------------------------------

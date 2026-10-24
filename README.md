@@ -3491,6 +3491,17 @@ numbers. Five had no pin before it.
    2012-02-24, with its gap, both half deviations, the 90 finite gaps in its
    window and the day's loss.
 
+`TestWhatThePostQuotes` in [tests/test_pead.py](tests/test_pead.py) reads the
+post itself. It checks one copy of each figure the post takes from a run
+against that run, at the precision the post prints, and that includes the
+figures [tests/test_series.py](tests/test_series.py),
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py),
+[tests/test_earnings_filings.py](tests/test_earnings_filings.py) and
+[tests/test_pead_figures.py](tests/test_pead_figures.py) pin. It does not read
+Example 7.7's two Sharpe ratios, whose run reads another book's data, or any
+second copy of a figure. The two sketches' alt texts are read against their
+labels by [tests/test_pead_whiteboard.py](tests/test_pead_whiteboard.py).
+
 Its one figure is drawn from the committed files by
 [src/chan/pead_figures.py](src/chan/pead_figures.py), which reads them
 through the same scale-break guard as `python -m chan.pead`. It redraws the
