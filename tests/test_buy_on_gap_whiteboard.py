@@ -269,6 +269,19 @@ class TestTheNumbersComeFromTheRun:
     def test_pcs_is_the_only_stock_bought_that_day(self, day) -> None:
         assert day.bought == ("PCS",)
 
+    def test_bought_is_read_from_the_run_on_another_day(self) -> None:
+        from chan.buy_on_gap import buy_on_gap
+
+        _, frames = read_sources()
+        positions = buy_on_gap(frames["Open"], frames["Low"], frames["Close"]).positions
+        t = frames["Open"].index.get_loc(EXAMPLE_DAY)
+        j = frames["Open"].columns.get_loc(EXAMPLE_SYMBOL)
+        other = next(
+            k for k in range(t + 1, len(positions)) if positions[k].any() and not positions[k, j]
+        )
+        day = read_gap_day(day=frames["Open"].index[other])
+        assert EXAMPLE_SYMBOL not in day.bought and len(day.bought) >= 1
+
     def test_the_dashed_line_is_the_price_the_run_compares_the_open_against(self) -> None:
         """Read back through ``drop_qualifiers``, which takes the same
         ``entry_price``: PCS qualifies that day, an open one step under the

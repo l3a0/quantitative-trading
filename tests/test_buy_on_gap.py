@@ -240,10 +240,26 @@ class TestTheListDatesFromLate2011:
 
     def test_three_stocks_that_joined_in_december_2011_are_not(self, sources) -> None:
         _, frames = sources
-        after = _schedule_names("2011-12-31")
+        before, after = _schedule_names("2011-09-30"), _schedule_names("2011-12-31")
         for ticker, word in self.JOINED_IN_DECEMBER_2011.items():
             assert ticker not in frames["Close"].columns, ticker
             assert _named(word, after), word
+            assert not _named(word, before), word
+
+    def test_each_ticker_is_the_company_the_schedule_names(self) -> None:
+        members = pd.read_csv(REPO_ROOT / "research" / "filings" / "ivv" / "members.csv")
+        cases = [
+            ("2011-09-30", self.LEFT_IN_DECEMBER_2011),
+            ("2011-12-31", self.JOINED_IN_DECEMBER_2011),
+            ("2011-12-31", self.MEMBERS_ABSENT),
+        ]
+        for quarter, pairs in cases:
+            names = _schedule_names(quarter)
+            rows = members[members["report_date"] == quarter].set_index("row")["ticker"]
+            for ticker, word in pairs.items():
+                (row,) = [k for k, name in enumerate(names, start=1) if word.lower() in name]
+                # MEMC traded as WFR in 2011 and members.csv carries its later SUNE.
+                assert rows[row] == {"WFR": "SUNE"}.get(ticker, ticker), (ticker, word)
 
     def test_two_members_of_late_2011_are_not_in_the_file(self, sources) -> None:
         _, frames = sources
