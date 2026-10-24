@@ -25,7 +25,8 @@ and expiries are made up to show the shape of the model, so no position or
 slope on it is a value of α or γ. What it draws is the algebra of the model,
 ln F(t, T) = c + αt − γ(T − t), with the spot line c + αt sharing its c, so
 each contract meets the spot at its own expiry, and that holds whatever the
-numbers.
+numbers. Its labels name the two returns in words rather than as α and γ,
+because the hand font draws α like a and γ like y.
 
 The Lesson 2 sketch reads none of Chan's five files. It draws the planted
 example the post describes, built the way
@@ -141,7 +142,15 @@ def _one_line() -> Scene:
             color=INK,
             frames=8,
         ),
-        Label("spot: rises α a year", 6.9, 3.75, names="spot", color=INK, size=12),
+        Label(
+            "spot: rises at the spot return",
+            9.55,
+            3.95,
+            names="spot",
+            color=INK,
+            size=12,
+            ha="right",
+        ),
     ]
     for expiry in EXPIRIES:
         gid = f"contract-{expiry}"
@@ -169,7 +178,14 @@ def _one_line() -> Scene:
         )
     )
     steps.append(
-        Label("hold one contract: rises α + γ", 5.0, 1.55, names="held", color=ACCENT, size=12)
+        Label(
+            "hold one contract: spot return + roll return",
+            4.6,
+            1.55,
+            names="held",
+            color=ACCENT,
+            size=12,
+        )
     )
     steps.append(
         _stroke(
@@ -186,7 +202,7 @@ def _one_line() -> Scene:
         steps.append(_dot(f"day-{expiry}", T0, float(contract_line(T0, expiry)), color=INK))
     steps.append(
         Label(
-            "hold one day: each later expiry sits lower, γ per year to expiry",
+            "hold one day: each year to expiry sits one roll return lower",
             2.9,
             1.05,
             names="day",
@@ -194,7 +210,9 @@ def _one_line() -> Scene:
             size=11,
         )
     )
-    steps.append(Label("γ > 0: backwardation", 2.9, 0.68, names="day", color=GOOD, size=12))
+    steps.append(
+        Label("roll return above 0: backwardation", 2.9, 0.68, names="day", color=GOOD, size=12)
+    )
     return Scene("One line, read two ways", "one_line", tuple(steps))
 
 

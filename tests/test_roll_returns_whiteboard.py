@@ -35,7 +35,6 @@ import re
 
 import matplotlib
 import numpy as np
-import pandas as pd
 import pytest
 from PIL import Image
 
@@ -74,6 +73,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from tests import test_roll_returns as roll_test
 
 POST = REPO_ROOT / "blog" / "roll-returns-lessons.md"
 
@@ -91,11 +91,11 @@ FOLLOWS = (
 MODEL_LABELS = [
     "date t",
     "log price",
-    "spot: rises α a year",
+    "spot: rises at the spot return",
     "each contract ends at the spot",
-    "hold one contract: rises α + γ",
-    "hold one day: each later expiry sits lower, γ per year to expiry",
-    "γ > 0: backwardation",
+    "hold one contract: spot return + roll return",
+    "hold one day: each year to expiry sits one roll return lower",
+    "roll return above 0: backwardation",
 ]
 
 PLANTED_LABELS = [
@@ -433,6 +433,18 @@ class TestTheModelSketch:
             assert _label(scene, text).color == ink, text
         assert _stroke(scene, "day").dashed
 
+    def test_each_label_names_the_stroke_it_sits_beside(self, every) -> None:
+        scene = every[0]
+        for gid, texts in (
+            ("x-axis", ["date t"]),
+            ("y-axis", ["log price"]),
+            ("spot", ["spot: rises at the spot return"]),
+            (f"contract-{EXPIRIES[-1]}-end", ["each contract ends at the spot"]),
+            ("held", ["hold one contract: spot return + roll return"]),
+            ("day", MODEL_LABELS[-2:]),
+        ):
+            assert [label.text for label in _labels_of(scene, gid)] == texts, gid
+
     def test_the_slopes_say_backwardation_with_a_small_spot_return(self) -> None:
         assert 0 < ALPHA < GAMMA
 
@@ -517,20 +529,24 @@ class TestTheModelSketch:
 
 class TestThePlantedFigures:
     def test_the_frame_is_the_one_the_roll_return_test_builds(self) -> None:
-        """``tests/test_roll_returns.py`` builds the quarterly frame from a
-        curve of 50 times exp(−γ/12 · m) on months 0, 3, ..., 15 over four days."""
+        """The frame
+        ``test_quarterly_contracts_triple_the_column_gamma_and_not_the_month_gamma``
+        builds, read from that test module's own days, columns and curve, so
+        the two cannot drift apart."""
         frame = planted_frame()
-        expected = np.tile(50.0 * np.exp(-0.03 / 12 * np.arange(6.0) * 3), (4, 1))
-        assert list(frame.columns) == [
-            "X-2020H",
-            "X-2020M",
-            "X-2020U",
-            "X-2020Z",
-            "X-2021H",
-            "X-2021M",
-        ]
-        assert frame.index.equals(pd.bdate_range("2020-01-01", periods=4))
+        expected = np.tile(roll_test._curve(0.03, np.arange(6.0) * 3), (len(roll_test.DAYS), 1))
+        assert list(frame.columns) == list(roll_test.QUARTERLY)
+        assert frame.index.equals(roll_test.DAYS)
         np.testing.assert_allclose(frame.to_numpy(), expected, rtol=1e-15)
+
+    def test_a_frame_whose_days_disagree_is_refused(self, monkeypatch) -> None:
+        """Every day of the planted frame carries one curve, so one γ. A frame
+        whose second day has another curve has no single figure to print."""
+        frame = planted_frame()
+        frame.iloc[1] = planted_frame(0.05).iloc[1]
+        monkeypatch.setattr(sketches, "planted_frame", lambda gamma=0.03: frame)
+        with pytest.raises(ValueError, match="one γ on every day"):
+            planted()
 
     def test_the_two_fits_give_0_03_and_0_09(self) -> None:
         run = planted()
@@ -599,6 +615,22 @@ class TestThePlantedSketch:
         assert _label(scene, "fit in months: 0.03 a year").color == GOOD
         assert _label(scene, "same prices, one column apart").color == MUTED
         assert _label(scene, "script’s fit: 0.09 a year, three times").color == LOST
+
+    def test_each_cloud_comes_before_its_fit_and_the_slides_before_the_red_dots(
+        self, every
+    ) -> None:
+        gids = [s.gid for s in every[1].strokes]
+        assert gids.index("prices") + 1 == gids.index("months-fit")
+        assert gids.index("months-fit") < gids.index("slide-1")
+        assert gids.index("slide-4") < gids.index("columns")
+        assert gids.index("columns") + 1 == gids.index("script-fit")
+
+    def test_each_label_names_the_stroke_it_sits_beside(self, every) -> None:
+        scene = every[1]
+        assert [label.text for label in _labels_of(scene, "axis")] == PLANTED_LABELS[:6]
+        assert [label.text for label in _labels_of(scene, "months-fit")] == [PLANTED_LABELS[6]]
+        assert [label.text for label in _labels_of(scene, "slide-4")] == [PLANTED_LABELS[7]]
+        assert [label.text for label in _labels_of(scene, "script-fit")] == [PLANTED_LABELS[8]]
 
     def test_the_dots_are_dots_and_the_fits_are_lines(self, every) -> None:
         scene = every[1]

@@ -5371,8 +5371,8 @@ Every other number in the post traces to an assertion in
 [tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) for
 the figure's own numbers, or to
 [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
-for the sketches' labels and the planted prices' 50.00 and 48.52. Four had no pin before it, and
-`TestBesideThePost` there now pins them all.
+for the sketches' labels and the planted prices' 50.00 and 48.52. Four had
+no pin before it, and `TestBesideThePost` there now pins them all.
 
 1. CL's γ is negative on 1,388 of its 1,941 days and positive on 552. On
    2006-01-05 its five settlements run 65.38 to 65.41 and back, so it is zero
