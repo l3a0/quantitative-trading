@@ -37,9 +37,10 @@ lines are variants on ``lag`` and ``movingAvg`` that do not run. The run
 draws nothing, and :mod:`chan.cl_reversal_momentum_figures` redraws three of
 the four curves, leaving out ComboOR.
 
-**Why ComboOR is the combination under another name.** Call the reversal
+**Why ComboOR is the combination outside ten early rows.** Call the reversal
 condition "below the 30-day lag" and the momentum condition "above the 40-day
-lag". Where both hold, both rules go long. Where neither holds, the close is
+lag". Take a row where both lags exist and the close ties neither. Where both
+hold, both rules go long. Where neither holds, the close is
 above the first lag and below the second, and both rules go short. Where
 exactly one holds, OR scores a long and a short at once, which sums to flat,
 and the combination is flat too. So the two can differ only where a lag is
