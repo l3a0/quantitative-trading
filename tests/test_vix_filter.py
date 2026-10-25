@@ -950,7 +950,7 @@ class TestTheGuard:
             read_sources()
 
     def test_the_stocks_are_read_unguarded_as_buy_on_gap_decides(self, sources) -> None:
-        """``test_buy_on_gap.py``'s ``TestTheScaleBreakDecision`` holds the 30 flagged days."""
+        """``test_buy_on_gap.py``'s ``TestTheScaleBreakDecision`` holds the 30 flagged closes."""
         _, frames = buy_on_gap.read_sources()
         assert frames["Close"].equals(sources.stocks["Close"])
 

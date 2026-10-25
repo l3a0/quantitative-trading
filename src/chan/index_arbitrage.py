@@ -84,7 +84,7 @@ seen, so no false-discovery control is computed. ``coint_johansen`` returns no
 p-values for one to read.
 
 **SPY is guarded and the stocks are not.** SPY carries no flagged day over the
-two files' common days. The stocks carry all 30 of the panel's flagged days
+two files' common days. The stocks carry all 30 of the panel's flagged closes
 inside the window this run reads, ETFC's 2007-11-12 in training and 29 more in
 the test, and the guard would refuse the run on them. ``indexArb.m`` ran on
 these prices as they stand, so this run does too, following
