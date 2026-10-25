@@ -1,15 +1,19 @@
 """The pins for cross-sectional momentum, *Algorithmic Trading*'s Example 6.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 6.2, with three exceptions, all in
-``blog/cross-sectional-momentum-lessons.md``. The post quotes each window's
-deepest drawdown and the dates of the 2008 and 2009 spell below the high, which
+about Example 6.2, with four exceptions.
+``blog/cross-sectional-momentum-lessons.md`` quotes each window's deepest
+drawdown and the dates of the 2008 and 2009 spell below the high, which
 ``tests/test_cross_sectional_momentum_figures.py`` holds. It recalls Example
 7.2's 6.7 percent as the arithmetic figure, which ``tests/test_pead.py`` holds.
-And it quotes Example 4.4's Sharpe ratio of 4.713284 on the same file, which
-``tests/test_khandani_lo_book_two.py`` holds. README lists what the post says
-that nothing pins. ``docs/replication-log.md`` Entry 17 carries the verdicts
-and points here row by row.
+It quotes Example 4.4's Sharpe ratio of 4.713284 on the same file, which
+``tests/test_khandani_lo_book_two.py`` holds. And its two whiteboard sketches
+print the 2007 window's sum, product and cohort counts, which
+``tests/test_cross_sectional_momentum_whiteboard.py`` holds.
+:class:`TestWhatThePostQuotes` reads one copy of each run figure the post
+quotes against the run, and README lists what the post says that nothing pins.
+``docs/replication-log.md`` Entry 17 carries the verdicts and points here row
+by row.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here and carried in every figure's failure message as
@@ -32,7 +36,7 @@ both are stated once here and carried in every figure's failure message as
 The script's figures are pinned at the precision that is real, six decimals
 for the returns and the drawdown and four for the Sharpe ratio, and again as
 ``kentdaniel.m``'s ``fprintf`` formats them, against the strings its comment
-lines print. The readings are pinned at four decimals, which
+lines record. The readings are pinned at four decimals, which
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297) declared
 before any of them was computed, alongside the rule deciding whether one lands.
 
@@ -83,7 +87,9 @@ from chan.cross_sectional_momentum import (
     stabilised,
     window_figures,
 )
-from chan.matlab_helpers import round_half_away, smartstd_first_edition
+from chan.khandani_lo_book_two import BOOK_44_SHARPE, SCRIPT_44_SHARPE
+from chan.matlab_helpers import calculate_max_dd, round_half_away, smartstd_first_edition
+from chan.paths import REPO_ROOT
 from chan.series import (
     WindowCrossesScaleBreak,
     refuse_window_crossing_a_break,
@@ -216,7 +222,7 @@ class TestTheScript:
         assert script.max_drawdown_days == 23, SPEC
 
     def test_none_of_the_five_prints_what_the_comment_says(self, script: Figures) -> None:
-        """The comment lines print a Sharpe ratio of 0.40. The code prints 4.07."""
+        """The comment lines record a Sharpe ratio of 0.40. The code prints 4.07."""
         assert f"{script.arithmetic_annual:7.4f}".strip() == "0.3200" != SCRIPT_ARITHMETIC
         assert f"{script.sharpe:4.2f}" == "4.07" != SCRIPT_SHARPE
         assert f"{script.compounded_apr:10.4f}".strip() == "0.3726" != SCRIPT_APR
@@ -677,3 +683,239 @@ class TestTheRule:
         figures = window_figures(daily, days, "2007")
         assert len(figures.days) == 3
         assert figures.arithmetic_annual == pytest.approx(TRADING_DAYS * 0.02 / 3)
+
+
+# --- what the post quotes ------------------------------------------------------
+
+
+def _signed(x: float, spec: str) -> str:
+    """A figure as the post's prose writes it, with a true minus sign."""
+    return format(int(x) if spec == "d" else x, spec).replace("-", "−")
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/cross-sectional-momentum-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in one copy: a fragment holding the number and the few
+    words that place it in the post. A typo in that copy, or a re-pin that
+    leaves the post behind, fails here. The post states several figures more
+    than once, in a table, a lesson and the alt text, and only the copy named
+    here is read, so a rewording elsewhere breaks nothing. Chan's figures, the
+    comment's values and the 4.713284 that ``tests/test_khandani_lo_book_two.py``
+    holds come from their own constants or are not read. The figure's own
+    numbers come from :mod:`chan.cross_sectional_momentum_figures`, the module
+    ``tests/test_cross_sectional_momentum_figures.py`` pins.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return (REPO_ROOT / "blog" / "cross-sectional-momentum-lessons.md").read_text(
+            encoding="utf-8"
+        )
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def drawn(cls, closes):
+        from chan.cross_sectional_momentum_figures import deepest_drawdown, panels
+
+        return [(panel, deepest_drawdown(panel.cumret)) for panel in panels(closes)]
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_file_and_the_windows(self, closes, results, text) -> None:
+        late = sum(closes[s].first_valid_index() > closes.index[0] for s in closes.columns)
+        early = sum(closes[s].last_valid_index() < closes.index[-1] for s in closes.columns)
+        assert early == 0
+        rows, stocks = closes.shape
+        first, last = closes.index[0].date(), closes.index[-1].date()
+        fragments = [
+            f"daily closes of {stocks} stocks over {rows:,} trading days, from {first} to {last}",
+            f"None of them stops before the last day, and {late} begin after the first day",
+        ]
+        for n, (window, (start, end)) in enumerate(WINDOWS.items(), start=1):
+            days = len(results["R0"][window].days)
+            fragments.append(f"{n}. {start} to {end}, {days} trading days.")
+        assert self.missing(text, fragments) == []
+
+    def test_the_first_picks_and_the_short_days(self, closes, results, text) -> None:
+        longs, _ = formations(ranking_returns(closes.to_numpy()))
+        picked = closes.index[np.flatnonzero(longs.any(axis=1))[0]].date()
+        days = results["R0"]["2007"].days
+        held = cohorts_held(len(closes))[closes.index.get_indexer(days)]
+        short = int((held < HOLD_DAYS).sum())
+        fragments = [
+            f"The first picks are made on {picked}",
+            f"So its first {short} days hold fewer than {HOLD_DAYS} cohorts",
+            f"so its first {short} days hold fewer.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_comments_longest_drawdown_cannot_come_from_the_window(self, script, text) -> None:
+        """``calculateMaxDD`` counts at most one fewer days than its window holds."""
+        rows = len(script.days)
+        falling = np.linspace(-0.01, -0.5, rows)
+        assert calculate_max_dd(falling)[1] == rows - 1
+        assert SCRIPT_MAX_DDD > rows - 1
+        fragment = (
+            f"The comment records a longest drawdown of {SCRIPT_MAX_DDD} days, and the window "
+            f"holds {rows} trading days"
+        )
+        assert self.missing(text, [fragment]) == []
+
+    def test_lesson_1s_table_and_print_line(self, script, text) -> None:
+        s = script
+        fragments = [
+            f"\\texttt{{Avg Ann Ret}} & {s.arithmetic_annual:.6f} & {SCRIPT_ARITHMETIC}",
+            f"\\text{{Sharpe ratio}} & {s.sharpe:.4f} & {SCRIPT_SHARPE}",
+            f"\\texttt{{APR}} & {s.compounded_apr:.6f} & {SCRIPT_APR}",
+            f"\\text{{Maximum drawdown}} & {s.max_drawdown:.6f} & {SCRIPT_MAX_DD}",
+            f"\\text{{Longest, days}} & {s.max_drawdown_days} & {SCRIPT_MAX_DDD}",
+            f"round the first three to {s.arithmetic_annual:.4f}, {s.sharpe:4.2f} and "
+            f"{s.compounded_apr:.4f}",
+            f"The code computes a Sharpe ratio of {s.sharpe:.4f}, which rounds to the book’s "
+            f"{BOOK_SHARPE}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_readings_table_and_their_roundings(self, results, script, closes, text) -> None:
+        fragments = [
+            f"\\text{{{name}}} & {results[name]['2007'].arithmetic_annual:.4f} & "
+            f"{results[name]['2007'].sharpe:.4f}"
+            for name in READINGS
+        ]
+        rounded = [
+            int(round_half_away(100 * results[n]["2007"].arithmetic_annual)) for n in READINGS
+        ]
+        fragments.append(f"round to {', '.join(map(str, rounded[:-1]))} and {rounded[-1]} percent")
+        landing = [n for n in READINGS if round_half_away(10 * results[n]["2007"].sharpe) == 41]
+        assert landing == ["R0", "R4"]
+        fragments.append("The Sharpe ratio rounds to 4.1 for R0 and R4 alone")
+        first = window_figures(
+            script_as_printed(closes.to_numpy()),
+            pd.DatetimeIndex(closes.index),
+            "2007",
+            smartstd=smartstd_first_edition,
+        )
+        fragments.append(
+            f"the Sharpe ratio is {first.sharpe:.4f}, which prints as {first.sharpe:4.2f} "
+            f"rather than {script.sharpe:4.2f}"
+        )
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_table_and_its_roundings(self, results, text) -> None:
+        w1, w2 = results["R0"]["2007"], results["R0"]["2008-2009"]
+        arithmetic = [int(round_half_away(100 * f.arithmetic_annual)) for f in (w1, w2)]
+        compounded = [int(round_half_away(100 * f.compounded_apr)) for f in (w1, w2)]
+        assert compounded == [BOOK_APR_PERCENT, BOOK_CRISIS_APR_PERCENT]
+        fragments = [
+            f"\\text{{Arithmetic}} & {w1.arithmetic_annual:.6f} & {w1.sharpe:.4f} & "
+            f"{w2.arithmetic_annual:.6f}",
+            f"\\text{{Book}} & {BOOK_APR_PERCENT}\\% & {BOOK_SHARPE} & "
+            f"{BOOK_CRISIS_APR_PERCENT}\\%",
+            f"\\text{{Compounded}} & {w1.compounded_apr:.6f} & \\text{{n/a}} & "
+            f"{w2.compounded_apr:.6f}",
+            f"The arithmetic return is {arithmetic[0]} percent against {BOOK_APR_PERCENT}, and "
+            f"{_signed(arithmetic[1], 'd')} against {_signed(BOOK_CRISIS_APR_PERCENT, 'd')}.",
+            f"{w1.compounded_apr:.6f} and {_signed(w2.compounded_apr, '.6f')} round to "
+            f"{compounded[0]} and {_signed(compounded[1], 'd')} percent",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3s_windows(self, results, drawn, text) -> None:
+        w1, w2, w3 = (results["R0"][w] for w in WINDOWS)
+        panel, dd = drawn[1]
+        after = len(panel.days) - 1 - dd.high
+        assert stabilised(w3, w1)
+        fragments = [
+            f"earns a Sharpe ratio of {w1.sharpe:.4f} over the window the book reports",
+            f"The arithmetic return is {_signed(w2.arithmetic_annual, '.6f')} and the Sharpe "
+            f"ratio {_signed(w2.sharpe, '.4f')}.",
+            f"rises to a high on {panel.days[dd.high].date()}, then falls to its deepest "
+            f"drawdown, {_signed(dd.depth, '.6f')}, on {panel.days[dd.trough].date()}",
+            f"On the window’s last day, {after} days after the high",
+            f"The arithmetic return is {w3.arithmetic_annual:.6f} and the Sharpe ratio "
+            f"{w3.sharpe:.4f}.",
+            f"reproduced that {BOOK_44_SHARPE} on this same file as {SCRIPT_44_SHARPE}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_alt_text(self, drawn, text) -> None:
+        alt = text.split("![Three line charts", 1)[1].split("](", 1)[0]
+        (left, d1), (middle, d2), (right, d3) = drawn
+        widths = ", ".join(str(len(p.days)) for p, _ in drawn[:-1])
+
+        def about(panel) -> str:
+            return _signed(round_half_away(100 * panel.cumret[-1]), "d")
+
+        def heading(f) -> str:
+            return (
+                ", ".join(
+                    (
+                        _signed(f.compounded_apr, ".6f"),
+                        _signed(f.arithmetic_annual, ".6f"),
+                    )
+                )
+                + f" and {_signed(f.sharpe, '.4f')}"
+            )
+
+        spell = middle.days[d2.high + 1].date(), middle.days[-1].date()
+        assert (middle.cumret[d2.high + 1 :] < middle.cumret[d2.high]).all()
+        assert right.cumret.argmax() == d3.high and middle.cumret.argmax() == d2.high
+        assert left.cumret.argmax() != d1.high
+        fragments = [
+            f"{widths} and {len(right.days)} trading days",
+            f"ends at about {about(left)} percent, with two marks: the high its deepest drawdown "
+            f"fell from, on {left.days[d1.high].date()}, and that drawdown, "
+            f"{_signed(d1.depth, '.6f')}, on {left.days[d1.trough].date()}",
+            f"the compounded figure {left.figures.compounded_apr:.6f}, the arithmetic "
+            f"{left.figures.arithmetic_annual:.6f} and the Sharpe ratio "
+            f"{left.figures.sharpe:.4f}",
+            f"rises to a high marked on {middle.days[d2.high].date()}",
+            f"deepest drawdown of {_signed(d2.depth, '.6f')} marked on "
+            f"{middle.days[d2.trough].date()}, and ends at about {about(middle)} percent",
+            f"A red band covers {spell[0]} to {spell[1]}, labelled "
+            f"{len(middle.days) - 1 - d2.high} days below the high",
+            f"Its heading gives {heading(middle.figures)}",
+            f"ends at about {about(right)} percent, with its high marked on "
+            f"{right.days[d3.high].date()} and its deepest drawdown of "
+            f"{_signed(d3.depth, '.6f')} marked on {right.days[d3.trough].date()}",
+            f"Its heading gives {heading(right.figures)}",
+        ]
+        assert self.missing(alt, fragments) == []
+
+    def test_the_flagged_closes(self, closes, text) -> None:
+        flagged = [
+            (symbol, day)
+            for symbol in closes.columns
+            for day in scale_breaks(closes[symbol].dropna())
+        ]
+        start = pd.Timestamp(WINDOWS["2007"][0])
+        end = pd.Timestamp(WINDOWS["2007"][1])
+        inside = [day for _, day in flagged if start <= day <= end]
+        crisis = [
+            day
+            for _, day in flagged
+            if pd.Timestamp("2008-01-01") <= day <= pd.Timestamp("2009-12-31")
+        ]
+        fragments = [
+            f"flags {len(flagged)} closes that moved too far for an ordinary day, one in 2007 "
+            f"and {len(crisis)} in 2008 and 2009",
+        ]
+        assert len(inside) == 1
+        ((symbol, day),) = [(s, d) for s, d in flagged if start <= d <= end]
+        before = closes[symbol].loc[: day - pd.Timedelta(days=1)].dropna().iloc[-1]
+        fragments.append(
+            f"{symbol}’s close on {day.date()}, which fell from {before} to "
+            f"{closes[symbol].loc[day]}"
+        )
+        positions = overlapping_positions(*formations(ranking_returns(closes.to_numpy())))
+        row = closes.index.get_loc(day) - 1
+        short = int(-positions[row, list(closes.columns).index(symbol)])
+        assert short == HOLD_DAYS, SPEC
+        fragments.append(f"held {symbol} short in all {short} cohorts going into it")
+        assert self.missing(text, fragments) == []

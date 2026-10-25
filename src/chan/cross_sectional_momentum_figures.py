@@ -3,10 +3,10 @@
 ``blog/cross-sectional-momentum-lessons.md`` teaches what Entry 17 of the
 replication log found, and
 [issue 317](https://github.com/l3a0/quantitative-trading/issues/317) chose one
-figure for it. ``kentdaniel.m`` closes on ``plot(cumret)``, where ``cumret``
-compounds the active window's days from zero, and the script carries three
-windows switched by which pair of lines is commented out. So
-:func:`make_cumulative_figure` draws three panels side by side, one per
+figure for it. ``kentdaniel.m`` calls ``plot(cumret)`` before it prints its
+figures. ``cumret`` compounds the active window's days from zero, and the
+script carries three windows switched by which pair of lines is commented out.
+So :func:`make_cumulative_figure` draws three panels side by side, one per
 window, sharing the y-axis, with widths in proportion to the 160, 505 and 582
 days each holds. That redraws what the script draws once per run, three times,
 and each panel's last value is the compounded figure the run prints for its

@@ -252,7 +252,7 @@ where they were first built. The other forty-five were built here.
 17. Cross-sectional momentum, Example 6.2 of *Algorithmic Trading*, which buys
     the 50 stocks with the highest 252-day return, shorts the 50 with the
     lowest, and holds each day's picks for 25 days. The script's closing
-    comment prints a Sharpe ratio of 0.40 against the book's 4.1. Transcribed
+    comment records a Sharpe ratio of 0.40 against the book's 4.1. Transcribed
     and run on the S&P 500 file it loads, the script prints none of its
     comment's five figures. It gives a Sharpe ratio of 4.0657, and compounded
     APRs of 0.372577 for 2007 and −0.298789 for 2008 and 2009, which round to
@@ -4009,7 +4009,7 @@ Entry 17 of the replication log.
 
 1. The 0.40 is the comment's and not the code's, which computes 4.0657 on the
    file it loads.
-2. A rule taken from one example did not carry to the next. Read as the
+2. A rule taken from one example did not carry to another. Read as the
    arithmetic return, as Example 7.2's "APR" is, the book's APR reproduces in
    neither window, and the compounded figure that matches both was seen only
    afterwards.
@@ -4018,7 +4018,7 @@ Entry 17 of the replication log.
    stabilized below 2007's.
 4. A reproduction checks the arithmetic and not the edge.
 
-Five groups of its figures are not pinned here.
+Six groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -4036,27 +4036,32 @@ Five groups of its figures are not pinned here.
    `Avg Ann Ret=` for the arithmetic figure and `APR=` for the compounded one,
    in `kentdaniel.m` and `pead.m`, and `bog.m`'s label on its compounded
    figure. That neither public copy of Chan's code ships a `lag.m`, that the
-   first edition's `lag1.m` shifts by one row, and that both copies hold the
-   same `kentdaniel.m`, which `src/chan/cross_sectional_momentum.py`'s
-   docstring records. Whether ETFC's move from 85.9 to 35.5 was a real move or
-   a bad print, which nothing checks.
-3. Arithmetic no test asserts: that 0.40 is about a tenth of 4.1 and of
-   4.0530, so either helper's Sharpe ratio is ten times the comment's, that
-   2007-05-15 to 2007-12-31 is seven and a half months, and that 1947 to 2007
-   is sixty years.
+   first edition's `lag1.m` defines a function named `lag` as a shift of one
+   row, and that both copies hold the same `kentdaniel.m`, which
+   `src/chan/cross_sectional_momentum.py`'s docstring records. Whether ETFC's
+   move from 85.9 to 35.5 was a real move or a bad print, which nothing checks.
+3. Arithmetic no test asserts: that 0.40 is about a tenth of the book's 4.1,
+   of 4.0657 and of 4.0530, so either helper's Sharpe ratio is ten times the
+   comment's, that 2007-05-15 to 2007-12-31 is seven and a half months, and
+   that 1947 to 2007 is sixty years.
 4. The book's Figure 6.6, which the post's figure redraws from
    `kentdaniel.m`'s `plot(cumret)` and which nothing compares with the book's
    own.
-5. Its references, cited rather than computed.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a list, a
+   table or the alt text, and a typo in a copy the class does not read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py),
 to [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as
 the arithmetic figure, to
 [tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) for
-the reversal's 4.713284 on the same file, or to
+the reversal's 4.713284 on the same file, to
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, or to
+[tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
+for the sketches'. Three of them had no pin before the post.
 
 1. That the 2008 and 2009 spell below the high runs from 2008-07-15, after a
    high on 2008-07-14, to the window's last day, 2009-12-31, so it was still
@@ -4066,6 +4071,14 @@ for the figure's own numbers. Three had no pin before it.
 3. ETFC's closes of 85.9 on 2007-11-09 and 35.5 on 2007-11-12, and the
    strategy's position of −25 in it on 2007-11-09, which
    `TestTheScaleBreakDecision` now pins.
+
+`TestWhatThePostQuotes` in
+[tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
+reads one copy of each run figure in the post, its tables and its figure's alt
+text against the run, so a typo in that copy fails a test. It also asserts on
+the run several comparisons the post's words draw, such as that the comment's
+182 days cannot fit in the 160-day 2007 window and that only R0 and R4 round
+to 4.1, and reads one copy of those words.
 
 Its one figure is drawn from the committed file by
 [src/chan/cross_sectional_momentum_figures.py](src/chan/cross_sectional_momentum_figures.py),
@@ -4083,6 +4096,36 @@ uv run python -m chan.cross_sectional_momentum_figures
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two whiteboard sketches, drawn slowly by
+[src/chan/cross_sectional_momentum_whiteboard.py](src/chan/cross_sectional_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery, and neither is schematic.
+
+1. `cross_sectional_momentum_cohorts.gif` follows the four steps of the
+   strategy. It stacks 25 cohorts of 50 longs and 50 shorts, each held 25
+   days, makes 2,500 picks held one unit of capital through the script's
+   divisor, and marks the 2007 window's first 24 days, which hold fewer than
+   25 cohorts.
+2. `cross_sectional_momentum_two_returns.gif` follows the sentence after
+   Lesson 1's table. It adds the 2007 window's 160 daily returns to 0.2032
+   and scales them to 0.3200, and multiplies their 1 + r to 1.2227 and
+   annualizes that to 0.3726. It carries none of the book's figures, which
+   the post holds back until Lesson 2.
+
+Both read the committed closes through the same `read_closes` as the run.
+The cohorts sketch takes its counts from `formations` and `cohorts_held`,
+and the returns sketch takes its figures from `script_as_printed` over the
+2007 window.
+
+```bash
+uv run python -m chan.cross_sectional_momentum_whiteboard
+```
+
+[tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
+holds what the sketches say and draw, their alt texts and captions against
+the run, and that a run whose figures would make a drawing false is refused.
+It compares the committed GIFs with a fresh draw byte for byte only on macOS
+arm64 in Comic Sans MS.
 
 [blog/price-spread-ratio-lessons.md](blog/price-spread-ratio-lessons.md) is a
 sixteenth post, about Example 3.1 of Chan's *Algorithmic Trading*, which trades
