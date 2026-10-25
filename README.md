@@ -6205,7 +6205,9 @@ Every other number in the post traces to an assertion in
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), or
 to
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
-for the figure's own numbers. The APR falling by more than half between two
+for the figure's own numbers, or to
+[tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
+for the sketches' days, closes and counts. The APR falling by more than half between two
 VX and ES saves traces to [tests/test_vx_es.py](tests/test_vx_es.py). Five
 had no pin before it.
 
@@ -6245,6 +6247,33 @@ uv run python -m chan.cl_reversal_momentum_figures
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/cl_reversal_momentum_whiteboard.py](src/chan/cl_reversal_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `cl_reversal_momentum_sketch_dip_and_bounce.gif`, in "The rule and the
+   file", the join's first long on 2008-07-30 and its first short on
+   2008-07-18, each day's close between its two lags. It is schematic. Its
+   heights keep only the order of each day's three closes, and its spacing
+   across does not follow the days between them. Its days, and the six
+   closes its caption gives, come from the run.
+2. `cl_reversal_momentum_sketch_half_of_each.gif`, in Lesson 2, a grid of
+   half positions from each rule, with the 98 days both are long, the 59
+   both are short and the 803 they disagree, counted from the run.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in. Redraw both with:
+
+```bash
+uv run python -m chan.cl_reversal_momentum_whiteboard
+```
+
+[tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
+holds what each draws, the days, closes and counts it reads from the run,
+and that each GIF follows its text in the post. The first sketch's first
+long, 2008-07-30, and its caption's six closes had no pin before it.
 
 [blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
 holding GLD long and gold futures short at Kindle locations 2718 and 2730 of

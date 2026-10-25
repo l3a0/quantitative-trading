@@ -7179,6 +7179,14 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/crude-oil-reversal-momentum-lessons.md](../blog/crude-oil-reversal-momentum-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.cl_reversal_momentum_figures` redraws.
+Its two whiteboard sketches move too, and
+`uv run python -m chan.cl_reversal_momentum_whiteboard` redraws them. The one
+in "The rule and the file" draws the join's first long, on 2008-07-30, and
+its first short, on 2008-07-18, from the run. It is schematic: its heights
+keep only the order of each day's three closes, and its spacing across does
+not follow the days between them. The one in Lesson 2 prints
+the 98 rows where both rules are long, the 59 where both are short and the
+803 where they disagree, from the run.
 
 ## Entry 32: a Kalman filter hedge ratio on EWA and EWC, Chan's *Algorithmic Trading*
 
