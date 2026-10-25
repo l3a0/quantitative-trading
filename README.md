@@ -409,8 +409,9 @@ where they were first built. The other forty-five were built here.
     whole 1,481 days. The control the book leaves out holds too: GLD and GDX
     alone over the same days find none, at a trace statistic of 10.447
     against a 90 percent bar of 13.429. GDX and USO alone find one relation
-    at 99 percent, though, so the triplet's result cannot tell the oil
-    hypothesis from a link between the miners and oil alone. Every figure is
+    at 99 percent, but a test on the triplet's weights, added in the post's
+    review, rejects GLD's weight being zero at 99 percent and cannot reject
+    USO's even at 90, so the two results conflict. Every figure is
     exploratory, and the split date and the third ETF were chosen after the
     break was seen.
 30. AUD.CAD with rollover interest, *Algorithmic Trading*'s Example 5.2, on
@@ -1122,9 +1123,10 @@ the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
 issue declared them, the book's three quotes against the highlight they come
 from, every statistic and eigenvalue of the four tests and of each ETF with
 USO alone at the precision that is real, the CADF and ADF rows beside them,
-and the cut to GDX's first price that keeps a missing price from reaching the
-test. The blog post about it is the exception, and what it says that nothing
-here asserts is listed below.
+the test of each fund's weight in the triplet's relation, and the cut to
+GDX's first price that keeps a missing price from reaching the test. The blog
+post about it is the exception, and what it says that nothing here asserts is
+listed below.
 
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) does it for
 Example 5.2. It pins the script's two printed figures, the book's four, and
@@ -4322,10 +4324,12 @@ replication log.
 
 1. Every claim holds on both Johansen statistics, with room, and the book's
    "99 percent probability" is a test level rather than a probability.
-2. The control the book leaves out holds, since GLD and GDX alone over the
-   triplet's days find no relation even at 90 percent.
-3. A second control weakens the story, since GDX and USO alone find one
-   relation at 99 percent and GLD and USO find none.
+2. The control the book leaves out finds nothing: GLD and GDX alone over the
+   triplet's days find no relation even at 90 percent, so USO adds something
+   to the triplet.
+3. The weights say what the count cannot. The pairs find one relation for GDX
+   and USO and none for GLD and USO, and a test on the triplet's weights
+   rejects GLD's weight being zero and cannot reject USO's.
 4. The split date and the third ETF were both chosen after the break was seen,
    so the result is exploratory and cannot confirm the oil hypothesis.
 
@@ -4364,7 +4368,7 @@ for the figure's own numbers, to
 critical values checked against Chan's printout and the two Johansen
 statistics disagreeing on his file, or to
 [tests/test_regime_figure.py](tests/test_regime_figure.py) for the earlier
-post's rolling windows. Five had no pin before it.
+post's rolling windows. Six had no pin before it.
 
 1. USO's highest close on the file, 117.48, on 2008-07-14, the last day of the
    first window.
@@ -4377,6 +4381,11 @@ post's rolling windows. Five had no pin before it.
 5. The rolling windows of the earlier post's regime map: 9 of the 45 ending
    inside 2008-07-15 to 2012-04-09 pass at 10 percent, and the last to pass
    before 2019 ends on 2015-10-22.
+6. The test of each fund's weight in the triplet's one relation, added in the
+   post's pre-publish review: likelihood-ratio statistics of 10.014660 with
+   GLD's weight at zero, 26.336768 with GDX's and 0.056678 with USO's,
+   asymptotic p-values of 0.00155 and 0.812 for GLD and USO, and the
+   chi-squared bars of 2.706, 3.841 and 6.635.
 
 Its one figure is drawn from the committed file by
 [src/chan/gold_miners_oil_figures.py](src/chan/gold_miners_oil_figures.py),

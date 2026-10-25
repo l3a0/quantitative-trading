@@ -55,6 +55,16 @@ nothing.
    review of the pull request added these after the first run. The control in
    item 1 shows the triplet's relation is not GLD and GDX's own, and these two
    ask whether it is either of the other pairs' instead.
+6. Johansen's (1991) likelihood-ratio test that one fund's weight is zero in
+   the triplet's single relation, run once for each fund. If the relation
+   were GDX and USO's own, GLD's weight in it would be zero. The pre-publish
+   review of ``blog/gold-miners-oil-lessons.md`` added this test after every
+   other result here had been seen. So it is exploratory, it is conditional
+   on the rank of 1 that the triplet's test found, its chi-squared bars are
+   asymptotic, and it is one of three tests run together. statsmodels has no
+   test of a restriction on a relation's weights, so :func:`zero_weight_lr`
+   solves Johansen's restricted eigenproblem from the same product moments
+   ``coint_johansen`` builds.
 
 Every result here is exploratory, twice over. Reproducing the claims spends
 the 2006 to 2012 sample on a split Chan chose, and the split date and the
@@ -70,8 +80,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2, adf_tstat
+from numpy.typing import NDArray
+from scipy.stats import chi2
 
 from chan.johansen import LEVELS, Johansen, johansen
 from chan.pair_cointegration import lesage_cadf
@@ -103,6 +116,9 @@ BEFORE = ("2006-05-23", "2008-07-14")
 AFTER = ("2008-07-15", "2012-04-09")
 WHOLE = ("2006-05-23", "2012-04-09")
 WINDOWS = {"before": BEFORE, "after": AFTER, "whole": WHOLE}
+
+#: The weight test's bars, chi-squared with one degree of freedom, one per level.
+CHI2_1 = {level: float(chi2.ppf(level / 100, 1)) for level in LEVELS}
 
 #: Location 1922, quoted.
 BOOK_BEFORE = "cointegrate with 99 percent probability"
@@ -167,6 +183,8 @@ class GoldMinersOil:
     against USO over the same days, keyed by the ETF paired with USO. ``cadf``
     and ``adf`` are keyed by the window names in :data:`WINDOWS`, and ``adf``
     holds each series that enters that window's Johansen test.
+    ``zero_weight`` holds :func:`zero_weight_lr` on the triplet, keyed by the
+    fund whose weight is set to zero.
     """
 
     days: dict[str, pd.DatetimeIndex]
@@ -177,6 +195,7 @@ class GoldMinersOil:
     with_oil: dict[str, Johansen]
     cadf: dict[str, Cadf]
     adf: dict[str, dict[str, float]]
+    zero_weight: dict[str, float]
 
     def found(self, row: ClaimRow, level: int = LEVEL) -> int:
         """How many relations the row's test finds on its statistic at ``level``."""
@@ -185,6 +204,77 @@ class GoldMinersOil:
     def holds(self, row: ClaimRow) -> bool:
         """Whether the row's declared criterion holds at :data:`LEVEL`."""
         return row.holds_on(self.found(row))
+
+
+@dataclass(frozen=True)
+class Moments:
+    """The product moments a Johansen test is built from.
+
+    ``r0`` is the differences and ``r1`` the levels a day earlier, each after
+    regressing out a constant and the lagged differences. That is what
+    ``coint_johansen`` does with ``det_order=0``, a constant entering
+    unrestricted. ``s00`` is ``r0'r0 / T``, ``s11`` is ``r1'r1 / T`` and
+    ``s01`` is ``r0'r1 / T``, with ``nobs`` the T of every statistic.
+    """
+
+    nobs: int
+    s00: NDArray[np.float64]
+    s01: NDArray[np.float64]
+    s11: NDArray[np.float64]
+
+
+def johansen_moments(levels: NDArray[np.float64], k: int = JOHANSEN_K) -> Moments:
+    """The moments of ``johansen(levels, 0, k)``, one series per column."""
+    dx = np.diff(levels, axis=0)
+    rows = len(dx) - k
+    regressors = np.column_stack(
+        [np.ones(rows)] + [dx[k - j : len(dx) - j] for j in range(1, k + 1)]
+    )
+
+    def residual(values: NDArray[np.float64]) -> NDArray[np.float64]:
+        return values - regressors @ np.linalg.lstsq(regressors, values, rcond=None)[0]
+
+    r0, r1 = residual(dx[k:]), residual(levels[k:-1])
+    return Moments(rows, r0.T @ r0 / rows, r0.T @ r1 / rows, r1.T @ r1 / rows)
+
+
+def restricted_eigenvalues(moments: Moments, h: NDArray[np.float64]) -> NDArray[np.float64]:
+    """Johansen's eigenvalues with every relation held in the span of ``h``'s columns.
+
+    They solve ``|λ H'S11H − H'S10 S00⁻¹ S01 H| = 0``, largest first. With
+    ``h`` the identity they are the unrestricted test's eigenvalues. A Cholesky
+    factor of ``H'S11H`` turns the problem symmetric, so they come back real.
+    """
+    signal = h.T @ moments.s01.T @ np.linalg.solve(moments.s00, moments.s01 @ h)
+    factor = np.linalg.cholesky(h.T @ moments.s11 @ h)
+    inner = np.linalg.solve(factor, np.linalg.solve(factor, signal).T)
+    return np.linalg.eigvalsh((inner + inner.T) / 2)[::-1]
+
+
+def restricted_lr(moments: Moments, h: NDArray[np.float64]) -> float:
+    """Johansen's (1991) likelihood-ratio statistic for β = Hφ at rank 1.
+
+    It is ``T ln((1 − λ*) / (1 − λ))``, with ``λ`` the largest unrestricted
+    eigenvalue and ``λ*`` the largest one with the relation held in the span
+    of ``h``'s columns. Its degrees of freedom are the rows of ``h`` less its
+    columns.
+    """
+    free = restricted_eigenvalues(moments, np.eye(len(h)))[0]
+    held = restricted_eigenvalues(moments, h)[0]
+    return float(moments.nobs * np.log((1 - held) / (1 - free)))
+
+
+def zero_weight_lr(levels: NDArray[np.float64], symbols: tuple[str, ...]) -> dict[str, float]:
+    """:func:`restricted_lr` with each fund's weight set to zero in turn, keyed by that fund.
+
+    Setting one fund's weight to zero keeps the relation in the span of the
+    other funds, so ``H`` is the identity less that fund's column. That removes
+    one free weight, and the statistic is read against chi-squared with one
+    degree of freedom.
+    """
+    moments = johansen_moments(levels)
+    eye = np.eye(len(symbols))
+    return {s: restricted_lr(moments, np.delete(eye, i, axis=1)) for i, s in enumerate(symbols)}
 
 
 def gold_miners_oil(closes: pd.DataFrame) -> GoldMinersOil:
@@ -217,6 +307,7 @@ def gold_miners_oil(closes: pd.DataFrame) -> GoldMinersOil:
             }
             for name, symbols in entering.items()
         },
+        zero_weight=zero_weight_lr(window["whole"][list(TRIPLET)].to_numpy(dtype=float), TRIPLET),
     )
 
 
@@ -308,6 +399,15 @@ def report(members: list[VintageEntry], result: GoldMinersOil) -> None:
     print(f"  ADF with a constant and one lag, each alone, against {ADF_CRIT_CONST['10%']} at 90%")
     for name, stats in result.adf.items():
         print(f"    {name:<7}  " + ", ".join(f"{s} {t:.6f}" for s, t in stats.items()))
+    print("  Each fund's weight set to zero in the triplet's one relation, Johansen's LR")
+    print(
+        "    against chi-squared with 1 degree of freedom, "
+        + ", ".join(f"{bar:.3f} at {level}%" for level, bar in CHI2_1.items())
+    )
+    for symbol, lr in result.zero_weight.items():
+        print(f"    {symbol} = 0  LR {lr:>9.6f}, asymptotic p {chi2.sf(lr, 1):.3g}")
+    print("    Added in the post's pre-publish review, after every other result was seen.")
+    print("    Conditional on rank 1, asymptotic, and one of three tests run together.")
     print()
     print(
         "  Exploratory. The split and the third ETF were chosen after the break was "
