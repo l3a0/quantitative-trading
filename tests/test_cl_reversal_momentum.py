@@ -6,13 +6,13 @@ about this replication and the rows beside it. The one exception is
 ``tests/test_cl_reversal_momentum_figures.py`` holds the numbers its figure
 draws, and README lists what it says that nothing asserts. The post also
 quotes what ``TestTheJoinIsHalfOfEachRule`` pins for it: that half of each
-rule gives the join's position, how often the two rules agree, and each
-rule's average day and standard deviation. ``TestWhatThePostQuotes`` reads
-every copy of each run figure the post quotes outside the sketches' alt texts
-and captions, and its three tables, against the run. It asserts each
-comparison the post's words draw on the run and reads one copy of its words.
-``docs/replication-log.md`` Entry 31 carries the verdicts and points here row
-by row.
+rule gives the join's position outside rows where a lag is missing or tied,
+how often the two rules agree, and each rule's average day and standard
+deviation. ``TestWhatThePostQuotes`` reads every copy of each run figure the
+post quotes outside the sketches' alt texts and captions, and its three
+tables, against the run. It asserts each comparison the post's words draw on
+the run and reads one copy of its words. ``docs/replication-log.md`` Entry 31
+carries the verdicts and points here row by row.
 
 Every pin names one of three vintages and one specification, so they are
 stated once here.
@@ -920,6 +920,7 @@ class TestWhatThePostQuotes:
             f"The {_saved(EARLIER_SOURCE_FILE)} save gives the same two figures to six decimals",
             f"The {_saved(LATER_SOURCE_FILE)} save is different. Its closes sit {shift:.2f} higher "
             f"on every one of the {len(cl):,} days.",
+            "The rule compares closes with closes, so a uniform shift changes no position.",
             "A slightly larger divisor makes every return slightly smaller in size, and "
             f"the APR falls to {later.apr:.6f} and the Sharpe ratio to {later.sharpe:.6f}. "
             f"Both still round to {BOOK_APR_PERCENT} percent and {BOOK_SHARPE}",
