@@ -4,7 +4,8 @@ This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it, with one exception, in
 ``blog/gold-miners-oil-lessons.md``. The post's figure has its own pins in
 ``tests/test_gold_miners_oil_figures.py``. ``TestThePostQuotesTheRun`` reads
-the post's own copy of the run's figures, and README lists what the post says
+at least one copy in the post of each figure the post takes from the run, the
+chart or the earlier post's regime map, and README lists what the post says
 that nothing pins. ``docs/replication-log.md`` Entry 29 carries the verdicts
 and points here row by row.
 
@@ -689,11 +690,11 @@ def regime(tmp_path_factory: pytest.TempPathFactory):
 
 
 class TestThePostQuotesTheRun:
-    """One copy of each figure from the run that ``blog/gold-miners-oil-lessons.md`` prints.
+    """At least one copy of each run figure that ``blog/gold-miners-oil-lessons.md`` prints.
 
     The pins above hold the run's numbers. This class reads the post, so
-    editing its copy of a figure alone fails here, and a re-pin fails here
-    until the post moves with it. Each fragment is built from the value the
+    editing a copy it reads fails here, and a re-pin fails here until the
+    post moves with it. Each fragment is built from the value the
     code computes, at the precision the post prints, and none is typed in. It
     reads Lesson 1's and Lesson 3's tables row by row, and at least one copy
     in the prose of every other figure the post takes from

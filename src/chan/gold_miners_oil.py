@@ -42,7 +42,7 @@ nothing.
 **Rows beside the claims.** None carries a verdict.
 
 1. GLD and GDX alone over the triplet's 1,481 days. The book leaves this
-   control out, and the triplet's result supports the oil reading only if the
+   control out, and the triplet's result supports the oil explanation only if the
    pair alone fails over the same days.
 2. The triplet's first eigenvector, with the sign statsmodels gives, for the
    reason :mod:`chan.johansen` explains.

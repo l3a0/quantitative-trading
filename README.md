@@ -4399,10 +4399,10 @@ statistics disagreeing on his file, or to
 [tests/test_regime_figure.py](tests/test_regime_figure.py) for the earlier
 post's rolling windows. `TestThePostQuotesTheRun` in
 [tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) reads the post
-itself, so a figure edited in the post alone fails. It reads Lesson 1's and
-Lesson 3's tables row by row, and at least one copy in the prose of every
-other figure the post takes from `chan.gold_miners_oil`,
-`chan.gold_miners_oil_figures` or `chan.regime_figure`. A figure printed a
+itself. It reads Lesson 1's and Lesson 3's tables row by row, and at least one
+copy in the prose of every other figure the post takes from
+`chan.gold_miners_oil`, `chan.gold_miners_oil_figures` or `chan.regime_figure`,
+so editing a copy it reads fails. A figure printed a
 second time, such as the 1,481 days in the caption, is read only where the
 words around it match. It does not read the list of Chan's three claims, the
 headings, the caption or the alt texts, or a count written in words, such as
