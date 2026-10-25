@@ -807,12 +807,13 @@ Examples 6.2 and 4.1 on the price file alone,
 opens and closes for Examples 4.3 and 4.4, and
 [issue 343](https://github.com/l3a0/quantitative-trading/issues/343) reads its
 closes against the ETF file's SPY for Example 4.2.
-`inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held it on
-2012-04-24, with the same five fields per stock as the first two
-directories. `earnannfile/` holds his earnings-announcement flags for the same
-497 stocks, a 0 or 1 for each trading day. Like the first two, the price file
-holds only the companies still in the index on its date, so a figure computed
-from it is a figure about survivors.
+`inputdataohlcdaily_stocks_20120424/` holds 497 stocks that were in the S&P
+500 in late 2011, with the same five fields per stock as the first two
+directories. The date in its name is the last day of its prices, not the date
+of its list of stocks. `earnannfile/` holds his earnings-announcement flags for
+the same 497 stocks, a 0 or 1 for each trading day. Like the first two, the
+price file leaves out every company that was out of the index when its list was
+drawn, so a figure computed from it is a figure about survivors.
 [`chan.cross_sectional_momentum`](../src/chan/cross_sectional_momentum.py) reads
 the price file's closes for Example 6.2, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297), and
