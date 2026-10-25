@@ -5029,7 +5029,8 @@ replication log.
 3. The basket's two relations with SPY make the same full-rank claim as the
    Entry 23 post's pair, and the ADF test rejects a unit root for neither
    series alone.
-4. The 4.5 percent is in-sample on its lookback and survivor-only.
+4. The 4.5 percent rests on a lookback chosen with hindsight and a stock list
+   from late 2011.
 
 Five groups of what it says are not pinned here.
 
@@ -5037,8 +5038,9 @@ Five groups of what it says are not pinned here.
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    "Such a well-known strategy that the difference in market values has become
    extremely small" and picking "all the stocks that cointegrate individually
-   with the ETF" are at 2006. "With at least 90 percent probability" and "an
-   arbitrary assignment of equal capital weight" are at 2027. The 98 stocks
+   with the ETF" are at 2006. "With at least 90 percent probability", "an
+   arbitrary assignment of equal capital weight" and "rebalance this portfolio
+   every day" are at 2027. The 98 stocks
    "each separately", "better than 95 percent probability", "two cointegrating
    relations", "the one with the largest eigenvalue", the equal weight on each
    stock, "the benefit of hindsight", the 4.5 percent and 1.3, "the
@@ -5057,8 +5059,11 @@ Five groups of what it says are not pinned here.
    rather than every stock.
 3. Arithmetic and readings no test asserts: the nominal 48 as 10 percent of
    480, that a 90 percent bar bounds how often the test rejects with no
-   relation rather than giving a probability about one stock, and that four
-   years of returns are unlikely to separate a decline from noise.
+   relation rather than giving a probability about one stock, that a day's
+   change in a log price is close to that day's return, that the two
+   random-walk measurements differ only in their second series and their
+   random draws, and that four years of returns are unlikely to separate a
+   decline from noise.
 4. The book's Figure 4.3, which the post's figure redraws from the script's
    `plot` call and which nothing compares with the book's own. The alt text's
    description of the curve's shape, such as its steep climb from late 2008

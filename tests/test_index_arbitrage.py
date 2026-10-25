@@ -241,6 +241,13 @@ class TestTheBasketTest:
         np.testing.assert_allclose(result.basket.eigen, [9.671291, 6.197357], atol=1e-6)
         assert all(map(matches, result.basket.eigen, SCRIPT_EIGEN))
 
+    def test_the_trace_for_r_le_0_is_the_sum_of_the_two_eigen_statistics(self, result) -> None:
+        """The post's Lesson 1 reads the second relation's evidence into the trace pass."""
+        trace, eigen = result.basket.trace, result.basket.eigen
+        assert trace[0] == pytest.approx(eigen[0] + eigen[1], abs=1e-12)
+        assert trace[1] == pytest.approx(eigen[1], abs=1e-12)
+        assert eigen[0] < result.basket.trace_critical[0][1] < trace[0]
+
     @pytest.mark.parametrize(
         ("statistic", "printed"),
         [("trace", SCRIPT_TRACE_CRITICAL), ("eigen", SCRIPT_EIGEN_CRITICAL)],
