@@ -990,12 +990,15 @@ def _part_words(scene, gid):
     return [label for label in _labels_of(scene, gid) if label is not scene.steps[-1]]
 
 
-#: Made-up figures where reversal alone keeps the largest share and has the
-#: tallest average day, so the closing line and the scale are seen to follow.
+#: Made-up figures where momentum alone keeps the largest share of its
+#: average day, while reversal alone has the tallest average day and keeps the
+#: most in absolute terms, and the join loses the least. So the closing line is
+#: seen to follow the share, not the size of what is kept or lost, and the
+#: scale is seen to follow the tallest average day.
 OTHER_SWINGS = (
-    Swing("the join", 0.0004, 0.0002),
-    Swing("momentum alone", 0.0005, 0.0003),
-    Swing("reversal alone", 0.0008, 0.0007),
+    Swing("the join", 0.0001, 0.00002),
+    Swing("momentum alone", 0.0005, 0.00035),
+    Swing("reversal alone", 0.0008, 0.0004),
 )
 
 
@@ -1078,17 +1081,19 @@ class TestTheSwingSketch:
 
     def test_its_words_and_scale_follow_made_up_figures(self, figures) -> None:
         scene = scenes(replace(figures, swings=OTHER_SWINGS))[2]
-        assert scene.labels[-1] == "reversal alone keeps the most of its average day"
-        assert "kept 0.000700" in scene.labels
-        assert "lost to swings\n0.000100" in scene.labels
+        assert scene.labels[-1] == "momentum alone keeps the most of its average day"
+        assert "kept 0.000400" in scene.labels
+        assert "lost to swings\n0.000150" in scene.labels
         assert "kept 0.000441" not in scene.labels
         tallest = next(f for f in scene.fills if f.gid == "reversal-alone-lost")
         assert tallest.y1 == pytest.approx(SWING_TOP)
 
     def test_a_rule_that_keeps_nothing_is_refused(self, figures) -> None:
-        losing = (*figures.swings[:2], Swing("reversal alone", 0.0001, -0.0002))
-        with pytest.raises(ValueError, match="reversal alone keeps nothing"):
-            scenes(replace(figures, swings=losing))
+        """Kept at zero or below has no lower part to draw."""
+        for kept in (0.0, -0.0002):
+            losing = (*figures.swings[:2], Swing("reversal alone", 0.0001, kept))
+            with pytest.raises(ValueError, match="reversal alone keeps nothing"):
+                scenes(replace(figures, swings=losing))
 
     def test_its_caption(self) -> None:
         """The rows, the save and the 252 days it names, read where they

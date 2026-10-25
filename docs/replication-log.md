@@ -7187,9 +7187,9 @@ keep only the order of each day's three closes, and its spacing across does
 not follow the days between them. The grid in Lesson 2 prints the 98 rows
 where both rules are long, the 59 where both are short and the 803 where they
 disagree, from the run. The bars under Lesson 2's "What the swings cost" split
-each rule's average day into the daily return that compounds to its APR and
-what the swings took, 0.000022 for the join against 0.000176 and 0.000178 for
-the rules alone, from the run.
+each rule's average day into the daily return it kept, which compounds to its
+APR over 252 days, and what the swings took, 0.000022 for the join against
+0.000176 and 0.000178 for the rules alone, from the run.
 
 ## Entry 32: a Kalman filter hedge ratio on EWA and EWC, Chan's *Algorithmic Trading*
 
