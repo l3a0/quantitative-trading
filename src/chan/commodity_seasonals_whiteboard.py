@@ -1,14 +1,15 @@
 """Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 4.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Seven of its passages turn on a picture a
+trades against EIA's settlements. Eight of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
-missing one, what Chan's 19 needs of the missing years, how far a fill misses
-against each year's move, and which numbered file holds the June contract on a
-given day. This module draws those seven as scenes, and the post places each
-right after the paragraph it draws.
+missing one, what Chan's 19 needs of the missing years, how the second fill
+carries June's move across a gap, how far a fill misses against each year's
+move, and which numbered file holds the June contract on a given day. This
+module draws those eight as scenes, and the post places each right after the
+paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
@@ -42,11 +43,17 @@ right after the paragraph it draws.
    row and the 2 losses of 2009 and 2012, so the missing years sit under the
    end of Chan's profits. It sits after the paragraph opening "The losses say
    more than the gaps."
-6. Each fill misses by more than the year moved: for each missing year, the
+6. Fill 2 carries June's move across the gap: May's and June's settlements
+   around April 14, 1997, May as dots and June as rings, June's rise from the
+   last day both files hold to the gap day, the same rise added to May's
+   price there to give fill 2's guess, and a band of fill 2's typical miss
+   either side, split at the exit price. It sits after the list opening
+   "1. **Fill 1, a straight line**".
+7. Each fill misses by more than the year moved: for each missing year, the
    year's move with fill 2, June's move, and a bar of its typical miss either side,
    every bar crossing zero, with each year's chance of a profit. It sits after
    the paragraph opening "Both fills guess a profit in all three years".
-7. Which file holds the June contract: the March, April, May and June natural
+8. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -55,7 +62,7 @@ right after the paragraph it draws.
    sits in Lesson 4, after the paragraph opening "For gasoline the answer is
    simple."
 
-All seven carry data, and none needs the owner's archive.
+All eight carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -64,8 +71,10 @@ and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
 Chan's-19 sketches all draw. :meth:`GuessFigures.from_run` reads 1997's
 straight-line fill and its typical miss from
 :func:`chan.commodity_seasonals.gap_fills`, and the settlements around it from
-the contract-1 file. The fill-miss sketch reads every gap's fill from
-:func:`chan.commodity_seasonals.gap_fills` too.
+the contract-1 file. :meth:`FillTwoFigures.from_run` reads the same gap's
+fill 2 and the contract-1 and contract-2 settlements around it. The fill-miss
+sketch reads every gap's fill from :func:`chan.commodity_seasonals.gap_fills`
+too.
 :meth:`JuneYear.from_run` reads one year's entry and exit days and file
 numbers from :func:`chan.commodity_seasonals.natural_gas_trade`, and each
 contract's last trading day from :func:`chan.futures.ng_last_trade`. Three
@@ -84,7 +93,7 @@ Both years' calendars are drawn on one axis of month and day.
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
 Each sketch carries more than a reader takes in at that post's pace, so
-all seven are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all eight are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -92,7 +101,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all seven with::
+with no change is a no-op diff. Redraw all eight with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -945,6 +954,226 @@ def _chan_needs_gaps(f: GasolineFigures) -> Scene:
     return Scene(title, "chan_needs_gaps", tuple(steps))
 
 
+# --- Lesson 2: fill 2 carries June's move ------------------------------------
+
+
+@dataclass(frozen=True)
+class FillTwoFigures:
+    """What the fill 2 sketch draws, read from the gasoline run.
+
+    ``may`` and ``june`` hold the contract-1 and contract-2 settlements from
+    the trading day before the June fill's base to three trading days after
+    the gap. ``fill`` is the run's :class:`chan.commodity_seasonals.GapFill`
+    for the gap.
+    """
+
+    may: tuple[tuple[date, Decimal], ...]
+    june: tuple[tuple[date, Decimal], ...]
+    fill: seasonals.GapFill
+
+    @property
+    def window(self) -> tuple[date, date]:
+        return seasonals._step(self.fill.base, -1), seasonals._step(self.fill.day, 3)
+
+    @property
+    def top(self) -> float:
+        return self.fill.june + self.fill.june_error
+
+    @property
+    def bottom(self) -> float:
+        return self.fill.june - self.fill.june_error
+
+    @classmethod
+    def from_run(cls) -> FillTwoFigures:
+        fill = seasonals.gap_fills()[0]
+        first, last = seasonals._step(fill.base, -1), seasonals._step(fill.day, 3)
+        one = seasonals.settlements(seasonals.HARBOR_GASOLINE)[1]
+        two = seasonals.settlements(seasonals.HARBOR_GASOLINE_2)[1]
+        return cls(
+            may=tuple((d, one[d]) for d in sorted(one) if first <= d <= last),
+            june=tuple((d, two[d]) for d in sorted(two) if first <= d <= last),
+            fill=fill,
+        )
+
+
+#: Where the fill 2 sketch's days run, leaving room at the left for the two
+#: series' names, and a June ring's radius.
+FILL_TWO_X = (1.15, 9.25)
+RING = 0.075
+
+
+def _fill_two_x(day: date, f: FillTwoFigures) -> float:
+    """Where ``day`` sits, one step per trading day."""
+    first, last = f.window
+    span = seasonals._trading_days_between(first, last)
+    step = seasonals._trading_days_between(first, day)
+    return FILL_TWO_X[0] + step * (FILL_TWO_X[1] - FILL_TWO_X[0]) / span
+
+
+def _fill_two_y(price: float, f: FillTwoFigures) -> float:
+    prices = [float(p) for _, p in f.may + f.june]
+    lo, hi = min(*prices, f.bottom) - 0.004, max(*prices, f.top) + 0.004
+    return GUESS_Y[0] + (float(price) - lo) * (GUESS_Y[1] - GUESS_Y[0]) / (hi - lo)
+
+
+def _ring(gid: str, x: float, y: float) -> Stroke:
+    """June's mark, a hollow circle drawn as one stroke, so it differs from
+    May's dots by shape as well as by ink."""
+    t = np.linspace(0, 2 * np.pi, 17)
+    return Stroke(gid, x + RING * np.cos(t), y + RING * np.sin(t), color=MUTED, width=1.6, frames=2)
+
+
+def _june_move_fill(f: FillTwoFigures) -> Scene:
+    """Lesson 2: June's rise across the gap, added to May's last price, is fill
+    2's guess, and fill 2's typical miss around it still reaches the exit."""
+    fill, one, two = f.fill, dict(f.may), dict(f.june)
+    x = lambda day: _fill_two_x(day, f)  # noqa: E731
+    y = lambda price: _fill_two_y(price, f)  # noqa: E731
+    gx, bx, exit_y = x(fill.day), x(fill.base), y(fill.other)
+    rise = two[fill.day] - two[fill.base]
+    steps: list[Stroke | Label] = [
+        _stroke("axis", _line([(0.4, 0.7), (9.6, 0.7)]), color=MUTED, frames=6),
+        Stroke(
+            "may",
+            np.array([x(d) for d, _ in f.may]),
+            np.array([y(p) for _, p in f.may]),
+            color=INK,
+            frames=min(8, len(f.may) - 1),
+            dots=6.0,
+        ),
+        *[_ring(f"june-{k}", x(d), y(p)) for k, (d, p) in enumerate(f.june)],
+        Label(
+            "May",
+            x(f.may[0][0]) - 0.28,
+            y(f.may[0][1]) + 0.05,
+            names="may",
+            color=INK,
+            size=11,
+            ha="right",
+        ),
+        Label(
+            "June",
+            x(f.june[0][0]) - 0.28,
+            y(f.june[0][1]) - 0.22,
+            names="june-0",
+            color=MUTED,
+            size=11,
+            ha="right",
+        ),
+        Label("dot: May   ring: June", 0.3, 0.35, names="june-0", color=MUTED, size=11),
+        Label("gasoline", 9.7, 0.35, names="may", color=MUTED, size=11, ha="right"),
+        Label(
+            f"{fill.day:%b} {fill.day.day}, the {fill.leg}: no May row",
+            gx,
+            0.35,
+            names="axis",
+            color=MUTED,
+            size=11,
+            ha="center",
+        ),
+        _stroke(
+            "june-rise",
+            _arrow(bx, y(two[fill.base]), gx - 0.12, y(two[fill.day])),
+            color=MUTED,
+            frames=6,
+        ),
+        Label(
+            f"June rose {100 * float(rise):.1f}¢",
+            3.8,
+            1.25,
+            names="june-rise",
+            color=MUTED,
+            size=11,
+            ha="center",
+        ),
+        _stroke(
+            "may-rise",
+            _arrow(bx, y(one[fill.base]), gx - 0.12, y(fill.june)),
+            color=ACCENT,
+            frames=6,
+        ),
+        Stroke("guess", np.array([gx]), np.array([y(fill.june)]), color=ACCENT, frames=1, dots=9.0),
+        Label(
+            f"same rise on May: guess {fill.june:.3f}",
+            3.3,
+            (y(one[fill.base]) + y(fill.june)) / 2 + 0.55,
+            names="may-rise",
+            color=ACCENT,
+            size=11,
+            ha="center",
+        ),
+        _stroke(
+            "exit", _line([(gx - 0.8, exit_y), (9.6, exit_y)]), color=MUTED, dashed=True, frames=6
+        ),
+        Label(
+            f"exit price {fill.other}",
+            9.6,
+            exit_y - 0.3,
+            names="exit",
+            color=MUTED,
+            size=11,
+            ha="right",
+        ),
+        _stroke(
+            "loss-zone",
+            _band(gx - BAND_HALF, exit_y, gx + BAND_HALF, y(f.top)),
+            color=LOST,
+            width=1.2,
+            frames=10,
+        ),
+        _stroke(
+            "profit-zone",
+            _band(gx - BAND_HALF, y(f.bottom), gx + BAND_HALF, exit_y),
+            color=GOOD,
+            width=1.2,
+            frames=10,
+        ),
+        Label(
+            f"{f.top:.3f}",
+            gx - BAND_HALF - 0.2,
+            y(f.top) - 0.05,
+            names="loss-zone",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            f"{f.bottom:.3f}",
+            gx + BAND_HALF + 0.2,
+            y(f.bottom) - 0.15,
+            names="profit-zone",
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            "fill 2’s typical miss either side",
+            gx,
+            y(f.top) + 0.35,
+            names="loss-zone",
+            color=INK,
+            size=11,
+            ha="center",
+        ),
+        Label(
+            "entry here: a loss",
+            gx + BAND_HALF + 0.2,
+            exit_y + 0.3,
+            names="loss-zone",
+            color=LOST,
+            size=11,
+        ),
+        Label(
+            "entry here: a profit",
+            gx + BAND_HALF + 0.2,
+            2.3,
+            names="profit-zone",
+            color=GOOD,
+            size=11,
+        ),
+    ]
+    return Scene("Fill 2 carries June’s move across the gap", "june_move_fill", tuple(steps))
+
+
 # --- Lesson 2: each fill's miss against each year's move ---------------------
 
 #: Where zero cents sits, how wide a cent is, the scale's ends in cents, and
@@ -1210,6 +1439,7 @@ PACED = (
     "gap_range",
     "interpolation_guess",
     "chan_needs_gaps",
+    "june_move_fill",
     "fill_misses",
     "june_file",
 )
@@ -1242,18 +1472,21 @@ def scenes(
     years: tuple[JuneYear, JuneYear] | None = None,
     gasoline: GasolineFigures | None = None,
     guess: GuessFigures | None = None,
+    fill_two: FillTwoFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The seven scenes in the order the post reads them, Lessons 1, 2 and 4."""
+    """The eight scenes in the order the post reads them, Lessons 1, 2 and 4."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
     guess = guess if guess is not None else GuessFigures.from_run()
+    fill_two = fill_two if fill_two is not None else FillTwoFigures.from_run()
     return (
         _streak_start(streaks),
         _gasoline_editions(gasoline),
         _gap_range(gasoline),
         _interpolation_guess(guess),
         _chan_needs_gaps(gasoline),
+        _june_move_fill(fill_two),
         _fill_misses(tuple(seasonals.gap_fills())),
         _june_file(*years),
     )
@@ -1280,10 +1513,11 @@ def make_commodity_seasonals_whiteboards(
     years: tuple[JuneYear, JuneYear] | None = None,
     gasoline: GasolineFigures | None = None,
     guess: GuessFigures | None = None,
+    fill_two: FillTwoFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, in the post's order."""
     folder = out_dir if out_dir is not None else FIGURES_DIR
-    return [_write(scene, folder) for scene in scenes(streaks, years, gasoline, guess)]
+    return [_write(scene, folder) for scene in scenes(streaks, years, gasoline, guess, fill_two)]
 
 
 def main() -> None:
