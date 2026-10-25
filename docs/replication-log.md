@@ -5977,7 +5977,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/index-arbitrage-lessons.md](../blog/index-arbitrage-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.index_arbitrage_figures` redraws.
+which `uv run python -m chan.index_arbitrage_figures` redraws, and its one
+whiteboard sketch in "What one unit holds", which draws the first
+eigenvector's dollars to scale and which
+`uv run python -m chan.index_arbitrage_whiteboard` redraws through the same
+`read_sources` and `index_arbitrage`.
 
 ## Entry 25: AUD.USD against CAD.USD, Chan's *Algorithmic Trading*
 
