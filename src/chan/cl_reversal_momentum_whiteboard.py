@@ -1,10 +1,11 @@
 """Whiteboard sketches for the crude oil reversal and momentum post, for its rule and Lesson 2.
 
-``blog/crude-oil-reversal-momentum-lessons.md`` makes two claims a sentence
+``blog/crude-oil-reversal-momentum-lessons.md`` makes three claims a sentence
 has to build in the reader's head: the join buys a dip inside a rise and
-shorts a bounce inside a fall, and half a position in each rule adds up to
-the join's position. This module draws the two as scenes, and the post places
-each right after the text it draws.
+shorts a bounce inside a fall, half a position in each rule adds up to the
+join's position, and compounding takes more from a rule's average day the
+more the rule swings. This module draws the three as scenes, and the post
+places each right after the text it draws.
 
 1. A dip inside a rise, a bounce inside a fall: two panels side by side, each
    three closes joined by a black line, 40 days ago, 30 days ago and today,
@@ -30,18 +31,30 @@ each right after the text it draws.
    after the paragraph opening "The two rules mostly disagree." This sketch is
    not schematic. Every count it prints comes from :class:`Agreement`, which
    reads :func:`chan.cl_reversal_momentum.four_rules` on the 2012-05-04 save.
+3. What the swings take from an average day: three bars to one scale, the
+   join, momentum alone and reversal alone in the post's table order, each as
+   tall as the rule's average day. The lower part, a pale tint with a green
+   edge, is what the rule kept: the one daily return that, earned every day,
+   compounds to the rule's final capital. The upper part, solid red, is what
+   the swings took, the average day minus what was kept. Each part's words
+   name it, so colour is not the only cue, and a closing line names the rule
+   that keeps the largest share of its average day. It sits in Lesson 2's
+   "What the swings cost", after the paragraph opening "Smaller swings give
+   the join the highest APR of the three". This sketch is not schematic.
+   Every figure it prints comes from :class:`Swing`, which reads the same
+   run's daily returns.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
-Each sketch carries more than a reader takes in at that post's pace, so both
-are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
+Each sketch carries more than a reader takes in at that post's pace, so all
+three are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
 longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Each GIF
 is named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``cl_reversal_momentum.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw both with::
+with no change is a no-op diff. Redraw all three with::
 
     uv run python -m chan.cl_reversal_momentum_whiteboard
 """
@@ -58,6 +71,8 @@ from chan.matlab_helpers import backshift
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import GOOD, INK, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
+    TINT,
+    Fill,
     Frame,
     Label,
     Scene,
@@ -73,6 +88,10 @@ from chan.usdcad_tests_whiteboard import (
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "cl_reversal_momentum_sketch_"
+
+#: The width of the green edge drawn round every pale tint that carries
+#: meaning, as :mod:`chan.equity_seasonals_whiteboard` draws it.
+TINT_EDGE = 1.2
 
 
 def gif_name(scene: Scene) -> str:
@@ -125,12 +144,47 @@ class Agreement:
 
 
 @dataclass(frozen=True)
+class Swing:
+    """One rule's average day, and the part of it that compounding keeps.
+
+    ``kept`` is the one daily return that, earned on every row, compounds to
+    the same final capital as the rule, ``prod(1 + r)^(1 / n) − 1``. So
+    ``(1 + kept)^252 − 1`` is the rule's APR, and what the swings took is the
+    average day minus it.
+    """
+
+    rule: str
+    average: float
+    kept: float
+
+    @property
+    def lost(self) -> float:
+        return self.average - self.kept
+
+    @property
+    def share(self) -> float:
+        """The fraction of the average day the rule kept."""
+        return self.kept / self.average
+
+    @classmethod
+    def from_daily(cls, rule: str, daily: np.ndarray) -> Swing:
+        return cls(
+            rule=rule,
+            average=float(np.mean(daily)),
+            kept=float(np.prod(1 + daily) ** (1 / len(daily)) - 1),
+        )
+
+
+@dataclass(frozen=True)
 class JoinFigures:
-    """The join's first long and first short, and how the two rules pair up."""
+    """The join's first long and first short, how the two rules pair up, and
+    what the swings took from each rule's average day, in the post's table
+    order: the join, momentum alone, reversal alone."""
 
     first_long: Lags
     first_short: Lags
     agreement: Agreement
+    swings: tuple[Swing, Swing, Swing]
 
     @classmethod
     def from_run(cls, data_dir: Path | None = None) -> JoinFigures:
@@ -177,6 +231,11 @@ class JoinFigures:
                 long_short=count(1.0, -1.0),
                 short_long=count(-1.0, 1.0),
                 short_short=count(-1.0, -1.0),
+            ),
+            swings=(
+                Swing.from_daily("the join", rules.combination.daily),
+                Swing.from_daily("momentum alone", rules.momentum.daily),
+                Swing.from_daily("reversal alone", rules.reversal.daily),
             ),
         )
 
@@ -434,13 +493,105 @@ def _half_of_each(figures: JoinFigures) -> Scene:
     )
 
 
+# --- Lesson 2: what the swings take from an average day ---------------------------
+
+#: Where each bar's left edge sits across the board, in the table's order,
+#: and how wide each bar is.
+SWING_XS = (0.5, 3.75, 7.0)
+SWING_WIDTH = 0.7
+#: The height of every bar's foot, and the height the tallest average day
+#: reaches. Every bar is drawn to that one scale.
+SWING_FOOT, SWING_TOP = 1.05, 3.75
+#: How far right of its bar each part's words start.
+SWING_PAST = 0.2
+#: The height of the line under each bar that names its rule, and of the
+#: closing line.
+SWING_NAMES_Y = 0.72
+SWING_CLOSING_Y = 0.3
+
+
+def six(value: float) -> str:
+    """A daily return to six decimals, the precision the post's table prints."""
+    return f"{value:.6f}"
+
+
+def _tinted(gid: str, x0: float, y0: float, x1: float, y1: float) -> tuple[Fill, Stroke]:
+    """A pale tint and a thin green edge round it, so the region it marks
+    reads at WCAG's 3 to 1 for graphical objects. The edge is ``gid`` plus
+    ``-edge``."""
+    return Fill(gid, x0, y0, x1, y1, TINT), _stroke(
+        f"{gid}-edge", _box(x0, y0, x1, y1), color=GOOD, width=TINT_EDGE, frames=4
+    )
+
+
+def swing_scale(swings: tuple[Swing, ...]) -> float:
+    """Board units per unit of daily return, so the tallest average day
+    reaches :data:`SWING_TOP`."""
+    return (SWING_TOP - SWING_FOOT) / max(swing.average for swing in swings)
+
+
+def _swing_cost(figures: JoinFigures) -> Scene:
+    """Lesson 2: each rule's average day, split into what it kept and what the swings took."""
+    swings = figures.swings
+    for swing in swings:
+        if swing.kept <= 0:
+            raise ValueError(f"{swing.rule} keeps nothing of its average day")
+    scale = swing_scale(swings)
+    steps: list[Stroke | Fill | Label] = []
+    for swing, x0 in zip(swings, SWING_XS, strict=True):
+        gid = swing.rule.replace(" ", "-")
+        x1 = x0 + SWING_WIDTH
+        kept_top = SWING_FOOT + swing.kept * scale
+        top = SWING_FOOT + swing.average * scale
+        steps += [
+            *_tinted(f"{gid}-kept", x0, SWING_FOOT, x1, kept_top),
+            Label(
+                swing.rule,
+                (x0 + x1) / 2,
+                SWING_NAMES_Y,
+                names=f"{gid}-kept",
+                size=12,
+                ha="center",
+            ),
+            Label(
+                f"kept {six(swing.kept)}",
+                x1 + SWING_PAST,
+                (SWING_FOOT + kept_top) / 2,
+                names=f"{gid}-kept",
+                color=GOOD,
+                size=12,
+            ),
+            Fill(f"{gid}-lost", x0, kept_top, x1, top, LOST),
+            Label(
+                f"lost to swings\n{six(swing.lost)}",
+                x1 + SWING_PAST,
+                (kept_top + top) / 2,
+                names=f"{gid}-lost",
+                color=LOST,
+                size=12,
+            ),
+        ]
+    keeper = max(swings, key=lambda swing: swing.share)
+    steps.append(
+        Label(
+            f"{keeper.rule} keeps the most of its average day",
+            5.0,
+            SWING_CLOSING_Y,
+            names=f"{swings[-1].rule.replace(' ', '-')}-lost",
+            size=12,
+            ha="center",
+        )
+    )
+    return Scene("What the swings take from an average day", "swing_cost", tuple(steps))
+
+
 # --- Drawing ------------------------------------------------------------------
 
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
-PACED = ("dip_and_bounce", "half_of_each")
+PACED = ("dip_and_bounce", "half_of_each", "swing_cost")
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
@@ -461,12 +612,12 @@ def sketch_timeline(scene: Scene) -> list[Frame]:
 
 
 def scenes(figures: JoinFigures | None = None) -> tuple[Scene, ...]:
-    """The two scenes in the order the post reads them, the rule's then Lesson 2's.
+    """The three scenes in the order the post reads them, the rule's then Lesson 2's two.
 
     ``figures`` defaults to :meth:`JoinFigures.from_run` on the committed save.
     """
     found = figures if figures is not None else JoinFigures.from_run()
-    return (_dip_and_bounce(found), _half_of_each(found))
+    return (_dip_and_bounce(found), _half_of_each(found), _swing_cost(found))
 
 
 def _write(scene: Scene, folder: Path) -> Path:

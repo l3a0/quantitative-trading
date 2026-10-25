@@ -980,7 +980,7 @@ class TestWhatThePostQuotes:
             "Sharpe ratio",
             f"A day that loses {move} percent followed by one that gains {move} percent leaves "
             f"{down:.2f} × {up:.2f} = {down * up:.4f} of the capital, a small loss",
-            "and the two rules alone swing hard. The chart below shows how hard.",
+            "and the two rules alone swing hard. The sketch below measures",
         ]
         assert self.missing(text, fragments) == []
 
