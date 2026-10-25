@@ -691,7 +691,7 @@ class TestThePostQuotesThePins:
         fills = gap_fills()
         for f in fills:
             row = (
-                f"{f.year} & {100 * f.move(f.june):+.1f} & {100 * f.june_error:.1f} & "
+                f"{f.year} & {100 * f.move(f.june):+.1f} & {100 * f.june_error:.2f} & "
                 f"{100 * f.june_chance:.0f}\\%"
             )
             assert row in self.text, f.year

@@ -3500,8 +3500,8 @@ row on all three days, so the run filled each gap two ways.
 
 Each fill's typical miss was measured as a root mean square error on hidden
 April days from 1994 to 2005 in the gap's own pattern of trading days. June's
-move misses by 0.6 to 0.9 cents a gallon, and the straight line by about 1.9
-to 2.0. Both fills guess a profit every year, but every move lies inside one
+move misses by 0.65 to 0.89 cents a gallon, and the straight line by 1.8 to
+2.0. Both fills guess a profit every year, but every move lies inside one
 typical miss. If the June fill's misses are normal and independent, all three
 years were profits with a chance of 41%, which is what Chan's 19 of 21 needs.
 

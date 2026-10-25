@@ -98,7 +98,7 @@ EIA’s New York Harbor file holds no row on 14 April 1997, the entry date that 
 
 Interpolating, which here means taking a neighboring day’s price, would turn a gap into a guess, and the guess would decide the count it is meant to check.
 
-![“Interpolating turns a gap into a guess”, drawn slowly stroke by stroke. Black dots mark the May gasoline contract’s settlements one trading day apart along an axis labelled “May contract, April 1997”, with no dot on the day labelled “Apr 14, the entry: no row”. A dashed grey line marks the “exit price 0.625”. A brown straight line joins the dots either side of the gap, and a brown dot on it at the gap is the “straight-line guess 0.616”. Around the guess a band of close strokes runs from “0.635” down to “0.597”, “one typical miss either side”. The dashed exit line splits it into a red part above, “entry here: a loss”, and a green part below, “entry here: a profit”. The guess sits in the green part, and the band reaches into the red. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_interpolation_guess.gif)
+![“Interpolating turns a gap into a guess”, drawn slowly stroke by stroke. Black dots mark the May gasoline contract’s settlements one trading day apart along an axis labelled “May contract, April 1997”, with no dot on the day labelled “Apr 14, the entry: no row”. The file misses April 11, 16 and 18 too, so those days have no dot either. A dashed grey line marks the “exit price 0.625”. A brown straight line joins the dots either side of the gap, and a brown dot on it at the gap is the “straight-line guess 0.616”. Around the guess a band of close strokes runs from “0.635” down to “0.597”, “one typical miss either side”. The dashed exit line splits it into a red part above, “entry here: a loss”, and a green part below, “entry here: a profit”. The guess sits in the green part, and the band reaches into the red. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_interpolation_guess.gif)
 
 The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing years, and the files show exactly 2, in 2009 and 2012. If Chan’s data agrees with EIA’s on the other 18 years, his 19 holds only if all 3 missing years were profitable in his data. No source here covers the contract in those years.
 
@@ -111,20 +111,20 @@ The files do hold something on each missing day. EIA’s file for the second con
 1. **A straight line** between the May rows on either side of the gap.
 2. **June’s move.** May’s last known price, moved by June’s change since that day, because the two contracts move almost together.
 
-To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss. June’s move misses by less, so the table gives its figures, in cents a gallon:
+To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss. June’s move misses by less, so the table gives its figures in cents a gallon, with each year’s chance of a profit if June’s misses are normal:
 
 ```math
 \small\begin{array}{l|r|r|r}
 \text{Year} & \text{Move} & \text{Typical miss} & \text{Chance of profit} \\ \hline
-1997 & +0.4 & 0.9 & 67\% \\
-1998 & +0.5 & 0.8 & 74\% \\
-1999 & +0.6 & 0.6 & 82\%
+1997 & +0.4 & 0.89 & 67\% \\
+1998 & +0.5 & 0.76 & 74\% \\
+1999 & +0.6 & 0.65 & 82\%
 \end{array}
 ```
 
 Each fill guesses a profit in all three years, and every move is smaller than its fill’s typical miss. The straight line does no better, with moves between 0.1 and 0.8 of its own typical miss. If the June fill’s misses are normal and independent from year to year, the chance that all three years were profits, which Chan’s 19 needs, is 41%.
 
-![“Each fill misses by more than the year moved”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, “1997” with “67%”, “1998” with “74%” and “1999” with “82%”. In each row a brown dot right of zero marks the year’s move with June’s fill, and a black bar of one typical miss either side reaches across zero. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”. Captions read “dot: the move with June’s fill” and “bar: one typical miss either side”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
+![“Each fill misses by more than the year moved”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, “1997” with “67%”, “1998” with “74%” and “1999” with “82%”. In each row a brown dot right of zero marks the year’s move with June’s fill, and a black bar of one typical miss either side reaches across zero. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if June’s misses are normal. Captions read “dot: the move with June’s fill” and “bar: one typical miss either side”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
@@ -177,7 +177,7 @@ Three questions are beyond it, besides the gaps, the start year and edition, and
 Three habits follow from the first three lessons.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
-2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighboring day would decide the answer instead of checking it.
+2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighboring day would decide the answer instead of checking it. Even the closer of the two fills the run measured misses by more than each year moved.
 3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a Sharpe ratio of 1.0, and averaged a loss of 0.4% a year after.
 
 ## References
