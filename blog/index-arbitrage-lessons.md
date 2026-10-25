@@ -12,7 +12,7 @@ Chan’s Example 4.2 tests every stock in his S&P 500 file against SPY over 2007
 
 ### What the reproduction found
 
-Chan published the script, `indexArb.m`, and the two data files it reads. This repository keeps each file’s contents as one table per symbol, which together rebuild the file’s arrays exactly, and ran a line-by-line Python transcription of the script on them. The script came from a public copy of Chan’s code, `ericnberwick/EpchanPreview` at commit `e4bc46f`, and a second public copy, `ivanliu1989/algorithmic_trading`, holds the same file byte for byte. Every figure the script prints comes back to its last digit.
+Chan published the script, `indexArb.m`, and the two data files it reads. This repository keeps each file’s contents as one table per symbol, which together rebuild the file’s arrays exactly, and ran a line-by-line Python transcription of the script on them. The one step not transcribed is the Johansen test, which the script calls from James LeSage’s MATLAB toolbox. In its place runs `coint_johansen` from statsmodels, a Python library of statistical tests, which carries LeSage’s tables of critical values. The script came from a public copy of Chan’s code, `ericnberwick/EpchanPreview` at commit `e4bc46f`, and a second public copy, `ivanliu1989/algorithmic_trading`, holds the same file byte for byte. Every figure the script prints comes back to its last digit.
 
 Two labels apply to every figure below.
 
@@ -145,7 +145,7 @@ The screen runs that test 480 times. If the test rejected exactly as often as it
 
 The stocks pass at 20.4 percent, 98 of 480. The random walks unrelated to SPY pass at 28.1 percent. The figure’s second panel sets the two side by side against the 10 percent the bar allows.
 
-Random walks with no drift are not stocks, so this does not show that none of the 98 cointegrates with SPY. It shows that the count is no evidence that any of them does. A screen that judged 480 tests together would need a false-discovery control, a rule that limits the share of passes expected to be false across the whole batch. Such a control works from p-values. A p-value is the probability that a statistic this large would arise with no relation. The test routine this repository uses returns no p-values, so no control is computed here.
+Random walks with no drift are not stocks, so this does not show that none of the 98 cointegrates with SPY. It shows that the count is no evidence that any of them does. A screen that judged 480 tests together would need a false-discovery control, a rule that limits the share of passes expected to be false across the whole batch. Such a control works from p-values. A p-value is the probability that a statistic this large would arise with no relation. `coint_johansen` returns no p-values, so no control is computed here.
 
 ## Lesson 3: two relations between two series claim each one is stationary alone
 

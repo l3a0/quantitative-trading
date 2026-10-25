@@ -493,7 +493,7 @@ class TestBesideTheReplication:
 
         2,000 Gaussian random walks with unit steps and no drift, seeded with
         343, each screened against SPY's 2007 closes exactly as the stocks are.
-        561 pass, 28 percent, which is about 135 of 480 stocks. The 98 the
+        561 pass, 28.1 percent, which is about 135 of 480 stocks. The 98 the
         screen passes is fewer than that, so 48, the nominal 10 percent of 480,
         is not what chance alone gives.
         """

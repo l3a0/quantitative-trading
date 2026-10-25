@@ -74,7 +74,7 @@ dollars and earns log returns, so the formula differs.
 **The screen is a search, and the count is reported as one.** Lines 26 to 28
 test 480 stocks against one bar each, at 90 percent. The bar's nominal 10
 percent would put about 48 passes down to chance, but the test does not hold
-its nominal rate. Random walks unrelated to SPY pass it 28 percent of the
+its nominal rate. Random walks unrelated to SPY pass it 28.1 percent of the
 time against SPY's 2007 closes, which is about 135 of 480 and more than the 98
 that pass. ``tests/test_index_arbitrage.py`` measures that on seeded walks. So
 the count is stocks passing a per-test 90 percent bar among 480 tested, never
