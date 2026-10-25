@@ -7159,9 +7159,10 @@ Three things.
 Three things.
 
 **Whether the lookbacks were chosen on this window.** The book names 30 and
-40 days and nothing about how they were picked. A search over other lookbacks
-would be the many-hypotheses case `CLAUDE.md` puts behind its own rail, and
-this run tries none.
+40 days and nothing about how they were picked. A search over other lookback
+lengths would be the many-hypotheses case `CLAUDE.md` puts behind its own
+rail. This run tries 30 and 40 days and no other length, and row 11 trades
+the two between the rules.
 
 **What costs would take.** The book charges none and this run charges none.
 The rule changes position 124 times in 1,000 days, and nothing here measures
