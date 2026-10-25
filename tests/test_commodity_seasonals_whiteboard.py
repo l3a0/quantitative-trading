@@ -172,7 +172,7 @@ GASOLINE_LABELS = [
     "main text: 19 of 21, as of 2015",
     "dot: a profitable year",
     "x: a loss, 2009 and 2012",
-    "gasoline, May contract",
+    "May contract",
 ]
 
 RANGE_LABELS = [
@@ -360,22 +360,28 @@ class TestTheScenes:
 
     def test_each_sketch_of_one_trade_names_it(self, every) -> None:
         """A reader who meets a sketch before its paragraph can tell which
-        commodity it draws. The calendar sketch draws several natural gas
-        contracts and names each one, so it is the exception."""
-        names = {
-            "streak_start": sketches.TRADE,
-            "gasoline_editions": sketches.GASOLINE_TRADE,
-            "gap_range": sketches.GASOLINE_TRADE,
-            "interpolation_guess": sketches.GASOLINE_TRADE,
-            "chan_needs_gaps": sketches.GASOLINE_TRADE,
-            "fill_misses": sketches.GASOLINE_TRADE,
+        commodity it draws, from its title or from one grey note. A title that
+        names the commodity leaves the note only the contract. The calendar
+        sketch draws several natural gas contracts and names each one, so it
+        is the exception."""
+        trades = {
+            "streak_start": ("natural gas", "June contract"),
+            "gasoline_editions": ("gasoline", "May contract"),
+            "gap_range": ("gasoline", "May contract"),
+            "interpolation_guess": ("gasoline", "May contract"),
+            "chan_needs_gaps": ("gasoline", "May contract"),
+            "fill_misses": ("gasoline", "May contract"),
         }
-        assert set(names) | {"june_file"} == {scene.slug for scene in every}
+        assert set(trades) | {"june_file"} == {scene.slug for scene in every}
         for scene in every:
-            if scene.slug in names:
-                notes = [label for label in scene.labels if names[scene.slug] in label]
-                assert len(notes) == 1, scene.slug
-                assert _label(scene, notes[0]).color == MUTED, scene.slug
+            if scene.slug not in trades:
+                continue
+            commodity, contract = trades[scene.slug]
+            notes = [label for label in scene.labels if contract in label]
+            assert len(notes) == 1, scene.slug
+            assert _label(scene, notes[0]).color == MUTED, scene.slug
+            in_title = commodity in scene.title.lower()
+            assert (commodity in notes[0]) != in_title, scene.slug
 
     def test_every_pale_tint_has_a_green_edge(self, every) -> None:
         """No sketch draws a tint today. One that does would need the
@@ -717,7 +723,7 @@ class TestTheGasolineSketch:
         assert _label(scene, "sidebar: a profit every year since 1995").color == ACCENT
         assert _stroke(scene, "main-text").color == INK
         assert _label(scene, "main text: 19 of 21, as of 2015").color == INK
-        assert _label(scene, "gasoline, May contract").color == MUTED
+        assert _label(scene, "May contract").color == MUTED
 
     def test_every_mark_sits_at_its_year_on_one_scale(self, every, gasoline) -> None:
         scene = every[1]

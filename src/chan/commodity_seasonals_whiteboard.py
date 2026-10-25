@@ -311,9 +311,12 @@ def _streak_start(f: StreakFigures) -> Scene:
 #: (p. 183). The year is the chart's, where the book's gasoline years end.
 GASOLINE_COUNT = (19, 21)
 #: Which trade the dots are, the counterpart of :data:`TRADE`. Every gasoline
-#: sketch carries it, so a reader landing on one before its paragraph knows
-#: which commodity it draws.
+#: sketch whose title does not say gasoline carries it, so a reader landing on
+#: one before its paragraph knows which commodity it draws.
 GASOLINE_TRADE = "gasoline, May contract"
+#: The editions sketch's note, which needs only the contract because its title
+#: names gasoline.
+GASOLINE_CONTRACT = "May contract"
 
 
 @dataclass(frozen=True)
@@ -486,7 +489,7 @@ def _gasoline_editions(f: GasolineFigures) -> Scene:
             color=LOST,
             size=11,
         ),
-        Label(GASOLINE_TRADE, 9.7, 0.35, names="profitable", color=MUTED, size=11, ha="right"),
+        Label(GASOLINE_CONTRACT, 9.7, 0.35, names="profitable", color=MUTED, size=11, ha="right"),
     ]
     return Scene("Gasoline’s two claims read as two editions", "gasoline_editions", tuple(steps))
 
