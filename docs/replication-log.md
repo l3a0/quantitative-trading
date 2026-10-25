@@ -6857,14 +6857,24 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. The post's one figure
 moves too, and `uv run python -m chan.gold_miners_oil_figures` redraws it.
 
-The post also carries one whiteboard sketch, in Lesson 1, added in the first
-round of its review before publishing. It draws how the triplet's trace test
-reaches its count. The first statistic, 44.838, clears its 99 percent bar of
-35.463, and the second, 7.005, falls short of its bar of 19.935 and even of the
-90 percent bar of 13.429, so the count stops at one relation and the third
-statistic, though computed, is never read. A change to those figures moves the
-sketch too, and `uv run python -m chan.gold_miners_oil_whiteboard` redraws it
-through the same `read_sources` and `gold_miners_oil`.
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **Counting stops at the first no**, in Lesson 1. It draws how the triplet's
+   trace test reaches its count. The first statistic, 44.838, clears its 99
+   percent bar of 35.463, and the second, 7.005, falls short of its bar of
+   19.935 and even of the 90 percent bar of 13.429, so the count stops at one
+   relation and the third statistic, though computed, is never read.
+2. **One relation, three pairs**, in Lesson 3. It draws each pair tested alone
+   over the triplet's days as an edge of a triangle. GLD and GDX at 10.447 and
+   GLD and USO at 4.350 find none, and GDX and USO at 27.166 find one at 99
+   percent, so the triplet's count of one cannot say which pair it is. It
+   closes on the zero-weight tests, 10.015 for GLD, rejected, and 0.057 for
+   USO, not rejected.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.gold_miners_oil_whiteboard` redraws both through the
+same `read_sources` and `gold_miners_oil`.
 
 ## Entry 30: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*
 
