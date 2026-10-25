@@ -5018,7 +5018,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/khandani-lo-reversal-lessons.md](../blog/khandani-lo-reversal-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
-figure, which `uv run python -m chan.khandani_lo_book_two_figures` redraws.
+figure, which `uv run python -m chan.khandani_lo_book_two_figures` redraws,
+and so do its two whiteboard sketches, CAH's bounce in Lesson 2 and the
+average day's cost and profit in Lesson 4, which
+`uv run python -m chan.khandani_lo_book_two_whiteboard` redraws from the same
+runs.
 
 ## Entry 20: constant leverage and capped Kelly allocation, Chan's *Algorithmic Trading*
 
