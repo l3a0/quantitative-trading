@@ -23,13 +23,19 @@ both are stated once here.
   whole span for the triplet and the control. Each claim is judged at 99
   percent on the trace and eigen statistics separately. ``cadf(GLD, GDX, 0,
   1)`` is ``lesage_cadf`` with one lag, and each ADF has a constant and one
-  lag.
+  lag. The weight test of row 15 is Johansen's (1991) likelihood-ratio test
+  of β = Hφ on the triplet's rank-1 relation over the whole span, built from
+  the product moments of ``johansen(·, 0, 1)``, a constant entering
+  unrestricted, with T = 1,479, and read against chi-squared with one degree
+  of freedom.
 
 The Johansen statistics are pinned at six decimals and the eigenvalues at
 eight, the precision Entry 23's pins on the same wrapper use.
 
 Exploratory. The split date and the third ETF were both chosen after the break
-was seen. Every test here first ran on 2026-10-05.
+was seen. Every test here first ran on 2026-10-05, except row 15's, which the
+post's pre-publish review added after every other result had been seen and
+which first ran on 2026-10-25.
 """
 
 from __future__ import annotations
@@ -40,6 +46,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2
+from scipy import optimize
+from scipy.stats import chi2
 
 from chan import gold_miners_oil as module
 from chan import paths
@@ -49,6 +57,7 @@ from chan.gold_miners_oil import (
     BOOK_AFTER,
     BOOK_BEFORE,
     BOOK_TRIPLET,
+    CHI2_1,
     CLAIM_ROWS,
     JOHANSEN_K,
     JOHANSEN_P,
@@ -59,8 +68,11 @@ from chan.gold_miners_oil import (
     WHOLE,
     GoldMinersOil,
     gold_miners_oil,
+    johansen_moments,
     main,
     read_sources,
+    restricted_eigenvalues,
+    restricted_lr,
     run,
 )
 from chan.johansen import Johansen, johansen
@@ -79,6 +91,11 @@ def sources():
 @pytest.fixture(scope="module")
 def result(sources) -> GoldMinersOil:
     return gold_miners_oil(sources[1])
+
+
+@pytest.fixture(scope="module")
+def triplet(sources):
+    return sources[1][list(TRIPLET)].to_numpy(dtype=float)
 
 
 @pytest.fixture
@@ -366,7 +383,11 @@ class TestBesideTheReplication:
         )
 
     def test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not(self, result):
-        """Added after review. The triplet's one relation may be GDX and USO's own."""
+        """Added after review, to ask whether the triplet's one relation is GDX and USO's own.
+
+        Row 15 answers it on the triplet's weights. GLD's weight being zero is
+        rejected at 99 percent, so the relation is not the pair's alone.
+        """
         gld, gdx = result.with_oil["GLD"], result.with_oil["GDX"]
         np.testing.assert_allclose(gld.trace, [4.349962, 0.573598], atol=1e-6)
         np.testing.assert_allclose(gld.eigen, [3.776364, 0.573598], atol=1e-6)
@@ -394,6 +415,101 @@ class TestBesideTheReplication:
             before["GDX"].to_numpy(dtype=float), before["GLD"].to_numpy(dtype=float), 1
         )
         assert swapped[0] != pytest.approx(result.cadf["before"].t, abs=1e-3)
+
+
+class TestTheWeightTest:
+    """Row 15. Each fund's weight set to zero in the triplet's one relation.
+
+    Added in the post's pre-publish review after every other result had been
+    seen, so exploratory, conditional on rank 1, asymptotic, and one of three
+    tests run together. The statistics are pinned at six decimals, as the
+    Johansen statistics they are built beside.
+    """
+
+    def test_the_bars_are_chi_squared_with_one_degree_of_freedom(self) -> None:
+        assert CHI2_1 == pytest.approx({90: 2.705543, 95: 3.841459, 99: 6.634897}, abs=1e-6)
+        assert [f"{CHI2_1[level]:.3f}" for level in (90, 95, 99)] == ["2.706", "3.841", "6.635"]
+
+    def test_the_moments_give_statsmodels_eigenvalues(self, sources, result, triplet) -> None:
+        """So the restricted test is built on the model the unrestricted one ran."""
+        moments = johansen_moments(triplet)
+        assert moments.nobs == 1479
+        np.testing.assert_allclose(
+            restricted_eigenvalues(moments, np.eye(3)), result.triplet.eigenvalues, atol=1e-12
+        )
+        for symbol in PAIR:
+            pair = sources[1][[symbol, "USO"]].to_numpy(dtype=float)
+            np.testing.assert_allclose(
+                restricted_eigenvalues(johansen_moments(pair), np.eye(2)),
+                result.with_oil[symbol].eigenvalues,
+                atol=1e-12,
+            )
+
+    def test_row_15_gld_and_gdx_cannot_be_left_out_and_uso_can(self, result) -> None:
+        """GLD at zero is rejected at 99 percent, GDX far past it, USO not even at 90."""
+        lr = result.zero_weight
+        assert list(lr) == ["GLD", "GDX", "USO"]
+        assert lr == pytest.approx({"GLD": 10.014660, "GDX": 26.336768, "USO": 0.056678}, abs=1e-6)
+        assert lr["GLD"] > CHI2_1[99] and lr["GDX"] > CHI2_1[99]
+        assert lr["USO"] < CHI2_1[90]
+        assert chi2.sf(lr["GLD"], 1) == pytest.approx(0.00155, abs=5e-6)
+        assert chi2.sf(lr["USO"], 1) == pytest.approx(0.812, abs=5e-4)
+
+    def test_row_15_by_maximising_the_likelihood_directly(self, result, triplet) -> None:
+        """An independent route to the GLD statistic, with its own moments.
+
+        At rank 1 the concentrated log-likelihood is −T/2 times
+        ``ln|S00 − S01 b (b'S11 b)⁻¹ b'S10|``, so the statistic is T times the
+        gap between that log-determinant's minimum with GLD's weight at zero
+        and its minimum with every weight free. The moments here demean and
+        project with a pseudo-inverse, as ``coint_johansen`` does, and the free
+        minimum is checked against statsmodels' own largest eigenvalue.
+        """
+        dx = np.diff(triplet, axis=0)
+        lags = dx[:-1] - dx[:-1].mean(axis=0)
+
+        def residual(values):
+            values = values - values.mean(axis=0)
+            return values - lags @ (np.linalg.pinv(lags) @ values)
+
+        r0, r1 = residual(dx[1:]), residual(triplet[1:-1])
+        t = len(r0)
+        s00, s01, s11 = r0.T @ r0 / t, r0.T @ r1 / t, r1.T @ r1 / t
+
+        def log_det(b):
+            b = np.asarray(b, dtype=float)[:, None]
+            kept = s01 @ b @ b.T @ s01.T / (b.T @ s11 @ b).item()
+            return np.linalg.slogdet(s00 - kept)[1]
+
+        held = optimize.minimize_scalar(lambda x: log_det([0.0, 1.0, x]), tol=1e-12)
+        free = optimize.minimize(
+            lambda v: log_det([v[0], 1.0, v[1]]),
+            [0.0, 0.0],
+            method="Nelder-Mead",
+            options={"xatol": 1e-12, "fatol": 1e-15, "maxiter": 20000},
+        )
+        floor = np.linalg.slogdet(s00)[1] + np.log(1 - result.triplet.eigenvalues[0])
+        assert free.fun == pytest.approx(floor, abs=1e-12)
+        assert t * (held.fun - free.fun) == pytest.approx(result.zero_weight["GLD"], abs=1e-6)
+
+    def test_a_restriction_that_holds_exactly_costs_nothing(self, result, triplet) -> None:
+        """A span holding the unrestricted relation leaves the largest eigenvalue where it was."""
+        relation = result.triplet.eigenvectors[:, 0]
+        h = np.column_stack([relation, [1.0, 0.0, 0.0]])
+        assert restricted_lr(johansen_moments(triplet), h) == pytest.approx(0.0, abs=1e-9)
+
+    def test_the_report_prints_each_statistic_and_its_bars(self, capsys, no_arguments) -> None:
+        main()
+        lines = [line.strip() for line in capsys.readouterr().out.splitlines()]
+        for expected in (
+            "against chi-squared with 1 degree of freedom, "
+            "2.706 at 90%, 3.841 at 95%, 6.635 at 99%",
+            "GLD = 0  LR 10.014660, asymptotic p 0.00155",
+            "GDX = 0  LR 26.336768, asymptotic p 2.87e-07",
+            "USO = 0  LR  0.056678, asymptotic p 0.812",
+            "Conditional on rank 1, asymptotic, and one of three tests run together.",
+        ):
+            assert expected in lines, expected
 
 
 class TestTheCut:

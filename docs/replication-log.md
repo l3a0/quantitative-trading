@@ -6651,7 +6651,7 @@ at 3537 and 3570. No script ships for it. Shipped under
 location in this entry is that book's, in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
-Fourteen rows, all derivable from
+Fifteen rows, all derivable from
 [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py).
 
 Chan pairs the gold fund GLD with the gold miners' fund GDX, since a miner's
@@ -6665,8 +6665,9 @@ why a strategy stopped working and testing it.
 **All three claims hold on Chan's own file, on both Johansen statistics, at 99
 percent and at 90.** The control the book leaves out holds as well. GLD and
 GDX alone over the triplet's days find no relation even at 90 percent, so the
-triplet's relation is not one the pair already had. It may be GDX and USO's
-own, though, because those two alone find one relation at 99 percent.
+triplet's relation is not one the pair already had. GDX and USO alone find
+one relation at 99 percent, which would make the triplet's relation theirs.
+A test on the triplet's weights rejects that, so the two results conflict.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -6710,12 +6711,15 @@ cannot confirm the oil hypothesis however it comes out.
 | 12 | The CADF test of GLD on GDX in each window | none | n/a |
 | 13 | A plain ADF test of each ETF alone in each window it enters | none | n/a |
 | 14 | GLD and USO, and GDX and USO, each alone over the triplet's 1,481 days | none | n/a |
+| 15 | Each fund's weight set to zero in the triplet's one relation | none | n/a |
 
 Each row's claim criterion was written on the issue before any statistic was
 computed. Rows 1 and 2 hold on one relation or two, rows 3 and 4 on none, and
 rows 5 and 6 on exactly one. Row 14 was not on the issue. The pull request's
 review added it after the first run, to ask whether the triplet's relation is
-one of the other two pairs' own. The criteria are pinned in
+one of the other two pairs' own. Row 15 came later still. The post's
+pre-publish review added it after every other result here had been seen, to
+test row 14's reading on the triplet's weights. The criteria are pinned in
 `TestTheSpecification::test_the_six_criteria_are_the_ones_issue_344_declared`.
 The critical values beside each statistic are LeSage's tables, which Entry 23
 checked against Chan's own printout.
@@ -6738,6 +6742,7 @@ checked against Chan's own printout.
 | 12 | `lesage_cadf(GLD, GDX, 1)` against MacKinnon's two-series bars, −3.34 at 95 percent and −3.90 at 99 | −3.724034 in the first window, −1.511680 in the second and −1.517588 over the whole span | `TestBesideTheReplication::test_row_12_the_cadf_rejects_at_95_before_and_not_at_99` |
 | 13 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | first window GLD −0.033875 and GDX −1.962727, second GLD −0.575590 and GDX −1.720225, whole span GLD −0.370352, GDX −2.371217 and USO −1.213340 | `TestBesideTheReplication::test_row_13_no_series_alone_rejects_a_unit_root_even_at_90` |
 | 14 | `johansen([GLD, USO], 0, 1)` and `johansen([GDX, USO], 0, 1)`, whole span | GLD and USO trace 4.349962 and 0.573598, 0 relations even at 90 percent. GDX and USO trace 27.165550 and 3.034162, eigen 24.131388 and 3.034162, 1 relation at 95 and 99 percent and 2 at 90 | `TestBesideTheReplication::test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not` |
+| 15 | Johansen's (1991) likelihood-ratio test of β = Hφ on row 9's rank-1 relation, one fund's weight at zero, from the moments of `johansen(·, 0, 1)` with T = 1,479, against chi-squared with one degree of freedom, 2.706, 3.841 and 6.635 at 90, 95 and 99 percent | GLD's weight at zero 10.014660, GDX's 26.336768 and USO's 0.056678 | `TestTheWeightTest::test_row_15_gld_and_gdx_cannot_be_left_out_and_uso_can`, with the GLD figure reached again by maximising the likelihood in `::test_row_15_by_maximising_the_likelihood_directly` |
 
 ### The verdicts
 
@@ -6756,7 +6761,8 @@ checked against Chan's own printout.
 | 11 | none | none, not a replication | The sign is statsmodels', which makes the first row positive. |
 | 12 | none | none, not a replication | The CADF test rejects at 95 percent before the break and not after it. At the 99 percent level the claims are judged at, it rejects in neither window. |
 | 13 | none | none, not a replication | No series is stationary on its own in any window. |
-| 14 | none | none, not a replication | GDX and USO alone hold the relation the triplet finds, so the triplet's row cannot separate the oil hypothesis from that pair's own link. |
+| 14 | none | none, not a replication | GDX and USO alone find one relation at 99 percent. Row 15 rejects the triplet's relation being theirs, so the two results conflict, and this one is the weaker. |
+| 15 | none | none, not a replication | Exploratory. GLD's weight at zero is rejected at 99 percent, at an asymptotic p of 0.00155, and USO's cannot be rejected even at 90, at 0.812. Added after every other result was seen, conditional on rank 1, and one of three tests run together. |
 
 ### What the entry concludes
 
@@ -6773,19 +6779,32 @@ Four things.
    The book's "99 percent probability" is a test level rather than a
    probability. The test rejects no cointegration at the 1 percent level, and
    it says nothing about how likely the pair is to cointegrate.
-2. **The control holds, and a second control weakens what it shows.** GLD
-   and GDX alone over the triplet's 1,481 days give a trace statistic of
-   10.447, short of even the 90 percent bar of 13.429. Adding USO raises the
-   first null's trace to 44.838, so the triplet's relation is not one the pair
-   already had. Row 14 asks the same of the other two pairs. GLD and USO alone
-   find nothing, at 4.350. GDX and USO alone find one relation at 99 percent,
-   at 27.166 against 19.935. So a triplet of rank 1 is also what a link
-   between the miners and oil alone would produce, with GLD along for the
-   ride, and that reading says nothing about oil restoring the link between
-   gold and the miners. Rank 1 cannot tell the two readings apart, and this
-   entry does not try. The eigenvector's entries are shares per unit of the
-   portfolio, so their sizes are not comparable across ETFs at different
-   prices, and no row here measures any weight in dollars.
+2. **The control holds, and the triplet's weights decide what a second
+   control could not.** GLD and GDX alone over the triplet's 1,481 days give a
+   trace statistic of 10.447, short of even the 90 percent bar of 13.429.
+   Adding USO raises the first null's trace to 44.838, so the triplet's
+   relation is not one the pair already had. Row 14 asks the same of the
+   other two pairs. GLD and USO alone find nothing, at 4.350. GDX and USO
+   alone find one relation at 99 percent, at 27.166 against 19.935. A rank of
+   1 cannot say whether the triplet's relation is that pair's own, so row 15
+   tests its weights. If the relation were GDX and USO's, GLD's weight in it
+   would be zero. That restriction gives a likelihood-ratio statistic of
+   10.015 against a 99 percent bar of 6.635, so it is rejected. GDX's weight
+   at zero gives 26.337. USO's gives 0.057, short of even the 90 percent bar
+   of 2.706. So gold and the miners carry the relation, and USO's weight in
+   it cannot be told from zero. With row 10, that places whatever USO adds to
+   the triplet outside the relation's weights, and no row here tests where.
+   Rows 14 and 15 cannot both be right. If GDX and USO truly shared a
+   relation, a triplet of rank 1 would have to hold that same relation, with
+   GLD's weight at zero, and row 15 rejects it. Row 14's is the weaker result,
+   since GDX and USO reach full rank at 90 percent while neither is stationary
+   alone, which conclusion 3 takes up. Row 15 is exploratory too. The post's
+   pre-publish review added it after every other result here had been seen,
+   it holds only if the rank is 1, it is one of three weight tests run
+   together, and its bars are asymptotic, which nothing here checks on 1,479
+   days. The eigenvector's entries are shares per unit of the portfolio, so
+   their sizes are not comparable across ETFs at different prices, and no row
+   here measures any weight in dollars.
 3. **The Engle-Granger family sees the same break, and no series is
    stationary alone.** The CADF statistic of GLD on GDX is −3.724 before the
    break, past the 95 percent bar of −3.34 and short of the 99 percent bar of
