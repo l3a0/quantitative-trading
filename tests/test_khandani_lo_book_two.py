@@ -727,7 +727,7 @@ class TestWhatThePostQuotes:
         fragments = [
             f"The file holds {len(members)} stocks that were in the S&P 500 in late 2011",
             "A company that was out of the index for all of late 2011 is not in the file",
-            "The panel carries a list of the index from late 2011 back almost five years",
+            "The panel’s list dates from late 2011, almost five years after its window opens",
             "Every stock on the panel was in the S&P 500 in late 2011",
             "the stocks were chosen from the index as it stood in late 2011",
         ]
@@ -812,6 +812,7 @@ class TestWhatThePostQuotes:
             f"{b.sharpe:.6f}",
             f"2008 and 2009 to about {round(curve[a.days.year == 2009][-1], -1):.0f} percent",
             f"ends 2011 near {round(curve[-1], -1):.0f} percent",
+            "It drifts slightly below zero through 2007",
             f"from zero to about {round(100 * cumulative_return(b)[-1], -1):,.0f} percent",
         ]
         assert self.missing(text, fragments) == []

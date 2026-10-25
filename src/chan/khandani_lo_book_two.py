@@ -103,7 +103,9 @@ error or a corporate action rather than a crash, and without CAH Example 4.3
 gives 13.26 percent and 1.2267, so neither of Chan's figures reproduces. The
 opens' flags were counted rather than read, and three of their stocks, HBAN,
 SLM and ZION, are flagged on the open only. The decision is about reproducing
-this script, and it is not a ruling for any other rule on this panel.
+this script, and it is not a ruling for any other rule on this panel. The
+first book's rule, which ``book_two`` also runs on this panel, computes across
+the same flags.
 
 **Every figure here is about survivors.** The panel holds 497 stocks that
 were in the S&P 500 in late 2011, and the run treats them as the index on

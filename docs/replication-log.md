@@ -4853,8 +4853,8 @@ its rows is a check on theirs.
    profit afterwards.
 5. **The Sharpe ratio takes MATLAB's own mean and standard deviation**, where
    Entry 8's pairs `smartmean` with the first edition's `smartstd`. The two
-   agree on a series with no missing day, which every series here is, so this
-   difference moves no figure in this entry.
+   agree on a series with no missing day, which both examples' series are, so
+   this difference moves neither example's figures.
 
 Entry 10's rule A, Chan's Python notebook, already scales to a gross of 1 and
 skips a missing return the same way. Without its forward-fill, its profit
@@ -4977,11 +4977,10 @@ Three things.
    of it (row 11), because a window of 251 days lets two days move a Sharpe
    ratio by a third. Both differences come from the unrounded figures,
    which `TestBesideTheFirstBook::test_the_differences_the_post_quotes_round_from_the_unrounded_figures`
-   holds. The data include a longer survivor horizon, since this
-   panel carries a list of the index from late 2011 back to 2007, almost
-   five years, where Entry 8's file carries 2007-11-23's back to 2006, under
-   two, and nothing
-   here prices what that adds.
+   holds. The data include a longer survivor horizon. This panel's list
+   dates from late 2011, almost five years after the window opens in 2007,
+   where Entry 8's dates from 2007-11-23, under two years after its window
+   opens in 2006. Nothing here prices what that adds.
 3. **Entry 8's lesson survives the move to the 2012 panel.** Charged 5 basis
    points a side, the first book's rule falls from 1.2219 to 0.3797 over 2007
    to 2011 (row 10). Chan prints both of this book's figures before costs.

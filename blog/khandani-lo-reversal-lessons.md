@@ -32,7 +32,7 @@ The second book’s rule differs from the first book’s in five ways.
 2. **A stock with no price gets no weight at all**, where the first book gives it a weight of 0. Both leave it out of the day’s profit, so the difference could matter only to a cost, and the second book charges none.
 3. **No cost is charged.** The script’s cost lines are commented out.
 4. **The window is cut before any return is taken.** The first book takes returns on its whole file and cuts the profit to the window afterwards. Here the window’s first day has no earlier price to take a return from, so the first day or two earn nothing, as the paragraph below counts.
-5. **The Sharpe ratio uses MATLAB’s own mean and standard deviation**, where the first book uses Chan’s own functions, whose mean skips a missing day and whose standard deviation counts it as a zero. No series here has a missing day, so this difference moves no figure.
+5. **The Sharpe ratio uses MATLAB’s own mean and standard deviation**, where the first book uses Chan’s own functions, whose mean skips a missing day and whose standard deviation counts it as a zero. Neither example’s series has a missing day, so this difference moves none of their figures.
 
 ### Where the prices and the script come from
 
@@ -100,7 +100,7 @@ One of them is not. CAH closes at 19.96 on 2009-08-31, 14.50 on 2009-09-01 and 2
 
 *Drawn to one scale from the run, on a price axis that starts at 11 rather than 0, so both moves look bigger than they are and the labels give their size. The check flags a day on which the close changes by a ratio above 1.6 or below 1 / 1.6, which is 0.625. The black arrow is the fall it lets through, and the red arrow is the rise it flags. The green bar is what Example 4.3 bought at the middle close, and the green bracket is the rise that weight earned on. The grey line beneath gives Example 4.3’s figures without CAH, and neither matches the book’s.*
 
-So the transcription does not run the check. This repository made that decision to reproduce this one script, and it applies to no other rule run on the panel. The reproduction checks the computation on Chan’s file, odd prices included, and says nothing about what the rule would have earned on correct prices.
+So the transcription does not run the check. The repository skips it to reproduce this one script, and that settles nothing about whether another rule should run the check. The first book’s rule, which Lessons 3 and 4 run on the same panel, skips the check too, so CAH’s odd prices are in its figures on the panel. The reproduction checks the computation on Chan’s file, odd prices included, and says nothing about what either rule would have earned on correct prices.
 
 ## Lesson 3: most of the rise from 0.25 to 1.3 is the data and the window
 
@@ -123,11 +123,11 @@ Start from the first book’s file and year and change only the rule. The second
 
 Part of that 0.2974 comes from cutting the window before taking returns, rather than from how the weights are set. When the window is cut first, the year’s first two days, 2006-01-03 and 2006-01-04, earn nothing, because the first has no return and the second holds the first day’s empty weights. With returns taken before the cut, those two days lose 0.48 and 0.14 percent, and the Sharpe ratio comes down to 0.4170, the second row. So zeroing two losing days raises the figure from 0.4170 to 0.5484, by about a third. That is 0.1313 of the 0.2974, or 0.44 of it. Both come from the unrounded figures, and the rounded rows give 0.1314. One year holds only 251 days, so two of them can move a Sharpe ratio that far.
 
-The data differ in more than the years. The panel carries a list of the index from late 2011 back almost five years, to 2007. The first book’s file carries 2007-11-23’s membership back under two years, to 2006. The longer the stretch, the more of the companies that left the index along the way are missing from the file, whether they failed, were bought or left for another reason. No test here measures how much leaving them out moves the 1.2219.
+The data differ in more than the years. Each run treats its file’s list of stocks as the index on every day of its window. The panel’s list dates from late 2011, almost five years after its window opens in 2007. The first book’s list dates from 2007-11-23, under two years after its window opens in 2006. The longer the stretch, the more of the companies that left the index along the way are missing from the run, whether they failed, were bought or left for another reason. No test here measures how much leaving them out moves the 1.2219.
 
 ## Lesson 4: after costs, the first book’s rule keeps under a third of its profit on the panel and loses money over 2006
 
-The second book prints every figure before costs, and no run here charges its rule, though it sets every weight again each day just as the first book’s does. So this lesson charges the first book’s rule. At 5 basis points on every buy and every sell, with the first day’s trades charged too, its Sharpe ratio falls from 1.2219 to 0.3797 on the panel. Over 2006 the same charge took it from 0.2510 to −3.2337. That is lower than the −3.1884 quoted at the top of this post, which reproduces Chan’s −3.19, because the −3.1884 leaves the first day’s trades uncharged, as Lesson 2 of the post on trading costs explains.
+The second book prints every figure before costs, and no run here charges its rule, though it sets every weight again each day just as the first book’s does. So this lesson charges the first book’s rule. At 5 basis points on every buy and every sell, with the first day’s trades charged too, its Sharpe ratio falls from 1.2219 to 0.3797 on the panel. Over 2006 the same charge took it from 0.2510 to −3.2337. That is lower than the −3.1884 quoted at the top of this post, which reproduces Chan’s −3.19. The two differ only on the first day. Chan’s code leaves that day’s trades uncharged and its profit after costs missing, and Lesson 2 of the post on trading costs explains how his functions treat the missing day.
 
 An average day explains the difference. Each profit and cost below is in basis points of the rule’s average gross position.
 
