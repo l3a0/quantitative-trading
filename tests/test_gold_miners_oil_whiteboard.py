@@ -125,7 +125,7 @@ PAIRS_LABELS = [
     "27.166: one at 99%",
     "pair bar at 99%: 19.935",
     "a count of one cannot\nsay which pair it is",
-    "GLD’s weight 0?\n10.015: rejected",
+    "GLD’s weight 0?\n10.015: rejected at 95%",
     "USO’s weight 0?\n0.057: not rejected",
 ]
 
@@ -725,7 +725,7 @@ class TestThePairsSketch:
             "27.166: one at 99%": GOOD,
             "pair bar at 99%: 19.935": MUTED,
             "a count of one cannot\nsay which pair it is": ACCENT,
-            "GLD’s weight 0?\n10.015: rejected": GOOD,
+            "GLD’s weight 0?\n10.015: rejected at 95%": GOOD,
             "USO’s weight 0?\n0.057: not rejected": LOST,
         }
 
@@ -743,7 +743,9 @@ class TestThePairsSketch:
             text = words[0]
             assert edge.dashed == text.endswith(": none"), gid
             assert edge.dashed != text.endswith(": one at 99%"), gid
-        assert _label(scene, "GLD’s weight 0?\n10.015: rejected").text.endswith(": rejected")
+        assert _label(scene, "GLD’s weight 0?\n10.015: rejected at 95%").text.endswith(
+            ": rejected at 95%"
+        )
         assert _label(scene, "USO’s weight 0?\n0.057: not rejected").text.endswith(": not rejected")
 
     def test_each_edge_joins_the_funds_it_names(self, every) -> None:
@@ -784,7 +786,7 @@ class TestThePairsSketch:
 
     def test_each_weight_note_names_its_funds_dot(self, every) -> None:
         scene = every[1]
-        assert _label(scene, "GLD’s weight 0?\n10.015: rejected").names == "gld"
+        assert _label(scene, "GLD’s weight 0?\n10.015: rejected at 95%").names == "gld"
         assert _label(scene, "USO’s weight 0?\n0.057: not rejected").names == "uso"
         notes = [s for s in scene.steps if isinstance(s, Label) and s.x == NOTES_X]
         assert [s.text for s in notes] == PAIRS_LABELS[7:]
@@ -823,7 +825,7 @@ class TestThePairsSketch:
             "30.125: one at 99%",
             "pair bar at 99%: 20.500",
             "a count of one cannot\nsay which pair it is",
-            "GLD’s weight 0?\n12.750: rejected",
+            "GLD’s weight 0?\n12.750: rejected at 95%",
             "USO’s weight 0?\n0.500: not rejected",
         ]
 

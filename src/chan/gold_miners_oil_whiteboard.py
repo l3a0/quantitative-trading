@@ -27,7 +27,8 @@ text it draws.
    marked "one at 99%". A grey note gives the pairs' shared 99 percent bar,
    and brown words say a count of one cannot say which pair the relation is.
    The last two notes are the zero-weight tests on the triplet's relation:
-   GLD's weight set to zero is rejected, in green, and USO's is not, in red.
+   GLD's weight set to zero is rejected at 95 percent, in green, and USO's
+   is not, in red.
 
 Neither sketch is schematic. In the first, the two columns and the two dashed
 lines stand on one floor at one affine function of their values, and every
@@ -306,8 +307,8 @@ class PairsAndWeights:
 
     The sketch says the triplet holds one relation, that GLD and GDX and GLD
     and USO find none at any level the test reports, that GDX and USO find one
-    at 99 percent, that GLD's zero weight is rejected, and that USO's is not
-    rejected at any level. Figures for which any of those is false are
+    at 99 percent, that GLD's zero weight is rejected at 95 percent, and that
+    USO's is not rejected at any level. Figures for which any of those is false are
     refused.
     """
 
@@ -462,7 +463,7 @@ def _three_pairs(f: PairsAndWeights) -> Scene:
                 size=12,
             ),
             Label(
-                f"GLD’s weight 0?\n{f.gld_weight:.3f}: rejected",
+                f"GLD’s weight 0?\n{f.gld_weight:.3f}: rejected at 95%",
                 NOTES_X,
                 1.95,
                 names="gld",

@@ -4438,8 +4438,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    finding none, while GDX and USO give 27.166, one relation at 99 percent
    against the pairs' bar of 19.935. So a count of one cannot say which pair
    the triplet's relation is. Its last notes give the zero-weight tests, where
-   GLD's weight set to zero gives 10.015 and is rejected and USO's gives 0.057
-   and is not. Its triangle's shape carries no figure.
+   GLD's weight set to zero gives 10.015 and is rejected at 95 percent, and
+   USO's gives 0.057 and is not. Its triangle's shape carries no figure.
 
 Both read every figure from the committed file through the same
 `read_sources` and `gold_miners_oil` as `python -m chan.gold_miners_oil`. Both

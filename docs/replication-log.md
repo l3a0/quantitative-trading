@@ -6869,8 +6869,8 @@ review before publishing.
    over the triplet's days as an edge of a triangle. GLD and GDX at 10.447 and
    GLD and USO at 4.350 find none, and GDX and USO at 27.166 find one at 99
    percent, so the triplet's count of one cannot say which pair it is. It
-   closes on the zero-weight tests, 10.015 for GLD, rejected, and 0.057 for
-   USO, not rejected.
+   closes on the zero-weight tests, 10.015 for GLD, rejected at 95 percent,
+   and 0.057 for USO, not rejected.
 
 A change to those figures moves the sketches too, and
 `uv run python -m chan.gold_miners_oil_whiteboard` redraws both through the
