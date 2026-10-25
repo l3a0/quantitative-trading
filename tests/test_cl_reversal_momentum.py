@@ -747,7 +747,8 @@ class TestWhatThePostQuotes:
        and the paragraph after the chart.
        ``tests/test_cl_reversal_momentum_figures.py`` pins the same curves.
     2. Chan's two CL strips through :func:`chan.roll_returns.load_strip`, for
-       the January 2007 contract both start with.
+       the January 2007 contract both start with, and for the close of the
+       contract nearest delivery on the window's first day.
        ``tests/test_roll_returns.py`` pins the same first contract.
     3. The file names of the two VX and ES saves in :mod:`chan.vx_es`, for
        "ten days apart". ``tests/test_vx_es.py`` pins the APR falling by more
@@ -782,11 +783,17 @@ class TestWhatThePostQuotes:
     def test_the_post_holds_three_tables(self, text) -> None:
         assert len(self.tables(text)) == 3
 
-    def test_the_opening_and_the_file(self, cl, book, later_cl, before_cl, text) -> None:
+    def test_the_opening_and_the_file(self, cl, book, later_cl, before_cl, strips, text) -> None:
         saved = pd.Timestamp(_saved(SOURCE_FILE))
         assert (pd.Timestamp(_saved(LATER_SOURCE_FILE)) - saved).days == 7, "a week later"
         assert round((BOOK_START - before_cl.index[0]).days / 365.25) == 4, "four years"
         assert round((CRUDE_PEAK - cl.index[0]).days / (365.25 / 12)) == 2, "two months before"
+        # Each strip's contracts sit in delivery order, so the first with a close that day
+        # is the one nearest delivery.
+        nearest = {float(s.loc[cl.index[0]].dropna().iloc[0]) for s in strips}
+        assert len(nearest) == 1, "both strips agree on the contract nearest delivery"
+        (near,) = nearest
+        assert near < cl.iloc[0], "well above the price that traded"
         fragments = [
             f"reports a {BOOK_APR_PERCENT} percent APR and a Sharpe ratio of {BOOK_SHARPE}. "
             "Both land.",
@@ -801,8 +808,8 @@ class TestWhatThePostQuotes:
             f"comment under its print line records `APR={SCRIPT_APR} Sharpe={SCRIPT_SHARPE}`.",
             f"a save dated a week later still prints as {BOOK_APR_PERCENT} percent and "
             f"{BOOK_SHARPE}.",
-            f"reruns a rule he chose on the {BOOK_START.year} to {BOOK_END.year} data his script "
-            f"reads",
+            f"reruns the rule he chose, on the {BOOK_START.year} to {BOOK_END.year} data his "
+            f"script reads",
             f"Nothing shows Chan fixed the {REVERSAL_LOOKBACK} and {MOMENTUM_LOOKBACK} days",
             f"The {REVERSAL_LOOKBACK}-day lag on a given day is the close {REVERSAL_LOOKBACK} "
             "trading days before it.",
@@ -815,8 +822,8 @@ class TestWhatThePostQuotes:
             f"above its {REVERSAL_LOOKBACK}-day lag or below its {MOMENTUM_LOOKBACK}-day lag.",
             f"`prod(1 + r)^({TRADING_DAYS}/n) − 1`",
             f"multiplying by √{TRADING_DAYS}.",
-            f"The book’s window opens at {cl.iloc[0]:.2f} on {cl.index[0].date()}. That is two "
-            "months before",
+            f"The book’s window opens at {cl.iloc[0]:.2f} on {cl.index[0].date()}, a day the "
+            f"contract nearest delivery closed at {near:.2f}. That is two months before",
             f"**The {_saved(SOURCE_FILE)} save**, the one `CL_rev.m` loads. CL holds "
             f"{len(cl):,} rows, from {BOOK_START.date()} to {BOOK_END.date()}.",
             f"**The {_saved(LATER_SOURCE_FILE)} save**, read over the same {len(later_cl):,} days.",
@@ -887,6 +894,9 @@ class TestWhatThePostQuotes:
         opposite = int((both & (m.positions == -r.positions)).sum())
         assert opposite > agree, "the two rules mostly disagree"
         held = int((j.positions != 0).sum())
+        before_both = int((~both).sum())
+        assert not both[:before_both].any() and both[before_both:].all(), "the first rows"
+        assert len(j.positions) - held == opposite + before_both, "the 803 and the first 40"
         means = {name: rule.daily.mean() for name, rule in (("j", j), ("m", m), ("r", r))}
         deviations = {name: rule.daily.std(ddof=1) for name, rule in (("j", j), ("m", m), ("r", r))}
         assert means["r"] < means["j"] < means["m"], "sits between"
@@ -898,12 +908,14 @@ class TestWhatThePostQuotes:
             f"{SPELLED[len(early)]}. Those {SPELLED[len(early)]}, from {early[0].date()} to "
             f"{early[-1].date()}, come early in the run, when the {REVERSAL_LOOKBACK}-day lag "
             f"exists and the {MOMENTUM_LOOKBACK}-day lag does not yet",
-            f"On every day except the {SPELLED[int(follow.sum())]} that follow those rows",
+            f"So on every day except the day after each of those {SPELLED[int(follow.sum())]} rows",
             f"Of the {int(both.sum())} rows where both lags exist, they agree on {agree} and take "
             f"opposite sides on {opposite}. On the day after each of those {opposite} rows",
-            f"The join holds a position on {held} days, long on {int((j.positions > 0).sum())} "
-            f"and short on {int((j.positions < 0).sum())}, and is flat on the other "
-            f"{len(j.positions) - held}.",
+            f"The join holds a position on {held} of the {len(j.positions):,} rows, long on "
+            f"{int((j.positions > 0).sum())} and short on {int((j.positions < 0).sum())}. "
+            f"It is flat on the other {len(j.positions) - held}, which are the {opposite} rows "
+            f"where the rules take opposite sides and the first {before_both} rows, before the "
+            f"{MOMENTUM_LOOKBACK}-day lag exists.",
             f"The join’s average day, {means['j']:.6f}, sits between reversal’s "
             f"{means['r']:.6f} and momentum’s {means['m']:.6f}.",
             f"because on those {SPELLED[len(early)]} early days reversal alone held shorts that "

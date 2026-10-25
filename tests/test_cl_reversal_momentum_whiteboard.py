@@ -647,8 +647,8 @@ class TestTheRuleSketch:
             "closes, and its spacing across does not follow the days between them." in caption
         )
         assert (
-            f"On {long.day} the close of {price(long.close)} sat above its 40-day lag of "
-            f"{price(long.momentum_lag)} and below its 30-day lag of {price(long.reversal_lag)}."
+            f"On {long.day} the close of {price(long.close)} sat below its 30-day lag of "
+            f"{price(long.reversal_lag)} and above its 40-day lag of {price(long.momentum_lag)}."
             in caption
         )
         assert (
