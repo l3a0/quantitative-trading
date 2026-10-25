@@ -747,7 +747,7 @@ class TestTheBasketsStocksAndTheIndex:
         text = POST.read_text(encoding="utf-8")
         assert "12 of the 98 it picks were not in the index on 2007-11-23" in text
         assert "Twelve of the 98 are missing from Chan’s list of the S&P 500" in text
-        assert "The basket holds all 14 on every test day." in text
+        assert "All 14 stay in the basket on every test day." in text
 
 
 #: Small counts and ordinals as the post spells them out, indexed by the number.
@@ -774,9 +774,9 @@ class TestWhatThePostQuotes:
     precision the post prints it, and looked for in at least one copy: a short
     fragment holding the number and the few words that name one place in the
     post. A typo in a copy that is read, or a re-pin that leaves the post
-    behind, fails here. Lesson 1's three tables are rebuilt whole, each
-    computed cell from the run and each printed cell from the script's
-    printout as :mod:`chan.index_arbitrage` records it, so a digit added to a
+    behind, fails here. Lesson 1's four tables are rebuilt whole, each
+    computed cell from the run and each cell in a column of the script's
+    figures from its printout as :mod:`chan.index_arbitrage` records it, so a digit added to a
     cell fails as well as a digit changed. The two random-walk measurements
     come from the same fixtures the pins of 561, 410 and 242 read, so they run
     once for the module.

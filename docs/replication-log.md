@@ -5844,9 +5844,9 @@ here.
 Every result here is **exploratory** and **survivor-only**. Reproducing
 Chan's figures spends the 2007 to 2012 sample on a rule he chose. The panel
 holds stocks that were in the S&P 500 in late 2011, carried back to 2006, so
-the 2007 screen picks only from those, and row 17 counts the 14 of its 98 that
-were out of the index at some point. The stocks and weights come from 2007 and trade
-from 2008, but location 2035 says the lookback of 5 was fixed "with the
+the 2007 screen picks only from those, and row 17 counts 14 of its 98 that the
+two committed lists show out of the index at some point. The stocks and weights
+come from 2007 and trade from 2008, but location 2035 says the lookback of 5 was fixed "with the
 benefit of hindsight", so the APR and Sharpe ratio are not out-of-sample
 figures.
 

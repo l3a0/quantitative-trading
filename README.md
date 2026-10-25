@@ -5109,9 +5109,10 @@ itself. It builds each run figure the post quotes from the run, at the
 precision the post prints it, and looks for one copy of it in the post, so a
 typo in that copy fails a test. That covers the files' days and dates, the
 screen's counts and the nominal 48 as 10 percent of 480, one unit's weights and
-dollars, the two random-walk measurements, the ADF statistics, and the APR,
+dollars, the second test's margin over its 95 percent bar and its count of
+relations, the two random-walk measurements, the ADF statistics, and the APR,
 Sharpe ratio, first return and last cumulative return in the figure's alt text.
-Lesson 1's three tables are rebuilt whole, so a digit added to a cell fails as
+Lesson 1's four tables are rebuilt whole, so a digit added to a cell fails as
 well as a digit changed. The sketch's caption and alt text are read by
 [tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
 instead.
