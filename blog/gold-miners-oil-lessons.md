@@ -9,13 +9,13 @@ A pair trade works only while its two prices keep a stable relationship, and tha
 1. Drop it.
 2. Ask why it failed and test the answer.
 
-Chan’s second book, *Algorithmic Trading*, takes the second road with the same pair. The reasoning for the pair is that a gold miner’s main asset is gold, so its shares should track the metal. Chan says they did, “until July 14, 2008, or thereabout” (Chan, 2013, location 1922). That was the day, he writes, that West Texas crude peaked at around $145 a barrel. His explanation is that dear oil makes gold dearer to mine, which cuts the miners’ profits, so their shares lag the metal. To test it, he adds the oil fund USO and asks whether the three funds move together over the whole span.
+Chan’s second book, *Algorithmic Trading*, takes the second road with the same pair. The reasoning for the pair is that a gold miner’s main asset is gold, so its shares should track the metal. Chan says they did, “until July 14, 2008, or thereabout” (Chan, 2013, location 1922). That was the day, he writes, that West Texas crude peaked at around $145 a barrel. His explanation is that dear oil makes gold dearer to mine, which cuts the miners’ profits, so their shares lag the metal. He cites a 2011 piece, “The Wacky World of Gold”, as the source of that explanation. To test it, he adds the oil fund USO and asks whether the three funds move together over the whole span.
 
 He makes three claims and prints no statistic for any of them. Each comes from a Johansen test, which counts the stable relationships among a set of prices. Chan calls prices that hold such a relationship cointegrated, and the section headed “The test and the file” explains the word and the test.
 
 1. **Before.** GLD and GDX from 2006-05-23 to 2008-07-14 “cointegrate with 99 percent probability”.
 2. **After.** From 2008-07-15 to 2012-04-09 they “have lost the cointegration”.
-3. **With oil.** GLD, GDX and USO over the whole span, 2006-05-23 to 2012-04-09, show “a 99 percent probability that there exists one cointegrating relationship”.
+3. **With oil.** GLD, GDX and USO over “the entire period from 2006 to 2012” show “a 99 percent probability that there exists one cointegrating relationship”. On his file, the three funds’ whole span runs from 2006-05-23 to 2012-04-09.
 
 Chan offers this as a model of how to treat a failing strategy: form a hypothesis about the cause, then test whether the data support it. The scripts Chan publishes with the book include none for this example. So this repository wrote down how it would test each claim before computing any statistic, then ran the tests on Chan’s own data file.
 

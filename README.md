@@ -4348,10 +4348,12 @@ Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
-   "Until July 14, 2008, or thereabout", the three claims' quotes, the oil
-   peak at around $145 a barrel, the mining-cost explanation, the suggestions
-   to trade the triplet or to stop trading the pair above an oil threshold,
-   and the framing of the example as a hypothesis to test are all at 1922.
+   "Until July 14, 2008, or thereabout", the three claims' quotes, the
+   triplet's "entire period from 2006 to 2012", the oil peak at around $145 a
+   barrel, the mining-cost explanation and the 2011 piece it cites, the
+   suggestions to trade the triplet or to stop trading the pair above an oil
+   threshold, and the framing of the example as a hypothesis to test are all
+   at 1922.
    The three claims' quotes are also matched against that highlight by
    `TestTheBooksClaims`.
 2. Facts outside the committed data. That USO held the crude oil futures
