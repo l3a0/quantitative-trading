@@ -1103,10 +1103,11 @@ class TestTheSwingSketch:
         assert (len(cl), str(cl.index[-1].date()), crude.TRADING_DAYS) == (1000, "2012-05-04", 252)
         caption = " ".join(_caption(2).split())
         assert caption == (
-            "*Over the 1,000 rows of the 2012-05-04 save. Kept is the one daily return that, "
-            "earned every day, compounds to the same final capital as the rule, so 252 days of "
-            "it give the rule’s APR in the table. Lost to swings is the average day minus kept. "
-            "On each rule it comes close to half the square of the standard deviation, so "
+            "*Over the 1,000 rows of the 2012-05-04 save. Kept is the daily return that would "
+            "reach the same final capital as the rule if it were earned every day. Compounded "
+            "over 252 days, it gives the rule’s APR in the table. Lost to swings is the average "
+            "day minus kept. On each rule, the amount lost to swings comes close to half the "
+            "square of the standard deviation, so "
             "momentum alone and reversal alone, which swing nearly three times as much as the "
             "join, lose about eight times as much.*"
         )
@@ -1122,8 +1123,8 @@ class TestTheSwingSketch:
         assert "lower part is a pale tint with a green edge, and its upper part is solid red" in alt
         assert "Its red part is only a thin strip at the top" in alt
         assert "The middle bar, the tallest, is named “momentum alone”" in alt
-        assert "beside a red part about half as tall as that" in alt
-        assert "beside a red part about two thirds as tall as that" in alt
+        assert "beside a red part about half as tall as the lower part" in alt
+        assert "beside a red part about two thirds as tall as the lower part" in alt
         join, momentum, reversal = figures.swings
         assert max(figures.swings, key=lambda swing: swing.average) is momentum
         assert join.lost / join.kept < 0.1

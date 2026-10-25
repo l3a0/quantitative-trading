@@ -6204,8 +6204,8 @@ Four groups of what it says are not pinned here.
    window sit far above the price that traded, and that their returns come
    out smaller in size than a trader earned.
 4. Its references, cited rather than computed, along with the book's year in
-   its inline citation, the year in the link text to the post on Chan's 2012
-   reversal, and the numbers of its own lessons where it points to them.
+   its inline citation and the numbers of its own lessons where it points to
+   them.
 
 Every other number in the post traces to an assertion in
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), or

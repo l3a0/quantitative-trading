@@ -772,12 +772,11 @@ class TestWhatThePostQuotes:
     "Two months before" is asserted against crude oil's peak on July 14,
     2008, a date the post takes from the book and this class does not read.
     Chan's words, the Kindle locations, the book's year, the EIA's $41.51 and
-    its year, the year in another post's link text, the post's references to
-    its own lessons by number, the mirror's commit and the references stay
-    unpinned. So do the two statements that rest on the EIA's price rather
-    than the run: that the prices of the four years before the window sit
-    far above the price that traded, and that their returns come out smaller
-    in size than a trader earned.
+    its year, the post's references to its own lessons by number, the mirror's
+    commit and the references stay unpinned. So do the two statements that
+    rest on the EIA's price rather than the run: that the prices of the four
+    years before the window sit far above the price that traded, and that
+    their returns come out smaller in size than a trader earned.
     """
 
     @staticmethod
@@ -843,7 +842,7 @@ class TestWhatThePostQuotes:
             f"multiplying by √{TRADING_DAYS}.",
             "The shift means CL’s early closes sit well above the price that traded. "
             f"The book’s window opens at {cl.iloc[0]:.2f} on {cl.index[0].date()}, a day the "
-            f"contract nearest delivery closed at {near:.2f}. That is two months before",
+            f"contract nearest delivery closed at {near:.2f}. That day is two months before",
             f"**The {_saved(SOURCE_FILE)} save**, the one `CL_rev.m` loads. CL holds "
             f"{len(cl):,} rows, from {BOOK_START.date()} to {BOOK_END.date()}.",
             f"**The {_saved(LATER_SOURCE_FILE)} save**, read over the same {len(later_cl):,} days.",
