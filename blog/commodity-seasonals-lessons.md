@@ -76,6 +76,8 @@ Counted from 1995, the main text’s 13 is the streak ending in 2007 and the sid
 
 Gasoline’s main text says 19 profitable years of the last 21 “as of 2015” (p. 183). Its sidebar says Chan “would have realized a profit every year since 1995” (p. 184), which cannot hold as of 2015, because 19 of 21 leaves 2 losing years. So the sidebar reads as first-edition text covering 1995 to 2008. Over those years the files show no loss, 11 profitable years and 3 with no price on a trade date. One book prints a 2015 count beside a 2008 claim.
 
+![“Gasoline’s two claims read as two editions”, drawn slowly stroke by stroke on a year axis from 1995 to 2015 that carries a label only at “1995”, “2008” and “2015”. Each profitable year has a green dot on the axis, and 2009 and 2012 each have a red cross. Under 1997 to 1999, which have no mark, a grey span reads “no row”. A dashed grey line between 2008 and 2009 marks the “first edition, Nov 2008”. Above the axis a brown bracket, “sidebar: a profit every year since 1995”, runs from 1995 to 2008 and ends before the dashed line and before either cross. Above it a black bracket, “main text: 19 of 21, as of 2015”, runs from 1995 to 2015, past the dashed line and both crosses. Captions read “dot: a profitable year” and “x: a loss, 2009 and 2012”, and a note in the lower right names the trade as “gasoline, May contract”. The sidebar’s claim fits the first edition’s years and the main text’s count fits the revised edition’s. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_gasoline_editions.gif)
+
 ## Lesson 2: a missing row is not a losing year
 
 Chan counts 19 profitable gasoline years of 21, from 1995 to 2015. The files give this:

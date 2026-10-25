@@ -3655,7 +3655,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries two looping whiteboard sketches, drawn by
+The post also carries three looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3664,17 +3664,22 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    trade, a note naming it, a dashed mark for the first edition's release in
    November 2008, and brackets for the streaks of 13 and 14, counted from 1995
    above the axis and from 1994 below it.
-2. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
+2. `commodity_sketch_gasoline_editions.gif`, in Lesson 1, a year axis from
+   1995 to 2015 with a dot for each profitable gasoline year, a cross for each
+   loss, a span under the years with no row, a dashed mark for the first
+   edition's release, and brackets for the sidebar's profit every year since
+   1995, ending in 2008, and the main text's 19 of 21, ending in 2015.
+3. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.
 
-Both build more slowly than the USD.CAD post's sketches and hold their
+All three build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in.
 
-Neither is schematic. Both read the natural gas run on the committed EIA
-files, so neither needs the owner's archive. Redraw both with:
+None is schematic. Each reads the natural gas or gasoline run on the
+committed EIA files, so none needs the owner's archive. Redraw all three with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard
@@ -3682,7 +3687,8 @@ uv run python -m chan.commodity_seasonals_whiteboard
 
 [tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
 holds that each bracket ends where the run's streak reaches Chan's count, that
-June's number in each label is how many bars its line crosses and the file the
+gasoline's sidebar bracket ends before its first loss and the main text's
+covers both, that June's number in each label is how many bars its line crosses and the file the
 run reads, and that each GIF follows the paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,

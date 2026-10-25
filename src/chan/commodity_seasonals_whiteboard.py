@@ -1,11 +1,11 @@
-"""Whiteboard sketches for the commodity seasonals post, one for Lesson 1 and one for Lesson 4.
+"""Whiteboard sketches for the commodity seasonals post, two for Lesson 1 and one for Lesson 4.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Two of its passages turn on a picture a
+trades against EIA's settlements. Three of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
-starts, and which numbered file holds the June contract on a given day. This
-module draws those two as scenes, and the post places each right after the
-paragraph it draws.
+starts, which edition each of gasoline's two claims was written for, and which
+numbered file holds the June contract on a given day. This module draws those
+three as scenes, and the post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
@@ -15,7 +15,15 @@ paragraph it draws.
    the same counts from 1994. It sits in Lesson 1, after the list of what the
    files rule out and cannot pick, which opens
    "1. **They rule out the revised edition.**".
-2. Which file holds the June contract: the March, April, May and June natural
+2. Gasoline's two claims read as two editions: a year axis from 1995 to
+   2015 with a dot for each profitable gasoline year, a cross for each loss,
+   a span under the years with no row, a dashed mark for the first edition's
+   release, a brown bracket from 1995 to 2008 for the sidebar's profit every
+   year since 1995, and a black bracket from 1995 to 2015 for the main text's
+   19 of 21. The sidebar's bracket ends before the first loss, and the main
+   text's runs past both. It sits in Lesson 1 after the paragraph opening
+   "Gasoline’s main text says 19 profitable years".
+3. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -24,16 +32,19 @@ paragraph it draws.
    sits in Lesson 4, after the paragraph opening "For gasoline the answer is
    simple."
 
-Both carry data, and neither needs the owner's archive.
+All three carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
+:meth:`GasolineFigures.from_run` reads each gasoline year's result from
+:func:`chan.commodity_seasonals.gasoline_trades`.
 :meth:`JuneYear.from_run` reads one year's entry and exit days and file
 numbers from :func:`chan.commodity_seasonals.natural_gas_trade`, and each
-contract's last trading day from :func:`chan.futures.ng_last_trade`. Two
+contract's last trading day from :func:`chan.futures.ng_last_trade`. Three
 figures are the book's rather than the run's: the counts 13 and 14 Chan
-prints, which the streak sketch looks up in the run's streaks, and the first
-edition's release in November 2008, which the post cites.
+prints, which the streak sketch looks up in the run's streaks, gasoline's 19
+profitable years of 21 as of 2015, and the first edition's release in November
+2008, which the post cites.
 
 The calendar sketch draws 2008 and 2006. In 2008 the entry, February 25, comes
 two days before March's last trading day, so June is contract 4. In 2006 the
@@ -45,7 +56,7 @@ Both years' calendars are drawn on one axis of month and day.
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
 Each sketch carries more than a reader takes in at that post's pace, so
-both are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all three are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -53,7 +64,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw both with::
+with no change is a no-op diff. Redraw all three with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -67,6 +78,7 @@ from pathlib import Path
 import numpy as np
 
 from chan import commodity_seasonals as seasonals
+from chan.commodity_seasonals_figures import GASOLINE_BOOK_END
 from chan.futures import ng_last_trade
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
@@ -262,6 +274,190 @@ def _streak_start(f: StreakFigures) -> Scene:
     return Scene("The start year decides where a streak ends", "streak_start", tuple(steps))
 
 
+# --- Lesson 1: gasoline's two claims -----------------------------------------
+
+#: Chan's gasoline main text: 19 profitable years of the last 21 "as of 2015"
+#: (p. 183). The year is the chart's, where the book's gasoline years end.
+GASOLINE_COUNT = (19, 21)
+#: Which trade the dots are, the counterpart of :data:`TRADE`.
+GASOLINE_TRADE = "gasoline, May contract"
+
+
+@dataclass(frozen=True)
+class GasolineFigures:
+    """What the gasoline sketch draws, read from the gasoline run.
+
+    ``years`` holds each year from :data:`chan.commodity_seasonals.RUN_START`,
+    where the sidebar's count starts, to :data:`GASOLINE_BOOK_END`, with
+    ``True`` for a profit, ``False`` for a loss and ``None`` for a year whose
+    trade dates have no row in the file.
+    """
+
+    years: tuple[tuple[int, bool | None], ...]
+
+    def _where(self, outcome: bool | None) -> list[int]:
+        return [year for year, profitable in self.years if profitable is outcome]
+
+    @property
+    def won(self) -> list[int]:
+        return self._where(True)
+
+    @property
+    def lost(self) -> list[int]:
+        return self._where(False)
+
+    @property
+    def gaps(self) -> list[int]:
+        return self._where(None)
+
+    @classmethod
+    def from_run(cls) -> GasolineFigures:
+        trades = seasonals.gasoline_trades(seasonals.RUN_START, GASOLINE_BOOK_END)
+        return cls(years=tuple((t.year, t.profitable) for t in trades))
+
+
+#: Where the gasoline axis runs on the board and its height, and the heights of
+#: the sidebar's bracket and the main text's above it.
+GASOLINE_X = (0.55, 9.45)
+GASOLINE_AXIS_Y = 2.0
+SIDEBAR_Y, MAIN_TEXT_Y = 2.6, 3.35
+#: How far below the axis the span under the missing years sits.
+GAP_DROP = 0.8
+
+
+def _gasoline_x(year: float, f: GasolineFigures) -> float:
+    """Where ``year`` sits on the gasoline axis, each year at the middle of its slot."""
+    first, last = f.years[0][0], f.years[-1][0]
+    return GASOLINE_X[0] + (year - first) * (GASOLINE_X[1] - GASOLINE_X[0]) / (last - first)
+
+
+def _consecutive(years: list[int]) -> list[list[int]]:
+    """``years`` split into runs of consecutive years."""
+    runs: list[list[int]] = []
+    for year in years:
+        if runs and year == runs[-1][-1] + 1:
+            runs[-1].append(year)
+        else:
+            runs.append([year])
+    return runs
+
+
+def _and(years: list[int]) -> str:
+    """The years as a sentence lists them, such as ``2009 and 2012``."""
+    words = [str(year) for year in years]
+    return words[0] if len(words) == 1 else f"{', '.join(words[:-1])} and {words[-1]}"
+
+
+def _gasoline_editions(f: GasolineFigures) -> Scene:
+    """Lesson 1: the sidebar's profit every year since 1995 holds to 2008, the
+    first edition's years, and the main text's 19 of 21 runs to 2015, past
+    both losses.
+    """
+    first, last = f.years[0][0], f.years[-1][0]
+    edition, month = FIRST_EDITION
+    release = _gasoline_x(edition - 0.5 + (month - 0.5) / 12, f)
+    y = GASOLINE_AXIS_Y
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "axis",
+            _line([(_gasoline_x(first, f) - 0.25, y), (_gasoline_x(last, f) + 0.25, y)]),
+            color=MUTED,
+            frames=8,
+        ),
+        Stroke(
+            "profitable",
+            np.array([_gasoline_x(year, f) for year in f.won]),
+            np.full(len(f.won), y),
+            color=GOOD,
+            frames=8,
+            dots=7.0,
+        ),
+    ]
+    steps += [_cross(f"loss-{year}", _gasoline_x(year, f), y, LOST) for year in f.lost]
+    for year in (first, edition, last):
+        steps.append(
+            Label(
+                str(year),
+                _gasoline_x(year, f),
+                y - YEAR_LABEL_DROP,
+                names="axis",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
+        )
+    for k, run in enumerate(_consecutive(f.gaps)):
+        left, right = _gasoline_x(run[0], f), _gasoline_x(run[-1], f)
+        steps.append(
+            _stroke(f"gap-{k}", _span(left, right, y - GAP_DROP, tick=0.08), color=MUTED, frames=6)
+        )
+        steps.append(
+            Label(
+                "no row",
+                (left + right) / 2,
+                y - GAP_DROP - 0.4,
+                names=f"gap-{k}",
+                color=MUTED,
+                size=11,
+                ha="center",
+            )
+        )
+    left = _gasoline_x(first, f)
+    steps += [
+        _stroke(
+            "release",
+            _line([(release, y + 0.2), (release, 3.95)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Label(
+            "first edition, Nov 2008",
+            release + 0.25,
+            2.8,
+            names="release",
+            color=MUTED,
+            size=11,
+        ),
+        _stroke(
+            "sidebar",
+            _span(left, _gasoline_x(edition, f), SIDEBAR_Y, tick=0.1),
+            color=ACCENT,
+            frames=8,
+        ),
+        Label(
+            f"sidebar: a profit every year since {first}",
+            (left + _gasoline_x(edition, f)) / 2,
+            SIDEBAR_Y + BRACKET_LABEL_GAP,
+            names="sidebar",
+            color=ACCENT,
+            size=11,
+            ha="center",
+        ),
+        _stroke("main-text", _span(left, _gasoline_x(last, f), MAIN_TEXT_Y, tick=0.1), frames=8),
+        Label(
+            f"main text: {GASOLINE_COUNT[0]} of {GASOLINE_COUNT[1]}, as of {last}",
+            (left + release) / 2,
+            MAIN_TEXT_Y + BRACKET_LABEL_GAP,
+            names="main-text",
+            color=INK,
+            size=11,
+            ha="center",
+        ),
+        Label("dot: a profitable year", 0.3, 0.35, names="profitable", color=GOOD, size=11),
+        Label(
+            f"x: a loss, {_and(f.lost)}",
+            3.6,
+            0.35,
+            names=f"loss-{f.lost[0]}",
+            color=LOST,
+            size=11,
+        ),
+        Label(GASOLINE_TRADE, 9.7, 0.35, names="profitable", color=MUTED, size=11, ha="right"),
+    ]
+    return Scene("Gasoline’s two claims read as two editions", "gasoline_editions", tuple(steps))
+
+
 # --- Lesson 4: which numbered file holds June --------------------------------
 
 #: The year whose entry comes before March's last trading day, and the year
@@ -428,7 +624,7 @@ def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
-PACED = ("streak_start", "june_file")
+PACED = ("streak_start", "gasoline_editions", "june_file")
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
@@ -454,12 +650,15 @@ def june_years() -> tuple[JuneYear, JuneYear]:
 
 
 def scenes(
-    streaks: StreakFigures | None = None, years: tuple[JuneYear, JuneYear] | None = None
+    streaks: StreakFigures | None = None,
+    years: tuple[JuneYear, JuneYear] | None = None,
+    gasoline: GasolineFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The two scenes in the order the post reads them, Lesson 1's then Lesson 4's."""
+    """The three scenes in the order the post reads them, Lesson 1's two then Lesson 4's."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
-    return (_streak_start(streaks), _june_file(*years))
+    gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
+    return (_streak_start(streaks), _gasoline_editions(gasoline), _june_file(*years))
 
 
 def _write(scene: Scene, folder: Path) -> Path:
@@ -481,10 +680,11 @@ def make_commodity_seasonals_whiteboards(
     out_dir: Path | None = None,
     streaks: StreakFigures | None = None,
     years: tuple[JuneYear, JuneYear] | None = None,
+    gasoline: GasolineFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, in the post's order."""
     folder = out_dir if out_dir is not None else FIGURES_DIR
-    return [_write(scene, folder) for scene in scenes(streaks, years)]
+    return [_write(scene, folder) for scene in scenes(streaks, years, gasoline)]
 
 
 def main() -> None:
