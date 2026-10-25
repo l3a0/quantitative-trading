@@ -43,7 +43,7 @@ The script’s fourth rule, which it names “ComboOR”, scores a long on any d
 
 Each rule’s return on a day is the position it held at the previous close times that day’s percentage change in price, with no trading cost. Two figures summarise each run. Both count every row, including the days with no position.
 
-- **The APR** is the compounded annual return, `prod(1 + r)^(252/n) − 1` over n daily returns r. [The post on Chan’s 2012 reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md#lesson-1-every-figure-chan-prints-lands-on-his-own-file) explains compounding.
+- **The APR** is the compounded annual return, `prod(1 + r)^(252/n) − 1` over n daily returns r. [The post on Chan’s 2012 reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md#lesson-1-every-return-and-sharpe-ratio-chan-prints-reproduces-on-his-own-file) explains compounding.
 - **The Sharpe ratio** is the average daily return divided by its standard deviation, then scaled to a year by multiplying by √252. The standard deviation is the typical size of a day’s move away from that average, which this post calls the swing. So the Sharpe ratio measures return per unit of swing, with no risk-free rate taken off.
 
 ### The prices and the three saves
