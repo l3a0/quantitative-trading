@@ -76,7 +76,7 @@ specification. Three saves are read.
    1,000 of the book's days and whose earlier rows therefore extend the same
    series backward. Its 998 rows before the book's window test the book's
    sentence on data the book did not report. That segment is back-adjusted
-   further still, closing at 119.12 on 2004-05-24 while WTI averaged about $41
+   further still, closing at 119.12 on 2004-05-24 while WTI averaged $41.51
    that year (EIA's annual spot average, not measured here), so it is evidence
    about the sentence rather than a clean backtest.
 

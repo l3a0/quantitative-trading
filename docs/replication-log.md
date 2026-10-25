@@ -7127,7 +7127,7 @@ read, so they are not a holdout.
 | 4 | none | none, not a replication | Reversal alone earns less than the combination on both figures, which with row 3 is the book's sentence, measured on its window. |
 | 5 | none | none, not a replication | ComboOR is the combination except on the 10 rows from 2008-07-01 to 2008-07-15, where the 30-day lag exists and the 40-day one does not and OR trades the reversal rule alone. Off those rows, a row where both conditions hold is long under both rules, a row where neither holds is short under both, and a row where one holds is flat under both, since OR sums a long and a short. |
 | 6 | none | none, not a replication | The 2012-05-11 save, whose file name is dated a week later, still rounds to 12 percent and 1.1 and misses the script's comment at the fourth decimal, so the save is part of the specification at six decimals and not at the book's precision. |
-| 7 to 9 | none | none, not a replication | On the four years before the window, momentum alone beats the combination on both figures, and reversal alone loses money. The series there is back-adjusted further from the traded price. It closes at 119.12 on 2004-05-24, against an EIA annual WTI spot average near $41 that year, a figure not measured here. So each percentage return divides by a price well above what traded. |
+| 7 to 9 | none | none, not a replication | On the four years before the window, momentum alone beats the combination on both figures, and reversal alone loses money. The series there is back-adjusted further from the traded price. It closes at 119.12 on 2004-05-24, against an EIA annual WTI spot average of $41.51 that year, a figure not measured here. So each percentage return divides by a price well above what traded. |
 | 10 | none | none, not a replication | The rule is flat on 843 of 1,000 days and cannot signal for the first 40, so the two figures rest on 157 days in the market. |
 | 11 | none | none, not a replication | Every long becomes a short, so the Sharpe ratio flips sign exactly. Which lookback carries which rule decides the sign of every position. |
 | 12 to 14 | none | none, not a replication | Each moves a figure the script prints, so the suite notices each one. |
@@ -7167,9 +7167,12 @@ The rule changes position 124 times in 1,000 days, and nothing here measures
 what a cost per change would take from 12 percent.
 
 **What the earlier segment would give on traded prices.** Rows 7 to 9 read a
-series back-adjusted above the price that traded, and no unadjusted CL series
-for those years is committed. So the earlier segment's figures are what the
-rule gives on Chan's series, not what a trader would have earned.
+series back-adjusted above the price that traded. Chan's two CL strips start at
+the January 2007 contract, which last settles on 2006-12-19, so for most of
+those years the contract nearest delivery is not committed. The strip named for
+2012-08-13 adds only a spot column, which is not what a futures position earns.
+So the earlier segment's figures are what the rule gives on Chan's series, not
+what a trader would have earned.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

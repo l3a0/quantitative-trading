@@ -308,6 +308,17 @@ class TestTheJoinIsHalfOfEachRule:
         assert len(differ) == 10
         assert (differ[0], differ[-1]) == (pd.Timestamp("2008-07-02"), pd.Timestamp("2008-07-16"))
 
+    def test_the_warm_up_shorts_put_the_join_below_the_plain_average(self, book) -> None:
+        """On the 10 warm-up rows reversal alone is short, and the shorts earn on the
+        days after, so the join's average day sits below the plain average of the two."""
+        rows = _half_of_each(book) != book.combination.positions
+        assert (book.reversal.positions[rows] == -1).all()
+        earned = backshift(1, rows.astype(float)) == 1
+        gain = float(book.reversal.daily[earned].sum())
+        assert round(gain, 6) == 0.031552
+        plain = (book.momentum.daily.mean() + book.reversal.daily.mean()) / 2
+        assert plain - book.combination.daily.mean() == pytest.approx(gain / 2 / len(book.combination.daily))
+
     def test_the_two_rules_agree_on_157_of_the_960_rows_both_lags_exist(self, cl, book) -> None:
         both = _both_lags(cl)
         agree = both & (book.momentum.positions == book.reversal.positions)

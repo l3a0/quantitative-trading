@@ -54,7 +54,7 @@ The shift means CL’s early closes sit well above the price that traded. The bo
 
 This replication reads three of Chan’s saves.
 
-1. **The 2012-05-04 save**, the one `CL_rev.m` loads. CL holds 1,000 rows, from 2008-05-19 to 2012-05-04, which is the book’s window.
+1. **The 2012-05-04 save**, the one `CL_rev.m` loads. CL holds 1,000 rows, from 2008-05-19 to 2012-05-04. This post calls those days the book’s window, because they are the days his script for the example reads.
 2. **The 2012-05-11 save**, read over the same 1,000 days.
 3. **The 2012-05-07 save**, whose CL closes equal the first save’s on all 1,000 of the book’s days. Its 998 earlier rows, from 2004-05-24 to 2008-05-16, extend the same series backward.
 
@@ -99,11 +99,11 @@ The reason is that the join is not a third rule. Hold half a position in reversa
 1. **Where the two agree**, both halves point the same way and add to one full position. Those are exactly the days the join holds that position.
 2. **Where they disagree**, a half long and a half short add to nothing. Those are exactly the days the join is flat.
 
-So half of each rule gives the join’s position on every row but ten. Those ten, from 2008-07-01 to 2008-07-15, come early in the run, when the 30-day lag exists and the 40-day lag does not yet, so reversal alone holds a position and the join cannot. On every day but ten, then, the join’s daily return is the average of the two rules’ daily returns.
+So half of each rule gives the join’s position on every row but ten. Those ten, from 2008-07-01 to 2008-07-15, come early in the run, when the 30-day lag exists and the 40-day lag does not yet, so reversal alone holds a position and the join cannot. On every day except the ten that follow those rows, the join’s daily return is therefore the average of the two rules’ daily returns, since a position earns on the next day’s move.
 
-The two rules mostly disagree. Of the 960 rows where both lags exist, they agree on 157 and take opposite sides on 803. On each of those 803 days one rule’s gain is the other’s loss, and the average is zero. The join holds a position on 157 days, long on 98 and short on 59, and is flat on the other 843.
+The two rules mostly disagree. Of the 960 rows where both lags exist, they agree on 157 and take opposite sides on 803. On the day after each of those 803 rows, one rule’s gain is the other’s loss, and the average is zero. The join holds a position on 157 days, long on 98 and short on 59, and is flat on the other 843.
 
-The join’s average day, 0.000463, sits between reversal’s 0.000440 and momentum’s 0.000519. It sits slightly below the plain average of the two, because on those ten early days reversal alone traded and the join did not. Cancelling 803 days of opposite bets gives a standard deviation of 0.006687, a little over a third of either rule’s. The Sharpe ratio divides the average day by the standard deviation, so the join wins it easily.
+The join’s average day, 0.000463, sits between reversal’s 0.000440 and momentum’s 0.000519. It sits slightly below the plain average of the two, because on those ten early days reversal alone held shorts that made money, while the join held nothing. Cancelling 803 days of opposite bets gives a standard deviation of 0.006687, a little over a third of either rule’s. The Sharpe ratio divides the average day by the standard deviation, so the join wins it easily.
 
 ### What the swings cost
 
@@ -122,7 +122,7 @@ Against momentum alone, then, “work better” here means smoother rather than 
 How the join reads its two lags explains one change tried here and the script’s last rule.
 
 1. **Swapping the lags, a change tried here, reverses the rule.** With reversal on the 40-day lag and momentum on the 30-day lag, a buy needs the close below the 40-day lag and above the 30-day lag, which is the original’s short condition. Every long becomes a short. The Sharpe ratio flips sign exactly, to −1.100368, and the APR becomes −0.115294, not quite the negative of 0.117600 because compounding is not symmetric. Which lag carries which rule decides the sign of every position. [The post on crude oil’s calendar spread](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-calendar-spread-lessons.md#lesson-2-the-trade-bets-the-spread-moves-further-from-its-average) found another of Chan’s crude oil scripts whose trade bets the opposite way from what its comments describe, so a rule’s sign is worth checking by running it rather than by reading it.
-2. **ComboOR adds no evidence.** Where both buy conditions hold, neither short condition does, so it holds one long. Where neither buy condition holds, both short conditions do, so it holds one short. Where exactly one buy condition holds, the other rule’s short condition holds too, so it scores a long and a short, which add to nothing. So it matches the join everywhere except the same ten early rows, where it trades reversal alone. Its APR of 0.125917 and Sharpe ratio of 1.123042 differ from the join’s only through those ten rows.
+2. **ComboOR adds no evidence.** On the book’s window no close equals its 30-day or 40-day lag exactly, so a close that is not below a lag is above it. Where both buy conditions hold, neither short condition does, so it holds one long. Where neither buy condition holds, both short conditions do, so it holds one short. Where exactly one buy condition holds, the other rule’s short condition holds too, so it scores a long and a short, which add to nothing. So it matches the join everywhere except the same ten early rows, where it trades reversal alone. Its APR of 0.125917 and Sharpe ratio of 1.123042 differ from the join’s only through those ten rows.
 
 ## Lesson 3: on the four years before, the losing half drags the join below momentum alone
 
@@ -140,7 +140,7 @@ The 2012-05-07 save holds the same series back to 2004-05-24. Its 998 rows befor
 
 Momentum alone beats the join on both the APR and the Sharpe ratio, and reversal alone loses money.
 
-The arithmetic from Lesson 2 still holds. Half of each rule gives the join’s position on all but 12 of these rows. Ten are again the early rows where only the 30-day lag exists, here from 2004-07-08 to 2004-07-21. The other two, 2005-06-15 and 2007-04-17, are days when the close equals its 40-day lag exactly, which leaves momentum alone with no position while reversal alone holds one. Of the 958 rows where both lags exist, the two rules agree on 162 and disagree on 796.
+The arithmetic from Lesson 2 still holds. Half of each rule gives the join’s position on all but 12 of these rows. Ten are again the early rows where only the 30-day lag exists, here from 2004-07-08 to 2004-07-21. The other two, 2005-06-15 and 2007-04-17, are days when the close equals its 40-day lag exactly, which leaves momentum alone with no position while reversal alone holds one. Of the 958 rows where both lags exist, the two rules agree on 162 and take opposite sides on 794. The other two are those tie days.
 
 So the join is still close to the average of the two rules, and here one of them loses. Its average day is 0.000091, near the plain average of a rule that earns 0.000406 a day and one that loses 0.000222. Cutting the swings no longer rescues it. Its standard deviation is about 40 percent of momentum’s, but its average day is under a quarter of momentum’s, and its Sharpe ratio falls to 0.37 against momentum’s 0.66.
 
@@ -159,7 +159,7 @@ Three questions are beyond it.
 
 1. **Whether the lags were chosen on this window.** Earlier in the chapter that holds this rule, Chan measures whether two-year Treasury note futures trend before he trades momentum on them, which [the post on Treasury note momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-momentum-lessons.md#why-measure-momentum-before-trading-it) reproduces. For the crude oil rule, the book names 30 and 40 days and says nothing about how Chan picked them. A little later in the same section, writing about momentum strategies, Chan warns against data snooping, meaning a rule fitted to the history it is then tested on, and writes that “The real test for the strategy is, as always, in true out-of-sample testing” (location 2715). A search over other lags would multiply the chances of a lucky fit, and this run tries none.
 2. **What costs would take.** The book charges none and neither does this run. The join changes position 124 times in 1,000 days, and nothing here measures what a cost on each change would take from 12 percent.
-3. **What the four years before the book would give on traded prices.** Their figures are on a series shifted far above the price that traded, and no unadjusted CL series for those years is committed here.
+3. **What the four years before the book would give on traded prices.** Their figures are on a series shifted far above the price that traded. Chan’s files of single crude oil contracts start with the contract delivering in January 2007, so for most of those four years they lack the contract nearest delivery. Their spot price is the price of oil itself, not what a futures position earns.
 
 ## What this means for a trader
 
