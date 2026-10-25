@@ -97,9 +97,10 @@ before any test exists.
    changes a GIF nobody touched means a stale generator or a different machine,
    so find out which before committing. Run the figure-embed sweep in
    `CLAUDE.md`, which resolves every embedded GIF to a file that exists.
-6. **Commit, push, open the pull request and sync, before the full suite.**
+6. **Commit, push, open the pull request and sync, before any test run.**
    Commit the GIFs and the post first, so the owner sees them sooner, and run
-   the full suite in the background after. A new branch opens its pull request
+   the tests in the background after, as `sync-substack`'s
+   `## Sync first, and test behind it` orders. A new branch opens its pull request
    at once and sends the owner its link. Its body writes `Part of #NN` for the
    post's pre-publish tracking issue. Then the `sync-substack` skill uploads
    each new or changed GIF from the pushed commit and syncs the draft. A post

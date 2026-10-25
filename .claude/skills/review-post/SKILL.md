@@ -30,7 +30,8 @@ Each round has four steps.
    verifiers: one per lens in a full round, one in a diff round.
 2. **Decide and apply.** Apply every confirmed or changed finding on the
    post's branch, and drop the rest with a reason. Sync the unpublished draft
-   once the round's commits are pushed.
+   as soon as the round's commits are pushed, and run the tests behind the
+   sync, as `sync-substack`'s `## Sync first, and test behind it` orders.
 3. **Post the round's comment** on the tracking issue.
 4. **Repeat** from the new commit, or stop.
 
