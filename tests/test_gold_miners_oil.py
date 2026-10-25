@@ -456,8 +456,9 @@ class TestTheWeightTest:
                 atol=1e-12,
             )
 
-    def test_row_15_gld_and_gdx_cannot_be_left_out_and_uso_can(self, result) -> None:
-        """GLD at zero is rejected at 99 percent, GDX far past it, USO not even at 90."""
+    def test_row_15_rejects_a_zero_weight_for_gld_and_gdx_and_not_for_uso(self, result) -> None:
+        """GLD at zero is rejected against the asymptotic 99 percent bar, GDX far
+        past it, and USO not even at 90."""
         lr = result.zero_weight
         assert list(lr) == ["GLD", "GDX", "USO"]
         assert lr == pytest.approx({"GLD": 10.014660, "GDX": 26.336768, "USO": 0.056678}, abs=1e-6)
@@ -513,11 +514,13 @@ class TestTheWeightTest:
         main()
         lines = [line.strip() for line in capsys.readouterr().out.splitlines()]
         for expected in (
+            "Each fund's weight set to zero in the triplet's one relation, Johansen's LR",
             "against chi-squared with 1 degree of freedom, "
             "2.706 at 90%, 3.841 at 95%, 6.635 at 99%",
             "GLD = 0  LR 10.014660, asymptotic p 0.00155",
             "GDX = 0  LR 26.336768, asymptotic p 2.87e-07",
             "USO = 0  LR  0.056678, asymptotic p 0.812",
+            "Added in the post's pre-publish review, after every other result was seen.",
             "Conditional on rank 1, asymptotic, and one of three tests run together.",
         ):
             assert expected in lines, expected

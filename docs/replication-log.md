@@ -21,7 +21,7 @@ and each says so in its own cells.
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45, 47, 48, 49 and 51 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven, eleven and ten, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, nine, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven, eleven and ten, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5, 44, 46, 48, 50 and 52 are the six entries that are not replications.
@@ -614,7 +614,7 @@ Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
-Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
+Entry 29's rows 7 to 15, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9 and 12 to 16, Entry 41's row 11,
@@ -6743,7 +6743,7 @@ checked against Chan's own printout.
 | 12 | `lesage_cadf(GLD, GDX, 1)` against MacKinnon's two-series bars, −3.34 at 95 percent and −3.90 at 99 | −3.724034 in the first window, −1.511680 in the second and −1.517588 over the whole span | `TestBesideTheReplication::test_row_12_the_cadf_rejects_at_95_before_and_not_at_99` |
 | 13 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | first window GLD −0.033875 and GDX −1.962727, second GLD −0.575590 and GDX −1.720225, whole span GLD −0.370352, GDX −2.371217 and USO −1.213340 | `TestBesideTheReplication::test_row_13_no_series_alone_rejects_a_unit_root_even_at_90` |
 | 14 | `johansen([GLD, USO], 0, 1)` and `johansen([GDX, USO], 0, 1)`, whole span | GLD and USO trace 4.349962 and 0.573598, 0 relations even at 90 percent. GDX and USO trace 27.165550 and 3.034162, eigen 24.131388 and 3.034162, 1 relation at 95 and 99 percent and 2 at 90 | `TestBesideTheReplication::test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not` |
-| 15 | Johansen's (1991) likelihood-ratio test of β = Hφ on row 9's rank-1 relation, one fund's weight at zero, from the moments of `johansen(·, 0, 1)` with T = 1,479, against chi-squared with one degree of freedom, 2.706, 3.841 and 6.635 at 90, 95 and 99 percent | GLD's weight at zero 10.014660, GDX's 26.336768 and USO's 0.056678 | `TestTheWeightTest::test_row_15_gld_and_gdx_cannot_be_left_out_and_uso_can`, with the GLD figure reached again by maximising the likelihood in `::test_row_15_by_maximising_the_likelihood_directly` |
+| 15 | Johansen's (1991) likelihood-ratio test of β = Hφ on row 9's rank-1 relation, one fund's weight at zero, from the moments of `johansen(·, 0, 1)` with T = 1,479, against chi-squared with one degree of freedom, 2.706, 3.841 and 6.635 at 90, 95 and 99 percent | GLD's weight at zero 10.014660, GDX's 26.336768 and USO's 0.056678 | `TestTheWeightTest::test_row_15_rejects_a_zero_weight_for_gld_and_gdx_and_not_for_uso`, with the GLD figure reached again by maximising the likelihood in `::test_row_15_by_maximising_the_likelihood_directly` |
 
 ### The verdicts
 
@@ -6763,7 +6763,7 @@ checked against Chan's own printout.
 | 12 | none | none, not a replication | The CADF test rejects at 95 percent before the break and not after it. At the 99 percent level the claims are judged at, it rejects in neither window. |
 | 13 | none | none, not a replication | No series is stationary on its own in any window. |
 | 14 | none | none, not a replication | GDX and USO alone find one relation at 99 percent. Row 15 rejects the triplet's relation being theirs, so the two results conflict, and this one is the weaker. |
-| 15 | none | none, not a replication | Exploratory. GLD's weight at zero is rejected at 99 percent, at an asymptotic p of 0.00155, and USO's cannot be rejected even at 90, at 0.812. Added after every other result was seen, conditional on rank 1, and one of three tests run together. |
+| 15 | none | none, not a replication | Exploratory. GLD's weight at zero is rejected against the asymptotic 99 percent bar, at a p of 0.00155, and USO's cannot be rejected even at 90, at 0.812. Added after every other result was seen, conditional on rank 1, and one of three tests run together. |
 
 ### What the entry concludes
 
@@ -6775,10 +6775,9 @@ Four things.
    `TestEachTestsTable::test_the_closest_call_is_row_1_clearing_its_bar_by_2_636`
    lists each, and the counts at 90 and 95 percent agree with 99 on every
    claim. So the choice of statistic and the choice of level that the book
-   left open move no verdict here, which is the opposite of what Entry 23
-   met. The
-   loss holds even at 90 percent, so the stronger reading of "lost" holds too.
-   The book's "99 percent probability" is a test level rather than a
+   left open move no verdict here, which is the opposite of what Entry 23 met.
+   The loss holds even at 90 percent, so the stronger reading of "lost" holds
+   too. The book's "99 percent probability" is a test level rather than a
    probability. The test rejects no cointegration at the 1 percent level, and
    it says nothing about how likely the pair is to cointegrate.
 2. **The control finds nothing, and the triplet's weights decide what a second
@@ -6806,9 +6805,9 @@ Four things.
    together, and its bars are asymptotic. Two resampling checks run in the
    post's review found those bars rejecting too often on 1,479 observations,
    which no row here pins, so the post and its sketch read the GLD rejection
-   at 95 percent rather than 99. The eigenvector's entries are shares per unit of the portfolio, so
-   their sizes are not comparable across ETFs at different prices, and no row
-   here measures any weight in dollars.
+   at 95 percent rather than 99. The eigenvector's entries are shares per unit
+   of the portfolio, so their sizes are not comparable across ETFs at different
+   prices, and no row here measures any weight in dollars.
 3. **The Engle-Granger family sees the same break, and no series is
    stationary alone.** The CADF statistic of GLD on GDX is −3.724 before the
    break, past the 95 percent bar of −3.34 and short of the 99 percent bar of
@@ -6837,10 +6836,11 @@ Four things.
 
 Four things.
 
-1. **Anything about oil itself.** USO holds front-month WTI futures rather
-   than oil, which location 1939 raises about a different pair. A futures fund
-   drifts from the spot price by its roll, so the triplet's relation is with
-   the fund, and whether it holds with the spot price is a different test.
+1. **Anything about oil itself.** Over these years USO held front-month WTI
+   futures rather than oil, which location 1939 raises about a different pair.
+   A futures fund drifts from the spot price by its roll, so the triplet's
+   relation is with the fund, and whether it holds with the spot price is a
+   different test.
 2. **Whether the break is where Chan put it.** The date was chosen by looking
    at the data, so a test that splits there is favoured by construction. No
    row here searches for the break or tests another date, and doing so would

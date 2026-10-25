@@ -224,8 +224,9 @@ class Moments:
     s11: NDArray[np.float64]
 
 
-def johansen_moments(levels: NDArray[np.float64], k: int = JOHANSEN_K) -> Moments:
-    """The moments of ``johansen(levels, 0, k)``, one series per column."""
+def johansen_moments(levels: NDArray[np.float64]) -> Moments:
+    """The moments of ``johansen(levels, 0, 1)``, one series per column."""
+    k = JOHANSEN_K
     dx = np.diff(levels, axis=0)
     rows = len(dx) - k
     regressors = np.column_stack(

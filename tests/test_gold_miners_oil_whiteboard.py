@@ -679,6 +679,14 @@ class TestTheCountingSketch:
         with pytest.raises(CountRefused, match=message):
             replace(stop, **change)
 
+    def test_its_refusals_sit_on_the_bars(self, stop) -> None:
+        """A statistic on its bar is not rejected, as in ``Johansen.relations``."""
+        with pytest.raises(CountRefused, match="does not clear"):
+            replace(stop, first=stop.first_bar)
+        replace(stop, first=stop.first_bar + 1e-9)
+        with pytest.raises(CountRefused, match="clears its 90% bar"):
+            replace(stop, second=stop.second_bar_90 + 1e-9)
+
     def test_it_reads_the_file_through_the_scale_break_guard(self, monkeypatch) -> None:
         """Not a second read path that skips the guard ``python -m
         chan.gold_miners_oil`` runs."""
@@ -886,6 +894,14 @@ class TestThePairsSketch:
     def test_it_refuses_figures_that_make_its_words_false(self, pairs, change, message) -> None:
         with pytest.raises(PairsRefused, match=message):
             replace(pairs, **change)
+
+    def test_its_weight_refusals_sit_on_the_bars(self, pairs) -> None:
+        """GLD's weight on its bar is not rejected, and USO's just past its bar is."""
+        with pytest.raises(PairsRefused, match="does not clear"):
+            replace(pairs, gld_weight=pairs.weight_bar)
+        replace(pairs, gld_weight=pairs.weight_bar + 1e-9)
+        with pytest.raises(PairsRefused, match="USO's weight"):
+            replace(pairs, uso_weight=pairs.weight_bar_90 + 1e-9)
 
     def test_it_refuses_pairs_whose_bars_differ(self) -> None:
         _, closes = gold_miners_oil.read_sources()

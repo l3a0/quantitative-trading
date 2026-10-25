@@ -407,13 +407,13 @@ where they were first built. The other forty-five were built here.
     relation from 2006-05-23 to 2008-07-14 and none from 2008-07-15 to
     2012-04-09, even at 90 percent, and the triplet finds exactly one over the
     whole 1,481 days. The control the book leaves out finds what the oil
-    explanation needs: GLD and GDX alone over the same days find no relation, at
-    a trace statistic of 10.447 against a 90 percent bar of 13.429. GDX and USO alone find one relation
-    at 99 percent, but a test on the triplet's weights, added in the post's
-    review, rejects GLD's weight being zero at 95 percent and cannot reject
-    USO's even at 90, so the two results conflict. Every figure is
-    exploratory, and the split date and the third ETF were chosen after the
-    break was seen.
+    explanation needs: GLD and GDX alone over the same days find no relation,
+    at a trace statistic of 10.447 against a 90 percent bar of 13.429. GDX and
+    USO alone find one relation at 99 percent, but a test on the triplet's
+    weights, added in the post's review, rejects GLD's weight being zero at 95
+    percent and cannot reject USO's even at 90, so the two results conflict.
+    Every figure is exploratory, and the split date and the third ETF were
+    chosen after the break was seen.
 30. AUD.CAD with rollover interest, *Algorithmic Trading*'s Example 5.2, on
     the daily closes and monthly interest rates in Chan's 2018 Python port.
     Both figures `AUDCAD_daily.m` prints reproduce to their last digit, an APR
@@ -4463,12 +4463,13 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    whose height is not a figure.
 2. `gold_miners_oil_sketch_three_pairs.gif`, in Lesson 3 after the two
    paragraphs giving the zero-weight test's results, draws the three funds as
-   a triangle whose edges are the pairs tested alone. GLD and GDX give 10.447 and GLD and USO 4.350, both
-   finding none, while GDX and USO give 27.166, one relation at 99 percent
-   against the pairs' bar of 19.935. So a count of one cannot say which pair
-   the triplet's relation is. Its last notes give the zero-weight tests, where
-   GLD's weight set to zero gives 10.015 and is rejected at 95 percent, and
-   USO's gives 0.057 and is not. Its triangle's shape carries no figure.
+   a triangle whose edges are the pairs tested alone. GLD and GDX give 10.447
+   and GLD and USO 4.350, both finding none, while GDX and USO give 27.166, one
+   relation at 99 percent against the pairs' bar of 19.935. So a count of one
+   cannot say which pair the triplet's relation is. Its last notes give the
+   zero-weight tests, where GLD's weight set to zero gives 10.015 and is
+   rejected at 95 percent, and USO's gives 0.057 and is not. Its triangle's
+   shape carries no figure.
 
 Both read every figure from the committed file through the same
 `read_sources` and `gold_miners_oil` as `python -m chan.gold_miners_oil`. Both
@@ -4484,8 +4485,10 @@ holds what each sketch says and draws, that each column and dashed bar of the
 first stands at its value on one scale, that its third statistic is never
 printed, that each edge of the second joins the funds it names, that made-up
 figures move their words, that figures which would make their words false are
-refused, that each GIF follows its text in the post, and that each GIF is a
-fresh draw byte for byte on the owner's Mac.
+refused, that each GIF follows its text in the post, that each alt text
+quotes every label in the order it is drawn and says what its sketch shows and
+that it is slow, and that each GIF is a fresh draw byte for byte on the owner's
+Mac.
 
 [blog/johansen-etf-lessons.md](blog/johansen-etf-lessons.md) is an eighteenth
 post, about Examples 2.6 to 2.8 of Chan's *Algorithmic Trading*, which test
