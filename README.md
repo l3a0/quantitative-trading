@@ -5370,6 +5370,36 @@ uv run python -m chan.khandani_lo_book_two_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/khandani_lo_book_two_whiteboard.py](src/chan/khandani_lo_book_two_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+draws, and both build slowly and hold their finished drawing for twelve
+seconds. Neither is schematic.
+
+1. One in Lesson 2, `khandani_lo_book_two_sketch_cah_bounce.gif`, which draws
+   CAH's closes from 2009-08-31 to 2009-09-02 to one scale, with the fall the
+   scale-break guard lets through, the rise it flags, the weight Example 4.3
+   bought at the middle close and what that weight earned the next day, and
+   the example's two figures without CAH.
+2. One in Lesson 4, `khandani_lo_book_two_sketch_average_day.gif`, which draws
+   the first book's rule's average daily cost and profit on 2006's file and
+   on the panel as bars on one scale, in basis points of its average gross
+   position.
+
+```bash
+uv run python -m chan.khandani_lo_book_two_whiteboard
+```
+
+[tests/test_khandani_lo_book_two_whiteboard.py](tests/test_khandani_lo_book_two_whiteboard.py)
+holds what each sketch says and draws, reads every figure from the runs on the
+committed files, and refuses figures that would make a sketch's words false.
+It pins the figures only the sketches print, such as CAH's weight of 3.17
+cents of the $1 and the 3.2366 basis points the panel keeps. It also holds
+that the kept part is less than a third of the profit, and that the profit
+ratio of 19.94 rounds to the twenty the second sketch's title spells. It
+compares each committed GIF with a fresh draw byte for byte only on macOS
+arm64 in Comic Sans MS, where the files were drawn.
+
 [blog/aud-cad-johansen-lessons.md](blog/aud-cad-johansen-lessons.md) is a
 twenty-sixth post, about Example 5.1 of Chan's *Algorithmic Trading*, which
 trades AUD.USD against CAD.USD in weights a rolling Johansen test supplies each
