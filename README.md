@@ -3660,9 +3660,10 @@ The post also carries two looping whiteboard sketches, drawn by
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
 1. `commodity_sketch_streak_start.gif`, in Lesson 1, a year axis from 1994 to
-   the 2009 loss with a dot for each profitable year, a dashed mark for the
-   first edition's release in November 2008, and brackets for the streaks of
-   13 and 14, counted from 1995 above the axis and from 1994 below it.
+   the 2009 loss with a dot for each profitable year of the natural gas
+   trade, a note naming it, a dashed mark for the first edition's release in
+   November 2008, and brackets for the streaks of 13 and 14, counted from 1995
+   above the axis and from 1994 below it.
 2. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many

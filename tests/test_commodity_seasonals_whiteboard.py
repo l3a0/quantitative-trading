@@ -99,6 +99,7 @@ STREAK_LABELS = [
     "2009",
     "loss",
     "dot: a profitable year",
+    "natural gas, June contract",
     "first edition, Nov 2008",
     "13 from 1995, main text",
     "14 from 1995, sidebar",
@@ -426,6 +427,7 @@ class TestTheStreakSketch:
         scene = every[0]
         assert _stroke(scene, "profitable").color == GOOD
         assert _label(scene, "dot: a profitable year").color == GOOD
+        assert _label(scene, "natural gas, June contract").color == MUTED
         assert _stroke(scene, "loss").color == LOST
         assert _label(scene, "loss").color == LOST
         release = _stroke(scene, "release")
@@ -498,6 +500,7 @@ class TestTheStreakSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every, streaks) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
         assert "a green dot" in alt and "a red cross" in alt and "dashed grey line" in alt
+        assert "names the trade as “natural gas, June contract”" in alt
         for start, colour in ((1995, "brown"), (1994, "black")):
             assert f"two {colour} brackets start at {start}" in alt
             for (count, _), end in zip(sketches.BOOK_COUNTS, streaks.ends[start], strict=True):

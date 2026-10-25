@@ -9,11 +9,12 @@ paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
-   the loss, a dashed mark for the first edition's release in November 2008,
-   brackets above the axis for the streaks of 13 and 14 counted from 1995 and
-   brackets below for the same counts from 1994. It sits in Lesson 1, after
-   the list of what the files rule out and cannot pick, which opens
-   "1. **They rule out a count written for the revised edition.**".
+   the loss, a note naming the trade as natural gas's June contract, a dashed
+   mark for the first edition's release in November 2008, brackets above the
+   axis for the streaks of 13 and 14 counted from 1995 and brackets below for
+   the same counts from 1994. It sits in Lesson 1, after the list of what the
+   files rule out and cannot pick, which opens
+   "1. **They rule out the revised edition.**".
 2. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
@@ -112,6 +113,9 @@ BOOK_COUNTS = ((13, "main text"), (14, "sidebar"))
 STARTS = (seasonals.RUN_START, seasonals.NG_YEARS[0])
 #: The first edition's release, November 2008, which the post cites.
 FIRST_EDITION = (2008, 11)
+#: Which trade the dots are, since gasoline's sidebar supplies the 1995 start
+#: and a reader meeting the sketch first could take it for gasoline's.
+TRADE = "natural gas, June contract"
 
 
 @dataclass(frozen=True)
@@ -216,6 +220,7 @@ def _streak_start(f: StreakFigures) -> Scene:
     steps.append(
         Label("dot: a profitable year", 0.3, 0.35, names="profitable", color=GOOD, size=11)
     )
+    steps.append(Label(TRADE, 9.7, 0.35, names="profitable", color=MUTED, size=11, ha="right"))
     release = _release_x(f)
     steps += [
         _stroke(
