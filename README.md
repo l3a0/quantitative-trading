@@ -4413,30 +4413,42 @@ uv run python -m chan.gold_miners_oil_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries one looping whiteboard sketch,
-`gold_miners_oil_sketch_counting.gif`, drawn by
+The post also carries two looping whiteboard sketches, drawn by
 [src/chan/gold_miners_oil_whiteboard.py](src/chan/gold_miners_oil_whiteboard.py)
-on the USD.CAD post's sketch machinery. It sits in Lesson 1, after the list
-item on the three funds, and draws to one scale how the trace test counts on
-GLD, GDX and USO over the whole span. The first statistic, 44.838, clears its
-99 percent bar of 35.463, and the second, 7.005, falls short of its bar of
-19.935 and even of the 90 percent bar of 13.429, so the count stops at one
-relation. The third slot is drawn as an empty dotted outline, the one mark
-whose height is not a figure. It reads every figure from the committed file
-through the same `read_sources` and `gold_miners_oil` as
-`python -m chan.gold_miners_oil`. It builds slowly and holds its finished
-drawing for twelve seconds.
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `gold_miners_oil_sketch_counting.gif`, in Lesson 1 after the list item on
+   the three funds, draws to one scale how the trace test counts on GLD, GDX
+   and USO over the whole span. The first statistic, 44.838, clears its 99
+   percent bar of 35.463, and the second, 7.005, falls short of its bar of
+   19.935 and even of the 90 percent bar of 13.429, so the count stops at one
+   relation. The third slot is drawn as an empty dotted outline, the one mark
+   whose height is not a figure.
+2. `gold_miners_oil_sketch_three_pairs.gif`, in Lesson 3 after the paragraph
+   on gold and oil alone, draws the three funds as a triangle whose edges are
+   the pairs tested alone. GLD and GDX give 10.447 and GLD and USO 4.350, both
+   finding none, while GDX and USO give 27.166, one relation at 99 percent
+   against the pairs' bar of 19.935. So a count of one cannot say which pair
+   the triplet's relation is. Its last notes give the zero-weight tests, where
+   GLD's weight set to zero gives 10.015 and is rejected and USO's gives 0.057
+   and is not. Its triangle's shape carries no figure.
+
+Both read every figure from the committed file through the same
+`read_sources` and `gold_miners_oil` as `python -m chan.gold_miners_oil`. Both
+build slowly and hold their finished drawings for twelve seconds. Redraw both
+with:
 
 ```bash
 uv run python -m chan.gold_miners_oil_whiteboard
 ```
 
 [tests/test_gold_miners_oil_whiteboard.py](tests/test_gold_miners_oil_whiteboard.py)
-holds what the sketch says and draws, that each column and dashed bar stands
-at its value on one scale, that the third statistic is never printed, that
-made-up figures move its words, that figures which would make its words false
-are refused, that its GIF follows its list item in the post, and that its GIF
-is a fresh draw byte for byte on the owner's Mac.
+holds what each sketch says and draws, that each column and dashed bar of the
+first stands at its value on one scale, that its third statistic is never
+printed, that each edge of the second joins the funds it names, that made-up
+figures move their words, that figures which would make their words false are
+refused, that each GIF follows its text in the post, and that each GIF is a
+fresh draw byte for byte on the owner's Mac.
 
 [blog/johansen-etf-lessons.md](blog/johansen-etf-lessons.md) is an eighteenth
 post, about Examples 2.6 to 2.8 of Chan's *Algorithmic Trading*, which test

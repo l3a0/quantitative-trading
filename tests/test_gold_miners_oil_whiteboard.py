@@ -1,26 +1,40 @@
-"""The pins for the one whiteboard GIF in the gold miners and oil post.
+"""The pins for the two whiteboard GIFs in the gold miners and oil post.
 
-It sketches how the Johansen trace test reaches its count on GLD, GDX and USO
-over the whole span: the first hypothesis rejected, the second not, and the
-count stopping there at one relation.
+One sketches how the Johansen trace test reaches its count on GLD, GDX and
+USO over the whole span: the first hypothesis rejected, the second not, and
+the count stopping there at one relation. The other sketches Lesson 3's
+three pairs and the zero-weight tests: the one relation could be the miners
+and oil pair's own by its count, and the weights say it needs gold.
 
-The sketch is not schematic. Its figures come from
-:class:`chan.gold_miners_oil_whiteboard.CountingStop`, which reads the
-triplet's test in :mod:`chan.gold_miners_oil` on the committed vintage, so the
-tests read the run directly rather than a frozen copy of its figures. What is
-pinned is each figure it prints, that the two columns and the two dashed bars
-stand at one affine function of their values on one floor, that the third
-slot is drawn as an empty dotted outline whose figure is never printed, that
-a made-up set of figures moves the words with them, and that figures which
-would make its words false are refused. ``tests/test_gold_miners_oil.py``
-holds the same statistics on its own derivation.
+Neither sketch is schematic.
+
+1. The counting sketch's figures come from
+   :class:`chan.gold_miners_oil_whiteboard.CountingStop`, which reads the
+   triplet's test in :mod:`chan.gold_miners_oil` on the committed vintage.
+   What is pinned is each figure it prints, that the two columns and the two
+   dashed bars stand at one affine function of their values on one floor,
+   that the third slot is drawn as an empty dotted outline whose figure is
+   never printed, that a made-up set of figures moves the words with them,
+   and that figures which would make its words false are refused.
+2. The three-pairs sketch's figures come from
+   :class:`chan.gold_miners_oil_whiteboard.PairsAndWeights`, read from the
+   same run's control, its two pairs with USO and its zero-weight tests. What
+   is pinned is each figure it prints, that each edge joins the two funds it
+   names and is dashed red for none or solid green for one, that each weight
+   note names its fund's dot, that a made-up set moves the words, and that
+   figures which would make its words false are refused. Its triangle's shape
+   carries no figure, so no test reads one off it.
+
+The run reads committed vintages, so the tests read it directly rather than a
+frozen copy of its figures. ``tests/test_gold_miners_oil.py`` holds the same
+statistics on its own derivation.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
-hand font and the fallback, the GIF's size, frames, loop and timing, its
-slower pace, that two draws give the same bytes, and that the committed GIF is
-a fresh draw, a comparison that runs only on macOS arm64 with Comic Sans MS,
-as ``tests/test_usdcad_tests_whiteboard.py`` explains. The check that
-``docs/figures`` holds exactly the GIFs the modules draw lives in
+hand font and the fallback, each GIF's size, frames, loop and timing, both
+sketches' slower pace, that two draws give the same bytes, and that each
+committed GIF is a fresh draw, a comparison that runs only on macOS arm64 with
+Comic Sans MS, as ``tests/test_usdcad_tests_whiteboard.py`` explains. The
+check that ``docs/figures`` holds exactly the GIFs the modules draw lives in
 ``tests/test_equity_seasonals_whiteboard.py``, which reads :data:`GIFS` from
 here.
 """
@@ -43,11 +57,16 @@ from chan import gold_miners_oil_whiteboard as sketches
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.gold_miners_oil_whiteboard import (
     FLOOR,
+    FUNDS,
     HALF,
+    NOTES_X,
     OUTLINE_TOP,
     SLOTS,
+    TRIM,
     CountingStop,
     CountRefused,
+    PairsAndWeights,
+    PairsRefused,
     gif_name,
     main,
     make_gold_miners_oil_whiteboards,
@@ -56,7 +75,7 @@ from chan.gold_miners_oil_whiteboard import (
     up,
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import GOOD, INK, LOST, MUTED
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -72,12 +91,14 @@ from chan.usdcad_tests_whiteboard import (
 POST = REPO_ROOT / "blog" / "gold-miners-oil-lessons.md"
 
 #: Every GIF in the order :func:`make_gold_miners_oil_whiteboards` writes them.
-GIFS = ["gold_miners_oil_sketch_counting.gif"]
+GIFS = ["gold_miners_oil_sketch_counting.gif", "gold_miners_oil_sketch_three_pairs.gif"]
 
-#: What the GIF follows: Lesson 1's list, keyed on its last item's opening,
-#: and what comes after it.
+#: What each GIF follows and what comes after it: Lesson 1's list, keyed on
+#: its last item's opening, and Lesson 3's paragraph on gold and oil alone.
 TRIPLET_ITEM = "3. **The three funds, exactly one.**"
 NEXT_PARAGRAPH = "The nearest call is the first"
+PAIRS_PARAGRAPH = "Gold and oil alone find nothing"
+WEIGHTS_PARAGRAPH = "The triplet’s weights can."
 
 COUNTING_LABELS = [
     "r ≤ 0",
@@ -94,6 +115,20 @@ COUNTING_LABELS = [
     "count: 1 relation",
 ]
 
+PAIRS_LABELS = [
+    "GLD",
+    "GDX",
+    "USO",
+    "three funds,\none relation",
+    "10.447: none",
+    "4.350: none",
+    "27.166: one at 99%",
+    "pair bar at 99%: 19.935",
+    "a count of one cannot\nsay which pair it is",
+    "GLD’s weight 0?\n10.015: rejected",
+    "USO’s weight 0?\n0.057: not rejected",
+]
+
 #: The same limits the USD.CAD sketches hold, in pixels.
 CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
 
@@ -104,8 +139,13 @@ def stop() -> CountingStop:
 
 
 @pytest.fixture(scope="module")
-def every(stop):
-    return scenes(stop)
+def pairs() -> PairsAndWeights:
+    return PairsAndWeights.read()
+
+
+@pytest.fixture(scope="module")
+def every(stop, pairs):
+    return scenes(stop, pairs)
 
 
 @pytest.fixture(scope="module")
@@ -164,7 +204,7 @@ def _paragraphs() -> list[str]:
 
 
 class TestTheScenes:
-    def test_there_is_one(self, every) -> None:
+    def test_there_are_two_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -183,9 +223,9 @@ class TestTheScenes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
     def test_every_pale_tint_has_a_green_edge(self, every) -> None:
-        """The sketch draws no tint today. One that does would need the green
-        edge the equity seasonals module's ``_tinted`` draws, since the tint
-        alone stands 1.29 to 1 against the board."""
+        """Neither sketch draws a tint today. One that does would need the
+        green edge the equity seasonals module's ``_tinted`` draws, since the
+        tint alone stands 1.29 to 1 against the board."""
         tints = [fill for scene in every for fill in scene.fills if fill.color == whiteboard.TINT]
         assert tints == []
 
@@ -245,7 +285,7 @@ class TestTheGifs:
             hold = sketches.PACED_HOLD_MS if scene.slug in sketches.PACED else HOLD_MS
             assert steps[-1].ms == hold, scene.slug
 
-    def test_it_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
+    def test_both_build_slowly_and_hold_twelve_seconds(self, every) -> None:
         """Each label alone for 0.9 s and the drawing for 12 s, the equity
         post's slow pace."""
         from chan import equity_seasonals_whiteboard as equity
@@ -255,7 +295,7 @@ class TestTheGifs:
             equity.PACED_LABEL_MS,
             equity.PACED_HOLD_MS,
         )
-        assert sketches.PACED == ("counting",)
+        assert sketches.PACED == ("counting", "three_pairs")
         for scene in every:
             frames = sketch_timeline(scene)
             labels = [
@@ -345,10 +385,22 @@ class TestThePost:
         )
         assert paragraphs[index + 2].startswith(NEXT_PARAGRAPH)
 
-    def test_it_sits_in_lesson_1(self) -> None:
+    def test_the_pairs_sketch_follows_gold_and_oil_alone(self) -> None:
+        """Right after the paragraph on gold and oil alone, and before the one
+        on the triplet's weights."""
+        paragraphs = _paragraphs()
+        (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(PAIRS_PARAGRAPH)]
+        assert re.fullmatch(
+            rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[1])}\)", paragraphs[index + 1]
+        )
+        assert paragraphs[index + 2].startswith(WEIGHTS_PARAGRAPH)
+
+    def test_the_counting_sketch_sits_in_lesson_1_and_the_pairs_in_lesson_3(self) -> None:
         text = POST.read_text(encoding="utf-8")
-        at = text.index(f"(../docs/figures/{GIFS[0]})")
-        assert text.index("## Lesson 1:") < at < text.index("## Lesson 2:")
+        counting, pairs_at = (text.index(f"(../docs/figures/{name})") for name in GIFS)
+        lesson_1, lesson_2 = text.index("## Lesson 1:"), text.index("## Lesson 2:")
+        lesson_3, lesson_4 = text.index("## Lesson 3:"), text.index("## Lesson 4:")
+        assert lesson_1 < counting < lesson_2 < lesson_3 < pairs_at < lesson_4
 
     def test_each_gif_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -402,7 +454,8 @@ class TestThePost:
 
     def test_the_module_says_it_is_not_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
-        assert "This sketch is not schematic" in doc
+        assert "Neither sketch is schematic" in doc
+        assert "Its triangle's shape and the lengths of its edges carry no figure" in doc
         assert (
             "The dotted outline over the third slot is the one mark whose height is not a figure"
             in doc
@@ -549,7 +602,7 @@ class TestTheCountingSketch:
         assert order == ["floor", "column-1", "bar-1", "check", "on", "column-2", "bar-2", "unread"]
         assert every[0].steps[-1].text == "count: 1 relation"
 
-    def test_its_words_follow_made_up_figures(self, stop) -> None:
+    def test_its_words_follow_made_up_figures(self, stop, pairs) -> None:
         """Other statistics print their own figures and stand at their own
         heights on the same scale."""
         made_up = replace(
@@ -561,7 +614,7 @@ class TestTheCountingSketch:
             second_bar_90=12.5,
             unread=1.0,
         )
-        scene = scenes(made_up)[0]
+        scene = scenes(made_up, pairs)[0]
         assert scene.labels == [
             "r ≤ 0",
             "r ≤ 1",
@@ -605,3 +658,207 @@ class TestTheCountingSketch:
         monkeypatch.setattr(gold_miners_oil, "refuse_window_crossing_a_break", refuse)
         with pytest.raises(RuntimeError, match="guard ran"):
             CountingStop.read()
+
+
+# --- Lesson 3: one relation, three pairs ----------------------------------------
+
+
+class TestThePairsSketch:
+    def test_its_words(self, every) -> None:
+        assert every[1].title == "One relation, three pairs"
+        assert every[1].labels == PAIRS_LABELS
+
+    def test_the_run_gives_the_figures_it_prints(self, pairs: PairsAndWeights) -> None:
+        """The control, the two pairs with USO and the zero-weight tests,
+        which ``tests/test_gold_miners_oil.py`` pins on its own derivation."""
+        assert [f"{v:.3f}" for v in (pairs.gld_gdx, pairs.gld_uso, pairs.gdx_uso)] == [
+            "10.447",
+            "4.350",
+            "27.166",
+        ]
+        # GDX and USO reach full rank at 90 percent, the post's first detail
+        # in Lesson 3, which is why the edge says "one at 99%" and not "one".
+        assert pairs.counts == {"gld_gdx": (0, 0), "gld_uso": (0, 0), "gdx_uso": (2, 1)}
+        assert f"{pairs.pair_bar:.3f}" == "19.935"
+        assert pairs.triplet_count == 1
+        assert [f"{v:.3f}" for v in (pairs.gld_weight, pairs.uso_weight)] == ["10.015", "0.057"]
+        assert [f"{v:.3f}" for v in (pairs.weight_bar, pairs.weight_bar_90)] == ["3.841", "2.706"]
+
+    def test_it_reads_each_pair_and_weight_from_the_run(self, pairs: PairsAndWeights) -> None:
+        _, closes = gold_miners_oil.read_sources()
+        result = gold_miners_oil.gold_miners_oil(closes)
+        assert pairs.gld_gdx == float(result.control.trace[0])
+        assert pairs.gld_uso == float(result.with_oil["GLD"].trace[0])
+        assert pairs.gdx_uso == float(result.with_oil["GDX"].trace[0])
+        assert pairs.pair_bar == float(result.control.trace_critical[0, 2])
+        assert pairs.gld_weight == result.zero_weight["GLD"]
+        assert pairs.uso_weight == result.zero_weight["USO"]
+        assert pairs.weight_bar == gold_miners_oil.CHI2_1[95]
+        assert pairs.weight_bar_90 == gold_miners_oil.CHI2_1[90]
+
+    def test_it_never_says_rejected_at_99(self, every) -> None:
+        """The post reads GLD's rejection at 95 percent, since the large-sample
+        bars reject too often on this sample."""
+        weights = [t for t in every[1].labels if "weight" in t]
+        assert len(weights) == 2
+        assert not [t for t in weights if "99" in t]
+
+    def test_its_colours(self, every) -> None:
+        """Red dashed for none, green solid for one, black for the funds, grey
+        for context and brown for the point."""
+        scene = every[1]
+        assert {s.gid: (s.color, s.dashed) for s in scene.strokes} == {
+            "gld": (INK, False),
+            "gdx": (INK, False),
+            "uso": (INK, False),
+            "gld-gdx": (LOST, True),
+            "gld-uso": (LOST, True),
+            "gdx-uso": (GOOD, False),
+        }
+        assert {s.text: s.color for s in scene.steps if isinstance(s, Label)} == {
+            "GLD": INK,
+            "GDX": INK,
+            "USO": INK,
+            "three funds,\none relation": MUTED,
+            "10.447: none": LOST,
+            "4.350: none": LOST,
+            "27.166: one at 99%": GOOD,
+            "pair bar at 99%: 19.935": MUTED,
+            "a count of one cannot\nsay which pair it is": ACCENT,
+            "GLD’s weight 0?\n10.015: rejected": GOOD,
+            "USO’s weight 0?\n0.057: not rejected": LOST,
+        }
+
+    def test_colour_is_never_the_only_cue(self, every) -> None:
+        """Each edge says none or one in words and is dashed or solid, and
+        each weight note says rejected or not rejected."""
+        scene = every[1]
+        for gid in ("gld-gdx", "gld-uso", "gdx-uso"):
+            edge = _stroke(scene, gid)
+            words = [
+                label.text
+                for label in scene.steps
+                if isinstance(label, Label) and label.names == gid
+            ]
+            text = words[0]
+            assert edge.dashed == text.endswith(": none"), gid
+            assert edge.dashed != text.endswith(": one at 99%"), gid
+        assert _label(scene, "GLD’s weight 0?\n10.015: rejected").text.endswith(": rejected")
+        assert _label(scene, "USO’s weight 0?\n0.057: not rejected").text.endswith(": not rejected")
+
+    def test_each_edge_joins_the_funds_it_names(self, every) -> None:
+        """An edge runs between its two dots, stopping short of each by the
+        same trim."""
+        scene = every[1]
+        for name in FUNDS:
+            dot = _stroke(scene, name)
+            assert (dot.x.tolist(), dot.y.tolist()) == ([FUNDS[name][0]], [FUNDS[name][1]]), name
+        for gid in ("gld-gdx", "gld-uso", "gdx-uso"):
+            one, other = gid.split("-")
+            edge = _stroke(scene, gid)
+            start, end = np.array([edge.x[0], edge.y[0]]), np.array([edge.x[-1], edge.y[-1]])
+            a, b = np.array(FUNDS[one]), np.array(FUNDS[other])
+            assert np.linalg.norm(start - a) == pytest.approx(TRIM), gid
+            assert np.linalg.norm(end - b) == pytest.approx(TRIM), gid
+            direction = (b - a) / np.linalg.norm(b - a)
+            for x, y in zip(edge.x, edge.y, strict=True):
+                offset = np.array([x, y]) - a
+                assert abs(offset[0] * direction[1] - offset[1] * direction[0]) < 1e-9, gid
+
+    def test_gld_sits_at_the_top_and_the_others_below_it(self, every) -> None:
+        scene = every[1]
+        (gx, gy), (dx, dy), (ux, uy) = FUNDS["gld"], FUNDS["gdx"], FUNDS["uso"]
+        assert dy == uy < gy and dx < gx < ux
+        assert _label(scene, "GLD").y > gy
+        assert _label(scene, "GDX").y < dy and _label(scene, "USO").y < uy
+        inside = _label(scene, "three funds,\none relation")
+        assert dy < inside.y < gy and dx < inside.x < ux
+
+    def test_each_edge_label_sits_beside_its_edge(self, every) -> None:
+        scene = every[1]
+        (gx, _), (dx, dy), (ux, _) = FUNDS["gld"], FUNDS["gdx"], FUNDS["uso"]
+        assert _label(scene, "10.447: none").x < (gx + dx) / 2
+        assert _label(scene, "4.350: none").x > (gx + ux) / 2
+        bottom = _label(scene, "27.166: one at 99%")
+        assert bottom.y < dy and dx < bottom.x < ux
+
+    def test_each_weight_note_names_its_funds_dot(self, every) -> None:
+        scene = every[1]
+        assert _label(scene, "GLD’s weight 0?\n10.015: rejected").names == "gld"
+        assert _label(scene, "USO’s weight 0?\n0.057: not rejected").names == "uso"
+        notes = [s for s in scene.steps if isinstance(s, Label) and s.x == NOTES_X]
+        assert [s.text for s in notes] == PAIRS_LABELS[7:]
+        assert NOTES_X > max(x for x, _ in FUNDS.values())
+
+    def test_it_is_drawn_in_the_post_s_order(self, every) -> None:
+        """The funds, the two pairs that find none, the pair that finds one,
+        then the bar, the point and the weights."""
+        assert [s.gid for s in every[1].strokes] == [
+            "gld",
+            "gdx",
+            "uso",
+            "gld-gdx",
+            "gld-uso",
+            "gdx-uso",
+        ]
+        assert every[1].labels[-2:] == PAIRS_LABELS[-2:]
+
+    def test_its_words_follow_made_up_figures(self, pairs, stop) -> None:
+        made_up = replace(
+            pairs,
+            gld_gdx=8.25,
+            gld_uso=3.5,
+            gdx_uso=30.125,
+            pair_bar=20.5,
+            gld_weight=12.75,
+            uso_weight=0.5,
+        )
+        assert scenes(stop, made_up)[1].labels == [
+            "GLD",
+            "GDX",
+            "USO",
+            "three funds,\none relation",
+            "8.250: none",
+            "3.500: none",
+            "30.125: one at 99%",
+            "pair bar at 99%: 20.500",
+            "a count of one cannot\nsay which pair it is",
+            "GLD’s weight 0?\n12.750: rejected",
+            "USO’s weight 0?\n0.500: not rejected",
+        ]
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            ({"triplet_count": 2}, "the triplet finds 2"),
+            ({"counts": {"gld_gdx": (1, 0), "gld_uso": (0, 0), "gdx_uso": (1, 1)}}, "gld_gdx"),
+            ({"counts": {"gld_gdx": (0, 0), "gld_uso": (0, 1), "gdx_uso": (1, 1)}}, "gld_uso"),
+            ({"counts": {"gld_gdx": (0, 0), "gld_uso": (0, 0), "gdx_uso": (1, 0)}}, "gdx_uso"),
+            ({"gld_weight": 3.0}, "does not clear"),
+            ({"uso_weight": 3.0}, "USO's weight"),
+        ],
+        ids=["two relations", "gold and miners", "gold and oil", "miners and oil", "gold", "oil"],
+    )
+    def test_it_refuses_figures_that_make_its_words_false(self, pairs, change, message) -> None:
+        with pytest.raises(PairsRefused, match=message):
+            replace(pairs, **change)
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[1])
+        assert "schematic" not in alt
+        assert "carrying figures from the run" in alt
+        assert "drawn slowly" in alt and "twelve seconds" in alt
+        assert "Three black dots form a triangle" in alt
+        assert "A red dashed edge joins GLD and GDX" in alt
+        assert "a red dashed edge joins GLD and USO" in alt
+        assert "A green solid edge joins GDX and USO along the bottom" in alt
+        assert "a grey note" in alt and "brown words" in alt
+        assert "a green note reads “GLD’s" in alt and "a red note reads “USO’s" in alt
+
+    def test_it_reads_the_file_through_the_scale_break_guard(self, monkeypatch) -> None:
+        def refuse(*args, **kwargs):
+            raise RuntimeError("guard ran")
+
+        monkeypatch.setattr(gold_miners_oil, "refuse_window_crossing_a_break", refuse)
+        with pytest.raises(RuntimeError, match="guard ran"):
+            PairsAndWeights.read()
