@@ -944,6 +944,7 @@ class TestWhatThePostQuotes:
         assert not j.positions[rows].any(), "the join cannot, so it held nothing"
         follow = backshift(1, rows.astype(float)) == 1
         assert float(r.daily[follow].sum()) > 0, "that made money"
+        assert (r.daily[follow] < 0).any(), "on balance, so not every one"
         average = (m.daily + r.daily) / 2
         assert (~np.isclose(average, j.daily, atol=1e-15) == follow).all(), "the ten that follow"
 
@@ -989,8 +990,8 @@ class TestWhatThePostQuotes:
             f"The join’s average day, {means['j']:.6f}, sits between reversal’s "
             f"{means['r']:.6f} and momentum’s {means['m']:.6f}.",
             "It sits slightly below the plain average of the two, because on those "
-            f"{SPELLED[len(early)]} early days reversal alone held shorts that made money, while "
-            "the join held nothing.",
+            f"{SPELLED[len(early)]} early days reversal alone held shorts that made money on "
+            "balance, while the join held nothing.",
             f"Cancelling {opposite} days of opposite bets gives a standard deviation of "
             f"{deviations['j']:.6f}, a little over a third of either rule’s. The Sharpe ratio "
             "divides the average day by the standard deviation, so the join wins it easily.",
@@ -1072,6 +1073,13 @@ class TestWhatThePostQuotes:
             assert not (close == backshift(lookback, close)).any(), "no close equals its lag"
         rows = book.combination.positions != book.either.positions
         assert (book.either.positions[rows] == book.reversal.positions[rows]).all()
+        neither = np.isnan(backshift(REVERSAL_LOOKBACK, close)) & np.isnan(
+            backshift(MOMENTUM_LOOKBACK, close)
+        )
+        assert not neither[int(neither.sum()) :].any(), "the first rows"
+        assert np.flatnonzero(neither).max() < np.flatnonzero(rows).min(), "before the ten"
+        assert not book.either.positions[neither].any(), "ComboOR holds nothing"
+        assert not book.combination.positions[neither].any(), "as the join does"
         fragments = [
             f"Lesson 2 shows that ComboOR takes the join’s position on every row but "
             f"{SPELLED[int(rows.sum())]} early ones.",
@@ -1083,7 +1091,10 @@ class TestWhatThePostQuotes:
             f"becomes {_minus(swapped.apr, 6)}, not quite the negative of "
             f"{book.combination.apr:.6f}",
             f"On the book’s window no close equals its {REVERSAL_LOOKBACK}-day or "
-            f"{MOMENTUM_LOOKBACK}-day lag exactly",
+            f"{MOMENTUM_LOOKBACK}-day lag exactly, so wherever both lags exist, a close that is "
+            "not below a lag is above it.",
+            f"On the first {int(neither.sum())} rows neither lag exists, and it holds nothing, as "
+            "the join does.",
             f"So it matches the join everywhere except the same {SPELLED[int(rows.sum())]} early "
             "rows, where it trades reversal alone.",
             f"Its APR of {book.either.apr:.6f} and Sharpe ratio of {book.either.sharpe:.6f} "
