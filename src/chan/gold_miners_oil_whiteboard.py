@@ -8,8 +8,8 @@ text it draws.
 
 1. Counting stops at the first no, in Lesson 1 after the list item opening
    "3. **The three funds, exactly one.**". A grey floor carries three slots,
-   labelled "r ≤ 0", "r ≤ 1" and "r ≤ 2", one for each hypothesis the test
-   can try on three series. Over the first slot a black column stands at the
+   labelled "none?", "at most 1?" and "at most 2?", one for each hypothesis
+   the test can try on three series. Over the first slot a black column stands at the
    triplet's first trace statistic, crossed by a dashed line at its 99
    percent bar. A green check and the words "rejected: go on" follow. A grey
    arrow leads to the second slot, where a black column stands at the second
@@ -18,8 +18,9 @@ text it draws.
    even of the 90 percent bar. The third slot gets a grey dotted outline
    labelled "not read: the count stopped", and the closing words give the
    count.
-2. One relation, three pairs, in Lesson 3 after the paragraph opening "Gold
-   and oil alone find nothing". Three black dots in a triangle stand for GLD,
+2. One relation, three pairs, in Lesson 3 after the paragraph giving the
+   zero-weight test, which opens "If the relation were the miners and oil
+   pair's own". Three black dots in a triangle stand for GLD,
    GDX and USO, with grey words inside saying the three funds hold one
    relation. Each edge is one pair tested alone over the same days and
    carries that pair's first trace statistic. GLD and GDX, then GLD and USO,
@@ -192,7 +193,7 @@ def _counting(f: CountingStop) -> Scene:
     bar1, bar2 = up(f.first_bar), up(f.second_bar)
     slots: list[Stroke | Label] = [
         Label(text, x, FLOOR - 0.38, names="floor", color=MUTED, size=12, ha="center")
-        for text, x in zip(("r ≤ 0", "r ≤ 1", "r ≤ 2"), SLOTS, strict=True)
+        for text, x in zip(("none?", "at most 1?", "at most 2?"), SLOTS, strict=True)
     ]
     return Scene(
         "Counting stops at the first no",

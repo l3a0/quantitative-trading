@@ -4366,7 +4366,7 @@ Six groups of what it says are not pinned here.
    4. That what USO adds to the triplet lies in how the prices change from day
       to day rather than in the relation's weights, which follows from row 10
       and the weight test together.
-   5. That Chan's mechanism, in which dear oil cuts the miners' profits,
+   5. That Chan's explanation, in which dear oil cuts the miners' profits,
       suggests a mix with oil's price in it.
 4. The MacKinnon critical values of −3.34 and −3.90 for the Engle-Granger
    test, which are constants of `ithildincore.timeseries` rather than
@@ -4433,7 +4433,7 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    relation. The third slot is drawn as an empty dotted outline, the one mark
    whose height is not a figure.
 2. `gold_miners_oil_sketch_three_pairs.gif`, in Lesson 3 after the paragraph
-   on gold and oil alone, draws the three funds as a triangle whose edges are
+   giving the zero-weight test, draws the three funds as a triangle whose edges are
    the pairs tested alone. GLD and GDX give 10.447 and GLD and USO 4.350, both
    finding none, while GDX and USO give 27.166, one relation at 99 percent
    against the pairs' bar of 19.935. So a count of one cannot say which pair

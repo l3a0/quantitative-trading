@@ -94,16 +94,21 @@ POST = REPO_ROOT / "blog" / "gold-miners-oil-lessons.md"
 GIFS = ["gold_miners_oil_sketch_counting.gif", "gold_miners_oil_sketch_three_pairs.gif"]
 
 #: What each GIF follows and what comes after it: Lesson 1's list, keyed on
-#: its last item's opening, and Lesson 3's paragraph on gold and oil alone.
+#: its last item's opening, and Lesson 3's paragraph on the zero-weight test,
+#: which follows the paragraph on gold and oil alone and the heading over the
+#: triplet's weights.
 TRIPLET_ITEM = "3. **The three funds, exactly one.**"
 NEXT_PARAGRAPH = "The nearest call is the first"
 PAIRS_PARAGRAPH = "Gold and oil alone find nothing"
-WEIGHTS_PARAGRAPH = "The triplet’s weights can."
+WEIGHTS_HEADING = "### Which funds the triplet’s relation needs"
+WEIGHTS_PARAGRAPH = "The triplet’s weights can tell"
+WEIGHT_TEST_PARAGRAPH = "If the relation were the miners and oil pair’s own"
+TENSION_PARAGRAPH = "The weight test and the miners and oil pair’s result pull against each other."
 
 COUNTING_LABELS = [
-    "r ≤ 0",
-    "r ≤ 1",
-    "r ≤ 2",
+    "none?",
+    "at most 1?",
+    "at most 2?",
     "44.838",
     "99% bar, 35.463",
     "rejected: go on",
@@ -385,15 +390,21 @@ class TestThePost:
         )
         assert paragraphs[index + 2].startswith(NEXT_PARAGRAPH)
 
-    def test_the_pairs_sketch_follows_gold_and_oil_alone(self) -> None:
-        """Right after the paragraph on gold and oil alone, and before the one
-        on the triplet's weights."""
+    def test_the_pairs_sketch_follows_the_weight_test(self) -> None:
+        """Right after the paragraph giving the zero-weight test, so the post
+        explains that test before the sketch's last notes draw it, and before
+        the paragraph on how its result and the pair's pull against each other.
+        The paragraph on gold and oil alone leads into the heading over the
+        triplet's weights."""
         paragraphs = _paragraphs()
         (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(PAIRS_PARAGRAPH)]
-        assert re.fullmatch(
-            rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[1])}\)", paragraphs[index + 1]
-        )
+        assert paragraphs[index + 1] == WEIGHTS_HEADING
         assert paragraphs[index + 2].startswith(WEIGHTS_PARAGRAPH)
+        assert paragraphs[index + 3].startswith(WEIGHT_TEST_PARAGRAPH)
+        assert re.fullmatch(
+            rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[1])}\)", paragraphs[index + 4]
+        )
+        assert paragraphs[index + 5].startswith(TENSION_PARAGRAPH)
 
     def test_the_counting_sketch_sits_in_lesson_1_and_the_pairs_in_lesson_3(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -578,7 +589,7 @@ class TestTheCountingSketch:
             assert line.x.min() < box.x.min() and box.x.max() < line.x.max(), bar
             assert _label(scene, figure).x == SLOTS[k], figure
             assert _label(scene, COUNTING_LABELS[k]).x == SLOTS[k]
-        assert _label(scene, "r ≤ 2").x == SLOTS[2]
+        assert _label(scene, "at most 2?").x == SLOTS[2]
         assert SLOTS[0] < SLOTS[1] < SLOTS[2]
 
     def test_the_first_figure_sits_inside_its_column_and_the_second_above(self, every) -> None:
@@ -630,9 +641,9 @@ class TestTheCountingSketch:
         )
         scene = scenes(made_up, pairs)[0]
         assert scene.labels == [
-            "r ≤ 0",
-            "r ≤ 1",
-            "r ≤ 2",
+            "none?",
+            "at most 1?",
+            "at most 2?",
             "40.500",
             "99% bar, 30.125",
             "rejected: go on",
