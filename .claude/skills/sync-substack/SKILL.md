@@ -30,6 +30,34 @@ A third file, `substack_sync.js`, syncs an existing draft from the page in one
 call. `tests/test_substack_sync.py` runs it against a fake server and pins
 each refusal and each way a write can fail.
 
+## Sync first, and test behind it (owner directive, 2026-10-25)
+
+The owner judges an edit by reading the post's draft on Substack. So the time
+from an edit to a synced draft is the feedback loop, and nothing that can run
+after the sync waits in front of it. The owner asked on 2026-10-25 to put the
+Substack update ahead of everything else and to shorten that loop.
+
+An edit to an unpublished post goes in this order.
+
+1. **Commit and push it.** This step cannot move after the sync, because the
+   page reads the Markdown and the figures from GitHub at a pushed commit and
+   records that commit as the draft's baseline. Pushing takes about 5
+   seconds.
+2. **Sync the draft.** Every check this file names before a write still runs,
+   the comparison with the live draft first among them.
+3. **Reply to the owner.**
+4. **Run the tests and watch CI in the background.** Report only a failure.
+   A failure means fix, push and sync again, and say so.
+
+This holds for every edit, including one that changes a pinned number, a
+figure or a test, which before this ruling ran the full suite first. A
+published or scheduled post is outside it, because every write to one waits
+for the owner, as `## Update a published post` says.
+
+The price is that a draft can carry a mistake a test would have caught, for
+the minutes until the tests finish. The draft is unpublished, so only the
+owner sees it, and the next sync replaces it.
+
 ## This file and the owner's notes
 
 The owner keeps private notes outside this repository with a record per post.
