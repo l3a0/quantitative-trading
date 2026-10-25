@@ -44,6 +44,7 @@ from dataclasses import replace
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.timeseries import ADF_CRIT_CONST
 
 from chan import index_arbitrage as module
 from chan import paths
@@ -56,6 +57,7 @@ from chan.index_arbitrage import (
     FEWEST_ROWS,
     INDEX,
     LOOKBACK,
+    SCREEN_LEVEL,
     SCRIPT_APR,
     SCRIPT_EIGEN,
     SCRIPT_EIGEN_CRITICAL,
@@ -87,6 +89,7 @@ from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break,
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
+POST = paths.REPO_ROOT / "blog" / "index-arbitrage-lessons.md"
 SPEC = "indexArb.m at blob dcb079a on the 2012 S&P 500 file and the ETF file's SPY"
 
 #: The 17 stocks line 26 skips, with the 2007 rows each keeps.
@@ -129,6 +132,34 @@ def held(sources, result) -> np.ndarray:
     return np.column_stack(
         [stocks.loc[test, list(result.screen.passed)].to_numpy(), index.loc[test].to_numpy()]
     )
+
+
+#: Lesson 2's two measurements: 2,000 walks screened against SPY from one seed,
+#: and 2,000 pairs of independent walks of 251 days from another.
+WALKS = 2000
+WALK_SEED = 343
+PAIR_SEED = 345
+PAIR_DAYS = 251
+
+
+@pytest.fixture(scope="module")
+def walks_screened(sources, result) -> Screen:
+    """The screen run on walks unrelated to SPY, against SPY's 2007 closes."""
+    spy = sources[3].loc[result.train_days]
+    return screen(walks_unrelated_to(spy, WALKS, WALK_SEED), spy)
+
+
+@pytest.fixture(scope="module")
+def pair_rejections() -> dict[int, int]:
+    """How many pairs of independent walks the trace test rejects r ≤ 0 on, at 90 and 95."""
+    rng = np.random.default_rng(PAIR_SEED)
+    at = {90: 0, 95: 0}
+    for _ in range(WALKS):
+        pair = 100 + np.cumsum(rng.normal(size=(PAIR_DAYS, 2)), axis=0)
+        tested = johansen(pair, 0, 1)
+        for level in at:
+            at[level] += tested.relations("trace", level) >= 1
+    return at
 
 
 @pytest.fixture
@@ -488,7 +519,7 @@ class TestBesideTheReplication:
         assert result.adf == pytest.approx({"basket": -2.461086, INDEX: -2.381322}, abs=1e-6)
         assert all(t > -2.57 for t in result.adf.values())
 
-    def test_the_screen_passes_561_of_2000_walks_unrelated_to_spy(self, sources, result):
+    def test_the_screen_passes_561_of_2000_walks_unrelated_to_spy(self, walks_screened, result):
         """The 90 percent bar passes far more than 10 percent of stocks unrelated to SPY.
 
         2,000 Gaussian random walks with unit steps and no drift, seeded with
@@ -497,14 +528,14 @@ class TestBesideTheReplication:
         screen passes is fewer than that, so 48, the nominal 10 percent of 480,
         is not what chance alone gives.
         """
-        spy = sources[3].loc[result.train_days]
-        found = screen(walks_unrelated_to(spy, 2000, 343), spy)
-        assert len(found.tested) == 2000
-        assert len(found.passed) == 561
-        assert 480 * len(found.passed) / 2000 == pytest.approx(134.64)
-        assert len(result.screen.passed) < 480 * len(found.passed) / 2000
+        assert len(walks_screened.tested) == WALKS == 2000
+        assert len(walks_screened.passed) == 561
+        assert 480 * len(walks_screened.passed) / 2000 == pytest.approx(134.64)
+        assert len(result.screen.passed) < 480 * len(walks_screened.passed) / 2000
 
-    def test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks(self):
+    def test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks(
+        self, pair_rejections
+    ):
         """Two independent walks of 251 days, 2,000 pairs seeded with 345.
 
         ``johansen(·, 0, 1)``'s trace test rejects r ≤ 0 on 410 pairs at its 90
@@ -512,14 +543,8 @@ class TestBesideTheReplication:
         and 5 are nominal. So a pass at either bar, the screen's or row 5's, is
         weaker evidence than its label.
         """
-        rng = np.random.default_rng(345)
-        at = {90: 0, 95: 0}
-        for _ in range(2000):
-            pair = 100 + np.cumsum(rng.normal(size=(251, 2)), axis=0)
-            tested = johansen(pair, 0, 1)
-            for level in at:
-                at[level] += tested.relations("trace", level) >= 1
-        assert at == {90: 410, 95: 242}
+        assert (WALKS, PAIR_DAYS) == (2000, 251)
+        assert pair_rejections == {90: 410, 95: 242}
 
 
 class TestTheScaleBreakDecision:
@@ -719,7 +744,226 @@ class TestTheBasketsStocksAndTheIndex:
         assert result.test_days[-1] == pd.Timestamp("2012-04-09")
 
     def test_the_post_counts_the_basket_stocks_outside_the_index(self) -> None:
-        text = (paths.REPO_ROOT / "blog" / "index-arbitrage-lessons.md").read_text(encoding="utf-8")
+        text = POST.read_text(encoding="utf-8")
         assert "12 of the 98 it picks were not in the index on 2007-11-23" in text
         assert "Twelve of the 98 are missing from Chan’s list of the S&P 500" in text
         assert "The basket holds all 14 on every test day." in text
+
+
+#: Small counts and ordinals as the post spells them out, indexed by the number.
+SPELLED = {2: "two", 6: "six", 11: "Eleven"}
+ORDINAL = {5: "fifth", 6: "sixth"}
+
+
+def _minus(x: float, places: int) -> str:
+    """A negative figure in prose, with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _array(head: str, rows: list[list[str]]) -> str:
+    """One of the post's ``array`` tables, from its header row to its last row."""
+    body = " \\\\\n".join(" & ".join(row) for row in rows)
+    return f"{head} \\\\ \\hline\n{body}\n\\end{{array}}"
+
+
+class TestWhatThePostQuotes:
+    """Each run figure the post quotes outside its sketch, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure the run computes is built from the run's value at the
+    precision the post prints it, and looked for in at least one copy: a short
+    fragment holding the number and the few words that name one place in the
+    post. A typo in a copy that is read, or a re-pin that leaves the post
+    behind, fails here. Lesson 1's three tables are rebuilt whole, each
+    computed cell from the run and each printed cell from the script's
+    printout as :mod:`chan.index_arbitrage` records it, so a digit added to a
+    cell fails as well as a digit changed. The two random-walk measurements
+    come from the same fixtures the pins of 561, 410 and 242 read, so they run
+    once for the module.
+
+    The post states several figures more than once, and only one copy of each
+    is read. The copies read are the ones in the section on the files, the
+    paragraphs on one unit, Lesson 1's tables and the two paragraphs after
+    them, Lesson 2's measurements, Lesson 3's ADF statistics, and, in the
+    figure's alt text, the APR, the Sharpe ratio, the first return's date and
+    the last day's cumulative return. Other copies are not read, among them
+    the 98 and 480 in the opening and the alt text, the 12.1 percent in
+    Lesson 3, the 497 in Lesson 4 and the 99 positions in the closing list, so
+    a typo in one of them passes. The alt text's 98 of 480 and 561 of 2,000
+    are drawn by the figure, and ``tests/test_index_arbitrage_figures.py``
+    holds those. The sketch's caption and alt text are read in
+    ``tests/test_index_arbitrage_whiteboard.py`` instead, and the counts of
+    the basket's stocks outside the index in
+    ``TestTheBasketsStocksAndTheIndex``. The Kindle locations, the facts
+    outside the data and the references are checked by nothing, and README
+    lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_files_and_the_windows(self, sources, result, text) -> None:
+        stock_members, spy_member, stocks, _ = sources
+        whole = module.load_panel(STOCK_FILE)[1].index
+        spy_closes = module.load_panel(ETF_FILE)[1][INDEX]
+        (saved,) = {m.obtained for m in stock_members}
+        train, test = result.train_days, result.test_days
+        found = result.screen
+        none = sum(rows == 0 for rows in found.skipped.values())
+        fragments = [
+            f"The stock file holds {len(stock_members)} stocks that were in the S&P 500 in "
+            f"late 2011, with prices from {whole[0].date()} to {whole[-1].date()}, and was "
+            f"saved on {saved}.",
+            f"whose closes end on {spy_closes.last_valid_index().date()} and which was saved "
+            f"on {spy_member.obtained}.",
+            f"The two share {len(stocks):,} trading days from {stocks.index[0].date()} to "
+            f"{stocks.index[-1].date()}. Training is the {len(train)} days of 2007, from "
+            f"{train[0].date()} to {train[-1].date()}, and the test is the {len(test):,} days "
+            f"from {test[0].date()} to {test[-1].date()}",
+            f"The screen needs more than {FEWEST_ROWS} days of closes, so it skips "
+            f"{len(found.skipped)} stocks. {SPELLED[none]} have no 2007 close at all, and "
+            f"{SPELLED[len(found.skipped) - none]} began trading during 2007. It tests the "
+            f"other {len(found.tested)}.",
+            f"A stock passes when the trace statistic clears its {SCREEN_LEVEL} percent bar "
+            "for r ≤ 0",
+            f"both taken over the last {LOOKBACK} days. Those {LOOKBACK} days are the rule’s "
+            "lookback.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_one_unit_and_its_first_return(self, result, text) -> None:
+        (basket, spy), passed = result.basket.eigenvectors[:, 0], len(result.screen.passed)
+        stocks = result.weights[:-1].sum()
+        earning = np.flatnonzero(result.daily)
+        first = int(earning[0])
+        fragments = [
+            f"gives two weights, {basket:.4f} on the basket and {_minus(spy, 4)} on SPY. The "
+            f"basket’s weight goes on each of its {passed} stocks, so the script holds "
+            f"{len(result.weights)} positions, {basket:.4f} on each stock and "
+            f"{_minus(spy, 4)} on SPY.",
+            f"is long ${basket:.4f} of each stock, ${stocks:.3f} of stocks in all, and short "
+            f"${-spy:.3f} of SPY. The two sides differ by ${stocks + spy:.3f},",
+            f"first exists on the {ORDINAL[LOOKBACK]} test day, so the first position earns "
+            f"its first return on {result.test_days[first].date()}, the {ORDINAL[first + 1]} "
+            f"test day. From there the strategy earns a return on every one of the "
+            f"{len(earning):,} remaining days.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1s_three_tables(self, result, text) -> None:
+        tested, passed = result.basket, len(result.screen.passed)
+        statistics = [
+            [f"\\text{{{name}, }} r \\le {i}", f"{values[i]:.6f}", printed[i]]
+            for name, values, printed in (
+                ("Trace", tested.trace, SCRIPT_TRACE),
+                ("Eigen", tested.eigen, SCRIPT_EIGEN),
+            )
+            for i in range(2)
+        ]
+        vectors = [
+            [f"\\text{{{which}, {leg}}}", f"{tested.eigenvectors[i, j]:.8f}", row[j]]
+            for j, which in enumerate(("First", "Second"))
+            for i, (leg, row) in enumerate(zip(("basket", "SPY"), SCRIPT_EIGENVECTORS, strict=True))
+        ]
+        fragments = [
+            _array(
+                "\\begin{array}{l|r|r}\n\\text{Figure} & \\text{Computed} & \\text{Script}",
+                [["\\text{Stocks passing}", str(passed), str(SCRIPT_PASSED)], *statistics],
+            ),
+            _array(
+                "\\small\\begin{array}{l|r|r}\n"
+                "\\text{Eigenvector} & \\text{Computed} & \\text{Script}",
+                vectors,
+            ),
+            _array(
+                "\\begin{array}{l|r|r|r}\n"
+                "\\text{Figure} & \\text{Computed} & \\text{Script} & \\text{Book}",
+                [
+                    ["\\text{APR}", f"{result.apr:.10f}", SCRIPT_APR, f"{BOOK_APR_PERCENT}\\%"],
+                    ["\\text{Sharpe}", f"{result.sharpe:.10f}", SCRIPT_SHARPE, BOOK_SHARPE],
+                ],
+            ),
+            f"The book’s {100 * result.apr:.1f} percent and {result.sharpe:.1f} are the "
+            "script’s figures rounded.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_what_the_second_test_supports(self, result, text) -> None:
+        tested = result.basket
+        trace_bar, eigen_bar = tested.trace_critical, tested.eigen_critical
+        levels = (90, 95)
+        fragments = [
+            _array(
+                "\\begin{array}{l|r|r}\nr \\le 0 & \\text{Trace} & \\text{Eigen}",
+                [
+                    ["\\text{Value}", f"{tested.trace[0]:.3f}", f"{tested.eigen[0]:.3f}"],
+                    *(
+                        [
+                            f"\\text{{{level} percent bar}}",
+                            f"{trace_bar[0, k]:.3f}",
+                            f"{eigen_bar[0, k]:.3f}",
+                        ]
+                        for k, level in enumerate(levels)
+                    ),
+                ],
+            ),
+            f"The trace statistic clears its {levels[1]} percent bar by "
+            f"{tested.trace[0] - trace_bar[0, 1]:.3f}.",
+            f"the sum of the two eigen statistics, {tested.eigen[0]:.6f} and "
+            f"{tested.eigen[1]:.6f},",
+            f"the trace test counts {SPELLED[tested.relations('trace', levels[1])]} relations "
+            f"at both {levels[0]} and {levels[1]} percent, because its r ≤ 1 statistic, "
+            f"{tested.trace[1]:.3f}, also clears that row’s bars, which the script prints as "
+            f"{trace_bar[1, 0]:.3f} and {trace_bar[1, 1]:.3f}.",
+        ]
+        assert tested.relations("trace", levels[0]) == tested.relations("trace", levels[1])
+        assert self.missing(text, fragments) == []
+
+    def test_the_figures_alt_text(self, result, text) -> None:
+        cumulative = np.cumprod(1 + result.daily) - 1
+        first = result.test_days[int(np.flatnonzero(result.daily)[0])]
+        fragments = [
+            f"to end at about {100 * cumulative[-1]:.1f} percent.",
+            f"Its heading sets the APR of {result.apr:.6f} and the Sharpe ratio of "
+            f"{result.sharpe:.6f} beside the book’s {BOOK_APR_PERCENT} percent and "
+            f"{BOOK_SHARPE}, and says the curve is zero until the first return on "
+            f"{first.date()} and {cumulative[-1]:.6f} on the last day.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_walks(self, result, walks_screened, pair_rejections, text) -> None:
+        tested, passed = len(result.screen.tested), len(result.screen.passed)
+        walked = len(walks_screened.passed)
+        nominal = 100 - SCREEN_LEVEL
+        pairs = {level: 100 * count / WALKS for level, count in pair_rejections.items()}
+        fragments = [
+            f"chance alone would pass about {nominal} percent of the {tested}, which is "
+            f"{tested * nominal // 100}.",
+            f"On {WALKS:,} pairs of random walks of {PAIR_DAYS} days,",
+            f"rejects the hypothesis of no relation on {pair_rejections[90]} pairs at its 90 "
+            f"percent bar and on {pair_rejections[95]} at its 95. That is {pairs[90]:.1f} and "
+            f"{pairs[95]:.1f} percent, where the bars allow 10 and 5.",
+            f"the screen passes {walked} of {len(walks_screened.tested):,} random walks "
+            f"unrelated to SPY against SPY’s own 2007 closes. That is "
+            f"{100 * walked / WALKS:.1f} percent, or about {round(tested * walked / WALKS)} of "
+            f"{tested}. It is higher than the {pairs[90]:.1f} percent of the first measurement.",
+            f"The stocks pass at {100 * passed / tested:.1f} percent, {passed} of {tested}. The "
+            f"random walks unrelated to SPY pass at {100 * walked / WALKS:.1f} percent.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3s_adf_statistics(self, result, text) -> None:
+        bar = ADF_CRIT_CONST["10%"]
+        assert all(t > bar for t in result.adf.values()), SPEC
+        fragments = [
+            f"it gives {_minus(result.adf['basket'], 6)} for the basket’s 2007 sum of log "
+            f"prices and {_minus(result.adf[INDEX], 6)} for SPY’s 2007 log price. Neither "
+            f"falls below {_minus(bar, 2)}, the bar at 90 percent",
+        ]
+        assert self.missing(text, fragments) == []

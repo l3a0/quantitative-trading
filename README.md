@@ -5040,7 +5040,7 @@ replication log.
 4. The 4.5 percent rests on a lookback chosen with hindsight and a stock list
    from late 2011.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -5065,18 +5065,21 @@ Five groups of what it says are not pinned here.
    `TestTheListDatesFromLate2011` in
    [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py), which holds examples
    rather than every stock.
-3. Arithmetic and readings no test asserts: the nominal 48 as 10 percent of
-   480, that a 90 percent bar bounds how often the test rejects with no
-   relation rather than giving a probability about one stock, that a day's
-   change in a log price is close to that day's return, that the two
-   random-walk measurements differ only in their second series and their
+3. Readings no test asserts: that a 90 percent bar bounds how often the test
+   rejects with no relation rather than giving a probability about one stock,
+   that a day's change in a log price is close to that day's return, that the
+   two random-walk measurements differ only in their second series and their
    random draws, and that four years of returns are unlikely to separate a
    decline from noise.
 4. The book's Figure 4.3, which the post's figure redraws from the script's
    `plot` call and which nothing compares with the book's own. The alt text's
    description of the curve's shape, such as its steep climb from late 2008
    and its high in late 2010, is read off the drawing rather than asserted.
-5. Its references, cited rather than computed.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a table,
+   the alt text or the closing list, and a typo in a copy the class does not
+   read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py), to
@@ -5099,6 +5102,19 @@ post published added one more pin, `TestTheBasketsStocksAndTheIndex`: 12 of
 the 98 are missing from Chan's list of the index on 2007-11-23, and ACE and
 Cooper Industries are missing from the iShares holdings at quarter-ends of the
 test.
+
+`TestWhatThePostQuotes` in
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) reads the post
+itself. It builds each run figure the post quotes from the run, at the
+precision the post prints it, and looks for one copy of it in the post, so a
+typo in that copy fails a test. That covers the files' days and dates, the
+screen's counts and the nominal 48 as 10 percent of 480, one unit's weights and
+dollars, the two random-walk measurements, the ADF statistics, and the APR,
+Sharpe ratio, first return and last cumulative return in the figure's alt text.
+Lesson 1's three tables are rebuilt whole, so a digit added to a cell fails as
+well as a digit changed. The sketch's caption and alt text are read by
+[tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
+instead.
 
 Its one figure is drawn from the committed files by
 [src/chan/index_arbitrage_figures.py](src/chan/index_arbitrage_figures.py),
