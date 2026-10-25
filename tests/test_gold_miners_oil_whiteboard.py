@@ -451,6 +451,8 @@ class TestThePost:
             "tests/test_gold_miners_oil_whiteboard.py",
         ):
             assert f"/blob/main/{path})" in footer, path
+        assert "[the whiteboard sketches](" in footer
+        assert "[what the sketches draw](" in footer
 
     def test_the_module_says_it_is_not_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
@@ -488,6 +490,18 @@ class TestTheCountingSketch:
         )
         assert stop.second_bar_90 == float(triplet.trace_critical[1, 0])
         assert stop.count == triplet.relations("trace", 99)
+
+    def test_its_count_is_the_trace_tests_at_99_percent(self) -> None:
+        """On a run where the eigen statistic finds nothing and the 95 percent
+        bars cannot be cleared, the count is still the trace test's at 99."""
+        _, closes = gold_miners_oil.read_sources()
+        result = gold_miners_oil.gold_miners_oil(closes)
+        bars = result.triplet.trace_critical.copy()
+        bars[:, 1] = 1e9
+        triplet = replace(
+            result.triplet, eigen=np.zeros_like(result.triplet.eigen), trace_critical=bars
+        )
+        assert CountingStop.from_run(replace(result, triplet=triplet)).count == 1
 
     def test_the_unread_statistic_is_never_printed(self, every, stop) -> None:
         """The test computes it, but the count stops before it, so no label
@@ -836,17 +850,55 @@ class TestThePairsSketch:
             ({"counts": {"gld_gdx": (1, 0), "gld_uso": (0, 0), "gdx_uso": (1, 1)}}, "gld_gdx"),
             ({"counts": {"gld_gdx": (0, 0), "gld_uso": (0, 1), "gdx_uso": (1, 1)}}, "gld_uso"),
             ({"counts": {"gld_gdx": (0, 0), "gld_uso": (0, 0), "gdx_uso": (1, 0)}}, "gdx_uso"),
+            ({"triplet_count": 0}, "the triplet finds 0"),
+            ({"counts": {"gld_gdx": (0, 0), "gld_uso": (0, 0), "gdx_uso": (2, 2)}}, "gdx_uso"),
             ({"gld_weight": 3.0}, "does not clear"),
             ({"uso_weight": 3.0}, "USO's weight"),
         ],
-        ids=["two relations", "gold and miners", "gold and oil", "miners and oil", "gold", "oil"],
+        ids=[
+            "two relations",
+            "gold and miners",
+            "gold and oil",
+            "miners and oil",
+            "no relation",
+            "miners and oil twice",
+            "gold",
+            "oil",
+        ],
     )
     def test_it_refuses_figures_that_make_its_words_false(self, pairs, change, message) -> None:
         with pytest.raises(PairsRefused, match=message):
             replace(pairs, **change)
 
+    def test_it_refuses_pairs_whose_bars_differ(self) -> None:
+        _, closes = gold_miners_oil.read_sources()
+        result = gold_miners_oil.gold_miners_oil(closes)
+        control = replace(result.control, trace_critical=result.control.trace_critical + 1.0)
+        with pytest.raises(PairsRefused, match="bars differ"):
+            PairsAndWeights.from_run(replace(result, control=control))
+
+    def test_its_counts_are_the_trace_tests(self) -> None:
+        """On a run where every pair's eigen statistic finds nothing, the
+        counts are still the trace test's."""
+        _, closes = gold_miners_oil.read_sources()
+        result = gold_miners_oil.gold_miners_oil(closes)
+        quiet = {k: replace(t, eigen=np.zeros_like(t.eigen)) for k, t in result.with_oil.items()}
+        control = replace(result.control, eigen=np.zeros_like(result.control.eigen))
+        found = PairsAndWeights.from_run(replace(result, control=control, with_oil=quiet))
+        assert found.counts == {"gld_gdx": (0, 0), "gld_uso": (0, 0), "gdx_uso": (2, 1)}
+
+    def test_the_notes_run_down_the_right_in_drawing_order(self, every) -> None:
+        """The alt text reads the bar and the point, then "below them" the
+        two weight notes, so each note sits under the one drawn before it."""
+        notes = [s for s in every[1].steps if isinstance(s, Label) and s.x == NOTES_X]
+        heights = [s.y for s in notes]
+        assert heights == sorted(heights, reverse=True)
+
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
+        assert "“GLD” at the top, “GDX” bottom left and “USO” bottom right" in alt
+        assert "with grey words inside" in alt
+        assert "On the right a grey note" in alt and "Below them a green note" in alt
         assert "schematic" not in alt
         assert "carrying figures from the run" in alt
         assert "drawn slowly" in alt and "twelve seconds" in alt
