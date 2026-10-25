@@ -7145,7 +7145,8 @@ Three things.
    more than momentum alone and reversal alone on both figures from
    2008-05-19 to 2012-05-04. Rows 3 and 4 carry no verdict, because the book
    prints no figure for either rule alone. ComboOR, the script's fourth curve, is the same rule outside
-   ten warm-up rows, so it adds no evidence of its own.
+   ten early rows, where the 30-day lag exists and the 40-day lag does not
+   yet, so it adds no evidence of its own.
 3. **The combination does not beat momentum alone on the four years
    before.** From 2004-05-24 to 2008-05-16, momentum alone earns more on both
    figures. The book's "Sometimes" already allows that, so the segment shows

@@ -4,8 +4,9 @@
 replication log found. :func:`make_join_figure` redraws three of the four
 cumulative return curves ``CL_rev.m`` plots: the join Chan prints figures for,
 momentum alone and reversal alone. ComboOR, the fourth, is left out because it
-is the join outside 10 warm-up rows. It draws two panels, one per segment, and
-they cover different years, so they do not share a date axis.
+is the join outside 10 early rows, where the 30-day lag exists and the 40-day
+lag does not yet. It draws two panels, one per segment, and they cover
+different years, so they do not share a date axis.
 
 1. The book's window, the 1,000 rows of the 2012-05-04 save, where the join
    beats each rule alone on both of the script's figures.

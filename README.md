@@ -6177,15 +6177,15 @@ replication log.
 
 1. Both figures land on the save `CL_rev.m` loads, and the 2012-05-11 save,
    0.27 higher on every day, still rounds to 12 percent and 1.1.
-2. Half a position in each rule is the join's position on every row but the
-   ten warm-up rows, so the join earns close to the average of the two rules'
-   days. It beats each rule alone on the book's window with a smaller average
-   day than momentum's, because its returns swing a little over a third as
-   much.
+2. Half a position in each rule is the join's position on every row but ten
+   early rows, where the 30-day lag exists and the 40-day lag does not yet,
+   so the join earns close to the average of the two rules' days. It beats
+   each rule alone on the book's window with a smaller average day than
+   momentum's, because its returns swing a little over a third as much.
 3. On the four years before the window, reversal alone loses enough that the
    same averaging drags the join below momentum alone.
 
-Five groups of what it says are not pinned here.
+Four groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6199,12 +6199,13 @@ Five groups of what it says are not pinned here.
    `APR=0.117600 Sharpe=1.100368`, and that it plots a fourth curve for
    ComboOR, which `CL_rev.m` holds at `e4bc46f` of ericnberwick/EpchanPreview.
 3. The EIA's annual average WTI spot price of $41.51 for 2004, read from its
-   Cushing, OK series on 2026-10-10 and measured nowhere here.
-4. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
-   states several figures more than once, in its opening, a lesson, a table,
-   the alt text or the paragraph after the chart, and a typo in a copy the
-   class does not read passes.
-5. Its references, cited rather than computed.
+   Cushing, OK series on 2026-10-10 and measured nowhere here, and the two
+   statements that rest on it: that the prices of the four years before the
+   window sit far above the price that traded, and that their returns come
+   out smaller in size than a trader earned.
+4. Its references, cited rather than computed, along with the book's year in
+   its inline citation, the year in the link text to the post on Chan's 2012
+   reversal, and the numbers of its own lessons where it points to them.
 
 Every other number in the post traces to an assertion in
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), or
@@ -6214,20 +6215,25 @@ for the figure's own numbers, or to
 [tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
 for the sketches' days, closes and counts. The APR falling by more than half
 between two VX and ES saves traces to [tests/test_vx_es.py](tests/test_vx_es.py).
-`TestWhatThePostQuotes` in the first of those files reads one copy of each
+`TestWhatThePostQuotes` in the first of those files reads every copy of each
 run figure the post quotes outside the sketches and their captions, and its
 three tables as sets of cells, and checks them against the run. It also
-asserts on the run each comparison the post's words draw, such as a little
-over a third, about 40 percent, under a quarter, most of a gain,
-0.98 × 1.02 = 0.9996, the join's average day sitting slightly below the plain
-average and near it before the window, and "two months before" the peak,
-against Chan's date for it. The sketches' test reads their captions and alt
+asserts on the run each comparison the post's words draw, and reads one copy
+of those words. Examples are a little over a third, about 40 percent, under
+a quarter, most of a gain, every return on the 2012-05-11 save coming out
+slightly smaller in size than on the 2012-05-04 save, the join's average day
+sitting slightly below the plain average and near it before the window, and
+"two months before" the peak, against Chan's date for it. Where the words
+give only a size, as "slightly", "easily", "swing hard" and "well above" do,
+the assertion sets a bound, and the class docstring lists each one. It checks the arithmetic
+0.98 × 1.02 = 0.9996 too. The sketches' test reads their captions and alt
 texts. Five had no pin before the post.
 
-1. Half a position in each rule gives the join's on all but the 10 warm-up
-   rows from 2008-07-01 to 2008-07-15, so the join's daily return is the
-   average of the two rules' on all but 10 days. Before the window it differs
-   on 12 rows, the warm-up and two where the close ties its 40-day lag,
+1. Half a position in each rule gives the join's on all but the 10 early
+   rows from 2008-07-01 to 2008-07-15, where the 30-day lag exists and the
+   40-day lag does not yet, so the join's daily return is the average of the
+   two rules' on all but 10 days. Before the window it differs on 12 rows,
+   ten such early rows and two where the close ties its 40-day lag,
    2005-06-15 and 2007-04-17.
 2. Of the 960 rows where both lags exist, the two rules agree on 157 and take
    opposite sides on 803. Before the window, 162 of 958 agree and 796 do not,

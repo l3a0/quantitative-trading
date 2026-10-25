@@ -8,8 +8,9 @@ draws, and README lists what it says that nothing asserts. The post also
 quotes what ``TestTheJoinIsHalfOfEachRule`` pins for it: that half of each
 rule gives the join's position, how often the two rules agree, and each
 rule's average day and standard deviation. ``TestWhatThePostQuotes`` reads
-one copy of each run figure the post quotes, and its three tables, against
-the run, and asserts each comparison the post's words draw.
+every copy of each run figure the post quotes outside the sketches' alt texts
+and captions, and its three tables, against the run. It asserts each
+comparison the post's words draw on the run and reads one copy of its words.
 ``docs/replication-log.md`` Entry 31 carries the verdicts and points here row
 by row.
 
@@ -320,8 +321,9 @@ class TestTheJoinIsHalfOfEachRule:
         assert (differ[0], differ[-1]) == (pd.Timestamp("2008-07-02"), pd.Timestamp("2008-07-16"))
 
     def test_the_warm_up_shorts_put_the_join_below_the_plain_average(self, book) -> None:
-        """On the 10 warm-up rows reversal alone is short, and the shorts earn on the
-        days after, so the join's average day sits below the plain average of the two."""
+        """On the 10 early rows, where only the 30-day lag exists, reversal alone is short,
+        and the shorts earn on the days after, so the join's average day sits below the
+        plain average of the two."""
         rows = _half_of_each(book) != book.combination.positions
         assert (book.reversal.positions[rows] == -1).all()
         earned = backshift(1, rows.astype(float)) == 1
@@ -726,19 +728,32 @@ def strips() -> list[pd.DataFrame]:
 
 
 class TestWhatThePostQuotes:
-    """One copy of each figure the post quotes, read against the run.
+    """Every copy of each figure the post quotes outside its sketches, read against the run.
 
     The classes above pin each figure once, and
     ``blog/crude-oil-reversal-momentum-lessons.md`` copies it by hand. Here
     each figure is built from the run at the precision the post prints it and
-    looked for in one copy: a short fragment holding the number and the few
-    words that name one place in the post. A typo in that copy, or a re-pin
-    that leaves the post behind, fails here. Each of the three tables
-    is read as the multiset of its number cells, so a cell changed, added or
-    dropped fails whichever way the table is laid out. Each comparison the
-    post's words draw on the run, such as "a little over a third", "about 40
-    percent", "under a quarter", "most of that gain" and "for most of the
-    period", is asserted on the run, and one copy of its words is read.
+    looked for in short fragments, each holding the number and the few words
+    that name one place in the post. The fragments reach every copy of a run
+    figure outside the two sketches' alt texts and captions, which
+    ``tests/test_cl_reversal_momentum_whiteboard.py`` reads. A typo in any
+    copy, or a re-pin that leaves the post behind, fails here. Each of the
+    three tables is read as the multiset of its number cells, so a cell
+    changed, added or dropped fails whichever way the table is laid out.
+
+    Each comparison the post's words draw on the run, such as "a little over
+    a third", "about 40 percent", "under a quarter", "most of that gain", "for
+    most of the period" and "every return slightly smaller in size", is
+    asserted on the run, and one copy of its words is read. A copy of the
+    same comparison elsewhere, such as in the opening or a heading, may go
+    unread. Where the words give only a size, the assertion sets a bound and
+    its message names it.
+
+    - "Slightly below the plain average" is below it by under 5 percent.
+    - "Slightly smaller in size" is smaller by under 1 percent.
+    - "Wins it easily" is over twice either rule's Sharpe ratio.
+    - "Swing hard" is over twice the join's standard deviation.
+    - "Well above the price that traded" is over a quarter above it.
 
     Three reads beside the run supply the rest.
 
@@ -756,11 +771,13 @@ class TestWhatThePostQuotes:
 
     "Two months before" is asserted against crude oil's peak on July 14,
     2008, a date the post takes from the book and this class does not read.
-    The post states several figures more than once, and the other copies are
-    not read, so a typo in one of them passes. Chan's words, the Kindle
-    locations, the book's year, the EIA's $41.51 and its year, the year in
-    another post's link text, the mirror's commit and the references stay
-    unpinned.
+    Chan's words, the Kindle locations, the book's year, the EIA's $41.51 and
+    its year, the year in another post's link text, the post's references to
+    its own lessons by number, the mirror's commit and the references stay
+    unpinned. So do the two statements that rest on the EIA's price rather
+    than the run: that the prices of the four years before the window sit
+    far above the price that traded, and that their returns come out smaller
+    in size than a trader earned.
     """
 
     @staticmethod
@@ -793,7 +810,7 @@ class TestWhatThePostQuotes:
         nearest = {float(s.loc[cl.index[0]].dropna().iloc[0]) for s in strips}
         assert len(nearest) == 1, "both strips agree on the contract nearest delivery"
         (near,) = nearest
-        assert near < cl.iloc[0], "well above the price that traded"
+        assert cl.iloc[0] > 1.25 * near, "well above the price that traded, by over a quarter"
         fragments = [
             f"reports a {BOOK_APR_PERCENT} percent APR and a Sharpe ratio of {BOOK_SHARPE}. "
             "Both land.",
@@ -806,6 +823,8 @@ class TestWhatThePostQuotes:
             f"names by the date in its file name, here {_saved(SOURCE_FILE)}.",
             f"The script runs the rule over the save’s {len(cl):,} trading days of CL, and a "
             f"comment under its print line records `APR={SCRIPT_APR} Sharpe={SCRIPT_SHARPE}`.",
+            f"This post calls those days, from {BOOK_START.date()} to {BOOK_END.date()}, the "
+            "book’s window",
             f"a save dated a week later still prints as {BOOK_APR_PERCENT} percent and "
             f"{BOOK_SHARPE}.",
             f"reruns the rule he chose, on the {BOOK_START.year} to {BOOK_END.year} data his "
@@ -822,6 +841,7 @@ class TestWhatThePostQuotes:
             f"above its {REVERSAL_LOOKBACK}-day lag or below its {MOMENTUM_LOOKBACK}-day lag.",
             f"`prod(1 + r)^({TRADING_DAYS}/n) − 1`",
             f"multiplying by √{TRADING_DAYS}.",
+            "The shift means CL’s early closes sit well above the price that traded. "
             f"The book’s window opens at {cl.iloc[0]:.2f} on {cl.index[0].date()}, a day the "
             f"contract nearest delivery closed at {near:.2f}. That is two months before",
             f"**The {_saved(SOURCE_FILE)} save**, the one `CL_rev.m` loads. CL holds "
@@ -840,6 +860,14 @@ class TestWhatThePostQuotes:
         shift = round(float(np.mean(later_cl.to_numpy() - cl.to_numpy())), 2)
         assert np.allclose(later_cl.to_numpy() - cl.to_numpy(), shift), "on every one"
         assert _six(trade(same, combination_positions(same))) == _six(spec), "to six decimals"
+        for traded in (spec, later):
+            assert matches(100 * traded.apr, BOOK_APR_PERCENT), "rounds to the book's APR"
+            assert matches(traded.sharpe, BOOK_SHARPE), "rounds to the book's Sharpe ratio"
+        assert (later.positions == spec.positions).all(), "a uniform shift changes no position"
+        earned = spec.daily != 0
+        assert (later.daily[~earned] == 0).all(), "the flat days are flat on both saves"
+        size = np.abs(later.daily[earned]) / np.abs(spec.daily[earned])
+        assert (size < 1).all() and (size > 0.99).all(), "every return slightly smaller in size"
         cells = [
             _saved(SOURCE_FILE),
             f"{spec.apr:.6f}",
@@ -859,7 +887,9 @@ class TestWhatThePostQuotes:
         fragments = [
             f"Here is the join on the {_saved(SOURCE_FILE)} and {_saved(LATER_SOURCE_FILE)} saves",
             f"The {_saved(EARLIER_SOURCE_FILE)} save gives the same two figures to six decimals",
-            f"Its closes sit {shift:.2f} higher on every one of the {len(cl):,} days.",
+            f"The {_saved(LATER_SOURCE_FILE)} save is different. Its closes sit {shift:.2f} higher "
+            f"on every one of the {len(cl):,} days.",
+            "A slightly larger divisor makes every return slightly smaller in size, and "
             f"the APR falls to {later.apr:.6f} and the Sharpe ratio to {later.sharpe:.6f}. "
             f"Both still round to {BOOK_APR_PERCENT} percent and {BOOK_SHARPE}",
             f"The script’s comment matches the {_saved(SOURCE_FILE)} save",
@@ -876,6 +906,7 @@ class TestWhatThePostQuotes:
         assert self.tables(text)[1] == sorted(cells)
         for alone in (m, r):
             assert j.apr > alone.apr and j.sharpe > alone.sharpe, "each rule alone scores below"
+            assert j.sharpe > 2 * alone.sharpe, "wins it easily, at over twice either rule's"
         assert m.daily.mean() > j.daily.mean(), "momentum alone earns more on an average day"
 
         early = book.combination.days[_half_of_each(book) != j.positions]
@@ -884,6 +915,7 @@ class TestWhatThePostQuotes:
         assert not np.isnan(backshift(REVERSAL_LOOKBACK, close))[rows].any(), "the 30-day lag"
         assert np.isnan(backshift(MOMENTUM_LOOKBACK, close))[rows].all(), "no 40-day lag yet"
         assert (r.positions[rows] == -1).all(), "reversal alone held shorts on every one"
+        assert not j.positions[rows].any(), "the join cannot, so it held nothing"
         follow = backshift(1, rows.astype(float)) == 1
         assert float(r.daily[follow].sum()) > 0, "that made money"
         average = (m.daily + r.daily) / 2
@@ -900,17 +932,24 @@ class TestWhatThePostQuotes:
         means = {name: rule.daily.mean() for name, rule in (("j", j), ("m", m), ("r", r))}
         deviations = {name: rule.daily.std(ddof=1) for name, rule in (("j", j), ("m", m), ("r", r))}
         assert means["r"] < means["j"] < means["m"], "sits between"
-        assert means["j"] < (means["m"] + means["r"]) / 2, "slightly below the plain average"
+        plain = (means["m"] + means["r"]) / 2
+        assert 0 < plain - means["j"] < 0.05 * plain, "slightly below the plain average"
         for alone in ("m", "r"):
             assert 1 / 3 < deviations["j"] / deviations[alone] < 0.4, "a little over a third"
         fragments = [
+            "On the book’s window, each rule alone scores below the join on both the APR and the "
+            "Sharpe ratio.",
+            "Momentum alone earns more than the join on an average day, yet scores lower on both "
+            "the APR and the Sharpe ratio.",
             f"So half of each rule gives the join’s position on every row but "
             f"{SPELLED[len(early)]}. Those {SPELLED[len(early)]}, from {early[0].date()} to "
             f"{early[-1].date()}, come early in the run, when the {REVERSAL_LOOKBACK}-day lag "
-            f"exists and the {MOMENTUM_LOOKBACK}-day lag does not yet",
+            f"exists and the {MOMENTUM_LOOKBACK}-day lag does not yet, so reversal alone holds a "
+            "position and the join cannot.",
             f"So on every day except the day after each of those {SPELLED[int(follow.sum())]} rows",
-            f"Of the {int(both.sum())} rows where both lags exist, they agree on {agree} and take "
-            f"opposite sides on {opposite}. On the day after each of those {opposite} rows",
+            f"The two rules mostly disagree. Of the {int(both.sum())} rows where both lags exist, "
+            f"they agree on {agree} and take opposite sides on {opposite}. On the day after each "
+            f"of those {opposite} rows",
             f"The join holds a position on {held} of the {len(j.positions):,} rows, long on "
             f"{int((j.positions > 0).sum())} and short on {int((j.positions < 0).sum())}. "
             f"It is flat on the other {len(j.positions) - held}, which are the {opposite} rows "
@@ -918,10 +957,12 @@ class TestWhatThePostQuotes:
             f"{MOMENTUM_LOOKBACK}-day lag exists.",
             f"The join’s average day, {means['j']:.6f}, sits between reversal’s "
             f"{means['r']:.6f} and momentum’s {means['m']:.6f}.",
-            f"because on those {SPELLED[len(early)]} early days reversal alone held shorts that "
-            "made money",
+            "It sits slightly below the plain average of the two, because on those "
+            f"{SPELLED[len(early)]} early days reversal alone held shorts that made money, while "
+            "the join held nothing.",
             f"Cancelling {opposite} days of opposite bets gives a standard deviation of "
-            f"{deviations['j']:.6f}, a little over a third of either rule’s.",
+            f"{deviations['j']:.6f}, a little over a third of either rule’s. The Sharpe ratio "
+            "divides the average day by the standard deviation, so the join wins it easily.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -929,6 +970,8 @@ class TestWhatThePostQuotes:
         j = book.combination
         for alone in (book.momentum, book.reversal):
             assert j.apr > alone.apr and j.sharpe > alone.sharpe, "the highest of the three"
+            swing = alone.daily.std(ddof=1)
+            assert swing > 2 * j.daily.std(ddof=1), "swing hard, at over twice the join's"
         move = 2
         down, up = 1 - move / 100, 1 + move / 100
         assert round(down * up, 4) < 1, "a small loss"
@@ -936,7 +979,8 @@ class TestWhatThePostQuotes:
             "Smaller swings give the join the highest APR of the three as well as the highest "
             "Sharpe ratio",
             f"A day that loses {move} percent followed by one that gains {move} percent leaves "
-            f"{down:.2f} × {up:.2f} = {down * up:.4f} of the capital",
+            f"{down:.2f} × {up:.2f} = {down * up:.4f} of the capital, a small loss",
+            "and the two rules alone swing hard. The chart below shows how hard.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -968,7 +1012,8 @@ class TestWhatThePostQuotes:
             f"{_pct(down['momentum'].iloc[-1])} percent.",
             f"Reversal alone drifts down to about {_about(down['reversal'].min())} percent and "
             f"ends at {_pct(down['reversal'].iloc[-1])} percent.",
-            f"as low as about {_about(down['combination'].min())} percent, and ends at "
+            "The join sits below zero for most of the period, as low as about "
+            f"{_about(down['combination'].min())} percent, and ends at "
             f"{_pct(down['combination'].iloc[-1])} percent.",
             f"Above, the book’s {len(book.combination.days):,} rows on the save the script loads. "
             f"Below, the {len(before.combination.days):,} rows before them on the "
@@ -1038,6 +1083,8 @@ class TestWhatThePostQuotes:
         assert j.daily.mean() / m.daily.mean() < 1 / 4, "under a quarter"
         deviation_ratio = j.daily.std(ddof=1) / m.daily.std(ddof=1)
         fragments = [
+            "Momentum alone beats the join on both the APR and the Sharpe ratio, and reversal "
+            "alone loses money.",
             f"The {_saved(EARLIER_SOURCE_FILE)} save holds the same series back to "
             f"{before_cl.index[0].date()}. Its {len(before_cl):,} rows before the book’s window",
             f"Half of each rule gives the join’s position on all but {len(differ)} of these rows. "
