@@ -4,7 +4,7 @@
 
 ## Why test the reason a strategy failed
 
-A pair trade works only while its two prices keep a stable relationship, and that relationship can end without warning. [The post on testing GLD against GDX](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gdx-cointegration-lessons.md) tested the link between GLD, the gold fund, and GDX, the gold miners’ fund. The link held over the date ranges Ernest Chan tested and failed over the years since, both at the one lag he used. One lag means the test allowed for one day of past price changes. A trader who sees a pair fail has two choices.
+A pair trade works only while its two prices keep a stable relationship, and that relationship can end without warning. [The post on testing GLD against GDX](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gdx-cointegration-lessons.md) tested the link between GLD, the gold fund, and GDX, the gold miners’ fund. The link held over the date ranges Ernest Chan tested, and it failed over the years since, both times at the one lag he used. One lag means the test allowed for one day of past price changes. A trader who sees a pair fail has two choices.
 
 1. Drop it.
 2. Ask why it failed and test the answer.
@@ -21,7 +21,9 @@ Chan offers this as a model of how to treat a failing strategy: form a hypothesi
 
 ### What the reproduction found
 
-All three claims hold, with room, on both statistics the Johansen test reports. The control the book leaves out, GLD and GDX alone over the whole span, finds nothing, so the oil fund does add something. Tests added after the first run complicate the story. A test of the miners and oil alone finds a relation. But a test on the weights of the triplet, the three funds together, rejects the idea that the triplet’s relation is that one, so the two results conflict. The triplet’s relation joins gold and the miners, with a weight on oil the test cannot tell from zero.
+All three claims hold, with room, on both statistics the Johansen test reports. The control the book leaves out, GLD and GDX alone over the whole span, finds nothing, so the oil fund does add something.
+
+Tests added after the first run complicate the picture. A test of the miners and oil alone finds a relation. But a test on the weights of the triplet, the three funds together, rejects the idea that the triplet’s relation is that one. So the two results conflict, and Lesson 3 gives a reason to trust the pair’s result less. That test finds that the triplet’s relation joins gold and the miners, with a weight on oil it cannot tell from zero.
 
 **Every result here is exploratory.** Chan chose the split date and the third fund after seeing the pair break, and the reproduction tests them on the same days. It can say whether his claims follow from his file and nothing about whether the oil explanation is right.
 
@@ -29,7 +31,7 @@ The four lessons below say what the reproduction does teach. The code is open so
 
 ## The test and the file
 
-Two prices are cointegrated when some fixed mix of them is stationary, meaning it keeps returning to a stable average rather than wandering off. [The post on the Johansen test](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md#how-the-johansen-test-counts-relations) builds the test up from the Engle-Granger test, the two-price test the GLD and GDX post used. This post leans on that explanation.
+Two prices are cointegrated when some fixed mix of them is stationary, meaning it keeps returning to a stable average rather than wandering off. [The post on the Johansen test](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md#how-the-johansen-test-counts-relations) builds the test up from the Engle-Granger test, the two-price test the GLD and GDX post used. This post leans on that walkthrough.
 
 In short, the Johansen test counts how many independent stationary mixes a set of prices holds. Each mix is one **relation**, and the count is called the rank. Two series hold 0, 1 or 2 relations, and three hold 0 to 3.
 
@@ -97,7 +99,7 @@ Run here, the pair alone over the triplet’s 1,481 days gives a trace statistic
 
 ## Lesson 3: the weights say what the count cannot
 
-Lesson 2’s control shows that USO matters to the triplet. It does not show how. Chan’s explanation says oil restores the link between gold and the miners. But one relation among the three funds is also what a link between gold and oil alone, or between the miners and oil alone, would produce, with the third fund’s weight in it at zero.
+Lesson 2’s control shows that adding USO is what lets the test find a relation. It does not show how. Chan’s explanation says oil restores the link between gold and the miners. But one relation among the three funds is also what a link between gold and oil alone, or between the miners and oil alone, would produce, with the third fund’s weight in it at zero.
 
 ### USO against each of the other two funds
 
@@ -113,24 +115,24 @@ This repository added two more tests after the first run, over the triplet’s 1
 \end{array}
 ```
 
-Gold and oil alone find nothing, even at 90 percent. The miners and oil alone find one relation at 99 percent. So the count alone allows the triplet’s single relation to be that pair’s own. A count of 1 cannot tell that apart from Chan’s explanation.
+Gold and oil alone find nothing, even at 90 percent. The miners and oil alone find one relation at 99 percent. So the triplet’s count of one allows its single relation to be that pair’s own, and cannot tell that apart from Chan’s explanation.
 
 ### Which funds the triplet’s relation needs
 
-The triplet’s weights can tell Chan’s explanation apart from a relation between the miners and oil alone. A third test, which this repository added after every other result here had been seen, comes from Johansen’s 1991 paper. It asks whether one fund’s weight in the relation could be zero, by fitting the relation again with that weight set to zero and measuring how much worse the fit gets. A large statistic counts against a zero weight.
+The triplet’s weights can tell Chan’s explanation apart from a relation between the miners and oil alone. The test that reads them comes from Johansen’s 1991 paper, and this repository added it after seeing every other result here. It asks whether one fund’s weight in the relation could be zero, so this post calls it the zero-weight test. It fits the relation again with that weight set to zero and measures how much worse the fit gets. A large statistic counts against a zero weight.
 
-If the relation were the miners and oil pair’s own, GLD’s weight would be zero. Setting it to zero gives a statistic of 10.015, past the 95 percent bar of 3.841 and the 99 percent bar of 6.635. Those bars come from large-sample theory, and on a sample this size a test read against them rejects too often. The statistic sits far past the 95 percent bar and nearer the 99 percent one, so the result is safer read at 95 percent. Setting GDX’s weight to zero gives 26.337, far past both bars. Setting USO’s weight to zero gives 0.057, nowhere near any bar. So the triplet’s relation needs gold and the miners, and its weight on oil cannot be told from zero.
+If the relation were the miners and oil pair’s own, GLD’s weight would be zero. Setting it to zero gives a statistic of 10.015, past the 95 percent bar of 3.841 and the 99 percent bar of 6.635. Those bars come from large-sample theory, which is exact only as the number of days grows without limit. Even on these 1,481 days, a test read against them rejects a true zero weight too often. A bar set too low matters most to a statistic just past it. This statistic clears the 95 percent bar by far and the 99 percent bar by less, so the result is safer read at 95 percent.
+
+Setting GDX’s weight to zero gives 26.337, far past both bars. Setting USO’s weight to zero gives 0.057, nowhere near any bar. So the triplet’s relation needs gold and the miners, and its weight on oil cannot be told from zero.
 
 ![A whiteboard sketch titled “One relation, three pairs”, drawn slowly and carrying figures from the run, whose finished drawing holds for twelve seconds. Three black dots form a triangle, labelled “GLD” at the top, “GDX” bottom left and “USO” bottom right, with grey words inside reading “three funds, one relation”. A red dashed edge joins GLD and GDX, marked “10.447: none”, and a red dashed edge joins GLD and USO, marked “4.350: none”. A green solid edge joins GDX and USO along the bottom, marked “27.166: one at 99%”. On the right a grey note reads “pair bar at 99%: 19.935”, and brown words say “a count of one cannot say which pair it is”. Below them a green note reads “GLD’s weight 0? 10.015: rejected at 95%” and a red note reads “USO’s weight 0? 0.057: not rejected”.](../docs/figures/gold_miners_oil_sketch_three_pairs.gif)
 
-The weight test and the miners and oil pair’s result pull against each other. Any relation two of the funds share is also a relation among all three, with the third fund’s weight at zero. So if the miners and oil truly shared a relation, and the triplet held only the one relation its count found, that relation would have to be the pair’s, with GLD’s weight at zero. The pair’s result, the triplet’s count and the weight test therefore cannot all be right. The first detail below is a reason to trust the pair’s result less.
+The zero-weight test and the result for the miners and oil pull against each other. Any relation two of the funds share is also a relation among all three, with the third fund’s weight at zero. So if the miners and oil truly shared a relation, and the triplet held only the one relation its count found, that relation would have to be the pair’s, with GLD’s weight at zero. The pair’s result, the triplet’s count and the zero-weight test therefore cannot all be right. Two details bear on how far to trust these results, and the first gives a reason to trust the pair’s result less.
+
+1. **The miners and oil reach full rank at 90 percent.** Full rank is a count equal to the number of funds. At that level the test rejects both of its hypotheses, which on its face says each fund is stationary by itself, as [the post on the Johansen test](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md#lesson-4-two-relations-between-two-series-claim-each-etf-reverts-alone) explains. Yet a separate test on each fund alone finds neither one stationary, even at 90 percent. The two tests cannot both be right about this pair, and nothing here settles which one is wrong. No claim here is judged at 90 percent, so this changes no verdict, but it is a reason not to lean hard on the result for the miners and oil.
+2. **The sizes of the weights do not compare across funds.** The triplet’s eigenvector is 0.033109 shares of GLD, −0.177036 of GDX and 0.002549 of USO. Those are shares, and the three funds trade at different prices, so their sizes cannot be read as how much each fund matters. The zero-weight test does not have that problem, since a weight of zero is zero at any price.
 
 Oil still matters, since GLD and GDX alone find nothing over these days. The test fits a model that explains each day’s price change in all three funds with a constant, the previous day’s changes and the mix. Oil’s weight in the mix is too small to tell from zero, so what USO adds comes through its daily changes rather than through the mix. Those changes enter the model twice, as one of the changes it explains and as one of the previous day’s changes it uses to explain them. Nothing here tests which of the two carries it. Chan’s explanation, in which dear oil cuts the miners’ profits, suggests a mix with oil’s price in it, and the weights do not find oil there.
-
-Two details bear on how far to trust these results.
-
-1. **The miners and oil reach full rank at 90 percent.** Full rank is a count equal to the number of funds. At that level the test rejects both of its hypotheses, which on its face says each fund is stationary by itself, as [the post on the Johansen test](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md#lesson-4-two-relations-between-two-series-claim-each-etf-reverts-alone) explains. Yet a separate test on each fund alone finds neither one stationary, even at 90 percent. The two tests cannot both be right about this pair, and nothing here settles which one is wrong. No claim here is judged at 90 percent, so this changes no verdict, but it is a reason not to lean hard on the GDX and USO result.
-2. **The sizes of the weights do not compare across funds.** The triplet’s eigenvector is 0.033109 shares of GLD, −0.177036 of GDX and 0.002549 of USO. Those are shares, and the three funds trade at different prices, so their sizes cannot be read as how much each fund matters. The zero-weight test does not have that problem, since a weight of zero is zero at any price.
 
 ## Lesson 4: a hypothesis formed on the sample cannot be confirmed by it
 
@@ -139,17 +141,17 @@ Chan’s example shows the right process: when a strategy stops working, form a 
 1. **The split date was chosen by looking.** Chan saw the pair break and then named the day. A test that splits the sample on that day is tilted toward finding a break there.
 2. **The third fund was chosen by looking too.** Chan proposed oil after he saw the break, as the explanation for it. The triplet’s result therefore tests a hypothesis on the same data that suggested it.
 
-The result is exploratory however it comes out. It shows that Chan’s claims follow from his file. It cannot show that oil caused the break. Showing that would take a fresh test, one that writes Chan’s hypothesis down as he stated it before the run, then tests it on data the hypothesis was not formed on, which here means GLD, GDX and USO after April 2012.
+The result is exploratory however it comes out. It shows that Chan’s claims follow from his file. It cannot show that oil caused the break. Showing that would take a fresh test. Before computing any statistic, it would write Chan’s hypothesis down as he stated it. It would then test the hypothesis on data it was not formed on, which here means GLD, GDX and USO after April 2012.
 
 ## What this replication cannot say
 
 Five questions are beyond it.
 
-1. **Anything about oil itself.** Over these years USO held crude oil futures rather than oil. A futures contract is an agreement to buy oil at a set price on a set future date, and USO held the contracts nearest expiry. As each one neared expiry the fund sold it and bought the next, and that roll lets the fund drift from the spot price, the price of oil delivered today. Every result here that involves USO is about the fund, and whether it would hold with the spot price is a different test.
-2. **Where inside the second window the link failed.** One test over 2008-07-15 to 2012-04-09 says the window as a whole holds no stable relation. It cannot date the break inside it, and it says nothing about the years after 2012. The GLD and GDX post’s rolling test asks a different question. It runs a one-year Engle-Granger test on closing prices downloaded from Yahoo Finance in 2026, moving the year forward a month at a time. Of the 45 tests whose year ends inside Chan’s second window, 9 still pass at the 90 percent level. That test’s passing years run into 2015 before they thin out, which is why that post places the miners’ detachment from gold in the 2010s. One relation across nearly four years and short stretches inside them are different claims, so the two results do not contradict each other.
+1. **Anything about oil itself.** Over these years USO held crude oil futures rather than oil. A futures contract is an agreement to buy oil at a set price on a set future date, and USO held the contracts nearest expiry. As each one neared expiry the fund sold it and bought the next, and each switch lets the fund drift from the spot price, the price of oil delivered today. Every result here that involves USO is about the fund, and whether it would hold with the spot price is a different test.
+2. **Where inside the second window the link failed.** One test over 2008-07-15 to 2012-04-09 says the window as a whole holds no stable relation. It cannot say when inside the window the link failed, and it says nothing about the years after 2012. The GLD and GDX post’s rolling test asks a different question. It runs a one-year Engle-Granger test on closing prices downloaded from Yahoo Finance in 2026, moving the year forward a month at a time. Of the 45 tests whose year ends inside Chan’s second window, 9 still pass at the 90 percent level. That test’s passing years run into 2015 before they thin out, which is why that post places the miners’ detachment from gold in the 2010s. The one test finds no relation across nearly four years, and the rolling test finds one in some of the one-year stretches that end inside them. Those are different claims, so the two results do not contradict each other.
 3. **How much the tests confirm each other.** The whole span contains both of the pair’s windows, so the tests are not independent, and nothing here corrects for running several tests on one sample.
 4. **Whether Chan’s trading rule works.** He suggests trading the triplet, or at least ceasing to trade GLD against GDX whenever oil exceeds a threshold. Nothing here backtests either.
-5. **Whether the oil hypothesis holds.** It was formed on this sample and tested on the same one, which Lesson 4 explains.
+5. **Whether the oil hypothesis holds.** Chan formed it on this sample, and this repository tested it on the same one, which Lesson 4 explains.
 
 ## What this means for a trader
 

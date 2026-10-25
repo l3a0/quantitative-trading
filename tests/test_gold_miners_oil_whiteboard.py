@@ -94,16 +94,20 @@ POST = REPO_ROOT / "blog" / "gold-miners-oil-lessons.md"
 GIFS = ["gold_miners_oil_sketch_counting.gif", "gold_miners_oil_sketch_three_pairs.gif"]
 
 #: What each GIF follows and what comes after it: Lesson 1's list, keyed on
-#: its last item's opening, and Lesson 3's paragraph on the zero-weight test,
-#: which follows the paragraph on gold and oil alone and the heading over the
-#: triplet's weights.
+#: its last item's opening, and Lesson 3's two paragraphs giving the
+#: zero-weight test's results, which follow the paragraph on gold and oil
+#: alone, the heading over the triplet's weights and the paragraph saying what
+#: the test does.
 TRIPLET_ITEM = "3. **The three funds, exactly one.**"
 NEXT_PARAGRAPH = "The nearest call is the first"
 PAIRS_PARAGRAPH = "Gold and oil alone find nothing"
 WEIGHTS_HEADING = "### Which funds the triplet’s relation needs"
 WEIGHTS_PARAGRAPH = "The triplet’s weights can tell"
 WEIGHT_TEST_PARAGRAPH = "If the relation were the miners and oil pair’s own"
-TENSION_PARAGRAPH = "The weight test and the miners and oil pair’s result pull against each other."
+WEIGHT_RESULTS_PARAGRAPH = "Setting GDX’s weight to zero gives"
+TENSION_PARAGRAPH = (
+    "The zero-weight test and the result for the miners and oil pull against each other."
+)
 
 COUNTING_LABELS = [
     "none?",
@@ -391,9 +395,10 @@ class TestThePost:
         assert paragraphs[index + 2].startswith(NEXT_PARAGRAPH)
 
     def test_the_pairs_sketch_follows_the_weight_test(self) -> None:
-        """Right after the paragraph giving the zero-weight test, so the post
-        explains that test before the sketch's last notes draw it, and before
-        the paragraph on how its result and the pair's pull against each other.
+        """Right after the two paragraphs giving the zero-weight test's results,
+        so the post explains that test before the sketch's last notes draw it,
+        and before the paragraph on how its result and the pair's pull against
+        each other.
         The paragraph on gold and oil alone leads into the heading over the
         triplet's weights."""
         paragraphs = _paragraphs()
@@ -401,10 +406,11 @@ class TestThePost:
         assert paragraphs[index + 1] == WEIGHTS_HEADING
         assert paragraphs[index + 2].startswith(WEIGHTS_PARAGRAPH)
         assert paragraphs[index + 3].startswith(WEIGHT_TEST_PARAGRAPH)
+        assert paragraphs[index + 4].startswith(WEIGHT_RESULTS_PARAGRAPH)
         assert re.fullmatch(
-            rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[1])}\)", paragraphs[index + 4]
+            rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[1])}\)", paragraphs[index + 5]
         )
-        assert paragraphs[index + 5].startswith(TENSION_PARAGRAPH)
+        assert paragraphs[index + 6].startswith(TENSION_PARAGRAPH)
 
     def test_the_counting_sketch_sits_in_lesson_1_and_the_pairs_in_lesson_3(self) -> None:
         text = POST.read_text(encoding="utf-8")

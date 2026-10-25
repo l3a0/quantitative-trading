@@ -18,9 +18,9 @@ text it draws.
    even of the 90 percent bar. The third slot gets a grey dotted outline
    labelled "not read: the count stopped", and the closing words give the
    count.
-2. One relation, three pairs, in Lesson 3 after the paragraph giving the
-   zero-weight test, which opens "If the relation were the miners and oil
-   pair's own". Three black dots in a triangle stand for GLD,
+2. One relation, three pairs, in Lesson 3 after the two paragraphs giving
+   the zero-weight test's results, the first opening "If the relation were
+   the miners and oil pair's own". Three black dots in a triangle stand for GLD,
    GDX and USO, with grey words inside saying the three funds hold one
    relation. Each edge is one pair tested alone over the same days and
    carries that pair's first trace statistic. GLD and GDX, then GLD and USO,
