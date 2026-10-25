@@ -847,7 +847,7 @@ class TestWhatThePostQuotes:
             f"basket’s weight goes on each of its {passed} stocks, so the script holds "
             f"{len(result.weights)} positions, {basket:.4f} on each stock and "
             f"{_minus(spy, 4)} on SPY.",
-            f"is long ${basket:.4f} of each stock, ${stocks:.3f} of stocks in all, and short "
+            f"is long ${basket:.5f} of each stock, ${stocks:.3f} of stocks in all, and short "
             f"${-spy:.3f} of SPY. The two sides differ by ${stocks + spy:.3f},",
             f"first exists on the {ORDINAL[LOOKBACK]} test day, so the first position earns "
             f"its first return on {result.test_days[first].date()}, the {ORDINAL[first + 1]} "

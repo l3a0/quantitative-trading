@@ -5143,7 +5143,7 @@ The post also carries one looping whiteboard sketch,
 [src/chan/index_arbitrage_whiteboard.py](src/chan/index_arbitrage_whiteboard.py)
 on the USD.CAD post's sketch machinery. It sits in "What one unit holds",
 after the paragraph on one unit, and draws the 98 stocks as green dots of
-$1.0939 each, gathered into a green column long $107.198 beside a red column
+$1.09386 each, gathered into a green column long $107.198 beside a red column
 short SPY $105.560. Both columns stand on one baseline at one scale, so their
 tops differ by 1.5 percent of the height, about 3 pixels, and a callout names
 the $1.638 between them rather than magnifying it. It is not schematic. It

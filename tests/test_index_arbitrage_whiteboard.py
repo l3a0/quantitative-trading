@@ -76,11 +76,11 @@ POST = REPO_ROOT / "blog" / "index-arbitrage-lessons.md"
 GIFS = ["index_arbitrage_sketch_one_unit.gif"]
 
 #: What the GIF follows, in "What one unit holds".
-UNIT_PARAGRAPH = "So one unit of the combination is long $1.0939 of each stock"
+UNIT_PARAGRAPH = "So one unit of the combination is long $1.09386 of each stock"
 
 UNIT_LABELS = [
     "98 stocks",
-    "$1.0939 each",
+    "$1.09386 each",
     "long\n$107.198",
     "short SPY\n$105.560",
     "$1.638 apart",
@@ -486,7 +486,7 @@ class TestTheUnitSketch:
         scene = scenes(made_up)[0]
         assert scene.labels == [
             "50 stocks",
-            "$2.0000 each",
+            "$2.00000 each",
             "long\n$100.000",
             "short SPY\n$120.000",
             "$-20.000 apart",
