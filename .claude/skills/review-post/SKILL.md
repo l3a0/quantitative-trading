@@ -387,18 +387,21 @@ both.
 Commit accuracy and consistency each on their own, and the reading changes
 (comprehension, subheadings and phone width) together, so the pull request
 reads by kind. A sketch arrives as its own merged branch. Name the round in
-each commit message. Run the checks each commit needs. Prose needs
+each commit message.
+
+Sync the draft as soon as the round's commits are pushed, per `sync-substack`.
+A redrawn figure or a new sketch is a figure uploaded again since the last
+sync, so it goes in that skill's `images` argument.
+
+Then run the checks each commit needs, in the background behind the sync, as
+`sync-substack`'s `## Sync first, and test behind it` orders. Prose needs
 `tests/test_markdown_hygiene.py` and `tests/test_substack_converter.py`. A
 change to a number, a pinned figure or a test also needs the post's own test
-files, which this lists.
+files, which this lists. A failure means fix, push and sync again.
 
 ```bash
 rg -l '<module>|<post>' tests
 ```
-
-Sync the draft once the round's commits are pushed, per `sync-substack`. A
-redrawn figure or a new sketch is a figure uploaded again since the last sync,
-so it goes in that skill's `images` argument.
 
 ## The round's comment
 

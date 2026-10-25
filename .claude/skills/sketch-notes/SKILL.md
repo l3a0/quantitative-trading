@@ -100,8 +100,8 @@ before any test exists.
 6. **Commit, push, open the pull request and sync, before any test run.**
    Commit the GIFs and the post first, so the owner sees them sooner, and run
    the tests in the background after, as `sync-substack`'s
-   `## Sync first, and test behind it` orders. A new branch opens its pull request
-   at once and sends the owner its link. Its body writes `Part of #NN` for the
+   `## Sync first, and test behind it` orders. A new branch opens its pull
+   request at once and sends the owner its link. Its body writes `Part of #NN` for the
    post's pre-publish tracking issue. Then the `sync-substack` skill uploads
    each new or changed GIF from the pushed commit and syncs the draft. A post
    that is published or scheduled is the exception: any change to it waits for
