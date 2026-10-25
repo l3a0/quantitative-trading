@@ -7,9 +7,9 @@ figure for it. :func:`make_cumulative_figure` redraws what ``pead.m``'s closing
 ``plot(cumret)`` draws, which the book prints as Figure 7.2 at location 3024:
 the compounded cumulative return over the flag file's 330 days, at one
 thirtieth of capital a position, unlevered and before costs. It serves the
-post's first lesson, that every printed figure reproduces. Its shaded start
-serves the third, where the 89 days before the moving deviation fills hold
-nothing, and its spell shows where the 109-day drawdown falls.
+post's first lesson, that every printed number reproduces, and its spell shows
+where the 109-day drawdown falls. Its shaded start serves the third, where the
+89 days before the moving deviation fills hold nothing.
 
 Two stretches are shaded.
 

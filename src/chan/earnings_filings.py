@@ -3,8 +3,8 @@
 Example 7.2 trades a stock on the day it announced earnings, and the only
 calendar Chan saved is his own flag file, which
 [issue 250](https://github.com/l3a0/quantitative-trading/issues/250) commits.
-It catches three of Apple's five releases inside the window, so whether the
-drift survives a calendar nobody hand-collected is a separate question.
+It catches three of the five Apple releases whose next morning falls inside the
+window, so whether the drift survives a calendar nobody hand-collected is a separate question.
 [Issue 251](https://github.com/l3a0/quantitative-trading/issues/251) asks it,
 and :mod:`chan.pead_rerun` runs the comparison. A company announcing earnings
 files a Form 8-K carrying Item 2.02, "Results of Operations and Financial
