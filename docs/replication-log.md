@@ -3505,19 +3505,27 @@ to 2.0. Both fills guess a profit every year, but every move lies inside one
 typical miss. If the June fill's misses are normal and independent, all three
 years were profits with a chance of 41%, which is what Chan's 19 of 21 needs.
 
-The post also carries three whiteboard sketches that draw this entry's run,
-and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all three.
+The post also carries seven whiteboard sketches that draw this entry's run,
+and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all seven.
 
 1. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
    against the 2009 loss and the first edition's release.
 2. Gasoline's two claims, the sidebar's profit every year since 1995 ending
    in 2008 before the first loss, and the main text's 19 of 21 ending in 2015
    past both losses.
-3. Which numbered file holds the June contract on the entry and exit days of
+3. The range of 16 to 19 profitable gasoline years the three missing rows
+   leave, with Chan's 19 at its top.
+4. A straight-line guess for 1997's missing entry, with a band of one typical
+   miss either side that the exit price splits.
+5. Chan's years and the files' as two bars, the missing years filling the
+   gap between the files' 16 profits and Chan's 19.
+6. Each missing year's move with June's fill against one typical miss either
+   side.
+7. Which numbered file holds the June contract on the entry and exit days of
    2008 and 2006.
 
 [tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
-reads all three from the run, so a change to the streak counts, to a gasoline
+reads all seven from the run, so a change to the streak counts, to a gasoline
 year's result or to the expiry rule moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*

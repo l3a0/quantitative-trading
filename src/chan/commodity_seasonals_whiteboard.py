@@ -1,11 +1,14 @@
-"""Whiteboard sketches for the commodity seasonals post, two for Lesson 1 and one for Lesson 4.
+"""Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 4.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Three of its passages turn on a picture a
+trades against EIA's settlements. Seven of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
-starts, which edition each of gasoline's two claims was written for, and which
-numbered file holds the June contract on a given day. This module draws those
-three as scenes, and the post places each right after the paragraph it draws.
+starts, which edition each of gasoline's two claims was written for, what
+three missing rows leave of a count, why a guessed price cannot stand in for a
+missing one, what Chan's 19 needs of the missing years, how far a fill misses
+against each year's move, and which numbered file holds the June contract on a
+given day. This module draws those seven as scenes, and the post places each
+right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
@@ -23,7 +26,27 @@ three as scenes, and the post places each right after the paragraph it draws.
    19 of 21. The sidebar's bracket ends before the first loss, and the main
    text's runs past both. It sits in Lesson 1 after the paragraph opening
    "Gasoline’s main text says 19 profitable years".
-3. Which file holds the June contract: the March, April, May and June natural
+3. Three missing rows leave a range, not a count: gasoline's years from 1995
+   to 2015 with a span under the years with no row, then a scale of counts on
+   which the files allow 16 to 19 profitable years and Chan's 19 sits at the
+   top. It sits in Lesson 2 after the paragraph opening "EIA’s New York
+   Harbor file holds no row".
+4. Interpolating turns a gap into a guess: the May gasoline contract's
+   settlements around April 14, 1997, the entry day with no row, a straight
+   line between the rows on either side and the guess it gives that day, and
+   a band of one typical miss either side of the guess, split at the exit
+   price into a part where the year is a loss and a part where it is a profit.
+   It sits after the paragraph opening "Interpolating, which here means".
+5. Chan's 19 needs all three gaps to be profits: Chan's 21 years as one bar
+   of 19 profits and 2 losses, and the files' as 16 profits, 3 years with no
+   row and the 2 losses of 2009 and 2012, so the missing years sit under the
+   end of Chan's profits. It sits after the paragraph opening "The losses say
+   more than the gaps."
+6. Each fill misses by more than the year moved: for each missing year, the
+   year's move with June's fill and a bar of one typical miss either side,
+   every bar crossing zero, with each year's chance of a profit. It sits after
+   the paragraph opening "Each fill guesses a profit in all three years".
+7. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -32,19 +55,24 @@ three as scenes, and the post places each right after the paragraph it draws.
    sits in Lesson 4, after the paragraph opening "For gasoline the answer is
    simple."
 
-All three carry data, and none needs the owner's archive.
+All seven carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
 :meth:`GasolineFigures.from_run` reads each gasoline year's result from
-:func:`chan.commodity_seasonals.gasoline_trades`.
+:func:`chan.commodity_seasonals.gasoline_trades`, which the edition, range and
+Chan's-19 sketches all draw. :meth:`GuessFigures.from_run` reads 1997's
+straight-line fill and its typical miss from
+:func:`chan.commodity_seasonals.gap_fills`, and the settlements around it from
+the contract-1 file. The fill-miss sketch reads every gap's fill from
+:func:`chan.commodity_seasonals.gap_fills` too.
 :meth:`JuneYear.from_run` reads one year's entry and exit days and file
 numbers from :func:`chan.commodity_seasonals.natural_gas_trade`, and each
 contract's last trading day from :func:`chan.futures.ng_last_trade`. Three
 figures are the book's rather than the run's: the counts 13 and 14 Chan
 prints, which the streak sketch looks up in the run's streaks, gasoline's 19
-profitable years of 21 as of 2015, and the first edition's release in November
-2008, which the post cites.
+profitable years of 21 as of 2015, which three sketches draw, and the first
+edition's release in November 2008, which the post cites.
 
 The calendar sketch draws 2008 and 2006. In 2008 the entry, February 25, comes
 two days before March's last trading day, so June is contract 4. In 2006 the
@@ -56,7 +84,7 @@ Both years' calendars are drawn on one axis of month and day.
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
 Each sketch carries more than a reader takes in at that post's pace, so
-all three are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all seven are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -64,7 +92,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all three with::
+with no change is a no-op diff. Redraw all seven with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -72,7 +100,8 @@ with no change is a no-op diff. Redraw all three with::
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
+from decimal import Decimal
 from pathlib import Path
 
 import numpy as np
@@ -87,6 +116,8 @@ from chan.usdcad_tests_whiteboard import (
     Label,
     Scene,
     Stroke,
+    _arrow,
+    _box,
     _line,
     _span,
     _stroke,
@@ -458,6 +489,543 @@ def _gasoline_editions(f: GasolineFigures) -> Scene:
     return Scene("Gasoline’s two claims read as two editions", "gasoline_editions", tuple(steps))
 
 
+# --- Lesson 2: what the missing rows leave -----------------------------------
+
+#: The number words a title spells a small count in.
+WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
+
+#: The range sketch's year axis and count scale, each with its height.
+RANGE_YEAR_X = (0.55, 9.45)
+RANGE_YEAR_Y = 3.0
+RANGE_COUNT_X = (1.2, 8.8)
+RANGE_COUNT_Y = 1.15
+
+
+def _range_scale(f: GasolineFigures) -> tuple[int, int]:
+    """The counts the scale runs between, one past each end of the range."""
+    return len(f.won) - 1, len(f.won) + len(f.gaps) + 1
+
+
+def _count_x(count: int, f: GasolineFigures) -> float:
+    lo, hi = _range_scale(f)
+    return RANGE_COUNT_X[0] + (count - lo) * (RANGE_COUNT_X[1] - RANGE_COUNT_X[0]) / (hi - lo)
+
+
+def _range_year_x(year: int, f: GasolineFigures) -> float:
+    first, last = f.years[0][0], f.years[-1][0]
+    return RANGE_YEAR_X[0] + (year - first) * (RANGE_YEAR_X[1] - RANGE_YEAR_X[0]) / (last - first)
+
+
+def _gap_range(f: GasolineFigures) -> Scene:
+    """Lesson 2: the missing years count neither way, so the files allow a
+    range of profitable years with Chan's count at its top."""
+    first, last = f.years[0][0], f.years[-1][0]
+    y, c = RANGE_YEAR_Y, RANGE_COUNT_Y
+    low, high = len(f.won), len(f.won) + len(f.gaps)
+    gaps = _consecutive(f.gaps)[0]
+    steps: list[Stroke | Label] = [
+        _stroke("axis", _line([(0.3, y), (9.7, y)]), color=MUTED, frames=8),
+        Stroke(
+            "profitable",
+            np.array([_range_year_x(year, f) for year in f.won]),
+            np.full(len(f.won), y),
+            color=GOOD,
+            frames=8,
+            dots=7.0,
+        ),
+        *[_cross(f"loss-{year}", _range_year_x(year, f), y, LOST) for year in f.lost],
+        *[
+            Label(
+                str(year),
+                _range_year_x(year, f),
+                y - YEAR_LABEL_DROP,
+                names="axis",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
+            for year in (first, last)
+        ],
+        _stroke(
+            "gaps",
+            _span(_range_year_x(gaps[0], f), _range_year_x(gaps[-1], f), y - 0.5, tick=0.08),
+            color=MUTED,
+            frames=6,
+        ),
+        Label(
+            "no row: a profit or a loss?",
+            _range_year_x(gaps[-1], f) + 0.3,
+            y - 0.62,
+            names="gaps",
+            color=MUTED,
+            size=11,
+        ),
+    ]
+    lo, hi = _range_scale(f)
+    steps += [
+        _stroke(
+            "scale", _line([(_count_x(lo, f), c), (_count_x(hi, f), c)]), color=MUTED, frames=6
+        ),
+        *[
+            Label(
+                str(n), _count_x(n, f), c - 0.42, names="scale", color=MUTED, size=10, ha="center"
+            )
+            for n in range(lo, hi + 1)
+        ],
+        _stroke(
+            "range",
+            _span(_count_x(low, f), _count_x(high, f), c + 0.35, tick=0.1),
+            color=ACCENT,
+            frames=8,
+        ),
+        Label(
+            f"the files allow {low} to {high}",
+            (_count_x(low, f) + _count_x(high, f)) / 2,
+            c + 0.68,
+            names="range",
+            color=ACCENT,
+            size=11,
+            ha="center",
+        ),
+        _stroke(
+            "chan",
+            _line(
+                [
+                    (_count_x(GASOLINE_COUNT[0], f), c - 0.12),
+                    (_count_x(GASOLINE_COUNT[0], f), c + 0.12),
+                ],
+                per_unit=20,
+            ),
+            color=INK,
+            width=3.0,
+            frames=2,
+        ),
+        Label(
+            f"Chan: {GASOLINE_COUNT[0]}",
+            _count_x(GASOLINE_COUNT[0], f) + 0.2,
+            c - 0.42,
+            names="chan",
+            color=INK,
+            size=11,
+        ),
+        Label(
+            f"profitable years of {len(f.years)}",
+            0.3,
+            0.3,
+            names="scale",
+            color=MUTED,
+            size=11,
+        ),
+    ]
+    title = f"{WORDS[len(f.gaps)].capitalize()} missing rows leave a range, not a count"
+    return Scene(title, "gap_range", tuple(steps))
+
+
+# --- Lesson 2: interpolating turns a gap into a guess -------------------------
+
+
+@dataclass(frozen=True)
+class GuessFigures:
+    """What the interpolation sketch draws, read from the gasoline run.
+
+    ``prices`` holds the contract-1 settlements from a week before the
+    missing day to the trade's exit. ``fill`` is the run's
+    :class:`chan.commodity_seasonals.GapFill` for that day, which carries the
+    straight-line guess, its typical miss, the rows around the gap and the
+    exit price.
+    """
+
+    prices: tuple[tuple[date, Decimal], ...]
+    fill: seasonals.GapFill
+
+    @property
+    def top(self) -> float:
+        return self.fill.linear + self.fill.linear_error
+
+    @property
+    def bottom(self) -> float:
+        return self.fill.linear - self.fill.linear_error
+
+    @classmethod
+    def from_run(cls) -> GuessFigures:
+        fill = seasonals.gap_fills()[0]
+        one = seasonals.settlements(seasonals.HARBOR_GASOLINE)[1]
+        first = fill.day - timedelta(days=7)
+        last = seasonals.gasoline_trade(fill.year).exit_day
+        return cls(prices=tuple((d, one[d]) for d in sorted(one) if first <= d <= last), fill=fill)
+
+
+#: Where the days run across the board, the price scale's height, and the
+#: band's half width.
+GUESS_X = (0.7, 9.3)
+GUESS_Y = (0.85, 3.9)
+BAND_HALF = 0.3
+#: The gap between the strokes that fill the band.
+BAND_STEP = 0.07
+
+
+def _guess_x(day: date, f: GuessFigures) -> float:
+    """Where ``day`` sits, one step per trading day, as the straight-line guess weights them.
+
+    Spacing by calendar days would put the guess off the line it lies on,
+    because a weekend counts there and not in the fill.
+    """
+    first, last = f.prices[0][0], f.prices[-1][0]
+    span = seasonals._trading_days_between(first, last)
+    step = seasonals._trading_days_between(first, day)
+    return GUESS_X[0] + step * (GUESS_X[1] - GUESS_X[0]) / span
+
+
+def _guess_scale(f: GuessFigures) -> tuple[float, float]:
+    """The prices at the bottom and the top of the scale, a margin past the band and every price."""
+    prices = [float(p) for _, p in f.prices]
+    return min(*prices, f.bottom) - 0.007, max(*prices, f.top) + 0.005
+
+
+def _guess_y(price: float, f: GuessFigures) -> float:
+    lo, hi = _guess_scale(f)
+    return GUESS_Y[0] + (float(price) - lo) * (GUESS_Y[1] - GUESS_Y[0]) / (hi - lo)
+
+
+def _band(x0: float, y0: float, x1: float, y1: float) -> tuple:
+    """A box filled with close horizontal strokes, drawn as one zigzag from the bottom up."""
+    points, y, right = [(x0, y0)], y0, True
+    while y < y1:
+        points.append((x1 if right else x0, y))
+        y = min(y + BAND_STEP, y1)
+        points.append((x1 if right else x0, y))
+        right = not right
+    points.append((x1 if right else x0, y1))
+    return _line(points, per_unit=4)
+
+
+def _interpolation_guess(f: GuessFigures) -> Scene:
+    """Lesson 2: the straight-line guess for the missing entry, and the band of
+    one typical miss around it, which reaches past the exit price."""
+    fill, one = f.fill, dict(f.prices)
+    gx, exit_y = _guess_x(fill.day, f), _guess_y(fill.other, f)
+    last = f.prices[-1][0]
+    steps: list[Stroke | Label] = [
+        _stroke("axis", _line([(0.4, 0.7), (9.6, 0.7)]), color=MUTED, frames=6),
+        Stroke(
+            "prices",
+            np.array([_guess_x(d, f) for d, _ in f.prices]),
+            np.array([_guess_y(p, f) for _, p in f.prices]),
+            color=INK,
+            frames=8,
+            dots=6.0,
+        ),
+        Label(
+            f"May contract, {fill.day:%B} {fill.year}",
+            9.6,
+            0.35,
+            names="axis",
+            color=MUTED,
+            size=11,
+            ha="right",
+        ),
+        Label(
+            f"{fill.day:%b} {fill.day.day}, the {fill.leg}: no row",
+            gx,
+            0.35,
+            names="axis",
+            color=MUTED,
+            size=11,
+            ha="center",
+        ),
+        _stroke(
+            "exit",
+            _line([(gx - 0.6, exit_y), (_guess_x(last, f) + 0.25, exit_y)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Label(
+            f"exit price {fill.other}",
+            gx - BAND_HALF - 0.45,
+            exit_y - 0.3,
+            names="exit",
+            color=MUTED,
+            size=11,
+            ha="right",
+        ),
+        _stroke(
+            "line",
+            _line(
+                [
+                    (_guess_x(fill.before, f), _guess_y(one[fill.before], f)),
+                    (_guess_x(fill.after, f), _guess_y(one[fill.after], f)),
+                ]
+            ),
+            color=ACCENT,
+            frames=6,
+        ),
+        Stroke(
+            "guess",
+            np.array([gx]),
+            np.array([_guess_y(fill.linear, f)]),
+            color=ACCENT,
+            frames=1,
+            dots=9.0,
+        ),
+        Label(
+            f"straight-line guess {fill.linear:.3f}",
+            gx + BAND_HALF + 1.0,
+            1.15,
+            names="guess",
+            color=ACCENT,
+            size=11,
+        ),
+        _stroke(
+            "loss-zone",
+            _band(gx - BAND_HALF, exit_y, gx + BAND_HALF, _guess_y(f.top, f)),
+            color=LOST,
+            width=1.2,
+            frames=10,
+        ),
+        _stroke(
+            "profit-zone",
+            _band(gx - BAND_HALF, _guess_y(f.bottom, f), gx + BAND_HALF, exit_y),
+            color=GOOD,
+            width=1.2,
+            frames=10,
+        ),
+        Label(
+            f"{f.top:.3f}",
+            gx + BAND_HALF + 0.2,
+            _guess_y(f.top, f) - 0.05,
+            names="loss-zone",
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            f"{f.bottom:.3f}",
+            gx + BAND_HALF + 0.2,
+            _guess_y(f.bottom, f) - 0.05,
+            names="profit-zone",
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            "one typical miss either side",
+            gx - BAND_HALF - 0.25,
+            _guess_y(f.top, f) + 0.05,
+            names="loss-zone",
+            color=INK,
+            size=11,
+            ha="right",
+        ),
+        Label(
+            "entry here: a loss",
+            gx - BAND_HALF - 0.45,
+            (_guess_y(f.top, f) + exit_y) / 2 - 0.05,
+            names="loss-zone",
+            color=LOST,
+            size=11,
+            ha="right",
+        ),
+        Label(
+            "entry here: a profit",
+            gx - BAND_HALF - 0.25,
+            _guess_y(f.bottom, f) + 0.15,
+            names="profit-zone",
+            color=GOOD,
+            size=11,
+            ha="right",
+        ),
+    ]
+    return Scene("Interpolating turns a gap into a guess", "interpolation_guess", tuple(steps))
+
+
+# --- Lesson 2: what Chan's 19 needs ------------------------------------------
+
+#: The two bars' left end, their heights and their half thickness.
+BAR_X0, BAR_X1 = 1.2, 9.6
+CHAN_Y, FILES_Y, BAR_HALF = 3.0, 1.8, 0.32
+
+
+def _bar_x(count: float, f: GasolineFigures) -> float:
+    """Where ``count`` years along a bar of all the years ends."""
+    return BAR_X0 + count * (BAR_X1 - BAR_X0) / len(f.years)
+
+
+def _chan_needs_gaps(f: GasolineFigures) -> Scene:
+    """Lesson 2: Chan's 19 profits reach past the files' 16 by exactly the
+    missing years, so each missing year must have been a profit."""
+    won, total = GASOLINE_COUNT
+    files_won, gaps = len(f.won), _consecutive(f.gaps)[0]
+    ch, fi, h = CHAN_Y, FILES_Y, BAR_HALF
+    g0, g1 = _bar_x(files_won, f), _bar_x(files_won + len(f.gaps), f)
+    l0 = _bar_x(files_won + len(f.gaps), f)
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "chan-won", _box(_bar_x(0, f), ch - h, _bar_x(won, f), ch + h), color=GOOD, frames=8
+        ),
+        Label(
+            f"{won} profits",
+            (_bar_x(0, f) + _bar_x(won, f)) / 2,
+            ch,
+            names="chan-won",
+            color=GOOD,
+            size=11,
+            ha="center",
+        ),
+        _stroke(
+            "chan-lost",
+            _box(_bar_x(won, f), ch - h, _bar_x(total, f), ch + h),
+            color=LOST,
+            frames=4,
+        ),
+        Label("Chan", 0.25, ch, names="chan-won", color=INK, size=12),
+        _stroke(
+            "files-won",
+            _box(_bar_x(0, f), fi - h, _bar_x(files_won, f), fi + h),
+            color=GOOD,
+            frames=8,
+        ),
+        Label(
+            f"{files_won} profits",
+            (_bar_x(0, f) + _bar_x(files_won, f)) / 2,
+            fi,
+            names="files-won",
+            color=GOOD,
+            size=11,
+            ha="center",
+        ),
+        _stroke("files-gap", _box(g0, fi - h, g1, fi + h), color=MUTED, dashed=True, frames=6),
+        _stroke(
+            "files-lost", _box(l0, fi - h, _bar_x(len(f.years), f), fi + h), color=LOST, frames=4
+        ),
+        Label("EIA", 0.3, fi, names="files-won", color=INK, size=12),
+        Label(
+            f"{total - won} losses",
+            (_bar_x(won, f) + _bar_x(total, f)) / 2,
+            ch + h + 0.3,
+            names="chan-lost",
+            color=LOST,
+            size=11,
+            ha="center",
+        ),
+        Label(
+            ", ".join(str(year) for year in f.lost),
+            (l0 + _bar_x(len(f.years), f)) / 2,
+            fi - h - 0.3,
+            names="files-lost",
+            color=LOST,
+            size=11,
+            ha="center",
+        ),
+        Label("no row", (g0 + g1) / 2, fi, names="files-gap", color=MUTED, size=10, ha="center"),
+        _stroke(
+            "needs",
+            _arrow((g0 + g1) / 2 - 1.2, fi - h - 0.75, (g0 + g1) / 2 - 0.05, fi - h - 0.08),
+            color=ACCENT,
+            frames=4,
+        ),
+        Label(
+            f"{gaps[0]} to {gaps[-1]} must all be profits for Chan’s {won}",
+            (g0 + g1) / 2 - 1.3,
+            fi - h - 1.05,
+            names="needs",
+            color=ACCENT,
+            size=11,
+            ha="right",
+        ),
+    ]
+    title = f"Chan’s {won} needs all {WORDS[len(f.gaps)]} gaps to be profits"
+    return Scene(title, "chan_needs_gaps", tuple(steps))
+
+
+# --- Lesson 2: each fill's miss against each year's move ---------------------
+
+#: Where zero cents sits, how wide a cent is, the scale's ends in cents, and
+#: the first year's row with the step down to each next one.
+MISS_ZERO_X, MISS_CENT = 5.2, 2.6
+MISS_SCALE = (-1.5, 1.7)
+MISS_TOP, MISS_STEP = 3.0, 0.85
+
+
+def _cents_x(cents: float) -> float:
+    return MISS_ZERO_X + cents * MISS_CENT
+
+
+def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
+    """Lesson 2: for each missing year, the move June's fill gives and one
+    typical miss either side, which reaches past zero every time."""
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "zero",
+            _line([(_cents_x(0), 0.75), (_cents_x(0), 3.85)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Label("loss", _cents_x(0) - 0.25, 3.7, names="zero", color=LOST, size=11, ha="right"),
+        Label("profit", _cents_x(0) + 0.25, 3.7, names="zero", color=GOOD, size=11),
+    ]
+    for k, fill in enumerate(fills):
+        row = MISS_TOP - k * MISS_STEP
+        move, miss = 100 * fill.move(fill.june), 100 * fill.june_error
+        steps += [
+            _stroke(
+                f"miss-{fill.year}",
+                _span(_cents_x(move - miss), _cents_x(move + miss), row, tick=0.1),
+                color=INK,
+                frames=6,
+            ),
+            Stroke(
+                f"move-{fill.year}",
+                np.array([_cents_x(move)]),
+                np.array([row]),
+                color=ACCENT,
+                frames=1,
+                dots=8.0,
+            ),
+            Label(str(fill.year), 0.3, row, names=f"miss-{fill.year}", color=INK, size=12),
+            Label(
+                f"{100 * fill.june_chance:.0f}%",
+                9.7,
+                row,
+                names=f"miss-{fill.year}",
+                color=MUTED,
+                size=11,
+                ha="right",
+            ),
+        ]
+    first = fills[0].year
+    steps += [
+        _stroke(
+            "scale",
+            _line([(_cents_x(MISS_SCALE[0]), 0.75), (_cents_x(MISS_SCALE[1]), 0.75)]),
+            color=MUTED,
+            frames=6,
+        ),
+        *[
+            Label(f"{c:+d}", _cents_x(c), 0.33, names="scale", color=MUTED, size=10, ha="center")
+            for c in (-1, 1)
+        ],
+        Label("cents a gallon", 0.3, 0.33, names="scale", color=MUTED, size=10),
+        Label("chance of profit", 9.7, 3.7, names="zero", color=MUTED, size=11, ha="right"),
+        Label(
+            "dot: the move with June’s fill",
+            0.3,
+            3.75,
+            names=f"move-{first}",
+            color=ACCENT,
+            size=10,
+        ),
+        Label(
+            "bar: one typical miss either side",
+            0.3,
+            3.45,
+            names=f"miss-{first}",
+            color=INK,
+            size=10,
+        ),
+    ]
+    return Scene("Each fill misses by more than the year moved", "fill_misses", tuple(steps))
+
+
 # --- Lesson 4: which numbered file holds June --------------------------------
 
 #: The year whose entry comes before March's last trading day, and the year
@@ -624,7 +1192,15 @@ def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
-PACED = ("streak_start", "gasoline_editions", "june_file")
+PACED = (
+    "streak_start",
+    "gasoline_editions",
+    "gap_range",
+    "interpolation_guess",
+    "chan_needs_gaps",
+    "fill_misses",
+    "june_file",
+)
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
@@ -653,12 +1229,22 @@ def scenes(
     streaks: StreakFigures | None = None,
     years: tuple[JuneYear, JuneYear] | None = None,
     gasoline: GasolineFigures | None = None,
+    guess: GuessFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The three scenes in the order the post reads them, Lesson 1's two then Lesson 4's."""
+    """The seven scenes in the order the post reads them, Lessons 1, 2 and 4."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
-    return (_streak_start(streaks), _gasoline_editions(gasoline), _june_file(*years))
+    guess = guess if guess is not None else GuessFigures.from_run()
+    return (
+        _streak_start(streaks),
+        _gasoline_editions(gasoline),
+        _gap_range(gasoline),
+        _interpolation_guess(guess),
+        _chan_needs_gaps(gasoline),
+        _fill_misses(tuple(seasonals.gap_fills())),
+        _june_file(*years),
+    )
 
 
 def _write(scene: Scene, folder: Path) -> Path:
@@ -681,10 +1267,11 @@ def make_commodity_seasonals_whiteboards(
     streaks: StreakFigures | None = None,
     years: tuple[JuneYear, JuneYear] | None = None,
     gasoline: GasolineFigures | None = None,
+    guess: GuessFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, in the post's order."""
     folder = out_dir if out_dir is not None else FIGURES_DIR
-    return [_write(scene, folder) for scene in scenes(streaks, years, gasoline)]
+    return [_write(scene, folder) for scene in scenes(streaks, years, gasoline, guess)]
 
 
 def main() -> None:

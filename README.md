@@ -3655,7 +3655,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries three looping whiteboard sketches, drawn by
+The post also carries seven looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3669,17 +3669,30 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    loss, a span under the years with no row, a dashed mark for the first
    edition's release, and brackets for the sidebar's profit every year since
    1995, ending in 2008, and the main text's 19 of 21, ending in 2015.
-3. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
+3. `commodity_sketch_gap_range.gif`, in Lesson 2, gasoline's years with the
+   three missing ones marked, and a scale of counts on which the files allow
+   16 to 19 profitable years, with Chan's 19 at the top.
+4. `commodity_sketch_interpolation_guess.gif`, in Lesson 2, the May contract
+   around 1997's missing entry, the straight-line guess across the gap, and a
+   band of one typical miss either side that the exit price splits into a
+   loss part and a profit part.
+5. `commodity_sketch_chan_needs_gaps.gif`, in Lesson 2, Chan's 21 years and
+   the files' as two bars, the missing years filling the gap between the
+   files' 16 profits and Chan's 19.
+6. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
+   with June's fill and a bar of one typical miss either side, every bar
+   crossing zero.
+7. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.
 
-All three build more slowly than the USD.CAD post's sketches and hold their
+All seven build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in.
 
 None is schematic. Each reads the natural gas or gasoline run on the
-committed EIA files, so none needs the owner's archive. Redraw all three with:
+committed EIA files, so none needs the owner's archive. Redraw all seven with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard
@@ -3688,9 +3701,10 @@ uv run python -m chan.commodity_seasonals_whiteboard
 [tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
 holds that each natural gas bracket ends where the run's streak reaches Chan's
 count, that gasoline's sidebar bracket ends before its first loss while the
-main text's covers both, that June's number in each label is how many bars its
-line crosses and the file the run reads, and that each GIF follows the
-paragraph it draws.
+main text's covers both, that the Lesson 2 sketches draw the run's range,
+guess, typical misses and missing years, that June's number in each label is
+how many bars its line crosses and the file the run reads, and that each GIF
+follows the paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the

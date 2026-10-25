@@ -1,9 +1,11 @@
-"""The pins for the three whiteboard GIFs in the commodity seasonals post.
+"""The pins for the seven whiteboard GIFs in the commodity seasonals post.
 
-Two sketches draw Lesson 1, its natural gas streaks and gasoline's two claims,
-and one draws Lesson 4's numbered files. The scenes are built from the natural gas
-and gasoline runs on the committed EIA files rather than from a pinned copy of
-their figures. Most tests check the drawing against the run,
+Two sketches draw Lesson 1, its natural gas streaks and gasoline's two claims.
+Four draw Lesson 2: the range the missing rows leave, a guessed price, what
+Chan's 19 needs, and each fill's miss against each year's move. One draws
+Lesson 4's numbered files. The
+scenes are built from the natural gas and gasoline runs on the committed EIA
+files rather than from a pinned copy of their figures. Most tests check the drawing against the run,
 and a few check the run against literal dates, counts and labels the post
 quotes, such as test_the_run_gives_these_dates_and_files.
 
@@ -22,7 +24,25 @@ quotes, such as test_the_run_gives_these_dates_and_files.
    scale, that no year without a row gets a mark, that the sidebar's bracket
    ends before the release and the first loss while the main text's covers
    every loss, and that other figures move the marks and the labels.
-3. The calendar sketch draws the March to June contracts in 2008 and 2006,
+3. The range sketch draws gasoline's years and a scale of counts. What is
+   pinned is that the files' range runs from the profitable years to those
+   plus the missing ones, and that Chan's count sits at its top end.
+4. The interpolation sketch draws the May contract around 1997's missing
+   entry, the straight line across the gap and its guess, and a band of one
+   typical miss either side of the guess, split at the exit price. What is
+   pinned is that each settlement sits at its trading day and price on one
+   scale, that the guess lies on the line, that the band spans the run's
+   typical miss and splits where the exit price is, that the guess sits on
+   the profit side while the band reaches the loss side, and that other
+   figures move it.
+5. The Chan's-19 sketch draws Chan's years and the files' as two bars. What
+   is pinned is that each box spans its count, that the missing years fill
+   exactly the gap between the files' profits and Chan's, and that both bars'
+   losses line up.
+6. The fill-miss sketch draws each missing year's move with June's fill and a
+   bar of one typical miss. What is pinned is that each dot and bar sit at the
+   run's figures on one scale and that every bar crosses zero.
+7. The calendar sketch draws the March to June contracts in 2008 and 2006,
    each bar ending at its last trading day, with a dashed line at each entry
    and exit. What is pinned is that June's number in each label is how many
    bars reach that line, that it equals the file the run reads, and that the
@@ -46,7 +66,7 @@ import hashlib
 import math
 import platform
 import re
-from datetime import date
+from datetime import date, timedelta
 
 import matplotlib
 import numpy as np
@@ -62,10 +82,20 @@ from chan.commodity_seasonals_whiteboard import (
     FIRST_EDITION,
     STREAK_AXIS_Y,
     GasolineFigures,
+    GuessFigures,
     StreakFigures,
+    _bar_x,
+    _cents_x,
+    _chan_needs_gaps,
+    _count_x,
     _day_x,
+    _fill_misses,
+    _gap_range,
     _gasoline_editions,
     _gasoline_x,
+    _guess_x,
+    _guess_y,
+    _interpolation_guess,
     _june_file,
     _streak_start,
     _streak_x,
@@ -97,6 +127,10 @@ POST = REPO_ROOT / "blog" / "commodity-seasonals-lessons.md"
 GIFS = [
     "commodity_sketch_streak_start.gif",
     "commodity_sketch_gasoline_editions.gif",
+    "commodity_sketch_gap_range.gif",
+    "commodity_sketch_interpolation_guess.gif",
+    "commodity_sketch_chan_needs_gaps.gif",
+    "commodity_sketch_fill_misses.gif",
     "commodity_sketch_june_file.gif",
 ]
 
@@ -104,6 +138,10 @@ GIFS = [
 FOLLOWS = (
     "1. **They rule out the revised edition.**",
     "Gasoline’s main text says 19 profitable years",
+    "EIA’s New York Harbor file holds no row",
+    "Interpolating, which here means",
+    "The losses say more than the gaps.",
+    "Each fill guesses a profit in all three years",
     "For gasoline that is always contract 1.",
 )
 
@@ -135,6 +173,61 @@ GASOLINE_LABELS = [
     "dot: a profitable year",
     "x: a loss, 2009 and 2012",
     "gasoline, May contract",
+]
+
+RANGE_LABELS = [
+    "1995",
+    "2015",
+    "no row: a profit or a loss?",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "the files allow 16 to 19",
+    "Chan: 19",
+    "profitable years of 21",
+]
+
+NEEDS_LABELS = [
+    "19 profits",
+    "Chan",
+    "16 profits",
+    "EIA",
+    "2 losses",
+    "2009, 2012",
+    "no row",
+    "1997 to 1999 must all be profits for Chan’s 19",
+]
+
+MISS_LABELS = [
+    "loss",
+    "profit",
+    "1997",
+    "67%",
+    "1998",
+    "74%",
+    "1999",
+    "82%",
+    "-1",
+    "+1",
+    "cents a gallon",
+    "chance of profit",
+    "dot: the move with June’s fill",
+    "bar: one typical miss either side",
+]
+
+GUESS_LABELS = [
+    "May contract, April 1997",
+    "Apr 14, the entry: no row",
+    "exit price 0.625",
+    "straight-line guess 0.616",
+    "0.635",
+    "0.597",
+    "one typical miss either side",
+    "entry here: a loss",
+    "entry here: a profit",
 ]
 
 JUNE_LABELS = [
@@ -177,17 +270,23 @@ def gasoline():
 
 
 @pytest.fixture(scope="module")
-def every(streaks, years, gasoline):
-    return scenes(streaks, years, gasoline)
+def guess():
+    return GuessFigures.from_run()
 
 
 @pytest.fixture(scope="module")
-def gifs(tmp_path_factory, streaks, years, gasoline):
+def every(streaks, years, gasoline, guess):
+    return scenes(streaks, years, gasoline, guess)
+
+
+@pytest.fixture(scope="module")
+def gifs(tmp_path_factory, streaks, years, gasoline, guess):
     return make_commodity_seasonals_whiteboards(
         out_dir=tmp_path_factory.mktemp("sketches"),
         streaks=streaks,
         years=years,
         gasoline=gasoline,
+        guess=guess,
     )
 
 
@@ -238,7 +337,7 @@ def _alt(text: str, scene) -> str:
 
 
 class TestTheScenes:
-    def test_there_are_three_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_seven_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -329,7 +428,15 @@ class TestTheGifs:
             equity.PACED_LABEL_MS,
             equity.PACED_HOLD_MS,
         )
-        assert sketches.PACED == ("streak_start", "gasoline_editions", "june_file")
+        assert sketches.PACED == (
+            "streak_start",
+            "gasoline_editions",
+            "gap_range",
+            "interpolation_guess",
+            "chan_needs_gaps",
+            "fill_misses",
+            "june_file",
+        )
         for scene in every:
             frames = sketch_timeline(scene)
             paced = scene.slug in sketches.PACED
@@ -361,9 +468,11 @@ class TestTheGifs:
         for path in gifs:
             assert path.stat().st_size < 1_000_000, path.name
 
-    def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, streaks, years, gasoline) -> None:
+    def test_two_draws_give_the_same_bytes(
+        self, gifs, tmp_path, streaks, years, gasoline, guess
+    ) -> None:
         again = make_commodity_seasonals_whiteboards(
-            out_dir=tmp_path, streaks=streaks, years=years, gasoline=gasoline
+            out_dir=tmp_path, streaks=streaks, years=years, gasoline=gasoline, guess=guess
         )
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
@@ -655,6 +764,249 @@ class TestTheGasolineSketch:
         assert "a black bracket, “main text: 19 of 21, as of 2015”, runs from 1995 to 2015" in alt
 
 
+# --- Lesson 2: the range, the guess, Chan's 19 and the fill misses ---------------
+
+
+def _span_ends(stroke) -> tuple[float, float]:
+    return stroke.x.min(), stroke.x.max()
+
+
+class TestTheRangeSketch:
+    def test_its_words(self, every) -> None:
+        assert every[2].title == "Three missing rows leave a range, not a count"
+        assert every[2].labels == RANGE_LABELS
+
+    def test_its_colours(self, every, gasoline) -> None:
+        scene = every[2]
+        assert _stroke(scene, "profitable").color == GOOD
+        for year in gasoline.lost:
+            assert _stroke(scene, f"loss-{year}").color == LOST
+        assert _stroke(scene, "gaps").color == MUTED
+        assert _stroke(scene, "range").color == ACCENT
+        assert _label(scene, "the files allow 16 to 19").color == ACCENT
+        assert _stroke(scene, "chan").color == INK
+        assert _label(scene, "Chan: 19").color == INK
+
+    def test_the_range_runs_from_the_files_profits_to_those_plus_the_gaps(
+        self, every, gasoline
+    ) -> None:
+        scene = every[2]
+        low, high = len(gasoline.won), len(gasoline.won) + len(gasoline.gaps)
+        assert (low, high) == (16, 19)
+        left, right = _span_ends(_stroke(scene, "range"))
+        assert left == pytest.approx(_count_x(low, gasoline))
+        assert right == pytest.approx(_count_x(high, gasoline))
+        for n in range(low - 1, high + 2):
+            assert _label(scene, str(n)).x == pytest.approx(_count_x(n, gasoline))
+
+    def test_chans_count_sits_at_the_top_end(self, every, gasoline) -> None:
+        chan = _stroke(every[2], "chan")
+        assert list(chan.x) == pytest.approx(
+            [_count_x(sketches.GASOLINE_COUNT[0], gasoline)] * len(chan.x)
+        )
+        assert chan.x[0] == pytest.approx(_span_ends(_stroke(every[2], "range"))[1])
+
+    def test_other_figures_move_the_range_and_the_title(self) -> None:
+        outcomes = {2000: None, 2001: None, 2004: False}
+        made_up = GasolineFigures(
+            years=tuple((year, outcomes.get(year, True)) for year in range(1995, 2011))
+        )
+        scene = _gap_range(made_up)
+        assert scene.title == "Two missing rows leave a range, not a count"
+        assert "the files allow 13 to 15" in scene.labels
+        assert "profitable years of 16" in scene.labels
+        assert [str(n) for n in range(12, 17)] == [
+            label for label in scene.labels if label.isdigit() and len(label) == 2
+        ]
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[2])
+        assert "a red cross at 2009 and 2012" in alt
+        assert "A grey span under 1997 to 1999, which have no mark" in alt
+        assert "A brown bracket over 16 to 19" in alt
+        assert "a black mark at 19, the bracket’s top end" in alt
+
+
+class TestTheGuessFigures:
+    def test_it_reads_the_runs_fill_and_the_prices_around_it(self, guess) -> None:
+        assert guess.fill == seasonals.gap_fills()[0]
+        days = [day for day, _ in guess.prices]
+        assert (days[0], days[-1]) == (date(1997, 4, 7), date(1997, 4, 25))
+        missing = [
+            day
+            for day in (date(1997, 4, 7) + timedelta(days=k) for k in range(19))
+            if seasonals.is_trading_day(day) and day not in days
+        ]
+        assert missing == [date(1997, 4, d) for d in (11, 14, 16, 18)]
+        assert len(days) == 11
+        assert guess.top == pytest.approx(guess.fill.linear + guess.fill.linear_error)
+        assert guess.bottom == pytest.approx(guess.fill.linear - guess.fill.linear_error)
+
+
+class TestTheInterpolationSketch:
+    def test_its_words(self, every) -> None:
+        assert every[3].title == "Interpolating turns a gap into a guess"
+        assert every[3].labels == GUESS_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[3]
+        assert _stroke(scene, "prices").color == INK
+        exit_line = _stroke(scene, "exit")
+        assert (exit_line.color, exit_line.dashed) == (MUTED, True)
+        assert _stroke(scene, "line").color == ACCENT
+        assert _stroke(scene, "guess").color == ACCENT
+        assert _label(scene, "straight-line guess 0.616").color == ACCENT
+        assert _stroke(scene, "loss-zone").color == LOST
+        assert _label(scene, "entry here: a loss").color == LOST
+        assert _stroke(scene, "profit-zone").color == GOOD
+        assert _label(scene, "entry here: a profit").color == GOOD
+
+    def test_each_price_sits_at_its_trading_day_and_price(self, every, guess) -> None:
+        prices = _stroke(every[3], "prices")
+        assert list(prices.x) == pytest.approx([_guess_x(d, guess) for d, _ in guess.prices])
+        assert list(prices.y) == pytest.approx([_guess_y(p, guess) for _, p in guess.prices])
+        steps = np.diff(prices.x)
+        gap = list(prices.x).index(_guess_x(guess.fill.before, guess))
+        assert steps[gap] == pytest.approx(3 * steps[0])
+
+    def test_the_guess_lies_on_the_line(self, every, guess) -> None:
+        scene = every[3]
+        line, dot = _stroke(scene, "line"), _stroke(scene, "guess")
+        x0, x1, y0, y1 = line.x[0], line.x[-1], line.y[0], line.y[-1]
+        on_line = y0 + (dot.x[0] - x0) * (y1 - y0) / (x1 - x0)
+        assert dot.y[0] == pytest.approx(on_line)
+        assert dot.x[0] == pytest.approx(_guess_x(guess.fill.day, guess))
+        assert dot.y[0] == pytest.approx(_guess_y(guess.fill.linear, guess))
+
+    def test_the_band_is_one_typical_miss_either_side_split_at_the_exit(self, every, guess) -> None:
+        scene = every[3]
+        loss, profit = _stroke(scene, "loss-zone"), _stroke(scene, "profit-zone")
+        exit_y = _guess_y(guess.fill.other, guess)
+        assert (loss.y.min(), loss.y.max()) == pytest.approx((exit_y, _guess_y(guess.top, guess)))
+        assert (profit.y.min(), profit.y.max()) == pytest.approx(
+            (_guess_y(guess.bottom, guess), exit_y)
+        )
+        exit_line = _stroke(scene, "exit")
+        assert list(exit_line.y) == pytest.approx([exit_y] * len(exit_line.y))
+
+    def test_the_guess_is_a_profit_and_the_band_reaches_a_loss(self, guess) -> None:
+        assert guess.bottom < guess.fill.linear < float(guess.fill.other) < guess.top
+
+    def test_other_figures_move_the_guess_and_the_band(self, guess) -> None:
+        moved = dataclasses.replace(guess.fill, linear=0.600, linear_error=0.010)
+        scene = _interpolation_guess(GuessFigures(prices=guess.prices, fill=moved))
+        assert "straight-line guess 0.600" in scene.labels
+        assert {"0.610", "0.590"} <= set(scene.labels)
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[3])
+        assert "settlements one trading day apart" in alt
+        assert "The guess sits in the green part, and the band reaches into the red" in alt
+
+
+class TestTheChanNeedsGapsSketch:
+    def test_its_words(self, every) -> None:
+        assert every[4].title == "Chan’s 19 needs all three gaps to be profits"
+        assert every[4].labels == NEEDS_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[4]
+        for gid in ("chan-won", "files-won"):
+            assert _stroke(scene, gid).color == GOOD, gid
+        for gid in ("chan-lost", "files-lost"):
+            assert _stroke(scene, gid).color == LOST, gid
+        gap = _stroke(scene, "files-gap")
+        assert (gap.color, gap.dashed) == (MUTED, True)
+        assert _stroke(scene, "needs").color == ACCENT
+        assert _label(scene, "1997 to 1999 must all be profits for Chan’s 19").color == ACCENT
+
+    def test_each_box_spans_its_count(self, every, gasoline) -> None:
+        scene = every[4]
+        won = len(gasoline.won)
+        spans = {
+            "chan-won": (0, 19),
+            "chan-lost": (19, 21),
+            "files-won": (0, won),
+            "files-gap": (won, won + len(gasoline.gaps)),
+            "files-lost": (won + len(gasoline.gaps), 21),
+        }
+        for gid, (a, b) in spans.items():
+            assert _span_ends(_stroke(scene, gid)) == pytest.approx(
+                (_bar_x(a, gasoline), _bar_x(b, gasoline))
+            ), gid
+
+    def test_the_missing_years_fill_the_gap_to_chans_profits(self, every) -> None:
+        scene = every[4]
+        assert _span_ends(_stroke(scene, "files-gap"))[1] == pytest.approx(
+            _span_ends(_stroke(scene, "chan-won"))[1]
+        )
+        assert _span_ends(_stroke(scene, "files-lost")) == pytest.approx(
+            _span_ends(_stroke(scene, "chan-lost"))
+        )
+
+    def test_other_figures_move_the_boxes_and_the_labels(self) -> None:
+        outcomes = {2000: None, 2001: None, 2004: False, 2007: False}
+        made_up = GasolineFigures(
+            years=tuple((year, outcomes.get(year, True)) for year in range(1995, 2016))
+        )
+        scene = _chan_needs_gaps(made_up)
+        assert scene.title == "Chan’s 19 needs all two gaps to be profits"
+        assert {"17 profits", "2004, 2007"} <= set(scene.labels)
+        assert "2000 to 2001 must all be profits for Chan’s 19" in scene.labels
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[4])
+        assert "two bars of 21 years" in alt
+        assert "both bars end in the same two losses" in alt
+        assert "sits under the last three of Chan’s profits" in alt
+
+
+class TestTheFillMissesSketch:
+    def test_its_words(self, every) -> None:
+        assert every[5].title == "Each fill misses by more than the year moved"
+        assert every[5].labels == MISS_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[5]
+        zero = _stroke(scene, "zero")
+        assert (zero.color, zero.dashed) == (MUTED, True)
+        assert _label(scene, "loss").color == LOST
+        assert _label(scene, "profit").color == GOOD
+        for year in (1997, 1998, 1999):
+            assert _stroke(scene, f"move-{year}").color == ACCENT
+            assert _stroke(scene, f"miss-{year}").color == INK
+
+    def test_each_dot_and_bar_sit_at_the_runs_figures(self, every) -> None:
+        scene = every[5]
+        for fill in seasonals.gap_fills():
+            move, miss = 100 * fill.move(fill.june), 100 * fill.june_error
+            assert _stroke(scene, f"move-{fill.year}").x[0] == pytest.approx(_cents_x(move))
+            assert _span_ends(_stroke(scene, f"miss-{fill.year}")) == pytest.approx(
+                (_cents_x(move - miss), _cents_x(move + miss))
+            )
+
+    def test_every_bar_crosses_zero_and_every_dot_is_a_profit(self, every) -> None:
+        scene = every[5]
+        zero = _stroke(scene, "zero").x[0]
+        for year in (1997, 1998, 1999):
+            left, right = _span_ends(_stroke(scene, f"miss-{year}"))
+            assert left < zero < right, year
+            assert _stroke(scene, f"move-{year}").x[0] > zero, year
+
+    def test_other_figures_move_the_rows(self) -> None:
+        fills = seasonals.gap_fills()
+        sure = dataclasses.replace(fills[0], june_error=0.001)
+        scene = _fill_misses((sure, *fills[1:]))
+        left, _ = _span_ends(_stroke(scene, "miss-1997"))
+        assert left > _stroke(scene, "zero").x[0]
+        assert "100%" in scene.labels
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[5])
+        assert "a black bar of one typical miss either side reaches across zero" in alt
+        assert "a brown dot right of zero" in alt
+
+
 # --- Lesson 4: the calendar sketch ---------------------------------------------
 
 
@@ -712,11 +1064,11 @@ class TestTheJuneYears:
 
 class TestTheJuneSketch:
     def test_its_words(self, every) -> None:
-        assert every[2].title == "Which file holds the June contract"
-        assert every[2].labels == JUNE_LABELS
+        assert every[6].title == "Which file holds the June contract"
+        assert every[6].labels == JUNE_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[2]
+        scene = every[6]
         for tag in ("2008", "2006"):
             assert _stroke(scene, f"{tag}-june").color == ACCENT
             for month in ("march", "april", "may"):
@@ -741,7 +1093,7 @@ class TestTheJuneSketch:
         assert _day_x(date(2006, 4, 13)) == _day_x(date(2008, 4, 13))
 
     def test_each_bar_ends_at_its_last_trading_day_and_june_runs_off(self, every, years) -> None:
-        scene = every[2]
+        scene = every[6]
         for f in years:
             for month, last in zip(("march", "april", "may"), f.last_trade, strict=False):
                 bar = _stroke(scene, f"{f.year}-{month}")
@@ -757,7 +1109,7 @@ class TestTheJuneSketch:
             assert f.last_trade[3] > CALENDAR[1].replace(year=f.year)
 
     def test_june_is_numbered_by_the_bars_each_line_crosses(self, every, years) -> None:
-        scene = every[2]
+        scene = every[6]
         for f in years:
             tag = str(f.year)
             for moment, day, number in (
@@ -777,7 +1129,7 @@ class TestTheJuneSketch:
                 assert label.x == pytest.approx(line.x[0])
 
     def test_each_line_spans_its_years_four_bars(self, every, years) -> None:
-        scene = every[2]
+        scene = every[6]
         for f in years:
             rows = [_stroke(scene, f"{f.year}-{m}").y[0] for m in ("march", "april", "may", "june")]
             for moment in ("entry", "exit"):
@@ -785,14 +1137,14 @@ class TestTheJuneSketch:
                 assert line.y.max() > max(rows) and line.y.min() < min(rows)
 
     def test_march_is_drawn_still_trading_in_2008_and_expired_in_2006(self, every, years) -> None:
-        scene = every[2]
+        scene = every[6]
         still, expired = years
         assert _stroke(scene, "2008-march").x.max() > _stroke(scene, "2008-entry").x[0]
         assert _stroke(scene, "2006-march").x.max() < _stroke(scene, "2006-entry").x[0]
         assert (still.march_trading, expired.march_trading) == (True, False)
 
     def test_the_years_are_stacked_and_their_rows_ordered_by_expiry(self, every) -> None:
-        scene = every[2]
+        scene = every[6]
         for tag in ("2008", "2006"):
             rows = [_stroke(scene, f"{tag}-{m}").y[0] for m in ("march", "april", "may", "june")]
             assert rows == sorted(rows, reverse=True)
@@ -812,11 +1164,11 @@ class TestTheJuneSketch:
         assert len(_reaches(scene, "2008", _stroke(scene, "2008-entry").x[0])) == 3
 
     def test_it_closes_on_the_rule_it_draws(self, every) -> None:
-        last = every[2].steps[-1]
+        last = every[6].steps[-1]
         assert (last.text, last.color) == ("June’s number is how many bars each line crosses", INK)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, years) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[2])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[6])
         still, expired = years
         for f in years:
             assert f"March’s bar ends on {f.last_trade[0]:%B} {f.last_trade[0].day}" in alt
