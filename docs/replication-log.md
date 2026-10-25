@@ -6286,10 +6286,10 @@ this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
 Eighteen rows, all derivable from
-[tests/test_roll_returns.py](../tests/test_roll_returns.py). Five do not match
+[tests/test_roll_returns.py](../tests/test_roll_returns.py). Seven do not match
 one printed figure to one computation, and each says so in its own cells. Row
-12 covers two figures from one computation, and rows 15 to 18 carry no
-published figure.
+12 covers two figures from one computation, rows 13 and 14 test claims that
+print no statistic, and rows 15 to 18 carry no published figure.
 
 A future's return splits into the move of the spot price under it and the
 return it earns by converging on that spot as it nears expiry, the roll return.
@@ -6305,7 +6305,7 @@ TU's spot returns do not.** CL's γ starts on Figure 5.5's first day, and C's
 two figures agree with the ones Chan's Python port prints to within 10⁻¹².
 Separately, the script measures maturity in contract columns rather than
 months, which overstates the roll return of the three strips whose contracts
-are not one month apart.
+are not all one month apart.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -6402,7 +6402,7 @@ in percentage points at that precision.
 | 13 | none, a claim | reproduced | The criterion, \|γ\| at least twice \|α\|, was written before the build but after a scratch run had measured the figures. BR is the narrowest at 4.02 times, so the verdict does not rest on where the line sits. Row 16 runs it on the month-spaced γ, and there it fails for C. |
 | 14 | none, a claim | reproduced | It holds under the script's γ, which is what printed Table 5.1. Row 16 is the same claim under the book's own description of the method, and there it fails for HG. |
 | 15 | none | none, not a replication | No figure is printed for it. Monthly strips give the same γ either way, to rounding. |
-| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared only row 14's criterion for this γ. Row 13's was added at the build, after the figures were seen, which is one more reason the row carries no verdict. |
+| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared only row 14's criterion for this γ, after a scratch run had measured it. Row 13's was added at the build, which is one more reason the row carries no verdict. |
 | 17 | none | none, not a replication | It is why rows 15 and 16 move only C, HG and TU. |
 | 18 | none | none, not a replication | γ needs five priced contracts. C's strip ends at 2012Z, so after its March 2012 contract expires no day prices more than four. |
 
@@ -6445,11 +6445,12 @@ location 2399 already says the fitted γ drifts from day to day. A mean of a
 drifting series is a summary, and this entry reproduces the summary without
 testing the model.
 
-**Whether the month-spaced γ is what Chan meant.** Rows 15 and 16 are this
-repo's reading of the book's sentence, declared on
+**Whether the month-spaced γ is what Chan meant.** Row 15 is this repo's
+reading of the book's sentence, declared on
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) before the
-build.
-Chan printed no figure for them, so they carry no verdict.
+build. Row 16 judges it by row 14's criterion, declared there too, and by
+row 13's, added at the build. Chan printed no figure for either row, so
+neither carries a verdict.
 
 **Whether a roll return persists.** Every row is in-sample on 1986 to 2012.
 The two experiments that trade on γ, Example 5.4 and the TU momentum test,
@@ -6459,7 +6460,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/roll-returns-lessons.md](../blog/roll-returns-lessons.md) moves with it,
 since that post quotes most of these figures. So does its one figure, which
-`uv run python -m chan.roll_returns_figures` redraws.
+`uv run python -m chan.roll_returns_figures` redraws. Its two whiteboard
+sketches draw none of these figures. The one in "The model and the files" is
+schematic, and the one in Lesson 2 draws the post's made-up quarterly example,
+reading its 0.03 and 0.09 from the two fits run on it.
+`uv run python -m chan.roll_returns_whiteboard` redraws them.
 
 ## Entry 28: VX futures against E-mini futures, Chan's *Algorithmic Trading*
 

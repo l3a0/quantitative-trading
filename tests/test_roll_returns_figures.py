@@ -98,7 +98,7 @@ class TestThePanels:
     def test_the_note_names_the_save_the_two_fits_and_the_sample(self, figure) -> None:
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
             "Example 5.3 of Algorithmic Trading. Five strips saved 2012-08-14, one file per "
-            "commodity holding its spot and every contract.\nα is 252 times the slope of the "
+            "future holding its spot and every contract.\nα is 252 times the slope of the "
             "log spot on the day number. γ is −12 times the slope of the five nearest "
             "contracts'\nlog prices on their columns, or on their months. Every figure is "
             "in-sample on 1986 to 2012."
@@ -215,7 +215,7 @@ class TestFigure55:
     def test_the_mean_line_reads_the_script_gamma_not_the_month_gamma(
         self, tmp_path, results
     ) -> None:
-        """CL's contracts are a month apart, so its two γ agree to 1e-14 on the
+        """CL's contracts are a month apart, so its two γ agree to 1e-13 on the
         committed strip. Doubling the month-spaced series tells them apart."""
         cl = results["CL"]
         changed = dict(results)
