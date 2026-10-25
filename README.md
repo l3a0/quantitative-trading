@@ -410,7 +410,7 @@ where they were first built. The other forty-five were built here.
     alone over the same days find none, at a trace statistic of 10.447
     against a 90 percent bar of 13.429. GDX and USO alone find one relation
     at 99 percent, but a test on the triplet's weights, added in the post's
-    review, rejects GLD's weight being zero at 99 percent and cannot reject
+    review, rejects GLD's weight being zero at 95 percent and cannot reject
     USO's even at 90, so the two results conflict. Every figure is
     exploratory, and the split date and the third ETF were chosen after the
     break was seen.
