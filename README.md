@@ -5071,9 +5071,11 @@ Five groups of what it says are not pinned here.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) or to
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py), to
 [tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, or to
+[tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
+for the whiteboard sketch's. Three had no pin before it.
 
 1. The 98 stock weights together, 107.198, against SPY's −105.560, a
    difference of 1.638, so one unit is close to as long in stocks as it is
@@ -5111,6 +5113,30 @@ uv run python -m chan.index_arbitrage_figures
 [tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries one looping whiteboard sketch,
+`index_arbitrage_sketch_one_unit.gif`, drawn by
+[src/chan/index_arbitrage_whiteboard.py](src/chan/index_arbitrage_whiteboard.py)
+on the USD.CAD post's sketch machinery. It sits in "What one unit holds",
+after the paragraph on one unit, and draws the 98 stocks as green dots of
+$1.0939 each, gathered into a green column long $107.198 beside a red column
+short SPY $105.560. Both columns stand on one baseline at one scale, so their
+tops differ by 1.5 percent of the height, about 3 pixels, and a callout names
+the $1.638 between them rather than magnifying it. It is not schematic. It
+reads every figure from the committed files through the same `read_sources`
+and `index_arbitrage`, scale-break guard included.
+
+```bash
+uv run python -m chan.index_arbitrage_whiteboard
+```
+
+[tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
+holds what the sketch says and draws, that it draws one dot for each stock,
+that each column's height is one affine function of its dollars, that
+made-up figures move its words and heights, that a run whose stocks do not
+share one long weight or whose SPY weight is not short is refused, and that
+its GIF follows its paragraph in the post. It compares the committed GIF with
+a fresh draw byte for byte only on macOS arm64 in Comic Sans MS.
 
 [blog/usdcad-stationarity-lessons.md](blog/usdcad-stationarity-lessons.md) is a
 twenty-fourth post, about Examples 2.1 to 2.5 of Chan's *Algorithmic Trading*,
