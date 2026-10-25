@@ -6212,8 +6212,9 @@ to
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
 for the figure's own numbers, or to
 [tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
-for the sketches' days, closes and counts. The APR falling by more than half
-between two VX and ES saves traces to [tests/test_vx_es.py](tests/test_vx_es.py).
+for the sketches' days, closes, counts and kept and lost returns. The APR
+falling by more than half between two VX and ES saves traces to
+[tests/test_vx_es.py](tests/test_vx_es.py).
 `TestWhatThePostQuotes` in the first of those files reads one copy of each
 run figure the post quotes outside the sketches and their captions, and its
 three tables as sets of cells, and checks them against the run. It also
@@ -6261,7 +6262,7 @@ uv run python -m chan.cl_reversal_momentum_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries two looping whiteboard sketches, drawn by
+The post also carries three looping whiteboard sketches, drawn by
 [src/chan/cl_reversal_momentum_whiteboard.py](src/chan/cl_reversal_momentum_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
@@ -6274,19 +6275,26 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 2. `cl_reversal_momentum_sketch_half_of_each.gif`, in Lesson 2, a grid of
    half positions from each rule, with the 98 days both are long, the 59
    both are short and the 803 they disagree, counted from the run.
+3. `cl_reversal_momentum_sketch_swing_cost.gif`, in Lesson 2's "What the
+   swings cost", three bars to one scale, each rule's average day split into
+   the daily return it kept, which compounds to its APR over 252 days, and
+   what the swings took. The join keeps 0.000441 of 0.000463 and the rules
+   alone keep 0.000343 of 0.000519 and 0.000262 of 0.000440, all read from
+   the run.
 
-Both build more slowly than the USD.CAD post's sketches and hold their
+All three build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
-pace lets a reader take in. Redraw both with:
+pace lets a reader take in. Redraw all three with:
 
 ```bash
 uv run python -m chan.cl_reversal_momentum_whiteboard
 ```
 
 [tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
-holds what each draws, the days, closes and counts it reads from the run,
-and that each GIF follows its text in the post. The first sketch's first
-long, 2008-07-30, and its caption's six closes had no pin before it.
+holds what each draws, the days, closes, counts and kept and lost returns
+it reads from the run, and that each GIF follows its text in the post. The
+first sketch's first long, 2008-07-30, its caption's six closes, and the
+third sketch's kept and lost returns had no pin before it.
 
 [blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
 holding GLD long and gold futures short at Kindle locations 2718 and 2730 of

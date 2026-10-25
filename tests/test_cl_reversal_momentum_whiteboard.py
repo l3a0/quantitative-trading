@@ -1,7 +1,8 @@
-"""The pins for the two whiteboard GIFs in the crude oil reversal and momentum post.
+"""The pins for the three whiteboard GIFs in the crude oil reversal and momentum post.
 
 One sketches the rule, the join's first long and first short each between its
-two lags, and one Lesson 2's grid of half positions.
+two lags, one Lesson 2's grid of half positions, and one what the swings take
+from each rule's average day.
 
 1. The rule sketch is schematic: each panel keeps the order of its day's
    three closes and not their spacing, and its spacing across does not
@@ -16,19 +17,28 @@ two lags, and one Lesson 2's grid of half positions.
    what is pinned is each count it prints, that each cell's arrows point the
    way its column and row say, that each sum names what the two halves add
    to, and that a made-up set of counts moves the words with them.
+3. The swing sketch is not schematic either. What is pinned is each kept and
+   lost figure it prints, read from the run at six decimals, that the two add
+   to the average day at that precision, that 252 days of the kept return
+   give each rule's APR, that every bar is drawn to one scale, and the
+   comparisons its caption draws: lost close to half the square of the
+   standard deviation but not equal to it, the rules alone swinging nearly
+   three times as much as the join and losing about eight times as much.
 
 The run reads committed vintages, so the tests read it directly rather than a
 frozen copy of its figures. ``tests/test_cl_reversal_momentum.py`` pins the
 98 longs, the 59 shorts, the 803 rows of disagreement and the first position
-on 2008-07-18 on its own derivation. The first long on 2008-07-30, the split
-of the 803 into 422 and 381, which the sketch does not draw, and the closes in
-the caption are pinned only here.
+on 2008-07-18 on its own derivation, and each rule's average day and standard
+deviation. The first long on 2008-07-30, the split of the 803 into 422 and
+381, which the sketch does not draw, the closes in the caption, and each
+rule's kept and lost returns are pinned only here.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
-hand font and the fallback, each GIF's size, frames, loop and timing, both
-sketches' slower pace, that two draws give the same bytes, and that each
-committed GIF is a fresh draw, a comparison that runs only on macOS arm64
-with Comic Sans MS, as ``tests/test_usdcad_tests_whiteboard.py`` explains.
+hand font and the fallback, each GIF's size, frames, loop and timing, every
+sketch's slower pace, the green edge on every pale tint, that two draws give
+the same bytes, and that each committed GIF is a fresh draw, a comparison
+that runs only on macOS arm64 with Comic Sans MS, as
+``tests/test_usdcad_tests_whiteboard.py`` explains.
 The check that ``docs/figures`` holds exactly the GIFs the modules draw lives
 in ``tests/test_equity_seasonals_whiteboard.py``, which reads :data:`GIFS`
 from here.
@@ -41,6 +51,7 @@ import math
 import platform
 import re
 from dataclasses import replace
+from decimal import Decimal
 
 import matplotlib
 import numpy as np
@@ -61,21 +72,31 @@ from chan.cl_reversal_momentum_whiteboard import (
     REVERSAL_X,
     ROWS,
     SHORT_PANEL,
+    SWING_FOOT,
+    SWING_NAMES_Y,
+    SWING_PAST,
+    SWING_TOP,
+    SWING_WIDTH,
+    SWING_XS,
     TODAY_X,
     Agreement,
     JoinFigures,
+    Swing,
     gif_name,
     main,
     make_cl_reversal_momentum_whiteboards,
     price,
     scenes,
+    six,
     sketch_timeline,
+    swing_scale,
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import GOOD, INK, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
+    TINT,
     TITLE_MS,
     WIDTH,
     Frame,
@@ -91,12 +112,15 @@ POST = REPO_ROOT / "blog" / "crude-oil-reversal-momentum-lessons.md"
 GIFS = [
     "cl_reversal_momentum_sketch_dip_and_bounce.gif",
     "cl_reversal_momentum_sketch_half_of_each.gif",
+    "cl_reversal_momentum_sketch_swing_cost.gif",
 ]
 
 #: What each GIF follows: the paragraph on the join's rule, keyed on its last
-#: sentence, and Lesson 2's paragraph on how often the rules disagree.
+#: sentence, Lesson 2's paragraph on how often the rules disagree, and its
+#: paragraph on why compounding charges for swings.
 RULE_PARAGRAPH_END = "It shorts on a bounce inside a fall, and holds nothing on any other day."
 GRID_PARAGRAPH = "The two rules mostly disagree."
+SWING_PARAGRAPH = "Smaller swings give the join the highest APR of the three"
 
 RULE_LABELS = [
     "40 days ago",
@@ -137,6 +161,19 @@ GRID_LABELS = [
     "59 days",
     "803 days:\nflat",
     "on these 960 days, the join holds the average of the two rules’ positions",
+]
+
+SWING_LABELS = [
+    "the join",
+    "kept 0.000441",
+    "lost to swings\n0.000022",
+    "momentum alone",
+    "kept 0.000343",
+    "lost to swings\n0.000176",
+    "reversal alone",
+    "kept 0.000262",
+    "lost to swings\n0.000178",
+    "the join keeps the most of its average day",
 ]
 
 #: Each cell by its reversal and momentum positions, as the module names it.
@@ -246,7 +283,7 @@ def _shaft(arrow) -> tuple[float, float, float, float]:
 
 
 class TestTheScenes:
-    def test_there_are_two_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_three_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -265,11 +302,29 @@ class TestTheScenes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
     def test_every_pale_tint_has_a_green_edge(self, every) -> None:
-        """Neither sketch draws a tint today. One that does would need the
-        green edge the equity seasonals module's ``_tinted`` draws, since the
-        tint alone stands 1.29 to 1 against the board."""
+        """The tint alone stands 1.29 to 1 against the white board, under WCAG
+        2.1's 3 to 1 for a graphical object, so every tinted region gets a
+        green edge, GOOD at 4.86 to 1, that spans it, as the equity seasonals
+        module's ``_tinted`` draws it. The swing sketch's kept parts are the
+        only tints."""
+        assert sketches.TINT_EDGE >= 1.0
         tints = [fill for scene in every for fill in scene.fills if fill.color == whiteboard.TINT]
-        assert tints == []
+        assert len(tints) == 3
+        for scene in every:
+            for fill in scene.fills:
+                if fill.color != whiteboard.TINT:
+                    continue
+                edges = [
+                    s
+                    for s in scene.strokes
+                    if s.color == GOOD
+                    and s.width == sketches.TINT_EDGE
+                    and s.x.min() <= fill.x0 + 1e-9
+                    and s.x.max() >= fill.x1 - 1e-9
+                    and s.y.min() == pytest.approx(fill.y0)
+                    and s.y.max() == pytest.approx(fill.y1)
+                ]
+                assert edges, (scene.slug, fill.gid)
 
 
 class TestTheLabelsStayClearOfTheLines:
@@ -327,7 +382,7 @@ class TestTheGifs:
             hold = sketches.PACED_HOLD_MS if scene.slug in sketches.PACED else HOLD_MS
             assert steps[-1].ms == hold, scene.slug
 
-    def test_both_sketches_build_slowly_and_hold_twelve_seconds(self, every) -> None:
+    def test_every_sketch_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
         """Each label alone for 0.9 s and the drawing for 12 s, the equity
         post's slow pace."""
         from chan import equity_seasonals_whiteboard as equity
@@ -337,7 +392,7 @@ class TestTheGifs:
             equity.PACED_LABEL_MS,
             equity.PACED_HOLD_MS,
         )
-        assert sketches.PACED == ("dip_and_bounce", "half_of_each")
+        assert sketches.PACED == ("dip_and_bounce", "half_of_each", "swing_cost")
         for scene in every:
             frames = sketch_timeline(scene)
             labels = [
@@ -495,6 +550,76 @@ class TestTheFigures:
         monkeypatch.setattr(crude, "combination_positions", one_off)
         with pytest.raises(ValueError, match="not half of each rule"):
             JoinFigures.from_run()
+
+    def test_each_rules_average_kept_and_lost_day(self, figures: JoinFigures) -> None:
+        """The swing sketch's figures at the six decimals it prints, in the
+        post's table order, with kept and lost adding to the average day at
+        that precision."""
+        assert [swing.rule for swing in figures.swings] == [
+            "the join",
+            "momentum alone",
+            "reversal alone",
+        ]
+        assert [(six(s.average), six(s.kept), six(s.lost)) for s in figures.swings] == [
+            ("0.000463", "0.000441", "0.000022"),
+            ("0.000519", "0.000343", "0.000176"),
+            ("0.000440", "0.000262", "0.000178"),
+        ]
+        for swing in figures.swings:
+            assert Decimal(six(swing.kept)) + Decimal(six(swing.lost)) == Decimal(
+                six(swing.average)
+            ), swing.rule
+
+    def test_the_swings_are_read_from_each_rules_daily_returns(self, figures) -> None:
+        """The average day is the mean over all 1,000 rows, flat ones
+        included, and kept is the one return that compounds to the same
+        final capital."""
+        _, cl = crude.read_cl()
+        rules = crude.four_rules(cl)
+        for swing, traded in zip(
+            figures.swings, (rules.combination, rules.momentum, rules.reversal), strict=True
+        ):
+            assert len(traded.daily) == 1000
+            assert swing.average == pytest.approx(traded.daily.mean(), rel=1e-12)
+            final = np.prod(1 + traded.daily)
+            assert (1 + swing.kept) ** len(traded.daily) == pytest.approx(final, rel=1e-12)
+
+    def test_252_days_of_the_kept_return_give_each_rules_apr(self, figures) -> None:
+        _, cl = crude.read_cl()
+        rules = crude.four_rules(cl)
+        for swing, traded, printed in zip(
+            figures.swings,
+            (rules.combination, rules.momentum, rules.reversal),
+            ("0.117600", "0.090228", "0.068326"),
+            strict=True,
+        ):
+            assert (1 + swing.kept) ** 252 - 1 == pytest.approx(traded.apr, rel=1e-12)
+            assert f"{(1 + swing.kept) ** 252 - 1:.6f}" == printed, swing.rule
+
+    def test_lost_comes_close_to_half_the_variance_without_equalling_it(self, figures) -> None:
+        """Within 1e-6 of σ²/2 on each rule, with n − 1 in the variance as
+        MATLAB's ``std`` takes it, and more than 1e-8 away, so the caption
+        says "comes close to" rather than "equals"."""
+        _, cl = crude.read_cl()
+        rules = crude.four_rules(cl)
+        for swing, traded in zip(
+            figures.swings, (rules.combination, rules.momentum, rules.reversal), strict=True
+        ):
+            half = traded.daily.std(ddof=1) ** 2 / 2
+            assert 1e-8 < abs(swing.lost - half) < 1e-6, swing.rule
+
+    def test_the_rules_alone_swing_nearly_three_times_and_lose_about_eight(self, figures) -> None:
+        """The caption's two comparisons: each rule alone's standard
+        deviation over the join's, about 2.80 and 2.82, and each one's lost
+        return over the join's, about 7.92 and 8.01."""
+        _, cl = crude.read_cl()
+        rules = crude.four_rules(cl)
+        join = rules.combination.daily.std(ddof=1)
+        for traded in (rules.momentum, rules.reversal):
+            assert 2.5 < traded.daily.std(ddof=1) / join < 3
+        first, *alone = figures.swings
+        for swing in alone:
+            assert 7.5 < swing.lost / first.lost < 8.5, swing.rule
 
     def test_a_day_the_join_holds_nothing_is_refused(self, figures: JoinFigures) -> None:
         flat = replace(figures.first_long, close=figures.first_long.reversal_lag + 1)
@@ -849,6 +974,158 @@ class TestTheGridSketch:
             assert sentence in alt, sentence
 
 
+# --- Lesson 2: what the swings take from an average day ---------------------------
+
+
+def _swing_parts(scene, swing):
+    """A bar's kept tint, its lost fill, and the id both start with."""
+    gid = swing.rule.replace(" ", "-")
+    fills = {fill.gid: fill for fill in scene.fills}
+    return fills[f"{gid}-kept"], fills[f"{gid}-lost"], gid
+
+
+def _part_words(scene, gid):
+    """The labels naming a bar's part, leaving out the closing line, which
+    names the last part drawn."""
+    return [label for label in _labels_of(scene, gid) if label is not scene.steps[-1]]
+
+
+#: Made-up figures where reversal alone keeps the largest share and has the
+#: tallest average day, so the closing line and the scale are seen to follow.
+OTHER_SWINGS = (
+    Swing("the join", 0.0004, 0.0002),
+    Swing("momentum alone", 0.0005, 0.0003),
+    Swing("reversal alone", 0.0008, 0.0007),
+)
+
+
+class TestTheSwingSketch:
+    def test_its_words(self, every) -> None:
+        assert every[2].title == "What the swings take from an average day"
+        assert every[2].labels == SWING_LABELS
+
+    def test_its_colours(self, every, figures) -> None:
+        """Kept is a pale tint with a green edge and green words, lost is
+        solid red with red words, and the words "kept" and "lost" say which
+        is which without the colour."""
+        scene = every[2]
+        for swing in figures.swings:
+            kept, lost, gid = _swing_parts(scene, swing)
+            assert (kept.color, lost.color) == (TINT, LOST), gid
+            assert _stroke(scene, f"{gid}-kept-edge").color == GOOD
+            name, kept_words = _labels_of(scene, kept.gid)
+            (lost_words,) = _part_words(scene, lost.gid)
+            assert (name.text, name.color) == (swing.rule, INK)
+            assert (kept_words.text.split()[0], kept_words.color) == ("kept", GOOD)
+            assert (lost_words.text.split("\n")[0], lost_words.color) == ("lost to swings", LOST)
+        assert scene.steps[-1].color == INK
+
+    def test_every_bar_is_drawn_to_one_scale(self, every, figures) -> None:
+        """Each part's top sits at an affine function of its value, the same
+        one for every bar, with the foot at zero and the tallest average day
+        at the top."""
+        scene = every[2]
+        scale = swing_scale(figures.swings)
+        tallest = max(swing.average for swing in figures.swings)
+        assert SWING_FOOT + tallest * scale == pytest.approx(SWING_TOP)
+        for swing in figures.swings:
+            kept, lost, gid = _swing_parts(scene, swing)
+            assert kept.y0 == SWING_FOOT, gid
+            assert kept.y1 == pytest.approx(SWING_FOOT + swing.kept * scale), gid
+            assert lost.y0 == kept.y1, gid
+            assert lost.y1 == pytest.approx(SWING_FOOT + swing.average * scale), gid
+            assert (lost.y1 - lost.y0) / (kept.y1 - kept.y0) == pytest.approx(
+                swing.lost / swing.kept
+            ), gid
+
+    def test_the_joins_lost_part_is_thin_but_shows(self, every, figures) -> None:
+        """About 8 pixels tall, which is why it is solid rather than hatched."""
+        _, lost, _ = _swing_parts(every[2], figures.swings[0])
+        pixels = (lost.y1 - lost.y0) * HEIGHT / 4.7
+        assert 5 < pixels < 12
+
+    def test_the_bars_stand_in_the_tables_order(self, every, figures) -> None:
+        scene = every[2]
+        for swing, x0 in zip(figures.swings, SWING_XS, strict=True):
+            kept, lost, gid = _swing_parts(scene, swing)
+            assert (kept.x0, kept.x1) == (x0, x0 + SWING_WIDTH), gid
+            assert (lost.x0, lost.x1) == (kept.x0, kept.x1), gid
+        assert list(SWING_XS) == sorted(SWING_XS)
+
+    def test_each_part_has_its_words_beside_it(self, every, figures) -> None:
+        """Each part's words start just right of its bar at the height of
+        that part's middle, and each rule's name sits centred under its bar."""
+        scene = every[2]
+        for swing in figures.swings:
+            kept, lost, _ = _swing_parts(scene, swing)
+            name, kept_words = _labels_of(scene, kept.gid)
+            (lost_words,) = _part_words(scene, lost.gid)
+            assert (name.x, name.y) == ((kept.x0 + kept.x1) / 2, SWING_NAMES_Y)
+            assert name.ha == "center" and name.y < SWING_FOOT
+            for words, part in ((kept_words, kept), (lost_words, lost)):
+                assert words.x == pytest.approx(part.x1 + SWING_PAST), words.text
+                assert words.y == pytest.approx((part.y0 + part.y1) / 2), words.text
+
+    def test_the_closing_line_names_the_rule_that_keeps_the_largest_share(
+        self, every, figures
+    ) -> None:
+        keeper = max(figures.swings, key=lambda swing: swing.kept / swing.average)
+        assert keeper.rule == "the join"
+        assert keeper is max(figures.swings, key=lambda swing: swing.kept)
+        last = every[2].steps[-1]
+        assert isinstance(last, Label)
+        assert last.text == f"{keeper.rule} keeps the most of its average day"
+
+    def test_its_words_and_scale_follow_made_up_figures(self, figures) -> None:
+        scene = scenes(replace(figures, swings=OTHER_SWINGS))[2]
+        assert scene.labels[-1] == "reversal alone keeps the most of its average day"
+        assert "kept 0.000700" in scene.labels
+        assert "lost to swings\n0.000100" in scene.labels
+        assert "kept 0.000441" not in scene.labels
+        tallest = next(f for f in scene.fills if f.gid == "reversal-alone-lost")
+        assert tallest.y1 == pytest.approx(SWING_TOP)
+
+    def test_a_rule_that_keeps_nothing_is_refused(self, figures) -> None:
+        losing = (*figures.swings[:2], Swing("reversal alone", 0.0001, -0.0002))
+        with pytest.raises(ValueError, match="reversal alone keeps nothing"):
+            scenes(replace(figures, swings=losing))
+
+    def test_its_caption(self) -> None:
+        """The rows, the save and the 252 days it names, read where they
+        come from. The two comparisons are held on the run in
+        :class:`TestTheFigures`."""
+        _, cl = crude.read_cl()
+        assert (len(cl), str(cl.index[-1].date()), crude.TRADING_DAYS) == (1000, "2012-05-04", 252)
+        caption = " ".join(_caption(2).split())
+        assert caption == (
+            "*Over the 1,000 rows of the 2012-05-04 save. Kept is the one daily return that, "
+            "earned every day, compounds to the same final capital as the rule, so 252 days of "
+            "it give the rule’s APR in the table. Lost to swings is the average day minus kept. "
+            "On each rule it comes close to half the square of the standard deviation, so "
+            "momentum alone and reversal alone, which swing nearly three times as much as the "
+            "join, lose about eight times as much.*"
+        )
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every, figures) -> None:
+        """The proportions it names are checked on the run: the join's red
+        part a thin strip, momentum alone the tallest bar, and the red parts
+        of the rules alone about a half and about two thirds of their
+        lower parts."""
+        alt = _alt(POST.read_text(encoding="utf-8"), every[2])
+        assert "Its figures come from the run." in alt
+        assert "drawn to one scale, each as tall as its rule’s average day" in alt
+        assert "lower part is a pale tint with a green edge, and its upper part is solid red" in alt
+        assert "Its red part is only a thin strip at the top" in alt
+        assert "The middle bar, the tallest, is named “momentum alone”" in alt
+        assert "beside a red part about half as tall as that" in alt
+        assert "beside a red part about two thirds as tall as that" in alt
+        join, momentum, reversal = figures.swings
+        assert max(figures.swings, key=lambda swing: swing.average) is momentum
+        assert join.lost / join.kept < 0.1
+        assert 0.45 < momentum.lost / momentum.kept < 0.55
+        assert 0.6 < reversal.lost / reversal.kept < 0.73
+
+
 # --- The post ------------------------------------------------------------------
 
 
@@ -871,14 +1148,30 @@ class TestThePost:
         assert paragraphs[index + 2].startswith("*Counted over the 960 rows")
         assert paragraphs[index + 3].startswith("The join’s average day")
 
-    def test_the_rule_sketch_sits_in_the_rule_and_the_grid_in_lesson_2(self) -> None:
+    def test_the_swing_sketch_follows_its_paragraph(self) -> None:
+        """The paragraph hands over to the sketch, then to the chart."""
+        paragraphs = _paragraphs()
+        (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(SWING_PARAGRAPH)]
+        assert paragraphs[index].endswith(
+            "The sketch below measures what the swings took from each rule’s average day, "
+            "and the chart after it shows how hard each rule swung."
+        )
+        assert re.fullmatch(
+            rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(GIFS[2])}\)", paragraphs[index + 1]
+        )
+        assert paragraphs[index + 2].startswith("*Over the 1,000 rows")
+        assert paragraphs[index + 3].startswith("![Two line charts")
+
+    def test_the_rule_sketch_sits_in_the_rule_and_the_others_in_lesson_2(self) -> None:
         text = POST.read_text(encoding="utf-8")
-        rule, grid = (text.index(f"(../docs/figures/{name})") for name in GIFS)
+        rule, grid, swing = (text.index(f"(../docs/figures/{name})") for name in GIFS)
         section = text.index("## The rule and the file")
         lesson_1 = text.index("## Lesson 1:")
         lesson_2 = text.index("## Lesson 2:")
+        cost = text.index("### What the swings cost")
+        chart = text.index("(../docs/figures/cl_reversal_momentum.png)")
         lesson_3 = text.index("## Lesson 3:")
-        assert section < rule < lesson_1 < lesson_2 < grid < lesson_3
+        assert section < rule < lesson_1 < lesson_2 < grid < cost < swing < chart < lesson_3
 
     def test_each_gif_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -899,9 +1192,10 @@ class TestThePost:
 
     def test_each_alt_text_says_it_is_slow_and_whether_it_is_schematic(self, every) -> None:
         text = POST.read_text(encoding="utf-8")
-        rule, grid = every
+        rule, grid, swing = every
         assert "It is schematic: each panel keeps the order" in _alt(text, rule)
         assert "schematic" not in _alt(text, grid)
+        assert "schematic" not in _alt(text, swing)
         for scene in every:
             alt = _alt(text, scene)
             assert "drawn slowly" in alt, scene.slug
@@ -920,5 +1214,5 @@ class TestThePost:
 
     def test_the_module_says_which_is_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
-        assert "This sketch is schematic." in doc
-        assert "This sketch is not schematic" in doc
+        assert doc.count("This sketch is schematic.") == 1
+        assert doc.count("This sketch is not schematic") == 2
