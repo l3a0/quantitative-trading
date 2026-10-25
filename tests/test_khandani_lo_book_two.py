@@ -6,7 +6,8 @@ the first book's Examples 3.7 and 3.8. ``docs/replication-log.md`` Entry 19
 carries the verdicts and points here row by row, and
 ``blog/khandani-lo-reversal-lessons.md`` quotes the same figures and the
 yearly APRs, the annual mean and deviation, the bridge differences and the
-average day that this file pins for it.
+average day that this file pins for it, and ``TestWhatThePostQuotes`` reads
+one copy of each in the post against the run.
 
 Every pin on the committed panel reads one vintage and one specification, so
 both are stated once here.
@@ -74,6 +75,7 @@ from chan.khandani_lo_book_two import (
     run,
     window,
 )
+from chan.khandani_lo_book_two_figures import cumulative_return
 from chan.series import (
     WindowCrossesScaleBreak,
     load_panel,
@@ -643,3 +645,253 @@ class TestTheRuleByHand:
         assert matches(30.164676, "30")
         assert matches(0.7315525015859361, "0.731553")
         assert gap(13.64, "13.7") == pytest.approx(-0.1)
+
+
+# --- what the post quotes ------------------------------------------------------
+
+POST = paths.REPO_ROOT / "blog" / "khandani-lo-reversal-lessons.md"
+
+
+def _signed(value: float, decimals: int) -> str:
+    """A figure as the post prints it, with a minus sign rather than a hyphen."""
+    return f"{value:.{decimals}f}".replace("-", "\N{MINUS SIGN}")
+
+
+def _math_block(*rows: str) -> str:
+    """One of the post's display tables, rebuilt whole from its rows."""
+    return "```math\n" + "\n".join(rows) + "\n```"
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/khandani-lo-reversal-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in one copy: a short fragment holding the number and
+    the few words that name one place in the post. A typo in that copy, or a
+    re-pin that leaves the post behind, fails here. Lesson 1's two tables and
+    Lesson 3's table are rebuilt whole, so a digit added to a cell fails as
+    well as a digit changed.
+
+    Only one copy of each figure is read. The yearly APRs are read in the
+    figure's alt text and not in the paragraph under the caption, the Sharpe
+    ratios of Lesson 3 in its table and not in the sentences that repeat them,
+    and the rounding margins and the average day in their lessons and not in
+    the closing habits. The Kindle locations, the book's own figures beyond
+    the tables, the ratios the post states in words and the facts outside the
+    data are checked by nothing, and README lists them.
+
+    The first book's 2006 figures, which ``tests/test_khandani_lo.py`` pins,
+    are read here too, since the post quotes them. So is the post's dating of
+    the stock list.
+    ``tests/test_buy_on_gap.py``'s ``TestTheListDatesFromLate2011`` holds the
+    file's facts behind it, and this class reads only this post's sentences,
+    so a post that drifts back to 2012-04-24 fails.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_opening_quotes_the_first_books_2006(self, first_file, text) -> None:
+        year = reversal(first_file)
+        fragments = [
+            f"Over 2006 the rule’s Sharpe ratio was {year.before_costs:.4f} before costs",
+            f"took it to {_signed(year.after_costs, 4)}, the figure behind Chan’s printed "
+            f"{_signed(year.after_costs, 2)}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_panel_and_the_window(self, closes_panel, result: BookTwo, text) -> None:
+        members, _ = closes_panel
+        (saved,) = {m.obtained for m in members}
+        days = result.close_to_close.days
+        fragments = [
+            f"`{SOURCE_FILE}`, saved on {saved}. It holds the daily prices of {len(members)} "
+            "stocks",
+            f"The script cuts the panel to {len(days):,} trading days, from {days[0].date()} "
+            f"to {days[-1].date()}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_post_dates_the_list_to_late_2011(self, closes_panel, text) -> None:
+        """Each place the post dates the list, and no place restoring 2012-04-24."""
+        members, _ = closes_panel
+        fragments = [
+            f"The file holds {len(members)} stocks that were in the S&P 500 in late 2011",
+            "A company that was out of the index for all of late 2011 is not in the file",
+            "The panel carries a list of the index from late 2011 back almost five years",
+            "Every stock on the panel was in the S&P 500 in late 2011",
+            "the stocks were chosen from the index as it stood in late 2011",
+        ]
+        assert self.missing(text, fragments) == []
+        restored = [
+            old
+            for old in (
+                "as Chan held it on 2012-04-24",
+                "S&P 500 on 2012-04-24",
+                "index on 2012-04-24",
+                "2012-04-24’s membership",
+            )
+            if old in text
+        ]
+        assert restored == []
+
+    def test_lesson_1s_tables(self, result: BookTwo, text) -> None:
+        a, b = result.close_to_close, result.open_to_close
+        head = r"\text{Computed} & \text{Script} & \text{Book} \\ \hline"
+        example_43 = _math_block(
+            r"\small\begin{array}{l|r|r|r}",
+            rf"\text{{Example 4.3}} & {head}",
+            rf"\text{{APR}} & {a.apr:.6f} & {BOOK_43_APR_PERCENT}\% & "
+            rf"{BOOK_43_APR_PERCENT}\% \\",
+            rf"\text{{Sharpe ratio}} & {a.sharpe:.6f} & {BOOK_43_SHARPE} & {BOOK_43_SHARPE} \\",
+            rf"\text{{APR in 2008}} & {a.year_apr(2008):.6f} & \text{{none}} & "
+            rf"{BOOK_YEAR_APR_PERCENT[2008]}\% \\",
+            rf"\text{{APR in 2011}} & {a.year_apr(2011):.6f} & \text{{none}} & "
+            rf"{BOOK_YEAR_APR_PERCENT[2011]}\%",
+            r"\end{array}",
+        )
+        example_44 = _math_block(
+            r"\small\begin{array}{l|r|r|r}",
+            rf"\text{{Example 4.4}} & {head}",
+            rf"\text{{APR}} & {b.apr:.6f} & {SCRIPT_44_APR} & {BOOK_44_APR_PERCENT}\% \\",
+            rf"\text{{Sharpe ratio}} & {b.sharpe:.6f} & {SCRIPT_44_SHARPE} & {BOOK_44_SHARPE}",
+            r"\end{array}",
+        )
+        assert self.missing(text, [example_43, example_44]) == []
+
+    def test_lesson_1s_rounding_margins(self, result: BookTwo, text) -> None:
+        a, b = result.close_to_close, result.open_to_close
+        fragments = [
+            f"Example 4.3’s Sharpe ratio sits {a.sharpe - 1.25:.4f} above 1.25",
+            f"Its APR in 2011 sits {100 * a.year_apr(2011) - 10.5:.2f} percentage points "
+            "above 10.5 percent",
+            f"Example 4.4’s APR is {b.apr:.10f}, which sits "
+            f"{(b.apr - 0.7315525) * 1e9:.1f} × 10⁻⁹ above",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_mean_and_the_deviation(self, result: BookTwo, text) -> None:
+        def annual(run) -> tuple[str, str]:
+            return (
+                f"{252 * run.daily.mean():.4f}",
+                f"{np.sqrt(252) * run.daily.std(ddof=1):.4f}",
+            )
+
+        (m3, s3), (m4, s4) = annual(result.close_to_close), annual(result.open_to_close)
+        fragments = [
+            f"Example 4.3’s daily returns average {m3} with a standard deviation of {s3}",
+            f"Example 4.4’s average {m4} with a standard deviation of {s4}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_figures_alt_text(self, result: BookTwo, text) -> None:
+        """The yearly APRs and the legends, and the curves' ends to the nearest ten percent."""
+        a, b = result.close_to_close, result.open_to_close
+
+        def years(run) -> list[str]:
+            return [_signed(100 * run.year_apr(year), 2) for year in range(2007, 2012)]
+
+        y3, y4 = years(a), years(b)
+        curve = 100 * cumulative_return(a)
+        assert curve[a.days.year == 2007][-1] < 0  # "drifts slightly below zero through 2007"
+        fragments = [
+            f"give each year’s APR: {y3[0]} percent in 2007, {y3[1]} in 2008, {y3[2]} in 2009, "
+            f"{y3[3]} in 2010 and {y3[4]} in 2011. Its legend gives an APR of {a.apr:.6f} and "
+            f"a Sharpe ratio of {a.sharpe:.6f}",
+            f"Its labels give {y4[0]} percent in 2007, {y4[1]} in 2008, {y4[2]} in 2009, "
+            f"{y4[3]} in 2010 and {y4[4]} in 2011, and its legend gives {b.apr:.6f} and "
+            f"{b.sharpe:.6f}",
+            f"2008 and 2009 to about {round(curve[a.days.year == 2009][-1], -1):.0f} percent",
+            f"ends 2011 near {round(curve[-1], -1):.0f} percent",
+            f"from zero to about {round(100 * cumulative_return(b)[-1], -1):,.0f} percent",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_flags_and_cah(self, closes_panel, opens_panel, text) -> None:
+        def refused_stocks(panel) -> int:
+            members, frame = panel
+            legs = [(m, frame[m.symbol].dropna()) for m in members]
+            with pytest.raises(WindowCrossesScaleBreak) as refused:
+                refuse_window_crossing_a_break(
+                    legs, start=pd.Timestamp(WINDOW_START), end=pd.Timestamp(WINDOW_END)
+                )
+            return str(refused.value).count("changes scale")
+
+        _, frame = closes_panel
+        cah = frame["CAH"].loc["2009-08-31":"2009-09-02"]
+        without = close_to_close(frame.drop(columns=["CAH"]), start=WINDOW_START, end=WINDOW_END)
+        fragments = [
+            f"it would refuse {refused_stocks(closes_panel)} stocks’ closes and "
+            f"{refused_stocks(opens_panel)} stocks’ opens",
+            "such as AIG’s collapse on "
+            + FLAGGED_IN_CHANS_MAT_FILES["inputdataohlcdaily_stocks_20120424/aig.csv"][0],
+            "CAH closes at "
+            + ", ".join(f"{price:.2f} on {day.date()}" for day, price in cah.iloc[:2].items())
+            + f" and {cah.iloc[2]:.2f} on {cah.index[2].date()}",
+            f"Without CAH, Example 4.3 gives an APR of {100 * without.apr:.2f} percent and a "
+            f"Sharpe ratio of {without.sharpe:.4f}, which would print as "
+            f"{100 * without.apr:.1f} and {without.sharpe:.1f}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3s_table_and_differences(self, first_file, result: BookTwo, text) -> None:
+        first_book = reversal(first_file).before_costs
+        rule = result.rule_on_first_file.sharpe
+        returns_first = khandani_lo.plain_sharpe(notebook_reversal(first_file, fill=False).pnl)
+        panel = result.first_rule_on_panel.before_costs
+        held = result.close_to_close.sharpe
+        lost = notebook_reversal(first_file, fill=False).pnl[:2]
+        days = result.rule_on_first_file.days
+        table = _math_block(
+            r"\small\begin{array}{l|l|r}",
+            r"\text{Rule} & \text{Data} & \text{Sharpe} \\ \hline",
+            rf"\text{{First book's}} & \text{{2006}} & {first_book:.4f} \\",
+            rf"\text{{Second, returns before the cut}} & \text{{2006}} & {returns_first:.4f} \\",
+            rf"\text{{Second book's}} & \text{{2006}} & {rule:.4f} \\",
+            rf"\text{{First book's}} & \text{{panel}} & {panel:.4f} \\",
+            rf"\text{{Second book's, Example 4.3}} & \text{{panel}} & {held:.4f}",
+            r"\end{array}",
+        )
+        assert held - rule > 2 * (rule - first_book)  # "more than twice what the change gave"
+        fragments = [
+            table,
+            f"`{khandani_lo.SOURCE_FILE}`, the {first_file.shape[1]} stocks in the S&P 500 on "
+            f"2007-11-23, over the {len(days)} trading days of 2006",
+            f"from {first_book:.4f} to {rule:.4f}, by {rule - first_book:.4f}",
+            f"Example 4.3 reaches {held:.4f}, so {held - rule:.4f} of the rise is still left",
+            f"the year’s first two days, {days[0].date()} and {days[1].date()}, earn nothing",
+            f"those two days lose {-100 * lost[0]:.2f} and {-100 * lost[1]:.2f} percent",
+            f"That is {rule - returns_first:.4f} of the {rule - first_book:.4f}, or "
+            f"{(rule - returns_first) / (rule - first_book):.2f} of it",
+            f"the rounded rows give {round(rule, 4) - round(returns_first, 4):.4f}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_4s_costs_and_average_day(self, first_file, result: BookTwo, text) -> None:
+        year = reversal(first_file)
+        panel = result.first_rule_on_panel
+        on_year, on_panel = daily_book(year), daily_book(panel)
+        fragments = [
+            f"its Sharpe ratio falls from {panel.before_costs:.4f} to "
+            f"{panel.after_costs_charged:.4f} on the panel",
+            f"Over 2006 the same charge took it from {year.before_costs:.4f} to "
+            f"{_signed(year.after_costs_charged, 4)}",
+            f"On the panel the rule trades {on_panel.turnover:.4f} times its average gross "
+            f"position a day, against {on_year.turnover:.4f} over 2006",
+            f"that costs {1e4 * on_panel.cost:.4f} basis points a day against "
+            f"{1e4 * on_year.cost:.4f}",
+            f"It earns {1e4 * on_panel.profit:.4f} basis points a day on the panel, against "
+            f"{1e4 * on_year.profit:.4f} over 2006",
+            f"So over 2006 the cost was {on_year.cost_per_profit:.4f} times a day’s profit, "
+            f"and on the panel it is {on_panel.cost_per_profit:.4f} of it",
+        ]
+        assert self.missing(text, fragments) == []
+        assert round(on_panel.profit / on_year.profit, -1) == 20  # "about twenty times larger"
+        assert 1 - on_panel.cost_per_profit < 1 / 3  # "keeps less than a third"

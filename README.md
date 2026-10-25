@@ -279,8 +279,8 @@ where they were first built. The other forty-five were built here.
     gross of 1, leaves a missing price's weight missing, charges no cost, and
     cuts the window before taking returns. Example 4.3 holds the weights from
     close to close, and Example 4.4 trades
-    from the open to the same day's close on the overnight gap. Every figure
-    Chan prints reproduces: an APR of 13.68 percent and a Sharpe ratio of
+    from the open to the same day's close on the overnight gap. Every return
+    and Sharpe ratio Chan prints reproduces: an APR of 13.68 percent and a Sharpe ratio of
     1.2595 against his 13.7 and 1.3, 30.16 percent in 2008 and 10.58 in 2011
     against his 30 and 11, and 0.731553 and 4.713284 for Example 4.4, the six
     decimals his script printed. The first book's rule on the same panel and
@@ -5268,9 +5268,8 @@ links the earlier post on the first book's rule rather than repeating it, and
 draws four lessons from Entry 19 of the replication log.
 
 1. Every return and Sharpe ratio the book prints lands on Chan's own file,
-   and so do the two
-   the script printed at six decimals, though two of the book's roundings have
-   little room.
+   and so do Example 4.4's APR and Sharpe ratio as the script printed them at
+   six decimals, though two of the book's roundings have little room.
 2. The match needs CAH's prices of 2009-08-31 to 2009-09-02, which read as a
    data error or a corporate action, so a cleaner file would miss both of
    Example 4.3's figures.
@@ -5304,14 +5303,12 @@ Five groups of what it says are not pinned here.
    this window fall in the 2008 crisis, that CAH's prices read as a data error
    or a corporate action, and that a longer stretch of survivors leaves out
    more of the companies that left the index. The survivor horizons of almost
-   five years and under two are arithmetic on the two files' membership dates.
+   five years and under two are arithmetic on when each file's list of stocks
+   dates from.
 4. Ratios the post takes between pinned figures in words: about five times,
    nearly four times, four times the average return, about the same standard
-   deviation, more than twice, by about a third, and less than a third. So is
-   what a figure would print as at the book's precision, such as 1.2, 10, 13.3
-   and 0.731552.
-   The figure's alt text reads its curves approximately too, such as "about 70
-   percent" and "about 1,460 percent".
+   deviation, and by about a third. So is what a figure would print as at the
+   book's precision in Lesson 1's margins, 1.2, 10 and 0.731552.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -5332,6 +5329,18 @@ before it.
 4. The first book's rule's average day on the panel: a profit of 10.5234 and a
    cost of 7.2868 basis points of its position, 0.6924 of the profit, a
    turnover of 1.4574, and a profit 19.94 times 2006's.
+
+`TestWhatThePostQuotes` in
+[tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) reads
+the post itself. It rebuilds Lesson 1's two tables and Lesson 3's table whole
+from the run, checks one copy of every other figure the post takes from a run
+at the precision the post prints, including the first book's 2006 figures, and
+reads each sentence that dates the stock list to late 2011. It also asserts on
+the run four comparisons the post's words draw: that Example 4.3's curve ends
+2007 below zero, that what is left of the rise is more than twice what the
+change of rule gave, that the profit is about twenty times 2006's, and that
+the rule keeps less than a third of its daily profit after costs. It reads no
+second copy of a figure.
 
 Its one figure is drawn from the committed panel by
 [src/chan/khandani_lo_book_two_figures.py](src/chan/khandani_lo_book_two_figures.py),
