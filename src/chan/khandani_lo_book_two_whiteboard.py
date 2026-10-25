@@ -229,6 +229,25 @@ def _bounce(bounce: Bounce) -> Scene:
                 f"{close:.2f}", PRICE_AXIS_X - 0.28, y, names=gid, color=MUTED, size=11, ha="right"
             )
         )
+    price_ticks.append(
+        _stroke(
+            "price-tick-foot",
+            _line([(PRICE_AXIS_X - 0.1, PRICE_FOOT), (PRICE_AXIS_X, PRICE_FOOT)], per_unit=12),
+            color=MUTED,
+            frames=2,
+        )
+    )
+    price_ticks.append(
+        Label(
+            f"{PRICE_LOW:.2f}",
+            PRICE_AXIS_X - 0.28,
+            PRICE_FOOT,
+            names="price-tick-foot",
+            color=MUTED,
+            size=11,
+            ha="right",
+        )
+    )
     day_ticks: list[Stroke | Label] = []
     for k, (x, text) in enumerate(zip(DAY_X, (DAYS[0], DAYS[1][5:], DAYS[2][5:]), strict=True)):
         gid = f"day-tick-{k}"
@@ -543,7 +562,8 @@ def _average_day(days: AverageDays) -> Scene:
             _bar("panel-profit", days.panel_profit, PANEL_PROFIT_Y, GOOD),
             _bar_label(f"profit {days.panel_profit:.4f}", PANEL_PROFIT_Y, "panel-profit", GOOD),
             Label(
-                f"turnover {days.year_turnover:.4f} and {days.panel_turnover:.4f} a day",
+                f"trades {days.year_turnover:.4f} and {days.panel_turnover:.4f}"
+                " times the position a day",
                 9.75,
                 3.75,
                 names="panel-cost",
@@ -596,7 +616,8 @@ def _average_day(days: AverageDays) -> Scene:
                 size=11,
             ),
             Label(
-                f"first book’s rule, {ONE_WAY_COST * 1e4:g} basis points a side, first day charged",
+                f"first book’s rule, {ONE_WAY_COST * 1e4:g} basis points on every buy and sell, "
+                "first day’s trades charged",
                 on_scale(5),
                 0.2,
                 names="axis",

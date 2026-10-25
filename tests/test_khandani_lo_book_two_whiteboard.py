@@ -65,6 +65,7 @@ from chan.khandani_lo_book_two_whiteboard import (
     DAY_X,
     PRICE_AXIS_X,
     PRICE_FOOT,
+    PRICE_LOW,
     RISE_X,
     AverageDays,
     Bounce,
@@ -114,6 +115,7 @@ BOUNCE_LABELS = [
     "19.96",
     "14.50",
     "23.57",
+    "11.00",
     "× 0.7265: inside\nthe check’s bounds",
     "× 1.6255:\npast 1.6, flagged",
     "bought at the close:\n3.17 cents of the $1",
@@ -132,10 +134,10 @@ AVERAGE_DAY_LABELS = [
     "2007 to 2011, the panel",
     "cost 7.2868",
     "profit 10.5234",
-    "turnover 1.4505 and 1.4574 a day",
+    "trades 1.4505 and 1.4574 times the position a day",
     "cost is 13.7453 times the profit",
     "kept: 3.2366,\nless than a third",
-    "first book’s rule, 5 basis points a side, first day charged",
+    "first book’s rule, 5 basis points on every buy and sell, first day’s trades charged",
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -424,7 +426,7 @@ class TestThePost:
         bounce_caption, day_caption = captions
         for mark in ("black arrow", "red arrow", "green bar", "green bracket"):
             assert mark in bounce_caption, mark
-        assert "the fall the scale-break guard lets through" in bounce_caption
+        assert "the fall it lets through" in bounce_caption
         assert "the rise it flags" in bounce_caption
         for mark in ("red bar", "green bar", "red hatching", "brown bracket"):
             assert mark in day_caption, mark
@@ -592,6 +594,15 @@ class TestTheBounceSketch:
         assert (upright.min(), upright.max()) == (low, high)
         assert RISE_X > DAY_X[2]
 
+    def test_the_foot_tick_marks_where_the_price_axis_starts(self, every) -> None:
+        """The axis starts at 11 rather than 0, and its foot tick says so."""
+        scene = every[0]
+        foot = _stroke(scene, "price-tick-foot")
+        assert set(foot.y) == {price_y(PRICE_LOW)} == {PRICE_FOOT}
+        assert foot.x.max() == PRICE_AXIS_X
+        label = _label(scene, f"{PRICE_LOW:.2f}")
+        assert (label.y, label.names) == (PRICE_FOOT, "price-tick-foot")
+
     def test_its_words_follow_made_up_figures(self, bounce: Bounce) -> None:
         made_up = replace(
             bounce,
@@ -606,6 +617,7 @@ class TestTheBounceSketch:
             "30.00",
             "25.00",
             "41.00",
+            "11.00",
             "× 0.8333: inside\nthe check’s bounds",
             "× 1.6400:\npast 1.6, flagged",
             "bought at the close:\n1.25 cents of the $1",
@@ -713,9 +725,13 @@ class TestTheAverageDaySketch:
             ("profit 10.5234", GOOD),
             ("cost is 13.7453 times the profit", LOST),
             ("kept: 3.2366,\nless than a third", ACCENT),
-            ("turnover 1.4505 and 1.4574 a day", MUTED),
+            ("trades 1.4505 and 1.4574 times the position a day", MUTED),
             ("basis points a day, of the average gross position", MUTED),
-            ("first book’s rule, 5 basis points a side, first day charged", MUTED),
+            (
+                "first book’s rule, 5 basis points on every buy and sell,"
+                " first day’s trades charged",
+                MUTED,
+            ),
         ):
             assert _label(scene, text).color == ink, text
 
@@ -801,7 +817,7 @@ class TestTheAverageDaySketch:
             "2007 to 2011, the panel",
             "cost 5.0000",
             "profit 6.4000",
-            "turnover 1.2000 and 1.0000 a day",
+            "trades 1.2000 and 1.0000 times the position a day",
             "cost is 3.0000 times the profit",
             "kept: 1.4000,\nless than a third",
         ]
@@ -822,7 +838,7 @@ class TestTheAverageDaySketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
         assert "a short green bar labelled “profit 0.5276”" in alt
-        assert "nearly as long as the first, sits above a long green bar" in alt
+        assert "about as long as the first, sits above a long green bar" in alt
         assert (
             "a red hatched stretch runs from the end of the short green bar to where the red "
             "cost bar above it ends" in alt
