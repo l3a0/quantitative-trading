@@ -162,8 +162,8 @@ COLOURS_NAMED = {
         "caption": [
             ("The black arrow is the fall", ["fall"]),
             ("the red arrow is the rise it flags", ["rise"]),
-            ("The green bar is what Example 4.3 bought at the middle close", ["bought"]),
-            ("the green bracket is the rise that weight earned on", ["earned"]),
+            ("the green bar is that purchase", ["bought"]),
+            ("The green bracket is the rise that purchase earned on the next day", ["earned"]),
             ("The grey line beneath gives Example 4.3’s figures without CAH", ["without CAH:"]),
         ],
     },
@@ -183,7 +183,7 @@ COLOURS_NAMED = {
             ("Each red bar is the average day’s cost", ["year-cost", "panel-cost"]),
             ("each green bar the average day’s profit", ["year-profit", "panel-profit"]),
             ("The red hatching is how far 2006’s cost passes its profit", ["short"]),
-            ("the brown bracket is what the panel keeps", ["kept"]),
+            ("the brown bracket is what the rule keeps on the panel", ["kept"]),
         ],
     },
 }

@@ -831,8 +831,8 @@ class TestWhatThePostQuotes:
         cah = frame["CAH"].loc["2009-08-31":"2009-09-02"]
         without = close_to_close(frame.drop(columns=["CAH"]), start=WINDOW_START, end=WINDOW_END)
         fragments = [
-            f"it would refuse {refused_stocks(closes_panel)} stocks’ closes and "
-            f"{refused_stocks(opens_panel)} stocks’ opens",
+            f"it flags {refused_stocks(closes_panel)} stocks’ closes and "
+            f"{refused_stocks(opens_panel)} stocks’ opens, so it would refuse the whole run",
             "such as AIG’s collapse on "
             + FLAGGED_IN_CHANS_MAT_FILES["inputdataohlcdaily_stocks_20120424/aig.csv"][0],
             "CAH closes at "
@@ -874,9 +874,10 @@ class TestWhatThePostQuotes:
             f"Example 4.3 reaches {held:.4f}, so {held - rule:.4f} of the rise is still left",
             f"the year’s first two days, {days[0].date()} and {days[1].date()}, earn nothing",
             f"those two days lose {-100 * lost[0]:.2f} and {-100 * lost[1]:.2f} percent",
-            f"That is {rule - returns_first:.4f} of the {rule - first_book:.4f}, or "
-            f"{(rule - returns_first) / (rule - first_book):.2f} of it",
-            f"the rounded rows give {round(rule, 4) - round(returns_first, 4):.4f}",
+            f"to {rule:.4f}, by {rule - returns_first:.4f}, about a third of {returns_first:.4f}. "
+            f"That rise is {(rule - returns_first) / (rule - first_book):.2f} of the "
+            f"{rule - first_book:.4f}",
+            f"the rounded rows give a rise of {round(rule, 4) - round(returns_first, 4):.4f}",
         ]
         assert self.missing(text, fragments) == []
 
@@ -896,7 +897,7 @@ class TestWhatThePostQuotes:
             f"It earns {1e4 * on_panel.profit:.4f} basis points a day on the panel, against "
             f"{1e4 * on_year.profit:.4f} over 2006",
             f"So over 2006 the cost was {on_year.cost_per_profit:.4f} times a day’s profit, "
-            f"and on the panel it is {on_panel.cost_per_profit:.4f} of it",
+            f"and on the panel the cost is {on_panel.cost_per_profit:.4f} of the profit",
         ]
         assert self.missing(text, fragments) == []
         assert round(on_panel.profit / on_year.profit, -1) == 20
