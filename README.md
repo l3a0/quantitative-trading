@@ -6192,13 +6192,10 @@ Five groups of what it says are not pinned here.
    ComboOR, which `CL_rev.m` holds at `e4bc46f` of ericnberwick/EpchanPreview.
 3. The EIA's annual average WTI spot price of $41.51 for 2004, read from its
    Cushing, OK series on 2026-10-10 and measured nowhere here.
-4. Arithmetic and ratios the post takes between pinned figures in words: a
-   little over a third, about 40 percent, under a quarter, most of a gain,
-   0.98 × 1.02 = 0.9996, the Sharpe ratios of 0.37 and 0.66 rounded from
-   pinned figures, the join's average day sitting slightly below the plain
-   average of the two rules' and near it before the window, and "two months
-   before" the peak. The figure's alt text reads its curves approximately too,
-   such as "about −11 percent" and "about −29 percent".
+4. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a table,
+   the alt text or the paragraph after the chart, and a typo in a copy the
+   class does not read passes.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6207,9 +6204,17 @@ to
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
 for the figure's own numbers, or to
 [tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
-for the sketches' days, closes and counts. The APR falling by more than half between two
-VX and ES saves traces to [tests/test_vx_es.py](tests/test_vx_es.py). Five
-had no pin before it.
+for the sketches' days, closes and counts. The APR falling by more than half
+between two VX and ES saves traces to [tests/test_vx_es.py](tests/test_vx_es.py).
+`TestWhatThePostQuotes` in the first of those files reads one copy of each
+run figure the post quotes outside the sketches and their captions, and its
+three tables as sets of cells, and checks them against the run. It also
+asserts on the run each comparison the post's words draw, such as a little
+over a third, about 40 percent, under a quarter, most of a gain,
+0.98 × 1.02 = 0.9996, the join's average day sitting slightly below the plain
+average and near it before the window, and "two months before" the peak,
+against Chan's date for it. The sketches' test reads their captions and alt
+texts. Five had no pin before the post.
 
 1. Half a position in each rule gives the join's on all but the 10 warm-up
    rows from 2008-07-01 to 2008-07-15, so the join's daily return is the
