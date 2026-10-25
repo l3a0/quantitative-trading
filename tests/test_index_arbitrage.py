@@ -653,7 +653,7 @@ class TestTheGuardAndTheReads:
         assert "basket -2.46, SPY -2.38, against -2.57 at 90%" in out
         assert "row 5 of the test, 1071 days with a return" in out
         assert "480 stocks tested at a per-test 90% bar, with no false-discovery" in out
-        assert "pass it about 28% of the time" in out
+        assert "pass it 28.1% of the time" in out
         assert "first return on 2008-01-09" in out
         assert "Exploratory and survivor-only." in out
 
@@ -748,6 +748,39 @@ class TestTheBasketsStocksAndTheIndex:
         assert "12 of the 98 it picks were not in the index on 2007-11-23" in text
         assert "Twelve of the 98 are missing from Chan’s list of the S&P 500" in text
         assert "All 14 stay in the basket on every test day." in text
+        assert "Two more, the insurer ACE and Cooper Industries" in text
+
+    def test_the_post_dates_the_list_to_late_2011(self) -> None:
+        """Each place the post dates the stock list, read by the clause that dates it.
+
+        The old wordings are also looked for anywhere in the post, so a
+        sentence added elsewhere that restores one fails as well."""
+        text = POST.read_text(encoding="utf-8")
+        missing = [
+            fragment
+            for fragment in (
+                "The stock file holds only stocks that were in the S&P 500 in late 2011.",
+                "stocks that were in the S&P 500 in late 2011 and treats them as the index",
+                "a list of companies in the S&P 500 in late 2011.",
+                "every stock in the file was in the S&P 500 in late 2011.](",
+                "keeps each data file’s contents as one table per symbol",
+                "Chan’s 2007 list comes in a file whose prices end on 2007-11-23.",
+            )
+            if fragment not in text
+        ]
+        assert missing == []
+        restored = [
+            old
+            for old in (
+                "S&P 500 on 2012-04-24",
+                "as Chan held it on 2012-04-24",
+                "in April 2012",
+                "survived to 2012",
+                "keeps a copy",
+            )
+            if old in text
+        ]
+        assert restored == []
 
 
 #: Small counts and ordinals as the post spells them out, indexed by the number.

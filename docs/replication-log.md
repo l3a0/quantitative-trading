@@ -5895,7 +5895,7 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 | 14 | `scale_breaks` on each of the 98 | CVH, MOS, PNC and STT, every flag in the test window | `TestTheScaleBreakDecision::test_four_of_the_baskets_stocks_carry_a_flag_all_in_the_test` |
 | 15 | The screen on 2,000 Gaussian random walks with no drift, seeded with 343, against SPY's 2007 closes | 561 pass, 28.1 percent, about 135 of 480 | `TestBesideTheReplication::test_the_screen_passes_561_of_2000_walks_unrelated_to_spy` |
 | 16 | `johansen(·, 0, 1)` on 2,000 pairs of such walks, seeded with 345 | r ≤ 0 rejected on 410 at the 90 percent value and 242 at the 95, 20.5 and 12.1 percent | `TestBesideTheReplication::test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks` |
-| 17 | The 98 against Chan's `spx_20071123` list and the IVV schedules from 2008-12-31 | 12 not on the 2007-11-23 list, and ACE and CBE missing at quarter-ends of the test, 14 in all | `TestTheBasketsStocksAndTheIndex::test_12_of_the_98_were_not_on_the_index_list_of_2007_11_23` and `::test_ace_and_cooper_industries_left_the_index_during_the_test_and_came_back` |
+| 17 | The 98 against Chan's `spx_20071123` list and the IVV schedules from 2008-12-31 | 12 not on the 2007-11-23 list, and ACE and CBE missing at quarter-ends of the test, 14 in all | `TestTheBasketsStocksAndTheIndex::test_12_of_the_98_were_not_on_the_index_list_of_2007_11_23` and `::test_ace_and_cooper_industries_left_the_index_during_the_test_and_came_back` and `::test_ak_steel_is_in_the_basket_after_it_left_the_index` |
 
 ### The verdicts
 
@@ -5976,8 +5976,8 @@ cost is charged here, as none is in the script.
 
 **How much survivorship bias is worth.** Chan's list of the index on
 2007-11-23 is committed, but its prices end on that day. Screening the index as
-it stood would need 2007 to 2012 prices for every company on it that the 2012
-file lacks, and no run here has assembled them.
+it stood and trading the result would need 2007 to 2012 prices for every company
+on it that the 2012 file lacks, and no run here has assembled them.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

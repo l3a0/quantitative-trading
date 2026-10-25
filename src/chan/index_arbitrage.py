@@ -377,7 +377,7 @@ def report(
     print("Beside the replication. No book prints these, so none carries a verdict.")
     print(
         f"  {len(found.tested)} stocks tested at a per-test {SCREEN_LEVEL}% bar, with no "
-        "false-discovery control. Walks unrelated to SPY pass it about 28% of the time."
+        "false-discovery control. Walks unrelated to SPY pass it 28.1% of the time."
     )
     print(
         f"  {len(found.skipped)} skipped: "
