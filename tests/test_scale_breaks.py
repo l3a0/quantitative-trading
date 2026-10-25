@@ -104,9 +104,9 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: day. Four sit within 0.02 of a two-for-one split, and whether any is
 #: an unadjusted split is not known: AES and AYE here, and CBU and INSP in the
 #: S&P 600 file. AAPL's column absorbs its June 2000 split with no jump, so its
-#: day is the move it looks like. The book-two S&P 500 file adds 30 days in 17
-#: stocks, every one between 2007 and 2009 and most of them banks and insurers
-#: in the 2008 crisis, such as AIG on 2008-09-15. None falls in the 2011 and 2012
+#: day is the move it looks like. The book-two S&P 500 file adds 30 closes in
+#: 17 stocks, on 26 days, every one between 2007 and 2009 and most of them
+#: banks and insurers in the 2008 crisis, such as AIG on 2008-09-15. None falls in the 2011 and 2012
 #: window Example 7.2 trades, all 30 fall in Example 4.1's, which is the file's
 #: whole span, and none sits near a split, measured on
 #: [issue 250](https://github.com/l3a0/quantitative-trading/issues/250). ``data/README.md`` and
@@ -114,8 +114,8 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: the measurements. Whether a run reading one of these files refuses a window
 #: crossing a flagged day is for that run to decide.
 #:
-#: The later S&P 600 save, ``ijr_20080131/``, flags 21 days in 19 stocks,
-#: committed under
+#: The later S&P 600 save, ``ijr_20080131/``, flags 21 closes in 19 stocks,
+#: on 21 days, committed under
 #: [issue 225](https://github.com/l3a0/quantitative-trading/issues/225). Of
 #: the 18 stocks the earlier save flags, 17 flag the same days. INSP's flag
 #: moves from 2008-01-09 to 2008-01-07, because the later save rescales
@@ -157,8 +157,8 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #:
 #: [Issue 20](https://github.com/l3a0/quantitative-trading/issues/20) decided
 #: that ``chan.pead`` calls the guard for Example 7.2, on each stock's opens
-#: and closes from its first price onward. The book-two S&P 500 file's 30 flagged days
-#: all fall in 2007 to 2009, and the window is 2011-01-03 to 2012-04-24, so
+#: and closes from its first price onward. The book-two S&P 500 file's 30 flagged
+#: closes all fall in 2007 to 2009, and the window is 2011-01-03 to 2012-04-24, so
 #: nothing in it is refused. Reading from the first price is what lets MPC and
 #: XYL, spun off inside the window, pass without a missing price after that
 #: being dropped. ``TestTheRefusals`` in ``tests/test_pead.py`` runs the guard
@@ -188,7 +188,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: that ``chan.buy_on_gap`` refuses no window for *Algorithmic Trading*'s
 #: Example 4.1, on the reasoning issues 18, 21 and 22 give. Its window is the
 #: book-two S&P 500 file's whole span, 2006-05-11 to 2012-04-24, so it holds all 30
-#: of that file's flagged days, and the guard ``chan.pead`` calls would refuse
+#: of that file's flagged closes, and the guard ``chan.pead`` calls would refuse
 #: the run. ``bog.m`` ran on these prices as they stand, and none of the 30 sits
 #: near a split. One position lands on one, a short in MS on 2008-10-13 under
 #: the mirror the issue declared. ``TestTheScaleBreakDecision`` in
@@ -207,7 +207,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: [Issue 296](https://github.com/l3a0/quantitative-trading/issues/296) decided
 #: that ``chan.khandani_lo_book_two`` refuses no window for *Algorithmic
 #: Trading*'s Examples 4.3 and 4.4. Their window,
-#: 2007-01-03 to 2011-12-30, spans all 30 of the book-two S&P 500 file's flagged days,
+#: 2007-01-03 to 2011-12-30, spans all 30 of the book-two S&P 500 file's flagged closes,
 #: and the guard refuses it on 17 stocks' closes and 14 stocks' opens. Chan's
 #: script computes across them and his figures reproduce only with them in.
 #: Most read as the 2008 crisis. CAH's 2009-09-02 does not, and without CAH
@@ -217,7 +217,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: [Issue 343](https://github.com/l3a0/quantitative-trading/issues/343) decided
 #: that ``chan.index_arbitrage`` guards SPY and not the stocks for *Algorithmic
 #: Trading*'s Example 4.2, on issue 295's reasoning. The run reads 2007-01-03 to
-#: 2012-04-09, which holds all 30 of the book-two S&P 500 file's flagged days,
+#: 2012-04-09, which holds all 30 of the book-two S&P 500 file's flagged closes,
 #: ETFC's 2007-11-12 in its training window and 29 in its test, and the guard
 #: refuses the 480 stocks it screens on 17 of them. ``indexArb.m`` ran on these
 #: prices as they stand. Four of the 98 stocks its screen passes carry a flag,
@@ -225,10 +225,10 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: ``tests/test_index_arbitrage.py`` runs the refusal and pins the four.
 #:
 #: [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299) lifted
-#: Chan's book-two ETF file, and the guard flags 58 days in 8 of its 67 ETFs,
-#: every one a leveraged or inverse fund and every day between 2008-04-16 and
-#: 2009-06-25. EDC, MWJ and SMN are among the eight, and they hold the file's
-#: 11 closes below zero. A dividend subtracted in dollars rather than rescaled
+#: Chan's book-two ETF file, and the guard flags 58 closes on 45 days in 8 of
+#: its 67 ETFs, every one a leveraged or inverse fund and every day between
+#: 2008-04-16 and 2009-06-25. EDC, MWJ and SMN are among the eight, and they
+#: hold the file's 11 closes below zero. A dividend subtracted in dollars rather than rescaled
 #: is what lets a close go below zero, which
 #: ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` pins.
 #: No experiment issue 299 names reads any of the eight.
@@ -429,7 +429,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: portfolio's, against 7,908 each. WYN and DFS give no return on the day the
 #: second company starts, because the panel frame holds no close the day
 #: before. ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_leverage.py``
-#: holds the 43 flagged days in 34 stocks, both counts and both restarts.
+#: holds the 43 flagged closes in 34 stocks, both counts and both restarts.
 #:
 #: [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) decided
 #: the same for ``chan.low_beta_holdout``, which runs that rule on the archive's
@@ -878,6 +878,44 @@ class TestTheGuardOverTheWholeManifest:
         assert sum(len(days) for days in found.values()) == 300
         assert len(FLAGGED_IN_CHANS_MAT_FILES) == 96
         assert len(FLAGGED_IN_CHANS_FUTURES) == 7
+
+    def test_each_lifted_file_counts_its_flags_as_closes_and_as_days(self) -> None:
+        """The counts the prose quotes, as columns, closes and days per file.
+
+        A flag is one close, and two columns can flag the same day, so a file's
+        closes and its days are two numbers. The book-two S&P 500 file's 30
+        closes fall on 26 days, because 2008-09-29 holds three and 2008-10-13
+        and 2009-01-20 hold two each. The counts are read off the pins, which
+        the case above holds equal to what the guard finds.
+        """
+
+        def counts(paths: list[str]) -> tuple[int, int, int]:
+            days = [day for path in paths for day in EVERY_FLAG[path]]
+            return len(paths), len(days), len(set(days))
+
+        by_directory: dict[str, list[str]] = {}
+        for path in [*FLAGGED_IN_CHANS_MAT_FILES, *FLAGGED_IN_CHANS_FUTURES]:
+            by_directory.setdefault(path.rpartition("/")[0], []).append(path)
+
+        assert {name: counts(paths) for name, paths in by_directory.items()} == {
+            "ijr_20080114": (18, 19, 19),
+            "ijr_20080131": (19, 21, 21),
+            "inputdata_etf": (8, 58, 45),
+            "inputdataohlcdaily_stocks_20120424": (17, 30, 26),
+            "spx_20071123": (34, 43, 38),
+            "inputdataohlcdaily_20120507": (2, 42, 41),
+            "inputdataohlcdaily_20120511": (2, 42, 41),
+            "inputdataohlcdaily_20120517": (2, 42, 41),
+            "vix": (1, 1, 1),
+        }
+        assert counts([*by_directory["spx_20071123"], *by_directory["ijr_20080114"]]) == (
+            52,
+            62,
+            57,
+        )
+        assert counts(list(FLAGGED_IN_CHANS_MAT_FILES))[1] == 171
+        futures = [path for path in FLAGGED_IN_CHANS_FUTURES if not path.startswith("vix/")]
+        assert counts(futures)[1] == 126
 
     def test_every_committed_price_vintage_is_read_and_only_the_pinned_ones_report(self) -> None:
         """Said as its own case, because a guard that read one file would pass the count.

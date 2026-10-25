@@ -4728,7 +4728,7 @@ comment's one decimal is the precision the source carries.
 | 9 | the first position on each side | 2006-09-22 and 2006-09-25, after the spread first exists on 2006-09-19 | `TestTheFigures::test_nothing_is_held_before_the_spread_exists` |
 | 10 | rows 2 and 3, and 5 and 6, with the first edition's `smartstd` in the spread | 0.083629 and 1.6503, then 0.116340 and 1.7234 | `TestTheHelperMovesBothFigures` |
 | 11 | positions resting on fewer than 90 returns after 2006-09-19 | 3: CFN and MPC long, DPS short, none on a spread of 0 | `TestTheLateListings::test_three_positions_rest_on_fewer_than_90_returns` |
-| 12 | positions on one of the 30 days the scale-break guard flags | 1, MS short on 2008-10-13 | `TestTheScaleBreakDecision::test_one_position_falls_on_a_flagged_day` |
+| 12 | positions that land on one of the 30 closes the scale-break guard flags | 1, MS short on 2008-10-13 | `TestTheScaleBreakDecision::test_one_position_falls_on_a_flagged_day` |
 
 ### The verdicts
 
@@ -10101,7 +10101,7 @@ columns have nothing to hold in any row and are dropped, under
 | 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's. The levered low's reads all 83 months, each as if freshly funded | levered low 3.4596, low 0.4292, high 2.0671, SPY 1 | `TestTheFigures::test_the_realised_betas` and `::test_the_levered_lows_beta_and_sharpe_over_all_83_months` |
 | 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 9.9884, Gaussian growth 0.0283 + 0.5132 = 0.5415, against the high portfolio's realised 0.1183 | `TestTheFigures::test_the_kelly_reading` |
 | 7 | eligible stocks and each portfolio's size, fewest and most over the 83 formations. The run prints every formation's row | 444 to 495 eligible, each portfolio 88 to 99, 7,908 stock-months each | `TestTheFigures::test_444_to_495_stocks_are_eligible`, `::test_each_portfolio_holds_88_to_99`, `::test_every_formations_eligible_count` and `::test_formation_table_rows` |
-| 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 36 low and 186 high. The file flags 43 days in 34 stocks | `TestTheScaleBreakDecision::test_36_low_and_186_high_stock_months_carry_a_flag` and `::test_43_flagged_days_in_34_stocks` |
+| 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 36 low and 186 high. The file flags 43 closes in 34 stocks | `TestTheScaleBreakDecision::test_36_low_and_186_high_stock_months_carry_a_flag` and `::test_43_flagged_days_in_34_stocks` |
 | 9 | the calendar | 2,011 of 2,024 rows shared with SPY, 96 month-ends from 1999-11-30 to 2007-10-31, formations 2000-11-30 to 2007-09-28, 83 holding months | `TestTheCalendar::test_the_cut_drops_13_of_2024_rows`, `::test_96_month_ends_on_the_cut_calendar` and `::test_83_formations_from_2000_11_30` |
 
 ### The verdicts

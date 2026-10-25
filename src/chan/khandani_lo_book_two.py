@@ -91,7 +91,7 @@ book prints either, so neither carries a verdict.
 **The scale-break guard is not called, and that was decided here.**
 :func:`chan.series.refuse_window_crossing_a_break` refuses this window, on 17
 stocks' closes and 14 stocks' opens read from each stock's own rows. On the
-close they are the 30 days ``tests/test_scale_breaks.py`` pins, all in 2007 to
+close they are the 30 closes ``tests/test_scale_breaks.py`` pins, all in 2007 to
 2009. Chan's script computes across them, and his figures reproduce only with
 them in, so refusing the window would refuse the computation being reproduced.
 

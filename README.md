@@ -1507,10 +1507,11 @@ day it changed scale rather than price, and a run whose window spans one stops
 instead of printing a number. Among the single-series vintages, two days of
 `ko_chan.csv` are reported and nothing computes across them, because the KO/PEP
 replication reads the intersection with `pep_chan.csv` and that starts in 1977.
-The columns lifted from Chan's stock, ETF and strip files, below, report 171 more. In
-his stock files most are real moves in single stocks, and the 58 in his ETF
-file fall in eight leveraged and inverse funds in 2008 and 2009. His
-continuous futures saves report 126 more, all in the ZB and ZF bond columns no
+The columns lifted from Chan's stock, ETF and strip files, below, report 171
+more flagged closes. In his stock files most are real moves in single stocks,
+and the 58 closes in his ETF file fall in eight leveraged and inverse funds on
+45 days in 2008 and 2009. His continuous futures saves report 126 more
+closes, all in the ZB and ZF bond columns no
 script of his reads, and his `VIX.csv` reports one, a real move on 2007-02-27.
 Each replication that reads one of these files decides whether to call the
 guard, and one that does not says why in its own docstring. The
@@ -1529,7 +1530,7 @@ and Entry 44 says what each was. The reversal on the S&P 400 does not call it
 either. The five days flagged on its archive panels were classified before the
 run, one kept and four excluded, and Entry 50 says what each was. The
 reversal on the 2012 panel does not call it. Its 2007 to 2011 window spans all
-30 of that file's flagged days, Chan's script computes across them, and his
+30 of that file's flagged closes, Chan's script computes across them, and his
 figures reproduce only with them in. Most read as the 2008 crisis, and CAH's
 2009-09-02 does not. The
 PCA factor model does not call it. Its printouts forward-fill PMC's 851-day
@@ -1615,8 +1616,13 @@ them too.
 that shape was decided. The spot and roll returns of Example 5.3 read five of
 them, BR, C2, CL, HG and TU, through `chan.roll_returns`, for
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347), and
-later replications read their strips through the same reader. No replication
-reads HO2, the CL save named for 2012-05-02 or the gold series yet.
+later replications read their strips through the same reader. The XLE against
+USO trade reads the CL save named for 2012-05-02, through
+`chan.xle_uso_roll_return`, for
+[issue 356](https://github.com/l3a0/quantitative-trading/issues/356). Long GLD
+and short gold futures reads the gold series, through `chan.gld_gc`, for
+[issue 355](https://github.com/l3a0/quantitative-trading/issues/355). No
+replication reads HO2 yet.
 
 Seven more of Chan's files are committed as his 2018 Python port's zip shipped
 them, under `data/pythoncodesanddata/`, for

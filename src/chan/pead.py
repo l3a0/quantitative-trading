@@ -97,7 +97,7 @@ nothing in its window needs refusing. On the panel's columns it would refuse,
 because MPC and XYL were spun off inside the window and have no price before
 2011-06-24 and 2011-10-13, and it cannot read the day before a first price.
 Read from each stock's first price onward it finds every move readable. The
-30 days the guard flags in this file all fall in 2007 to 2009, outside the
+30 closes the guard flags in this file all fall in 2007 to 2009, outside the
 window, and ``tests/test_scale_breaks.py`` pins them.
 
 **What changed on the way over from** ``pead.m``. Five things, and none moves
