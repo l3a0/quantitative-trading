@@ -1,6 +1,6 @@
 # Chan’s reversal reproduces on his 2012 panel, and most of its rise from 0.25 to 1.3 is the data
 
-*Algorithmic Trading runs the first book’s reversal again on 497 stocks from 2007 to 2011. Every figure Chan prints lands on his own file, and the rule explains less of the jump in its Sharpe ratio than the data and the window do.*
+*Algorithmic Trading runs the first book’s reversal again on 497 stocks from 2007 to 2011. Every return and Sharpe ratio Chan prints reproduces on his own file, and the new rule explains less of the jump in its Sharpe ratio than the new data and window do.*
 
 ## Why look at the reversal a second time
 
@@ -8,9 +8,9 @@ The [post on trading costs and failed companies](https://github.com/l3a0/quantit
 
 Chan’s second book, *Algorithmic Trading*, brings the rule back as its lesson on cross-sectional mean reversion (Chan, 2013, location 2087). A stock is judged against its peers on the same day rather than against its own past, so the bet is that a stock that did worse than the rest will do better next, “and vice versa”. He runs it on a newer file over 2007 to 2011 and reports a Sharpe ratio of 1.3, about five times the first book’s, and an intraday version with 4.7 (locations 2110 and 2135).
 
-Chan published the script, `andrewlo_2007_2012.m`, and the data file it reads. This repository keeps a copy of the file and ran a line-by-line transcription of the script on it. Every figure the book prints for the two examples lands, and so do the two the script printed at six decimals.
+Chan published the MATLAB script, `andrewlo_2007_2012.m`, and the data file it reads. This repository keeps the file’s contents as one table per stock, and together the tables rebuild the file’s open, high, low, close and volume arrays exactly. It ran a line-by-line Python transcription of the script on those tables. Every return and Sharpe ratio the book prints for the two examples reproduces, and so do Example 4.4’s APR and Sharpe ratio as the script’s closing comment records them, at six decimals.
 
-**Every result here is exploratory.** Reproducing Chan’s figures spends the 2007 to 2011 sample on a rule somebody else chose, so it can say whether his numbers follow from his file and nothing about whether the rule pays today. **Every figure is also about survivors.** The file holds the S&P 500 as Chan held it on 2012-04-24, with each stock’s prices carried back over the whole window, so a company that left the index before then is not in it.
+**Every result here is exploratory.** Reproducing Chan’s figures uses the 2007 to 2011 data to check a rule somebody else chose, so it can say whether his numbers follow from his file and nothing about whether the rule pays today. **Every figure is also about survivors.** The file holds 497 stocks that were in the S&P 500 in late 2011, and the run treats them as the index on every earlier day it has a price for them. A company that was out of the index for all of late 2011 is not in the file.
 
 The four lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -26,13 +26,13 @@ The second book’s rule differs from the first book’s in five ways.
 2. **A stock with no price gets no weight at all**, where the first book gives it a weight of 0. Both leave it out of the day’s profit.
 3. **No cost is charged.** The script’s cost lines are commented out.
 4. **The window is cut before any return is taken.** The first book takes returns on its whole file and cuts the profit afterwards. Here the first day of the window has no return, so the first days earn nothing.
-5. **The Sharpe ratio uses MATLAB’s own mean and standard deviation**, where the first book uses helpers that skip missing days. No series here has a missing day, so this difference moves no figure.
+5. **The Sharpe ratio uses MATLAB’s own mean and standard deviation**, where the first book uses Chan’s own functions, whose mean skips a missing day and whose standard deviation counts it as a zero. No series here has a missing day, so this difference moves no figure.
 
 The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), Chan’s own MATLAB file `inputDataOHLCDaily_stocks_20120424.mat`, saved on 2012-04-25 and converted here to one file per stock. It holds 497 stocks with their opens and closes, and this post calls it the panel. The script cuts it to 1,260 trading days, from 2007-01-03 to 2011-12-30. The book says the run starts on January 2, 2007, which was a market holiday. The cut makes Example 4.3’s first two days earn nothing, because its first day has no return and its second holds the first day’s empty weights. Example 4.4’s first day earns nothing for the same reason. This repository transcribed the script from a public copy of Chan’s code, `ericnberwick/EpchanPreview` at commit `e4bc46f`, which a second copy holds byte for byte.
 
-Chan calls the rule “almost perfectly dollar neutral” (location 2110), meaning the dollars bought match the dollars sold short. Each weight is a stock’s return minus the day’s average return, so the weights sum to zero, and scaling them by the gross keeps it so. They sum to zero on every day of both examples, to within the rounding of the arithmetic.
+Chan calls the rule “almost perfectly dollar neutral” (location 2110), meaning the dollars bought match the dollars sold short. Each weight is minus a stock’s return against the day’s average return, so the weights sum to zero, and dividing them by the gross keeps them summing to zero. They do on every day of both examples, to within the rounding of the arithmetic.
 
-## Lesson 1: every figure Chan prints lands on his own file
+## Lesson 1: every return and Sharpe ratio Chan prints reproduces on his own file
 
 Here is each figure, computed, beside the script’s comment and the book.
 
@@ -56,7 +56,7 @@ Three figures sit close to the point where their rounding would change, measured
 2. Its APR in 2011 sits 0.08 above 10.5 percent, below which the book would print 10.
 3. Example 4.4’s APR is 0.7315525016, which sits 1.6 × 10⁻⁹ above the point where the script’s sixth decimal would round down to 0.731552.
 
-The third is the tightest. A port that drifted from the script by more than that would print a different last digit.
+The third is the tightest. A transcription whose APR came out lower than this one by more than that would print 0.731552 instead.
 
 The distance from 1.3 to 4.7 comes from the average return, since the two examples have about the same standard deviation. A year of Example 4.3 averages a return of 0.1338 with a standard deviation of 0.1063. A year of Example 4.4 averages 0.5565 with a standard deviation of 0.1181. The Sharpe ratio is the first number over the second, so four times the average return with a similar standard deviation gives a ratio nearly four times as large. Location 2890 sets the same 4.7 against cross-sectional momentum, which buys the recent winners against their peers instead, and the [post on cross-sectional momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md) covers.
 
@@ -70,11 +70,11 @@ The book names 2008, “the year of Lehman Brothers’ bankruptcy”, and 2011 (
 
 ## Lesson 2: the match needs one stock’s odd prices
 
-This repository checks every price series before a run reads it, with what it calls the scale-break guard. The guard refuses a window in which a stock’s price changes by a ratio too far from 1 to be an ordinary move, the mark a split or a data error leaves. Over this window it would refuse 17 stocks’ closes. Most of the days it flags fall in the 2008 crisis, such as AIG’s collapse on 2008-09-15, which are moves a reversal rule is meant to trade.
+Many runs in this repository check each price series before reading it. The check refuses a window in which a stock’s price changes by a ratio too far from 1 to be an ordinary move, the mark a split or a data error leaves. Over this window it would refuse 17 stocks’ closes and 14 stocks’ opens. Most of the closes it flags fall in the 2008 crisis, such as AIG’s collapse on 2008-09-15. Those are moves a reversal rule is meant to trade.
 
-One of them is not. CAH closes at 19.96 on 2009-08-31, 14.50 on 2009-09-01 and 23.57 on 2009-09-02. A fall that the next day more than undoes reads as a data error or a corporate action, such as a split or a spin-off, rather than a crash. The script computes across it, and so does the transcription, because without it the figures miss the book’s. Without CAH, Example 4.3 gives an APR of 13.26 percent and a Sharpe ratio of 1.2267, which would print as 13.3 and 1.2. Neither lands.
+One of them is not. CAH closes at 19.96 on 2009-08-31, 14.50 on 2009-09-01 and 23.57 on 2009-09-02. The check flags the rise on 2009-09-02, and the fall before it stays inside the check’s bounds. A fall that the next day more than undoes reads as a data error or a corporate action, such as a split or a spin-off, rather than a crash. Chan’s script takes returns across those days, and so does the transcription, because dropping CAH makes the figures miss the book’s. Without CAH, Example 4.3 gives an APR of 13.26 percent and a Sharpe ratio of 1.2267, which would print as 13.3 and 1.2, so neither matches the book’s 13.7 and 1.3.
 
-A cleaner file would miss Chan’s figures. So the reproduction checks the computation on his file, odd prices included, and says nothing about what the rule would have earned on correct prices. That is why the guard does not run for this script, a decision made for reproducing it and not for any other rule on the panel.
+So the transcription does not run the check. This repository made that decision to reproduce this one script, and it applies to no other rule run on the panel. The reproduction checks the computation on Chan’s file, odd prices included, and says nothing about what the rule would have earned on correct prices.
 
 ## Lesson 3: most of the rise from 0.25 to 1.3 is the data and the window
 
@@ -95,9 +95,9 @@ All five are before costs. The first book’s file is `SPX_20071123.mat`, the 50
 
 Read from the top, the second book’s rule moves the first book’s year from 0.2510 to 0.5484, by 0.2974. That leaves 0.7111 still to go to Example 4.3’s 1.2595, more than twice what the rule moved. Read from the bottom, the first book’s rule on the panel earns 1.2219, close to 1.2595 on the same days. Both orders say the same thing. The file and the window carry most of the rise.
 
-The rule’s own 0.2974 is not all weighting either. The cut alone carries 0.1313 of it, 0.44 of the rule’s share. Cutting before taking returns gives 2006-01-03 and 2006-01-04 no return. Those two days lost 0.48 and 0.14 percent, so letting them earn brings the figure down to 0.4170. On one year of 251 days, two days raise a Sharpe ratio from 0.4170 to 0.5484, by about a third.
+Part of that 0.2974 comes from cutting the window before taking returns, rather than from how the weights are set. When the window is cut first, the year’s first two days, 2006-01-03 and 2006-01-04, earn nothing, because the first has no return and the second holds the first day’s empty weights. With returns taken before the cut, those two days lose 0.48 and 0.14 percent, and the Sharpe ratio comes down to 0.4170, the second row. So zeroing two losing days raises the figure from 0.4170 to 0.5484, by about a third. That is 0.1313 of the 0.2974, or 0.44 of it. Both come from the unrounded figures, and the rounded rows give 0.1314. One year holds only 251 days, so two of them can move a Sharpe ratio that far.
 
-What changed in the data is not only the years. The panel carries 2012-04-24’s membership back five years, to 2007. The first book’s file carries 2007-11-23’s back under two, to 2006. A longer stretch of survivors leaves out more of the companies that left the index along the way, by failing or by being bought, and no test here measures how survivorship moves the 1.2219.
+The data differ in more than the years. The panel carries a list of the index from late 2011 back almost five years, to 2007. The first book’s file carries 2007-11-23’s membership back under two years, to 2006. The longer the stretch, the more of the companies that left the index along the way are missing from the file, whether they failed, were bought or left for another reason. No test here measures how much leaving them out moves the 1.2219.
 
 ## Lesson 4: costs still take most of the first book’s rule’s edge, and the panel shows why they take less
 
@@ -116,8 +116,8 @@ Example 4.4 would pay more. Chan writes that its costs “will be doubled, becau
 
 Five questions are beyond it.
 
-1. **What the rule earned on the index as it stood each day.** Every stock on the panel was in the S&P 500 on 2012-04-24, and nothing here measures how survivorship moves this rule over 2007 to 2011.
-2. **Whether 2008 to 2011 is out of sample in Chan’s sense**, meaning data the rule was not designed on. He calls it “a true out-of-sample test, as the strategy was published in 2007” (location 2110). It is out of sample in time, but the stocks were chosen with 2012’s membership.
+1. **What the rule earned on the index as it stood each day.** Every stock on the panel was in the S&P 500 in late 2011, and nothing here measures how survivorship moves this rule over 2007 to 2011.
+2. **Whether 2008 to 2011 is out of sample in Chan’s sense**, meaning data the rule was not designed on. He calls it “a true out-of-sample test, as the strategy was published in 2007” (location 2110). It is out of sample in time, but the stocks were chosen from the index as it stood in late 2011, at the end of the window.
 3. **What costs would take from Example 4.4.** It trades twice a day and is charged no cost.
 4. **Whether the open is tradeable on its own signal.** Example 4.4 sets its weights from today’s open and enters at that same open, so the price that sets a weight may not be a price the trade can get. Chan calls this “trading signal noise” at location 2135, and the run does not measure it.
 5. **Whether the rule pays today.** The window ends in 2011, and the result is exploratory.

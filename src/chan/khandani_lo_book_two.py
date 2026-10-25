@@ -105,10 +105,11 @@ opens' flags were counted rather than read, and three of their stocks, HBAN,
 SLM and ZION, are flagged on the open only. The decision is about reproducing
 this script, and it is not a ruling for any other rule on this panel.
 
-**Every figure here is about survivors.** The panel is the S&P 500 as Chan
-held it on 2012-04-24, carried backwards. Chan calls the years from 2008 "a
+**Every figure here is about survivors.** The panel holds 497 stocks that
+were in the S&P 500 in late 2011, and the run treats them as the index on
+every earlier day it has a price for them. Chan calls the years from 2008 "a
 true out-of-sample test" because the strategy was published in 2007. They are
-out of sample in time, but the stocks were chosen with 2012's membership.
+out of sample in time, but the stocks were chosen from the index of late 2011.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) prices
 survivorship on this file for Example 7.2 over 2011 and 2012, and nothing yet
 prices it for this rule over 2007 to 2011.
@@ -336,7 +337,7 @@ def report(members, result: BookTwo) -> None:
     )
     print()
     print(
-        "  The panel holds only the stocks still in the index on 2012-04-24, "
+        "  The panel holds stocks that were in the S&P 500 in late 2011, "
         "so every figure is about survivors."
     )
     print("  Exploratory. docs/replication-log.md carries the verdicts.")

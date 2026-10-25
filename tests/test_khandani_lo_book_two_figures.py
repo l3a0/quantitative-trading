@@ -138,9 +138,9 @@ class TestThePanels:
             "Algorithmic Trading, Examples 4.3 and 4.4, 2007-01-03 to 2011-12-30, 1,260 "
             "trading days, as andrewlo_2007_2012.m runs them.\n"
             "Prices from inputDataOHLCDaily_stocks_20120424.mat, saved 2012-04-25, for the "
-            "497 stocks Chan held as the S&P 500 on 2012-04-24.\n"
-            "Their prices are carried back, so every figure is about survivors. No cost is "
-            "charged."
+            "497 stocks that were in the S&P 500 in late 2011.\n"
+            "They stand in for the index on every earlier day, so every figure is about "
+            "survivors. No cost is charged."
         ]
 
     def test_the_note_names_every_save_date_once_in_order(self, tmp_path, sources) -> None:

@@ -5267,7 +5267,8 @@ a Sharpe ratio of 1.3 for the close-to-close rule, with 30 percent in 2008 and
 links the earlier post on the first book's rule rather than repeating it, and
 draws four lessons from Entry 19 of the replication log.
 
-1. Every figure the book prints lands on Chan's own file, and so do the two
+1. Every return and Sharpe ratio the book prints lands on Chan's own file,
+   and so do the two
    the script printed at six decimals, though two of the book's roundings have
    little room.
 2. The match needs CAH's prices of 2009-08-31 to 2009-09-02, which read as a
@@ -5302,8 +5303,8 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that most of the scale-break guard's flags on
    this window fall in the 2008 crisis, that CAH's prices read as a data error
    or a corporate action, and that a longer stretch of survivors leaves out
-   more of the companies that left the index. The survivor horizons of five
-   years and under two are arithmetic on the two files' membership dates.
+   more of the companies that left the index. The survivor horizons of almost
+   five years and under two are arithmetic on the two files' membership dates.
 4. Ratios the post takes between pinned figures in words: about five times,
    nearly four times, four times the average return, about the same standard
    deviation, more than twice, by about a third, and less than a third. So is

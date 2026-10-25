@@ -4826,7 +4826,7 @@ apart from Examples 3.7 and 3.8, which are *Quantitative Trading*'s.
 Eleven rows, all derivable from
 [tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py).
 
-**Every figure Chan prints reproduces on his own file.** The rule is the one
+**Every return and Sharpe ratio Chan prints reproduces on his own file.** The rule is the one
 Entries 8 and 10 run: weight every stock by minus its return against the
 equal-weighted market, so the rule buys what fell most against its peers and
 shorts what rose most. Example 4.3 holds the weights from one close to the
@@ -4874,7 +4874,8 @@ rows 10 and 11 run a rule other than this one, and each row says which.
    loads `inputDataOHLCDaily_20120424`, without `_stocks`, and
    [data/README.md](../data/README.md) records that the copy under that name
    is the same bytes. **Every figure here is about survivors**, because the
-   panel is the S&P 500 as Chan held it on 2012-04-24, carried backwards.
+   panel holds 497 stocks that were in the S&P 500 in late 2011, and the run
+   treats them as the index on every earlier day it has a price for them.
 2. **The specification.** `andrewlo_2007_2012.m` at `e4bc46f` in
    [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
    identical to the copy at `4567024` in
@@ -4977,8 +4978,9 @@ Three things.
    ratio by a third. Both differences come from the unrounded figures,
    which `TestBesideTheFirstBook::test_the_differences_the_post_quotes_round_from_the_unrounded_figures`
    holds. The data include a longer survivor horizon, since this
-   panel carries 2012-04-24's membership back to 2007, five years, where
-   Entry 8's file carries 2007-11-23's back to 2006, under two, and nothing
+   panel carries a list of the index from late 2011 back to 2007, almost
+   five years, where Entry 8's file carries 2007-11-23's back to 2006, under
+   two, and nothing
    here prices what that adds.
 3. **Entry 8's lesson survives the move to the 2012 panel.** Charged 5 basis
    points a side, the first book's rule falls from 1.2219 to 0.3797 over 2007
@@ -4994,14 +4996,14 @@ it.
 Five things.
 
 **What the rule earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24.
+was in the S&P 500 in late 2011.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) prices
 survivorship on this file for Example 7.2 over 2011 and 2012, and nothing yet
 prices it for this rule over 2007 to 2011.
 
 **Whether 2008 to 2011 is out of sample in Chan's sense.** He calls it "a
 true out-of-sample test, as the strategy was published in 2007". It is out of
-sample in time, but the stocks were chosen with 2012's membership, so the
+sample in time, but the stocks were chosen from the index of late 2011, so the
 entry repeats his sentence and gives it no verdict.
 
 **What costs would take from Example 4.4.** It trades twice a day, which Chan

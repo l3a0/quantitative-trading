@@ -15,8 +15,8 @@ both are stated once here.
   from Chan's ``inputDataOHLCDaily_stocks_20120424.mat``, saved 2012-04-25,
   read for the close and the open through ``chan.series.load_panel``. Its
   identity is that file's row of ``LIFTED_SOURCES`` in
-  ``tests/support/committed_vintages.py``. The stocks are the index as Chan
-  held it on 2012-04-24, so every figure is a figure about survivors.
+  ``tests/support/committed_vintages.py``. The stocks were in the S&P 500
+  in late 2011, so every figure is a figure about survivors.
 - **Specification.** *Algorithmic Trading*'s ``andrewlo_2007_2012.m`` at the
   mirror commits the module names. Both price frames are cut to 2007-01-03
   through 2011-12-30, 1,260 trading days, before any return is taken. Each
