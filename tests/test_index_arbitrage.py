@@ -824,7 +824,7 @@ class TestWhatThePostQuotes:
             f"on {spy_member.obtained}.",
             f"The two share {len(stocks):,} trading days from {stocks.index[0].date()} to "
             f"{stocks.index[-1].date()}. Training is the {len(train)} days of 2007, from "
-            f"{train[0].date()} to {train[-1].date()}, and the test is the {len(test):,} days "
+            f"{train[0].date()} to {train[-1].date()}, and the test period is the {len(test):,} days "
             f"from {test[0].date()} to {test[-1].date()}",
             f"The screen needs more than {FEWEST_ROWS} days of closes, so it skips "
             f"{len(found.skipped)} stocks. {SPELLED[none]} have no 2007 close at all, and "
@@ -849,8 +849,8 @@ class TestWhatThePostQuotes:
             f"{_minus(spy, 4)} on SPY.",
             f"is long ${basket:.5f} of each stock, ${stocks:.3f} of stocks in all, and short "
             f"${-spy:.3f} of SPY. The two sides differ by ${stocks + spy:.3f},",
-            f"first exists on the {ORDINAL[LOOKBACK]} test day, so the first position earns "
-            f"its first return on {result.test_days[first].date()}, the {ORDINAL[first + 1]} "
+            f"first exists on the {ORDINAL[LOOKBACK]} test day, so the strategy’s first return falls "
+            f"on {result.test_days[first].date()}, the {ORDINAL[first + 1]} "
             f"test day. From there the strategy earns a return on every one of the "
             f"{len(earning):,} remaining days.",
         ]
