@@ -791,7 +791,8 @@ class TestWhatThePostQuotes:
     percent, 561, 2,000 and 28.1 percent, the 12.1 percent in Lesson 3, the
     497 in Lesson 4 and the 99 positions in the closing list, so a typo in one
     of them passes. ``tests/test_index_arbitrage_figures.py`` holds that the
-    figure draws 98 of 480 and 561 of 2,000, and it never reads the post. The sketch's caption and alt text are read in
+    figure draws 98 of 480 and 561 of 2,000, and it never reads the post. The
+    sketch's caption and alt text are read in
     ``tests/test_index_arbitrage_whiteboard.py`` instead, and the counts of
     the basket's stocks outside the index in
     ``TestTheBasketsStocksAndTheIndex``. The Kindle locations, the facts
