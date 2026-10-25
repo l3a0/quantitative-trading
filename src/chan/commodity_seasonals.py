@@ -12,8 +12,9 @@ The rules are the revised edition's sidebars.
    April 13, or the following trading day if that is a holiday, and sell it at
    the close of April 25, or the previous trading day.
 2. **Natural gas**, at location 4590. Buy one June contract at the close of
-   February 25, or the following trading day, and sell it at the close of
-   April 15, or the previous trading day.
+   February 25, or the following trading day, and sell it on April 15, or the
+   previous trading day. The sidebar names no time of day for the exit, so the
+   run sells at the close.
 
 What decides each remaining choice was written on
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) before any

@@ -3604,7 +3604,7 @@ not pinned here.
    of equity and commodity seasonals is on p. 175. "Alive and well", the
    demand from real economic need rather than speculation, and 19 profitable
    years of the last 21 "as of 2015" with the last 9 out of sample are on
-   p. 183, as are the summer driving season and the scan of the literature.
+   p. 183, as is the summer driving season.
    The gasoline rule's April dates and the profit every year since 1995 are
    on p. 184. 13 consecutive years and the demand from power generators, 14
    consecutive years and the exit on April 15, and "didn't hold up as well

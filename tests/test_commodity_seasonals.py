@@ -381,6 +381,18 @@ class TestTheReturns:
                 marks = daily_marks(trade)
                 assert (marks[0], marks[-1]) == (trade.entry_price, trade.exit_price)
 
+    def test_the_marks_skip_a_holiday_row(self) -> None:
+        """2018's files hold a row on Good Friday, inside the gas trade, and it is no mark."""
+        trade = natural_gas_trade(2018)
+        friday = futures.good_friday(2018)
+        assert trade.entry_day < friday < trade.exit_day
+        assert any(friday in settlements(NATURAL_GAS[n])[1] for n in (2, 3, 4))
+        days = [
+            date.fromordinal(n)
+            for n in range(trade.entry_day.toordinal(), trade.exit_day.toordinal() + 1)
+        ]
+        assert len(daily_marks(trade)) == sum(map(is_trading_day, days))
+
     def test_the_drawdown_reads_inside_a_trade(self) -> None:
         """Natural gas lost no year through 2008, yet fell 22% of a stake inside 2002's trade."""
         years = self.years("natural gas, 1994 to 2008")

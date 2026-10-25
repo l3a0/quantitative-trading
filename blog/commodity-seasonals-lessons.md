@@ -11,13 +11,13 @@ Ernest Chan’s *Quantitative Trading* makes that claim for seasonal trades in c
 Chan gives two trades, each with a count of profitable years.
 
 1. **Gasoline.** Buy the May contract at the close of April 13 and sell it at the close of April 25, ahead of the summer driving season. Chan counts 19 profitable years of 21, from 1995 to 2015.
-2. **Natural gas.** Buy the June contract at the close of February 25 and sell it at the close of April 15, as power generators buy ahead of the air-conditioning season. Chan counts 13 consecutive profitable years in the main text and 14 in a sidebar.
+2. **Natural gas.** Buy the June contract at the close of February 25 and sell it on April 15, as power generators buy ahead of the air-conditioning season. Chan counts 13 consecutive profitable years in the main text and 14 in a sidebar.
 
 Both trades ran on the free settlement prices that the US Energy Information Administration (EIA) publishes for futures traded on the New York Mercantile Exchange (NYMEX). Three results came out.
 
 1. **Natural gas reproduces both of Chan’s counts** if both were written for the first edition and count from 1995.
 2. **Gasoline fits Chan’s count in every year the files have prices for.** They show the 2 losing years his count allows and no third, plus 3 years with no price.
-3. **Both trades stopped earning after the years Chan counted.**
+3. **Both trades averaged a loss after the years Chan counted.**
 
 ```math
 \small\begin{array}{l|r|r}
@@ -35,17 +35,17 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 \end{array}
 ```
 
-A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by its standard deviation. The drawdown is the largest fall from a peak in the summed yearly returns, marked every trading day, so it counts a fall inside a trade that still ended the year ahead. Gasoline’s 1995 to 2015 leaves out the 3 years with no price. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by its standard deviation. The drawdown is the largest fall from a peak in the summed yearly returns, marked on every trading day the files hold a price, so it counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake. Gasoline’s 1995 to 2015 leaves out the 3 years with no price. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two trades and the files
 
-A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 183 to 185). A year is **profitable** when the exit settlement is strictly above the entry settlement.
+A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 183 to 185). Chan names no time of day for the natural gas exit, so the run exits at the close. A year is **profitable** when the exit settlement is strictly above the entry settlement.
 
 Every passage quoted here is in the revised edition of 2021. The first edition matters to Lesson 1. Wiley released it in November 2008 and dated it 2009.
 
 ### Five files from EIA, numbered by expiry
 
-EIA publishes settlement prices for the nearest four contracts of each product. It numbers them by expiry rather than by month: contract 1 is whichever contract stops trading next, and each number has its own file. So the run has to work out which file holds the May or June contract on each trade date, which Lesson 4 comes back to. The run reads five files, all downloaded on 2 October 2026:
+EIA publishes settlement prices for the nearest four contracts of each product. It numbers them by expiry rather than by month: contract 1 is whichever contract stops trading next, and each number has its own file. So the run has to work out which file holds the May or June contract on each trade date, which Lesson 4 comes back to. The run reads five files covering three products, all downloaded on 2 October 2026:
 
 1. New York Harbor regular gasoline, contract 1, through 2005.
 2. RBOB gasoline, contract 1, from 2006. RBOB replaced the New York Harbor contract and began trading in October 2005.
@@ -98,7 +98,7 @@ The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing yea
 
 Chan picked both trades by studying past prices, and both rules name exact days. A rule chosen on the past tends to look good on the past, so only the years after the book test it. The book’s years end where Chan’s counts end: 2015 for gasoline, and 2008 for natural gas under Lesson 1’s reading. Natural gas starts in 1994, the first year the files hold a whole trade.
 
-Natural gas went from winning 15 of 15 years, with a mean return of 10.6%, to winning 7 of 15 with a mean near zero. Chan says as much: the trade “didn’t hold up as well out-of-sample” (p. 185), meaning in years he did not use to choose the rule, though he prints no figure. Its 22% drawdown before 2009 came inside 2002’s trade, which rose 48% before giving back 22 points and ending 40% up.
+Natural gas went from winning 15 of 15 years, with a mean return of 10.6%, to winning 7 of 15 with a mean near zero. Chan says as much: the trade “didn’t hold up as well out-of-sample” (p. 185), meaning in years he did not use to choose the rule, though he prints no figure. Its drawdown before 2009 came inside 2002’s trade, which rose 48% before giving back 22 points and ending 40% up.
 
 For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sample. The trade won 7 of those 9, and both of its losing years fall among them. From 2016 to 2023 it won 3 of 8, and natural gas won 4 of the same 8.
 
@@ -106,12 +106,9 @@ For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sam
 
 *Every year of both trades. Each dashed line is where the book’s years end, and the marks along each foot give every year’s sign, including years too small to see as bars.*
 
-Two things limit the split.
+The book’s years include the years Chan chose each rule on, so the drop after the book can overstate how far either trade weakened.
 
-1. **The book’s years include the years Chan chose each rule on**, so the drop after the book can overstate how far either trade weakened.
-2. **No costs are charged**, so neither side says whether either trade pays after costs.
-
-Chan suggests a check of his own. A trade that happens once a year produces few results, so data-snooping bias, a pattern found by searching the past that will not repeat, is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). That check was not run. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a bar that rises with the number tried, and years the search never sees.
+Chan suggests a check of his own. A trade that happens once a year produces few results, so data-snooping bias, a pattern found by searching the past that will not repeat, is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a bar that rises with the number tried, and years the search never sees.
 
 ## Lesson 4: reading one named contract from files numbered by expiry needs a calendar checked outside the files
 
@@ -137,7 +134,7 @@ The same map from dates to contracts serves Chan’s calendar spreads, which [th
 
 ## What this replication cannot say
 
-Three questions are beyond it, besides the gaps, the start year and the nearby dates that the lessons name.
+Three questions are beyond it, besides the gaps, the start year and edition, and the nearby dates that the lessons name.
 
 1. **Whether Chan read the same contracts.** His sidebar names RB, the symbol RBOB trades under. Before RBOB began trading in October 2005, his series presumably held the older contract, as the run assumes. Chan does not name his data vendor.
 2. **Whether either trade pays after costs.** The run charges no commission and no slippage, the gap between the settlement price and the price an order would actually get.
@@ -149,7 +146,7 @@ Three habits follow from the first three lessons.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
 2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighboring day would decide the answer instead of checking it.
-3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a Sharpe ratio of 1.0, and earned nothing after.
+3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a Sharpe ratio of 1.0, and averaged a loss of 0.4% a year after.
 
 ## References
 
