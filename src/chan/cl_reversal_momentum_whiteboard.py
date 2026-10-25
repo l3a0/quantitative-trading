@@ -13,10 +13,11 @@ each right after the text it draws.
    line in green or red says the join goes long or short, beside an arrow at
    today's close that points the same way. It sits in "The rule and the
    file", after the paragraph that ends "and holds nothing on any other day."
-   This sketch is schematic in its heights. Its dates are the join's first
-   long and its first short on the 2012-05-04 save, read from :class:`Lags`,
-   and each panel keeps the order of that day's three closes but not their
-   spacing, since the short's close sits only 0.50 above its 30-day lag. A
+   This sketch is schematic. Its dates are the join's first long and its
+   first short on the 2012-05-04 save, read from :class:`Lags`. Each panel
+   keeps the order of that day's three closes but not their spacing, since
+   the short's close sits only 0.50 above its 30-day lag, and its spacing
+   across does not follow the 10 and 30 days between the closes. A
    caption under it in the post gives the three closes of each day, which the
    tests read from the run.
 2. Half of each rule is the join: a 2×2 grid whose columns are reversal's

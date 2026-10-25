@@ -3,8 +3,9 @@
 One sketches the rule, the join's first long and first short each between its
 two lags, and one Lesson 2's grid of half positions.
 
-1. The rule sketch is schematic in its heights: each panel keeps the order of
-   its day's three closes and not their spacing. Its days come from
+1. The rule sketch is schematic: each panel keeps the order of its day's
+   three closes and not their spacing, and its spacing across does not
+   follow the days between them. Its days come from
    :class:`chan.cl_reversal_momentum_whiteboard.JoinFigures`, which reads the
    2012-05-04 save, and the caption under it in the post gives each day's
    three closes, which the tests read from the run. What is pinned is each
@@ -19,9 +20,9 @@ two lags, and one Lesson 2's grid of half positions.
 The run reads committed vintages, so the tests read it directly rather than a
 frozen copy of its figures. ``tests/test_cl_reversal_momentum.py`` pins the
 98 longs, the 59 shorts, the 803 rows of disagreement and the first position
-on 2008-07-18 on its own derivation. The split of the 803 into 422 and 381,
-which the sketch does not draw, and the closes in the caption are pinned only
-here.
+on 2008-07-18 on its own derivation. The first long on 2008-07-30, the split
+of the 803 into 422 and 381, which the sketch does not draw, and the closes in
+the caption are pinned only here.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both
@@ -593,6 +594,40 @@ class TestTheRuleSketch:
         (verdict,) = _labels_of(scene, f"{side}-position")
         assert verdict.text.endswith(f": {side}")
 
+    @pytest.mark.parametrize("side", ["long", "short"])
+    def test_each_panels_words_sit_under_their_own_panel(self, every, side) -> None:
+        """Every label that names one of a panel's strokes sits across that
+        panel's half of the board, the names of the closes on one baseline
+        under the drawing, and the rule lines in order beneath them, the
+        verdict last."""
+        scene = every[0]
+        x0 = LONG_PANEL if side == "long" else SHORT_PANEL
+        mine = [
+            label
+            for label in scene.steps
+            if isinstance(label, Label) and label.names.startswith(f"{side}-")
+        ]
+        assert len(mine) == 7
+        for label in mine:
+            assert x0 <= label.x <= x0 + 5, label.text
+        rules = [
+            _labels_of(scene, f"{side}-{gid}")[0]
+            for gid in ("reversal-level", "momentum-level", "position")
+        ]
+        assert [label.y for label in rules] == sorted((label.y for label in rules), reverse=True)
+        dots = [_stroke(scene, f"{side}-{g}") for g in ("momentum-lag", "reversal-lag", "today")]
+        names = [label for label in mine if label.text.endswith(("days ago", "today"))]
+        assert [label.x for label in names] == [dot.x[0] for dot in dots]
+        assert {label.y for label in names} == {sketches.NAMES_Y}
+        assert rules[0].y < sketches.NAMES_Y < min(dot.y[0] for dot in dots)
+
+    def test_the_flat_mark_is_level(self, every) -> None:
+        """A flat line beside "any other day: flat", the sign for no position."""
+        flat = _stroke(every[0], "flat")
+        assert len(set(flat.y)) == 1 and flat.x.max() > flat.x.min()
+        (label,) = _labels_of(every[0], "flat")
+        assert label.y == flat.y[0] and label.x > flat.x.max()
+
     def test_the_heading_follows_the_day(self, figures) -> None:
         """A made-up first long on another day prints that day."""
         moved = replace(figures, first_long=replace(figures.first_long, day="2011-01-03"))
@@ -607,8 +642,9 @@ class TestTheRuleSketch:
             f"first short, on {short.day}, which is also its first position." in caption
         )
         assert "Both days come from the 2012-05-04 save." in caption
-        assert "The heights are schematic and keep only the order of each day’s three closes." in (
-            caption
+        assert (
+            "The sketch is schematic. Its heights keep only the order of each day’s three "
+            "closes, and its spacing across does not follow the days between them." in caption
         )
         assert (
             f"On {long.day} the close of {price(long.close)} sat above its 40-day lag of "
@@ -623,12 +659,18 @@ class TestTheRuleSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
-        assert "Its heights are schematic" in alt
+        assert "It is schematic: each panel keeps the order" in alt
         assert "A black line rises from a low black dot to a high one and falls back" in alt
         assert "Its black line falls from a high dot to a low one and rises a little" in alt
         assert "A green arrow beside today’s dot points up" in alt
         assert "A red arrow beside today’s dot points down" in alt
         assert "a short grey flat line at the bottom" in alt
+        assert "The left panel comes first." in alt
+        assert "A grey dashed line runs from the high dot across past today’s dot" in alt
+        assert "A grey dashed line runs from the low dot across past today’s dot" in alt
+        assert "rises a little to a dot between them" in alt
+        assert "A grey dashed line from the low dot comes with “above the 30-day lag" in alt
+        assert "and one from the high dot with “below the 40-day lag" in alt
 
 
 # --- Lesson 2: half of each rule is the join -------------------------------------
@@ -726,6 +768,40 @@ class TestTheGridSketch:
             assert min(abs(end_x - column[0]), abs(end_x - column[1])) < 0.15, gid
             assert COLUMNS[0][1] <= arrow.x[0] <= COLUMNS[1][0], gid
 
+    def test_each_header_sits_over_its_column_or_beside_its_row(self, every) -> None:
+        scene = every[1]
+        labels = {label.text: label for label in scene.steps if isinstance(label, Label)}
+        for word, (x0, x1) in zip(("long", "short"), COLUMNS, strict=True):
+            header = labels[f"reversal: {word}"]
+            assert x0 < header.x < x1 and header.y > ROWS[0][1], word
+        for word, (y0, y1) in zip(("long", "short"), ROWS, strict=True):
+            header = labels[f"momentum:\n{word}"]
+            assert y0 < header.y < y1 and header.x < COLUMNS[0][0], word
+
+    def test_each_count_sits_inside_its_own_cell_right_of_its_arrows(self, every) -> None:
+        scene = every[1]
+        for cell, column, row in (
+            ("long-long", COLUMNS[0], ROWS[0]),
+            ("short-short", COLUMNS[1], ROWS[1]),
+        ):
+            (count,) = [
+                label for label in _labels_of(scene, f"{cell}-momentum") if "days" in label.text
+            ]
+            assert column[0] < count.x < column[1] and row[0] < count.y < row[1], cell
+            for rule in ("reversal", "momentum"):
+                assert count.x > _shaft(_stroke(scene, f"{cell}-{rule}"))[2], (cell, rule)
+
+    def test_each_sum_sits_inside_its_own_cell_under_its_arrows(self, every) -> None:
+        scene = every[1]
+        for cell, (rev, mom) in CELLS.items():
+            column = COLUMNS[0] if rev > 0 else COLUMNS[1]
+            row = ROWS[0] if mom > 0 else ROWS[1]
+            (total,) = [
+                label for label in _labels_of(scene, f"{cell}-momentum") if "=" in label.text
+            ]
+            assert column[0] < total.x < column[1] and row[0] < total.y < row[1], cell
+            assert total.y < _stroke(scene, f"{cell}-reversal").y.min(), cell
+
     def test_the_closing_line_counts_every_row_with_both_lags(self, every, figures) -> None:
         last = every[1].steps[-1]
         assert isinstance(last, Label)
@@ -761,6 +837,16 @@ class TestTheGridSketch:
             "one grey arrow points up to the top right box and one down to the bottom left box"
             in alt
         )
+        for sentence in (
+            "Top left, two green up arrows, labelled “½” and “½”, sum to “½ + ½ = long”, in green",
+            "Top right, a red down arrow labelled “½” and a green up arrow labelled “½” sum to "
+            "“−½ + ½ = flat”, in grey",
+            "Bottom left, a green up arrow labelled “½” and a red down arrow labelled “½” sum to "
+            "“½ − ½ = flat”, in grey",
+            "Bottom right, two red down arrows, labelled “½” and “½”, sum to “−½ − ½ = short”, "
+            "in red",
+        ):
+            assert sentence in alt, sentence
 
 
 # --- The post ------------------------------------------------------------------
@@ -814,7 +900,7 @@ class TestThePost:
     def test_each_alt_text_says_it_is_slow_and_whether_it_is_schematic(self, every) -> None:
         text = POST.read_text(encoding="utf-8")
         rule, grid = every
-        assert "Its heights are schematic" in _alt(text, rule)
+        assert "It is schematic: each panel keeps the order" in _alt(text, rule)
         assert "schematic" not in _alt(text, grid)
         for scene in every:
             alt = _alt(text, scene)
@@ -834,5 +920,5 @@ class TestThePost:
 
     def test_the_module_says_which_is_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
-        assert "This sketch is schematic in its heights" in doc
+        assert "This sketch is schematic." in doc
         assert "This sketch is not schematic" in doc

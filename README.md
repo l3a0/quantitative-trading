@@ -6254,9 +6254,10 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
 
 1. `cl_reversal_momentum_sketch_dip_and_bounce.gif`, in "The rule and the
    file", the join's first long on 2008-07-30 and its first short on
-   2008-07-18, each day's close between its two lags. Its heights are
-   schematic and keep only the order of each day's three closes. Its days,
-   and the six closes its caption gives, come from the run.
+   2008-07-18, each day's close between its two lags. It is schematic. Its
+   heights keep only the order of each day's three closes, and its spacing
+   across does not follow the days between them. Its days, and the six
+   closes its caption gives, come from the run.
 2. `cl_reversal_momentum_sketch_half_of_each.gif`, in Lesson 2, a grid of
    half positions from each rule, with the 98 days both are long, the 59
    both are short and the 803 they disagree, counted from the run.
@@ -6271,8 +6272,8 @@ uv run python -m chan.cl_reversal_momentum_whiteboard
 
 [tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
 holds what each draws, the days, closes and counts it reads from the run,
-and that each GIF follows its text in the post. The first sketch's days and
-its caption's six closes had no pin before it.
+and that each GIF follows its text in the post. The first sketch's first
+long, 2008-07-30, and its caption's six closes had no pin before it.
 
 [blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
 holding GLD long and gold futures short at Kindle locations 2718 and 2730 of
