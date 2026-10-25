@@ -4343,15 +4343,23 @@ Six groups of what it says are not pinned here.
    and the framing of the example as a hypothesis to test are all at 1922.
    The three claims' quotes are also matched against that highlight by
    `TestTheBooksClaims`.
-2. Facts outside the committed data. That USO holds the crude oil futures
-   nearest expiry and drifts from the spot price as it rolls, which Entry 29
-   records, and that every Johansen call in Chan's scripts for the book passes
+2. Facts outside the committed data. That USO held the crude oil futures
+   nearest expiry over these years and drifts from the spot price as it rolls,
+   which Entry 29 records, and that every Johansen call in Chan's scripts for the book passes
    a constant and one lagged difference, which
    [src/chan/gold_miners_oil.py](src/chan/gold_miners_oil.py)'s docstring
    records.
-3. Two readings no test asserts: that a test level is not the probability a
-   claim is true, and that a full Johansen rank says each series is
-   stationary alone.
+3. Five readings no test asserts.
+   1. That a test level is not the probability a claim is true.
+   2. That a full Johansen rank says each series is stationary alone.
+   3. That the large-sample bars for the weight test reject too often on
+      1,479 days, which two resampling checks run in the post's review found
+      and nothing here pins, so the post reads that test at 95 percent.
+   4. That what USO adds to the triplet lies in how the prices change from day
+      to day rather than in the relation's weights, which follows from row 10
+      and the weight test together.
+   5. That Chan's mechanism, in which dear oil cuts the miners' profits,
+      suggests a mix with oil's price in it.
 4. The MacKinnon critical values of −3.34 and −3.90 for the Engle-Granger
    test, which are constants of `ithildincore.timeseries` rather than
    something this repository computes. The suite asserts that the statistic
