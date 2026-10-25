@@ -29,7 +29,8 @@ any statistic was computed.
    2006-05-23, so every window starts on GDX's first price, which is also
    where Chan's first window starts. The triplet's "entire period" is GDX's
    1,481 days, since the wrapper refuses a price that is not a number.
-4. **The level.** 99 percent, the level all three claims name.
+4. **The level.** 99 percent, the level the first and third claims name.
+   The second claim names none.
 
 **Each claim is judged on each statistic.** The book does not say whether it
 read the trace or the eigen statistic, and the two can disagree on Chan's own
@@ -106,7 +107,7 @@ TRIPLET = (GLD, GDX, USO)
 #: The declared specification, a constant and one lagged difference.
 JOHANSEN_P = 0
 JOHANSEN_K = 1
-#: The level every claim names.
+#: The level the first and third claims name, and every claim is judged at.
 LEVEL = 99
 #: ``cadf(GLD, GDX, 0, 1)``, Entry 1's test.
 CADF_LAGS = 1

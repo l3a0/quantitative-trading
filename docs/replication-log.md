@@ -6687,7 +6687,7 @@ here.
    GLD, GDX and then USO. The book does not say which of the two Johansen
    statistics it read, and Entry 23 found them disagreeing on Chan's own file.
    So each claim is two rows, one per statistic, each judged at 99 percent,
-   the level all three claims name.
+   the level the first and third claims name. The second names none.
 
 Every result here is **exploratory**, twice over. Reproducing the claims
 spends the 2006 to 2012 sample on a split Chan chose. The split date and the
@@ -6774,8 +6774,9 @@ Four things.
    by 2.636. Every other claim clears or misses its bar by more,
    `TestEachTestsTable::test_the_closest_call_is_row_1_clearing_its_bar_by_2_636`
    lists each, and the counts at 90 and 95 percent agree with 99 on every
-   row. So the choice of statistic and the choice of level that the book left
-   open move nothing here, which is the opposite of what Entry 23 met. The
+   claim. So the choice of statistic and the choice of level that the book
+   left open move no verdict here, which is the opposite of what Entry 23
+   met. The
    loss holds even at 90 percent, so the stronger reading of "lost" holds too.
    The book's "99 percent probability" is a test level rather than a
    probability. The test rejects no cointegration at the 1 percent level, and
