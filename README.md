@@ -2981,7 +2981,9 @@ Four groups of its figures are not pinned here.
    that a 21-day step is a month, or that the history before the gap is a
    little under two years. Lesson 6 adds two more of the same kind: that 3.93
    is about four times, and that a gap 10.1 times a day's noise wide takes
-   months rather than weeks to close.
+   months rather than weeks to close. Lesson 6 also states that a currency
+   trades about 260 days a year, so 252 is a convention rather than a count,
+   and that scaling by 260 instead lifts the 0.78 to 0.80.
 4. Its references. The eight citations, and the rules the post attributes to
    them, such as Schwert's ceiling and the Breusch-Godfrey test, are cited
    rather than computed.
@@ -3000,7 +3002,7 @@ no pin before it, and `tests/test_stationary_candidates.py` now pins them.
 
 1. The bars of the ADF with a constant, −2.57, −2.86 and −3.43.
 2. Both cross-rate statistics falling short of the pair's 5% bar of −3.34.
-3. A one-year window holding about 1.78 half-lives.
+3. A 252-day window holding about 1.78 half-lives.
 4. The window-power simulation behind Lesson 4: 1,000 series that truly
    revert at the rate's half-life, scanned as the rate is, on a specification
    [issue 212](https://github.com/l3a0/quantitative-trading/issues/212) fixed
