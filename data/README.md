@@ -786,7 +786,7 @@ moved between the saves.
 5. **The scale-break guard flags 21 closes in 19 of the 600, on 21 days.**
    Seventeen of the earlier save's eighteen flagged stocks flag the same days.
    INSP's flag moves to 2008-01-07, per point 3. IDXX is new, and its two
-   days are one close: 30.05 on 2008-01-25, between 55.60 and 53.75, equal
+   flags come from one bad close: 30.05 on 2008-01-25, between 55.60 and 53.75, equal
    to that day's low and far below its open of 55.28. Example 7.6 reads
    neither stock on those days, because its January 2008 holding reads the
    closes of 2007-12-31 and 2008-01-31. All 21 are pinned in

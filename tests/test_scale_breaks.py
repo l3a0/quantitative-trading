@@ -106,9 +106,10 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: S&P 600 file. AAPL's column absorbs its June 2000 split with no jump, so its
 #: day is the move it looks like. The book-two S&P 500 file adds 30 closes in
 #: 17 stocks, on 26 days, every one between 2007 and 2009 and most of them
-#: banks and insurers in the 2008 crisis, such as AIG on 2008-09-15. None falls in the 2011 and 2012
-#: window Example 7.2 trades, all 30 fall in Example 4.1's, which is the file's
-#: whole span, and none sits near a split, measured on
+#: banks and insurers in the 2008 crisis, such as AIG on 2008-09-15. None
+#: falls in the 2011 and 2012 window Example 7.2 trades, all 30 fall in
+#: Example 4.1's, which is the file's whole span, and none sits near a split,
+#: measured on
 #: [issue 250](https://github.com/l3a0/quantitative-trading/issues/250). ``data/README.md`` and
 #: [issue 88](https://github.com/l3a0/quantitative-trading/issues/88) carry
 #: the measurements. Whether a run reading one of these files refuses a window
@@ -120,8 +121,8 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: the 18 stocks the earlier save flags, 17 flag the same days. INSP's flag
 #: moves from 2008-01-09 to 2008-01-07, because the later save rescales
 #: INSP's closes on 2008-01-07 and 2008-01-08 by 0.4969 and leaves the days
-#: before them alone. IDXX is new, and its two days are one close: 30.05 on
-#: 2008-01-25, between 55.60 and 53.75, equal to that day's low and far below
+#: before them alone. IDXX is new, and its two flags come from one bad close:
+#: 30.05 on 2008-01-25, between 55.60 and 53.75, equal to that day's low and far below
 #: its open of 55.28. Example 7.6 reads neither stock on those days, because
 #: its January 2008 holding reads the closes of 2007-12-31 and 2008-01-31.
 #:
@@ -436,7 +437,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: S&P 500 panel, the ``sp500`` Alpha Vantage lines, rather than on Chan's file.
 #: Its registration counts and does not refuse, for issue 275's reason. On the
 #: closes the run reads, each series cut at its last row that traded, the guard
-#: flags 820 days in 98 stocks, and 34 of the low portfolio's and 321 of the
+#: flags 820 closes in 98 stocks, and 34 of the low portfolio's and 321 of the
 #: high portfolio's stock-months carry a flagged day, against 19,377 each.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_holdout.py`` holds
 #: the counts, which run only where the archive is and ``QT_ARCHIVE_RUN`` is 1.
@@ -885,8 +886,10 @@ class TestTheGuardOverTheWholeManifest:
         A flag is one close, and two columns can flag the same day, so a file's
         closes and its days are two numbers. The book-two S&P 500 file's 30
         closes fall on 26 days, because 2008-09-29 holds three and 2008-10-13
-        and 2009-01-20 hold two each. The counts are read off the pins, which
-        the case above holds equal to what the guard finds.
+        and 2009-01-20 hold two each. The three continuous futures saves flag
+        41 days each and 41 between them, so they flag the same days. The
+        counts are read off the pins, which the case above holds equal to what
+        the guard finds.
         """
 
         def counts(paths: list[str]) -> tuple[int, int, int]:
@@ -915,7 +918,7 @@ class TestTheGuardOverTheWholeManifest:
         )
         assert counts(list(FLAGGED_IN_CHANS_MAT_FILES))[1] == 171
         futures = [path for path in FLAGGED_IN_CHANS_FUTURES if not path.startswith("vix/")]
-        assert counts(futures)[1] == 126
+        assert counts(futures) == (6, 126, 41)
 
     def test_every_committed_price_vintage_is_read_and_only_the_pinned_ones_report(self) -> None:
         """Said as its own case, because a guard that read one file would pass the count.
