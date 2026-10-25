@@ -92,7 +92,7 @@ Chan counts 19 profitable gasoline years of 21, from 1995 to 2015. The files giv
 \end{array}
 ```
 
-EIA’s New York Harbor file holds no row on 14 April 1997, the entry date that year, or on 24 April 1998 and 23 April 1999, the exit dates those years, though each was a trading day. The run counts such a year neither as a profit nor as a loss. Taking a neighboring day’s price would turn a gap into a guess, and the guess would decide the count it is meant to check. So the files bound Chan’s count between 16 and 19.
+EIA’s New York Harbor file holds no row on 14 April 1997, the entry date that year, or on 24 April 1998 and 23 April 1999, the exit dates those years, though each was a trading day. The run counts such a year neither as a profit nor as a loss. Interpolating, which here means taking a neighboring day’s price, would turn a gap into a guess, and the guess would decide the count it is meant to check. So the files bound Chan’s count between 16 and 19.
 
 The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing years, and the files show exactly 2, in 2009 and 2012. If Chan’s data agrees with EIA’s on the other 18 years, his 19 holds only if all 3 missing years were profitable in his data. No source here covers the contract in those years.
 
