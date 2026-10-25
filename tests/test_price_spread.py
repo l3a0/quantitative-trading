@@ -404,7 +404,7 @@ class TestWhatMovesNothing:
 
 class TestTheScaleBreakDecision:
     def test_neither_leg_carries_a_flagged_day(self, sources) -> None:
-        """``tests/test_scale_breaks.py`` pins 58 days in eight other ETFs of this file."""
+        """``tests/test_scale_breaks.py`` pins 58 closes in eight other ETFs of this file."""
         _, closes = sources
         assert scale_breaks(closes[X_SYMBOL]) == []
         assert scale_breaks(closes[Y_SYMBOL]) == []

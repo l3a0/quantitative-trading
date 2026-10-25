@@ -112,7 +112,7 @@ were in the S&P 500 in late 2011, carried backwards, and location 1974 says
 the universe has survivorship bias.
 
 **The run does not call the scale-break guard, and issue 295 decided that.**
-:func:`chan.series.refuse_window_crossing_a_break` flags 30 days in 17 of this
+:func:`chan.series.refuse_window_crossing_a_break` flags 30 closes in 17 of this
 file's stocks, every one between 2007 and 2009, and this window holds all 30,
 so calling it the way :mod:`chan.pead` does would refuse the run. Issues 18,
 21 and 22 each declined it because the job is to reproduce what Chan's script

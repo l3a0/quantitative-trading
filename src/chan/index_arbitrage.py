@@ -86,8 +86,9 @@ p-values for one to read.
 **SPY is guarded and the stocks are not.** SPY carries no flagged day over the
 two files' common days. The stocks carry all 30 of the panel's flagged closes,
 on 26 dates, inside the window this run reads, ETFC's 2007-11-12 in training
-and 29 more in the test, and the guard would refuse the run on them. ``indexArb.m`` ran on
-these prices as they stand, so this run does too, following
+and 29 more in the test, and the guard would refuse the run on them.
+``indexArb.m`` ran on these prices as they stand, so this run does too,
+following
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295).
 ``TestTheScaleBreakDecision`` in ``tests/test_index_arbitrage.py`` holds both.
 

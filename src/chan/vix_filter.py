@@ -129,7 +129,7 @@ reads, and nothing here rules out a small one. VIX's first close above 35
 inside either window is on 2008-09-17. FSTX is guarded over its whole span
 inside :func:`chan.opening_gap.read_sources`, which flags nothing. The stocks
 are not guarded, for the reason :mod:`chan.buy_on_gap` gives: the guard flags
-30 days in 17 of them, all inside the window, and
+30 closes in 17 of them, all inside the window, and
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) decided
 that reproducing Chan's script on the prices as they stand comes first.
 
