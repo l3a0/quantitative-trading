@@ -4711,7 +4711,7 @@ comment's one decimal is the precision the source carries.
 | 5 | Short on gap, APR | 46 percent | location 1993 |
 | 6 | Short on gap, Sharpe ratio | 1.27 | location 1993 |
 | 7 | Short on gap has the steeper drawdown | a claim | location 1993 |
-| 8 to 12 | the qualifiers and positions, the first positions, the other `smartstd`, the late listings and the flagged days | none, the book prints no such figures | n/a |
+| 8 to 12 | the qualifiers and positions, the first positions, the other `smartstd`, the late listings and the flagged closes | none, the book prints no such figures | n/a |
 
 ### What this repo computed
 
@@ -4728,7 +4728,7 @@ comment's one decimal is the precision the source carries.
 | 9 | the first position on each side | 2006-09-22 and 2006-09-25, after the spread first exists on 2006-09-19 | `TestTheFigures::test_nothing_is_held_before_the_spread_exists` |
 | 10 | rows 2 and 3, and 5 and 6, with the first edition's `smartstd` in the spread | 0.083629 and 1.6503, then 0.116340 and 1.7234 | `TestTheHelperMovesBothFigures` |
 | 11 | positions resting on fewer than 90 returns after 2006-09-19 | 3: CFN and MPC long, DPS short, none on a spread of 0 | `TestTheLateListings::test_three_positions_rest_on_fewer_than_90_returns` |
-| 12 | positions on one of the 30 days the scale-break guard flags | 1, MS short on 2008-10-13 | `TestTheScaleBreakDecision::test_one_position_falls_on_a_flagged_day` |
+| 12 | positions that land on one of the 30 closes the scale-break guard flags | 1, MS short on 2008-10-13 | `TestTheScaleBreakDecision::test_one_position_falls_on_a_flagged_day` |
 
 ### The verdicts
 
@@ -10112,7 +10112,7 @@ columns have nothing to hold in any row and are dropped, under
 | 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's. The levered low's reads all 83 months, each as if freshly funded | levered low 3.4596, low 0.4292, high 2.0671, SPY 1 | `TestTheFigures::test_the_realised_betas` and `::test_the_levered_lows_beta_and_sharpe_over_all_83_months` |
 | 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 9.9884, Gaussian growth 0.0283 + 0.5132 = 0.5415, against the high portfolio's realised 0.1183 | `TestTheFigures::test_the_kelly_reading` |
 | 7 | eligible stocks and each portfolio's size, fewest and most over the 83 formations. The run prints every formation's row | 444 to 495 eligible, each portfolio 88 to 99, 7,908 stock-months each | `TestTheFigures::test_444_to_495_stocks_are_eligible`, `::test_each_portfolio_holds_88_to_99`, `::test_every_formations_eligible_count` and `::test_formation_table_rows` |
-| 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 36 low and 186 high. The file flags 43 days in 34 stocks | `TestTheScaleBreakDecision::test_36_low_and_186_high_stock_months_carry_a_flag` and `::test_43_flagged_days_in_34_stocks` |
+| 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 36 low and 186 high. The file flags 43 closes in 34 stocks | `TestTheScaleBreakDecision::test_36_low_and_186_high_stock_months_carry_a_flag` and `::test_43_flagged_days_in_34_stocks` |
 | 9 | the calendar | 2,011 of 2,024 rows shared with SPY, 96 month-ends from 1999-11-30 to 2007-10-31, formations 2000-11-30 to 2007-09-28, 83 holding months | `TestTheCalendar::test_the_cut_drops_13_of_2024_rows`, `::test_96_month_ends_on_the_cut_calendar` and `::test_83_formations_from_2000_11_30` |
 
 ### The verdicts
@@ -11121,7 +11121,7 @@ columns have nothing to hold in any row and are dropped, under
 | 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's | levered low 1.8316, low 0.5580, high 1.6461, SPY 1 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` |
 | 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 7.3632, Gaussian growth 0.0136 + 0.3704 = 0.3840, against the high portfolio's realised 0.1613 | `TestTheSideFigures::test_the_kelly_reading_labelled_look_ahead` |
 | 7 | member-months, covered members and eligible stocks over the 208 formations, and each portfolio's size. The run prints every formation's row | 104,600 member-months, 97,667 covered, 97,302 eligible with a beta. 389 to 501 eligible per formation, each portfolio 77 to 100, 19,377 stock-months each. The two exclusions that read t + 1 leave out 12 member-months whose last row is t and 4 with a hole at t + 1 | `TestTheSideFigures::test_the_counts` and `::test_the_exclusions_that_read_t_plus_1` |
-| 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 34 low and 321 high. The closes the run reads flag 820 days in 98 stocks | `TestTheScaleBreakDecision::test_34_low_and_321_high_stock_months_carry_a_flag` and `::test_820_flagged_days_in_98_stocks` |
+| 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 34 low and 321 high. The closes the run reads flag 820 closes in 98 stocks | `TestTheScaleBreakDecision::test_34_low_and_321_high_stock_months_carry_a_flag` and `::test_820_flagged_days_in_98_stocks` |
 | 9 | the calendar | 4,695 days from 2008-01-02 to 2026-08-31, the first formation 252 rows in. 212 formations from 2008-12-31 to 2026-07-31. 121 series stop before their file's last row, and no close falls off the calendar | `TestTheRunsHelpers::test_the_frame_starts_252_rows_before_2008_12_31_and_ends_2026_08_31`, `TestTheWindow::test_212_formations_of_which_4_are_skipped_leave_208_months`, `::test_formed_2008_12_31_to_2026_03_31_held_to_2009_01_30_to_2026_04_30` and `TestTheVintages::test_121_series_stop_before_their_files_last_row_and_none_is_off_the_calendar` |
 | 10 | the formations the second amendment skips, with each group's mean beta | four, the last four: formed 2026-04-30, low −0.0037 and high 1.8278. Formed 2026-05-29, low −0.0652 and high 1.8696. Formed 2026-06-30, low −0.1429 and high 1.9202. Formed 2026-07-31, low −0.2083 and high 1.9536 | `TestTheWindow::test_the_four_skipped_formations_are_the_last_four` |
 | 11 | the survivor gap, on the committed members file and on the series the run cuts | 6,816 of 107,115 member-months fail the row check against the filing, and 4,614 of them carry a ticker absent from the 2026-06-30 schedule. 697 of the 2,187 failing member rows carry a ticker in that schedule. The monthly rule leaves out 6,927 member-months on the manifest's spans and 6,943 on the series the run cuts | `TestTheCoverageWithoutRank::test_the_survivor_label_counts` and `TestTheSideFigures::test_the_survivor_label` |

@@ -717,7 +717,7 @@ measurements below and the decision behind the shape.
    far more than one two-for-one gap, which is an expectation rather than a
    measurement. So the file is recorded as split-adjusted, and CBU's day is a
    likely exception nobody here has verified.
-6. **The scale-break guard flags 62 days in 52 of the 1,100, on the close.** They are pinned
+6. **The scale-break guard flags 62 closes in 52 of the 1,100, on 57 days.** They are pinned
    by path and day in [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
    A flag is a day's close below 0.625 or above 1.6 times the one before. Most
    are real moves, such as AAPL falling to 0.4813 of its close on 2000-09-29,
@@ -783,10 +783,10 @@ moved between the saves.
    within 0.01 of a two-for-one split: CBU on 2004-04-13, as in the earlier
    save, and INSP on 2008-01-07, the step point 3 describes. Five sit within
    0.01 of a three-for-two split, against four in the earlier save.
-5. **The scale-break guard flags 21 days in 19 of the 600, on the close.**
+5. **The scale-break guard flags 21 closes in 19 of the 600, on 21 days.**
    Seventeen of the earlier save's eighteen flagged stocks flag the same days.
    INSP's flag moves to 2008-01-07, per point 3. IDXX is new, and its two
-   days are one close: 30.05 on 2008-01-25, between 55.60 and 53.75, equal
+   flags come from one bad close: 30.05 on 2008-01-25, between 55.60 and 53.75, equal
    to that day's low and far below its open of 55.28. Example 7.6 reads
    neither stock on those days, because its January 2008 holding reads the
    closes of 2007-12-31 and 2008-01-31. All 21 are pinned in
@@ -1299,7 +1299,7 @@ carries the measurements below.
    EWA's 7.49 to SPY's 60.48. `TestTheETFFileSubtractsEachDividend` in
    [tests/test_series.py](../tests/test_series.py) pins every figure in this
    point.
-4. **The scale-break guard flags 58 days in eight of the 67, on the close.** Each
+4. **The scale-break guard flags 58 closes in eight of the 67, on 45 days.** Each
    of the eight is a leveraged or inverse fund, and every day falls between
    2008-04-16 and 2009-06-25.
 
@@ -1312,7 +1312,7 @@ carries the measurements below.
    7. SMN on 24.
    8. TNA on 1.
 
-   None of them is an ETF the examples above read. All 58 are pinned in
+   None of them is an ETF the examples above read. All 58 closes are pinned in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **It fits the budget.** The directory holds 3.40 MB, and its manifest and
    checksum lines and this section add 0.03 MB, which takes `data/` from
