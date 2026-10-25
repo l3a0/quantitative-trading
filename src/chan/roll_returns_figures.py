@@ -182,7 +182,7 @@ def make_roll_returns_figure(
         fig,
         "Exploratory: spot and roll returns redrawn on Chan's own futures strips",
         f"Example 5.3 of Algorithmic Trading. Five strips saved {first.obtained}, one "
-        "file per commodity holding its spot and every contract.\nα is 252 times the slope "
+        "file per future holding its spot and every contract.\nα is 252 times the slope "
         "of the log spot on the day number. γ is −12 times the slope of the five nearest "
         "contracts'\nlog prices on their columns, or on their months. Every figure is "
         "in-sample on 1986 to 2012.",

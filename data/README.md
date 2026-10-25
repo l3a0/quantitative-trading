@@ -865,7 +865,7 @@ measurements below.
    two days late, which moves the reproduction off every figure Chan printed.
    `chan.mat_columns.flag_round_trip_differs` rebuilt the 330 by 497 array from
    the committed bytes and found it identical, day for day.
-4. **The scale-break guard flags 30 days in 17 of the 497, on the close.** Every
+4. **The scale-break guard flags 30 closes in 17 of the 497.** Every
    one falls between 2007 and 2009, most are banks and insurers in the 2008
    crisis, such as AIG on 2008-09-15, and none sits near a split. None falls in
    the 2011 and 2012 window Example 7.2 trades. Example 6.2's script reads

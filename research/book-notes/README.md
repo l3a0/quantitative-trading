@@ -100,7 +100,7 @@ recorded on
 *Algorithmic Trading*'s Example 6.2 splits the same way as its Example 7.2.
 Its two 2007 figures, its −30 percent for 2008 and 2009 and its sentence that
 the return "did stabilize" afterwards all sit at location 2800, while the five
-figures its script's closing comment prints sit in `kentdaniel.m` and nowhere
+figures its script's closing comment records sit in `kentdaniel.m` and nowhere
 in the book. The replication log's Entry 17 traces each to one or the other.
 
 *Algorithmic Trading*'s Example 3.1 splits the same way, with one figure

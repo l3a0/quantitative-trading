@@ -252,7 +252,7 @@ where they were first built. The other forty-five were built here.
 17. Cross-sectional momentum, Example 6.2 of *Algorithmic Trading*, which buys
     the 50 stocks with the highest 252-day return, shorts the 50 with the
     lowest, and holds each day's picks for 25 days. The script's closing
-    comment prints a Sharpe ratio of 0.40 against the book's 4.1. Transcribed
+    comment records a Sharpe ratio of 0.40 against the book's 4.1. Transcribed
     and run on the S&P 500 file it loads, the script prints none of its
     comment's five figures. It gives a Sharpe ratio of 4.0657, and compounded
     APRs of 0.372577 for 2007 and −0.298789 for 2008 and 2009, which round to
@@ -263,8 +263,9 @@ where they were first built. The other forty-five were built here.
     afterwards. None of the four readings declared to explain the gap lands.
     Every figure is exploratory and about survivors.
 18. Buy on gap, Example 4.1 of *Algorithmic Trading*, which buys at the open
-    the ten stocks that opened furthest below their previous day's low, while
-    still above their 20-day moving average, and sells at the close. On Chan's
+    up to ten stocks that opened furthest below their previous day's low, by
+    more than one 90-day standard deviation of their daily returns, while still
+    above their 20-day moving average, and sells at the close. On Chan's
     own S&P 500 file both figures his script prints reproduce: an APR of
     0.087385, his 8.7 percent, and a Sharpe ratio of 1.5371, his 1.5. Book
     two's `smartstd` is what lands them, and the first edition's moves both.
@@ -376,8 +377,8 @@ where they were first built. The other forty-five were built here.
     rounds to 5.1 percent against the book's 5.0, and TU's 0.000039 is
     positive where the book prints −0.0. Corn's two figures agree with the
     ones Chan's Python port printed to within 10⁻¹². `estimateFuturesReturns.m`
-    measures a contract's maturity in columns rather than months, so beside
-    the replication runs the same fit in months, and the script's figures
+    measures a contract's maturity in columns rather than months, so the run
+    also fits each strip with maturity in months, and the script's figures
     overstate corn's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
     Under months, HG's falls below its spot return, so the comparison
     Chapter 6 rests its explanation of HG's momentum on holds only under the
@@ -1004,7 +1005,7 @@ the exception, and what it says that nothing here asserts is listed below.
 It pins both figures `bog.m` prints at the precision that is real and at the
 book's, the declared mirror's figures beside Chan's, and both sides under the
 first edition's `smartstd`, so a port that reaches for the helper this repo
-already held fails a test. It also holds the decision not to call the
+held first fails a test. It also holds the decision not to call the
 scale-break guard, by running it and pinning what it would refuse. The blog
 post about it is the exception, and what it says that nothing here asserts is
 listed below.
@@ -1102,8 +1103,10 @@ pins the month-spaced roll return, the month gaps each day's fit reads, and
 the three readings of the spot return tried after HG's and TU's missed. On
 synthetic frames it holds the script's rule: no fit on a day with four priced
 contracts or with a gap among the nearest five, only the nearest five read,
-and a gap in the spot still counted as elapsed days. The blog post about it is
-the exception, and what it says that nothing here asserts is listed below.
+and a gap in the spot still counted as elapsed days. It also pins what the post
+reads off γ day by day, in `TestBesideThePost`, and `TestThePostQuotesTheRun`
+reads one copy of each figure the post prints from the run, so editing that copy
+alone fails. What the post says that nothing here asserts is listed below.
 
 [tests/test_vx_es.py](tests/test_vx_es.py) does it for VX against ES. It pins
 the four figures on the 2012-05-07 save at the precision that is real and at
@@ -3425,8 +3428,8 @@ compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
 the USD.CAD module's strokes, timeline and renderer, so an edit there needs
 the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
-calendar spreads, Johansen ETF, VX against ES, small-caps and post-earnings
-drift redraw commands.
+calendar spreads, Johansen ETF, VX against ES, small-caps, roll returns,
+buy-on-gap, cross-sectional momentum and post-earnings drift redraw commands.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -3693,8 +3696,9 @@ regime map.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
-strategy buys at the open the stocks that fell furthest below the previous
-day's low, while still above their 20-day average, and sells at the close.
+strategy buys at the open up to ten of the stocks that fell furthest below the
+previous day's low, by more than one 90-day standard deviation of their daily
+returns, while still above their 20-day average, and sells at the close.
 Chan reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and 46 percent
 and 1.27 for a mirror he prints no script for. The post draws six lessons
 from Entry 18 of the replication log.
@@ -3705,8 +3709,8 @@ from Entry 18 of the replication log.
 3. One phrase, "annualized average return", names two formulas in this book.
 4. The mirror, written down before any run, lands at 12 percent and not 46,
    though its drawdown is the steeper as Chan says.
-5. Chan's own pair of figures implies at least four and a half times the
-   written rule's volatility, from arithmetic alone.
+5. If Chan computed his pair of figures with `bog.m`'s formulas, they imply
+   at least four and a half times the written rule's volatility.
 6. An exact reproduction checks the arithmetic and not the edge.
 
 Five groups of its figures are not pinned here.
@@ -3723,13 +3727,25 @@ Five groups of its figures are not pinned here.
    drawdown" and "suffered from" are at 1993. "An annualized average return
    of around 8.7 percent", in a later chapter on risk management, is at 3509,
    and the same phrase for Example 7.2's
-   levered figure is at 3024. The book's figures are pinned, and its words
-   are not.
+   levered figure is at 3024. That Example 4.2 trades a basket of this same
+   file's stocks against SPY is at 2035. The book's figures are pinned, and
+   its words are not.
 2. Facts outside the committed data. That `gapFutures_FSTX.m` measures a jump
-   from the previous high, and that the name `bog.m` loads is the same bytes as
-   the committed file in both public mirrors, which `src/chan/buy_on_gap.py`'s
-   docstring and [data/README.md](data/README.md) record. That MS, the stock
-   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That the same
+   from the previous high, and that, of the public mirrors this repository has
+   read, two hold Chan's `inputDataOHLCDaily_stocks_20120424.mat` and only one
+   holds a file of the name `bog.m` loads, with the same bytes as Chan's file,
+   which `src/chan/buy_on_gap.py`'s docstring and
+   [data/README.md](data/README.md) record. That burakbayramli/books at
+   `43c0bb4` holds neither file name. That the committed members rebuild all
+   five of the file's arrays exactly, which `chan.mat_columns.round_trip_differs`
+   found where the `.mat` was recorded and data/README.md records. The `.mat`
+   is not committed, so no test runs that check on this file. That MS, the stock
+   the mirror shorted on 2008-10-13, is Morgan Stanley's ticker. That every
+   stock in the file was in the S&P 500 in late 2011, which rests on the
+   examples `TestTheListDatesFromLate2011` holds and on a count of
+   497 = 500 − 8 + 5 that the review reconciled against the index by hand.
+   The class also reads the post's sentences that date the list.
+   That the same
    script's return line sells the upward jump is not among them, since
    [tests/test_opening_gap.py](tests/test_opening_gap.py) holds that sign.
 3. Arithmetic no test asserts: that ln(1 + r) ≤ r for every daily return,
@@ -3744,14 +3760,30 @@ Every other number in the post traces to an assertion in
 [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as the
 arithmetic figure, or to
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) for the
-figure's own numbers. Two had no pin before it, and the figure's test now pins
-both, for each side.
+figure's own numbers, or to
+[tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
+for the whiteboard sketch's. `TestWhatThePostQuotes` in the first of those
+files reads at least one copy of each run figure the post quotes outside the
+sketch and its caption, and checks it against the run. Those include the file's saved
+date, the figure's alt-text spell dates and its mirror climbing more steeply
+through 2007 and 2008, and the two dates of the flagged day the mirror
+shorted. The sketch's test reads the sketch's caption and alt text. Five had
+no pin before the post. The figure's test now pins the first two, for each
+side, the sketch's test the third, and `TestWhatThePostQuotes` the last two.
 
 1. That the longest spell below the high runs from 2008-09-02 to 2009-04-20
    after a high on 2008-08-29 for buy on gap, and from 2008-11-24 to
    2010-05-05 after a high on 2008-11-21 for the mirror.
 2. That each side's deepest drawdown falls inside that spell, on 2008-12-09
    and 2009-02-03.
+3. The sketch's day, PCS on 2011-01-06, the only stock bought that day, with
+   its previous low of 13.68, its standard deviation of 0.020967, its dashed
+   line at 13.39, its open of 13.01, its 20-day average of 12.70, its close of
+   13.30 and its gain of 2.2 percent from the open to the close.
+4. That the mirror's cumulative return gains more than the buy side's in
+   each of 2007 and 2008.
+5. That the flagged move into 2008-10-13 is a rise, from Morgan Stanley's
+   close on 2008-10-10, the trading day before.
 
 Its one figure is drawn from the committed file by
 [src/chan/buy_on_gap_figures.py](src/chan/buy_on_gap_figures.py), which reads
@@ -3767,6 +3799,31 @@ uv run python -m chan.buy_on_gap_figures
 [tests/test_buy_on_gap_figures.py](tests/test_buy_on_gap_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries one looping whiteboard sketch,
+`buy_on_gap_where_the_open_lands.gif`, drawn by
+[src/chan/buy_on_gap_whiteboard.py](src/chan/buy_on_gap_whiteboard.py) on the
+USD.CAD post's sketch machinery. It sits after the paragraph on Chan's reason
+for rule 2, and draws to scale the two levels an open has to land between, on
+PCS on 2011-01-06. The open of 13.01 lands in a green band under the dashed
+line at 13.39, one standard deviation below the previous low of 13.68, and
+above the 20-day average of 12.70, with a red zone below the average for
+Chan's reason and an arrow to the close of 13.30. It reads every price from
+the committed file through `chan.buy_on_gap`'s own functions, so the dashed
+line is the price the run compares the open against.
+
+```bash
+uv run python -m chan.buy_on_gap_whiteboard
+```
+
+[tests/test_buy_on_gap_whiteboard.py](tests/test_buy_on_gap_whiteboard.py)
+holds what the sketch says and draws, that each price stands at its value to
+one scale, that its labels change with the figures handed to it, and that a
+day is refused when another stock was bought, when its dashed line is not
+below the previous low, when its open is not strictly between the dashed line
+and the average, or when its close is not above the open and under the dashed
+line. It compares the committed GIF with a fresh
+draw byte for byte only on macOS arm64 in Comic Sans MS.
 
 [blog/calendar-spreads-lessons.md](blog/calendar-spreads-lessons.md) is a
 thirteenth post, about the second of Chan's stationary candidates at Kindle
@@ -3999,7 +4056,7 @@ Entry 17 of the replication log.
 
 1. The 0.40 is the comment's and not the code's, which computes 4.0657 on the
    file it loads.
-2. A rule taken from one example did not carry to the next. Read as the
+2. A rule taken from one example did not carry to another. Read as the
    arithmetic return, as Example 7.2's "APR" is, the book's APR reproduces in
    neither window, and the compounded figure that matches both was seen only
    afterwards.
@@ -4008,7 +4065,7 @@ Entry 17 of the replication log.
    stabilized below 2007's.
 4. A reproduction checks the arithmetic and not the edge.
 
-Five groups of its figures are not pinned here.
+Six groups of its figures are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -4026,27 +4083,32 @@ Five groups of its figures are not pinned here.
    `Avg Ann Ret=` for the arithmetic figure and `APR=` for the compounded one,
    in `kentdaniel.m` and `pead.m`, and `bog.m`'s label on its compounded
    figure. That neither public copy of Chan's code ships a `lag.m`, that the
-   first edition's `lag1.m` shifts by one row, and that both copies hold the
-   same `kentdaniel.m`, which `src/chan/cross_sectional_momentum.py`'s
-   docstring records. Whether ETFC's move from 85.9 to 35.5 was a real move or
-   a bad print, which nothing checks.
-3. Arithmetic no test asserts: that 0.40 is about a tenth of 4.1 and of
-   4.0530, so either helper's Sharpe ratio is ten times the comment's, that
-   2007-05-15 to 2007-12-31 is seven and a half months, and that 1947 to 2007
-   is sixty years.
+   first edition's `lag1.m` defines a function named `lag` as a shift of one
+   row, and that both copies hold the same `kentdaniel.m`, which
+   `src/chan/cross_sectional_momentum.py`'s docstring records. Whether ETFC's
+   move from 85.9 to 35.5 was a real move or a bad print, which nothing checks.
+3. Arithmetic no test asserts: that 0.40 is about a tenth of the book's 4.1,
+   of 4.0657 and of 4.0530, so either helper's Sharpe ratio is ten times the
+   comment's, that 2007-05-15 to 2007-12-31 is seven and a half months, and
+   that 1947 to 2007 is sixty years.
 4. The book's Figure 6.6, which the post's figure redraws from
    `kentdaniel.m`'s `plot(cumret)` and which nothing compares with the book's
    own.
-5. Its references, cited rather than computed.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a list, a
+   table or the alt text, and a typo in a copy the class does not read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py),
 to [tests/test_pead.py](tests/test_pead.py) for Example 7.2's 6.7 percent as
 the arithmetic figure, to
 [tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) for
-the reversal's 4.713284 on the same file, or to
+the reversal's 4.713284 on the same file, to
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, or to
+[tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
+for the sketches'. Three of them had no pin before the post.
 
 1. That the 2008 and 2009 spell below the high runs from 2008-07-15, after a
    high on 2008-07-14, to the window's last day, 2009-12-31, so it was still
@@ -4056,6 +4118,14 @@ for the figure's own numbers. Three had no pin before it.
 3. ETFC's closes of 85.9 on 2007-11-09 and 35.5 on 2007-11-12, and the
    strategy's position of −25 in it on 2007-11-09, which
    `TestTheScaleBreakDecision` now pins.
+
+`TestWhatThePostQuotes` in
+[tests/test_cross_sectional_momentum.py](tests/test_cross_sectional_momentum.py)
+reads one copy of each run figure in the post, its tables and its figure's alt
+text against the run, so a typo in that copy fails a test. It also asserts on
+the run several comparisons the post's words draw, such as that the comment's
+182 days cannot fit in the 160-day 2007 window and that only R0 and R4 round
+to 4.1, and reads one copy of those words.
 
 Its one figure is drawn from the committed file by
 [src/chan/cross_sectional_momentum_figures.py](src/chan/cross_sectional_momentum_figures.py),
@@ -4073,6 +4143,36 @@ uv run python -m chan.cross_sectional_momentum_figures
 [tests/test_cross_sectional_momentum_figures.py](tests/test_cross_sectional_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two whiteboard sketches, drawn slowly by
+[src/chan/cross_sectional_momentum_whiteboard.py](src/chan/cross_sectional_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery, and neither is schematic.
+
+1. `cross_sectional_momentum_cohorts.gif` follows the four steps of the
+   strategy. It stacks 25 cohorts of 50 longs and 50 shorts, each held 25
+   days, makes 2,500 picks held one unit of capital through the script's
+   divisor, and marks the 2007 window's first 24 days, which hold fewer than
+   25 cohorts.
+2. `cross_sectional_momentum_two_returns.gif` follows the sentence after
+   Lesson 1's table. It adds the 2007 window's 160 daily returns to 0.2032
+   and scales them to 0.3200, and multiplies their 1 + r to 1.2227 and
+   annualizes that to 0.3726. It carries none of the book's figures, which
+   the post holds back until Lesson 2.
+
+Both read the committed closes through the same `read_closes` as the run.
+The cohorts sketch takes its counts from `formations` and `cohorts_held`,
+and the returns sketch takes its figures from `script_as_printed` over the
+2007 window.
+
+```bash
+uv run python -m chan.cross_sectional_momentum_whiteboard
+```
+
+[tests/test_cross_sectional_momentum_whiteboard.py](tests/test_cross_sectional_momentum_whiteboard.py)
+holds what the sketches say and draw, their alt texts and captions against
+the run, and that a run whose figures would make a drawing false is refused.
+It compares the committed GIFs with a fresh draw byte for byte only on macOS
+arm64 in Comic Sans MS.
 
 [blog/price-spread-ratio-lessons.md](blog/price-spread-ratio-lessons.md) is a
 sixteenth post, about Example 3.1 of Chan's *Algorithmic Trading*, which trades
@@ -5363,7 +5463,7 @@ links the earlier posts on calendar spreads and on VX against ES for what a
 futures contract and a roll are, and draws four lessons from Entry 27 of the
 replication log.
 
-1. Eight of Table 5.1's ten cells land on Chan's own files, and HG's and TU's
+1. Eight of Table 5.1's ten cells match on Chan's own files, and HG's and TU's
    spot returns miss there, so no vendor's revision explains either.
 2. The script regresses on contract columns where the text says months, so it
    overstates C's, HG's and TU's roll returns by 2.4, 2.0 and 3.0 times.
@@ -5375,7 +5475,7 @@ replication log.
    sign 198 times, with no criterion for location 2683's "does not vary very
    often" written down before the counts.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -5395,37 +5495,61 @@ Five groups of what it says are not pinned here.
    location 2399, which
    [tests/test_book_notes.py](tests/test_book_notes.py) holds, and the book's
    chart is compared with the redraw only by its first and last days.
-3. Readings no test asserts: the algebra of the model, that a held contract
-   earns α + γ and that one day's log prices fall on a line of slope −γ, and
-   the reading of location 2385 that the roll return separates a producer
-   ETF from the commodity's future.
-4. Figures the post rounds from pinned ones or takes between them in words:
-   0.0039 percent, "a little over half", and "less than four months later".
-   The figure's heading test holds 5.06 and 3.86 percent. The figure's alt text reads its bars and its line
-   approximately too, such as "about 5.3" and "about −1.1".
+3. Readings no test asserts on the run: the algebra of the model, that a held
+   contract earns α + γ and that one day's log prices fall on a line of slope
+   −γ, which
+   [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+   holds only on the first sketch's made-up slopes, the reading of location
+   2385 that the roll return separates a producer ETF from the commodity's
+   future, and the reading that for most of the time before 2006-12-19 the
+   market's nearest CL contracts are not in the file.
+4. The figure's alt text, which reads its bars and its line approximately,
+   such as "about 5.3" and "about −1.1". The sketches' alt texts place their
+   lines in words, such as "about a third of the way across", and
+   [tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+   reads their quoted labels, their pace and a few phrases rather than every
+   position.
 5. Its references, cited rather than computed.
+6. The history of its pass marks, which
+   [issue 347](https://github.com/l3a0/quantitative-trading/issues/347), its
+   edit history and
+   [issue 458](https://github.com/l3a0/quantitative-trading/issues/458) record
+   and no test can read: that the pass mark of twice was written down before
+   the code existed but after a first rough run had measured the figures, that
+   it reached the fit in months only once the code had run, and that none was
+   written down for "does not vary very often" before the counts.
 
 Every other number in the post traces to an assertion in
 [tests/test_roll_returns.py](tests/test_roll_returns.py), or to
 [tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) for
-the figure's own numbers. Four had no pin before it, and
-`TestBesideThePost` there now pins them all.
+the figure's own numbers, or to
+[tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+for the sketches' labels and the planted prices' 50.00 and 48.52. Five had
+no pin before it, and `TestBesideThePost` there now pins them all.
 
 1. CL's γ is negative on 1,388 of its 1,941 days and positive on 552. On
    2006-01-05 its five settlements run 65.38 to 65.41 and back, so it is zero
    apart from rounding, and the sign counts skip that day.
 2. It changes sign 29 times, and its longest run of one sign is contango from
-   2008-10-09 to 2011-10-21, 766 days.
+   2008-10-09 to 2011-10-21, 766 trading days.
 3. Its highest value is 0.258871 on 2008-09-22 and its lowest −1.121372 on
    2009-01-15.
 4. BR's γ is negative on 3 of its 4,210 days, and HG's is positive on 3,139 of
    its 6,028 days and changes sign 198 times.
+5. Until 2006-12-19, the last day of CL's January 2007 contract, the five
+   nearest contracts in the file on each of the first 519 days with γ are
+   January to May 2007.
+
+`TestThePostQuotesTheRun` there reads the post itself against the run. It
+reads Lesson 1's two tables and Lesson 2's table row by row, and one prose
+copy of every other figure the run computes. It does not read the italic
+summary, the list of three findings, the headings or the alt text.
 
 Its one figure is drawn from the committed strips by
 [src/chan/roll_returns_figures.py](src/chan/roll_returns_figures.py), which
 reads them through the same `load_strip` and `strip_returns` as
 `python -m chan.roll_returns`, scale-break guard included. It draws two panels,
-for Lessons 3 and 4.
+the first for Lessons 2 and 3 and the second for Lesson 4.
 
 1. Each strip's spot return, the script's roll return and the month-spaced
    roll return as bars, with a tick at twice the spot return over BR, C and TU.
@@ -5439,6 +5563,34 @@ uv run python -m chan.roll_returns_figures
 [tests/test_roll_returns_figures.py](tests/test_roll_returns_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/roll_returns_whiteboard.py](src/chan/roll_returns_whiteboard.py) on
+the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+
+1. `roll_returns_sketch_one_line.gif`, in "The model and the files", a spot
+   line rising at α and three contracts below it, each rising at α + γ to end
+   on the spot line at its own expiry, read once along one contract and once
+   down one day. It is schematic and carries no figures from the run, and it
+   builds more slowly than the USD.CAD post's sketches and holds its finished
+   drawing for twelve seconds.
+2. `roll_returns_sketch_same_five_prices.gif`, in Lesson 2, the made-up
+   quarterly example's five prices at their months with the fit in months,
+   then the same prices one month apart with the script's fit, three times
+   as steep. It reads its 0.03 and 0.09 from the two fits run on the planted
+   frame, and draws the prices' drop larger than it is.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.roll_returns_whiteboard
+```
+
+[tests/test_roll_returns_whiteboard.py](tests/test_roll_returns_whiteboard.py)
+holds that each contract line ends on the spot line at its expiry, that the
+script's fit is drawn three times as steep as the fit in months from the same
+first price, and that the planted frame is the one
+[tests/test_roll_returns.py](tests/test_roll_returns.py) builds.
 
 [blog/tu-hypothesis-tests-lessons.md](blog/tu-hypothesis-tests-lessons.md) is
 a twenty-eighth post, about Example 1.1 of Chan's *Algorithmic Trading*, which

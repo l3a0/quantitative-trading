@@ -4429,11 +4429,11 @@ with the highest 252-day return and shorts the 50 with the lowest, holds each
 day's picks 25 days in overlapping cohorts, and divides each day's return by
 2 · 50 · 25. The book reports 37 percent and a Sharpe ratio of 4.1 from
 2007-05-15 to 2007-12-31, and −30 percent over 2008 and 2009. The comment
-lines that close `kentdaniel.m` print 0.0315 and 0.40 over the same 2007
+lines that close `kentdaniel.m` record 0.0315 and 0.40 over the same 2007
 window, which is where
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297) started.
 Transcribed and run on the file it loads, the script gives none of the five
-figures its comment prints. It gives a Sharpe ratio of 4.0657, and a
+figures its comment records. It gives a Sharpe ratio of 4.0657, and a
 compounded APR of 0.372577 in 2007 and −0.298789 over 2008 and 2009, which
 round to the book's 4.1, 37 percent and −30 percent. A second implementation
 written separately in pandas agrees with the transcription on every day, which
@@ -4450,9 +4450,9 @@ and −32 percent. The rule needed 37 percent and 4.1 together, so none of the
 four readings lands and the 4.1 row does not reproduce either, though the
 script's own Sharpe ratio rounds to it. That the compounded figure is the one
 matching was seen only after the rule was fixed, so row 10 reports it and it
-decides nothing. Chan's word "APR" names the arithmetic figure in Example 7.2
-and the compounded one here, and a rule taken from one example did not carry
-to the next.
+decides nothing. Chan's word "APR" names the arithmetic figure in Example 7.2,
+and the figures seen afterwards point to the compounded one here. A rule taken
+from one example did not carry to the next.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -4486,8 +4486,8 @@ reproduce on his file and nothing about whether momentum pays today.
 
 ### What the book printed
 
-`kentdaniel.m` prints five figures for the 2007 window in the comment lines
-that close it. The book quotes two figures for that window, one for 2008 and
+The comment lines that close `kentdaniel.m` record five figures for the 2007
+window. The book quotes two figures for that window, one for 2008 and
 2009, and a claim about the years after.
 
 | # | Row | Published figure | Where |
@@ -4538,10 +4538,10 @@ that close it. The book quotes two figures for that window, one for 2008 and
 ### The declared readings
 
 [Issue 297](https://github.com/l3a0/quantitative-trading/issues/297) declared
-R1 to R4 as what could explain a script printing 0.40 against a book printing
-4.1, each changing one thing from the script, and no combination was run. Each
-cell is the arithmetic annual return and then the Sharpe ratio, from
-`TestTheReadings` and `TestTheScriptOverTheOtherWindows`. A reading lands when
+R1 to R4 as what could explain a script whose comment records 0.40 against a
+book printing 4.1, each changing one thing from the script, and no combination
+was run. Each cell is the arithmetic annual return and then the Sharpe ratio,
+from `TestTheReadings` and `TestTheScriptOverTheOtherWindows`. A reading lands when
 its 2007 return rounds to 37 percent and its 2007 Sharpe ratio to 4.1. The
 last column is each 2007 figure less the book's, from `TestTheDistances`, which
 also holds each reading's distance from −30 percent.
@@ -4554,10 +4554,10 @@ also holds each reading's distance from −30 percent.
 | R3 | a day's picks earn that same day, which looks ahead | 0.3371, 4.2779 | −0.2923, −1.1695 | 0.0332, 0.4093 | no | −0.0329, +0.1779 |
 | R4 | each day over the cohorts it holds rather than 25 | 0.3215, 4.0531 | R0's | R0's | no, 4.1 alone | −0.0485, −0.0469 |
 
-The readings were declared to explain a script printing 0.40 against a book
-printing 4.1. The code's own Sharpe ratio is 4.0657, and their 2007 Sharpe
-ratios span 3.82 to 4.28 around it. Long losers and
-short winners was declared too, and negating every position negates every
+The readings were declared to explain a script whose comment records 0.40
+against a book printing 4.1. The code's own Sharpe ratio is 4.0657, and their
+2007 Sharpe ratios span 3.82 to 4.28 around it. Long losers and short winners
+was declared too, and negating every position negates every
 day's return exactly, which `TestTheReadings::test_the_opposite_sign_negates_every_day`
 holds.
 
@@ -4577,22 +4577,29 @@ Three things.
    compounded one in Example 6.2, in one book by one author. The rule declared
    in advance followed the first example, so the verdicts on rows 6 to 8 say
    what that rule gives, and row 10 says what was seen afterwards.
-3. **Seen after the run and deciding nothing, the crash Chan describes is in
-   the file.** The strategy that earned a Sharpe ratio of 4.07 over 2007
-   lost 32 percent a year over 2008 and 2009, with a drawdown of −0.606634
-   from a high on 2008-07-14. It was still below that high 371 days later,
-   when the window ended, so the drawdown had not finished. The strategy
-   earned 1.6 percent a year from 2010 to 2012. That is the collapse location
-   2890 describes, where momentum "vanished during the aftermath of the stock
-   market crash".
+3. **The crash Chan describes is in the file.** The strategy earned a Sharpe
+   ratio of 4.0657 over 2007, which row 7 judges, and an arithmetic return of
+   −0.323195 over 2008 and 2009, which row 8 judges. Seen only after the run,
+   and deciding nothing, it fell into a drawdown of −0.606634 from a high on
+   2008-07-14 and was still below that high 371 days later, when the window
+   ended, so the drawdown had not finished. Its arithmetic return from 2010 to
+   2012 was 0.016244, which row 9's rule, fixed before the run, reads as
+   stabilised below 2007's. That is the collapse location 2890 describes,
+   where momentum "vanished during the aftermath of the stock market crash".
 
 ### What this entry cannot say
 
-Four things.
+Six things.
 
-**Which run printed the comment.** A different file, window or version of the
-script could each print 0.0315, and trying them until one did would be the
-search the issue's rule forbids, so none was tried.
+**Which run printed the comment.** The comment's 182-day longest drawdown
+cannot come from the 2007 window as the script computes it, so no file with
+one row per trading day, read over that window, could have printed the
+comment. `calculateMaxDD` over a window's rows counts at most one fewer days
+than the window holds, and the window holds 160.
+`TestWhatThePostQuotes::test_the_comments_longest_drawdown_cannot_come_from_the_window`
+asserts both. A different window or version of the script, read from this
+file or another, might have printed the comment's figures. Trying them until
+one did would be the search the issue's rule forbids, so none was tried.
 
 **What survivorship does to these figures.** Every stock here survived to
 2012-04-24, and the two legs lose different stocks.
@@ -4604,12 +4611,26 @@ cohort of 100 picks enters and the one formed 25 days earlier leaves.
 
 **Whether momentum pays today.** The sample ends in April 2012.
 
+**Whether Chan's cause for momentum crashes holds here.** At location 2890 he
+writes that a crash "is mainly due to the strong rebound of short positions
+following a market crisis". No run here splits each day's return by the side
+of each position, so nothing tests that cause on this strategy.
+
+**Whether ETFC's close on 2007-11-12 was a real price.** It fell from 85.9 to
+35.5, the one close in the 2007 window that the scale-break guard flags as too
+far from the day before to be an ordinary move, and all 25 cohorts held ETFC
+short going into it, which `TestTheScaleBreakDecision` holds. The run does not
+call the guard, for the reason the module docstring gives, and no other source
+has been checked for that close.
+
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/cross-sectional-momentum-lessons.md](../blog/cross-sectional-momentum-lessons.md)
-moves with it, since that post quotes most of these figures. So does its one
+moves with it, since that post quotes most of these figures. So do its one
 figure, which `uv run python -m chan.cross_sectional_momentum_figures`
-redraws.
+redraws, and its two whiteboard sketches, which print the cohort counts and
+the 2007 window's sum, product and two annual returns, and which
+`uv run python -m chan.cross_sectional_momentum_whiteboard` redraws.
 
 ## Entry 18: buy on gap and its mirror, Chan's *Algorithmic Trading*
 
@@ -4626,7 +4647,7 @@ Twelve rows, all derivable from
 **Both figures `bog.m` prints reproduce on Chan's own file, and the mirror
 does not.** Chan argues that a stock's open can overshoot on a morning of panic
 selling and drift back during the day. So each day the rule buys at the open
-the ten stocks that opened furthest below their previous day's low, by more
+up to ten stocks that opened furthest below their previous day's low, by more
 than one 90-day standard deviation of their daily returns, provided the open is
 still above the 20-day moving average of closes, and sells them at the close.
 The book reports an APR of 8.7 percent and a Sharpe ratio of 1.5, and the
@@ -4650,10 +4671,12 @@ here.
    the open, high, low and close through `chan.series.load_panel`, all 1,500
    days from 2006-05-11 to 2012-04-24. `bog.m` loads
    `inputDataOHLCDaily_20120424`, with no `_stocks`, and the only file of that
-   name in either public mirror of Chan's code is the same bytes, which
+   name in either of the two public mirrors data/README.md names is the same
+   bytes, which
    [data/README.md](../data/README.md) records. **Every figure here is about
-   survivors**, because the file is the S&P 500 as Chan held it on 2012-04-24,
-   carried backwards, and location 1974 says so.
+   survivors**, because the file holds stocks that were in the S&P 500 in late
+   2011, carried backwards, and location 1974 says the universe has
+   survivorship bias.
 2. **The specification.** `bog.m` at `45670240` in
    [ivanliu1989/algorithmic_trading](https://github.com/ivanliu1989/algorithmic_trading).
    The spread is book two's `smartMovingStd` over 90 rows of close-to-close
@@ -4674,7 +4697,8 @@ one sentence rather than a hypothesis tested on held-out data.
 
 ### What the book printed
 
-`bog.m` closes on the comment `% APR=8.7%, Sharpe=1.5`. Its `fprintf` lines
+`bog.m`'s last `fprintf` line is followed by the comment
+`% APR=8.7%, Sharpe=1.5`. Its `fprintf` lines
 would print more digits, but nothing records what they printed, so the
 comment's one decimal is the precision the source carries.
 
@@ -4721,7 +4745,7 @@ comment's one decimal is the precision the source carries.
 | 9 | none | none, not a replication | No position can come before 2006-09-19, the first day a 90-row spread exists. |
 | 10 | none | none, not a replication | The first edition's helper moves both printed figures off Chan's, to 8.4 percent and 1.7, and takes two buy positions fewer. |
 | 11 | none | none, not a replication | A stock listed inside the window reaches the rule before 90 returns stand behind its spread, which is what Chan's helper does. Of the 23 late listings, three positions come from it. |
-| 12 | none | none, not a replication | The guard is not called, so this counts what it would have refused. The issue decided not to call it on the reasoning [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) and [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) give. |
+| 12 | none | none, not a replication | The run does not call the guard. `TestTheScaleBreakDecision` calls it, and this row counts what it would have refused. The issue decided not to call it on the reasoning [issue 18](https://github.com/l3a0/quantitative-trading/issues/18), [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) and [issue 22](https://github.com/l3a0/quantitative-trading/issues/22) give. |
 
 ### What the entry concludes
 
@@ -4734,9 +4758,9 @@ Three things.
    average return" is the arithmetic figure. At location 3509 the same phrase
    carries Example 4.1's compounded APR, which the arithmetic figure misses.
    Reading the label instead of the script would have pinned row 2 against
-   the arithmetic figure and called it a miss. Entry 17 found the same of the
-   word "APR", which names the arithmetic figure in Example 7.2 and the
-   compounded one in Example 6.2.
+   the arithmetic figure and called it a miss. Entry 17 found the word "APR"
+   naming the arithmetic figure in Example 7.2, while the figures it saw
+   afterwards point to the compounded one in Example 6.2.
 3. **The declared mirror is a different strategy from Chan's.** Its drawdown
    is steeper, as he says, and its return is not. His own pair of figures
    rules out the declared rule's scale on arithmetic alone, if he computed
@@ -4758,8 +4782,10 @@ Five things.
 were named on [issue 295](https://github.com/l3a0/quantitative-trading/issues/295) and not run. Trying readings until one matched would be the
 search the honesty rail forbids.
 
-**Which file Chan ran in 2012.** The name `bog.m` loads points, in both
-public mirrors, at the same bytes as the committed panel's source. That says
+**Which file Chan ran in 2012.** The name `bog.m` loads points, in the one
+public mirror this repository has read that holds a file of that name, at the
+same bytes as the
+committed panel's source. That says
 what the name means in the code he published, not that the file he ran when
 he wrote the book was this one. Both figures reproducing is consistent with
 it and does not prove it.
@@ -4770,7 +4796,7 @@ names the signal noise of deciding on the official open, which cannot be known
 before the trade at that open.
 
 **What the rule earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24. The point-in-time panel
+was in the S&P 500 in late 2011. The point-in-time panel
 [issue 252](https://github.com/l3a0/quantitative-trading/issues/252) waits on
 would answer it for this rule too.
 
@@ -4782,7 +4808,10 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/buy-on-gap-lessons.md](../blog/buy-on-gap-lessons.md) moves with it,
 since that post quotes most of these figures. So does its one figure, which
-`uv run python -m chan.buy_on_gap_figures` redraws.
+`uv run python -m chan.buy_on_gap_figures` redraws, and its one whiteboard
+sketch, after the strategy's rules, which draws PCS on 2011-01-06 to scale and
+which `uv run python -m chan.buy_on_gap_whiteboard` redraws through the same
+`entry_price` that `drop_qualifiers` compares the open against.
 
 ## Entry 19: the Khandani-Lo reversal on the 2012 panel, Chan's *Algorithmic Trading*
 
@@ -6263,10 +6292,10 @@ this entry is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
 Eighteen rows, all derivable from
-[tests/test_roll_returns.py](../tests/test_roll_returns.py). Five do not match
+[tests/test_roll_returns.py](../tests/test_roll_returns.py). Seven do not match
 one printed figure to one computation, and each says so in its own cells. Row
-12 covers two figures from one computation, and rows 15 to 18 carry no
-published figure.
+12 covers two figures from one computation, rows 13 and 14 test claims that
+print no statistic, and rows 15 to 18 carry no published figure.
 
 A future's return splits into the move of the spot price under it and the
 return it earns by converging on that spot as it nears expiry, the roll return.
@@ -6282,7 +6311,7 @@ TU's spot returns do not.** CL's γ starts on Figure 5.5's first day, and C's
 two figures agree with the ones Chan's Python port prints to within 10⁻¹².
 Separately, the script measures maturity in contract columns rather than
 months, which overstates the roll return of the three strips whose contracts
-are not one month apart.
+are not all one month apart.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -6379,7 +6408,7 @@ in percentage points at that precision.
 | 13 | none, a claim | reproduced | The criterion, \|γ\| at least twice \|α\|, was written before the build but after a scratch run had measured the figures. BR is the narrowest at 4.02 times, so the verdict does not rest on where the line sits. Row 16 runs it on the month-spaced γ, and there it fails for C. |
 | 14 | none, a claim | reproduced | It holds under the script's γ, which is what printed Table 5.1. Row 16 is the same claim under the book's own description of the method, and there it fails for HG. |
 | 15 | none | none, not a replication | No figure is printed for it. Monthly strips give the same γ either way, to rounding. |
-| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared only row 14's criterion for this γ. Row 13's was added at the build, after the figures were seen, which is one more reason the row carries no verdict. |
+| 16 | none | none, not a replication | C's month-spaced γ is less than twice its α, and HG's is smaller than its α. [Issue 347](https://github.com/l3a0/quantitative-trading/issues/347) declared only row 14's criterion for this γ, after a scratch run had measured it. Row 13's was added at the build, which is one more reason the row carries no verdict. |
 | 17 | none | none, not a replication | It is why rows 15 and 16 move only C, HG and TU. |
 | 18 | none | none, not a replication | γ needs five priced contracts. C's strip ends at 2012Z, so after its March 2012 contract expires no day prices more than four. |
 
@@ -6422,11 +6451,12 @@ location 2399 already says the fitted γ drifts from day to day. A mean of a
 drifting series is a summary, and this entry reproduces the summary without
 testing the model.
 
-**Whether the month-spaced γ is what Chan meant.** Rows 15 and 16 are this
-repo's reading of the book's sentence, declared on
+**Whether the month-spaced γ is what Chan meant.** Row 15 is this repo's
+reading of the book's sentence, declared on
 [issue 347](https://github.com/l3a0/quantitative-trading/issues/347) before the
-build.
-Chan printed no figure for them, so they carry no verdict.
+build. Row 16 judges it by row 14's criterion, declared there too, and by
+row 13's, added at the build. Chan printed no figure for either row, so
+neither carries a verdict.
 
 **Whether a roll return persists.** Every row is in-sample on 1986 to 2012.
 The two experiments that trade on γ, Example 5.4 and the TU momentum test,
@@ -6436,7 +6466,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/roll-returns-lessons.md](../blog/roll-returns-lessons.md) moves with it,
 since that post quotes most of these figures. So does its one figure, which
-`uv run python -m chan.roll_returns_figures` redraws.
+`uv run python -m chan.roll_returns_figures` redraws. Its two whiteboard
+sketches draw none of these figures. The one in "The model and the files" is
+schematic, and the one in Lesson 2 draws the post's made-up quarterly example,
+reading its 0.03 and 0.09 from the two fits run on it.
+`uv run python -m chan.roll_returns_whiteboard` redraws them.
 
 ## Entry 28: VX futures against E-mini futures, Chan's *Algorithmic Trading*
 
