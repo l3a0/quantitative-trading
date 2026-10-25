@@ -3,11 +3,10 @@
 Two sketches draw Lesson 1, its natural gas streaks and gasoline's two claims.
 Five draw Lesson 2: the range the missing rows leave, a guessed price, what
 Chan's 19 needs, how fill 2 carries June's move, and each fill's miss against
-each year's move. One draws
-Lesson 4's numbered files. The
-scenes are built from the natural gas and gasoline runs on the committed EIA
-files rather than from a pinned copy of their figures. Most tests check the drawing against the run,
-and a few check the run against literal dates, counts and labels the post
+each year's move. One draws Lesson 4's numbered files. The scenes are built
+from the natural gas and gasoline runs on the committed EIA files rather than
+from a pinned copy of their figures. Most tests check the drawing against the
+run, and a few check the run against literal dates, counts and labels the post
 quotes, such as test_the_run_gives_these_dates_and_files.
 
 1. The streak sketch draws a dot at each profitable year from 1994 to the
@@ -1101,6 +1100,7 @@ class TestTheFillTwoSketch:
             (_fill_two_y(fill_two.bottom, fill_two), exit_y)
         )
         assert fill_two.bottom < fill_two.fill.june < float(fill_two.fill.other) < fill_two.top
+        assert (fill_two.bottom, fill_two.top) == pytest.approx((0.612063, 0.629937), abs=1e-6)
 
     def test_other_figures_move_the_guess_and_the_band(self, fill_two) -> None:
         moved = dataclasses.replace(fill_two.fill, june_error=0.002)

@@ -688,6 +688,13 @@ class TestThePostQuotesThePins:
         ) in self.text
 
     def test_the_gap_fill_table_and_its_chance(self) -> None:
+        """The table names the fill it shows, which the owner asked for, then
+        each year's row."""
+        header = (
+            "\\text{Fill 2} & \\text{Move} & \\text{Typical miss} & "
+            "\\text{Chance of profit} \\\\ \\hline"
+        )
+        assert header in self.text
         fills = gap_fills()
         for f in fills:
             row = (

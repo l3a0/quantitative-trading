@@ -50,9 +50,9 @@ paragraph it draws.
    either side, split at the exit price. It sits after the list opening
    "1. **Fill 1, a straight line**".
 7. Each fill misses by more than the year moved: for each missing year, the
-   year's move with fill 2, June's move, and a bar of its typical miss either side,
-   every bar crossing zero, with each year's chance of a profit. It sits after
-   the paragraph opening "Both fills guess a profit in all three years".
+   year's move with fill 2 and a bar of fill 2's typical miss either side,
+   every bar crossing zero, with each year's chance of a profit. It sits
+   after the paragraph opening "Both fills guess a profit in all three years".
 8. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
@@ -1188,7 +1188,7 @@ def _cents_x(cents: float) -> float:
 
 
 def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
-    """Lesson 2: for each missing year, the move June's fill gives and one
+    """Lesson 2: for each missing year, the move fill 2 gives and fill 2's
     typical miss either side, which reaches past zero every time."""
     steps: list[Stroke | Label] = [
         _stroke(
