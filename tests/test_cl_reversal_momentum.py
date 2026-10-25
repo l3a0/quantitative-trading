@@ -317,7 +317,9 @@ class TestTheJoinIsHalfOfEachRule:
         gain = float(book.reversal.daily[earned].sum())
         assert round(gain, 6) == 0.031552
         plain = (book.momentum.daily.mean() + book.reversal.daily.mean()) / 2
-        assert plain - book.combination.daily.mean() == pytest.approx(gain / 2 / len(book.combination.daily))
+        assert plain - book.combination.daily.mean() == pytest.approx(
+            gain / 2 / len(book.combination.daily)
+        )
 
     def test_the_two_rules_agree_on_157_of_the_960_rows_both_lags_exist(self, cl, book) -> None:
         both = _both_lags(cl)
