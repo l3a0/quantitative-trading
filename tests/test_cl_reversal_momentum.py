@@ -681,7 +681,9 @@ class TestTheReport:
 
 
 POST = Path(__file__).parents[1] / "blog" / "crude-oil-reversal-momentum-lessons.md"
-SPELLED = {2: "two", 10: "ten"}
+SPELLED = {2: "two", 4: "four", 10: "ten"}
+#: A gap between the dates two saves are named by, in days, as the post writes it.
+GAPS = {7: "a week"}
 #: A number cell in one of the post's ``math`` tables: a signed decimal, a date or an integer.
 CELL = re.compile(r"-?\d+\.\d+|\d{4}-\d{2}-\d{2}|\d+")
 #: Crude oil's 2008 peak as the post dates it, from the book through the gold miners post.
@@ -714,6 +716,16 @@ def _day(stamp: pd.Timestamp) -> str:
     return f"{stamp:%B} {stamp.day}, {stamp.year}"
 
 
+def _days_apart(first: str, second: str) -> int:
+    """Days from the date ``first`` is named by to the date ``second`` is named by."""
+    return (pd.Timestamp(_saved(second)) - pd.Timestamp(_saved(first))).days
+
+
+def _years_before(closes: pd.Series) -> int:
+    """Whole years from the first of ``closes`` to the book's window."""
+    return round((BOOK_START - closes.index[0]).days / 365.25)
+
+
 @pytest.fixture(scope="module")
 def text() -> str:
     return POST.read_text(encoding="utf-8")
@@ -728,14 +740,14 @@ def strips() -> list[pd.DataFrame]:
 
 
 class TestWhatThePostQuotes:
-    """Every copy of each figure the post quotes outside its sketches, read against the run.
+    """Every copy of each run figure the post quotes outside its sketches, read against the run.
 
     The classes above pin each figure once, and
     ``blog/crude-oil-reversal-momentum-lessons.md`` copies it by hand. Here
     each figure is built from the run at the precision the post prints it and
     looked for in short fragments, each holding the number and the few words
     that name one place in the post. The fragments reach every copy of a run
-    figure outside the two sketches' alt texts and captions, which
+    figure outside the three sketches' alt texts and captions, which
     ``tests/test_cl_reversal_momentum_whiteboard.py`` reads. A typo in any
     copy, or a re-pin that leaves the post behind, fails here. Each of the
     three tables is read as the multiset of its number cells, so a cell
@@ -751,6 +763,9 @@ class TestWhatThePostQuotes:
 
     - "Slightly below the plain average" is below it by under 5 percent.
     - "Slightly smaller in size" is smaller by under 1 percent.
+    - "A little over a third" is over a third and under 0.4.
+    - "Near the plain average" is within 2 percent of it.
+    - "Within a few percent of zero" is under 5 percent.
     - "Wins it easily" is over twice either rule's Sharpe ratio.
     - "Swing hard" is over twice the join's standard deviation.
     - "Well above the price that traded" is over a quarter above it.
@@ -771,12 +786,13 @@ class TestWhatThePostQuotes:
 
     "Two months before" is asserted against crude oil's peak on July 14,
     2008, a date the post takes from the book and this class does not read.
-    Chan's words, the Kindle locations, the book's year, the EIA's $41.51 and
-    its year, the post's references to its own lessons by number, the mirror's
-    commit and the references stay unpinned. So do the two statements that
-    rest on the EIA's price rather than the run: that the prices of the four
-    years before the window sit far above the price that traded, and that
-    their returns come out smaller in size than a trader earned.
+    Chan's words, the Kindle locations, the book's year, where things sit in
+    the book, the EIA's $41.51 and its year, the post's references to its own
+    lessons by number, the mirror's commit and the references stay unpinned.
+    So do the two statements that rest on the EIA's price rather than the
+    run: that the prices of the four years before the window sit far above
+    the price that traded, and that their returns come out smaller in size
+    than a trader earned.
     """
 
     @staticmethod
@@ -800,9 +816,10 @@ class TestWhatThePostQuotes:
         assert len(self.tables(text)) == 3
 
     def test_the_opening_and_the_file(self, cl, book, later_cl, before_cl, strips, text) -> None:
-        saved = pd.Timestamp(_saved(SOURCE_FILE))
-        assert (pd.Timestamp(_saved(LATER_SOURCE_FILE)) - saved).days == 7, "a week later"
-        assert round((BOOK_START - before_cl.index[0]).days / 365.25) == 4, "four years"
+        assert _days_apart(SOURCE_FILE, LATER_SOURCE_FILE) == 7, "a week later"
+        assert _years_before(before_cl) == 4, "four years"
+        week = GAPS[_days_apart(SOURCE_FILE, LATER_SOURCE_FILE)]
+        years = SPELLED[_years_before(before_cl)]
         assert round((CRUDE_PEAK - cl.index[0]).days / (365.25 / 12)) == 2, "two months before"
         # Each strip's contracts sit in delivery order, so the first with a close that day
         # is the one nearest delivery.
@@ -824,8 +841,12 @@ class TestWhatThePostQuotes:
             f"comment under its print line records `APR={SCRIPT_APR} Sharpe={SCRIPT_SHARPE}`.",
             f"This post calls those days, from {BOOK_START.date()} to {BOOK_END.date()}, the "
             "book’s window",
-            f"a save dated a week later still prints as {BOOK_APR_PERCENT} percent and "
+            f"and on one of them each rule alone over the {years} years before the book’s "
+            "window. Three findings came out.",
+            f"a save dated {week} later still prints as {BOOK_APR_PERCENT} percent and "
             f"{BOOK_SHARPE}.",
+            f"On the {years} years before the book’s window, reversal alone loses enough money",
+            f"This repository did not set the earlier {years} years aside before reading them",
             f"reruns the rule he chose, on the {BOOK_START.year} to {BOOK_END.year} data his "
             f"script reads",
             f"Nothing shows Chan fixed the {REVERSAL_LOOKBACK} and {MOMENTUM_LOOKBACK} days",
@@ -838,6 +859,7 @@ class TestWhatThePostQuotes:
             f"scores a long on any day the close is below its {REVERSAL_LOOKBACK}-day lag or "
             f"above its {MOMENTUM_LOOKBACK}-day lag. It scores a short on any day the close is "
             f"above its {REVERSAL_LOOKBACK}-day lag or below its {MOMENTUM_LOOKBACK}-day lag.",
+            f"is the return compounded to a year of {TRADING_DAYS} trading days.",
             f"`prod(1 + r)^({TRADING_DAYS}/n) − 1`",
             f"multiplying by √{TRADING_DAYS}.",
             "The shift means CL’s early closes sit well above the price that traded. "
@@ -866,7 +888,9 @@ class TestWhatThePostQuotes:
         earned = spec.daily != 0
         assert (later.daily[~earned] == 0).all(), "the flat days are flat on both saves"
         size = np.abs(later.daily[earned]) / np.abs(spec.daily[earned])
-        assert (size < 1).all() and (size > 0.99).all(), "every return slightly smaller in size"
+        assert (size < 1).all() and (size > 0.99).all(), (
+            "every return slightly smaller in size, by under 1 percent"
+        )
         cells = [
             _saved(SOURCE_FILE),
             f"{spec.apr:.6f}",
@@ -883,7 +907,10 @@ class TestWhatThePostQuotes:
         apart = (
             pd.Timestamp(_saved(VX_SCRIPT_SOURCE_FILE)) - pd.Timestamp(_saved(VX_SOURCE_FILE))
         ).days
+        week = GAPS[_days_apart(SOURCE_FILE, LATER_SOURCE_FILE)]
         fragments = [
+            f"## Lesson 1: both figures land, and a save {week} later prints the same to the "
+            "book’s precision",
             f"Here is the join on the {_saved(SOURCE_FILE)} and {_saved(LATER_SOURCE_FILE)} saves",
             f"The {_saved(EARLIER_SOURCE_FILE)} save gives the same two figures to six decimals",
             f"The {_saved(LATER_SOURCE_FILE)} save is different. Its closes sit {shift:.2f} higher "
@@ -932,9 +959,13 @@ class TestWhatThePostQuotes:
         deviations = {name: rule.daily.std(ddof=1) for name, rule in (("j", j), ("m", m), ("r", r))}
         assert means["r"] < means["j"] < means["m"], "sits between"
         plain = (means["m"] + means["r"]) / 2
-        assert 0 < plain - means["j"] < 0.05 * plain, "slightly below the plain average"
+        assert 0 < plain - means["j"] < 0.05 * plain, (
+            "slightly below the plain average, by under 5 percent"
+        )
         for alone in ("m", "r"):
-            assert 1 / 3 < deviations["j"] / deviations[alone] < 0.4, "a little over a third"
+            assert 1 / 3 < deviations["j"] / deviations[alone] < 0.4, (
+                "a little over a third, under 0.4"
+            )
         fragments = [
             "On the book’s window, each rule alone scores below the join on both the APR and the "
             "Sharpe ratio.",
@@ -945,7 +976,8 @@ class TestWhatThePostQuotes:
             f"{early[-1].date()}, come early in the run, when the {REVERSAL_LOOKBACK}-day lag "
             f"exists and the {MOMENTUM_LOOKBACK}-day lag does not yet, so reversal alone holds a "
             "position and the join cannot.",
-            f"So on every day except the day after each of those {SPELLED[int(follow.sum())]} rows",
+            f"So on every day except the day after each of those {SPELLED[int(follow.sum())]} "
+            "rows, the join’s daily return is the average of the two rules’ daily returns.",
             f"The two rules mostly disagree. Of the {int(both.sum())} rows where both lags exist, "
             f"they agree on {agree} and take opposite sides on {opposite}. On the day after each "
             f"of those {opposite} rows",
@@ -991,7 +1023,9 @@ class TestWhatThePostQuotes:
         assert peak.max() - peak.iloc[-1] > peak.max() / 2, "gave back most of that gain"
         assert up["combination"].iloc[-1] > max(peak.iloc[-1], trough.iloc[-1]), "ends highest"
         first_year = up["combination"][: str(BOOK_START.year)]
-        assert first_year.abs().max() < 0.05, "within a few percent of zero through 2008"
+        assert first_year.abs().max() < 0.05, (
+            "within a few percent of zero through 2008, under 5 percent"
+        )
         assert (down["combination"] < 0).mean() > 0.5, "below zero for most of the period"
         # "Until late 2007": through September, before momentum's climb begins in October.
         wander = down["momentum"][:"2007-09-30"]
@@ -1039,9 +1073,12 @@ class TestWhatThePostQuotes:
         rows = book.combination.positions != book.either.positions
         assert (book.either.positions[rows] == book.reversal.positions[rows]).all()
         fragments = [
+            f"Lesson 2 shows that ComboOR takes the join’s position on every row but "
+            f"{SPELLED[int(rows.sum())]} early ones.",
             f"With reversal on the {MOMENTUM_LOOKBACK}-day lag and momentum on the "
             f"{REVERSAL_LOOKBACK}-day lag, a buy needs the close below the {MOMENTUM_LOOKBACK}-day "
-            f"lag and above the {REVERSAL_LOOKBACK}-day lag",
+            f"lag and above the {REVERSAL_LOOKBACK}-day lag, which is the original’s short "
+            "condition. Every long becomes a short.",
             f"The Sharpe ratio flips sign exactly, to {_minus(swapped.sharpe, 6)}, and the APR "
             f"becomes {_minus(swapped.apr, 6)}, not quite the negative of "
             f"{book.combination.apr:.6f}",
@@ -1078,10 +1115,15 @@ class TestWhatThePostQuotes:
         opposite = int((both & (m.positions == -r.positions)).sum())
         assert int(both.sum()) - agree - opposite == len(ties), "the other two are the ties"
         plain = (m.daily.mean() + r.daily.mean()) / 2
-        assert abs(j.daily.mean() - plain) < 0.02 * plain, "near the plain average"
+        assert abs(j.daily.mean() - plain) < 0.02 * plain, (
+            "near the plain average, within 2 percent"
+        )
         assert j.daily.mean() / m.daily.mean() < 1 / 4, "under a quarter"
         deviation_ratio = j.daily.std(ddof=1) / m.daily.std(ddof=1)
+        years = SPELLED[_years_before(before_cl)]
         fragments = [
+            f"## Lesson 3: on the {years} years before, the losing half drags the join below "
+            "momentum alone",
             "Momentum alone beats the join on both the APR and the Sharpe ratio, and reversal "
             "alone loses money.",
             f"The {_saved(EARLIER_SOURCE_FILE)} save holds the same series back to "
@@ -1091,7 +1133,7 @@ class TestWhatThePostQuotes:
             f"{REVERSAL_LOOKBACK}-day lag exists, here from {early[0].date()} to "
             f"{early[-1].date()}. The other {SPELLED[len(ties)]}, {ties[0].date()} and "
             f"{ties[1].date()}, are days when the close equals its {MOMENTUM_LOOKBACK}-day lag "
-            "exactly",
+            "exactly, which leaves momentum alone with no position while reversal alone holds one.",
             f"Of the {int(both.sum())} rows where both lags exist, the two rules agree on "
             f"{agree} and take opposite sides on {opposite}. The other "
             f"{SPELLED[len(ties)]} are those tie days.",
@@ -1100,6 +1142,8 @@ class TestWhatThePostQuotes:
             f"Its standard deviation is about {round(100 * deviation_ratio, -1):.0f} percent of "
             "momentum’s, but its average day is under a quarter of momentum’s, and its Sharpe "
             f"ratio falls to {j.sharpe:.2f} against momentum’s {m.sharpe:.2f}.",
+            f"On these {years} years the smaller swings do not make up for it.",
+            f"These {years} years do not contradict the book.",
             f"The series closes at {before_cl.iloc[0]:.2f} on {before_cl.index[0].date()}",
         ]
         assert self.missing(text, fragments) == []
@@ -1114,12 +1158,18 @@ class TestWhatThePostQuotes:
         last = strips[0][f"{root}-{code}"].last_valid_index()
         missing = before_cl.index < last - pd.DateOffset(months=1)
         assert missing.mean() > 0.5, "for most of those four years"
+        years = SPELLED[_years_before(before_cl)]
+        week = GAPS[_days_apart(SOURCE_FILE, LATER_SOURCE_FILE)]
         fragments = [
             f"the book names {REVERSAL_LOOKBACK} and {MOMENTUM_LOOKBACK} days and says nothing",
+            f"This run tries {REVERSAL_LOOKBACK} and {MOMENTUM_LOOKBACK} days and no other length",
             f"The join changes position {book.combination.changes} times in "
             f"{len(book.combination.daily):,} days, and nothing here measures what a cost on "
             f"each change would take from {BOOK_APR_PERCENT} percent.",
-            f"start with the contract delivering in {month} {year}, so for most of those four "
+            f"**What the {years} years before the book’s window would give on traded prices.**",
+            f"start with the contract delivering in {month} {year}, so for most of those {years} "
             "years they lack the contract nearest delivery.",
+            "A continuous future is rewritten at every roll, so the same rule on the same days "
+            f"can print different figures from saves {week} apart.",
         ]
         assert self.missing(text, fragments) == []

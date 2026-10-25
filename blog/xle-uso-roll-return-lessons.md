@@ -50,7 +50,7 @@ A later save of the same strip, `inputDataDaily_CL_20120813.mat`, saved 2012-08-
 
 The two calendars share 1,498 days. The fund file holds 2006-07-03 and 2006-11-24, which the CL file lacks. The first front window opens on 2006-10-20, so the ratio is defined on 1,375 of the shared days.
 
-Each contract in the CL file is one contract’s own prices. The [post on the crude oil reversal and momentum rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-reversal-momentum-lessons.md#lesson-1-both-figures-land-and-a-save-a-week-later-prints-the-same-to-the-books-precision) found that a later save of a continuous future shifts every earlier price, because each save stitches the contracts anew. Chan’s single contracts were not rewritten that way. The save of 2012-08-14 gives the same ratio on all 1,375 days.
+Each contract in the CL file is one contract’s own prices. The [post on the crude oil reversal and momentum rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-reversal-momentum-lessons.md#lesson-1-both-figures-land-and-a-save-a-week-later-prints-the-same-to-the-books-precision) found that a save dated a week later moves every close in the book’s window, because a continuous future is rewritten at every roll. Chan’s single contracts were not rewritten that way. The save of 2012-08-14 gives the same ratio on all 1,375 days.
 
 The rules that decide each result are in [Entry 39 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-39-xle-against-uso-signed-by-crude-oils-contango-chans-algorithmic-trading), which records each figure beside the test that computes it.
 

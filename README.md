@@ -6193,7 +6193,10 @@ Four groups of what it says are not pinned here.
    figures are at 2701, and the warning that the real test is out-of-sample
    is at 2715. Crude's peak on July 14, 2008 is location 1922's, cited
    through the gold miners post. The book's figures are pinned, and its words
-   are not.
+   are not. Nor are the post's statements of where things sit in the book:
+   that it is Chan's second, that earlier in the same chapter he measures
+   whether two-year Treasury note futures trend, and that the warning comes a
+   little after the crude oil rule, in the same section.
 2. Facts about the script rather than the data: that `CL_rev.m` runs four
    rules and prints figures for one, that its comment records
    `APR=0.117600 Sharpe=1.100368`, and that it plots a fourth curve for
@@ -6225,8 +6228,9 @@ a quarter, most of a gain, every return on the 2012-05-11 save coming out
 slightly smaller in size than on the 2012-05-04 save, the join's average day
 sitting slightly below the plain average and near it before the window, and
 "two months before" the peak, against Chan's date for it. Where the words
-give only a size, as "slightly", "easily", "swing hard" and "well above" do,
-the assertion sets a bound, and the class docstring lists each one. It checks the arithmetic
+give only a size, as "slightly", "a little over", "near", "a few percent",
+"easily", "swing hard" and "well above" do, the assertion sets a bound, and
+the class docstring lists each one. It checks the arithmetic
 0.98 × 1.02 = 0.9996 too. The sketches' test reads their captions and alt
 texts. Five had no pin before the post.
 
