@@ -5324,7 +5324,9 @@ Every other number in the post traces to an assertion in
 [tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
 for the figure's own numbers, or to
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) for the first book's
-0.2510, −3.1884 and −3.2337 and its average day on 2006. Four had no pin
+0.2510, −3.1884 and −3.2337 and its average day on 2006, or to
+[tests/test_khandani_lo_book_two_whiteboard.py](tests/test_khandani_lo_book_two_whiteboard.py)
+for the sketches' labels and the alt texts that quote them. Four had no pin
 before it.
 
 1. Each calendar year's APR for both examples, 2007 to 2011, and Example
@@ -5342,13 +5344,14 @@ before it.
 [tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) reads
 the post itself. It rebuilds Lesson 1's two tables and Lesson 3's table whole
 from the run, checks one copy of every other figure the post takes from a run
-at the precision the post prints, including the first book's 2006 figures, and
+outside the two sketches' alt texts and captions, at the precision the post
+prints, including the first book's 2006 figures, and
 reads each sentence that dates the stock list to late 2011. It also asserts on
 the run four comparisons the post's words draw: that Example 4.3's curve ends
 2007 below zero, that what is left of the rise is more than twice what the
 change of rule gave, that the profit is about twenty times 2006's, and that
-the rule keeps less than a third of its daily profit after costs. It reads no
-second copy of a figure.
+the rule keeps less than a third of its daily profit after costs, and it
+reads the sentences that draw them. It reads no second copy of a figure.
 
 Its one figure is drawn from the committed panel by
 [src/chan/khandani_lo_book_two_figures.py](src/chan/khandani_lo_book_two_figures.py),

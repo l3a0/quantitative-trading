@@ -678,8 +678,10 @@ class TestWhatThePostQuotes:
     ratios of Lesson 3 in its table and not in the sentences that repeat them,
     and the rounding margins and the average day in their lessons and not in
     the closing habits. The Kindle locations, the book's own figures beyond
-    the tables, the ratios the post states in words and the facts outside the
-    data are checked by nothing, and README lists them.
+    the tables, the ratios README lists and the facts outside the data are
+    checked by nothing. The figures only the two sketches print, such as CAH's
+    3.17 cents and the 3.2366 the panel keeps, are read in the alt texts by
+    ``tests/test_khandani_lo_book_two_whiteboard.py`` and not here.
 
     The first book's 2006 figures, which ``tests/test_khandani_lo.py`` pins,
     are read here too, since the post quotes them. So is the post's dating of
@@ -838,6 +840,8 @@ class TestWhatThePostQuotes:
             f"Without CAH, Example 4.3 gives an APR of {100 * without.apr:.2f} percent and a "
             f"Sharpe ratio of {without.sharpe:.4f}, which would print as "
             f"{100 * without.apr:.1f} and {without.sharpe:.1f}",
+            f"The check flags the rise on {cah.index[2].date()}, and the fall before it stays "
+            "inside the check’s bounds",
         ]
         assert self.missing(text, fragments) == []
 
@@ -862,6 +866,7 @@ class TestWhatThePostQuotes:
         assert held - rule > 2 * (rule - first_book)  # "more than twice what the change gave"
         fragments = [
             table,
+            "of the rise is still left, more than twice what the change of rule gave",
             f"`{khandani_lo.SOURCE_FILE}`, the {first_file.shape[1]} stocks in the S&P 500 on "
             f"2007-11-23, over the {len(days)} trading days of 2006",
             f"from {first_book:.4f} to {rule:.4f}, by {rule - first_book:.4f}",
@@ -893,5 +898,11 @@ class TestWhatThePostQuotes:
             f"and on the panel it is {on_panel.cost_per_profit:.4f} of it",
         ]
         assert self.missing(text, fragments) == []
-        assert round(on_panel.profit / on_year.profit, -1) == 20  # "about twenty times larger"
-        assert 1 - on_panel.cost_per_profit < 1 / 3  # "keeps less than a third"
+        assert round(on_panel.profit / on_year.profit, -1) == 20
+        assert 1 - on_panel.cost_per_profit < 1 / 3
+        words = [
+            "keeps under a third of its profit on the panel and loses money over 2006",
+            "The profit is about twenty times larger.",
+            "The rule pays its costs on the panel and keeps less than a third of its daily profit",
+        ]
+        assert self.missing(text, words) == []

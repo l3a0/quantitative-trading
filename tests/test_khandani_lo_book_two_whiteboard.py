@@ -21,8 +21,10 @@ panel.
 
 The runs read committed vintages, so these tests read the runs directly
 rather than a frozen copy of their figures. ``tests/test_khandani_lo.py`` and
-``tests/test_khandani_lo_book_two.py`` hold the same figures on their own
-derivation.
+``tests/test_khandani_lo_book_two.py`` hold the figures the sketches share
+with the post's prose, such as 7.2868 and 13.26 percent, on their own
+derivation. The figures only the sketches print, such as 3.17 cents and
+3.2366, are held here alone.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both
@@ -139,6 +141,52 @@ AVERAGE_DAY_LABELS = [
     "kept: 3.2366,\nless than a third",
     "first book’s rule, 5 basis points on every buy and sell, first day’s trades charged",
 ]
+
+#: The ink each colour word in an alt text or a caption stands for.
+INK_WORDS = {"black": INK, "grey": MUTED, "red": LOST, "green": GOOD, "brown": ACCENT}
+
+#: Each phrase in an alt text or a caption that names a colour, and the marks
+#: it names: a stroke by its id, or a label by the start of its text.
+COLOURS_NAMED = {
+    "cah_bounce": {
+        "alt": [
+            ("A grey price axis labelled “CAH’s close”", ["price-axis"]),
+            ("a grey time axis runs along the bottom", ["time-axis"]),
+            ("three black dots stand at those closes", ["close-0", "close-1", "close-2"]),
+            ("A black arrow runs down from the first dot to the second", ["fall"]),
+            ("A red arrow runs up from the second dot to the third", ["rise"]),
+            ("A thick green bar sits just under the second dot", ["bought"]),
+            ("A green bracket to the right spans the rise", ["earned"]),
+            ("A grey line along the bottom reads “without CAH", ["without CAH:"]),
+        ],
+        "caption": [
+            ("The black arrow is the fall", ["fall"]),
+            ("the red arrow is the rise it flags", ["rise"]),
+            ("The green bar is what Example 4.3 bought at the middle close", ["bought"]),
+            ("the green bracket is the rise that weight earned on", ["earned"]),
+            ("The grey line beneath gives Example 4.3’s figures without CAH", ["without CAH:"]),
+        ],
+    },
+    "average_day": {
+        "alt": [
+            ("A grey axis runs along the bottom", ["axis"]),
+            ("a red bar labelled “cost 7.2525”", ["year-cost"]),
+            ("a short green bar labelled “profit 0.5276”", ["year-profit"]),
+            ("a red bar labelled “cost 7.2868”", ["panel-cost"]),
+            ("a long green bar labelled “profit 10.5234”", ["panel-profit"]),
+            ("A grey note at the top right reads “trades", ["trades"]),
+            ("a red hatched stretch runs from the end of the short green bar", ["short"]),
+            ("a brown bracket runs from the end of the red cost bar", ["kept"]),
+            ("A grey line at the bottom reads “first book’s rule", ["first book’s rule"]),
+        ],
+        "caption": [
+            ("Each red bar is the average day’s cost", ["year-cost", "panel-cost"]),
+            ("each green bar the average day’s profit", ["year-profit", "panel-profit"]),
+            ("The red hatching is how far 2006’s cost passes its profit", ["short"]),
+            ("the brown bracket is what the panel keeps", ["kept"]),
+        ],
+    },
+}
 
 #: The same limits the USD.CAD sketches hold, in pixels.
 CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
@@ -418,6 +466,25 @@ class TestThePost:
             text.index(lesson) < text.index(f"(../docs/figures/{name})") < text.index(next_lesson)
         )
 
+    @pytest.mark.parametrize("slug", ["cah_bounce", "average_day"])
+    def test_each_colour_the_alt_text_and_caption_name_is_the_marks_ink(self, every, slug) -> None:
+        """A colour word in the alt text or the caption is the ink of the mark it names."""
+        scene = next(s for s in every if s.slug == slug)
+        alt = _alt(POST.read_text(encoding="utf-8"), scene)
+        paragraphs = _paragraphs()
+        (at,) = [k for k, p in enumerate(paragraphs) if f"(../docs/figures/{gif_name(scene)})" in p]
+        for where, words in (("alt", alt), ("caption", paragraphs[at + 1])):
+            for phrase, marks in COLOURS_NAMED[slug][where]:
+                assert phrase in words, (where, phrase)
+                word = next(w for w in re.findall(r"[a-z]+", phrase.lower()) if w in INK_WORDS)
+                for mark in marks:
+                    inks = {s.color for s in scene.strokes if s.gid == mark} | {
+                        s.color
+                        for s in scene.steps
+                        if isinstance(s, Label) and s.text.startswith(mark)
+                    }
+                    assert inks == {INK_WORDS[word]}, (where, phrase, mark)
+
     def test_each_caption_names_the_marks_it_explains(self) -> None:
         """Colour is never the only cue, so each caption names its marks."""
         paragraphs = _paragraphs()
@@ -603,6 +670,11 @@ class TestTheBounceSketch:
         label = _label(scene, f"{PRICE_LOW:.2f}")
         assert (label.y, label.names) == (PRICE_FOOT, "price-tick-foot")
 
+    def test_the_bound_it_prints_is_the_one_it_holds(self, bounce: Bounce) -> None:
+        scene = sketches._bounce(replace(bounce, bound=2.0))
+        rise = [label for label in scene.labels if label.startswith(f"× {bounce.rise:.4f}")]
+        assert rise == [f"× {bounce.rise:.4f}:\npast 2, flagged"]
+
     def test_its_words_follow_made_up_figures(self, bounce: Bounce) -> None:
         made_up = replace(
             bounce,
@@ -725,6 +797,8 @@ class TestTheAverageDaySketch:
             ("profit 10.5234", GOOD),
             ("cost is 13.7453 times the profit", LOST),
             ("kept: 3.2366,\nless than a third", ACCENT),
+            ("2006, the first book’s file", INK),
+            ("2007 to 2011, the panel", INK),
             ("trades 1.4505 and 1.4574 times the position a day", MUTED),
             ("basis points a day, of the average gross position", MUTED),
             (
@@ -838,6 +912,7 @@ class TestTheAverageDaySketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
         assert "a short green bar labelled “profit 0.5276”" in alt
+        assert "two bars start at zero" in alt
         assert "about as long as the first, sits above a long green bar" in alt
         assert (
             "a red hatched stretch runs from the end of the short green bar to where the red "
