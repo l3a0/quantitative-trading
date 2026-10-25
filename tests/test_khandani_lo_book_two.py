@@ -713,7 +713,14 @@ class TestWhatThePostQuotes:
         members, _ = closes_panel
         (saved,) = {m.obtained for m in members}
         days = result.close_to_close.days
+        words = {1: "first day earns", 2: "first two days earn"}
+        zeros = [
+            int(np.argmax(example.daily != 0))
+            for example in (result.close_to_close, result.open_to_close)
+        ]
         fragments = [
+            f"Example 4.3’s {words[zeros[0]]} nothing",
+            f"Example 4.4’s {words[zeros[1]]} nothing",
             f"`{SOURCE_FILE}`, saved on {saved}. It holds the daily prices of {len(members)} "
             "stocks",
             f"The script cuts the panel to {len(days):,} trading days, from {days[0].date()} "

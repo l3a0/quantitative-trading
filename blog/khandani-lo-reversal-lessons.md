@@ -12,7 +12,7 @@ Chan’s second book, *Algorithmic Trading*, brings the rule back as its lesson 
 
 ### What the reproduction found
 
-Chan published the MATLAB script, `andrewlo_2007_2012.m`, and the data file it reads. This repository keeps the file’s contents as one table per stock, and together the tables rebuild the file’s open, high, low, close and volume arrays exactly. This repository ran a line-by-line Python transcription of the script on those tables. Every return and Sharpe ratio the book prints for Examples 4.3 and 4.4 reproduces. So do Example 4.4’s annual return and Sharpe ratio as a comment at the end of the script records them, at six decimals.
+Chan published the MATLAB script, `andrewlo_2007_2012.m`, and the data file it reads. This repository keeps the file’s contents as one table per stock, and together the tables rebuild the file’s open, high, low, close and volume arrays exactly. This repository ran a line-by-line Python transcription of the script on those tables. Every return and Sharpe ratio the book prints for Examples 4.3 and 4.4 reproduces. So do Example 4.4’s annual return and Sharpe ratio as a comment under the script’s last line of code records them, at six decimals.
 
 **Every result here is exploratory.** Reproducing Chan’s figures uses the 2007 to 2011 data to check a rule somebody else chose, so it can say whether his numbers follow from his file and nothing about whether the rule pays today. **Every figure is also about survivors.** The file holds 497 stocks that were in the S&P 500 in late 2011, and the run treats them as the index on every earlier day it has a price for them. A company that was out of the index for all of late 2011 is not in the file.
 
