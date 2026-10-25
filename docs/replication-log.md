@@ -612,7 +612,7 @@ rows 2 and 6 to 10, Entry 12's rows 10 and 11, Entry 13's rows 11 to 16,
 Entry 14's rows 3 to 9, Entry 15's rows 3 to 14, Entry 16's rows 6 to 11,
 Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
-Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
+Entry 23's rows 15 to 20, Entry 24's rows 10 to 17, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
 Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
@@ -5984,7 +5984,7 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/index-arbitrage-lessons.md](../blog/index-arbitrage-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one figure,
 which `uv run python -m chan.index_arbitrage_figures` redraws, and its one
-whiteboard sketch in "What one unit holds", which draws the first
+whiteboard sketch in "What one unit holds, and when it first earns", which draws the first
 eigenvector's dollars to scale and which
 `uv run python -m chan.index_arbitrage_whiteboard` redraws through the same
 `read_sources` and `index_arbitrage`.

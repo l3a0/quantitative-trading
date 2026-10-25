@@ -117,7 +117,7 @@ One thing the match cannot show is which 98 stocks Chan’s run picked. Neither 
 The book makes two claims about the second test, both in one passage (Chan, 2013, location 2035). They fare less well than the book’s figures, and the script’s own printout already shows why.
 
 1. **The basket cointegrates with SPY “with better than 95 percent probability”.** The claim names no statistic, so the table below reads each statistic for r ≤ 0 against its own bars.
-2. **“There are, in fact, two cointegrating relations.”** Chan writes it as an aside, in parentheses.
+2. **“There are, in fact, two cointegrating relations”.** Chan writes it as an aside, in parentheses.
 
 ```math
 \begin{array}{l|r|r}

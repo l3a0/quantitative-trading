@@ -787,11 +787,11 @@ class TestWhatThePostQuotes:
     them, Lesson 2's measurements, Lesson 3's ADF statistics, and, in the
     figure's alt text, the APR, the Sharpe ratio, the first return's date and
     the last day's cumulative return. Other copies are not read, among them
-    the 98 and 480 in the opening and the alt text, the 12.1 percent in
-    Lesson 3, the 497 in Lesson 4 and the 99 positions in the closing list, so
-    a typo in one of them passes. The alt text's 98 of 480 and 561 of 2,000
-    are drawn by the figure, and ``tests/test_index_arbitrage_figures.py``
-    holds those. The sketch's caption and alt text are read in
+    the 98 in Chan's words in the opening, the alt text's 98, 480, 20.4
+    percent, 561, 2,000 and 28.1 percent, the 12.1 percent in Lesson 3, the
+    497 in Lesson 4 and the 99 positions in the closing list, so a typo in one
+    of them passes. ``tests/test_index_arbitrage_figures.py`` holds that the
+    figure draws 98 of 480 and 561 of 2,000, and it never reads the post. The sketch's caption and alt text are read in
     ``tests/test_index_arbitrage_whiteboard.py`` instead, and the counts of
     the basket's stocks outside the index in
     ``TestTheBasketsStocksAndTheIndex``. The Kindle locations, the facts

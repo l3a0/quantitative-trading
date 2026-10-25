@@ -7,7 +7,7 @@ differ. A reader gets more from a picture of the two sides at one scale than
 from the three figures, so this module draws one scene, sketched stroke by
 stroke as if on a whiteboard, as a looping GIF the post places right after
 the paragraph that opens "So one unit of the combination is long $1.09386 of
-each stock", in "What one unit holds".
+each stock", in "What one unit holds, and when it first earns".
 
 1. What one unit holds: the 98 stocks as a grid of green dots, one for each,
    labelled with their count and the dollars each one holds. A green arrow

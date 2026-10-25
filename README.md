@@ -340,7 +340,7 @@ where they were first built. The other forty-five were built here.
 24. SPY against the S&P 500 stocks that pass a cointegration screen, Example
     4.2 of *Algorithmic Trading*, on Chan's own 2012 S&P 500 file and his ETF
     file's SPY. `indexArb.m` tests each of 480 stocks against SPY over 2007
-    and keeps the 98 that pass a 90 percent bar. That bar passes about 28
+    and keeps the 98 that pass a 90 percent bar. That bar passes 28.1
     percent of random walks unrelated to SPY, about 135 of 480, so the count
     alone does not show that any stock cointegrates with SPY. It holds them with equal capital against SPY on the basket test's
     first eigenvector and trades from 2008 with a lookback of 5. Every figure
@@ -5068,9 +5068,10 @@ Six groups of what it says are not pinned here.
 3. Readings no test asserts: that a 90 percent bar bounds how often the test
    rejects with no relation rather than giving a probability about one stock,
    that a day's change in a log price is close to that day's return, that the
-   two random-walk measurements differ only in their second series and their
-   random draws, and that four years of returns are unlikely to separate a
-   decline from noise.
+   holding stays at $1 a stock only with daily rebalancing, that the two
+   random-walk measurements differ only in their second series and their random
+   draws, that an ADF test over 251 days has little power, and that four years
+   of returns are unlikely to separate a decline from noise.
 4. The book's Figure 4.3, which the post's figure redraws from the script's
    `plot` call and which nothing compares with the book's own. The alt text's
    description of the curve's shape, such as its steep climb from late 2008
@@ -5108,12 +5109,15 @@ test.
 itself. It builds each run figure the post quotes from the run, at the
 precision the post prints it, and looks for one copy of it in the post, so a
 typo in that copy fails a test. That covers the files' days and dates, the
-screen's counts and the nominal 48 as 10 percent of 480, one unit's weights and
-dollars, the second test's margin over its 95 percent bar and its count of
-relations, the two random-walk measurements, the ADF statistics, and the APR,
-Sharpe ratio, first return and last cumulative return in the figure's alt text.
-Lesson 1's four tables are rebuilt whole, so a digit added to a cell fails as
-well as a digit changed. The sketch's caption and alt text are read by
+screen's counts, its 90 percent bar and its 5-day lookback, the nominal 48 as
+10 percent of 480, one unit's weights and dollars, the strategy's first return
+and the 1,071 days after it, the book's 4.5 percent and 1.3 as the script's
+figures rounded, the second test's margin over its 95 percent bar, the two
+eigen statistics that sum to its trace statistic and its count of relations,
+the two random-walk measurements, the ADF statistics, and the APR, Sharpe
+ratio, first return and last cumulative return in the figure's alt text. Lesson
+1's four tables are rebuilt whole, so a digit added to a cell fails as well as
+a digit changed. The sketch's caption and alt text are read by
 [tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
 instead.
 
@@ -5142,8 +5146,8 @@ regime map.
 The post also carries one looping whiteboard sketch,
 `index_arbitrage_sketch_one_unit.gif`, drawn by
 [src/chan/index_arbitrage_whiteboard.py](src/chan/index_arbitrage_whiteboard.py)
-on the USD.CAD post's sketch machinery. It sits in "What one unit holds",
-after the paragraph on one unit, and draws the 98 stocks as green dots of
+on the USD.CAD post's sketch machinery. It sits in "What one unit holds, and when it
+first earns", after the paragraph on one unit, and draws the 98 stocks as green dots of
 $1.09386 each, gathered into a green column long $107.198 beside a red column
 short SPY $105.560. Both columns stand on one baseline at one scale, so their
 tops differ by 1.5 percent of the height, about 3 pixels, and a callout names

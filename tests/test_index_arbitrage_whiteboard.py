@@ -75,7 +75,7 @@ POST = REPO_ROOT / "blog" / "index-arbitrage-lessons.md"
 #: Every GIF in the order :func:`make_index_arbitrage_whiteboards` writes them.
 GIFS = ["index_arbitrage_sketch_one_unit.gif"]
 
-#: What the GIF follows, in "What one unit holds".
+#: What the GIF follows, in "What one unit holds, and when it first earns".
 UNIT_PARAGRAPH = "So one unit of the combination is long $1.09386 of each stock"
 
 UNIT_LABELS = [
