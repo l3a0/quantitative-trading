@@ -33,7 +33,7 @@ through ``matches``.
 
 Exploratory, survivor-only, and in-sample on the lookback. Reproducing Chan's
 figures spends the 2007 to 2012 sample on a rule he chose, the panel holds only
-stocks that survived to 2012, and location 2035 says the lookback of 5 was
+stocks that were in the S&P 500 in late 2011, and location 2035 says the lookback of 5 was
 chosen with hindsight. The example first ran on 2026-10-05.
 """
 
@@ -635,3 +635,84 @@ class TestTheGuardAndTheReads:
         report(sources[0], sources[1], replace(result, screen=short))
         (line,) = [s for s in capsys.readouterr().out.splitlines() if "passing the screen" in s]
         assert line.endswith("did not reproduce, gap -1")
+
+
+def _schedule_names(report_date: str) -> list[str]:
+    """The lower-cased company names in one quarter's committed IVV holdings schedule."""
+    path = paths.REPO_ROOT / "research" / "filings" / "ivv" / f"{report_date}.csv"
+    return [str(name).lower() for name in pd.read_csv(path)["name"]]
+
+
+class TestTheBasketsStocksAndTheIndex:
+    """Fourteen of the 98 stocks the screen picks were out of the S&P 500 at some point.
+
+    The stock file holds companies that were in the index in late 2011, which
+    ``TestTheListDatesFromLate2011`` in ``tests/test_buy_on_gap.py`` holds for
+    the same file. The screen then runs on 2007, so it can pick a company that
+    joined the index after 2007, or one that left and came back. Two committed
+    sources show both. ``data/spx_20071123/`` is Chan's list of the index as it
+    stood on 2007-11-23, by ticker. The IVV schedules under
+    ``research/filings/ivv/`` name companies rather than tickers at each
+    quarter-end from 2008-12-31, so those checks match a distinctive word of
+    the name. The schedules hold nothing between 2007-11-23 and 2008-12-31, so
+    a stock that left and returned inside that gap is not seen here.
+    """
+
+    #: The basket's tickers missing from Chan's 2007-11-23 list. MSI is not one
+    #: of the 12 companies: Motorola traded as MOT until 2011, and MOT is on it.
+    NOT_ON_THE_2007_LIST = {
+        "AKS",
+        "CERN",
+        "HCP",
+        "MOS",
+        "MSI",
+        "NFX",
+        "NRG",
+        "OKE",
+        "PBCT",
+        "PWR",
+        "PXD",
+        "RHT",
+        "WPO",
+    }
+    #: Two members of 2007 the IVV schedules omit at every quarter-end from the
+    #: first to the last named here, and the first quarter-end each is back.
+    OUT_AND_BACK = {
+        "ACE": ("ace ltd", ("2008-12-31", "2010-06-30"), "2010-09-30"),
+        "CBE": ("cooper industries", ("2009-09-30", "2011-09-30"), "2011-12-31"),
+    }
+
+    def test_12_of_the_98_were_not_on_the_index_list_of_2007_11_23(self, result) -> None:
+        listed = {path.stem.upper() for path in (paths.DATA_DIR / "spx_20071123").glob("*.csv")}
+        assert len(listed) == 500
+        assert set(result.screen.passed) - listed == self.NOT_ON_THE_2007_LIST
+        assert "MOT" in listed
+        assert len(self.NOT_ON_THE_2007_LIST - {"MSI"}) == 12
+
+    def test_ace_and_cooper_industries_left_the_index_during_the_test_and_came_back(
+        self, result
+    ) -> None:
+        schedules = sorted(
+            p.stem for p in (paths.REPO_ROOT / "research" / "filings" / "ivv").glob("*.csv")
+        )
+        for ticker, (name, (first, last), back) in self.OUT_AND_BACK.items():
+            assert ticker in result.screen.passed
+            assert ticker not in self.NOT_ON_THE_2007_LIST
+            missing = [q for q in schedules if first <= q <= last]
+            assert len(missing) >= 7
+            for quarter in missing:
+                assert not any(name in n for n in _schedule_names(quarter)), (ticker, quarter)
+            assert any(name in n for n in _schedule_names(back)), ticker
+
+    def test_ak_steel_is_in_the_basket_after_it_left_the_index(self, result) -> None:
+        assert "AKS" in result.screen.passed
+        assert any("ak steel" in n for n in _schedule_names("2011-09-30"))
+        for quarter in ("2011-12-31", "2012-03-31"):
+            assert not any("ak steel" in n for n in _schedule_names(quarter))
+        assert result.test_days[-1] == pd.Timestamp("2012-04-09")
+
+    def test_the_post_counts_the_basket_stocks_outside_the_index(self) -> None:
+        text = (paths.REPO_ROOT / "blog" / "index-arbitrage-lessons.md").read_text(encoding="utf-8")
+        assert "12 of the 98 it picks were not in the index on 2007-11-23" in text
+        assert "Twelve of the 98 are missing from Chan’s list of the S&P 500" in text
+        assert "The basket holds all 14 on every test day." in text

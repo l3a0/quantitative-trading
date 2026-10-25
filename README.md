@@ -5049,10 +5049,12 @@ Five groups of what it says are not pinned here.
 2. Facts outside the committed data. That a second public copy of Chan's code
    holds `indexArb.m` byte for byte, which `src/chan/index_arbitrage.py`'s
    docstring records, that both files were converted to one file per symbol,
-   which [data/README.md](data/README.md) records, that the stock file holds
-   the index as Chan held it on 2012-04-24, the date in its name, and that the
-   committed index holdings under `research/filings/ivv/` start at the end of
-   2008.
+   which [data/README.md](data/README.md) records, that ACE is an insurer, and
+   that the iShares fund whose holdings `research/filings/ivv/` keeps tracks the
+   S&P 500. That every stock in the file was in the index in late 2011 rests on
+   `TestTheListDatesFromLate2011` in
+   [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py), which holds examples
+   rather than every stock.
 3. Arithmetic and readings no test asserts: the nominal 48 as 10 percent of
    480, that a 90 percent bar bounds how often the test rejects with no
    relation rather than giving a probability about one stock, and that four
@@ -5077,7 +5079,11 @@ for the figure's own numbers. Three had no pin before it.
 
 [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) pins the first,
 and [tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
-pins the other two with the figure's lines and labels.
+pins the other two with the figure's lines and labels. The review before the
+post published added one more pin, `TestTheBasketsStocksAndTheIndex`: 12 of
+the 98 are missing from Chan's list of the index on 2007-11-23, and ACE and
+Cooper Industries are missing from the iShares holdings at quarter-ends of the
+test.
 
 Its one figure is drawn from the committed files by
 [src/chan/index_arbitrage_figures.py](src/chan/index_arbitrage_figures.py),

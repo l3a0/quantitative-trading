@@ -174,7 +174,8 @@ def make_index_arbitrage_figure(
         f"Algorithmic Trading, Example 4.2, location 2035. Stocks from {STOCK_FILE}, saved "
         f"{stock_members[0].obtained},\nand SPY from {ETF_FILE}, saved {spy_member.obtained}. "
         "The stocks and the weights are fitted on 2007 and traded from 2008,\nbut the lookback "
-        "of 5 was chosen with hindsight, and every stock in the file survived to 2012.",
+        "of 5 was chosen with hindsight, and every stock in the file was in the S&P 500 "
+        "in late 2011.",
     )
     fig.tight_layout(rect=(0, 0.08, 1, 0.97))
     return _save(fig, out, FIGURE)

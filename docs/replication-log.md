@@ -5796,7 +5796,7 @@ script `indexArb.m` the example names. Shipped under
 example number and location in this entry is that book's, in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
-Sixteen rows, all derivable from
+Seventeen rows, all derivable from
 [tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py).
 
 Chan trades an index against the stocks inside it. He tests each stock in his
@@ -5842,9 +5842,10 @@ here.
    `chan.johansen.johansen` runs both tests.
 
 Every result here is **exploratory** and **survivor-only**. Reproducing
-Chan's figures spends the 2007 to 2012 sample on a rule he chose. The panel is
-the index as he held it on 2012-04-24, so the 2007 screen picks only from
-stocks that survived to 2012. The stocks and weights come from 2007 and trade
+Chan's figures spends the 2007 to 2012 sample on a rule he chose. The panel
+holds stocks that were in the S&P 500 in late 2011, carried back to 2006, so
+the 2007 screen picks only from those, and row 17 counts the 14 of its 98 that
+were out of the index at some point. The stocks and weights come from 2007 and trade
 from 2008, but location 2035 says the lookback of 5 was fixed "with the
 benefit of hindsight", so the APR and Sharpe ratio are not out-of-sample
 figures.
@@ -5869,6 +5870,7 @@ figures.
 | 14 | The basket's stocks carrying a flagged scale-break day | none | n/a |
 | 15 | The screen's pass rate on random walks unrelated to SPY | none | n/a |
 | 16 | The trace test's rejection rate on two unrelated random walks | none | n/a |
+| 17 | The basket's stocks that were out of the index at some point | none | n/a |
 
 The critical values are pinned beside rows 3 and 4, at the three decimals
 the script prints. They come from statsmodels, which carries LeSage's tables.
@@ -5893,6 +5895,7 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 | 14 | `scale_breaks` on each of the 98 | CVH, MOS, PNC and STT, every flag in the test window | `TestTheScaleBreakDecision::test_four_of_the_baskets_stocks_carry_a_flag_all_in_the_test` |
 | 15 | The screen on 2,000 Gaussian random walks with no drift, seeded with 343, against SPY's 2007 closes | 561 pass, 28 percent, about 135 of 480 | `TestBesideTheReplication::test_the_screen_passes_561_of_2000_walks_unrelated_to_spy` |
 | 16 | `johansen(·, 0, 1)` on 2,000 pairs of such walks, seeded with 345 | r ≤ 0 rejected on 410 at the 90 percent value and 242 at the 95, 20.5 and 12.1 percent | `TestBesideTheReplication::test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks` |
+| 17 | The 98 against Chan's `spx_20071123` list and the IVV schedules from 2008-12-31 | 12 not on the 2007-11-23 list, and ACE and CBE missing at quarter-ends of the test, 14 in all | `TestTheBasketsStocksAndTheIndex::test_12_of_the_98_were_not_on_the_index_list_of_2007_11_23` and `::test_ace_and_cooper_industries_left_the_index_during_the_test_and_came_back` |
 
 ### The verdicts
 
@@ -5914,6 +5917,7 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 | 14 | none | none, not a replication | `indexArb.m` ran across these days as they stand, and the guard on SPY passes. |
 | 15 | none | none, not a replication | More walks pass than the 98 stocks do, so the screen's count does not by itself show cointegration. |
 | 16 | none | none, not a replication | The test with a constant rejects two to three times its nominal rate on walks with no drift, so a pass at either bar is weaker evidence than its label. |
+| 17 | none | none, not a replication | The file's list is from late 2011, so the 2007 screen can pick stocks that joined the index later or left and came back. AKS also left in December 2011 and stays in the basket to the end. |
 
 ### What the entry concludes
 
@@ -5948,8 +5952,9 @@ Four things.
 4. **The 4.5 percent is in-sample on its lookback and survivor-only.** The
    stocks and weights are fitted on 2007 and traded on 2008 to 2012, which
    looks out-of-sample. Location 2035 says the lookback of 5 was chosen with
-   hindsight, so it was not, and the screen picks only from stocks that
-   survived to 2012. Nothing here measures how much either is worth.
+   hindsight, so it was not, and the screen picks only from stocks that were
+   in the index in late 2011, 14 of which row 17 finds out of it at some point.
+   Nothing here measures how much either is worth.
 
 ### What this entry cannot say
 
@@ -5969,9 +5974,10 @@ search too, for the same reason.
 **Anything about costs.** The rule rebalances 99 positions every day, and no
 cost is charged here, as none is in the script.
 
-**How much survivorship bias is worth.** No panel here holds the S&P 500's
-2007 members with the ones that later left, so the screen cannot be run on
-the index as it stood.
+**How much survivorship bias is worth.** Chan's list of the index on
+2007-11-23 is committed, but its prices end on that day. Screening the index as
+it stood would need 2007 to 2012 prices for every company on it that the 2012
+file lacks, and no run here has assembled them.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
