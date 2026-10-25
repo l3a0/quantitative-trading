@@ -96,6 +96,26 @@ EIA’s New York Harbor file holds no row on 14 April 1997, the entry date that 
 
 The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing years, and the files show exactly 2, in 2009 and 2012. If Chan’s data agrees with EIA’s on the other 18 years, his 19 holds only if all 3 missing years were profitable in his data. No source here covers the contract in those years.
 
+### A fill cannot call the three years either
+
+The files do hold something on each missing day. EIA’s file for the second contract out, which holds June while May is the first, has a row on all three dates. So the run tried two fills and measured how far each can be trusted.
+
+1. **A straight line** between the May rows on either side of the gap.
+2. **June’s move.** May’s last known price, moved by June’s change since that day, because the two contracts move almost together.
+
+To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss. June’s move misses by less, so the table gives its figures, in cents a gallon:
+
+```math
+\small\begin{array}{l|r|r|r}
+\text{Year} & \text{Move} & \text{Typical miss} & \text{Chance of profit} \\ \hline
+1997 & +0.4 & 0.9 & 67\% \\
+1998 & +0.5 & 0.8 & 74\% \\
+1999 & +0.6 & 0.6 & 82\%
+\end{array}
+```
+
+Each fill guesses a profit in all three years, and every move is smaller than its fill’s typical miss. The straight line does no better, with moves between 0.1 and 0.8 of its own typical miss. If the June fill’s misses are normal and independent from year to year, the chance that all three years were profits, which Chan’s 19 needs, is 41%.
+
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
 Chan picked both trades by studying past prices, and both rules name exact days. A rule chosen on the past tends to look good on the past, so only the years after the book test it. The book’s years end where Chan’s counts end: 2015 for gasoline, and 2008 for natural gas under Lesson 1’s reading. Natural gas starts in 1994, the first year the files hold a whole trade.

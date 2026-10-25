@@ -3,7 +3,8 @@
 Every figure ``docs/replication-log.md`` quotes for Entry 11 is derived here.
 The vintages are EIA's NYMEX settlements, downloaded 2026-10-02 and recorded in
 ``data/vintages.jsonl``: contract 1 of New York Harbor regular gasoline and of
-RBOB gasoline, and contracts 1 to 4 of Henry Hub natural gas. The rules are the
+RBOB gasoline, and contracts 1 to 4 of Henry Hub natural gas. The gap fills in
+``TestTheGapFills`` also read contract 2 of New York Harbor regular gasoline. The rules are the
 sidebars' at Kindle locations 4536 and 4590, and every choice they leave open
 was pinned on [issue 19](https://github.com/l3a0/quantitative-trading/issues/19)
 before a trade was computed.
@@ -11,6 +12,7 @@ before a trade was computed.
 
 from __future__ import annotations
 
+import math
 import re
 from datetime import date
 from decimal import Decimal
@@ -29,6 +31,7 @@ from chan.commodity_seasonals import (
     Trade,
     daily_marks,
     easter,
+    gap_fills,
     gasoline_symbol,
     gasoline_trade,
     gasoline_trades,
@@ -416,6 +419,60 @@ def test_the_report_prints_the_derived_counts(capsys: pytest.CaptureFixture[str]
     assert "the run ending in 2008: 14   (the sidebar prints 14)" in out
 
 
+class TestTheGapFills:
+    """Whether filling a missing gasoline price could decide its year.
+
+    The decisive output is the margin: each year's estimated move over its
+    fill's typical miss, measured on hidden April days from 1994 to 2005 in the
+    gap's own pattern of trading days. Every margin is under one for both
+    fills, so no fill calls any of the three years.
+    """
+
+    FILLS = gap_fills()
+
+    def test_the_three_gaps_their_rows_and_their_patterns(self) -> None:
+        assert [(f.year, f.leg, f.day) for f in self.FILLS] == [
+            (1997, "entry", date(1997, 4, 14)),
+            (1998, "exit", date(1998, 4, 24)),
+            (1999, "exit", date(1999, 4, 23)),
+        ]
+        assert [(f.before, f.after, f.base) for f in self.FILLS] == [
+            (date(1997, 4, 10), date(1997, 4, 15), date(1997, 4, 8)),
+            (date(1998, 4, 21), date(1998, 4, 27), date(1998, 4, 21)),
+            (date(1999, 4, 21), date(1999, 4, 26), date(1999, 4, 21)),
+        ]
+        assert [f.steps for f in self.FILLS] == [(2, 1, 4), (3, 1, 3), (2, 1, 2)]
+        assert [f.tested for f in self.FILLS] == [80, 90, 102]
+
+    def test_the_fills_and_their_typical_misses(self) -> None:
+        """In dollars a gallon, against the trade's other price."""
+        assert [f.other for f in self.FILLS] == [
+            Decimal("0.625"),
+            Decimal("0.498"),
+            Decimal("0.522"),
+        ]
+        assert [f.june for f in self.FILLS] == pytest.approx([0.621, 0.503, 0.528])
+        assert [f.linear for f in self.FILLS] == pytest.approx([0.61633, 0.5135, 0.524], abs=1e-5)
+        assert [f.june_error for f in self.FILLS] == pytest.approx(
+            [0.0089373, 0.0076077, 0.0064679], abs=1e-6
+        )
+        assert [f.linear_error for f in self.FILLS] == pytest.approx(
+            [0.018953, 0.020298, 0.018414], abs=1e-5
+        )
+
+    def test_no_fill_calls_any_year(self) -> None:
+        """Both fills guess a profit every year, inside one typical miss."""
+        for f in self.FILLS:
+            assert 0 < f.june_margin < 1 and 0 < f.linear_margin < 1, f.year
+        assert [round(f.june_margin, 2) for f in self.FILLS] == [0.45, 0.66, 0.93]
+        assert [round(f.linear_margin, 2) for f in self.FILLS] == [0.46, 0.76, 0.11]
+
+    def test_the_chance_all_three_were_profits(self) -> None:
+        """Chan's 19 of 21 needs all three, under normal independent misses."""
+        assert [round(100 * f.june_chance) for f in self.FILLS] == [67, 74, 82]
+        assert math.prod(f.june_chance for f in self.FILLS) == pytest.approx(0.41231, abs=1e-5)
+
+
 POST = Path(__file__).resolve().parents[1] / "blog" / "commodity-seasonals-lessons.md"
 
 
@@ -629,6 +686,20 @@ class TestThePostQuotesThePins:
             f"On every exchange holiday from {holidays[first]:%B %Y} to "
             f"{holidays[last]:%B %Y}, the natural gas files hold a row"
         ) in self.text
+
+    def test_the_gap_fill_table_and_its_chance(self) -> None:
+        fills = gap_fills()
+        for f in fills:
+            row = (
+                f"{f.year} & {100 * f.move(f.june):+.1f} & {100 * f.june_error:.1f} & "
+                f"{100 * f.june_chance:.0f}\\%"
+            )
+            assert row in self.text, f.year
+        low = min(f.linear_margin for f in fills)
+        high = max(f.linear_margin for f in fills)
+        assert f"moves between {low:.1f} and {high:.1f} of its own typical miss" in self.text
+        chance = math.prod(f.june_chance for f in fills)
+        assert f"which Chan’s 19 needs, is {100 * chance:.0f}%" in self.text
 
     def test_the_june_caption_s_2006_dates(self) -> None:
         """The June sketch's caption says why 2006's entry and exit moved."""

@@ -3488,6 +3488,23 @@ moves with it, since that post quotes most of these figures. So does its
 figure of every year of both trades, which
 `uv run python -m chan.commodity_seasonals_figures` redraws.
 
+A fill of the three missing gasoline prices was tried on 2026-10-25 and cannot
+decide any of the three years, a null result
+`chan.commodity_seasonals.gap_fills` keeps and
+[tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
+pins. EIA's contract-2 file, which holds June while May is contract 1, has a
+row on all three days, so the run filled each gap two ways.
+
+1. A straight line between the contract-1 rows on either side.
+2. May's last price moved by June's change since that day.
+
+Each fill's typical miss was measured as a root mean square error on hidden
+April days from 1994 to 2005 in the gap's own pattern of trading days. June's
+move misses by 0.6 to 0.9 cents a gallon, and the straight line by about 1.9
+to 2.0. Both fills guess a profit every year, but every move lies inside one
+typical miss. If the June fill's misses are normal and independent, all three
+years were profits with a chance of 41%, which is what Chan's 19 of 21 needs.
+
 The post also carries three whiteboard sketches that draw this entry's run,
 and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all three.
 

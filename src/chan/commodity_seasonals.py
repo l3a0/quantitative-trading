@@ -52,6 +52,17 @@ those holidays only Good Friday can land on a date this module reads. The
 calendar and the expiry rules live in :mod:`chan.futures`, because the
 calendar-spread test reads them too.
 
+**A missing gasoline price stays missing, and the run measures why.**
+Three gasoline years have no contract-1 row on a trade date, though the
+exchange traded and the contract-2 file holds a row. :func:`gap_fills` asks
+whether filling each missing price could decide its year. It fills each gap
+two ways, by drawing a straight line between the rows on either side, and by
+moving May's last price by June's change, since June sits in contract 2. It
+measures each way's error by hiding April days whose price the file holds,
+in the same pattern of days as the gap, and filling them. Each year's
+estimated move is within about one typical error of zero, so neither fill can
+call any of the three years.
+
 Every result here is **exploratory**. Chan chose both trades after looking at
 years before his book, which the run also reads, so on those years the run says
 whether his counts reproduce. Nobody wrote down a test for the years after the
@@ -65,6 +76,7 @@ than as a float's rounding.
 
 from __future__ import annotations
 
+import math
 import statistics
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -94,6 +106,9 @@ BOOK_REF = (
 
 #: New York Harbor regular gasoline, the contract RBOB replaced, contract 1.
 HARBOR_GASOLINE = "EER-EPMR-PE1-Y35NY-DPG"
+#: New York Harbor regular gasoline, contract 2, which holds June when May is
+#: contract 1. Its file starts on 1994-01-20.
+HARBOR_GASOLINE_2 = "EER-EPMR-PE2-Y35NY-DPG"
 #: RBOB gasoline, contract 1.
 RBOB_GASOLINE = "EER-EPMRR-PE1-Y35NY-DPG"
 #: Henry Hub natural gas, by contract number.
@@ -288,6 +303,169 @@ NG_YEARS = (1994, 2023)
 #: The gasoline sidebar's "every year since 1995" names the same start. EIA's
 #: files reach back to 1994, so the run printed beside it counts from there.
 RUN_START = 1995
+
+
+# --- What a fill of a missing gasoline price could say ------------------------
+
+#: The years whose April days test each fill: from the first April the
+#: contract-2 file holds to the last the run reads the harbor contract in.
+FILL_TEST_YEARS = (1994, FIRST_RBOB_YEAR - 1)
+
+
+@dataclass(frozen=True)
+class GapFill:
+    """One missing gasoline price, its two fills, and how far each can be trusted.
+
+    ``before`` and ``after`` are the nearest days around ``day`` that hold a
+    contract-1 row. ``base`` is the last day before ``day`` that both files
+    hold, where the June fill starts. It is ``before`` unless the contract-2
+    file misses that day too. ``steps`` counts the trading days from
+    ``before`` to ``day``, from ``day`` to ``after``, and from ``base`` to
+    ``day``. ``other`` is the trade's price on its other date. The ``*_error``
+    fields are each fill's root mean square error on ``tested`` April days
+    whose rows sit the same numbers of trading days away.
+    """
+
+    year: int
+    leg: str
+    day: date
+    before: date
+    after: date
+    base: date
+    steps: tuple[int, int, int]
+    other: Decimal
+    linear: float
+    june: float
+    linear_error: float
+    june_error: float
+    tested: int
+
+    def move(self, fill: float) -> float:
+        """The year's change in dollars a gallon with ``fill`` in the gap."""
+        return float(self.other) - fill if self.leg == "entry" else fill - float(self.other)
+
+    @property
+    def linear_margin(self) -> float:
+        """The linear fill's move in units of that fill's typical error."""
+        return self.move(self.linear) / self.linear_error
+
+    @property
+    def june_margin(self) -> float:
+        """The June fill's move in units of that fill's typical error."""
+        return self.move(self.june) / self.june_error
+
+    @property
+    def june_chance(self) -> float:
+        """The chance the year was a profit, if the June fill's error is normal."""
+        return 0.5 * (1 + math.erf(self.june_margin / math.sqrt(2)))
+
+
+def _step(day: date, steps: int) -> date:
+    """The trading day ``steps`` trading days after ``day``, or before it when negative."""
+    sign = 1 if steps > 0 else -1
+    for _ in range(abs(steps)):
+        day += timedelta(days=sign)
+        while not is_trading_day(day):
+            day += timedelta(days=sign)
+    return day
+
+
+def _trading_days_between(earlier: date, later: date) -> int:
+    """How many trading days after ``earlier`` it takes to reach ``later``."""
+    steps, day = 0, earlier
+    while day < later:
+        day, steps = _step(day, 1), steps + 1
+    return steps
+
+
+def _fills(day: date, around: tuple[date, date, date], steps: tuple[int, int, int], one, two):
+    """The linear fill and the June fill of contract 1 on ``day``.
+
+    ``around`` is the row before, the row after and the June fill's base. The
+    linear fill weights the two rows by how many trading days away each sits.
+    The June fill adds June's change since the base to May's price there.
+    """
+    before, after, base = around
+    weight = Decimal(steps[0]) / Decimal(steps[0] + steps[1])
+    linear = float(one[before] + (one[after] - one[before]) * weight)
+    june = float(one[base] + two[day] - two[base])
+    return linear, june
+
+
+def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, int]:
+    """Each fill's root mean square error on the April days the files hold.
+
+    Each tested day keeps the gap's pattern: its row before, its row after and
+    its base sit the same numbers of trading days away as the gap's. Every day
+    used lies in April, when May is contract 1, so no fill reaches across a
+    roll.
+    """
+    linear, june = [], []
+    for year in range(FILL_TEST_YEARS[0], FILL_TEST_YEARS[1] + 1):
+        last = last_business_day(year, 4)
+        day = on_or_after(date(year, 4, 1))
+        while day <= last:
+            around = (_step(day, -steps[0]), _step(day, steps[1]), _step(day, -steps[2]))
+            before, after, base = around
+            if (
+                min(before, base).month == 4
+                and after <= last
+                and all(d in one for d in (*around, day))
+                and all(d in two for d in (base, day))
+            ):
+                fill_linear, fill_june = _fills(day, around, steps, one, two)
+                linear.append(float(one[day]) - fill_linear)
+                june.append(float(one[day]) - fill_june)
+            day = _step(day, 1)
+
+    def rms(errors: list[float]) -> float:
+        return math.sqrt(statistics.fmean(e * e for e in errors))
+
+    return rms(linear), rms(june), len(linear)
+
+
+def gap_fills(*, data_dir: Path | None = None) -> list[GapFill]:
+    """Every missing gasoline price in the harbor years from 1995, filled two ways."""
+    one = settlements(HARBOR_GASOLINE, data_dir=data_dir)[1]
+    two = settlements(HARBOR_GASOLINE_2, data_dir=data_dir)[1]
+    found = []
+    for trade in gasoline_trades(RUN_START, FIRST_RBOB_YEAR - 1, data_dir=data_dir):
+        for leg, day, price, other in (
+            ("entry", trade.entry_day, trade.entry_price, trade.exit_price),
+            ("exit", trade.exit_day, trade.exit_price, trade.entry_price),
+        ):
+            if price is not None or other is None:
+                continue
+            around = (
+                max(d for d in one if d < day),
+                min(d for d in one if d > day),
+                max(d for d in one if d < day and d in two),
+            )
+            steps = (
+                _trading_days_between(around[0], day),
+                _trading_days_between(day, around[1]),
+                _trading_days_between(around[2], day),
+            )
+            linear, june = _fills(day, around, steps, one, two)
+            linear_error, june_error, tested = _fill_errors(steps, one, two)
+            found.append(
+                GapFill(
+                    year=trade.year,
+                    leg=leg,
+                    day=day,
+                    before=around[0],
+                    after=around[1],
+                    base=around[2],
+                    steps=steps,
+                    other=other,
+                    linear=linear,
+                    june=june,
+                    linear_error=linear_error,
+                    june_error=june_error,
+                    tested=tested,
+                )
+            )
+    return found
 
 
 def _row(trade: Trade) -> str:
