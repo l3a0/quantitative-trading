@@ -27,6 +27,7 @@ from chan.commodity_seasonals import (
     RBOB_GASOLINE,
     RUN_START,
     Trade,
+    daily_marks,
     easter,
     gasoline_symbol,
     gasoline_trade,
@@ -34,6 +35,8 @@ from chan.commodity_seasonals import (
     is_trading_day,
     june_contract_number,
     main,
+    max_drawdown,
+    mean_return,
     natural_gas_trade,
     natural_gas_trades,
     ng_last_trade,
@@ -43,6 +46,7 @@ from chan.commodity_seasonals import (
     profitable_count,
     runs_ending,
     settlements,
+    sharpe_ratio,
 )
 
 
@@ -339,6 +343,58 @@ class TestTheVerdicts:
         assert (profitable_count(gas), len(gas)) == (4, 8)
 
 
+class TestTheReturns:
+    """Each trade's yearly return, Sharpe ratio and drawdown, in the book's years and after.
+
+    A return is the change over the entry price, before costs. The book's years
+    run to 2008 for natural gas and 2015 for gasoline, as for the counts above.
+    """
+
+    SPLITS = {
+        "natural gas, 1994 to 2008": (GAS, 1994, 2008),
+        "natural gas, 2009 to 2023": (GAS, 2009, 2023),
+        "gasoline, 1995 to 2015": (GASOLINE, 1995, 2015),
+        "gasoline, 2016 to 2023": (GASOLINE, 2016, 2023),
+    }
+    #: mean yearly return, Sharpe ratio, largest drawdown, each to four places
+    PINS = {
+        "natural gas, 1994 to 2008": (0.1060, 1.0008, 0.2151),
+        "natural gas, 2009 to 2023": (-0.0040, -0.0184, 0.6042),
+        "gasoline, 1995 to 2015": (0.0321, 0.7764, 0.1085),
+        "gasoline, 2016 to 2023": (-0.0194, -0.4014, 0.2987),
+    }
+
+    @staticmethod
+    def years(split: str) -> list[Trade]:
+        trades, first, last = TestTheReturns.SPLITS[split]
+        return [trade for trade in trades if first <= trade.year <= last]
+
+    @pytest.mark.parametrize("split", list(PINS))
+    def test_the_return_sharpe_ratio_and_drawdown(self, split: str) -> None:
+        years = self.years(split)
+        got = (mean_return(years), sharpe_ratio(years), max_drawdown(years))
+        assert got == pytest.approx(self.PINS[split], abs=5e-5)
+
+    def test_the_marks_start_and_end_at_the_trade_s_prices(self) -> None:
+        for trade in GASOLINE + GAS:
+            if trade.change is not None:
+                marks = daily_marks(trade)
+                assert (marks[0], marks[-1]) == (trade.entry_price, trade.exit_price)
+
+    def test_the_drawdown_reads_inside_a_trade(self) -> None:
+        """Natural gas lost no year through 2008, yet fell 22% of a stake inside 2002's trade."""
+        years = self.years("natural gas, 1994 to 2008")
+        assert all(trade.profitable for trade in years)
+        alone = max_drawdown([natural_gas_trade(2002)])
+        assert alone == pytest.approx(max_drawdown(years), abs=5e-5)
+
+    def test_the_missing_years_are_left_out(self) -> None:
+        years = self.years("gasoline, 1995 to 2015")
+        readable = [trade for trade in years if trade.change is not None]
+        assert (len(years), len(readable)) == (21, 18)
+        assert mean_return(years) == mean_return(readable)
+
+
 def test_the_report_prints_the_derived_counts(capsys: pytest.CaptureFixture[str]) -> None:
     """The printed lines carry the same figures the verdicts read, beside the book's."""
     main()
@@ -375,13 +431,16 @@ class TestThePostQuotesThePins:
     def test_natural_gas_before_and_after_2008(self) -> None:
         won, of = _tally(GAS, 1994, 2008)
         later, later_of = _tally(GAS, 2009, 2023)
+        assert "\\text{Natural gas} & \\text{1994 to 2008} & \\text{2009 to 2023}" in self.text
         assert (
-            f"Natural gas wins {won} of {of} years through 2008 and {later} of {later_of} after."
-            in self.text
-        )
-        assert f"\\text{{1994 to 2008}} & {won} \\text{{ of }} {of} & 0" in self.text
-        assert f"\\text{{2009 to 2023}} & {later} \\text{{ of }} {later_of} & 0" in self.text
-        assert f"The files give {later} of {later_of} for 2009 to 2023" in self.text
+            f"\\quad\\text{{Years won}} & {won} \\text{{ of }} {of} & "
+            f"{later} \\text{{ of }} {later_of}"
+        ) in self.text
+        mean = mean_return([trade for trade in GAS if trade.year <= 2008])
+        assert (
+            f"Natural gas went from winning {won} of {of} years, with a mean return of "
+            f"{100 * mean:.1f}%, to winning {later} of {later_of}"
+        ) in self.text
 
     def test_the_streak_table_and_the_start_years(self) -> None:
         from_1995 = runs_ending([trade for trade in GAS if trade.year >= RUN_START])
@@ -392,7 +451,7 @@ class TestThePostQuotesThePins:
         assert f"the streaks of 13 and 14 end in {ends[0]} and {ends[1]} instead" in self.text
         main_text, sidebar = (min(y for y, run in from_1995.items() if run == n) for n in (13, 14))
         assert (
-            f"The main text’s 13 is the streak ending in {main_text} and the sidebar’s 14 "
+            f"the main text’s 13 is the streak ending in {main_text} and the sidebar’s 14 "
             f"is the streak ending in {sidebar}"
         ) in self.text
 
@@ -407,22 +466,25 @@ class TestThePostQuotesThePins:
             in self.text
         )
         assert f"\\text{{Total}} & {len(years)}" in self.text
-        won, of = _tally(GASOLINE, 1995, 2015)
-        assert f"\\text{{1995 to 2015}} & {won} \\text{{ of }} {of} & {len(missing)}" in self.text
+        readable = [trade for trade in years if trade.profitable is not None]
+        won, later, later_of = profitable_count(years), *_tally(GASOLINE, 2016, 2023)
+        assert (
+            f"\\quad\\text{{Years won}} & {won} \\text{{ of }} {len(readable)} & "
+            f"{later} \\text{{ of }} {later_of}"
+        ) in self.text
+        assert f"leaves out the {len(missing)} years with no price" in self.text
         entry_gap = [trade.entry_day for trade in missing if trade.entry_price is None]
         exit_gap = [trade.exit_day for trade in missing if trade.exit_price is None]
         assert (
             f"no row on {_day(entry_gap[0])}, the entry date that year, or on "
             f"{_day(exit_gap[0])} and {_day(exit_gap[1])}, the exit dates those years"
         ) in self.text
-        side = gasoline_trade(2006, symbol=HARBOR_GASOLINE)
-        assert side.entry_price is None
-        assert f"its file has no row on {_day(side.entry_day)}" in self.text
 
     def test_the_years_inside_and_after_the_book(self) -> None:
         early = [trade for trade in GASOLINE if trade.year <= 2008]
+        assert not any(trade.profitable is False for trade in early)
         assert (
-            f"{profitable_count(early)} profitable years and "
+            f"no loss, {profitable_count(early)} profitable years and "
             f"{sum(trade.profitable is None for trade in early)} with no price on a trade date"
         ) in self.text
         won, of = _tally(GASOLINE, 2007, 2015)
@@ -430,10 +492,39 @@ class TestThePostQuotesThePins:
         gasoline, gasoline_of = _tally(GASOLINE, 2016, 2023)
         gas, gas_of = _tally(GAS, 2016, 2023)
         assert (
-            f"it won {gasoline} of {gasoline_of}. Natural gas won {gas} of the same {gas_of}."
+            f"it won {gasoline} of {gasoline_of}, and natural gas won {gas} of the same {gas_of}."
             in self.text
         )
-        assert f"\\text{{2016 to 2023}} & {gasoline} \\text{{ of }} {gasoline_of} & 0" in self.text
+
+    def test_the_returns_table(self) -> None:
+        """Each split's mean return, Sharpe ratio and drawdown, at the table's precision."""
+
+        def sharpe(value: float) -> str:
+            text = f"{value:.1f}"
+            return "0.0" if text == "-0.0" else text
+
+        for trade, splits in (
+            ("natural gas", ("1994 to 2008", "2009 to 2023")),
+            ("gasoline", ("1995 to 2015", "2016 to 2023")),
+        ):
+            before, after = (TestTheReturns.years(f"{trade}, {split}") for split in splits)
+            rows = {
+                "Mean return": [f"{100 * mean_return(y):+.1f}\\%" for y in (before, after)],
+                "Sharpe ratio": [sharpe(sharpe_ratio(y)) for y in (before, after)],
+                "Drawdown": [f"{round(100 * max_drawdown(y))}\\%" for y in (before, after)],
+            }
+            for name, (one, two) in rows.items():
+                assert f"\\quad\\text{{{name}}} & {one} & {two}" in self.text, (trade, name)
+
+    def test_the_2002_drawdown(self) -> None:
+        trade = natural_gas_trade(2002)
+        marks = daily_marks(trade)
+        high = float((max(marks) - trade.entry_price) / trade.entry_price)
+        assert (
+            f"came inside 2002’s trade, which rose {round(100 * high)}% before giving back "
+            f"{round(100 * max_drawdown([trade]))} points and ending "
+            f"{round(100 * trade.relative_change)}% up"
+        ) in self.text
 
     def test_lesson_4_s_counts(self) -> None:
         """The edge years, the Good Friday moves, the exchange's contracts and the lead days."""

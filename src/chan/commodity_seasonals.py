@@ -64,8 +64,9 @@ than as a float's rounding.
 
 from __future__ import annotations
 
+import statistics
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -133,6 +134,12 @@ class Trade:
     def profitable(self) -> bool | None:
         change = self.change
         return None if change is None else change > 0
+
+    @property
+    def relative_change(self) -> float | None:
+        """The change over the entry price, the year's return on one contract's value."""
+        change = self.change
+        return None if change is None else float(change / self.entry_price)
 
 
 def june_contract_number(day: date) -> int:
@@ -202,6 +209,65 @@ def runs_ending(trades: list[Trade]) -> dict[int, int]:
         current = current + 1 if trade.profitable else 0
         runs[trade.year] = current
     return runs
+
+
+def daily_marks(trade: Trade, *, data_dir: Path | None = None) -> list[Decimal]:
+    """The contract's settlement on each trading day from entry to exit.
+
+    A natural gas trade's June contract moves between files as earlier
+    contracts expire, so each day reads the file that holds it then. A day with
+    no row is skipped.
+    """
+    marks, day = [], trade.entry_day
+    while day <= trade.exit_day:
+        if is_trading_day(day):
+            symbol = (
+                NATURAL_GAS[june_contract_number(day)]
+                if trade.entry_symbol in NATURAL_GAS.values()
+                else trade.entry_symbol
+            )
+            price = _price(symbol, day, data_dir)
+            if price is not None:
+                marks.append(price)
+        day += timedelta(days=1)
+    return marks
+
+
+def _readable(trades: list[Trade]) -> list[Trade]:
+    return [trade for trade in trades if trade.change is not None]
+
+
+def mean_return(trades: list[Trade]) -> float:
+    """The average yearly return, over the years with both prices."""
+    return statistics.mean(trade.relative_change for trade in _readable(trades))
+
+
+def sharpe_ratio(trades: list[Trade]) -> float:
+    """The average yearly return divided by its standard deviation.
+
+    Each trade is one year's return, so the ratio is already a yearly one. A
+    futures position ties up no cash beyond margin, so its return is already a
+    return above cash and nothing is subtracted.
+    """
+    returns = [trade.relative_change for trade in _readable(trades)]
+    return statistics.mean(returns) / statistics.stdev(returns)
+
+
+def max_drawdown(trades: list[Trade], *, data_dir: Path | None = None) -> float:
+    """The largest fall from a peak in the summed returns, marked every trading day.
+
+    Each year stakes one contract's value at entry, so the years' returns add
+    rather than compound, and the fall is a fraction of one stake. Marking
+    every day catches a fall inside a trade that ended the year with a profit.
+    """
+    total = peak = drawdown = 0.0
+    for trade in _readable(trades):
+        for price in daily_marks(trade, data_dir=data_dir):
+            value = total + float((price - trade.entry_price) / trade.entry_price)
+            peak = max(peak, value)
+            drawdown = max(drawdown, peak - value)
+        total += trade.relative_change
+    return drawdown
 
 
 def gasoline_trades(first: int, last: int, *, data_dir: Path | None = None) -> list[Trade]:

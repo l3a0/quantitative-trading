@@ -86,8 +86,8 @@ GIFS = ["commodity_sketch_streak_start.gif", "commodity_sketch_june_file.gif"]
 
 #: The paragraph each GIF follows, by its opening words.
 FOLLOWS = (
-    "1. **They rule out a count written for the revised edition.**",
-    "For gasoline the answer is simple.",
+    "1. **They rule out the revised edition.**",
+    "For gasoline that is always contract 1.",
 )
 
 STREAK_LABELS = [

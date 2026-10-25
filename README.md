@@ -3616,20 +3616,15 @@ not pinned here.
    before delivery and the April and May gasoline contracts trading until the
    last trading day of the month before delivery as the exchange's rules, Good
    Friday as the only NYMEX holiday that can land on a trade date, EIA
-   publishing the nearest four contracts numbered by expiry, EIA's statement
-   that its source is NYMEX, and
-   the Massive futures data service returning April 2025 gasoline prices, which
-   [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records.
+   publishing the nearest four contracts numbered by expiry, and EIA's
+   statement that its source is NYMEX.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
    all three unreadable years profitable, that 21 less the 3 unreadable years
-   is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 7 of 15 is
-   fewer than half, that 2008 is a year after 2007, and that 1994 is one
-   year before 1995.
+   is 18, and that the last 9 of 1995 to 2015 are 2007 to 2015.
 4. Its references. The three citations are cited rather than computed.
-5. Two dates no test asserts: the files' last row on 5 April 2024, which
-   their file names record, and the day the 16 exchange dates were read, 3
-   October 2026.
+5. One date no test asserts: the files' last row on 5 April 2024, which
+   their file names record.
 
 Every other number in the post traces to an assertion in
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py), or to
@@ -3641,7 +3636,10 @@ for the sketches' labels and the dates their alt text gives. One had no pin befo
 counted from 1994, the run of 13 profitable years ends in 2006.
 `TestThePostQuotesThePins` reads one copy of each count, streak, gap date and
 split in the post, and fails when that copy drifts from the run. A second copy
-of the same figure elsewhere in the post is not always read.
+of the same figure elsewhere in the post is not always read. `TestTheReturns`
+pins each split's mean yearly return, Sharpe ratio and drawdown, and
+`TestThePostQuotesThePins::test_the_returns_table` reads them from the post's
+first table at the precision it prints.
 
 Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).
