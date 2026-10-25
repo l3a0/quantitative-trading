@@ -52,7 +52,7 @@ Chan tests one stock at a time rather than all 500 with SPY in one run, for two 
 
 The data is [two files](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md), both Chan’s own MATLAB files converted here to one table per symbol.
 
-1. **The stocks.** The stock file holds 497 stocks that were in the S&P 500 in late 2011, with prices from 2006-05-11 to 2012-04-24, and was saved on 2012-04-25. Its name, `inputDataOHLCDaily_stocks_20120424.mat`, carries the last day of its prices, not the date of its list of stocks. Companies that left the index in its December 2011 rebalance are still in the file.
+1. **The stocks.** The stock file holds 497 stocks that were in the S&P 500 in late 2011, with prices from 2006-05-11 to 2012-04-24, and was saved on 2012-04-25. Its name, `inputDataOHLCDaily_stocks_20120424.mat`, carries the last day of its prices, not the date of its list of stocks. Five companies that left the index in its December 2011 rebalance are still in the file.
 2. **SPY.** It comes from his ETF file, whose closes end on 2012-04-09 and which was saved on 2012-04-10.
 
 The two share 1,489 trading days from 2006-05-11 to 2012-04-09. Training is the 251 days of 2007, from 2007-01-03 to 2007-12-31, and the test period is the 1,076 days from 2008-01-02 to 2012-04-09, the window location 2035 names.

@@ -5111,7 +5111,7 @@ precision the post prints it, and looks for one copy of it in the post, so a
 typo in that copy fails a test. That covers the files' days and dates, the
 screen's counts, its 90 percent bar and its 5-day lookback, the nominal 48 as
 10 percent of 480, one unit's weights and dollars, the strategy's first return
-and the 1,071 days after it, the book's 4.5 percent and 1.3 as the script's
+and the 1,071 days from there on, the book's 4.5 percent and 1.3 as the script's
 figures rounded, the second test's margin over its 95 percent bar, the two
 eigen statistics that sum to its trace statistic and its count of relations,
 the two random-walk measurements, the ADF statistics, and the APR, Sharpe
