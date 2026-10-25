@@ -39,7 +39,7 @@ quotes, such as test_the_run_gives_these_dates_and_files.
    is pinned is that each box spans its count, that the missing years fill
    exactly the gap between the files' profits and Chan's, and that both bars'
    losses line up.
-6. The fill-miss sketch draws each missing year's move with June's fill and a
+6. The fill-miss sketch draws each missing year's move with fill 2 and a
    bar of one typical miss. What is pinned is that each dot and bar sit at the
    run's figures on one scale and that every bar crosses zero.
 7. The calendar sketch draws the March to June contracts in 2008 and 2006,
@@ -141,7 +141,7 @@ FOLLOWS = (
     "EIA’s New York Harbor file holds no row",
     "Interpolating, which here means",
     "The losses say more than the gaps.",
-    "Each fill guesses a profit in all three years",
+    "Both fills guess a profit in all three years",
     "For gasoline that is always contract 1.",
 )
 
@@ -216,8 +216,8 @@ MISS_LABELS = [
     "+1",
     "cents a gallon",
     "chance of profit",
-    "dot: the move with June’s fill",
-    "bar: one typical miss either side",
+    "dot: the year’s move with fill 2",
+    "bar: fill 2’s typical miss either side",
     "gasoline, May contract",
 ]
 

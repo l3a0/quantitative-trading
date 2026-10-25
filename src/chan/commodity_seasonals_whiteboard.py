@@ -43,9 +43,9 @@ right after the paragraph it draws.
    end of Chan's profits. It sits after the paragraph opening "The losses say
    more than the gaps."
 6. Each fill misses by more than the year moved: for each missing year, the
-   year's move with June's fill and a bar of one typical miss either side,
+   year's move with fill 2, June's move, and a bar of its typical miss either side,
    every bar crossing zero, with each year's chance of a profit. It sits after
-   the paragraph opening "Each fill guesses a profit in all three years".
+   the paragraph opening "Both fills guess a profit in all three years".
 7. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
@@ -1016,7 +1016,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
         Label("cents a gallon", 0.3, 0.33, names="scale", color=MUTED, size=10),
         Label("chance of profit", 9.7, 3.7, names="zero", color=MUTED, size=11, ha="right"),
         Label(
-            "dot: the move with June’s fill",
+            "dot: the year’s move with fill 2",
             0.3,
             3.75,
             names=f"move-{first}",
@@ -1024,7 +1024,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
             size=10,
         ),
         Label(
-            "bar: one typical miss either side",
+            "bar: fill 2’s typical miss either side",
             0.3,
             3.45,
             names=f"miss-{first}",

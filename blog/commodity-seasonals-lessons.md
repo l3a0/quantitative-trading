@@ -108,23 +108,23 @@ The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing yea
 
 The files do hold something on each missing day. EIA’s file for the second contract out, which holds June while May is the first, has a row on all three dates. So the run tried two fills and measured how far each can be trusted.
 
-1. **A straight line** between the May rows on either side of the gap.
-2. **June’s move.** May’s last known price, moved by June’s change since that day, because the two contracts move almost together.
+1. **Fill 1, a straight line** between the May rows on either side of the gap.
+2. **Fill 2, June’s move.** May’s last known price, moved by June’s change since that day, because the two contracts move almost together.
 
-To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss. June’s move misses by less, so the table gives its figures in cents a gallon, with each year’s chance of a profit if June’s misses are normal:
+To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss. Fill 2 misses by less, so the table and the sketch below give fill 2’s figures in cents a gallon, with each year’s chance of a profit if fill 2’s misses are normal:
 
 ```math
 \small\begin{array}{l|r|r|r}
-\text{Year} & \text{Move} & \text{Typical miss} & \text{Chance of profit} \\ \hline
+\text{Fill 2} & \text{Move} & \text{Typical miss} & \text{Chance of profit} \\ \hline
 1997 & +0.4 & 0.89 & 67\% \\
 1998 & +0.5 & 0.76 & 74\% \\
 1999 & +0.6 & 0.65 & 82\%
 \end{array}
 ```
 
-Each fill guesses a profit in all three years, and every move is smaller than its fill’s typical miss. The straight line does no better, with moves between 0.1 and 0.8 of its own typical miss. If the June fill’s misses are normal and independent from year to year, the chance that all three years were profits, which Chan’s 19 needs, is 41%.
+Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss. If fill 2’s misses are normal and independent from year to year, the chance that all three years were profits, which Chan’s 19 needs, is 41%.
 
-![“Each fill misses by more than the year moved”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, “1997” with “67%”, “1998” with “74%” and “1999” with “82%”. In each row a brown dot right of zero marks the year’s move with June’s fill, and a black bar of one typical miss either side reaches across zero. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if June’s misses are normal. Captions read “dot: the move with June’s fill” and “bar: one typical miss either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
+![“Each fill misses by more than the year moved”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, “1997” with “67%”, “1998” with “74%” and “1999” with “82%”. In each row a brown dot right of zero marks the year’s move with fill 2, and a black bar of one typical miss either side reaches across zero. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal. Captions read “dot: the year’s move with fill 2” and “bar: fill 2’s typical miss either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
