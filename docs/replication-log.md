@@ -6663,10 +6663,11 @@ whole span. The book offers this as an example of forming a hypothesis about
 why a strategy stopped working and testing it.
 
 **All three claims hold on Chan's own file, on both Johansen statistics, at 99
-percent and at 90.** The control the book leaves out holds as well. GLD and
-GDX alone over the triplet's days find no relation even at 90 percent, so the
-triplet's relation is not one the pair already had. GDX and USO alone find
-one relation at 99 percent, which would make the triplet's relation theirs.
+percent and at 90.** The control the book leaves out comes out the way the oil
+reading needs. GLD and GDX alone over the triplet's days find no relation even
+at 90 percent, so the triplet's relation is not one the pair already had. GDX
+and USO alone find one relation at 99 percent, which would make the triplet's
+relation theirs.
 A test on the triplet's weights rejects that, so the two results conflict.
 
 Every row reads the same vintage and specification, so both are stated once
@@ -6779,7 +6780,7 @@ Four things.
    The book's "99 percent probability" is a test level rather than a
    probability. The test rejects no cointegration at the 1 percent level, and
    it says nothing about how likely the pair is to cointegrate.
-2. **The control holds, and the triplet's weights decide what a second
+2. **The control finds nothing, and the triplet's weights decide what a second
    control could not.** GLD and GDX alone over the triplet's 1,481 days give a
    trace statistic of 10.447, short of even the 90 percent bar of 13.429.
    Adding USO raises the first null's trace to 44.838, so the triplet's
@@ -6801,8 +6802,10 @@ Four things.
    alone, which conclusion 3 takes up. Row 15 is exploratory too. The post's
    pre-publish review added it after every other result here had been seen,
    it holds only if the rank is 1, it is one of three weight tests run
-   together, and its bars are asymptotic, which nothing here checks on 1,479
-   days. The eigenvector's entries are shares per unit of the portfolio, so
+   together, and its bars are asymptotic. Two resampling checks run in the
+   post's review found those bars rejecting too often on 1,479 observations,
+   which no row here pins, so the post and its sketch read the GLD rejection
+   at 95 percent rather than 99. The eigenvector's entries are shares per unit of the portfolio, so
    their sizes are not comparable across ETFs at different prices, and no row
    here measures any weight in dollars.
 3. **The Engle-Granger family sees the same break, and no series is

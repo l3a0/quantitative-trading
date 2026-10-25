@@ -3,7 +3,8 @@
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it, with one exception, in
 ``blog/gold-miners-oil-lessons.md``. The post's figure has its own pins in
-``tests/test_gold_miners_oil_figures.py``. README lists what the post says
+``tests/test_gold_miners_oil_figures.py``. ``TestThePostQuotesTheRun`` reads
+the post's own copy of the run's figures, and README lists what the post says
 that nothing pins. ``docs/replication-log.md`` Entry 29 carries the verdicts
 and points here row by row.
 
@@ -33,14 +34,19 @@ The Johansen statistics are pinned at six decimals and the eigenvalues at
 eight, the precision Entry 23's pins on the same wrapper use.
 
 Exploratory. The split date and the third ETF were both chosen after the break
-was seen. Every test here first ran on 2026-10-05, except row 15's, which the
-post's pre-publish review added after every other result had been seen and
-which first ran on 2026-10-25.
+was seen. Every test here first ran on 2026-10-05. The post's pre-publish
+review added three things after that, and each first ran on 2026-10-25.
+
+1. Row 15's tests, added after every other result had been seen.
+2. ``TestThePostQuotesTheRun``, which reads the post rather than the data.
+3. The assertions in ``TestTheCut`` that GLD and USO start on 2006-04-26
+   with no price missing.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import re
 
 import numpy as np
 import pandas as pd
@@ -75,12 +81,15 @@ from chan.gold_miners_oil import (
     restricted_lr,
     run,
 )
+from chan.gold_miners_oil_figures import first_window_portfolio, signed
 from chan.johansen import Johansen, johansen
+from chan.regime_figure import make_regime_figure
 from chan.series import WindowCrossesScaleBreak, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
 BOOK_NOTES = paths.REPO_ROOT / "research" / "book-notes" / "algorithmic-trading.md"
+POST = paths.REPO_ROOT / "blog" / "gold-miners-oil-lessons.md"
 
 
 @pytest.fixture(scope="module")
@@ -386,7 +395,8 @@ class TestBesideTheReplication:
         """Added after review, to ask whether the triplet's one relation is GDX and USO's own.
 
         Row 15 answers it on the triplet's weights. GLD's weight being zero is
-        rejected at 99 percent, so the relation is not the pair's alone.
+        rejected against the asymptotic 99 percent bar, which the post reads
+        at 95 percent, so the relation is not the pair's alone.
         """
         gld, gdx = result.with_oil["GLD"], result.with_oil["GDX"]
         np.testing.assert_allclose(gld.trace, [4.349962, 0.573598], atol=1e-6)
@@ -533,6 +543,8 @@ class TestTheCut:
         _, closes = module.load_panel(SOURCE_FILE)
         uncut = closes[list(TRIPLET)]
         assert int(uncut["GDX"].isna().sum()) == 19
+        assert int(uncut["GLD"].isna().sum()) == 0 and int(uncut["USO"].isna().sum()) == 0
+        assert str(uncut.index[0].date()) == "2006-04-26"
         with pytest.raises(ValueError, match="column 1 is nan on row 0"):
             johansen(uncut.to_numpy(dtype=float))
 
@@ -645,3 +657,173 @@ class TestTheRun:
         out = capsys.readouterr().out
         verdicts = [line for line in out.splitlines() if line[:4].strip().isdigit()]
         assert [line.endswith("did not reproduce") for line in verdicts] == [True] * 4 + [False] * 2
+
+
+def _quoted(fragment: str, text: str) -> bool:
+    """Whether ``text`` holds ``fragment`` with no digit run on at either end.
+
+    A plain substring test lets 10.0157 stand for 10.015, or 110.015 for
+    10.015, so a digit typed beside a figure would pass.
+    """
+    return re.search(rf"(?<!\d){re.escape(fragment)}(?!\d)", text) is not None
+
+
+def _table_row(label: str, values, last: bool = False) -> str:
+    """One whole row of a table in the post, as its LaTeX writes it.
+
+    The row's end is part of it, so a row of Lesson 3's two-column table
+    cannot match the first two cells of Lesson 1's three-column one.
+    """
+    return rf"\text{{{label}}} & " + " & ".join(values) + ("\n" if last else r" \\")
+
+
+@pytest.fixture(scope="module")
+def post() -> str:
+    return POST.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="module")
+def regime(tmp_path_factory: pytest.TempPathFactory):
+    """The earlier post's regime map, drawn somewhere that is not the repo."""
+    return make_regime_figure(out=tmp_path_factory.mktemp("regime") / "regime.png")
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure from the run that ``blog/gold-miners-oil-lessons.md`` prints.
+
+    The pins above hold the run's numbers. This class reads the post, so
+    editing its copy of a figure alone fails here, and a re-pin fails here
+    until the post moves with it. Each fragment is built from the value the
+    code computes, at the precision the post prints, and none is typed in. It
+    reads Lesson 1's and Lesson 3's tables row by row, and at least one copy
+    in the prose of every other figure the post takes from
+    ``chan.gold_miners_oil``, ``chan.gold_miners_oil_figures`` or
+    ``chan.regime_figure``, with enough words around each that only that
+    copy matches. A figure the post prints again, such as the 1,481 days in
+    the caption or the 942 days under the figure, is read only where the
+    fragment's words put it. The list of Chan's three claims, the headings,
+    the caption and the alt texts are not read, and nor is a count written in
+    words, such as full rank at 90 percent. The sketches' labels are held by
+    ``tests/test_gold_miners_oil_whiteboard.py``, and README lists what the
+    post says that nothing asserts.
+    """
+
+    @staticmethod
+    def _missing(fragments: list[str], post: str) -> list[str]:
+        return [f for f in fragments if not _quoted(f, post)]
+
+    def test_the_file_and_the_windows(self, post, sources, result) -> None:
+        members, _ = sources
+        _, uncut = module.load_panel(SOURCE_FILE)
+        start = {s: str(uncut[s].first_valid_index().date()) for s in TRIPLET}
+        assert start["GLD"] == start["USO"], "the post names one start for GLD and USO"
+        (saved,) = {m.obtained for m in members}
+        before, after, whole = (result.days[name] for name in ("before", "after", "whole"))
+
+        def day(d: pd.Timestamp) -> str:
+            return str(d.date())
+
+        fragments = [
+            f"`inputData_ETF.mat`, saved on {saved}.",
+            f"It holds GLD and USO from {start['GLD']} and GDX from {start['GDX']}, so the run "
+            "starts on GDX’s first price",
+            f"That leaves {len(whole):,} trading days to {day(whole[-1])}, split {len(before)} "
+            f"before the break and {len(after)} after it.",
+            f"{day(before[0])} to {day(before[-1])} and {day(after[0])} to {day(after[-1])} "
+            "for the pair",
+            f"which here means GLD, GDX and USO after {whole[-1]:%B %Y}.",
+            f"it says nothing about the years after {whole[-1].year}.",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_1s_table(self, post, result) -> None:
+        tests = (result.before, result.after, result.triplet)
+        for test in tests:
+            counts = {test.relations(statistic, 99) for statistic in ("trace", "eigen")}
+            assert len(counts) == 1, "the table gives one count for both statistics"
+        fragments = [
+            _table_row("Trace", [f"{t.trace[0]:.3f}" for t in tests]),
+            _table_row("Bar, 99 percent", [f"{t.trace_critical[0, 2]:.3f}" for t in tests]),
+            _table_row("Eigen", [f"{t.eigen[0]:.3f}" for t in tests]),
+            _table_row("Bar, 99 percent", [f"{t.eigen_critical[0, 2]:.3f}" for t in tests]),
+            _table_row("Relations", [str(t.relations("trace", 99)) for t in tests], last=True),
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_1s_prose(self, post, result) -> None:
+        after, triplet, before = result.after, result.triplet, result.before
+        margin = before.trace[0] - before.trace_critical[0, 2]
+        fragments = [
+            f"the 90 percent bars, {after.trace_critical[0, 0]:.3f} for the trace and "
+            f"{after.eigen_critical[0, 0]:.3f} for the eigen statistic",
+            f"Its trace statistic for that second step is {triplet.trace[1]:.3f} against a 90 "
+            f"percent bar of {triplet.trace_critical[1, 0]:.3f}.",
+            f"the trace statistic clears its bar by {margin:.3f}.",
+            f"it gives a statistic of {signed(result.cadf['before'].t, 3)} before the break",
+            f"After the break it gives {signed(result.cadf['after'].t, 3)}, nowhere near either.",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_the_figures_paragraph(self, post, sources, result) -> None:
+        closes = sources[1]
+        portfolio = first_window_portfolio(closes, result)
+        before, after = portfolio.z.loc[: BEFORE[1]], portfolio.z.loc[AFTER[0] :]
+        gld, gdx = portfolio.weights
+        fragments = [
+            f"USO’s highest close, {closes['USO'].max():.2f}, falls on "
+            f"{closes['USO'].idxmax().date()} itself",
+            f"{signed(gld, 3)} shares of GLD against {signed(gdx, 3)} of GDX",
+            f"the portfolio stays between {signed(before.min())} and {signed(before.max())}",
+            f"it runs from {signed(after.min())} to {signed(after.max())} and never comes back",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_2s_control(self, post, result) -> None:
+        control, triplet = result.control, result.triplet
+        fragments = [
+            f"over the triplet’s {len(result.days['whole']):,} days gives a trace statistic of "
+            f"{control.trace[0]:.3f}, short of even its 90 percent bar of "
+            f"{control.trace_critical[0, 0]:.3f}",
+            f"the trace statistic for the first step is {triplet.trace[0]:.3f}, past its own 99 "
+            f"percent bar of {triplet.trace_critical[0, 2]:.3f}",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_3s_table(self, post, result) -> None:
+        pairs = (result.with_oil["GLD"], result.with_oil["GDX"])
+        fragments = [
+            _table_row("Trace", [f"{p.trace[0]:.3f}" for p in pairs]),
+            _table_row("Bar, 90 percent", [f"{p.trace_critical[0, 0]:.3f}" for p in pairs]),
+            _table_row("Bar, 99 percent", [f"{p.trace_critical[0, 2]:.3f}" for p in pairs]),
+            _table_row("Relations", [str(p.relations("trace", 99)) for p in pairs], last=True),
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_3s_weights(self, post, result) -> None:
+        lr = result.zero_weight
+        weights = result.triplet.eigenvectors[:, 0]
+        fragments = [
+            f"gives a statistic of {lr['GLD']:.3f}, past the 95 percent bar of "
+            f"{CHI2_1[95]:.3f} and the 99 percent bar of {CHI2_1[99]:.3f}.",
+            f"Setting GDX’s weight to zero gives {lr['GDX']:.3f}, far past both bars.",
+            f"Setting USO’s weight to zero gives {lr['USO']:.3f}, nowhere near any bar.",
+            f"The triplet’s eigenvector is {signed(weights[0], 6)} shares of GLD, "
+            f"{signed(weights[1], 6)} of GDX and {signed(weights[2], 6)} of USO.",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_the_earlier_posts_rolling_test(self, post, regime) -> None:
+        """The figures the post takes from ``chan.regime_figure``, read as its test reads them."""
+        line = regime.axes[0].lines[0]
+        ends = pd.DatetimeIndex(line.get_xdata())
+        passing = line.get_ydata() < EG_CRIT_N2["10%"]
+        inside = (ends >= AFTER[0]) & (ends <= AFTER[1])
+        last = ends[passing & (ends.year < 2019)].max()
+        (downloaded,) = {entry.obtained[:4] for entry in regime.vintages}
+        fragments = [
+            f"closing prices downloaded from Yahoo Finance in {downloaded}",
+            f"Of the {int(inside.sum())} tests whose year ends inside Chan’s second window, "
+            f"{int((inside & passing).sum())} still pass at the 90 percent level.",
+            f"That test’s passing years run into {last.year} before they thin out",
+        ]
+        assert self._missing(fragments, post) == []

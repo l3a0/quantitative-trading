@@ -406,9 +406,9 @@ where they were first built. The other forty-five were built here.
     any statistic was computed. All six rows hold. The pair finds one
     relation from 2006-05-23 to 2008-07-14 and none from 2008-07-15 to
     2012-04-09, even at 90 percent, and the triplet finds exactly one over the
-    whole 1,481 days. The control the book leaves out holds too: GLD and GDX
-    alone over the same days find none, at a trace statistic of 10.447
-    against a 90 percent bar of 13.429. GDX and USO alone find one relation
+    whole 1,481 days. The control the book leaves out finds what the oil
+    reading needs: GLD and GDX alone over the same days find no relation, at
+    a trace statistic of 10.447 against a 90 percent bar of 13.429. GDX and USO alone find one relation
     at 99 percent, but a test on the triplet's weights, added in the post's
     review, rejects GLD's weight being zero at 95 percent and cannot reject
     USO's even at 90, so the two results conflict. Every figure is
@@ -1123,10 +1123,11 @@ the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
 issue declared them, the book's three quotes against the highlight they come
 from, every statistic and eigenvalue of the four tests and of each ETF with
 USO alone at the precision that is real, the CADF and ADF rows beside them,
-the test of each fund's weight in the triplet's relation, and the cut to
-GDX's first price that keeps a missing price from reaching the test. The blog
-post about it is the exception, and what it says that nothing here asserts is
-listed below.
+the test of each fund's weight in the triplet's relation, the cut to GDX's
+first price that keeps a missing price from reaching the test, and GLD's and
+USO's first price on 2006-04-26. `TestThePostQuotesTheRun` reads the post's
+own copy of each figure it takes from the run, so editing that copy alone
+fails. What the post says that nothing here asserts is listed below.
 
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) does it for
 Example 5.2. It pins the script's two printed figures, the book's four, and
@@ -4360,9 +4361,11 @@ Six groups of what it says are not pinned here.
 3. Five readings no test asserts.
    1. That a test level is not the probability a claim is true.
    2. That a full Johansen rank says each series is stationary alone.
-   3. That the large-sample bars for the weight test reject too often on
-      1,479 days, which two resampling checks run in the post's review found
-      and nothing here pins, so the post reads that test at 95 percent.
+   3. That the large-sample bars for the weight test reject too often on its
+      1,479 observations, the 1,481 days less one for the first difference
+      and one for the lag. Two resampling checks run in the post's review
+      found this and nothing here pins it, so the post reads that test at 95
+      percent.
    4. That what USO adds to the triplet lies in how the prices change from day
       to day rather than in the relation's weights, which follows from row 10
       and the weight test together.
@@ -4384,7 +4387,18 @@ for the figure's own numbers, to
 critical values checked against Chan's printout and the two Johansen
 statistics disagreeing on his file, or to
 [tests/test_regime_figure.py](tests/test_regime_figure.py) for the earlier
-post's rolling windows. Six had no pin before it.
+post's rolling windows. `TestThePostQuotesTheRun` in
+[tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) reads the post
+itself, so a figure edited in the post alone fails. It reads Lesson 1's and
+Lesson 3's tables row by row, and at least one copy in the prose of every
+other figure the post takes from `chan.gold_miners_oil`,
+`chan.gold_miners_oil_figures` or `chan.regime_figure`. A figure printed a
+second time, such as the 1,481 days in the caption, is read only where the
+words around it match. It does not read the list of Chan's three claims, the
+headings, the caption or the alt texts, or a count written in words, such as
+full rank at 90 percent. The sketches' labels are read by
+[tests/test_gold_miners_oil_whiteboard.py](tests/test_gold_miners_oil_whiteboard.py).
+Seven had no pin before the post.
 
 1. USO's highest close on the file, 117.48, on 2008-07-14, the last day of the
    first window.
@@ -4402,6 +4416,8 @@ post's rolling windows. Six had no pin before it.
    GLD's weight at zero, 26.336768 with GDX's and 0.056678 with USO's,
    asymptotic p-values of 0.00155 and 0.812 for GLD and USO, and the
    chi-squared bars of 2.706, 3.841 and 6.635.
+7. GLD's and USO's first price on the file, 2006-04-26, 19 rows before GDX's,
+   pinned in `TestTheCut` in the post's pre-publish review.
 
 Its one figure is drawn from the committed file by
 [src/chan/gold_miners_oil_figures.py](src/chan/gold_miners_oil_figures.py),
