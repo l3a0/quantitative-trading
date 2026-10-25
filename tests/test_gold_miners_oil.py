@@ -703,7 +703,10 @@ class TestThePostQuotesTheRun:
     the caption or the 942 days under the figure, is read only where the
     fragment's words put it. The list of Chan's three claims, the headings,
     the caption and the alt texts are not read, and nor is a count written in
-    words, such as full rank at 90 percent. The sketches' labels are held by
+    words, such as full rank at 90 percent. A test level is read only in the
+    words around a figure, as in the 90 percent bar of 13.429, so a level
+    stated apart from one, such as the Engle-Granger test finding the
+    relation only at 95 percent, is not. The sketches' labels are held by
     ``tests/test_gold_miners_oil_whiteboard.py``, and README lists what the
     post says that nothing asserts.
     """

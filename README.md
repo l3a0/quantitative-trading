@@ -407,7 +407,7 @@ where they were first built. The other forty-five were built here.
     relation from 2006-05-23 to 2008-07-14 and none from 2008-07-15 to
     2012-04-09, even at 90 percent, and the triplet finds exactly one over the
     whole 1,481 days. The control the book leaves out finds what the oil
-    reading needs: GLD and GDX alone over the same days find no relation, at
+    explanation needs: GLD and GDX alone over the same days find no relation, at
     a trace statistic of 10.447 against a 90 percent bar of 13.429. GDX and USO alone find one relation
     at 99 percent, but a test on the triplet's weights, added in the post's
     review, rejects GLD's weight being zero at 95 percent and cannot reject
@@ -1125,9 +1125,11 @@ from, every statistic and eigenvalue of the four tests and of each ETF with
 USO alone at the precision that is real, the CADF and ADF rows beside them,
 the test of each fund's weight in the triplet's relation, the cut to GDX's
 first price that keeps a missing price from reaching the test, and GLD's and
-USO's first price on 2006-04-26. `TestThePostQuotesTheRun` reads the post's
-own copy of each figure it takes from the run, so editing that copy alone
-fails. What the post says that nothing here asserts is listed below.
+USO's first price on 2006-04-26. `TestThePostQuotesTheRun` reads at least one
+copy in the post of each figure the post takes from the run, from the chart or
+from the earlier post's regime map, so editing a copy it reads fails. The
+paragraph on the post below says which copies it leaves unread, and what the
+post says that nothing here asserts.
 
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) does it for
 Example 5.2. It pins the script's two printed figures, the book's four, and
@@ -4354,11 +4356,12 @@ Six groups of what it says are not pinned here.
    `TestTheBooksClaims`.
 2. Facts outside the committed data. That USO held the crude oil futures
    nearest expiry over these years and drifts from the spot price as it rolls,
-   which Entry 29 records, and that every Johansen call in Chan's scripts for the book passes
-   a constant and one lagged difference, which
+   which Entry 29 records, that every Johansen call in Chan's scripts for the
+   book passes a constant and one lagged difference, which
    [src/chan/gold_miners_oil.py](src/chan/gold_miners_oil.py)'s docstring
-   records.
-3. Five readings no test asserts.
+   records, and that the GLD and GDX post dates the miners' detachment from
+   gold to the 2010s, which that post says in its own words.
+3. Six readings no test asserts.
    1. That a test level is not the probability a claim is true.
    2. That a full Johansen rank says each series is stationary alone.
    3. That the large-sample bars for the weight test reject too often on its
@@ -4371,6 +4374,11 @@ Six groups of what it says are not pinned here.
       and the weight test together.
    5. That Chan's explanation, in which dear oil cuts the miners' profits,
       suggests a mix with oil's price in it.
+   6. That the miners and oil pair's relation, the triplet's count of one and
+      the weight test cannot all be right. Any relation two of the funds share
+      is also a relation among all three, with the third fund's weight at
+      zero, so the conflict follows from rows 5 and 6, row 14 and row 15
+      together.
 4. The MacKinnon critical values of −3.34 and −3.90 for the Engle-Granger
    test, which are constants of `ithildincore.timeseries` rather than
    something this repository computes. The suite asserts that the statistic
@@ -4396,7 +4404,10 @@ other figure the post takes from `chan.gold_miners_oil`,
 second time, such as the 1,481 days in the caption, is read only where the
 words around it match. It does not read the list of Chan's three claims, the
 headings, the caption or the alt texts, or a count written in words, such as
-full rank at 90 percent. The sketches' labels are read by
+full rank at 90 percent. It reads a test level only in the words around a
+figure it reads, as in the 90 percent bar of 13.429, so a level stated apart
+from one, such as the Engle-Granger test finding the relation only at 95
+percent, is not read. The sketches' labels are read by
 [tests/test_gold_miners_oil_whiteboard.py](tests/test_gold_miners_oil_whiteboard.py).
 Seven had no pin before the post.
 

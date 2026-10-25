@@ -6664,11 +6664,11 @@ why a strategy stopped working and testing it.
 
 **All three claims hold on Chan's own file, on both Johansen statistics, at 99
 percent and at 90.** The control the book leaves out comes out the way the oil
-reading needs. GLD and GDX alone over the triplet's days find no relation even
-at 90 percent, so the triplet's relation is not one the pair already had. GDX
-and USO alone find one relation at 99 percent, which would make the triplet's
-relation theirs.
-A test on the triplet's weights rejects that, so the two results conflict.
+explanation needs. GLD and GDX alone over the triplet's days find no relation
+even at 90 percent, so the triplet's relation is not one the pair already had.
+GDX and USO alone find one relation at 99 percent, which would make the
+triplet's relation theirs. A test on the triplet's weights rejects that, so
+the two results conflict.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
