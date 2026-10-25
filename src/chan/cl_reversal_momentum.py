@@ -1,9 +1,9 @@
 """Crude oil reversal joined to momentum, *Algorithmic Trading*'s rule at location 2701.
 
-On one shared lookback, a mean-reverting rule and a momentum rule take
-opposite sides every day, so joining them would cancel. Chan gives them
-different lookbacks, 30 and 40 trading days, and trades only on the days the
-two agree. His claim at
+On one shared lookback, a mean-reverting rule buys on exactly the days a
+momentum rule shorts, and the reverse, so joining them would cancel. Chan
+gives them different lookbacks, 30 and 40 trading days, and trades only on
+the days the two agree. His claim at
 Kindle location 2701, in Chapter 6, is that the join can beat either: "the
 combination of mean-reverting and momentum rules may work better than each
 strategy by itself." The rule he gives is to "buy at the market close if the

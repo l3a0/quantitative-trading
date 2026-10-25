@@ -7037,9 +7037,9 @@ Fourteen rows, all derivable from
 book's precision. On the book's window the joined rule beats each rule alone,
 and on the four years before it momentum alone beats the joined rule.** A
 mean-reverting rule bets a move will undo itself and a momentum rule bets it
-will continue. On one shared lookback they take opposite sides every day, so
-joining them would cancel. Chan gives them different lookbacks and trades only
-on the days the two agree. His sentence is that "Sometimes, the combination of
+will continue. On one shared lookback, one rule buys on exactly the days the
+other shorts, so joining them would cancel. Chan gives them different
+lookbacks and trades only on the days the two agree. His sentence is that "Sometimes, the combination of
 mean-reverting and momentum rules may work better than each strategy by
 itself." His rule on crude oil futures buys at the close when the price is
 below its level 30 trading days ago and above its level 40 trading days ago,

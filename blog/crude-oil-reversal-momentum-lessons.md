@@ -35,13 +35,13 @@ Each rule on its own reads one lag.
 1. **Reversal alone** buys when the close is below its 30-day lag, because a price that has fallen is expected to come back, and shorts when the close is above it.
 2. **Momentum alone** buys when the close is above its 40-day lag, because a price that has risen is expected to keep rising, and shorts when the close is below it.
 
-On one shared lag the two would take opposite sides every day, and joining them would cancel. Chan gives them different lags and trades only where they agree. The join buys when the close is below its 30-day lag and above its 40-day lag, which is a dip inside a rise. It shorts on a bounce inside a fall, and holds nothing on any other day.
+On one shared lag, one rule would buy on exactly the days the other shorts, and joining them would cancel. Chan gives them different lags and trades only where they agree. The join buys when the close is below its 30-day lag and above its 40-day lag, which is a dip inside a rise. It shorts on a bounce inside a fall, and holds nothing on any other day.
 
 ![An animated whiteboard sketch titled “A dip inside a rise, a bounce inside a fall”, drawn slowly stroke by stroke. It is schematic: each panel keeps the order of its day’s three closes, but neither their spacing up the board nor the days between them across it. The left panel comes first. A black line rises from a low black dot to a high one and falls back to a dot between them, and along the bottom the three dots are labelled “40 days ago”, “30 days ago” and “today”. Above the panel, “the join’s first long, 2008-07-30” names the day. A grey dashed line runs from the high dot across past today’s dot, and a line beneath the panel reads “below the 30-day lag: reversal buys”. A grey dashed line runs from the low dot across past today’s dot, and the next line reads “above the 40-day lag: momentum buys”. A green arrow beside today’s dot points up, and a green line reads “both buy: long”. The right panel mirrors it. Its black line falls from a high dot to a low one and rises a little to a dot between them, labelled “40 days ago”, “30 days ago” and “today”, under “the join’s first short, 2008-07-18”. A grey dashed line from the low dot comes with “above the 30-day lag: reversal shorts”, and one from the high dot with “below the 40-day lag: momentum shorts”. A red arrow beside today’s dot points down, and a red line reads “both short: short”. Last, a short grey flat line at the bottom is labelled “any other day: flat”. The finished drawing holds for twelve seconds.](../docs/figures/cl_reversal_momentum_sketch_dip_and_bounce.gif)
 
 *The left panel is the join’s first long, on 2008-07-30, and the right its first short, on 2008-07-18, which is also its first position. Both days come from the 2012-05-04 save. The sketch is schematic. Its heights keep only the order of each day’s three closes, and its spacing across does not follow the days between them. On 2008-07-30 the close of 174.35 sat above its 40-day lag of 173.07 and below its 30-day lag of 182.73. On 2008-07-18 the close of 177.05 sat above its 30-day lag of 176.55 and below its 40-day lag of 181.93.*
 
-The script’s fourth rule, which it names “ComboOR”, scores a long on any day the close is below its 30-day lag or above its 40-day lag. It scores a short on any day the close is above its 30-day lag or below its 40-day lag. Its position each day is the long and the short added together, so a day that scores both is flat. Lesson 2 shows it is the join under another name.
+The script’s fourth rule, which it names “ComboOR”, scores a long on any day the close is below its 30-day lag or above its 40-day lag. It scores a short on any day the close is above its 30-day lag or below its 40-day lag. Its position each day is the long and the short added together, so a day that scores both is flat. Lesson 2 shows that ComboOR takes the join’s position on every row but ten early ones.
 
 ### The two figures
 
@@ -80,7 +80,7 @@ On the save the script loads, both figures land on every digit of its comment, a
 
 The 2012-05-11 save is different. Its closes sit 0.27 higher on every one of the 1,000 days. The rule compares closes with closes, so a uniform shift changes no position. What it changes is the price that divides each dollar move. A slightly larger divisor makes every return slightly smaller in size, and the APR falls to 0.117226 and the Sharpe ratio to 1.100045. Both still round to 12 percent and 1.1, so the book’s rounding cannot tell the two saves apart. The script’s comment matches the 2012-05-04 save, and nothing shows whether the book’s rounded figures came from that same run.
 
-That is a mild case. [In the volatility post](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#lesson-2-the-save-decides-and-the-script-that-ships-is-not-the-run), the APR fell by more than half between two of Chan’s saves whose names are ten days apart. A continuous future is rewritten at every roll, so the save is part of what a backtest specifies, even when, as here, the change stays below the printed digits.
+That is a mild case. [In the volatility post](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#lesson-2-the-save-decides-and-the-script-that-ships-is-not-the-run), the APR fell by more than half between two of Chan’s saves whose names are ten days apart. A continuous future is rewritten at every roll, so the save is part of what a backtest specifies, even when, as here, the change stays below the book’s printed digits.
 
 ## Lesson 2: the join is half of each rule, so it wins by swinging less
 
@@ -101,7 +101,7 @@ The table bears out Chan’s sentence on his own window. The book prints no figu
 The reason is that the join is not a third rule. Hold half a position in reversal alone and half in momentum alone.
 
 1. **Where the two agree**, both halves point the same way and add to one full position. Those are exactly the days the join holds that position.
-2. **Where they disagree**, a half long and a half short add to nothing. Those are exactly the days the join is flat.
+2. **Where they disagree**, a half long and a half short add to nothing, and on each of those days the join is flat.
 
 So half of each rule gives the join’s position on every row but ten. Those ten, from 2008-07-01 to 2008-07-15, come early in the run, when the 30-day lag exists and the 40-day lag does not yet, so reversal alone holds a position and the join cannot. On every day except the ten that follow those rows, the join’s daily return is therefore the average of the two rules’ daily returns, since a position earns on the next day’s move.
 
