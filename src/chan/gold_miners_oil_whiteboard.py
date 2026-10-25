@@ -6,7 +6,7 @@ count as exactly one, and then asks in Lesson 3 which funds that one relation
 needs. This module draws two scenes, and the post places each right after the
 text it draws.
 
-1. Counting stops at the first no, in Lesson 1 after the list item opening
+1. Counting stops at the first miss, in Lesson 1 after the list item opening
    "3. **The three funds, exactly one.**". A grey floor carries three slots,
    labelled "none?", "at most 1?" and "at most 2?", one for each hypothesis
    the test can try on three series. Over the first slot a black column stands at the
@@ -196,7 +196,7 @@ def _counting(f: CountingStop) -> Scene:
         for text, x in zip(("none?", "at most 1?", "at most 2?"), SLOTS, strict=True)
     ]
     return Scene(
-        "Counting stops at the first no",
+        "Counting stops at the first miss",
         "counting",
         (
             _stroke("floor", _line([(0.4, FLOOR), (9.6, FLOOR)]), color=MUTED, frames=6),

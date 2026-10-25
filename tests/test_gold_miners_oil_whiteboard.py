@@ -481,12 +481,12 @@ class TestThePost:
         )
 
 
-# --- Counting stops at the first no -------------------------------------------
+# --- Counting stops at the first miss -----------------------------------------
 
 
 class TestTheCountingSketch:
     def test_its_words(self, every) -> None:
-        assert every[0].title == "Counting stops at the first no"
+        assert every[0].title == "Counting stops at the first miss"
         assert every[0].labels == COUNTING_LABELS
 
     def test_the_run_gives_the_figures_it_prints(self, stop: CountingStop) -> None:

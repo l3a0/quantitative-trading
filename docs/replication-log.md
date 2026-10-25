@@ -6864,7 +6864,7 @@ moves too, and `uv run python -m chan.gold_miners_oil_figures` redraws it.
 The post also carries two whiteboard sketches, added in the first round of its
 review before publishing.
 
-1. **Counting stops at the first no**, in Lesson 1. It draws how the triplet's
+1. **Counting stops at the first miss**, in Lesson 1. It draws how the triplet's
    trace test reaches its count. The first statistic, 44.838, clears its 99
    percent bar of 35.463, and the second, 7.005, falls short of its bar of
    19.935 and even of the 90 percent bar of 13.429, so the count stops at one
