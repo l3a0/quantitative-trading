@@ -6218,10 +6218,13 @@ for the figure's own numbers, or to
 [tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
 for the sketches' days, closes, counts and kept and lost returns. The APR
 falling by more than half between two VX and ES saves traces to
-[tests/test_vx_es.py](tests/test_vx_es.py).
+[tests/test_vx_es.py](tests/test_vx_es.py). That one of Chan's two CL strips
+holds a spot price traces to
+[tests/test_roll_returns.py](tests/test_roll_returns.py).
 `TestWhatThePostQuotes` in the first of those files reads every copy of each
-run figure the post quotes outside the sketches and their captions, and its
-three tables as sets of cells, and checks them against the run. It also
+run figure the post quotes outside the sketches and their captions, and every
+number cell of its three tables in any layout, and checks them against the
+run. It also
 asserts on the run each comparison the post's words draw, and reads one copy
 of those words. Examples are a little over a third, about 40 percent, under
 a quarter, most of a gain, every return on the 2012-05-11 save coming out
@@ -6467,7 +6470,12 @@ for the figure's own numbers. CL's γ changing sign 29 times, which the post
 cites from the spot and roll returns post, traces to
 [tests/test_roll_returns.py](tests/test_roll_returns.py), and SPY's 14.98 and
 its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
-[tests/test_series.py](tests/test_series.py). Nine had no pin before it.
+[tests/test_series.py](tests/test_series.py). A save dated a week later moving
+every close in the crude oil post's window, which the post cites from the
+crude oil reversal and momentum post, traces to
+`test_the_later_save_sits_0_27_higher_on_every_day` in
+[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py). Nine
+had no pin before it.
 
 1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
    gives the same ratio on all 1,375 days.
@@ -7026,7 +7034,13 @@ Every other number in the post traces to an assertion in
 figure's own numbers. The 100, 90 and 120 of its worked day are the synthetic
 day `TestTheRules::test_the_literal_return_fades_the_jump` holds. The port's
 figures, its 1,718 short days and its never holding a long trace to
-`TestChansPythonPort`. Eleven had no pin before the post.
+`TestChansPythonPort`. A save a week later moving the APR at the fourth
+decimal, which the post cites from the crude oil reversal and momentum post,
+traces to `TestTheRowsBeside::test_the_later_save` in
+[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), and
+a save halving an APR, which it cites from the volatility post, to
+`test_the_2012_05_17_save_misses` in [tests/test_vx_es.py](tests/test_vx_es.py).
+Eleven had no pin before the post.
 
 1. The first edition's `smartstd` moves the standard deviation and changes
    no position, so the APR and the Sharpe ratio hold at six decimals.

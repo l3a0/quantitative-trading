@@ -862,7 +862,8 @@ class TestWhatThePostQuotes:
             f"above its {MOMENTUM_LOOKBACK}-day lag. It scores a short on any day the close is "
             f"above its {REVERSAL_LOOKBACK}-day lag or below its {MOMENTUM_LOOKBACK}-day lag.",
             f"is the return compounded to a year of {TRADING_DAYS} trading days.",
-            f"`prod(1 + r)^({TRADING_DAYS}/n) − 1`",
+            f"`prod(1 + r)^({TRADING_DAYS}/n) − 1`, where prod multiplies together the 1 + r "
+            "of every day.",
             f"multiplying by √{TRADING_DAYS}.",
             "The shift means CL’s early closes sit well above the price that traded. "
             f"The book’s window opens at {cl.iloc[0]:.2f} on {cl.index[0].date()}, a day the "

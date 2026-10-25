@@ -7096,7 +7096,7 @@ read, so they are not a holdout.
 | --- | --- | --- | --- |
 | 1 | The combination's APR | "12 percent", and `0.117600` in the script's comment | location 2701, and `CL_rev.m` |
 | 2 | The combination's Sharpe ratio | "1.1", and `1.100368` in the script's comment | location 2701, and `CL_rev.m` |
-| 3 to 14 | each rule alone, ComboOR, a later save, the four years before, the positions, and five changes to the specification | none, the book prints no such figures | n/a |
+| 3 to 14 | each rule alone, ComboOR, a later save, the four years before, the positions, and four changes to the specification | none, the book prints no such figures | n/a |
 
 ### What this repo computed
 
