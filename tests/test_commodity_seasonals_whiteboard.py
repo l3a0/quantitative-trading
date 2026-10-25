@@ -1,7 +1,7 @@
 """The pins for the three whiteboard GIFs in the commodity seasonals post.
 
-Two sketch Lesson 1, its natural gas streaks and gasoline's two claims, and one
-sketches Lesson 4's numbered files. The scenes are built from the natural gas
+Two sketches draw Lesson 1, its natural gas streaks and gasoline's two claims,
+and one draws Lesson 4's numbered files. The scenes are built from the natural gas
 and gasoline runs on the committed EIA files rather than from a pinned copy of
 their figures. Most tests check the drawing against the run,
 and a few check the run against literal dates, counts and labels the post
@@ -610,6 +610,9 @@ class TestTheGasolineSketch:
             assert all(abs(m - x) > 0.1 for m in marked), year
             assert span.x.min() - 1e-9 <= x <= span.x.max() + 1e-9, year
         assert span.y.max() < sketches.GASOLINE_AXIS_Y
+        note = _label(scene, "no row")
+        assert note.x == pytest.approx((span.x.min() + span.x.max()) / 2)
+        assert note.y < span.y.min()
 
     def test_the_sidebar_ends_before_the_release_and_the_main_text_covers_every_loss(
         self, every, gasoline

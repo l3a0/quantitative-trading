@@ -3686,10 +3686,11 @@ uv run python -m chan.commodity_seasonals_whiteboard
 ```
 
 [tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
-holds that each bracket ends where the run's streak reaches Chan's count, that
-gasoline's sidebar bracket ends before its first loss and the main text's
-covers both, that June's number in each label is how many bars its line crosses and the file the
-run reads, and that each GIF follows the paragraph it draws.
+holds that each natural gas bracket ends where the run's streak reaches Chan's
+count, that gasoline's sidebar bracket ends before its first loss while the
+main text's covers both, that June's number in each label is how many bars its
+line crosses and the file the run reads, and that each GIF follows the
+paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
