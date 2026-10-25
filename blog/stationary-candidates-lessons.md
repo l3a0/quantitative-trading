@@ -127,7 +127,7 @@ The other two scans show the same gap from the other side. TLT and IEF never rej
 
 None of those windows is a finding. A scan describes the span it covers, and a window that happens to reject is one of many looks at the same data.
 
-A year is also short for a reversion this slow, since a 252-day window holds about 1.78 half-lives. A simulation measured how much that costs, on a specification written down before any number was computed. It generated 1,000 series that truly revert with a 141.6-day half-life, each as long as the rate’s test period, and ran the rate’s scan on every one. It reported three things:
+A 252-day window is also short for a reversion this slow, since it holds about 1.78 half-lives. A simulation measured how much that costs, on a specification written down before any number was computed. It generated 1,000 series that truly revert with a 141.6-day half-life, each as long as the rate’s test period, and ran the rate’s scan on every one. It reported three things:
 
 1. **One-year windows rarely reject.** On average 27.0 of the 226 windows cleared 10%, or 12.0%, and 388 of the 1,000 series had 23 or fewer, as CAD/AUD does.
 2. **The whole period almost always rejects.** The same test over each whole series rejected at 5% in 968 of the 1,000.
@@ -151,7 +151,7 @@ A free choice can steer a test, so the repository wrote each one down before com
 
 Passing the test says the rate comes back to its average. It does not say a trade on it pays, and the half-life is what makes the trade hard. Chan’s linear rule holds a position proportional to the rate’s distance from its average, so it buys more the further the rate falls below it and sells more the further it rises above.
 
-A simple model shows what that rule earns at its best informed. Suppose the log of the rate reverts at exactly 141.6 days with normally distributed daily noise, the average and the speed of reversion are known, and trading costs nothing. Chan’s rule has to estimate the average from a moving window, so this version knows more than his does. Its Sharpe ratio is the average daily profit divided by the daily profit’s volatility, scaled to a year by the square root of 252, the number of trading days in a year. That is the convention Chan’s backtests report. On this model the Sharpe ratio has a closed form:
+A simple model shows what that rule earns at its best informed. Suppose the log of the rate reverts at exactly 141.6 days with normally distributed daily noise, the average and the speed of reversion are known, and trading costs nothing. Chan’s rule has to estimate the average from a moving window, so this version knows more than his does. Its Sharpe ratio is the average daily profit divided by the daily profit’s volatility, scaled to a year by the square root of 252, the days a year Chan’s backtests annualise by. A currency trades about 260 days a year, so 252 is a convention rather than a count of the rate’s days. The first problem below reports a ratio of 0.78, and scaling by 260 instead would make it 0.80. On this model the Sharpe ratio has a closed form:
 
 ```math
 \text{Sharpe} = \sqrt{252 \cdot \frac{1 - \rho}{3 - \rho}}, \qquad \rho = 1 - \frac{\ln 2}{h}

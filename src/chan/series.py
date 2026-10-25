@@ -58,10 +58,9 @@ spans one. Both live here beside the parse, because that is what they need.
 Two days of ``ko_chan.csv`` are flagged and nothing computes across them,
 which is what says the guard reports a real thing rather than a hypothetical.
 The columns lifted from Chan's stock, ETF and strip files carry 171 more flagged
-days.
-In his stock files most are real moves in single stocks, and in his ETF file
-they fall in leveraged and inverse funds. His continuous futures saves carry
-126 more, all in the ZB and ZF columns, and his ``VIX.csv`` one.
+closes. In his stock files most are real moves in single stocks, and in his ETF
+file they fall in leveraged and inverse funds. His continuous futures saves
+carry 126 more closes, all in the ZB and ZF columns, and his ``VIX.csv`` one.
 ``tests/test_scale_breaks.py`` pins all of them.
 
 :func:`aligned_closes` joins a pair on its common trading days and hands

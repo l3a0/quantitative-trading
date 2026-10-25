@@ -82,7 +82,7 @@ days from 2006-04-26 to 2012-04-09. It folds dividends in by subtracting them
 in dollars rather than by rescaling, and GLD pays none.
 
 **The scale-break guard runs and refuses nothing.**
-:func:`chan.series.refuse_window_crossing_a_break` flags 58 days in eight of
+:func:`chan.series.refuse_window_crossing_a_break` flags 58 closes in eight of
 the file's ETFs, every one a leveraged or inverse fund, and neither GLD nor
 USO is among them. So :func:`read_sources` calls it on both legs over the
 whole span, as :mod:`chan.pead` does, and a bad print in either would stop
