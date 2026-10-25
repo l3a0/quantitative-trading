@@ -423,7 +423,7 @@ class TestTheCut:
 
 class TestTheScaleBreakDecision:
     def test_no_leg_carries_a_flagged_day(self, sources) -> None:
-        """``tests/test_scale_breaks.py`` pins 58 days in eight other ETFs of this file."""
+        """``tests/test_scale_breaks.py`` pins 58 closes in eight other ETFs of this file."""
         _, closes = sources
         for symbol in TRIPLET:
             assert scale_breaks(closes[symbol]) == []
