@@ -827,6 +827,8 @@ class TestWhatThePostQuotes:
         assert len(nearest) == 1, "both strips agree on the contract nearest delivery"
         (near,) = nearest
         assert cl.iloc[0] > 1.25 * near, "well above the price that traded, by over a quarter"
+        assert later_cl.index.equals(cl.index)
+        assert (later_cl.to_numpy() != cl.to_numpy()).any(), "a later save can shift the close"
         fragments = [
             f"reports a {BOOK_APR_PERCENT} percent APR and a Sharpe ratio of {BOOK_SHARPE}. "
             "Both land.",
@@ -841,8 +843,8 @@ class TestWhatThePostQuotes:
             f"comment under its print line records `APR={SCRIPT_APR} Sharpe={SCRIPT_SHARPE}`.",
             f"This post calls those days, from {BOOK_START.date()} to {BOOK_END.date()}, the "
             "book’s window",
-            f"and on one of them each rule alone over the {years} years before the book’s "
-            "window. Three findings came out.",
+            f"On one of them it ran each rule alone as well, over the {years} years before "
+            "the book’s window. Three findings came out.",
             f"a save dated {week} later still prints as {BOOK_APR_PERCENT} percent and "
             f"{BOOK_SHARPE}.",
             f"On the {years} years before the book’s window, reversal alone loses enough money",
@@ -865,6 +867,8 @@ class TestWhatThePostQuotes:
             "The shift means CL’s early closes sit well above the price that traded. "
             f"The book’s window opens at {cl.iloc[0]:.2f} on {cl.index[0].date()}, a day the "
             f"contract nearest delivery closed at {near:.2f}. That day is two months before",
+            "A later save can shift the same day’s close by a different amount, as Lesson 1 "
+            "shows, so the figures depend on which save a run reads, not only on the rule.",
             f"**The {_saved(SOURCE_FILE)} save**, the one `CL_rev.m` loads. CL holds "
             f"{len(cl):,} rows, from {BOOK_START.date()} to {BOOK_END.date()}.",
             f"**The {_saved(LATER_SOURCE_FILE)} save**, read over the same {len(later_cl):,} days.",
@@ -1133,8 +1137,8 @@ class TestWhatThePostQuotes:
         deviation_ratio = j.daily.std(ddof=1) / m.daily.std(ddof=1)
         years = SPELLED[_years_before(before_cl)]
         fragments = [
-            f"## Lesson 3: on the {years} years before, the losing half drags the join below "
-            "momentum alone",
+            f"## Lesson 3: on the {years} years before the book’s window, the losing half drags "
+            "the join below momentum alone",
             "Momentum alone beats the join on both the APR and the Sharpe ratio, and reversal "
             "alone loses money.",
             f"The {_saved(EARLIER_SOURCE_FILE)} save holds the same series back to "
@@ -1144,7 +1148,8 @@ class TestWhatThePostQuotes:
             f"{REVERSAL_LOOKBACK}-day lag exists, here from {early[0].date()} to "
             f"{early[-1].date()}. The other {SPELLED[len(ties)]}, {ties[0].date()} and "
             f"{ties[1].date()}, are days when the close equals its {MOMENTUM_LOOKBACK}-day lag "
-            "exactly, which leaves momentum alone with no position while reversal alone holds one.",
+            "exactly. On those days momentum alone holds no position, while reversal alone "
+            "holds one.",
             f"Of the {int(both.sum())} rows where both lags exist, the two rules agree on "
             f"{agree} and take opposite sides on {opposite}. The other "
             f"{SPELLED[len(ties)]} are those tie days.",
