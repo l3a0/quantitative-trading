@@ -310,7 +310,9 @@ def _streak_start(f: StreakFigures) -> Scene:
 #: Chan's gasoline main text: 19 profitable years of the last 21 "as of 2015"
 #: (p. 183). The year is the chart's, where the book's gasoline years end.
 GASOLINE_COUNT = (19, 21)
-#: Which trade the dots are, the counterpart of :data:`TRADE`.
+#: Which trade the dots are, the counterpart of :data:`TRADE`. Every gasoline
+#: sketch carries it, so a reader landing on one before its paragraph knows
+#: which commodity it draws.
 GASOLINE_TRADE = "gasoline, May contract"
 
 
@@ -617,6 +619,7 @@ def _gap_range(f: GasolineFigures) -> Scene:
             size=11,
         ),
     ]
+    steps.append(Label(GASOLINE_TRADE, 9.7, 0.3, names="axis", color=MUTED, size=11, ha="right"))
     title = f"{WORDS[len(f.gaps)].capitalize()} missing rows leave a range, not a count"
     return Scene(title, "gap_range", tuple(steps))
 
@@ -716,7 +719,7 @@ def _interpolation_guess(f: GuessFigures) -> Scene:
             dots=6.0,
         ),
         Label(
-            f"May contract, {fill.day:%B} {fill.year}",
+            f"{GASOLINE_TRADE}, {fill.day:%B} {fill.year}",
             9.6,
             0.35,
             names="axis",
@@ -932,6 +935,9 @@ def _chan_needs_gaps(f: GasolineFigures) -> Scene:
             ha="right",
         ),
     ]
+    steps.append(
+        Label(GASOLINE_TRADE, 9.7, 0.43, names="files-won", color=MUTED, size=11, ha="right")
+    )
     title = f"Chan’s {won} needs all {WORDS[len(f.gaps)]} gaps to be profits"
     return Scene(title, "chan_needs_gaps", tuple(steps))
 
@@ -1023,6 +1029,9 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
             size=10,
         ),
     ]
+    steps.append(
+        Label(GASOLINE_TRADE, MISS_ZERO_X, 0.33, names="scale", color=MUTED, size=10, ha="center")
+    )
     return Scene("Each fill misses by more than the year moved", "fill_misses", tuple(steps))
 
 

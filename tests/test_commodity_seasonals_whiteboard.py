@@ -188,6 +188,7 @@ RANGE_LABELS = [
     "the files allow 16 to 19",
     "Chan: 19",
     "profitable years of 21",
+    "gasoline, May contract",
 ]
 
 NEEDS_LABELS = [
@@ -199,6 +200,7 @@ NEEDS_LABELS = [
     "2009, 2012",
     "no row",
     "1997 to 1999 must all be profits for Chan’s 19",
+    "gasoline, May contract",
 ]
 
 MISS_LABELS = [
@@ -216,10 +218,11 @@ MISS_LABELS = [
     "chance of profit",
     "dot: the move with June’s fill",
     "bar: one typical miss either side",
+    "gasoline, May contract",
 ]
 
 GUESS_LABELS = [
-    "May contract, April 1997",
+    "gasoline, May contract, April 1997",
     "Apr 14, the entry: no row",
     "exit price 0.625",
     "straight-line guess 0.616",
@@ -354,6 +357,25 @@ class TestTheScenes:
         for scene in every:
             for stroke in scene.strokes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
+
+    def test_each_sketch_of_one_trade_names_it(self, every) -> None:
+        """A reader who meets a sketch before its paragraph can tell which
+        commodity it draws. The calendar sketch draws several natural gas
+        contracts and names each one, so it is the exception."""
+        names = {
+            "streak_start": sketches.TRADE,
+            "gasoline_editions": sketches.GASOLINE_TRADE,
+            "gap_range": sketches.GASOLINE_TRADE,
+            "interpolation_guess": sketches.GASOLINE_TRADE,
+            "chan_needs_gaps": sketches.GASOLINE_TRADE,
+            "fill_misses": sketches.GASOLINE_TRADE,
+        }
+        assert set(names) | {"june_file"} == {scene.slug for scene in every}
+        for scene in every:
+            if scene.slug in names:
+                notes = [label for label in scene.labels if names[scene.slug] in label]
+                assert len(notes) == 1, scene.slug
+                assert _label(scene, notes[0]).color == MUTED, scene.slug
 
     def test_every_pale_tint_has_a_green_edge(self, every) -> None:
         """No sketch draws a tint today. One that does would need the
