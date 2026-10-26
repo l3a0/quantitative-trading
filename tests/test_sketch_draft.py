@@ -17,7 +17,10 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from matplotlib.colors import to_rgb
+from PIL import Image
 
+from chan import palette
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.usdcad_tests_whiteboard import Fill, Label, Scene, Stroke, _line, _stroke
@@ -106,6 +109,94 @@ class TestEachBrokenRuleIsFlagged:
 
     def test_a_dot_drawn_in_one_frame_is_ok(self, tmp_path) -> None:
         assert _found(_scene(whiteboard._dot("dot", 5.0, 2.0)), tmp_path) == []
+
+
+class TestThePalette:
+    """A post that has moved to :mod:`chan.palette` drafts in its own colours, and
+    a scene that keeps a mark of the shared palette is flagged."""
+
+    @staticmethod
+    def _wide(color: str) -> Stroke:
+        return _stroke("band", _line([(1.0, 2.0), (9.0, 2.0)]), color=color, width=12.0)
+
+    @staticmethod
+    def _rgbs(png: Path) -> set[tuple[int, ...]]:
+        with Image.open(png) as image:
+            return {rgb for _, rgb in image.convert("RGB").getcolors(1 << 16)}
+
+    def test_a_scene_in_the_new_colours_draws_in_them(self, tmp_path) -> None:
+        assert _found(_scene(self._wide(palette.ACCENT)), tmp_path) == []
+        berry = tuple(round(255 * c) for c in to_rgb(palette.ACCENT))
+        assert berry in self._rgbs(tmp_path / "test_sketch_last.png")
+
+    @pytest.mark.parametrize("color", [whiteboard.ACCENT, whiteboard.INK])
+    def test_a_scene_in_the_shared_colours_keeps_the_shared_inks(self, color) -> None:
+        assert draft.inks_for(_scene(self._wide(color))) == (whiteboard.INKS, [])
+
+    @pytest.mark.parametrize("tint", [palette.TINT, palette.REJECT_TINT])
+    def test_a_new_tint_alone_moves_the_scene(self, tint) -> None:
+        scene = _scene(Fill("band", 1.0, 1.0, 4.0, 1.5, tint))
+        assert draft.inks_for(scene) == (palette.INKS, [])
+
+    @pytest.mark.parametrize(
+        ("mark", "colour"),
+        [
+            (whiteboard._dot("dot", 5.0, 3.0), whiteboard.ACCENT),
+            (Fill("zone", 1.0, 3.0, 4.0, 3.5, whiteboard.TINT), whiteboard.TINT),
+        ],
+        ids=["a dot in the shared brass", "the shared tint"],
+    )
+    def test_a_mark_left_in_the_shared_palette_is_flagged(self, tmp_path, mark, colour) -> None:
+        found = _found(_scene(self._wide(palette.GOOD), mark), tmp_path)
+        assert len(found) == 1
+        assert "shared" in found[0] and colour.lower() in found[0]
+
+
+class TestAPostThatHasMoved:
+    """A moved post's scene can hold no colour of :mod:`chan.palette` at all, such
+    as ink strokes and a ``_dot`` left on its default brass. The script learns
+    the post has moved from the module it loads, or from ``--palette``."""
+
+    LONE_DOT = """
+        {imports}
+        from chan.usdcad_tests_whiteboard import Scene, _dot, _line, _stroke
+
+        def scene():
+            line = _stroke("line", _line([(1, 2), (9, 2)]))
+            return Scene("A lone dot", "lone_dot", (line, _dot("dot", 5, 3)))
+        """
+
+    def _module(self, tmp_path, monkeypatch, name: str, imports: str = "") -> str:
+        (tmp_path / f"{name}.py").write_text(textwrap.dedent(self.LONE_DOT.format(imports=imports)))
+        monkeypatch.syspath_prepend(str(tmp_path))
+        return f"{name}:scene"
+
+    def test_a_lone_dot_is_flagged_once_the_post_has_moved(self) -> None:
+        scene = _scene(_line_across(), whiteboard._dot("dot", 5.0, 3.0))
+        assert draft.inks_for(scene) == (whiteboard.INKS, [])
+        inks, found = draft.inks_for(scene, moved=True)
+        assert inks == palette.INKS
+        assert len(found) == 1 and whiteboard.ACCENT.lower() in found[0]
+
+    @pytest.mark.parametrize(
+        "imports", ["from chan.palette import INKS", "from chan import palette as own"]
+    )
+    def test_a_module_that_imports_the_new_palette_has_moved(
+        self, tmp_path, monkeypatch, capsys, imports
+    ) -> None:
+        name = "moved_by_alias" if "own" in imports else "moved_by_inks"
+        target = self._module(tmp_path, monkeypatch, name, imports)
+        assert draft.main([target, "--out", str(tmp_path / "out")]) == 1
+        assert "keeps the shared" in capsys.readouterr().out
+
+    def test_a_module_that_does_not_has_not(self, tmp_path, monkeypatch) -> None:
+        target = self._module(tmp_path, monkeypatch, "unmoved_sketch")
+        assert draft.main([target, "--out", str(tmp_path / "out")]) == 0
+
+    def test_the_flag_moves_a_scratch_module(self, tmp_path, monkeypatch, capsys) -> None:
+        target = self._module(tmp_path, monkeypatch, "scratch_sketch")
+        assert draft.main([target, "--out", str(tmp_path / "out"), "--palette"]) == 1
+        assert "keeps the shared" in capsys.readouterr().out
 
 
 class TestThePacing:
