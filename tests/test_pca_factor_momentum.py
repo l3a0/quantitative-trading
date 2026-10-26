@@ -767,6 +767,9 @@ class TestWhatTheFactorModelsPostQuotes:
         k = NAMES.index(name)
         first, second = np.argsort(-np.abs(results.spliced.pairs.today[:, k]))[:2]
         assert abs(int(first) - int(second)) == 1, SPEC
+        products = results.spliced.pairs.today[:, k] * results.spliced.pairs.tomorrow[:, k]
+        signs = np.sign(products[np.argsort(-np.abs(products))[:2]])
+        assert sorted(signs.tolist()) == [-1.0, 1.0], SPEC
         fragments = [
             f"Over {c.pairs} pairs it lands inside ±{CRITICAL}/√{c.pairs} = ±{c.band:.4f}",
             f"{name}’s {value:.4f} is outside it and the other {WORDS[FACTORS - 1]} are inside.",
@@ -775,7 +778,8 @@ class TestWhatTheFactorModelsPostQuotes:
             f"to {100 * FALSE_DISCOVERY:.0f} percent. None survives, {name} included, and no "
             f"factor’s p-value would pass at {100 * FALSE_DISCOVERY:.0f} percent even alone.",
             f"{name}’s largest returns fell on neighbouring days, so two of its {c.pairs} "
-            "products are far larger than all the others.",
+            "products, one positive and one negative, are far larger in size than all the "
+            "others.",
             f"which is how {name} can sit outside the band and still fail the test.",
         ]
         assert self.missing(text, fragments) == []

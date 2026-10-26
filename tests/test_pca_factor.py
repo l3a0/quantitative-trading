@@ -528,8 +528,8 @@ class TestWhatThePostQuotes:
             f"It averages its daily returns over all {len(closes):,} trading days rather than "
             f"the {traded} on which its positions earn a return. It holds positions on {held} "
             "days, and the last is the file’s final day,",
-            f"Each change raises both, from the printed {PYTHON_PRINTS[0]} and "
-            f"{PYTHON_PRINTS[2]}, so each moves the Python further from the revised MATLAB’s "
+            f"Undoing any one raises both, from the printed {PYTHON_PRINTS[0]} and "
+            f"{PYTHON_PRINTS[2]}, and so moves the Python further from the revised MATLAB’s "
             f"{REVISED_MATLAB_PRINTS[0]} and {REVISED_MATLAB_PRINTS[1]}.",
         ]
         assert self.missing(text, fragments) == []
