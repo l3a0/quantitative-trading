@@ -602,8 +602,8 @@ class TestTheReport:
         ) in out
         assert out.count("Claim for") == 5
         band = (
-            "  Band +/-1.96/sqrt(752) = 0.0715, where a series with no persistence stays inside "
-            "95 percent of the time. Decides nothing."
+            "  Band +/-1.96/sqrt(752) = 0.0715, where a series of independent returns centred on "
+            "zero stays inside 95 percent of the time. Decides nothing."
         )
         assert lines.count(band) == 2, "once with PMC and once without"
         for line in (

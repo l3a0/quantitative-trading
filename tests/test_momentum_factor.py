@@ -280,7 +280,7 @@ class TestTheRun:
             assert figure in out
         assert "0.0185  0.3660" in out
         assert "0.0241  0.4505" in out
-        assert "stays inside 95 percent of the time" in out
+        assert "of independent returns stays inside 95 percent of the time" in out
         assert "Claim for MKT, location 4014" in out
         assert "HOLDS. Above 0 and above the median stock" in out
         assert (

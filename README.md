@@ -219,7 +219,7 @@ where they were first built. The other forty-five were built here.
     against a median of −0.0392 across the 446 stocks priced in every month.
     The claim holds for MKT and does not hold for WML, which is below 0 and
     below the median stock. Neither factor's estimate is outside the 0.2151
-    band that a series with no autocorrelation stays inside 95 percent of the
+    band that a series of independent returns stays inside 95 percent of the
     time, so MKT's verdict could be noise. Every figure is exploratory, and WML
     and the stocks' figures are about survivors.
 15. Chan's calendar spreads, which he calls "the simplest examples of
@@ -608,12 +608,12 @@ where they were first built. The other forty-five were built here.
     the 579 stocks priced on every day the pairs read. The claim holds for
     PC1, PC2, PC4 and PC5, and does not hold for PC3, which is above the
     median stock but below 0. PC2 alone is outside the ±0.0715 band a series
-    with no persistence stays inside 95 percent of the time, and no factor
-    survives Benjamini-Hochberg at q = 0.05, a control for false discoveries
-    across the five, so any verdict could be noise. PMC is one symbol whose
-    two price histories join into one day's return. Without it, PC2 falls to
-    −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
-    symbol. Measured after the run, a series rebuilt from each day's own
+    of independent returns centred on zero stays inside 95 percent of the
+    time, and no factor survives Benjamini-Hochberg at q = 0.05, a control
+    for false discoveries across the five, so any verdict could be noise.
+    PMC is one symbol whose two price histories join into one day's return.
+    Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139, so which
+    factor misses rests on that symbol. Measured after the run, a series rebuilt from each day's own
     weights, with each vector's sign set so its largest weight is positive,
     would read PC2 at −0.1105, and −0.0161 with sign and rank matched
     to today's. Fitting tomorrow's weights on a window that leaves today's
@@ -3578,8 +3578,8 @@ together. Every result in it is exploratory.
    five, and which one misses, and which fall outside the band, moves when PMC
    is dropped.
 4. A verdict can follow the declared criterion and still rest on almost
-   nothing, because both autocorrelations sit inside the range a series with
-   no autocorrelation lands in 95 percent of the time.
+   nothing, because both autocorrelations sit inside the range a series of
+   independent monthly returns lands in 95 percent of the time.
 5. Fix the rule before the number, which Entry 14 did and Entry 13's
    round-off criterion did not.
 6. Every figure that touches the stocks is about survivors, and the market

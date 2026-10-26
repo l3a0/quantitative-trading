@@ -162,7 +162,8 @@ def _verdicts_panel(ax, results: Results) -> None:
         gid="label-median",
     )
     ax.annotate(
-        f"±{c.band:.4f}, where a series\nwith no persistence lands\n95 percent of the time",
+        f"±{c.band:.4f}, where a series\nof independent returns\n"
+        "centred on zero lands\n95 percent of the time",
         (c.band, 0.03),
         xytext=(6, 0),
         textcoords="offset points",

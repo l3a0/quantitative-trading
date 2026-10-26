@@ -50,7 +50,7 @@ result to report as it stands, and no combined verdict is formed. The owner
 ruled that way on 2026-10-03, before any autocorrelation was computed.
 
 Beside the verdicts, deciding nothing, the report prints the ±1.96/√83 band a
-series with no autocorrelation leaves about 5 percent of the time, each
+series of independent returns leaves about 5 percent of the time, each
 factor's percentile among the stocks, the stocks' quartiles, each factor's
 mean monthly return times 12 with its plain t-statistic, and the legs' sizes.
 
@@ -183,7 +183,7 @@ class Comparison:
 
     @property
     def band(self) -> float:
-        """±1.96/√n, where a series with no autocorrelation lands 95 percent of the time."""
+        """±1.96/√n, where a series of independent returns lands 95 percent of the time."""
         return CRITICAL / math.sqrt(self.months)
 
     def percentile(self, value: float) -> float:
@@ -394,7 +394,7 @@ def report(
     ]
     print(
         f"  Band +/-{CRITICAL}/sqrt({comparison.months}) = {comparison.band:.4f}, where a series "
-        "with no autocorrelation stays inside 95 percent of the time. Decides nothing."
+        "of independent returns stays inside 95 percent of the time. Decides nothing."
     )
     print(f"  Outside it: {', '.join(outside) or 'neither factor'}.")
     print(

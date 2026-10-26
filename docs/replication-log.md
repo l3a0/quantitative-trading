@@ -3917,7 +3917,7 @@ columns have nothing to hold in any row and are dropped, under
 | 3 | none, not a replication | MKT sits at the 80.7175th percentile of the stocks, above 360 of 446. |
 | 4 | none, not a replication | WML sits at the 27.8027th percentile, above 124 of 446, so it is less persistent than most single stocks on this file. |
 | 5 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. That is a fact about this panel, and the criterion keeps both halves as declared. |
-| 6 | none, not a replication | Under a series with no autocorrelation, an estimate from 83 months falls outside ±0.2151 about 5 percent of the time. Both factors sit inside it, so neither verdict rests on an autocorrelation 83 months can tell from zero. |
+| 6 | none, not a replication | Under a series of independent returns, an estimate from 83 months falls outside ±0.2151 about 5 percent of the time. Both factors sit inside it, so neither verdict rests on an autocorrelation 83 months can tell from zero. |
 | 7 | none, not a replication | MKT's mean monthly return over the bill, times 12, is 0.0185, an arithmetic figure rather than a compounded one. Its plain t-statistic of 0.3660 is uncorrected for autocorrelation and decides nothing. |
 | 8 | none, not a replication | WML's mean monthly return times 12 is 0.0241, with a plain t-statistic of 0.4505 that decides nothing. Survivorship moves a mean before it moves an autocorrelation, so this row carries the survivor-only label most loudly. |
 | 9 | none, not a replication | Every formation has both legs, so the refusal for an empty leg never fires. At its smallest the loser leg holds 11 stocks, so WML's return that month rests on few short positions. |
@@ -3932,7 +3932,7 @@ Three things, and the first is the verdict.
    stands on its own, with Chan's "often" quoted beside it, and the entry
    draws no combined verdict from the two.
 2. **Neither autocorrelation is far from zero.** Both sit inside the band a
-   series with no autocorrelation stays inside 95 percent of the time, so 83
+   series of independent returns stays inside 95 percent of the time, so 83
    months cannot tell MKT's 0.0675 from no persistence at all. The verdict in
    row 1 is what the declared criterion says, and row 6 says how little it
    rests on.
@@ -9205,11 +9205,12 @@ median of −0.0283 across the 579 stocks priced on every day the pairs read.
 PC1, PC2, PC4 and PC5 are above 0 and above the median stock. PC3 is above
 the median stock and below 0.
 
-The verdicts rest on little. PC2 alone sits outside the band a series with no
-persistence stays inside 95 percent of the time, and no factor survives a
-control for false discoveries across the five. Which factor misses also rests
-on one symbol. Dropping PMC, whose two price histories the program joins into
-one day's return of 1.8654, moves PC2 below 0 and PC3 above it.
+The verdicts rest on little. PC2 alone sits outside the band a series of
+independent returns centred on zero stays inside 95 percent of the time, and
+no factor survives a control for false discoveries across the five. Which
+factor misses also rests on one symbol. Dropping PMC, whose two price
+histories the program joins into one day's return of 1.8654, moves PC2 below
+0 and PC3 above it.
 
 Five rows are claims and eleven are not replications. Rows 1 to 5 take the
 claim route `### Rows that are not replications` describes, one per factor.
@@ -9353,7 +9354,7 @@ columns have nothing to hold in any row and are dropped, under
 | 7 | none, not a replication | PC2 sits above 95.6822 percent of the stocks and PC3 above 55.0950 percent, so even the factor that misses is more persistent than the median stock on this file. |
 | 8 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. PC3 shows the other half: it is above the median stock and still below 0. That is a fact about this panel, and the criterion keeps both halves as declared. |
 | 9 | none, not a replication | Every share sits between 0.5000 and 0.5226. PC5's is exactly one half, which is the price rule 3 names: a few large days can carry the statistic. |
-| 10 | none, not a replication | Under a series with no persistence, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
+| 10 | none, not a replication | Under a series of independent returns centred on zero, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
 | 11 | none, not a replication | The smallest p-value is PC5's 0.1021, so no factor would pass at 5 percent even tested alone, and Benjamini-Hochberg across the five rejects none. A sign flip moves no product, so it cannot move a t either. |
 | 12 | none, not a replication | The intercept is added to every stock's expected return alike, so it moves no position. Both of its figures are negative and inside row 10's band. |
 | 13 | none, not a replication | Without PMC the comparison set keeps the other 578 stocks, and the median is unchanged at four decimals. PC1 and PC4 rise, PC5 falls, PC2 falls below 0 and PC3 rises above it. |
@@ -9372,9 +9373,9 @@ Three things, and the first is the verdict.
    combined verdict.
 2. **The verdicts rest on little.** No factor survives a control for false
    discoveries across the five, and no p-value would pass at 5 percent even
-   alone. Four of the five sit inside the band a series with no persistence
-   stays inside 95 percent of the time. PC2 sits outside it and still has a
-   one-sided p-value of 0.2046.
+   alone. Four of the five sit inside the band a series of independent
+   returns centred on zero stays inside 95 percent of the time. PC2 sits
+   outside it and still has a one-sided p-value of 0.2046.
 3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
    0 and PC3 rises above it, so the criterion would miss PC2 instead.
 

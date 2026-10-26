@@ -188,7 +188,7 @@ The same statistic is computed for each of the 579 stocks with a return on every
 
 The median stock’s statistic is −0.0283. The claim that factors “often” autocorrelate more strongly holds for four of the five, and does not hold for PC3, which sits above the median stock but below 0. Each of the five verdicts is **exploratory**, and three things say how little they rest on.
 
-1. **The band.** A series with no persistence still gives a nonzero statistic from a finite sample. Over 752 pairs it lands inside ±1.96/√752 = ±0.0715 about 95 percent of the time, and Lesson 4 draws the same kind of band for the monthly factors. PC2’s 0.0778 is outside it and the other four are inside.
+1. **The band.** A series of independent returns centred on zero still gives a nonzero statistic from a finite sample. Over 752 pairs it lands inside ±1.96/√752 = ±0.0715 about 95 percent of the time, and Lesson 4 draws the same kind of band for the monthly factors. PC2’s 0.0778 is outside it and the other four are inside.
 2. **A test across all five.** Each day’s factor return times the next day’s gives one product per pair. A Newey-West t-statistic tests whether those products average above zero. It divides the average by how far it would wander by chance, widened for neighbouring days whose products move together and for days whose products swing wider than others. Its one-sided p-value is the chance that luck alone would give a t that large. Testing five factors at once raises the chance that one looks significant by luck. So the Benjamini-Hochberg procedure runs across all five. Among the factors it declares significant, it holds the expected share of false findings to 5 percent. None survives, PC2 included, and no factor’s p-value would pass at 5 percent even alone. The band is right only for a series in which a large return, up or down, makes a large one the next day no more likely. PC2’s largest returns fell on neighbouring days, so two of its 752 products, one positive and one negative, are far larger in size than all the others. The t measures how widely the products themselves scatter, so those two make its average far less certain than the band allows, which is how PC2 can sit outside the band and still fail the test.
 3. **One symbol decides which factor misses and which fall outside the band.** PMC is one ticker in the S&P 600 file that holds two price histories with a gap between them. Filling the gap with the last price joins them into one day’s return of 1.8654, a rise of 186.54 percent, and Lesson 6 gives the details. Without PMC, PC2 falls to −0.0152 and PC3 rises to 0.0139, so the claim would miss PC2 rather than PC3. PC1 at 0.0740 and PC4 at 0.0975 would sit outside the band in place of PC2. PC4’s one-sided p-value of 0.0319 would then pass at 5 percent on its own, but no factor would survive the test across all five.
 
@@ -198,7 +198,7 @@ Every one of these figures is about survivors, as Lesson 6 says of the whole S&P
 
 The criterion for MKT and WML asks whether each factor’s autocorrelation is above 0 and whether it is above the median stock. It does not ask whether 83 months can tell the answer from chance.
 
-A series with no autocorrelation at all still produces a nonzero estimate from a finite sample. With 83 months, the estimate falls inside ±1.96/√83 about 95 percent of the time:
+A series of independent monthly returns still produces a nonzero estimate from a finite sample. With 83 months, the estimate falls inside ±1.96/√83 about 95 percent of the time:
 
 ```math
 \pm \frac{1.96}{\sqrt{83}} = \pm 0.2151
@@ -210,7 +210,7 @@ The figure below draws all of it at once. The curve is the 446 stocks’ autocor
 
 ![A step curve of the 446 stocks’ lag-1 autocorrelations over 83 months, rising to 1. A shaded band covers −0.2151 to 0.2151. A dashed vertical line for WML at −0.1099 meets the curve at the 27.8027th percentile, a solid line for MKT at 0.0675 meets it at the 80.7175th, and a dotted line marks the median stock at −0.0392. A thin grey line marks zero. Both factor lines and the median sit inside the band. The title calls the test exploratory, and the note says the stocks and WML are survivors while MKT, from SPY, is not.](../docs/figures/factor_momentum_autocorrelations.png)
 
-*Both factors and the median stock sit inside the band where a series with no autocorrelation lands 95 percent of the time.*
+*Both factors and the median stock sit inside the band where a series of independent returns lands 95 percent of the time.*
 
 The criterion does not use the two factors’ average returns, and those are just as uncertain. MKT earned 0.0185 a year over the bill, and WML, which subtracts no bill rate, earned 0.0241, each the mean monthly return times 12. A t-statistic divides an average by how far it would wander by chance, and values near 0 are what luck alone produces. MKT’s is 0.3660 and WML’s 0.4505, with no correction for autocorrelation.
 
@@ -249,7 +249,7 @@ Three habits follow from the lessons above.
 
 1. **Run every printout of a published strategy before trusting the author’s account of why they differ.** Chan’s round-off turned out to be a factor model in one language and single-stock momentum in another.
 2. **Check what a strategy’s assumption rests on before trading it, and test it under a rule written first.** On Chan’s S&P 500 file the market factor passed the declared test and the momentum factor failed it, both inside the band Lesson 4 draws. On his S&P 600 file four of Example 7.4’s own five factors passed and one failed, none survived a test across all five, and dropping one symbol with two price histories changed which one failed.
-3. **Read a verdict beside the band that says how much the sample can tell.** Both monthly autocorrelations sit inside the range a series with no persistence produces 95 times in 100, and the one daily factor outside its band survives no test across all five.
+3. **Read a verdict beside the band that says how much the sample can tell.** Both monthly autocorrelations sit inside the range a series of independent monthly returns produces 95 times in 100, and the one daily factor outside its band survives no test across all five.
 
 ## References
 
