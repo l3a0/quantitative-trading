@@ -130,7 +130,26 @@ Fill 2’s misses also lean one way. On the test days it guessed May too low by 
 \end{array}
 ```
 
-The chances come from a model of the miss. Write the missing price as fill 2’s guess plus an unknown miss `e`, and the year’s move with the guess in place as `m`. In 1997 the missing price is the entry, so the true move is `m − e`. In 1998 and 1999 it is the exit, so the true move is `m + e`. Suppose `e` is normal, with a mean `b` equal to fill 2’s average miss and a standard deviation `σ` equal to the spread. Then the corrected move `c` is `m − b` for an entry and `m + b` for an exit, and both cases give the same chance of a profit. `Φ(z)` is the share of a standard normal curve that lies below `z`:
+The chances come from a model of the miss. Write the missing price as fill 2’s guess plus an unknown miss `e`, and suppose `e` is normal, with a mean `b` equal to fill 2’s average miss and a standard deviation `σ` equal to the spread:
+
+```math
+\begin{gathered}
+\text{true price} = \text{guess} + e \\
+e \sim N(b,\ \sigma^{2})
+\end{gathered}
+```
+
+Call the year’s move with the guess in place `m`. In 1997 the missing price is the entry, and in 1998 and 1999 it is the exit. A miss above the guess lowers an entry’s move and raises an exit’s, so each case has its own true move and its own corrected move `c`:
+
+```math
+\begin{array}{l|c|c}
+ & \text{True move} & c \\ \hline
+\text{Entry, 1997} & m - e & m - b \\
+\text{Exit, 1998, 1999} & m + e & m + b
+\end{array}
+```
+
+Both cases give the same chance of a profit. `Φ(z)` is the share of a standard normal curve that lies below `z`:
 
 ```math
 P(\text{profit}) = \Phi\left(\frac{c}{\sigma}\right)
