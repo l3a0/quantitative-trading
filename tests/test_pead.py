@@ -374,8 +374,8 @@ class TestTheList:
     """Chan's price file is his S&P 500 list of late 2011, not the index of 2012-04-24.
 
     The post says the list is closest to the index as it stood in late 2011,
-    that a company that left before then is absent, and that a few that left
-    after then are still in it. The index fund's quarterly holdings under
+    that a company that was out of the index for all of late 2011 is absent,
+    and that a few that left at the end of 2011 or in 2012 are still in it. The index fund's quarterly holdings under
     ``research/filings/ivv/`` show it by name. Five companies held at
     2011-09-30 and gone by 2011-12-31 still have a file of prices here, and
     three that joined in that quarter have none, while Xylem, which joined in
@@ -492,9 +492,9 @@ class TestWhatThePostQuotes:
             f"cuts the prices down to the flag file’s {len(days)} days",
             f"The price file holds {opens.shape[1]} stocks from Chan’s list of the S&P 500, "
             f"with each one’s prices running back from {opens.index[-1].date()}.",
-            "The list is closest to the index as it stood in late 2011. A company that left "
-            "the index before then is not in the file, and a few that left after then still "
-            "are.",
+            "The list is closest to the index as it stood in late 2011. A company that was out "
+            "of the index for all of late 2011 is not in the file, and a few that left at the "
+            "end of 2011 or in 2012 still are.",
             f"between {_afternoon(pead_rerun.SESSION_CLOSE)} and "
             f"{pead_rerun.SESSION_OPEN.hour}:{pead_rerun.SESSION_OPEN.minute:02d} a.m. Eastern",
             f"the gap’s {LOOKBACK}-day moving standard deviation",

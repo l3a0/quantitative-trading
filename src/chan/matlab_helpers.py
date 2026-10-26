@@ -35,7 +35,7 @@ here can fail a replication's own tests as well as
 ``tests/test_matlab_helpers.py``.
 
 Reversing the tie order in :func:`matlab_sort` moves no printed figure on the
-two files Examples 7.6 and 7.7 read. On the 2012 S&P 500 file Example 4.1 reads, no
+two files Examples 7.6 and 7.7 read. On the 2012 stock file Example 4.1 reads, no
 two stocks qualifying on one day tie at all, on either side, so it moves
 nothing there either.
 

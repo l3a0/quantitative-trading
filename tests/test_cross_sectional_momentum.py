@@ -23,8 +23,8 @@ both are stated once here and carried in every figure's failure message as
   from Chan's ``inputDataOHLCDaily_stocks_20120424.mat``, saved 2012-04-25,
   read for the Close column. Its identity is the row of ``LIFTED_SOURCES`` in
   ``tests/support/committed_vintages.py`` that ``TestTheVintage`` holds the
-  members to. The file is the S&P 500 as Chan held it on 2012-04-24, so every
-  figure is a figure about survivors.
+  members to. The file holds stocks that were in the S&P 500 in late 2011, so
+  every figure is a figure about survivors.
 - **Specification.** ``kentdaniel.m`` at the mirror commit
   :mod:`chan.cross_sectional_momentum` names, with ``lag`` read as a one-row
   shift. A 252-row ranking return, the 50 highest long and the 50 lowest

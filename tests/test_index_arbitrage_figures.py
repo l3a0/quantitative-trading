@@ -9,7 +9,7 @@ No test compares bytes, for the reason ``tests/test_regime_figure.py`` gives.
 
 The figure reads the vintage and the specification
 ``tests/test_index_arbitrage.py`` states in its module docstring: Chan's 2012
-S&P 500 stock file and the ETF file's SPY on their 1,489 common days, and
+stock file and the ETF file's SPY on their 1,489 common days, and
 ``indexArb.m`` at blob ``dcb079a``. The random walks are the 2,000 seeded with
 343 that the same file screens.
 
