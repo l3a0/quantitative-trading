@@ -100,6 +100,7 @@ from PIL import Image
 from chan import commodity_seasonals as seasonals
 from chan import commodity_seasonals_whiteboard as sketches
 from chan import usdcad_tests_whiteboard as whiteboard
+from chan.commodity_seasonals_figures import ACCENT, GOOD, LOST
 from chan.commodity_seasonals_whiteboard import (
     CALENDAR,
     CALENDAR_X,
@@ -147,7 +148,7 @@ from chan.commodity_seasonals_whiteboard import (
 )
 from chan.futures import ng_last_trade
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -847,9 +848,9 @@ class TestTheStreakSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, streaks) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
-        assert "a green dot" in alt and "a red cross" in alt and "dashed grey line" in alt
+        assert "a blue dot" in alt and "an orange cross" in alt and "dashed grey line" in alt
         assert "names the trade as “natural gas, June contract”" in alt
-        for start, colour in ((1995, "brown"), (1994, "black")):
+        for start, colour in ((1995, "purple"), (1994, "black")):
             assert f"two {colour} brackets start at {start}" in alt
             for (count, _), end in zip(sketches.BOOK_COUNTS, streaks.ends[start], strict=True):
                 assert re.search(rf"“{count} from {start}[^”]*” ends at {end}", alt), (start, count)
@@ -953,10 +954,10 @@ class TestTheGasolineSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
-        assert "2009 and 2012 each have a red cross" in alt
+        assert "2009 and 2012 each have an orange cross" in alt
         assert "Under 1997 to 1999, which have no mark" in alt
         assert (
-            "a brown bracket, “sidebar: a profit every year since 1995”, runs from 1995 to 2008"
+            "a purple bracket, “sidebar: a profit every year since 1995”, runs from 1995 to 2008"
             in alt
         )
         assert "ends before the dashed line and before either cross" in alt
@@ -1020,9 +1021,9 @@ class TestTheRangeSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[2])
-        assert "a red cross at 2009 and 2012" in alt
+        assert "an orange cross at 2009 and 2012" in alt
         assert "A grey span under 1997 to 1999, which have no mark" in alt
-        assert "A brown bracket over 16 to 19" in alt
+        assert "A purple bracket over 16 to 19" in alt
         assert "a black mark at 19, the bracket’s top end" in alt
 
 
@@ -1100,7 +1101,7 @@ class TestTheInterpolationSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[4])
         assert "settlements one trading day apart" in alt
-        assert "The guess sits in the green part, and the band reaches into the red" in alt
+        assert "The guess sits in the blue part, and the band reaches into the orange" in alt
 
 
 class TestTheChanNeedsGapsSketch:
@@ -1205,19 +1206,19 @@ class TestTheFillTwoSketch:
             ), k
 
     def test_both_arrows_rise_by_junes_change(self, every, fill_two) -> None:
-        """The brown arrow is the grey one carried onto May: same start day,
+        """The purple arrow is the grey one carried onto May: same start day,
         same end day, same rise."""
         scene = every[5]
         fill, june, may = fill_two.fill, dict(fill_two.june), dict(fill_two.may)
-        grey, brown = _stroke(scene, "june-rise"), _stroke(scene, "may-rise")
-        assert (grey.x[0], brown.x[0]) == pytest.approx((_fill_two_x(fill.base, fill_two),) * 2)
+        grey, purple = _stroke(scene, "june-rise"), _stroke(scene, "may-rise")
+        assert (grey.x[0], purple.x[0]) == pytest.approx((_fill_two_x(fill.base, fill_two),) * 2)
         assert grey.y[0] == pytest.approx(_fill_two_y(june[fill.base], fill_two))
-        assert brown.y[0] == pytest.approx(_fill_two_y(may[fill.base], fill_two))
+        assert purple.y[0] == pytest.approx(_fill_two_y(may[fill.base], fill_two))
         tip = lambda stroke: max(range(len(stroke.x)), key=lambda i: stroke.x[i])  # noqa: E731
         grey_rise = grey.y[tip(grey)] - grey.y[0]
-        brown_rise = brown.y[tip(brown)] - brown.y[0]
-        assert grey_rise == pytest.approx(brown_rise)
-        assert brown.y[tip(brown)] == pytest.approx(_fill_two_y(fill.june, fill_two))
+        purple_rise = purple.y[tip(purple)] - purple.y[0]
+        assert grey_rise == pytest.approx(purple_rise)
+        assert purple.y[tip(purple)] == pytest.approx(_fill_two_y(fill.june, fill_two))
         assert _stroke(scene, "guess").y[0] == pytest.approx(_fill_two_y(fill.june, fill_two))
 
     def test_the_band_is_fill_twos_miss_split_at_the_exit(self, every, fill_two) -> None:
@@ -1241,8 +1242,8 @@ class TestTheFillTwoSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[5])
         assert "Black dots are the May gasoline contract’s settlements and grey rings" in alt
-        assert "a brown arrow of the same rise starts at May’s April 8 price" in alt
-        assert "The guess sits in the green part just under the line" in alt
+        assert "a purple arrow of the same rise starts at May’s April 8 price" in alt
+        assert "The guess sits in the blue part just under the line" in alt
 
 
 class TestTheTestDaysSketch:
@@ -1375,7 +1376,7 @@ class TestTheAprilsSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[8])
-        assert "Eight bars, in brown, run right of zero" in alt
+        assert "Eight bars, in purple, run right of zero" in alt
         assert "for 1996, 2001 and 2003, carry most of the lean" in alt
 
 
@@ -1508,7 +1509,7 @@ class TestTheFillMissesSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[10])
         assert (
-            "a brown dot right of zero marks the year’s move with fill 2’s guess corrected" in alt
+            "a purple dot right of zero marks the year’s move with fill 2’s guess corrected" in alt
         )
         assert "the bar for 1998 only just reaches past it, and the bar for 1999 stops" in alt
 

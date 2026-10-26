@@ -24,7 +24,7 @@ after the paragraph it draws.
 2. Gasoline's two claims read as two editions: a year axis from 1995 to
    2015 with a dot for each profitable gasoline year, a cross for each loss,
    a span under the years with no row, a dashed mark for the first edition's
-   release, a brown bracket from 1995 to 2008 for the sidebar's profit every
+   release, a purple bracket from 1995 to 2008 for the sidebar's profit every
    year since 1995, and a black bracket from 1995 to 2015 for the main text's
    19 of 21. The sidebar's bracket ends before the first loss, and the main
    text's runs past both. It sits in Lesson 1 after the paragraph opening
@@ -113,7 +113,8 @@ last day, the edge case the post's third check of the expiry rule covers.
 Both years' calendars are drawn on one axis of month and day.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look, frame rate and colours.
+than copied, so these GIFs share that post's look and frame rate. Their
+colours are this post's own, from :mod:`chan.commodity_seasonals_figures`.
 Each sketch carries more than a reader takes in at that post's pace, so
 all twelve are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
@@ -140,10 +141,10 @@ from pathlib import Path
 import numpy as np
 
 from chan import commodity_seasonals as seasonals
-from chan.commodity_seasonals_figures import GASOLINE_BOOK_END
+from chan.commodity_seasonals_figures import ACCENT, GASOLINE_BOOK_END, GOOD, LOST
 from chan.futures import ng_last_trade
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     Frame,
     Label,
@@ -157,6 +158,10 @@ from chan.usdcad_tests_whiteboard import (
     render,
     timeline,
 )
+
+#: The inks every frame is mapped onto: the shared ink and grey, and this
+#: post's own three colours in place of the shared ones.
+INKS = (INK, MUTED, ACCENT, GOOD, LOST)
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "commodity_sketch_"
@@ -2012,7 +2017,7 @@ def scenes(
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
+    first, *rest = render(scene, frames, INKS)
     path = folder / gif_name(scene)
     first.save(
         path,
