@@ -784,34 +784,62 @@ class TestWhatThePostQuotes:
     the words that place it. A typo in that copy, or a re-pin that leaves the
     post behind, fails here. Each of the four ``\\small`` tables is rebuilt
     whole, so a cell changed there fails too, bold included in Lesson 3's.
-    The comparisons the post's words draw are asserted on the run, and one
-    copy of those words is read: that the full window lands all six of the
-    comment's figures and the active line none, that the traded pair is one
-    of Chan's compromises while several pairs, read as more than two,
-    correlate more strongly, that more than half of the gain is in by
-    2009-01-02 and the maximum drawdown is over by then, that the active line
-    sees a smaller gain and a shallower fall, that the active line's daily
-    standard deviation shrinks by more than its mean, so its Sharpe ratio
-    and Kelly f are higher, that no day appears in both saves' 69 kept days
-    and the four-day shift alone moves the correlation in its second
-    decimal, that its H
-    misses on the other side, that every H the post gives sits below 0.5 with
-    the book's, that the four negative cells are exactly the shortest pairs,
-    and that 2008 earned about four-fifths as much as the other years, read
-    as between 0.75 and 0.85.
 
-    What it leaves unread is listed in README. Every copy of a figure but the
-    one read here can carry a typo that passes, and the post states several
-    figures more than once, in its opening, a lesson, a table, the closing
-    list or the figure's alt text. Of that alt text it reads only the two
-    figures that appear nowhere else, the highest close and the curve's high,
-    each with its day. The two sketches' alt texts are read by
-    ``tests/test_tu_momentum_whiteboard.py``, not here. Chan's words, the
-    Kindle locations, the mirror's commit, the book's chapter, example,
+    These comparisons the post's words draw are asserted on the run, and one
+    copy of the words for each is read.
+
+    - TU's column spans the window the book names, the full window lands all
+      six of the comment's figures and the active line none, and the traded
+      pair is one of Chan's compromises while several pairs, read as more
+      than two, correlate more strongly.
+    - The position runs from −25 to 25.
+    - The full window's maximum drawdown rounds to the book's 2.5 percent,
+      and the active line's daily standard deviation shrinks by more than
+      its mean, so its Sharpe ratio and Kelly f are higher.
+    - More than half of the gain is in by 2009-01-02, the maximum drawdown is
+      over by then, and the active line sees a smaller gain and a shallower
+      fall.
+    - The two saves agree on every shared day, the later one starts and ends
+      four trading days later, each gives the traded cell 69 days and no day
+      appears in both, and the shift alone moves the correlation in its
+      second decimal, off the book's 0.27, and the Kelly f off the comment's
+      digits.
+    - At the scripts' settings H lands neither the book's 0.44 on TU nor its
+      0.49 on USD.CAD, TU's H misses low and the later save's on the other
+      side, a ``maxT`` of 24 lands TU and moves USD.CAD further from its
+      0.49, and every H the post gives sits below 0.5 with the book's.
+    - The traded cell lands the book's 0.27 and 0.02, the past returns its
+      kept days look back on still overlap, and the four negative cells are
+      exactly the shortest pairs. Every pair of two periods of 60 days or
+      more keeps fewer days than any other pair, and one of them correlates
+      more strongly than the traded cell with a p-value of 0.05 or more. All
+      six compromises correlate positively, all but one with a p-value below
+      0.05. The variance ratio test keeps a whole number of two-day periods
+      and does not reject.
+    - The rule is fully long on most days of a rising price, the return
+      leans on 2008, which holds the maximum drawdown, and 2008 earned about
+      four-fifths as much as the other years, read as between 0.75 and 0.85.
+
+    No other comparison is asserted here, so a flipped word elsewhere in the
+    post passes unless it sits inside a fragment read here. The sampling step
+    and the rule's direction are two such comparisons, which
+    ``TestTheCorrelationTable`` and ``TestTheRule`` assert on the code
+    without reading the post.
+
+    What it leaves unread is listed in README. Every copy of a figure or of an
+    asserted comparison but the one read here can carry a typo that passes,
+    and the post states several figures more than once, in its opening, a
+    lesson, a table, the closing list or the figure's alt text. Of that alt
+    text it reads only the two figures that appear nowhere else, the highest
+    close and the curve's high, each with its day. The two sketches' alt texts are
+    read by ``tests/test_tu_momentum_whiteboard.py``, not here. Chan's words,
+    the Kindle locations, the mirror's commit, the book's chapter, example,
     figure and table numbers, the replication log's entry number, the post's
-    counts of its own groups and lessons and its pointers to them, a random
-    walk's 0.5, the 1 the cumulative return's definition subtracts and the
-    references stay unread.
+    counts of its own groups, lessons, tables and lists and its pointers to
+    its lessons and tables, its counts of what other surfaces hold, the one
+    setting the replication tried, a random walk's 0.5 and its two-day
+    variance of twice its one-day, the 1 the cumulative return's definition
+    subtracts and the references stay unread.
     """
 
     @pytest.fixture(scope="class")
@@ -1024,6 +1052,9 @@ class TestWhatThePostQuotes:
         at_default, at_24 = hurst_at(usdcad, 19), hurst_at(usdcad)
         book = float(BOOK_HURST)
         assert result.hurst < book < later.hurst, "misses on the other side"
+        assert not matches(result.hurst, BOOK_HURST) and not matches(at_default, "0.49"), (
+            "lands neither H at the scripts' settings"
+        )
         assert matches(hurst_at(closes), BOOK_HURST)
         assert abs(at_24 - 0.49) > abs(at_default - 0.49), "further from its printed 0.49"
         assert max(result.hurst, hurst_at(closes), later.hurst, book) < 0.5, "below 0.5"
@@ -1039,6 +1070,8 @@ class TestWhatThePostQuotes:
             "`maxT` from 5 to 40 lands both.",
             f"Every H here, {result.hurst:.6f}, {hurst_at(closes):.6f} and the later file’s "
             f"{later.hurst:.6f}, sits below 0.5, on the same side as the book’s {BOOK_HURST}.",
+            "At the settings Chan’s scripts use, the Python copy of `genhurst` lands neither H "
+            "the book prints, so no figure of Chan’s confirms the copy.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -1073,6 +1106,14 @@ class TestWhatThePostQuotes:
         negative = sorted(p for p, c in significant.items() if c.coefficient < 0)
         assert negative == [(lb, h) for lb in PERIODS[:2] for h in PERIODS[:2]], "the shortest"
         chance = cells * 0.05
+        step = min(LOOKBACK, HOLD_DAYS)
+        assert LOOKBACK - step > 0, "the past returns still overlap"
+        long_pairs = {p: c for p, c in result.correlations.items() if min(p) >= 60}
+        others = [c.rows for p, c in result.correlations.items() if p not in long_pairs]
+        assert max(c.rows for c in long_pairs.values()) < min(others), "keeps few days"
+        assert any(
+            c.coefficient > cell.coefficient and c.p_value >= 0.05 for c in long_pairs.values()
+        ), "a strong correlation there can still have a large p-value"
         compromises = [f"{lb}/{h}" for lb, h in COMPROMISES]
         assert all(result.correlations[p].coefficient > 0 for p in COMPROMISES)
         below = sum(result.correlations[p].p_value < 0.05 for p in COMPROMISES)
@@ -1086,8 +1127,8 @@ class TestWhatThePostQuotes:
             f"of {cell.p_value:.6f}, and both land the book’s {BOOK_CORRELATION} and "
             f"{BOOK_P_VALUE}.",
             f"**It rests on {cell.rows} days.**",
-            f"each kept one shares {LOOKBACK - min(LOOKBACK, HOLD_DAYS)} of its {LOOKBACK} days "
-            "with the next.",
+            f"The past returns still overlap, since each kept one shares {LOOKBACK - step} of its "
+            f"{LOOKBACK} days with the next.",
             f"{SPELLED[len(significant)].capitalize()} of the {cells} cells have a p-value below "
             f"0.05. {SPELLED[positive].capitalize()} of them are positive. The "
             f"{SPELLED[len(negative)]} negative ones are exactly the shortest pairs, "
@@ -1098,6 +1139,8 @@ class TestWhatThePostQuotes:
             f"Every cell reads the same {len(closes):,} closes",
             "and neighbouring cells share a lookback or a hold, so their returns overlap. So "
             f"comparing {len(significant)} with {chance:.2f} is not a valid test.",
+            "A pair of two long periods keeps few days, so a strong correlation there can still "
+            "have a large p-value.",
             "Chan weighs a strong correlation against a small p-value, and calls "
             f"{SPELLED[len(COMPROMISES)]} pairs",
             f": {', '.join(compromises[:-1])} and {compromises[-1]}. All "
@@ -1120,6 +1163,9 @@ class TestWhatThePostQuotes:
         flat = int((held == 0).sum())
         partial = int(((np.abs(held) < HOLD_DAYS) & (held != 0)).sum())
         assert long + short + flat + partial == len(held)
+        assert 2 * long > len(held) and result.closes[-1] > result.closes[0], (
+            "fully long on most days of a rising price"
+        )
         before = int(np.flatnonzero(held)[0])
         growth = (1 + pd.Series(result.daily, index=result.days)).groupby(result.days.year).prod()
         assert growth.idxmax() == 2008, "the return leans on one year"
@@ -1133,9 +1179,11 @@ class TestWhatThePostQuotes:
             f"{result.closes[-1]:.4f} on the last. The position was +{HOLD_DAYS}, fully long, on "
             f"{long:,} of the {len(held):,} days and −{HOLD_DAYS} on {short}. It was between "
             f"−{HOLD_DAYS} and +{HOLD_DAYS} but not 0 on {partial} days, and 0 on the other "
-            f"{flat}, of which {before} came before the first signal.",
-            f"Calendar 2008 alone compounds to {in_2008:.6f}, and the other years together, "
-            f"from the first trade in {first:%B %Y} to {last:%B %Y}, compound to "
+            f"{flat}, of which {before} came before the first signal. A rule that is fully long "
+            "on most days of a rising price earns",
+            "The return also leans on one year. Calendar 2008 alone compounds to "
+            f"{in_2008:.6f}, and the other years together, from the first trade in "
+            f"{first:%B %Y} to {last:%B %Y}, compound to "
             f"{the_rest:.6f}. So 2008, the year of the financial crisis, earned about "
             "four-fifths as much as the rest of the run combined, and it holds the maximum "
             "drawdown too.",

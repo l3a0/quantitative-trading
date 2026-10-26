@@ -6007,7 +6007,8 @@ maximum drawdown of 2.5 percent. The post explains the strategy for the other
 TU posts to link, and draws three lessons from Entry 33 of the replication log.
 
 1. The book's figures come from the full window, whose line the script
-   leaves commented out, while the line it runs from 2009 lands none of them.
+   leaves commented out, while the line it runs from 2009 lands none of the
+   six figures in the script's closing comment.
 2. H misses 0.44 on Chan's own file, and a `maxT` that lands it on TU moves
    USD.CAD further from its 0.49, so no figure of Chan's vouches for the
    Python copy of `genhurst`.
@@ -6031,7 +6032,7 @@ Seven groups of what it says are not pinned here.
 2. Facts about the code and the contract rather than the data: the commit
    `e4bc46f` of the public copy the script was transcribed from, the active line
    `idx=find(tday==20090102);` and the commented-out `% idx=1;` under it,
-   the comment printing no annual volatility, the `q` of 2 the script passes
+   the comment listing no annual volatility, the `q` of 2 the script passes
    `genhurst`, `genhurst`'s default `maxT` of 19, and `correlationTest.m`
    loading the 2012-05-17 save, each of which
    [src/chan/tu_momentum.py](src/chan/tu_momentum.py) records in its
@@ -6048,15 +6049,22 @@ Seven groups of what it says are not pinned here.
 4. The figure's alt text reading both curves approximately, such as TU's
    closes drifting down until mid-2007 and the cumulative return dipping
    below zero in 2005 and flattening through the first half of 2009.
-5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
-   states several figures more than once, in its opening, a lesson, a table,
-   the closing list or the figure's alt text, and a typo in a copy the class
-   does not read passes.
-6. Numbers that point or define rather than measure: the book's Chapters 2
-   and 6, Examples 1.1 and 6.1, Figures 6.1 and 6.2 and Table 5.1, the
-   replication log's Entry 37, the post's pointers to its own Lessons 2 and
-   3, a random walk's H of 0.5, and the 1 that the cumulative return's
-   definition subtracts.
+5. Every copy of a figure or of an asserted comparison but the one
+   `TestWhatThePostQuotes` reads. The post states several figures more than
+   once, in its opening, a lesson, a table, the closing list or the figure's
+   alt text, and some comparisons twice, such as the past returns still
+   overlapping. A typo in a copy the class does not read passes.
+6. Numbers that point, count or define rather than measure the run: the
+   book's Chapters 2 and 6, Examples 1.1 and 6.1, Figures 6.1 and 6.2 and
+   Table 5.1, the replication log's Entry 37, the post's counts of its own
+   groups, lessons, tables and lists and its pointers to its own lessons and
+   tables, and its counts of what other surfaces hold, such as the five
+   futures the spot and roll returns post splits, Example 1.1's three tests
+   and the two checks that post reports, the six decimals the tests hold
+   each H to, and the pairs and lines the sketches' alt texts count. The
+   one setting the replication tried, a random walk's H of 0.5 and its
+   two-day variance of twice its one-day, and the 1 that the cumulative
+   return's definition subtracts belong here too.
 7. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6068,12 +6076,17 @@ figure's own numbers, or to
 for the sketches'. `TestWhatThePostQuotes` in the first of those files reads
 at least one copy of each run figure the post quotes outside the two sketches'
 alt text, and checks it against the run. It rebuilds the post's four tables
-whole, reads the figure's alt text only for the highest close and the curve's
-high, each with its day, since those appear nowhere else, and asserts on the
-run each comparison the post's words draw, such as more than half of the gain
-being in by 2009-01-02, no day appearing in both files' 69 kept days, and
-2008 earning about four-fifths as much as the other years. The sketches' test
-reads their alt text. Four had no pin before `TestBesideThePost` in
+whole, and reads the figure's alt text only for the highest close and the
+curve's high, each with its day, since those appear nowhere else. It asserts
+on the run each comparison its docstring lists and reads one copy of the
+words for each, such as more than half of the gain being in by 2009-01-02,
+no day appearing in both files' 69 kept days, and 2008 earning about
+four-fifths as much as the other years. It asserts no other comparison the
+post's words draw, so a flipped word in one passes unless it sits inside a
+fragment the class reads. The sampling step and the rule's direction are
+two of those, and `TestTheCorrelationTable` and `TestTheRule` assert both on
+the code without reading the post. The sketches' test reads their alt text.
+Four had no pin before `TestBesideThePost` in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py), which now pins them
 all.
 
