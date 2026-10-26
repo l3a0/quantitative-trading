@@ -11,39 +11,40 @@ places each right after the text it draws.
    three closes joined by a black line, 40 days ago, 30 days ago and today,
    with a grey dashed level from each lag across to today. An arrow beside
    today's close points up for a long and down for a short. Under each panel
-   two lines say what reversal alone and momentum alone do, and a closing
-   line in the arrow's colour, green or red, says the join goes long or
-   short. It sits in "The rule and the
-   file", after the paragraph that ends "and holds nothing on any other day."
-   This sketch is schematic. Its dates are the join's first long and its
-   first short on the 2012-05-04 save, read from :class:`Lags`. Each panel
-   keeps the order of that day's three closes but not their spacing, since
-   the short's close sits only 0.50 above its 30-day lag, and its spacing
-   across does not follow the 10 and 30 days between the closes. A
-   caption under it in the post gives the three closes of each day, which the
-   tests read from the run.
+   two lines say what reversal alone and momentum alone do, and a closing line
+   in the arrow's colour, green or red, says the join goes long or short. It
+   sits in "The rule and the file", after the paragraph that ends "and holds
+   nothing on any other day." This sketch is schematic. Its dates are the
+   join's first long and its first short on the 2012-05-04 save, read from
+   :class:`Lags`. Each panel keeps the order of that day's three closes but not
+   their spacing, since the short's close sits only 0.50 above its 30-day lag,
+   and its spacing across does not follow the 10 and 30 days between the
+   closes. A caption under it in the post gives the three closes of each day,
+   which the tests read from the run.
 2. Half of each rule is the join: a 2×2 grid whose columns are reversal's
    position and whose rows are momentum's. Each cell holds a half-size arrow
    from each rule, green up for a long and red down for a short, and the sum
-   they make. The two cells where the rules agree print their counts. One
-   grey label points at both cells where the rules disagree and prints their
-   combined count, since the post gives only that total. A closing line says the join holds
-   the average of the two rules' positions on those days. It sits in Lesson 2,
-   after the paragraph opening "The two rules mostly disagree." This sketch is
-   not schematic. Every count it prints comes from :class:`Agreement`, which
-   reads :func:`chan.cl_reversal_momentum.four_rules` on the 2012-05-04 save.
-3. What the swings take from an average day: three bars to one scale, the
-   join, momentum alone and reversal alone in the post's table order, each as
-   tall as the rule's average day. The lower part, a pale tint with a green
-   edge, is what the rule kept: the one daily return that, earned every day,
-   compounds to the rule's final capital. The upper part, solid red, is what
-   the swings took, the average day minus what was kept. Each part's words
-   name it, so colour is not the only cue, and a closing line names the rule
-   that keeps the largest share of its average day. It sits in Lesson 2's
-   "What the swings cost", after the paragraph opening "Smaller swings give
-   the join the highest APR of the three". This sketch is not schematic.
-   Every figure it prints comes from :class:`Swing`, which reads the same
-   run's daily returns.
+   they make. The two cells where the rules agree print their counts. One grey
+   label points at both cells where the rules disagree and prints their
+   combined count, since the post gives only that total. A closing line says
+   the join holds the average of the two rules' positions on those 960 days,
+   every row where both lags exist. It sits in Lesson 2, after the paragraph
+   opening "The two rules mostly disagree." This sketch is not schematic. Every
+   count it prints comes from :class:`Agreement`, which
+   :meth:`JoinFigures.from_run` counts from
+   :func:`chan.cl_reversal_momentum.four_rules` on the 2012-05-04 save.
+3. What the swings take from an average day: three bars to one scale, the join,
+   momentum alone and reversal alone in the post's table order, each as tall as
+   the rule's average day. The lower part, a pale tint with a green edge, is
+   what the rule kept: the one daily return that, earned every day, compounds
+   to the rule's final capital. The upper part, solid red, is what the swings
+   took, the average day minus what was kept. Each part's words name it, so
+   colour is not the only cue, and a closing line names the rule that keeps the
+   largest share of its average day. It sits in Lesson 2's "What the swings
+   cost", after the paragraph opening "Smaller swings give the join the highest
+   APR of the three". This sketch is not schematic. Every figure it prints
+   comes from :class:`Swing`, which :meth:`JoinFigures.from_run` builds from
+   the same run's daily returns.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
