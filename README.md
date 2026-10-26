@@ -5961,7 +5961,8 @@ reads the post itself. It builds each run figure the post quotes from the
 run, at the precision the post prints it, and looks for one copy of it in the
 post, so a typo in that copy fails a test. Each of the three tables in
 Lessons 1 and 3 is read whole, cell by cell, so a number in the wrong row,
-column or table fails, while the table turned on its side still passes. It
+column or table fails, and so does a row label or column head swapped, while
+the table turned on its side still passes. It
 also reads the chart's alt text's two day counts, its three full dates and its
 correlation, the month of the peak and of the low, and the peak, low and both
 ends rounded to a whole percent.

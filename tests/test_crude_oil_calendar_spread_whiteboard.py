@@ -573,9 +573,9 @@ class TestTheScheduleFigures:
 
     def test_a_shorter_rule_would_have_held_q2008_and_is_refused(self, strip, monkeypatch) -> None:
         """The sketch's words say exactly the windows under the rule's length are
-        skipped. Read against a rule of 60 days, Q2008's 62 would pass, so the
+        skipped. Read against a rule of 62 days, Q2008's 62 would pass, so the
         reading refuses rather than draw a skip the rule does not make."""
-        monkeypatch.setattr(sketches, "HOLDDAYS", 60)
+        monkeypatch.setattr(sketches, "HOLDDAYS", 62)
         with pytest.raises(ValueError, match="under the rule's length"):
             Schedule.from_contracts(strip.contracts)
 
@@ -662,6 +662,13 @@ class TestTheScheduleSketch:
             assert float(np.mean([cross.y.min(), cross.y.max()])) == pytest.approx(
                 float(np.median(span.y))
             )
+            # An X reaches all four corners, so both its strokes are drawn.
+            cx, cy = (x0 + x1) / 2, float(np.median(span.y))
+            for dx, dy in ((-1, -1), (1, 1), (-1, 1), (1, -1)):
+                reach = np.hypot(
+                    cross.x - cx - dx * sketches.CROSS, cross.y - cy - dy * sketches.CROSS
+                )
+                assert reach.min() < 1e-6, (k, dx, dy)
 
     def test_the_skipped_windows_start_where_the_next_held_pair_does(
         self, every, schedule_run
@@ -949,6 +956,33 @@ class TestTheScheduleRefusals:
         with pytest.raises(ValueError, match="under the rule's length"):
             Schedule.from_contracts(strip.contracts)
 
+    def test_a_rule_equal_to_u2008s_gap_still_holds_it(self, strip, monkeypatch) -> None:
+        """The guard's other edge: a pair 83 days apart meets a rule of 83."""
+        monkeypatch.setattr(sketches, "HOLDDAYS", 83)
+        assert Schedule.from_contracts(strip.contracts).after.apart == 83
+
+    def test_a_pair_that_ends_later_than_the_rule_is_refused(self, strip, monkeypatch) -> None:
+        """Each pair ends 10 days early, a day later than a rule of 11 wants.
+
+        A rule of 9 above is the other direction.
+        """
+        monkeypatch.setattr(sketches, "NUM_DAYS_END", 11)
+        with pytest.raises(ValueError, match="does not end 11 days early"):
+            Schedule.from_contracts(strip.contracts)
+
+    @pytest.mark.parametrize("pair", ["CL-2008K", "CL-2008U"])
+    def test_either_held_pair_ending_a_day_sooner_is_refused(
+        self, strip, monkeypatch, pair
+    ) -> None:
+        """Each held pair's end is checked, so dropping either one's last day is refused."""
+        moved = calendar_schedule(strip.contracts).copy()
+        last = moved.index[moved[pair].to_numpy() == -1][-1]
+        far = f"CL-{int(pair[3:7]) + 1}{pair[-1]}"
+        moved.loc[last, [pair, far]] = 0
+        monkeypatch.setattr(sketches, "calendar_schedule", lambda contracts: moved)
+        with pytest.raises(ValueError, match="does not end 10 days early"):
+            Schedule.from_contracts(strip.contracts)
+
     @pytest.mark.parametrize("count", [0, 4])
     def test_a_schedule_with_no_row_for_its_skips_is_refused(self, count) -> None:
         made_up = Schedule(**{**OTHER.__dict__, "skipped": (OTHER.skipped[0],) * count})
@@ -992,6 +1026,7 @@ class TestTheAltTextsSayWhatIsDrawn:
             f"in {INK_WORDS[_label(scene, 'skipped, too short').color]} to their left",
             f"Under them a second thick {ink['after']} bar",
             "“short U2008, long U2009” on its left and “04-09 to 08-06, 84 days” on its right",
+            f"A {INK_WORDS[_label(scene, SCHEDULE_LABELS[-1]).color]} note at the bottom",
         ):
             assert phrase in alt, phrase
         k_tick = day_x(schedule_run, dict(schedule_run.expiries)["K"])
@@ -1011,6 +1046,9 @@ class TestTheAltTextsSayWhatIsDrawn:
             f"with a dashed {ink['spread-average']} line trailing behind it",
             f"A pale green box with a {ink['high-edge']} edge",
             f"The {ink['spread']} spread keeps falling to the box’s right edge",
+            f"A {ink['days']} axis labelled “trading days”",
+            f"a {INK_WORDS[_label(scene, 'dashed: 36-day averages').color]} note under it",
+            f"Two {INK_WORDS[_label(scene, SELLS_LABELS[-1]).color]} lines close it",
         ):
             assert phrase in alt, phrase
         _, gy, _, sy, _ = board_curves()

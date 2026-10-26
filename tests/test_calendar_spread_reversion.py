@@ -29,9 +29,10 @@ carried in every figure's failure message.
   transcribes it. γ is ``chan.roll_returns.roll_returns`` on the contracts,
   forward-filled. The half-life and the ADF read every finite row of it, and
   the z-score's lookback is the half-life rounded half away from zero, 36.
-  Contract c is held short against contract c + 12 long for 63 days, the first
-  pair from 73 rows before its expiry, each pair let go 10 rows before its
-  near contract's last priced row, and the spread is reversed where z is above
+  Contract c is held short against contract c + 12 long, the first pair from
+  73 rows before its expiry, each pair let go 10 rows before its near
+  contract's last priced row, a later pair skipped when its last row would
+  come fewer than 63 rows after its first, and the spread is reversed where z is above
   0 and flat where z is NaN. The return is yesterday's positions times each
   leg's return, summed over the priced legs and halved, measured on the 1,164
   rows from 2008-01-02 to 2012-08-13 and annualised over 252 days with no
@@ -103,7 +104,7 @@ VINTAGE = (
 )
 S_SPEC = (
     f"{VINTAGE}; S: calendarSpdsMeanReversion.m, forward-filled gamma, lookback round(half-life), "
-    "c against c + 12 held 63 days, from 2008-01-02 to 2012-08-13"
+    "c against c + 12 with holddays=63, from 2008-01-02 to 2012-08-13"
 )
 R1_SPEC = f"{VINTAGE}; R1: S from 2008-01-03"
 R2_SPEC = f"{VINTAGE}; R2: S with holddays=61 from 2008-01-02"
@@ -594,11 +595,14 @@ class TestWhatThePostQuotes:
     The classes above pin each figure once, and the post copies it by hand.
     Here each figure is built from the run at the precision the post prints
     it, and looked for in a short fragment holding the number and the few
-    words that name one place in the post. A typo in a copy that is read, or
-    a re-pin that leaves the post behind, fails here. Lesson 1's two tables
-    and Lesson 3's one are each read whole, as the grid of its number cells,
-    so a cell changed, added, dropped or moved to another row, column or table
-    fails, while the same table turned on its side still passes.
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording the
+    prose between two figures does not. Lesson 1's two tables
+    and Lesson 3's one are each read whole, as the grid of its cells with its
+    row labels and column heads, so a cell changed, added, dropped or moved to
+    another row, column or table fails, and so does a label or head swapped,
+    while the same table turned on its side still passes.
 
     The post states several figures more than once, and only one copy of each
     is read. The copies left unread include the 12 in the opening's
@@ -621,17 +625,20 @@ class TestWhatThePostQuotes:
         return POST.read_text(encoding="utf-8")
 
     @staticmethod
-    def missing(text: str, fragments: list[str]) -> list[str]:
-        return [fragment for fragment in fragments if fragment not in text]
+    def not_found_once(text: str, fragments: list[str]) -> list[str]:
+        """The fragments the post does not hold exactly once, so each names one place."""
+        return [fragment for fragment in fragments if text.count(fragment) != 1]
 
     @staticmethod
     def tables(text: str) -> list[list[list[str]]]:
-        """Each ``math`` array's number cells, row by row, in the order the arrays appear.
+        """Each ``math`` array's cells, row by row, in the order the arrays appear.
 
-        A cell holding no number, such as a heading or ``\\text{none}``, reads
-        as ``""``. ``\\small``, each array's column spec, ``\\hline`` and
-        ``\\text{-}`` inside a date are dealt with first, so neither the layout
-        nor a date split for typesetting adds or splits a number.
+        A cell holding a number reads as that number. A cell holding none, such
+        as a row label, a column head or ``\\text{none}``, reads as the words
+        inside its ``\\text{}``, and an empty cell as ``""``. ``\\small``, each
+        array's column spec, ``\\hline`` and ``\\text{-}`` inside a date are
+        dealt with first, so neither the layout nor a date split for
+        typesetting adds or splits a number.
         """
         blocks = re.findall(r"```math\n(.*?)```", text, flags=re.S)
         grids = []
@@ -643,9 +650,16 @@ class TestWhatThePostQuotes:
             ).replace("\\text{-}", "-")
             grid = []
             for row in plain.split("\\\\"):
-                numbers = [CELL.findall(cell) for cell in row.split("&")]
+                cells = row.split("&")
+                numbers = [CELL.findall(cell) for cell in cells]
                 assert all(len(found) <= 1 for found in numbers), row
-                grid.append([found[0] if found else "" for found in numbers])
+                words = [re.search(r"\\text\{([^}]*)\}", cell) for cell in cells]
+                grid.append(
+                    [
+                        found[0] if found else (word[1].strip() if word else "")
+                        for found, word in zip(numbers, words, strict=True)
+                    ]
+                )
             grids.append(grid)
         return grids
 
@@ -656,6 +670,18 @@ class TestWhatThePostQuotes:
 
     def test_the_post_holds_three_tables(self, text) -> None:
         assert len(self.tables(text)) == 3
+
+    def test_lesson_1s_first_table_turned_on_its_side_still_passes(self, runs, text) -> None:
+        """The class docstring's claim, made on the post's own first table.
+
+        Its rows become columns, so its labels become the head row, and the
+        rest of the post is left as it is.
+        """
+        body = re.search(r"\\begin\{array\}\{[^}]*\}\n(.*?)\n\\end\{array\}", text, flags=re.S)[1]
+        rows = [[cell.strip() for cell in row.split("&")] for row in re.split(r"\\\\.*\n", body)]
+        turned = " \\\\\n".join(" & ".join(column) for column in zip(*rows, strict=True))
+        assert turned != body
+        self.test_lesson_1(runs, text.replace(body, turned, 1))
 
     def test_the_opening_and_the_file(self, strip, gamma, runs, text) -> None:
         s, r1 = runs["S"], runs["R1"]
@@ -671,29 +697,28 @@ class TestWhatThePostQuotes:
             f"rather than the {s.returns.index[0].date()} the script states.",
             f"Taking the opposite side of every position the script takes loses "
             f"{-100 * reversed_apr:.1f} percent a year",
-            f"Every pair after the one the trade closes in {s.last_held:%B %Y} would then have its "
-            f"last day fewer than {HOLDDAYS} trading days after its first",
-            f"rounds γ’s half-life to a lookback of {s.lookback} days. Each day it computes γ’s "
-            "z-score, "
+            f"the trade closes in {s.last_held:%B %Y} would then",
+            f"would then have its last day fewer than {HOLDDAYS} trading days",
+            f"rounds γ’s half-life to a lookback of {s.lookback} days.",
             f"the number of {s.lookback}-day moving standard deviations γ sits from its "
             f"{s.lookback}-day moving average.",
             f"Contract c is held short against contract c + {SPREAD_MONTH} long",
-            f"Each pair is held until {NUM_DAYS_END} trading days before the last day its near "
-            f"contract has a price. The first pair starts {HOLDDAYS + NUM_DAYS_END} days before "
-            f"that last priced day, so its last day comes {HOLDDAYS} days after its first,",
+            f"held until {NUM_DAYS_END} trading days before",
+            f"The first pair starts {HOLDDAYS + NUM_DAYS_END} days before",
+            f"so its last day comes {HOLDDAYS} days after its first,",
             f"A later pair is held only when its last day comes at least {HOLDDAYS} trading days "
             "after its first",
             f"`{SOURCE_FILES[module.ROOT]}`, saved {saved} and recorded",
-            f"It holds {len(columns)} CL contracts, one for each delivery month from "
-            f"{_month(columns[0])} to {_month(columns[-1])}, and the spot price, over "
-            f"{len(strip.contracts):,} days from {strip.contracts.index[0].date()}.",
-            f"γ can be fitted on {len(filled):,} of them, from {filled.index[0].date()}. The "
-            f"backtest’s window, the span the figures cover, is the {len(s.returns):,} days "
-            f"from {s.returns.index[0].date()} to {s.returns.index[-1].date()}. The APR "
-            f"compounds the daily returns and scales them to a year of {TRADING_DAYS} days.",
+            f"It holds {len(columns)} CL contracts,",
+            f"from {_month(columns[0])} to {_month(columns[-1])},",
+            f"over {len(strip.contracts):,} days from {strip.contracts.index[0].date()}.",
+            f"γ can be fitted on {len(filled):,} of them, from {filled.index[0].date()}.",
+            f"is the {len(s.returns):,} days from {s.returns.index[0].date()} to "
+            f"{s.returns.index[-1].date()}.",
+            f"a year of {TRADING_DAYS} days.",
             f"times √{TRADING_DAYS}, with no risk-free rate.",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
 
     def test_lesson_1(self, runs, text) -> None:
         s, r1 = runs["S"], runs["R1"]
@@ -703,8 +728,8 @@ class TestWhatThePostQuotes:
         first = returns[0]
         returns[0] = 0.0
         fragments = [
-            f"The deepest fall in the cumulative return is {-100 * s.max_dd:.1f} percent, and "
-            f"the longest stretch below a previous high lasts {s.max_dd_days} days.",
+            f"The deepest fall in the cumulative return is {-100 * s.max_dd:.1f} percent,",
+            f"a previous high lasts {s.max_dd_days} days.",
             f"The APR of {100 * s.apr:.2f} percent rounds to {BOOK_APR_PERCENT}, and the Sharpe "
             f"ratio of {s.sharpe:.3f} rounds to {BOOK_SHARPE}.",
             f"The statistic of {_minus(adf.statistic, 6)} clears the critical value of "
@@ -717,18 +742,18 @@ class TestWhatThePostQuotes:
             f"{compounded_apr(returns):.6f} and "
             f"{plain_sharpe(returns):.6f}",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
         printed = [
-            ["", "", "", ""],
-            ["", f"{s.half_life:.6f}", SCRIPT_HALFLIFE, BOOK_HALFLIFE],
-            ["", f"{s.apr:.6f}", SCRIPT_APR, BOOK_APR_PERCENT],
-            ["", f"{s.sharpe:.6f}", SCRIPT_SHARPE, BOOK_SHARPE],
+            ["", "Computed", "Comment", "Book"],
+            ["Half-life, days", f"{s.half_life:.6f}", SCRIPT_HALFLIFE, BOOK_HALFLIFE],
+            ["APR", f"{s.apr:.6f}", SCRIPT_APR, BOOK_APR_PERCENT],
+            ["Sharpe ratio", f"{s.sharpe:.6f}", SCRIPT_SHARPE, BOOK_SHARPE],
         ]
         unprinted = [
-            ["", "", ""],
-            ["", f"{s.max_dd:.6f}", SCRIPT_MAX_DD],
-            ["", str(s.max_dd_days), SCRIPT_MAX_DD_DAYS],
-            ["", f"{adf.statistic:.6f}", ""],
+            ["", "Computed", "Comment"],
+            ["Maximum drawdown", f"{s.max_dd:.6f}", SCRIPT_MAX_DD],
+            ["Longest drawdown", str(s.max_dd_days), SCRIPT_MAX_DD_DAYS],
+            ["ADF statistic", f"{adf.statistic:.6f}", "none"],
         ]
         first, second = self.tables(text)[:2]
         assert first in self.either_way(printed)
@@ -747,28 +772,23 @@ class TestWhatThePostQuotes:
         earned = np.corrcoef(day_to_day["s_return"], bet)[0, 1]
         changes = np.corrcoef(day_to_day["spread_change"], day_to_day["gamma_change"])[0, 1]
         fragments = [
-            f"On the {n:,} days of the window that hold a pair, the held pair’s log spread, far "
-            f"minus near, correlates with γ at {_minus(corr, 6)}.",
+            f"On the {n:,} days of the window that hold a pair,",
+            f"correlates with γ at {_minus(corr, 6)}.",
             f"has the opposite sign to γ’s on {opposite} of those {n:,} days and the same sign "
             f"on {n - opposite}.",
             "on about three days in four,",
-            f"Of the {n:,} days that hold a pair, γ’s z-score is above 0 on {int((z > 0).sum())}, "
-            "and on every one of them the trade is short the far contract and long the near "
-            f"one. On all {int((z < 0).sum())} where it is below 0, the trade is the other way "
-            "round.",
-            f"So on the same {len(reversed_):,} days the opposite trade’s Sharpe ratio is exactly "
-            "the script’s with "
-            f"the sign changed, {_minus(plain_sharpe(reversed_), 6)}. Its APR is "
-            f"{_minus(compounded_apr(reversed_), 6)}, or "
+            f"Of the {n:,} days that hold a pair, γ’s z-score is above 0 on {int((z > 0).sum())},",
+            f"On all {int((z < 0).sum())} where it is below 0,",
+            f"So on the same {len(reversed_):,} days",
+            f"with the sign changed, {_minus(plain_sharpe(reversed_), 6)}.",
+            f"Its APR is {_minus(compounded_apr(reversed_), 6)}, or "
             f"{_minus(100 * compounded_apr(reversed_), 1)} percent, rather than "
             f"{_minus(-s.apr, 6)},",
-            f"Over the {len(day_to_day):,} days of the window whose day before is also in the "
-            "window and holds the same pair, "
-            f"the script’s daily return correlates at {earned:.6f} with yesterday’s position "
-            "in the far contract",
+            f"Over the {len(day_to_day):,} days of the window",
+            f"correlates at {earned:.6f} with yesterday’s position",
             f"the spread’s change and γ’s change correlate at only {_minus(changes, 6)}.",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
 
     def test_the_spreads_own_reversion(self, strip, spread_z, text) -> None:
         positions = flip_on_zscore(calendar_schedule(strip.contracts), spread_z)
@@ -777,7 +797,7 @@ class TestWhatThePostQuotes:
             f"loses as well, with an APR of {_minus(compounded_apr(daily), 6)} and a Sharpe "
             f"ratio of {_minus(plain_sharpe(daily), 6)}.",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
 
     def test_the_figures_alt_text(self, runs, held_window, text) -> None:
         s = runs["S"]
@@ -792,12 +812,12 @@ class TestWhatThePostQuotes:
             f"reaching its low near {_minus(round(100 * mirror.min()), 0)} percent in "
             f"{mirror.idxmin():%B %Y} and ending near {_minus(round(100 * mirror.iloc[-1]), 0)} "
             "percent.",
-            f"A dashed vertical mark labels {s.last_held.date()} as the last day a pair is held, "
-            f"and a shaded band covers the last {len(flat)} days, from {flat[0].date()},",
+            f"A dashed vertical mark labels {s.last_held.date()}",
+            f"covers the last {len(flat)} days, from {flat[0].date()},",
             f"on the {len(held_window):,} days a pair is held from {held_window.index[0].date()}.",
             f"the panel’s title gives the correlation as {_minus(corr, 6)}.",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
 
     def test_lesson_3(self, runs, text) -> None:
         s, r2 = runs["S"], runs["R2"]
@@ -807,19 +827,19 @@ class TestWhatThePostQuotes:
             f"## Lesson 3: the book’s {BOOK_HOLDDAYS} days and the script’s {HOLDDAYS} give "
             "different trades",
             f"The script sets it to `3*21`, which is {HOLDDAYS}.",
-            f"At {BOOK_HOLDDAYS} days the APR falls to {100 * r2.apr:.1f} percent and the "
-            f"Sharpe ratio to {r2.sharpe:.2f}, both well short of the book’s "
-            f"{BOOK_APR_PERCENT} percent and {BOOK_SHARPE}.",
+            f"At {BOOK_HOLDDAYS} days the APR falls to {100 * r2.apr:.1f} percent",
+            f"the Sharpe ratio to {r2.sharpe:.2f},",
+            f"the book’s {BOOK_APR_PERCENT} percent and {BOOK_SHARPE}.",
             f"the trade’s last pair is held to {r2.last_held.date()}.",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
         table = [
             ["", str(HOLDDAYS), str(BOOK_HOLDDAYS)],
-            ["", *(f"{run.apr:.6f}" for run in (s, r2))],
-            ["", *(f"{run.sharpe:.6f}" for run in (s, r2))],
-            ["", *(f"{run.max_dd:.6f}" for run in (s, r2))],
-            ["", *(str(run.max_dd_days) for run in (s, r2))],
-            ["", *(str(run.last_held.date()) for run in (s, r2))],
+            ["APR", *(f"{run.apr:.6f}" for run in (s, r2))],
+            ["Sharpe ratio", *(f"{run.sharpe:.6f}" for run in (s, r2))],
+            ["Maximum drawdown", *(f"{run.max_dd:.6f}" for run in (s, r2))],
+            ["Longest drawdown", *(str(run.max_dd_days) for run in (s, r2))],
+            ["Last day held", *(str(run.last_held.date()) for run in (s, r2))],
         ]
         assert self.tables(text)[2] in self.either_way(table)
 
@@ -833,19 +853,18 @@ class TestWhatThePostQuotes:
         fragments = [
             f"## Lesson 4: the last {flat} days earn nothing",
             f"every contract still trading on {end} looks as if it expired on {end}.",
-            f"a new pair’s last day must come at least {HOLDDAYS} days after its first. After "
-            f"{s.last_held.date()}, every pair’s last day comes fewer than {HOLDDAYS} days after "
-            "its first.",
+            f"must come at least {HOLDDAYS} days after its first.",
+            f"After {s.last_held.date()}, every pair’s last day comes fewer than {HOLDDAYS} days",
             f"So the trade holds its last pair on {s.last_held.date()}.",
             f"the window’s last {flat} days return exactly 0.",
             f"The APR is a compounded return spread over {len(returns):,} days, and {flat} of "
             "those days earn nothing",
-            f"Measured over the {len(cut):,} days to {last.date()}, the last day with a return, "
-            f"the APR is {100 * compounded_apr(cut):.1f} percent, {compounded_apr(cut):.6f}, and "
-            f"the Sharpe ratio is {plain_sharpe(cut):.6f}. The cumulative return is "
-            f"{np.prod(1 + returns.to_numpy()) - 1:.6f} either way.",
+            f"Measured over the {len(cut):,} days to {last.date()},",
+            f"the APR is {100 * compounded_apr(cut):.1f} percent, {compounded_apr(cut):.6f},",
+            f"the Sharpe ratio is {plain_sharpe(cut):.6f}.",
+            f"The cumulative return is {np.prod(1 + returns.to_numpy()) - 1:.6f} either way.",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
 
     def test_lesson_5_and_the_years_outside(self, runs, gamma, early, text) -> None:
         s = runs["S"]
@@ -858,17 +877,18 @@ class TestWhatThePostQuotes:
         assert by_year[2012] < 0, "2012 lost"
         fragments = [
             f"measured on every day γ can be fitted, {len(filled):,} of them from "
-            f"{filled.index[0].date()}. The traded window is {len(s.returns):,} of those days, "
+            f"{filled.index[0].date()}.",
+            f"The traded window is {len(s.returns):,} of those days, "
             f"{round(100 * len(s.returns) / len(filled))} percent.",
             f"The ADF test says γ returns to a long-run level over the {len(filled):,} days from "
             f"{filled.index[0].year}.",
-            f"The script’s rule first holds a pair on {daily.index[0].date()}, and on the "
-            f"{len(daily)} days from then to {daily.index[-1].date()} it has a cumulative return "
-            f"of {np.prod(1 + daily.to_numpy()) - 1:.6f}, an APR of {early.apr:.6f} with a "
-            f"Sharpe ratio of {early.sharpe:.6f}.",
+            f"first holds a pair on {daily.index[0].date()},",
+            f"on the {len(daily)} days from then to {daily.index[-1].date()}",
+            f"cumulative return of {np.prod(1 + daily.to_numpy()) - 1:.6f},",
+            f"an APR of {early.apr:.6f} with a Sharpe ratio of {early.sharpe:.6f}.",
             f"2009 alone returned {by_year[2009]:.6f}, and 2012 lost {-by_year[2012]:.6f}.",
         ]
-        assert self.missing(text, fragments) == []
+        assert self.not_found_once(text, fragments) == []
 
 
 # --- the rules on synthetic frames ---------------------------------------------

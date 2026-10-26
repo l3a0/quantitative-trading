@@ -7627,7 +7627,8 @@ both are stated once here.
    36. Contract c is held short against contract c + 12 long, the first pair
    from 73 rows before its near contract's last priced row and each pair to 10
    rows before it. A later pair starts the row after the last one ended and is
-   skipped when that leaves fewer than 63 rows. The spread is reversed where z
+   skipped when its last row would come fewer than 63 rows after its first. The
+   spread is reversed where z
    is above 0 and flat where z is not a number. The return is yesterday's
    positions times each leg's return, summed over the legs that have one and
    divided by 2. The figures read the 1,164 rows from 2008-01-02 to
@@ -7708,7 +7709,7 @@ records them.
 | 9 | none, a claim | reproduced | The statistic is below the 1 percent critical value, so the test rejects a unit root at the level "99 percent" names. |
 | 10 | none | none, not a replication | It lands every digit the comment prints. It drops 2008-01-02's return of −0.0028127. Setting that day's return to 0 instead gives 0.083331 and 1.288104, which miss both of the comment's figures. So dropping the day lands them and holding it flat does not. It was found by a scan, so it is not evidence of what Chan ran, and rows 3 and 5 keep the window the script states. |
 | 11 | none | none, not a replication | Holding at least 61 days misses both book figures, at 6.7 percent and 1.04, so the script's 63 is the specification. Under 61 days a later pair leaves enough rows to be held, to 2012-07-06. |
-| 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so the contracts still trading on 2012-08-13 expire on the file's last row, and too few rows remain before it for their pairs to be held. The window's last 66 rows hold nothing and return exactly 0. |
+| 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so the contracts still trading on 2012-08-13 expire on the file's last row. Every pair after 2012-05-08 would be let go 10 rows before its near contract's last priced row, fewer than 63 rows after its first, so none is held. The window's last 66 rows hold nothing and return exactly 0. |
 
 ### What the entry concludes
 
@@ -7856,10 +7857,11 @@ both are stated once here.
    half-life read every finite row of the filled signal. The first pair of
    adjacent contracts starts 73 rows before its near contract's last priced
    row, every pair ends 10 rows before its own, and a later pair is skipped
-   when that leaves it fewer than 63 rows. The return is yesterday's positions times each leg's
-   return, summed over the legs that have one and divided by 2, annualised
-   over 252 days by compounding simple returns, with the Sharpe ratio on
-   MATLAB's n − 1 `std`, no risk-free rate and no cost.
+   when its last row would come fewer than 63 rows after its first. The return
+   is yesterday's positions times each leg's return, summed over the legs that
+   have one and divided by 2, annualised over 252 days by compounding simple
+   returns, with the Sharpe ratio on MATLAB's n − 1 `std`, no risk-free rate and
+   no cost.
 
 Four rows beside S were declared with it, and a row that lands while S misses
 is reported and not promoted to the specification.
