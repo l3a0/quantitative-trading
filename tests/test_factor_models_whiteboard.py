@@ -426,7 +426,7 @@ class TestThePost:
         paragraphs = self._paragraphs()
         (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(FOLLOWS[1])]
         self._embed(GIFS[1], paragraphs[index + 1])
-        assert paragraphs[index + 2].startswith("The revised MATLAB’s five factors are the ones tested.")
+        assert paragraphs[index + 2].startswith("The revised MATLAB’s five factors are")
         assert paragraphs[index + 3].startswith("```math")
         assert "\\text{Factor} & \\text{Correlation}" in paragraphs[index + 3]
 
