@@ -4958,8 +4958,9 @@ Five groups of what it says are not pinned here.
    [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that a z-score such as 0.99 moves beyond 1
    once multiplied by 1.0260, and that the factor cancels from the linear
-   rule's return, which the Example 3.1 post shows. The equation for the factor is pinned at four
-   decimals and on every day.
+   rule's return, which the Example 3.1 post shows. The factor itself is pinned
+   on every day, and the post's equation and the two fractions in the sentence
+   before it are read from the post.
 4. The book's Figure 3.3, which the post's figure redraws from the script's
    `plot` call and which nothing compares with the book's own. The alt text's
    description of shapes, such as the band ending well above the linear rule
@@ -5014,10 +5015,15 @@ seventh.
 
 `TestThePostQuotesThePins` in
 [tests/test_bollinger.py](tests/test_bollinger.py) reads one copy of each
-figure the post takes from the run, from the post itself. A second copy
-elsewhere in the post, such as in its alt text, is not always read, and
-neither are Example 3.1's figures, which
-[tests/test_price_spread.py](tests/test_price_spread.py) holds.
+figure the post takes from the run, from the post itself, along with the
+file's save date, size and span and the rule's thresholds. A second copy
+elsewhere in the post, such as in its alt text, is not always read. Of
+Example 3.1's figures, it reads only those the band's run recomputes: the
+linear rule's computed APR and Sharpe ratio, its 1,460 changes of units and
+the hedge ratio's 334 days below zero. The linear rule's row of its script's
+comment, that comment's APR as 10.8 percent, and the book's about 10.9 percent
+and about 0.59 are not read, and
+[tests/test_price_spread.py](tests/test_price_spread.py) holds them.
 
 Its one figure is drawn from the committed file by
 [src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), which reads it

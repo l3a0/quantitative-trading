@@ -66,9 +66,16 @@ from chan.matlab_helpers import (
     smart_moving_avg,
     smart_moving_std,
 )
-from chan.price_spread import LOOKBACK, SCRIPT_PRICE_SPREAD, read_sources, zscore
+from chan.price_spread import (
+    LOOKBACK,
+    SCRIPT_PRICE_SPREAD,
+    SOURCE_FILE,
+    read_sources,
+    zscore,
+)
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
+from tests.support.committed_vintages import LIFTED_SOURCES
 
 SPEC = (
     "inputdata_etf/ GLD and USO closes over 1,500 days, 20-row rolling hedge ratio, "
@@ -659,16 +666,46 @@ def _exit_rows(units: np.ndarray) -> set[int]:
 class TestThePostQuotesThePins:
     """One copy of each figure the post takes from the run, read from the post itself.
 
-    Other copies of the same figure elsewhere in the post are not always read, and
-    neither are its alt text and caption. The tests above derive these numbers and
-    the prose states them, so before this class a typo in the post passed every
-    test. Round 1 of the post's review changed 71 of its numbers one at a time, and
-    none failed a test. Example 3.1's figures, which ``tests/test_price_spread.py``
-    holds, the 67 ETFs, which ``tests/test_series.py`` holds, and the book's figures
-    and Kindle locations are not read here.
+    That includes the file's save date, its 67 ETFs, its 1,500 days and their span,
+    and the rule's thresholds. Other copies of the same figure elsewhere in the post
+    are not always read, and neither are its alt text and caption. The tests above
+    derive these numbers and the prose states them, so before this class a typo in
+    the post passed every test. Round 1 of the post's review changed 71 of its
+    numbers one at a time, and none failed a test.
+
+    Of Example 3.1's figures, only those the band's run recomputes are read here: the
+    linear rule's computed APR and Sharpe ratio, its 1,460 changes of units and the
+    hedge ratio's 334 days below zero. The linear rule's row of its script's comment,
+    that comment's APR as 10.8 percent, and the book's about 10.9 percent and about
+    0.59 are not, and ``tests/test_price_spread.py`` holds them. The book's figures
+    and Kindle locations are not read here either.
     """
 
     text = POST.read_text("utf-8")
+
+    def test_the_file(self, sources) -> None:
+        legs, closes = sources
+        (saved,) = {leg.saved_date for leg in legs}
+        *_, count = LIFTED_SOURCES[SOURCE_FILE]
+        words = {2: "two"}
+        assert (
+            f"`{SOURCE_FILE}`, saved on {saved}, which this repository split into one CSV per "
+            f"ETF. It holds {count} ETFs over {len(closes):,} trading days, from "
+            f"{closes.index[0].date()} to {closes.index[-1].date()}, and the script reads "
+            f"{words[len(legs)]} of them."
+        ) in self.text
+
+    def test_the_rule_s_thresholds(self) -> None:
+        entry, exit_ = f"{ENTRY_ZSCORE:g}", f"{EXIT_ZSCORE:g}"
+        assert (
+            f"Buy one unit when the z-score falls below −{entry}. Sell one unit short when it "
+            f"rises above {entry}."
+        ) in self.text
+        assert (
+            f"Close a long when the z-score rises above {exit_}, which is where the spread "
+            f"crosses back through its average. Close a short when the z-score falls below "
+            f"{exit_}."
+        ) in self.text
 
     def test_the_band_s_figures(self, result: ExampleThreeTwo) -> None:
         band = result.bollinger
@@ -717,8 +754,30 @@ class TestThePostQuotesThePins:
         ) in self.text
         assert f"the same high, on {days[first - 1].date()}." in self.text
 
+    def test_lesson_2_s_spells(self, result: ExampleThreeTwo) -> None:
+        (band, band_rows), (linear, linear_rows) = (
+            calculate_max_dd(np.cumprod(1 + run_.daily) - 1)
+            for run_ in (result.bollinger, result.linear)
+        )
+        assert band > linear and 2 * band_rows < linear_rows
+        assert (
+            "The band falls less far and regains its high in less than half the time."
+        ) in self.text
+
     def test_lesson_3_s_divisor(self, result: ExampleThreeTwo, by_n: ExampleThreeTwo) -> None:
-        assert f"\\approx {np.sqrt(20 / 19):.4f}\\, z" in self.text
+        n = LOOKBACK
+        assert (
+            f"Over {n} days, the standard deviation with divisor n equals the one with divisor "
+            f"n − 1 multiplied by √({n - 1}/{n})."
+        ) in self.text
+        assert (
+            "so every z-score built with divisor n is the one built with n − 1 multiplied by "
+            f"√({n}/{n - 1})."
+        ) in self.text
+        assert (
+            f"z^{{(n)}}_t = \\sqrt{{\\tfrac{{{n}}}{{{n - 1}}}}}\\; z^{{(n-1)}}_t "
+            f"\\approx {np.sqrt(n / (n - 1)):.4f}\\, z"
+        ) in self.text
 
         def beyond(z: np.ndarray) -> int:
             return int((np.abs(z[np.isfinite(z)]) > ENTRY_ZSCORE).sum())
@@ -786,6 +845,14 @@ class TestThePostQuotesThePins:
             "linear rule"
         ) in self.text
         before, after = units[:-1], units[1:]
-        assert f"**{int(((before == 0) & (after != 0)).sum())} entries**" in self.text
-        assert f"**{int(((before != 0) & (after == 0)).sum())} exits**" in self.text
+        entries = int(((before == 0) & (after != 0)).sum())
+        exits = int(((before != 0) & (after == 0)).sum())
+        assert f"**{entries} entries**" in self.text
+        assert f"**{exits} exits**" in self.text
         assert f"**{int((before * after == -1).sum())} turns**" in self.text
+        assert units[0] == 0 and units[-1] != 0
+        words = {1: "one"}
+        assert (
+            "The run starts flat and ends holding a unit, so it has "
+            f"{words[entries - exits]} more entry than exit."
+        ) in self.text
