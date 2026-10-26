@@ -55,7 +55,12 @@ Two of its rules exist because the repository is public.
 It fails closed. A failed call, a GraphQL error, or a count that disagrees
 with the pages read on every one of ``LIST_READS`` reads stops the run, and
 the last good board stays up. Treating an error as an empty list would publish
-a board with no pull requests that reads as correct.
+a board with no pull requests that reads as correct. The one failure tried
+again first is a call GitHub answered with a server error or never received,
+which ``RETRY_WAITS`` bounds. Between 17:58 and 18:33 UTC on 2026-10-26, 11
+of the 16 runs that finished failed on a 502 or 504, and a query that had just
+timed out three times in a row returned in under a second minutes later. One
+such answer says nothing about the read.
 
 It reads through a few nested GraphQL queries rather than one REST call per
 issue. ``GITHUB_TOKEN`` allows 1,000 REST requests an hour per repository, and
@@ -291,6 +296,25 @@ Gql = Callable[[str, dict], dict]
 LIST_READS = 3
 
 
+# A call `gh` reports as a server error, as `gh: HTTP 504` or as a message
+# ending `(HTTP 502)`, or as one that never got an answer, which `gh` prints as
+# `error connecting to <host>` or as Go's `Post "https://...": <cause>`. A 4xx
+# such as `gh: Bad credentials (HTTP 401)` and a GraphQL error such as
+# `gh: Field 'x' doesn't exist` match none of these, because trying them again
+# gets the same answer.
+TRANSIENT = re.compile(
+    r'^(?:gh: (?:HTTP 5\d\d\b|.*\(HTTP 5\d\d\)$)|error connecting to |Post "https?://)',
+    re.MULTILINE,
+)
+
+# Seconds to wait before each further attempt at a call that failed with one
+# of those, so a call gets three attempts. GitHub stops a GraphQL query at 10
+# seconds and answers 502 or 504, so a call that keeps timing out costs about
+# 11 seconds an attempt, and three of them stay well inside the job's
+# `timeout-minutes`.
+RETRY_WAITS = (5, 20)
+
+
 class BoardError(RuntimeError):
     """A read that cannot be trusted, which stops the run."""
 
@@ -298,12 +322,14 @@ class BoardError(RuntimeError):
 class GhGraphql:
     """Runs GraphQL through ``gh api graphql`` and counts what it spends.
 
-    Every call is one request. ``cost`` sums the points GitHub charged, read
-    from the ``rateLimit`` field each top-level query asks for.
+    Every attempt is one request, and ``retries`` counts the attempts made
+    after a server or connection error. ``cost`` sums the points GitHub
+    charged, read from the ``rateLimit`` field each top-level query asks for.
     """
 
     def __init__(self) -> None:
         self.requests = 0
+        self.retries = 0
         self.cost = 0
 
     def __call__(self, query: str, variables: dict) -> dict:
@@ -313,8 +339,17 @@ class GhGraphql:
                 continue
             flag = "-F" if isinstance(value, int) else "-f"
             args += [flag, f"{key}={value}"]
-        self.requests += 1
-        done = subprocess.run(args, capture_output=True, text=True, check=False)
+        for wait in (*RETRY_WAITS, None):
+            self.requests += 1
+            done = subprocess.run(args, capture_output=True, text=True, check=False)
+            if done.returncode == 0 or wait is None or not TRANSIENT.search(done.stderr):
+                break
+            self.retries += 1
+            print(
+                f"build_board: {done.stderr.strip().splitlines()[0]}, trying again in {wait} s",
+                file=sys.stderr,
+            )
+            time.sleep(wait)
         if done.returncode != 0:
             raise BoardError(f"gh api graphql failed: {done.stderr.strip() or done.stdout}")
         try:
@@ -797,6 +832,7 @@ def cmd_build(args: argparse.Namespace) -> None:
             "| --- | --- |",
             f"| GitHub read at | {updated} |",
             f"| GraphQL requests | {gql.requests} |",
+            f"| GraphQL requests tried again after a server or connection error | {gql.retries} |",
             f"| GraphQL points | {gql.cost} |",
             f"| Open issues | {report['open_issues']} |",
             f"| Open pull requests | {report['open_prs']} |",
