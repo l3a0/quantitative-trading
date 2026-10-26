@@ -94,7 +94,7 @@ from chan.usdcad_tests_whiteboard import (
 GIF_PREFIX = "cl_reversal_momentum_sketch_"
 
 #: The width of the blue edge drawn round every pale tint that carries
-#: meaning, as :mod:`chan.equity_seasonals_whiteboard` draws it.
+#: meaning, the width :mod:`chan.equity_seasonals_whiteboard` gives its own.
 TINT_EDGE = 1.2
 
 

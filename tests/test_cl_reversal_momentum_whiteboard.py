@@ -105,6 +105,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from tests.test_palette import _contrast
 
 POST = REPO_ROOT / "blog" / "crude-oil-reversal-momentum-lessons.md"
 
@@ -304,9 +305,12 @@ class TestTheScenes:
     def test_every_pale_tint_has_a_blue_edge(self, every) -> None:
         """The tint alone stands 1.31 to 1 against the white board, under WCAG
         2.1's 3 to 1 for a graphical object, so every tinted region gets a
-        blue edge, GOOD at 4.77 to 1, that spans it, as the equity seasonals
-        module's ``_tinted`` draws it. The swing sketch's kept parts are the
-        only tints."""
+        blue edge, GOOD at 4.77 to 1, that spans it. The edge is built the
+        way the equity seasonals module's ``_tinted`` builds its own, which
+        that module still draws in the shared green. The swing sketch's kept
+        parts are the only tints."""
+        assert _contrast(TINT, whiteboard.BOARD) == pytest.approx(1.31, abs=0.005)
+        assert _contrast(GOOD, whiteboard.BOARD) == pytest.approx(4.77, abs=0.005)
         assert sketches.TINT_EDGE >= 1.0
         tints = [fill for scene in every for fill in scene.fills if fill.color == TINT]
         assert len(tints) == 3
