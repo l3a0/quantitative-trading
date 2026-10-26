@@ -7565,6 +7565,27 @@ write-up, moves with it, since that post quotes most of these figures. The
 post's one figure moves too, and `uv run python -m chan.tu_momentum_figures`
 redraws it.
 
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **Futures tile, pasts overlap**, in "The correlation table". It draws the
+   first three days the 250/25 cell keeps on the 2012-05-11 save, 2005-06-01,
+   2005-07-07 and 2005-08-11, each as a 250-day past bar and a 25-day future
+   bar to scale. Each future starts where the one before ends, and each past
+   shares 225 of its 250 days with the next, which is why keeping every 25th
+   day stops the futures overlapping and not the pasts. A row of 69 dots, not
+   to scale, counts the kept days.
+2. **Same closes, no shared day**, in Lesson 1. It draws the first four days
+   the cell keeps on each save. The 2012-05-17 save starts four trading days
+   later, so each of its kept days falls four days after one of the earlier
+   save's, and the two sets of 69 share none although all 1,996 shared closes
+   are equal. The correlations are 0.2719 and 0.2870, which print as 0.27 and
+   0.29.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.tu_momentum_whiteboard` redraws both through the same
+`read_sources`, `read_later_save` and `correlation`.
+
 ## Entry 34: mean reversion on crude oil's 12-month calendar spread, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their

@@ -9,9 +9,10 @@ too. ``blog/tu-hypothesis-tests-lessons.md`` quotes the 49 pairs of lookback
 and hold the rule was picked from, which ``PERIODS`` and
 ``TestTheCorrelationTable`` hold here. ``blog/tu-momentum-lessons.md`` teaches
 this example and quotes most of these pins, with the numbers it adds in
-``TestBesideThePost`` and its figure's in
-``tests/test_tu_momentum_figures.py``. README lists what the post says that
-nothing asserts.
+``TestBesideThePost``, its figure's in ``tests/test_tu_momentum_figures.py``,
+and its two sketches' in ``tests/test_tu_momentum_whiteboard.py``, which also
+pins the 225 days two kept pasts share and the four trading days between the
+two saves' first days. README lists what the post says that nothing asserts.
 
 Every pin on the committed files reads one of two vintages and one
 specification, so they are stated once here.
