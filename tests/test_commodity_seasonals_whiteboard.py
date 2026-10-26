@@ -743,7 +743,8 @@ class TestTheGifs:
 
     def test_every_sketch_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
         """The pace the owner asked for, for each sketch in turn: each label alone
-        for 0.9 s and the drawing for 12 s, the equity post's slow pace."""
+        for 0.9 s, or 1.8 s with strokes at 250 ms a frame for the sketches in
+        SLOWER, and the drawing for 12 s, the equity post's slow pace."""
         from chan import equity_seasonals_whiteboard as equity
 
         assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
@@ -764,9 +765,9 @@ class TestTheGifs:
             "miss_sign",
             "fill_misses",
             "sharpe_ranges",
-            "mean_ranges",
             "t_multiplier",
             "half_width",
+            "mean_ranges",
             "one_year",
             "june_file",
         )
@@ -1789,6 +1790,8 @@ class TestTheHalfWidthSketch:
         gap = _stroke(scene, "gap").x[0]
         assert gap == pytest.approx(HALF_X + (before.mean - after.mean) * HALF_POINT)
         assert _span_ends(_stroke(scene, "half-2"))[1] > gap
+        line, purple = _stroke(scene, "gap"), _stroke(scene, "half-2")
+        assert line.y.min() < purple.y.min() and line.y.max() > purple.y.max()
 
     def test_the_title_follows_the_figures(self) -> None:
         before, after = mean_rows()[0], mean_rows()[1]
@@ -1835,9 +1838,22 @@ class TestTheMeanRangeSketch:
         landed = {}
         for trade, later in (("natural gas", 2009), ("gasoline", 2016)):
             x = _stroke(scene, f"carry-{trade}").x[0]
-            left, right = _span_ends(_stroke(scene, f"range-{trade}-{later}"))
+            bar = _stroke(scene, f"range-{trade}-{later}")
+            left, right = _span_ends(bar)
             landed[trade] = left < x < right
+            carry = _stroke(scene, f"carry-{trade}")
+            assert carry.y.min() < bar.y.min() and carry.y.max() > bar.y.max(), trade
         assert landed == {"natural gas": True, "gasoline": False}
+
+    def test_each_range_is_the_runs_low_then_high(self) -> None:
+        for row, (trade, first, last) in zip(mean_rows(), PERIODS, strict=True):
+            trades = (
+                seasonals.natural_gas_trades(first, last)
+                if trade == "natural gas"
+                else seasonals.gasoline_trades(first, last)
+            )
+            low, high = seasonals.mean_interval(trades)
+            assert (row.low, row.high) == pytest.approx((100 * low, 100 * high)), trade
 
     def test_other_figures_move_the_rows(self) -> None:
         rows = mean_rows()

@@ -3789,7 +3789,8 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
 All seventeen build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
-pace lets a reader take in.
+pace lets a reader take in. The half-width sketch, with few steps, draws
+slower still, its strokes at 250 ms a frame and its labels for 1.8 seconds.
 
 None is schematic. Each reads the natural gas or gasoline run on the
 committed EIA files, so none needs the owner's archive. Redraw all seventeen with:

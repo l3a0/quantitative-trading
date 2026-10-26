@@ -85,12 +85,12 @@ and the post places each right after the paragraph it draws.
    Lesson 4, after the paragraph opening "For the four Sharpe ratios".
 13. Fewer results, a wider range: Student's t's 95% multiplier as a bar for
    the post's 8 and 15 later years, for 30 results and for very many, against
-   a dashed line at the normal curve's 1.96. It sits after the general range
-   formula, which opens "```math".
+   a dashed line at the normal curve's 1.96. It sits in Lesson 4, after the
+   general range formula, r̄ ± t × s / √n.
 14. Where ±12% comes from: natural gas's spread after 2008, divided by the
    root of its 15 years, times its multiplier, as three bars from one edge,
-   against a dashed line at the gap to its earlier mean. It sits after that
-   trade's worked range, which opens "```math".
+   against a dashed line at the gap to its earlier mean. It sits in Lesson 4,
+   after that trade's worked range, -0.4% ± 12.0%.
 15. One range holds the earlier mean, one does not: each period's mean and
    95% range, with each trade's earlier mean carried down as a dashed line
    past its later bar. It sits after the paragraph opening "That range,
@@ -152,7 +152,9 @@ colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
 all seventeen are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
-:mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
+:mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
+half-width sketch is in :data:`SLOWER` too, so its strokes draw at 250 ms a
+frame and its labels hold 1.8 seconds. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
@@ -2633,9 +2635,9 @@ PACED = (
     "miss_sign",
     "fill_misses",
     "sharpe_ranges",
-    "mean_ranges",
     "t_multiplier",
     "half_width",
+    "mean_ranges",
     "one_year",
     "june_file",
 )
@@ -2657,7 +2659,7 @@ def sketch_timeline(scene: Scene) -> list[Frame]:
     def slowed(f: Frame) -> Frame:
         if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke):
             return Frame(f.done, f.partial, label_ms)
-        if stroke_ms is not None and f.done + f.partial and f is not frames[0]:
+        if stroke_ms is not None and f.done + f.partial:
             return Frame(f.done, f.partial, stroke_ms)
         return f
 
