@@ -21,7 +21,7 @@ and each says so in its own cells.
 Entries 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 45, 47, 48, 49 and 51 carry their own, three, eleven, twelve, five,
 six, one, three, eight, six, two, eight, seven, twelve, six, two, five, three,
-three, three, seven, six, seven, three, four, five, seven, eight, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven, eleven and ten, and they are listed in those entries rather than here, because the list is about an entry's rows and not
+three, three, seven, six, seven, three, four, five, seven, nine, five, twelve, seven, eight, four, eight, eight, four, five, six, one, eleven, twelve, nine, fourteen, seven, eleven and ten, and they are listed in those entries rather than here, because the list is about an entry's rows and not
 about the file.
 
 Entries 5, 44, 46, 48, 50 and 52 are the six entries that are not replications.
@@ -614,7 +614,7 @@ Entry 17's rows 10 and 11, Entry 18's rows 8 to 12, Entry 19's rows 9 to 11,
 Entry 20's rows 11 to 13, Entry 21's rows 9 to 11, Entry 22's rows 8 to 10,
 Entry 23's rows 15 to 20, Entry 24's rows 10 to 16, Entry 25's rows 5 to 7,
 Entry 26's rows 4 to 7, Entry 27's rows 15 to 18, Entry 28's rows 5 to 11,
-Entry 29's rows 7 to 14, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
+Entry 29's rows 7 to 15, Entry 30's rows 6 to 8, Entry 31's rows 3 to 14,
 Entry 32's rows 5 to 7, Entry 33's rows 11 to 15, Entry 34's rows 10 to 12,
 Entry 35's rows 4 to 9, Entry 36's rows 7 to 14, Entry 37's rows 6 to 8,
 Entry 38's rows 8 to 11, Entry 40's rows 6 to 9 and 12 to 16, Entry 41's row 11,
@@ -6651,7 +6651,7 @@ at 3537 and 3570. No script ships for it. Shipped under
 location in this entry is that book's, in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
-Fourteen rows, all derivable from
+Fifteen rows, all derivable from
 [tests/test_gold_miners_oil.py](../tests/test_gold_miners_oil.py).
 
 Chan pairs the gold fund GLD with the gold miners' fund GDX, since a miner's
@@ -6663,10 +6663,12 @@ whole span. The book offers this as an example of forming a hypothesis about
 why a strategy stopped working and testing it.
 
 **All three claims hold on Chan's own file, on both Johansen statistics, at 99
-percent and at 90.** The control the book leaves out holds as well. GLD and
-GDX alone over the triplet's days find no relation even at 90 percent, so the
-triplet's relation is not one the pair already had. It may be GDX and USO's
-own, though, because those two alone find one relation at 99 percent.
+percent and at 90.** The control the book leaves out comes out the way the oil
+explanation needs. GLD and GDX alone over the triplet's days find no relation
+even at 90 percent, so the triplet's relation is not one the pair already had.
+GDX and USO alone find one relation at 99 percent, which would make the
+triplet's relation theirs. A test on the triplet's weights rejects that, so
+the two results conflict.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
@@ -6685,7 +6687,7 @@ here.
    GLD, GDX and then USO. The book does not say which of the two Johansen
    statistics it read, and Entry 23 found them disagreeing on Chan's own file.
    So each claim is two rows, one per statistic, each judged at 99 percent,
-   the level all three claims name.
+   the level the first and third claims name. The second names none.
 
 Every result here is **exploratory**, twice over. Reproducing the claims
 spends the 2006 to 2012 sample on a split Chan chose. The split date and the
@@ -6710,12 +6712,15 @@ cannot confirm the oil hypothesis however it comes out.
 | 12 | The CADF test of GLD on GDX in each window | none | n/a |
 | 13 | A plain ADF test of each ETF alone in each window it enters | none | n/a |
 | 14 | GLD and USO, and GDX and USO, each alone over the triplet's 1,481 days | none | n/a |
+| 15 | Each fund's weight set to zero in the triplet's one relation | none | n/a |
 
 Each row's claim criterion was written on the issue before any statistic was
 computed. Rows 1 and 2 hold on one relation or two, rows 3 and 4 on none, and
 rows 5 and 6 on exactly one. Row 14 was not on the issue. The pull request's
 review added it after the first run, to ask whether the triplet's relation is
-one of the other two pairs' own. The criteria are pinned in
+one of the other two pairs' own. Row 15 came later still. The post's
+pre-publish review added it after every other result here had been seen, to
+test row 14's reading on the triplet's weights. The criteria are pinned in
 `TestTheSpecification::test_the_six_criteria_are_the_ones_issue_344_declared`.
 The critical values beside each statistic are LeSage's tables, which Entry 23
 checked against Chan's own printout.
@@ -6738,6 +6743,7 @@ checked against Chan's own printout.
 | 12 | `lesage_cadf(GLD, GDX, 1)` against MacKinnon's two-series bars, −3.34 at 95 percent and −3.90 at 99 | −3.724034 in the first window, −1.511680 in the second and −1.517588 over the whole span | `TestBesideTheReplication::test_row_12_the_cadf_rejects_at_95_before_and_not_at_99` |
 | 13 | ADF with a constant and one lag, against MacKinnon's −2.57 at 90 percent | first window GLD −0.033875 and GDX −1.962727, second GLD −0.575590 and GDX −1.720225, whole span GLD −0.370352, GDX −2.371217 and USO −1.213340 | `TestBesideTheReplication::test_row_13_no_series_alone_rejects_a_unit_root_even_at_90` |
 | 14 | `johansen([GLD, USO], 0, 1)` and `johansen([GDX, USO], 0, 1)`, whole span | GLD and USO trace 4.349962 and 0.573598, 0 relations even at 90 percent. GDX and USO trace 27.165550 and 3.034162, eigen 24.131388 and 3.034162, 1 relation at 95 and 99 percent and 2 at 90 | `TestBesideTheReplication::test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not` |
+| 15 | Johansen's (1991) likelihood-ratio test of β = Hφ on row 9's rank-1 relation, one fund's weight at zero, from the moments of `johansen(·, 0, 1)` with T = 1,479, against chi-squared with one degree of freedom, 2.706, 3.841 and 6.635 at 90, 95 and 99 percent | GLD's weight at zero 10.014660, GDX's 26.336768 and USO's 0.056678 | `TestTheWeightTest::test_row_15_rejects_a_zero_weight_for_gld_and_gdx_and_not_for_uso`, with the GLD figure reached again by maximising the likelihood in `::test_row_15_by_maximising_the_likelihood_directly` |
 
 ### The verdicts
 
@@ -6756,7 +6762,8 @@ checked against Chan's own printout.
 | 11 | none | none, not a replication | The sign is statsmodels', which makes the first row positive. |
 | 12 | none | none, not a replication | The CADF test rejects at 95 percent before the break and not after it. At the 99 percent level the claims are judged at, it rejects in neither window. |
 | 13 | none | none, not a replication | No series is stationary on its own in any window. |
-| 14 | none | none, not a replication | GDX and USO alone hold the relation the triplet finds, so the triplet's row cannot separate the oil hypothesis from that pair's own link. |
+| 14 | none | none, not a replication | GDX and USO alone find one relation at 99 percent. Row 15 rejects the triplet's relation being theirs, so the two results conflict, and this one is the weaker. |
+| 15 | none | none, not a replication | Exploratory. GLD's weight at zero is rejected against the asymptotic 99 percent bar, at a p of 0.00155, and USO's cannot be rejected even at 90, at 0.812. Added after every other result was seen, conditional on rank 1, and one of three tests run together. |
 
 ### What the entry concludes
 
@@ -6767,24 +6774,39 @@ Four things.
    by 2.636. Every other claim clears or misses its bar by more,
    `TestEachTestsTable::test_the_closest_call_is_row_1_clearing_its_bar_by_2_636`
    lists each, and the counts at 90 and 95 percent agree with 99 on every
-   row. So the choice of statistic and the choice of level that the book left
-   open move nothing here, which is the opposite of what Entry 23 met. The
-   loss holds even at 90 percent, so the stronger reading of "lost" holds too.
-   The book's "99 percent probability" is a test level rather than a
+   claim. So the choice of statistic and the choice of level that the book
+   left open move no verdict here, which is the opposite of what Entry 23 met.
+   The loss holds even at 90 percent, so the stronger reading of "lost" holds
+   too. The book's "99 percent probability" is a test level rather than a
    probability. The test rejects no cointegration at the 1 percent level, and
    it says nothing about how likely the pair is to cointegrate.
-2. **The control holds, and a second control weakens what it shows.** GLD
-   and GDX alone over the triplet's 1,481 days give a trace statistic of
-   10.447, short of even the 90 percent bar of 13.429. Adding USO raises the
-   first null's trace to 44.838, so the triplet's relation is not one the pair
-   already had. Row 14 asks the same of the other two pairs. GLD and USO alone
-   find nothing, at 4.350. GDX and USO alone find one relation at 99 percent,
-   at 27.166 against 19.935. So a triplet of rank 1 is also what a link
-   between the miners and oil alone would produce, with GLD along for the
-   ride, and that reading says nothing about oil restoring the link between
-   gold and the miners. Rank 1 cannot tell the two readings apart, and this
-   entry does not try. The eigenvector's entries are shares per unit of the
-   portfolio, so their sizes are not comparable across ETFs at different
+2. **The control finds nothing, and the triplet's weights decide what a second
+   control could not.** GLD and GDX alone over the triplet's 1,481 days give a
+   trace statistic of 10.447, short of even the 90 percent bar of 13.429.
+   Adding USO raises the first null's trace to 44.838, so the triplet's
+   relation is not one the pair already had. Row 14 asks the same of the
+   other two pairs. GLD and USO alone find nothing, at 4.350. GDX and USO
+   alone find one relation at 99 percent, at 27.166 against 19.935. A rank of
+   1 cannot say whether the triplet's relation is that pair's own, so row 15
+   tests its weights. If the relation were GDX and USO's, GLD's weight in it
+   would be zero. That restriction gives a likelihood-ratio statistic of
+   10.015 against a 99 percent bar of 6.635, so it is rejected. GDX's weight
+   at zero gives 26.337. USO's gives 0.057, short of even the 90 percent bar
+   of 2.706. So gold and the miners carry the relation, and USO's weight in
+   it cannot be told from zero. With row 10, that places whatever USO adds to
+   the triplet outside the relation's weights, and no row here tests where.
+   Rows 14 and 15 cannot both be right. If GDX and USO truly shared a
+   relation, a triplet of rank 1 would have to hold that same relation, with
+   GLD's weight at zero, and row 15 rejects it. Row 14's is the weaker result,
+   since GDX and USO reach full rank at 90 percent while neither is stationary
+   alone, which conclusion 3 takes up. Row 15 is exploratory too. The post's
+   pre-publish review added it after every other result here had been seen,
+   it holds only if the rank is 1, it is one of three weight tests run
+   together, and its bars are asymptotic. Two resampling checks run in the
+   post's review found those bars rejecting too often on 1,479 observations,
+   which no row here pins, so the post and its sketch read the GLD rejection
+   at 95 percent rather than 99. The eigenvector's entries are shares per unit
+   of the portfolio, so their sizes are not comparable across ETFs at different
    prices, and no row here measures any weight in dollars.
 3. **The Engle-Granger family sees the same break, and no series is
    stationary alone.** The CADF statistic of GLD on GDX is −3.724 before the
@@ -6814,10 +6836,11 @@ Four things.
 
 Four things.
 
-1. **Anything about oil itself.** USO holds front-month WTI futures rather
-   than oil, which location 1939 raises about a different pair. A futures fund
-   drifts from the spot price by its roll, so the triplet's relation is with
-   the fund, and whether it holds with the spot price is a different test.
+1. **Anything about oil itself.** Over these years USO held front-month WTI
+   futures rather than oil, which location 1939 raises about a different pair.
+   A futures fund drifts from the spot price by its roll, so the triplet's
+   relation is with the fund, and whether it holds with the spot price is a
+   different test.
 2. **Whether the break is where Chan put it.** The date was chosen by looking
    at the data, so a test that splits there is favoured by construction. No
    row here searches for the break or tests another date, and doing so would
@@ -6837,6 +6860,25 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/gold-miners-oil-lessons.md](../blog/gold-miners-oil-lessons.md) moves
 with it, since that post quotes most of these figures. The post's one figure
 moves too, and `uv run python -m chan.gold_miners_oil_figures` redraws it.
+
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **Counting stops at the first miss**, in Lesson 1. It draws how the triplet's
+   trace test reaches its count. The first statistic, 44.838, clears its 99
+   percent bar of 35.463, and the second, 7.005, falls short of its bar of
+   19.935 and even of the 90 percent bar of 13.429, so the count stops at one
+   relation and the third statistic, though computed, is never read.
+2. **One relation, three pairs**, in Lesson 3. It draws each pair tested alone
+   over the triplet's days as an edge of a triangle. GLD and GDX at 10.447 and
+   GLD and USO at 4.350 find none, and GDX and USO at 27.166 find one at 99
+   percent, so the triplet's count of one cannot say which pair it is. It
+   closes on the zero-weight tests, 10.015 for GLD, rejected at 95 percent,
+   and 0.057 for USO, not rejected.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.gold_miners_oil_whiteboard` redraws both through the
+same `read_sources` and `gold_miners_oil`.
 
 ## Entry 30: AUD.CAD with rollover interest, Chan's *Algorithmic Trading*
 

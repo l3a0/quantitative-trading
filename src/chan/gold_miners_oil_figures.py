@@ -6,7 +6,7 @@ over the 1,481 days all three ETFs are priced, with the day Chan splits at
 marked on both.
 
 1. The three closes in dollars, because the split is the day USO closes
-   highest on the file, and that is the fact Chan's oil story starts from.
+   highest on the file, and that is the fact Chan's oil explanation starts from.
 2. GLD and GDX held in the weights the first window's Johansen test finds,
    in standard deviations from that portfolio's first-window mean. The
    weights are fitted on the first window only, so everything right of the

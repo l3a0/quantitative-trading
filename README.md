@@ -406,13 +406,14 @@ where they were first built. The other forty-five were built here.
     any statistic was computed. All six rows hold. The pair finds one
     relation from 2006-05-23 to 2008-07-14 and none from 2008-07-15 to
     2012-04-09, even at 90 percent, and the triplet finds exactly one over the
-    whole 1,481 days. The control the book leaves out holds too: GLD and GDX
-    alone over the same days find none, at a trace statistic of 10.447
-    against a 90 percent bar of 13.429. GDX and USO alone find one relation
-    at 99 percent, though, so the triplet's result cannot tell the oil
-    hypothesis from a link between the miners and oil alone. Every figure is
-    exploratory, and the split date and the third ETF were chosen after the
-    break was seen.
+    whole 1,481 days. The control the book leaves out finds what the oil
+    explanation needs: GLD and GDX alone over the same days find no relation,
+    at a trace statistic of 10.447 against a 90 percent bar of 13.429. GDX and
+    USO alone find one relation at 99 percent, but a test on the triplet's
+    weights, added in the post's review, rejects GLD's weight being zero at 95
+    percent and cannot reject USO's even at 90, so the two results conflict.
+    Every figure is exploratory, and the split date and the third ETF were
+    chosen after the break was seen.
 30. AUD.CAD with rollover interest, *Algorithmic Trading*'s Example 5.2, on
     the daily closes and monthly interest rates in Chan's 2018 Python port.
     Both figures `AUDCAD_daily.m` prints reproduce to their last digit, an APR
@@ -1122,9 +1123,13 @@ the Johansen tests on GLD, GDX and USO. It pins the six claim criteria as the
 issue declared them, the book's three quotes against the highlight they come
 from, every statistic and eigenvalue of the four tests and of each ETF with
 USO alone at the precision that is real, the CADF and ADF rows beside them,
-and the cut to GDX's first price that keeps a missing price from reaching the
-test. The blog post about it is the exception, and what it says that nothing
-here asserts is listed below.
+the test of each fund's weight in the triplet's relation, the cut to GDX's
+first price that keeps a missing price from reaching the test, and GLD's and
+USO's first price on 2006-04-26. `TestThePostQuotesTheRun` reads at least one
+copy in the post of each figure the post takes from the run, from the chart or
+from the earlier post's regime map, so editing a copy it reads fails. The
+paragraph on the post below says which copies it leaves unread, and what the
+post says that nothing here asserts.
 
 [tests/test_aud_cad_rollover.py](tests/test_aud_cad_rollover.py) does it for
 Example 5.2. It pins the script's two printed figures, the book's four, and
@@ -4330,10 +4335,12 @@ replication log.
 
 1. Every claim holds on both Johansen statistics, with room, and the book's
    "99 percent probability" is a test level rather than a probability.
-2. The control the book leaves out holds, since GLD and GDX alone over the
-   triplet's days find no relation even at 90 percent.
-3. A second control weakens the story, since GDX and USO alone find one
-   relation at 99 percent and GLD and USO find none.
+2. The control the book leaves out finds nothing: GLD and GDX alone over the
+   triplet's days find no relation even at 90 percent, so USO adds something
+   to the triplet.
+3. The weights say what the count cannot. The pairs find one relation for GDX
+   and USO and none for GLD and USO, and a test on the triplet's weights
+   rejects GLD's weight being zero and cannot reject USO's.
 4. The split date and the third ETF were both chosen after the break was seen,
    so the result is exploratory and cannot confirm the oil hypothesis.
 
@@ -4341,21 +4348,39 @@ Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
-   "Until July 14, 2008, or thereabout", the three claims' quotes, the oil
-   peak at around $145 a barrel, the mining-cost explanation, the suggestions
-   to trade the triplet or to stop trading the pair above an oil threshold,
-   and the framing of the example as a hypothesis to test are all at 1922.
+   "Until July 14, 2008, or thereabout", the three claims' quotes, the
+   triplet's "entire period from 2006 to 2012", the oil peak at around $145 a
+   barrel, the mining-cost explanation and the 2011 piece it cites, the
+   suggestions to trade the triplet or to stop trading the pair above an oil
+   threshold, and the framing of the example as a hypothesis to test are all
+   at 1922.
    The three claims' quotes are also matched against that highlight by
    `TestTheBooksClaims`.
-2. Facts outside the committed data. That USO holds the crude oil futures
-   nearest expiry and drifts from the spot price as it rolls, which Entry 29
-   records, and that every Johansen call in Chan's scripts for the book passes
-   a constant and one lagged difference, which
+2. Facts outside the committed data. That USO held the crude oil futures
+   nearest expiry over these years and drifts from the spot price as it rolls,
+   which Entry 29 records, that every Johansen call in Chan's scripts for the
+   book passes a constant and one lagged difference, which
    [src/chan/gold_miners_oil.py](src/chan/gold_miners_oil.py)'s docstring
-   records.
-3. Two readings no test asserts: that a test level is not the probability a
-   claim is true, and that a full Johansen rank says each series is
-   stationary alone.
+   records, and that the GLD and GDX post dates the miners' detachment from
+   gold to the 2010s, which that post says in its own words.
+3. Six readings no test asserts.
+   1. That a test level is not the probability a claim is true.
+   2. That a full Johansen rank says each series is stationary alone.
+   3. That the large-sample bars for the weight test reject too often on its
+      1,479 observations, the 1,481 days less one for the first difference
+      and one for the lag. Two resampling checks run in the post's review
+      found this and nothing here pins it, so the post reads that test at 95
+      percent.
+   4. That what USO adds to the triplet lies in how the prices change from day
+      to day rather than in the relation's weights, which follows from row 10
+      and the weight test together.
+   5. That Chan's explanation, in which dear oil cuts the miners' profits,
+      suggests a mix with oil's price in it.
+   6. That the miners and oil pair's relation, the triplet's count of one and
+      the weight test cannot all be right. Any relation two of the funds share
+      is also a relation among all three, with the third fund's weight at
+      zero, so the conflict follows from rows 5 and 6, row 14 and row 15
+      together.
 4. The MacKinnon critical values of −3.34 and −3.90 for the Engle-Granger
    test, which are constants of `ithildincore.timeseries` rather than
    something this repository computes. The suite asserts that the statistic
@@ -4372,7 +4397,21 @@ for the figure's own numbers, to
 critical values checked against Chan's printout and the two Johansen
 statistics disagreeing on his file, or to
 [tests/test_regime_figure.py](tests/test_regime_figure.py) for the earlier
-post's rolling windows. Five had no pin before it.
+post's rolling windows. `TestThePostQuotesTheRun` in
+[tests/test_gold_miners_oil.py](tests/test_gold_miners_oil.py) reads the post
+itself. It reads Lesson 1's and Lesson 3's tables row by row, and at least one
+copy in the prose of every other figure the post takes from
+`chan.gold_miners_oil`, `chan.gold_miners_oil_figures` or `chan.regime_figure`,
+so editing a copy it reads fails. A figure printed a
+second time, such as the 1,481 days in the caption, is read only where the
+words around it match. It does not read the list of Chan's three claims, the
+headings, the caption or the alt texts, or a count written in words, such as
+full rank at 90 percent. It reads a test level only in the words around a
+figure it reads, as in the 90 percent bar of 13.429, so a level stated apart
+from one, such as the Engle-Granger test finding the relation only at 95
+percent, is not read. The sketches' labels are read by
+[tests/test_gold_miners_oil_whiteboard.py](tests/test_gold_miners_oil_whiteboard.py).
+Seven had no pin before the post.
 
 1. USO's highest close on the file, 117.48, on 2008-07-14, the last day of the
    first window.
@@ -4385,6 +4424,13 @@ post's rolling windows. Five had no pin before it.
 5. The rolling windows of the earlier post's regime map: 9 of the 45 ending
    inside 2008-07-15 to 2012-04-09 pass at 10 percent, and the last to pass
    before 2019 ends on 2015-10-22.
+6. The test of each fund's weight in the triplet's one relation, added in the
+   post's pre-publish review: likelihood-ratio statistics of 10.014660 with
+   GLD's weight at zero, 26.336768 with GDX's and 0.056678 with USO's,
+   asymptotic p-values of 0.00155 and 0.812 for GLD and USO, and the
+   chi-squared bars of 2.706, 3.841 and 6.635.
+7. GLD's and USO's first price on the file, 2006-04-26, 19 rows before GDX's,
+   pinned in `TestTheCut` in the post's pre-publish review.
 
 Its one figure is drawn from the committed file by
 [src/chan/gold_miners_oil_figures.py](src/chan/gold_miners_oil_figures.py),
@@ -4403,6 +4449,46 @@ uv run python -m chan.gold_miners_oil_figures
 [tests/test_gold_miners_oil_figures.py](tests/test_gold_miners_oil_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/gold_miners_oil_whiteboard.py](src/chan/gold_miners_oil_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `gold_miners_oil_sketch_counting.gif`, in Lesson 1 after the list item on
+   the three funds, draws to one scale how the trace test counts on GLD, GDX
+   and USO over the whole span. The first statistic, 44.838, clears its 99
+   percent bar of 35.463, and the second, 7.005, falls short of its bar of
+   19.935 and even of the 90 percent bar of 13.429, so the count stops at one
+   relation. The third slot is drawn as an empty dotted outline, the one mark
+   whose height is not a figure.
+2. `gold_miners_oil_sketch_three_pairs.gif`, in Lesson 3 after the two
+   paragraphs giving the zero-weight test's results, draws the three funds as
+   a triangle whose edges are the pairs tested alone. GLD and GDX give 10.447
+   and GLD and USO 4.350, both finding none, while GDX and USO give 27.166, one
+   relation at 99 percent against the pairs' bar of 19.935. So a count of one
+   cannot say which pair the triplet's relation is. Its last notes give the
+   zero-weight tests, where GLD's weight set to zero gives 10.015 and is
+   rejected at 95 percent, and USO's gives 0.057 and is not. Its triangle's
+   shape carries no figure.
+
+Both read every figure from the committed file through the same
+`read_sources` and `gold_miners_oil` as `python -m chan.gold_miners_oil`. Both
+build slowly and hold their finished drawings for twelve seconds. Redraw both
+with:
+
+```bash
+uv run python -m chan.gold_miners_oil_whiteboard
+```
+
+[tests/test_gold_miners_oil_whiteboard.py](tests/test_gold_miners_oil_whiteboard.py)
+holds what each sketch says and draws, that each column and dashed bar of the
+first stands at its value on one scale, that its third statistic is never
+printed, that each edge of the second joins the funds it names, that made-up
+figures move their words, that figures which would make their words false are
+refused, that each GIF follows its text in the post, that each alt text
+quotes every label in the order it is drawn and says what its sketch shows and
+that it is slow, and that each GIF is a fresh draw byte for byte on the owner's
+Mac.
 
 [blog/johansen-etf-lessons.md](blog/johansen-etf-lessons.md) is an eighteenth
 post, about Examples 2.6 to 2.8 of Chan's *Algorithmic Trading*, which test
