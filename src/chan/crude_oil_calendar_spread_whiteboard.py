@@ -8,7 +8,7 @@ low. This module draws the two as scenes, and the post places each right after
 the passage it draws.
 
 1. One pair at a time, a year apart, in "The spread, the signal and the file",
-   after a one-sentence lead-in that follows the paragraph ending "When γ
+   after a short lead-in that follows the paragraph ending "When γ
    rises, the spread falls." It draws item 6 of that section's list on
    Chan's file: a trading-day axis from December 2007 to November 2008 with a
    grey tick at each near contract's last priced day, the pair short K2008
@@ -33,8 +33,8 @@ The Lesson 2 sketch is schematic apart from its closing note. Its curves are
 made up to show the shape of the relation, a rough and noisy inverse rather
 than a mirror, so no height or date on it is a value of γ or of the spread.
 Its two counts, the 841 of 1,097 held days on which the two z-scores have
-opposite signs and the 554 days with the roll return's z-score above 0, all
-of them held short the far contract, come from :class:`Signs`, which reads
+opposite signs and the 554 held days with the roll return's z-score above 0,
+all of them held short the far contract, come from :class:`Signs`, which reads
 :func:`chan.calendar_spread_reversion.held_spread_zscore` and the script's
 own positions on the committed CL strip. It names γ in words, as the roll
 return, because the hand font draws γ like a y.
@@ -590,7 +590,7 @@ def _script_sells(signs: Signs) -> Scene:
             size=11,
         ),
         Label(
-            f"short far on all {_thousands(signs.high)} days with the roll return’s "
+            f"short far on all {_thousands(signs.high)} held days with the roll return’s "
             "z-score above 0",
             0.3,
             0.27,

@@ -7775,7 +7775,17 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.calendar_spread_reversion_figures`
-redraws.
+redraws. Its two whiteboard sketches move too, and
+`uv run python -m chan.crude_oil_calendar_spread_whiteboard` redraws them. The
+one in "The spread, the signal and the file" draws the script's schedule from
+the run. The schedule holds the pair short K2008 and long K2009 from 2007-12-05
+to 2008-04-08, skips the M2008, N2008 and Q2008 windows from 2008-04-09
+because each ends fewer than 63 trading days after it starts, and holds the
+pair short U2008 and long U2009 from 2008-04-09 to 2008-08-06. The one in
+Lesson 2 is schematic apart from its closing note. That note prints the
+fourth conclusion's 841 of 1,097 held rows, and the 554 held rows with γ's
+z-score above 0, all of them short the far leg, which
+`TestTheTradesDirection` also pins.
 
 ## Entry 35: VIX futures calendar spreads on the ratio of back to front, Chan's *Algorithmic Trading*
 

@@ -5940,7 +5940,12 @@ Five groups of what it says are not pinned here.
 4. Figures the post states in words or as percentages of pinned ones, such as
    8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and
    about three days in four. The figure's alt text reads its curves and the
-   scatter's ranges approximately too.
+   scatter's ranges approximately too. The sketches' alt texts place their
+   marks in words, such as "ends just before the K tick" and "wanders and then
+   climbs", and
+   [tests/test_crude_oil_calendar_spread_whiteboard.py](tests/test_crude_oil_calendar_spread_whiteboard.py)
+   reads their quoted labels, their pace, the colour each names and a few of
+   those places rather than every one.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -5948,6 +5953,9 @@ Every other number in the post traces to an assertion in
 to
 [tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
 for the figure's own numbers, to
+[tests/test_crude_oil_calendar_spread_whiteboard.py](tests/test_crude_oil_calendar_spread_whiteboard.py)
+for the schedule sketch's pairs, dates and day counts and the alt texts that
+quote both sketches' labels, to
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) for the
 126 of 847 held days on which the VIX trade's near leg is the front contract,
 or to [tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's
@@ -6015,7 +6023,8 @@ finished drawing for twelve seconds.
    return over the held spread with their 36-day averages, a tint where the
    roll return's z-score is above 0, and arrows where the script sells the
    spread and where reversion would buy it. It is schematic apart from its
-   closing note, whose 841 of 1,097 held days and 554 days come from the run.
+   closing note, whose two counts of held days, 841 of 1,097 and 554, come from
+   the run.
 
 Redraw both with:
 

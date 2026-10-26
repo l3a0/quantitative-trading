@@ -91,7 +91,7 @@ POST = REPO_ROOT / "blog" / "crude-oil-calendar-spread-lessons.md"
 GIFS = ["crude_oil_calendar_spread_schedule.gif", "crude_oil_calendar_spread_script_sells.gif"]
 
 #: The paragraph each GIF follows, by its opening words. The schedule sketch
-#: follows a one-sentence lead-in, and the Lesson 2 sketch the paragraph on
+#: follows a short lead-in, and the Lesson 2 sketch the paragraph on
 #: what the script does.
 FOLLOWS = (
     "Drawn on Chan’s file, item 6’s schedule",
@@ -140,7 +140,7 @@ SELLS_LABELS = [
     "the bet pays if the",
     "spread keeps falling",
     "the two z-scores have opposite signs on 841 of 1,097 held days from 2008-01-02",
-    "short far on all 554 days with the roll return’s z-score above 0",
+    "short far on all 554 held days with the roll return’s z-score above 0",
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -433,10 +433,25 @@ class TestThePost:
         assert "item 6" in paragraphs[index]
         assert "\n6. **The schedule.**" in "\n" + "\n".join(paragraphs)
 
-    def test_the_lead_in_counts_the_skipped_pairs_in_words(self, schedule_run) -> None:
+    def test_the_lead_in_counts_the_pairs_held_and_skipped(self, strip, schedule_run) -> None:
+        """A pair is skipped only when its window is too short, so every near
+        contract the schedule never holds short is one the lead-in calls skipped.
+        Most are, across the file and in 2008, the year the sketch draws."""
         (lead_in,) = [p for p in _paragraphs() if p.startswith(FOLLOWS[0])]
+        near = (calendar_schedule(strip.contracts) == -1).any().iloc[:-12]
+        in_2008 = near[[name[3:7] == "2008" for name in near.index]]
+        assert (len(in_2008), int(in_2008.sum())) == (12, 4), SCHEDULE_SPEC
+        assert int((~near).sum()) > int(near.sum()), SCHEDULE_SPEC
         assert len(schedule_run.skipped) == 3, SCHEDULE_SPEC
-        assert "skips three pairs in a row" in lead_in
+        assert (schedule_run.before.near, schedule_run.after.near) == ("CL-2008K", "CL-2008U")
+        for phrase in (
+            "holds one pair at a time and skips most pairs because their windows are too short.",
+            "Of the twelve pairs whose near contract delivers in 2008, "
+            "it holds four and skips eight.",
+            "the pair short K2008 and long K2009, the three pairs skipped after it, "
+            "and the pair short U2008 and long U2009.",
+        ):
+            assert phrase in lead_in, phrase
 
     def test_the_schedule_sits_in_its_section_and_the_other_in_lesson_2(self) -> None:
         text = POST.read_text(encoding="utf-8")
@@ -744,7 +759,7 @@ class TestTheSignsFigures:
         scene = scenes(OTHER, Signs(2000, 1500, 1200, 1200))[1]
         assert scene.labels[-2:] == [
             "the two z-scores have opposite signs on 1,500 of 2,000 held days from 2008-01-02",
-            "short far on all 1,200 days with the roll return’s z-score above 0",
+            "short far on all 1,200 held days with the roll return’s z-score above 0",
         ]
 
 
@@ -892,3 +907,103 @@ class TestTheScheduleAltText:
         assert "three red bars start the day after the black bar ends" in alt
         assert "each crossed with a red X" in alt
         assert "starts at the same place as the red bars" in alt
+
+
+# --- Proposed by the round 1 completeness lens ----------------------------------
+
+#: The word each alt text uses for each ink.
+INK_WORDS = {INK: "black", MUTED: "grey", LOST: "red", GOOD: "green", ACCENT: "brown"}
+
+
+class TestTheScheduleRefusals:
+    """Each guard in :meth:`Schedule.from_contracts` and :func:`scenes` stands
+    for a sentence on the sketch, so each is made to fire. The skipped windows'
+    half of the length guard fires in ``TestTheScheduleFigures``."""
+
+    def test_a_pair_that_does_not_end_10_days_early_is_refused(self, strip, monkeypatch) -> None:
+        monkeypatch.setattr(sketches, "NUM_DAYS_END", 9)
+        with pytest.raises(ValueError, match="does not end 9 days early"):
+            Schedule.from_contracts(strip.contracts)
+
+    def test_a_pair_that_does_not_start_the_day_after_the_last_ended_is_refused(
+        self, strip, monkeypatch
+    ) -> None:
+        moved = calendar_schedule(strip.contracts).copy()
+        first = moved.index[moved["CL-2008U"].to_numpy() == -1][0]
+        moved.loc[first, ["CL-2008U", "CL-2009U"]] = 0
+        monkeypatch.setattr(sketches, "calendar_schedule", lambda contracts: moved)
+        with pytest.raises(ValueError, match="does not start the day after"):
+            Schedule.from_contracts(strip.contracts)
+
+    def test_a_longer_rule_that_would_skip_u2008_too_is_refused(self, strip, monkeypatch) -> None:
+        """U2008's window is 83 days apart, so a rule of 84 would skip it as well."""
+        monkeypatch.setattr(sketches, "HOLDDAYS", 84)
+        with pytest.raises(ValueError, match="under the rule's length"):
+            Schedule.from_contracts(strip.contracts)
+
+    @pytest.mark.parametrize("count", [0, 4])
+    def test_a_schedule_with_no_row_for_its_skips_is_refused(self, count) -> None:
+        made_up = Schedule(**{**OTHER.__dict__, "skipped": (OTHER.skipped[0],) * count})
+        with pytest.raises(ValueError, match="rows for 1 to 3 skipped windows"):
+            scenes(made_up, Signs(10, 7, 4, 4))
+
+
+class TestTheScheduleSketchFollowsTheRun:
+    def test_the_bracket_label_reads_its_days_from_the_run(self) -> None:
+        made_up = Schedule(**{**OTHER.__dict__, "days_to_expiry": 7})
+        scene = scenes(made_up, Signs(10, 7, 4, 4))[0]
+        assert "7 days to H2010’s last priced day" in scene.labels
+
+    def test_the_skip_label_sits_left_of_the_red_bars_at_their_middle(self, every) -> None:
+        scene = every[0]
+        label = _label(scene, "skipped, too short")
+        heights = [float(np.median(_stroke(scene, f"skipped-{k}").y)) for k in range(3)]
+        assert label.ha == "right"
+        assert label.x < min(_stroke(scene, f"skipped-{k}").x.min() for k in range(3))
+        assert label.y == pytest.approx(heights[1])
+
+    def test_the_held_bars_are_thicker_than_the_skipped_ones_and_the_bracket(self, every) -> None:
+        """The alt text calls the held pairs thick bars and the bracket thin."""
+        scene = every[0]
+        held = {_stroke(scene, gid).width for gid in ("before", "after")}
+        skipped = {_stroke(scene, f"skipped-{k}").width for k in range(3)}
+        assert min(held) > max(skipped) > _stroke(scene, "days-to-expiry").width
+
+
+class TestTheAltTextsSayWhatIsDrawn:
+    def test_the_schedule_alt_text_names_each_ink_and_place(self, every, schedule_run) -> None:
+        scene = every[0]
+        alt = _alt(POST.read_text(encoding="utf-8"), scene)
+        ink = {s.gid: INK_WORDS[s.color] for s in scene.strokes}
+        for phrase in (
+            f"A {ink['axis']} trading-day axis runs along the bottom",
+            f"a {ink['expiry-K']} tick below it at each near contract’s last priced day",
+            f"A thick {ink['before']} bar near the top",
+            "ends just before the K tick",
+            f"a thin {ink['days-to-expiry']} bracket runs from its end to the K tick",
+            f"in {INK_WORDS[_label(scene, 'skipped, too short').color]} to their left",
+            f"Under them a second thick {ink['after']} bar",
+            "“short U2008, long U2009” on its left and “04-09 to 08-06, 84 days” on its right",
+        ):
+            assert phrase in alt, phrase
+        k_tick = day_x(schedule_run, dict(schedule_run.expiries)["K"])
+        assert _stroke(scene, "before").x.max() < k_tick
+        after = _stroke(scene, "after")
+        left, right = (_label(scene, text) for text in SCHEDULE_LABELS[18:20])
+        assert left.x <= after.x.min() and right.x >= after.x.max()
+
+    def test_the_lesson_2_alt_text_names_each_ink_and_direction(self, every) -> None:
+        scene = every[1]
+        alt = _alt(POST.read_text(encoding="utf-8"), scene)
+        ink = {s.gid: INK_WORDS[s.color] for s in scene.strokes}
+        for phrase in (
+            f"a {ink['gamma']} line labelled “roll return” wanders and then climbs",
+            f"with a dashed {ink['gamma-average']} line, its average",
+            f"a {ink['spread']} line labelled “held spread” moves roughly opposite",
+            f"with a dashed {ink['spread-average']} line trailing behind it",
+            f"A pale green box with a {ink['high-edge']} edge",
+            f"The {ink['spread']} spread keeps falling to the box’s right edge",
+        ):
+            assert phrase in alt, phrase
+        _, gy, _, sy, _ = board_curves()
+        assert gy[-1] == gy.max() and sy[-1] == sy.min()
