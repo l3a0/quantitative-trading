@@ -1,11 +1,13 @@
 """The pins for crude oil reversal joined to momentum, *Algorithmic Trading* location 2701.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the rows beside it. The one exception is
-``blog/crude-oil-reversal-momentum-lessons.md``:
+about this replication and the rows beside it, with two exceptions, both
+drawn in ``blog/crude-oil-reversal-momentum-lessons.md``.
 ``tests/test_cl_reversal_momentum_figures.py`` holds the numbers its figure
-draws, and README lists what it says that nothing asserts. The post also
-quotes what ``TestTheJoinIsHalfOfEachRule`` pins for it: that half of each
+draws. ``tests/test_cl_reversal_momentum_whiteboard.py`` holds those its
+sketches and their captions show that this file does not pin, wherever a
+surface quotes them. README lists what the post says that nothing asserts.
+The post also quotes what ``TestTheJoinIsHalfOfEachRule`` pins for it: that half of each
 rule gives the join's position outside rows where a lag is missing or tied,
 how often the two rules agree, and each rule's average day and standard
 deviation. ``TestWhatThePostQuotes`` reads every copy of each run figure the
