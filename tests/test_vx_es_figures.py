@@ -21,18 +21,20 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.colors import to_hex, to_rgb
 from matplotlib.dates import date2num
 
 from chan import vx_es_figures
 from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import INK, RULE
+from chan.regime_figure import GROUND, INK, RULE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from chan.vx_es import ES, VX, position_changes, read_legs, vx_es
 from chan.vx_es_figures import (
     DOWNGRADE,
     REGIMES,
+    SHADE_ALPHA,
     VX_ES_FIGURE,
     Holding,
     cumulative_return,
@@ -42,6 +44,7 @@ from chan.vx_es_figures import (
     regime_masks,
     signed,
 )
+from tests.test_palette import _MACHADO, _apart
 
 
 @pytest.fixture(scope="module")
@@ -223,6 +226,22 @@ class TestTheZScore:
             assert tuple(shade.get_facecolor()[:3]) == pytest.approx(
                 tuple(int(colour[i : i + 2], 16) / 255 for i in (1, 3, 5))
             )
+
+    def test_the_long_and_short_shades_stay_apart_under_colour_blindness(self, axes) -> None:
+        """Each shade is its colour laid on the axes' ground at SHADE_ALPHA. The
+        two sit at least 8 apart in normal vision and under each kind of colour
+        blindness, which the 0.13 the shared colours used did not reach."""
+        shades = {}
+        for patch in axes["z"].patches:
+            if patch.get_gid() in ("long", "short"):
+                *rgb, alpha = patch.get_facecolor()
+                assert alpha == pytest.approx(SHADE_ALPHA)
+                ground = to_rgb(GROUND)
+                shades[patch.get_gid()] = to_hex(
+                    [alpha * c + (1 - alpha) * g for c, g in zip(rgb, ground, strict=True)]
+                )
+        for kind in (None, *_MACHADO):
+            assert _apart(shades["long"], shades["short"], kind) >= 8, kind
 
     def test_the_heading_names_the_band_and_the_lowest_day(self, axes) -> None:
         assert _title(axes["z"]) == (

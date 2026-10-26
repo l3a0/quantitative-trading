@@ -41,8 +41,8 @@ colours are :mod:`chan.palette`'s, which a colour-blind reader can tell apart,
 so :func:`render` maps each frame onto :data:`chan.palette.INKS`: berry for
 the copy shifted by one amount, blue for a long, and vermilion for the uneven
 copy and a short. The grey of a flat stretch sits only 7.5 from the vermilion
-under protanopia, so each stretch also carries its word, and a flat one is
-drawn thinner.
+under protanopia. Each stretch already carries its word, and a flat one is
+drawn thinner than a long or a short, so the two still read apart.
 Each sketch carries more than a reader takes in at that post's pace, so both
 are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
 longer and their finished drawings for twelve seconds, as

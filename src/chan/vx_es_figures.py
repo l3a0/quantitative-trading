@@ -24,7 +24,10 @@ The colours are :mod:`chan.palette`'s, which a colour-blind reader can tell
 apart: berry for the first regime and the changes of position, blue for a
 long and vermilion for a short, the fit and the downgrade. Inside the axes the
 vermilion reaches only 4.30 to 1 against the ground, short of the bar for
-text, so the downgrade's label sits on a white box.
+text, so the downgrade's label sits on a white box. The long and short shades
+are laid on at :data:`SHADE_ALPHA`, strong enough that the two stay at least
+8 apart under each kind of colour blindness, where a fainter wash of the same
+colours fell to 3.6.
 
 Every value comes from :func:`chan.vx_es.read_legs` and
 :func:`chan.vx_es.vx_es`, the run's own path, so the scale-break guard runs
@@ -74,6 +77,11 @@ FIRST_REGIME_END = pd.Timestamp("2008-05-31")
 SECOND_REGIME_START = pd.Timestamp("2008-08-01")
 #: Standard and Poor's announced the downgrade after this day's close.
 DOWNGRADE = pd.Timestamp("2011-08-05")
+
+#: How strongly a long or a short is shaded on the z-score panel. At 0.30 the
+#: two shades sit 8.6 apart under protanopia, and at the 0.13 the shared green
+#: and red were drawn at they would sit 3.6 apart.
+SHADE_ALPHA = 0.30
 
 #: Each group of days on the scatter: its gid, its colour and its legend label.
 REGIMES = (
@@ -179,7 +187,7 @@ def _zscore_panel(ax, result: VxEs) -> None:
                 held.first,
                 end,
                 color=GOOD if held.units > 0 else LOST,
-                alpha=0.13,
+                alpha=SHADE_ALPHA,
                 lw=0,
                 gid="long" if held.units > 0 else "short",
             )

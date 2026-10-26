@@ -199,7 +199,8 @@ class TestTheScenes:
         """Neither sketch draws a tint today. One that does would need a blue
         edge like the green one the equity seasonals module's ``_tinted``
         draws, since the tint alone stands 1.31 to 1 against the board."""
-        tints = [fill for scene in every for fill in scene.fills if fill.color == palette.TINT]
+        pale = {palette.TINT, palette.REJECT_TINT, whiteboard.TINT, whiteboard.REJECT_TINT}
+        tints = [fill for scene in every for fill in scene.fills if fill.color in pale]
         assert tints == []
 
 
@@ -286,10 +287,12 @@ class TestTheGifs:
                 (f.done, f.partial) for f in timeline(scene)
             ]
 
-    def test_each_draws_in_the_colour_blind_safe_inks(self, gifs) -> None:
-        """Every ink of :data:`chan.palette.INKS` is in each GIF's colours and
-        the shared brass, green and red are not, so a frame quantized onto the
-        renderer's default inks fails here on any machine."""
+    def test_each_colour_table_holds_the_colour_blind_safe_inks(self, gifs) -> None:
+        """Each GIF's colour table holds the berry, blue and vermilion of
+        :data:`chan.palette.INKS` and not the shared brass, green and red, so a
+        frame quantized onto the renderer's default inks fails here on any
+        machine. A sketch need not draw every ink, so this reads the table
+        rather than the pixels."""
         rgb = {
             name: tuple(int(c[i : i + 2], 16) for i in (1, 3, 5))
             for name, c in (
