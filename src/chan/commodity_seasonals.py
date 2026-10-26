@@ -88,6 +88,8 @@ from pathlib import Path
 # The calendar and the expiry rules moved to chan.futures. The three names
 # aliased to themselves are imported only so Entry 11's tests, which import them
 # from here, did not have to move.
+from scipy import stats
+
 from chan.futures import (
     contract_number,
     last_business_day,
@@ -269,6 +271,25 @@ def sharpe_ratio(trades: list[Trade]) -> float:
     """
     returns = [trade.relative_change for trade in _readable(trades)]
     return statistics.mean(returns) / statistics.stdev(returns)
+
+
+def sharpe_standard_error(trades: list[Trade]) -> float:
+    """How far a Sharpe ratio from this few yearly results typically strays from the true one.
+
+    Lo (2002) gives ``sqrt((1 + SR**2 / 2) / n)`` for ``n`` independent
+    returns. One trade a year leaves ``n`` at 8 to 18 here, so the error is
+    about a third of a Sharpe ratio of 1.
+    """
+    ratio = sharpe_ratio(trades)
+    return math.sqrt((1 + ratio**2 / 2) / len(_readable(trades)))
+
+
+def mean_interval(trades: list[Trade], level: float = 0.95) -> tuple[float, float]:
+    """The range that holds the true mean yearly return at ``level``, from Student's t."""
+    returns = [trade.relative_change for trade in _readable(trades)]
+    n, mean = len(returns), statistics.mean(returns)
+    half = stats.t.ppf((1 + level) / 2, n - 1) * statistics.stdev(returns) / math.sqrt(n)
+    return mean - half, mean + half
 
 
 def max_drawdown(trades: list[Trade], *, data_dir: Path | None = None) -> float:

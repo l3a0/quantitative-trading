@@ -35,7 +35,9 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 \end{array}
 ```
 
-A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by its standard deviation. The drawdown is the largest fall from a peak in the summed yearly returns, marked on every trading day the files hold a price, so it counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake. Gasoline’s 1995 to 2015 leaves out the 3 years with no price. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by its standard deviation. The drawdown is the largest fall from a peak in the summed yearly returns, marked on every trading day the files hold a price, so it counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake. Gasoline’s 1995 to 2015 leaves out the 3 years with no price. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim.
+
+Each trade happens once a year, so each column of the table rests on only 8 to 18 results, and its figures are rough. A Sharpe ratio from that few results has a standard error, the amount an estimate typically strays from the true value, of 0.3 to 0.4. So natural gas’s 1.0 before 2009 is consistent with anything from 0.4 to 1.6. The 95% range for natural gas’s mean return after 2008 runs from −12% to +12%, and still contains the +10.6% it earned before. Gasoline’s 8 years after 2015 give a range of −6% to +2%. A strategy that trades every day collects 15 results in three weeks. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two trades and the files
 
@@ -147,7 +149,7 @@ A pattern that reaches back fewer days fits more April days, so 1998 and 1999 ha
 
 Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 2 gives moves of +0.4, +0.5 and +0.6 cents a gallon and misses by 0.89, 0.76 and 0.65. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss.
 
-Fill 2’s misses also lean one way. On the test days it guessed May too low by 0.26, 0.21 and 0.20 cents on average, each between 2.7 and 3.2 standard errors from zero, a standard error being how far an average drawn from that many days would typically stray.
+Fill 2’s misses also lean one way. On the test days it guessed May too low by 0.26, 0.21 and 0.20 cents on average, each between 2.7 and 3.2 standard errors from zero.
 
 ![“One set of misses, three numbers”, drawn slowly stroke by stroke. Fill 2’s misses on the 80 test days of 1997’s pattern are stacked as dots on a scale labelled “-2”, “-1”, “0”, “+1” and “+2” in “cents a gallon”, with a dashed line at zero, and a caption reads “dot: one test day’s miss, 80 days”. More of the dots sit right of zero than left, and a few reach past +2. Above them a grey bar spans one typical miss either side of zero, “typical miss ±0.89, around zero”, and a black bar with a purple dot at its middle spans the spread either side of the average, “average +0.26, spread ±0.86”, shifted right of zero by the lean. A note names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_three_numbers.gif)
 

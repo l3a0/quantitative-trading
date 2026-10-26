@@ -40,6 +40,7 @@ from chan.commodity_seasonals import (
     june_contract_number,
     main,
     max_drawdown,
+    mean_interval,
     mean_return,
     natural_gas_trade,
     natural_gas_trades,
@@ -51,6 +52,7 @@ from chan.commodity_seasonals import (
     runs_ending,
     settlements,
     sharpe_ratio,
+    sharpe_standard_error,
 )
 
 
@@ -379,6 +381,21 @@ class TestTheReturns:
         got = (mean_return(years), sharpe_ratio(years), max_drawdown(years))
         assert got == pytest.approx(self.PINS[split], abs=5e-5)
 
+    #: the 95% range of the mean yearly return, and the Sharpe ratio's standard error
+    UNCERTAINTY = {
+        "natural gas, 1994 to 2008": ((0.0473, 0.1646), 0.3163),
+        "natural gas, 2009 to 2023": ((-0.1236, 0.1156), 0.2582),
+        "gasoline, 1995 to 2015": ((0.0115, 0.0526), 0.2689),
+        "gasoline, 2016 to 2023": ((-0.0597, 0.0210), 0.3675),
+    }
+
+    @pytest.mark.parametrize("split", list(UNCERTAINTY))
+    def test_one_trade_a_year_leaves_wide_ranges(self, split: str) -> None:
+        years = self.years(split)
+        (low, high), error = self.UNCERTAINTY[split]
+        assert mean_interval(years) == pytest.approx((low, high), abs=5e-5)
+        assert sharpe_standard_error(years) == pytest.approx(error, abs=5e-5)
+
     def test_the_marks_start_and_end_at_the_trade_s_prices(self) -> None:
         for trade in GASOLINE + GAS:
             if trade.change is not None:
@@ -614,6 +631,34 @@ class TestThePostQuotesThePins:
             }
             for name, (one, two) in rows.items():
                 assert f"\\quad\\text{{{name}}} & {one} & {two}" in self.text, (trade, name)
+
+    def test_the_sample_size_call_out(self) -> None:
+        """The paragraph under the returns table reads its ranges from the run."""
+
+        def whole(value: float) -> str:
+            return f"{'−' if value < 0 else '+'}{abs(round(100 * value))}%"
+
+        ng_before = TestTheReturns.years("natural gas, 1994 to 2008")
+        ng_after = TestTheReturns.years("natural gas, 2009 to 2023")
+        gas_after = TestTheReturns.years("gasoline, 2016 to 2023")
+        counts = [
+            len([t for t in TestTheReturns.years(split) if t.change is not None])
+            for split in TestTheReturns.SPLITS
+        ]
+        errors = [sharpe_standard_error(TestTheReturns.years(s)) for s in TestTheReturns.SPLITS]
+        ratio, error = sharpe_ratio(ng_before), sharpe_standard_error(ng_before)
+        low, high = mean_interval(ng_after)
+        assert low < mean_return(ng_before) < high
+        gas_low, gas_high = mean_interval(gas_after)
+        text = " ".join(self.text.split())
+        assert f"strays from the true value, of {min(errors):.1f} to {max(errors):.1f}." in text
+        assert f"rests on only {min(counts)} to {max(counts)} results" in text
+        assert (
+            f"natural gas’s {ratio:.1f} before 2009 is consistent with anything from "
+            f"{ratio - 1.96 * error:.1f} to {ratio + 1.96 * error:.1f}"
+        ) in text
+        assert f"after 2008 runs from {whole(low)} to {whole(high)}" in text
+        assert f"give a range of {whole(gas_low)} to {whole(gas_high)}" in text
 
     def test_the_2002_drawdown(self) -> None:
         trade = natural_gas_trade(2002)
