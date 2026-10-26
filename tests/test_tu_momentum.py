@@ -295,7 +295,7 @@ class TestTheTwoTests:
         assert gap(result.hurst, BOOK_HURST) == -0.01
         assert result.hurst < 0.5
 
-    def test_no_single_max_t_lands_both_books_figures(self, closes) -> None:
+    def test_max_t_24_lands_tu_and_moves_usdcad_further(self, closes) -> None:
         """Raising ``maxT`` to 24 lands TU's 0.44 and moves USD.CAD further from its 0.49."""
         usdcad = read_usdcad()[1].to_numpy(dtype=float)
         assert HURST_DIAGNOSTIC_MAX_T == 24
@@ -786,14 +786,18 @@ class TestWhatThePostQuotes:
     whole, so a cell changed there fails too, bold included in Lesson 3's.
     The comparisons the post's words draw are asserted on the run, and one
     copy of those words is read: that the full window lands all six of the
-    comment's figures and the active line none, that more than half of the
-    gain is in by 2009-01-02 and the maximum drawdown is over by then, that
-    the active line's daily spread shrinks by more than its mean, so its
-    Sharpe ratio and Kelly f are higher, that no day appears in both saves'
-    69 kept days and the four-day shift alone moves the correlation in its
-    second decimal, that its H misses on the other side, that the four
-    negative cells are exactly the shortest pairs, and that 2008 earned about
-    four-fifths as much as the other years, read as between 0.75 and 0.85.
+    comment's figures and the active line none, that the traded pair is one
+    of Chan's compromises while several pairs, read as more than two,
+    correlate more strongly, that more than half of the gain is in by
+    2009-01-02 and the maximum drawdown is over by then, that the active line
+    sees a smaller gain and a shallower fall, that the active line's daily
+    spread shrinks by more than its mean, so its Sharpe ratio and Kelly f are
+    higher, that no day appears in both saves' 69 kept days and the four-day
+    shift alone moves the correlation in its second decimal, that its H
+    misses on the other side, that every H the post gives sits below 0.5 with
+    the book's, that the four negative cells are exactly the shortest pairs,
+    and that 2008 earned about four-fifths as much as the other years, read
+    as between 0.75 and 0.85.
 
     What it leaves unread is listed in README. Every copy of a figure but the
     one read here can carry a typo that passes, and the post states several
@@ -837,6 +841,11 @@ class TestWhatThePostQuotes:
         assert _landed(result.figures) == six
         assert _landed(result.active_line_figures) == 0
         assert (closes.index[0], closes.index[-1]) == (BOOK_FIRST_DAY, BOOK_LAST_DAY)
+        assert (LOOKBACK, HOLD_DAYS) in COMPROMISES
+        stronger = sum(
+            other.coefficient > cell.coefficient for other in result.correlations.values()
+        )
+        assert stronger > 2, "several pairs correlate more strongly"
         fragments = [
             f"the correlation that picked the rule rests on {cell.rows} days.",
             f"The comment at the end of the script lists {SPELLED[six]} figures.",
@@ -846,13 +855,16 @@ class TestWhatThePostQuotes:
             f"That line lands all {SPELLED[_landed(result.figures)]}.",
             f"The book prints {BOOK_HURST}, and the transcription gives {result.hurst:.6f}.",
             f"looking back {LOOKBACK} days and holding for {HOLD_DAYS}.",
+            "he names it among the best compromises between a strong correlation and a small "
+            "p-value, though several pairs correlate more strongly.",
             f"The pair correlates at {cell.coefficient:.2f} with a p-value of "
             f"{cell.p_value:.2f}. The correlation rests on {cell.rows} days, and the pair is "
             f"one of {len(result.correlations)} tried on the same closes.",
             f"a table computed on the {closes.index[0].year} to {closes.index[-1].year} closes "
             "the rule then trades",
-            f"saved on {entry.obtained} and converted here to one file per future. TU’s column "
-            f"holds {len(closes):,} daily closes of the continuous future, from "
+            f"Chan’s own MATLAB file `{SOURCE_FILE}`, saved on {entry.obtained} and converted "
+            f"here to one file per future. TU’s column holds {len(closes):,} daily closes of the "
+            "continuous future, from "
             f"{closes.index[0].date()} to {closes.index[-1].date()}, the window the book names.",
         ]
         assert self.missing(text, fragments) == []
@@ -943,7 +955,7 @@ class TestWhatThePostQuotes:
         ]
         assert self.missing(text, fragments) == []
 
-    def test_the_curve_and_the_alt_text(self, curve, closes, text) -> None:
+    def test_the_curve_and_the_alt_text(self, curve, closes, result, text) -> None:
         from chan.cross_sectional_momentum_figures import deepest_drawdown
 
         drawdown = deepest_drawdown(curve.to_numpy())
@@ -951,11 +963,17 @@ class TestWhatThePostQuotes:
         high, low = curve.index[drawdown.high], curve.index[drawdown.trough]
         assert at_start / last > 0.5, "more than half of the gain"
         assert low < ACTIVE_LINE_START, "the active line starts after the maximum drawdown"
+        start = result.days.get_loc(ACTIVE_LINE_START)
+        assert np.prod(1 + result.daily[start:]) - 1 < last, "a smaller gain"
+        assert result.active_line_figures.max_drawdown > result.figures.max_drawdown, (
+            "a shallower fall"
+        )
         fragments = [
             f"The curve stands at {at_start:.6f} on {ACTIVE_LINE_START.date()} and ends at "
             f"{last:.6f}, so the active line starts after more than half of the gain was "
             "already in. The active line also starts after the maximum drawdown, which runs "
-            f"from {high.date()} to {low.date()}.",
+            f"from {high.date()} to {low.date()}. The active line sees a smaller gain and a "
+            "shallower fall, and every figure moves.",
             f"keep rising to a high of {closes.max():.4f} on {closes.idxmax().date()}",
             f"to its highest point, {curve.max():.6f} on {curve.idxmax().date()}",
         ]
@@ -1003,6 +1021,7 @@ class TestWhatThePostQuotes:
         assert result.hurst < book < later.hurst, "misses on the other side"
         assert matches(hurst_at(closes), BOOK_HURST)
         assert abs(at_24 - 0.49) > abs(at_default - 0.49), "further from its printed 0.49"
+        assert max(result.hurst, hurst_at(closes), later.hurst, book) < 0.5, "below 0.5"
         fragments = [
             f"On TU’s log closes the transcription gives {result.hurst:.6f}. That prints as "
             f"{result.hurst:.2f}, so it misses the book’s {BOOK_HURST} with a gap of "
@@ -1013,6 +1032,8 @@ class TestWhatThePostQuotes:
             "same change moves USD.CAD, the other series the book prints an H for, from "
             f"{at_default:.6f} to {at_24:.6f}, further from its printed 0.49. No value of "
             "`maxT` from 5 to 40 lands both.",
+            f"Every H here, {result.hurst:.6f}, {hurst_at(closes):.6f} and the later file’s "
+            f"{later.hurst:.6f}, sits below 0.5, on the same side as the book’s {BOOK_HURST}.",
         ]
         assert self.missing(text, fragments) == []
 

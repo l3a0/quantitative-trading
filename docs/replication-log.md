@@ -7495,7 +7495,7 @@ and nothing about whether the rule pays today.
 | 11 | every pair of 1, 5, 10, 25, 60, 120 and 250 days, and the six pairs location 2646 calls the best compromises | 49 coefficients and p-values. The six are 0.1718, 0.2592, 0.1784, 0.2719, 0.4245 and 0.5112 | `TestTheCorrelationTable::test_every_cell` and `::test_the_six_compromises` |
 | 12 | rows 5 to 10 from the script's active line, 849 days from 2009-01-02 | 0.014042, 1.187438, 0.014069, −0.009851, 164 days and 100.298107 | `TestTheWindow::test_its_figures` |
 | 13 | rows 1, 2, 3 and 10, and row 4's p-value, on `inputdataohlcdaily_20120517/tu.csv`, saved 2012-05-18, 2,000 days from 2004-06-07 to 2012-05-17 | 0.287046, 0.016785, 0.446556, 64.930941 and 0.132819 | `TestTheSave::test_its_traded_cell_and_kelly_f_miss` and `::test_its_two_tests` |
-| 14 | row 3 at `maxT` 24, Entry 22's H on USD.CAD at `maxT` 19 and 24, and both at every `maxT` from 5 to 40 | 0.440450 on TU, and 0.473233 and 0.471426 on USD.CAD. TU lands 0.44 at `maxT` 6, 7 and 21 to 27, and USD.CAD lands 0.49 at none | `TestTheTwoTests::test_no_single_max_t_lands_both_books_figures` and `::test_no_max_t_from_5_to_40_lands_both` |
+| 14 | row 3 at `maxT` 24, Entry 22's H on USD.CAD at `maxT` 19 and 24, and both at every `maxT` from 5 to 40 | 0.440450 on TU, and 0.473233 and 0.471426 on USD.CAD. TU lands 0.44 at `maxT` 6, 7 and 21 to 27, and USD.CAD lands 0.49 at none | `TestTheTwoTests::test_max_t_24_lands_tu_and_moves_usdcad_further` and `::test_no_max_t_from_5_to_40_lands_both` |
 | 15 | `mean(ret) / std(ret) · √2000` with the n − 1 `std`, on the returns built from the module's exported functions | 2.933253 | `TestTheGaussianStatistic::test_the_exports_give_tu_mom_hypothesis_test_s_2_93` |
 
 ### The verdicts
@@ -7577,8 +7577,8 @@ review before publishing.
    to scale, counts the kept days.
 2. **Same closes, no kept day shared**, in Lesson 1. It draws the first four days
    the cell keeps on each save. The 2012-05-17 save starts four trading days
-   later, so each of its kept days falls four days after one of the earlier
-   save's, and the two sets of 69 share none although all 1,996 shared closes
+   later, so each of its kept days falls four trading days after one of the
+   earlier save's, and the two sets of 69 share none although all 1,996 shared closes
    are equal. The correlations are 0.2719 and 0.2870, which print as 0.27 and
    0.29.
 

@@ -6028,7 +6028,8 @@ Seven groups of what it says are not pinned here.
    sentence, the notional value of about \$200,000, the margin of about \$400,
    the case for leverage and Figure 6.2's caption at 2668, and the sign of
    roll returns at 2683. The book's figures are pinned, and its words are not.
-2. Facts about the code and the contract rather than the data: the active line
+2. Facts about the code and the contract rather than the data: the commit
+   `e4bc46f` of the public copy the script was transcribed from, the active line
    `idx=find(tday==20090102);` and the commented-out `% idx=1;` under it,
    the comment printing no annual volatility, the `q` of 2 the script passes
    `genhurst`, `genhurst`'s default `maxT` of 19, and `correlationTest.m`
@@ -6046,7 +6047,7 @@ Seven groups of what it says are not pinned here.
    drawdowns along with the return.
 4. The figure's alt text reading both curves approximately, such as TU's
    closes drifting down until mid-2007 and the cumulative return dipping
-   below zero in 2005 and flattening through 2009.
+   below zero in 2005 and flattening through the first half of 2009.
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states several figures more than once, in its opening, a lesson, a table,
    the closing list or the figure's alt text, and a typo in a copy the class

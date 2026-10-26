@@ -23,7 +23,7 @@ and the post places each right after the paragraph it draws.
    keeps on the 2012-05-11 save above the days it keeps on the 2012-05-17
    save, which starts four trading days later. Only the first four kept days
    of each are drawn, to scale, and a dashed grey link joins each upper tick
-   to the lower one four days after it. Labels give the 1,996 closes the saves share,
+   to the lower one four trading days after it. Labels give the 1,996 closes the saves share,
    all equal, the 69 kept days in each with none shared, and the correlation
    each save gives, 0.2719 and 0.2870, which print as 0.27 and 0.29 at the
    book's two decimals. It sits in Lesson 1, after the paragraph saying the
@@ -455,7 +455,7 @@ def tick_scale(figures: SaveFigures) -> tuple[float, float]:
 
 
 def _no_shared_day(figures: SaveFigures) -> Scene:
-    """Lesson 1: the two saves' kept days, each lower one four days after an upper one."""
+    """Lesson 1: the two saves' kept days, each lower one four trading days after an upper one."""
     origin, per_day = tick_scale(figures)
 
     def across(row: int) -> float:
