@@ -12,13 +12,19 @@ for it. :func:`make_vx_es_figure` draws three panels after the book's Figures
    The fitted line is drawn over the training days' range of VX.
 2. The z-score from the anchor, 2008-08-04, with the band at ±1 and the last
    training day marked. Each run of days the band holds one position is
-   shaded, green long and red short. Figure 5.11 draws the portfolio in
+   shaded, blue long and vermilion short. Figure 5.11 draws the portfolio in
    dollars, and this panel draws it in training deviations so the band shows.
 3. The test set's compounded cumulative return, which the book prints as
    Figure 5.12, with the three changes of position and 2011-08-05 marked.
    Standard and Poor's announced its downgrade of the U.S. credit rating after
    that day's close, and location 2559 says the trade "was particularly
    profitable" from around then.
+
+The colours are :mod:`chan.palette`'s, which a colour-blind reader can tell
+apart: berry for the first regime and the changes of position, blue for a
+long and vermilion for a short, the fit and the downgrade. Inside the axes the
+vermilion reaches only 4.30 to 1 against the ground, short of the bar for
+text, so the downgrade's label sits on a white box.
 
 Every value comes from :func:`chan.vx_es.read_legs` and
 :func:`chan.vx_es.vx_es`, the run's own path, so the scale-break guard runs
@@ -39,8 +45,9 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter, PercentFormatter
 
 from chan.coin_flip_figures import _dollars, _plain_text, _save, _style, _title
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, RULE, SURFACE
+from chan.regime_figure import INK, MUTED, RULE, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageEntry, VintageUnavailable
 from chan.vx_es import (
@@ -188,8 +195,8 @@ def _zscore_panel(ax, result: VxEs) -> None:
     ax.set_ylabel("training deviations", color=INK, fontsize=10)
     _heading(
         ax,
-        f"The z-score from {t.days[0].date()}, with the band at ±{BAND}. Shaded green while "
-        "long and red while short.\n"
+        f"The z-score from {t.days[0].date()}, with the band at ±{BAND}. Shaded blue while "
+        "long and vermilion while short.\n"
         f"Dashed: the last training day, {result.hedge.days[-1].date()}. "
         f"The lowest, {signed(t.zscore[low])}, is on {t.days[low].date()}.",
     )
@@ -224,6 +231,8 @@ def _returns_panel(ax, result: VxEs) -> None:
         arrowprops={"arrowstyle": "-", "color": LOST, "lw": 1.0},
         fontsize=9.5,
         fontweight="bold",
+        # The vermilion falls short of 4.5 to 1 on the axes' ground, and clears it on white.
+        bbox={"boxstyle": "round,pad=0.25", "fc": "white", "ec": "none"},
         gid="downgrade-label",
     )
     ax.set_xlim(cumret.index[0], cumret.index[-1])

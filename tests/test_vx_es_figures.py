@@ -24,8 +24,9 @@ import pytest
 from matplotlib.dates import date2num
 
 from chan import vx_es_figures
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, RULE
+from chan.regime_figure import INK, RULE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from chan.vx_es import ES, VX, position_changes, read_legs, vx_es
@@ -207,7 +208,7 @@ class TestTheZScore:
         ]
 
     def test_each_shade_runs_from_an_entry_to_the_next(self, axes, result) -> None:
-        """Green for a long and red for a short, with the flat start left unshaded."""
+        """Blue for a long and vermilion for a short, with the flat start left unshaded."""
         runs = holdings(result.trade)
         shades = [p for p in axes["z"].patches if p.get_gid() in ("long", "short")]
         held = [r for r in runs if r.units]
@@ -225,9 +226,9 @@ class TestTheZScore:
 
     def test_the_heading_names_the_band_and_the_lowest_day(self, axes) -> None:
         assert _title(axes["z"]) == (
-            "The z-score from 2008-08-04, with the band at ±1. Shaded green while long and red "
-            "while short.\nDashed: the last training day, 2010-07-28. The lowest, −3.89, is on "
-            "2011-08-08."
+            "The z-score from 2008-08-04, with the band at ±1. Shaded blue while long and "
+            "vermilion while short.\nDashed: the last training day, 2010-07-28. The lowest, "
+            "−3.89, is on 2011-08-08."
         )
 
 
@@ -269,6 +270,13 @@ class TestTheCumulativeReturn:
         label = _by_gid(axes["returns"].texts)["downgrade-label"]
         assert label.get_text() == "−4.59 percent at the close of 2011-08-05"
         assert label.xy == (DOWNGRADE, cumulative_return(result.trade).loc[DOWNGRADE])
+
+    def test_the_downgrade_label_is_vermilion_on_a_white_box(self, axes) -> None:
+        """The vermilion reaches 4.30 to 1 on the axes' ground, short of 4.5,
+        so the label reads only on the box behind it."""
+        label = _by_gid(axes["returns"].texts)["downgrade-label"]
+        assert label.get_color() == LOST
+        assert label.get_bbox_patch().get_facecolor() == (1.0, 1.0, 1.0, 1.0)
 
     def test_the_heading_sets_the_figures_beside_the_book_s(self, axes) -> None:
         assert _title(axes["returns"]) == (

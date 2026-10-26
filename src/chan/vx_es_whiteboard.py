@@ -36,7 +36,13 @@ next reaches +1, and after +1 it next reaches −1, so the strips alternate
 here, which the rule does not promise.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look, frame rate and colours.
+than copied, so these GIFs share that post's look and frame rate. Their
+colours are :mod:`chan.palette`'s, which a colour-blind reader can tell apart,
+so :func:`render` maps each frame onto :data:`chan.palette.INKS`: berry for
+the copy shifted by one amount, blue for a long, and vermilion for the uneven
+copy and a short. The grey of a flat stretch sits only 7.5 from the vermilion
+under protanopia, so each stretch also carries its word, and a flat one is
+drawn thinner.
 Each sketch carries more than a reader takes in at that post's pace, so both
 are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
 longer and their finished drawings for twelve seconds, as
@@ -59,8 +65,9 @@ from pathlib import Path
 import numpy as np
 from scipy.interpolate import PchipInterpolator
 
+from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     Frame,
     Label,
@@ -230,8 +237,8 @@ WORD_INK = {"long": GOOD, "short": LOST, "flat": MUTED}
 
 
 def _strip(rule: str, name: str, y: float) -> list[Stroke | Label]:
-    """One rule's bar along the path: a thick green stretch while long, a thick
-    red one while short and a thin grey one while flat, each with its word."""
+    """One rule's bar along the path: a thick blue stretch while long, a thick
+    vermilion one while short and a thin grey one while flat, each with its word."""
     steps: list[Stroke | Label] = []
     for k, (suffix, word, start, end) in enumerate(HELD[rule]):
         x0 = CROSSINGS[start]
@@ -320,7 +327,7 @@ def scenes() -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
+    first, *rest = render(scene, frames, INKS)
     path = folder / gif_name(scene)
     first.save(
         path,

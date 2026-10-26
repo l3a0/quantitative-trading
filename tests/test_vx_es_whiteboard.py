@@ -42,11 +42,12 @@ import numpy as np
 import pytest
 from PIL import Image
 
+from chan import palette, regime_figure, vx_es
 from chan import usdcad_tests_whiteboard as whiteboard
-from chan import vx_es
 from chan import vx_es_whiteboard as sketches
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -194,11 +195,11 @@ class TestTheScenes:
             for stroke in scene.strokes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
-    def test_every_pale_tint_has_a_green_edge(self, every) -> None:
-        """Neither sketch draws a tint today. One that does would need the
-        green edge the equity seasonals module's ``_tinted`` draws, since the
-        tint alone stands 1.29 to 1 against the board."""
-        tints = [fill for scene in every for fill in scene.fills if fill.color == whiteboard.TINT]
+    def test_every_pale_tint_has_a_blue_edge(self, every) -> None:
+        """Neither sketch draws a tint today. One that does would need a blue
+        edge like the green one the equity seasonals module's ``_tinted``
+        draws, since the tint alone stands 1.31 to 1 against the board."""
+        tints = [fill for scene in every for fill in scene.fills if fill.color == palette.TINT]
         assert tints == []
 
 
@@ -284,6 +285,30 @@ class TestTheGifs:
             assert [(f.done, f.partial) for f in frames] == [
                 (f.done, f.partial) for f in timeline(scene)
             ]
+
+    def test_each_draws_in_the_colour_blind_safe_inks(self, gifs) -> None:
+        """Every ink of :data:`chan.palette.INKS` is in each GIF's colours and
+        the shared brass, green and red are not, so a frame quantized onto the
+        renderer's default inks fails here on any machine."""
+        rgb = {
+            name: tuple(int(c[i : i + 2], 16) for i in (1, 3, 5))
+            for name, c in (
+                ("berry", ACCENT),
+                ("blue", GOOD),
+                ("vermilion", LOST),
+                ("brass", regime_figure.ACCENT),
+                ("green", regime_figure.GOOD),
+                ("red", regime_figure.LOST),
+            )
+        }
+        for path in gifs:
+            with Image.open(path) as image:
+                flat = image.getpalette()
+            colours = {tuple(flat[i : i + 3]) for i in range(0, len(flat), 3)}
+            for name in ("berry", "blue", "vermilion"):
+                assert rgb[name] in colours, (path.name, name)
+            for name in ("brass", "green", "red"):
+                assert rgb[name] not in colours, (path.name, name)
 
     def test_each_is_under_1_mb(self, gifs) -> None:
         for path in gifs:
@@ -444,14 +469,14 @@ class TestTheShiftSketch:
         for cloud in ("save", "same", "uneven"):
             assert gids.index(cloud) + 1 == gids.index(f"{cloud}-fit"), cloud
 
-    def test_the_brass_copy_moves_every_dot_right_by_one_amount(self, every) -> None:
+    def test_the_berry_copy_moves_every_dot_right_by_one_amount(self, every) -> None:
         scene = every[0]
         save, same = _stroke(scene, "save"), _stroke(scene, "same")
         assert same.y == pytest.approx(save.y)
         assert same.x - save.x == pytest.approx([SAME] * save.points)
         assert SAME > 0
 
-    def test_the_red_copy_moves_the_dots_by_uneven_amounts(self, every) -> None:
+    def test_the_vermilion_copy_moves_the_dots_by_uneven_amounts(self, every) -> None:
         scene = every[0]
         save, uneven = _stroke(scene, "save"), _stroke(scene, "uneven")
         assert uneven.y == pytest.approx(save.y)
@@ -467,20 +492,20 @@ class TestTheShiftSketch:
             assert line.y == pytest.approx(intercept + slope * line.x), cloud
             assert line.x.min() < dots.x.min() and line.x.max() > dots.x.max(), cloud
 
-    def test_the_brass_fit_is_parallel_to_the_black_and_sits_elsewhere(self, every) -> None:
+    def test_the_berry_fit_is_parallel_to_the_black_and_sits_elsewhere(self, every) -> None:
         scene = every[0]
-        black, brass = (_stroke(scene, gid) for gid in ("save-fit", "same-fit"))
+        black, berry = (_stroke(scene, gid) for gid in ("save-fit", "same-fit"))
         black_slope = np.polyfit(black.x, black.y, 1)[0]
-        brass_slope = np.polyfit(brass.x, brass.y, 1)[0]
-        assert brass_slope == pytest.approx(black_slope, abs=1e-9)
+        berry_slope = np.polyfit(berry.x, berry.y, 1)[0]
+        assert berry_slope == pytest.approx(black_slope, abs=1e-9)
         assert fit(SAVE_X + SAME, SAVE_Y)[0] != pytest.approx(fit(SAVE_X, SAVE_Y)[0])
 
-    def test_the_red_fit_tilts_enough_to_see(self, every) -> None:
+    def test_the_vermilion_fit_tilts_enough_to_see(self, every) -> None:
         """A tilt large enough to see on a phone. The sketch is schematic, and the
         run's 3.6 percent would draw as about one degree."""
         scene = every[0]
-        black, red = (_stroke(scene, gid) for gid in ("save-fit", "uneven-fit"))
-        change = np.polyfit(red.x, red.y, 1)[0] / np.polyfit(black.x, black.y, 1)[0] - 1
+        black, vermilion = (_stroke(scene, gid) for gid in ("save-fit", "uneven-fit"))
+        change = np.polyfit(vermilion.x, vermilion.y, 1)[0] / np.polyfit(black.x, black.y, 1)[0] - 1
         assert 0.15 < abs(change) < 0.35
 
     def test_one_constant_on_every_vx_close_moves_only_the_intercept(self) -> None:
@@ -504,14 +529,18 @@ class TestTheShiftSketch:
         assert "A grey axis across is labelled “1000·VX” and a grey axis up" in alt
         assert "Black dots fall from upper left to lower right" in alt
         assert "each moved right by the same amount" in alt
+        assert "Berry copies of the same dots" in alt and "a berry fitted line" in alt
+        assert "Vermilion copies" in alt and "a vermilion fitted line" in alt
         assert "parallel to the black one" in alt
         assert "each moved right by a different amount" in alt
         assert "less steep than the other two" in alt
 
-    def test_the_red_fit_is_less_steep_as_the_alt_text_says(self, every) -> None:
+    def test_the_vermilion_fit_is_less_steep_as_the_alt_text_says(self, every) -> None:
         scene = every[0]
-        black, red = (_stroke(scene, gid) for gid in ("save-fit", "uneven-fit"))
-        assert abs(np.polyfit(red.x, red.y, 1)[0]) < abs(np.polyfit(black.x, black.y, 1)[0])
+        black, vermilion = (_stroke(scene, gid) for gid in ("save-fit", "uneven-fit"))
+        assert abs(np.polyfit(vermilion.x, vermilion.y, 1)[0]) < abs(
+            np.polyfit(black.x, black.y, 1)[0]
+        )
 
 
 # --- Lesson 3: two ways to close a position -----------------------------------
@@ -684,9 +713,9 @@ class TestTheExitsSketch:
         ) in alt
         assert "then turns back up to end just above it" in alt
         assert -1.0 < KNOTS[-1][1] < -0.75
-        assert "a green bar marked “long” from the dip below −1 to the rise above +1" in alt
-        assert "a red bar marked “short” from there to the next dip below −1" in alt
-        assert "a green bar marked “long” from the dip below −1 to the crossing of 0" in alt
-        assert "a red bar marked “short” until the path falls back through 0" in alt
+        assert "a blue bar marked “long” from the dip below −1 to the rise above +1" in alt
+        assert "a vermilion bar marked “short” from there to the next dip below −1" in alt
+        assert "a blue bar marked “long” from the dip below −1 to the crossing of 0" in alt
+        assert "a vermilion bar marked “short” until the path falls back through 0" in alt
         assert alt.count("short thin grey stretch marked “flat”") == 1
         assert alt.count("short grey stretch marked “flat”") == 1
