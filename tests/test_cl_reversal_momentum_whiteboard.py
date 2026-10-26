@@ -35,7 +35,7 @@ rule's kept and lost returns are pinned only here.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, every
-sketch's slower pace, the green edge on every pale tint, that two draws give
+sketch's slower pace, the blue edge on every pale tint, that two draws give
 the same bytes, and that each committed GIF is a fresh draw, a comparison
 that runs only on macOS arm64 with Comic Sans MS, as
 ``tests/test_usdcad_tests_whiteboard.py`` explains.
@@ -91,12 +91,12 @@ from chan.cl_reversal_momentum_whiteboard import (
     sketch_timeline,
     swing_scale,
 )
+from chan.palette import GOOD, INKS, LOST, TINT
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
-    TINT,
     TITLE_MS,
     WIDTH,
     Frame,
@@ -105,6 +105,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from tests.test_palette import _contrast
 
 POST = REPO_ROOT / "blog" / "crude-oil-reversal-momentum-lessons.md"
 
@@ -301,18 +302,21 @@ class TestTheScenes:
             for stroke in scene.strokes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
-    def test_every_pale_tint_has_a_green_edge(self, every) -> None:
-        """The tint alone stands 1.29 to 1 against the white board, under WCAG
+    def test_every_pale_tint_has_a_blue_edge(self, every) -> None:
+        """The tint alone stands 1.31 to 1 against the white board, under WCAG
         2.1's 3 to 1 for a graphical object, so every tinted region gets a
-        green edge, GOOD at 4.86 to 1, that spans it, as the equity seasonals
-        module's ``_tinted`` draws it. The swing sketch's kept parts are the
-        only tints."""
+        blue edge, GOOD at 4.77 to 1, that spans it. The edge is built the
+        way the equity seasonals module's ``_tinted`` builds its own, which
+        that module still draws in the shared green. The swing sketch's kept
+        parts are the only tints."""
+        assert _contrast(TINT, whiteboard.BOARD) == pytest.approx(1.31, abs=0.005)
+        assert _contrast(GOOD, whiteboard.BOARD) == pytest.approx(4.77, abs=0.005)
         assert sketches.TINT_EDGE >= 1.0
-        tints = [fill for scene in every for fill in scene.fills if fill.color == whiteboard.TINT]
+        tints = [fill for scene in every for fill in scene.fills if fill.color == TINT]
         assert len(tints) == 3
         for scene in every:
             for fill in scene.fills:
-                if fill.color != whiteboard.TINT:
+                if fill.color != TINT:
                     continue
                 edges = [
                     s
@@ -410,6 +414,14 @@ class TestTheGifs:
     def test_each_is_under_1_mb(self, gifs) -> None:
         for path in gifs:
             assert path.stat().st_size < 1_000_000, path.name
+
+    def test_each_draws_in_the_colour_blind_safe_inks(self, gifs) -> None:
+        """Every frame maps onto the palette of :data:`chan.palette.INKS`, so
+        a GIF drawn in the shared inks fails here on any machine, not only
+        where the byte comparison below runs."""
+        for path in gifs:
+            with Image.open(path) as image:
+                assert image.getpalette() == whiteboard.palette(INKS).getpalette(), path.name
 
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path) -> None:
         again = make_cl_reversal_momentum_whiteboards(out_dir=tmp_path)
@@ -799,8 +811,8 @@ class TestTheRuleSketch:
         assert "It is schematic: each panel keeps the order" in alt
         assert "A black line rises from a low black dot to a high one and falls back" in alt
         assert "Its black line falls from a high dot to a low one and rises a little" in alt
-        assert "A green arrow beside today’s dot points up" in alt
-        assert "A red arrow beside today’s dot points down" in alt
+        assert "A blue arrow beside today’s dot points up" in alt
+        assert "A vermilion arrow beside today’s dot points down" in alt
         assert "a short grey flat line at the bottom" in alt
         assert "The left panel comes first." in alt
         assert "A grey dashed line runs from the high dot across past today’s dot" in alt
@@ -827,7 +839,7 @@ class TestTheGridSketch:
     @pytest.mark.parametrize("cell", list(CELLS))
     def test_each_cells_arrows_point_the_way_its_column_and_row_say(self, every, cell) -> None:
         """Reversal's arrow on the left and momentum's on the right, each up
-        and green for a long and down and red for a short, each with a "½"
+        and blue for a long and down and vermilion for a short, each with a "½"
         beside it in its own colour."""
         scene = every[1]
         rev, mom = CELLS[cell]
@@ -969,19 +981,19 @@ class TestTheGridSketch:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
         assert "Its counts come from the run." in alt
         assert "reversal’s on the left and momentum’s on the right" in alt
-        assert "green and pointing up for a long, red and pointing down for a short" in alt
+        assert "blue and pointing up for a long, vermilion and pointing down for a short" in alt
         assert (
             "one grey arrow points up to the top right box and one down to the bottom left box"
             in alt
         )
         for sentence in (
-            "Top left, two green up arrows, labelled “½” and “½”, sum to “½ + ½ = long”, in green",
-            "Top right, a red down arrow labelled “½” and a green up arrow labelled “½” sum to "
-            "“−½ + ½ = flat”, in grey",
-            "Bottom left, a green up arrow labelled “½” and a red down arrow labelled “½” sum to "
-            "“½ − ½ = flat”, in grey",
-            "Bottom right, two red down arrows, labelled “½” and “½”, sum to “−½ − ½ = short”, "
-            "in red",
+            "Top left, two blue up arrows, labelled “½” and “½”, sum to “½ + ½ = long”, in blue",
+            "Top right, a vermilion down arrow labelled “½” and a blue up arrow labelled “½” "
+            "sum to “−½ + ½ = flat”, in grey",
+            "Bottom left, a blue up arrow labelled “½” and a vermilion down arrow labelled “½” "
+            "sum to “½ − ½ = flat”, in grey",
+            "Bottom right, two vermilion down arrows, labelled “½” and “½”, sum to "
+            "“−½ − ½ = short”, in vermilion",
         ):
             assert sentence in alt, sentence
 
@@ -1020,8 +1032,8 @@ class TestTheSwingSketch:
         assert every[2].labels == SWING_LABELS
 
     def test_its_colours(self, every, figures) -> None:
-        """Kept is a pale tint with a green edge and green words, lost is
-        solid red with red words, and the words "kept" and "lost" say which
+        """Kept is a pale tint with a blue edge and blue words, lost is
+        solid vermilion with vermilion words, and the words "kept" and "lost" say which
         is which without the colour."""
         scene = every[2]
         for swing in figures.swings:
@@ -1127,18 +1139,21 @@ class TestTheSwingSketch:
         )
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, figures) -> None:
-        """The proportions it names are checked on the run: the join's red
-        part a thin strip, momentum alone the tallest bar, and the red parts
+        """The proportions it names are checked on the run: the join's vermilion
+        part a thin strip, momentum alone the tallest bar, and the vermilion parts
         of the rules alone about a half and about two thirds of their
         lower parts."""
         alt = _alt(POST.read_text(encoding="utf-8"), every[2])
         assert "Its figures come from the run." in alt
         assert "drawn to one scale, each as tall as its rule’s average day" in alt
-        assert "lower part is a pale tint with a green edge, and its upper part is solid red" in alt
-        assert "Its red part is only a thin strip at the top" in alt
+        assert (
+            "lower part is a pale tint with a blue edge, and its upper part is solid vermilion"
+            in alt
+        )
+        assert "Its vermilion part is only a thin strip at the top" in alt
         assert "The middle bar, the tallest, is named “momentum alone”" in alt
-        assert "beside a red part about half as tall as the lower part" in alt
-        assert "beside a red part about two thirds as tall as the lower part" in alt
+        assert "beside a vermilion part about half as tall as the lower part" in alt
+        assert "beside a vermilion part about two thirds as tall as the lower part" in alt
         join, momentum, reversal = figures.swings
         assert max(figures.swings, key=lambda swing: swing.average) is momentum
         assert join.lost / join.kept < 0.1
