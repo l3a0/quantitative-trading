@@ -1,4 +1,4 @@
-"""Chan's PCA factor model, Example 7.4, on the S&P 600 file every printout loads.
+"""Chan's PCA factor model, Example 7.4, on the S&P 600 closes every printout reads.
 
 Every other factor model in the book names its factors in advance. This one
 takes them from the return matrix itself with principal component analysis,
@@ -73,8 +73,8 @@ The report prints what each gives when it is changed.
 2. ``positionsTable[capital==0,]=0`` zeroes every row whose previous row
    holds nothing, and the first day's book is one of those rows, so the
    strategy never earns on it.
-3. ``np.nanmean`` runs over all 1,006 rows, including the ones that hold no
-   position, and ``np.nanstd`` divides by n.
+3. ``np.nanmean`` runs over all 1,006 rows, including the 255 that earn no
+   return, and ``np.nanstd`` divides by n.
 
 The R buys 52, from ``(length(result$ix)-topN-1):length(result$ix)``.
 
@@ -101,9 +101,10 @@ The R buys 52, from ``(length(result$ix)-topN-1):length(result$ix)``.
 
 **One splice in the file.** PMC holds two price histories under one symbol. It
 closes at 6.02 on 2004-03-12, is missing for 851 days, and resumes at 17.25 on
-2007-08-01. The three printouts that run forward-fill, as does the R reading
-with ``fill=True``, so that gap is one day's return. :func:`without` reruns a
-program without it, and the report prints the result beside the verdicts.
+2007-08-01. The two MATLAB printouts and the Python forward-fill, as does the
+R reading with ``fill=True``, so that gap is one day's return. :func:`without`
+reruns a program without it, and the report prints the result beside the
+verdicts.
 The scale-break guard is not applied, for the reason the comment above
 ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py`` gives.
 
@@ -381,8 +382,8 @@ def revised_python(
 def revised_r_reading(closes: pd.DataFrame, *, fill: bool) -> Run:
     """The revised edition's R, read rather than run, which prints the Python's figures.
 
-    Two readings, because the printed code is ambiguous in one place and
-    unprinted in another.
+    Two readings of the one ambiguous line, plus one assumption where the code
+    is unprinted.
 
     1. ``na.fill(cl, type="locf", nan=NA, fill=NA)`` replaces each missing
        close with NA under zoo's signature, which fills nothing. That is

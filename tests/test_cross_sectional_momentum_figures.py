@@ -359,6 +359,7 @@ class TestTheWords:
         assert "50 highest and 50 lowest 252-day returns" in note
         assert "held 25 days, unlevered and before costs" in note
         assert "restarts at zero on its window's first day" in note
+        assert "stocks that were in the S&P 500 in late 2011" in note
         assert "every stock is a survivor" in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:

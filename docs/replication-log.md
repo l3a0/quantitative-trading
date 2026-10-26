@@ -3659,7 +3659,7 @@ with the highest expected return and shorts the 50 with the lowest. Chan
 reports 2 percent a year in MATLAB and 4 percent in Python and R, and calls the
 difference "essentially round off errors". The first edition's MATLAB, the
 revised MATLAB and the revised Python each land on every figure they print,
-on the file they all load. The revised R prints the Python's three figures to
+on the closes they all read. The revised R prints the Python's three figures to
 17 digits, and its own code reads differently.
 
 The spread between 2 and 4 percent is method. The revised Python never uses
@@ -3669,16 +3669,18 @@ regression that sum is the stock's summed return. So the Python ranks on a
 year of momentum, and its book is the same on every day as a ranking that
 leaves the PCA out. The revised MATLAB fits today's cross-section of returns
 on the stocks' factor exposures instead. Given the MATLAB's 50 longs, the
-Python's book matches the MATLAB's on none of the 752 days both trade.
+Python's book matches the MATLAB's on none of the 752 days both hold a book.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
 
 1. **The vintage.** `ijr_20080114/`, the 600 stocks of Chan's
    `IJR_20080114.mat`, saved 2008-01-15, spanning 2004-01-15 to 2008-01-14,
-   read for the close through `chan.series.load_panel`. Every printout loads
-   this file. The revised repost's `.mat` has the sha256 the lifted file has,
-   and the Python's text file holds the same closes to 2.0e-16, which
+   read for the close through `chan.series.load_panel`. The two MATLAB
+   printouts load this file, the Python reads `IJR_20080114.txt`, and the
+   printed R reads `IJR_20080114.csv`. The revised repost's `.mat` has the
+   sha256 the lifted file has, and the Python's text file holds the same
+   closes to 2.0e-16, which
    [data/README.md](../data/README.md) records. **Every figure here is about
    survivors**, because the file holds the S&P 600 as it stood on 2008-01-14,
    carried backwards.
@@ -3750,14 +3752,14 @@ absence.
 | 4 | under 1e-15 | reproduced | Within 1e-12 of each figure printed to 17 digits, the verdict's criterion, and within 1e-15, the pin. They agree to 15 significant digits. |
 | 5 | under 1e-15 | reproduced | The same. |
 | 6 | under 1e-15 | reproduced | The same. |
-| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days with no position, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it once Chan's download is in hand. |
+| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days that earn no return, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it once Chan's download is in hand. |
 | 8 | 0 | reproduced | 2.02 percent rounds to 2. |
 | 9 | 0 | reproduced | The Python's 4.05 percent rounds to 4, and so does each R reading. The whole-percent figure is reached even by the code whose 17-digit figures are not. |
 | 10 | none | did not reproduce | Round-off would leave two books of one size the same on every day. The printed Python buys 49 and the MATLAB 50, so the comparison gives the Python 50, and the books then match on none of 752 days and differ in at least 125 positions on each. The criterion was written on [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the overlap was measured, which is the cost named there. |
 | 11 | none | none, not a replication | This is why the Python's figure is momentum's. Its PCA changes no position. |
 | 12 | none | none, not a replication | The two revised programs trade mostly different stocks. |
 | 13 | none | none, not a replication | The Python's `np.arange(-topN, -1)` never buys the top-ranked stock. |
-| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that hold no position, and its `positionsTable[capital==0,]=0` zeroes its first book. The first edition's mean runs over 252 rows with no position. |
+| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that earn no return, and its `positionsTable[capital==0,]=0` zeroes its first book. The first edition's mean runs over 252 rows that earn no return. |
 | 15 | none | none, not a replication | The first edition's `smartstd` zero-fills a missing day and divides by n − 1. |
 | 16 | none | none, not a replication | PMC closes at 6.02 on 2004-03-12 and resumes at 17.25 on 2007-08-01, two price histories under one symbol. Every program but the unfilled R reading forward-fills, so the gap becomes one day's return of 1.8654. |
 
@@ -3765,13 +3767,14 @@ absence.
 
 Two things.
 
-1. **The three printouts that can run reproduce on Chan's file.** The first
-   edition's −1.8099 and the revised MATLAB's 0.020205 and 0.211120 land at
-   the precision printed, and the revised Python's three 17-digit figures land
-   within 1e-15.
+1. **The first edition's MATLAB, the revised MATLAB and the revised Python
+   reproduce on Chan's file.** The first edition's −1.8099 and the revised
+   MATLAB's 0.020205 and 0.211120 land at the precision printed, and the
+   revised Python's three 17-digit figures land within 1e-15.
 2. **The 2-versus-4 spread is two different strategies, not round-off.** The
    revised MATLAB trades a factor model and the Python trades a year of
-   momentum, because its regression's intercept cancels its factors. Three
+   momentum, because it ranks on fitted values summed over the year, which its
+   regression's intercept makes equal to summed returns. Three
    bookkeeping choices each lower the Python's figure toward the MATLAB's: its
    long side, its averaging, and the first book it clears. Without any one of
    them the Python's figure is higher than 4.05 percent, rows 13 and 14.
@@ -3796,7 +3799,10 @@ daily.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
-it, since that post quotes most of these figures.
+it, since that post quotes most of these figures. That post's Lesson 2
+whiteboard sketch, which draws the residuals cancelling so that the revised
+Python ranks on each stock's own returns, is schematic and draws none of these
+figures, and `uv run python -m chan.factor_models_whiteboard` redraws it.
 
 ## Entry 14: the market and momentum factors, Chan's *Quantitative Trading*
 
@@ -3817,9 +3823,10 @@ autocorrelations than individual stock's returns", and so "have momentum".
 That persistence is what lets this period's factor return stand in for the
 next. Two of the factors his section names need only prices. MKT, which
 location 3978 names as "the return of the market", is built here as the
-index's return over the bill rate, the way French's market factor is. WML, winners
-minus losers, defined at location 4004, longs the stocks whose past return was
-positive and shorts those whose past return was negative. Over 83 months,
+index's return over the three-month bill rate, the way French's market factor
+is built over the one-month rate. WML, winners minus losers, defined at
+location 4004, longs the stocks whose past return was positive and shorts
+those whose past return was negative. Over 83 months,
 MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099, against a median
 of −0.0392 across the 446 stocks priced in every month. MKT is above 0 and
 above the median stock. WML is below both.
@@ -3906,12 +3913,12 @@ columns have nothing to hold in any row and are dropped, under
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | reproduced | The claim holds for MKT, which Chan says factors "often" show. Its autocorrelation is above 0 and above the median stock's, under the criterion declared on the issue before any autocorrelation was computed. It sits at 0.0675, inside row 6's band, so a series with no autocorrelation would land there often, and this verdict could be noise. |
+| 1 | reproduced | The claim holds for MKT, which Chan says factors "often" show. Its autocorrelation is above 0 and above the median stock's, under the criterion declared on the issue before any autocorrelation was computed. It sits at 0.0675, inside row 6's band, so a series of independent returns would land there often, and this verdict could be noise. |
 | 2 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for WML, on either half: its autocorrelation is below 0 and below the median stock's. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 and 2. The value is forced, because the log's two other verdicts both need the claim to survive. Two causes outside the method are open and neither is measured: the panel holds only survivors, and 2000 to 2007 is one window. Nothing here argues which way either moves an autocorrelation. |
 | 3 | none, not a replication | MKT sits at the 80.7175th percentile of the stocks, above 360 of 446. |
 | 4 | none, not a replication | WML sits at the 27.8027th percentile, above 124 of 446, so it is less persistent than most single stocks on this file. |
 | 5 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. That is a fact about this panel, and the criterion keeps both halves as declared. |
-| 6 | none, not a replication | Under a series with no autocorrelation, an estimate from 83 months falls outside ±0.2151 about 5 percent of the time. Both factors sit inside it, so neither verdict rests on an autocorrelation 83 months can tell from zero. |
+| 6 | none, not a replication | Under a series of independent returns, an estimate from 83 months falls outside ±0.2151 about 5 percent of the time. Both factors sit inside it, so neither verdict rests on an autocorrelation 83 months can tell from zero. |
 | 7 | none, not a replication | MKT's mean monthly return over the bill, times 12, is 0.0185, an arithmetic figure rather than a compounded one. Its plain t-statistic of 0.3660 is uncorrected for autocorrelation and decides nothing. |
 | 8 | none, not a replication | WML's mean monthly return times 12 is 0.0241, with a plain t-statistic of 0.4505 that decides nothing. Survivorship moves a mean before it moves an autocorrelation, so this row carries the survivor-only label most loudly. |
 | 9 | none, not a replication | Every formation has both legs, so the refusal for an empty leg never fires. At its smallest the loser leg holds 11 stocks, so WML's return that month rests on few short positions. |
@@ -3926,7 +3933,7 @@ Three things, and the first is the verdict.
    stands on its own, with Chan's "often" quoted beside it, and the entry
    draws no combined verdict from the two.
 2. **Neither autocorrelation is far from zero.** Both sit inside the band a
-   series with no autocorrelation stays inside 95 percent of the time, so 83
+   series of independent returns stays inside 95 percent of the time, so 83
    months cannot tell MKT's 0.0675 from no persistence at all. The verdict in
    row 1 is what the declared criterion says, and row 6 says how little it
    rests on.
@@ -4461,9 +4468,9 @@ here.
    Chan's `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, read for
    the close through `chan.series.load_panel`.
    [data/README.md](../data/README.md) records where it came from. **Every
-   figure here is about survivors**, because the file is the S&P 500 as Chan
-   held it on 2012-04-24, carried backwards, and none of its 497 stocks stops
-   before that day. That reaches the two legs in opposite directions. The
+   figure here is about survivors**, because the file holds stocks that were in
+   the S&P 500 in late 2011, carried backwards, and a company that was out of
+   the index for all of late 2011 is not in it. That reaches the two legs in opposite directions. The
    short leg lacks stocks that fell and then left the index, which pushes the
    strategy down, and the long leg lacks past winners that later collapsed
    out of it, which pushes it up. Which dominates is not measured here, as
@@ -4601,8 +4608,8 @@ asserts both. A different window or version of the script, read from this
 file or another, might have printed the comment's figures. Trying them until
 one did would be the search the issue's rule forbids, so none was tried.
 
-**What survivorship does to these figures.** Every stock here survived to
-2012-04-24, and the two legs lose different stocks.
+**What survivorship does to these figures.** Every stock here was in the
+S&P 500 in late 2011, and the two legs lose different stocks.
 [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) waits on
 a panel that could measure what that costs a cross-sectional rule.
 
@@ -5805,7 +5812,7 @@ Seventeen rows, all derivable from
 [tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py).
 
 Chan trades an index against the stocks inside it. He tests each stock in his
-2012 S&P 500 file against SPY over 2007 with the Johansen test, keeps the
+2012 stock file against SPY over 2007 with the Johansen test, keeps the
 stocks that pass, and holds them with equal capital as one basket. A second
 Johansen test checks that the basket's log price cointegrates with SPY's, and
 its first eigenvector sets one dollar weight for every stock and another for
@@ -7633,7 +7640,8 @@ both are stated once here.
    36. Contract c is held short against contract c + 12 long, the first pair
    from 73 rows before its near contract's last priced row and each pair to 10
    rows before it. A later pair starts the row after the last one ended and is
-   skipped when that leaves fewer than 63 rows. The spread is reversed where z
+   skipped when its last row would come fewer than 63 rows after its first. The
+   spread is reversed where z
    is above 0 and flat where z is not a number. The return is yesterday's
    positions times each leg's return, summed over the legs that have one and
    divided by 2. The figures read the 1,164 rows from 2008-01-02 to
@@ -7714,7 +7722,7 @@ records them.
 | 9 | none, a claim | reproduced | The statistic is below the 1 percent critical value, so the test rejects a unit root at the level "99 percent" names. |
 | 10 | none | none, not a replication | It lands every digit the comment prints. It drops 2008-01-02's return of −0.0028127. Setting that day's return to 0 instead gives 0.083331 and 1.288104, which miss both of the comment's figures. So dropping the day lands them and holding it flat does not. It was found by a scan, so it is not evidence of what Chan ran, and rows 3 and 5 keep the window the script states. |
 | 11 | none | none, not a replication | Holding at least 61 days misses both book figures, at 6.7 percent and 1.04, so the script's 63 is the specification. Under 61 days a later pair leaves enough rows to be held, to 2012-07-06. |
-| 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so the contracts still trading on 2012-08-13 expire on the file's last row, and too few rows remain before it for their pairs to be held. The window's last 66 rows hold nothing and return exactly 0. |
+| 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so the contracts still trading on 2012-08-13 expire on the file's last row. Every pair after 2012-05-08 would be let go 10 rows before its near contract's last priced row, fewer than 63 rows after its first, so none is held. The window's last 66 rows hold nothing and return exactly 0. |
 
 ### What the entry concludes
 
@@ -7768,20 +7776,33 @@ number.
 36-row lookback, is measured on all of γ, including the 2008 to 2012 window it
 trades. Entry 22 names the same limit for USD.CAD's lookback.
 
-**Anything about costs.** None is charged, though each roll trades four legs,
-closing one pair and opening the next.
+**Anything about costs.** None is charged. Each roll trades four contracts,
+closing one pair and opening the next. So does each day γ's z-score crosses 0
+while a pair is held, because the trade then reverses both legs.
 
-**Whether the direction holds outside 2008 to 2012.** The script's rule also
-earns on the file's 332 rows before the window, 0.050334 from 2006-09-05 to
-2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is the same file
-and before costs.
+**Whether the direction holds outside 2008 to 2012.** The script's rule
+first holds a pair on 2006-09-05, and it also earns 0.050334 on the 332 rows
+from then to 2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is
+the same file and before costs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md)
-moves with it, since that post quotes most of these figures. So does its one
+moves with it, since that post quotes most of these figures and
+`TestWhatThePostQuotes` fails until it does. So does its one
 figure, which `uv run python -m chan.calendar_spread_reversion_figures`
-redraws.
+redraws. Its two whiteboard sketches move too, and
+`uv run python -m chan.crude_oil_calendar_spread_whiteboard` redraws them. The
+one in "The spread, the signal and the file" draws the script's schedule from
+the run. The schedule holds the pair short K2008 and long K2009 from 2007-12-05
+to 2008-04-08, skips the M2008, N2008 and Q2008 pairs that would start on
+2008-04-09 because each one's last day would come fewer than 63 trading days
+after its first, and holds the
+pair short U2008 and long U2009 from 2008-04-09 to 2008-08-06. The one in
+Lesson 2 is schematic apart from its closing note. That note prints the
+fourth conclusion's 841 of 1,097 held rows, and the 554 held rows with γ's
+z-score above 0, all of them short the far leg, which
+`TestTheTradesDirection` also pins.
 
 ## Entry 35: VIX futures calendar spreads on the ratio of back to front, Chan's *Algorithmic Trading*
 
@@ -7849,10 +7870,11 @@ both are stated once here.
    half-life read every finite row of the filled signal. The first pair of
    adjacent contracts starts 73 rows before its near contract's last priced
    row, every pair ends 10 rows before its own, and a later pair is skipped
-   when that leaves it fewer than 63 rows. The return is yesterday's positions times each leg's
-   return, summed over the legs that have one and divided by 2, annualised
-   over 252 days by compounding simple returns, with the Sharpe ratio on
-   MATLAB's n − 1 `std`, no risk-free rate and no cost.
+   when its last row would come fewer than 63 rows after its first. The return
+   is yesterday's positions times each leg's return, summed over the legs that
+   have one and divided by 2, annualised over 252 days by compounding simple
+   returns, with the Sharpe ratio on MATLAB's n − 1 `std`, no risk-free rate and
+   no cost.
 
 Four rows beside S were declared with it, and a row that lands while S misses
 is reported and not promoted to the specification.
@@ -9205,11 +9227,12 @@ median of −0.0283 across the 579 stocks priced on every day the pairs read.
 PC1, PC2, PC4 and PC5 are above 0 and above the median stock. PC3 is above
 the median stock and below 0.
 
-The verdicts rest on little. PC2 alone sits outside the band a series with no
-persistence stays inside 95 percent of the time, and no factor survives a
-control for false discoveries across the five. Which factor misses also rests
-on one symbol. Dropping PMC, whose two price histories the program joins into
-one day's return of 1.8654, moves PC2 below 0 and PC3 above it.
+The verdicts rest on little. PC2 alone sits outside the band a series of
+independent returns centred on zero stays inside 95 percent of the time, and
+no factor survives a control for false discoveries across the five. Which
+factor misses also rests on one symbol. Dropping PMC, whose two price
+histories the program joins into one day's return of 1.8654, moves PC2 below
+0 and PC3 above it.
 
 Five rows are claims and eleven are not replications. Rows 1 to 5 take the
 claim route `### Rows that are not replications` describes, one per factor.
@@ -9253,11 +9276,11 @@ and seven of the issue's rules, each as the issue fixed it.
    subtracting either series' mean first. A singular vector's sign is
    arbitrary, and flipping it on one day flips both members of that day's
    pair, so no product and no sum of squares moves. Leaving out the centring
-   is deliberate. A factor return that keeps a steady sign counts as
-   persistent, which is what location 4051's "remain constant from the
-   current time period to the next" asks. The price is that a few large days
-   can carry the statistic, so row 9 reports beside it the share of pairs
-   whose two members have the same sign.
+   is deliberate. A factor return that keeps a steady nonzero mean in one
+   orientation counts as persistent, which is what location 4051's "remain
+   constant from the current time period to the next" asks. The price is that
+   a few large days can carry the statistic, so row 9 reports beside it the
+   share of pairs whose two members have the same sign.
 4. **Which factor is factor k.** Factor k is the k-th largest component as
    each day's decomposition ranks it, named PC1 to PC5. When two neighbouring
    components swap places between days, their pairs mix into each other's
@@ -9272,8 +9295,10 @@ and seven of the issue's rules, each as the issue fixed it.
    five carries its own verdict, under the owner's ruling.
 7. **The printouts.** The revised MATLAB only, because its 2 percent is the
    figure location 4051 quotes. The revised Python and the R regress with an
-   intercept that cancels their factors, Entry 13's row 11, so they have no
-   factor returns to test. The first edition is not tested, for the reasons
+   intercept that cancels their factors, Entry 13's row 11 for the Python and
+   [issue 21](https://github.com/l3a0/quantitative-trading/issues/21)'s reading
+   of the R's printed `lm(R[,s] ~ X)` for the R, so they have no factor
+   returns to test. The first edition is not tested, for the reasons
    `### What this entry cannot say` gives.
 8. **The hypothesis space.** Five hypotheses, one per factor, each at lag 1
    on the committed file with a lookback of 252 and five factors. No other
@@ -9345,7 +9370,7 @@ columns have nothing to hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | The claim holds for PC1, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's, under the criterion declared on the issue before any factor return was computed. It sits at 0.0316, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
-| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band assumes every day's product is drawn alike and the t does not, which is how the two can disagree. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
+| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return, up or down, makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t measures that scatter. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
 | 3 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for PC3. Its −0.0189 is above the median stock's −0.0283 and below 0. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 to 5. The value is forced, because the log's two other verdicts both need the claim to survive. It sits inside row 10's band, so this miss could be noise as much as row 1's pass could. Without PMC its statistic rises to 0.0139, above both, and PC2 misses in its place under row 16, so which factor misses rests on one symbol. Two more causes outside the method are open and neither is measured: the file holds only survivors, and 2005 to 2008 is one window. |
 | 4 | reproduced | The claim holds for PC4, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0305, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
 | 5 | reproduced | The claim holds for PC5, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0710, just inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. Its pairs share a sign exactly as often as not, under row 9, so the positive statistic comes from its larger pairs agreeing in sign. |
@@ -9353,7 +9378,7 @@ columns have nothing to hold in any row and are dropped, under
 | 7 | none, not a replication | PC2 sits above 95.6822 percent of the stocks and PC3 above 55.0950 percent, so even the factor that misses is more persistent than the median stock on this file. |
 | 8 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. PC3 shows the other half: it is above the median stock and still below 0. That is a fact about this panel, and the criterion keeps both halves as declared. |
 | 9 | none, not a replication | Every share sits between 0.5000 and 0.5226. PC5's is exactly one half, which is the price rule 3 names: a few large days can carry the statistic. |
-| 10 | none, not a replication | Under a series with no persistence, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
+| 10 | none, not a replication | Under a series of independent returns centred on zero, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
 | 11 | none, not a replication | The smallest p-value is PC5's 0.1021, so no factor would pass at 5 percent even tested alone, and Benjamini-Hochberg across the five rejects none. A sign flip moves no product, so it cannot move a t either. |
 | 12 | none, not a replication | The intercept is added to every stock's expected return alike, so it moves no position. Both of its figures are negative and inside row 10's band. |
 | 13 | none, not a replication | Without PMC the comparison set keeps the other 578 stocks, and the median is unchanged at four decimals. PC1 and PC4 rise, PC5 falls, PC2 falls below 0 and PC3 rises above it. |
@@ -9372,9 +9397,9 @@ Three things, and the first is the verdict.
    combined verdict.
 2. **The verdicts rest on little.** No factor survives a control for false
    discoveries across the five, and no p-value would pass at 5 percent even
-   alone. Four of the five sit inside the band a series with no persistence
-   stays inside 95 percent of the time. PC2 sits outside it and still has a
-   one-sided p-value of 0.2046.
+   alone. Four of the five sit inside the band a series of independent
+   returns centred on zero stays inside 95 percent of the time. PC2 sits
+   outside it and still has a one-sided p-value of 0.2046.
 3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
    0 and PC3 rises above it, so the criterion would miss PC2 instead.
 
@@ -9423,7 +9448,10 @@ the 113 days from 2007-08-02 to 2008-01-11 whose window holds its one large
 return, and which factor carries it, and name the two days that carry PC2's
 statistic, which carry PC1's without PMC. Its one figure, which
 `uv run python -m chan.pca_factor_momentum_figures`
-redraws, moves with them.
+redraws, moves with them. The factor models post's Lesson 3 whiteboard
+sketch, which draws a sign flip in one day's weights changing both members of
+a pair, is schematic and draws none of these figures, and
+`uv run python -m chan.factor_models_whiteboard` redraws it.
 
 ## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
 
@@ -10864,7 +10892,7 @@ rules and the windows are Chan's, and every qualifying day falls between
 alignment first and run them on data after 2012.
 
 **What buy on gap earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24, so Entry 18's caveat holds for the filtered
+was in the S&P 500 in late 2011, so Entry 18's caveat holds for the filtered
 days too.
 
 **Whether VIX's 2007-02-27 print is clean.** The guard flags it, the move

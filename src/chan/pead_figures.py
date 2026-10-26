@@ -199,7 +199,7 @@ def make_cumulative_figure(out: Path | None = None, drift: Drift | None = None) 
         f"Example 7.2 of Algorithmic Trading, {days[0].date()} to {days[-1].date()}, each day's "
         f"summed return over {DENOMINATOR}, unlevered and before costs.\n"
         f"Prices from {PRICE_FILE} and flags from {FLAG_FILE}.\n"
-        "The price file holds the S&P 500 as Chan held it on 2012-04-24, "
+        "The price file holds stocks that were in the S&P 500 in late 2011, "
         "so every stock is a survivor.",
     )
     fig.tight_layout(rect=(0, 0.11, 1, 0.96))
