@@ -2054,8 +2054,8 @@ It prints each printout's figures beside Chan's, the verdicts, what separates
 the 2 percent from the 4, and every figure without PMC. It takes about a
 minute, most of it the first edition's eigendecomposition on every day.
 
-The market and momentum factors read Chan's S&P 500 file, his SPY column and
-the bills, and take no option, because the issue fixed the construction and
+The market and momentum factors read Chan's S&P 500 file, his dividend-adjusted
+SPY closes and the bills, and take no option, because the issue fixed the construction and
 the window before any return was computed:
 
 ```bash
@@ -3575,7 +3575,8 @@ together. Every result in it is exploratory.
 3. The momentum the strategy assumes held for the market factor and not the
    momentum factor, and for four of Example 7.4's own five factors. Each
    verdict stands on its own, none of the five survives a test across all
-   five, and which one misses moves when PMC is dropped.
+   five, and which one misses, and which fall outside the band, moves when PMC
+   is dropped.
 4. A verdict can follow the declared criterion and still rest on almost
    nothing, because both autocorrelations sit inside the range a series with
    no autocorrelation lands in 95 percent of the time.

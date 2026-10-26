@@ -37,10 +37,10 @@ Two of the factors Chan’s section names can be built from prices alone, and th
 Both run on two more of Chan’s files and one public series.
 
 1. `SPX_20071123.mat`, the 500 members of the S&P 500 as he saved them on 2007-11-24, spanning 1999-11-24 to 2007-11-23.
-2. The SPY column of his `example6_2.xls`, saved 2008-01-29.
+2. SPY’s dividend-adjusted close from his `example6_2.xls`, saved 2008-01-29.
 3. The three-month Treasury bill rate, TB3MS, downloaded on 2026-09-30 from FRED, the St. Louis Fed’s data service.
 
-The month-ends are the file’s rows whose next row falls in another month, which is Chan’s own rule, and there are 96 of them. The first formation needs 12 month-ends of history behind it, so 83 holding months remain, from December 2000 to October 2007. A stock enters a month only if it has a close at every month-end the formation reads, which leaves 442 to 494 stocks at each formation.
+The month-ends are the file’s rows whose next row falls in another month, which is Chan’s own rule, and there are 96 of them. The first formation needs 12 month-ends of history behind it, so 83 holding months remain, from December 2000 to October 2007. A stock enters a month only if it has a close at every month-end from 12 months before formation to the end of the month it is held, which leaves 442 to 494 stocks at each formation.
 
 **The statistic** is each series’ lag-1 autocorrelation, the correlation of each month’s return with the month before. Chan’s “individual stock’s returns” stand here as the median of the 446 stocks with a return in all 83 months. A stock can hold a return in every month and still miss an early formation for want of its year of history, which is how the 446 can exceed the fewest eligible.
 
@@ -141,7 +141,7 @@ The claim that factors “often” autocorrelate more strongly holds for four of
 
 1. **The band.** Over 752 pairs, a series with no persistence lands inside ±0.0715 about 95 percent of the time, the band Lesson 4 explains for the monthly factors. PC2’s 0.0778 is outside it and the other four are inside.
 2. **A test across all five.** Each day’s factor return times the next day’s gives one product per pair. A Newey-West t-statistic tests whether those products average above zero. It divides the average by how far it would wander by chance, widened for neighbouring days that move together and for days of different size. Its one-sided p-value is the chance that luck alone would give a t that large. Testing five factors at once raises the chance that one looks significant by luck, so the Benjamini-Hochberg procedure, which holds the expected share of false findings among those declared significant to 5 percent, runs across all five. None survives, PC2 included, and no factor’s p-value would pass at 5 percent even alone.
-3. **One symbol decides which factor misses.** PMC is the symbol Lesson 6 describes, whose two price histories join into one day’s return of 1.8654. Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139. The claim would then miss PC2 rather than PC3.
+3. **One symbol decides which factor misses and which fall outside the band.** PMC is the symbol Lesson 6 describes, whose two price histories join into one day’s return of 1.8654. Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139, so the claim would miss PC2 rather than PC3. PC1 at 0.0740 and PC4 at 0.0975 would sit outside the band in place of PC2. PC4’s one-sided p-value of 0.0319 would then pass at 5 percent on its own, but no factor would survive the test across all five.
 
 Every one of these figures is about survivors, as Lesson 6 says of the whole S&P 600 file. None of them says how much of the revised MATLAB’s 2 percent the factors’ momentum earns.
 
