@@ -5,7 +5,7 @@ Nine draw Lesson 2: the range the missing rows leave, a guessed price, what
 Chan's 19 needs, how fill 2 carries June's move, which April days can test a
 fill, how its misses lean and spread, how the lean looks April by April, why
 a miss subtracts at an entry and adds at an exit, and each fill's miss
-against each year's move. One draws Lesson 4's numbered files. The scenes are
+against each year's move. One draws Lesson 5's numbered files. The scenes are
 built from the natural gas and gasoline runs on the committed EIA files rather
 than from a pinned copy of their figures. Most tests check the drawing against
 the run, and a few check the run against literal dates, counts and labels the
@@ -1514,7 +1514,7 @@ class TestTheFillMissesSketch:
         assert "the bar for 1998 only just reaches past it, and the bar for 1999 stops" in alt
 
 
-# --- Lesson 4: the calendar sketch ---------------------------------------------
+# --- Lesson 5: the calendar sketch ---------------------------------------------
 
 
 def _reaches(scene, tag: str, x: float) -> list[str]:

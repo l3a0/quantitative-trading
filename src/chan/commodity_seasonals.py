@@ -292,6 +292,17 @@ def mean_interval(trades: list[Trade], level: float = 0.95) -> tuple[float, floa
     return mean - half, mean + half
 
 
+def change_p_value(before: list[Trade], after: list[Trade]) -> float:
+    """Welch's two-sided p-value for the mean yearly return differing between two periods.
+
+    Welch's test lets each period keep its own spread, which matters here
+    because natural gas swung far more after 2008 than before.
+    """
+    one = [trade.relative_change for trade in _readable(before)]
+    two = [trade.relative_change for trade in _readable(after)]
+    return float(stats.ttest_ind(one, two, equal_var=False).pvalue)
+
+
 def max_drawdown(trades: list[Trade], *, data_dir: Path | None = None) -> float:
     """The largest fall from a peak in the summed returns, marked every trading day.
 

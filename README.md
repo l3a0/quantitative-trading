@@ -3644,7 +3644,7 @@ regime map.
 [blog/commodity-seasonals-lessons.md](blog/commodity-seasonals-lessons.md) is
 an eleventh post, about the commodity seasonals, the gasoline and natural gas
 trades Chan says still pay where the equity ones weakened. It is the companion to
-the equity seasonals post, and draws four lessons from Entry 11 of the
+the equity seasonals post, and draws five lessons from Entry 11 of the
 replication log.
 
 1. A count of consecutive years needs its start year and its edition, and the
@@ -3654,7 +3654,10 @@ replication log.
    gasoline count between 16 and 19 rather than settling it.
 3. A trade chosen after looking at the history is tested by the years after
    the book, and both trades win a smaller share of them.
-4. Reading one named contract from files numbered by expiry needs a calendar
+4. One trade a year leaves too few results to grade that split. It works the
+   Sharpe ratio's standard error and the 95% range of each mean through, and
+   Welch's test finds gasoline's fall firmer than natural gas's.
+5. Reading one named contract from files numbered by expiry needs a calendar
    checked against something the files do not supply.
 
 It cites the revised edition by page, while the replication log cites the
@@ -3700,7 +3703,10 @@ split in the post, and fails when that copy drifts from the run. A second copy
 of the same figure elsewhere in the post is not always read. `TestTheReturns`
 pins each split's mean yearly return, Sharpe ratio and drawdown, and
 `TestThePostQuotesThePins::test_the_returns_table` reads them from the post's
-first table at the precision it prints.
+first table at the precision it prints. The same class pins each split's 95% range for
+the mean and the Sharpe ratio's standard error, and Welch's p-values for the
+two periods, and `test_lesson_4_works_the_sample_size_out` reads Lesson 4's
+worked equations against them.
 
 Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).
@@ -3759,7 +3765,7 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 11. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
    with fill 2's guess corrected by its average miss, and a bar of the spread
    of its misses either side, which 1999's move clears.
-12. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
+12. `commodity_sketch_june_file.gif`, in Lesson 5, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.

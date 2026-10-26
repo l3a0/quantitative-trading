@@ -37,7 +37,7 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 
 A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by its standard deviation. The drawdown is the largest fall from a peak in the summed yearly returns, marked on every trading day the files hold a price, so it counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake. Gasoline’s 1995 to 2015 leaves out the 3 years with no price. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim.
 
-Each trade happens once a year, so each column of the table rests on only 8 to 18 results, and its figures are rough. A Sharpe ratio from that few results has a standard error, the amount an estimate typically strays from the true value, of 0.3 to 0.4. So natural gas’s 1.0 before 2009 is consistent with anything from 0.4 to 1.6. The 95% range for natural gas’s mean return after 2008 runs from −12% to +12%, and still contains the +10.6% it earned before. Gasoline’s 8 years after 2015 give a range of −6% to +2%. A strategy that trades every day collects 15 results in three weeks. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Each trade happens once a year, so each column of the table rests on only 8 to 18 results. Lesson 4 works out what that few results can show: gasoline’s fall after the book stands out from its noise, and natural gas’s does not. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two trades and the files
 
@@ -47,7 +47,7 @@ Every passage quoted here is in the revised edition of 2021. The first edition m
 
 ### Five files from EIA, numbered by expiry
 
-EIA publishes settlement prices for the nearest four contracts of each product. It numbers them by expiry rather than by month: contract 1 is whichever contract stops trading next, and each number has its own file. So the run has to work out which file holds the May or June contract on each trade date, which Lesson 4 comes back to. The run reads five files covering three products, all downloaded on 2 October 2026:
+EIA publishes settlement prices for the nearest four contracts of each product. It numbers them by expiry rather than by month: contract 1 is whichever contract stops trading next, and each number has its own file. So the run has to work out which file holds the May or June contract on each trade date, which Lesson 5 comes back to. The run reads five files covering three products, all downloaded on 2 October 2026:
 
 1. New York Harbor regular gasoline, contract 1, through 2005.
 2. RBOB gasoline, contract 1, from 2006. RBOB replaced the New York Harbor contract and began trading in October 2005.
@@ -251,9 +251,61 @@ For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sam
 
 The book’s years include the years Chan chose each rule on, so the drop after the book can overstate how far either trade weakened.
 
-Chan suggests a check of his own. A trade that happens once a year produces few results, so data-snooping bias, a pattern found by searching the past that will not repeat, is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a bar that rises with the number tried, and years the search never sees.
+## Lesson 4: one trade a year leaves too few results to grade a split
 
-## Lesson 4: reading one named contract from files numbered by expiry needs a calendar checked outside the files
+Each trade happens once a year, so 15 years give 15 results, about what a strategy that trades every day collects in three weeks. Two calculations show how far that few results can be trusted.
+
+### How far a Sharpe ratio can stray
+
+A standard error is the amount an estimate typically strays from the true value. For a Sharpe ratio estimated from `n` independent returns, Lo (2002) gives:
+
+```math
+\text{SE} \approx \sqrt{\frac{1 + \text{SR}^2 / 2}{n}}
+```
+
+Trades a year apart share no days, so treating them as independent is close to right. Natural gas before 2009 has a Sharpe ratio of 1.0 over 15 years:
+
+```math
+\begin{aligned}
+\text{SE} &\approx \sqrt{\frac{1 + 1.0^2 / 2}{15}} = 0.32 \\
+95\%\ \text{range} &= 1.0 \pm 1.96 \times 0.32 \\
+&= 0.4 \text{ to } 1.6
+\end{aligned}
+```
+
+Across the table’s four columns the standard error runs from 0.3 to 0.4, so each Sharpe ratio there could plausibly sit 0.5 to 0.7 higher or lower.
+
+### Whether the mean return changed
+
+The 95% range for a mean return from `n` results, with standard deviation `s`, uses Student’s t, which widens the range to allow for estimating `s` from so few:
+
+```math
+\bar r \pm t_{n-1} \times \frac{s}{\sqrt{n}}
+```
+
+Natural gas after 2008 averaged −0.4% a year with a standard deviation of 21.6% over 15 years, and `t` for 14 degrees of freedom is 2.14:
+
+```math
+\begin{aligned}
+&-0.4\% \pm 2.14 \times \frac{21.6\%}{\sqrt{15}} \\
+&= -0.4\% \pm 12.0\%
+\end{aligned}
+```
+
+That range, −12% to +12%, still holds the +10.6% natural gas earned before 2009. So 15 years cannot tell a trade that weakened from one that had a bad run. Gasoline after 2015 averaged −1.9% with a standard deviation of 4.8% over 8 years, and `t` for 7 degrees of freedom is 2.36:
+
+```math
+\begin{aligned}
+&-1.9\% \pm 2.36 \times \frac{4.8\%}{\sqrt{8}} \\
+&= -1.9\% \pm 4.0\%
+\end{aligned}
+```
+
+That range, −6% to +2%, leaves out the +3.2% gasoline earned before. Welch’s t-test, which compares the two periods directly and allows each its own spread, agrees: the chance of a gap this large between periods that truly averaged the same is 0.02 for gasoline and 0.09 for natural gas. Gasoline’s fall is the firmer finding, and natural gas’s is suggestive.
+
+Chan makes the same point and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias, a pattern found by searching the past that will not repeat, is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a bar that rises with the number tried, and years the search never sees.
+
+## Lesson 5: reading one named contract from files numbered by expiry needs a calendar checked outside the files
 
 EIA’s files hold contract 1, contract 2 and so on, not the May or June contract, so every trade date needs the file that holds Chan’s contract.
 
@@ -285,16 +337,18 @@ Three questions are beyond it, besides the gaps, the start year and edition, and
 
 ## What this means for a trader
 
-Three habits follow from the first three lessons.
+Four habits follow from the first four lessons.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
 2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighboring day would decide the answer instead of checking it. Even the closer of the two fills the run measured misses by more than each year’s raw move, and correcting its lean still leaves no year at 95%.
 3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a Sharpe ratio of 1.0, and averaged a loss of 0.4% a year after.
+4. **Count the results behind a Sharpe ratio.** Fifteen yearly trades leave a standard error near 0.3, too wide to tell natural gas’s two periods apart.
 
 ## References
 
 - Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Released in November 2008.
 - Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 175 and 183 to 186. Page numbers here are the revised edition’s. The replication log cites the passages on pp. 183 to 185 by Kindle location, 4529 to 4632.
+- Lo, A. W. (2002). The statistics of Sharpe ratios. *Financial Analysts Journal*, 58(4), 36 to 52.
 - US Energy Information Administration. NYMEX futures settlement prices, daily, for New York Harbor regular gasoline, RBOB gasoline and Henry Hub natural gas, contracts 1 to 4. Downloaded 2 October 2026.
 
 *Not investment advice. Code: [the two trades](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals.py), [the calendar and expiry rules](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/futures.py), [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals_figures.py) and [the whiteboard sketches](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals_whiteboard.py), with the checks behind [the trades’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals.py), [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals_figures.py) and [what the sketches draw](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals_whiteboard.py), and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) that sets each of Chan’s figures beside the one reproduced here.*

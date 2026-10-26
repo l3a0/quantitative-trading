@@ -14,11 +14,13 @@ from __future__ import annotations
 
 import math
 import re
+import statistics
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from scipy import stats
 
 from chan import futures
 from chan.commodity_seasonals import (
@@ -29,6 +31,7 @@ from chan.commodity_seasonals import (
     RBOB_GASOLINE,
     RUN_START,
     Trade,
+    change_p_value,
     count_test_days,
     daily_marks,
     easter,
@@ -396,6 +399,15 @@ class TestTheReturns:
         assert mean_interval(years) == pytest.approx((low, high), abs=5e-5)
         assert sharpe_standard_error(years) == pytest.approx(error, abs=5e-5)
 
+    def test_welch_compares_the_two_periods(self) -> None:
+        gas = change_p_value(
+            self.years("gasoline, 1995 to 2015"), self.years("gasoline, 2016 to 2023")
+        )
+        ng = change_p_value(
+            self.years("natural gas, 1994 to 2008"), self.years("natural gas, 2009 to 2023")
+        )
+        assert (gas, ng) == pytest.approx((0.0227, 0.0916), abs=5e-5)
+
     def test_the_marks_start_and_end_at_the_trade_s_prices(self) -> None:
         for trade in GASOLINE + GAS:
             if trade.change is not None:
@@ -632,33 +644,65 @@ class TestThePostQuotesThePins:
             for name, (one, two) in rows.items():
                 assert f"\\quad\\text{{{name}}} & {one} & {two}" in self.text, (trade, name)
 
-    def test_the_sample_size_call_out(self) -> None:
-        """The paragraph under the returns table reads its ranges from the run."""
+    def test_lesson_4_works_the_sample_size_out(self) -> None:
+        """Lesson 4 reads its inputs, its worked results and its tests from the run."""
 
         def whole(value: float) -> str:
             return f"{'−' if value < 0 else '+'}{abs(round(100 * value))}%"
 
-        ng_before = TestTheReturns.years("natural gas, 1994 to 2008")
-        ng_after = TestTheReturns.years("natural gas, 2009 to 2023")
-        gas_after = TestTheReturns.years("gasoline, 2016 to 2023")
+        def pct(value: float) -> str:
+            return f"{100 * value:.1f}"
+
+        splits = TestTheReturns.SPLITS
         counts = [
             len([t for t in TestTheReturns.years(split) if t.change is not None])
-            for split in TestTheReturns.SPLITS
+            for split in splits
         ]
-        errors = [sharpe_standard_error(TestTheReturns.years(s)) for s in TestTheReturns.SPLITS]
-        ratio, error = sharpe_ratio(ng_before), sharpe_standard_error(ng_before)
-        low, high = mean_interval(ng_after)
-        assert low < mean_return(ng_before) < high
-        gas_low, gas_high = mean_interval(gas_after)
+        errors = [sharpe_standard_error(TestTheReturns.years(split)) for split in splits]
         text = " ".join(self.text.split())
-        assert f"strays from the true value, of {min(errors):.1f} to {max(errors):.1f}." in text
         assert f"rests on only {min(counts)} to {max(counts)} results" in text
+        assert f"the standard error runs from {min(errors):.1f} to {max(errors):.1f}" in text
+        assert f"sit {1.96 * min(errors):.1f} to {1.96 * max(errors):.1f} higher or lower" in text
+
+        ng_before = TestTheReturns.years("natural gas, 1994 to 2008")
+        ratio, error = sharpe_ratio(ng_before), sharpe_standard_error(ng_before)
         assert (
-            f"natural gas’s {ratio:.1f} before 2009 is consistent with anything from "
-            f"{ratio - 1.96 * error:.1f} to {ratio + 1.96 * error:.1f}"
-        ) in text
-        assert f"after 2008 runs from {whole(low)} to {whole(high)}" in text
-        assert f"give a range of {whole(gas_low)} to {whole(gas_high)}" in text
+            f"\\sqrt{{\\frac{{1 + {ratio:.1f}^2 / 2}}{{{len(ng_before)}}}}} = {error:.2f}" in text
+        )
+        assert f"{ratio:.1f} \\pm 1.96 \\times {error:.2f}" in text
+        assert f"&= {ratio - 1.96 * error:.1f} \\text{{ to }} {ratio + 1.96 * error:.1f}" in text
+
+        for split, before, years_word in (
+            ("natural gas, 2009 to 2023", "natural gas, 1994 to 2008", "15 years"),
+            ("gasoline, 2016 to 2023", "gasoline, 1995 to 2015", "8 years"),
+        ):
+            after = [t.relative_change for t in TestTheReturns.years(split) if t.change is not None]
+            n, mean, sd = len(after), statistics.mean(after), statistics.stdev(after)
+            t = stats.t.ppf(0.975, n - 1)
+            low, high = mean_interval(TestTheReturns.years(split))
+            spread = f"a standard deviation of {pct(sd)}% over {n} years"
+            assert re.search(rf"averaged −{pct(-mean)}%( a year)? with {spread}", text), split
+            assert f"for {n - 1} degrees of freedom is {t:.2f}" in text, split
+            assert (
+                f"&-{pct(-mean)}\\% \\pm {t:.2f} \\times \\frac{{{pct(sd)}\\%}}{{\\sqrt{{{n}}}}}"
+                in text
+            )
+            assert f"&= -{pct(-mean)}\\% \\pm {pct(high - mean)}\\%" in text, split
+            assert f"That range, {whole(low)} to {whole(high)}," in text, split
+            earned = mean_return(TestTheReturns.years(before))
+            inside = low < earned < high
+            assert (f"still holds the +{pct(earned)}%" in text) == inside, split
+            assert (f"leaves out the +{pct(earned)}%" in text) == (not inside), split
+            assert years_word in text
+        gas_p = change_p_value(
+            TestTheReturns.years("gasoline, 1995 to 2015"),
+            TestTheReturns.years("gasoline, 2016 to 2023"),
+        )
+        ng_p = change_p_value(
+            TestTheReturns.years("natural gas, 1994 to 2008"),
+            TestTheReturns.years("natural gas, 2009 to 2023"),
+        )
+        assert f"is {gas_p:.2f} for gasoline and {ng_p:.2f} for natural gas" in text
 
     def test_the_2002_drawdown(self) -> None:
         trade = natural_gas_trade(2002)

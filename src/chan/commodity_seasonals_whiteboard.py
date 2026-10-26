@@ -1,4 +1,4 @@
-"""Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 4.
+"""Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 5.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
 trades against EIA's settlements. Twelve of its passages turn on a picture a
@@ -81,7 +81,7 @@ after the paragraph it draws.
    still trading on the entry date and one in which it has expired. A dashed
    line at each entry and exit crosses the contracts still trading that day,
    and June's number is how many it crosses, which its closing label says. It
-   sits in Lesson 4, after the paragraph opening "For gasoline the answer is
+   sits in Lesson 5, after the paragraph opening "For gasoline the answer is
    simple."
 
 All twelve carry data, and none needs the owner's archive.
@@ -1778,7 +1778,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
     return Scene("Each corrected move against fill 2’s spread", "fill_misses", tuple(steps))
 
 
-# --- Lesson 4: which numbered file holds June --------------------------------
+# --- Lesson 5: which numbered file holds June --------------------------------
 
 #: The year whose entry comes before March's last trading day, and the year
 #: whose entry comes after it, in the order the sketch draws them.
@@ -1924,7 +1924,7 @@ def _year_steps(f: JuneYear, top: float) -> list[Stroke | Label]:
 
 
 def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
-    """Lesson 4: June's number is how many contracts are still trading that day."""
+    """Lesson 5: June's number is how many contracts are still trading that day."""
     steps = _year_steps(still, YEAR_TOPS[0]) + _year_steps(expired, YEAR_TOPS[1])
     steps.append(
         Label(
@@ -1991,7 +1991,7 @@ def scenes(
     misses: MissFigures | None = None,
     narrowing: NarrowingFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The twelve scenes in the order the post reads them, Lessons 1, 2 and 4."""
+    """The twelve scenes in the order the post reads them, Lessons 1, 2 and 5."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
