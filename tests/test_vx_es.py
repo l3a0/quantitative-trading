@@ -745,13 +745,16 @@ def _quoted(fragment: str, text: str) -> bool:
 
 
 class TestThePostQuotesTheRun:
-    """``blog/vx-es-lessons.md`` prints what the run computes, read here from the run.
+    """At least one copy of each run figure that ``blog/vx-es-lessons.md`` prints.
 
-    The pins above hold the run's numbers. This class holds that the post
-    prints them, so a figure edited in the post alone fails here. It reads
-    every row of the four tables with its verdict, and one copy of each figure
-    the run computes that the prose writes in numerals. README says what it
-    does not read.
+    The pins above hold the run's numbers. This class reads the post, so
+    editing a copy it reads fails here. It reads every row of the four tables
+    with its verdict, and at least one copy of each figure the run computes
+    that the prose writes in numerals, with enough words around each that only
+    that copy matches. A figure the post prints again, such as the $2.09 miss
+    in the opening findings or the 449 test days in Lesson 4's first paragraph,
+    is read only where the fragment's words put it. README says which copies
+    it leaves unread.
     """
 
     def test_the_post_prints_each_figure_the_run_computes(self, legs, script_legs, result) -> None:
