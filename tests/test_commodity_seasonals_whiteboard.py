@@ -1671,9 +1671,11 @@ class TestTheOneYearSketch:
 
     def test_each_tick_sits_at_its_mean(self, every) -> None:
         scene, f = every[12], OneYearFigures.from_run()
-        assert set(_stroke(scene, "mean").x) == {pytest.approx(_year_x(f.mean_after))}
+        assert list(_stroke(scene, "mean").x) == pytest.approx(
+            [_year_x(f.mean_after)] * len(_stroke(scene, "mean").x)
+        )
         without = _stroke(scene, "mean-without").x
-        assert set(without) == {pytest.approx(_year_x(f.mean_without_best))}
+        assert list(without) == pytest.approx([_year_x(f.mean_without_best)] * len(without))
 
     def test_each_rank_dot_sits_in_its_row_in_rank_order(self, every) -> None:
         scene, f = every[12], OneYearFigures.from_run()
