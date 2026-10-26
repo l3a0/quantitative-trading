@@ -492,6 +492,7 @@ class TestTheRun:
         assert "rounds to -30 percent: no." in out
         assert "stabilised below its 2007 level: yes." in out
         assert "about survivors" in out
+        assert "stocks that were in the index in late 2011" in out
         assert "Exploratory." in out
         assert "Entry 17 carries the verdicts" in out
         (r0,) = [each for each in out.splitlines() if each.strip().startswith("R0")]
