@@ -25,15 +25,21 @@ the ones the sketch tests hold.
    needs ``frames=1``. This is stricter than the tests' own check, which
    allows as many points as frames.
 6. A scene draws in one palette. Its strokes, labels and tints use either the
-   shared brass, green and red of :mod:`chan.regime_figure` or the colours of
-   :mod:`chan.palette`, never both. A helper whose colour defaults to the
-   shared brass, such as ``_dot``, leaves a mark of the old palette in a scene
-   that has moved, and the renderer maps it onto the nearest new ink, which is
-   the grey.
+   shared brass, green and red of :mod:`chan.regime_figure` and the shared
+   tints of :mod:`chan.usdcad_tests_whiteboard`, or the berry, blue, vermilion
+   and tints of :mod:`chan.palette`, never both. The ink and the grey belong
+   to both. A helper whose colour defaults to the shared brass, such as
+   ``_dot``, leaves a mark of the old palette in a scene that has moved, and
+   the renderer maps it onto the nearest new ink, which is the grey.
 
-The GIF is drawn on the palette the scene's own colours belong to, the way the
-post's module draws its committed GIFs: :data:`chan.palette.INKS` for a scene
-that uses any of :mod:`chan.palette`'s colours, and the shared inks otherwise.
+A post has moved when ``MODULE`` holds :data:`chan.palette.INKS` or the
+:mod:`chan.palette` module itself, when ``--palette`` says so, or when a scene
+uses any of :mod:`chan.palette`'s own colours. The GIF is drawn the way the
+post's module draws its committed GIFs: on :data:`chan.palette.INKS` for a
+post that has moved, and on the shared inks otherwise. In a post that has
+moved, any shared colour breaks rule 6, even in a scene with no other colour.
+Pass ``--palette`` when ``MODULE`` is a scratch file that builds a moved post's
+scene, since such a file need not import :mod:`chan.palette`.
 
 A scene that breaks none prints ``ok``. The script exits 1 when any scene
 breaks a rule, so a caller can act on the result.
@@ -87,18 +93,24 @@ PALETTE_COLOURS = {
 }
 
 
-def inks_for(scene: Scene) -> tuple[tuple[str, ...], list[str]]:
-    """Rule 6: the inks the scene's colours belong to, and the problem when it
-    uses colours of both palettes."""
+def has_moved(module: object) -> bool:
+    """Whether ``module`` draws in :mod:`chan.palette`, read from what it imports."""
+    return any(value is palette or value is palette.INKS for value in vars(module).values())
+
+
+def inks_for(scene: Scene, moved: bool = False) -> tuple[tuple[str, ...], list[str]]:
+    """Rule 6: the inks the scene is drawn on, and the problem when a post that
+    has moved keeps a shared colour. ``moved`` says the post has moved, and a
+    scene using any of :mod:`chan.palette`'s own colours says so too."""
     used = {to_hex(step.color) for step in scene.steps}
-    shared, moved = sorted(used & SHARED_COLOURS), sorted(used & PALETTE_COLOURS)
-    if not moved:
+    shared = sorted(used & SHARED_COLOURS)
+    if not (moved or used & PALETTE_COLOURS):
         return wb.INKS, []
-    mixed = [
-        f"draws in chan.palette's colours and in the shared {', '.join(shared)}, "
+    left = [
+        f"keeps the shared {', '.join(shared)} in a post drawn in chan.palette, "
         "which the renderer maps onto the nearest new ink"
     ]
-    return palette.INKS, mixed if shared else []
+    return palette.INKS, left if shared else []
 
 
 def frames_for(scene: Scene, paced: bool) -> list[Frame]:
@@ -194,10 +206,10 @@ def frame_problems(scene: Scene, timeline_frames: int, gif: Path) -> list[str]:
     return found
 
 
-def draft(scene: Scene, out: Path, paced: bool) -> list[str]:
+def draft(scene: Scene, out: Path, paced: bool, moved: bool = False) -> list[str]:
     """Write one scene's GIF and last frame into ``out``, and return the rules it breaks."""
     frames = frames_for(scene, paced)
-    inks, mixed = inks_for(scene)
+    inks, mixed = inks_for(scene, moved)
     images = render(scene, frames, inks)
     gif = out / f"{scene.slug}.gif"
     images[0].save(
@@ -217,16 +229,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("target", help="MODULE:CALLABLE returning a Scene or a tuple of them")
     parser.add_argument("--out", required=True, type=Path, help="a scratch folder")
     parser.add_argument("--paced", action="store_true", help="900 ms labels and a 12 s hold")
+    parser.add_argument("--palette", action="store_true", help="the post has moved to chan.palette")
     args = parser.parse_args(argv)
     if inside_figures(args.out):
         sys.exit("draft into a scratch folder, not docs/figures")
     module, _, name = args.target.partition(":")
-    made = getattr(importlib.import_module(module), name)()
+    loaded = importlib.import_module(module)
+    moved = args.palette or has_moved(loaded)
+    made = getattr(loaded, name)()
     scenes = made if isinstance(made, tuple) else (made,)
     args.out.mkdir(parents=True, exist_ok=True)
     broken = False
     for scene in scenes:
-        found = draft(scene, args.out, args.paced)
+        found = draft(scene, args.out, args.paced, moved)
         broken = broken or bool(found)
         print(f"{args.out / (scene.slug + '.gif')}: {'see below' if found else 'ok'}")
         for line in found:

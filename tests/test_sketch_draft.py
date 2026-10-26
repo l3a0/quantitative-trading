@@ -152,6 +152,53 @@ class TestThePalette:
         assert "shared" in found[0] and colour.lower() in found[0]
 
 
+class TestAPostThatHasMoved:
+    """A moved post's scene can hold no colour of :mod:`chan.palette` at all, such
+    as ink strokes and a ``_dot`` left on its default brass. The script learns
+    the post has moved from the module it loads, or from ``--palette``."""
+
+    LONE_DOT = """
+        {imports}
+        from chan.usdcad_tests_whiteboard import Scene, _dot, _line, _stroke
+
+        def scene():
+            line = _stroke("line", _line([(1, 2), (9, 2)]))
+            return Scene("A lone dot", "lone_dot", (line, _dot("dot", 5, 3)))
+        """
+
+    def _module(self, tmp_path, monkeypatch, name: str, imports: str = "") -> str:
+        (tmp_path / f"{name}.py").write_text(textwrap.dedent(self.LONE_DOT.format(imports=imports)))
+        monkeypatch.syspath_prepend(str(tmp_path))
+        return f"{name}:scene"
+
+    def test_a_lone_dot_is_flagged_once_the_post_has_moved(self) -> None:
+        scene = _scene(_line_across(), whiteboard._dot("dot", 5.0, 3.0))
+        assert draft.inks_for(scene) == (whiteboard.INKS, [])
+        inks, found = draft.inks_for(scene, moved=True)
+        assert inks == palette.INKS
+        assert len(found) == 1 and whiteboard.ACCENT.lower() in found[0]
+
+    @pytest.mark.parametrize(
+        "imports", ["from chan.palette import INKS", "from chan import palette as own"]
+    )
+    def test_a_module_that_imports_the_new_palette_has_moved(
+        self, tmp_path, monkeypatch, capsys, imports
+    ) -> None:
+        name = "moved_by_alias" if "own" in imports else "moved_by_inks"
+        target = self._module(tmp_path, monkeypatch, name, imports)
+        assert draft.main([target, "--out", str(tmp_path / "out")]) == 1
+        assert "keeps the shared" in capsys.readouterr().out
+
+    def test_a_module_that_does_not_has_not(self, tmp_path, monkeypatch) -> None:
+        target = self._module(tmp_path, monkeypatch, "unmoved_sketch")
+        assert draft.main([target, "--out", str(tmp_path / "out")]) == 0
+
+    def test_the_flag_moves_a_scratch_module(self, tmp_path, monkeypatch, capsys) -> None:
+        target = self._module(tmp_path, monkeypatch, "scratch_sketch")
+        assert draft.main([target, "--out", str(tmp_path / "out"), "--palette"]) == 1
+        assert "keeps the shared" in capsys.readouterr().out
+
+
 class TestThePacing:
     def test_paced_labels_show_900_ms_and_the_drawing_holds_12_seconds(self) -> None:
         scene = whiteboard._adf()
