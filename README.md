@@ -6015,7 +6015,7 @@ TU posts to link, and draws three lessons from Entry 33 of the replication log.
    share the same closes, and the variance ratio test cannot tell TU from a
    random walk.
 
-Six groups of what it says are not pinned here.
+Seven groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6051,7 +6051,12 @@ Six groups of what it says are not pinned here.
    states several figures more than once, in its opening, a lesson, a table,
    the closing list or the figure's alt text, and a typo in a copy the class
    does not read passes.
-6. Its references, cited rather than computed.
+6. Numbers that point or define rather than measure: the book's Chapters 2
+   and 6, Examples 1.1 and 6.1, Figures 6.1 and 6.2 and Table 5.1, the
+   replication log's Entry 37, the post's pointers to its own Lessons 2 and
+   3, a random walk's H of 0.5, and the 1 that the cumulative return's
+   definition subtracts.
+7. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py), which also holds

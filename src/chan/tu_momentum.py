@@ -68,9 +68,9 @@ window beside it as a row with no published figure.
 
 **The Hurst exponent misses.** H on TU is 0.43 at two decimals, against the
 book's 0.44. Example 2.2's H on USD.CAD misses the same way through the same
-:func:`chan.stationarity_tests.genhurst`, and raising ``maxT`` moves TU
-towards 0.44 while it moves USD.CAD further from 0.49, so no single ``maxT``
-lands both. ``tests/test_tu_momentum.py`` pins every one of those numbers.
+:func:`chan.stationarity_tests.genhurst`, and raising ``maxT`` to 24 lands
+TU on 0.44 while it moves USD.CAD further from 0.49, and no ``maxT`` from 5
+to 40 lands both. ``tests/test_tu_momentum.py`` pins every one of those numbers.
 
 **Chan's Python port is a different strategy.** ``TU_mom.py`` in the 2018
 ``PythonCodesAndData.zip`` loops ``h`` over 0 to 23 rather than 24 and divides

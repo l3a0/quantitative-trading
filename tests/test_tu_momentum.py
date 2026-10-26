@@ -728,7 +728,8 @@ POST = paths.REPO_ROOT / "blog" / "tu-momentum-lessons.md"
 #: Counts the post spells out in words rather than printing as digits.
 SPELLED = {4: "four", 5: "five", 6: "six", 7: "seven", 10: "ten", 14: "fourteen"}
 
-#: The script's six printed figures, each beside the field of :class:`Figures` it prints.
+#: The six figures in the script's closing comment, each beside the field of
+#: :class:`Figures` that gives it.
 SCRIPT_FIGURES = (
     ("average_annual_return", SCRIPT_AVERAGE_ANNUAL_RETURN),
     ("sharpe", SCRIPT_SHARPE),
@@ -745,7 +746,7 @@ def _minus(x: float, places: int) -> str:
 
 
 def _landed(found) -> int:
-    """How many of the script's six figures ``found`` lands, every printed digit."""
+    """How many of the closing comment's six figures ``found`` lands, every printed digit."""
     return sum(matches(getattr(found, name), printed) for name, printed in SCRIPT_FIGURES)
 
 
@@ -800,10 +801,12 @@ class TestWhatThePostQuotes:
     list or the figure's alt text. Of that alt text it reads only the two
     figures that appear nowhere else, the highest close and the curve's high,
     each with its day. The two sketches' alt texts are read by
-    ``tests/test_tu_momentum_whiteboard.py``, not here. Chan's words and
-    figures, the Kindle locations, the mirror's commit, the book's example
-    and figure numbers, the post's counts of its own groups and lessons, a
-    random walk's 0.5, the 0.05 threshold and the references stay unread.
+    ``tests/test_tu_momentum_whiteboard.py``, not here. Chan's words, the
+    Kindle locations, the mirror's commit, the book's chapter, example,
+    figure and table numbers, the replication log's entry number, the post's
+    counts of its own groups and lessons and its pointers to them, a random
+    walk's 0.5, the 1 the cumulative return's definition subtracts and the
+    references stay unread.
     """
 
     @pytest.fixture(scope="class")
@@ -1008,7 +1011,8 @@ class TestWhatThePostQuotes:
             f"{later.hurst:.6f}, which prints as {later.hurst:.2f} and misses on the other side.",
             f"Raising `maxT` to {HURST_DIAGNOSTIC_MAX_T} lands TU at {hurst_at(closes):.6f}. The "
             "same change moves USD.CAD, the other series the book prints an H for, from "
-            f"{at_default:.6f} to {at_24:.6f}, further from its printed 0.49.",
+            f"{at_default:.6f} to {at_24:.6f}, further from its printed 0.49. No value of "
+            "`maxT` from 5 to 40 lands both.",
         ]
         assert self.missing(text, fragments) == []
 

@@ -26,8 +26,8 @@ and the post places each right after the paragraph it draws.
    to the lower one four days after it. Labels give the 1,996 closes the saves share,
    all equal, the 69 kept days in each with none shared, and the correlation
    each save gives, 0.2719 and 0.2870, which print as 0.27 and 0.29 at the
-   book's two decimals. It sits in Lesson 1, after the paragraph that says
-   "that shift alone moves the 250/25 correlation".
+   book's two decimals. It sits in Lesson 1, after the paragraph saying the
+   four-day "shift alone moves the 250/25 correlation".
 
 Neither sketch is schematic. Every day, count and correlation they print comes
 from :class:`SaveFigures`, which :meth:`SaveFigures.from_run` reads from both
