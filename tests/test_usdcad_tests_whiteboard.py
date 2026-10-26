@@ -394,6 +394,20 @@ class TestTheScenes:
     def test_there_are_fourteen_in_the_order_the_post_reads_them(self, drawn) -> None:
         assert [scene.title for scene in drawn] == TITLES
 
+    def test_every_step_draws_in_the_posts_colours(self, drawn) -> None:
+        """No stroke, tint or label keeps a shared brass, green or red. A step
+        left in one would land on the nearest colour of the post's palette, so
+        only this check and the byte-for-byte comparison would see it, and that
+        comparison skips off macOS arm64."""
+        allowed = {whiteboard.INK, whiteboard.MUTED, *own.INKS, own.TINT, own.REJECT_TINT}
+        for scene in drawn:
+            stray = [
+                (getattr(step, "gid", None) or step.text, step.color)
+                for step in scene.steps
+                if step.color not in allowed
+            ]
+            assert not stray, scene.title
+
     def test_no_title_carries_a_scene_number(self, drawn) -> None:
         """Each GIF stands alone beside its own text, so a number such as
         "3" in front of "Hurst" would count scenes the reader never sees
@@ -1681,10 +1695,17 @@ class TestTheCommand:
         saved = []
         monkeypatch.setattr(whiteboard, "read_sources", lambda: sources)
         monkeypatch.setattr(whiteboard, "spread", lambda closes: spread(closes, paths=FEW_PATHS))
-        monkeypatch.setattr(whiteboard, "render", lambda scene, frames, inks: [Image.new("P", (1, 1))])
+        given = []
+
+        def render(scene, frames, inks):
+            given.append(inks)
+            return [Image.new("P", (1, 1))]
+
+        monkeypatch.setattr(whiteboard, "render", render)
         monkeypatch.setattr(Image.Image, "save", lambda self, path, **kw: saved.append(path))
         paths = make_usdcad_tests_whiteboards()
         assert paths == saved == [FIGURES_DIR / name for name in GIFS]
+        assert given == [own.INKS] * len(GIFS)
 
     @pytest.mark.parametrize(
         "refusal",
