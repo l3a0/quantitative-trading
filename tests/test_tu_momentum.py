@@ -787,8 +787,9 @@ class TestWhatThePostQuotes:
     whole, so a cell changed there fails too, bold included in Lesson 3's.
 
     These comparisons the post's words draw are asserted on the run, except
-    the traded pair's place among Chan's compromises, which is checked
-    against the module's transcription of location 2646, and one copy of the
+    two. The traded pair's place among Chan's compromises is checked against
+    the module's transcription of location 2646, and the kept past returns
+    still overlapping on the module's lookback and hold. One copy of the
     words for each is read.
 
     - TU's column spans the window the book names, the full window lands all

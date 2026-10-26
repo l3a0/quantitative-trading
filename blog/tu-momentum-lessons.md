@@ -131,7 +131,7 @@ Raising `maxT` to 24 lands TU at 0.440450. The same change moves USD.CAD, the ot
 
 At the settings Chan’s scripts use, the Python copy of `genhurst` lands neither H the book prints, so no figure of Chan’s confirms the copy. Two kinds of check test it instead.
 
-1. **Rules on synthetic series.** `TestGenhurst` in the repository’s tests checks that a random walk gives an H near 0.5, that a reverting series built from the same random shocks gives less, that the level and scale of a series leave H unchanged, and that changing `maxT` changes H.
+1. **Expected behaviour on synthetic series.** `TestGenhurst` in the repository’s tests checks that a random walk gives an H near 0.5, that a reverting series built from the same random shocks gives less, that the level and scale of a series leave H unchanged, and that changing `maxT` changes H.
 2. **Recorded values on real data.** The tests hold TU’s 0.433357 and USD.CAD’s 0.473233 to six decimals. A change to the code fails them. They record what the copy gives without showing that it gives what Chan’s function gave.
 
 A search could go on, through other settings, other versions of the function or other ways of rounding. Each try would pick a way of computing H after seeing the H it gives, and an H chosen that way says nothing about TU. So the replication stopped after trying one setting, `maxT`, and recorded the miss.
