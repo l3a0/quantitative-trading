@@ -782,6 +782,22 @@ class TestWhatThePostMeasured:
         assert matches(rest.sharpe, "0.86")
 
 
+class TestThePostsSurvivorSentences:
+    """``blog/vix-filter-lessons.md`` dates the stock file's list to late 2011.
+
+    ``TestTheListDatesFromLate2011`` in ``tests/test_buy_on_gap.py`` holds the
+    evidence against the index fund's holdings. This reads the post's two
+    sentences, so one that drifts back to 2012-04-24 fails.
+    """
+
+    def test_the_list_dates_from_late_2011(self) -> None:
+        text = (paths.REPO_ROOT / "blog" / "vix-filter-lessons.md").read_text(encoding="utf-8")
+        assert "Every stock was in the S&P 500 in late 2011, so every figure" in text
+        assert "Every stock here was in the S&P 500 in late 2011, so the" in text
+        for old in ("S&P 500 on 2012-04-24", "S&P 500 on the last day"):
+            assert old not in text, old
+
+
 class TestThePostsHelpers:
     """The two helpers the write-up added, on series built so the answer is known."""
 

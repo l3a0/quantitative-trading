@@ -138,7 +138,7 @@ HAND_WRITTEN = {
 #: Chan's two ``.mat`` files this way, 1,100 columns between them, and pinning
 #: each column by path would be 1,100 hand-typed tuples saying the same four
 #: things. [Issue 250](https://github.com/l3a0/quantitative-trading/issues/250)
-#: added Chan's two book-two files, his 2012 S&P 500 prices and the earnings
+#: added Chan's two book-two files, his 2012 stock prices and the earnings
 #: flags for the same 497 stocks under the ``event`` basis.
 #: [Issue 225](https://github.com/l3a0/quantitative-trading/issues/225) added
 #: ``IJR_20080131.mat``, a later save of the S&P 600 file holding the same 600
