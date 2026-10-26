@@ -321,12 +321,14 @@ SIGN_LABELS = [
     "1997: the entry is missing",
     "exit 0.625",
     "guess 0.621",
+    "e = 0.26¢",
     "guess + e",
     "m",
     "m − e",
     "1998: the exit is missing",
     "entry 0.498",
     "guess 0.503",
+    "e = 0.21¢",
     "guess + e",
     "m",
     "m + e",
@@ -1427,6 +1429,15 @@ class TestTheMissSignSketch:
             lift = _sign_y(f.june + f.june_bias, f) - _sign_y(f.june, f)
             assert lift == pytest.approx(f.june_bias * 100 * sketches.SIGN_CENT), tag
             assert c_len == pytest.approx(m_len + sign * lift), tag
+
+    def test_each_arrow_says_its_miss_in_cents(self, every) -> None:
+        """The post quotes these two values, so the drawing has to show them."""
+        scene = every[9]
+        for f in seasonals.gap_fills()[:2]:
+            assert f"e = {100 * f.june_bias:.2f}¢" in scene.labels
+        text = POST.read_text(encoding="utf-8")
+        cents = [f"{100 * f.june_bias:.2f}" for f in seasonals.gap_fills()[:2]]
+        assert f"{cents[0]} cents for 1997 and {cents[1]} for 1998" in text
 
     def test_other_figures_move_the_prices_and_labels(self) -> None:
         entry, exit_ = seasonals.gap_fills()[:2]

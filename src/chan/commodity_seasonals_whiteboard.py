@@ -1549,7 +1549,8 @@ def _price_dot(gid: str, x: float, y: float, color: str) -> Stroke:
 
 def _sign_panel(f: seasonals.GapFill, x0: float, tag: str) -> list[Stroke | Label]:
     """One gap: the known price, the guess, the guess lifted by fill 2's average
-    miss, and the move with each, measured on dashed guides."""
+    miss with that miss's size beside the arrow, and the move with each,
+    measured on dashed guides."""
     entry_missing = f.leg == "entry"
     known, guess, lifted = float(f.other), f.june, f.june + f.june_bias
     y = lambda price: _sign_y(price, f)  # noqa: E731
@@ -1595,6 +1596,14 @@ def _sign_panel(f: seasonals.GapFill, x0: float, tag: str) -> list[Stroke | Labe
             _arrow(gap_x, y(guess) + 0.12, gap_x, y(lifted) - 0.1),
             color=MUTED,
             frames=3,
+        ),
+        Label(
+            f"e = {100 * f.june_bias:.2f}¢",
+            gap_x + 0.15,
+            (y(guess) + y(lifted)) / 2 - 0.08,
+            names=f"{tag}-e",
+            color=MUTED,
+            size=11,
         ),
         Label(
             "guess + e",
