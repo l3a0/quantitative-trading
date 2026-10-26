@@ -5,8 +5,9 @@ about this example and the rows beside it. ``docs/replication-log.md`` Entry 34
 carries the verdicts and points here row by row. The rows are the ones
 [issue 348](https://github.com/l3a0/quantitative-trading/issues/348) declared
 before the build. ``blog/crude-oil-calendar-spread-lessons.md`` quotes these
-figures too, and ``TestWhatThePostQuotes`` reads one copy of each. The strip's 6,467 days from 1986-11-03, and γ as −12 times the
-slope of the nearest contracts' log prices, are held in
+figures too, and ``TestWhatThePostQuotes`` reads one copy of each. The
+strip's 6,467 days from 1986-11-03, and γ as −12 times the slope of the
+nearest contracts' log prices, are held in
 ``tests/test_roll_returns.py``, and ``README.md`` lists what the post says
 that nothing asserts. ``blog/vx-calendar-spread-lessons.md`` cites the
 direction ``TestTheTradesDirection`` pins, so a change to that pin moves that
