@@ -12,7 +12,7 @@ Chan’s second book, *Algorithmic Trading*, brings the rule back as its lesson 
 
 ### What the reproduction found
 
-Chan published the MATLAB script, `andrewlo_2007_2012.m`, and the data file it reads. This repository keeps the file’s contents as one table per stock, and together the tables rebuild the file’s open, high, low, close and volume arrays exactly. This repository ran a line-by-line Python transcription of the script on those tables. Every return and Sharpe ratio the book prints for Examples 4.3 and 4.4 reproduces. So do Example 4.4’s annual return and Sharpe ratio as a comment under the script’s last line of code records them, at six decimals.
+Chan published the MATLAB script, `andrewlo_2007_2012.m`, and the data file it reads. This repository keeps the file’s contents as one table per stock, and together the tables rebuild the file’s open, high, low, close and volume arrays exactly. A line-by-line Python transcription of the script ran on those tables. Every return and Sharpe ratio the book prints for Examples 4.3 and 4.4 reproduces. The script also records each example’s annual return and Sharpe ratio in a comment under the line that prints them. Example 4.3’s comment rounds them as the book does, and Example 4.4’s, under the script’s last line of code, gives six decimals. Both reproduce.
 
 **Every result here is exploratory.** Reproducing Chan’s figures uses the 2007 to 2011 data to check a rule somebody else chose, so it can say whether his numbers follow from his file and nothing about whether the rule pays today. **Every figure is also about survivors.** The file holds 497 stocks that were in the S&P 500 in late 2011, and the run treats them as the index on every earlier day it has a price for them. A company that was out of the index for all of late 2011 is not in the file.
 
@@ -29,7 +29,7 @@ Chan calls the rule “almost perfectly dollar neutral” (location 2110), meani
 The second book’s rule differs from the first book’s in five ways.
 
 1. **The weights are scaled to a gross of 1 each day.** The first book divides them by the count of stocks priced.
-2. **A stock with no price gets no weight at all**, where the first book gives it a weight of 0. Both leave it out of the day’s profit, so the difference could matter only to a cost, and the second book charges none.
+2. **A stock with no price gets a missing weight**, which the sums skip, where the first book gives it a weight of 0. Both leave it out of the day’s profit, so the difference could matter only to a cost, and the second book charges none.
 3. **No cost is charged.** The script’s cost lines are commented out.
 4. **The window is cut before any return is taken.** The first book takes returns on its whole file and cuts the profit to the window afterwards. Here the window’s first day has no earlier price to take a return from, so the first day or two earn nothing, as the next section counts.
 5. **The Sharpe ratio uses MATLAB’s own mean and standard deviation**, where the first book uses Chan’s own functions, whose mean skips a missing day and whose standard deviation counts it as a zero. Neither example’s series has a missing day, so this difference moves none of their figures.
@@ -44,7 +44,7 @@ This repository transcribed the script from a public copy of Chan’s code, `eri
 
 ## Lesson 1: every return and Sharpe ratio Chan prints reproduces on his own file
 
-The book reports each example’s APR, the compounded annual return. Compounding means each day’s return is earned on the capital the earlier days left, so the growth multiplies rather than adds. Here is each figure, computed, beside the script’s comment and the book.
+The book reports each example’s APR, the compounded annual return. Compounding means each day’s return is earned on the capital the earlier days left, so the growth multiplies rather than adds. Here is each figure, computed, beside the script’s comments and the book.
 
 ```math
 \small\begin{array}{l|r|r|r}
@@ -68,7 +68,7 @@ The script prints no yearly figure. So each year’s APR here applies the script
 
 The jump from 1.3 to 4.7 comes from the average return, since the two examples have about the same standard deviation. Scaled to a year, Example 4.3’s daily returns average 0.1338 with a standard deviation of 0.1063, and Example 4.4’s average 0.5565 with a standard deviation of 0.1181. These are averages of daily returns, not the compounded APRs in the tables. The Sharpe ratio is the average over the standard deviation, so four times the average return with a similar standard deviation gives a ratio nearly four times as large.
 
-Location 2890 sets the same 4.7 against cross-sectional momentum, which instead buys the stocks that rose most against their peers. The [post on cross-sectional momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md) covers that comparison.
+At location 2890 Chan sets the same 4.7 against cross-sectional momentum, which instead buys the stocks that rose most against their peers. The [post on cross-sectional momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md) covers that comparison.
 
 ### How much room each rounding has
 
@@ -78,7 +78,7 @@ Three figures sit close to the point where the printed digit would change, given
 2. Its APR in 2011 sits 0.08 percentage points above 10.5 percent, below which the book would print 10.
 3. Example 4.4’s APR is 0.7315525016, which sits 1.6 × 10⁻⁹ above the point where the script’s sixth decimal would round down to 0.731552.
 
-The third is the tightest. A transcription whose APR came out lower than this one by more than that would print 0.731552 instead.
+The third is the tightest. A transcription whose APR came out more than 1.6 × 10⁻⁹ below this one’s would print 0.731552 instead.
 
 ### The cumulative return and each year’s APR
 
@@ -86,9 +86,9 @@ The figure below redraws the book’s Figure 4.4, Example 4.3’s cumulative ret
 
 ![Two charts on one shared date axis from January 2007 to December 2011. The top chart is Example 4.3’s compounded cumulative return. It drifts slightly below zero through 2007, climbs through 2008 and 2009 to about 70 percent, moves sideways through 2010, and ends 2011 near 90 percent. The years 2008 and 2011 are shaded, and the labels above the chart give each year’s APR: −3.05 percent in 2007, 30.16 in 2008, 33.45 in 2009, 1.82 in 2010 and 10.58 in 2011. Its legend gives an APR of 0.136776 and a Sharpe ratio of 1.259478. The bottom chart is Example 4.4’s compounded cumulative return, which rises steadily from zero to about 1,460 percent. Its labels give 97.17 percent in 2007, 161.09 in 2008, 91.87 in 2009, 36.84 in 2010 and 15.04 in 2011, and its legend gives 0.731553 and 4.713284. The title calls the redraw exploratory and the panel a panel of survivors, and the note says no cost is charged.](../docs/figures/khandani_lo_book_two.png)
 
-*Example 4.3’s cumulative return, which the book draws as its Figure 4.4, above Example 4.4’s on a scale of its own. Both are compounded and before costs, over the 1,260 days the script cuts from Chan’s 2012 panel. The shaded years are the two the book names.*
+*Example 4.3’s cumulative return, which the book draws as its Figure 4.4, above Example 4.4’s on a scale of its own. Both are compounded and before costs, over the 1,260 days the script cuts from Chan’s 2012 panel. The shaded years are the two whose APR the book prints.*
 
-The book names 2008, “the year of Lehman Brothers’ bankruptcy”, and 2011 (location 2110). The chart shows the other three years too. Example 4.3’s APR was −3.05 percent in 2007, 33.45 percent in 2009 and 1.82 percent in 2010, so 2009 beat 2008’s 30.16 percent. Example 4.4’s APR falls in every year after 2008, from 161.09 percent to 91.87, 36.84 and 15.04.
+The book gives the APR for two of the years: 2008, “the year of Lehman Brothers’ bankruptcy”, and 2011 (location 2110). The chart shows the other three years too. Example 4.3’s APR was −3.05 percent in 2007, 33.45 percent in 2009 and 1.82 percent in 2010, so 2009 beat 2008’s 30.16 percent. Example 4.4’s APR falls in every year after 2008, from 161.09 percent to 91.87, 36.84 and 15.04.
 
 ## Lesson 2: the match needs one stock’s odd prices
 
@@ -100,7 +100,7 @@ One of them is not. CAH closes at 19.96 on 2009-08-31, 14.50 on 2009-09-01 and 2
 
 *Drawn to one scale from the run, on a price axis that starts at 11 rather than 0, so both moves look bigger than they are and the labels give their size. The check flags a day on which the close changes by a ratio above 1.6 or below 1 / 1.6, which is 0.625. The black arrow is the fall it lets through, and the red arrow is the rise it flags. The fall put CAH’s return far below the day’s average, so Example 4.3 bought it at the middle close, and the green bar is that purchase. The green bracket is the rise that purchase earned on the next day. The grey line beneath gives Example 4.3’s figures without CAH, and neither matches the book’s.*
 
-So the transcription does not run the check. The repository skips it to reproduce this one script, and that settles nothing about whether another rule should run the check. The first book’s rule, which Lessons 3 and 4 run on the same panel, skips the check too, so CAH’s odd prices are in its figures on the panel. The reproduction checks the computation on Chan’s file, odd prices included, and says nothing about what either rule would have earned on correct prices.
+So the transcription does not run the check. The repository skips it to reproduce this one script, and that settles nothing about whether another rule should run the check. Even so, the first book’s rule, which Lessons 3 and 4 run on the same panel, skips the check as well, so CAH’s odd prices are in its figures on the panel too. The reproduction checks the computation on Chan’s file, odd prices included, and says nothing about what either rule would have earned on correct prices.
 
 ## Lesson 3: most of the rise from 0.25 to 1.3 is the data and the window
 
@@ -121,9 +121,9 @@ All five are Sharpe ratios before costs. In the data column, 2006 is the first b
 
 Start from the first book’s file and year and change only the rule. The second book’s rule raises the Sharpe ratio there from 0.2510 to 0.5484, by 0.2974, the first and third rows. Example 4.3 reaches 1.2595, so 0.7111 of the rise is still left, more than twice what the change of rule gave. Start instead from the panel and change only the rule. The first book’s rule has a Sharpe ratio of 1.2219 there, close to Example 4.3’s 1.2595 on the same days, the last two rows. Both comparisons say the file and the window carry most of the rise.
 
-Part of that 0.2974 comes from cutting the window before taking returns, rather than from how the weights are set. When the window is cut first, the year’s first two days, 2006-01-03 and 2006-01-04, earn nothing, because the first has no return and the second holds the first day’s empty weights. With returns taken before the cut, those two days lose 0.48 and 0.14 percent, and the Sharpe ratio comes down to 0.4170, the second row. So zeroing two losing days raises the figure from 0.4170 to 0.5484, by 0.1313, about a third of 0.4170. That rise is 0.44 of the 0.2974. The 0.1313 and the 0.44 come from the unrounded Sharpe ratios, and the rounded rows give a rise of 0.1314. One year holds only 251 days, so two of them can move a Sharpe ratio that far.
+Part of that 0.2974 comes from cutting the window before taking returns, rather than from how the weights are set. When the window is cut first, the year’s first two days, 2006-01-03 and 2006-01-04, earn nothing, because the first has no return and the second holds the first day’s empty weights. With returns taken before the cut, those two days lose 0.48 and 0.14 percent, and the Sharpe ratio comes down to 0.4170, the second row. So zeroing two losing days raises the figure from 0.4170 to 0.5484, by 0.1313, about a third of 0.4170. That rise is 0.44 of the 0.2974. One year holds only 251 days, so two of them can move a Sharpe ratio that far. The 0.1313 and the 0.44 come from the unrounded Sharpe ratios, and the rounded rows give a rise of 0.1314.
 
-The data differ in more than the years. Each run treats its file’s list of stocks as the index on every day of its window. The panel’s list dates from late 2011, almost five years after its window opens in 2007. The first book’s list dates from 2007-11-23, under two years after its window opens in 2006. The longer the stretch, the more of the companies that left the index along the way are missing from the run, whether they failed, were bought or left for another reason. No test here measures how much leaving them out moves the 1.2219.
+The data differ in more than the years. Each run treats its file’s list of stocks as the index on every day of its window. The panel’s list dates from late 2011, almost five years after its window opens in 2007. The first book’s list dates from 2007-11-23, under two years after its window opens in 2006. The longer the gap between a window’s first day and its list’s date, the more of the companies that left the index along the way are missing from the run, whether they failed, were bought or left for another reason. No test here measures how much leaving them out moves the 1.2219 or the 1.2595.
 
 ## Lesson 4: after costs, the first book’s rule keeps under a third of its profit on the panel and loses money over 2006
 
@@ -156,10 +156,10 @@ Five questions are beyond it.
 
 One habit for each lesson.
 
-1. **Check the rounding before trusting a match.** A figure that sits 0.0095 from its rounding point can match or miss the printed value on a small detail, so measure that distance for every figure.
+1. **Check the rounding before trusting a match.** A figure that sits 0.0095 from the point where its printed digit would change can match or miss the printed value on a small difference in the computation, so measure that distance for every figure.
 2. **Keep the odd prices when reproducing, and correct or exclude them when trading.** A reproduction has to run on the author’s file as it was. A decision about the rule needs prices that have been checked.
 3. **Swap one thing at a time.** When the rule, the file and the window all change, run each rule on the other’s data before crediting the rule with the difference.
-4. **Read a cost as a share of the day’s profit.** Nearly the same amount of trading cost 13.7453 times a day’s profit on one file and 0.6924 of it on another, so a cost that ruins a rule on one sample can leave it standing on the next.
+4. **Read a cost as a share of the day’s profit.** On nearly the same amount of trading, the cost came to 13.7453 times a day’s profit on one file and 0.6924 of it on another, so a cost that ruins a rule on one sample can leave it standing on the next.
 
 ## References
 
