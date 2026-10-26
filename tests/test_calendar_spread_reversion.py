@@ -655,7 +655,8 @@ class TestWhatThePostQuotes:
             f"rather than the {s.returns.index[0].date()} the script states.",
             f"Taking the opposite side of every position the script takes loses "
             f"{-100 * reversed_apr:.1f} percent a year",
-            f"after the pair it closes in {s.last_held:%B %Y} the trade takes on no other.",
+            f"Every pair after the one the trade closes in {s.last_held:%B %Y} would then have its "
+            f"last day fewer than {HOLDDAYS} trading days after its first",
             f"rounds γ’s half-life to a lookback of {s.lookback} days. Each day it computes γ’s "
             "z-score, "
             f"the number of {s.lookback}-day moving standard deviations γ sits from its "
@@ -663,11 +664,11 @@ class TestWhatThePostQuotes:
             f"Contract c is held short against contract c + {SPREAD_MONTH} long",
             f"Each pair is held until {NUM_DAYS_END} trading days before the last day its near "
             f"contract has a price. The first pair starts {HOLDDAYS + NUM_DAYS_END} days before "
-            f"that last priced day, the {HOLDDAYS}-day minimum below plus {NUM_DAYS_END},",
+            f"that last priced day, so its last day comes {HOLDDAYS} days after its first,",
             f"A later pair is held only when its last day comes at least {HOLDDAYS} trading days "
             "after its first",
             f"`{SOURCE_FILES[module.ROOT]}`, saved {saved} and recorded",
-            f"It holds {len(columns)} CL contracts, one for each month from "
+            f"It holds {len(columns)} CL contracts, one for each delivery month from "
             f"{_month(columns[0])} to {_month(columns[-1])}, and the spot price, over "
             f"{len(strip.contracts):,} days from {strip.contracts.index[0].date()}.",
             f"γ can be fitted on {len(filled):,} of them, from {filled.index[0].date()}. The "
@@ -744,7 +745,8 @@ class TestWhatThePostQuotes:
             "and on every one of them the trade is short the far contract and long the near "
             f"one. On all {int((z < 0).sum())} where it is below 0, the trade is the other way "
             "round.",
-            f"So on the same {len(reversed_):,} days its Sharpe ratio is exactly the script’s with "
+            f"So on the same {len(reversed_):,} days the opposite trade’s Sharpe ratio is exactly "
+            "the script’s with "
             f"the sign changed, {_minus(plain_sharpe(reversed_), 6)}. Its APR is "
             f"{_minus(compounded_apr(reversed_), 6)}, or "
             f"{_minus(100 * compounded_apr(reversed_), 1)} percent, rather than "

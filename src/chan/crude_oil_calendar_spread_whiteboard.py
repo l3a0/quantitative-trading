@@ -2,7 +2,7 @@
 
 ``blog/crude-oil-calendar-spread-lessons.md`` makes two claims a sentence has
 to build in the reader's head: the script holds one pair of contracts at a
-time and skips a pair whose window is too short, and the script sells the
+time and skips a pair whose last day would come too soon after its first, and the script sells the
 spread where the roll return is high, which is mostly where the spread is
 low. This module draws the two as scenes, and the post places each right after
 the passage it draws.

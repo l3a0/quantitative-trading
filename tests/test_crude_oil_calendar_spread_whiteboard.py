@@ -94,7 +94,7 @@ GIFS = ["crude_oil_calendar_spread_schedule.gif", "crude_oil_calendar_spread_scr
 #: follows a short lead-in, and the Lesson 2 sketch the paragraph on
 #: what the script does.
 FOLLOWS = (
-    "Drawn on Chan’s file, item 6’s schedule",
+    "On Chan’s file, item 6’s schedule",
     "The script does the opposite.",
 )
 
@@ -434,8 +434,9 @@ class TestThePost:
         assert "\n6. **The schedule.**" in "\n" + "\n".join(paragraphs)
 
     def test_the_lead_in_counts_the_pairs_held_and_skipped(self, strip, schedule_run) -> None:
-        """A pair is skipped only when its window is too short, so every near
-        contract the schedule never holds short is one the lead-in calls skipped.
+        """A pair is skipped only when its last day would come too soon after its
+        first, so every near contract the schedule never holds short is one the
+        lead-in calls skipped.
         Most are, across the file and in 2008, the year the sketch draws."""
         (lead_in,) = [p for p in _paragraphs() if p.startswith(FOLLOWS[0])]
         near = (calendar_schedule(strip.contracts) == -1).any().iloc[:-12]
@@ -445,11 +446,13 @@ class TestThePost:
         assert len(schedule_run.skipped) == 3, SCHEDULE_SPEC
         assert (schedule_run.before.near, schedule_run.after.near) == ("CL-2008K", "CL-2008U")
         for phrase in (
-            "holds one pair at a time and skips most pairs because their windows are too short.",
+            "holds one pair at a time and skips every pair whose last day would come fewer than "
+            "63 trading days after its first, which is most of them.",
             "Of the twelve pairs whose near contract delivers in 2008, "
             "it holds four and skips eight.",
-            "the pair short K2008 and long K2009, the three pairs skipped after it, "
-            "and the pair short U2008 and long U2009.",
+            "holds the pair short K2008 and long K2009, skips the three pairs whose near "
+            "contracts are M2008, N2008 and Q2008, and then holds the pair short U2008 and long "
+            "U2009.",
         ):
             assert phrase in lead_in, phrase
 
