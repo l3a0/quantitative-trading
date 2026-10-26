@@ -595,7 +595,7 @@ class TestTheResidualsSketch:
 
     def test_the_ranked_column_falls_with_a_dot_beside_each_end(self, every) -> None:
         scene = every[0]
-        assert list(RANKED) == sorted(RANKED, reverse=True)
+        assert all(a > b for a, b in zip(RANKED, RANKED[1:], strict=False))
         tops = []
         for rank, length in enumerate(RANKED):
             bar, dot = _stroke(scene, f"ranked-{rank}"), _stroke(scene, f"ranked-fit-{rank}")
@@ -603,7 +603,7 @@ class TestTheResidualsSketch:
             assert bar.x.max() - bar.x.min() == pytest.approx(length)
             assert (dot.x[0] - bar.x.max(), dot.y[0]) == (pytest.approx(DOT_OFFSET), bar.y[0])
             tops.append(bar.y[0])
-        assert tops == sorted(tops, reverse=True)
+        assert all(a > b for a, b in zip(tops, tops[1:], strict=False))
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
