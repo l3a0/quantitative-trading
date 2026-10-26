@@ -23,8 +23,8 @@ both are stated once here and carried in every figure's failure message as
   from Chan's ``inputDataOHLCDaily_stocks_20120424.mat``, saved 2012-04-25,
   read for the Close column. Its identity is the row of ``LIFTED_SOURCES`` in
   ``tests/support/committed_vintages.py`` that ``TestTheVintage`` holds the
-  members to. The file is the S&P 500 as Chan held it on 2012-04-24, so every
-  figure is a figure about survivors.
+  members to. The file holds stocks that were in the S&P 500 in late 2011, so
+  every figure is a figure about survivors.
 - **Specification.** ``kentdaniel.m`` at the mirror commit
   :mod:`chan.cross_sectional_momentum` names, with ``lag`` read as a one-row
   shift. A 252-row ranking return, the 50 highest long and the 50 lowest
@@ -492,6 +492,7 @@ class TestTheRun:
         assert "rounds to -30 percent: no." in out
         assert "stabilised below its 2007 level: yes." in out
         assert "about survivors" in out
+        assert "stocks that were in the index in late 2011" in out
         assert "Exploratory." in out
         assert "Entry 17 carries the verdicts" in out
         (r0,) = [each for each in out.splitlines() if each.strip().startswith("R0")]
@@ -741,6 +742,32 @@ class TestWhatThePostQuotes:
             days = len(results["R0"][window].days)
             fragments.append(f"{n}. {start} to {end}, {days} trading days.")
         assert self.missing(text, fragments) == []
+
+    def test_the_list_dates_from_late_2011(self, text) -> None:
+        """The post dates the file's list to late 2011, never to 2012-04-24.
+
+        ``TestTheListDatesFromLate2011`` in ``tests/test_buy_on_gap.py`` holds
+        the evidence against the index fund's holdings. This reads the
+        post's sentences, so one that drifts back to the older wording fails.
+        """
+        fragments = [
+            "The file holds 497 stocks that were in the S&P 500 in late 2011",
+            "A company that was out of the index for all of late 2011 is not in the file",
+            "or left for another reason",
+            "Every stock here was in the S&P 500 in late 2011.",
+        ]
+        assert self.missing(text, fragments) == []
+        restored = [
+            old
+            for old in (
+                "S&P 500 stocks on 2012-04-24",
+                "S&P 500 on 2012-04-24",
+                "lasted until 2012-04-24",
+                "acquired, shrank or failed",
+            )
+            if old in text
+        ]
+        assert restored == []
 
     def test_the_first_picks_and_the_short_days(self, closes, results, text) -> None:
         longs, _ = formations(ranking_returns(closes.to_numpy()))

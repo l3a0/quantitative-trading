@@ -4461,9 +4461,9 @@ here.
    Chan's `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, read for
    the close through `chan.series.load_panel`.
    [data/README.md](../data/README.md) records where it came from. **Every
-   figure here is about survivors**, because the file is the S&P 500 as Chan
-   held it on 2012-04-24, carried backwards, and none of its 497 stocks stops
-   before that day. That reaches the two legs in opposite directions. The
+   figure here is about survivors**, because the file holds stocks that were in
+   the S&P 500 in late 2011, carried backwards, and a company that was out of
+   the index for all of late 2011 is not in it. That reaches the two legs in opposite directions. The
    short leg lacks stocks that fell and then left the index, which pushes the
    strategy down, and the long leg lacks past winners that later collapsed
    out of it, which pushes it up. Which dominates is not measured here, as
@@ -4601,8 +4601,8 @@ asserts both. A different window or version of the script, read from this
 file or another, might have printed the comment's figures. Trying them until
 one did would be the search the issue's rule forbids, so none was tried.
 
-**What survivorship does to these figures.** Every stock here survived to
-2012-04-24, and the two legs lose different stocks.
+**What survivorship does to these figures.** Every stock here was in the
+S&P 500 in late 2011, and the two legs lose different stocks.
 [Issue 198](https://github.com/l3a0/quantitative-trading/issues/198) waits on
 a panel that could measure what that costs a cross-sectional rule.
 
@@ -5805,7 +5805,7 @@ Seventeen rows, all derivable from
 [tests/test_index_arbitrage.py](../tests/test_index_arbitrage.py).
 
 Chan trades an index against the stocks inside it. He tests each stock in his
-2012 S&P 500 file against SPY over 2007 with the Johansen test, keeps the
+2012 stock file against SPY over 2007 with the Johansen test, keeps the
 stocks that pass, and holds them with equal capital as one basket. A second
 Johansen test checks that the basket's log price cointegrates with SPY's, and
 its first eigenvector sets one dollar weight for every stock and another for
@@ -10871,7 +10871,7 @@ rules and the windows are Chan's, and every qualifying day falls between
 alignment first and run them on data after 2012.
 
 **What buy on gap earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24, so Entry 18's caveat holds for the filtered
+was in the S&P 500 in late 2011, so Entry 18's caveat holds for the filtered
 days too.
 
 **Whether VIX's 2007-02-27 print is clean.** The guard flags it, the move

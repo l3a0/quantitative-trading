@@ -8,7 +8,7 @@ Ernest Chan’s second book, *Algorithmic Trading*, has a strategy that trades e
 
 He reports that on the S&P 500 from January 2011 to April 2012, the strategy earned an annual percentage rate, or APR, of 6.7 percent, with a Sharpe ratio of “a very respectable 1.5” (Chan, 2013, location 3024). The Sharpe ratio divides the average daily return by its standard deviation and scales the result to a year, so it measures return per unit of risk.
 
-Chan published both his code and the two data files it reads, so a reader can check whether his figures follow from them before arguing about the strategy. Any later argument about whether the drift pays rests on that check. This repository keeps copies of both files, translated his script line by line into Python, and ran the translation on them.
+Chan published both his code and the two data files it reads, so a reader can check whether his figures follow from them before arguing about the strategy. Any later argument about whether the drift pays rests on that check. This repository keeps each file’s contents as one table per stock, and together the tables rebuild both files’ arrays exactly. It translated his script line by line into Python and ran the translation on those tables.
 
 ### What the reproduction found
 
@@ -33,14 +33,14 @@ His version measures the surprise from the price alone. Call the move from one d
 
 *The sketch is schematic. Its prices, the size of its gap and the exact times of its red marks are made up, and none comes from the run. The order of events follows Chan’s rule.*
 
-Two files carry the data, both Chan’s own MATLAB files, converted here to one file per stock. The repository’s [data notes](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) record where each copy came from and when it was saved.
+Two files carry the data, both Chan’s own MATLAB files, converted here to one file per stock. The repository’s [data notes](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) record where each file came from and when it was saved.
 
 1. **The prices**, `inputDataOHLCDaily_stocks_20120424.mat`: the opens and closes of 497 stocks, saved on 2012-04-25.
 2. **The flags**, `earnannFile.mat`: for the same 497 stocks, a 1 on each day the stock announced between the previous close and the open, and a 0 otherwise. Saved on 2012-05-15, it covers 330 trading days, from 2011-01-03 to 2012-04-24.
 
 The script, `pead.m`, cuts the prices down to the flag file’s 330 days and runs the rule. The translation follows the copy in a public mirror of Chan’s code, `ivanliu1989/algorithmic_trading` at commit `45670240`.
 
-The price file holds 497 stocks from Chan’s list of the S&P 500, with each one’s prices running back from 2012-04-24. The list is closest to the index as it stood in late 2011. A company that left the index before then is not in the file, and a few that left after then still are. Lesson 5 comes back to that.
+The price file holds 497 stocks from Chan’s list of the S&P 500, with each one’s prices running back from 2012-04-24. The list is closest to the index as it stood in late 2011. A company that was out of the index for all of late 2011 is not in the file, and a few that left at the end of 2011 or in 2012 still are. Lesson 5 comes back to that.
 
 ## Lesson 1: every number Chan prints reproduces on his own files
 
@@ -116,7 +116,7 @@ So a translation that used the wrong helper would match four of the five printed
 
 The exact match shows that the code, the data and the book agree. It says nothing about whether the drift paid, for three reasons.
 
-1. **Every stock is a survivor.** The price file holds Chan’s list of the S&P 500, which is closest to the index as it stood in late 2011, with each stock’s prices running back from 2012-04-24. A company that left the index before then, because it was acquired, shrank or failed, is absent. A trader at the time could have traded its announcements while it was still a member, but the backtest never sees them. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day.
+1. **Every stock is a survivor.** The price file holds Chan’s list of the S&P 500, which is closest to the index as it stood in late 2011, with each stock’s prices running back from 2012-04-24. A company that was out of the index for all of late 2011 is absent, whether it was acquired, shrank, failed or left for another reason. A trader at the time could have traded its announcements while it was still a member, but the backtest never sees them. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day.
 2. **No cost is charged.** `pead.m` charges nothing, and every position is a full round trip inside one day: a buy and a sell, or a short and a cover, each paying a spread and a commission. A strategy that takes 1,072 positions across 330 days at a thirtieth of capital each carries costs a reader would want priced before believing the 6.7 percent.
 3. **The rule was chosen on the same days it is tested on.** Chan chose the rule and its settings, and took the 30 from the same 330 days. Reproducing his figures on the same days tests his arithmetic, so the result is exploratory. A result that could confirm the drift would need a rule fixed in writing first and data the rule had never seen.
 
