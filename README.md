@@ -3718,8 +3718,9 @@ uv run python -m chan.commodity_seasonals_whiteboard
 holds that each natural gas bracket ends where the run's streak reaches Chan's
 count, that gasoline's sidebar bracket ends before its first loss while the
 main text's covers both, that the Lesson 2 sketches draw the run's range,
-guess, typical misses and missing years, that the miss-sign sketch's lifted
-brackets change by fill 2's average miss, that June's number in each label is
+guess, typical misses and missing years, that the test-day sketch's bars are
+the run's counts of April days, that the miss-sign sketch's lifted brackets
+change by fill 2's average miss, that June's number in each label is
 how many bars its line crosses and the file the run reads, and that each GIF
 follows the paragraph it draws.
 

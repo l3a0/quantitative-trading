@@ -7,11 +7,11 @@ starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
 missing one, what Chan's 19 needs of the missing years, how the second fill
 carries June's move across a gap, which April days can test a fill, how its
-misses lean and spread, how the lean
-looks April by April, why a miss subtracts at an entry and adds at an exit, how
-far a fill misses against each year's move, and which numbered file holds the
-June contract on a given day. This module draws those twelve as scenes, and the
-post places each right after the paragraph it draws.
+misses lean and spread, how the lean looks April by April, why a miss
+subtracts at an entry and adds at an exit, how far a fill misses against each
+year's move, and which numbered file holds the June contract on a given day.
+This module draws those twelve as scenes, and the post places each right
+after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
