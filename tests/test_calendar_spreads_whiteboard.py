@@ -17,9 +17,10 @@ window and dropped days.
 What is pinned for each:
 
 1. Its words, the exact labels in order, and that each prints its figure.
-2. Its inks: black for the circles and lanes, brass for what both
+2. Its inks: black for the circles and lanes, berry for what both
    orientations share and for each closing line, grey for axes and notes, and
-   red for the dropped days.
+   vermilion for the dropped days. Every frame maps onto
+   :data:`chan.palette.INKS`.
 3. Its geometry. Each circle's area and the two circles' shared area stand to
    one scale for their counts, and other figures move them. Each expiry tick,
    lane stretch, dot and cross stands at its trading day.
@@ -82,8 +83,9 @@ from chan.futures import (
     next_trading_day,
     previous_trading_day,
 )
+from chan.palette import ACCENT, INKS, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -321,7 +323,7 @@ class TestBothOrientations:
 
     @pytest.mark.parametrize("figures", [PINNED, OTHER], ids=["pinned", "other"])
     def test_the_overlap_is_what_both_share_to_the_same_scale(self, figures, window) -> None:
-        """The brass outline encloses the area of the pairs rejecting both
+        """The berry outline encloses the area of the pairs rejecting both
         ways, and so does the geometry of the two circles it is drawn from."""
         scene = scenes(figures, window)[0]
         for key in ("independent", "correlated"):
@@ -653,6 +655,21 @@ class TestTheGifs:
         for path in gifs:
             assert path.stat().st_size < 1_000_000, path.name
 
+    def test_every_frame_draws_in_the_colour_blind_safe_inks(self, gifs) -> None:
+        """Without :data:`chan.palette.INKS` the renderer maps each frame onto
+        the shared brass, green and red, whatever ink a stroke names."""
+        flat = whiteboard.palette(INKS).getpalette()
+        inks = {tuple(flat[i : i + 3]) for i in range(0, len(flat), 3)}
+        for path in gifs:
+            with Image.open(path) as image:
+                assert image.getpalette() == flat, path.name
+                # Pillow hands back every frame after the first as RGB, so
+                # each of those is held by the colours it draws in.
+                for k in range(1, image.n_frames):
+                    image.seek(k)
+                    drawn = {rgb for _, rgb in image.convert("RGB").getcolors(256)}
+                    assert drawn <= inks, (path.name, k, drawn - inks)
+
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, window) -> None:
         again = make_calendar_spreads_whiteboards(
             out_dir=tmp_path, orientations=PINNED, window=window
@@ -757,7 +774,7 @@ class TestThePost:
         assert f"breaks into {words[len(window.stretches)]} stretches" in alt
         assert "a new one starting the day after each expiry inside the window" in alt
         assert "Beneath it a lane labelled “July, far”" in alt
-        assert f"{ {6: 'six'}[len(window.dropped)] } red crosses" in alt
+        assert f"{ {6: 'six'}[len(window.dropped)] } vermilion crosses" in alt
         assert "on each expiry inside it and the day after" in alt
         assert f"late May {window.window[-1].year}" in alt
 

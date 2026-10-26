@@ -3942,7 +3942,7 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    six days each window drops", draws the June 2018 natural gas pair's window
    on an axis of trading days: the four expiries it rests on, which numbered
    file each leg reads on each day, its 58 kept days, and its six dropped days
-   as red crosses.
+   as vermilion crosses.
 
 Both sketches build more slowly than the USD.CAD post's and hold their
 finished drawings for twelve seconds, because each carries more than the usual
