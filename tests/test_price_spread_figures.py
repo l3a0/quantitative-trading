@@ -21,12 +21,10 @@ from matplotlib.colors import same_color, to_rgb
 from matplotlib.dates import date2num
 
 from chan import price_spread_figures
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
 from chan.price_spread import example_three_one, read_sources
 from chan.price_spread_figures import (
-    ACCENT,
-    GOOD,
-    LOST,
     RUNS,
     SIGNALS_FIGURE,
     cumulative_return,
