@@ -325,16 +325,17 @@ class TestWhatThePostQuotes:
     fails as well as a digit changed. Each verdict's words, above or below 0
     and the median stock, come from the verdict too.
 
-    The copies read are the list of files, the definitions of MKT and WML,
-    the paragraphs on the month-ends and the statistic, Lesson 3's table and
-    the paragraphs and two verdicts after it, Lesson 4's display equation and
-    its paragraph on the average returns, the figure's alt text, and Lesson
-    6's example of a file saved in 2007 and its third point. Other copies are not read, so a typo in one of them
-    passes. Among them are the 0.0675 and −0.1099 in Lesson 4's prose, the
-    ±1.96/√83 in Lesson 4's sentence before its equation, the 446 and
-    ±0.2151 in the paragraph before the figure, and the repeats of 83, 12
-    and 446 elsewhere. ``tests/test_momentum_factor_figures.py`` holds what
-    the figure draws, and never reads the post.
+    The copies read are the list of files, the definitions of MKT and WML, the
+    paragraphs on the month-ends and the statistic, Lesson 3's table and the
+    paragraphs and two verdicts after it, Lesson 4's display equation and its
+    paragraph on the average returns, the figure's alt text, and Lesson 6's
+    example of a file saved in 2007 and its third point. Other copies are not
+    read, so a typo in one of them passes. Among them are the 0.0675 and
+    −0.1099 in Lesson 4's prose, the ±1.96/√83 in Lesson 4's sentence before
+    its equation, the 446 and ±0.2151 in the paragraph before the figure, and
+    the repeats of 83, 12 and 446 elsewhere.
+    ``tests/test_momentum_factor_figures.py`` holds what the figure draws, and
+    never reads the post.
     """
 
     @pytest.fixture(scope="class")
