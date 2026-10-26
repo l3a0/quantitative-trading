@@ -3608,14 +3608,13 @@ Four groups of its figures are not pinned here.
    `smartstd`. The commits the sources are read at: `1a71950` of the
    first-edition mirror, `7430b84` of the MATLAB repost and `5fcab61` of the
    Python repost. The Fama and French citation and its publication details.
-3. Counts and arithmetic no test asserts. Each autocorrelation of 83 months
-   rests on 82 pairs. 1.96 marks a two-sided 5 percent, which is what puts
-   the band at 95 percent. Each annual mean is the monthly mean times 12. The
-   Python's 255 rows with no position are its 1,006 rows less its 751 traded
-   days. The 83 holding months are the 96 month-ends less the 12 before the
-   first pick and the last, which has no month after it. 1.8654 is written as
-   186.54 percent. That neither printout's Sharpe ratio subtracts a risk-free
-   rate is a reading of their code.
+3. Counts and arithmetic no test asserts. 1.96 marks a two-sided 5 percent,
+   which is what puts the band at 95 percent. Each annual mean is the monthly
+   mean times 12. The 83 holding months are the 96 month-ends less the 12
+   before the first pick and the last, which has no month after it. 1.8654 is
+   written as 186.54 percent. That no printout's Sharpe ratio subtracts a
+   risk-free rate is a reading of their code. The year 2003 in Lesson 6 is an
+   example rather than a measured date.
 4. Its references. The five citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
