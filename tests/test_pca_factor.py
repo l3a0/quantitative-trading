@@ -42,7 +42,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from chan import pca_factor
+from chan import paths, pca_factor
 from chan.matlab_helpers import smartmean, smartstd_first_edition
 from chan.pca_factor import (
     BOOK_MATLAB_PERCENT,
@@ -376,6 +376,223 @@ class TestTheReport:
         monkeypatch.setattr("sys.argv", ["pca_factor"])
         with pytest.raises(SystemExit, match="no committed vintage is lifted from IJR_20080114"):
             main()
+
+
+# --- what the post quotes ----------------------------------------------------------
+
+POST = paths.REPO_ROOT / "blog" / "factor-models-lessons.md"
+
+
+def _minus(x: float, places: int) -> str:
+    """A figure in prose, with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _array(head: str, rows: list[list[str]]) -> str:
+    """One of the post's ``array`` tables, from its header row to its last row."""
+    body = " \\\\\n".join(" & ".join(row) for row in rows)
+    return f"{head} \\\\ \\hline\n{body}\n\\end{{array}}"
+
+
+def _longs(program: Run) -> int:
+    """The one number of stocks a program buys on every day it holds a book."""
+    rows = np.flatnonzero(np.abs(program.positions).sum(axis=1) > 0)
+    (longs,) = set((program.positions[rows] > 0).sum(axis=1))
+    return int(longs)
+
+
+class TestWhatThePostQuotes:
+    """Each figure ``blog/factor-models-lessons.md`` quotes about Example 7.4, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run, the file or a module constant at
+    the precision the post prints it, and looked for in one copy: a short
+    fragment holding the number and the few words that name one place in the
+    post. A typo in a copy that is read, or a re-pin that leaves the post
+    behind, fails here. Lesson 1's two tables and Lesson 2's are rebuilt
+    whole, so a digit added to a cell fails as well as a digit changed. Each
+    printed figure in Lesson 1's tables comes from :mod:`chan.pca_factor`'s
+    record of the printout and is held against the run, and Lesson 2's table
+    and its labels come from the run.
+
+    The copies read are the section on the file and the four steps, every copy
+    of Chan's 2 and 4 percent, Lesson 1's tables and the paragraph and three
+    points around them, Lesson 2's equation, its third point, the three
+    choices listed after its points and its table, and Lesson 6's first and
+    fourth points. Other copies are not read, so a typo in one of them passes.
+    Among them are the 10⁻¹⁵ the Python lands within, the "three of the four"
+    printouts in the title and Lesson 1's heading, the count of three choices
+    in Lesson 2's fourth point, the 1.8654 and 186.54 percent in Lesson 3's
+    third point, the 0 identical days out of 752 in Lesson 5, and the repeats
+    of 600, 50, 252 and "five" elsewhere.
+    ``tests/test_pca_factor_momentum.py`` reads Lesson 3's figures on
+    Example 7.4's own factors, and ``tests/test_momentum_factor.py`` those on
+    MKT and WML.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_file_and_the_steps(self, panel, text) -> None:
+        members, closes = panel
+        (saved,) = {m.obtained for m in members}
+        assert saved == LIFTED_SOURCES[SMALL_CAPS][2]
+        fragments = [
+            f"`{SMALL_CAPS}`, the {closes.shape[1]} members of the S&P 600 as he saved them on "
+            f"{saved}, spanning {closes.index[0].date()} to {closes.index[-1].date()}, "
+            f"{len(closes):,} trading days of split-adjusted closes.",
+            f"Take the last {LOOKBACK} trading days of returns on each stock.",
+            f"Buy the {TOP_N} stocks predicted highest and short the {TOP_N} predicted lowest",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1s_two_tables(self, results: Results, text) -> None:
+        matlab = (results.first.annual, results.matlab.annual, results.matlab.sharpe)
+        printed = (FIRST_EDITION_PRINTS, *REVISED_MATLAB_PRINTS)
+        assert all(prints_as(v, p) for v, p in zip(matlab, printed, strict=True)), SPEC
+        python_run = (results.python.annual, results.python.stdev, results.python.sharpe)
+        assert within(python_run, PYTHON_PRINTS), SPEC
+        labels = (
+            "First edition, annual mean",
+            "Revised, annual mean return",
+            "Revised, Sharpe ratio",
+        )
+        python = ("Mean return", "Standard deviation", "Sharpe ratio")
+        fragments = [
+            f"The first edition’s {_minus(results.first.annual, 4)} is a sum over positions "
+            "rather than a return, as the first point below explains.",
+            _array(
+                "\\begin{array}{l|r}\n\\text{MATLAB printout} & \\text{Printed}",
+                [[f"\\text{{{label}}}", p] for label, p in zip(labels, printed, strict=True)],
+            ),
+            _array(
+                "\\small\\begin{array}{l|r}\n\\text{Revised Python, annual} & \\text{Printed}",
+                [[f"\\text{{{label}}}", p] for label, p in zip(python, PYTHON_PRINTS, strict=True)],
+            ),
+            f"so {REVISED_MATLAB_PRINTS[0]} is Chan’s {BOOK_MATLAB_PERCENT} percent and "
+            f"{PYTHON_PRINTS[0]} his {BOOK_PYTHON_R_PERCENT} percent.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1s_three_points(self, results: Results, text) -> None:
+        held = np.abs(results.first.positions).sum(axis=1)
+        (positions,) = set(held[held > 0])
+        readings = [
+            f"{r.annual:.4f}, {r.stdev:.4f} and {r.sharpe:.4f}"
+            for r in (results.r_unfilled, results.r_filled)
+        ]
+        first_edition_sharpe = matlab_sharpe(results.matlab.daily, smartstd_first_edition)
+        fragments = [
+            f"Its daily figure sums {int(positions)} positions of ±1 and never divides by "
+            f"capital. So {_minus(results.first.annual, 4)} is a sum over positions",
+            f"It buys {_longs(results.r_unfilled)} stocks where the Python buys "
+            f"{_longs(results.python)}, among other differences.",
+            f"Leaving each missing price empty gives {readings[0]}. Filling it with the last "
+            f"price gives {readings[1]}.",
+            f"reproduces the printed {results.matlab.sharpe:.6f}",
+            f"The one from this book’s first edition gives {first_edition_sharpe:.4f}.",
+        ]
+        assert _longs(results.r_filled) == _longs(results.r_unfilled)
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_overlap_and_bookkeeping(self, results: Results, panel, text) -> None:
+        _, closes = panel
+        names = agreement(results.matlab, results.python)
+        sized = agreement(results.matlab, results.python_fifty)
+        changed = (results.python_fifty, results.python_traded, results.python_first_book)
+        for program in changed:
+            assert program.annual > results.python.annual, program.name
+            assert program.sharpe > results.python.sharpe, program.name
+        python, matlab = _longs(results.python), _longs(results.matlab)
+        fifty = _longs(results.python_fifty)
+        assert fifty == matlab
+        traded = int(results.python.traded.sum())
+        held = int((np.abs(results.python.positions).sum(axis=1) > 0).sum())
+        assert held == sized.days == traded + 1
+        fragments = [
+            "\\begin{gathered}\n"
+            f"r_{{i,t}} = a_i + \\sum_{{k=1}}^{{{FACTORS}}} b_{{ik}} f_{{k,t}} + e_{{i,t}} \\\\\n"
+            "\\sum_t e_{i,t} = 0 \\;\\Rightarrow\\; \\sum_t \\hat r_{i,t} = \\sum_t r_{i,t}\n"
+            "\\end{gathered}",
+            f"The printed Python buys {python} stocks, because its index range skips the "
+            f"top-ranked one, while the MATLAB buys {matlab}.",
+            f"On an average day, {100 * names.share:.2f} percent of the MATLAB’s names sit on "
+            f"the same side in the printed Python, and {100 * sized.share:.2f} percent once the "
+            f"Python also buys {fifty}.",
+            f"Even at {fifty} longs each, the two sets of positions are identical on "
+            f"{sized.identical} of the {sized.days} days both hold positions, and on each of "
+            f"those days at least {sized.fewest_differing} of the {closes.shape[1]} stocks "
+            "hold a different position in the two.",
+            f"The printed Python buys the {python} stocks ranked second to {TOP_N}th rather "
+            f"than the top {TOP_N}.",
+            f"It averages its daily returns over all {len(closes):,} trading days rather than "
+            f"the {traded} on which its positions earn a return. It holds positions on {held} "
+            "days, and the last is the file’s final day,",
+            f"Undoing any one raises both, from the printed {PYTHON_PRINTS[0]} and "
+            f"{PYTHON_PRINTS[2]}, and so moves the Python further from the revised MATLAB’s "
+            f"{REVISED_MATLAB_PRINTS[0]} and {REVISED_MATLAB_PRINTS[1]}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_table(self, results: Results, panel, text) -> None:
+        _, closes = panel
+        traded = int(results.python.traded.sum())
+        labels = (
+            f"Top {_longs(results.python_fifty)}, not {_longs(results.python)}",
+            f"{traded} days, not {len(closes):,}",
+            "First day kept",
+        )
+        changed = (results.python_fifty, results.python_traded, results.python_first_book)
+        table = _array(
+            "\\begin{array}{l|r|r}\n\\text{Change} & \\text{Mean} & \\text{Sharpe}",
+            [
+                [f"\\text{{{label}}}", f"{program.annual:.4f}", f"{program.sharpe:.4f}"]
+                for label, program in zip(labels, changed, strict=True)
+            ],
+        )
+        assert self.missing(text, [table]) == []
+
+    def test_chans_2_and_4_percent_wherever_the_post_repeats_them(self, text) -> None:
+        two, four = BOOK_MATLAB_PERCENT, BOOK_PYTHON_R_PERCENT
+        fragments = [
+            f"*Chan’s {two} and {four} percent come from two methods, not round-off.",
+            f"he reports {two} percent a year from the MATLAB program and {four} percent from "
+            "the Python and R,",
+            f"it cannot be set beside the revised edition’s {two} percent.",
+            f"Chan’s explanation of {two} against {four} percent is round-off,",
+            f"So the gap between {two} and {four} percent is method,",
+            f"None of them says how much of the revised MATLAB’s {two} percent the factors’ "
+            "momentum earns.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_6s_survivors_and_pmc(self, results: Results, panel, text) -> None:
+        _, closes = panel
+        priced = np.flatnonzero(closes[SPLICED].notna().to_numpy())
+        gaps = np.diff(priced) - 1
+        resume = closes.index[priced[gaps.argmax() + 1]]
+        filled = closes[SPLICED].ffill()
+        jump = filled[resume] / filled.shift()[resume] - 1
+        first = results.first_unspliced
+        matlab, python = results.matlab_unspliced, results.python_unspliced
+        fragments = [
+            f"Every printout ranks and trades only the {closes.shape[1]} stocks still in the "
+            f"S&P 600 on {closes.index[-1].date()}.",
+            f"{SPLICED} in the S&P 600 file closes, goes missing for {gaps.max()} trading "
+            "days, and resumes",
+            f"when the second history begins on {resume.date()} the file shows one day’s "
+            f"return of {jump:.4f}, a rise of {100 * jump:.2f} percent.",
+            f"Without {SPLICED}, the first edition gives {_minus(first.annual, 4)}, the revised "
+            f"MATLAB {matlab.annual:.4f} at a Sharpe ratio of {matlab.sharpe:.4f}, and the "
+            f"revised Python {python.annual:.4f} at {python.sharpe:.4f}.",
+        ]
+        assert self.missing(text, fragments) == []
 
 
 # --- the rules, on windows small enough to read ------------------------------------

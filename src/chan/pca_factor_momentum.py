@@ -49,8 +49,8 @@ owner ruled that way on 2026-10-10, before any factor return was computed.
 **Beside the verdicts, deciding nothing.**
 
 - Each factor's share of pairs whose two members have the same sign.
-- The band ±1.96/√n that a series with no persistence stays inside about 95
-  percent of the time, where n is the number of pairs.
+- The band ±1.96/√n that a series of independent returns centred on zero
+  stays inside about 95 percent of the time, where n is the number of pairs.
 - Each factor's one-sided Newey-West t of its products f_t f_{t+1} against a
   mean of zero, from :func:`ithildincore.stats.newey_west_summary`, its normal
   p-value, and which factors survive Benjamini-Hochberg at q = 0.05 across
@@ -255,7 +255,7 @@ class Comparison:
 
     @property
     def band(self) -> float:
-        """±1.96/√n, where a series with no persistence lands 95 percent of the time."""
+        """±1.96/√n, where independent returns centred on zero land 95 percent of the time."""
         return CRITICAL / math.sqrt(self.pairs)
 
     def percentile(self, value: float) -> float:
@@ -570,8 +570,9 @@ def _figures(result: Result) -> None:
         f"ordinary correlation {result.intercept_pearson:.4f}. Decides nothing."
     )
     print(
-        f"  Band +/-{CRITICAL}/sqrt({c.pairs}) = {c.band:.4f}, where a series with no "
-        "persistence stays inside 95 percent of the time. Decides nothing."
+        f"  Band +/-{CRITICAL}/sqrt({c.pairs}) = {c.band:.4f}, where a series of "
+        "independent returns centred on zero stays inside 95 percent of the time. "
+        "Decides nothing."
     )
 
 

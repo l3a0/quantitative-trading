@@ -205,8 +205,9 @@ where they were first built. The other forty-five were built here.
     The first edition's MATLAB, the revised MATLAB and the revised Python
     reproduce every figure they print, the Python's 17-digit figures within
     1e-15. The R block prints the Python's figures and its own code reads
-    differently. The round-off account does not hold. The Python's regression
-    carries an intercept, which cancels its factors, so it ranks on a year of
+    differently. The round-off account does not hold. The Python ranks each
+    stock on its fitted values summed over the year, which its regression's
+    intercept makes equal to its summed returns, so it ranks on a year of
     momentum. Given the same 50 longs, its book matches the revised MATLAB's on
     none of 752 days. Every figure is exploratory and about survivors.
 14. The market and momentum factors, built on Chan's S&P 500 file to test his
@@ -219,7 +220,7 @@ where they were first built. The other forty-five were built here.
     against a median of −0.0392 across the 446 stocks priced in every month.
     The claim holds for MKT and does not hold for WML, which is below 0 and
     below the median stock. Neither factor's estimate is outside the 0.2151
-    band that a series with no autocorrelation stays inside 95 percent of the
+    band that a series of independent returns stays inside 95 percent of the
     time, so MKT's verdict could be noise. Every figure is exploratory, and WML
     and the stocks' figures are about survivors.
 15. Chan's calendar spreads, which he calls "the simplest examples of
@@ -608,12 +609,12 @@ where they were first built. The other forty-five were built here.
     the 579 stocks priced on every day the pairs read. The claim holds for
     PC1, PC2, PC4 and PC5, and does not hold for PC3, which is above the
     median stock but below 0. PC2 alone is outside the ±0.0715 band a series
-    with no persistence stays inside 95 percent of the time, and no factor
-    survives Benjamini-Hochberg at q = 0.05, a control for false discoveries
-    across the five, so any verdict could be noise. PMC is one symbol whose
-    two price histories join into one day's return. Without it, PC2 falls to
-    −0.0152 and PC3 rises to 0.0139, so which factor misses rests on that
-    symbol. Measured after the run, a series rebuilt from each day's own
+    of independent returns centred on zero stays inside 95 percent of the
+    time, and no factor survives Benjamini-Hochberg at q = 0.05, a control
+    for false discoveries across the five, so any verdict could be noise.
+    PMC is one symbol whose two price histories join into one day's return.
+    Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139, so which
+    factor misses rests on that symbol. Measured after the run, a series rebuilt from each day's own
     weights, with each vector's sign set so its largest weight is positive,
     would read PC2 at −0.1105, and −0.0161 with sign and rank matched
     to today's. Fitting tomorrow's weights on a window that leaves today's
@@ -1323,7 +1324,7 @@ band and which factors fall outside it, the Newey-West t and p-values and
 Benjamini-Hochberg, and the intercept, each with and without PMC, and one
 verdict per factor. On three of the file's days it holds each factor return
 equal to the program's fitted slope times its singular value. On synthetic
-returns it holds that a flipped vector moves no statistic, that a steady sign
+returns it holds that a flipped vector moves no statistic, that a steady value
 counts as persistence, and the Benjamini-Hochberg step-up. It holds what the
 write-up measured after the run too. Those pins count how often each factor's
 weights flip sign once each vector's largest weight is made positive, check
@@ -2054,8 +2055,8 @@ It prints each printout's figures beside Chan's, the verdicts, what separates
 the 2 percent from the 4, and every figure without PMC. It takes about a
 minute, most of it the first edition's eigendecomposition on every day.
 
-The market and momentum factors read Chan's S&P 500 file, his SPY column and
-the bills, and take no option, because the issue fixed the construction and
+The market and momentum factors read Chan's S&P 500 file, his dividend-adjusted
+SPY closes and the bills, and take no option, because the issue fixed the construction and
 the window before any return was computed:
 
 ```bash
@@ -3570,15 +3571,17 @@ together. Every result in it is exploratory.
 
 1. Three of the four printouts reproduce, and the fourth, the R, prints
    another program's figures.
-2. Chan's round-off is a second strategy, because the revised Python's
-   intercept cancels its factors and leaves single-stock momentum.
-3. The momentum the strategy assumes held for the market factor and not the
-   momentum factor, and for four of Example 7.4's own five factors. Each
+2. Chan's round-off is a second strategy, because the revised Python ranks on
+   fitted values summed over the year, which its intercept makes equal to
+   summed returns, leaving single-stock momentum.
+3. Chan's factor-momentum claim held for the market factor and four of
+   Example 7.4's five factors, and not for the momentum factor. Each
    verdict stands on its own, none of the five survives a test across all
-   five, and which one misses moves when PMC is dropped.
+   five, and which one misses, and which fall outside the band, moves when PMC
+   is dropped.
 4. A verdict can follow the declared criterion and still rest on almost
-   nothing, because both autocorrelations sit inside the range a series with
-   no autocorrelation lands in 95 percent of the time.
+   nothing, because both autocorrelations sit inside the range a series of
+   independent monthly returns lands in 95 percent of the time.
 5. Fix the rule before the number, which Entry 14 did and Entry 13's
    round-off criterion did not.
 6. Every figure that touches the stocks is about survivors, and the market
@@ -3602,16 +3605,22 @@ Four groups of its figures are not pinned here.
    p. 165 and the R's on p. 167, as Entry 13 records from the same reader. The
    suite pins the 2 and the 4 as whole percents, not the words.
 2. Facts outside the committed data. That French's market factor subtracts
-   the bill rate and his momentum factor skips the latest month. That the
+   the one-month bill rate and his momentum factor skips the latest month. That the
    revised MATLAB repost at `7430b84` carries *Algorithmic Trading*'s
-   `smartstd`. The commits the sources are read at: `1a71950` of the
+   `smartstd`. That the revised Python reads `IJR_20080114.txt`, which
+   [data/README.md](data/README.md) records, and the printed R reads
+   `IJR_20080114.csv`, read from the book's pages. The commits the sources are read at: `1a71950` of the
    first-edition mirror, `7430b84` of the MATLAB repost and `5fcab61` of the
    Python repost. The Fama and French citation and its publication details.
-3. Counts and arithmetic no test asserts. Each autocorrelation of 83 months
-   rests on 82 pairs. 1.96 marks a two-sided 5 percent, which is what puts
-   the band at 95 percent. Each annual mean is the monthly mean times 12. The
-   Python's 255 rows with no position are its 1,006 rows less its 751 traded
-   days.
+3. Counts and arithmetic no test asserts. 1.96 marks a two-sided 5 percent,
+   which is what puts the band at 95 percent. Each annual mean is the monthly
+   mean times 12. The 83 holding months are the 96 month-ends less the 12
+   before the first pick and the last, which has no month after it. That no
+   printout's Sharpe ratio subtracts a risk-free rate is a reading of their
+   code. The year 2003 in Lesson 6 is an example rather than a measured date.
+   That the band's 95 percent also needs every return to be no more likely to
+   be large than any other, as well as independent, is a property of the
+   statistic that no test asserts.
 4. Its references. The five citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -3619,11 +3628,54 @@ Every other number in the post traces to an assertion in
 [tests/test_momentum_factor.py](tests/test_momentum_factor.py) or
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py)'s
-`TestTheVintages::test_the_large_cap_panel` for the S&P 500 file's span, or to
+`TestThePanels::test_the_large_cap_panel` for the S&P 500 file's span, to
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
-for the figure's own labels. One figure was half pinned before it, and
+for the figure's own labels, or to
+[tests/test_factor_models_whiteboard.py](tests/test_factor_models_whiteboard.py)
+for the sketches' labels and the alt texts that quote them. One figure was
+half pinned before it, and
 `TestTheSplice::test_pmc_forward_fills_into_one_days_return` now pins both
 ends of PMC's 851-day gap rather than only the days inside it.
+
+Three classes read the post's figures. Each builds every figure it reads from
+the run, the committed files or a module constant, at the precision the post
+prints it, and looks for one copy of it in the post, so a typo in that copy
+fails a test.
+
+1. `TestWhatThePostQuotes` in
+   [tests/test_pca_factor.py](tests/test_pca_factor.py) reads Example 7.4's
+   figures. That covers the S&P 600 file's members, saved date, span and days,
+   the steps' 252 days and 50 a side, every copy of Chan's 2 and 4 percent,
+   Lesson 1's two tables and the three points after them, Lesson 2's equation,
+   its third point, the three choices listed after its points and its table,
+   and Lesson 6's first and fourth points, with PMC's 851-day gap, its 1.8654
+   return written as 186.54 percent, and the three printouts without it. Each printed figure in Lesson
+   1's tables is held against the run.
+2. `TestWhatThePostQuotes` in
+   [tests/test_momentum_factor.py](tests/test_momentum_factor.py) reads the
+   figures on MKT and WML. That covers the three files' dates and the S&P 500
+   file's span, the 12 and 1 months of the lookback, the 96 month-ends, the 83
+   holding months, the 442 to 494 stocks each month and the 446 with a return
+   in all of them, Lesson 3's table, quartiles and two verdicts, Lesson 4's
+   display equation, average returns and t-statistics, the figure's alt text,
+   the year Lesson 6 says the S&P 500 file was saved, and Lesson 6's monthly
+   median.
+3. `TestWhatTheFactorModelsPostQuotes` in
+   [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py)
+   reads the figures on Example 7.4's own five factors. That covers the
+   252-day weights, the 752 pairs and the 579 stocks, Lesson 3's daily table
+   and the paragraph after it, the band and the test across all five, what
+   dropping PMC moves, and Lesson 6's daily median.
+
+All five of the post's tables are rebuilt whole, so a digit added to a cell
+fails as well as a digit changed, and each verdict's words come from the
+verdict. The classes read one copy of each figure, so a typo in another copy
+passes. Among those left unread are the 10⁻¹⁵ the Python lands within, the
+"three of the four" printouts in the title and Lesson 1's heading, the 1.8654
+and 186.54 percent in Lesson 3, the 0 identical days out of 752 in Lesson 5,
+the 0.0675, −0.1099 and ±1.96/√83 in Lesson 4's prose, the 446 and ±0.2151 in
+the paragraph before the figure, and the repeats of 600, 50, 252, 83 and 446.
+Each class docstring names the copies it leaves unread.
 
 Its one figure is drawn from the committed S&P 500 file by
 [src/chan/momentum_factor_figures.py](src/chan/momentum_factor_figures.py). It
@@ -3638,6 +3690,44 @@ uv run python -m chan.momentum_factor_figures
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/factor_models_whiteboard.py](src/chan/factor_models_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `factor_models_residuals_cancel.gif`, in Lesson 2 after the display
+   equation, draws a dozen daily returns as bars, the fitted value beside each
+   as a dot, and the gap between them as a tick, green above the fit and red
+   below. With an intercept the gaps sum to 0, so the summed returns and the
+   summed fitted values stand at the same height, and a ranking on one is a
+   ranking on the other.
+2. `factor_models_sign_flip.gif`, in Lesson 3 after the paragraph that defines
+   the statistic, draws day t's weights, the pair f and g they
+   give and its positive product, the same weights reversed, the negative
+   product a series of fresh weights would read, and the pair under the flip,
+   where (−f)(−g) = fg.
+
+The second builds more slowly than the USD.CAD post's sketches and holds its
+finished drawing for twelve seconds, because it carries more than that pace
+lets a reader take in. The first keeps that post's pace.
+
+Both are schematic and carry no figures from the run. Their returns, factor
+series, weights and ranked stocks are made up to show a shape. Redraw both
+with:
+
+```bash
+uv run python -m chan.factor_models_whiteboard
+```
+
+[tests/test_factor_models_whiteboard.py](tests/test_factor_models_whiteboard.py)
+holds that the first sketch's dots are the least-squares fit of its bars on an
+intercept and five factor series, so its gaps sum to 0 and its totals match,
+that `chan.pca_factor`'s `python_expected` gives `summed_returns` on a made-up
+window, that the second sketch's reversed weights give −f and −g and keep the
+product, that `chan.pca_factor_momentum`'s `uncentred` does not move when one
+pair flips, that each GIF follows its text in the post, that each alt text
+quotes every label in the order it is drawn, and that each GIF is a fresh draw
+byte for byte on the owner's machine.
 
 [blog/commodity-seasonals-lessons.md](blog/commodity-seasonals-lessons.md) is
 an eleventh post, about the commodity seasonals, the gasoline and natural gas
@@ -7399,17 +7489,19 @@ Four groups of what it says are not pinned here.
 2. Facts outside the committed data: that 2007-08-09 and 2007-08-10 fall in
    the week Khandani and Lo studied, and that the revised MATLAB prints
    Chan's 2 percent a year before costs.
-3. Readings and arithmetic no test asserts: that the library's own signs
-   flipped on about half the days on the two machines that ran the checks
-   and disagreed about which, which no test pins because it depends on the
-   library, that a principal component's rank can change from day to day in
-   general, the closed form of
-   the slope and intercept written out in Lesson 3, that the positions chosen
-   on day t earn day t + 1's return, 5/√70 written as positive, 1.8654 written
-   as 186.54 percent, a fifth of 5 percent written as 0.01, the same-sign
-   shares called close to a coin toss, that PC1 is the factor that moves the
-   whole market, that 2007-08-09 and 2007-08-10 are what put PC2 outside the
-   band, and that the window's effect on PC2 is not explained. The figure's alt text reads its curve approximately too.
+3. Readings and arithmetic no test asserts: that the band is right only when a
+   large return makes a large one the next day no more likely, that the
+   library's own signs flipped on about half the days on the two machines that
+   ran the checks and disagreed about which, which no test pins because it
+   depends on the library, that a principal component's rank can change from
+   day to day in general, the closed form of the slope and intercept written
+   out in Lesson 3, that the positions chosen on day t earn day t + 1's
+   return, 5/√70 written as positive, 1.8654 written as 186.54 percent, a
+   fifth of 5 percent written as 0.01, the same-sign shares called close to a
+   coin toss, that PC1 is the factor that moves the whole market, that
+   2007-08-09 and 2007-08-10 are what put PC2 outside the band, and that the
+   window's effect on PC2 is not explained. The figure's alt text reads its
+   curve approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
