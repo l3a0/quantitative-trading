@@ -190,9 +190,11 @@ LABEL_MS = 350
 HOLD_MS = 4000
 
 BOARD = "#FFFFFF"
-#: The inks every stroke and label is drawn in. Each frame is mapped onto
-#: these and their blends with the white board, so every GIF carries one
-#: palette rather than one fitted to every frame.
+#: The shared inks :func:`palette` and :func:`render` default to, for the posts
+#: that have not moved to :mod:`chan.palette`. A post that has moved passes
+#: :data:`chan.palette.INKS` instead. Each frame is mapped onto the inks and
+#: their blends with the white board, so every GIF carries one fixed palette
+#: rather than one fitted to every frame.
 INKS = (INK, MUTED, ACCENT, GOOD, LOST)
 BLENDS = (1.0, 0.8, 0.6, 0.4, 0.2)
 
