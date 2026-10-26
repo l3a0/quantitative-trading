@@ -207,8 +207,8 @@ class TestTheListDatesFromLate2011:
 
     2012-04-24 is the date in the file's name. The schedules name companies
     rather than tickers, so each check matches a distinctive word of the
-    company's name. Five stocks that left the index in the December 2011
-    rebalance are in the file, three of the stocks that joined then are not,
+    company's name. Five stocks that left the index in December 2011 are in
+    the file, three of the stocks that joined then are not,
     and Medco, which left on 2012-04-02 when Express Scripts bought it, is in
     the file with its prices frozen at the deal's value after that. Nor is the
     file the whole index of late 2011. Electronic Arts and Constellation Energy

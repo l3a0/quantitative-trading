@@ -149,7 +149,7 @@ The book saw this possibility and set it aside. Location 652 names the mean as o
 
 **The status of this finding.** The two checks came after a trial run had seen results, so the drift reading is exploratory. It is a reason to register a test that names drift as the hypothesis before any number exists, and runs it on data Entry 37 never loaded. It is not a verdict that drift explains momentum on TU.
 
-No false-discovery-rate control appears here. Such a control limits the share of false passes across a batch of tests, and it applies when many variants are tried and the best is kept, as [the index arbitrage post’s Lesson 2](https://github.com/l3a0/quantitative-trading/blob/main/blog/index-arbitrage-lessons.md#lesson-2-the-screens-98-is-a-count-of-tests-passed-and-random-walks-unrelated-to-spy-pass-more-often) shows. This replication runs Chan’s three tests and keeps none for a better p-value, and the three added checks carry the exploratory label instead.
+No false-discovery-rate control appears here. Such a control limits the share of false passes across a batch of tests, and it applies when many tests are run and the ones that pass are kept, as [the index arbitrage post’s Lesson 2](https://github.com/l3a0/quantitative-trading/blob/main/blog/index-arbitrage-lessons.md#lesson-2-the-screens-98-is-a-count-of-tests-passed-and-random-walks-unrelated-to-spy-pass-more-often) shows with a screen of 480 stocks. This replication runs Chan’s three tests of one strategy rather than a screen, keeps none for a better p-value, and the three added checks carry the exploratory label instead.
 
 **Exploratory.** The drift reading rests on checks chosen after a trial run, and it stays a reason for a registered test rather than a result.
 

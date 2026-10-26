@@ -182,7 +182,7 @@ class TestTheFigure:
             "inputDataOHLCDaily_stocks_20120424.mat, saved 2012-04-25,\nand SPY from "
             "inputData_ETF.mat, saved 2012-04-10. The stocks and the weights are fitted on "
             "2007 and traded from 2008,\nbut the lookback of 5 was chosen with hindsight, and "
-            "every stock in the file survived to 2012."
+            "every stock in the file was in the S&P 500 in late 2011."
         ]
 
     def test_drawing_with_no_sources_reads_the_committed_files(self, tmp_path, rates, result):
