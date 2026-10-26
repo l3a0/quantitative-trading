@@ -762,7 +762,8 @@ class TestWhatThePostQuotes:
             f"{_minus(compounded_apr(reversed_), 6)}, or "
             f"{_minus(100 * compounded_apr(reversed_), 1)} percent, rather than "
             f"{_minus(-s.apr, 6)},",
-            f"Over the {len(day_to_day):,} days when the same pair is held on two days running, "
+            f"Over the {len(day_to_day):,} days of the window whose day before is also in the "
+            "window and holds the same pair, "
             f"the script’s daily return correlates at {earned:.6f} with yesterday’s position "
             "in the far contract",
             f"the spread’s change and γ’s change correlate at only {_minus(changes, 6)}.",
