@@ -1177,7 +1177,7 @@ class TestTheFillMissesSketch:
         assert (
             "a brown dot right of zero marks the year’s move with fill 2’s guess corrected" in alt
         )
-        assert "The bars for 1997 and 1998 reach across zero, and the bar for 1999 stops" in alt
+        assert "the bar for 1998 only just reaches past it, and the bar for 1999 stops" in alt
 
 
 # --- Lesson 4: the calendar sketch ---------------------------------------------
