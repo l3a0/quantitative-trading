@@ -609,7 +609,7 @@ class TestTheFigures:
             assert 1e-8 < abs(swing.lost - half) < 1e-6, swing.rule
 
     def test_the_rules_alone_swing_nearly_three_times_and_lose_about_eight(self, figures) -> None:
-        """The caption's two comparisons: each rule alone's standard
+        """Two of the caption's three comparisons: each rule alone's standard
         deviation over the join's, about 2.80 and 2.82, and each one's lost
         return over the join's, about 7.92 and 8.01."""
         _, cl = crude.read_cl()
@@ -1097,7 +1097,7 @@ class TestTheSwingSketch:
 
     def test_its_caption(self) -> None:
         """The rows, the save and the 252 days it names, read where they
-        come from. The two comparisons are held on the run in
+        come from. The caption's three comparisons are held on the run in
         :class:`TestTheFigures`."""
         _, cl = crude.read_cl()
         assert (len(cl), str(cl.index[-1].date()), crude.TRADING_DAYS) == (1000, "2012-05-04", 252)
