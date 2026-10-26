@@ -848,6 +848,8 @@ class TestTheDivisorSketch:
         assert "a 22nd exit, on 2007-06-07" in scene.labels
         scene = scenes(replace(run, exits=22, exits_n=23))[1]
         assert "a 23rd exit, on 2007-06-07" in scene.labels
+        scene = scenes(replace(run, exits=17, exits_n=18))[1]
+        assert "an 18th exit, on 2007-06-07" in scene.labels
         scene = scenes(replace(run, exits=79, exits_n=80))[1]
         assert "an 80th exit, on 2007-06-07" in scene.labels
 
@@ -855,6 +857,16 @@ class TestTheDivisorSketch:
         ("change", "words"),
         [
             (lambda r: replace(r, exits_n=r.exits), "one more exit"),
+            (lambda r: replace(r, exits_n=r.exits + 2), "one more exit"),
+            (
+                lambda r: replace(
+                    r,
+                    divisors=replace(
+                        r.divisors, units_n=np.array([0, 0, -1, 0, 1, -1, 0, 0, 0, 0, 0.0])
+                    ),
+                ),
+                "one exit under n",
+            ),
             (
                 lambda r: replace(
                     r, divisors=replace(r.divisors, units=np.where(np.arange(11) == 4, -1.0, 0.0))
@@ -883,7 +895,16 @@ class TestTheDivisorSketch:
                 "under 1 and the n z-score over it",
             ),
         ],
-        ids=["exit count", "n − 1 not flat", "no straddle", "no entry", "no exit", "both over 1"],
+        ids=[
+            "exit count",
+            "exit count high",
+            "two exits",
+            "n − 1 not flat",
+            "no straddle",
+            "no entry",
+            "no exit",
+            "both over 1",
+        ],
     )
     def test_it_refuses_figures_that_would_make_its_words_false(self, run, change, words) -> None:
         with pytest.raises(ValueError, match=words):
@@ -915,6 +936,23 @@ class TestTheReadPath:
             sketches, "zscore_divided_by_n", lambda signal: np.full(len(signal.value), 7.0)
         )
         assert set(BandRun.from_run().divisors.zscore_n.tolist()) == {7.0}
+
+    def test_its_counts_follow_the_closes_it_is_given(self) -> None:
+        """The labels' counts come from the run on the closes given, not from the
+        committed file. On its first 250 rows both divisors exit equally often, so
+        neither a count from the full file nor an ``exits_n`` built as one more than
+        ``exits`` passes here."""
+        _, closes = price_spread.read_sources()
+        shorter = closes.iloc[:250]
+        again = BandRun.from_run(shorter)
+        band = sketches.example_three_two(shorter).bollinger
+        units_n = sketches.divided_by_n(band.signal).units
+        assert (again.differ, again.exits, again.exits_n) == (
+            int(np.count_nonzero(band.units != units_n)),
+            exits(band.units),
+            exits(units_n),
+        )
+        assert again.exits_n == again.exits
 
     def test_exits_and_runs_count_what_they_say(self) -> None:
         units = np.array([0.0, 1, 1, 0, -1, 1, 0, 0])

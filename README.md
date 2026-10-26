@@ -4933,8 +4933,8 @@ post's Lesson 5 and draws five lessons from Entry 26 of the replication log.
 3. A fixed threshold makes the moving deviation's divisor matter, so dividing
    by n rather than n − 1 moves both figures.
 4. The band holds one unit at most and changes its units on 162 days against
-   the linear rule's 1,460, though a held unit's GLD leg is still resized
-   every day.
+   the linear rule's 1,460, every day after its first, though a held unit's
+   GLD leg is still resized every day.
 5. An exact reproduction checks the arithmetic and not the edge.
 
 Five groups of what it says are not pinned here.
@@ -4999,12 +4999,15 @@ seventh.
    two different counts that are both 334.
 4. Dividing the deviation by n multiplies every z-score by √(20/19), 1.0260.
    It puts the z-score beyond ±1 on 777 of the 1,461 days where it exists,
-   against 756 under n − 1, and moves the units on 15 days. Seven are a short
-   that only the run divided by n holds, and on the other eight that run
-   enters a position one day before the n − 1 run. The exit test at 0
-   passes on the same days under either divisor. All 76 exits under n − 1 fall
-   on the same days under n, and a 77th under n, on 2007-06-07, closes a short
-   entered on 2007-05-29 that the n − 1 run never opened.
+   against 756 under n − 1. Twelve of the 21 extra days fall while the run
+   divided by n already holds the side they would enter, and on each of the
+   other nine that run opens a position from flat. The units differ on 15
+   days. Seven are a short that only the run divided by n holds, and on the
+   other eight that run enters a position one day before the n − 1 run. The
+   exit test at 0 passes on the same days under either divisor. All 76 exits
+   under n − 1 fall on the same days under n, and a 77th under n, on
+   2007-06-07, closes a short entered on 2007-05-29 that the n − 1 run never
+   opened.
 5. That the spread has no missing values on the kept days, so swapping the
    moving average as well skips nothing and leaves every daily return, and so
    both figures, exactly where they were. The two averages add up a window in
@@ -5052,10 +5055,10 @@ schematic. Each draws every day's z-score as a dot to one scale, above a strip
 of the units held.
 
 1. One in "The rule and the file", `bollinger_sketch_one_close.gif`, after the
-   paragraph on a long turning short in a single day. It draws the 16 days
-   from 2006-07-27 to 2006-08-17, where a long entered below −1 is held through
-   three days back inside the band, then turns short on 2006-08-11, when the
-   z-score jumps from below 0 to above 1.
+   paragraph on a unit turning to the other side in a single day. It draws
+   the 16 days from 2006-07-27 to 2006-08-17, where a long entered below −1 is
+   held through three days back inside the band, then turns short on
+   2006-08-11, when the z-score jumps from below 0 to above 1.
 2. One in Lesson 3, `bollinger_sketch_two_divisors.gif`, after the list of
    the two moved figures. It draws the 11 days from 2007-05-24 to 2007-06-08
    with each day's z-score under both divisors side by side. On 2007-05-29

@@ -6234,7 +6234,7 @@ in a comment on the next line, and location 1559 rounds both.
 | 4 | rows 1 and 2 with `smartMovingStd`, which divides by n, in place of `movingStd` | 0.183306 and 0.984872, moved by +0.005057 and +0.020199 | `TestTheDivisor` |
 | 5 | the first day with units, and the first day a return is earned | 2006-06-21 and 2006-06-22 | `TestTheFigures::test_the_first_position_is_held_into_2006_06_22` |
 | 6 | the run with `lag` padding 0 rather than NaN | the same returns, exactly | `TestWhatMovesNothing` |
-| 7 | the units on synthetic arrays: a z-score of exactly −1 or 1, exactly 0, NaN, and a long turning short in one day | enters nothing, exits nothing, holds yesterday's units, and turns in one day | `TestBandUnits` |
+| 7 | the units on synthetic arrays: a z-score of exactly −1 or 1, exactly 0, NaN, and a long turning short or a short turning long in one day | enters nothing, exits nothing, holds yesterday's units, and turns in one day | `TestBandUnits` |
 
 ### The verdicts
 
@@ -6266,8 +6266,8 @@ Three things.
    +0.005057 and the Sharpe ratio by +0.020199, so the book's 17.8 percent
    and 0.96 would read 18.3 and 0.98. This answers the question Entry 21's
    third conclusion left open: a rule with a fixed threshold needs the
-   divisor its script used, and a port reaching for `smartMovingStd` would
-   miss.
+   divisor its script used, and a transcription reaching for
+   `smartMovingStd` would miss.
 
 ### What this entry cannot say
 
@@ -6279,8 +6279,9 @@ cointegrate on this file, and the 20-day hedge ratio changes sign.
 
 **What costs would take.** No script charges any. The band's units change on
 162 of the 1,480 days, which `TestTheSpecification` holds, against 1,460 for
-the linear rule. That understates how often the band trades, because a
-held unit's GLD leg is resized every day as the hedge ratio is refitted.
+the linear rule, which changes its units every day after its first. That
+understates how often the band trades, because a held unit's GLD leg is
+resized every day as the hedge ratio is refitted.
 Nothing here measures what a cost per trade would take from either rule.
 
 **Whether 1, 0 and 20 were fair choices.** Location 1548 calls the entry

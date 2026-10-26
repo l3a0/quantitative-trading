@@ -1,6 +1,6 @@
 # Chan’s Bollinger band on gold and oil reproduces to six digits, and its threshold makes the divisor matter
 
-*Example 3.2 trades the same gold and oil spread as Example 3.1, but holds at most one unit and enters only beyond a fixed threshold. On Chan’s own file both of its printed figures land, and the fixed threshold is what lets the divisor of a standard deviation move them.*
+*Example 3.2 trades the same gold and oil spread as Example 3.1, but holds at most one unit and enters only beyond a fixed threshold. On Chan’s own file both of its printed figures reproduce, and the fixed threshold is what lets the divisor of a standard deviation move them.*
 
 ## Why trade the same spread with a band
 

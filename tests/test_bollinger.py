@@ -314,7 +314,7 @@ class TestTheDivisor:
 
     Example 3.1's linear rule cannot see the difference, because a constant on every
     unit cancels out of profit over gross dollars. This rule compares the z-score with a
-    fixed threshold, so the scale decides which days trade. ``bollinger.m`` calls
+    fixed threshold, so the same constant changes which days trade. ``bollinger.m`` calls
     ``movingStd``, so n − 1 is the transcription and n is a diagnostic.
     """
 
@@ -351,7 +351,9 @@ class TestTheDivisor:
         self, result: ExampleThreeTwo, by_n: ExampleThreeTwo
     ) -> None:
         """Of the 1,461 days with a z-score, 756 sit beyond ±1 under n − 1 and 777 under n.
-        The units differ on 15 of the 1,480 days, which is all it takes to move both
+        Twelve of the 21 extra days fall while the run divided by n already holds the side
+        they would enter, and on each of the other nine that run opens a position from
+        flat. The units differ on 15 of the 1,480 days, which is all it takes to move both
         figures. Seven are the short only the run divided by n holds, from 2007-05-29 to
         the day before its exit on 2007-06-07. On the other eight that run enters a
         position from flat one day before the n − 1 run enters the same side."""

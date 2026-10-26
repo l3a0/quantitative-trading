@@ -50,7 +50,7 @@ exit on the opposite entry band.
 **The divisor moves both figures here.** Example 3.1's return is profit over
 gross dollars, so a constant on every unit cancels and ``movingStd``'s n − 1
 gives the same figures as ``smartMovingStd``, which divides by n.
-This rule compares the z-score with a fixed threshold, so a different scale
+This rule compares the z-score with a fixed threshold, so the same constant
 changes which days trade. ``bollinger.m`` calls ``movingStd``, so n − 1 is the
 transcription, and ``tests/test_bollinger.py`` holds the n reading beside it as
 a diagnostic.
