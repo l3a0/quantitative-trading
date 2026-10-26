@@ -108,7 +108,7 @@ The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing yea
 
 #### Two ways to fill a gap
 
-Interpolating, which here means taking a neighboring day’s price, would turn a gap into a guess, and the guess would decide the count it is meant to check.
+Interpolating, which here means drawing a guess from the neighboring days’ prices, would turn a gap into a guess, and the guess would decide the count it is meant to check.
 
 The files do hold something on each missing day. EIA’s file for the second contract out, which holds June while May is the first, has a row on all three dates. So the run tried two fills and measured how far each can be trusted.
 
