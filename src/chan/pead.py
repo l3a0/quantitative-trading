@@ -82,8 +82,9 @@ paired wrongly.
 **Every figure here is about survivors.** The price file is Chan's list of
 the S&P 500, closest to the index as it stood in late 2011, carried back from
 2012-04-24. A company that was out of the index for all of late 2011 is
-absent, and a few that left at the end of 2011 or in 2012 are still in it. ``TestTheList`` in ``tests/test_pead.py``
-holds both against the index fund's holdings. That is Chan's own universe, so it reproduces his
+absent, and a few that left at the end of 2011 or in 2012 are still in it.
+``TestTheList`` in ``tests/test_pead.py`` holds both against the index fund's
+holdings. That is Chan's own universe, so it reproduces his
 figure rather than approximating it, and it says nothing about what the rule
 earned on the index as it stood each day.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) is where

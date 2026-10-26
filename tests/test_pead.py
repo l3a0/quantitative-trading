@@ -375,7 +375,8 @@ class TestTheList:
 
     The post says the list is closest to the index as it stood in late 2011,
     that a company that was out of the index for all of late 2011 is absent,
-    and that a few that left at the end of 2011 or in 2012 are still in it. The index fund's quarterly holdings under
+    and that a few that left at the end of 2011 or in 2012 are still in it.
+    The index fund's quarterly holdings under
     ``research/filings/ivv/`` show it by name. Five companies held at
     2011-09-30 and gone by 2011-12-31 still have a file of prices here, and
     three that joined in that quarter have none, while Xylem, which joined in
