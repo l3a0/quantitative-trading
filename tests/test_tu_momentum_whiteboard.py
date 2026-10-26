@@ -6,11 +6,14 @@ point that the later save keeps 69 other days from the same closes.
 
 1. The table sketch draws the first three kept pairs of the 250/25 cell on the
    2012-05-11 save to scale, with a row of 69 dots that is not to scale. What
-   is pinned is each bar's length and place in trading days, that each future
-   bar starts where the one before ends, that the bracket covers exactly the
-   days the first two pasts share, the dates and counts it prints, and the
-   facts behind its two closing lines: consecutive kept pasts share 225 of
-   their 250 daily changes and consecutive kept futures share none.
+   is pinned is each bar's length and place in trading days, measured on the
+   rendered frame too, since round caps carry each bar's ink past its line.
+   Each future bar starts where the one before ends, with no pixel column of
+   ink shared, and the bracket covers exactly the days the first two pasts
+   share. Also pinned are the dates and counts it prints, that a cell whose
+   hold is not shorter than its lookback is refused, and the facts behind its
+   two closing lines: consecutive kept pasts share 225 of their 250 daily
+   changes and consecutive kept futures share none.
 2. The saves sketch draws the first four kept days of each save to scale.
    What is pinned is that each tick sits at its day, that each later tick
    falls four trading days after an earlier one and before the next, and the
@@ -21,7 +24,8 @@ Neither sketch is schematic. The run reads committed vintages, so the tests
 read it directly rather than a frozen copy of its figures, and a made-up set
 of figures checks that the words follow the data. The 225 shared days, the
 four trading days between the saves' first days, the dates of the kept days
-and the count of kept days the saves share had no pin before this module.
+after the first, the count of kept days the saves share and the later save's
+0.29 at the book's precision had no pin before this module.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both
@@ -54,7 +58,9 @@ from chan.matlab_helpers import backshift, fwdshift
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, INK, MUTED
 from chan.tu_momentum_whiteboard import (
+    BAR_WIDTH,
     BRACKET_Y,
+    CAP,
     DOTS_X,
     LOWER_Y,
     PAIR_YS,
@@ -191,6 +197,24 @@ def _alt(text: str, scene) -> str:
     alt = match.group(1)
     assert f"“{scene.title}”" in alt, scene.slug
     return alt
+
+
+def _inked(stroke) -> tuple[float, float]:
+    """Where a bar's ink starts and ends across, its line extended by the round cap."""
+    return float(stroke.x.min()) - CAP, float(stroke.x.max()) + CAP
+
+
+def _px(x: float) -> float:
+    """The pixel column a board position falls at."""
+    return x * WIDTH / (whiteboard.XLIM[1] - whiteboard.XLIM[0])
+
+
+def _ink_columns(frame: np.ndarray, color: str, y: float) -> np.ndarray:
+    """The pixel columns left of the dates that hold ``color`` within a bar's reach of ``y``."""
+    row = round(HEIGHT - y * HEIGHT / (whiteboard.YLIM[1] - whiteboard.YLIM[0]))
+    band = frame[row - 6 : row + 7, : int(_px(sketches.DATES_X)) - 5]
+    rgb = np.array([round(v * 255) for v in matplotlib.colors.to_rgb(color)])
+    return np.flatnonzero((np.abs(band - rgb).sum(axis=-1) <= 3).any(axis=0))
 
 
 def _ticks(stroke) -> list[float]:
@@ -524,57 +548,96 @@ class TestTheTileSketch:
             assert _stroke(scene, f"future-{k}").color == INK
         for gid in ("join-1", "join-2", "bracket-left", "bracket-right"):
             assert _stroke(scene, gid).color == MUTED, gid
+        for gid in ("join-1", "join-2"):
+            assert _stroke(scene, gid).dashed, gid
+        assert not any(_stroke(scene, g).dashed for g in ("bracket-left", "bracket-right"))
         assert _stroke(scene, "kept-days").color == INK
         assert _label(scene, "past 250 days").color == ACCENT
         assert _label(scene, "future 25 days").color == INK
         assert _label(scene, "225 of 250 days shared").color == MUTED
         assert _label(scene, "trading days, to scale").color == MUTED
-        assert _label(scene, "future returns: no overlap").color == INK
+        for text in (
+            "first kept day, 2005-06-01",
+            "2005-07-07, one hold later",
+            "2005-08-11, two holds later",
+            "69 kept days, every 25th, dots not to scale",
+            "future returns: no overlap",
+        ):
+            assert _label(scene, text).color == INK, text
         assert _label(scene, "past returns: still overlap").color == ACCENT
 
     def test_each_bar_is_drawn_to_scale_at_its_days(self, every, figures) -> None:
-        """Past bar k runs from 250 days before kept row k to it, and future
-        bar k from it to 25 days after, one board unit per day times the same
-        scale for every bar."""
+        """Past bar k's ink runs from 250 days before kept row k to it, and
+        future bar k's from it to 25 days after, at one scale for every bar.
+        Each line stops :data:`CAP` inside its days, since its round cap
+        carries the ink that far past the line's end."""
         scene = every[0]
         first = figures.earlier.rows[0] - figures.lookback
         for k in range(PAIRS):
             day = figures.earlier.rows[k] - first
             past, future = _stroke(scene, f"past-{k + 1}"), _stroke(scene, f"future-{k + 1}")
-            assert (past.x.min(), past.x.max()) == pytest.approx(
-                (day_x(day - figures.lookback), day_x(day))
-            )
-            assert (future.x.min(), future.x.max()) == pytest.approx(
-                (day_x(day), day_x(day + figures.hold))
-            )
+            assert _inked(past) == pytest.approx((day_x(day - figures.lookback), day_x(day)))
+            assert _inked(future) == pytest.approx((day_x(day), day_x(day + figures.hold)))
             assert set(past.y) == set(future.y) == {PAIR_YS[k]}
-            assert past.x.max() - past.x.min() == pytest.approx(
-                10 * (future.x.max() - future.x.min())
-            )
+            past_ink, future_ink = _inked(past), _inked(future)
+            assert past_ink[1] - past_ink[0] == pytest.approx(10 * (future_ink[1] - future_ink[0]))
+
+    def test_the_cap_is_half_the_bar_width_on_the_board(self) -> None:
+        """5 points wide at 100 dpi is about 6.9 pixels, so each round cap
+        reaches about 3.5 pixels, 0.051 of a board unit, past its line."""
+        pixels_per_unit = WIDTH / (whiteboard.XLIM[1] - whiteboard.XLIM[0])
+        assert CAP * pixels_per_unit == pytest.approx(BAR_WIDTH / 2 * whiteboard.DPI / 72)
+        assert CAP == pytest.approx(0.0511, abs=1e-4)
+        assert whiteboard._style()["lines.solid_capstyle"] == "round"
+
+    def test_the_drawn_ink_covers_each_bars_days_and_futures_share_no_column(
+        self, every, figures
+    ) -> None:
+        """Rendered, each bar's ink starts and ends within a pixel of its days,
+        and no pixel column holds ink of two neighbouring futures."""
+        scene = every[0]
+        frame = np.asarray(
+            whiteboard.render(scene, [Frame(len(scene.steps), 0, 0)])[0].convert("RGB")
+        ).astype(int)
+        first = figures.earlier.rows[0] - figures.lookback
+        futures = []
+        for k in range(PAIRS):
+            day = figures.earlier.rows[k] - first
+            past = _ink_columns(frame, ACCENT, PAIR_YS[k])
+            future = _ink_columns(frame, INK, PAIR_YS[k])
+            futures.append(set(future.tolist()))
+            for columns, start, end in (
+                (past, day - figures.lookback, day),
+                (future, day, day + figures.hold),
+            ):
+                assert abs(columns.min() - _px(day_x(start))) <= 1, (k, start)
+                assert abs(columns.max() + 1 - _px(day_x(end))) <= 1, (k, end)
+        for one, next_ in zip(futures, futures[1:], strict=False):
+            assert not one & next_
 
     def test_each_future_starts_where_the_one_before_ends(self, every) -> None:
         scene = every[0]
         for k in range(1, PAIRS):
             before, after = _stroke(scene, f"future-{k}"), _stroke(scene, f"future-{k + 1}")
-            assert after.x.min() == pytest.approx(before.x.max())
+            assert _inked(after)[0] == pytest.approx(_inked(before)[1])
             join = _stroke(scene, f"join-{k}")
-            assert set(np.round(join.x, 12)) == {round(float(after.x.min()), 12)}
+            assert set(np.round(join.x, 12)) == {round(_inked(after)[0], 12)}
             assert join.y.max() < PAIR_YS[k - 1] and join.y.min() > PAIR_YS[k]
 
     def test_each_past_lies_over_all_but_one_hold_of_the_one_before(self, every, figures) -> None:
         scene = every[0]
         for k in range(1, PAIRS):
-            before, after = _stroke(scene, f"past-{k}"), _stroke(scene, f"past-{k + 1}")
-            shared = before.x.max() - after.x.min()
-            assert shared == pytest.approx(figures.overlap * sketches.PER_DAY)
-            assert after.x.min() - before.x.min() == pytest.approx(figures.step * sketches.PER_DAY)
+            before = _inked(_stroke(scene, f"past-{k}"))
+            after = _inked(_stroke(scene, f"past-{k + 1}"))
+            assert before[1] - after[0] == pytest.approx(figures.overlap * sketches.PER_DAY)
+            assert after[0] - before[0] == pytest.approx(figures.step * sketches.PER_DAY)
 
     def test_the_bracket_covers_the_days_the_first_two_pasts_share(self, every) -> None:
         scene = every[0]
         left, right = _stroke(scene, "bracket-left"), _stroke(scene, "bracket-right")
-        first, second = _stroke(scene, "past-1"), _stroke(scene, "past-2")
-        assert left.x.min() == pytest.approx(second.x.min())
-        assert right.x.max() == pytest.approx(first.x.max())
+        first, second = _inked(_stroke(scene, "past-1")), _inked(_stroke(scene, "past-2"))
+        assert left.x.min() == pytest.approx(second[0])
+        assert right.x.max() == pytest.approx(first[1])
         assert PAIR_YS[1] < BRACKET_Y < PAIR_YS[0]
         words = _label(scene, "225 of 250 days shared")
         assert left.x.max() < words.x < right.x.min() and words.y == BRACKET_Y
@@ -582,9 +645,9 @@ class TestTheTileSketch:
     def test_the_axis_runs_under_every_bar(self, every) -> None:
         scene = every[0]
         axis = _stroke(scene, "axis")
-        bars = [s for s in scene.strokes if s.gid.startswith(("past-", "future-"))]
-        assert axis.x.min() == pytest.approx(min(b.x.min() for b in bars))
-        assert axis.x.max() == pytest.approx(max(b.x.max() for b in bars))
+        bars = [_inked(s) for s in scene.strokes if s.gid.startswith(("past-", "future-"))]
+        assert axis.x.min() == pytest.approx(min(b[0] for b in bars))
+        assert axis.x.max() == pytest.approx(max(b[1] for b in bars))
         assert set(axis.y) == {sketches.AXIS_Y} and sketches.AXIS_Y < min(PAIR_YS)
 
     def test_one_dot_for_each_kept_day_evenly_spaced(self, every, figures) -> None:
@@ -593,13 +656,50 @@ class TestTheTileSketch:
         assert (dots.x.min(), dots.x.max()) == pytest.approx(DOTS_X)
         assert np.diff(dots.x) == pytest.approx([np.diff(dots.x)[0]] * 68)
 
+    def test_made_up_cell_and_counts_move_the_words(self, figures) -> None:
+        """Another cell with the hold shorter than the lookback, and saves
+        keeping different counts, change every word that prints the cell, the
+        step, the overlap or a count."""
+        earlier = replace(
+            figures.earlier, rows=figures.earlier.rows[:60], days=figures.earlier.days[:60]
+        )
+        later = replace(figures.later, rows=figures.later.rows[:58], days=figures.later.days[:58])
+        made_up = replace(figures, lookback=120, hold=20, earlier=earlier, later=later)
+        tile, saves = (scene.labels for scene in scenes(made_up))
+        assert "past 120 days" in tile
+        assert "future 20 days" in tile
+        assert "100 of 120 days shared" in tile
+        assert "60 kept days, every 20th, dots not to scale" in tile
+        assert "60 and 58 kept days, none shared" in saves
+        assert "120/20 correlation: 0.2719 on the earlier, 0.2870 on the later" in saves
+
+    @pytest.mark.parametrize(("lookback", "hold"), [(100, 120), (60, 60)])
+    def test_a_hold_as_long_as_the_lookback_is_refused(self, figures, lookback, hold) -> None:
+        """Then the pasts would tile and the futures overlap, so the title and
+        the closing lines would be false."""
+        with pytest.raises(ValueError, match="hold shorter than the lookback"):
+            scenes(replace(figures, lookback=lookback, hold=hold))
+
     def test_its_alt_text_says_what_the_picture_shows(self, every, figures) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[0])
+        scene = every[0]
+        alt = _alt(POST.read_text(encoding="utf-8"), scene)
         assert figures.hold * 10 == figures.lookback
+        assert "A grey line under where the bars go" in alt
         assert "a black bar one tenth as long" in alt
+        assert figures.step == figures.hold
+        assert "A second pair below starts one hold to the right" in alt
+        assert PAIR_YS[1] < PAIR_YS[0]
         assert "Its black bar begins exactly where the first black bar ends" in alt
         assert "runs from where the second starts to where the first ends" in alt
-        assert "a row of black dots" in alt
+        assert "Under the axis, a row of black dots" in alt
+        assert sketches.DOTS_Y < sketches.AXIS_Y
+        assert (
+            "with “future returns: no overlap” in black on the left and "
+            "“past returns: still overlap” in brass on the right"
+        ) in alt
+        left = _label(scene, "future returns: no overlap")
+        right = _label(scene, "past returns: still overlap")
+        assert (left.ha, right.ha) == ("left", "right") and left.x < right.x
 
 
 # --- Lesson 1: same closes, no shared day ---------------------------------------
@@ -623,6 +723,8 @@ class TestTheSavesSketch:
             assert _label(scene, text).color == ACCENT
         for text in ("each 4 trading days later", "first 4 kept days of each"):
             assert _label(scene, text).color == MUTED
+        for text in SAVES_LABELS[-4:]:
+            assert _label(scene, text).color == INK, text
 
     def test_each_tick_sits_at_its_day_on_one_scale(self, every, figures) -> None:
         """Upper tick k at the earlier save's kept row k, lower tick k at the
@@ -680,5 +782,17 @@ class TestTheSavesSketch:
         assert (
             "four upright ticks, one for each of the first four days the 250/25 cell keeps" in alt
         )
+        assert "A black line with four upright ticks" in alt
+        assert "Below it, a brass line with four ticks" in alt
+        assert "with “2005-06-01” over its first tick" in alt
+        assert "with “2005-06-07” under its first tick" in alt
+        assert "Each brass tick sits a short way right of a black tick" in alt
         assert "so no brass tick lines up with a black one" in alt
         assert "Dashed grey links join each black tick to the brass tick after it" in alt
+        scene = every[1]
+        upper, lower = _stroke(scene, "upper-ticks"), _stroke(scene, "lower-ticks")
+        assert (upper.color, lower.color) == (INK, ACCENT) and LOWER_Y < UPPER_Y
+        assert len(_ticks(upper)) == len(_ticks(lower)) == SHOWN
+        assert _label(scene, "2005-06-01").y > upper.y.max()
+        assert _label(scene, "2005-06-07").y < lower.y.min()
+        assert all(b > t for t, b in zip(_ticks(upper), _ticks(lower), strict=True))

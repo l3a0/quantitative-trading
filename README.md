@@ -6037,19 +6037,19 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that TU's price rises when two-year yields fall,
    that consecutive future returns overlap on 24 of 25 days, that a four-day
    shift moving the correlation's second decimal shows how few days stand
-   behind it, that 2008 was the year of the financial crisis, that the back-adjusted
-   series carries roll return as well as moves in yields, that the comment's
-   missing volatility suggests it was pasted from an earlier version of the
-   printing line, that a rule mostly long on a rising price earns part of the
-   rise, and that leverage would multiply the drawdowns along with the
-   return.
+   behind it, that 2008 was the year of the financial crisis, that the
+   back-adjusted series carries roll return as well as moves in yields, that
+   the comment's missing volatility suggests it was pasted from an earlier
+   version of the printing line, that a rule mostly long on a rising price
+   earns part of the rise, and that leverage would multiply the drawdowns
+   along with the return.
 4. Ratios and roundings the post takes between pinned figures in words: more
    than half of the gain in by 2009-01-02, 2008 earning about four-fifths as
-   much as the other years combined, 2.484746 percent rounding to 2.5, and what a figure prints as
-   at the book's precision, such as 0.43, 0.45 and 0.29. The figure's alt text
-   reads both curves approximately too, such as TU's closes drifting down
-   until mid-2007 and the cumulative return dipping below zero in 2005 and
-   flattening through 2009.
+   much as the other years combined, 2.484746 percent rounding to 2.5, and
+   what a figure prints as at the book's precision, such as 0.43 and 0.45.
+   The figure's alt text reads both curves approximately too, such as TU's
+   closes drifting down until mid-2007 and the cumulative return dipping
+   below zero in 2005 and flattening through 2009.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6058,8 +6058,9 @@ USD.CAD's H at a `maxT` of 19 and 24, or to
 [tests/test_tu_momentum_figures.py](tests/test_tu_momentum_figures.py) for the
 figure's own numbers, or to
 [tests/test_tu_momentum_whiteboard.py](tests/test_tu_momentum_whiteboard.py)
-for the sketches'. Four had no pin before it, and `TestBesideThePost` now
-pins them all.
+for the sketches'. Four had no pin before `TestBesideThePost` in
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py), which now pins them
+all.
 
 1. Fourteen of the 49 cells have a p-value below 0.05, ten positive and four
    negative, against the 2.45 that 49 independent tests would give, and the
@@ -6118,8 +6119,8 @@ uv run python -m chan.tu_momentum_whiteboard
 holds what each draws, the days, counts and correlations it reads from the
 run, and that each GIF follows its paragraph in the post. The 225 days two
 kept pasts share, the four trading days between the saves' first days, the
-kept days' dates and the count of kept days the saves share had no pin
-before it.
+kept days' dates after the first, the count of kept days the saves share,
+and the later save's 0.29 at the book's precision had no pin before it.
 
 [blog/roll-momentum-lessons.md](blog/roll-momentum-lessons.md) is a
 thirty-first post, about location 2690 of Chan's *Algorithmic Trading*, which

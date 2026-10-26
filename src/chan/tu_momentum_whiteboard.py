@@ -9,13 +9,16 @@ and the post places each right after the paragraph it draws.
 1. Futures tile, pasts overlap: the first three days the 250/25 cell keeps on
    the 2012-05-11 save, each drawn to scale on one grey day axis as a brass
    past bar 250 days long ending on the kept day and a black future bar 25
-   days long starting there. Each future bar starts where the one before ends,
-   which a dashed grey join marks, each past bar lies over all but 25 days of
-   the one before, and a bracket names the 225 of 250 days the first two pasts
-   share. A row of dots, one for each of the 69 kept days and spaced evenly
-   rather than to scale, closes it. It sits in "The correlation table", after
+   days long starting there. The shared style draws round caps, so each bar's
+   line stops the cap's reach inside its days and its ink covers exactly them.
+   Each future bar starts where the one before ends, which a dashed grey join
+   marks, each past bar lies over all but 25 days of the one before, and a
+   bracket names the 225 of 250 days the first two pasts share. A row of dots,
+   one for each of the 69 kept days and spaced evenly rather than to scale,
+   closes it. It sits in "The correlation table", after
    the paragraph opening "Neighbouring days share almost all of their
-   windows."
+   windows." It holds only for a hold shorter than the lookback, where the
+   step is the hold, so any other cell is refused.
 2. Same closes, no shared day: two lines of ticks, the days the 250/25 cell
    keeps on the 2012-05-11 save above the days it keeps on the 2012-05-17
    save, which starts four trading days later. Only the first four kept days
@@ -40,8 +43,9 @@ Each sketch carries more than a reader takes in at that post's pace, so both
 are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
 longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Each GIF
-is named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
-name starts like the post's chart, ``tu_momentum.png``.
+is named :data:`GIF_PREFIX` plus the scene's slug. The post's chart,
+``tu_momentum.png``, does not start with that prefix, so nothing that looks
+for the sketches by prefix finds the chart.
 
 The sketches are deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. Redraw both with::
@@ -63,6 +67,9 @@ from chan.matlab_helpers import backshift, fwdshift
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, INK, MUTED
 from chan.usdcad_tests_whiteboard import (
+    DPI,
+    WIDTH,
+    XLIM,
     Frame,
     Label,
     Scene,
@@ -220,6 +227,10 @@ DOTS_X = (0.45, 9.55)
 #: How wide the past and future bars are, in points, and how far the bracket's
 #: halves stop short of its words on each side.
 BAR_WIDTH, BRACKET_GAP = 5.0, 1.5
+#: How far a bar's round cap reaches past the end of its line, in board units.
+#: The shared style draws every line with round caps, so each bar's line stops
+#: this far inside its days and its ink, cap included, covers exactly them.
+CAP = BAR_WIDTH / 2 * DPI / 72 / (WIDTH / (XLIM[1] - XLIM[0]))
 #: How far each dashed join stops short of the bars it joins.
 JOIN_PAST = 0.1
 #: How many kept pairs the sketch draws.
@@ -231,8 +242,29 @@ def day_x(day: float) -> float:
     return DAY_X0 + PER_DAY * day
 
 
+def _bar(start: float, end: float, y: float, per_unit: float) -> tuple:
+    """A bar whose ink, round caps included, covers days ``start`` to ``end`` at height ``y``."""
+    return _line([(day_x(start) + CAP, y), (day_x(end) - CAP, y)], per_unit=per_unit)
+
+
+#: How many holds after the first kept day each later pair starts, in words,
+#: one for each of the :data:`PAIRS` after the first.
+HOLDS_LATER = ("one hold later", "two holds later")
+
+
 def _futures_tile(figures: SaveFigures) -> Scene:
-    """The correlation table: three kept pairs to scale, futures end to end and pasts piled up."""
+    """The correlation table: three kept pairs to scale, futures end to end and pasts piled up.
+
+    The title and the closing lines hold only when the hold is shorter than
+    the lookback, so the step is the hold. Then the futures tile and the pasts
+    overlap. The other way round the pasts would tile and the futures overlap,
+    so any other cell is refused rather than drawn under a false title.
+    """
+    if not figures.hold < figures.lookback:
+        raise ValueError(
+            f"the tile sketch draws a hold shorter than the lookback, not "
+            f"{figures.lookback}/{figures.hold}"
+        )
     kept = figures.earlier
     first = kept.rows[0] - figures.lookback
     steps: list[Stroke | Label] = []
@@ -245,7 +277,6 @@ def _futures_tile(figures: SaveFigures) -> Scene:
     steps.append(
         Label("trading days, to scale", DATES_X, AXIS_Y, names="axis", color=MUTED, size=12)
     )
-    whens = ("", "one hold later", "two holds later")
     for k in range(PAIRS):
         day = kept.rows[k] - first
         y = PAIR_YS[k]
@@ -254,7 +285,7 @@ def _futures_tile(figures: SaveFigures) -> Scene:
         steps.append(
             _stroke(
                 past,
-                _line([(day_x(day - figures.lookback), y), (day_x(day), y)], per_unit=4),
+                _bar(day - figures.lookback, day, y, per_unit=4),
                 color=ACCENT,
                 width=BAR_WIDTH,
                 frames=6,
@@ -275,7 +306,7 @@ def _futures_tile(figures: SaveFigures) -> Scene:
         steps.append(
             _stroke(
                 future,
-                _line([(day_x(day), y), (day_x(day + figures.hold), y)], per_unit=10),
+                _bar(day, day + figures.hold, y, per_unit=10),
                 color=INK,
                 width=BAR_WIDTH,
                 frames=3,
@@ -308,7 +339,9 @@ def _futures_tile(figures: SaveFigures) -> Scene:
                     frames=3,
                 )
             )
-        when = f"first kept day, {kept.days[k]}" if k == 0 else f"{kept.days[k]}, {whens[k]}"
+        when = (
+            f"first kept day, {kept.days[k]}" if k == 0 else f"{kept.days[k]}, {HOLDS_LATER[k - 1]}"
+        )
         steps.append(Label(when, DATES_X, y, names=future, size=12))
         if k == 1:
             start, end = day_x(day - figures.lookback), day_x(day - figures.step)
