@@ -124,9 +124,23 @@ To measure a fill, the run hid April days from 1994 to 2005 whose May price the 
 \end{array}
 ```
 
-Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss. If fill 2’s misses are normal and independent from year to year, the chance that all three years were profits, which Chan’s 19 needs, is 41%.
+Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss.
 
 ![“Each fill misses by more than the year moved”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, “1997” with “67%”, “1998” with “74%” and “1999” with “82%”. In each row a brown dot right of zero marks the year’s move with fill 2, and a black bar of one typical miss either side reaches across zero. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal. Captions read “dot: the year’s move with fill 2” and “bar: fill 2’s typical miss either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
+
+The chances in the table come from one assumption about the miss. Write the missing price as fill 2’s guess plus an unknown miss `e`, and the year’s move with the guess in place as `m`. In 1997 the missing price is the entry, so the true move is `m − e`. In 1998 and 1999 it is the exit, so the true move is `m + e`. If `e` is normal with a mean of zero and a standard deviation `σ` equal to fill 2’s typical miss, both cases give the same chance of a profit. `Φ(z)` is the share of a standard normal curve that lies below `z`:
+
+```math
+P(\text{profit}) = \Phi\left(\frac{m}{\sigma}\right)
+```
+
+For 1997, `m` is 0.4 cents and `σ` is 0.89, so the chance is Φ(0.45), or 67%. If the three misses are also independent of each other, the three chances multiply:
+
+```math
+0.673 \times 0.744 \times 0.823 = 0.412
+```
+
+So the chance that all three years were profits, which Chan’s 19 needs, is 41%. Neither assumption was tested. Price misses usually have heavier tails than a normal curve, which pulls each chance toward 50%, and a fill that misses the same way every April would tie the three years together.
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 

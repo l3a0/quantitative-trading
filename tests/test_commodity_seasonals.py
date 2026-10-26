@@ -708,6 +708,19 @@ class TestThePostQuotesThePins:
         chance = math.prod(f.june_chance for f in fills)
         assert f"which Chan’s 19 needs, is {100 * chance:.0f}%" in self.text
 
+    def test_the_derivation_of_the_chance(self) -> None:
+        """The worked example and the product in the derivation read the run."""
+        fills = gap_fills()
+        first = fills[0]
+        assert (
+            f"For {first.year}, `m` is {100 * first.move(first.june):.1f} cents and `σ` is "
+            f"{100 * first.june_error:.2f}, so the chance is Φ({first.june_margin:.2f}), or "
+            f"{100 * first.june_chance:.0f}%."
+        ) in self.text
+        product = " \\times ".join(f"{f.june_chance:.3f}" for f in fills)
+        total = math.prod(f.june_chance for f in fills)
+        assert f"{product} = {total:.3f}" in self.text
+
     def test_the_june_caption_s_2006_dates(self) -> None:
         """The June sketch's caption says why 2006's entry and exit moved."""
         trade = natural_gas_trade(2006)
