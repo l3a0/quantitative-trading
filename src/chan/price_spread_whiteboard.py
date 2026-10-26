@@ -63,6 +63,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from chan.palette import ACCENT, INKS
 from chan.paths import FIGURES_DIR
 from chan.price_spread import (
     LOOKBACK,
@@ -72,7 +73,7 @@ from chan.price_spread import (
     read_sources,
     rolling_intercept,
 )
-from chan.regime_figure import ACCENT, INK, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_tests_whiteboard import (
     Frame,
@@ -398,7 +399,7 @@ def _lever(lever: Lever) -> Scene:
                 size=11,
             ),
             _stroke("reach-before", _reach(before), color=MUTED, dashed=True, frames=8),
-            _dot("c-before", axis_x, c_before),
+            _dot("c-before", axis_x, c_before, color=ACCENT),
             Label(
                 f"c {_signed(before.intercept, 2)}",
                 left,
@@ -419,7 +420,7 @@ def _lever(lever: Lever) -> Scene:
                 size=11,
             ),
             _stroke("reach-after", _reach(after), color=INK, dashed=True, frames=8),
-            _dot("c-after", axis_x, c_after),
+            _dot("c-after", axis_x, c_after, color=ACCENT),
             Label(
                 f"c {_signed(after.intercept, 2)}",
                 left,
@@ -577,7 +578,7 @@ def sketch_timeline(scene: Scene) -> list[Frame]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
+    first, *rest = render(scene, frames, INKS)
     path = folder / gif_name(scene)
     first.save(
         path,

@@ -55,6 +55,7 @@ from PIL import Image
 
 from chan import price_spread_whiteboard as sketch
 from chan import usdcad_tests_whiteboard as whiteboard
+from chan.palette import ACCENT, INKS
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.price_spread import LOOKBACK, X_SYMBOL, Y_SYMBOL, price_spread, read_sources
 from chan.price_spread_whiteboard import (
@@ -80,7 +81,7 @@ from chan.price_spread_whiteboard import (
     sketch_timeline,
     taller,
 )
-from chan.regime_figure import ACCENT, INK, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     TITLE_MS,
@@ -340,12 +341,12 @@ class TestTheScene:
             assert stroke.points >= stroke.frames, stroke.gid
 
     def test_it_draws_no_tint(self, scene) -> None:
-        """A pale tint would need a green edge, and this sketch shades nothing."""
+        """A pale tint would need a blue edge, and this sketch shades nothing."""
         assert scene.fills == []
 
 
 class TestTheInks:
-    def test_c_is_brass_and_the_windows_grey_then_black(self, scene) -> None:
+    def test_c_is_berry_and_the_windows_grey_then_black(self, scene) -> None:
         """``c`` is the idea the sketch points at. The first window is context for the
         second, so it is grey, and the second, with its ``e``, is the main drawing."""
         colours = {s.gid: s.color for s in scene.strokes}
@@ -362,7 +363,7 @@ class TestTheInks:
         assert not (_stroke(scene, "fit-before").dashed or _stroke(scene, "fit-after").dashed)
 
     def test_each_label_takes_the_ink_of_what_it_names(self, scene) -> None:
-        """The arithmetic label and the change in ``h`` under it are brass like the
+        """The arithmetic label and the change in ``h`` under it are berry like the
         bracket beside them, though they name the grey span whose distance the first
         multiplies, and the whole run's two figures are black under a grey heading."""
         colours = {s.gid: s.color for s in scene.strokes}
@@ -699,8 +700,20 @@ class TestTheGifs:
         (again,) = make_price_spread_whiteboards(out_dir=tmp_path, lever=lever)
         assert gifs[0].read_bytes() == again.read_bytes()
 
+    def test_it_draws_on_the_palette_of_the_colour_blind_safe_inks(self, gifs) -> None:
+        """Without :data:`chan.palette.INKS`, ``render`` maps every frame onto the shared
+        inks, and the berry of each ``c`` lands on the nearest of them."""
+        with Image.open(gifs[0]) as image:
+            assert image.getpalette() == whiteboard.palette(INKS).getpalette()
+
 
 class TestTheCommittedGif:
+    def test_it_draws_on_the_palette_of_the_colour_blind_safe_inks(self) -> None:
+        """Unlike the byte-for-byte comparison, this holds on every machine, so a GIF
+        left in the shared inks fails wherever the suite runs."""
+        with Image.open(FIGURES_DIR / GIFS[0]) as image:
+            assert image.getpalette() == whiteboard.palette(INKS).getpalette()
+
     def test_the_figures_folder_holds_this_gif_under_its_prefix(self) -> None:
         """``tests/test_equity_seasonals_whiteboard.py`` holds that every GIF in the
         folder is one a sketch module draws."""
@@ -761,10 +774,11 @@ class TestThePost:
         assert "neither is broken" in alt and "a scale of its own" in alt
 
     def test_its_alt_text_names_the_inks_the_sketch_draws(self, scene) -> None:
-        """Brown for each ``c``, grey for the first window and black for the second."""
+        """Berry for each ``c``, grey for the first window and black for the second."""
         alt = _alt(scene)
         assert [_stroke(scene, g).color for g in ("c-before", "c-after")] == [ACCENT, ACCENT]
-        assert alt.count("brown dot") == 2
+        assert alt.count("berry dot") == 2
+        assert "a berry label reads “≈" in alt and _label(scene, "≈").color == ACCENT
         assert "a grey cloud" in alt and "A black cloud" in alt
         assert "a black ring circles the last black point" in alt
 
@@ -775,7 +789,7 @@ class TestThePost:
         assert "black line down to it" in alt and after.leftover < 0
         assert "line is steeper" in alt and after.hedge > before.hedge
         assert "lands much lower" in alt and after.intercept < before.intercept
-        assert "A brown bracket joins" in alt and _stroke(scene, "drop").color == ACCENT
+        assert "A berry bracket joins" in alt and _stroke(scene, "drop").color == ACCENT
         assert "Below a grey rule under the frame" in alt and RULE_Y < ZOOM_Y[0]
         assert "its five newest sit below the rest" in alt
         assert after.uso[-WEEK:].max() < after.uso[:-WEEK].min()
