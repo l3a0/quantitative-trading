@@ -17,8 +17,8 @@ Two measurements fall short, and the tests pin them at their values rather
 than leave them unrecorded: the blue and the vermilion on the axes' darker
 ground, and the vermilion against the grey under protanopia.
 
-The measurements moved here from the commodity-seasonals post's figure tests,
-which drew in these colours first.
+The measurements were first written for the commodity-seasonals post's figure
+tests, on the pull request that drew in these colours first.
 """
 
 from __future__ import annotations
@@ -158,7 +158,8 @@ class TestTheTints:
         assert rgb not in self._colours(whiteboard.INKS)
 
     def test_the_renderer_still_defaults_to_the_shared_inks(self) -> None:
-        """Every post that has not moved draws its GIFs byte for byte as before."""
+        """The default palette is the shared one. ``test_each_is_a_fresh_draw_byte_for_byte``
+        in ``tests/test_usdcad_tests_whiteboard.py`` holds the GIFs themselves."""
         shared = (
             regime_figure.INK,
             regime_figure.MUTED,
