@@ -3819,8 +3819,12 @@ the run's ratios and standard errors, that the multiplier, half-width and
 mean-range sketches draw Student's t's multipliers and the run's means and
 ranges, that the one-year sketch's ranks stay
 put when 2022's gain shrinks, that June's number in each label is
-how many bars its line crosses and the file the run reads, and that each GIF
-follows the paragraph it draws.
+how many bars its line crosses and the file the run reads, that the handover
+sketch's dots are the files' prices and its files hand over the day after the
+rule's last day, that the coverage sketch's counts are the run's, that 2018's
+entry line meets the end of March's bar, that a holiday dot stands on exactly
+the days the file holds a row, and that each GIF follows the paragraph it
+draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the

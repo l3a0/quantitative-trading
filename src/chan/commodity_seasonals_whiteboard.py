@@ -14,8 +14,7 @@ results widen a range, where natural gas's ±12% comes from, which later range
 holds its earlier mean, how one year moves natural gas's mean but not its
 ranks, which numbered file holds the June contract on a given day, and how
 the expiry rule behind it is checked. This module draws those twenty-one as
-scenes,
-and the post places each right after the paragraph it draws.
+scenes, and the post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for

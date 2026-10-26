@@ -8,8 +8,9 @@ a miss subtracts at an entry and adds at an exit, and each fill's miss
 against each year's move. Five draw Lesson 4: how far each Sharpe ratio can
 stray, why fewer results widen a range, where natural gas's ±12% comes from,
 which later range holds its earlier mean, and how one year moves natural
-gas's mean but not its ranks. One draws
-Lesson 5's numbered files. The scenes are
+gas's mean but not its ranks. Five draw Lesson 5: which numbered file holds
+June, a handover, which years each check reaches, an entry on March's last
+day, and a holiday row. The scenes are
 built from the natural gas and gasoline runs on the committed EIA files rather
 than from a pinned copy of their figures. Most tests check the drawing against
 the run, and a few check the run against literal dates, counts and labels the
@@ -2272,6 +2273,32 @@ class TestTheHandoverSketch:
         assert abs(one[after] - two[last]) < abs(one[after] - one[last])
         assert _last_trade_with_lead(HANDOVER_YEAR, 3, 3) == date(1996, 2, 27)
 
+    def test_each_dot_and_the_arrow_sit_at_the_files_prices(self, every) -> None:
+        scene = every[17]
+        one = seasonals.settlements(seasonals.NATURAL_GAS[1])[1]
+        two = seasonals.settlements(seasonals.NATURAL_GAS[2])[1]
+        days = [
+            d for d in sorted(one) if sketches.HANDOVER_DAYS[0] <= d <= sketches.HANDOVER_DAYS[1]
+        ]
+        days = [d for d in days if d in two]
+        span = sketches.HANDOVER_PRICE[1] - sketches.HANDOVER_PRICE[0]
+        height = sketches.HANDOVER_Y[1] - sketches.HANDOVER_Y[0]
+
+        def y(price) -> float:
+            return (
+                sketches.HANDOVER_Y[0] + (float(price) - sketches.HANDOVER_PRICE[0]) / span * height
+            )
+
+        assert list(_stroke(scene, "file-1").y) == pytest.approx([y(one[d]) for d in days])
+        assert list(_stroke(scene, "file-2").y) == pytest.approx([y(two[d]) for d in days])
+        last = ng_last_trade(HANDOVER_YEAR, 3)
+        after = days[days.index(last) + 1]
+        carry = _stroke(scene, "carry")
+        assert carry.y[0] == pytest.approx(y(two[last]))
+        tip = int(np.argmax(carry.x))
+        assert carry.y[tip] == pytest.approx(y(one[after]))
+        assert _last_trade_with_lead(1996, 4, 3) == date(1996, 3, 27)
+
     def test_the_lines_sit_between_their_days(self, every) -> None:
         scene = every[17]
         dots = _stroke(scene, "file-1").x
@@ -2360,6 +2387,11 @@ class TestTheHolidaySketch:
         assert christmas in rows and rows[christmas] == rows[date(2018, 12, 24)]
         assert boxing not in rows
         assert _stroke(scene, "day-2018-25").color == LOST
+        for stroke in scene.strokes:
+            if stroke.gid.startswith("day-"):
+                _, year, day = stroke.gid.split("-")
+                open_ = is_trading_day(date(int(year), 12, int(day)))
+                assert stroke.color == (INK if open_ else LOST), stroke.gid
         assert not [s for s in scene.strokes if s.gid == "day-2016-26"]
         for year in (2018, 2016):
             for day in range(21, 29):
