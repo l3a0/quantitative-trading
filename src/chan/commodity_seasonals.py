@@ -316,6 +316,18 @@ def rank_p_value(before: list[Trade], after: list[Trade]) -> float:
     return float(stats.mannwhitneyu(one, two, alternative="two-sided").pvalue)
 
 
+def pairs_won(before: list[Trade], after: list[Trade]) -> tuple[float, int]:
+    """How many pairings of an earlier year with a later year the earlier year won, of how many.
+
+    This is the count :func:`rank_p_value` tests, Mann-Whitney's U for the
+    earlier period, so a tie counts as half a win. With nothing changed, the
+    earlier year wins about half the pairs.
+    """
+    one = [trade.relative_change for trade in _readable(before)]
+    two = [trade.relative_change for trade in _readable(after)]
+    return float(stats.mannwhitneyu(one, two).statistic), len(one) * len(two)
+
+
 def max_drawdown(trades: list[Trade], *, data_dir: Path | None = None) -> float:
     """The largest fall from a peak in the summed returns, marked every trading day.
 

@@ -3706,7 +3706,8 @@ pins each split's mean yearly return, Sharpe ratio and drawdown, and
 `TestThePostQuotesThePins::test_the_returns_table` reads them from the post's
 first table at the precision it prints. The same class pins each split's 95% range for
 the mean and the Sharpe ratio's standard error, and Welch's p-values for the
-two periods, the Mann-Whitney p-values and natural gas without 2022, and
+two periods, the Mann-Whitney p-values and the pairs each earlier period
+won, and natural gas without 2022, and
 `test_lesson_4_works_the_sample_size_out` reads Lesson 4's worked equations
 and its table of tests against them.
 

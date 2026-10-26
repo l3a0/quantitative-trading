@@ -313,17 +313,24 @@ That range, −6% to +2%, leaves out the +3.2% gasoline earned before.
 
 ### Whether the typical year changed
 
-Two tests compare the periods directly, and they ask different questions. Welch’s t-test asks whether the mean return changed, and lets each period keep its own spread, which matters because natural gas’s spread doubled after 2008. The Mann-Whitney test ranks every year from worst to best and asks whether one period’s years sit lower, so it asks whether the typical year got worse. Each gives the chance of a gap this large between periods that truly did not differ:
+Two tests compare the periods directly, and they ask different questions.
+
+Welch’s t-test compares the average yearly returns. It lets each period keep its own spread, which matters because natural gas’s spread doubled after 2008.
+
+The Mann-Whitney test ignores how large each return was. It pairs every year before the split with every year after and records which one returned more. If nothing had changed, the earlier year would win about half the pairs. For gasoline the earlier year won 117 of 144 pairs, where chance would give about 72. For natural gas the earlier year won 177 of 225 pairs, where chance would give about 112.
+
+Each test gives the chance that luck alone would produce a difference this large if the trade had worked equally well in both periods. A small chance means luck explains the difference poorly. The usual line is 5%, and a chance below it counts as evidence that the trade changed:
 
 ```math
 \small\begin{array}{l|r|r}
- & \text{Welch} & \text{Mann-Whitney} \\ \hline
-\text{Gasoline} & 0.023 & 0.011 \\
-\text{Natural gas} & 0.092 & 0.008
+ & \text{Welch} & \text{Mann-Whitney} \\
+ & \text{(averages)} & \text{(pairs)} \\ \hline
+\text{Gasoline} & 2.3\% & 1.1\% \\
+\text{Natural gas} & 9.2\% & 0.8\%
 \end{array}
 ```
 
-Gasoline’s fall shows on both. Natural gas splits on one year. Its typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%, close enough to what came before that the mean cannot tell the periods apart. Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.001. That year was a real gain that a trader holding every year would have collected, so it stays in the record. Neither test was chosen before the numbers were seen, so the post reports both rather than the one that reads better.
+Gasoline’s fall clears the line on both. Natural gas splits on one year. Its typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%, close enough to what came before that Welch’s chance, 9.2%, sits above the line. The ranks still see the change, because 2022 counts as 15 pairs won however large its gain. Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.1%. That year was a real gain that a trader holding every year would have collected, so it stays in the record. Neither test was chosen before the numbers were seen, so the post reports both rather than the one that reads better.
 
 ![“One year moves the mean, not the ranks”, drawn slowly stroke by stroke. A grey axis carries a dashed line at “0%”, and a caption reads “returns, 2009 to 2023”. Natural gas’s 15 returns from 2009 to 2023 sit on it as dots at their true values, stacked where they would touch, orange left of zero for the 8 losses and blue right of it for the 7 gains. Two gains sit so close to the line that a note names them, “2014 and 2018: just above 0%”, and one blue dot sits far to the right, labelled “2022: +64%”. A black tick under the axis marks the “mean -0.4%”, and a purple tick left of it marks the mean “without 2022: -5.0%”. Below, a grey line carries all 30 years from 1994 to 2023 ranked from worst to best, with black dots above it for “1994 to 2008” and purple dots below it for “2009 to 2023”. The nine worst ranks all belong to years after 2008, and 2022 takes the top rank on the right. The ends are marked “worst” and “best: 2022”, and a caption reads “ranked worst to best, 2022 is the top rank however large its gain”. A note in the upper right names the trade as “natural gas, June contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_one_year.gif)
 

@@ -51,6 +51,7 @@ from chan.commodity_seasonals import (
     ng_lead_days,
     on_or_after,
     on_or_before,
+    pairs_won,
     profitable_count,
     rank_p_value,
     runs_ending,
@@ -424,6 +425,12 @@ class TestTheReturns:
         ng = (self.years("natural gas, 1994 to 2008"), self.years("natural gas, 2009 to 2023"))
         assert (rank_p_value(*gas), rank_p_value(*ng)) == pytest.approx((0.0111, 0.0079), abs=5e-5)
 
+    def test_the_earlier_years_win_most_pairs(self) -> None:
+        """The count the rank test tests: earlier years beating later ones, of all pairings."""
+        gas = (self.years("gasoline, 1995 to 2015"), self.years("gasoline, 2016 to 2023"))
+        ng = (self.years("natural gas, 1994 to 2008"), self.years("natural gas, 2009 to 2023"))
+        assert (pairs_won(*gas), pairs_won(*ng)) == ((117, 144), (177, 225))
+
     def test_2022_alone_holds_up_natural_gas_s_average(self) -> None:
         before, after = (
             self.years("natural gas, 1994 to 2008"),
@@ -731,7 +738,12 @@ class TestThePostQuotesThePins:
         )
         for name, pair in (("Gasoline", gas), ("Natural gas", ng)):
             welch, rank = change_p_value(*pair), rank_p_value(*pair)
-            assert f"\\text{{{name}}} & {welch:.3f} & {rank:.3f}" in text, name
+            assert f"\\text{{{name}}} & {100 * welch:.1f}\\% & {100 * rank:.1f}\\%" in text, name
+            won, pairs = pairs_won(*pair)
+            assert (
+                f"For {name.lower()} the earlier year won {won:.0f} of {pairs} pairs, "
+                f"where chance would give about {round(pairs / 2)}"
+            ) in text, name
 
         before, after = ng
         best = max(after, key=lambda trade: trade.relative_change)
@@ -746,7 +758,14 @@ class TestThePostQuotesThePins:
         ) in text
         assert (
             f"Without {best.year} the average after 2008 is −{pct(-mean_return(rest))}%, "
-            f"and Welch’s chance falls to {change_p_value(before, rest):.3f}"
+            f"and Welch’s chance falls to {100 * change_p_value(before, rest):.1f}%"
+        ) in text
+        beaten = sum(1 for trade in before if trade.relative_change < best.relative_change)
+        assert beaten == len(before)
+        assert (
+            f"Welch’s chance, {100 * change_p_value(*ng):.1f}%, sits above the line. "
+            f"The ranks still see the change, because {best.year} counts as {beaten} pairs won "
+            "however large its gain"
         ) in text
 
     def test_the_2002_drawdown(self) -> None:
