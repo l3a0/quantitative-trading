@@ -3,8 +3,9 @@
 Two read one document's own characters, flagging a tilde that can close a
 strikethrough pair and a table delimiter row written tight. Two read a
 reference in one document against a heading in another, one for a heading
-quoted in prose and one for an anchor written into a link. A count here would
-go stale the next time a check is added, which is what
+quoted in prose and one for an anchor written into a link. One reads a test
+named in prose against the suite under `tests/`. A count here would go stale
+the next time a check is added, which is what
 `test_the_repo_has_markdown_to_sweep` already decided about files.
 
 A tilde meaning "approximately" can close a strikethrough pair. Markdown reads
@@ -35,6 +36,13 @@ so a finding points at the line a reader will open. The cross-document checks
 blank fenced blocks and keep inline spans, because the reference they read is
 normally written in backticks.
 
+A test named in prose stops resolving when the test is renamed, or when the
+sentence misremembers which class holds it. The suite is the single authority
+for every number the prose quotes, so the sentence then points a reader at an
+assertion that is not there. The index of real tests is read from each test
+file's syntax tree rather than from a pytest collection, which would import
+every test module first.
+
 `entry_sections` reads no prose for a sweep of its own. It splits the
 replication log into each entry's `###` sections, for checks that read one
 section against itself, such as a count stated in a section's lead sentence
@@ -43,6 +51,7 @@ against the items listed under it.
 
 from __future__ import annotations
 
+import ast
 import os
 import re
 import subprocess
@@ -692,6 +701,211 @@ def sweep_fragment_links(root: Path) -> list[ReferenceFinding]:
             )
         )
     return findings
+
+
+# A test cited in prose is a reference into the suite rather than into another
+# document. The suite is the single authority for every number the prose
+# quotes, so a sentence naming a test is how a reader finds the assertion
+# behind a figure. A renamed or misremembered test leaves the sentence pointing
+# at nothing, and no renderer or linter reads backticked names against
+# `tests/`. README once cited a test under a class that does not hold it, and
+# the sentence stood from the pull request that wrote it until a review loop
+# found it by hand.
+#
+# The prose cites a test in five shapes, each a backtick span.
+#
+# 1. `TestClass::test_name`, sometimes with a parametrize id in brackets.
+# 2. `::test_name`, which continues the class cited before it, often in an
+#    earlier table row whose citation the next row says "the same" about.
+# 3. `TestClass` on its own.
+# 4. `test_name` on its own, a module function or any class's method.
+# 5. `tests/test_file.py`, alone or ahead of `::` and one of the shapes above.
+#
+# A parametrize id in brackets is not checked. The ids come from running the
+# decorator, which an index read from the syntax tree does not do.
+#
+# Only shape 5 binds a citation to a file. A paragraph naming a test file
+# beside a test class is not a claim that the class lives there, and binding
+# the two failed all twelve such citations on main at fdc4938e, each of them
+# correct prose naming the file for a different sentence.
+
+_PARAMETRIZE_ID = r"(?:\[[^\]`]*\])?"
+_SPAN = re.compile(r"`([^`\n]+)`")
+_FILE_CITATION = re.compile(r"^tests/(test_\w+\.py)(?:::(.+?))?$")
+_CLASS_AND_TEST = re.compile(rf"^(Test\w+)::(test\w*){_PARAMETRIZE_ID}$")
+_CONTINUATION = re.compile(rf"^::(test\w*){_PARAMETRIZE_ID}$")
+_CLASS = re.compile(r"^Test[A-Z]\w*$")
+_TEST = re.compile(rf"^(test_\w+){_PARAMETRIZE_ID}$")
+
+
+@dataclass(frozen=True)
+class CitedTest:
+    """One test named in prose, with the node id it is read as.
+
+    `node` is `TestClass::test_name`, `TestClass` or `test_name`, the id
+    pytest prints after the file. It is empty when the span names a file and
+    nothing in it. `file` is the test file the span itself names, or empty
+    when it names none.
+    """
+
+    path: Path
+    line_number: int
+    written: str
+    node: str
+    file: str
+
+
+def suite_index(tests: Path) -> dict[str, frozenset[str]]:
+    """Every test file's node ids, read from its syntax tree.
+
+    Reading the tree rather than collecting with pytest skips importing every
+    test module and what it imports. At fdc4938e the read took about a second
+    and a collection about twenty. The price is that pytest's own rules are
+    restated.
+    A function or method counts when its name starts `test`, a class when its
+    name starts `Test`, and a class also holds the tests of a base class
+    defined in the same file. At that commit this index and pytest's
+    collection listed the same node ids once parametrize ids were dropped.
+    """
+    index: dict[str, frozenset[str]] = {}
+    for path in sorted(tests.glob("test_*.py")):
+        tree = ast.parse(path.read_text("utf-8"), str(path))
+        classes = {node.name: node for node in tree.body if isinstance(node, ast.ClassDef)}
+        ids = set(_test_names(tree.body))
+        for name, cls in classes.items():
+            if not name.startswith("Test"):
+                continue
+            ids.add(name)
+            ids.update(f"{name}::{test}" for test in _class_tests(cls, classes, set()))
+        index[path.name] = frozenset(ids)
+    return index
+
+
+def cited_tests(text: str, path: Path) -> list[CitedTest]:
+    """Every test the prose of one document cites, in document order.
+
+    A continuation takes the class of the citation before it, which can sit
+    in an earlier unit. A replication log row that says "the same, and" a
+    continuation is relying on the row above it.
+    """
+    found: list[CitedTest] = []
+    file, cls = "", ""
+    for unit in units(blank_fences(text)):
+        for match in _SPAN.finditer(unit.text):
+            written = match.group(1)
+            line = unit.line_of(match.start())
+            if named := _FILE_CITATION.match(written):
+                file, node = named.group(1), named.group(2) or ""
+                node = re.sub(_PARAMETRIZE_ID + "$", "", node)
+                cls = node.partition("::")[0] if node.startswith("Test") else ""
+            elif named := _CLASS_AND_TEST.match(written):
+                file, cls = "", named.group(1)
+                node = f"{cls}::{named.group(2)}"
+            elif named := _CONTINUATION.match(written):
+                node = f"{cls}::{named.group(1)}" if cls else named.group(1)
+            elif _CLASS.match(written):
+                file, cls, node = "", written, written
+            elif named := _TEST.match(written):
+                found.append(CitedTest(path, line, written, named.group(1), ""))
+                continue
+            else:
+                continue
+            found.append(CitedTest(path, line, written, node, file))
+    return found
+
+
+def sweep_cited_tests(
+    documents: Iterable[Path], root: Path, index: dict[str, frozenset[str]]
+) -> list[ReferenceFinding]:
+    """Flag every cited test the suite does not hold.
+
+    A citation naming a file must resolve in that file. One naming none may
+    resolve in any, and a bare `test_name` matches a method of any class as
+    well as a module function.
+    """
+    findings: list[ReferenceFinding] = []
+    for document in documents:
+        for cited in cited_tests(document.read_text("utf-8"), document.relative_to(root)):
+            problem = _cited_test_problem(cited, index)
+            if problem:
+                findings.append(
+                    ReferenceFinding(
+                        cited.path,
+                        cited.line_number,
+                        cited.written,
+                        problem,
+                        _nearest_test(cited.node, index),
+                    )
+                )
+    return findings
+
+
+def _cited_test_problem(cited: CitedTest, index: dict[str, frozenset[str]]) -> str:
+    if cited.file and cited.file not in index:
+        return f"names tests/{cited.file}, which this repo does not keep"
+    if not cited.node:
+        return ""
+    files = [index[cited.file]] if cited.file else list(index.values())
+    if any(_holds(ids, cited.node) for ids in files):
+        return ""
+    where = f"tests/{cited.file}" if cited.file else "the suite"
+    return f"names no test in {where}"
+
+
+def _holds(ids: frozenset[str], node: str) -> bool:
+    if node in ids:
+        return True
+    return (
+        "::" not in node
+        and node.startswith("test")
+        and any(one.endswith(f"::{node}") for one in ids)
+    )
+
+
+def _nearest_test(node: str, index: dict[str, frozenset[str]]) -> str:
+    """The present test a missing citation most likely meant.
+
+    The test named under the wrong class is the failure seen so far, so a
+    test of the same name under another class wins outright. Otherwise the id
+    of the same shape sharing the most words, and nothing when none shares
+    one, as `nearest_heading` does.
+    """
+    if not node:
+        return ""
+    present = sorted(f"tests/{name}::{one}" for name, ids in index.items() for one in ids)
+    wanted = node.rpartition("::")[2]
+    if "::" in node:
+        same_name = [one for one in present if one.endswith(f"::{wanted}")]
+        if same_name:
+            return same_name[0]
+    shape = node.count("::")
+    best, score = "", 0
+    for one in present:
+        test = one.partition("::")[2]
+        if test.count("::") != shape:
+            continue
+        shared = len(_words(node) & _words(test))
+        if shared > score:
+            best, score = one, shared
+    return best
+
+
+def _test_names(body: list[ast.stmt]) -> list[str]:
+    return [
+        node.name
+        for node in body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name.startswith("test")
+    ]
+
+
+def _class_tests(cls: ast.ClassDef, classes: dict[str, ast.ClassDef], seen: set[str]) -> set[str]:
+    seen.add(cls.name)
+    tests = set(_test_names(cls.body))
+    for base in cls.bases:
+        if isinstance(base, ast.Name) and base.id in classes and base.id not in seen:
+            tests |= _class_tests(classes[base.id], classes, seen)
+    return tests
 
 
 def _words(text: str) -> set[str]:

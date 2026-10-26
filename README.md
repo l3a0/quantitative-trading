@@ -8433,8 +8433,9 @@ not kept on disk downloads it, which this repo does not measure.
 markdownlint has no Python package, so it runs in CI rather than locally. The
 prose checks it has no rule for run in the test suite instead, from
 `tests/test_markdown_hygiene.py`. They catch things like a tilde that can close
-a strikethrough pair, a heading quoted in prose that no longer exists, and an
-issue number written without its link.
+a strikethrough pair, a heading quoted in prose that no longer exists, a test
+named in prose that the suite does not hold, and an issue number written
+without its link.
 
 ## License
 
