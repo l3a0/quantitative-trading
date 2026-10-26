@@ -742,6 +742,32 @@ class TestWhatThePostQuotes:
             fragments.append(f"{n}. {start} to {end}, {days} trading days.")
         assert self.missing(text, fragments) == []
 
+    def test_the_list_dates_from_late_2011(self, text) -> None:
+        """The post dates the file's list to late 2011, never to 2012-04-24.
+
+        ``TestTheListDatesFromLate2011`` in ``tests/test_buy_on_gap.py`` holds
+        the evidence against the index fund's holdings. This reads the
+        post's sentences, so one that drifts back to the older wording fails.
+        """
+        fragments = [
+            "The file holds 497 stocks that were in the S&P 500 in late 2011",
+            "A company that was out of the index for all of late 2011 is not in the file",
+            "or left for another reason",
+            "Every stock here was in the S&P 500 in late 2011.",
+        ]
+        assert self.missing(text, fragments) == []
+        restored = [
+            old
+            for old in (
+                "S&P 500 stocks on 2012-04-24",
+                "S&P 500 on 2012-04-24",
+                "lasted until 2012-04-24",
+                "acquired, shrank or failed",
+            )
+            if old in text
+        ]
+        assert restored == []
+
     def test_the_first_picks_and_the_short_days(self, closes, results, text) -> None:
         longs, _ = formations(ranking_returns(closes.to_numpy()))
         picked = closes.index[np.flatnonzero(longs.any(axis=1))[0]].date()

@@ -33,7 +33,7 @@ His version measures the surprise from the price alone. Call the move from one d
 
 *The sketch is schematic. Its prices, the size of its gap and the exact times of its red marks are made up, and none comes from the run. The order of events follows Chan’s rule.*
 
-Two files carry the data, both Chan’s own MATLAB files, converted here to one file per stock. The repository’s [data notes](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) record where each copy came from and when it was saved.
+Two files carry the data, both Chan’s own MATLAB files, converted here to one file per stock. The repository’s [data notes](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) record where each file came from and when it was saved.
 
 1. **The prices**, `inputDataOHLCDaily_stocks_20120424.mat`: the opens and closes of 497 stocks, saved on 2012-04-25.
 2. **The flags**, `earnannFile.mat`: for the same 497 stocks, a 1 on each day the stock announced between the previous close and the open, and a 0 otherwise. Saved on 2012-05-15, it covers 330 trading days, from 2011-01-03 to 2012-04-24.
