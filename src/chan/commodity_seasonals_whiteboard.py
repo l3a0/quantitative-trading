@@ -794,7 +794,7 @@ def _interpolation_guess(f: GuessFigures) -> Scene:
             frames=6,
         ),
         Label(
-            f"exit price {fill.other}",
+            f"exit price {_cents(fill.other)}",
             gx - BAND_HALF - 0.45,
             exit_y - 0.3,
             names="exit",
@@ -822,7 +822,7 @@ def _interpolation_guess(f: GuessFigures) -> Scene:
             dots=9.0,
         ),
         Label(
-            f"straight-line guess {fill.linear:.3f}",
+            f"straight-line guess {_cents(fill.linear)}",
             gx + BAND_HALF + 1.0,
             1.15,
             names="guess",
@@ -844,7 +844,7 @@ def _interpolation_guess(f: GuessFigures) -> Scene:
             frames=10,
         ),
         Label(
-            f"{f.top:.3f}",
+            f"{_cents(f.top)}",
             gx + BAND_HALF + 0.2,
             _guess_y(f.top, f) - 0.05,
             names="loss-zone",
@@ -852,7 +852,7 @@ def _interpolation_guess(f: GuessFigures) -> Scene:
             size=10,
         ),
         Label(
-            f"{f.bottom:.3f}",
+            f"{_cents(f.bottom)}",
             gx + BAND_HALF + 0.2,
             _guess_y(f.bottom, f) - 0.05,
             names="profit-zone",
@@ -1132,7 +1132,7 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
         ),
         Stroke("guess", np.array([gx]), np.array([y(fill.june)]), color=ACCENT, frames=1, dots=9.0),
         Label(
-            f"same rise on May: guess {fill.june:.3f}",
+            f"same rise on May: guess {_cents(fill.june)}",
             3.3,
             (y(one[fill.base]) + y(fill.june)) / 2 + 0.55,
             names="may-rise",
@@ -1144,7 +1144,7 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
             "exit", _line([(gx - 0.8, exit_y), (9.6, exit_y)]), color=MUTED, dashed=True, frames=6
         ),
         Label(
-            f"exit price {fill.other}",
+            f"exit price {_cents(fill.other)}",
             9.6,
             exit_y - 0.3,
             names="exit",
@@ -1167,7 +1167,7 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
             frames=10,
         ),
         Label(
-            f"{f.top:.3f}",
+            f"{_cents(f.top)}",
             gx - BAND_HALF - 0.2,
             y(f.top) - 0.05,
             names="loss-zone",
@@ -1176,7 +1176,7 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
             ha="right",
         ),
         Label(
-            f"{f.bottom:.3f}",
+            f"{_cents(f.bottom)}",
             gx + BAND_HALF + 0.2,
             y(f.bottom) - 0.15,
             names="profit-zone",
@@ -1543,6 +1543,15 @@ def _vspan(x: float, y0: float, y1: float, tick: float = 0.1) -> tuple:
     )
 
 
+def _cents(price: float) -> str:
+    """A price in dollars a gallon, written in cents as the post's tables give it.
+
+    The files spell a price to a tenth of a cent, so one decimal place keeps
+    every digit and invents none.
+    """
+    return f"{100 * float(price):.1f}¢"
+
+
 def _price_dot(gid: str, x: float, y: float, color: str) -> Stroke:
     return Stroke(gid, np.array([x]), np.array([y]), color=color, frames=1, dots=8.0)
 
@@ -1572,7 +1581,7 @@ def _sign_panel(f: seasonals.GapFill, x0: float, tag: str) -> list[Stroke | Labe
             ha="center",
         ),
         Label(
-            f"{'exit' if entry_missing else 'entry'} {f.other}",
+            f"{'exit' if entry_missing else 'entry'} {_cents(f.other)}",
             known_x,
             y(known) + (0.36 if top else -0.4),
             names=f"{tag}-known",
@@ -1582,7 +1591,7 @@ def _sign_panel(f: seasonals.GapFill, x0: float, tag: str) -> list[Stroke | Labe
         ),
         _price_dot(f"{tag}-guess", gap_x, y(guess), ACCENT),
         Label(
-            f"guess {guess:.3f}",
+            f"guess {_cents(guess)}",
             gap_x - 0.3,
             y(guess) - 0.05,
             names=f"{tag}-guess",
@@ -1599,11 +1608,12 @@ def _sign_panel(f: seasonals.GapFill, x0: float, tag: str) -> list[Stroke | Labe
         ),
         Label(
             f"e = {100 * f.june_bias:.2f}¢",
-            gap_x + 0.15,
-            (y(guess) + y(lifted)) / 2 - 0.08,
+            gap_x - 0.3,
+            (y(guess) + y(lifted)) / 2,
             names=f"{tag}-e",
             color=MUTED,
             size=11,
+            ha="right",
         ),
         Label(
             "guess + e",

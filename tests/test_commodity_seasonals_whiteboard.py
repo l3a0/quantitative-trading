@@ -259,10 +259,10 @@ FILL_TWO_LABELS = [
     "gasoline",
     "Apr 14, the entry: no May row",
     "June rose 0.9¢",
-    "same rise on May: guess 0.621",
-    "exit price 0.625",
-    "0.630",
-    "0.612",
+    "same rise on May: guess 62.1¢",
+    "exit price 62.5¢",
+    "63.0¢",
+    "61.2¢",
     "fill 2’s typical miss either side",
     "entry here: a loss",
     "entry here: a profit",
@@ -319,15 +319,15 @@ APRIL_LABELS = [
 
 SIGN_LABELS = [
     "1997: the entry is missing",
-    "exit 0.625",
-    "guess 0.621",
+    "exit 62.5¢",
+    "guess 62.1¢",
     "e = 0.26¢",
     "guess + e",
     "m",
     "m − e",
     "1998: the exit is missing",
-    "entry 0.498",
-    "guess 0.503",
+    "entry 49.8¢",
+    "guess 50.3¢",
     "e = 0.21¢",
     "guess + e",
     "m",
@@ -360,10 +360,10 @@ MISS_LABELS = [
 GUESS_LABELS = [
     "gasoline, May contract, April 1997",
     "Apr 14, the entry: no row",
-    "exit price 0.625",
-    "straight-line guess 0.616",
-    "0.635",
-    "0.597",
+    "exit price 62.5¢",
+    "straight-line guess 61.6¢",
+    "63.5¢",
+    "59.7¢",
     "one typical miss either side",
     "entry here: a loss",
     "entry here: a profit",
@@ -1054,7 +1054,7 @@ class TestTheInterpolationSketch:
         assert (exit_line.color, exit_line.dashed) == (MUTED, True)
         assert _stroke(scene, "line").color == ACCENT
         assert _stroke(scene, "guess").color == ACCENT
-        assert _label(scene, "straight-line guess 0.616").color == ACCENT
+        assert _label(scene, "straight-line guess 61.6¢").color == ACCENT
         assert _stroke(scene, "loss-zone").color == LOST
         assert _label(scene, "entry here: a loss").color == LOST
         assert _stroke(scene, "profit-zone").color == GOOD
@@ -1094,8 +1094,8 @@ class TestTheInterpolationSketch:
     def test_other_figures_move_the_guess_and_the_band(self, guess) -> None:
         moved = dataclasses.replace(guess.fill, linear=0.600, linear_error=0.010)
         scene = _interpolation_guess(GuessFigures(prices=guess.prices, fill=moved))
-        assert "straight-line guess 0.600" in scene.labels
-        assert {"0.610", "0.590"} <= set(scene.labels)
+        assert "straight-line guess 60.0¢" in scene.labels
+        assert {"61.0¢", "59.0¢"} <= set(scene.labels)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[4])
@@ -1236,7 +1236,7 @@ class TestTheFillTwoSketch:
     def test_other_figures_move_the_guess_and_the_band(self, fill_two) -> None:
         moved = dataclasses.replace(fill_two.fill, june_error=0.002)
         scene = _june_move_fill(dataclasses.replace(fill_two, fill=moved))
-        assert {"0.623", "0.619"} <= set(scene.labels)
+        assert {"62.3¢", "61.9¢"} <= set(scene.labels)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[5])
@@ -1442,8 +1442,8 @@ class TestTheMissSignSketch:
     def test_other_figures_move_the_prices_and_labels(self) -> None:
         entry, exit_ = seasonals.gap_fills()[:2]
         scene = _miss_sign(dataclasses.replace(entry, june=0.619), exit_)
-        assert "guess 0.619" in scene.labels
-        assert "guess 0.621" not in scene.labels
+        assert "guess 61.9¢" in scene.labels
+        assert "guess 62.1¢" not in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[9])

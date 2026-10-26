@@ -775,7 +775,8 @@ class TestThePostQuotesThePins:
         assert f"\\text{{Exit, {exits[0]}, {exits[1]}}} & m + e & m + b" in self.text
         biases = [f"{100 * f.june_bias:.2f}" for f in fills[:2]]
         assert (
-            f"The sketch draws `e` at each year’s average miss `b`, {biases[0]} cents for "
+            f"The sketch marks each arrow with `e` at that year’s average miss `b`, "
+            f"{biases[0]} cents for "
             f"{fills[0].year} and {biases[1]} for {fills[1].year}."
         ) in self.text
 
