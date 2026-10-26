@@ -417,13 +417,14 @@ class TestWhatThePostQuotes:
 
     The copies read are the section on the file and the four steps, every copy
     of Chan's 2 and 4 percent, Lesson 1's tables and the paragraph and three
-    points around them, Lesson 2's equation, its third and fourth points, the
-    three choices listed after them and its table, and Lesson 6's first and
+    points around them, Lesson 2's equation, its third point, the three
+    choices listed after its points and its table, and Lesson 6's first and
     fourth points. Other copies are not read, so a typo in one of them passes.
     Among them are the 10⁻¹⁵ the Python lands within, the "three of the four"
-    printouts in the title and Lesson 1's heading, the 1.8654 and 186.54
-    percent in Lesson 3's third point, the 0 identical days out of 752 in
-    Lesson 5, and the repeats of 600, 50, 252 and "five" elsewhere.
+    printouts in the title and Lesson 1's heading, the count of three choices
+    in Lesson 2's fourth point, the 1.8654 and 186.54 percent in Lesson 3's
+    third point, the 0 identical days out of 752 in Lesson 5, and the repeats
+    of 600, 50, 252 and "five" elsewhere.
     ``tests/test_pca_factor_momentum.py`` reads Lesson 3's figures on
     Example 7.4's own factors, and ``tests/test_momentum_factor.py`` those on
     MKT and WML.

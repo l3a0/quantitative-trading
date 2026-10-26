@@ -1323,7 +1323,7 @@ band and which factors fall outside it, the Newey-West t and p-values and
 Benjamini-Hochberg, and the intercept, each with and without PMC, and one
 verdict per factor. On three of the file's days it holds each factor return
 equal to the program's fitted slope times its singular value. On synthetic
-returns it holds that a flipped vector moves no statistic, that a steady sign
+returns it holds that a flipped vector moves no statistic, that a steady value
 counts as persistence, and the Benjamini-Hochberg step-up. It holds what the
 write-up measured after the run too. Those pins count how often each factor's
 weights flip sign once each vector's largest weight is made positive, check
@@ -3642,9 +3642,9 @@ fails a test.
    figures. That covers the S&P 600 file's members, saved date, span and days,
    the steps' 252 days and 50 a side, every copy of Chan's 2 and 4 percent,
    Lesson 1's two tables and the three points after them, Lesson 2's equation,
-   its third and fourth points and its table, and Lesson 6's first and fourth
-   points, with PMC's 851-day gap, its 1.8654 return written as 186.54
-   percent, and the three printouts without it. Each printed figure in Lesson
+   its third point, the three choices listed after its points and its table,
+   and Lesson 6's first and fourth points, with PMC's 851-day gap, its 1.8654
+   return written as 186.54 percent, and the three printouts without it. Each printed figure in Lesson
    1's tables is held against the run.
 2. `TestWhatThePostQuotes` in
    [tests/test_momentum_factor.py](tests/test_momentum_factor.py) reads the

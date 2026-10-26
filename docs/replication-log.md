@@ -9254,11 +9254,11 @@ and seven of the issue's rules, each as the issue fixed it.
    subtracting either series' mean first. A singular vector's sign is
    arbitrary, and flipping it on one day flips both members of that day's
    pair, so no product and no sum of squares moves. Leaving out the centring
-   is deliberate. A factor return that keeps a steady sign counts as
-   persistent, which is what location 4051's "remain constant from the
-   current time period to the next" asks. The price is that a few large days
-   can carry the statistic, so row 9 reports beside it the share of pairs
-   whose two members have the same sign.
+   is deliberate. A factor return that keeps a steady value from one day to
+   the next counts as persistent, which is what location 4051's "remain
+   constant from the current time period to the next" asks. The price is that
+   a few large days can carry the statistic, so row 9 reports beside it the
+   share of pairs whose two members have the same sign.
 4. **Which factor is factor k.** Factor k is the k-th largest component as
    each day's decomposition ranks it, named PC1 to PC5. When two neighbouring
    components swap places between days, their pairs mix into each other's
