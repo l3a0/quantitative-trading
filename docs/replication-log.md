@@ -7634,7 +7634,8 @@ both are stated once here.
    36. Contract c is held short against contract c + 12 long, the first pair
    from 73 rows before its near contract's last priced row and each pair to 10
    rows before it. A later pair starts the row after the last one ended and is
-   skipped when that leaves fewer than 63 rows. The spread is reversed where z
+   skipped when its last row would come fewer than 63 rows after its first. The
+   spread is reversed where z
    is above 0 and flat where z is not a number. The return is yesterday's
    positions times each leg's return, summed over the legs that have one and
    divided by 2. The figures read the 1,164 rows from 2008-01-02 to
@@ -7715,7 +7716,7 @@ records them.
 | 9 | none, a claim | reproduced | The statistic is below the 1 percent critical value, so the test rejects a unit root at the level "99 percent" names. |
 | 10 | none | none, not a replication | It lands every digit the comment prints. It drops 2008-01-02's return of −0.0028127. Setting that day's return to 0 instead gives 0.083331 and 1.288104, which miss both of the comment's figures. So dropping the day lands them and holding it flat does not. It was found by a scan, so it is not evidence of what Chan ran, and rows 3 and 5 keep the window the script states. |
 | 11 | none | none, not a replication | Holding at least 61 days misses both book figures, at 6.7 percent and 1.04, so the script's 63 is the specification. Under 61 days a later pair leaves enough rows to be held, to 2012-07-06. |
-| 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so the contracts still trading on 2012-08-13 expire on the file's last row, and too few rows remain before it for their pairs to be held. The window's last 66 rows hold nothing and return exactly 0. |
+| 12 | none | none, not a replication | Line 75 marks a contract expired on its last priced row, so the contracts still trading on 2012-08-13 expire on the file's last row. Every pair after 2012-05-08 would be let go 10 rows before its near contract's last priced row, fewer than 63 rows after its first, so none is held. The window's last 66 rows hold nothing and return exactly 0. |
 
 ### What the entry concludes
 
@@ -7769,20 +7770,33 @@ number.
 36-row lookback, is measured on all of γ, including the 2008 to 2012 window it
 trades. Entry 22 names the same limit for USD.CAD's lookback.
 
-**Anything about costs.** None is charged, though each roll trades four legs,
-closing one pair and opening the next.
+**Anything about costs.** None is charged. Each roll trades four contracts,
+closing one pair and opening the next. So does each day γ's z-score crosses 0
+while a pair is held, because the trade then reverses both legs.
 
-**Whether the direction holds outside 2008 to 2012.** The script's rule also
-earns on the file's 332 rows before the window, 0.050334 from 2006-09-05 to
-2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is the same file
-and before costs.
+**Whether the direction holds outside 2008 to 2012.** The script's rule
+first holds a pair on 2006-09-05, and it also earns 0.050334 on the 332 rows
+from then to 2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is
+the same file and before costs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md)
-moves with it, since that post quotes most of these figures. So does its one
+moves with it, since that post quotes most of these figures and
+`TestWhatThePostQuotes` fails until it does. So does its one
 figure, which `uv run python -m chan.calendar_spread_reversion_figures`
-redraws.
+redraws. Its two whiteboard sketches move too, and
+`uv run python -m chan.crude_oil_calendar_spread_whiteboard` redraws them. The
+one in "The spread, the signal and the file" draws the script's schedule from
+the run. The schedule holds the pair short K2008 and long K2009 from 2007-12-05
+to 2008-04-08, skips the M2008, N2008 and Q2008 pairs that would start on
+2008-04-09 because each one's last day would come fewer than 63 trading days
+after its first, and holds the
+pair short U2008 and long U2009 from 2008-04-09 to 2008-08-06. The one in
+Lesson 2 is schematic apart from its closing note. That note prints the
+fourth conclusion's 841 of 1,097 held rows, and the 554 held rows with γ's
+z-score above 0, all of them short the far leg, which
+`TestTheTradesDirection` also pins.
 
 ## Entry 35: VIX futures calendar spreads on the ratio of back to front, Chan's *Algorithmic Trading*
 
@@ -7850,10 +7864,11 @@ both are stated once here.
    half-life read every finite row of the filled signal. The first pair of
    adjacent contracts starts 73 rows before its near contract's last priced
    row, every pair ends 10 rows before its own, and a later pair is skipped
-   when that leaves it fewer than 63 rows. The return is yesterday's positions times each leg's
-   return, summed over the legs that have one and divided by 2, annualised
-   over 252 days by compounding simple returns, with the Sharpe ratio on
-   MATLAB's n − 1 `std`, no risk-free rate and no cost.
+   when its last row would come fewer than 63 rows after its first. The return
+   is yesterday's positions times each leg's return, summed over the legs that
+   have one and divided by 2, annualised over 252 days by compounding simple
+   returns, with the Sharpe ratio on MATLAB's n − 1 `std`, no risk-free rate and
+   no cost.
 
 Four rows beside S were declared with it, and a row that lands while S misses
 is reported and not promoted to the specification.

@@ -46,8 +46,9 @@ from chan.etf_cointegration_figures import (
     residual,
 )
 from chan.johansen import Johansen
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST
+from chan.regime_figure import INK
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.test_etf_cointegration import SPEC
@@ -457,7 +458,7 @@ class TestTheReturn:
         assert texts["trough-label"] == "deepest drawdown −0.101249,\n2010-08-16", SPEC
 
     def test_the_spell_and_the_trough_wear_lost_and_the_high_the_lines_colour(self, axes) -> None:
-        """Swapped, the red mark would sit on the high and say the drawdown is there."""
+        """Swapped, the vermilion mark would sit on the high and say the drawdown is there."""
         ax = axes["returns"]
         lines, notes = _by_gid(ax.lines), _by_gid(ax.texts)
         assert same_color(to_rgb(_by_gid(ax.patches)["spell"].get_facecolor()), LOST)
@@ -467,6 +468,24 @@ class TestTheReturn:
             assert same_color(lines[gid].get_markerfacecolor(), colour), gid
             assert same_color(notes[f"{gid}-label"].get_color(), colour), gid
         assert not same_color(lines["high"].get_markerfacecolor(), LOST)
+
+    @pytest.mark.parametrize(
+        "panel, gid",
+        [
+            ("statistics", "eigen-short-label"),
+            ("returns", "spell-label"),
+            ("returns", "trough-label"),
+        ],
+    )
+    def test_each_vermilion_label_sits_on_a_white_box(self, axes, panel, gid) -> None:
+        """``LOST`` reaches only 4.30 to 1 on the axes' darker ground, short of the
+        4.5 a label needs, and clears it on white, as ``tests/test_palette.py``
+        pins. So each label drawn in it inside the axes carries an opaque white box."""
+        note = _by_gid(axes[panel].texts)[gid]
+        assert same_color(note.get_color(), LOST), gid
+        box = note.get_bbox_patch()
+        assert box is not None, gid
+        assert same_color(box.get_facecolor(), "white"), gid
 
     def test_each_label_points_at_the_row_it_names(self, axes, result) -> None:
         """The text alone would pass with the arrow anchored at the wrong day."""
