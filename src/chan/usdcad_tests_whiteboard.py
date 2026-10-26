@@ -1404,11 +1404,12 @@ def _blend(ink: str, blend: float) -> np.ndarray:
     return blend * np.array(matplotlib.colors.to_rgb(ink)) + (1 - blend) * board
 
 
-def palette() -> Image.Image:
+def palette(inks: Sequence[str] = INKS) -> Image.Image:
     """The GIF's palette as an image Pillow can quantize against: white, then
-    each ink at each blend with white."""
+    each of ``inks`` at each blend with white. A post that draws in its own
+    inks passes them, and every other post keeps this module's."""
     colours = [np.array(matplotlib.colors.to_rgb(BOARD))]
-    for ink in INKS:
+    for ink in inks:
         colours += [_blend(ink, blend) for blend in BLENDS]
     flat = [round(255 * channel) for colour in colours for channel in colour]
     holder = Image.new("P", (1, 1))
@@ -1493,9 +1494,9 @@ def _show(scene: Scene, artists: Sequence, frame: Frame) -> None:
         artist.set_data(step.x[:shown], step.y[:shown])
 
 
-def render(scene: Scene, frames: Sequence[Frame]) -> list[Image.Image]:
-    """Draw every frame of one scene, each mapped onto :func:`palette`."""
-    colours = palette()
+def render(scene: Scene, frames: Sequence[Frame], inks: Sequence[str] = INKS) -> list[Image.Image]:
+    """Draw every frame of one scene, each mapped onto :func:`palette` of ``inks``."""
+    colours = palette(inks)
     images = []
     with matplotlib.rc_context(_style()):
         canvas, artists = _board(scene)

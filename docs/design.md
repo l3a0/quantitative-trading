@@ -884,6 +884,35 @@ cost is what the ordering rule was protecting against, and it is the reason a
 synthetic experiment can go ahead of the machinery while a series-reading one
 cannot.
 
+### Figure colours move one post at a time
+
+On 2026-10-26 the owner asked for every post's charts and sketches to use
+brighter colours that still pass WCAG's contrast bar for text and that a
+colour-blind reader can tell apart. The shared colours in `chan.regime_figure`
+fail the second test. Measured as the distance between two colours in OKLab
+times 100, after simulating each kind of colour blindness with Machado,
+Oliveira and Fernandes (2009) at full severity, a reader can rely on 8 and
+normal vision wants 15. The shared brass and red sit 3.0 apart under
+deuteranopia, and the shared green and red 4.2. In normal vision the brass sits
+9.0 from the red and 10.7 from the green.
+
+`chan.palette` holds the replacement: a berry for the subject, a blue for a
+profit and a vermilion for a loss. Each clears 4.5 to 1 against the sketches'
+white board and the charts' cream ground. The closest pair sits 14.5 apart
+under deuteranopia and under tritanopia, and 21.8 in normal vision.
+`tests/test_palette.py` measures all of it.
+
+The shared constants stay as they are, and each post moves on its own. At
+`d5876470` 62 modules in `src/chan` import the shared brass, green or red, and
+47 of the 48 posts carry a figure. Changing the shared constants would redraw
+every one of those figures in one pull request. That includes the figures of
+published posts, whose Substack copies change only with the owner. It would
+also leave each post's own review checking colours someone else chose. So a
+post moves by importing `chan.palette`'s names, and its sketch module passes
+`chan.palette.INKS` to the shared renderer. One session converts one post and
+touches no shared file. The price is a stretch where a reader moving between
+posts sees two sets of colours.
+
 ### One candidate, named so it is not re-invented
 
 It is not committed to, and it has no open issue. A negative-results log, once
