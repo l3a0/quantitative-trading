@@ -274,7 +274,7 @@ where they were first built. The other forty-five were built here.
     percent and 1.27, and does not reproduce, though its drawdown is the
     steeper as he says. Every figure is exploratory and about survivors.
 19. Khandani and Lo's reversal again, as *Algorithmic Trading*'s Examples 4.3
-    and 4.4 run it on Chan's 2012 S&P 500 file over 2007 to 2011. Book two
+    and 4.4 run it on Chan's 2012 stock file over 2007 to 2011. Book two
     changes the rule as well as the data: it scales each day's weights to a
     gross of 1, leaves a missing price's weight missing, charges no cost, and
     cuts the window before taking returns. Example 4.3 holds the weights from
@@ -338,7 +338,7 @@ where they were first built. The other forty-five were built here.
     own printout already shows. Every figure is exploratory, and the
     portfolio's weights are fitted on the days it trades.
 24. SPY against the S&P 500 stocks that pass a cointegration screen, Example
-    4.2 of *Algorithmic Trading*, on Chan's own 2012 S&P 500 file and his ETF
+    4.2 of *Algorithmic Trading*, on Chan's own 2012 stock file and his ETF
     file's SPY. `indexArb.m` tests each of 480 stocks against SPY over 2007
     and keeps the 98 that pass a 90 percent bar. That bar passes 28.1
     percent of random walks unrelated to SPY, about 135 of 480, so the count
@@ -1585,12 +1585,12 @@ prices.
 1. The S&P 500 as it stood on 2007-11-23.
 2. The S&P 600 in a save named for 2008-01-14.
 3. The S&P 600 in a later save named for 2008-01-31.
-4. The S&P 500 as he held it on 2012-04-24.
+4. His list of the S&P 500 from late 2011, in a save named for 2012-04-24.
 5. The 67 ETFs his second book's examples read, as he saved them on
    2012-04-10.
 
-The sixth holds his earnings-announcement flags for the 497 stocks of the 2012 S&P
-500 file, a 0 or 1 for each day. Each is committed as one vintage per stock or
+The sixth holds his earnings-announcement flags for the 497 stocks of the 2012
+stock file, a 0 or 1 for each day. Each is committed as one vintage per stock or
 ETF, 2,761 between them, written by
 `src/chan/mat_columns.py` under a directory per file. A price file's member
 holds its close, high, low, open and volume, and a flag file's member holds its
@@ -2158,7 +2158,7 @@ value, then every member that did not pass. `history` reads the archive and
 sorts each passing member by its 2006 rows, then lists those a run over 2006
 leaves out.
 
-Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
+Cross-sectional momentum reads Chan's 2012 stock file and takes no option,
 because the issue fixed the rule, the windows and the readings before any
 return was computed:
 
@@ -5113,7 +5113,7 @@ regime map.
 
 [blog/index-arbitrage-lessons.md](blog/index-arbitrage-lessons.md) is a
 twenty-third post, about Example 4.2 of Chan's *Algorithmic Trading*, which
-tests each stock in his 2012 S&P 500 file against SPY over 2007 with the
+tests each stock in his 2012 stock file against SPY over 2007 with the
 Johansen test, holds the ones that pass as one basket, and trades the basket
 against SPY from 2008. Chan reports 98 stocks, a basket that cointegrates with
 SPY "with better than 95 percent probability", an APR of 4.5 percent and a
