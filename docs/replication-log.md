@@ -7762,8 +7762,9 @@ number.
 36-row lookback, is measured on all of γ, including the 2008 to 2012 window it
 trades. Entry 22 names the same limit for USD.CAD's lookback.
 
-**Anything about costs.** None is charged, though each roll trades four legs,
-closing one pair and opening the next.
+**Anything about costs.** None is charged. Each roll trades four contracts,
+closing one pair and opening the next. So does each day γ's z-score crosses 0
+while a pair is held, because the trade then reverses both legs.
 
 **Whether the direction holds outside 2008 to 2012.** The script's rule
 first holds a pair on 2006-09-05, and it also earns 0.050334 on the 332 rows

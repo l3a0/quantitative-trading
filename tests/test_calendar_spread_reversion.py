@@ -823,7 +823,8 @@ class TestWhatThePostQuotes:
             f"## Lesson 4: the last {flat} days earn nothing",
             f"every contract still trading on {end} looks as if it expired on {end}.",
             f"a new pair’s last day must come at least {HOLDDAYS} days after its first. After "
-            f"{s.last_held.date()} no pair",
+            f"{s.last_held.date()}, every pair’s last day comes fewer than {HOLDDAYS} days after "
+            "its first.",
             f"So the trade holds its last pair on {s.last_held.date()}.",
             f"the window’s last {flat} days return exactly 0.",
             f"The APR is a compounded return spread over {len(returns):,} days, and {flat} of "
