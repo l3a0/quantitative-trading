@@ -791,9 +791,10 @@ class TestWhatThePostQuotes:
     correlate more strongly, that more than half of the gain is in by
     2009-01-02 and the maximum drawdown is over by then, that the active line
     sees a smaller gain and a shallower fall, that the active line's daily
-    spread shrinks by more than its mean, so its Sharpe ratio and Kelly f are
-    higher, that no day appears in both saves' 69 kept days and the four-day
-    shift alone moves the correlation in its second decimal, that its H
+    standard deviation shrinks by more than its mean, so its Sharpe ratio
+    and Kelly f are higher, that no day appears in both saves' 69 kept days
+    and the four-day shift alone moves the correlation in its second
+    decimal, that its H
     misses on the other side, that every H the post gives sits below 0.5 with
     the book's, that the four negative cells are exactly the shortest pairs,
     and that 2008 earned about four-fifths as much as the other years, read
@@ -889,6 +890,8 @@ class TestWhatThePostQuotes:
             f"{SPELLED[len(PERIODS)]} holds, which makes {len(result.correlations)} cells. In "
             f"what follows, {LOOKBACK}/{HOLD_DAYS} means a lookback of {LOOKBACK} days and a "
             f"hold of {HOLD_DAYS}.",
+            f"Chan picks {LOOKBACK}/{HOLD_DAYS} from the table and then looks for a rule to "
+            "trade it.",
             f"sets the rule’s year at {LOOKBACK} trading days and its month at {HOLD_DAYS}",
             f"Each tranche is held for {HOLD_DAYS} days, so up to {HOLD_DAYS} are open at once. "
             f"Counted in tranches, the position runs from −{HOLD_DAYS}, all short, to "
@@ -910,7 +913,9 @@ class TestWhatThePostQuotes:
         start = result.days.get_loc(ACTIVE_LINE_START)
         whole, tail = result.daily, result.daily[start:]
         assert tail.mean() < whole.mean() and tail.std() < whole.std()
-        assert tail.std() / whole.std() < tail.mean() / whole.mean(), "spread shrinks more"
+        assert tail.std() / whole.std() < tail.mean() / whole.mean(), (
+            "standard deviation shrinks more"
+        )
         assert active.sharpe > full.sharpe and active.kelly > full.kelly
         returns = _array(
             "l|r|r|r",
@@ -950,8 +955,8 @@ class TestWhatThePostQuotes:
             f"The maximum drawdown of {_minus(full.max_drawdown, 6)} is a fall of "
             f"{-100 * full.max_drawdown:.6f} percent, which rounds to the book’s "
             f"{BOOK_MAX_DRAWDOWN_PERCENT} percent.",
-            "Its daily returns also vary less, and their spread shrinks by more than their "
-            "mean does, so its Sharpe ratio and Kelly f come out higher.",
+            "The standard deviation of its daily returns shrinks by more than their mean does, "
+            "so its Sharpe ratio and Kelly f come out higher.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -1091,8 +1096,10 @@ class TestWhatThePostQuotes:
             f"If the cells were {cells} independent tests of returns with no pattern at all, "
             f"chance alone would put {chance:.2f} of them below 0.05 on average.",
             f"Every cell reads the same {len(closes):,} closes",
-            f"so comparing {len(significant)} with {chance:.2f} is not a valid test.",
-            f"calls {SPELLED[len(COMPROMISES)]} pairs",
+            "and neighbouring cells share a lookback or a hold, so their returns overlap. So "
+            f"comparing {len(significant)} with {chance:.2f} is not a valid test.",
+            "Chan weighs a strong correlation against a small p-value, and calls "
+            f"{SPELLED[len(COMPROMISES)]} pairs",
             f": {', '.join(compromises[:-1])} and {compromises[-1]}. All "
             f"{SPELLED[len(COMPROMISES)]} correlate positively and {SPELLED[below]} have a "
             "p-value below 0.05. The exception is "
@@ -1125,8 +1132,8 @@ class TestWhatThePostQuotes:
             f"TU’s close rose from {result.closes[0]:.4f} on the first day to "
             f"{result.closes[-1]:.4f} on the last. The position was +{HOLD_DAYS}, fully long, on "
             f"{long:,} of the {len(held):,} days and −{HOLD_DAYS} on {short}. It was between "
-            f"−{HOLD_DAYS} and +{HOLD_DAYS} on {partial} days, and 0 on the other {flat}, of "
-            f"which {before} came before the first signal.",
+            f"−{HOLD_DAYS} and +{HOLD_DAYS} but not 0 on {partial} days, and 0 on the other "
+            f"{flat}, of which {before} came before the first signal.",
             f"Calendar 2008 alone compounds to {in_2008:.6f}, and the other years together, "
             f"from the first trade in {first:%B %Y} to {last:%B %Y}, compound to "
             f"{the_rest:.6f}. So 2008, the year of the financial crisis, earned about "
