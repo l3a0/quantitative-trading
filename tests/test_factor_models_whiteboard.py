@@ -109,7 +109,7 @@ RESIDUALS_LABELS = [
     "fitted values",
     "+ return above the fit",
     "− return below the fit",
-    "with an intercept, the gaps sum to 0",
+    "with an intercept, the residuals sum to 0",
     "Σ returns",
     "Σ fitted",
     "=",
@@ -125,7 +125,7 @@ FLIP_LABELS = [
     "one pair: day t, day t+1",
     "f·g",
     "+",
-    "same direction, sign flipped",
+    "day t+1’s weights, flipped",
     "f",
     "−g",
     "f·(−g)",
@@ -136,8 +136,32 @@ FLIP_LABELS = [
     "−g",
     "+",
     "(−f)(−g) = fg",
-    "a flip changes both members,",
+    "day t’s flip changes both,",
     "so the product stays",
+]
+
+#: Each label's ink, in drawing order.
+RESIDUALS_COLOURS = [MUTED, INK, ACCENT, GOOD, LOST, INK, INK, ACCENT, INK, INK, INK, INK]
+FLIP_COLOURS = [
+    INK,
+    INK,
+    INK,
+    INK,
+    INK,
+    GOOD,
+    LOST,
+    INK,
+    LOST,
+    INK,
+    LOST,
+    INK,
+    INK,
+    LOST,
+    LOST,
+    GOOD,
+    INK,
+    INK,
+    INK,
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -466,6 +490,7 @@ class TestTheResidualsSketch:
 
     def test_its_colours(self, every) -> None:
         scene = every[0]
+        assert [s.color for s in scene.steps if isinstance(s, Label)] == RESIDUALS_COLOURS
         assert _stroke(scene, "axis").color == MUTED
         assert _label(scene, "one stock’s year (schematic)").color == MUTED
         assert {bar.color for bar in _days(scene, "return")} == {INK}
@@ -547,6 +572,18 @@ class TestTheResidualsSketch:
         compounded = float(np.prod(1 + RETURNS) - 1)
         assert abs(_height(returns) - TOTAL_SCALE * compounded) > 0.1
         assert _label(scene, "=").x == pytest.approx((returns.x[0] + fit.x[0]) / 2)
+        assert _label(scene, "=").y == pytest.approx(TOTALS_BASE + _height(returns) / 2)
+
+    def test_the_summed_returns_stand_left_of_the_summed_fit_each_named_under_it(
+        self, every
+    ) -> None:
+        scene = every[0]
+        returns, fit = _stroke(scene, "total-returns"), _stroke(scene, "total-fitted")
+        assert returns.x[0] < fit.x[0]
+        for bar, text in ((returns, "Σ returns"), (fit, "Σ fitted")):
+            label = _label(scene, text)
+            assert label.x == pytest.approx(bar.x[0]), text
+            assert label.y < TOTALS_BASE, text
 
     def test_the_python_ranks_on_the_summed_returns_the_sketch_draws(self) -> None:
         """The identity the sketch draws, in the code the post's numbers come
@@ -576,6 +613,8 @@ class TestTheResidualsSketch:
         assert "red where it sits below" in alt
         assert "stand at the same height" in alt
         assert "four black bars, each with a brown dot at its end, shrink from top to bottom" in alt
+        assert "a black bar marked “Σ returns” and a brown bar marked “Σ fitted”" in alt
+        assert "A short tick joins each dot to the end of its bar." in alt
         assert len(RANKED) == 4
 
 
@@ -589,10 +628,11 @@ class TestTheSignFlipSketch:
 
     def test_its_colours(self, every) -> None:
         scene = every[1]
+        assert [s.color for s in scene.steps if isinstance(s, Label)] == FLIP_COLOURS
         for k in range(len(WEIGHTS)):
             assert _stroke(scene, f"weights-{k}").color == INK
             assert _stroke(scene, f"fresh-{k}").color == LOST
-        assert _label(scene, "same direction, sign flipped").color == LOST
+        assert _label(scene, "day t+1’s weights, flipped").color == LOST
         for gid, ink in (
             ("pair-f", INK),
             ("pair-g", INK),
@@ -677,6 +717,35 @@ class TestTheSignFlipSketch:
             assert label.x == pytest.approx(bar.x[0]), label.text
             assert (label.y < VALUE_BASE) == (_height(bar) > 0), label.text
 
+    def test_each_sign_sits_beside_its_product_on_the_bars_side(self, every) -> None:
+        """A "+" sits above the base beside a product standing up, and a "−"
+        below it beside one hanging down."""
+        scene = every[1]
+        signs = [s for s in scene.steps if isinstance(s, Label) and s.text in ("+", "−")]
+        assert [s.names for s in signs] == ["pair-product", "naive-product", "flipped-product"]
+        for sign in signs:
+            bar = _stroke(scene, sign.names)
+            assert sign.x == pytest.approx(bar.x[0] + 0.35), sign.names
+            up = _height(bar) > 0
+            assert (sign.y > VALUE_BASE) == up == (sign.text == "+"), sign.names
+
+    def test_the_bracket_spans_both_members_below_the_base(self, every) -> None:
+        scene = every[1]
+        bracket = _stroke(scene, "pair-bracket")
+        f, g = _stroke(scene, "pair-f"), _stroke(scene, "pair-g")
+        assert bracket.x.min() < f.x[0] < g.x[0] < bracket.x.max()
+        assert bracket.y.max() < VALUE_BASE
+        for letter in ("f", "g"):
+            assert bracket.y.max() < _label(scene, letter).y, letter
+        assert _label(scene, "one pair: day t, day t+1").y < bracket.y.min()
+
+    def test_the_check_sits_right_of_the_identity_inside_the_third_panel(self, every) -> None:
+        scene = every[1]
+        check, identity = _stroke(scene, "check"), _label(scene, "(−f)(−g) = fg")
+        assert PANELS[2] < identity.x < check.x.min()
+        assert check.x.max() < 10.0
+        assert check.y.min() <= identity.y <= check.y.max()
+
     def test_a_flip_moves_no_uncentred_correlation(self) -> None:
         """The statistic the run reports, Σfg/√(Σf²Σg²), on made-up pairs:
         flipping both members of one pair leaves it where it was, while
@@ -701,3 +770,5 @@ class TestTheSignFlipSketch:
         assert "red bars marked “−f” and “−g” both hang down" in alt
         assert "stands up as tall as the first product" in alt
         assert "beside a green check" in alt
+        assert "Beside them a green bar stands up for their product" in alt
+        assert "labelled “day t+1’s weights, flipped”" in alt

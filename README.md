@@ -3623,8 +3623,8 @@ Every other number in the post traces to an assertion in
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
 for the figure's own labels, or to
 [tests/test_factor_models_whiteboard.py](tests/test_factor_models_whiteboard.py)
-for the sketches' labels and the alt texts that quote them. The sketches are
-schematic and print no figure from a run. One figure was half pinned before it, and
+for the sketches' labels and the alt texts that quote them. One figure was
+half pinned before it, and
 `TestTheSplice::test_pmc_forward_fills_into_one_days_return` now pins both
 ends of PMC's 851-day gap rather than only the days inside it.
 

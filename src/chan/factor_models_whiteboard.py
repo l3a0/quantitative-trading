@@ -178,7 +178,9 @@ def _residuals_cancel() -> Scene:
         Label(
             "− return below the fit", 2.95, 3.28, names=f"gap-{first_below}", color=LOST, size=11
         ),
-        Label("with an intercept, the gaps sum to 0", 0.4, 0.68, names=f"gap-{days[-1]}", size=11),
+        Label(
+            "with an intercept, the residuals sum to 0", 0.4, 0.68, names=f"gap-{days[-1]}", size=11
+        ),
     ]
     total = float(RETURNS.sum())
     for name, color in (("returns", INK), ("fitted", ACCENT)):
@@ -329,7 +331,7 @@ def _sign_flip() -> Scene:
     # each day's fresh weights reads f and then −g, so its product turns negative.
     steps += _arrows(two, -1.0, LOST, "fresh")
     steps.append(
-        Label("same direction, sign flipped", two + 0.1, 2.45, names="fresh-5", color=LOST, size=11)
+        Label("day t+1’s weights, flipped", two + 0.1, 2.45, names="fresh-5", color=LOST, size=11)
     )
     steps.append(_base("base-naive", two))
     steps.append(_value("naive-f", two + FIRST_AT, f, VALUE_SCALE, INK))
@@ -371,7 +373,7 @@ def _sign_flip() -> Scene:
     )
     steps.append(Label("(−f)(−g) = fg", three + 0.1, ARROW_Y, names="flipped-product", size=14))
     steps.append(_stroke("check", _check(three + 2.35, ARROW_Y - 0.05), color=GOOD, frames=3))
-    steps.append(Label("a flip changes both members,", three + 0.02, 0.72, names="check", size=10))
+    steps.append(Label("day t’s flip changes both,", three + 0.02, 0.72, names="check", size=10))
     steps.append(Label("so the product stays", three + 0.02, 0.4, names="check", size=10))
     return Scene("A sign flip changes both members of a pair", "sign_flip", tuple(steps))
 
