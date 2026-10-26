@@ -169,3 +169,11 @@ class TestTheTints:
         )
         assert whiteboard.INKS == shared
         assert whiteboard.palette().getpalette() == whiteboard.palette(shared).getpalette()
+
+    def test_render_draws_onto_the_palette_of_the_inks_it_is_given(self) -> None:
+        """A post that moves passes these inks to ``render``, and its frames use them."""
+        scene = whiteboard.Scene("t", "t", ())
+        images = whiteboard.render(scene, whiteboard.timeline(scene)[-1:], INKS)
+        assert images
+        for image in images:
+            assert image.getpalette() == whiteboard.palette(INKS).getpalette()
