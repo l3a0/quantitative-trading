@@ -1086,6 +1086,12 @@ class TestWhatThePostQuotes:
         assert np.flatnonzero(neither).max() < np.flatnonzero(rows).min(), "before the ten"
         assert not book.either.positions[neither].any(), "ComboOR holds nothing"
         assert not book.combination.positions[neither].any(), "as the join does"
+        reversal_lag = backshift(REVERSAL_LOOKBACK, close)
+        momentum_lag = backshift(MOMENTUM_LOOKBACK, close)
+        both = ~np.isnan(reversal_lag) & ~np.isnan(momentum_lag)
+        below, above = close < reversal_lag, close > momentum_lag
+        decided = (below & above).astype(float) - (~below & ~above).astype(float)
+        assert (book.either.positions[both] == decided[both]).all(), "the buy conditions decide it"
         fragments = [
             f"Lesson 2 shows that ComboOR takes the join’s position on every row but "
             f"{SPELLED[int(rows.sum())]} early ones.",
@@ -1099,6 +1105,7 @@ class TestWhatThePostQuotes:
             f"On the book’s window no close equals its {REVERSAL_LOOKBACK}-day or "
             f"{MOMENTUM_LOOKBACK}-day lag exactly, so wherever both lags exist, a close that is "
             "not below a lag is above it.",
+            "On those rows, ComboOR’s buy conditions decide its position.",
             f"On the first {int(neither.sum())} rows neither lag exists, and it holds nothing, as "
             "the join does.",
             f"So it matches the join everywhere except the same {SPELLED[int(rows.sum())]} early "
