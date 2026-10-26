@@ -677,7 +677,7 @@ class TestThePostQuotesThePins:
         ]
         errors = [sharpe_standard_error(TestTheReturns.years(split)) for split in splits]
         text = " ".join(self.text.split())
-        assert f"rests on only {min(counts)} to {max(counts)} results" in text
+        assert f"rests on only {min(counts)} to {max(counts)} yearly results" in text
         assert f"the standard error runs from {min(errors):.1f} to {max(errors):.1f}" in text
         assert f"sit {1.96 * min(errors):.1f} to {1.96 * max(errors):.1f} higher or lower" in text
 

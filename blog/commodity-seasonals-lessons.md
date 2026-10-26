@@ -37,7 +37,7 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 
 A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by its standard deviation. The drawdown is the largest fall from a peak in the summed yearly returns, marked on every trading day the files hold a price, so it counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake. Gasoline’s 1995 to 2015 leaves out the 3 years with no price. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim.
 
-Each trade happens once a year, so each column of the table rests on only 8 to 18 results. Lesson 4 works out what that few results can show: gasoline’s fall after the book stands out from its noise, and natural gas’s typical year clearly worsened while its average cannot be told from before. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Each trade happens once a year, so each of the table’s four periods, every trade before and after the book, rests on only 8 to 18 yearly results. Lesson 4 works out what that few results can show: gasoline’s fall after the book stands out from its noise, and natural gas’s typical year clearly worsened while its average cannot be told from before. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two trades and the files
 
@@ -273,7 +273,7 @@ Trades a year apart share no days, so treating them as independent is close to r
 \end{aligned}
 ```
 
-Across the table’s four columns the standard error runs from 0.3 to 0.4, so each Sharpe ratio there could plausibly sit 0.5 to 0.7 higher or lower.
+For the four Sharpe ratios in the returns table at the top of the post, each trade before and after the book, the standard error runs from 0.3 to 0.4, so each could plausibly sit 0.5 to 0.7 higher or lower.
 
 ### Whether the mean return changed
 
