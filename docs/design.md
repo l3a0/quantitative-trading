@@ -898,9 +898,16 @@ deuteranopia, and the shared green and red 4.2. In normal vision the brass sits
 
 `chan.palette` holds the replacement: a berry for the subject, a blue for a
 profit and a vermilion for a loss. Each clears 4.5 to 1 against the sketches'
-white board and the charts' cream ground. The closest pair sits 14.5 apart
+white board and a chart's cream figure ground. The closest pair sits 14.5 apart
 under deuteranopia and under tritanopia, and 21.8 in normal vision.
-`tests/test_palette.py` measures all of it.
+`tests/test_palette.py` measures all of it, and pins the two places the new
+colours fall short.
+
+1. On the darker ground inside a chart's axes, the blue reaches 4.37 to 1 and
+   the vermilion 4.30, so a label in either that sits on the axes goes on a
+   white box or in the ink.
+2. Under protanopia the vermilion sits 7.5 from the grey. The shared red sat
+   3.8 from it.
 
 The shared constants stay as they are, and each post moves on its own. At
 `d5876470` 62 modules in `src/chan` import the shared brass, green or red, and

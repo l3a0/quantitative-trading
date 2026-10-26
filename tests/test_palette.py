@@ -5,13 +5,17 @@ the reader who cannot tell two lines apart notices. So this file measures the
 three colours rather than trusting the hex codes.
 
 1. Each clears WCAG's 4.5 to 1 contrast against the sketches' white board and
-   the charts' cream ground, the bar for text.
+   a chart's figure ground, the bar for text.
 2. Each pair stays apart in normal vision and under the three kinds of colour
-   blindness.
+   blindness, and so does each colour against the shared ink and grey.
 3. The shared brass and red they replace do not, which is the reason for the
    change.
 4. The sketches' two tints are colours the renderer's palette already holds
    for the new inks, so a tint adds no colour to a GIF.
+
+Two measurements fall short, and the tests pin them at their values rather
+than leave them unrecorded: the blue and the vermilion on the axes' darker
+ground, and the vermilion against the grey under protanopia.
 
 The measurements moved here from the commodity-seasonals post's figure tests,
 which drew in these colours first.
@@ -113,6 +117,24 @@ class TestTheColours:
         """The brass and red the other posts draw in sit 3.0 apart under deuteranopia."""
         shared = _apart(regime_figure.ACCENT, regime_figure.LOST, "deutan")
         assert shared == pytest.approx(3.0, abs=0.05)
+
+    def test_each_stays_apart_from_the_ink_and_the_grey_but_one(self) -> None:
+        """The vermilion sits 7.5 from the grey under protanopia, short of 8."""
+        for one in (regime_figure.INK, regime_figure.MUTED):
+            for two in self.INKS.values():
+                assert _apart(one, two) >= 15, (one, two)
+                for kind in _MACHADO:
+                    if (one, two, kind) == (regime_figure.MUTED, LOST, "protan"):
+                        assert _apart(one, two, kind) == pytest.approx(7.5, abs=0.05)
+                    else:
+                        assert _apart(one, two, kind) >= 8, (one, two, kind)
+
+    def test_only_the_accent_reads_as_text_on_the_axes_ground(self) -> None:
+        """Inside a chart's axes the blue reaches 4.37 to 1 and the vermilion 4.30."""
+        ground = regime_figure.GROUND
+        assert _contrast(ACCENT, ground) >= 4.5
+        assert _contrast(GOOD, ground) == pytest.approx(4.37, abs=0.005)
+        assert _contrast(LOST, ground) == pytest.approx(4.30, abs=0.005)
 
     def test_the_sketch_inks_keep_the_shared_ink_and_grey(self) -> None:
         assert INKS == (regime_figure.INK, regime_figure.MUTED, ACCENT, GOOD, LOST)

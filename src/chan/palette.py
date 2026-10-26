@@ -13,15 +13,26 @@ every colour. This module holds the replacement.
 2. ``GOOD``, a blue, marks a profit or the side that wins.
 3. ``LOST``, a vermilion, marks a loss or a warning.
 
-Each clears 4.5 to 1 against the sketches' white board and the charts' cream
-ground, so a label drawn in it reads as text. Each pair stays at least 8 apart
-under protanopia, deuteranopia and tritanopia, and at least 15 apart in normal
-vision. ``tests/test_palette.py`` measures all of it, and ``docs/design.md``
-says why posts move to these colours one at a time rather than all at once.
+Each clears 4.5 to 1 against the sketches' white board and a chart's figure
+ground, :data:`chan.regime_figure.SURFACE`, so a label drawn in it reads as
+text. Each pair stays at least 8 apart under protanopia, deuteranopia and
+tritanopia, and at least 15 apart in normal vision. ``tests/test_palette.py``
+measures all of it, and ``docs/design.md`` says why posts move to these colours
+one at a time rather than all at once.
 
-The ink and the grey come from :mod:`chan.regime_figure` unchanged, because
-they were never the problem. Its brass, green and red stay there too, because
-every post that has not moved still draws in them.
+The ink and the grey come from :mod:`chan.regime_figure` unchanged. Its brass,
+green and red stay there too, because every post that has not moved still draws
+in them. The measurements leave two gaps, and the tests pin both so a post that
+moves meets them as numbers rather than by surprise.
+
+1. Inside a chart's axes, whose ground is the darker
+   :data:`chan.regime_figure.GROUND`, ``GOOD`` reaches only 4.37 to 1 and
+   ``LOST`` 4.30. A label in either colour that sits on the axes falls short of
+   the bar for text, so it goes on a white box or in ``INK``.
+2. Under protanopia ``LOST`` sits 7.5 from the grey, just short of 8. The
+   shared red sat 3.8 from it, so the move narrows the gap without closing it.
+   Where a loss and a note in grey sit side by side, a label or a sign tells
+   them apart as well as the colour.
 
 The sketches need two more colours, the pale tints a band or a reject zone is
 filled with. :mod:`chan.usdcad_tests_whiteboard` makes its own by laying its
