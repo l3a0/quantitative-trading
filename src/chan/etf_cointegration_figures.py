@@ -56,9 +56,10 @@ from chan.etf_cointegration import (
     read_sources,
 )
 from chan.matlab_helpers import calculate_max_dd, drawdown_path
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
 from chan.pead_figures import _signed, longest_spell
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, RULE, SURFACE
+from chan.regime_figure import INK, MUTED, RULE, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageEntry, VintageUnavailable
 
@@ -70,6 +71,10 @@ LEVELS = ((90, ":"), (95, "-"), (99, "--"))
 #: Each statistic's bars: its name, its fill, and how far its bar sits from the group's centre.
 STATISTICS = (("trace", ACCENT, -0.19), ("eigen", GOOD, 0.19))
 BAR_WIDTH = 0.34
+#: The white box under a label drawn in ``LOST`` inside the axes. The axes'
+#: ground is darker than the figure's, and ``LOST`` reaches only 4.30 to 1 on
+#: it, short of the 4.5 a label needs, as ``tests/test_palette.py`` pins.
+LABEL_BOX = {"boxstyle": "square,pad=0.2", "facecolor": "white", "edgecolor": "none"}
 
 
 def cumulative_return(result: EtfCointegration) -> np.ndarray:
@@ -175,6 +180,7 @@ def _statistics_panel(ax, result: EtfCointegration) -> None:
         fontsize=9.5,
         fontweight="bold",
         arrowprops={"arrowstyle": "-", "color": LOST, "lw": 1.0},
+        bbox=LABEL_BOX,
         gid="eigen-short-label",
     )
     handles = [
@@ -217,6 +223,7 @@ def _returns_panel(ax, days: pd.DatetimeIndex, result: EtfCointegration) -> None
         color=LOST,
         fontsize=9.5,
         fontweight="bold",
+        bbox=LABEL_BOX,
         gid="spell-label",
     )
     for gid, row, colour in (("high", spell.high, INK), ("trough", trough, LOST)):
@@ -250,6 +257,7 @@ def _returns_panel(ax, days: pd.DatetimeIndex, result: EtfCointegration) -> None
         color=LOST,
         fontsize=9.5,
         fontweight="bold",
+        bbox=LABEL_BOX,
         gid="trough-label",
     )
     span = cumret.max() - cumret.min()
