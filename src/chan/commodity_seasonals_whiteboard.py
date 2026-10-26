@@ -99,8 +99,9 @@ and the post places each right after the paragraph it draws.
    to 2023 as dots on a percentage axis, with ticks at their mean and at
    their mean without the best year, 2022, and below them all 30 years from
    1994 to 2023 ranked worst to best, the earlier ones above a line and the
-   later ones below it. It sits after the paragraph opening "Gasoline’s fall
-   shows on both."
+   later ones below it. A note names the two gains too close to zero for
+   their side to show. It sits in Lesson 4, after the paragraph opening
+   "Gasoline’s fall shows on both."
 17. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
@@ -2279,6 +2280,9 @@ class OneYearFigures:
 YEAR_ZERO_X, YEAR_POINT = 3.52, 0.084
 YEAR_SCALE = (-30.0, 70.0)
 YEAR_DOT_GAP = 0.14
+#: A gain this small, in points, sits too close to the zero line for its side to
+#: show, so a label names it rather than leaving colour as the only cue.
+YEAR_NEAR_ZERO = 1.0
 YEAR_AXIS_Y, YEAR_DOT_BASE, YEAR_DOT_STEP = 2.6, 2.8, 0.17
 YEAR_MEAN = (2.35, 2.6)
 #: The ranks strip: its ends, and the before and after rows.
@@ -2324,6 +2328,18 @@ def _one_year(f: OneYearFigures) -> Scene:
                 color=GOOD if pct > 0 else LOST,
                 frames=1,
                 dots=8.0,
+            )
+        )
+    near = sorted(year for year, pct in f.after if 0 < pct < YEAR_NEAR_ZERO)
+    if near:
+        steps.append(
+            Label(
+                " and ".join(str(year) for year in near) + ": just above 0%",
+                _year_x(0) + 0.3,
+                3.34,
+                names=f"year-{near[-1]}",
+                color=GOOD,
+                size=10,
             )
         )
     steps += [

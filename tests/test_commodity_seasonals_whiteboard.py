@@ -509,6 +509,7 @@ MEAN_LABELS = [
 ONE_YEAR_LABELS = [
     "0%",
     "returns, 2009 to 2023",
+    "2014 and 2018: just above 0%",
     "2022: +64%",
     "mean -0.4%",
     "without 2022: -5.0%",
@@ -1912,6 +1913,21 @@ class TestTheOneYearSketch:
             for two in dots[k + 1 :]:
                 if one.y[0] == two.y[0]:
                     assert abs(one.x[0] - two.x[0]) >= sketches.YEAR_DOT_GAP, (one.gid, two.gid)
+
+    def test_a_note_names_each_gain_too_close_to_zero_to_show_its_side(self, every) -> None:
+        """2014's +0.09% sits half a pixel right of the zero line, so its side
+        cannot be seen and colour alone would mark it a gain."""
+        scene, f = every[15], OneYearFigures.from_run()
+        near = sorted(y for y, pct in f.after if 0 < pct < sketches.YEAR_NEAR_ZERO)
+        assert near == [2014, 2018]
+        zero = _stroke(scene, "zero").x[0]
+        for year in near:
+            assert (_stroke(scene, f"year-{year}").x[0] - zero) * 68 < 5, year
+        assert _label(scene, "2014 and 2018: just above 0%").color == GOOD
+        others = OneYearFigures(
+            before=f.before, after=tuple((y, 5.0 if y in near else r) for y, r in f.after)
+        )
+        assert not any("just above" in label for label in _one_year(others).labels)
 
     def test_each_rank_dot_sits_in_its_row_in_rank_order(self, every) -> None:
         scene, f = every[15], OneYearFigures.from_run()
