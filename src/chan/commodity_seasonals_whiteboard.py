@@ -148,7 +148,7 @@ Both years' calendars are drawn on one axis of month and day.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
-colours are this post's own, from :mod:`chan.commodity_seasonals_figures`.
+colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
 all seventeen are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
@@ -176,8 +176,9 @@ import numpy as np
 from scipy import stats
 
 from chan import commodity_seasonals as seasonals
-from chan.commodity_seasonals_figures import ACCENT, GASOLINE_BOOK_END, GOOD, LOST
+from chan.commodity_seasonals_figures import GASOLINE_BOOK_END
 from chan.futures import ng_last_trade
+from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
@@ -193,10 +194,6 @@ from chan.usdcad_tests_whiteboard import (
     render,
     timeline,
 )
-
-#: The inks every frame is mapped onto: the shared ink and grey, and this
-#: post's own three colours in place of the shared ones.
-INKS = (INK, MUTED, ACCENT, GOOD, LOST)
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "commodity_sketch_"

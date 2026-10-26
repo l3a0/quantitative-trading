@@ -125,7 +125,6 @@ from PIL import Image
 from chan import commodity_seasonals as seasonals
 from chan import commodity_seasonals_whiteboard as sketches
 from chan import usdcad_tests_whiteboard as whiteboard
-from chan.commodity_seasonals_figures import ACCENT, GOOD, LOST
 from chan.commodity_seasonals_whiteboard import (
     CALENDAR,
     CALENDAR_X,
@@ -193,6 +192,7 @@ from chan.commodity_seasonals_whiteboard import (
     sketch_timeline,
 )
 from chan.futures import ng_last_trade
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (

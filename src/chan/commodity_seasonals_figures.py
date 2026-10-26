@@ -53,19 +53,10 @@ from chan.commodity_seasonals import (
     natural_gas_trades,
     profitable_count,
 )
+from chan.palette import ACCENT
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED, SURFACE
 from chan.vintage import VintageUnavailable
-
-#: This post's three colours, brighter than the brass, green and red that
-#: :mod:`chan.regime_figure` gives the other posts, for the chart here and the
-#: sketches in :mod:`chan.commodity_seasonals_whiteboard`. ``ACCENT`` marks the
-#: thing a picture is about, ``GOOD`` a profit and ``LOST`` a loss. Each clears
-#: 4.5 to 1 against the white board and the cream ground, so a label in it
-#: reads as text, and each pair stays apart under the three kinds of colour
-#: blindness, which the brass and red they replace did not.
-#: ``tests/test_commodity_seasonals_figures.py`` measures both.
-ACCENT, GOOD, LOST = "#981E87", "#276EE1", "#D24011"
 
 YEARS_FIGURE = "commodity_seasonals_years.png"
 
