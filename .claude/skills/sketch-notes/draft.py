@@ -24,6 +24,16 @@ the ones the sketch tests hold.
    frame needs more points than frames to avoid that, and a one-point dot
    needs ``frames=1``. This is stricter than the tests' own check, which
    allows as many points as frames.
+6. A scene draws in one palette. Its strokes, labels and tints use either the
+   shared brass, green and red of :mod:`chan.regime_figure` or the colours of
+   :mod:`chan.palette`, never both. A helper whose colour defaults to the
+   shared brass, such as ``_dot``, leaves a mark of the old palette in a scene
+   that has moved, and the renderer maps it onto the nearest new ink, which is
+   the grey.
+
+The GIF is drawn on the palette the scene's own colours belong to, the way the
+post's module draws its committed GIFs: :data:`chan.palette.INKS` for a scene
+that uses any of :mod:`chan.palette`'s colours, and the shared inks otherwise.
 
 A scene that breaks none prints ``ok``. The script exits 1 when any scene
 breaks a rule, so a caller can act on the result.
@@ -39,8 +49,10 @@ import sys
 from pathlib import Path
 
 import matplotlib
+from matplotlib.colors import to_hex
 from PIL import Image
 
+from chan import palette, regime_figure
 from chan import usdcad_tests_whiteboard as wb
 from chan.paths import FIGURES_DIR
 from chan.usdcad_tests_whiteboard import (
@@ -61,6 +73,32 @@ CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
 #: instead of 4. ``chan.equity_seasonals_whiteboard`` paces its ``PACED`` list
 #: the same way.
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
+
+
+#: The colours that mark a scene as drawn in one palette or the other. The ink
+#: and the grey belong to both, so they decide nothing.
+SHARED_COLOURS = {
+    to_hex(c)
+    for c in (regime_figure.ACCENT, regime_figure.GOOD, regime_figure.LOST, wb.TINT, wb.REJECT_TINT)
+}
+PALETTE_COLOURS = {
+    to_hex(c)
+    for c in (palette.ACCENT, palette.GOOD, palette.LOST, palette.TINT, palette.REJECT_TINT)
+}
+
+
+def inks_for(scene: Scene) -> tuple[tuple[str, ...], list[str]]:
+    """Rule 6: the inks the scene's colours belong to, and the problem when it
+    uses colours of both palettes."""
+    used = {to_hex(step.color) for step in scene.steps}
+    shared, moved = sorted(used & SHARED_COLOURS), sorted(used & PALETTE_COLOURS)
+    if not moved:
+        return wb.INKS, []
+    mixed = [
+        f"draws in chan.palette's colours and in the shared {', '.join(shared)}, "
+        "which the renderer maps onto the nearest new ink"
+    ]
+    return palette.INKS, mixed if shared else []
 
 
 def frames_for(scene: Scene, paced: bool) -> list[Frame]:
@@ -159,7 +197,8 @@ def frame_problems(scene: Scene, timeline_frames: int, gif: Path) -> list[str]:
 def draft(scene: Scene, out: Path, paced: bool) -> list[str]:
     """Write one scene's GIF and last frame into ``out``, and return the rules it breaks."""
     frames = frames_for(scene, paced)
-    images = render(scene, frames)
+    inks, mixed = inks_for(scene)
+    images = render(scene, frames, inks)
     gif = out / f"{scene.slug}.gif"
     images[0].save(
         gif,
@@ -170,7 +209,7 @@ def draft(scene: Scene, out: Path, paced: bool) -> list[str]:
         optimize=False,
     )
     images[-1].convert("RGB").save(out / f"{scene.slug}_last.png")
-    return frame_problems(scene, len(frames), gif) + layout_problems(scene)
+    return mixed + frame_problems(scene, len(frames), gif) + layout_problems(scene)
 
 
 def main(argv: list[str] | None = None) -> int:
