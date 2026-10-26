@@ -36,6 +36,7 @@ from chan.bollinger_figures import (
     legend_label,
     main,
     make_bollinger_figure,
+    zscore_divided_by_n,
 )
 from chan.matlab_helpers import smart_moving_std
 from chan.paths import FIGURES_DIR
@@ -246,6 +247,23 @@ class TestTheReturns:
         diagnostic = divided_by_n(result.bollinger.signal)
         np.testing.assert_array_equal(diagnostic.units, by_n.bollinger.units)
         np.testing.assert_array_equal(diagnostic.daily, by_n.bollinger.daily)
+
+    def test_the_diagnostic_z_score_is_the_patched_runs(self, result, by_n) -> None:
+        """``zscore_divided_by_n`` is the z-score the patched run trades on, and
+        the post's second whiteboard sketch draws it."""
+        np.testing.assert_array_equal(
+            zscore_divided_by_n(result.bollinger.signal), by_n.zscore, err_msg=SPEC
+        )
+
+    def test_the_diagnostic_trades_on_the_helpers_z_score(self, monkeypatch, result) -> None:
+        """``divided_by_n`` reads its z-score from ``zscore_divided_by_n`` rather
+        than computing a second copy, so the figure's dashed line and the sketch
+        cannot drift apart. A z-score of 2 on every day holds a short throughout."""
+        signal = result.bollinger.signal
+        monkeypatch.setattr(
+            figures, "zscore_divided_by_n", lambda s, lookback=20: np.full(len(s.value), 2.0)
+        )
+        assert set(divided_by_n(signal).units.tolist()) == {-1.0}
 
     def test_the_diagnostic_compares_a_z_score_on_a_band_as_the_band_does(
         self, monkeypatch, result

@@ -6294,7 +6294,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/bollinger-band-lessons.md](../blog/bollinger-band-lessons.md) moves with
 it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.bollinger_figures` redraws.
+which `uv run python -m chan.bollinger_figures` redraws, and its two
+whiteboard sketches, one of a long turning short on 2006-08-11 and one of the
+short the run divided by n opens on 2007-05-29, which
+`uv run python -m chan.bollinger_whiteboard` redraws through the same
+`read_sources` and `example_three_two`.
 
 ## Entry 27: spot and roll returns of five futures, Chan's *Algorithmic Trading*
 

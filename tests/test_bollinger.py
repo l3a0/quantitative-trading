@@ -1,11 +1,12 @@
 """The pins for Bollinger bands on GLD and USO, *Algorithmic Trading*'s Example 3.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 3.2, with two exceptions, both in
-``blog/bollinger-band-lessons.md``. The post's figure has its own pins in
-``tests/test_bollinger_figures.py``, and what the post says about the file
-itself, its 67 ETFs, is held in ``tests/test_series.py``. The post also quotes
-Example 3.1's figures, which ``tests/test_price_spread.py`` holds.
+about Example 3.2, with three exceptions, all in
+``blog/bollinger-band-lessons.md``. Its figure's labels are held by
+``tests/test_bollinger_figures.py``, its two whiteboard sketches' labels by
+``tests/test_bollinger_whiteboard.py``, and what the post says about the file
+itself, its 67 ETFs, by ``tests/test_series.py``. The post also quotes Example
+3.1's figures, which ``tests/test_price_spread.py`` holds.
 README lists what the post says that nothing asserts. ``docs/replication-log.md``
 carries the verdicts and points here row by row.
 
