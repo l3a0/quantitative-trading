@@ -97,9 +97,9 @@ GIFS = ["tu_momentum_sketch_futures_tile.gif", "tu_momentum_sketch_no_shared_day
 
 #: The paragraph each GIF follows: the correlation table's paragraph on
 #: overlapping windows by its opening words, and Lesson 1's paragraph on the
-#: later save by a fragment, since its opening words are free to change.
+#: later data file by a fragment, since its opening words are free to change.
 TILE_PARAGRAPH = "Neighbouring days share almost all of their windows."
-SAVES_FRAGMENT = "that shift alone moves the 250/25 correlation"
+SAVES_FRAGMENT = "shift alone moves the 250/25 correlation"
 
 TILE_LABELS = [
     "trading days, to scale",
