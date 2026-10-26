@@ -405,16 +405,15 @@ def _fills(day: date, around: tuple[date, date, date], steps: tuple[int, int, in
     return linear, june
 
 
-def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, float, float, int]:
-    """Each fill's root mean square error on the April days the files hold,
-    and fill 2's average miss and the spread of its misses around it.
+def _test_days(steps: tuple[int, int, int], one, two) -> list[tuple[date, tuple[date, date, date]]]:
+    """Every April day whose fills can be tested in a gap's pattern of steps.
 
-    Each tested day keeps the gap's pattern: its row before, its row after and
+    Each test day keeps the gap's pattern: its row before, its row after and
     its base sit the same numbers of trading days away as the gap's. Every day
     used lies in April, when May is contract 1, so no fill reaches across a
-    roll.
+    roll. Each entry is the day and its row before, row after and base.
     """
-    linear, june = [], []
+    found = []
     for year in range(FILL_TEST_YEARS[0], FILL_TEST_YEARS[1] + 1):
         last = last_business_day(year, 4)
         day = on_or_after(date(year, 4, 1))
@@ -427,15 +426,39 @@ def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, f
                 and all(d in one for d in (*around, day))
                 and all(d in two for d in (base, day))
             ):
-                fill_linear, fill_june = _fills(day, around, steps, one, two)
-                linear.append(float(one[day]) - fill_linear)
-                june.append(float(one[day]) - fill_june)
+                found.append((day, around))
             day = _step(day, 1)
+    return found
+
+
+def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, float, float, int]:
+    """Each fill's root mean square error on the test days, and fill 2's average
+    miss and the spread of its misses around it."""
+    linear, june = [], []
+    for day, around in _test_days(steps, one, two):
+        fill_linear, fill_june = _fills(day, around, steps, one, two)
+        linear.append(float(one[day]) - fill_linear)
+        june.append(float(one[day]) - fill_june)
 
     def rms(errors: list[float]) -> float:
         return math.sqrt(statistics.fmean(e * e for e in errors))
 
     return rms(linear), rms(june), statistics.fmean(june), statistics.stdev(june), len(linear)
+
+
+def fill_two_misses(
+    fill: GapFill, *, data_dir: Path | None = None
+) -> list[tuple[date, date, float]]:
+    """Fill 2's miss on every test day of ``fill``'s pattern, the true price
+    minus the guess in dollars a gallon, with the day and the base the guess
+    starts from. Their average is ``fill.june_bias`` and their spread
+    ``fill.june_spread``."""
+    one = settlements(HARBOR_GASOLINE, data_dir=data_dir)[1]
+    two = settlements(HARBOR_GASOLINE_2, data_dir=data_dir)[1]
+    return [
+        (day, around[2], float(one[day]) - _fills(day, around, fill.steps, one, two)[1])
+        for day, around in _test_days(fill.steps, one, two)
+    ]
 
 
 def gap_fills(*, data_dir: Path | None = None) -> list[GapFill]:

@@ -127,7 +127,15 @@ To measure a fill, the run hid April days from 1994 to 2005 whose May price the 
 
 Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 2 gives moves of +0.4, +0.5 and +0.6 cents a gallon and misses by 0.89, 0.76 and 0.65. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss.
 
-Fill 2’s misses also lean one way. On the test days it guessed May too low by 0.26, 0.21 and 0.20 cents on average, each between 2.7 and 3.2 standard errors from zero, a standard error being how far an average drawn from that many days would typically stray. The test days overlap, though, and days in one April share its price moves, so the true standard errors are larger and the lean is suggestive rather than settled. Correcting each guess by its average miss, and measuring the spread of the misses around that average, which is the typical miss with the lean taken out, gives each year a corrected move and a chance of a profit, in cents a gallon:
+Fill 2’s misses also lean one way. On the test days it guessed May too low by 0.26, 0.21 and 0.20 cents on average, each between 2.7 and 3.2 standard errors from zero, a standard error being how far an average drawn from that many days would typically stray.
+
+![“One set of misses, three numbers”, drawn slowly stroke by stroke. Fill 2’s misses on the 80 test days of 1997’s pattern are stacked as dots on a scale labelled “-2”, “-1”, “0”, “+1” and “+2” in “cents a gallon”, with a dashed line at zero, and a caption reads “dot: one test day’s miss, 80 days”. More of the dots sit right of zero than left, and a few reach past +2. Above them a grey bar spans one typical miss either side of zero, “typical miss ±0.89, around zero”, and a black bar with a brown dot at its middle spans the spread either side of the average, “average +0.26, spread ±0.86”, shifted right of zero by the lean. A note names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_three_numbers.gif)
+
+The test days overlap, though, and days in one April share its price moves, so the true standard errors are larger and the lean is suggestive rather than settled.
+
+![“Twelve Aprils, eight lean low”, drawn slowly stroke by stroke. Each April from 1994 to 2005 has a row labelled with its year and its number of test days, “1994 (5)”, “1995 (5)”, “1996 (8)”, “1997 (3)”, “1998 (1)”, “1999 (2)”, “2000 (8)”, “2001 (9)”, “2002 (11)”, “2003 (8)”, “2004 (15)” and “2005 (5)”, and a bar from a dashed zero line to that April’s average miss. Eight bars, in brown, run right of zero, and the longest, for 1996, 2001 and 2003, carry most of the lean. The other four, in grey, sit left of zero or on it. Captions read “left: May guessed too high”, “right: too low” and “(n): test days that April”, a summary reads “8 of 12 Aprils lean low”, and a note names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_april_leans.gif)
+
+Correcting each guess by its average miss, and measuring the spread of the misses around that average, which is the typical miss with the lean taken out, gives each year a corrected move and a chance of a profit, in cents a gallon:
 
 ```math
 \small\begin{array}{l|r|r|r}

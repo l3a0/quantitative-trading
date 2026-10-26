@@ -3512,8 +3512,9 @@ misses are normal and independent, all three years were profits with a chance
 of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
 was 41%.
 
-The post also carries nine whiteboard sketches that draw this entry's run,
-and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all nine.
+The post also carries eleven whiteboard sketches that draw this entry's run,
+and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all
+eleven.
 
 1. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
    against the 2009 loss and the first edition's release.
@@ -3528,15 +3529,18 @@ and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all nine.
    gap between the files' 16 profits and Chan's 19.
 6. Fill 2 for 1997: June's rise across the gap carried onto May, with a band
    of fill 2's typical miss either side that the exit price splits.
-7. Why a miss subtracts at an entry and adds at an exit, from 1997's missing
+7. Fill 2's misses on the 80 test days of 1997's pattern, with their
+   average, spread and typical miss.
+8. Each April's average miss, eight of twelve leaning low.
+9. Why a miss subtracts at an entry and adds at an exit, from 1997's missing
    entry and 1998's missing exit.
-8. Each missing year's move with fill 2's guess corrected by its average
+10. Each missing year's move with fill 2's guess corrected by its average
    miss, against the spread of its misses either side.
-9. Which numbered file holds the June contract on the entry and exit days of
+11. Which numbered file holds the June contract on the entry and exit days of
    2008 and 2006.
 
 [tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
-reads all nine from the run, so a change to the streak counts, to a gasoline
+reads all eleven from the run, so a change to the streak counts, to a gasoline
 year's result or to the expiry rule moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*

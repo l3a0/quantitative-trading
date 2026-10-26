@@ -1,15 +1,16 @@
 """Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 4.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Nine of its passages turn on a picture a
+trades against EIA's settlements. Eleven of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
 missing one, what Chan's 19 needs of the missing years, how the second fill
-carries June's move across a gap, why a miss subtracts at an entry and adds at
-an exit, how far a fill misses against each year's move, and which numbered
-file holds the June contract on a given day. This module draws those nine as
-scenes, and the post places each right after the paragraph it draws.
+carries June's move across a gap, how its misses lean and spread, how the lean
+looks April by April, why a miss subtracts at an entry and adds at an exit, how
+far a fill misses against each year's move, and which numbered file holds the
+June contract on a given day. This module draws those eleven as scenes, and the
+post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
@@ -49,18 +50,26 @@ scenes, and the post places each right after the paragraph it draws.
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the list opening
    "1. **Fill 1, a straight line**".
-7. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
+7. One set of misses, three numbers: fill 2's misses on every test day of
+   1997's pattern, stacked as dots on a scale in cents, with the average miss
+   and a bar of the spread around it, and a bar of the typical miss around
+   zero. It sits after the paragraph opening "Fill 2’s misses also lean one
+   way."
+8. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
+   bar from zero, with the number of test days that April. It sits after the
+   paragraph opening "The test days overlap".
+9. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
    missing entry and 1998's missing exit, each with the known price, fill 2's
    guess, the guess lifted by fill 2's average miss, and brackets for the move
    with the guess and the move with the lifted guess, shorter for the entry
    and longer for the exit. It sits after the exit's derivation, which opens
    "```math".
-8. Each corrected move against fill 2's spread: for each missing year, the
+10. Each corrected move against fill 2's spread: for each missing year, the
    year's move with fill 2's guess corrected by its average miss, a bar of the
    spread of its misses either side, and each year's chance of a profit. The
    bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
    the paragraph opening "So the chance that all three years were profits".
-9. Which file holds the June contract: the March, April, May and June natural
+11. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -69,7 +78,7 @@ scenes, and the post places each right after the paragraph it draws.
    sits in Lesson 4, after the paragraph opening "For gasoline the answer is
    simple."
 
-All nine carry data, and none needs the owner's archive.
+All eleven carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -100,7 +109,7 @@ Both years' calendars are drawn on one axis of month and day.
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
 Each sketch carries more than a reader takes in at that post's pace, so
-all nine are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all eleven are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -108,13 +117,15 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all nine with::
+with no change is a no-op diff. Redraw all eleven with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
 
 from __future__ import annotations
 
+import math
+import statistics
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
@@ -513,7 +524,21 @@ def _gasoline_editions(f: GasolineFigures) -> Scene:
 # --- Lesson 2: what the missing rows leave -----------------------------------
 
 #: The number words a title spells a small count in.
-WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
+WORDS = {
+    0: "none",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve",
+}
 
 #: The range sketch's year axis and count scale, each with its height.
 RANGE_YEAR_X = (0.55, 9.45)
@@ -1181,6 +1206,225 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
     return Scene("Fill 2 carries June’s move across the gap", "june_move_fill", tuple(steps))
 
 
+# --- Lesson 2: how fill 2's misses lean and spread ---------------------------
+
+
+@dataclass(frozen=True)
+class MissFigures:
+    """What the two miss sketches draw, read from the gasoline run.
+
+    ``misses`` holds fill 2's miss on every test day of ``fill``'s pattern, as
+    :func:`chan.commodity_seasonals.fill_two_misses` gives them: the day, the
+    base the guess starts from, and the true price minus the guess in dollars
+    a gallon.
+    """
+
+    fill: seasonals.GapFill
+    misses: tuple[tuple[date, date, float], ...]
+
+    @property
+    def cents(self) -> list[float]:
+        return [100 * miss for *_, miss in self.misses]
+
+    @property
+    def by_april(self) -> dict[int, list[float]]:
+        found: dict[int, list[float]] = {}
+        for day, _, miss in self.misses:
+            found.setdefault(day.year, []).append(100 * miss)
+        return found
+
+    @classmethod
+    def from_run(cls) -> MissFigures:
+        fill = seasonals.gap_fills()[0]
+        return cls(fill=fill, misses=tuple(seasonals.fill_two_misses(fill)))
+
+
+#: The three-numbers sketch's scale: where zero sits and how wide a cent is,
+#: the width of a stack of dots, and the height of the lowest dot and each
+#: next one up.
+MISS_DOT_ZERO_X, MISS_DOT_CENT = 3.6, 1.6
+MISS_DOT_BIN = 0.2
+MISS_DOT_BASE, MISS_DOT_STEP = 1.25, 0.17
+MISS_SPREAD_Y, MISS_TYPICAL_Y = 3.75, 3.35
+
+
+def _miss_x(cents: float) -> float:
+    return MISS_DOT_ZERO_X + cents * MISS_DOT_CENT
+
+
+def _miss_stacks(cents: list[float]) -> tuple[list[float], list[float]]:
+    """Each miss's place: its bin of :data:`MISS_DOT_BIN` cents across, and
+    its height in that bin's stack, smallest misses first."""
+    counts: dict[float, int] = {}
+    xs, ys = [], []
+    for miss in sorted(cents):
+        stack = round(miss / MISS_DOT_BIN) * MISS_DOT_BIN
+        height = counts.get(stack, 0)
+        counts[stack] = height + 1
+        xs.append(_miss_x(stack))
+        ys.append(MISS_DOT_BASE + height * MISS_DOT_STEP)
+    return xs, ys
+
+
+def _three_numbers(f: MissFigures) -> Scene:
+    """Lesson 2: fill 2's misses on its test days, with their average and the
+    spread around it, and the typical miss around zero."""
+    cents = f.cents
+    mean, spread = statistics.fmean(cents), statistics.stdev(cents)
+    typical = math.sqrt(statistics.fmean(c * c for c in cents))
+    xs, ys = _miss_stacks(cents)
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "zero",
+            _line([(_miss_x(0), 1.15), (_miss_x(0), 3.95)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Stroke("misses", np.array(xs), np.array(ys), color=INK, frames=8, dots=4.0),
+        _stroke("scale", _line([(_miss_x(-2), 1.05), (_miss_x(3.4), 1.05)]), color=MUTED, frames=6),
+        *[
+            Label(
+                f"{c:+d}" if c else "0",
+                _miss_x(c),
+                0.7,
+                names="scale",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
+            for c in (-2, -1, 0, 1, 2)
+        ],
+        Label("cents a gallon", 9.7, 0.7, names="scale", color=MUTED, size=10, ha="right"),
+        Label(
+            f"dot: one test day’s miss, {len(cents)} days",
+            0.3,
+            0.3,
+            names="misses",
+            color=INK,
+            size=10,
+        ),
+        _stroke(
+            "typical",
+            _span(_miss_x(-typical), _miss_x(typical), MISS_TYPICAL_Y, tick=0.1),
+            color=MUTED,
+            frames=6,
+        ),
+        Label(
+            f"typical miss ±{typical:.2f}, around zero",
+            _miss_x(typical) + 0.2,
+            MISS_TYPICAL_Y - 0.05,
+            names="typical",
+            color=MUTED,
+            size=11,
+        ),
+        _stroke(
+            "spread",
+            _span(_miss_x(mean - spread), _miss_x(mean + spread), MISS_SPREAD_Y, tick=0.1),
+            color=INK,
+            frames=6,
+        ),
+        Stroke(
+            "average",
+            np.array([_miss_x(mean)]),
+            np.array([MISS_SPREAD_Y]),
+            color=ACCENT,
+            frames=1,
+            dots=9.0,
+        ),
+        Label(
+            f"average {mean:+.2f}, spread ±{spread:.2f}",
+            _miss_x(mean + spread) + 0.2,
+            MISS_SPREAD_Y - 0.05,
+            names="spread",
+            color=ACCENT,
+            size=11,
+        ),
+        Label(GASOLINE_TRADE, 9.7, 0.3, names="scale", color=MUTED, size=10, ha="right"),
+    ]
+    return Scene("One set of misses, three numbers", "three_numbers", tuple(steps))
+
+
+#: The Aprils sketch's scale: where zero sits, how wide a cent is, and the
+#: height of the first April's row and the step down to each next one.
+APRIL_ZERO_X, APRIL_CENT = 3.0, 3.0
+APRIL_TOP, APRIL_STEP = 3.78, 0.285
+
+
+def _april_x(cents: float) -> float:
+    return APRIL_ZERO_X + cents * APRIL_CENT
+
+
+def _april_leans(f: MissFigures) -> Scene:
+    """Lesson 2: each April's average miss, which leans low in most years and
+    takes most of its size from a few."""
+    by = f.by_april
+    means = {year: statistics.fmean(cents) for year, cents in sorted(by.items())}
+    high = sum(1 for mean in means.values() if mean > 0)
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "zero",
+            _line([(_april_x(0), 0.55), (_april_x(0), 3.95)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        )
+    ]
+    for k, (year, mean) in enumerate(means.items()):
+        row = APRIL_TOP - k * APRIL_STEP
+        ink = ACCENT if mean > 0 else MUTED
+        bar = (
+            _stroke(
+                f"april-{year}",
+                _line([(_april_x(0), row), (_april_x(mean), row)], per_unit=40),
+                color=ink,
+                width=3.0,
+                frames=1,
+            )
+            if abs(_april_x(mean) - _april_x(0)) > 0.05
+            else Stroke(
+                f"april-{year}",
+                np.array([_april_x(mean)]),
+                np.array([row]),
+                color=ink,
+                frames=1,
+                dots=5.0,
+            )
+        )
+        steps += [
+            bar,
+            Label(
+                f"{year} ({len(by[year])})",
+                0.3,
+                row - 0.05,
+                names=f"april-{year}",
+                color=INK,
+                size=9,
+            ),
+        ]
+    steps += [
+        Label(
+            "left: May guessed too high", 9.7, 1.75, names="zero", color=MUTED, size=10, ha="right"
+        ),
+        Label("right: too low", 9.7, 1.45, names="zero", color=ACCENT, size=10, ha="right"),
+        Label(
+            "(n): test days that April", 9.7, 1.15, names="zero", color=MUTED, size=10, ha="right"
+        ),
+        Label(
+            f"{high} of {len(means)} Aprils lean low",
+            9.7,
+            0.75,
+            names="zero",
+            color=INK,
+            size=11,
+            ha="right",
+        ),
+        Label(GASOLINE_TRADE, 9.7, 0.3, names="zero", color=MUTED, size=10, ha="right"),
+    ]
+    title = f"{WORDS[len(means)].capitalize()} Aprils, {WORDS[high]} lean low"
+    return Scene(title, "april_leans", tuple(steps))
+
+
 # --- Lesson 2: a miss at the entry subtracts, at the exit it adds -----------
 
 #: Board units per cent on the miss-sign sketch's price scale, and the height
@@ -1590,6 +1834,8 @@ PACED = (
     "interpolation_guess",
     "chan_needs_gaps",
     "june_move_fill",
+    "three_numbers",
+    "april_leans",
     "miss_sign",
     "fill_misses",
     "june_file",
@@ -1624,13 +1870,15 @@ def scenes(
     gasoline: GasolineFigures | None = None,
     guess: GuessFigures | None = None,
     fill_two: FillTwoFigures | None = None,
+    misses: MissFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The nine scenes in the order the post reads them, Lessons 1, 2 and 4."""
+    """The eleven scenes in the order the post reads them, Lessons 1, 2 and 4."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
     guess = guess if guess is not None else GuessFigures.from_run()
     fill_two = fill_two if fill_two is not None else FillTwoFigures.from_run()
+    misses = misses if misses is not None else MissFigures.from_run()
     return (
         _streak_start(streaks),
         _gasoline_editions(gasoline),
@@ -1638,6 +1886,8 @@ def scenes(
         _interpolation_guess(guess),
         _chan_needs_gaps(gasoline),
         _june_move_fill(fill_two),
+        _three_numbers(misses),
+        _april_leans(misses),
         _miss_sign(*seasonals.gap_fills()[:2]),
         _fill_misses(tuple(seasonals.gap_fills())),
         _june_file(*years),
@@ -1666,10 +1916,13 @@ def make_commodity_seasonals_whiteboards(
     gasoline: GasolineFigures | None = None,
     guess: GuessFigures | None = None,
     fill_two: FillTwoFigures | None = None,
+    misses: MissFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, in the post's order."""
     folder = out_dir if out_dir is not None else FIGURES_DIR
-    return [_write(scene, folder) for scene in scenes(streaks, years, gasoline, guess, fill_two)]
+    return [
+        _write(scene, folder) for scene in scenes(streaks, years, gasoline, guess, fill_two, misses)
+    ]
 
 
 def main() -> None:
