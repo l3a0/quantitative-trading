@@ -7,7 +7,7 @@ carries the verdicts and points here row by row, and
 ``blog/khandani-lo-reversal-lessons.md`` quotes the same figures and the
 yearly APRs, the annual mean and deviation, the bridge differences and the
 average day that this file pins for it, and ``TestWhatThePostQuotes`` reads
-one copy of each in the post against the run.
+at least one copy of each in the post against the run.
 
 Every pin on the committed panel reads one vintage and one specification, so
 both are stated once here.
