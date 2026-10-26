@@ -1,7 +1,7 @@
-"""Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 5.
+"""Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2, 4 and 5.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Twelve of its passages turn on a picture a
+trades against EIA's settlements. Fourteen of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
@@ -9,9 +9,10 @@ missing one, what Chan's 19 needs of the missing years, how the second fill
 carries June's move across a gap, which April days can test a fill, how its
 misses lean and spread, how the lean looks April by April, why a miss
 subtracts at an entry and adds at an exit, how far a fill misses against each
-year's move, and which numbered file holds the June contract on a given day.
-This module draws those twelve as scenes, and the post places each right
-after the paragraph it draws.
+year's move, how far a Sharpe ratio from so few years can stray, how one year
+moves natural gas's mean but not its ranks, and which numbered file holds the
+June contract on a given day. This module draws those fourteen as scenes,
+and the post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
@@ -75,7 +76,18 @@ after the paragraph it draws.
    spread of its misses either side, and each year's chance of a profit. The
    bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
    the paragraph opening "So the chance that all three years were profits".
-12. Which file holds the June contract: the March, April, May and June natural
+12. How far each Sharpe ratio can stray: the four periods of the post's
+   returns table, each trade before and after the book, as a dot at its
+   Sharpe ratio and a bar 1.96 standard errors either side, against a dashed
+   zero line. Both periods after the book reach across zero. It sits in
+   Lesson 4, after the paragraph opening "For the four Sharpe ratios".
+13. One year moves the mean, not the ranks: natural gas's returns from 2009
+   to 2023 as dots on a percentage axis, with ticks at their mean and at
+   their mean without the best year, 2022, and below them all 30 years from
+   1994 to 2023 ranked worst to best, the earlier ones above a line and the
+   later ones below it. It sits after the paragraph opening "Gasoline’s fall
+   shows on both."
+14. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -84,7 +96,7 @@ after the paragraph it draws.
    sits in Lesson 5, after the paragraph opening "For gasoline the answer is
    simple."
 
-All twelve carry data, and none needs the owner's archive.
+All fourteen carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -97,6 +109,11 @@ the contract-1 file. :meth:`FillTwoFigures.from_run` reads the same gap's
 fill 2 and the contract-1 and contract-2 settlements around it. The fill-miss
 sketch reads every gap's fill from :func:`chan.commodity_seasonals.gap_fills`
 too.
+:func:`sharpe_rows` reads each period's Sharpe ratio and standard error from
+:func:`chan.commodity_seasonals.sharpe_ratio` and
+:func:`chan.commodity_seasonals.sharpe_standard_error`, and
+:meth:`OneYearFigures.from_run` reads natural gas's yearly returns from
+:func:`chan.commodity_seasonals.natural_gas_trades`.
 :meth:`JuneYear.from_run` reads one year's entry and exit days and file
 numbers from :func:`chan.commodity_seasonals.natural_gas_trade`, and each
 contract's last trading day from :func:`chan.futures.ng_last_trade`. Three
@@ -116,7 +133,7 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are this post's own, from :mod:`chan.commodity_seasonals_figures`.
 Each sketch carries more than a reader takes in at that post's pace, so
-all twelve are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all fourteen are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -124,7 +141,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twelve with::
+with no change is a no-op diff. Redraw all fourteen with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -1778,6 +1795,347 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
     return Scene("Each corrected move against fill 2’s spread", "fill_misses", tuple(steps))
 
 
+# --- Lesson 4: how far each Sharpe ratio can stray -------------------------
+
+#: The returns table's four periods, each trade before and after the book.
+PERIODS = (
+    ("natural gas", 1994, 2008),
+    ("natural gas", 2009, 2023),
+    ("gasoline", 1995, 2015),
+    ("gasoline", 2016, 2023),
+)
+
+
+def _period_trades(trade: str, first: int, last: int) -> list[seasonals.Trade]:
+    if trade == "natural gas":
+        return seasonals.natural_gas_trades(first, last)
+    return seasonals.gasoline_trades(first, last)
+
+
+@dataclass(frozen=True)
+class SharpeRow:
+    """One period's Sharpe ratio and its standard error, from the run."""
+
+    trade: str
+    first: int
+    last: int
+    ratio: float
+    error: float
+
+    @property
+    def low(self) -> float:
+        return self.ratio - 1.96 * self.error
+
+    @property
+    def high(self) -> float:
+        return self.ratio + 1.96 * self.error
+
+
+def sharpe_rows() -> tuple[SharpeRow, ...]:
+    rows = []
+    for trade, first, last in PERIODS:
+        trades = _period_trades(trade, first, last)
+        rows.append(
+            SharpeRow(
+                trade,
+                first,
+                last,
+                seasonals.sharpe_ratio(trades),
+                seasonals.sharpe_standard_error(trades),
+            )
+        )
+    return tuple(rows)
+
+
+#: Where a Sharpe ratio of zero sits, how wide a unit is, the scale's ends,
+#: and the first row with the step down to each next one.
+SHARPE_ZERO_X, SHARPE_UNIT = 5.9, 1.75
+SHARPE_SCALE = (-1.5, 2.0)
+SHARPE_TOP, SHARPE_STEP = 3.05, 0.62
+SHARPE_AXIS_Y = 0.75
+
+
+def _one_place(value: float) -> str:
+    """``value`` to one place, with no sign on a value that rounds to zero."""
+    text = f"{value:.1f}"
+    return "0.0" if text == "-0.0" else text
+
+
+def _sharpe_x(ratio: float) -> float:
+    return SHARPE_ZERO_X + ratio * SHARPE_UNIT
+
+
+def _sharpe_ranges(rows: tuple[SharpeRow, ...]) -> Scene:
+    """Lesson 4: each period's Sharpe ratio with 1.96 standard errors either side."""
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "zero",
+            _line([(_sharpe_x(0), SHARPE_AXIS_Y), (_sharpe_x(0), 3.85)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Label("loses", _sharpe_x(0) - 0.25, 3.7, names="zero", color=LOST, size=11, ha="right"),
+        Label("earns", _sharpe_x(0) + 0.25, 3.7, names="zero", color=GOOD, size=11),
+    ]
+    for k, row in enumerate(rows):
+        y, tag = SHARPE_TOP - k * SHARPE_STEP, f"{row.trade}-{row.first}"
+        steps += [
+            Label(
+                f"{row.trade}, {row.first} to {row.last}", 0.3, y, names="zero", color=INK, size=11
+            ),
+            _stroke(
+                f"range-{tag}",
+                _span(_sharpe_x(row.low), _sharpe_x(row.high), y, tick=0.1),
+                color=INK,
+                frames=6,
+            ),
+            Stroke(
+                f"ratio-{tag}",
+                np.array([_sharpe_x(row.ratio)]),
+                np.array([y]),
+                color=ACCENT,
+                frames=1,
+                dots=8.0,
+            ),
+            Label(
+                _one_place(row.ratio),
+                _sharpe_x(row.ratio) + (0.2 if row.ratio >= 0 else -0.2),
+                y + 0.3,
+                names=f"ratio-{tag}",
+                color=ACCENT,
+                size=10,
+                ha="left" if row.ratio >= 0 else "right",
+            ),
+        ]
+    first = f"{rows[0].trade}-{rows[0].first}"
+    steps += [
+        _stroke(
+            "scale",
+            _line(
+                [
+                    (_sharpe_x(SHARPE_SCALE[0]), SHARPE_AXIS_Y),
+                    (_sharpe_x(SHARPE_SCALE[1]), SHARPE_AXIS_Y),
+                ]
+            ),
+            color=MUTED,
+            frames=6,
+        ),
+        *[
+            Label(f"{v:+d}", _sharpe_x(v), 0.4, names="scale", color=MUTED, size=10, ha="center")
+            for v in (-1, 1, 2)
+        ],
+        Label("Sharpe ratio", 0.3, 0.4, names="scale", color=MUTED, size=10),
+        Label("dot: the Sharpe ratio", 0.3, 3.75, names=f"ratio-{first}", color=ACCENT, size=10),
+        Label(
+            "bar: 1.96 standard errors either side",
+            0.3,
+            3.45,
+            names=f"range-{first}",
+            color=INK,
+            size=10,
+        ),
+    ]
+    return Scene("How far each Sharpe ratio can stray", "sharpe_ranges", tuple(steps))
+
+
+# --- Lesson 4: one year moves the mean, not the ranks -----------------------
+
+
+@dataclass(frozen=True)
+class OneYearFigures:
+    """Natural gas's yearly returns in percent, before 2009 and after 2008, by year."""
+
+    before: tuple[tuple[int, float], ...]
+    after: tuple[tuple[int, float], ...]
+
+    @property
+    def best(self) -> tuple[int, float]:
+        return max(self.after, key=lambda pair: pair[1])
+
+    @property
+    def mean_after(self) -> float:
+        return statistics.mean(r for _, r in self.after)
+
+    @property
+    def mean_without_best(self) -> float:
+        return statistics.mean(r for year, r in self.after if year != self.best[0])
+
+    @classmethod
+    def from_run(cls) -> OneYearFigures:
+        def returns(first: int, last: int) -> tuple[tuple[int, float], ...]:
+            trades = seasonals.natural_gas_trades(first, last)
+            return tuple((t.year, 100 * t.relative_change) for t in trades if t.change is not None)
+
+        return cls(before=returns(1994, 2008), after=returns(2009, 2023))
+
+
+#: The return axis: where 0% sits, how wide a percentage point is, its
+#: ends, the width of a stack of dots, and the axis, dot and mean heights.
+YEAR_ZERO_X, YEAR_POINT = 3.52, 0.084
+YEAR_SCALE = (-30.0, 70.0)
+YEAR_BIN = 3.0
+YEAR_AXIS_Y, YEAR_DOT_BASE, YEAR_DOT_STEP = 2.6, 2.8, 0.17
+YEAR_MEAN = (2.45, 2.75)
+#: The ranks strip: its ends, and the before and after rows.
+RANK_X = (1.9, 9.4)
+RANK_BEFORE_Y, RANK_AFTER_Y = 1.3, 0.9
+
+
+def _year_x(pct: float) -> float:
+    return YEAR_ZERO_X + pct * YEAR_POINT
+
+
+def _one_year(f: OneYearFigures) -> Scene:
+    """Lesson 4: 2022 alone moves natural gas's mean after 2008, and moves its ranks by none."""
+    best_year, best = f.best
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "axis",
+            _line([(_year_x(YEAR_SCALE[0]), YEAR_AXIS_Y), (_year_x(YEAR_SCALE[1]), YEAR_AXIS_Y)]),
+            color=MUTED,
+            frames=6,
+        ),
+        _stroke(
+            "zero",
+            _line([(_year_x(0), YEAR_AXIS_Y - 0.1), (_year_x(0), 3.25)]),
+            color=MUTED,
+            dashed=True,
+            frames=3,
+        ),
+        Label("0%", _year_x(0), 3.56, names="zero", color=MUTED, size=10, ha="center"),
+        Label("returns, 2009 to 2023", 0.3, 3.75, names="axis", color=MUTED, size=10),
+    ]
+    heights: dict[float, int] = {}
+    for year, pct in sorted(f.after, key=lambda pair: pair[1]):
+        stack = round(pct / YEAR_BIN) * YEAR_BIN
+        level = heights.get(stack, 0)
+        heights[stack] = level + 1
+        steps.append(
+            Stroke(
+                f"year-{year}",
+                np.array([_year_x(stack)]),
+                np.array([YEAR_DOT_BASE + level * YEAR_DOT_STEP]),
+                color=GOOD if pct > 0 else LOST,
+                frames=1,
+                dots=8.0,
+            )
+        )
+    steps += [
+        Label(
+            f"{best_year}: {best:+.0f}%",
+            _year_x(round(best / YEAR_BIN) * YEAR_BIN),
+            3.16,
+            names=f"year-{best_year}",
+            color=GOOD,
+            size=10,
+            ha="center",
+        ),
+        _stroke(
+            "mean",
+            _line([(_year_x(f.mean_after), YEAR_MEAN[0]), (_year_x(f.mean_after), YEAR_MEAN[1])]),
+            color=INK,
+            frames=2,
+        ),
+        Label(
+            f"mean {f.mean_after:+.1f}%",
+            _year_x(f.mean_after) + 0.1,
+            2.2,
+            names="mean",
+            color=INK,
+            size=10,
+        ),
+        _stroke(
+            "mean-without",
+            _line(
+                [
+                    (_year_x(f.mean_without_best), YEAR_MEAN[0]),
+                    (_year_x(f.mean_without_best), YEAR_MEAN[1]),
+                ]
+            ),
+            color=ACCENT,
+            frames=2,
+        ),
+        Label(
+            f"without {best_year}: {f.mean_without_best:+.1f}%",
+            _year_x(f.mean_without_best) - 0.1,
+            2.2,
+            names="mean-without",
+            color=ACCENT,
+            size=10,
+            ha="right",
+        ),
+    ]
+    ranked = sorted([(r, "before", y) for y, r in f.before] + [(r, "after", y) for y, r in f.after])
+    step = (RANK_X[1] - RANK_X[0]) / (len(ranked) - 1)
+    steps += [
+        _stroke(
+            "ranks",
+            _line(
+                [
+                    (RANK_X[0], (RANK_BEFORE_Y + RANK_AFTER_Y) / 2),
+                    (RANK_X[1], (RANK_BEFORE_Y + RANK_AFTER_Y) / 2),
+                ]
+            ),
+            color=MUTED,
+            frames=6,
+        ),
+        Label(
+            "1994 to 2008",
+            RANK_X[0] - 0.35,
+            RANK_BEFORE_Y,
+            names="ranks",
+            color=INK,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            "2009 to 2023",
+            RANK_X[0] - 0.35,
+            RANK_AFTER_Y,
+            names="ranks",
+            color=ACCENT,
+            size=10,
+            ha="right",
+        ),
+    ]
+    for k, (_, period, year) in enumerate(ranked):
+        steps.append(
+            Stroke(
+                f"rank-{year}",
+                np.array([RANK_X[0] + k * step]),
+                np.array([RANK_BEFORE_Y if period == "before" else RANK_AFTER_Y]),
+                color=INK if period == "before" else ACCENT,
+                frames=1,
+                dots=7.0,
+            )
+        )
+    steps += [
+        Label("worst", RANK_X[0], 0.5, names="ranks", color=MUTED, size=10, ha="center"),
+        Label(
+            f"best: {best_year}",
+            RANK_X[1],
+            0.5,
+            names=f"rank-{best_year}",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            f"ranked worst to best, {best_year} is the top rank however large its gain",
+            0.3,
+            1.75,
+            names=f"rank-{best_year}",
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            "natural gas, June contract", 9.7, 3.75, names="axis", color=MUTED, size=10, ha="right"
+        ),
+    ]
+    return Scene("One year moves the mean, not the ranks", "one_year", tuple(steps))
+
+
 # --- Lesson 5: which numbered file holds June --------------------------------
 
 #: The year whose entry comes before March's last trading day, and the year
@@ -1956,6 +2314,8 @@ PACED = (
     "april_leans",
     "miss_sign",
     "fill_misses",
+    "sharpe_ranges",
+    "one_year",
     "june_file",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
@@ -1991,7 +2351,7 @@ def scenes(
     misses: MissFigures | None = None,
     narrowing: NarrowingFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The twelve scenes in the order the post reads them, Lessons 1, 2 and 5."""
+    """The fourteen scenes in the order the post reads them, Lessons 1, 2, 4 and 5."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
@@ -2011,6 +2371,8 @@ def scenes(
         _april_leans(misses),
         _miss_sign(*seasonals.gap_fills()[:2]),
         _fill_misses(tuple(seasonals.gap_fills())),
+        _sharpe_ranges(sharpe_rows()),
+        _one_year(OneYearFigures.from_run()),
         _june_file(*years),
     )
 

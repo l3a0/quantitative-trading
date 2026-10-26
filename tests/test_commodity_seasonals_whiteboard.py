@@ -1,11 +1,13 @@
-"""The pins for the twelve whiteboard GIFs in the commodity seasonals post.
+"""The pins for the fourteen whiteboard GIFs in the commodity seasonals post.
 
 Two sketches draw Lesson 1, its natural gas streaks and gasoline's two claims.
 Nine draw Lesson 2: the range the missing rows leave, a guessed price, what
 Chan's 19 needs, how fill 2 carries June's move, which April days can test a
 fill, how its misses lean and spread, how the lean looks April by April, why
 a miss subtracts at an entry and adds at an exit, and each fill's miss
-against each year's move. One draws Lesson 5's numbered files. The scenes are
+against each year's move. Two draw Lesson 4: how far each Sharpe ratio can
+stray, and how one year moves natural gas's mean but not its ranks. One draws
+Lesson 5's numbered files. The scenes are
 built from the natural gas and gasoline runs on the committed EIA files rather
 than from a pinned copy of their figures. Most tests check the drawing against
 the run, and a few check the run against literal dates, counts and labels the
@@ -66,7 +68,16 @@ post quotes, such as test_the_run_gives_these_dates_and_files.
    corrected by its average miss, and a bar of the spread of its misses. What
    is pinned is that each dot, bar and σ sit at the run's figures on one scale,
    and that a bar crosses zero exactly when its move is under one spread.
-12. The calendar sketch draws the March to June contracts in 2008 and 2006,
+12. The Sharpe sketch draws each period of the returns table as a dot at its
+   Sharpe ratio on a bar 1.96 standard errors either side. What is pinned is
+   that each dot and bar sit at the run's figures on one scale, and that a
+   bar crosses zero exactly for the two periods after the book.
+13. The one-year sketch draws natural gas's returns after 2008 with ticks at
+   their mean with and without 2022, and all 30 years ranked. What is pinned
+   is that the ticks sit at the run's means, that each rank dot sits in its
+   period's row in rank order, that the nine worst ranks are later years, and
+   that shrinking 2022's gain moves the mean and leaves every rank in place.
+14. The calendar sketch draws the March to June contracts in 2008 and 2006,
    each bar ending at its last trading day, with a dashed line at each entry
    and exit. What is pinned is that June's number in each label is how many
    bars reach that line, that it equals the file the run reads, and that the
@@ -105,12 +116,17 @@ from chan.commodity_seasonals_whiteboard import (
     CALENDAR,
     CALENDAR_X,
     FIRST_EDITION,
+    PERIODS,
+    RANK_AFTER_Y,
+    RANK_BEFORE_Y,
+    RANK_X,
     STREAK_AXIS_Y,
     FillTwoFigures,
     GasolineFigures,
     GuessFigures,
     MissFigures,
     NarrowingFigures,
+    OneYearFigures,
     StreakFigures,
     _april_leans,
     _april_x,
@@ -134,16 +150,21 @@ from chan.commodity_seasonals_whiteboard import (
     _miss_stacks,
     _miss_x,
     _narrow_end,
+    _one_year,
+    _sharpe_ranges,
+    _sharpe_x,
     _sign_y,
     _streak_start,
     _streak_x,
     _test_days,
     _three_numbers,
+    _year_x,
     gif_name,
     june_years,
     main,
     make_commodity_seasonals_whiteboards,
     scenes,
+    sharpe_rows,
     sketch_timeline,
 )
 from chan.futures import ng_last_trade
@@ -176,6 +197,8 @@ GIFS = [
     "commodity_sketch_april_leans.gif",
     "commodity_sketch_miss_sign.gif",
     "commodity_sketch_fill_misses.gif",
+    "commodity_sketch_sharpe_ranges.gif",
+    "commodity_sketch_one_year.gif",
     "commodity_sketch_june_file.gif",
 ]
 
@@ -192,6 +215,8 @@ FOLLOWS = (
     "The test days overlap, though,",
     "```math\n\\begin{aligned}\n\\text{true move} &= (\\text{guess} + e) - \\text{entry}",
     "So the chance that all three years were profits",
+    "For the four Sharpe ratios in the returns table",
+    "Gasoline’s fall shows on both.",
     "For gasoline that is always contract 1.",
 )
 
@@ -390,6 +415,39 @@ JUNE_LABELS = [
     "June’s number is how many bars each line crosses",
 ]
 
+SHARPE_LABELS = [
+    "loses",
+    "earns",
+    "natural gas, 1994 to 2008",
+    "1.0",
+    "natural gas, 2009 to 2023",
+    "0.0",
+    "gasoline, 1995 to 2015",
+    "0.8",
+    "gasoline, 2016 to 2023",
+    "-0.4",
+    "-1",
+    "+1",
+    "+2",
+    "Sharpe ratio",
+    "dot: the Sharpe ratio",
+    "bar: 1.96 standard errors either side",
+]
+
+ONE_YEAR_LABELS = [
+    "0%",
+    "returns, 2009 to 2023",
+    "2022: +64%",
+    "mean -0.4%",
+    "without 2022: -5.0%",
+    "1994 to 2008",
+    "2009 to 2023",
+    "worst",
+    "best: 2022",
+    "ranked worst to best, 2022 is the top rank however large its gain",
+    "natural gas, June contract",
+]
+
 #: The same limits the USD.CAD sketches hold, in pixels.
 CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
 
@@ -495,7 +553,7 @@ def _alt(text: str, scene) -> str:
 
 
 class TestTheScenes:
-    def test_there_are_twelve_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_fourteen_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -517,8 +575,9 @@ class TestTheScenes:
         """A reader who meets a sketch before its paragraph can tell which
         commodity it draws, from its title or from one grey note. A title that
         names the commodity leaves the note only the contract. The calendar
-        sketch draws several natural gas contracts and names each one, so it
-        is the exception."""
+        sketch draws several natural gas contracts and names each one, and the
+        Sharpe sketch draws both trades and names each row's, so they are the
+        exceptions."""
         trades = {
             "streak_start": ("natural gas", "June contract"),
             "gasoline_editions": ("gasoline", "May contract"),
@@ -531,8 +590,9 @@ class TestTheScenes:
             "test_days": ("gasoline", "May contract"),
             "three_numbers": ("gasoline", "May contract"),
             "april_leans": ("gasoline", "May contract"),
+            "one_year": ("natural gas", "June contract"),
         }
-        assert set(trades) | {"june_file"} == {scene.slug for scene in every}
+        assert set(trades) | {"june_file", "sharpe_ranges"} == {scene.slug for scene in every}
         for scene in every:
             if scene.slug not in trades:
                 continue
@@ -628,6 +688,8 @@ class TestTheGifs:
             "april_leans",
             "miss_sign",
             "fill_misses",
+            "sharpe_ranges",
+            "one_year",
             "june_file",
         )
         for scene in every:
@@ -1514,6 +1576,146 @@ class TestTheFillMissesSketch:
         assert "the bar for 1998 only just reaches past it, and the bar for 1999 stops" in alt
 
 
+class TestTheSharpeSketch:
+    def test_its_words(self, every) -> None:
+        assert every[11].title == "How far each Sharpe ratio can stray"
+        assert every[11].labels == SHARPE_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[11]
+        zero = _stroke(scene, "zero")
+        assert (zero.color, zero.dashed) == (MUTED, True)
+        assert _label(scene, "loses").color == LOST
+        assert _label(scene, "earns").color == GOOD
+        for trade, first, _ in PERIODS:
+            assert _stroke(scene, f"range-{trade}-{first}").color == INK
+            assert _stroke(scene, f"ratio-{trade}-{first}").color == ACCENT
+
+    def test_each_dot_and_bar_sit_at_the_runs_figures(self, every) -> None:
+        """Read from the run's own functions, not from the sketch's rows."""
+        scene = every[11]
+        for trade, first, last in PERIODS:
+            trades = (
+                seasonals.natural_gas_trades(first, last)
+                if trade == "natural gas"
+                else seasonals.gasoline_trades(first, last)
+            )
+            ratio = seasonals.sharpe_ratio(trades)
+            error = seasonals.sharpe_standard_error(trades)
+            tag = f"{trade}-{first}"
+            assert _stroke(scene, f"ratio-{tag}").x[0] == pytest.approx(_sharpe_x(ratio))
+            assert _span_ends(_stroke(scene, f"range-{tag}")) == pytest.approx(
+                (_sharpe_x(ratio - 1.96 * error), _sharpe_x(ratio + 1.96 * error))
+            )
+
+    def test_only_the_bars_after_the_book_cross_zero(self, every) -> None:
+        scene = every[11]
+        zero = _stroke(scene, "zero").x[0]
+        crossing = {}
+        for trade, first, _ in PERIODS:
+            left, right = _span_ends(_stroke(scene, f"range-{trade}-{first}"))
+            crossing[(trade, first)] = left < zero < right
+        assert crossing == {
+            ("natural gas", 1994): False,
+            ("natural gas", 2009): True,
+            ("gasoline", 1995): False,
+            ("gasoline", 2016): True,
+        }
+
+    def test_other_figures_move_the_dots_and_labels(self) -> None:
+        rows = sharpe_rows()
+        moved = (dataclasses.replace(rows[0], ratio=1.5), *rows[1:])
+        scene = _sharpe_ranges(moved)
+        assert "1.5" in scene.labels and "1.0" not in scene.labels
+        assert _stroke(scene, "ratio-natural gas-1994").x[0] == pytest.approx(_sharpe_x(1.5))
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[11])
+        assert "The first bar runs from about 0.4 to 1.6 and the third stays right of zero" in alt
+        assert "the bars of both periods after the book reach across the zero line" in alt
+        first = sharpe_rows()[0]
+        assert (round(first.low, 1), round(first.high, 1)) == (0.4, 1.6)
+
+
+class TestTheOneYearSketch:
+    @staticmethod
+    def ranked(f: OneYearFigures) -> list[tuple[float, str, int]]:
+        return sorted(
+            [(r, "before", y) for y, r in f.before] + [(r, "after", y) for y, r in f.after]
+        )
+
+    def test_its_words(self, every) -> None:
+        assert every[12].title == "One year moves the mean, not the ranks"
+        assert every[12].labels == ONE_YEAR_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene, f = every[12], OneYearFigures.from_run()
+        for year, pct in f.after:
+            assert _stroke(scene, f"year-{year}").color == (GOOD if pct > 0 else LOST), year
+        assert _stroke(scene, "mean").color == INK
+        assert _stroke(scene, "mean-without").color == ACCENT
+        for year, _ in f.before:
+            assert _stroke(scene, f"rank-{year}").color == INK
+        for year, _ in f.after:
+            assert _stroke(scene, f"rank-{year}").color == ACCENT
+
+    def test_the_figures_are_the_runs(self) -> None:
+        f = OneYearFigures.from_run()
+        after = seasonals.natural_gas_trades(2009, 2023)
+        assert f.mean_after == pytest.approx(100 * seasonals.mean_return(after))
+        best = max(after, key=lambda trade: trade.relative_change)
+        rest = [trade for trade in after if trade is not best]
+        assert f.best == (best.year, pytest.approx(100 * best.relative_change))
+        assert f.mean_without_best == pytest.approx(100 * seasonals.mean_return(rest))
+        assert (len(f.before), len(f.after)) == (15, 15)
+
+    def test_each_tick_sits_at_its_mean(self, every) -> None:
+        scene, f = every[12], OneYearFigures.from_run()
+        assert set(_stroke(scene, "mean").x) == {pytest.approx(_year_x(f.mean_after))}
+        without = _stroke(scene, "mean-without").x
+        assert set(without) == {pytest.approx(_year_x(f.mean_without_best))}
+
+    def test_each_rank_dot_sits_in_its_row_in_rank_order(self, every) -> None:
+        scene, f = every[12], OneYearFigures.from_run()
+        ranked = self.ranked(f)
+        xs = [_stroke(scene, f"rank-{year}").x[0] for _, _, year in ranked]
+        assert xs == sorted(xs)
+        assert (xs[0], xs[-1]) == pytest.approx(RANK_X)
+        for _, period, year in ranked:
+            row = RANK_BEFORE_Y if period == "before" else RANK_AFTER_Y
+            assert _stroke(scene, f"rank-{year}").y[0] == pytest.approx(row), year
+        assert [period for _, period, _ in ranked[:9]] == ["after"] * 9
+        assert ranked[9][1] == "before"
+        assert ranked[-1][2] == f.best[0] == 2022
+
+    def test_a_smaller_2022_moves_the_mean_and_no_rank(self) -> None:
+        """2022 at +45% is still above every year before 2009, so it keeps the
+        top rank and every other dot stays put, while the mean falls."""
+        f = OneYearFigures.from_run()
+        smaller = OneYearFigures(
+            before=f.before,
+            after=tuple((y, 45.0 if y == 2022 else r) for y, r in f.after),
+        )
+        assert max(r for _, r in f.before) < 45.0
+        big, small = _one_year(f), _one_year(smaller)
+        for _, _, year in self.ranked(f):
+            assert _stroke(big, f"rank-{year}").x[0] == _stroke(small, f"rank-{year}").x[0]
+        assert smaller.mean_after < f.mean_after
+        assert "2022: +45%" in small.labels
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[12])
+        f = OneYearFigures.from_run()
+        losses = sum(r < 0 for _, r in f.after)
+        gains = len(f.after) - losses
+        expected = (
+            f"left of zero for the {losses} losses and blue right of it for the {gains} gains"
+        )
+        assert expected in alt
+        assert "The nine worst ranks all belong to years after 2008" in alt
+        assert "2022 takes the top rank on the right" in alt
+
+
 # --- Lesson 5: the calendar sketch ---------------------------------------------
 
 
@@ -1571,11 +1773,11 @@ class TestTheJuneYears:
 
 class TestTheJuneSketch:
     def test_its_words(self, every) -> None:
-        assert every[11].title == "Which file holds the June contract"
-        assert every[11].labels == JUNE_LABELS
+        assert every[13].title == "Which file holds the June contract"
+        assert every[13].labels == JUNE_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[11]
+        scene = every[13]
         for tag in ("2008", "2006"):
             assert _stroke(scene, f"{tag}-june").color == ACCENT
             for month in ("march", "april", "may"):
@@ -1600,7 +1802,7 @@ class TestTheJuneSketch:
         assert _day_x(date(2006, 4, 13)) == _day_x(date(2008, 4, 13))
 
     def test_each_bar_ends_at_its_last_trading_day_and_june_runs_off(self, every, years) -> None:
-        scene = every[11]
+        scene = every[13]
         for f in years:
             for month, last in zip(("march", "april", "may"), f.last_trade, strict=False):
                 bar = _stroke(scene, f"{f.year}-{month}")
@@ -1616,7 +1818,7 @@ class TestTheJuneSketch:
             assert f.last_trade[3] > CALENDAR[1].replace(year=f.year)
 
     def test_june_is_numbered_by_the_bars_each_line_crosses(self, every, years) -> None:
-        scene = every[11]
+        scene = every[13]
         for f in years:
             tag = str(f.year)
             for moment, day, number in (
@@ -1636,7 +1838,7 @@ class TestTheJuneSketch:
                 assert label.x == pytest.approx(line.x[0])
 
     def test_each_line_spans_its_years_four_bars(self, every, years) -> None:
-        scene = every[11]
+        scene = every[13]
         for f in years:
             rows = [_stroke(scene, f"{f.year}-{m}").y[0] for m in ("march", "april", "may", "june")]
             for moment in ("entry", "exit"):
@@ -1644,14 +1846,14 @@ class TestTheJuneSketch:
                 assert line.y.max() > max(rows) and line.y.min() < min(rows)
 
     def test_march_is_drawn_still_trading_in_2008_and_expired_in_2006(self, every, years) -> None:
-        scene = every[11]
+        scene = every[13]
         still, expired = years
         assert _stroke(scene, "2008-march").x.max() > _stroke(scene, "2008-entry").x[0]
         assert _stroke(scene, "2006-march").x.max() < _stroke(scene, "2006-entry").x[0]
         assert (still.march_trading, expired.march_trading) == (True, False)
 
     def test_the_years_are_stacked_and_their_rows_ordered_by_expiry(self, every) -> None:
-        scene = every[11]
+        scene = every[13]
         for tag in ("2008", "2006"):
             rows = [_stroke(scene, f"{tag}-{m}").y[0] for m in ("march", "april", "may", "june")]
             assert rows == sorted(rows, reverse=True)
@@ -1671,11 +1873,11 @@ class TestTheJuneSketch:
         assert len(_reaches(scene, "2008", _stroke(scene, "2008-entry").x[0])) == 3
 
     def test_it_closes_on_the_rule_it_draws(self, every) -> None:
-        last = every[11].steps[-1]
+        last = every[13].steps[-1]
         assert (last.text, last.color) == ("June’s number is how many bars each line crosses", INK)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, years) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[11])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[13])
         still, expired = years
         for f in years:
             assert f"March’s bar ends on {f.last_trade[0]:%B} {f.last_trade[0].day}" in alt
