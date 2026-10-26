@@ -1,4 +1,4 @@
-"""Chan's PCA factor model, Example 7.4, on the S&P 600 file every printout loads.
+"""Chan's PCA factor model, Example 7.4, on the S&P 600 closes every printout reads.
 
 Every other factor model in the book names its factors in advance. This one
 takes them from the return matrix itself with principal component analysis,

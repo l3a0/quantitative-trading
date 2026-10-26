@@ -3605,7 +3605,9 @@ Four groups of its figures are not pinned here.
 2. Facts outside the committed data. That French's market factor subtracts
    the one-month bill rate and his momentum factor skips the latest month. That the
    revised MATLAB repost at `7430b84` carries *Algorithmic Trading*'s
-   `smartstd`. The commits the sources are read at: `1a71950` of the
+   `smartstd`. That the revised Python reads `IJR_20080114.txt`, which
+   [data/README.md](data/README.md) records, and the printed R reads
+   `IJR_20080114.csv`, read from the book's pages. The commits the sources are read at: `1a71950` of the
    first-edition mirror, `7430b84` of the MATLAB repost and `5fcab61` of the
    Python repost. The Fama and French citation and its publication details.
 3. Counts and arithmetic no test asserts. 1.96 marks a two-sided 5 percent,

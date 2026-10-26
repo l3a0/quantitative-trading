@@ -464,6 +464,8 @@ class TestWhatThePostQuotes:
         )
         python = ("Mean return", "Standard deviation", "Sharpe ratio")
         fragments = [
+            f"The first edition’s {_minus(results.first.annual, 4)} is a sum over positions "
+            "rather than a return, as the first point below explains.",
             _array(
                 "\\begin{array}{l|r}\n\\text{MATLAB printout} & \\text{Printed}",
                 [[f"\\text{{{label}}}", p] for label, p in zip(labels, printed, strict=True)],
@@ -513,7 +515,10 @@ class TestWhatThePostQuotes:
         held = int((np.abs(results.python.positions).sum(axis=1) > 0).sum())
         assert held == sized.days == traded + 1
         fragments = [
-            f"r_{{i,t}} = a_i + \\sum_{{k=1}}^{{{FACTORS}}} b_{{ik}} f_{{k,t}} + e_{{i,t}}",
+            "\\begin{gathered}\n"
+            f"r_{{i,t}} = a_i + \\sum_{{k=1}}^{{{FACTORS}}} b_{{ik}} f_{{k,t}} + e_{{i,t}} \\\\\n"
+            "\\sum_t e_{i,t} = 0 \\;\\Rightarrow\\; \\sum_t \\hat r_{i,t} = \\sum_t r_{i,t}\n"
+            "\\end{gathered}",
             f"The printed Python buys {python} stocks, because its index range skips the "
             f"top-ranked one, while the MATLAB buys {matlab}.",
             f"On an average day, {100 * names.share:.2f} percent of the MATLAB’s names sit on "

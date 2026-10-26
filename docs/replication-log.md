@@ -3659,7 +3659,7 @@ with the highest expected return and shorts the 50 with the lowest. Chan
 reports 2 percent a year in MATLAB and 4 percent in Python and R, and calls the
 difference "essentially round off errors". The first edition's MATLAB, the
 revised MATLAB and the revised Python each land on every figure they print,
-on the file they all load. The revised R prints the Python's three figures to
+on the closes they all read. The revised R prints the Python's three figures to
 17 digits, and its own code reads differently.
 
 The spread between 2 and 4 percent is method. The revised Python never uses
@@ -3669,16 +3669,18 @@ regression that sum is the stock's summed return. So the Python ranks on a
 year of momentum, and its book is the same on every day as a ranking that
 leaves the PCA out. The revised MATLAB fits today's cross-section of returns
 on the stocks' factor exposures instead. Given the MATLAB's 50 longs, the
-Python's book matches the MATLAB's on none of the 752 days both trade.
+Python's book matches the MATLAB's on none of the 752 days both hold a book.
 
 Every row reads the same vintage and specification, so both are stated once
 here.
 
 1. **The vintage.** `ijr_20080114/`, the 600 stocks of Chan's
    `IJR_20080114.mat`, saved 2008-01-15, spanning 2004-01-15 to 2008-01-14,
-   read for the close through `chan.series.load_panel`. Every printout loads
-   this file. The revised repost's `.mat` has the sha256 the lifted file has,
-   and the Python's text file holds the same closes to 2.0e-16, which
+   read for the close through `chan.series.load_panel`. The two MATLAB
+   printouts load this file, the Python reads `IJR_20080114.txt`, and the
+   printed R reads `IJR_20080114.csv`. The revised repost's `.mat` has the
+   sha256 the lifted file has, and the Python's text file holds the same
+   closes to 2.0e-16, which
    [data/README.md](../data/README.md) records. **Every figure here is about
    survivors**, because the file holds the S&P 600 as it stood on 2008-01-14,
    carried backwards.
@@ -3757,7 +3759,7 @@ absence.
 | 11 | none | none, not a replication | This is why the Python's figure is momentum's. Its PCA changes no position. |
 | 12 | none | none, not a replication | The two revised programs trade mostly different stocks. |
 | 13 | none | none, not a replication | The Python's `np.arange(-topN, -1)` never buys the top-ranked stock. |
-| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that hold no position, and its `positionsTable[capital==0,]=0` zeroes its first book. The first edition's mean runs over 252 rows with no position. |
+| 14 | none | none, not a replication | The Python's mean and spread run over all 1,006 rows, including 255 that earn no return, and its `positionsTable[capital==0,]=0` zeroes its first book. The first edition's mean runs over 252 rows that earn no return. |
 | 15 | none | none, not a replication | The first edition's `smartstd` zero-fills a missing day and divides by n − 1. |
 | 16 | none | none, not a replication | PMC closes at 6.02 on 2004-03-12 and resumes at 17.25 on 2007-08-01, two price histories under one symbol. Every program but the unfilled R reading forward-fills, so the gap becomes one day's return of 1.8654. |
 
