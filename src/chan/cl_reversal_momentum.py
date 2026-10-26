@@ -71,7 +71,7 @@ specification. Three saves are read.
 1. :data:`SOURCE_FILE`, the one the script loads, for the specification and
    the three rows beside it.
 2. :data:`LATER_SOURCE_FILE`, which sits 0.27 higher on every day of the
-   book's window, for one row showing what a later download of the same
+   book's window, for one row showing what a later save of the same
    series gives.
 3. :data:`EARLIER_SOURCE_FILE`, whose CL closes equal the first save's on all
    1,000 of the book's days and whose earlier rows therefore extend the same
@@ -115,7 +115,7 @@ from chan.series import (
 from chan.vintage import VintageEntry, VintageUnavailable
 
 #: The save ``CL_rev.m`` loads. A save is named by the date in its file name.
-#: This one was downloaded on 2012-05-07, and "the 2012-05-07 save" means
+#: This one was saved on 2012-05-07, and "the 2012-05-07 save" means
 #: :data:`EARLIER_SOURCE_FILE`, not this file.
 SOURCE_FILE = "inputDataOHLCDaily_20120504.mat"
 #: A save whose CL closes equal the first's on the book's window, and run back to 2004.

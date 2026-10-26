@@ -24,11 +24,11 @@ stated once here.
   ``tests/support/committed_vintages.py``.
 
   1. ``inputdataohlcdaily_20120504/``, from ``inputDataOHLCDaily_20120504.mat``,
-     downloaded 2012-05-07. CL holds 1,000 rows, 2008-05-19 to 2012-05-04, the
+     saved 2012-05-07. CL holds 1,000 rows, 2008-05-19 to 2012-05-04, the
      book's window. Every row marked as the specification reads this save.
-  2. ``inputdataohlcdaily_20120511/``, downloaded 2012-05-12, read over the
+  2. ``inputdataohlcdaily_20120511/``, saved 2012-05-12, read over the
      same 1,000 days for one row.
-  3. ``inputdataohlcdaily_20120507/``, downloaded 2012-05-09. CL runs 2,000
+  3. ``inputdataohlcdaily_20120507/``, saved 2012-05-09. CL runs 2,000
      rows from 2004-05-24 to 2012-05-08. Its 998 rows from 2004-05-24 to
      2008-05-16 are the segment before the book's window.
 

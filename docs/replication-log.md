@@ -7061,12 +7061,12 @@ stated once here.
    from contract to contract and shifted at each roll, read for CL through
    `chan.series.load_panel` and cut to CL's own rows. A save is named by the
    date in its file name.
-   1. `inputdataohlcdaily_20120504/`, downloaded 2012-05-07, the save
+   1. `inputdataohlcdaily_20120504/`, saved 2012-05-07, the save
       `CL_rev.m` loads, 1,000 rows from 2008-05-19 to 2012-05-04. Rows 1 to
       5 and 10 to 14 read it.
-   2. `inputdataohlcdaily_20120511/`, downloaded 2012-05-12, read over the
+   2. `inputdataohlcdaily_20120511/`, saved 2012-05-12, read over the
       same 1,000 days for row 6. Its closes sit 0.27 higher on every one.
-   3. `inputdataohlcdaily_20120507/`, downloaded 2012-05-09. Its CL closes
+   3. `inputdataohlcdaily_20120507/`, saved 2012-05-09. Its CL closes
       equal the first save's on all 1,000 of those days, so its earlier rows
       extend the same series backward. Rows 7 to 9 read its 998 rows from
       2004-05-24 to 2008-05-16.
@@ -7151,8 +7151,8 @@ Three things.
    before.** From 2004-05-24 to 2008-05-16, momentum alone earns more on both
    figures. The book's "Sometimes" already allows that, so the segment shows
    the advantage is not general rather than contradicting the book. Its
-   prices are distorted by the back-adjustment, so it is not a backtest
-   either.
+   prices are distorted further by the back-adjustment, so it is evidence
+   about the book's sentence rather than a clean backtest.
 
 ### What this entry cannot say
 
