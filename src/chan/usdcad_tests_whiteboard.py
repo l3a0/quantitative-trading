@@ -112,6 +112,15 @@ fallback, and font rasterising varies across platforms. Redraw all fourteen with
 
     uv run python -m chan.usdcad_tests_whiteboard
 
+This post's scenes draw in :mod:`chan.palette`'s berry, blue and vermilion,
+imported here as ``own``, and :func:`make_usdcad_tests_whiteboards` passes
+:data:`chan.palette.INKS` to :func:`render`. The module's own ``ACCENT``,
+``GOOD``, ``LOST``, :data:`INKS`, :data:`TINT` and :data:`REJECT_TINT`, and the
+default colours of :func:`palette`, :func:`render` and :func:`_dot`, stay the
+shared ones from :mod:`chan.regime_figure`. The posts that have not moved to
+:mod:`chan.palette` import those names or draw with those defaults, and
+``docs/design.md`` says why posts move one at a time.
+
 Every other post's ``chan.*_whiteboard`` module draws its sketches with this
 module's strokes, timeline and renderer, so an edit to those changes their GIFs
 too. Redraw every set after one. This loop runs each module in ``src/chan``
@@ -140,6 +149,7 @@ from matplotlib.patches import Rectangle
 from PIL import Image
 from scipy.stats import norm
 
+from chan import palette as own
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.series import WindowCrossesScaleBreak
@@ -180,9 +190,11 @@ LABEL_MS = 350
 HOLD_MS = 4000
 
 BOARD = "#FFFFFF"
-#: The inks every stroke and label is drawn in. Each frame is mapped onto
-#: these and their blends with the white board, so every GIF carries one
-#: palette rather than one fitted to every frame.
+#: The shared inks :func:`palette` and :func:`render` default to, for the posts
+#: that have not moved to :mod:`chan.palette`. A post that has moved passes
+#: :data:`chan.palette.INKS` instead. Each frame is mapped onto the inks and
+#: their blends with the white board, so every GIF carries one fixed palette
+#: rather than one fitted to every frame.
 INKS = (INK, MUTED, ACCENT, GOOD, LOST)
 BLENDS = (1.0, 0.8, 0.6, 0.4, 0.2)
 
@@ -348,14 +360,14 @@ def _every_day(closes: int) -> Scene:
     marks = np.linspace(0.5, 9.5, 46)
     steps: list[Stroke | Label] = [
         _stroke("top-path", _curve(x, TOP + _path(x)), frames=12),
-        Stroke("closes", marks, TOP + _path(marks), color=ACCENT, frames=12, dots=5.0),
+        Stroke("closes", marks, TOP + _path(marks), color=own.ACCENT, frames=12, dots=5.0),
         Label(
             f"a test reads all {closes:,} closes",
             9.6,
             3.95,
             names="closes",
             ha="right",
-            color=ACCENT,
+            color=own.ACCENT,
             size=12,
         ),
         _stroke("bottom-path", _curve(x, BOTTOM + _path(x)), color=MUTED, frames=10),
@@ -371,14 +383,14 @@ def _every_day(closes: int) -> Scene:
             ]
         )
         steps += [
-            _stroke(f"trip-{k}", bracket, color=ACCENT, frames=5),
+            _stroke(f"trip-{k}", bracket, color=own.ACCENT, frames=5),
             Label(
                 "round trip",
                 (entry + exit_) / 2,
                 0.36,
                 names=f"trip-{k}",
                 ha="center",
-                color=ACCENT,
+                color=own.ACCENT,
                 size=12,
             ),
         ]
@@ -405,8 +417,8 @@ def _the_question() -> Scene:
             _stroke("mean", _line([(0.4, 2.0), (9.6, 2.0)]), color=MUTED, dashed=True, frames=6),
             _stroke("price", _curve(x, price), frames=14),
             Label("Random walk?", 0.6, 3.55, names="price"),
-            _stroke("pull", _arrow(6.9, 3.35, 6.9, 2.15), color=ACCENT, frames=6),
-            Label("Pulled back?", 7.15, 3.55, names="pull", color=ACCENT),
+            _stroke("pull", _arrow(6.9, 3.35, 6.9, 2.15), color=own.ACCENT, frames=6),
+            Label("Pulled back?", 7.15, 3.55, names="pull", color=own.ACCENT),
         ),
     )
 
@@ -424,11 +436,11 @@ def _adf() -> Scene:
         (
             _stroke("mean", _line([(0.4, 1.4), (9.6, 1.4)]), color=MUTED, dashed=True, frames=6),
             _stroke("rise", _curve(before, rise), frames=10),
-            _dot("high", 5.5, peak),
-            Label("high close…", 5.75, peak + 0.15, names="high", color=ACCENT),
+            _dot("high", 5.5, peak, color=own.ACCENT),
+            Label("high close…", 5.75, peak + 0.15, names="high", color=own.ACCENT),
             _stroke("fall", _curve(after, fall), frames=10),
             Label("…then a fall", 7.0, 2.35, names="fall"),
-            Label("λ < 0", 8.3, 0.6, names="fall", color=ACCENT, size=16),
+            Label("λ < 0", 8.3, 0.6, names="fall", color=own.ACCENT, size=16),
         ),
     )
 
@@ -445,9 +457,9 @@ def _hurst() -> Scene:
             _stroke("wide-up", _curve(x, 2.0 + wide), color=INK, frames=6),
             _stroke("wide-down", _curve(x, 2.0 - wide), color=INK, frames=6),
             Label("random walk, H = 0.5", 6.6, 3.47, names="wide-down"),
-            _stroke("narrow-up", _curve(x, 2.0 + narrow), color=GOOD, frames=6),
-            _stroke("narrow-down", _curve(x, 2.0 - narrow), color=GOOD, frames=6),
-            Label("reverting, H < 0.5", 6.6, 2.77, names="narrow-down", color=GOOD),
+            _stroke("narrow-up", _curve(x, 2.0 + narrow), color=own.GOOD, frames=6),
+            _stroke("narrow-down", _curve(x, 2.0 - narrow), color=own.GOOD, frames=6),
+            Label("reverting, H < 0.5", 6.6, 2.77, names="narrow-down", color=own.GOOD),
             # The tilde goes through mathtext as \sim, because the words
             # outside the dollar signs are set in the hand font, which lacks ∼.
             # It sits under the starting point, apart from every curve, because
@@ -468,12 +480,12 @@ def _variance_ratio() -> Scene:
         "variance_ratio",
         (
             _stroke("floor", _line([(1.4, 0.7), (8.6, 0.7)]), color=MUTED, frames=5),
-            _stroke("two-day", bar(2.4, 2.2), color=GOOD, frames=8),
-            Label("2-day variance", 3.15, 0.32, names="two-day", ha="center", color=GOOD),
+            _stroke("two-day", bar(2.4, 2.2), color=own.GOOD, frames=8),
+            Label("2-day variance", 3.15, 0.32, names="two-day", ha="center", color=own.GOOD),
             _stroke("one-day", bar(5.6, 3.1), color=INK, frames=8),
             Label("2 × 1-day variance", 6.35, 0.32, names="one-day", ha="center"),
             _stroke("gap", _line([(2.4, 3.1), (5.6, 3.1)]), color=MUTED, dashed=True, frames=5),
-            Label("ratio < 1 → pulled back", 5.0, 3.62, names="gap", ha="center", color=ACCENT),
+            Label("ratio < 1 → pulled back", 5.0, 3.62, names="gap", ha="center", color=own.ACCENT),
         ),
     )
 
@@ -497,12 +509,12 @@ def _half_life(lookback: int) -> Scene:
             _stroke(
                 "half",
                 _line([(1.0, half), (corner, half), (corner, floor)]),
-                color=ACCENT,
+                color=own.ACCENT,
                 dashed=True,
                 frames=6,
             ),
-            Label("half", 0.8, half, names="half", ha="right", color=ACCENT, size=12),
-            Label(f"≈ {lookback} days", corner, 0.3, names="half", ha="center", color=ACCENT),
+            Label("half", 0.8, half, names="half", ha="right", color=own.ACCENT, size=12),
+            Label(f"≈ {lookback} days", corner, 0.3, names="half", ha="center", color=own.ACCENT),
             # The time to half sits just right of the vertical dashed line,
             # under the curve, so it reads as the span along the axis.
             Label("−ln 2 / λ", corner + 0.25, 1.1, names="half", size=15),
@@ -525,21 +537,23 @@ def _linear_rule(lookback: int, closes: int) -> Scene:
         (
             _stroke("mean", _line([(0.4, 2.0), (9.6, 2.0)]), color=MUTED, dashed=True, frames=6),
             _stroke("price", _curve(x, 2.0 + sigma * z), frames=12),
-            _dot("above", 2.5, 2.0 + 2.0 * sigma, color=LOST),
-            Label("z = +2 → short 2", 2.8, 3.45, names="above", color=LOST),
-            _dot("below", 5.5, 2.0 - 1.5 * sigma, color=GOOD),
-            Label("z = −1.5 → long 1.5", 5.85, 1.0, names="below", color=GOOD),
-            _stroke("warning", warning, color=LOST, width=2.4, frames=5),
+            _dot("above", 2.5, 2.0 + 2.0 * sigma, color=own.LOST),
+            Label("z = +2 → short 2", 2.8, 3.45, names="above", color=own.LOST),
+            _dot("below", 5.5, 2.0 - 1.5 * sigma, color=own.GOOD),
+            Label("z = −1.5 → long 1.5", 5.85, 1.0, names="below", color=own.GOOD),
+            _stroke("warning", warning, color=own.LOST, width=2.4, frames=5),
             # The sign's "!" is drawn as two strokes rather than set as text,
             # because it sits inside the triangle, where a label would touch it.
-            _stroke("bang", _line([(0.8, 0.6), (0.8, 0.4)], per_unit=10), color=LOST, frames=2),
-            _stroke("bang-dot", _line([(0.8, 0.3), (0.8, 0.28)]), color=LOST, width=3.0, frames=1),
+            _stroke("bang", _line([(0.8, 0.6), (0.8, 0.4)], per_unit=10), color=own.LOST, frames=2),
+            _stroke(
+                "bang-dot", _line([(0.8, 0.3), (0.8, 0.28)]), color=own.LOST, width=3.0, frames=1
+            ),
             Label(
                 f"{lookback} days measured on all {closes:,} closes",
                 1.35,
                 0.45,
                 names="warning",
-                color=LOST,
+                color=own.LOST,
             ),
         ),
     )
@@ -626,15 +640,26 @@ def _no_rejection(statistic: float, critical: Sequence[float]) -> Scene:
         (
             _stroke("line", _line([(0.5, level), (9.6, level)]), frames=8),
             *ticks,
-            _stroke("zone", _hatched(0.5, 2.15, edge, 2.85), color=LOST, width=1.4, frames=10),
+            _stroke("zone", _hatched(0.5, 2.15, edge, 2.85), color=own.LOST, width=1.4, frames=10),
             Label(
-                "reject a random walk", (0.5 + edge) / 2, 3.3, names="zone", ha="center", color=LOST
+                "reject a random walk",
+                (0.5 + edge) / 2,
+                3.3,
+                names="zone",
+                ha="center",
+                color=own.LOST,
             ),
-            _dot("statistic", dot, level),
-            Label(_signed(statistic, 2), dot, 1.35, names="statistic", ha="center", color=ACCENT),
-            Label("ADF statistic", dot, 0.9, names="statistic", ha="center", color=ACCENT, size=12),
-            _stroke("needs", _arrow(dot - 0.25, 2.5, edge + 0.2, 2.5), color=ACCENT, frames=5),
-            Label("must sit left of 10% to reject", edge + 0.3, 3.0, names="needs", color=ACCENT),
+            _dot("statistic", dot, level, color=own.ACCENT),
+            Label(
+                _signed(statistic, 2), dot, 1.35, names="statistic", ha="center", color=own.ACCENT
+            ),
+            Label(
+                "ADF statistic", dot, 0.9, names="statistic", ha="center", color=own.ACCENT, size=12
+            ),
+            _stroke("needs", _arrow(dot - 0.25, 2.5, edge + 0.2, 2.5), color=own.ACCENT, frames=5),
+            Label(
+                "must sit left of 10% to reject", edge + 0.3, 3.0, names="needs", color=own.ACCENT
+            ),
         ),
     )
 
@@ -671,14 +696,14 @@ def _fingerprint(run: StationarityRun) -> Scene:
     steps: list[Stroke | Label] = [
         _stroke("matlab", _box(0.2, 2.75, 2.95, 3.85), frames=5),
         Label("Chan’s MATLAB file", 1.575, 3.5, names="matlab", ha="center", size=12),
-        Label("not public", 1.575, 3.1, names="matlab", ha="center", color=LOST, size=12),
+        Label("not public", 1.575, 3.1, names="matlab", ha="center", color=own.LOST, size=12),
         _stroke("csv", _box(0.2, 0.75, 2.95, 1.85), frames=5),
         Label("the CSV here", 1.575, 1.5, names="csv", ha="center", size=12),
         Label(f"{len(run.closes):,} closes", 1.575, 1.1, names="csv", ha="center", size=12),
-        _stroke("link", _line([(0.6, 2.75), (0.6, 1.85)]), color=LOST, dashed=True, frames=4),
-        _stroke("cross-a", _line([(0.42, 2.48), (0.78, 2.12)]), color=LOST, frames=2),
-        _stroke("cross-b", _line([(0.42, 2.12), (0.78, 2.48)]), color=LOST, frames=2),
-        Label("can’t compare", 1.02, 2.3, names="cross-b", color=LOST, size=12),
+        _stroke("link", _line([(0.6, 2.75), (0.6, 1.85)]), color=own.LOST, dashed=True, frames=4),
+        _stroke("cross-a", _line([(0.42, 2.48), (0.78, 2.12)]), color=own.LOST, frames=2),
+        _stroke("cross-b", _line([(0.42, 2.12), (0.78, 2.48)]), color=own.LOST, frames=2),
+        Label("can’t compare", 1.02, 2.3, names="cross-b", color=own.LOST, size=12),
     ]
     for gid, name, middle, values in calculations:
         rows = [middle] if len(values) == 1 else [middle + 0.25, middle - 0.25]
@@ -691,7 +716,7 @@ def _fingerprint(run: StationarityRun) -> Scene:
         for k, (row, value) in enumerate(zip(rows, values, strict=True)):
             steps += [
                 Label(_signed(value, 6), 7.05, row, names=f"{gid}-out"),
-                _stroke(f"check-{gid}-{k}", _check(8.95, row - 0.02), color=GOOD, frames=3),
+                _stroke(f"check-{gid}-{k}", _check(8.95, row - 0.02), color=own.GOOD, frames=3),
             ]
     steps.append(
         Label(
@@ -779,20 +804,24 @@ def _one_row(run: StationarityRun) -> Scene:
                 size=12,
             ),
             Label(_signed(run.adfuller_statistic, 6), end, 2.15, names="adfuller"),
-            _stroke("jplv7", _span(at(late), last[1], 1.1), color=GOOD, width=3.0, frames=8),
+            _stroke("jplv7", _span(at(late), last[1], 1.1), color=own.GOOD, width=3.0, frames=8),
             Label(
                 f"jplv7 adf, {run.adf.nobs:,} rows",
                 (at(late) + last[1]) / 2,
                 0.68,
                 names="jplv7",
                 ha="center",
-                color=GOOD,
+                color=own.GOOD,
                 size=12,
             ),
-            Label(_signed(run.adf.statistic, 6), end, 1.1, names="jplv7", color=GOOD),
-            Label("the script’s figure", end, 0.68, names="jplv7", color=GOOD, size=12),
+            Label(_signed(run.adf.statistic, 6), end, 1.1, names="jplv7", color=own.GOOD),
+            Label("the script’s figure", end, 0.68, names="jplv7", color=own.GOOD, size=12),
             _stroke(
-                "one-row", _box(at(early), bottom, at(late), top), color=ACCENT, width=3.2, frames=4
+                "one-row",
+                _box(at(early), bottom, at(late), top),
+                color=own.ACCENT,
+                width=3.2,
+                frames=4,
             ),
             Label(
                 "the one row",
@@ -800,7 +829,7 @@ def _one_row(run: StationarityRun) -> Scene:
                 1.65,
                 names="one-row",
                 ha="center",
-                color=ACCENT,
+                color=own.ACCENT,
                 size=12,
             ),
         ),
@@ -928,12 +957,17 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
     # to the tallest bar, so it reads as a shaded region rather than as more
     # data drawn over the bins.
     low, high = mean - sd, mean + sd
-    band = Fill("band", at(low), base, at(high), top(counts.max()), color=TINT)
+    band = Fill("band", at(low), base, at(high), top(counts.max()), color=own.TINT)
 
     xs = [at(row.genhurst) for row in measured.offsets]
     levels = _levels(xs, 0.2)
     dots = [
-        _dot(f"start-{row.offset}", x, 0.7 + 0.19 * level, LOST if row.prints_as_book else ACCENT)
+        _dot(
+            f"start-{row.offset}",
+            x,
+            0.7 + 0.19 * level,
+            own.LOST if row.prints_as_book else own.ACCENT,
+        )
         for row, x, level in zip(measured.offsets, xs, levels, strict=True)
     ]
     hits = sum(row.prints_as_book for row in measured.offsets)
@@ -941,8 +975,8 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
     # names read apart rather than as one phrase.
     marks = (
         ("half", RANDOM_WALK_H, MUTED, f"{RANDOM_WALK_H:.1f}", None, "center"),
-        ("run", run.hurst, ACCENT, f"{run.hurst:.4f}", "this run", "right"),
-        ("book", BOOK_HURST, LOST, f"{BOOK_HURST:.2f}", "the book", "left"),
+        ("run", run.hurst, own.ACCENT, f"{run.hurst:.4f}", "this run", "right"),
+        ("book", BOOK_HURST, own.LOST, f"{BOOK_HURST:.2f}", "the book", "left"),
     )
     lines: list[Stroke | Label] = []
     for gid, value, color, number, words, ha in marks:
@@ -965,7 +999,7 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
             _stroke("walks", _line(outline, per_unit=10), frames=14),
             Label(f"{len(measured.walks):,} random walks", left, 3.62, names="walks", size=12),
             band,
-            Label("±1 SD", at(high) + 0.4, 3.62, names="band", color=GOOD, size=12),
+            Label("±1 SD", at(high) + 0.4, 3.62, names="band", color=own.GOOD, size=12),
             *lines,
             *dots,
             Label(
@@ -974,7 +1008,7 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
                 0.7,
                 names=last,
                 ha="right",
-                color=ACCENT,
+                color=own.ACCENT,
                 size=12,
             ),
             Label(
@@ -982,7 +1016,7 @@ def _noise_band(run: StationarityRun, measured: Spread) -> Scene:
                 max(xs) + 0.35,
                 0.7,
                 names=last,
-                color=LOST,
+                color=own.LOST,
                 size=12,
             ),
         ),
@@ -1083,10 +1117,12 @@ def _lean_not_cross(run: StationarityRun, measured: Spread) -> Scene:
         """The reject zone left of ``critical``, then its tick and its words."""
         y, edge = rows[gid], at(critical)
         return [
-            Fill(f"{gid}-zone", GAUGE_LEFT, y - zone, edge, y + zone, color=REJECT_TINT),
-            Label("reject", edge - 0.12, y + above, names=f"{gid}-zone", ha="right", color=LOST),
-            _tick(f"{gid}-critical", edge, y, color=LOST),
-            Label(words, edge + 0.12, y + above, names=f"{gid}-critical", color=LOST),
+            Fill(f"{gid}-zone", GAUGE_LEFT, y - zone, edge, y + zone, color=own.REJECT_TINT),
+            Label(
+                "reject", edge - 0.12, y + above, names=f"{gid}-zone", ha="right", color=own.LOST
+            ),
+            _tick(f"{gid}-critical", edge, y, color=own.LOST),
+            Label(words, edge + 0.12, y + above, names=f"{gid}-critical", color=own.LOST),
         ]
 
     def zero(gid: str, at) -> list[Stroke | Label]:
@@ -1099,8 +1135,8 @@ def _lean_not_cross(run: StationarityRun, measured: Spread) -> Scene:
     def dot(gid: str, x: float, number: str) -> list[Stroke | Label]:
         y = rows[gid]
         return [
-            _dot(f"{gid}-dot", x, y),
-            Label(number, x, y + below, names=f"{gid}-dot", ha="center", color=ACCENT),
+            _dot(f"{gid}-dot", x, y, color=own.ACCENT),
+            Label(number, x, y + below, names=f"{gid}-dot", ha="center", color=own.ACCENT),
         ]
 
     h = rows["h"]
@@ -1129,14 +1165,14 @@ def _lean_not_cross(run: StationarityRun, measured: Spread) -> Scene:
                 ha="center",
                 color=MUTED,
             ),
-            Fill("h-band", at_h(mean - sd), h - zone, at_h(mean + sd), h + zone, color=TINT),
+            Fill("h-band", at_h(mean - sd), h - zone, at_h(mean + sd), h + zone, color=own.TINT),
             Label(
                 "±1 SD of a random walk",
                 (at_h(mean - sd) + at_h(mean + sd)) / 2,
                 h + above,
                 names="h-band",
                 ha="center",
-                color=GOOD,
+                color=own.GOOD,
                 size=12,
             ),
             *dot("h", at_h(run.hurst), f"{run.hurst:.4f}"),
@@ -1190,14 +1226,14 @@ def _look_ahead(run: StationarityRun) -> Scene:
                 size=12,
             ),
             Label(str(last.date()), right + 0.22, 3.7, names="timeline", color=MUTED, size=12),
-            _stroke("measure", _span(left, right, 3.2), color=ACCENT, width=3.0, frames=8),
+            _stroke("measure", _span(left, right, 3.2), color=own.ACCENT, width=3.0, frames=8),
             Label(
                 f"measure the half-life: all {len(run.closes):,} closes",
                 middle,
                 2.84,
                 names="measure",
                 ha="center",
-                color=ACCENT,
+                color=own.ACCENT,
                 size=12,
             ),
             _stroke("trade", _span(at(start), right, 2.45), width=3.0, frames=8),
@@ -1216,11 +1252,11 @@ def _look_ahead(run: StationarityRun) -> Scene:
                 1.72,
                 names="trade",
                 ha="center",
-                color=LOST,
+                color=own.LOST,
                 size=12,
             ),
             _stroke(
-                "earlier", _span(left, cut, 1.2), color=ACCENT, width=3.0, dashed=True, frames=6
+                "earlier", _span(left, cut, 1.2), color=own.ACCENT, width=3.0, dashed=True, frames=6
             ),
             Label(
                 "measure on earlier days",
@@ -1228,7 +1264,7 @@ def _look_ahead(run: StationarityRun) -> Scene:
                 0.8,
                 names="earlier",
                 ha="center",
-                color=ACCENT,
+                color=own.ACCENT,
                 size=12,
             ),
             _stroke("after", _span(cut, right, 0.6), width=3.0, dashed=True, frames=6),
@@ -1265,7 +1301,7 @@ def _half_lives(run: StationarityRun) -> Scene:
         _stroke(
             f"tick-{k}",
             _line([(at(k * lookback), level - 0.15), (at(k * lookback), level + 0.15)]),
-            color=ACCENT,
+            color=own.ACCENT,
             frames=2,
         )
         for k in range(1, closes // lookback + 1)
@@ -1294,7 +1330,7 @@ def _half_lives(run: StationarityRun) -> Scene:
                 2.95,
                 names=ticks[0].gid,
                 ha="center",
-                color=ACCENT,
+                color=own.ACCENT,
                 size=12,
             ),
             *ticks[1:],
@@ -1417,12 +1453,14 @@ def palette(inks: Sequence[str] = INKS) -> Image.Image:
     return holder
 
 
-#: Lesson 3's ±1 SD tint: the band's green at the palette's lightest blend
-#: with the board. Being a colour the palette already holds, it adds none, so
-#: the other GIFs' palettes, and their bytes, stay as they were.
+#: A band's tint for the posts that still draw in the shared inks: their green
+#: at the palette's lightest blend with the board. Being a colour the palette
+#: already holds, it adds none, so those GIFs' palettes, and their bytes, stay
+#: as they were. This post's own scenes use :data:`chan.palette.TINT`.
 TINT = matplotlib.colors.to_hex(_blend(GOOD, BLENDS[-1]))
-#: The reject zones' tint in the gauges that close Lesson 3: the red of a
-#: critical value at the same blend, so it adds no colour to the palette either.
+#: A reject zone's tint in the shared inks: their red at the same blend, so it
+#: adds no colour to the palette either. This post's own gauges use
+#: :data:`chan.palette.REJECT_TINT`.
 REJECT_TINT = matplotlib.colors.to_hex(_blend(LOST, BLENDS[-1]))
 
 
@@ -1591,7 +1629,7 @@ def make_usdcad_tests_whiteboards(
     paths = []
     for scene in scenes(run, measured if measured is not None else spread(closes)):
         frames = timeline(scene)
-        first, *rest = render(scene, frames)
+        first, *rest = render(scene, frames, own.INKS)
         path = folder / scene.gif
         first.save(
             path,
