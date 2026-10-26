@@ -5998,6 +5998,37 @@ uv run python -m chan.calendar_spread_reversion_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/crude_oil_calendar_spread_whiteboard.py](src/chan/crude_oil_calendar_spread_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawing for twelve seconds.
+
+1. `crude_oil_calendar_spread_schedule.gif`, in "The spread, the signal and
+   the file", draws item 6's schedule on Chan's file. The pair short K2008 and
+   long K2009 runs from 2007-12-05 to 2008-04-08. The M2008, N2008 and Q2008
+   windows that would start on 2008-04-09 are crossed out, because each ends
+   fewer than 63 trading days after it starts. The pair short U2008 and long
+   U2009 runs from 2008-04-09 to 2008-08-06. Every date and count on it is
+   read from the script's schedule on the committed CL strip.
+2. `crude_oil_calendar_spread_script_sells.gif`, in Lesson 2, draws the roll
+   return over the held spread with their 36-day averages, a tint where the
+   roll return's z-score is above 0, and arrows where the script sells the
+   spread and where reversion would buy it. It is schematic apart from its
+   closing note, whose 841 of 1,097 held days and 554 days come from the run.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.crude_oil_calendar_spread_whiteboard
+```
+
+[tests/test_crude_oil_calendar_spread_whiteboard.py](tests/test_crude_oil_calendar_spread_whiteboard.py)
+derives every date and count the schedule sketch prints from the script's
+schedule again, holds that each mark sits at its own trading day, and holds
+that the Lesson 2 sketch's tint covers only samples where the roll return sits
+above its average and the spread below its own.
+
 [blog/tu-momentum-lessons.md](blog/tu-momentum-lessons.md) is a thirtieth post,
 about Example 6.1 of Chan's *Algorithmic Trading*, which correlates TU's past
 and future returns for 49 pairs of lookback and hold and then trades the
