@@ -5433,10 +5433,10 @@ draws four lessons from Entry 19 of the replication log.
 3. Most of the rise from the first book's 0.25 to this book's 1.3 comes from
    the data and the window rather than the rule, and two days the cut zeroes
    carry 0.1313 of the rule's 0.2974.
-4. Costs still take most of the first book's rule's edge on the panel, but
-   they cost 0.6924 of a day's profit there against 13.7453 times it on 2006,
-   because the profit is about twenty times larger and the trading barely
-   changes.
+4. After costs, the first book's rule keeps under a third of its profit on
+   the panel and loses money over 2006. Its costs are 0.6924 of a day's profit
+   there against 13.7453 times it over 2006, because the profit is about
+   twenty times larger and the trading barely changes.
 
 Five groups of what it says are not pinned here.
 
@@ -5460,8 +5460,8 @@ Five groups of what it says are not pinned here.
    this window fall in the 2008 crisis, that CAH's prices read as a data error
    or a corporate action, and that a longer stretch of survivors leaves out
    more of the companies that left the index. The survivor horizons of almost
-   five years and under two are arithmetic on when each file's list of stocks
-   dates from.
+   five years and under two are arithmetic on each window's first day and the
+   date of its file's list of stocks.
 4. Ratios and orderings the post takes between pinned figures in words: about
    five times, nearly four times, four times the average return, about the
    same standard deviation, by about a third, that 2009 beat 2008, that the

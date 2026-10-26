@@ -2,7 +2,9 @@
 
 This file is the single authority for every number a prose surface quotes
 about these two examples and about the two bridge rows that set them beside
-the first book's Examples 3.7 and 3.8. ``docs/replication-log.md`` Entry 19
+the first book's Examples 3.7 and 3.8, apart from the figures only the post's
+two sketches print, which ``tests/test_khandani_lo_book_two_whiteboard.py``
+holds. ``docs/replication-log.md`` Entry 19
 carries the verdicts and points here row by row, and
 ``blog/khandani-lo-reversal-lessons.md`` quotes the same figures and the
 yearly APRs, the annual mean and deviation, the bridge differences and the
@@ -911,7 +913,7 @@ class TestWhatThePostQuotes:
             f"and on the panel the cost is {on_panel.cost_per_profit:.4f} of the profit",
         ]
         assert self.missing(text, fragments) == []
-        assert round(on_panel.profit / on_year.profit, -1) == 20
+        assert round(on_panel.profit / on_year.profit) == 20
         assert 1 - on_panel.cost_per_profit < 1 / 3
         words = [
             "keeps under a third of its profit on the panel and loses money over 2006",
