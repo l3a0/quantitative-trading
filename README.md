@@ -3619,9 +3619,12 @@ Every other number in the post traces to an assertion in
 [tests/test_momentum_factor.py](tests/test_momentum_factor.py) or
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py)'s
-`TestTheVintages::test_the_large_cap_panel` for the S&P 500 file's span, or to
+`TestTheVintages::test_the_large_cap_panel` for the S&P 500 file's span, to
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
-for the figure's own labels. One figure was half pinned before it, and
+for the figure's own labels, or to
+[tests/test_factor_models_whiteboard.py](tests/test_factor_models_whiteboard.py)
+for the sketches' labels and the alt texts that quote them. The sketches are
+schematic and print no figure from a run. One figure was half pinned before it, and
 `TestTheSplice::test_pmc_forward_fills_into_one_days_return` now pins both
 ends of PMC's 851-day gap rather than only the days inside it.
 
@@ -3638,6 +3641,44 @@ uv run python -m chan.momentum_factor_figures
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/factor_models_whiteboard.py](src/chan/factor_models_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `factor_models_residuals_cancel.gif`, in Lesson 2 after the display
+   equation, draws a dozen daily returns as bars, the fitted value beside each
+   as a dot, and the gap between them as a tick, green above the fit and red
+   below. With an intercept the gaps sum to 0, so the summed returns and the
+   summed fitted values stand at the same height, and a ranking on one is a
+   ranking on the other.
+2. `factor_models_sign_flip.gif`, in Lesson 3 after the paragraph on how each
+   day's weights make a pair, draws day t's weights, the pair f and g they
+   give and its positive product, the same weights reversed, the negative
+   product a series of fresh weights would read, and the pair under the flip,
+   where (−f)(−g) = fg.
+
+The second builds more slowly than the USD.CAD post's sketches and holds its
+finished drawing for twelve seconds, because it carries more than that pace
+lets a reader take in. The first keeps that post's pace.
+
+Both are schematic and carry no figures from the run. Their returns, factor
+series, weights and ranked stocks are made up to show a shape. Redraw both
+with:
+
+```bash
+uv run python -m chan.factor_models_whiteboard
+```
+
+[tests/test_factor_models_whiteboard.py](tests/test_factor_models_whiteboard.py)
+holds that the first sketch's dots are the least-squares fit of its bars on an
+intercept and five factor series, so its gaps sum to 0 and its totals match,
+that `chan.pca_factor`'s `python_expected` gives `summed_returns` on a made-up
+window, that the second sketch's reversed weights give −f and −g and keep the
+product, that `chan.pca_factor_momentum`'s `uncentred` does not move when one
+pair flips, that each GIF follows its text in the post, that each alt text
+quotes every label in the order it is drawn, and that each GIF is a fresh draw
+byte for byte on the owner's machine.
 
 [blog/commodity-seasonals-lessons.md](blog/commodity-seasonals-lessons.md) is
 an eleventh post, about the commodity seasonals, the gasoline and natural gas
