@@ -49,8 +49,14 @@ committed GIF equals a fresh draw depends on the font, because the hand font
 is whichever one is installed and font rasterising varies by platform. So that
 comparison runs only on macOS arm64 with Comic Sans MS installed, where the
 committed files were drawn, and skips elsewhere with the reason. The frame
-count, the size, the loop and the timing of each committed file are pinned
-everywhere.
+count, the size, the loop, the timing and the palette of each committed file
+are pinned everywhere.
+
+The post's scenes draw in :mod:`chan.palette`'s colours, while the renderer's
+own defaults stay the shared ones every other post draws in. So a colour here
+is pinned as ``own.ACCENT`` and its kin, ``own`` being :mod:`chan.palette`
+imported the way the module imports it, and a frame is rendered with
+``own.INKS`` the way the module renders its GIFs.
 """
 
 from __future__ import annotations
@@ -69,6 +75,7 @@ import pytest
 from PIL import Image
 from scipy.stats import norm
 
+from chan import palette as own
 from chan import usdcad_mean_reversion
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR
@@ -315,7 +322,7 @@ CLEAR_PX = 10
 #: Labels that state something about the whole scene rather than name a
 #: stroke. Each stands apart from every stroke, by at least
 #: :data:`APART_PX`, so it cannot be read as one curve's label. The Hurst
-#: formula once sat beside the end of the lower green curve, 12 pixels from
+#: formula once sat beside the end of the lower reverting curve, 12 pixels from
 #: it, and read as that curve's label. The fingerprint's margin note is about
 #: the four values together, so it stands apart from the last check mark.
 STATEMENTS = {"λ < 0", r"variance $\sim \tau^{2H}$", "closes × a constant would match too"}
@@ -363,9 +370,10 @@ def gifs(tmp_path_factory, sources, measured):
 
 @pytest.fixture(scope="module")
 def question(drawn):
-    """The question's scene drawn, which is enough to watch strokes and labels."""
+    """The question's scene drawn in the post's inks, as its GIF is, which is
+    enough to watch strokes and labels."""
     steps = timeline(drawn[1])
-    return steps, render(drawn[1], steps)
+    return steps, render(drawn[1], steps, own.INKS)
 
 
 def _durations(path) -> list[int]:
@@ -714,7 +722,7 @@ class TestTheFingerprint:
         assert printed == ["-1.840744", "0.994120", "0.367281", "115.209794"], SPEC
 
     def test_four_values_each_with_its_own_check_mark(self, drawn) -> None:
-        """Every value is followed at once by a green check, and nothing else
+        """Every value is followed at once by a blue check, and nothing else
         is checked."""
         steps = drawn[8].steps
         values = [
@@ -725,7 +733,7 @@ class TestTheFingerprint:
         ]
         assert len(values) == 4
         assert checks == [k + 1 for k in values]
-        assert {steps[k].color for k in checks} == {whiteboard.GOOD}
+        assert {steps[k].color for k in checks} == {own.GOOD}
 
     def test_each_value_sits_beside_the_calculation_that_gives_it(self, drawn) -> None:
         steps = drawn[8].steps
@@ -877,7 +885,7 @@ class TestOneRowApart:
         one_row = drawn[9]
         edges = _cells(one_row)
         mark = one_row.steps[-2]
-        assert mark.gid == "one-row" and mark.color == whiteboard.ACCENT
+        assert mark.gid == "one-row" and mark.color == own.ACCENT
         day = run.adfuller_first_day
         assert (mark.x.min(), mark.x.max()) == pytest.approx((edges[day - 1], edges[day]))
         note = one_row.steps[-1]
@@ -976,8 +984,9 @@ def _bins(measured) -> tuple[np.ndarray, np.ndarray]:
 
 
 def _palette_rgbs() -> list[list[int]]:
-    """The palette's colours as RGB triples, in palette order."""
-    flat = palette().getpalette()
+    """The colours of the palette this post's GIFs draw in, as RGB triples, in
+    palette order."""
+    flat = palette(own.INKS).getpalette()
     return [flat[k : k + 3] for k in range(0, len(flat), 3)]
 
 
@@ -1081,13 +1090,13 @@ class TestChanceAndTheStartDay:
         base, walks = float(_stroke(scene, "axis").y[0]), _stroke(scene, "walks")
         assert (band.y0, band.y1) == pytest.approx((base, float(walks.y.max())), abs=1e-12)
         label = next(s for s in scene.steps if isinstance(s, Label) and s.text == "±1 SD")
-        assert (label.names, label.color) == ("band", whiteboard.GOOD)
+        assert (label.names, label.color) == ("band", own.GOOD)
 
-    def test_the_tint_is_a_pale_green_the_palette_already_holds(self) -> None:
-        """The band's green at the lightest blend, so the tint adds no colour
-        to the palette every GIF shares."""
-        tint = [round(255 * c) for c in matplotlib.colors.to_rgb(whiteboard.TINT)]
-        good = np.array(matplotlib.colors.to_rgb(whiteboard.GOOD))
+    def test_the_tint_is_a_pale_blue_the_palette_already_holds(self) -> None:
+        """The band's blue at the lightest blend, so the tint adds no colour
+        to the palette the post's GIFs draw in."""
+        tint = [round(255 * c) for c in matplotlib.colors.to_rgb(own.TINT)]
+        good = np.array(matplotlib.colors.to_rgb(own.GOOD))
         assert tint == [round(255 * (0.2 * c + 0.8)) for c in good]
         assert tint in _palette_rgbs()
 
@@ -1097,7 +1106,7 @@ class TestChanceAndTheStartDay:
         if the tint were laid over it."""
         scene = drawn[10]
         (band,) = scene.fills
-        (image,) = render(scene, timeline(scene)[-1:])
+        (image,) = render(scene, timeline(scene)[-1:], own.INKS)
         with matplotlib.rc_context(whiteboard._style()):
             _, artists = whiteboard._board(scene)
             (x0, y0), (x1, y1) = artists[0].axes.transData.transform(
@@ -1110,7 +1119,7 @@ class TestChanceAndTheStartDay:
         ]
         rgbs = _palette_rgbs()
         found = {tuple(rgbs[k]) for k in np.unique(inside)}
-        tint = tuple(round(255 * c) for c in matplotlib.colors.to_rgb(whiteboard.TINT))
+        tint = tuple(round(255 * c) for c in matplotlib.colors.to_rgb(own.TINT))
         assert tint in found
         for gid in ("walks", "half", "run", "book"):
             ink = tuple(round(255 * c) for c in matplotlib.colors.to_rgb(_stroke(scene, gid).color))
@@ -1132,8 +1141,8 @@ class TestChanceAndTheStartDay:
         scene = drawn[10]
         colours = [_stroke(scene, f"start-{row.offset}").color for row in measured.offsets]
         book = [row.prints_as_book for row in measured.offsets]
-        assert colours == [whiteboard.LOST if hit else whiteboard.ACCENT for hit in book]
-        assert _stroke(scene, "book").color == whiteboard.LOST
+        assert colours == [own.LOST if hit else own.ACCENT for hit in book]
+        assert _stroke(scene, "book").color == own.LOST
         assert _x(scene, "start-0") == _x(scene, "run")
 
     def test_the_dots_sit_under_the_axis_and_none_touch(self, drawn) -> None:
@@ -1289,11 +1298,11 @@ class TestLeaningNotCrossing:
             assert zone.x0 == line.x.min(), name
             assert zone.x1 == pytest.approx(_x(scene, f"{name}-critical")), name
             assert zone.y0 < line.y[0] < zone.y1, name
-        assert {f.color for f in scene.fills} == {whiteboard.REJECT_TINT, whiteboard.TINT}
-        assert _fill(scene, "h-band").color == whiteboard.TINT
+        assert {f.color for f in scene.fills} == {own.REJECT_TINT, own.TINT}
+        assert _fill(scene, "h-band").color == own.TINT
 
     def test_each_tint_is_a_colour_the_palette_already_holds(self) -> None:
-        for tint in (whiteboard.TINT, whiteboard.REJECT_TINT):
+        for tint in (own.TINT, own.REJECT_TINT):
             assert [round(255 * c) for c in matplotlib.colors.to_rgb(tint)] in _palette_rgbs()
 
     def test_each_dot_sits_on_the_reverting_side_short_of_its_threshold(self, drawn) -> None:
@@ -1441,7 +1450,7 @@ class TestTheLookAhead:
 
     def test_the_note_names_the_trading_bar(self, drawn) -> None:
         note = next(s for s in drawn[12].steps if isinstance(s, Label) and "inside" in s.text)
-        assert (note.names, note.color) == ("trade", whiteboard.LOST)
+        assert (note.names, note.color) == ("trade", own.LOST)
 
 
 class TestTenHalfLives:
@@ -1554,13 +1563,14 @@ class TestTheDrawing:
 
     def test_every_frame_uses_the_fixed_palette(self, question) -> None:
         _, images = question
-        expected = palette().getpalette()
+        expected = palette(own.INKS).getpalette()
         for image in images:
             assert image.mode == "P"
             assert image.getpalette() == expected
 
-    def test_the_palette_is_white_and_five_inks_at_five_blends(self) -> None:
-        colours = palette().getpalette()
+    @pytest.mark.parametrize("inks", [whiteboard.INKS, own.INKS], ids=["shared", "post"])
+    def test_the_palette_is_white_and_five_inks_at_five_blends(self, inks) -> None:
+        colours = palette(inks).getpalette()
         assert colours[:3] == [255, 255, 255]
         assert len({tuple(colours[i : i + 3]) for i in range(0, len(colours), 3)}) == 26
 
@@ -1570,7 +1580,7 @@ class TestTheDrawing:
             warnings.simplefilter("always")
             for scene in drawn:
                 steps = timeline(scene)
-                render(scene, steps[-1:])
+                render(scene, steps[-1:], own.INKS)
         messages = [str(w.message) for w in caught] + [r.getMessage() for r in caplog.records]
         assert not [m for m in messages if "glyph" in m.lower()], messages
 
@@ -1599,6 +1609,14 @@ class TestTheGifs:
         for path in gifs:
             assert path.stat().st_size < 1_000_000, path.name
 
+    def test_each_draws_in_the_posts_palette(self, gifs) -> None:
+        """Every frame maps onto :mod:`chan.palette`'s inks, not the shared ones
+        the renderer defaults to."""
+        expected = palette(own.INKS).getpalette()
+        for path in gifs:
+            with Image.open(path) as image:
+                assert image.getpalette()[: len(expected)] == expected, path.name
+
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, sources) -> None:
         again = make_usdcad_tests_whiteboards(out_dir=tmp_path, sources=sources)
         for first, second in zip(gifs, again, strict=True):
@@ -1621,6 +1639,14 @@ class TestTheCommittedGifs:
             with Image.open(committed) as image:
                 assert (image.size, image.n_frames, image.info["loop"]) == ((680, 320), count, 0)
             assert _durations(committed) == [f.ms for f in steps], name
+
+    def test_each_draws_in_the_posts_palette(self) -> None:
+        """Checked on every platform, so a GIF left in the shared colours fails
+        even where the byte-for-byte comparison below skips."""
+        expected = palette(own.INKS).getpalette()
+        for name in GIFS:
+            with Image.open(FIGURES_DIR / name) as image:
+                assert image.getpalette()[: len(expected)] == expected, name
 
     def test_each_is_a_fresh_draw_byte_for_byte(self, gifs) -> None:
         system, machine, font = platform.system(), platform.machine(), hand_font()
@@ -1655,7 +1681,7 @@ class TestTheCommand:
         saved = []
         monkeypatch.setattr(whiteboard, "read_sources", lambda: sources)
         monkeypatch.setattr(whiteboard, "spread", lambda closes: spread(closes, paths=FEW_PATHS))
-        monkeypatch.setattr(whiteboard, "render", lambda scene, frames: [Image.new("P", (1, 1))])
+        monkeypatch.setattr(whiteboard, "render", lambda scene, frames, inks: [Image.new("P", (1, 1))])
         monkeypatch.setattr(Image.Image, "save", lambda self, path, **kw: saved.append(path))
         paths = make_usdcad_tests_whiteboards()
         assert paths == saved == [FIGURES_DIR / name for name in GIFS]

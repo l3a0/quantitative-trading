@@ -35,8 +35,9 @@ from matplotlib.figure import Figure
 from chan import paths, usdcad_mean_reversion
 from chan import usdcad_mean_reversion_figures as figures
 from chan.matlab_helpers import moving_avg, moving_std
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_mean_reversion import market_value, read_sources, stationarity_tests
 from chan.usdcad_mean_reversion_figures import (
@@ -181,7 +182,7 @@ class TestTheCloses:
         assert result.closes.index[114] == AVERAGE_STARTS, SPEC
         assert y[114] == pytest.approx(1.0087995652, abs=5e-11), SPEC
 
-    def test_the_closes_are_ink_and_the_average_brass(self, axes) -> None:
+    def test_the_closes_are_ink_and_the_average_berry(self, axes) -> None:
         lines = _by_gid(axes["closes"].lines)
         assert same_color(lines["closes"].get_color(), INK)
         assert same_color(lines["moving-average"].get_color(), ACCENT)
@@ -253,7 +254,7 @@ class TestThePnl:
         assert fall == pytest.approx(result.drawdown.depth, abs=1e-12)
         assert fall == pytest.approx(0.6425313986, abs=5e-11), SPEC
 
-    def test_the_curve_is_green(self, axes) -> None:
+    def test_the_curve_is_blue(self, axes) -> None:
         assert same_color(_by_gid(axes["pnl"].lines)["pnl"].get_color(), GOOD)
 
     def test_the_heading_sets_the_start_the_total_and_the_fall(self, axes) -> None:
