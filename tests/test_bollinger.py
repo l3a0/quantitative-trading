@@ -808,6 +808,16 @@ class TestThePostQuotesThePins:
             "extra days fall while a unit is already held on the side they would enter, so they "
             "change nothing."
         ) in self.text
+        opened = only_n[by_n.bollinger.units[only_n - 1] != side_n]
+        assert len(opened) == len(only_n) - already
+        assert not by_n.bollinger.units[opened - 1].any()
+        assert by_n.bollinger.units[opened].all()
+        assert not result.bollinger.units[opened].any()
+        words = {9: "nine"}
+        assert (
+            f"On each of the other {words[len(opened)]}, the run with divisor n opens a "
+            "position from flat while the run with divisor n − 1 stays flat that day."
+        ) in self.text
         differ = int((result.bollinger.units != by_n.bollinger.units).sum())
         short = extra - entered
         words = {7: "seven", 8: "eight"}
