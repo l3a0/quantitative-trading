@@ -626,12 +626,17 @@ class TestTheCommand:
         ]
 
     def test_drawing_with_no_out_dir_writes_the_committed_paths(self, monkeypatch, day) -> None:
-        saved = []
+        saved, inks = [], []
         monkeypatch.setattr(sketches, "read_gap_day", lambda: day)
-        monkeypatch.setattr(sketches, "render", lambda scene, frames: [Image.new("P", (1, 1))])
+        monkeypatch.setattr(
+            sketches,
+            "render",
+            lambda scene, frames, given: inks.append(given) or [Image.new("P", (1, 1))],
+        )
         monkeypatch.setattr(Image.Image, "save", lambda self, path, **kw: saved.append(path))
         paths = make_buy_on_gap_whiteboards()
         assert paths == saved == [FIGURES_DIR / name for name in GIFS]
+        assert inks == [INKS] * len(GIFS)
 
     def test_a_refusal_reaches_the_operator_as_one_line(self, monkeypatch) -> None:
         refusal = VintageUnavailable("the committed file's hash does not match its manifest")
