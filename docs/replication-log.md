@@ -3796,7 +3796,10 @@ daily.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/factor-models-lessons.md](../blog/factor-models-lessons.md) moves with
-it, since that post quotes most of these figures.
+it, since that post quotes most of these figures. That post's Lesson 2
+whiteboard sketch, which draws the residuals cancelling so that the revised
+Python ranks on each stock's own returns, is schematic and draws none of these
+figures, and `uv run python -m chan.factor_models_whiteboard` redraws it.
 
 ## Entry 14: the market and momentum factors, Chan's *Quantitative Trading*
 
@@ -9417,7 +9420,10 @@ the 113 days from 2007-08-02 to 2008-01-11 whose window holds its one large
 return, and which factor carries it, and name the two days that carry PC2's
 statistic, which carry PC1's without PMC. Its one figure, which
 `uv run python -m chan.pca_factor_momentum_figures`
-redraws, moves with them.
+redraws, moves with them. The factor models post's Lesson 3 whiteboard
+sketch, which draws a sign flip in one day's weights changing both members of
+a pair, is schematic and draws none of these figures, and
+`uv run python -m chan.factor_models_whiteboard` redraws it.
 
 ## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
 
