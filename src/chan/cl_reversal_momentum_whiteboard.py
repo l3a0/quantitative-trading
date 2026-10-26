@@ -12,8 +12,8 @@ places each right after the text it draws.
    with a grey dashed level from each lag across to today. An arrow beside
    today's close points up for a long and down for a short. Under each panel
    two lines say what reversal alone and momentum alone do, and a closing line
-   in the arrow's colour, green or red, says the join goes long or short. It
-   sits in "The rule and the file", after the paragraph that ends "and holds
+   in the arrow's colour, blue or vermilion, says the join goes long or short.
+   It sits in "The rule and the file", after the paragraph that ends "and holds
    nothing on any other day." This sketch is schematic. Its dates are the
    join's first long and its first short on the 2012-05-04 save, read from
    :class:`Lags`. Each panel keeps the order of that day's three closes but not
@@ -23,8 +23,8 @@ places each right after the text it draws.
    which the tests read from the run.
 2. Half of each rule is the join: a 2×2 grid whose columns are reversal's
    position and whose rows are momentum's. Each cell holds a half-size arrow
-   from each rule, green up for a long and red down for a short, and the sum
-   they make. The two cells where the rules agree print their counts. One grey
+   from each rule, blue up for a long and vermilion down for a short, and the
+   sum they make. The two cells where the rules agree print their counts. One grey
    label points at both cells where the rules disagree and prints their
    combined count, since the post gives only that total. A closing line says
    the join holds the average of the two rules' positions on those 960 days,
@@ -35,10 +35,10 @@ places each right after the text it draws.
    :func:`chan.cl_reversal_momentum.four_rules` on the 2012-05-04 save.
 3. What the swings take from an average day: three bars to one scale, the join,
    momentum alone and reversal alone in the post's table order, each as tall as
-   the rule's average day. The lower part, a pale tint with a green edge, is
+   the rule's average day. The lower part, a pale tint with a blue edge, is
    what the rule kept: the one daily return that, earned every day, compounds
-   to the rule's final capital. The upper part, solid red, is what the swings
-   took, the average day minus what was kept. Each part's words name it, so
+   to the rule's final capital. The upper part, solid vermilion, is what the
+   swings took, the average day minus what was kept. Each part's words name it, so
    colour is not the only cue, and a closing line names the rule that keeps the
    largest share of its average day. It sits in Lesson 2's "What the swings
    cost", after the paragraph opening "Smaller swings give the join the highest
@@ -47,7 +47,9 @@ places each right after the text it draws.
    the same run's daily returns.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look, frame rate and colours.
+than copied, so these GIFs share that post's look and frame rate. Their colours
+are :mod:`chan.palette`'s, which a colour-blind reader can tell apart, so
+:func:`_write` passes :data:`chan.palette.INKS` to the renderer.
 Each sketch carries more than a reader takes in at that post's pace, so all
 three are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
 longer and their finished drawings for twelve seconds, as
@@ -70,10 +72,10 @@ import numpy as np
 
 from chan import cl_reversal_momentum as crude
 from chan.matlab_helpers import backshift
+from chan.palette import GOOD, INKS, LOST, TINT
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
-    TINT,
     Fill,
     Frame,
     Label,
@@ -91,7 +93,7 @@ from chan.usdcad_tests_whiteboard import (
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "cl_reversal_momentum_sketch_"
 
-#: The width of the green edge drawn round every pale tint that carries
+#: The width of the blue edge drawn round every pale tint that carries
 #: meaning, as :mod:`chan.equity_seasonals_whiteboard` draws it.
 TINT_EDGE = 1.2
 
@@ -518,7 +520,7 @@ def six(value: float) -> str:
 
 
 def _tinted(gid: str, x0: float, y0: float, x1: float, y1: float) -> tuple[Fill, Stroke]:
-    """A pale tint and a thin green edge round it, so the region it marks
+    """A pale tint and a thin blue edge round it, so the region it marks
     reads at WCAG's 3 to 1 for graphical objects. The edge is ``gid`` plus
     ``-edge``."""
     return Fill(gid, x0, y0, x1, y1, TINT), _stroke(
@@ -624,7 +626,7 @@ def scenes(figures: JoinFigures | None = None) -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
+    first, *rest = render(scene, frames, INKS)
     path = folder / gif_name(scene)
     first.save(
         path,
