@@ -30,10 +30,12 @@ paragraph it draws.
    schematic.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied: its strokes, labels, timeline, renderer and palette, so these
-GIFs share that post's look, frame rate, pace and colours. Only the scenes and
-the file names are this module's. Each GIF is named :data:`GIF_PREFIX` plus
-the scene's slug.
+than copied: its strokes, labels, timeline and renderer, so these GIFs share
+that post's look, frame rate and pace. The colours are :mod:`chan.palette`'s
+berry, blue and vermilion rather than that post's brass, green and red, so the
+renderer is handed :data:`chan.palette.INKS`, without which every frame would
+be mapped onto the old colours. Only the scenes and the file names are this
+module's. Each GIF is named :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketches are deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. Redraw both with::
@@ -48,8 +50,9 @@ from pathlib import Path
 
 from chan.etf_cointegration import EtfCointegration, etf_cointegration, read_sources
 from chan.johansen import LEVELS
+from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, LOST, MUTED
+from chan.regime_figure import MUTED
 from chan.usdcad_tests_whiteboard import (
     Label,
     Scene,
@@ -293,7 +296,7 @@ def scenes(stack: TraceStack) -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = timeline(scene)
-    first, *rest = render(scene, frames)
+    first, *rest = render(scene, frames, INKS)
     path = folder / gif_name(scene)
     first.save(
         path,
