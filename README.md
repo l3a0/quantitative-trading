@@ -5973,8 +5973,8 @@ pin before it.
    spread.
 9. Line 107 run on the spread's own z-score gives an APR of −0.027380 and a
    Sharpe ratio of −0.402360.
-10. The script's rule on the 332 days before the window, from 2006-09-05 to
-    2007-12-31, earns 0.050334, an APR of 0.037979 with a Sharpe ratio of
+10. The script's rule on the 332 days from its first held day, 2006-09-05,
+    to 2007-12-31, earns 0.050334, an APR of 0.037979 with a Sharpe ratio of
     0.770953.
 11. The script's compounded return in each calendar year from 2008 to 2012.
 12. `held_log_spread` and `held_spread_zscore`, on synthetic frames.

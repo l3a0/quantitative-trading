@@ -7765,9 +7765,9 @@ trades. Entry 22 names the same limit for USD.CAD's lookback.
 **Anything about costs.** None is charged, though each roll trades four legs,
 closing one pair and opening the next.
 
-**Whether the direction holds outside 2008 to 2012.** The script's rule also
-earns on the file's 332 rows before the window, 0.050334 from 2006-09-05 to
-2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is the same file
+**Whether the direction holds outside 2008 to 2012.** The script's rule
+first holds a pair on 2006-09-05, and it also earns 0.050334 on the 332 rows
+from then to 2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is the same file
 and before costs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
