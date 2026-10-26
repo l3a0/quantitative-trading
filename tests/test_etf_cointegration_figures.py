@@ -469,23 +469,27 @@ class TestTheReturn:
             assert same_color(notes[f"{gid}-label"].get_color(), colour), gid
         assert not same_color(lines["high"].get_markerfacecolor(), LOST)
 
-    @pytest.mark.parametrize(
-        "panel, gid",
-        [
-            ("statistics", "eigen-short-label"),
-            ("returns", "spell-label"),
-            ("returns", "trough-label"),
-        ],
-    )
-    def test_each_vermilion_label_sits_on_a_white_box(self, axes, panel, gid) -> None:
-        """``LOST`` reaches only 4.30 to 1 on the axes' darker ground, short of the
-        4.5 a label needs, and clears it on white, as ``tests/test_palette.py``
-        pins. So each label drawn in it inside the axes carries an opaque white box."""
-        note = _by_gid(axes[panel].texts)[gid]
-        assert same_color(note.get_color(), LOST), gid
-        box = note.get_bbox_patch()
-        assert box is not None, gid
-        assert same_color(box.get_facecolor(), "white"), gid
+    def test_every_vermilion_label_sits_on_a_white_box(self, axes) -> None:
+        """``LOST`` reaches only 4.30 to 1 on the axes' darker ground and 3.64 on
+        the spell band's tint, short of the 4.5 a label needs, and clears it on
+        white, as ``tests/test_palette.py`` pins for the ground and white. So
+        every label drawn in it inside the axes carries an opaque white box.
+        The labels are found by their colour, so a new one is held too."""
+        found = {
+            note.get_gid(): note
+            for ax in axes.values()
+            for note in ax.texts
+            if same_color(note.get_color(), LOST)
+        }
+        assert set(found) == {"eigen-short-label", "spell-label", "trough-label"}
+        for gid, note in found.items():
+            box = note.get_bbox_patch()
+            assert box is not None, gid
+            assert same_color(box.get_facecolor(), "white"), gid
+            # A leader line in another colour would point the warning at nothing.
+            arrow = getattr(note, "arrow_patch", None)
+            if arrow is not None:
+                assert same_color(arrow.get_edgecolor(), LOST), gid
 
     def test_each_label_points_at_the_row_it_names(self, axes, result) -> None:
         """The text alone would pass with the arrow anchored at the wrong day."""
