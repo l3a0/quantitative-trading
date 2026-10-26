@@ -52,6 +52,7 @@ from chan.commodity_seasonals import (
     on_or_after,
     on_or_before,
     profitable_count,
+    rank_p_value,
     runs_ending,
     settlements,
     sharpe_ratio,
@@ -408,6 +409,22 @@ class TestTheReturns:
         )
         assert (gas, ng) == pytest.approx((0.0227, 0.0916), abs=5e-5)
 
+    def test_the_rank_test_and_welch_split_on_natural_gas(self) -> None:
+        gas = (self.years("gasoline, 1995 to 2015"), self.years("gasoline, 2016 to 2023"))
+        ng = (self.years("natural gas, 1994 to 2008"), self.years("natural gas, 2009 to 2023"))
+        assert (rank_p_value(*gas), rank_p_value(*ng)) == pytest.approx((0.0111, 0.0079), abs=5e-5)
+
+    def test_2022_alone_holds_up_natural_gas_s_average(self) -> None:
+        before, after = (
+            self.years("natural gas, 1994 to 2008"),
+            self.years("natural gas, 2009 to 2023"),
+        )
+        best = max(after, key=lambda trade: trade.relative_change)
+        rest = [trade for trade in after if trade is not best]
+        assert best.year == 2022
+        assert mean_return(rest) == pytest.approx(-0.0499, abs=5e-5)
+        assert change_p_value(before, rest) == pytest.approx(0.0014, abs=5e-5)
+
     def test_the_marks_start_and_end_at_the_trade_s_prices(self) -> None:
         for trade in GASOLINE + GAS:
             if trade.change is not None:
@@ -694,15 +711,33 @@ class TestThePostQuotesThePins:
             assert (f"still holds the +{pct(earned)}%" in text) == inside, split
             assert (f"leaves out the +{pct(earned)}%" in text) == (not inside), split
             assert years_word in text
-        gas_p = change_p_value(
+        gas = (
             TestTheReturns.years("gasoline, 1995 to 2015"),
             TestTheReturns.years("gasoline, 2016 to 2023"),
         )
-        ng_p = change_p_value(
+        ng = (
             TestTheReturns.years("natural gas, 1994 to 2008"),
             TestTheReturns.years("natural gas, 2009 to 2023"),
         )
-        assert f"is {gas_p:.2f} for gasoline and {ng_p:.2f} for natural gas" in text
+        for name, pair in (("Gasoline", gas), ("Natural gas", ng)):
+            welch, rank = change_p_value(*pair), rank_p_value(*pair)
+            assert f"\\text{{{name}}} & {welch:.3f} & {rank:.3f}" in text, name
+
+        before, after = ng
+        best = max(after, key=lambda trade: trade.relative_change)
+        rest = [trade for trade in after if trade is not best]
+        won = [profitable_count(before), len(before), profitable_count(after), len(after)]
+        assert (
+            f"from {won[0]} wins in {won[1]} years before 2009 to {won[2]} in {won[3]} after"
+        ) in text
+        assert (
+            f"But {best.year}’s +{round(100 * best.relative_change)}% lifts its average "
+            f"after 2008 to −{pct(-mean_return(after))}%"
+        ) in text
+        assert (
+            f"Without {best.year} the average after 2008 is −{pct(-mean_return(rest))}%, "
+            f"and Welch’s chance falls to {change_p_value(before, rest):.3f}"
+        ) in text
 
     def test_the_2002_drawdown(self) -> None:
         trade = natural_gas_trade(2002)

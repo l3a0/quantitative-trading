@@ -37,7 +37,7 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 
 A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by its standard deviation. The drawdown is the largest fall from a peak in the summed yearly returns, marked on every trading day the files hold a price, so it counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake. Gasoline’s 1995 to 2015 leaves out the 3 years with no price. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim.
 
-Each trade happens once a year, so each column of the table rests on only 8 to 18 results. Lesson 4 works out what that few results can show: gasoline’s fall after the book stands out from its noise, and natural gas’s does not. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Each trade happens once a year, so each column of the table rests on only 8 to 18 results. Lesson 4 works out what that few results can show: gasoline’s fall after the book stands out from its noise, and natural gas’s typical year clearly worsened while its average cannot be told from before. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two trades and the files
 
@@ -301,7 +301,21 @@ That range, −12% to +12%, still holds the +10.6% natural gas earned before 200
 \end{aligned}
 ```
 
-That range, −6% to +2%, leaves out the +3.2% gasoline earned before. Welch’s t-test, which compares the two periods directly and allows each its own spread, agrees: the chance of a gap this large between periods that truly averaged the same is 0.02 for gasoline and 0.09 for natural gas. Gasoline’s fall is the firmer finding, and natural gas’s is suggestive.
+That range, −6% to +2%, leaves out the +3.2% gasoline earned before.
+
+### Whether the typical year changed
+
+Two tests compare the periods directly, and they ask different questions. Welch’s t-test asks whether the mean return changed, and lets each period keep its own spread, which matters because natural gas’s spread doubled after 2008. The Mann-Whitney test ranks every year from worst to best and asks whether one period’s years sit lower, so it asks whether the typical year got worse. Each gives the chance of a gap this large between periods that truly did not differ:
+
+```math
+\small\begin{array}{l|r|r}
+ & \text{Welch} & \text{Mann-Whitney} \\ \hline
+\text{Gasoline} & 0.023 & 0.011 \\
+\text{Natural gas} & 0.092 & 0.008
+\end{array}
+```
+
+Gasoline’s fall shows on both. Natural gas splits on one year. Its typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%, close enough to what came before that the mean cannot tell the periods apart. Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.001. That year was a real gain that a trader holding every year would have collected, so it stays in the record. Neither test was chosen before the numbers were seen, so the post reports both rather than the one that reads better.
 
 Chan makes the same point and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias, a pattern found by searching the past that will not repeat, is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a bar that rises with the number tried, and years the search never sees.
 
@@ -342,7 +356,7 @@ Four habits follow from the first four lessons.
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
 2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighboring day would decide the answer instead of checking it. Even the closer of the two fills the run measured misses by more than each year’s raw move, and correcting its lean still leaves no year at 95%.
 3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a Sharpe ratio of 1.0, and averaged a loss of 0.4% a year after.
-4. **Count the results behind a Sharpe ratio.** Fifteen yearly trades leave a standard error near 0.3, too wide to tell natural gas’s two periods apart.
+4. **Count the results behind a Sharpe ratio, and ask which test it rests on.** Fifteen yearly trades leave a standard error near 0.3, and one year, 2022, decides whether natural gas’s average fell.
 
 ## References
 

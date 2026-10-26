@@ -303,6 +303,18 @@ def change_p_value(before: list[Trade], after: list[Trade]) -> float:
     return float(stats.ttest_ind(one, two, equal_var=False).pvalue)
 
 
+def rank_p_value(before: list[Trade], after: list[Trade]) -> float:
+    """The Mann-Whitney two-sided p-value for one period's years sitting lower than the other's.
+
+    It ranks every year from worst to best and ignores how far apart they are,
+    so it asks whether the typical year changed. One extreme year moves it
+    by one rank, where it can move :func:`change_p_value` a long way.
+    """
+    one = [trade.relative_change for trade in _readable(before)]
+    two = [trade.relative_change for trade in _readable(after)]
+    return float(stats.mannwhitneyu(one, two, alternative="two-sided").pvalue)
+
+
 def max_drawdown(trades: list[Trade], *, data_dir: Path | None = None) -> float:
     """The largest fall from a peak in the summed returns, marked every trading day.
 

@@ -3655,8 +3655,9 @@ replication log.
 3. A trade chosen after looking at the history is tested by the years after
    the book, and both trades win a smaller share of them.
 4. One trade a year leaves too few results to grade that split. It works the
-   Sharpe ratio's standard error and the 95% range of each mean through, and
-   Welch's test finds gasoline's fall firmer than natural gas's.
+   Sharpe ratio's standard error and the 95% range of each mean through.
+   Welch's test and the Mann-Whitney rank test both find gasoline's fall, and
+   split on natural gas, whose average after 2008 only 2022 holds up.
 5. Reading one named contract from files numbered by expiry needs a calendar
    checked against something the files do not supply.
 
@@ -3705,8 +3706,9 @@ pins each split's mean yearly return, Sharpe ratio and drawdown, and
 `TestThePostQuotesThePins::test_the_returns_table` reads them from the post's
 first table at the precision it prints. The same class pins each split's 95% range for
 the mean and the Sharpe ratio's standard error, and Welch's p-values for the
-two periods, and `test_lesson_4_works_the_sample_size_out` reads Lesson 4's
-worked equations against them.
+two periods, the Mann-Whitney p-values and natural gas without 2022, and
+`test_lesson_4_works_the_sample_size_out` reads Lesson 4's worked equations
+and its table of tests against them.
 
 Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).
