@@ -33,7 +33,7 @@ through ``matches``.
 
 Exploratory, survivor-only, and in-sample on the lookback. Reproducing Chan's
 figures spends the 2007 to 2012 sample on a rule he chose, the panel holds only
-stocks that survived to 2012, and location 2035 says the lookback of 5 was
+stocks that were in the S&P 500 in late 2011, and location 2035 says the lookback of 5 was
 chosen with hindsight. The example first ran on 2026-10-05.
 """
 
@@ -44,6 +44,7 @@ from dataclasses import replace
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.timeseries import ADF_CRIT_CONST
 
 from chan import index_arbitrage as module
 from chan import paths
@@ -56,6 +57,7 @@ from chan.index_arbitrage import (
     FEWEST_ROWS,
     INDEX,
     LOOKBACK,
+    SCREEN_LEVEL,
     SCRIPT_APR,
     SCRIPT_EIGEN,
     SCRIPT_EIGEN_CRITICAL,
@@ -87,6 +89,7 @@ from chan.series import WindowCrossesScaleBreak, refuse_window_crossing_a_break,
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
+POST = paths.REPO_ROOT / "blog" / "index-arbitrage-lessons.md"
 SPEC = "indexArb.m at blob dcb079a on the 2012 S&P 500 file and the ETF file's SPY"
 
 #: The 17 stocks line 26 skips, with the 2007 rows each keeps.
@@ -129,6 +132,34 @@ def held(sources, result) -> np.ndarray:
     return np.column_stack(
         [stocks.loc[test, list(result.screen.passed)].to_numpy(), index.loc[test].to_numpy()]
     )
+
+
+#: Lesson 2's two measurements: 2,000 walks screened against SPY from one seed,
+#: and 2,000 pairs of independent walks of 251 days from another.
+WALKS = 2000
+WALK_SEED = 343
+PAIR_SEED = 345
+PAIR_DAYS = 251
+
+
+@pytest.fixture(scope="module")
+def walks_screened(sources, result) -> Screen:
+    """The screen run on walks unrelated to SPY, against SPY's 2007 closes."""
+    spy = sources[3].loc[result.train_days]
+    return screen(walks_unrelated_to(spy, WALKS, WALK_SEED), spy)
+
+
+@pytest.fixture(scope="module")
+def pair_rejections() -> dict[int, int]:
+    """How many pairs of independent walks the trace test rejects r ≤ 0 on, at 90 and 95."""
+    rng = np.random.default_rng(PAIR_SEED)
+    at = {90: 0, 95: 0}
+    for _ in range(WALKS):
+        pair = 100 + np.cumsum(rng.normal(size=(PAIR_DAYS, 2)), axis=0)
+        tested = johansen(pair, 0, 1)
+        for level in at:
+            at[level] += tested.relations("trace", level) >= 1
+    return at
 
 
 @pytest.fixture
@@ -240,6 +271,13 @@ class TestTheBasketTest:
     def test_row_4_the_eigen_statistics(self, result) -> None:
         np.testing.assert_allclose(result.basket.eigen, [9.671291, 6.197357], atol=1e-6)
         assert all(map(matches, result.basket.eigen, SCRIPT_EIGEN))
+
+    def test_the_trace_for_r_le_0_is_the_sum_of_the_two_eigen_statistics(self, result) -> None:
+        """The post's Lesson 1 reads the second relation's evidence into the trace pass."""
+        trace, eigen = result.basket.trace, result.basket.eigen
+        assert trace[0] == pytest.approx(eigen[0] + eigen[1], abs=1e-12)
+        assert trace[1] == pytest.approx(eigen[1], abs=1e-12)
+        assert eigen[0] < result.basket.trace_critical[0][1] < trace[0]
 
     @pytest.mark.parametrize(
         ("statistic", "printed"),
@@ -481,23 +519,23 @@ class TestBesideTheReplication:
         assert result.adf == pytest.approx({"basket": -2.461086, INDEX: -2.381322}, abs=1e-6)
         assert all(t > -2.57 for t in result.adf.values())
 
-    def test_the_screen_passes_561_of_2000_walks_unrelated_to_spy(self, sources, result):
+    def test_the_screen_passes_561_of_2000_walks_unrelated_to_spy(self, walks_screened, result):
         """The 90 percent bar passes far more than 10 percent of stocks unrelated to SPY.
 
         2,000 Gaussian random walks with unit steps and no drift, seeded with
         343, each screened against SPY's 2007 closes exactly as the stocks are.
-        561 pass, 28 percent, which is about 135 of 480 stocks. The 98 the
+        561 pass, 28.1 percent, which is about 135 of 480 stocks. The 98 the
         screen passes is fewer than that, so 48, the nominal 10 percent of 480,
         is not what chance alone gives.
         """
-        spy = sources[3].loc[result.train_days]
-        found = screen(walks_unrelated_to(spy, 2000, 343), spy)
-        assert len(found.tested) == 2000
-        assert len(found.passed) == 561
-        assert 480 * len(found.passed) / 2000 == pytest.approx(134.64)
-        assert len(result.screen.passed) < 480 * len(found.passed) / 2000
+        assert len(walks_screened.tested) == WALKS == 2000
+        assert len(walks_screened.passed) == 561
+        assert 480 * len(walks_screened.passed) / 2000 == pytest.approx(134.64)
+        assert len(result.screen.passed) < 480 * len(walks_screened.passed) / 2000
 
-    def test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks(self):
+    def test_the_trace_test_rejects_two_to_three_times_its_nominal_rate_on_unrelated_walks(
+        self, pair_rejections
+    ):
         """Two independent walks of 251 days, 2,000 pairs seeded with 345.
 
         ``johansen(·, 0, 1)``'s trace test rejects r ≤ 0 on 410 pairs at its 90
@@ -505,14 +543,8 @@ class TestBesideTheReplication:
         and 5 are nominal. So a pass at either bar, the screen's or row 5's, is
         weaker evidence than its label.
         """
-        rng = np.random.default_rng(345)
-        at = {90: 0, 95: 0}
-        for _ in range(2000):
-            pair = 100 + np.cumsum(rng.normal(size=(251, 2)), axis=0)
-            tested = johansen(pair, 0, 1)
-            for level in at:
-                at[level] += tested.relations("trace", level) >= 1
-        assert at == {90: 410, 95: 242}
+        assert (WALKS, PAIR_DAYS) == (2000, 251)
+        assert pair_rejections == {90: 410, 95: 242}
 
 
 class TestTheScaleBreakDecision:
@@ -621,7 +653,7 @@ class TestTheGuardAndTheReads:
         assert "basket -2.46, SPY -2.38, against -2.57 at 90%" in out
         assert "row 5 of the test, 1071 days with a return" in out
         assert "480 stocks tested at a per-test 90% bar, with no false-discovery" in out
-        assert "pass it about 28% of the time" in out
+        assert "pass it 28.1% of the time" in out
         assert "first return on 2008-01-09" in out
         assert "Exploratory and survivor-only." in out
 
@@ -635,3 +667,340 @@ class TestTheGuardAndTheReads:
         report(sources[0], sources[1], replace(result, screen=short))
         (line,) = [s for s in capsys.readouterr().out.splitlines() if "passing the screen" in s]
         assert line.endswith("did not reproduce, gap -1")
+
+
+def _schedule_names(report_date: str) -> list[str]:
+    """The lower-cased company names in one quarter's committed IVV holdings schedule."""
+    path = paths.REPO_ROOT / "research" / "filings" / "ivv" / f"{report_date}.csv"
+    return [str(name).lower() for name in pd.read_csv(path)["name"]]
+
+
+class TestTheBasketsStocksAndTheIndex:
+    """Fourteen of the 98 stocks the screen picks were out of the S&P 500 at some point.
+
+    The stock file holds companies that were in the index in late 2011, which
+    ``TestTheListDatesFromLate2011`` in ``tests/test_buy_on_gap.py`` holds for
+    the same file. The screen then runs on 2007, so it can pick a company that
+    joined the index after 2007, or one that left and came back. Two committed
+    sources show both. ``data/spx_20071123/`` is Chan's list of the index as it
+    stood on 2007-11-23, by ticker. The IVV schedules under
+    ``research/filings/ivv/`` name companies rather than tickers at each
+    quarter-end from 2008-12-31, so those checks match a distinctive word of
+    the name. The schedules hold nothing between 2007-11-23 and 2008-12-31, so
+    a stock that left and returned inside that gap is not seen here.
+    """
+
+    #: The basket's tickers missing from Chan's 2007-11-23 list. MSI is not one
+    #: of the 12 companies: Motorola traded as MOT until 2011, and MOT is on it.
+    NOT_ON_THE_2007_LIST = {
+        "AKS",
+        "CERN",
+        "HCP",
+        "MOS",
+        "MSI",
+        "NFX",
+        "NRG",
+        "OKE",
+        "PBCT",
+        "PWR",
+        "PXD",
+        "RHT",
+        "WPO",
+    }
+    #: Two members of 2007 the IVV schedules omit at every quarter-end from the
+    #: first to the last named here, and the first quarter-end each is back.
+    OUT_AND_BACK = {
+        "ACE": ("ace ltd", ("2008-12-31", "2010-06-30"), "2010-09-30"),
+        "CBE": ("cooper industries", ("2009-09-30", "2011-09-30"), "2011-12-31"),
+    }
+
+    def test_12_of_the_98_were_not_on_the_index_list_of_2007_11_23(self, result) -> None:
+        listed = {path.stem.upper() for path in (paths.DATA_DIR / "spx_20071123").glob("*.csv")}
+        assert len(listed) == 500
+        assert set(result.screen.passed) - listed == self.NOT_ON_THE_2007_LIST
+        assert "MOT" in listed
+        assert len(self.NOT_ON_THE_2007_LIST - {"MSI"}) == 12
+
+    def test_ace_and_cooper_industries_left_the_index_during_the_test_and_came_back(
+        self, result
+    ) -> None:
+        schedules = sorted(
+            p.stem for p in (paths.REPO_ROOT / "research" / "filings" / "ivv").glob("*.csv")
+        )
+        for ticker, (name, (first, last), back) in self.OUT_AND_BACK.items():
+            assert ticker in result.screen.passed
+            assert ticker not in self.NOT_ON_THE_2007_LIST
+            missing = [q for q in schedules if first <= q <= last]
+            assert len(missing) >= 7
+            for quarter in missing:
+                assert not any(name in n for n in _schedule_names(quarter)), (ticker, quarter)
+            assert any(name in n for n in _schedule_names(back)), ticker
+            assert schedules[schedules.index(last) + 1] == back, ticker
+            before = schedules.index(first) - 1
+            assert before < 0 or any(name in n for n in _schedule_names(schedules[before])), ticker
+
+    def test_ak_steel_is_in_the_basket_after_it_left_the_index(self, result) -> None:
+        assert "AKS" in result.screen.passed
+        assert any("ak steel" in n for n in _schedule_names("2011-09-30"))
+        for quarter in ("2011-12-31", "2012-03-31"):
+            assert not any("ak steel" in n for n in _schedule_names(quarter))
+        assert result.test_days[-1] == pd.Timestamp("2012-04-09")
+
+    def test_the_post_counts_the_basket_stocks_outside_the_index(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        assert "12 of the 98 it picks were not in the index on 2007-11-23" in text
+        assert "Twelve of the 98 are missing from Chan’s list of the S&P 500" in text
+        assert "All 14 stay in the basket on every test day." in text
+        assert "Two more, the insurer ACE and Cooper Industries" in text
+
+    def test_the_post_dates_the_list_to_late_2011(self) -> None:
+        """Each place the post dates the stock list, read by the clause that dates it.
+
+        The old wordings are also looked for anywhere in the post, so a
+        sentence added elsewhere that restores one fails as well."""
+        text = POST.read_text(encoding="utf-8")
+        missing = [
+            fragment
+            for fragment in (
+                "The stock file holds only stocks that were in the S&P 500 in late 2011.",
+                "stocks that were in the S&P 500 in late 2011 and treats them as the index",
+                "a list of companies in the S&P 500 in late 2011.",
+                "every stock in the file was in the S&P 500 in late 2011.](",
+                "keeps each data file’s contents as one table per symbol",
+                "Chan’s 2007 list comes in a file whose prices end on 2007-11-23.",
+            )
+            if fragment not in text
+        ]
+        assert missing == []
+        restored = [
+            old
+            for old in (
+                "S&P 500 on 2012-04-24",
+                "as Chan held it on 2012-04-24",
+                "in April 2012",
+                "survived to 2012",
+                "keeps a copy",
+            )
+            if old in text
+        ]
+        assert restored == []
+
+
+#: Small counts and ordinals as the post spells them out, indexed by the number.
+SPELLED = {2: "two", 6: "six", 11: "Eleven"}
+ORDINAL = {5: "fifth", 6: "sixth"}
+
+
+def _minus(x: float, places: int) -> str:
+    """A negative figure in prose, with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _array(head: str, rows: list[list[str]]) -> str:
+    """One of the post's ``array`` tables, from its header row to its last row."""
+    body = " \\\\\n".join(" & ".join(row) for row in rows)
+    return f"{head} \\\\ \\hline\n{body}\n\\end{{array}}"
+
+
+class TestWhatThePostQuotes:
+    """Each run figure the post quotes outside its sketch, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure the run computes is built from the run's value at the
+    precision the post prints it, and looked for in at least one copy: a short
+    fragment holding the number and the few words that name one place in the
+    post. A typo in a copy that is read, or a re-pin that leaves the post
+    behind, fails here. Lesson 1's four tables are rebuilt whole, each
+    computed cell from the run and each cell in a column of the script's
+    figures from its printout as :mod:`chan.index_arbitrage` records it, so a digit added to a
+    cell fails as well as a digit changed. The two random-walk measurements
+    come from the same fixtures the pins of 561, 410 and 242 read, so they run
+    once for the module.
+
+    The post states several figures more than once, and only one copy of each
+    is read. The copies read are the ones in the section on the files, the
+    paragraphs on one unit, Lesson 1's tables and the two paragraphs after
+    them, Lesson 2's measurements, Lesson 3's ADF statistics, and, in the
+    figure's alt text, the APR, the Sharpe ratio, the first return's date and
+    the last day's cumulative return. Other copies are not read, among them
+    the 98 in Chan's words in the opening, the alt text's 98, 480, 20.4
+    percent, 561, 2,000 and 28.1 percent, the 12.1 percent in Lesson 3, the
+    497 in Lesson 4 and the 99 positions in the closing list, so a typo in one
+    of them passes. ``tests/test_index_arbitrage_figures.py`` holds that the
+    figure draws 98 of 480 and 561 of 2,000, and it never reads the post. The
+    sketch's caption and alt text are read in
+    ``tests/test_index_arbitrage_whiteboard.py`` instead, and the counts of
+    the basket's stocks outside the index in
+    ``TestTheBasketsStocksAndTheIndex``. The Kindle locations, the facts
+    outside the data and the references are checked by nothing, and README
+    lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_files_and_the_windows(self, sources, result, text) -> None:
+        stock_members, spy_member, stocks, _ = sources
+        whole = module.load_panel(STOCK_FILE)[1].index
+        spy_closes = module.load_panel(ETF_FILE)[1][INDEX]
+        (saved,) = {m.obtained for m in stock_members}
+        train, test = result.train_days, result.test_days
+        found = result.screen
+        none = sum(rows == 0 for rows in found.skipped.values())
+        fragments = [
+            f"The stock file holds {len(stock_members)} stocks that were in the S&P 500 in "
+            f"late 2011, with prices from {whole[0].date()} to {whole[-1].date()}, and was "
+            f"saved on {saved}.",
+            f"whose closes end on {spy_closes.last_valid_index().date()} and which was saved "
+            f"on {spy_member.obtained}.",
+            f"The two share {len(stocks):,} trading days from {stocks.index[0].date()} to "
+            f"{stocks.index[-1].date()}. Training is the {len(train)} days of 2007, from "
+            f"{train[0].date()} to {train[-1].date()}, and the test period is the "
+            f"{len(test):,} days from {test[0].date()} to {test[-1].date()}",
+            f"The screen needs more than {FEWEST_ROWS} days of closes, so it skips "
+            f"{len(found.skipped)} stocks. {SPELLED[none]} have no 2007 close at all, and "
+            f"{SPELLED[len(found.skipped) - none]} began trading during 2007. It tests the "
+            f"other {len(found.tested)}.",
+            f"A stock passes when the trace statistic clears its {SCREEN_LEVEL} percent bar "
+            "for r ≤ 0",
+            f"both taken over the last {LOOKBACK} days. Those {LOOKBACK} days are the rule’s "
+            "lookback.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_one_unit_and_its_first_return(self, result, text) -> None:
+        (basket, spy), passed = result.basket.eigenvectors[:, 0], len(result.screen.passed)
+        stocks = result.weights[:-1].sum()
+        earning = np.flatnonzero(result.daily)
+        first = int(earning[0])
+        fragments = [
+            f"gives two weights, {basket:.4f} on the basket and {_minus(spy, 4)} on SPY. The "
+            f"basket’s weight goes on each of its {passed} stocks, so the script holds "
+            f"{len(result.weights)} positions, {basket:.4f} on each stock and "
+            f"{_minus(spy, 4)} on SPY.",
+            f"is long ${basket:.5f} of each stock, ${stocks:.3f} of stocks in all, and short "
+            f"${-spy:.3f} of SPY. The two sides differ by ${stocks + spy:.3f},",
+            f"first exists on the {ORDINAL[LOOKBACK]} test day, so the strategy’s first return "
+            f"falls on {result.test_days[first].date()}, the {ORDINAL[first + 1]} "
+            f"test day. From there the strategy earns a return on every one of the "
+            f"{len(earning):,} remaining days.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1s_three_tables(self, result, text) -> None:
+        tested, passed = result.basket, len(result.screen.passed)
+        statistics = [
+            [f"\\text{{{name}, }} r \\le {i}", f"{values[i]:.6f}", printed[i]]
+            for name, values, printed in (
+                ("Trace", tested.trace, SCRIPT_TRACE),
+                ("Eigen", tested.eigen, SCRIPT_EIGEN),
+            )
+            for i in range(2)
+        ]
+        vectors = [
+            [f"\\text{{{which}, {leg}}}", f"{tested.eigenvectors[i, j]:.8f}", row[j]]
+            for j, which in enumerate(("First", "Second"))
+            for i, (leg, row) in enumerate(zip(("basket", "SPY"), SCRIPT_EIGENVECTORS, strict=True))
+        ]
+        fragments = [
+            _array(
+                "\\begin{array}{l|r|r}\n\\text{Figure} & \\text{Computed} & \\text{Script}",
+                [["\\text{Stocks passing}", str(passed), str(SCRIPT_PASSED)], *statistics],
+            ),
+            _array(
+                "\\small\\begin{array}{l|r|r}\n"
+                "\\text{Eigenvector} & \\text{Computed} & \\text{Script}",
+                vectors,
+            ),
+            _array(
+                "\\begin{array}{l|r|r|r}\n"
+                "\\text{Figure} & \\text{Computed} & \\text{Script} & \\text{Book}",
+                [
+                    ["\\text{APR}", f"{result.apr:.10f}", SCRIPT_APR, f"{BOOK_APR_PERCENT}\\%"],
+                    ["\\text{Sharpe}", f"{result.sharpe:.10f}", SCRIPT_SHARPE, BOOK_SHARPE],
+                ],
+            ),
+            f"The book’s {100 * result.apr:.1f} percent and {result.sharpe:.1f} are the "
+            "script’s figures rounded.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_what_the_second_test_supports(self, result, text) -> None:
+        tested = result.basket
+        trace_bar, eigen_bar = tested.trace_critical, tested.eigen_critical
+        levels = (90, 95)
+        fragments = [
+            _array(
+                "\\begin{array}{l|r|r}\nr \\le 0 & \\text{Trace} & \\text{Eigen}",
+                [
+                    ["\\text{Value}", f"{tested.trace[0]:.3f}", f"{tested.eigen[0]:.3f}"],
+                    *(
+                        [
+                            f"\\text{{{level} percent bar}}",
+                            f"{trace_bar[0, k]:.3f}",
+                            f"{eigen_bar[0, k]:.3f}",
+                        ]
+                        for k, level in enumerate(levels)
+                    ),
+                ],
+            ),
+            f"The trace statistic clears its {levels[1]} percent bar by "
+            f"{tested.trace[0] - trace_bar[0, 1]:.3f}.",
+            f"the sum of the two eigen statistics, {tested.eigen[0]:.6f} and "
+            f"{tested.eigen[1]:.6f},",
+            f"the trace test counts {SPELLED[tested.relations('trace', levels[1])]} relations "
+            f"at both {levels[0]} and {levels[1]} percent, because its r ≤ 1 statistic, "
+            f"{tested.trace[1]:.3f}, also clears that row’s bars, which the script prints as "
+            f"{trace_bar[1, 0]:.3f} and {trace_bar[1, 1]:.3f}.",
+        ]
+        assert tested.relations("trace", levels[0]) == tested.relations("trace", levels[1])
+        assert self.missing(text, fragments) == []
+
+    def test_the_figures_alt_text(self, result, text) -> None:
+        cumulative = np.cumprod(1 + result.daily) - 1
+        first = result.test_days[int(np.flatnonzero(result.daily)[0])]
+        fragments = [
+            f"to end at about {100 * cumulative[-1]:.1f} percent.",
+            f"Its heading sets the APR of {result.apr:.6f} and the Sharpe ratio of "
+            f"{result.sharpe:.6f} beside the book’s {BOOK_APR_PERCENT} percent and "
+            f"{BOOK_SHARPE}, and says the curve is zero until the first return on "
+            f"{first.date()} and {cumulative[-1]:.6f} on the last day.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_walks(self, result, walks_screened, pair_rejections, text) -> None:
+        tested, passed = len(result.screen.tested), len(result.screen.passed)
+        walked = len(walks_screened.passed)
+        nominal = 100 - SCREEN_LEVEL
+        pairs = {level: 100 * count / WALKS for level, count in pair_rejections.items()}
+        fragments = [
+            f"chance alone would pass about {nominal} percent of the {tested}, which is "
+            f"{tested * nominal // 100}.",
+            f"On {WALKS:,} pairs of random walks of {PAIR_DAYS} days,",
+            f"rejects the hypothesis of no relation on {pair_rejections[90]} pairs at its 90 "
+            f"percent bar and on {pair_rejections[95]} at its 95. That is {pairs[90]:.1f} and "
+            f"{pairs[95]:.1f} percent, where the bars allow 10 and 5.",
+            f"the screen passes {walked} of {len(walks_screened.tested):,} random walks "
+            f"unrelated to SPY against SPY’s own 2007 closes. That is "
+            f"{100 * walked / WALKS:.1f} percent, or about {round(tested * walked / WALKS)} of "
+            f"{tested}. It is higher than the {pairs[90]:.1f} percent of the first measurement.",
+            f"The stocks pass at {100 * passed / tested:.1f} percent, {passed} of {tested}. The "
+            f"random walks unrelated to SPY pass at {100 * walked / WALKS:.1f} percent.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3s_adf_statistics(self, result, text) -> None:
+        bar = ADF_CRIT_CONST["10%"]
+        assert all(t > bar for t in result.adf.values()), SPEC
+        fragments = [
+            f"it gives {_minus(result.adf['basket'], 6)} for the basket’s 2007 sum of log "
+            f"prices and {_minus(result.adf[INDEX], 6)} for SPY’s 2007 log price. Neither "
+            f"falls below {_minus(bar, 2)}, the bar at 90 percent",
+        ]
+        assert self.missing(text, fragments) == []
