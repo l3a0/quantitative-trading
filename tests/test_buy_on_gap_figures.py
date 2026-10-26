@@ -245,6 +245,15 @@ class TestTheSpells:
                 assert same_color(box.get_facecolor(), SURFACE), gid
                 assert box.get_alpha() in (None, 1.0), gid
 
+    def test_no_label_box_hides_the_zero_line(self, figure) -> None:
+        """The top panel's drawdown label sits across the zero line, so its box
+        draws under it rather than breaking it."""
+        for ax in figure.axes:
+            (zero,) = [line for line in ax.lines if list(line.get_ydata()) == [0, 0]]
+            notes = {t.get_gid(): t for t in ax.texts}
+            for gid in ("spell-label", "trough-label"):
+                assert notes[gid].get_zorder() < zero.get_zorder(), gid
+
     def test_each_label_points_at_the_row_it_names(self, panels) -> None:
         """The text alone would pass with the arrow anchored at the wrong day."""
         for ax, side in panels:

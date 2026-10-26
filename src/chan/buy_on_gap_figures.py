@@ -70,6 +70,9 @@ CUMULATIVE_FIGURE = "buy_on_gap_cumulative_returns.png"
 #: darker ground the vermilion reaches only 4.30 to 1, short of the 4.5 text
 #: needs, and on the figure's ground it clears it.
 LABEL_BOX = {"facecolor": SURFACE, "edgecolor": "none", "pad": 1.5}
+#: Those labels draw under the lines, whose zorder is 2, so the box hides no
+#: part of the zero line that runs under the top panel's drawdown label.
+LABEL_ZORDER = 1.9
 
 
 def panel_heading(side: Side, *, mirror: bool) -> str:
@@ -111,6 +114,7 @@ def _panel(ax, side: Side, *, mirror: bool) -> None:
         fontsize=9.5,
         fontweight="bold",
         bbox=LABEL_BOX,
+        zorder=LABEL_ZORDER,
         gid="spell-label",
     )
     for gid, row, colour in (("high", spell.high, INK), ("trough", spell.trough, LOST)):
@@ -145,6 +149,7 @@ def _panel(ax, side: Side, *, mirror: bool) -> None:
         fontsize=9.5,
         fontweight="bold",
         bbox=LABEL_BOX,
+        zorder=LABEL_ZORDER,
         gid="trough-label",
     )
     ax.set_title(
