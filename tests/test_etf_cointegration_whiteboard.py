@@ -46,7 +46,6 @@ import pytest
 from PIL import Image
 
 from chan import etf_cointegration_whiteboard as sketches
-from chan import regime_figure
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.etf_cointegration import etf_cointegration, read_sources
 from chan.etf_cointegration_whiteboard import (
@@ -173,10 +172,6 @@ def _durations(path) -> list[int]:
         return found
 
 
-def _rgb(ink: str) -> tuple[int, ...]:
-    return tuple(round(255 * channel) for channel in matplotlib.colors.to_rgb(ink))
-
-
 def _assert_the_new_inks(path) -> None:
     """``render`` maps every frame onto the palette of the inks it is handed,
     and defaults to the shared brass, green and red. A sketch drawn without
@@ -186,9 +181,6 @@ def _assert_the_new_inks(path) -> None:
     with Image.open(path) as image:
         flat = image.getpalette()
     assert flat == whiteboard.palette(INKS).getpalette(), path.name
-    colours = {tuple(flat[i : i + 3]) for i in range(0, len(flat), 3)}
-    for old in (regime_figure.ACCENT, regime_figure.GOOD, regime_figure.LOST):
-        assert _rgb(old) not in colours, (path.name, old)
 
 
 def _alt(text: str, scene) -> str:

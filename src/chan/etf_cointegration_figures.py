@@ -73,7 +73,8 @@ STATISTICS = (("trace", ACCENT, -0.19), ("eigen", GOOD, 0.19))
 BAR_WIDTH = 0.34
 #: The white box under a label drawn in ``LOST`` inside the axes. The axes'
 #: ground is darker than the figure's, and ``LOST`` reaches only 4.30 to 1 on
-#: it, short of the 4.5 a label needs, as ``tests/test_palette.py`` pins.
+#: it, as ``tests/test_palette.py`` pins, and 3.64 on the spell band's tint
+#: over it. Both fall short of the 4.5 a label needs, and white clears it.
 LABEL_BOX = {"boxstyle": "square,pad=0.2", "facecolor": "white", "edgecolor": "none"}
 
 
