@@ -9,10 +9,11 @@ places each right after the text it draws.
 
 1. A dip inside a rise, a bounce inside a fall: two panels side by side, each
    three closes joined by a black line, 40 days ago, 30 days ago and today,
-   with a grey dashed level from each lag across to today. Under each panel
+   with a grey dashed level from each lag across to today. An arrow beside
+   today's close points up for a long and down for a short. Under each panel
    two lines say what reversal alone and momentum alone do, and a closing
-   line in green or red says the join goes long or short, beside an arrow at
-   today's close that points the same way. It sits in "The rule and the
+   line in the arrow's colour, green or red, says the join goes long or
+   short. It sits in "The rule and the
    file", after the paragraph that ends "and holds nothing on any other day."
    This sketch is schematic. Its dates are the join's first long and its
    first short on the 2012-05-04 save, read from :class:`Lags`. Each panel
@@ -24,9 +25,9 @@ places each right after the text it draws.
 2. Half of each rule is the join: a 2×2 grid whose columns are reversal's
    position and whose rows are momentum's. Each cell holds a half-size arrow
    from each rule, green up for a long and red down for a short, and the sum
-   they make. The two cells where the rules agree print their counts, and one
-   grey label points at both cells where they disagree with the two counts'
-   sum, since the post gives only that sum. A closing line says the join holds
+   they make. The two cells where the rules agree print their counts. One
+   grey label points at both cells where the rules disagree and prints their
+   combined count, since the post gives only that total. A closing line says the join holds
    the average of the two rules' positions on those days. It sits in Lesson 2,
    after the paragraph opening "The two rules mostly disagree." This sketch is
    not schematic. Every count it prints comes from :class:`Agreement`, which
