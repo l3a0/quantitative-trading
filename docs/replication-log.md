@@ -7060,7 +7060,8 @@ stated once here.
 1. **The vintages.** Three saves of Chan's continuous futures, each rolled
    from contract to contract and shifted at each roll, read for CL through
    `chan.series.load_panel` and cut to CL's own rows. A save is named by the
-   date in its file name.
+   date in its file name, so the 2012-05-07 save is the third below, though
+   the first was saved that day.
    1. `inputdataohlcdaily_20120504/`, saved 2012-05-07, the save
       `CL_rev.m` loads, 1,000 rows from 2008-05-19 to 2012-05-04. Rows 1 to
       5 and 10 to 14 read it.

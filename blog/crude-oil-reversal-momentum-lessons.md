@@ -1,4 +1,4 @@
-# Chan’s crude oil rule reproduces, and on his window joining reversal to momentum wins by sitting out the days they disagree
+# Chan’s crude oil rule reproduces, and on his window, joining reversal to momentum wins by sitting out the days they disagree
 
 *Chan joins reversal to momentum on crude oil and reports a 12 percent APR and a Sharpe ratio of 1.1. Both land. The joined rule trades like half of each, so it wins on his window by swinging less, and trails momentum on earlier years when reversal loses.*
 

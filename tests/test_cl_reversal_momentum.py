@@ -19,8 +19,9 @@ stated once here.
 
 - **Vintages.** Three saves of Chan's continuous futures, chan-mat, adjusted,
   each read for CL's closes through ``chan.series.load_panel`` and cut to
-  ``["CL"].dropna()``. A save is named by the date in its file name, and each
-  one's identity is its row of ``LIFTED_SOURCES`` in
+  ``["CL"].dropna()``. A save is named by the date in its file name, so the
+  2012-05-07 save is the third below, though the first was saved that day.
+  Each one's identity is its row of ``LIFTED_SOURCES`` in
   ``tests/support/committed_vintages.py``.
 
   1. ``inputdataohlcdaily_20120504/``, from ``inputDataOHLCDaily_20120504.mat``,
