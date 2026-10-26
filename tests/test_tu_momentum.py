@@ -306,7 +306,9 @@ class TestTheTwoTests:
         assert abs(at_24 - 0.49) > abs(at_default - 0.49)
 
     def test_no_max_t_from_5_to_40_lands_both(self, closes) -> None:
-        """Every ``maxT`` that lands TU's 0.44 moves USD.CAD further from its 0.49, and none lands it.
+        """Every ``maxT`` that lands TU's 0.44 moves USD.CAD further from its 0.49.
+
+        No ``maxT`` from 5 to 40 lands USD.CAD's 0.49 either.
 
         24 is not the only ``maxT`` that lands TU, and not the first. Below 5 the
         function has too few gaps to fit and gives no H.
