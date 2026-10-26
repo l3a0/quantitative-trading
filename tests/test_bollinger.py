@@ -674,11 +674,12 @@ class TestThePostQuotesThePins:
     numbers one at a time, and none failed a test.
 
     Of Example 3.1's figures, only those the band's run recomputes are read here: the
-    linear rule's computed APR and Sharpe ratio, its 1,460 changes of units and the
-    hedge ratio's 334 days below zero. The linear rule's row of its script's comment,
-    that comment's APR as 10.8 percent, and the book's about 10.9 percent and about
-    0.59 are not, and ``tests/test_price_spread.py`` holds them. The book's figures
-    and Kindle locations are not read here either.
+    linear rule's computed APR and Sharpe ratio, its deepest drawdown and longest spell
+    below a high, its 1,460 changes of units and the hedge ratio's 334 days below zero.
+    The linear rule's row of its script's comment, that comment's APR as 10.8 percent,
+    and the book's about 10.9 percent and about 0.59 are not, and
+    ``tests/test_price_spread.py`` holds them. The book's figures and Kindle locations
+    are not read here either.
     """
 
     text = POST.read_text("utf-8")
@@ -836,6 +837,12 @@ class TestThePostQuotesThePins:
             f"**The Sharpe ratio** becomes {moved.sharpe:.6f}, up by "
             f"{moved.sharpe - band.sharpe:.6f}. The book would print {moved.sharpe:.2f}."
         ) in self.text
+
+    def test_lesson_3_s_averages(self, by_n: ExampleThreeTwo) -> None:
+        value = by_n.bollinger.signal.value
+        gap = np.nanmax(np.abs(smart_moving_avg(value, LOOKBACK) - moving_avg(value, LOOKBACK)))
+        assert 1e-14 < gap < 1e-13
+        assert "That leaves them less than 10⁻¹³ apart on every day" in self.text
 
     def test_lesson_4_s_counts(self, result: ExampleThreeTwo) -> None:
         units = result.bollinger.units
