@@ -32,8 +32,8 @@ from chan.calendar_spread_figures import (
     spreads,
 )
 from chan.futures import settlements
-from chan.paths import FIGURES_DIR
 from chan.palette import ACCENT, GOOD, LOST
+from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED
 from chan.stationary_candidates import SPREAD_PRODUCTS
 from chan.vintage import VintageUnavailable

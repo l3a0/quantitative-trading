@@ -83,8 +83,8 @@ from chan.futures import (
     next_trading_day,
     previous_trading_day,
 )
-from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.palette import ACCENT, INKS, LOST
+from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
@@ -658,12 +658,17 @@ class TestTheGifs:
     def test_every_frame_draws_in_the_colour_blind_safe_inks(self, gifs) -> None:
         """Without :data:`chan.palette.INKS` the renderer maps each frame onto
         the shared brass, green and red, whatever ink a stroke names."""
-        expected = whiteboard.palette(INKS).getpalette()
+        flat = whiteboard.palette(INKS).getpalette()
+        inks = {tuple(flat[i : i + 3]) for i in range(0, len(flat), 3)}
         for path in gifs:
             with Image.open(path) as image:
-                for k in range(image.n_frames):
+                assert image.getpalette() == flat, path.name
+                # Pillow hands back every frame after the first as RGB, so
+                # each of those is held by the colours it draws in.
+                for k in range(1, image.n_frames):
                     image.seek(k)
-                    assert image.getpalette() == expected, (path.name, k)
+                    drawn = {rgb for _, rgb in image.convert("RGB").getcolors(256)}
+                    assert drawn <= inks, (path.name, k, drawn - inks)
 
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, window) -> None:
         again = make_calendar_spreads_whiteboards(
@@ -769,7 +774,7 @@ class TestThePost:
         assert f"breaks into {words[len(window.stretches)]} stretches" in alt
         assert "a new one starting the day after each expiry inside the window" in alt
         assert "Beneath it a lane labelled “July, far”" in alt
-        assert f"{ {6: 'six'}[len(window.dropped)] } red crosses" in alt
+        assert f"{ {6: 'six'}[len(window.dropped)] } vermilion crosses" in alt
         assert "on each expiry inside it and the day after" in alt
         assert f"late May {window.window[-1].year}" in alt
 

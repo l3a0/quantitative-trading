@@ -23,9 +23,10 @@ places each right after the text it draws.
    rests on, its window, which numbered file each leg is read from on each
    day, the days it keeps as grey dots, and the six it drops as vermilion
    crosses. Its figures are :class:`OneWindow`, read from the calendar and the
-   committed files through the functions the run uses. Under protanopia the
-   vermilion sits 7.5 from the grey, short of the 8 a reader can rely on, so a
-   dropped day is told from a kept one by its cross as well as its colour.
+   committed files through the functions the run uses. A reader blind to red
+   sees the vermilion and the grey as close, closer than
+   ``tests/test_palette.py`` allows any other pair, so each dropped day's
+   cross shape marks it as well as its colour.
 
 Neither scene is schematic. Every count and date a label prints, and every
 size and position the counts and dates set, comes from those two classes. The
@@ -40,12 +41,12 @@ than four, as :data:`PACED` lists. That is the pace
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
-colours are :mod:`chan.palette`'s, which a colour-blind reader can tell apart,
-so :func:`render` gets :data:`chan.palette.INKS` and maps every frame onto them.
-Only the scenes, their pace, their colours and the file names are this
-module's. Each GIF is named :data:`GIF_PREFIX` plus the scene's slug. The
-sketches are deterministic for the reason that module gives, so a redraw with
-no change is a no-op diff.
+colours come from :mod:`chan.palette` rather than that module, so
+:func:`render` gets :data:`chan.palette.INKS` and maps every frame onto them.
+Only the scenes, their pace and the file names are this module's. Each GIF
+is named :data:`GIF_PREFIX` plus the scene's slug. The sketches are
+deterministic for the reason that module gives, so a redraw with no change is
+a no-op diff.
 Redraw both with::
 
     uv run python -m chan.calendar_spreads_whiteboard
@@ -74,8 +75,8 @@ from chan.futures import (
     previous_trading_day,
     trading_days,
 )
-from chan.paths import FIGURES_DIR
 from chan.palette import ACCENT, INKS, LOST
+from chan.paths import FIGURES_DIR
 from chan.regime_figure import MUTED
 from chan.usdcad_tests_whiteboard import (
     Frame,

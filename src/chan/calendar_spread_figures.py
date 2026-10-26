@@ -43,8 +43,8 @@ from matplotlib.figure import Figure
 from numpy.typing import NDArray
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
-from chan.paths import FIGURES_DIR
 from chan.palette import ACCENT
+from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED, SURFACE
 from chan.stationary_candidates import SPREAD_PRODUCTS, CalendarSpread, calendar_spread
 from chan.vintage import VintageUnavailable
