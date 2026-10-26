@@ -2639,10 +2639,6 @@ def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
     return Scene("Which file holds the June contract", "june_file", tuple(steps))
 
 
-#: The scenes that build slowly, because each carries more than a reader takes
-#: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
-#: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
 # --- Lesson 5: three checks of the expiry rule -------------------------------
 
 #: The last trading days the Massive futures API recorded from the exchange,
@@ -2724,7 +2720,9 @@ def _check_coverage(f: CheckCoverage) -> Scene:
     files' handovers from 1994 and the exchange's dates from 2017."""
     (y0, m0), (y1, m1) = f.handover_span
     files_from, files_to = y0 + (m0 - 1) / 12, y1 + m1 / 12
-    ex_from, ex_to = f.exchange_years[0], f.exchange_years[1] + 1
+    last_checked = max(day for days in EXCHANGE_LAST_TRADES.values() for day in days)
+    ex_from = f.exchange_years[0]
+    ex_to = last_checked.year + (last_checked.timetuple().tm_yday - 1) / 365
     steps: list[Stroke | Label] = [
         _stroke(
             "axis",
@@ -2767,7 +2765,8 @@ def _check_coverage(f: CheckCoverage) -> Scene:
             frames=6,
         ),
         Label(
-            f"the exchange’s dates: {f.exchange_matches} of {f.exchange_contracts} contracts match",
+            f"the exchange’s dates: {f.exchange_matches} of {f.exchange_contracts} "
+            "March to June contracts",
             _cover_x(ex_to),
             COVER_EXCHANGE_Y + 0.46,
             names="exchange",
@@ -2797,7 +2796,7 @@ def _check_coverage(f: CheckCoverage) -> Scene:
             ha="right",
         ),
         Label(
-            "natural gas, every contract’s last trading day",
+            "natural gas, contracts’ last trading days",
             0.3,
             0.35,
             names="axis",
@@ -2906,7 +2905,8 @@ def _handover(year: int, month: int) -> Scene:
     steps += [
         _stroke("expiry", _line([(mid, 0.92), (mid, 3.75)]), color=ACCENT, dashed=True, frames=4),
         Label(
-            f"March stopped {_short_date(last)}, {ng_lead_days(year, month)} days before delivery",
+            f"March stopped {_short_date(last)}, "
+            f"{ng_lead_days(year, month)} trading days before delivery",
             mid - 0.15,
             3.95,
             names="expiry",
@@ -3016,7 +3016,7 @@ def _edge_day(f: JuneYear, edge_years: tuple[int, ...], of: int) -> Scene:
             size=10,
         ),
         Label(
-            "Reading the contract-3 file instead changes no year’s result.",
+            "Reading the contract-3 file instead turns no year from a profit to a loss.",
             0.3,
             0.25,
             names="entry",
@@ -3024,7 +3024,7 @@ def _edge_day(f: JuneYear, edge_years: tuple[int, ...], of: int) -> Scene:
             size=10,
         ),
         Label(
-            "natural gas, June contract", 9.7, 0.25, names="entry", color=MUTED, size=10, ha="right"
+            "natural gas, June contract", 9.7, 0.55, names="entry", color=MUTED, size=10, ha="right"
         ),
     ]
     return Scene(f"{f.year}: entry on March’s own last day", "edge_day", tuple(steps))
@@ -3084,8 +3084,8 @@ def _holiday_rows() -> Scene:
                         dots=9.0,
                     )
                 )
-                if not open_:
-                    prev = _before(file, day)
+                prev = _before(file, day)
+                if not open_ and file[day] == file[prev]:
                     steps.append(
                         Label(
                             f"Dec {day.day}: closed, row repeats Dec {prev.day}’s {file[day]}",
@@ -3097,12 +3097,13 @@ def _holiday_rows() -> Scene:
                             size=10,
                         )
                     )
-            elif day.weekday() < 5:
+            elif day.weekday() < 5 and not is_trading_day(day):
                 steps.append(
                     Label(
                         f"Dec {day.day}: closed, no row",
-                        x - 0.1,
+                        x,
                         y + 0.42,
+                        ha="center",
                         names=axis,
                         color=MUTED,
                         size=10,
@@ -3121,6 +3122,10 @@ def _holiday_rows() -> Scene:
     return Scene("A row in the file is not a trading day", "holiday_rows", tuple(steps))
 
 
+#: The scenes that build slowly, because each carries more than a reader takes
+#: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
+#: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
+#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
 PACED = (
     "streak_start",
     "gasoline_editions",

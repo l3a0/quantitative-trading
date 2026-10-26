@@ -3441,7 +3441,7 @@ either trade pays today.
 | 6 | none | none, not a replication | A claim with no figure, and the issue declared no criterion for it. The halves are 15 of 15 and 7 of 15. |
 | 7 | none | none, not a replication | 1994 is profitable too, so counting from the first year the files hold a whole trade makes both runs one longer. With runs ending in 2007 and 2008, only a count from 1995 matches, the year the gasoline sidebar names as its start. Counted from 1994, runs of 13 and 14 end in 2006 and 2007 instead. |
 | 8 | none | none, not a replication | The older contract's file has no row on 2006's entry day, so the side row cannot say whether the switch to RBOB decides 2006. |
-| 9 | none | none, not a replication | In 10 years the entry falls on the March contract's last trading day, so the file read depends on contract 1 keeping an expiring contract on its last day. The files show that convention in 2014 and 2019. Reading the contract-3 file instead changes no year's result, so the convention cannot move a verdict. |
+| 9 | none | none, not a replication | In 10 years the entry falls on the March contract's last trading day, so the file read depends on contract 1 keeping an expiring contract on its last day. The files show that convention in 2014 and 2019. Reading the contract-3 file instead turns no year from a profit to a loss, so the convention cannot move a verdict. |
 | 10 | none | none, not a replication | After the book, gasoline profits in 3 of 8 years and natural gas in 4 of 8, its 2016 to 2023 share of row 6. |
 
 ### What the entry concludes

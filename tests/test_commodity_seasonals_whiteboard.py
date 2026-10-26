@@ -458,7 +458,7 @@ HANDOVER_LABELS = [
     "contract-1 file",
     "contract-2 file",
     "Feb 26: file 1 picks up file 2’s price",
-    "March stopped Feb 23, 5 days before delivery",
+    "March stopped Feb 23, 5 trading days before delivery",
     "3-day rule: here",
     "natural gas, March contract, Feb 1996",
 ]
@@ -470,9 +470,9 @@ COVERAGE_LABELS = [
     "2017",
     "2026",
     "the files’ handovers: 298 of 316 expiries fit",
-    "the exchange’s dates: 40 of 40 contracts match",
+    "the exchange’s dates: 40 of 40 March to June contracts",
     "before 2017, the files alone",
-    "natural gas, every contract’s last trading day",
+    "natural gas, contracts’ last trading days",
 ]
 
 EDGE_LABELS = [
@@ -484,7 +484,7 @@ EDGE_LABELS = [
     "March’s last day: it still trades at this close",
     "June is contract 4",
     "10 of 30 years enter on March’s last day.",
-    "Reading the contract-3 file instead changes no year’s result.",
+    "Reading the contract-3 file instead turns no year from a profit to a loss.",
     "natural gas, June contract",
 ]
 
@@ -2303,11 +2303,16 @@ class TestTheCoverageSketch:
 
     def test_each_bar_spans_its_years(self, every) -> None:
         scene = every[18]
+        last = max(day for days in EXCHANGE_LAST_TRADES.values() for day in days)
+        assert last == date(2026, 5, 27)
         assert _span_ends(_stroke(scene, "files")) == pytest.approx(
             (_cover_x(1994 + 1 / 12), _cover_x(2024 + 4 / 12))
         )
         assert _span_ends(_stroke(scene, "exchange")) == pytest.approx(
-            (_cover_x(2017), _cover_x(2027))
+            (
+                _cover_x(2017),
+                _cover_x(last.year + (last.timetuple().tm_yday - 1) / 365),
+            )
         )
         assert _stroke(scene, "begins").x[0] == pytest.approx(_cover_x(2017))
         assert _stroke(scene, "files").color == INK
@@ -2317,7 +2322,7 @@ class TestTheCoverageSketch:
         f = dataclasses.replace(CheckCoverage.from_run(), handover_fits=300, exchange_matches=39)
         labels = _check_coverage(f).labels
         assert "the files’ handovers: 300 of 316 expiries fit" in labels
-        assert "the exchange’s dates: 39 of 40 contracts match" in labels
+        assert "the exchange’s dates: 39 of 40 March to June contracts" in labels
 
 
 class TestTheEdgeDaySketch:

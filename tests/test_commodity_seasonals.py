@@ -843,6 +843,69 @@ class TestThePostQuotesThePins:
         ) in text
         assert f"the rule fits only {early[0]} and {late[0]} of {early[1]}." in text
 
+    def test_why_the_rest_of_the_expiries_do_not_count(self) -> None:
+        """The paragraph after the coverage sketch: what the unreadable and
+        misfitting expiries are, and whether a one-day error in any of them
+        could move a trade's file or flip a year."""
+        from datetime import timedelta
+
+        from chan.futures import NATURAL_GAS_CONTRACTS, handover_fit, month_step
+
+        unread, misfit, month = [], [], (1994, 2)
+        while month <= (2024, 4):
+            fit = handover_fit(NATURAL_GAS_CONTRACTS, NATURAL_GAS_CONTRACTS.last_trade(*month))
+            if fit is None:
+                unread.append(month)
+            elif fit >= 0:
+                misfit.append((month, fit))
+            month = month_step(*month, 1)
+
+        def nudged(day: date, step: int) -> date:
+            day += timedelta(days=step)
+            while not is_trading_day(day):
+                day += timedelta(days=step)
+            return day
+
+        def moves(months) -> list[tuple[int, int, date, int]]:
+            found = []
+            for year, m in months:
+                if m not in (3, 4, 5) or not NG_YEARS[0] <= year <= NG_YEARS[1]:
+                    continue
+                trade, last = natural_gas_trade(year), ng_last_trade(year, m)
+                for step in (-1, 1):
+                    for day in (trade.entry_day, trade.exit_day):
+                        if (day <= last) != (day <= nudged(last, step)):
+                            found.append((year, m, day, step))
+            return found
+
+        close = [fit for _, fit in misfit if fit < Decimal("0.09")]
+        moved = moves([m for m, _ in misfit])
+        assert moves(unread) == []
+        flips = 0
+        for year, _, day, _ in moved:
+            trade = natural_gas_trade(year)
+            number = june_contract_number(day)
+            other = number - 1 if day <= ng_last_trade(year, 3) else number + 1
+            price = settlements(NATURAL_GAS[other])[1][day]
+            entry = price if day == trade.entry_day else trade.entry_price
+            exit_ = price if day == trade.exit_day else trade.exit_price
+            flips += (exit_ > entry) != trade.profitable
+        assert ((2023, 3), Decimal("0.012")) in misfit
+        assert date(2023, 2, 24).isoformat() in TestTheNaturalGasExpiries.EXCHANGE[2023]
+        text = " ".join(self.text.split())
+        assert (
+            f"The other {len(unread)} expiries cannot be checked this way, because a file "
+            f"lacks a row on the expiry day or the day after, "
+            f"{sum(1997 <= y <= 2005 for y, _ in unread)} of them between 1997 and 2005."
+        ) in text
+        assert f"{len(close)} fail by under 9 cents" in text
+        assert (
+            f"That is true of {len(moved)} of the {len(misfit)}, all March contracts at an "
+            f"entry, and of none of the {len(unread)}"
+        ) in text
+        assert all(m == 3 and day == natural_gas_trade(y).entry_day for y, m, day, _ in moved)
+        assert flips == 0
+
     def test_the_files_first_whole_trade(self) -> None:
         """1993's trade has neither price and 1994's has both, which the post says twice."""
         first = NG_YEARS[0]
