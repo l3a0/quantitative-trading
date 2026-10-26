@@ -1,7 +1,7 @@
 """Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2, 4 and 5.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Fourteen of its passages turn on a picture a
+trades against EIA's settlements. Seventeen of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
@@ -9,9 +9,11 @@ missing one, what Chan's 19 needs of the missing years, how the second fill
 carries June's move across a gap, which April days can test a fill, how its
 misses lean and spread, how the lean looks April by April, why a miss
 subtracts at an entry and adds at an exit, how far a fill misses against each
-year's move, how far a Sharpe ratio from so few years can stray, how one year
-moves natural gas's mean but not its ranks, and which numbered file holds the
-June contract on a given day. This module draws those fourteen as scenes,
+year's move, how far a Sharpe ratio from so few years can stray, why fewer
+results widen a range, where natural gas's ±12% comes from, which later range
+holds its earlier mean, how one year moves natural gas's mean but not its
+ranks, and which numbered file holds the
+June contract on a given day. This module draws those seventeen as scenes,
 and the post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
@@ -81,13 +83,25 @@ and the post places each right after the paragraph it draws.
    Sharpe ratio and a bar 1.96 standard errors either side, against a dashed
    zero line. Both periods after the book reach across zero. It sits in
    Lesson 4, after the paragraph opening "For the four Sharpe ratios".
-13. One year moves the mean, not the ranks: natural gas's returns from 2009
+13. Fewer results, a wider range: Student's t's 95% multiplier as a bar for
+   the post's 8 and 15 later years, for 30 results and for very many, against
+   a dashed line at the normal curve's 1.96. It sits after the general range
+   formula, which opens "```math".
+14. Where ±12% comes from: natural gas's spread after 2008, divided by the
+   root of its 15 years, times its multiplier, as three bars from one edge,
+   against a dashed line at the gap to its earlier mean. It sits after that
+   trade's worked range, which opens "```math".
+15. One range holds the earlier mean, one does not: each period's mean and
+   95% range, with each trade's earlier mean carried down as a dashed line
+   through its later bar. It sits after the paragraph opening "That range,
+   −6% to +2%, leaves out".
+16. One year moves the mean, not the ranks: natural gas's returns from 2009
    to 2023 as dots on a percentage axis, with ticks at their mean and at
    their mean without the best year, 2022, and below them all 30 years from
    1994 to 2023 ranked worst to best, the earlier ones above a line and the
    later ones below it. It sits after the paragraph opening "Gasoline’s fall
    shows on both."
-14. Which file holds the June contract: the March, April, May and June natural
+17. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -96,7 +110,7 @@ and the post places each right after the paragraph it draws.
    sits in Lesson 5, after the paragraph opening "For gasoline the answer is
    simple."
 
-All fourteen carry data, and none needs the owner's archive.
+All seventeen carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -112,6 +126,8 @@ too.
 :func:`sharpe_rows` reads each period's Sharpe ratio and standard error from
 :func:`chan.commodity_seasonals.sharpe_ratio` and
 :func:`chan.commodity_seasonals.sharpe_standard_error`, and
+:func:`mean_rows` reads each period's mean, spread, count and 95% range from
+:func:`chan.commodity_seasonals.mean_interval`, and
 :meth:`OneYearFigures.from_run` reads natural gas's yearly returns from
 :func:`chan.commodity_seasonals.natural_gas_trades`.
 :meth:`JuneYear.from_run` reads one year's entry and exit days and file
@@ -133,7 +149,7 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are this post's own, from :mod:`chan.commodity_seasonals_figures`.
 Each sketch carries more than a reader takes in at that post's pace, so
-all fourteen are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all seventeen are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -141,7 +157,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all fourteen with::
+with no change is a no-op diff. Redraw all seventeen with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -156,6 +172,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import numpy as np
+from scipy import stats
 
 from chan import commodity_seasonals as seasonals
 from chan.commodity_seasonals_figures import ACCENT, GASOLINE_BOOK_END, GOOD, LOST
@@ -1939,6 +1956,276 @@ def _sharpe_ranges(rows: tuple[SharpeRow, ...]) -> Scene:
     return Scene("How far each Sharpe ratio can stray", "sharpe_ranges", tuple(steps))
 
 
+# --- Lesson 4: whether the mean return changed -------------------------------
+
+
+@dataclass(frozen=True)
+class MeanRow:
+    """One period's yearly returns in percent: their mean, spread, count and 95% range."""
+
+    trade: str
+    first: int
+    last: int
+    mean: float
+    spread: float
+    count: int
+    low: float
+    high: float
+
+
+def mean_rows() -> tuple[MeanRow, ...]:
+    rows = []
+    for trade, first, last in PERIODS:
+        trades = _period_trades(trade, first, last)
+        returns = [t.relative_change for t in trades if t.change is not None]
+        low, high = seasonals.mean_interval(trades)
+        rows.append(
+            MeanRow(
+                trade,
+                first,
+                last,
+                100 * statistics.mean(returns),
+                100 * statistics.stdev(returns),
+                len(returns),
+                float(100 * low),
+                float(100 * high),
+            )
+        )
+    return tuple(rows)
+
+
+#: The percent axis: where 0% sits, how wide a point is, and the scale's ends.
+MEAN_ZERO_X, MEAN_POINT = 5.75, 0.16
+MEAN_SCALE = (-15.0, 20.0)
+
+
+def _mean_x(pct: float) -> float:
+    return MEAN_ZERO_X + pct * MEAN_POINT
+
+
+def _mean_ranges(rows: tuple[MeanRow, ...]) -> Scene:
+    """Lesson 4: each period's mean with its 95% range, and each trade's earlier
+    mean carried down to see whether its later range holds it."""
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "zero",
+            _line([(_mean_x(0), SHARPE_AXIS_Y), (_mean_x(0), 3.85)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Label("0%", _mean_x(0) + 0.22, 3.75, names="zero", color=MUTED, size=10),
+    ]
+    for k, row in enumerate(rows):
+        y, tag = SHARPE_TOP - k * SHARPE_STEP, f"{row.trade}-{row.first}"
+        steps += [
+            Label(
+                f"{row.trade}, {row.first} to {row.last}", 0.3, y, names="zero", color=INK, size=11
+            ),
+            _stroke(
+                f"range-{tag}",
+                _span(_mean_x(row.low), _mean_x(row.high), y, tick=0.1),
+                color=INK,
+                frames=6,
+            ),
+            Stroke(
+                f"mean-{tag}",
+                np.array([_mean_x(row.mean)]),
+                np.array([y]),
+                color=ACCENT,
+                frames=1,
+                dots=8.0,
+            ),
+            Label(
+                f"{row.mean:+.1f}%",
+                9.7,
+                y,
+                names=f"mean-{tag}",
+                color=ACCENT,
+                size=11,
+                ha="right",
+            ),
+        ]
+    for before in (rows[0], rows[2]):
+        k = rows.index(before)
+        top, bottom = SHARPE_TOP - k * SHARPE_STEP, SHARPE_TOP - (k + 1) * SHARPE_STEP
+        x, tag = _mean_x(before.mean), f"carry-{before.trade}"
+        steps.append(
+            _stroke(
+                tag, _line([(x, top - 0.15), (x, bottom - 0.2)]), color=MUTED, dashed=True, frames=3
+            )
+        )
+    steps += [
+        _stroke(
+            "scale",
+            _line(
+                [(_mean_x(MEAN_SCALE[0]), SHARPE_AXIS_Y), (_mean_x(MEAN_SCALE[1]), SHARPE_AXIS_Y)]
+            ),
+            color=MUTED,
+            frames=6,
+        ),
+        *[
+            Label(f"{v:+d}%", _mean_x(v), 0.4, names="scale", color=MUTED, size=10, ha="center")
+            for v in (-10, 10, 20)
+        ],
+        Label("mean yearly return", 0.3, 0.4, names="scale", color=MUTED, size=10),
+        Label(
+            "dot: the mean",
+            0.3,
+            3.75,
+            names=f"mean-{rows[0].trade}-{rows[0].first}",
+            color=ACCENT,
+            size=10,
+        ),
+        Label(
+            "bar: 95% range   dashed: the earlier mean",
+            0.3,
+            3.45,
+            names="carry-natural gas",
+            color=INK,
+            size=10,
+        ),
+    ]
+    return Scene("One range holds the earlier mean, one does not", "mean_ranges", tuple(steps))
+
+
+#: The multiplier chart: the bars' left edges, width and base, how tall a unit
+#: is, and the count of results it sets beside the post's own for comparison.
+T_BARS_X, T_BAR_WIDTH = (2.4, 4.2, 6.0, 7.8), 0.9
+T_BASE, T_UNIT = 0.85, 0.92
+T_COMPARE = 30
+
+
+def _t_multiplier(counts: tuple[int, int]) -> Scene:
+    """Lesson 4: the 95% multiplier Student's t gives for the post's two counts
+    of later years, for :data:`T_COMPARE` results and for very many, against
+    the normal curve's 1.96."""
+    many = 1000
+    normal = stats.norm.ppf(0.975)
+    steps: list[Stroke | Label] = [
+        _stroke("base", _line([(1.9, T_BASE), (9.2, T_BASE)]), color=MUTED, frames=6),
+    ]
+    sizes = (*counts, T_COMPARE, many)
+    for x, n in zip(T_BARS_X, sizes, strict=True):
+        t = stats.t.ppf(0.975, n - 1)
+        top = T_BASE + t * T_UNIT
+        ours = n in counts
+        steps += [
+            _stroke(
+                f"bar-{n}",
+                _box(x, T_BASE, x + T_BAR_WIDTH, top),
+                color=ACCENT if ours else INK,
+                frames=6,
+            ),
+            Label(
+                f"{t:.2f}",
+                x + T_BAR_WIDTH / 2,
+                top + 0.3,
+                names=f"bar-{n}",
+                color=ACCENT if ours else INK,
+                size=11,
+                ha="center",
+            ),
+            Label(
+                "many" if n == many else f"{n} results",
+                x + T_BAR_WIDTH / 2,
+                T_BASE - 0.33,
+                names=f"bar-{n}",
+                color=MUTED,
+                size=10,
+                ha="center",
+            ),
+        ]
+    y = T_BASE + normal * T_UNIT
+    steps += [
+        _stroke("normal", _line([(2.25, y), (9.2, y)]), color=MUTED, dashed=True, frames=6),
+        Label(f"normal, {normal:.2f}", 2.0, y, names="normal", color=MUTED, size=10, ha="right"),
+        Label("95% multiplier from Student’s t", 0.3, 3.75, names="base", color=INK, size=10),
+        Label(
+            f"purple: this post’s {counts[0]} and {counts[1]} years",
+            9.7,
+            3.75,
+            names="base",
+            color=ACCENT,
+            size=10,
+            ha="right",
+        ),
+    ]
+    return Scene("Fewer results, a wider range", "t_multiplier", tuple(steps))
+
+
+#: The half-width build: where each bar starts, how wide a point is, and the rows.
+HALF_X, HALF_POINT = 3.3, 0.27
+HALF_ROWS = (3.2, 2.35, 1.5)
+
+
+def _half_width(row: MeanRow, earlier: MeanRow) -> Scene:
+    """Lesson 4: natural gas's half-width after 2008, built from its spread,
+    against the gap to its earlier mean."""
+    t = stats.t.ppf(0.975, row.count - 1)
+    shrunk = row.spread / math.sqrt(row.count)
+    half = t * shrunk
+    gap = earlier.mean - row.mean
+    widths = (row.spread, shrunk, half)
+    texts = (
+        f"spread s = {row.spread:.1f}%",
+        f"s / √{row.count} = {shrunk:.1f}%",
+        f"× {t:.2f} = {half:.1f}%",
+    )
+    steps: list[Stroke | Label] = []
+    for k, (y, width, text) in enumerate(zip(HALF_ROWS, widths, texts, strict=True)):
+        steps += [
+            _stroke(
+                f"half-{k}",
+                _span(HALF_X, HALF_X + width * HALF_POINT, y, tick=0.1),
+                color=ACCENT if k == 2 else INK,
+                frames=6,
+            ),
+            Label(
+                text,
+                HALF_X - 0.25,
+                y,
+                names=f"half-{k}",
+                color=ACCENT if k == 2 else INK,
+                size=11,
+                ha="right",
+            ),
+        ]
+    x = HALF_X + gap * HALF_POINT
+    steps += [
+        _stroke("gap", _line([(x, 0.95), (x, 3.55)]), color=MUTED, dashed=True, frames=6),
+        Label(
+            f"the earlier mean, {gap:.1f} points above",
+            x,
+            0.65,
+            names="gap",
+            color=MUTED,
+            size=10,
+            ha="center",
+        ),
+        Label(
+            "natural gas, June contract, 2009 to 2023",
+            9.7,
+            3.85,
+            names="half-0",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+    ]
+    return Scene(f"Where ±{half:.0f}% comes from", "half_width", tuple(steps))
+
+
+def _mean_scenes(rows: tuple[MeanRow, ...]) -> tuple[Scene, Scene, Scene]:
+    """The three sketches of whether the mean return changed, in the post's order."""
+    gas_after, ng_before, ng_after = rows[3], rows[0], rows[1]
+    return (
+        _t_multiplier((gas_after.count, ng_after.count)),
+        _half_width(ng_after, ng_before),
+        _mean_ranges(rows),
+    )
+
+
 # --- Lesson 4: one year moves the mean, not the ranks -----------------------
 
 
@@ -2318,23 +2605,35 @@ PACED = (
     "miss_sign",
     "fill_misses",
     "sharpe_ranges",
+    "mean_ranges",
+    "t_multiplier",
+    "half_width",
     "one_year",
     "june_file",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
+#: Paced scenes the owner still found too fast, with each one's stroke frame
+#: and label hold in milliseconds. Each has few steps, so the usual pace
+#: finished it before a reader had followed it.
+SLOWER = {"half_width": (250, 1800)}
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
-    """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
+    """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`, and
+    slower still for those in :data:`SLOWER`."""
     frames = timeline(scene)
     if scene.slug not in PACED:
         return frames
-    paced = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
+    stroke_ms, label_ms = SLOWER.get(scene.slug, (None, PACED_LABEL_MS))
+
+    def slowed(f: Frame) -> Frame:
+        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke):
+            return Frame(f.done, f.partial, label_ms)
+        if stroke_ms is not None and f.done + f.partial and f is not frames[0]:
+            return Frame(f.done, f.partial, stroke_ms)
+        return f
+
+    paced = [slowed(f) for f in frames]
     last = paced[-1]
     paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
     return paced
@@ -2354,7 +2653,7 @@ def scenes(
     misses: MissFigures | None = None,
     narrowing: NarrowingFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The fourteen scenes in the order the post reads them, Lessons 1, 2, 4 and 5."""
+    """The seventeen scenes in the order the post reads them, Lessons 1, 2, 4 and 5."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
@@ -2375,6 +2674,7 @@ def scenes(
         _miss_sign(*seasonals.gap_fills()[:2]),
         _fill_misses(tuple(seasonals.gap_fills())),
         _sharpe_ranges(sharpe_rows()),
+        *_mean_scenes(mean_rows()),
         _one_year(OneYearFigures.from_run()),
         _june_file(*years),
     )
