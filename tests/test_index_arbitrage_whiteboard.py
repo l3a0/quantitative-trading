@@ -57,6 +57,7 @@ from chan.index_arbitrage_whiteboard import (
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import GOOD, INK, LOST, MUTED
+from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -312,8 +313,15 @@ class TestTheCommand:
         assert sorted(path.name for path in tmp_path.glob("*.gif")) == sorted(GIFS)
         assert capsys.readouterr().out.splitlines() == [f"wrote {tmp_path / name}" for name in GIFS]
 
-    def test_a_refusal_reaches_the_operator_as_one_line(self, monkeypatch) -> None:
-        refusal = VintageUnavailable("the committed file's hash does not match its manifest")
+    @pytest.mark.parametrize(
+        "refusal",
+        [
+            VintageUnavailable("the committed file's hash does not match its manifest"),
+            WindowCrossesScaleBreak("SPY changed scale on 2008-01-02"),
+        ],
+        ids=["vintage", "scale break"],
+    )
+    def test_a_refusal_reaches_the_operator_as_one_line(self, monkeypatch, refusal) -> None:
 
         def refuse(*_a, **_k):
             raise refusal
@@ -433,6 +441,7 @@ class TestTheUnitSketch:
             unit.apart / unit.long
         )
         assert _top(long) == height(unit, unit.long)
+        assert _top(long) == pytest.approx(sketches.TOP)
 
     def test_the_columns_stand_side_by_side_at_one_width(self, every) -> None:
         scene = every[0]
@@ -456,7 +465,9 @@ class TestTheUnitSketch:
         assert f"{100 * unit.apart / unit.long:.1f}" == "1.5"
         for gid, column, x in (("callout-long", long, LONG_X), ("callout-short", short, SHORT_X)):
             arrow = _stroke(scene, gid)
-            tip = int(np.argmin(arrow.y))
+            # The tip is the point farthest from the arrow's start, since the head
+            # turns back from it, and a shallow arrow's barb can sit below it.
+            tip = int(np.argmax(np.hypot(arrow.x - arrow.x[0], arrow.y - arrow.y[0])))
             tip_x, tip_y = arrow.x[tip], arrow.y[tip]
             assert x[0] < tip_x < x[1], gid
             assert 0 < tip_y - _top(column) < 0.2, gid
@@ -493,6 +504,8 @@ class TestTheUnitSketch:
             "the rule scales the whole unit\nby minus the z-score",
         ]
         assert _stroke(scene, "stocks").points == 50
+        dots = _stroke(scene, "stocks")
+        assert _label(scene, "$2.00000 each").y < dots.y.min() - 0.3
         long, short = _top(_stroke(scene, "long")), _top(_stroke(scene, "short"))
         assert short == sketches.TOP
         assert (long - BASE) / (short - BASE) == pytest.approx(100 / 120)
@@ -508,14 +521,27 @@ class TestTheUnitSketch:
         with pytest.raises(RuntimeError, match="read_sources ran"):
             OneUnit.from_run()
 
+    def test_it_reads_the_folder_it_is_given(self, monkeypatch, tmp_path) -> None:
+        seen = []
+        monkeypatch.setattr(
+            run, "read_sources", lambda data_dir=None: seen.append(data_dir) or (None,) * 4
+        )
+        monkeypatch.setattr(
+            run, "index_arbitrage", lambda s, i: SimpleNamespace(weights=np.array([1.0, -1.0]))
+        )
+        OneUnit.from_run(tmp_path)
+        assert seen == [tmp_path]
+
     @pytest.mark.parametrize(
         ("weights", "words"),
         [
             ([1.0, 1.1, -2.0], "one weight on every stock"),
             ([-1.0, -1.0, 2.0], "the stocks long"),
             ([1.0, 1.0, 2.0], "SPY short"),
+            ([0.0, 0.0, -2.0], "the stocks long"),
+            ([1.0, 1.0, 0.0], "SPY short"),
         ],
-        ids=["unequal", "stocks short", "spy long"],
+        ids=["unequal", "stocks short", "spy long", "stocks zero", "spy zero"],
     )
     def test_it_refuses_a_run_that_would_make_its_words_false(
         self, monkeypatch, weights, words
@@ -527,6 +553,9 @@ class TestTheUnitSketch:
     def test_it_sums_the_stocks_weights(self, monkeypatch) -> None:
         _faked_run(monkeypatch, [0.5, 0.5, 0.5, -1.25])
         assert OneUnit.from_run() == OneUnit(stocks=3, each=0.5, long=1.5, short=1.25)
+        # Seven equal weights of 0.1 sum to 0.7 and multiply to 0.7000000000000001.
+        _faked_run(monkeypatch, [0.1] * 7 + [-1.0])
+        assert OneUnit.from_run().long == 0.7
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, unit) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])

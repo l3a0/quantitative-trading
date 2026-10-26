@@ -735,6 +735,9 @@ class TestTheBasketsStocksAndTheIndex:
             for quarter in missing:
                 assert not any(name in n for n in _schedule_names(quarter)), (ticker, quarter)
             assert any(name in n for n in _schedule_names(back)), ticker
+            assert schedules[schedules.index(last) + 1] == back, ticker
+            before = schedules.index(first) - 1
+            assert before < 0 or any(name in n for n in _schedule_names(schedules[before])), ticker
 
     def test_ak_steel_is_in_the_basket_after_it_left_the_index(self, result) -> None:
         assert "AKS" in result.screen.passed
