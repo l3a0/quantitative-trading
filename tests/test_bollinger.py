@@ -1,9 +1,11 @@
 """The pins for Bollinger bands on GLD and USO, *Algorithmic Trading*'s Example 3.2.
 
 This file is the single authority for every number any prose surface quotes
-about Example 3.2, with one exception, in ``blog/bollinger-band-lessons.md``.
-That post also quotes Example 3.1's figures, which ``tests/test_price_spread.py``
-holds, and its figure's labels, which ``tests/test_bollinger_figures.py`` holds.
+about Example 3.2, with two exceptions, both in
+``blog/bollinger-band-lessons.md``. The post's figure has its own pins in
+``tests/test_bollinger_figures.py``, and what the post says about the file
+itself, its 67 ETFs, is held in ``tests/test_series.py``. The post also quotes
+Example 3.1's figures, which ``tests/test_price_spread.py`` holds.
 README lists what the post says that nothing asserts. ``docs/replication-log.md``
 carries the verdicts and points here row by row.
 
@@ -35,6 +37,8 @@ rule he chose. It first ran here on 2026-10-05.
 """
 
 from __future__ import annotations
+
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -627,3 +631,133 @@ class TestTheRefusals:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert str(stopped.value) == str(refusal)
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "bollinger-band-lessons.md"
+
+
+def _exit_rows(units: np.ndarray) -> set[int]:
+    return set((np.flatnonzero((units[:-1] != 0) & (units[1:] == 0)) + 1).tolist())
+
+
+class TestThePostQuotesThePins:
+    """One copy of each figure the post takes from the run, read from the post itself.
+
+    Other copies of the same figure elsewhere in the post are not always read, and
+    neither are its alt text and caption. The tests above derive these numbers and
+    the prose states them, so before this class a typo in the post passed every
+    test. Round 1 of the post's review changed 71 of its numbers one at a time, and
+    none failed a test. Example 3.1's figures, which ``tests/test_price_spread.py``
+    holds, the 67 ETFs, which ``tests/test_series.py`` holds, and the book's figures
+    and Kindle locations are not read here.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_band_s_figures(self, result: ExampleThreeTwo) -> None:
+        band = result.bollinger
+        assert (
+            f"Both figures the script prints match to six decimals, an APR of {band.apr:.6f} "
+            f"and a Sharpe ratio of {band.sharpe:.6f}."
+        ) in self.text
+        for run_ in (band, result.linear):
+            assert f"\\text{{Computed}} & {run_.apr:.6f} & {run_.sharpe:.6f}" in self.text
+
+    def test_the_traded_days(self, result: ExampleThreeTwo) -> None:
+        days = result.bollinger.signal.days
+        first_z = int(np.flatnonzero(np.isfinite(result.zscore))[0])
+        first_return = int(np.flatnonzero(result.bollinger.daily)[0])
+        assert f"so it trades the {len(days):,} days from {days[0].date()}." in self.text
+        assert (
+            f"The {LOOKBACK}-day standard deviation first exists on {days[first_z].date()}, "
+            "the band enters its first position that day, and the position earns its first "
+            f"return on {days[first_return].date()}"
+        ) in self.text
+
+    def test_lesson_2_s_comparison(self, result: ExampleThreeTwo) -> None:
+        band, linear = result.bollinger, result.linear
+        assert (
+            f"The APR rises from {linear.apr:.6f} to {band.apr:.6f}, by "
+            f"{band.apr - linear.apr:.6f}. The Sharpe ratio rises from {linear.sharpe:.6f} to "
+            f"{band.sharpe:.6f}, by {band.sharpe - linear.sharpe:.6f}."
+        ) in self.text
+
+    @pytest.mark.parametrize(
+        ("rule", "name"), [("bollinger", "The band"), ("linear", "The linear rule")]
+    )
+    def test_lesson_2_s_drawdowns(self, result: ExampleThreeTwo, rule, name) -> None:
+        run_ = getattr(result, rule)
+        days = run_.signal.days
+        cumret = np.cumprod(1 + run_.daily) - 1
+        deepest, rows = calculate_max_dd(cumret)
+        _, drawdown, duration = drawdown_path(cumret)
+        last = int(np.argmax(duration))
+        first = last - rows + 1
+        trough = days[int(np.argmin(drawdown))].date()
+        assert (
+            f"**{name}.** Its deepest drawdown is −{-100 * deepest:.2f} percent, with its trough "
+            f"on {trough}. Its longest spell below a high lasts {rows} trading days, from "
+            f"{days[first].date()} to {days[last].date()}."
+        ) in self.text
+        assert f"the same high, on {days[first - 1].date()}." in self.text
+
+    def test_lesson_3_s_divisor(self, result: ExampleThreeTwo, by_n: ExampleThreeTwo) -> None:
+        assert f"\\approx {np.sqrt(20 / 19):.4f}\\, z" in self.text
+
+        def beyond(z: np.ndarray) -> int:
+            return int((np.abs(z[np.isfinite(z)]) > ENTRY_ZSCORE).sum())
+
+        assert (
+            f"the z-score exists on {int(np.isfinite(result.zscore).sum()):,} of the "
+            f"{len(result.zscore):,} days. It sits beyond ±1 on {beyond(result.zscore)} of them "
+            f"with divisor n − 1 and on {beyond(by_n.zscore)} with divisor n."
+        ) in self.text
+        days = result.bollinger.signal.days
+        n_less_1, n = _exit_rows(result.bollinger.units), _exit_rows(by_n.bollinger.units)
+        (extra,) = n - n_less_1
+        held = by_n.bollinger.units[:extra]
+        entered = int(np.flatnonzero(held != held[-1])[-1]) + 1
+        assert (
+            f"All {len(n_less_1)} exits with divisor n − 1 fall on the same days with divisor n, "
+            f"but the run with divisor n has a {len(n)}th, on {days[extra].date()}. It closes a "
+            f"short entered on {days[entered].date()}"
+        ) in self.text
+        differ = int((result.bollinger.units != by_n.bollinger.units).sum())
+        short = extra - entered
+        words = {7: "Seven", 8: "eight"}
+        assert (
+            f"The units differ on {differ} days, and that is enough to move both figures. "
+            f"{words[short]} of them are that short. On the other {words[differ - short]}, the "
+            "run with divisor n enters a position one day before the run with divisor n − 1 does."
+        ) in self.text
+        band, moved = result.bollinger, by_n.bollinger
+        assert (
+            f"**The APR** becomes {moved.apr:.6f}, up by {moved.apr - band.apr:.6f}. The book’s "
+            f"rounding would print it as {100 * moved.apr:.1f} percent."
+        ) in self.text
+        assert (
+            f"**The Sharpe ratio** becomes {moved.sharpe:.6f}, up by "
+            f"{moved.sharpe - band.sharpe:.6f}. The book would print {moved.sharpe:.2f}."
+        ) in self.text
+
+    def test_lesson_4_s_counts(self, result: ExampleThreeTwo) -> None:
+        units = result.bollinger.units
+        assert (
+            f"Over the {len(units):,} traded days it is short on {int((units == -1).sum())}, "
+            f"flat on {int((units == 0).sum())} and long on {int((units == 1).sum())}."
+        ) in self.text
+        negative = result.bollinger.signal.hedge < 0
+        assert f"the hedge ratio below zero on {int(negative.sum())} days of the same" in self.text
+        both = int(((units == 0) & negative).sum())
+        assert f"flat with the hedge ratio below zero on only {both} days." in self.text
+        linear = result.linear.units
+        changes = int(np.count_nonzero(np.diff(units)))
+        linear_changes = int(np.count_nonzero(np.diff(linear[np.isfinite(linear)])))
+        assert (
+            f"The band’s units change on {changes} days, against {linear_changes:,} for the "
+            "linear rule"
+        ) in self.text
+        before, after = units[:-1], units[1:]
+        assert f"**{int(((before == 0) & (after != 0)).sum())} entries**" in self.text
+        assert f"**{int(((before != 0) & (after == 0)).sum())} exits**" in self.text
+        assert f"**{int((before * after == -1).sum())} turns**" in self.text

@@ -5005,11 +5005,18 @@ seventh.
    held unit's GLD leg is resized every day.
 7. The figure's own lines and labels.
 
+`TestThePostQuotesThePins` in
+[tests/test_bollinger.py](tests/test_bollinger.py) reads one copy of each
+figure the post takes from the run, from the post itself. A second copy
+elsewhere in the post, such as in its alt text, is not always read, and
+neither are Example 3.1's figures, which
+[tests/test_price_spread.py](tests/test_price_spread.py) holds.
+
 Its one figure is drawn from the committed file by
 [src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), which reads it
 through the same `read_sources` and `example_three_two` as
 `python -m chan.bollinger`, scale-break guard included. It draws three panels
-on one date axis, for Lessons 1, 3 and 4.
+on one date axis, for Lessons 1 to 4.
 
 1. The 20-day z-score, with the band's lines at −1, 0 and 1.
 2. The units held, −1, 0 or 1.
