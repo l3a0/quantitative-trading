@@ -139,7 +139,33 @@ e \sim N(b,\ \sigma^{2})
 \end{gathered}
 ```
 
-Call the year’s move with the guess in place `m`. In 1997 the missing price is the entry, and in 1998 and 1999 it is the exit. A miss above the guess lowers an entry’s move and raises an exit’s, so each case has its own true move and its own corrected move `c`:
+A year’s move is its exit price minus its entry price:
+
+```math
+\text{move} = \text{exit} - \text{entry}
+```
+
+Call the move with the guess in place `m`. In 1997 the missing price is the entry:
+
+```math
+\begin{aligned}
+\text{true move} &= \text{exit} - (\text{guess} + e) \\
+&= \underbrace{(\text{exit} - \text{guess})}_{m} - e \\
+&= m - e
+\end{aligned}
+```
+
+In 1998 and 1999 it is the exit:
+
+```math
+\begin{aligned}
+\text{true move} &= (\text{guess} + e) - \text{entry} \\
+&= \underbrace{(\text{guess} - \text{entry})}_{m} + e \\
+&= m + e
+\end{aligned}
+```
+
+So a miss above the guess lowers an entry’s move and raises an exit’s. Putting the average miss `b` in place of `e` gives each case its corrected move `c`:
 
 ```math
 \begin{array}{l|c|c}
