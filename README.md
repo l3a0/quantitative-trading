@@ -6008,7 +6008,7 @@ TU posts to link, and draws three lessons from Entry 33 of the replication log.
 
 1. The book's figures come from the full window, whose line the script
    leaves commented out, while the line it runs from 2009 lands none of them.
-2. H misses 0.44 on Chan's own file, and the `maxT` that lands it on TU moves
+2. H misses 0.44 on Chan's own file, and a `maxT` that lands it on TU moves
    USD.CAD further from its 0.49, so no figure of Chan's vouches for the
    Python copy of `genhurst`.
 3. The momentum is thin: the traded cell rests on 69 days, is one of 49 that
@@ -6029,9 +6029,10 @@ Five groups of what it says are not pinned here.
    the case for leverage and Figure 6.2's caption at 2668, and the sign of
    roll returns at 2683. The book's figures are pinned, and its words are not.
 2. Facts about the code rather than the data: the active line
-   `idx = find(tday == 20090102)` and the commented-out `% idx=1;` under it,
-   the comment printing no annual volatility, `genhurst`'s default `maxT` of
-   19, and `correlationTest.m` loading the 2012-05-17 save.
+   `idx=find(tday==20090102);` and the commented-out `% idx=1;` under it,
+   the comment printing no annual volatility, the `q` of 2 the script passes
+   `genhurst`, `genhurst`'s default `maxT` of 19, and `correlationTest.m`
+   loading the 2012-05-17 save.
    [src/chan/tu_momentum.py](src/chan/tu_momentum.py) records each in its
    docstring.
 3. Readings no test asserts: that TU's price rises when two-year yields fall,
@@ -6065,7 +6066,8 @@ pins them all.
    negative, against the 2.45 that 49 independent tests would give, and the
    negative four are exactly 1/1, 1/5, 5/1 and 5/5.
 2. The position is +25 on 1,176 of the 2,000 days, −25 on 397 and 0 on 251,
-   of which 250 precede the first signal.
+   of which 250 precede the first signal, and between −25 and +25 on the
+   other 176.
 3. TU's close is 97.9219 on the first day and 110.2734 on the last.
 4. Calendar 2008 compounds to 0.060565, and every other year together to
    0.075414.

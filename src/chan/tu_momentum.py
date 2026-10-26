@@ -51,7 +51,7 @@ percent.
    and the Kelly f's ``std`` is MATLAB's, which divides by n − 1.
 
 **The book's figures come from the full window, not the script's active
-line.** The script picks its window with ``idx = find(tday == 20090102)`` and
+line.** The script picks its window with ``idx=find(tday==20090102);`` and
 leaves ``% idx=1;`` commented out under it. All six figures in its closing
 comment land on ``idx = 1``, the 2,000 rows from 2004-06-01 that the book's
 sentence names, and none lands on 2009-01-02. The comment also prints no
@@ -168,9 +168,9 @@ PERIODS = (1, 5, 10, 25, 60, 120, 250)
 COMPROMISES = ((60, 10), (60, 25), (250, 10), (250, 25), (250, 60), (250, 120))
 #: ``genhurst(log(cl), 2)``.
 HURST_Q = 2
-#: The ``maxT`` the diagnostic beside the Hurst row reads, where H on TU first rounds to 0.44.
+#: The ``maxT`` the diagnostic beside the Hurst row reads, one at which H on TU prints as the book's 0.44.
 HURST_DIAGNOSTIC_MAX_T = 24
-#: The script's active line, ``idx = find(tday == 20090102)``.
+#: The script's active line, ``idx=find(tday==20090102);``.
 ACTIVE_LINE_START = pd.Timestamp("2009-01-02")
 
 #: ``TU_mom.m``'s closing comment.

@@ -11,7 +11,7 @@ A claim stated as a correlation can be measured before any money is at risk, so 
 Chan published the script, `TU_mom.m`. This repository transcribed it line by line and ran it on the same closes. The results fall into three groups.
 
 1. **Every figure in the script’s closing comment lands on the full window.** A figure lands when it matches every digit printed, and misses when it does not. The line the script runs starts in 2009 and lands none of the comment’s six figures. The line that reads every day from 2004 is commented out, and it lands all six.
-2. **The Hurst exponent misses.** The Hurst exponent measures whether a price tends to trend or to revert. The book prints 0.44, and the transcription gives 0.433357. The setting that lands it on TU moves Chan’s other series further off.
+2. **The Hurst exponent misses.** The Hurst exponent measures whether a price tends to trend or to revert. The book prints 0.44, and the transcription gives 0.433357. A setting that lands it on TU moves Chan’s other series further off.
 3. **The momentum is thin.** Chan trades the pair of periods, how far back to look and how long to hold, whose past and future returns correlate most strongly. That pair correlates at 0.27 with a p-value of 0.02. That rests on 69 days, and the pair is one of 49 tried on the same closes.
 
 **Every result here is exploratory.** Chan picked the pair from a table computed on the 2004 to 2012 closes the rule then trades. The reproduction can say whether his numbers follow from his file and nothing about whether the rule pays today.
@@ -20,13 +20,13 @@ The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/q
 
 ## The strategy and the file
 
-TU is a futures contract on a US Treasury note that matures in about two years, traded on the Chicago Mercantile Exchange. A futures contract is an agreement to buy or sell something at a set price on a set future date. A note pays a fixed coupon, so when the yield on new two-year notes falls, the fixed payments of an existing note are worth more and its price rises, and TU’s with it. So a rise in the note’s price reflects a fall in two-year interest rates. The series here is back-adjusted, as the next paragraph explains, so its rises carry the roll return as well as moves in yields.
+TU is a futures contract on a US Treasury note that matures in about two years, listed on the Chicago Board of Trade, part of CME Group since 2007. A futures contract is an agreement to buy or sell something at a set price on a set future date. A note pays a fixed coupon, so when the yield on new two-year notes falls, the fixed payments of an existing note are worth more and its price rises, and TU’s with it. So a rise in the note’s price reflects a fall in two-year interest rates. The series here is back-adjusted, as the next paragraph explains, so its rises carry the roll return as well as moves in yields.
 
 Each contract expires, so a price history that runs for years is stitched from one contract after the next into a continuous future. The [post on VX and ES](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#the-regression-and-the-files) explains that stitching and the roll that joins each contract to the next. Chan names four main causes of momentum, and the first, for futures, is “the persistence of roll returns, especially of their signs” (Chan, 2013, location 2591). The roll return is the part of a future’s return that comes from its price drifting toward the spot price, the price of the underlying notes for delivery today, as expiry nears. The [post on Chan’s spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md) splits the returns of five futures, TU among them, into the two parts, as Chan’s Table 5.1 does, and checks that table on his own files. Chan argues that “the sign of roll returns does not vary very often” and names TU among the futures the explanation fits (Chan, 2013, location 2683).
 
 ### The correlation table
 
-The table starts from one cell, a lookback of 250 days and a hold of 25. On each day the past return is the change in TU’s close over the previous 250 days, and the future return is the change over the next 25. Each day that has both gives one pair of numbers. The cell is the correlation of the past returns with the future returns across those days. A positive value says a rise over the last 250 days tended to be followed by a rise over the next 25.
+The table starts from one cell, a lookback of 250 days and a hold of 25. On each day the past return is the percentage change in TU’s close over the previous 250 days, and the future return is the percentage change over the next 25. Each day that has both gives one pair of numbers. The cell is the correlation of the past returns with the future returns across those days. A positive value says a rise over the last 250 days tended to be followed by a rise over the next 25.
 
 Neighbouring days share almost all of their windows. Two consecutive future returns overlap on 24 of their 25 days, so counting both treats one move as two pieces of evidence. Chan warns that “we must take care not to use overlapping data” (Chan, 2013, location 2623), and his Figure 6.1 draws the fix as two pairs of bars. When the lookback is longer than the hold, the next pair of returns starts one hold later. When the hold is longer, it starts one lookback later. So the script keeps the first day that has both returns and then every day one shorter period later. For 250 and 25 it keeps every 25th day, and 69 days survive.
 
@@ -40,12 +40,12 @@ So each day opens a tranche, a slice of one twenty-fifth of the capital, long if
 
 ### The six figures
 
-The script’s closing lines print six figures from the daily returns.
+The script’s closing comment records six figures from the daily returns.
 
 1. **The average annual return**, the mean daily return times 252, the number of trading days in a year.
 2. **The Sharpe ratio**, the mean daily return divided by its standard deviation, times √252. It measures return per unit of risk, here with no risk-free rate taken off.
 3. **The APR**, the annual percentage rate. It compounds the daily returns into one growth factor and annualizes it over 252 days a year.
-4. **The maximum drawdown**, the deepest fall of the cumulative return below its previous high.
+4. **The maximum drawdown**, the deepest fall of the account’s value below its previous high, as a fraction of that high. The account’s value is one plus the cumulative return.
 5. **The longest drawdown**, the most days the cumulative return spent below a previous high.
 6. **The Kelly f**, the leverage at which capital grows fastest if returns follow a bell curve, which is the mean daily return divided by its variance. The [post on the Kelly leverage on SPY](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#the-kelly-formula) derives it.
 
@@ -53,7 +53,7 @@ The data is [one file](https://github.com/l3a0/quantitative-trading/blob/main/da
 
 ## Lesson 1: the book’s figures come from the full window, not the line the script runs
 
-The script picks its window with `idx = find(tday == 20090102)`, so its figures read the days from 2009-01-02 on. The line under it, `% idx=1;`, would read every day from the first. The `%` makes it a comment, which MATLAB skips. The book’s own sentence names the full window: “From June 1, 2004, to May 11, 2012, the Sharpe ratio is a respectable 1” (Chan, 2013, location 2668).
+The script picks its window with `idx=find(tday==20090102);`, so its figures read the days from 2009-01-02 on. The line under it, `% idx=1;`, would read every day from the first. The `%` makes it a comment, which MATLAB skips. The book’s own sentence names the full window: “From June 1, 2004, to May 11, 2012, the Sharpe ratio is a respectable 1” (Chan, 2013, location 2668).
 
 Here is each figure on both windows, beside the script’s closing comment and the book. The full window is all 2,000 days. The active line is the 849 days from 2009-01-02.
 
@@ -79,15 +79,15 @@ The figure below redraws the script’s plot of the cumulative return, the produ
 
 The curve shows why the two windows disagree. It stands at 0.085439 on 2009-01-02 and ends at 0.140547, so the active line starts after more than half of the gain was already in. It also starts after the maximum drawdown, which runs from 2008-03-17 to 2008-06-13. The active line sees a smaller gain and a shallower fall, and every figure moves.
 
-A second file settles which save the book used. Chan’s `correlationTest.m` computes the table alone and loads a later save, from 2012-05-17. TU’s close is the same on all 1,996 days the two saves share. The later save’s 2,000 days start on 2004-06-07, four trading days later, and that shift alone moves the 250/25 correlation to 0.287046, which rounds to 0.29 rather than the book’s 0.27. It moves the Kelly f to 64.930941, off the comment’s digits. So the book’s figures come from the 2012-05-11 save. Four days at the start move the correlation in its second decimal, a first sign of how few days stand behind it.
+A second data file of Chan’s settles which file the book used. His `correlationTest.m` computes the table alone, and it loads `inputDataOHLCDaily_20120517.mat`, whose closes run to 2012-05-17. TU’s close is the same on all 1,996 days the two files share. The later file’s 2,000 days start on 2004-06-07, four trading days later, so its every 25th day starts four days later too, on 2005-06-07 rather than 2005-06-01, and the two files keep none of the same 69 days. That shift alone moves the 250/25 correlation to 0.287046, which rounds to 0.29 rather than the book’s 0.27. It moves the Kelly f to 64.930941, off the comment’s digits. So the book’s figures come from the file whose closes end on 2012-05-11. Four days at the start move the correlation in its second decimal, a first sign of how few days stand behind it.
 
 ## Lesson 2: the Hurst exponent misses, and no setting lands both of Chan’s series
 
 Chapter 2 of the book introduced the Hurst exponent and the variance ratio test as tests for mean reversion, a price’s pull back toward its average. Chan says they “can just as well be used as momentum tests” (Chan, 2013, location 2620). The [post on Chan’s stationarity tests on USD.CAD](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#the-tests-and-the-file) explains both. In short, the Hurst exponent H measures how fast a price spreads out over time. A random walk has an H of 0.5, a trending series more, and a reverting series less. On TU the book reports 0.44, a lean toward reversion, which sits against the momentum the table shows.
 
-The script computes H with `genhurst`, a MATLAB function by Tomaso Aste, and this repository transcribed it to Python. On TU’s log closes the transcription gives 0.433357. That prints as 0.43, so it misses the book’s 0.44 with a gap of −0.01, computed minus published. It misses on Chan’s own file, so a later download is not the explanation. The 2012-05-17 save gives 0.446556, which prints as 0.45 and misses on the other side.
+The script computes H with `genhurst`, a MATLAB function by Tomaso Aste, and this repository transcribed it to Python. On TU’s log closes the transcription gives 0.433357. That prints as 0.43, so it misses the book’s 0.44 with a gap of −0.01, computed minus published. It misses on Chan’s own file, so a later download is not the explanation. Chan’s later file, whose closes run to 2012-05-17, gives 0.446556, which prints as 0.45 and misses on the other side.
 
-`genhurst` has one setting that moves H, `maxT`, the longest gap in days over which it measures changes, 19 by default. Raising `maxT` to 24 lands TU at 0.440450. The same change moves USD.CAD, the other series the book prints an H for, from 0.473233 to 0.471426, further from its printed 0.49. No single setting lands both.
+`genhurst` takes two settings. The script passes the first, `q`, as 2. The second, `maxT`, is the longest gap in days over which it measures changes, and the script leaves it at its default of 19. Raising `maxT` to 24 lands TU at 0.440450. The same change moves USD.CAD, the other series the book prints an H for, from 0.473233 to 0.471426, further from its printed 0.49. No single setting lands both.
 
 Neither H the book prints lands through the Python copy of `genhurst`, so no figure of Chan’s vouches for it. Two kinds of check test it instead.
 
@@ -96,7 +96,7 @@ Neither H the book prints lands through the Python copy of `genhurst`, so no fig
 
 A search could go on, through other settings, other versions of the function or other ways of rounding. Each try would be choosing a reading after seeing its number, and a reading chosen that way says nothing about TU. So the replication stopped at the one diagnostic, `maxT`, and recorded the miss.
 
-Every reading here, 0.433357, 0.440450 and the later save’s 0.446556, sits below 0.5, on the same side as the book’s 0.44. Each is a point estimate with no standard error, though, and the variance ratio test in Lesson 3 cannot tell TU from a random walk. So the miss leaves the book’s direction standing without making the lean toward reversion a finding.
+Every reading here, 0.433357, 0.440450 and the later file’s 0.446556, sits below 0.5, on the same side as the book’s 0.44. Each is a point estimate with no standard error, though, and the variance ratio test in Lesson 3 cannot tell TU from a random walk. So the miss leaves the book’s direction standing without making the lean toward reversion a finding.
 
 ## Lesson 3: the momentum the table shows is thin
 
@@ -118,12 +118,12 @@ Here are all 49 correlations of the table, the lookback down the side and the ho
 The traded cell, 250/25, is 0.271855 with a p-value of 0.023841, and both land the book’s 0.27 and 0.02. Three things thin it out.
 
 1. **It rests on 69 days.** Keeping every 25th day stops the future returns from overlapping. The past returns still overlap, since each kept one shares 225 of its 250 days with the next.
-2. **It is one of 49.** Fourteen of the 49 cells have a p-value below 0.05. Ten of them are positive. The four negative ones are exactly the shortest pairs, 1/1, 1/5, 5/1 and 5/5, where a rise over one or five days tended to be followed by a fall over the next one or five. If the cells were 49 independent tests of returns with no pattern at all, 2.45 would fall below 0.05 by chance. They are not independent. Every cell reads the same 2,000 closes and neighbouring cells share most of their windows, so 14 against 2.45 tests nothing. Chan calls six pairs “some of the best compromises” (Chan, 2013, location 2646): 60/10, 60/25, 250/10, 250/25, 250/60 and 250/120. All six correlate positively and five have a p-value below 0.05. The exception is 250/120, whose p-value is 0.0617 on 14 days.
+2. **It is one of 49.** Fourteen of the 49 cells have a p-value below 0.05. Ten of them are positive. The four negative ones are exactly the shortest pairs, 1/1, 1/5, 5/1 and 5/5, where a rise over one or five days tended to be followed by a fall over the next one or five. If the cells were 49 independent tests of returns with no pattern at all, 2.45 of them would fall below 0.05 by chance on average. They are not independent. Every cell reads the same 2,000 closes and neighbouring cells share most of their windows, so 14 against 2.45 tests nothing. Chan calls six pairs “some of the best compromises” (Chan, 2013, location 2646): 60/10, 60/25, 250/10, 250/25, 250/60 and 250/120. All six correlate positively and five have a p-value below 0.05. The exception is 250/120, whose p-value is 0.0617 on 14 days.
 3. **The variance ratio test does not reject a random walk.** For a random walk, changes over two days have twice the variance of changes over one day, and the test asks whether TU’s ratio departs from that by more than chance. It uses 1,998 of the 1,999 daily changes in TU’s log close, because it keeps a whole number of two-day periods, and its p-value is 0.126860, so it cannot tell TU from a random walk.
 
 Chan reconciles the table with the test by saying that TU “exhibits momentum and mean reversion at different time frames” (Chan, 2013, location 2646), and that the variance ratio test cannot look at particular time frames. The four negative short cells fit that reading. But the reading comes from the same table it explains. A test of it would name the time frames first and then measure them on closes the table never saw.
 
-The trade leans on TU’s direction as well as on the correlation. TU’s close rose from 97.9219 on the first day to 110.2734 on the last. The position was +25, fully long, on 1,176 of the 2,000 days, −25 on 397, and 0 on 251, of which 250 came before the first signal. A rule that is fully long on most days of a rising price earns part of that rise, whatever the correlation says. The [post on Example 1.1’s three tests](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#lesson-5-two-checks-added-afterwards-point-at-drift-not-kurtosis) reports two checks, added after its first run, that point at the same upward drift, rather than fat tails, behind one of the book’s tests of these returns.
+The trade leans on TU’s direction as well as on the correlation. TU’s close rose from 97.9219 on the first day to 110.2734 on the last. The position was +25, fully long, on 1,176 of the 2,000 days, −25 on 397, 0 on 251, of which 250 came before the first signal, and between −25 and +25 on the other 176. A rule that is fully long on most days of a rising price earns part of that rise, whatever the correlation says. The [post on Example 1.1’s three tests](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#lesson-5-two-checks-added-afterwards-point-at-drift-not-kurtosis) reports two checks, added after its first run, that point at the same upward drift, rather than fat tails, behind one of the book’s tests of these returns.
 
 The return also leans on one year. Calendar 2008 alone compounds to 0.060565, and the other years together, from the first trade in June 2005 to May 2012, compound to 0.075414. So 2008, the year of the financial crisis, earned about four-fifths as much as the rest of the run combined, and it holds the maximum drawdown too.
 
@@ -134,7 +134,7 @@ The return also leans on one year. Calendar 2008 alone compounds to 0.060565, an
 Three questions are beyond it.
 
 1. **Whether 250/25 would be chosen without hindsight.** The pair was picked from a table of 49 computed on the 2004 to 2012 closes it then trades, so its p-value is not corrected for the other 48. Example 1.1 of the book runs three hypothesis tests on the same returns. [Entry 37 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-37-three-hypothesis-tests-on-tu-momentum-chans-algorithmic-trading) is where that significance question is asked, and the [post on those three tests](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md) works through it.
-2. **What computed the book’s 0.44.** One setting lands it on TU and moves USD.CAD further from its 0.49, and Lesson 2 says why the search stopped there.
+2. **What computed the book’s 0.44.** A setting tried after the miss lands it on TU and moves USD.CAD further from its 0.49, and Lesson 2 says why the search stopped there.
 3. **What a trader would earn.** The returns are on the notional value of the contract, the face value of the notes it controls, about \$200,000 (Chan, 2013, location 2668). They carry no transaction cost and no margin, the deposit a broker holds against each contract. Chan puts the margin at about \$400 and says leverage can boost the 1.7 percent. Leverage would multiply the drawdowns along with it. Nothing here measures what costs or leverage would do.
 
 ## What this means for a trader

@@ -7431,9 +7431,9 @@ Chan trades them: long when the 250-day return is positive, short when it is
 negative, deciding every day with a twenty-fifth of the capital and holding
 each day's call for 25 days.
 
-**Every figure the script prints reproduces, on a window the script's active
+**Every figure in the script's closing comment reproduces, on a window the script's active
 line does not read, and the Hurst exponent misses.** `TU_mom.m` picks its
-window with `idx = find(tday == 20090102)` and leaves `% idx=1;` commented out
+window with `idx=find(tday==20090102);` and leaves `% idx=1;` commented out
 under it. All six figures in its closing comment land on `idx = 1`, the full
 2004-06-01 window the book's sentence names, and none lands on 2009. Row 12
 runs the active line.
@@ -7504,7 +7504,7 @@ and nothing about whether the rule pays today.
 | --- | --- | --- | --- |
 | 1 | +0.00 | reproduced | 0.2719 rounds to the printed 0.27. |
 | 2 | +0.00 | reproduced | 0.0238 rounds to the printed 0.02, and the correlation is significant at 5 percent, which is what location 2659 picks the pair for. |
-| 3 | −0.01 | did not reproduce | 0.433357 prints as 0.43 on Chan's own saved file, so the vintage explanation is spent. Row 14 is the one reading tried after the miss. H rises with `maxT` and first prints as 0.44 at 24, but the same change moves Entry 22's USD.CAD further from its 0.49. No single `maxT` lands both, so the miss is not a different default. The claim the figure was printed for survives, since H is below a half here too. |
+| 3 | −0.01 | did not reproduce | 0.433357 prints as 0.43 on Chan's own saved file, so the vintage explanation is spent. Row 14 is the one reading tried after the miss. At `maxT` 24 H prints as 0.44, but the same change moves Entry 22's USD.CAD further from its 0.49. No single `maxT` lands both, so the miss is not a different default. The claim the figure was printed for survives, since H is below a half here too. |
 | 4 | none, a claim | reproduced | h is 0 at `vratiotest`'s default 5 percent, the level the script reads `h` at, so the test does not reject a random walk. |
 | 5 | −0.0000 | reproduced | 0.016699 rounds to the printed 0.0167. |
 | 6 | +0.00, and +0 against the book | reproduced | 1.041462 rounds to 1.04 and to 1. `chan.khandani_lo.plain_sharpe` divides by n − 1 and gives 1.041201, which `TestTheFigures::test_the_sharpe_ratio_divides_by_n` holds. That also prints as 1.04, so the row uses the script's divisor because it is the script's, not because it lands. |

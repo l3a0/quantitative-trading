@@ -305,6 +305,22 @@ class TestTheTwoTests:
         assert at_24 == pytest.approx(0.471426, abs=5e-7)
         assert abs(at_24 - 0.49) > abs(at_default - 0.49)
 
+    def test_no_max_t_from_5_to_40_lands_both(self, closes) -> None:
+        """Every ``maxT`` that lands TU's 0.44 moves USD.CAD further from its 0.49, and none lands it.
+
+        24 is not the only ``maxT`` that lands TU, and not the first. Below 5 the
+        function has too few gaps to fit and gives no H.
+        """
+        usdcad = read_usdcad()[1].to_numpy(dtype=float)
+        at_default = hurst_at(usdcad, 19)
+        landing = []
+        for max_t in range(5, 41):
+            if matches(hurst_at(closes, max_t), BOOK_HURST):
+                landing.append(max_t)
+                assert abs(hurst_at(usdcad, max_t) - 0.49) > abs(at_default - 0.49)
+            assert not matches(hurst_at(usdcad, max_t), "0.49")
+        assert landing == [6, 7, 21, 22, 23, 24, 25, 26, 27]
+
     def test_the_variance_ratio_test_does_not_reject(self, result) -> None:
         vr = result.variance_ratio
         assert vr.rejects is False
@@ -356,7 +372,7 @@ class TestTheFigures:
 
 
 class TestTheWindow:
-    """The script's active line, ``idx = find(tday == 20090102)``, which no figure lands on."""
+    """The script's active line, ``idx=find(tday==20090102);``, which no figure lands on."""
 
     def test_the_active_line_reads_849_days(self, result) -> None:
         days = result.active_line_days
@@ -403,6 +419,22 @@ class TestTheSave:
         shared = closes.index.intersection(tu.index)
         assert len(shared) == 1996
         assert closes.loc[shared].equals(tu.loc[shared])
+
+    def test_the_two_saves_keep_none_of_the_same_69_days(self, closes) -> None:
+        """The later save starts four trading days later, so every kept day at 250/25 moves."""
+        tu = read_later_save()[1]
+
+        def kept(series: pd.Series) -> pd.DatetimeIndex:
+            rows = np.arange(LOOKBACK, len(series) - HOLD_DAYS)[:: min(LOOKBACK, HOLD_DAYS)]
+            assert len(rows) == correlation(series, LOOKBACK, HOLD_DAYS).rows
+            return series.index[rows]
+
+        earlier, later_days = kept(closes), kept(tu)
+        assert len(earlier) == len(later_days) == 69
+        assert closes.index.get_loc(tu.index[0]) == 4
+        assert str(earlier[0].date()) == "2005-06-01"
+        assert str(later_days[0].date()) == "2005-06-07"
+        assert earlier.intersection(later_days).empty
 
     def test_its_traded_cell_and_kelly_f_miss(self, later) -> None:
         assert later.traded.coefficient == pytest.approx(0.287046, abs=5e-7)
@@ -488,6 +520,12 @@ class TestBesideThePost:
         assert int((held == -HOLD_DAYS).sum()) == 397
         assert int((held == 0).sum()) == 251
         assert np.flatnonzero(held)[0] == 250
+
+    def test_the_other_176_days_hold_a_partial_position(self, result) -> None:
+        """Between −25 and +25, neither flat nor full, on the days the three counts leave out."""
+        held = result.positions
+        assert int(((np.abs(held) < HOLD_DAYS) & (held != 0)).sum()) == 176
+        assert 1176 + 397 + 251 + 176 == len(held)
 
     def test_tu_s_close_rose_from_the_first_day_to_the_last(self, result) -> None:
         assert result.closes[0] == 97.9219
