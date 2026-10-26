@@ -922,7 +922,7 @@ class TestTheRules:
         assert uncentred(first, second) == pytest.approx([5 / math.sqrt(70), 1.0], abs=1e-15)
 
     def test_a_steady_mean_counts_as_persistence(self) -> None:
-        """A series that keeps one sign reads as persistent, which a centred statistic misses."""
+        """A series holding a steady value reads as persistent, which a centred statistic misses."""
         steady = np.array([1.0, 1.2, 0.9, 1.1, 1.0])
         assert float(uncentred(steady[:-1], steady[1:])) > 0.95
         assert np.corrcoef(steady[:-1], steady[1:])[0, 1] < 0
