@@ -787,11 +787,12 @@ class TestWhatThePostQuotes:
     copy of those words is read: that the full window lands all six of the
     comment's figures and the active line none, that more than half of the
     gain is in by 2009-01-02 and the maximum drawdown is over by then, that
-    the later save keeps none of the same 69 days and moves the correlation
-    in its second decimal, that its H misses on the other side, that the
-    four negative cells are exactly the shortest pairs, and that 2008 earned
-    about four-fifths as much as the other years, read as between 0.75 and
-    0.85.
+    the active line's daily spread shrinks by more than its mean, so its
+    Sharpe ratio and Kelly f are higher, that no day appears in both saves'
+    69 kept days and the four-day shift alone moves the correlation in its
+    second decimal, that its H misses on the other side, that the four
+    negative cells are exactly the shortest pairs, and that 2008 earned about
+    four-fifths as much as the other years, read as between 0.75 and 0.85.
 
     What it leaves unread is listed in README. Every copy of a figure but the
     one read here can carry a typo that passes, and the post states several
@@ -891,6 +892,11 @@ class TestWhatThePostQuotes:
         full, active = result.figures, result.active_line_figures
         days = result.active_line_days
         assert matches(-100 * full.max_drawdown, BOOK_MAX_DRAWDOWN_PERCENT)
+        start = result.days.get_loc(ACTIVE_LINE_START)
+        whole, tail = result.daily, result.daily[start:]
+        assert tail.mean() < whole.mean() and tail.std() < whole.std()
+        assert tail.std() / whole.std() < tail.mean() / whole.mean(), "spread shrinks more"
+        assert active.sharpe > full.sharpe and active.kelly > full.kelly
         returns = _array(
             "l|r|r|r",
             ["\\text{Return}", "\\text{Sharpe}", "\\text{APR}"],
@@ -929,6 +935,8 @@ class TestWhatThePostQuotes:
             f"The maximum drawdown of {_minus(full.max_drawdown, 6)} is a fall of "
             f"{-100 * full.max_drawdown:.6f} percent, which rounds to the book’s "
             f"{BOOK_MAX_DRAWDOWN_PERCENT} percent.",
+            "Its daily returns also vary less, and their spread shrinks by more than their "
+            "mean does, so its Sharpe ratio and Kelly f come out higher.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -961,18 +969,24 @@ class TestWhatThePostQuotes:
         assert round(later.traded.coefficient, 2) != round(result.traded.coefficient, 2)
         assert not matches(later.traded.coefficient, BOOK_CORRELATION)
         assert not matches(later.figures.kelly, SCRIPT_KELLY)
+        assert len(later_closes) - len(shared) == shift, "it also ends that many days later"
+        on_shared = correlation(later_closes.loc[shared], LOOKBACK, HOLD_DAYS).coefficient
+        assert on_shared == pytest.approx(later.traded.coefficient, abs=1e-12), "shift alone"
         fragments = [
             f"whose closes run to {later_closes.index[-1].date()}. TU’s close is the same on all "
             f"{len(shared):,} days the two files share. The later file’s "
             f"{len(later_closes):,} days start on {later_closes.index[0].date()}, "
-            f"{SPELLED[shift]} trading days later, so its every {HOLD_DAYS}th day starts "
-            f"{SPELLED[shift]} days later too, on {later_kept[0].date()} rather than "
-            f"{earlier_kept[0].date()}, and the two files keep none of the same "
-            f"{len(earlier_kept)} days.",
-            f"That shift alone moves the {LOOKBACK}/{HOLD_DAYS} correlation to "
-            f"{later.traded.coefficient:.6f}, which rounds to {later.traded.coefficient:.2f} "
-            f"rather than the book’s {BOOK_CORRELATION}. It moves the Kelly f to "
-            f"{later.figures.kelly:.6f}, off the comment’s digits. So the book’s figures come "
+            f"{SPELLED[shift]} trading days later, so the days the {LOOKBACK}/{HOLD_DAYS} cell "
+            f"keeps, every {HOLD_DAYS}th one, start {SPELLED[shift]} trading days later too, on "
+            f"{later_kept[0].date()} rather than {earlier_kept[0].date()}. Each file gives the "
+            f"cell {len(earlier_kept)} days, and no day appears in both sets.",
+            f"The {SPELLED[shift]}-day shift alone moves the {LOOKBACK}/{HOLD_DAYS} correlation "
+            f"to {later.traded.coefficient:.6f}, which rounds to "
+            f"{later.traded.coefficient:.2f} rather than the book’s {BOOK_CORRELATION}. Run "
+            f"over the whole later file, which also ends {SPELLED[shift]} trading days later, "
+            f"the script gives a Kelly f of {later.figures.kelly:.6f}, off the comment’s "
+            "digits.",
+            "So the book’s figures come "
             f"from the file whose closes end on {closes.index[-1].date()}. "
             f"{SPELLED[shift].capitalize()} days at the start move the correlation in its "
             "second decimal",
@@ -1085,9 +1099,9 @@ class TestWhatThePostQuotes:
         fragments = [
             f"TU’s close rose from {result.closes[0]:.4f} on the first day to "
             f"{result.closes[-1]:.4f} on the last. The position was +{HOLD_DAYS}, fully long, on "
-            f"{long:,} of the {len(held):,} days, −{HOLD_DAYS} on {short}, 0 on {flat}, of which "
-            f"{before} came before the first signal, and between −{HOLD_DAYS} and +{HOLD_DAYS} "
-            f"on the other {partial}.",
+            f"{long:,} of the {len(held):,} days and −{HOLD_DAYS} on {short}. It was between "
+            f"−{HOLD_DAYS} and +{HOLD_DAYS} on {partial} days, and 0 on the other {flat}, of "
+            f"which {before} came before the first signal.",
             f"Calendar 2008 alone compounds to {in_2008:.6f}, and the other years together, "
             f"from the first trade in {first:%B %Y} to {last:%B %Y}, compound to "
             f"{the_rest:.6f}. So 2008, the year of the financial crisis, earned about "

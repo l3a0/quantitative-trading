@@ -6065,7 +6065,7 @@ alt text, and checks it against the run. It rebuilds the post's four tables
 whole, reads the figure's alt text only for the highest close and the curve's
 high, each with its day, since those appear nowhere else, and asserts on the
 run each comparison the post's words draw, such as more than half of the gain
-being in by 2009-01-02, the two files keeping none of the same 69 days and
+being in by 2009-01-02, no day appearing in both files' 69 kept days, and
 2008 earning about four-fifths as much as the other years. The sketches' test
 reads their alt text. Four had no pin before `TestBesideThePost` in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py), which now pins them

@@ -6,7 +6,7 @@ overlapping while the past returns still overlap, and a later save of the same
 closes keeps a different set of 69 days. This module draws the two as scenes,
 and the post places each right after the paragraph it draws.
 
-1. Futures tile, pasts overlap: the first three days the 250/25 cell keeps on
+1. Future returns end to end, past returns overlap: the first three days the 250/25 cell keeps on
    the 2012-05-11 save, each drawn to scale on one grey day axis as a brass
    past bar 250 days long ending on the kept day and a black future bar 25
    days long starting there. The shared style draws round caps, so each bar's
@@ -19,7 +19,7 @@ and the post places each right after the paragraph it draws.
    the paragraph opening "Neighbouring days share almost all of their
    windows." It holds only for a hold shorter than the lookback, where the
    step is the hold, so any other cell is refused.
-2. Same closes, no shared day: two lines of ticks, the days the 250/25 cell
+2. Same closes, no kept day shared: two lines of ticks, the days the 250/25 cell
    keeps on the 2012-05-11 save above the days it keeps on the 2012-05-17
    save, which starts four trading days later. Only the first four kept days
    of each are drawn, to scale, and a dashed grey link joins each upper tick
@@ -208,7 +208,7 @@ def book(value: float) -> str:
     return f"{value:.2f}"
 
 
-# --- The correlation table: futures tile, pasts overlap -------------------------
+# --- The correlation table: future returns end to end, past returns overlap ------
 
 #: The board across of day 0, the first day of the first kept past window, and
 #: how far across one trading day runs.
@@ -256,7 +256,7 @@ def _futures_tile(figures: SaveFigures) -> Scene:
     """The correlation table: three kept pairs to scale, futures end to end and pasts piled up.
 
     The title and the closing lines hold only when the hold is shorter than
-    the lookback, so the step is the hold. Then the futures tile and the pasts
+    the lookback, so the step is the hold. Then the futures lie end to end and the pasts
     overlap. The other way round the pasts would tile and the futures overlap,
     so any other cell is refused rather than drawn under a false title.
     """
@@ -424,10 +424,10 @@ def _futures_tile(figures: SaveFigures) -> Scene:
             ha="right",
         )
     )
-    return Scene("Futures tile, pasts overlap", "futures_tile", tuple(steps))
+    return Scene("Future returns end to end, past returns overlap", "futures_tile", tuple(steps))
 
 
-# --- Lesson 1: same closes, no shared day ---------------------------------------
+# --- Lesson 1: same closes, no kept day shared ----------------------------------
 
 #: How many kept days of each save the sketch draws.
 SHOWN = 4
@@ -551,7 +551,14 @@ def _no_shared_day(figures: SaveFigures) -> Scene:
     )
     for text, y in zip(lines, WORDS_YS, strict=True):
         steps.append(Label(text, 0.45, y, names="lower-ticks", size=12))
-    return Scene("Same closes, no shared day", "no_shared_day", tuple(steps))
+    closes = "Same closes" if figures.equal == figures.shared else "Some closes differ"
+    days = "day" if figures.shared_kept == 1 else "days"
+    kept = (
+        "no kept day shared"
+        if figures.shared_kept == 0
+        else f"{count(figures.shared_kept)} kept {days} shared"
+    )
+    return Scene(f"{closes}, {kept}", "no_shared_day", tuple(steps))
 
 
 # --- Drawing ------------------------------------------------------------------

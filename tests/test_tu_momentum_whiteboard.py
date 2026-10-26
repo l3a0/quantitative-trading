@@ -532,12 +532,12 @@ class TestTheFigures:
             assert max(future) == next_
 
 
-# --- The correlation table: futures tile, pasts overlap -------------------------
+# --- The correlation table: future returns end to end, past returns overlap ------
 
 
 class TestTheTileSketch:
     def test_its_words(self, every) -> None:
-        assert every[0].title == "Futures tile, pasts overlap"
+        assert every[0].title == "Future returns end to end, past returns overlap"
         assert every[0].labels == TILE_LABELS
 
     def test_its_colours(self, every) -> None:
@@ -702,12 +702,12 @@ class TestTheTileSketch:
         assert (left.ha, right.ha) == ("left", "right") and left.x < right.x
 
 
-# --- Lesson 1: same closes, no shared day ---------------------------------------
+# --- Lesson 1: same closes, no kept day shared ----------------------------------
 
 
 class TestTheSavesSketch:
     def test_its_words(self, every) -> None:
-        assert every[1].title == "Same closes, no shared day"
+        assert every[1].title == "Same closes, no kept day shared"
         assert every[1].labels == SAVES_LABELS
 
     def test_its_colours(self, every) -> None:
@@ -776,6 +776,7 @@ class TestTheSavesSketch:
         assert "69 kept days in each, 1 shared" in labels
         assert "250/25 correlation: 0.2719 on the earlier, 0.3123 on the later" in labels
         assert "at the book’s two decimals: 0.27 against 0.31" in labels
+        assert scenes(made_up)[1].title == "Some closes differ, 1 kept day shared"
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
