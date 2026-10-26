@@ -140,7 +140,7 @@ For 1997, `m` is 0.4 cents and `σ` is 0.89, so the chance is Φ(0.45), or 67%. 
 0.673 \times 0.744 \times 0.823 = 0.412
 ```
 
-So the chance that all three years were profits, which Chan’s 19 needs, is 41%. Neither assumption was tested. Price misses usually have heavier tails than a normal curve, which pulls each chance toward 50%, and a fill that misses the same way every April would tie the three years together.
+So the chance that all three years were profits, which Chan’s 19 needs, is 41%. The run tested none of the assumptions behind it: that the misses are normal, that they average zero, and that they are independent. Heavier tails than a normal curve would raise the figure rather than lower it, because a curve with heavier tails and the same typical miss puts more of its misses near zero, and every move here is under one typical miss. A fill that misses the same way every April could move it either way.
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
