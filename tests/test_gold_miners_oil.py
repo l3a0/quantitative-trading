@@ -3,7 +3,9 @@
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it, with one exception, in
 ``blog/gold-miners-oil-lessons.md``. The post's figure has its own pins in
-``tests/test_gold_miners_oil_figures.py``. README lists what the post says
+``tests/test_gold_miners_oil_figures.py``. ``TestThePostQuotesTheRun`` reads
+at least one copy in the post of each figure the post takes from the run, the
+chart or the earlier post's regime map, and README lists what the post says
 that nothing pins. ``docs/replication-log.md`` Entry 29 carries the verdicts
 and points here row by row.
 
@@ -23,23 +25,36 @@ both are stated once here.
   whole span for the triplet and the control. Each claim is judged at 99
   percent on the trace and eigen statistics separately. ``cadf(GLD, GDX, 0,
   1)`` is ``lesage_cadf`` with one lag, and each ADF has a constant and one
-  lag.
+  lag. The weight test of row 15 is Johansen's (1991) likelihood-ratio test
+  of β = Hφ on the triplet's rank-1 relation over the whole span, built from
+  the product moments of ``johansen(·, 0, 1)``, a constant entering
+  unrestricted, with T = 1,479, and read against chi-squared with one degree
+  of freedom.
 
 The Johansen statistics are pinned at six decimals and the eigenvalues at
 eight, the precision Entry 23's pins on the same wrapper use.
 
 Exploratory. The split date and the third ETF were both chosen after the break
-was seen. Every test here first ran on 2026-10-05.
+was seen. Every test here first ran on 2026-10-05. The post's pre-publish
+review added three things after that, and each first ran on 2026-10-25.
+
+1. Row 15's tests, added after every other result had been seen.
+2. ``TestThePostQuotesTheRun``, which reads the post rather than the data.
+3. The assertions in ``TestTheCut`` that GLD and USO start on 2006-04-26
+   with no price missing.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import re
 
 import numpy as np
 import pandas as pd
 import pytest
 from ithildincore.timeseries import ADF_CRIT_CONST, EG_CRIT_N2
+from scipy import optimize
+from scipy.stats import chi2
 
 from chan import gold_miners_oil as module
 from chan import paths
@@ -49,6 +64,7 @@ from chan.gold_miners_oil import (
     BOOK_AFTER,
     BOOK_BEFORE,
     BOOK_TRIPLET,
+    CHI2_1,
     CLAIM_ROWS,
     JOHANSEN_K,
     JOHANSEN_P,
@@ -59,16 +75,22 @@ from chan.gold_miners_oil import (
     WHOLE,
     GoldMinersOil,
     gold_miners_oil,
+    johansen_moments,
     main,
     read_sources,
+    restricted_eigenvalues,
+    restricted_lr,
     run,
 )
+from chan.gold_miners_oil_figures import first_window_portfolio, signed
 from chan.johansen import Johansen, johansen
+from chan.regime_figure import make_regime_figure
 from chan.series import WindowCrossesScaleBreak, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
 BOOK_NOTES = paths.REPO_ROOT / "research" / "book-notes" / "algorithmic-trading.md"
+POST = paths.REPO_ROOT / "blog" / "gold-miners-oil-lessons.md"
 
 
 @pytest.fixture(scope="module")
@@ -79,6 +101,11 @@ def sources():
 @pytest.fixture(scope="module")
 def result(sources) -> GoldMinersOil:
     return gold_miners_oil(sources[1])
+
+
+@pytest.fixture(scope="module")
+def triplet(sources):
+    return sources[1][list(TRIPLET)].to_numpy(dtype=float)
 
 
 @pytest.fixture
@@ -366,7 +393,12 @@ class TestBesideTheReplication:
         )
 
     def test_row_14_gdx_and_uso_alone_hold_a_relation_and_gld_and_uso_do_not(self, result):
-        """Added after review. The triplet's one relation may be GDX and USO's own."""
+        """Added after review, to ask whether the triplet's one relation is GDX and USO's own.
+
+        Row 15 answers it on the triplet's weights. GLD's weight being zero is
+        rejected against the asymptotic 99 percent bar, which the post reads
+        at 95 percent, so the relation is not the pair's alone.
+        """
         gld, gdx = result.with_oil["GLD"], result.with_oil["GDX"]
         np.testing.assert_allclose(gld.trace, [4.349962, 0.573598], atol=1e-6)
         np.testing.assert_allclose(gld.eigen, [3.776364, 0.573598], atol=1e-6)
@@ -396,6 +428,104 @@ class TestBesideTheReplication:
         assert swapped[0] != pytest.approx(result.cadf["before"].t, abs=1e-3)
 
 
+class TestTheWeightTest:
+    """Row 15. Each fund's weight set to zero in the triplet's one relation.
+
+    Added in the post's pre-publish review after every other result had been
+    seen, so exploratory, conditional on rank 1, asymptotic, and one of three
+    tests run together. The statistics are pinned at six decimals, as the
+    Johansen statistics they are built beside.
+    """
+
+    def test_the_bars_are_chi_squared_with_one_degree_of_freedom(self) -> None:
+        assert CHI2_1 == pytest.approx({90: 2.705543, 95: 3.841459, 99: 6.634897}, abs=1e-6)
+        assert [f"{CHI2_1[level]:.3f}" for level in (90, 95, 99)] == ["2.706", "3.841", "6.635"]
+
+    def test_the_moments_give_statsmodels_eigenvalues(self, sources, result, triplet) -> None:
+        """So the restricted test is built on the model the unrestricted one ran."""
+        moments = johansen_moments(triplet)
+        assert moments.nobs == 1479
+        np.testing.assert_allclose(
+            restricted_eigenvalues(moments, np.eye(3)), result.triplet.eigenvalues, atol=1e-12
+        )
+        for symbol in PAIR:
+            pair = sources[1][[symbol, "USO"]].to_numpy(dtype=float)
+            np.testing.assert_allclose(
+                restricted_eigenvalues(johansen_moments(pair), np.eye(2)),
+                result.with_oil[symbol].eigenvalues,
+                atol=1e-12,
+            )
+
+    def test_row_15_rejects_a_zero_weight_for_gld_and_gdx_and_not_for_uso(self, result) -> None:
+        """GLD at zero is rejected against the asymptotic 99 percent bar, GDX far
+        past it, and USO not even at 90."""
+        lr = result.zero_weight
+        assert list(lr) == ["GLD", "GDX", "USO"]
+        assert lr == pytest.approx({"GLD": 10.014660, "GDX": 26.336768, "USO": 0.056678}, abs=1e-6)
+        assert lr["GLD"] > CHI2_1[99] and lr["GDX"] > CHI2_1[99]
+        assert lr["USO"] < CHI2_1[90]
+        assert chi2.sf(lr["GLD"], 1) == pytest.approx(0.00155, abs=5e-6)
+        assert chi2.sf(lr["USO"], 1) == pytest.approx(0.812, abs=5e-4)
+
+    def test_row_15_by_maximising_the_likelihood_directly(self, result, triplet) -> None:
+        """An independent route to the GLD statistic, with its own moments.
+
+        At rank 1 the concentrated log-likelihood is −T/2 times
+        ``ln|S00 − S01 b (b'S11 b)⁻¹ b'S10|``, so the statistic is T times the
+        gap between that log-determinant's minimum with GLD's weight at zero
+        and its minimum with every weight free. The moments here demean and
+        project with a pseudo-inverse, as ``coint_johansen`` does, and the free
+        minimum is checked against statsmodels' own largest eigenvalue.
+        """
+        dx = np.diff(triplet, axis=0)
+        lags = dx[:-1] - dx[:-1].mean(axis=0)
+
+        def residual(values):
+            values = values - values.mean(axis=0)
+            return values - lags @ (np.linalg.pinv(lags) @ values)
+
+        r0, r1 = residual(dx[1:]), residual(triplet[1:-1])
+        t = len(r0)
+        s00, s01, s11 = r0.T @ r0 / t, r0.T @ r1 / t, r1.T @ r1 / t
+
+        def log_det(b):
+            b = np.asarray(b, dtype=float)[:, None]
+            kept = s01 @ b @ b.T @ s01.T / (b.T @ s11 @ b).item()
+            return np.linalg.slogdet(s00 - kept)[1]
+
+        held = optimize.minimize_scalar(lambda x: log_det([0.0, 1.0, x]), tol=1e-12)
+        free = optimize.minimize(
+            lambda v: log_det([v[0], 1.0, v[1]]),
+            [0.0, 0.0],
+            method="Nelder-Mead",
+            options={"xatol": 1e-12, "fatol": 1e-15, "maxiter": 20000},
+        )
+        floor = np.linalg.slogdet(s00)[1] + np.log(1 - result.triplet.eigenvalues[0])
+        assert free.fun == pytest.approx(floor, abs=1e-12)
+        assert t * (held.fun - free.fun) == pytest.approx(result.zero_weight["GLD"], abs=1e-6)
+
+    def test_a_restriction_that_holds_exactly_costs_nothing(self, result, triplet) -> None:
+        """A span holding the unrestricted relation leaves the largest eigenvalue where it was."""
+        relation = result.triplet.eigenvectors[:, 0]
+        h = np.column_stack([relation, [1.0, 0.0, 0.0]])
+        assert restricted_lr(johansen_moments(triplet), h) == pytest.approx(0.0, abs=1e-9)
+
+    def test_the_report_prints_each_statistic_and_its_bars(self, capsys, no_arguments) -> None:
+        main()
+        lines = [line.strip() for line in capsys.readouterr().out.splitlines()]
+        for expected in (
+            "Each fund's weight set to zero in the triplet's one relation, Johansen's LR",
+            "against chi-squared with 1 degree of freedom, "
+            "2.706 at 90%, 3.841 at 95%, 6.635 at 99%",
+            "GLD = 0  LR 10.014660, asymptotic p 0.00155",
+            "GDX = 0  LR 26.336768, asymptotic p 2.87e-07",
+            "USO = 0  LR  0.056678, asymptotic p 0.812",
+            "Added in the post's pre-publish review, after every other result was seen.",
+            "Conditional on rank 1, asymptotic, and one of three tests run together.",
+        ):
+            assert expected in lines, expected
+
+
 class TestTheCut:
     def test_a_column_starting_late_cuts_the_frame_to_its_first_price(
         self, sources, monkeypatch
@@ -417,6 +547,8 @@ class TestTheCut:
         _, closes = module.load_panel(SOURCE_FILE)
         uncut = closes[list(TRIPLET)]
         assert int(uncut["GDX"].isna().sum()) == 19
+        assert int(uncut["GLD"].isna().sum()) == 0 and int(uncut["USO"].isna().sum()) == 0
+        assert str(uncut.index[0].date()) == "2006-04-26"
         with pytest.raises(ValueError, match="column 1 is nan on row 0"):
             johansen(uncut.to_numpy(dtype=float))
 
@@ -529,3 +661,176 @@ class TestTheRun:
         out = capsys.readouterr().out
         verdicts = [line for line in out.splitlines() if line[:4].strip().isdigit()]
         assert [line.endswith("did not reproduce") for line in verdicts] == [True] * 4 + [False] * 2
+
+
+def _quoted(fragment: str, text: str) -> bool:
+    """Whether ``text`` holds ``fragment`` with no digit run on at either end.
+
+    A plain substring test lets 10.0157 stand for 10.015, or 110.015 for
+    10.015, so a digit typed beside a figure would pass.
+    """
+    return re.search(rf"(?<!\d){re.escape(fragment)}(?!\d)", text) is not None
+
+
+def _table_row(label: str, values, last: bool = False) -> str:
+    """One whole row of a table in the post, as its LaTeX writes it.
+
+    The row's end is part of it, so a row of Lesson 3's two-column table
+    cannot match the first two cells of Lesson 1's three-column one.
+    """
+    return rf"\text{{{label}}} & " + " & ".join(values) + ("\n" if last else r" \\")
+
+
+@pytest.fixture(scope="module")
+def post() -> str:
+    return POST.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="module")
+def regime(tmp_path_factory: pytest.TempPathFactory):
+    """The earlier post's regime map, drawn somewhere that is not the repo."""
+    return make_regime_figure(out=tmp_path_factory.mktemp("regime") / "regime.png")
+
+
+class TestThePostQuotesTheRun:
+    """At least one copy of each run figure that ``blog/gold-miners-oil-lessons.md`` prints.
+
+    The pins above hold the run's numbers. This class reads the post, so
+    editing a copy it reads fails here, and a re-pin fails here until the
+    post moves with it. Each fragment is built from the value the
+    code computes, at the precision the post prints, and none is typed in. It
+    reads Lesson 1's and Lesson 3's tables row by row, and at least one copy
+    in the prose of every other figure the post takes from
+    ``chan.gold_miners_oil``, ``chan.gold_miners_oil_figures`` or
+    ``chan.regime_figure``, with enough words around each that only that
+    copy matches. A figure the post prints again, such as the 1,481 days in
+    the caption or the 942 days under the figure, is read only where the
+    fragment's words put it. The list of Chan's three claims, the headings,
+    the caption and the alt texts are not read, and nor is a count written in
+    words, such as full rank at 90 percent. A test level is read only in the
+    words around a figure, as in the 90 percent bar of 13.429, so a level
+    stated apart from one, such as the Engle-Granger test finding the
+    relation only at 95 percent, is not. The sketches' labels are held by
+    ``tests/test_gold_miners_oil_whiteboard.py``, and README lists what the
+    post says that nothing asserts.
+    """
+
+    @staticmethod
+    def _missing(fragments: list[str], post: str) -> list[str]:
+        return [f for f in fragments if not _quoted(f, post)]
+
+    def test_the_file_and_the_windows(self, post, sources, result) -> None:
+        members, _ = sources
+        _, uncut = module.load_panel(SOURCE_FILE)
+        start = {s: str(uncut[s].first_valid_index().date()) for s in TRIPLET}
+        assert start["GLD"] == start["USO"], "the post names one start for GLD and USO"
+        (saved,) = {m.obtained for m in members}
+        before, after, whole = (result.days[name] for name in ("before", "after", "whole"))
+
+        def day(d: pd.Timestamp) -> str:
+            return str(d.date())
+
+        fragments = [
+            f"`inputData_ETF.mat`, saved on {saved}.",
+            f"It holds GLD and USO from {start['GLD']} and GDX from {start['GDX']}, so the run "
+            "starts on GDX’s first price",
+            f"That leaves {len(whole):,} trading days to {day(whole[-1])}, split {len(before)} "
+            f"before the break and {len(after)} after it.",
+            f"{day(before[0])} to {day(before[-1])} and {day(after[0])} to {day(after[-1])} "
+            "for the pair",
+            f"which here means GLD, GDX and USO after {whole[-1]:%B %Y}.",
+            f"it says nothing about the years after {whole[-1].year}.",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_1s_table(self, post, result) -> None:
+        tests = (result.before, result.after, result.triplet)
+        for test in tests:
+            counts = {test.relations(statistic, 99) for statistic in ("trace", "eigen")}
+            assert len(counts) == 1, "the table gives one count for both statistics"
+        fragments = [
+            _table_row("Trace", [f"{t.trace[0]:.3f}" for t in tests]),
+            _table_row("Bar, 99 percent", [f"{t.trace_critical[0, 2]:.3f}" for t in tests]),
+            _table_row("Eigen", [f"{t.eigen[0]:.3f}" for t in tests]),
+            _table_row("Bar, 99 percent", [f"{t.eigen_critical[0, 2]:.3f}" for t in tests]),
+            _table_row("Relations", [str(t.relations("trace", 99)) for t in tests], last=True),
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_1s_prose(self, post, result) -> None:
+        after, triplet, before = result.after, result.triplet, result.before
+        margin = before.trace[0] - before.trace_critical[0, 2]
+        fragments = [
+            f"the 90 percent bars, {after.trace_critical[0, 0]:.3f} for the trace and "
+            f"{after.eigen_critical[0, 0]:.3f} for the eigen statistic",
+            f"Its trace statistic for that second step is {triplet.trace[1]:.3f} against a 90 "
+            f"percent bar of {triplet.trace_critical[1, 0]:.3f}.",
+            f"the trace statistic clears its bar by {margin:.3f}.",
+            f"it gives a statistic of {signed(result.cadf['before'].t, 3)} before the break",
+            f"After the break it gives {signed(result.cadf['after'].t, 3)}, nowhere near either.",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_the_figures_paragraph(self, post, sources, result) -> None:
+        closes = sources[1]
+        portfolio = first_window_portfolio(closes, result)
+        before, after = portfolio.z.loc[: BEFORE[1]], portfolio.z.loc[AFTER[0] :]
+        gld, gdx = portfolio.weights
+        fragments = [
+            f"USO’s highest close, {closes['USO'].max():.2f}, falls on "
+            f"{closes['USO'].idxmax().date()} itself",
+            f"{signed(gld, 3)} shares of GLD against {signed(gdx, 3)} of GDX",
+            f"the portfolio stays between {signed(before.min())} and {signed(before.max())}",
+            f"it runs from {signed(after.min())} to {signed(after.max())} and never comes back",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_2s_control(self, post, result) -> None:
+        control, triplet = result.control, result.triplet
+        fragments = [
+            f"over the triplet’s {len(result.days['whole']):,} days gives a trace statistic of "
+            f"{control.trace[0]:.3f}, short of even its 90 percent bar of "
+            f"{control.trace_critical[0, 0]:.3f}",
+            f"the trace statistic for the first step is {triplet.trace[0]:.3f}, past its own 99 "
+            f"percent bar of {triplet.trace_critical[0, 2]:.3f}",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_3s_table(self, post, result) -> None:
+        pairs = (result.with_oil["GLD"], result.with_oil["GDX"])
+        fragments = [
+            _table_row("Trace", [f"{p.trace[0]:.3f}" for p in pairs]),
+            _table_row("Bar, 90 percent", [f"{p.trace_critical[0, 0]:.3f}" for p in pairs]),
+            _table_row("Bar, 99 percent", [f"{p.trace_critical[0, 2]:.3f}" for p in pairs]),
+            _table_row("Relations", [str(p.relations("trace", 99)) for p in pairs], last=True),
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_lesson_3s_weights(self, post, result) -> None:
+        lr = result.zero_weight
+        weights = result.triplet.eigenvectors[:, 0]
+        fragments = [
+            f"gives a statistic of {lr['GLD']:.3f}, past the 95 percent bar of "
+            f"{CHI2_1[95]:.3f} and the 99 percent bar of {CHI2_1[99]:.3f}.",
+            f"Setting GDX’s weight to zero gives {lr['GDX']:.3f}, far past both bars.",
+            f"Setting USO’s weight to zero gives {lr['USO']:.3f}, nowhere near any bar.",
+            f"The triplet’s eigenvector is {signed(weights[0], 6)} shares of GLD, "
+            f"{signed(weights[1], 6)} of GDX and {signed(weights[2], 6)} of USO.",
+        ]
+        assert self._missing(fragments, post) == []
+
+    def test_the_earlier_posts_rolling_test(self, post, regime) -> None:
+        """The figures the post takes from ``chan.regime_figure``, read as its test reads them."""
+        line = regime.axes[0].lines[0]
+        ends = pd.DatetimeIndex(line.get_xdata())
+        passing = line.get_ydata() < EG_CRIT_N2["10%"]
+        inside = (ends >= AFTER[0]) & (ends <= AFTER[1])
+        last = ends[passing & (ends.year < 2019)].max()
+        (downloaded,) = {entry.obtained[:4] for entry in regime.vintages}
+        fragments = [
+            f"closing prices downloaded from Yahoo Finance in {downloaded}",
+            f"Of the {int(inside.sum())} tests whose year ends inside Chan’s second window, "
+            f"{int((inside & passing).sum())} still pass at the 90 percent level.",
+            f"That test’s passing years run into {last.year} before they thin out",
+        ]
+        assert self._missing(fragments, post) == []

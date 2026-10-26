@@ -130,7 +130,7 @@ class TestTheCloses:
         assert lines["peak"].get_color() == lines["USO"].get_color()
 
     def test_usos_highest_close_is_the_split_day(self, axes, closes) -> None:
-        """The fact Chan's oil story starts from, on his own file."""
+        """The fact Chan's oil explanation starts from, on his own file."""
         assert closes["USO"].idxmax() == SPLIT
         assert closes["USO"].max() == pytest.approx(117.48, abs=1e-9)
         peak = _by_gid(axes["prices"].lines)["peak"]
