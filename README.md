@@ -6326,15 +6326,15 @@ replication log.
 
 1. Both figures land on the save `CL_rev.m` loads, and the 2012-05-11 save,
    0.27 higher on every day, still rounds to 12 percent and 1.1.
-2. Half a position in each rule is the join's position on every row but the
-   ten warm-up rows, so the join earns close to the average of the two rules'
-   days. It beats each rule alone on the book's window with a smaller average
-   day than momentum's, because its returns swing a little over a third as
-   much.
+2. Half a position in each rule is the join's position on every row but ten
+   early rows, where the 30-day lag exists and the 40-day lag does not yet,
+   so the join earns close to the average of the two rules' days. It beats
+   each rule alone on the book's window with a smaller average day than
+   momentum's, because its returns swing a little over a third as much.
 3. On the four years before the window, reversal alone loses enough that the
    same averaging drags the join below momentum alone.
 
-Five groups of what it says are not pinned here.
+Four groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6342,34 +6342,55 @@ Five groups of what it says are not pinned here.
    figures are at 2701, and the warning that the real test is out-of-sample
    is at 2715. Crude's peak on July 14, 2008 is location 1922's, cited
    through the gold miners post. The book's figures are pinned, and its words
-   are not.
+   are not. Nor are the post's statements of where things sit in the book:
+   that it is Chan's second, that earlier in the same chapter he measures
+   whether two-year Treasury note futures trend, and that the warning comes a
+   little after the crude oil rule, in the same section.
 2. Facts about the script rather than the data: that `CL_rev.m` runs four
    rules and prints figures for one, that its comment records
    `APR=0.117600 Sharpe=1.100368`, and that it plots a fourth curve for
    ComboOR, which `CL_rev.m` holds at `e4bc46f` of ericnberwick/EpchanPreview.
 3. The EIA's annual average WTI spot price of $41.51 for 2004, read from its
-   Cushing, OK series on 2026-10-10 and measured nowhere here.
-4. Arithmetic and ratios the post takes between pinned figures in words: a
-   little over a third, about 40 percent, under a quarter, most of a gain,
-   0.98 × 1.02 = 0.9996, the Sharpe ratios of 0.37 and 0.66 rounded from
-   pinned figures, the join's average day sitting slightly below the plain
-   average of the two rules' and near it before the window, and "two months
-   before" the peak. The figure's alt text reads its curves approximately too,
-   such as "about −11 percent" and "about −29 percent".
-5. Its references, cited rather than computed.
+   Cushing, OK series on 2026-10-10 and measured nowhere here, and the two
+   statements that rest on it: that the prices of the four years before the
+   window sit far above the price that traded, and that their returns come
+   out smaller in size than a trader earned.
+4. Its references, cited rather than computed, along with the book's year in
+   its inline citation and the numbers of its own lessons where it points to
+   them.
 
 Every other number in the post traces to an assertion in
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), or
 to
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
-for the figure's own numbers. The APR falling by more than half between two
-VX and ES saves traces to [tests/test_vx_es.py](tests/test_vx_es.py). Five
-had no pin before it.
+for the figure's own numbers, or to
+[tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
+for the sketches' days, closes, counts and kept and lost returns. The APR
+falling by more than half between two VX and ES saves traces to
+[tests/test_vx_es.py](tests/test_vx_es.py). That one of Chan's two CL strips
+holds a spot price traces to
+[tests/test_roll_returns.py](tests/test_roll_returns.py).
+`TestWhatThePostQuotes` in the first of those files reads every copy of each
+run figure the post quotes outside the sketches and their captions, and every
+number cell of its three tables in any layout, and checks them against the
+run. It also
+asserts on the run each comparison the post's words draw, and reads one copy
+of those words. Examples are a little over a third, about 40 percent, under
+a quarter, most of a gain, every return on the 2012-05-11 save coming out
+slightly smaller in size than on the 2012-05-04 save, the join's average day
+sitting slightly below the plain average and near it before the window, and
+"two months before" the peak, against Chan's date for it. Where the words
+give only a size, as "slightly", "a little over", "near", "a few percent",
+"easily", "swing hard" and "well above" do, the assertion sets a bound, and
+the class docstring lists each one. It checks the arithmetic
+0.98 × 1.02 = 0.9996 too. The sketches' test reads their captions and alt
+texts. Five had no pin before the post.
 
-1. Half a position in each rule gives the join's on all but the 10 warm-up
-   rows from 2008-07-01 to 2008-07-15, so the join's daily return is the
-   average of the two rules' on all but 10 days. Before the window it differs
-   on 12 rows, the warm-up and two where the close ties its 40-day lag,
+1. Half a position in each rule gives the join's on all but the 10 early
+   rows from 2008-07-01 to 2008-07-15, where the 30-day lag exists and the
+   40-day lag does not yet, so the join's daily return is the average of the
+   two rules' on all but 10 days. Before the window it differs on 12 rows,
+   ten such early rows and two where the close ties its 40-day lag,
    2005-06-15 and 2007-04-17.
 2. Of the 960 rows where both lags exist, the two rules agree on 157 and take
    opposite sides on 803. Before the window, 162 of 958 agree and 796 do not,
@@ -6402,6 +6423,40 @@ uv run python -m chan.cl_reversal_momentum_figures
 [tests/test_cl_reversal_momentum_figures.py](tests/test_cl_reversal_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries three looping whiteboard sketches, drawn by
+[src/chan/cl_reversal_momentum_whiteboard.py](src/chan/cl_reversal_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+
+1. `cl_reversal_momentum_sketch_dip_and_bounce.gif`, in "The rule and the
+   file", the join's first long on 2008-07-30 and its first short on
+   2008-07-18, each day's close between its two lags. It is schematic. Its
+   heights keep only the order of each day's three closes, and its spacing
+   across does not follow the days between them. Its days, and the six
+   closes its caption gives, come from the run.
+2. `cl_reversal_momentum_sketch_half_of_each.gif`, in Lesson 2, a grid of
+   half positions from each rule, with the 98 days both are long, the 59
+   both are short and the 803 they disagree, counted from the run.
+3. `cl_reversal_momentum_sketch_swing_cost.gif`, in Lesson 2's "What the
+   swings cost", three bars to one scale, each rule's average day split into
+   the daily return it kept, which compounds to its APR over 252 days, and
+   what the swings took. The join keeps 0.000441 of 0.000463 and the rules
+   alone keep 0.000343 of 0.000519 and 0.000262 of 0.000440, all read from
+   the run.
+
+All three build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in. Redraw all three with:
+
+```bash
+uv run python -m chan.cl_reversal_momentum_whiteboard
+```
+
+[tests/test_cl_reversal_momentum_whiteboard.py](tests/test_cl_reversal_momentum_whiteboard.py)
+holds what each draws, the days, closes, counts and kept and lost returns
+it reads from the run, and that each GIF follows its text in the post. The
+first sketch's first long, 2008-07-30, its caption's six closes, and the
+third sketch's kept and lost returns had no pin before it.
 
 [blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
 holding GLD long and gold futures short at Kindle locations 2718 and 2730 of
@@ -6564,7 +6619,12 @@ for the figure's own numbers. CL's γ changing sign 29 times, which the post
 cites from the spot and roll returns post, traces to
 [tests/test_roll_returns.py](tests/test_roll_returns.py), and SPY's 14.98 and
 its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
-[tests/test_series.py](tests/test_series.py). Nine had no pin before it.
+[tests/test_series.py](tests/test_series.py). A save dated a week later moving
+every close in the crude oil post's window, which the post cites from the
+crude oil reversal and momentum post, traces to
+`test_the_later_save_sits_0_27_higher_on_every_day` in
+[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py). Nine
+had no pin before it.
 
 1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
    gives the same ratio on all 1,375 days.
@@ -7123,7 +7183,13 @@ Every other number in the post traces to an assertion in
 figure's own numbers. The 100, 90 and 120 of its worked day are the synthetic
 day `TestTheRules::test_the_literal_return_fades_the_jump` holds. The port's
 figures, its 1,718 short days and its never holding a long trace to
-`TestChansPythonPort`. Eleven had no pin before the post.
+`TestChansPythonPort`. A save a week later moving the APR at the fourth
+decimal, which the post cites from the crude oil reversal and momentum post,
+traces to the two saves' APRs pinned in
+[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), and
+a save halving an APR, which it cites from the volatility post, to the two
+pinned in [tests/test_vx_es.py](tests/test_vx_es.py).
+Eleven had no pin before the post.
 
 1. The first edition's `smartstd` moves the standard deviation and changes
    no position, so the APR and the Sharpe ratio hold at six decimals.

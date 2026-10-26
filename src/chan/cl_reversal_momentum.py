@@ -1,9 +1,9 @@
 """Crude oil reversal joined to momentum, *Algorithmic Trading*'s rule at location 2701.
 
-On one shared lookback, a mean-reverting rule and a momentum rule take
-opposite sides every day, so joining them would cancel. Chan gives them
-different lookbacks, 30 and 40 trading days, and trades only on the days the
-two agree. His claim at
+On one shared lookback, a mean-reverting rule buys on exactly the days a
+momentum rule shorts, and the reverse, so joining them would cancel. Chan
+gives them different lookbacks, 30 and 40 trading days, and trades only on
+the days the two agree. His claim at
 Kindle location 2701, in Chapter 6, is that the join can beat either: "the
 combination of mean-reverting and momentum rules may work better than each
 strategy by itself." The rule he gives is to "buy at the market close if the
@@ -37,9 +37,10 @@ lines are variants on ``lag`` and ``movingAvg`` that do not run. The run
 draws nothing, and :mod:`chan.cl_reversal_momentum_figures` redraws three of
 the four curves, leaving out ComboOR.
 
-**Why ComboOR is the combination under another name.** Call the reversal
+**Why ComboOR is the combination outside ten early rows.** Call the reversal
 condition "below the 30-day lag" and the momentum condition "above the 40-day
-lag". Where both hold, both rules go long. Where neither holds, the close is
+lag". Take a row where both lags exist and the close ties neither. Where both
+hold, both rules go long. Where neither holds, the close is
 above the first lag and below the second, and both rules go short. Where
 exactly one holds, OR scores a long and a short at once, which sums to flat,
 and the combination is flat too. So the two can differ only where a lag is
@@ -70,13 +71,13 @@ specification. Three saves are read.
 1. :data:`SOURCE_FILE`, the one the script loads, for the specification and
    the three rows beside it.
 2. :data:`LATER_SOURCE_FILE`, which sits 0.27 higher on every day of the
-   book's window, for one row showing what a later download of the same
+   book's window, for one row showing what a later save of the same
    series gives.
 3. :data:`EARLIER_SOURCE_FILE`, whose CL closes equal the first save's on all
    1,000 of the book's days and whose earlier rows therefore extend the same
    series backward. Its 998 rows before the book's window test the book's
    sentence on data the book did not report. That segment is back-adjusted
-   further still, closing at 119.12 on 2004-05-24 while WTI averaged about $41
+   further still, closing at 119.12 on 2004-05-24 while WTI averaged $41.51
    that year (EIA's annual spot average, not measured here), so it is evidence
    about the sentence rather than a clean backtest.
 
@@ -114,7 +115,7 @@ from chan.series import (
 from chan.vintage import VintageEntry, VintageUnavailable
 
 #: The save ``CL_rev.m`` loads. A save is named by the date in its file name.
-#: This one was downloaded on 2012-05-07, and "the 2012-05-07 save" means
+#: This one was saved on 2012-05-07, and "the 2012-05-07 save" means
 #: :data:`EARLIER_SOURCE_FILE`, not this file.
 SOURCE_FILE = "inputDataOHLCDaily_20120504.mat"
 #: A save whose CL closes equal the first's on the book's window, and run back to 2004.

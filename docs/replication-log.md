@@ -7089,9 +7089,9 @@ Fourteen rows, all derivable from
 book's precision. On the book's window the joined rule beats each rule alone,
 and on the four years before it momentum alone beats the joined rule.** A
 mean-reverting rule bets a move will undo itself and a momentum rule bets it
-will continue. On one shared lookback they take opposite sides every day, so
-joining them would cancel. Chan gives them different lookbacks and trades only
-on the days the two agree. His sentence is that "Sometimes, the combination of
+will continue. On one shared lookback, one rule buys on exactly the days the
+other shorts, so joining them would cancel. Chan gives them different
+lookbacks and trades only on the days the two agree. His sentence is that "Sometimes, the combination of
 mean-reverting and momentum rules may work better than each strategy by
 itself." His rule on crude oil futures buys at the close when the price is
 below its level 30 trading days ago and above its level 40 trading days ago,
@@ -7112,13 +7112,14 @@ stated once here.
 1. **The vintages.** Three saves of Chan's continuous futures, each rolled
    from contract to contract and shifted at each roll, read for CL through
    `chan.series.load_panel` and cut to CL's own rows. A save is named by the
-   date in its file name.
-   1. `inputdataohlcdaily_20120504/`, downloaded 2012-05-07, the save
+   date in its file name, so the 2012-05-07 save is the third below, though
+   the first was saved that day.
+   1. `inputdataohlcdaily_20120504/`, saved 2012-05-07, the save
       `CL_rev.m` loads, 1,000 rows from 2008-05-19 to 2012-05-04. Rows 1 to
       5 and 10 to 14 read it.
-   2. `inputdataohlcdaily_20120511/`, downloaded 2012-05-12, read over the
+   2. `inputdataohlcdaily_20120511/`, saved 2012-05-12, read over the
       same 1,000 days for row 6. Its closes sit 0.27 higher on every one.
-   3. `inputdataohlcdaily_20120507/`, downloaded 2012-05-09. Its CL closes
+   3. `inputdataohlcdaily_20120507/`, saved 2012-05-09. Its CL closes
       equal the first save's on all 1,000 of those days, so its earlier rows
       extend the same series backward. Rows 7 to 9 read its 998 rows from
       2004-05-24 to 2008-05-16.
@@ -7148,7 +7149,7 @@ read, so they are not a holdout.
 | --- | --- | --- | --- |
 | 1 | The combination's APR | "12 percent", and `0.117600` in the script's comment | location 2701, and `CL_rev.m` |
 | 2 | The combination's Sharpe ratio | "1.1", and `1.100368` in the script's comment | location 2701, and `CL_rev.m` |
-| 3 to 14 | each rule alone, ComboOR, a later save, the four years before, the positions, and five changes to the specification | none, the book prints no such figures | n/a |
+| 3 to 14 | each rule alone, ComboOR, a later save, the four years before, the positions, and four changes to the specification | none, the book prints no such figures | n/a |
 
 ### What this repo computed
 
@@ -7177,9 +7178,9 @@ read, so they are not a holdout.
 | 2 | 0.000000 against the script, 0.0 against the book | reproduced | 1.100368 is the script's comment to every digit and rounds to 1.1. |
 | 3 | none | none, not a replication | Momentum alone earns less than the combination on both figures. |
 | 4 | none | none, not a replication | Reversal alone earns less than the combination on both figures, which with row 3 is the book's sentence, measured on its window. |
-| 5 | none | none, not a replication | ComboOR is the combination except on the 10 rows from 2008-07-01 to 2008-07-15, where the 30-day lag exists and the 40-day one does not and OR trades the reversal rule alone. Off those rows, a row where both conditions hold is long under both rules, a row where neither holds is short under both, and a row where one holds is flat under both, since OR sums a long and a short. |
+| 5 | none | none, not a replication | ComboOR is the combination except on the 10 rows from 2008-07-01 to 2008-07-15, where the 30-day lag exists and the 40-day one does not and OR trades the reversal rule alone. On the 960 rows where both lags exist, no close ties either lag, so a row where both conditions hold is long under both rules, a row where neither holds is short under both, and a row where one holds is flat under both, since OR sums a long and a short. On the first 30 rows neither lag exists, and both are flat. |
 | 6 | none | none, not a replication | The 2012-05-11 save, whose file name is dated a week later, still rounds to 12 percent and 1.1 and misses the script's comment at the fourth decimal, so the save is part of the specification at six decimals and not at the book's precision. |
-| 7 to 9 | none | none, not a replication | On the four years before the window, momentum alone beats the combination on both figures, and reversal alone loses money. The series there is back-adjusted further from the traded price. It closes at 119.12 on 2004-05-24, against an EIA annual WTI spot average near $41 that year, a figure not measured here. So each percentage return divides by a price well above what traded. |
+| 7 to 9 | none | none, not a replication | On the four years before the window, momentum alone beats the combination on both figures, and reversal alone loses money. The series there is back-adjusted further from the traded price. It closes at 119.12 on 2004-05-24, against an EIA annual WTI spot average of $41.51 that year, a figure not measured here. So each percentage return divides by a price well above what traded. |
 | 10 | none | none, not a replication | The rule is flat on 843 of 1,000 days and cannot signal for the first 40, so the two figures rest on 157 days in the market. |
 | 11 | none | none, not a replication | Every long becomes a short, so the Sharpe ratio flips sign exactly. Which lookback carries which rule decides the sign of every position. |
 | 12 to 14 | none | none, not a replication | Each moves a figure the script prints, so the suite notices each one. |
@@ -7197,37 +7198,53 @@ Three things.
    more than momentum alone and reversal alone on both figures from
    2008-05-19 to 2012-05-04. Rows 3 and 4 carry no verdict, because the book
    prints no figure for either rule alone. ComboOR, the script's fourth curve, is the same rule outside
-   ten warm-up rows, so it adds no evidence of its own.
+   ten early rows, where the 30-day lag exists and the 40-day lag does not
+   yet, so it adds no evidence of its own.
 3. **The combination does not beat momentum alone on the four years
    before.** From 2004-05-24 to 2008-05-16, momentum alone earns more on both
    figures. The book's "Sometimes" already allows that, so the segment shows
    the advantage is not general rather than contradicting the book. Its
-   prices are distorted by the back-adjustment, so it is not a backtest
-   either.
+   prices are distorted further by the back-adjustment, so it is evidence
+   about the book's sentence rather than a clean backtest.
 
 ### What this entry cannot say
 
 Three things.
 
 **Whether the lookbacks were chosen on this window.** The book names 30 and
-40 days and nothing about how they were picked. A search over other lookbacks
-would be the many-hypotheses case `CLAUDE.md` puts behind its own rail, and
-this run tries none.
+40 days and nothing about how they were picked. A search over other lookback
+lengths would be the many-hypotheses case `CLAUDE.md` puts behind its own
+rail. This run tries 30 and 40 days and no other length, and row 11 only
+exchanges which rule reads which lookback.
 
 **What costs would take.** The book charges none and this run charges none.
 The rule changes position 124 times in 1,000 days, and nothing here measures
 what a cost per change would take from 12 percent.
 
 **What the earlier segment would give on traded prices.** Rows 7 to 9 read a
-series back-adjusted above the price that traded, and no unadjusted CL series
-for those years is committed. So the earlier segment's figures are what the
-rule gives on Chan's series, not what a trader would have earned.
+series back-adjusted above the price that traded. Chan's two CL strips start at
+the January 2007 contract, which last settles on 2006-12-19, so for most of
+those years the contract nearest delivery is not committed. The strip named for
+2012-08-13 adds only a spot column, which is not what a futures position earns.
+So the earlier segment's figures are what the rule gives on Chan's series, not
+what a trader would have earned.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/crude-oil-reversal-momentum-lessons.md](../blog/crude-oil-reversal-momentum-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.cl_reversal_momentum_figures` redraws.
+Its three whiteboard sketches move too, and
+`uv run python -m chan.cl_reversal_momentum_whiteboard` redraws them. The one
+in "The rule and the file" draws the join's first long, on 2008-07-30, and
+its first short, on 2008-07-18, from the run. It is schematic: its heights
+keep only the order of each day's three closes, and its spacing across does
+not follow the days between them. The grid in Lesson 2 prints the 98 rows
+where both rules are long, the 59 where both are short and the 803 where they
+disagree, from the run. The bars under Lesson 2's "What the swings cost" split
+each rule's average day into the daily return it kept, which compounds to its
+APR over 252 days, and what the swings took, 0.000022 for the join against
+0.000176 and 0.000178 for the rules alone, from the run.
 
 ## Entry 32: a Kalman filter hedge ratio on EWA and EWC, Chan's *Algorithmic Trading*
 
