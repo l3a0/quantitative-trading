@@ -1,12 +1,13 @@
 """Bollinger bands on GLD and USO, *Algorithmic Trading*'s Example 3.2.
 
 Example 3.1 holds a position in proportion to how far the spread sits from its
-average, so it is always in the market and always rebalancing. Chan's Example
-3.2, at Kindle location 1559, trades the same GLD and USO price spread with a
-Bollinger band instead. It enters one unit when the spread's z-score passes
-one standard deviation and holds it until the spread crosses back through its
-moving average, where the z-score is 0. The book reports "APR = 17.8 percent, and Sharpe ratio of
-0.96, quite an improvement from the linear mean reversal strategy".
+average, so once its z-score exists it is always in the market and always
+rebalancing. Chan's Example 3.2, at Kindle location 1559, trades the same GLD
+and USO price spread with a Bollinger band instead. It enters one unit when the
+spread's z-score passes one standard deviation and holds it until the spread
+crosses back through its moving average, where the z-score is 0. The book
+reports "APR = 17.8 percent, and Sharpe ratio of 0.96, quite an improvement from
+the linear mean reversal strategy".
 
 **The transcription.** Chan's ``bollinger.m`` is git blob ``6d80817`` under
 ``public/img/book2/`` in the mirror
@@ -49,7 +50,7 @@ exit on the opposite entry band.
 **The divisor moves both figures here.** Example 3.1's return is profit over
 gross dollars, so a constant on every unit cancels and ``movingStd``'s n − 1
 gives the same figures as ``smartMovingStd``, which divides by n.
-This rule compares the z-score with a fixed threshold, so a different scale
+This rule compares the z-score with a fixed threshold, so the same constant
 changes which days trade. ``bollinger.m`` calls ``movingStd``, so n − 1 is the
 transcription, and ``tests/test_bollinger.py`` holds the n reading beside it as
 a diagnostic.
@@ -107,7 +108,7 @@ from chan.vintage import VintageEntry, VintageUnavailable
 ENTRY_ZSCORE = 1
 EXIT_ZSCORE = 0
 
-#: What ``bollinger.m``'s closing comment prints, ``APR=%f Sharpe=%f``.
+#: What the comment under ``bollinger.m``'s ``fprintf`` records, ``APR=%f Sharpe=%f``.
 SCRIPT_BOLLINGER = ("0.178249", "0.964673")
 #: What location 1559 prints: "APR = 17.8 percent, and Sharpe ratio of 0.96".
 BOOK_BOLLINGER = (17.8, 0.96)

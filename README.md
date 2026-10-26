@@ -5011,8 +5011,8 @@ twenty-first post, about Example 3.2 of Chan's *Algorithmic Trading*, which
 trades Example 3.1's GLD and USO price spread with a Bollinger band instead of
 the linear rule. It holds one unit at most, entering when the 20-day z-score
 passes ±1 and leaving when it crosses 0. Chan reports an APR of 17.8 percent
-and a Sharpe ratio of 0.96, "quite an improvement" on the linear rule, and the
-script's closing comment prints six decimals. The post answers the Example 3.1
+and a Sharpe ratio of 0.96, "quite an improvement" on the linear rule, and a
+comment in the script records both to six decimals. The post answers the Example 3.1
 post's Lesson 5 and draws five lessons from Entry 26 of the replication log.
 
 1. Both figures `bollinger.m` prints reproduce to six digits, and the book's
@@ -5023,8 +5023,8 @@ post's Lesson 5 and draws five lessons from Entry 26 of the replication log.
 3. A fixed threshold makes the moving deviation's divisor matter, so dividing
    by n rather than n − 1 moves both figures.
 4. The band holds one unit at most and changes its units on 162 days against
-   the linear rule's 1,460, though a held unit's GLD leg is still resized
-   every day.
+   the linear rule's 1,460, every day after its first, though a held unit's
+   GLD leg is still resized every day.
 5. An exact reproduction checks the arithmetic and not the edge.
 
 Five groups of what it says are not pinned here.
@@ -5048,13 +5048,19 @@ Five groups of what it says are not pinned here.
    [data/README.md](data/README.md) records.
 3. Arithmetic no test asserts: that a z-score such as 0.99 moves beyond 1
    once multiplied by 1.0260, and that the factor cancels from the linear
-   rule's return, which the Example 3.1 post shows. The equation for the factor is pinned at four
-   decimals and on every day.
+   rule's return, which the Example 3.1 post shows. The factor itself is pinned
+   on every day, and the post's equation and the two fractions in the paragraph
+   before it are read from the post.
 4. The book's Figure 3.3, which the post's figure redraws from the script's
    `plot` call and which nothing compares with the book's own. The alt text's
    description of shapes, such as the band ending well above the linear rule
    and the dashed line running close to the band, is read off the drawing
-   rather than asserted.
+   rather than asserted. Of the sketches' alt texts,
+   [tests/test_bollinger_whiteboard.py](tests/test_bollinger_whiteboard.py)
+   reads the quoted labels, the pace, and the counts and phrases it quotes
+   about each drawing. It does not read every level the rest of each
+   description gives, such as the dots falling to just above 0 and then far
+   below −1.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -5062,9 +5068,11 @@ Every other number in the post traces to an assertion in
 [tests/test_price_spread.py](tests/test_price_spread.py) for Example 3.1's
 book figure of 10.9 percent against its script's 10.8, the file's 1,500 days
 and the hedge ratio's 334 days below zero, to
-[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, or to
+[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, to
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) for the
-figure's own numbers. Seven had no pin before it.
+figure's own numbers, or to
+[tests/test_bollinger_whiteboard.py](tests/test_bollinger_whiteboard.py) for
+the whiteboard sketches'. Seven had no pin before it.
 [tests/test_bollinger.py](tests/test_bollinger.py) now pins the first six, and
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) pins the
 seventh.
@@ -5081,21 +5089,41 @@ seventh.
    two different counts that are both 334.
 4. Dividing the deviation by n multiplies every z-score by √(20/19), 1.0260.
    It puts the z-score beyond ±1 on 777 of the 1,461 days where it exists,
-   against 756 under n − 1, and moves the units on 15 days. The exit test at 0
-   passes on the same days under either divisor. All 76 exits under n − 1 fall
-   on the same days under n, and a 77th under n, on 2007-06-07, closes a short
-   entered on 2007-05-29 that the n − 1 run never opened.
-5. That the spread has no missing values on the kept days, which is why
-   swapping the moving average as well moves nothing further.
+   against 756 under n − 1. Twelve of the 21 extra days fall while the run
+   divided by n already holds the side they would enter, and on each of the
+   other nine that run opens a position from flat. The units differ on 15
+   days. Seven are a short that only the run divided by n holds, and on the
+   other eight that run enters a position one day before the n − 1 run. The
+   exit test at 0 passes on the same days under either divisor. All 76 exits
+   under n − 1 fall on the same days under n, and a 77th under n, on
+   2007-06-07, closes a short entered on 2007-05-29 that the n − 1 run never
+   opened.
+5. That the spread has no missing values on the kept days, so swapping the
+   moving average as well skips nothing and leaves every daily return, and so
+   both figures, exactly where they were. The two averages add up a window in
+   opposite orders, so they still differ by less than 1e-13.
 6. That the hedge ratio changes on all 1,479 steps between the 1,480 days, so a
    held unit's GLD leg is resized every day.
 7. The figure's own lines and labels.
+
+`TestThePostQuotesThePins` in
+[tests/test_bollinger.py](tests/test_bollinger.py) reads one copy of each
+figure the post takes from the run, from the post itself, along with the
+file's save date, size and span and the rule's thresholds. A second copy
+elsewhere in the post, such as in its alt text, is not always read. Of
+Example 3.1's figures, it reads only those the band's run recomputes: the
+linear rule's computed APR and Sharpe ratio, its deepest drawdown and longest
+spell below a high, its 1,460 changes of units and the hedge ratio's 334 days
+below zero. The linear rule's row of its script's
+comment, that comment's APR as 10.8 percent, and the book's about 10.9 percent
+and about 0.59 are not read, and
+[tests/test_price_spread.py](tests/test_price_spread.py) holds them.
 
 Its one figure is drawn from the committed file by
 [src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), which reads it
 through the same `read_sources` and `example_three_two` as
 `python -m chan.bollinger`, scale-break guard included. It draws three panels
-on one date axis, for Lessons 1, 3 and 4.
+on one date axis, for Lessons 1 to 4.
 
 1. The 20-day z-score, with the band's lines at −1, 0 and 1.
 2. The units held, −1, 0 or 1.
@@ -5108,6 +5136,41 @@ uv run python -m chan.bollinger_figures
 
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) holds what
 it draws rather than its bytes, for the reason given above for the regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/bollinger_whiteboard.py](src/chan/bollinger_whiteboard.py) on the
+USD.CAD post's sketch machinery. Each sits after the text it draws, and both
+build slowly and hold their finished drawing for twelve seconds. Neither is
+schematic. Each draws every day's z-score as a dot to one scale, above a strip
+of the units held.
+
+1. One in "The rule and the file", `bollinger_sketch_one_close.gif`, after the
+   paragraph on a unit turning to the other side in a single day. It draws
+   the 16 days from 2006-07-27 to 2006-08-17, where a long entered below −1 is
+   held through three days back inside the band, then turns short on
+   2006-08-11, when the z-score jumps from below 0 to above 1.
+2. One in Lesson 3, `bollinger_sketch_two_divisors.gif`, after the list of
+   the two moved figures. It draws the 11 days from 2007-05-24 to 2007-06-08
+   with each day's z-score under both divisors side by side. On 2007-05-29
+   the n − 1 z-score is 0.9867 and the n z-score 1.0124, so the run divided by
+   n enters a short `bollinger.m` never opens and exits it on 2007-06-07,
+   while the n − 1 run stays flat.
+
+```bash
+uv run python -m chan.bollinger_whiteboard
+```
+
+[tests/test_bollinger_whiteboard.py](tests/test_bollinger_whiteboard.py) reads
+the run on the committed file and holds what each sketch says and draws: each
+dot at its z-score on one scale, each strip's units under their day, the
+counts the labels print, and that days which would make a sketch's words false
+are refused. The n divisor's z-score comes from `zscore_divided_by_n` in
+[src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), the helper the
+figure's dashed line also trades on, so the two cannot drift apart. It also
+holds that no label touches a line, another label or the frame's edge, and
+that each GIF follows its text in the post. It compares each committed GIF
+with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS, as the
+USD.CAD sketches' test does.
 
 [blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a
 twenty-second post, about Kindle locations 1633 to 1726 of Chan's
