@@ -49,10 +49,11 @@ paragraph it draws.
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the list opening
    "1. **Fill 1, a straight line**".
-7. Each fill misses by more than the year moved: for each missing year, the
-   year's move with fill 2 and a bar of fill 2's typical miss either side,
-   every bar crossing zero, with each year's chance of a profit. It sits
-   after the paragraph opening "Both fills guess a profit in all three years".
+7. Each corrected move against fill 2's spread: for each missing year, the
+   year's move with fill 2's guess corrected by its average miss, a bar of the
+   spread of its misses either side, and each year's chance of a profit. The
+   bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
+   the paragraph opening "So the chance that all three years were profits".
 8. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
@@ -1188,8 +1189,8 @@ def _cents_x(cents: float) -> float:
 
 
 def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
-    """Lesson 2: for each missing year, the move fill 2 gives and fill 2's
-    typical miss either side, which reaches past zero every time."""
+    """Lesson 2: for each missing year, the move fill 2's guess gives once
+    corrected by its average miss, and the spread of its misses either side."""
     steps: list[Stroke | Label] = [
         _stroke(
             "zero",
@@ -1203,7 +1204,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
     ]
     for k, fill in enumerate(fills):
         row = MISS_TOP - k * MISS_STEP
-        move, miss = 100 * fill.move(fill.june), 100 * fill.june_error
+        move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
         steps += [
             _stroke(
                 f"miss-{fill.year}",
@@ -1254,7 +1255,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
         Label("cents a gallon", 0.3, 0.33, names="scale", color=MUTED, size=10),
         Label("chance of profit", 9.7, 3.7, names="zero", color=MUTED, size=11, ha="right"),
         Label(
-            "dot: the year’s move with fill 2",
+            "dot: the corrected move",
             0.3,
             3.75,
             names=f"move-{first}",
@@ -1262,7 +1263,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
             size=10,
         ),
         Label(
-            "bar: σ, fill 2’s typical miss, either side",
+            "bar: σ, fill 2’s spread, either side",
             0.3,
             3.45,
             names=f"miss-{first}",
@@ -1273,7 +1274,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
     steps.append(
         Label(GASOLINE_TRADE, MISS_ZERO_X, 0.33, names="scale", color=MUTED, size=10, ha="center")
     )
-    return Scene("Each fill misses by more than the year moved", "fill_misses", tuple(steps))
+    return Scene("Each corrected move against fill 2’s spread", "fill_misses", tuple(steps))
 
 
 # --- Lesson 4: which numbered file holds June --------------------------------

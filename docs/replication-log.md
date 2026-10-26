@@ -3502,8 +3502,15 @@ Each fill's typical miss was measured as a root mean square error on hidden
 April days from 1994 to 2005 in the gap's own pattern of trading days. June's
 move misses by 0.65 to 0.89 cents a gallon, and the straight line by 1.8 to
 2.0. Both fills guess a profit every year, but every move lies inside one
-typical miss. If fill 2's misses are normal and independent, all three
-years were profits with a chance of 41%, which is what Chan's 19 of 21 needs.
+typical miss.
+
+Fill 2's misses also average 0.20 to 0.26 cents above zero, so it guesses May
+low, by 2.7 to 3.2 standard errors that overlapping test days understate.
+Corrected by that average and set against the spread around it, the three
+years' chances of a profit are 57%, 83% and 90%, none reaching 95%. If the
+misses are normal and independent, all three years were profits with a chance
+of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
+was 41%.
 
 The post also carries eight whiteboard sketches that draw this entry's run,
 and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all eight.
@@ -3521,8 +3528,8 @@ and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all eight.
    gap between the files' 16 profits and Chan's 19.
 6. Fill 2 for 1997: June's rise across the gap carried onto May, with a band
    of fill 2's typical miss either side that the exit price splits.
-7. Each missing year's move with fill 2 against one typical miss either
-   side.
+7. Each missing year's move with fill 2's guess corrected by its average
+   miss, against the spread of its misses either side.
 8. Which numbered file holds the June contract on the entry and exit days of
    2008 and 2006.
 

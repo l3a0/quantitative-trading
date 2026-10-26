@@ -3684,8 +3684,8 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    2's guess, and a band of fill 2's typical miss either side that the exit
    price splits.
 7. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
-   with fill 2, June's move, and a bar of one typical miss either side, every
-   bar crossing zero.
+   with fill 2's guess corrected by its average miss, and a bar of the spread
+   of its misses either side, which 1999's move clears.
 8. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many

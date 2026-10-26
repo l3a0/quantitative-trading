@@ -113,34 +113,38 @@ The files do hold something on each missing day. EIA’s file for the second con
 
 ![“Fill 2 carries June’s move across the gap”, drawn slowly stroke by stroke. Black dots are the May gasoline contract’s settlements and grey rings the June contract’s, one trading day apart from April 7 to April 17, 1997, named “May” and “June” at their first marks, with a caption “dot: May   ring: June” and a note “gasoline”. May has no dot on the day labelled “Apr 14, the entry: no May row”, nor on April 11 or 16. A grey arrow carries June from April 8, the last day both files hold, to April 14, labelled “June rose 0.9¢”, and a brown arrow of the same rise starts at May’s April 8 price and ends on a brown dot, “same rise on May: guess 0.621”. A dashed grey line marks the “exit price 0.625”. Around the guess a band of close strokes runs from “0.630” down to “0.612”, “fill 2’s typical miss either side”. The exit line splits it into a red part above, “entry here: a loss”, and a green part below, “entry here: a profit”. The guess sits in the green part just under the line, and the band reaches into the red. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_june_move_fill.gif)
 
-To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss. Fill 2 misses by less, so the table and the sketch after it give fill 2’s figures in cents a gallon, with each year’s chance of a profit if fill 2’s misses are normal:
+To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss.
+
+Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 2 gives moves of +0.4, +0.5 and +0.6 cents a gallon and misses by 0.89, 0.76 and 0.65. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss.
+
+Fill 2’s misses also lean one way. On the test days it guessed May too low by 0.26, 0.21 and 0.20 cents on average, each between 2.7 and 3.2 standard errors from zero, so the lean is unlikely to be chance. The test days overlap, so the true standard errors are larger than those. Correcting each guess by its average miss, and measuring the spread of the misses around that average, gives each year a corrected move and a chance of a profit, in cents a gallon:
 
 ```math
 \small\begin{array}{l|r|r|r}
-\text{Fill 2} & \text{Move} & \text{Typical miss} & \text{Chance of profit} \\ \hline
-1997 & +0.4 & 0.89 & 67\% \\
-1998 & +0.5 & 0.76 & 74\% \\
-1999 & +0.6 & 0.65 & 82\%
+\text{Fill 2} & 1997 & 1998 & 1999 \\ \hline
+\text{Move with the guess} & +0.4 & +0.5 & +0.6 \\
+\text{Average miss} & +0.26 & +0.21 & +0.20 \\
+\text{Corrected move} & +0.14 & +0.71 & +0.80 \\
+\text{Spread of misses} & 0.86 & 0.74 & 0.62 \\
+\text{Chance of profit} & 57\% & 83\% & 90\%
 \end{array}
 ```
 
-Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss.
-
-![“Each fill misses by more than the year moved”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, each with its σ above its bar: “σ = 0.89” for “1997”, with “67%”, then “σ = 0.76” for “1998”, with “74%”, then “σ = 0.65” for “1999”, with “82%”. In each row a brown dot right of zero marks the year’s move with fill 2, and a black bar of one typical miss either side reaches across zero. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal. Captions read “dot: the year’s move with fill 2” and “bar: σ, fill 2’s typical miss, either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
-
-The chances in the table come from one assumption about the miss. Write the missing price as fill 2’s guess plus an unknown miss `e`, and the year’s move with the guess in place as `m`. In 1997 the missing price is the entry, so the true move is `m − e`. In 1998 and 1999 it is the exit, so the true move is `m + e`. If `e` is normal with a mean of zero and a standard deviation `σ` equal to fill 2’s typical miss, both cases give the same chance of a profit. `Φ(z)` is the share of a standard normal curve that lies below `z`:
+The chances come from a model of the miss. Write the missing price as fill 2’s guess plus an unknown miss `e`, and the year’s move with the guess in place as `m`. In 1997 the missing price is the entry, so the true move is `m − e`. In 1998 and 1999 it is the exit, so the true move is `m + e`. Suppose `e` is normal, with a mean `b` equal to fill 2’s average miss and a standard deviation `σ` equal to the spread. Then the corrected move `c` is `m − b` for an entry and `m + b` for an exit, and both cases give the same chance of a profit. `Φ(z)` is the share of a standard normal curve that lies below `z`:
 
 ```math
-P(\text{profit}) = \Phi\left(\frac{m}{\sigma}\right)
+P(\text{profit}) = \Phi\left(\frac{c}{\sigma}\right)
 ```
 
-For 1997, `m` is 0.4 cents and `σ` is 0.89, so the chance is Φ(0.45), or 67%. If the three misses are also independent of each other, the three chances multiply:
+For 1997, `m` is 0.4 cents, `b` is 0.26 and `σ` is 0.86, so `c` is 0.14 and the chance is Φ(0.17), or 57%. If the three misses are also independent of each other, the three chances multiply:
 
 ```math
-0.673 \times 0.744 \times 0.823 = 0.412
+0.566 \times 0.832 \times 0.900 = 0.424
 ```
 
-So the chance that all three years were profits, which Chan’s 19 needs, is 41%. The run tested none of the assumptions behind it: that the misses are normal, that they average zero, and that they are independent. Heavier tails than a normal curve would raise the figure rather than lower it, because a curve with heavier tails and the same typical miss puts more of its misses near zero, and every move here is under one typical miss. A fill that misses the same way every April could move it either way.
+So the chance that all three years were profits, which Chan’s 19 needs, is 42%. The correction barely moves that figure, but it moves the years apart: 1997 is close to a coin flip, and 1999 reaches 90%, still short of 95%. The run tested neither remaining assumption, that the misses are normal and that they are independent. Heavier tails than a normal curve would raise each chance rather than lower it, because a curve with heavier tails and the same spread puts more of its misses near the average. A fill that misses the same way every April could move the figure either way.
+
+![“Each corrected move against fill 2’s spread”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, each with its σ above its bar: “σ = 0.86” for “1997”, with “57%”, then “σ = 0.74” for “1998”, with “83%”, then “σ = 0.62” for “1999”, with “90%”. In each row a brown dot right of zero marks the year’s move with fill 2’s guess corrected by its average miss, and a black bar of one spread either side. The bars for 1997 and 1998 reach across zero, and the bar for 1999 stops just short of it. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal around their average. Captions read “dot: the corrected move” and “bar: σ, fill 2’s spread, either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 

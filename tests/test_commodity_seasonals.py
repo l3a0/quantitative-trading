@@ -424,8 +424,10 @@ class TestTheGapFills:
 
     The decisive output is the margin: each year's estimated move over its
     fill's typical miss, measured on hidden April days from 1994 to 2005 in the
-    gap's own pattern of trading days. Every margin is under one for both
-    fills, so no fill calls any of the three years.
+    gap's own pattern of trading days. Every raw margin is under one for both
+    fills. Fill 2's misses average above zero, so its guess is also corrected
+    by that average and set against the spread around it, and even then no
+    year's chance of a profit reaches 95%.
     """
 
     FILLS = gap_fills()
@@ -460,17 +462,37 @@ class TestTheGapFills:
             [0.018953, 0.020298, 0.018414], abs=1e-5
         )
 
-    def test_no_fill_calls_any_year(self) -> None:
+    def test_every_raw_move_is_inside_one_typical_miss(self) -> None:
         """Both fills guess a profit every year, inside one typical miss."""
-        for f in self.FILLS:
-            assert 0 < f.june_margin < 1 and 0 < f.linear_margin < 1, f.year
-        assert [round(f.june_margin, 2) for f in self.FILLS] == [0.45, 0.66, 0.93]
+        raw = [f.move(f.june) / f.june_error for f in self.FILLS]
+        for f, june in zip(self.FILLS, raw, strict=True):
+            assert 0 < june < 1 and 0 < f.linear_margin < 1, f.year
+        assert [round(m, 2) for m in raw] == [0.45, 0.66, 0.93]
         assert [round(f.linear_margin, 2) for f in self.FILLS] == [0.46, 0.76, 0.11]
+
+    def test_fill_2_guesses_may_low(self) -> None:
+        """Its average miss, the true price minus the guess, is above zero by
+        between 2.7 and 3.2 standard errors in every pattern. The test days
+        overlap, so the true standard errors are larger."""
+        assert [f.june_bias for f in self.FILLS] == pytest.approx(
+            [0.0025750, 0.0020778, 0.0019510], abs=1e-6
+        )
+        assert [f.june_spread for f in self.FILLS] == pytest.approx(
+            [0.0086118, 0.0073597, 0.0061971], abs=1e-6
+        )
+        errors = [f.june_bias / (f.june_spread / math.sqrt(f.tested)) for f in self.FILLS]
+        assert [round(e, 1) for e in errors] == [2.7, 2.7, 3.2]
+
+    def test_the_corrected_moves_and_no_year_reaches_95_percent(self) -> None:
+        moves = [100 * f.move(f.june_corrected) for f in self.FILLS]
+        assert moves == pytest.approx([0.14250, 0.70778, 0.79510], abs=1e-4)
+        assert [round(f.june_margin, 2) for f in self.FILLS] == [0.17, 0.96, 1.28]
+        assert max(f.june_chance for f in self.FILLS) < 0.95
 
     def test_the_chance_all_three_were_profits(self) -> None:
         """Chan's 19 of 21 needs all three, under normal independent misses."""
-        assert [round(100 * f.june_chance) for f in self.FILLS] == [67, 74, 82]
-        assert math.prod(f.june_chance for f in self.FILLS) == pytest.approx(0.41231, abs=1e-5)
+        assert [round(100 * f.june_chance) for f in self.FILLS] == [57, 83, 90]
+        assert math.prod(f.june_chance for f in self.FILLS) == pytest.approx(0.42368, abs=1e-5)
 
 
 POST = Path(__file__).resolve().parents[1] / "blog" / "commodity-seasonals-lessons.md"
@@ -689,19 +711,32 @@ class TestThePostQuotesThePins:
 
     def test_the_gap_fill_table_and_its_chance(self) -> None:
         """The table names the fill it shows, which the owner asked for, then
-        each year's row."""
-        header = (
-            "\\text{Fill 2} & \\text{Move} & \\text{Typical miss} & "
-            "\\text{Chance of profit} \\\\ \\hline"
-        )
-        assert header in self.text
+        one row per quantity, one column per year."""
         fills = gap_fills()
-        for f in fills:
-            row = (
-                f"{f.year} & {100 * f.move(f.june):+.1f} & {100 * f.june_error:.2f} & "
-                f"{100 * f.june_chance:.0f}\\%"
-            )
-            assert row in self.text, f.year
+        years = " & ".join(str(f.year) for f in fills)
+        assert f"\\text{{Fill 2}} & {years} \\\\ \\hline" in self.text
+        rows = {
+            "Move with the guess": [f"{100 * f.move(f.june):+.1f}" for f in fills],
+            "Average miss": [f"{100 * f.june_bias:+.2f}" for f in fills],
+            "Corrected move": [f"{100 * f.move(f.june_corrected):+.2f}" for f in fills],
+            "Spread of misses": [f"{100 * f.june_spread:.2f}" for f in fills],
+            "Chance of profit": [f"{100 * f.june_chance:.0f}\\%" for f in fills],
+        }
+        for name, cells in rows.items():
+            assert f"\\text{{{name}}} & {' & '.join(cells)}" in self.text, name
+        moves = ", ".join(f"{100 * f.move(f.june):+.1f}" for f in fills[:-1])
+        misses = ", ".join(f"{100 * f.june_error:.2f}" for f in fills[:-1])
+        last = fills[-1]
+        assert (
+            f"Fill 2 gives moves of {moves} and {100 * last.move(last.june):+.1f} cents a "
+            f"gallon and misses by {misses} and {100 * last.june_error:.2f}."
+        ) in self.text
+        biases = ", ".join(f"{100 * f.june_bias:.2f}" for f in fills[:-1])
+        errors = [f.june_bias / (f.june_spread / math.sqrt(f.tested)) for f in fills]
+        assert (
+            f"too low by {biases} and {100 * last.june_bias:.2f} cents on average, each "
+            f"between {min(errors):.1f} and {max(errors):.1f} standard errors from zero"
+        ) in self.text
         low = min(f.linear_margin for f in fills)
         high = max(f.linear_margin for f in fills)
         assert f"moves between {low:.1f} and {high:.1f} of its own typical miss" in self.text
@@ -713,9 +748,10 @@ class TestThePostQuotesThePins:
         fills = gap_fills()
         first = fills[0]
         assert (
-            f"For {first.year}, `m` is {100 * first.move(first.june):.1f} cents and `σ` is "
-            f"{100 * first.june_error:.2f}, so the chance is Φ({first.june_margin:.2f}), or "
-            f"{100 * first.june_chance:.0f}%."
+            f"For {first.year}, `m` is {100 * first.move(first.june):.1f} cents, `b` is "
+            f"{100 * first.june_bias:.2f} and `σ` is {100 * first.june_spread:.2f}, so `c` is "
+            f"{100 * first.move(first.june_corrected):.2f} and the chance is "
+            f"Φ({first.june_margin:.2f}), or {100 * first.june_chance:.0f}%."
         ) in self.text
         product = " \\times ".join(f"{f.june_chance:.3f}" for f in fills)
         total = math.prod(f.june_chance for f in fills)

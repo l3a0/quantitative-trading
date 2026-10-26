@@ -44,9 +44,10 @@ quotes, such as test_the_run_gives_these_dates_and_files.
    both arrows rise by June's change, that the guess is fill 2's, that the
    band spans fill 2's typical miss and splits at the exit price, and that
    May and June differ by mark as well as by ink.
-7. The fill-miss sketch draws each missing year's move with fill 2 and a
-   bar of one typical miss. What is pinned is that each dot and bar sit at the
-   run's figures on one scale and that every bar crosses zero.
+7. The fill-miss sketch draws each missing year's move with fill 2's guess
+   corrected by its average miss, and a bar of the spread of its misses. What
+   is pinned is that each dot, bar and σ sit at the run's figures on one scale,
+   and that a bar crosses zero exactly when its move is under one spread.
 8. The calendar sketch draws the March to June contracts in 2008 and 2006,
    each bar ending at its last trading day, with a dashed line at each entry
    and exit. What is pinned is that June's number in each label is how many
@@ -152,7 +153,7 @@ FOLLOWS = (
     "Interpolating, which here means",
     "The losses say more than the gaps.",
     "1. **Fill 1, a straight line**",
-    "Both fills guess a profit in all three years",
+    "So the chance that all three years were profits",
     "For gasoline that is always contract 1.",
 )
 
@@ -233,21 +234,21 @@ FILL_TWO_LABELS = [
 MISS_LABELS = [
     "loss",
     "profit",
-    "σ = 0.89",
+    "σ = 0.86",
     "1997",
-    "67%",
-    "σ = 0.76",
+    "57%",
+    "σ = 0.74",
     "1998",
-    "74%",
-    "σ = 0.65",
+    "83%",
+    "σ = 0.62",
     "1999",
-    "82%",
+    "90%",
     "-1",
     "+1",
     "cents a gallon",
     "chance of profit",
-    "dot: the year’s move with fill 2",
-    "bar: σ, fill 2’s typical miss, either side",
+    "dot: the corrected move",
+    "bar: σ, fill 2’s spread, either side",
     "gasoline, May contract",
 ]
 
@@ -1119,7 +1120,7 @@ class TestTheFillTwoSketch:
 
 class TestTheFillMissesSketch:
     def test_its_words(self, every) -> None:
-        assert every[6].title == "Each fill misses by more than the year moved"
+        assert every[6].title == "Each corrected move against fill 2’s spread"
         assert every[6].labels == MISS_LABELS
 
     def test_its_colours(self, every) -> None:
@@ -1135,7 +1136,7 @@ class TestTheFillMissesSketch:
     def test_each_dot_and_bar_sit_at_the_runs_figures(self, every) -> None:
         scene = every[6]
         for fill in seasonals.gap_fills():
-            move, miss = 100 * fill.move(fill.june), 100 * fill.june_error
+            move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
             assert _stroke(scene, f"move-{fill.year}").x[0] == pytest.approx(_cents_x(move))
             assert _span_ends(_stroke(scene, f"miss-{fill.year}")) == pytest.approx(
                 (_cents_x(move - miss), _cents_x(move + miss))
@@ -1144,23 +1145,28 @@ class TestTheFillMissesSketch:
     def test_each_bar_carries_its_sigma_over_its_right_half(self, every) -> None:
         scene = every[6]
         for fill in seasonals.gap_fills():
-            move, miss = 100 * fill.move(fill.june), 100 * fill.june_error
+            move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
             label = _label(scene, f"σ = {miss:.2f}")
             assert label.names == f"miss-{fill.year}"
             assert label.x == pytest.approx(_cents_x(move + miss / 2))
             assert label.y > _stroke(scene, f"miss-{fill.year}").y.max()
 
-    def test_every_bar_crosses_zero_and_every_dot_is_a_profit(self, every) -> None:
+    def test_a_bar_crosses_zero_exactly_when_its_move_is_under_one_spread(self, every) -> None:
+        """Every dot is a profit. 1997's and 1998's bars cross zero and 1999's
+        stops short, because only 1999's corrected move clears one spread."""
         scene = every[6]
         zero = _stroke(scene, "zero").x[0]
-        for year in (1997, 1998, 1999):
-            left, right = _span_ends(_stroke(scene, f"miss-{year}"))
-            assert left < zero < right, year
-            assert _stroke(scene, f"move-{year}").x[0] > zero, year
+        crossing = {}
+        for fill in seasonals.gap_fills():
+            left, right = _span_ends(_stroke(scene, f"miss-{fill.year}"))
+            assert right > zero and _stroke(scene, f"move-{fill.year}").x[0] > zero, fill.year
+            crossing[fill.year] = left < zero
+            assert crossing[fill.year] == (fill.june_margin < 1), fill.year
+        assert crossing == {1997: True, 1998: True, 1999: False}
 
     def test_other_figures_move_the_rows(self) -> None:
         fills = seasonals.gap_fills()
-        sure = dataclasses.replace(fills[0], june_error=0.001)
+        sure = dataclasses.replace(fills[0], june_spread=0.0002)
         scene = _fill_misses((sure, *fills[1:]))
         left, _ = _span_ends(_stroke(scene, "miss-1997"))
         assert left > _stroke(scene, "zero").x[0]
@@ -1168,8 +1174,10 @@ class TestTheFillMissesSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[6])
-        assert "a black bar of one typical miss either side reaches across zero" in alt
-        assert "a brown dot right of zero" in alt
+        assert (
+            "a brown dot right of zero marks the year’s move with fill 2’s guess corrected" in alt
+        )
+        assert "The bars for 1997 and 1998 reach across zero, and the bar for 1999 stops" in alt
 
 
 # --- Lesson 4: the calendar sketch ---------------------------------------------

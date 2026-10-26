@@ -60,8 +60,10 @@ two ways, by drawing a straight line between the rows on either side, and by
 moving May's last price by June's change, since June sits in contract 2. It
 measures each way's error by hiding April days whose price the file holds,
 in the same pattern of days as the gap, and filling them. Each year's
-estimated move is within about one typical error of zero, so neither fill can
-call any of the three years.
+estimated move is smaller than its fill's typical miss. Fill 2's misses also
+average above zero, guessing May low, so :class:`GapFill` corrects fill 2's
+guess by its average miss and measures the spread of the misses around that
+average. Even corrected, no year's chance of a profit reaches 95%.
 
 Every result here is **exploratory**. Chan chose both trades after looking at
 years before his book, which the run also reads, so on those years the run says
@@ -323,7 +325,10 @@ class GapFill:
     ``before`` to ``day``, from ``day`` to ``after``, and from ``base`` to
     ``day``. ``other`` is the trade's price on its other date. The ``*_error``
     fields are each fill's root mean square error on ``tested`` April days
-    whose rows sit the same numbers of trading days away.
+    whose rows sit the same numbers of trading days away, the typical size of
+    a miss. ``june_bias`` is fill 2's average miss on those days, the true
+    price minus the guess, and ``june_spread`` the sample standard deviation
+    of its misses around that average.
     """
 
     year: int
@@ -338,6 +343,8 @@ class GapFill:
     june: float
     linear_error: float
     june_error: float
+    june_bias: float
+    june_spread: float
     tested: int
 
     def move(self, fill: float) -> float:
@@ -350,13 +357,19 @@ class GapFill:
         return self.move(self.linear) / self.linear_error
 
     @property
+    def june_corrected(self) -> float:
+        """Fill 2's guess moved by its average miss."""
+        return self.june + self.june_bias
+
+    @property
     def june_margin(self) -> float:
-        """The June fill's move in units of that fill's typical error."""
-        return self.move(self.june) / self.june_error
+        """The year's move with the corrected guess, in units of the spread."""
+        return self.move(self.june_corrected) / self.june_spread
 
     @property
     def june_chance(self) -> float:
-        """The chance the year was a profit, if the June fill's error is normal."""
+        """The chance the year was a profit, if fill 2's misses are normal
+        around their average."""
         return 0.5 * (1 + math.erf(self.june_margin / math.sqrt(2)))
 
 
@@ -392,8 +405,9 @@ def _fills(day: date, around: tuple[date, date, date], steps: tuple[int, int, in
     return linear, june
 
 
-def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, int]:
-    """Each fill's root mean square error on the April days the files hold.
+def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, float, float, int]:
+    """Each fill's root mean square error on the April days the files hold,
+    and fill 2's average miss and the spread of its misses around it.
 
     Each tested day keeps the gap's pattern: its row before, its row after and
     its base sit the same numbers of trading days away as the gap's. Every day
@@ -421,7 +435,7 @@ def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, i
     def rms(errors: list[float]) -> float:
         return math.sqrt(statistics.fmean(e * e for e in errors))
 
-    return rms(linear), rms(june), len(linear)
+    return rms(linear), rms(june), statistics.fmean(june), statistics.stdev(june), len(linear)
 
 
 def gap_fills(*, data_dir: Path | None = None) -> list[GapFill]:
@@ -447,7 +461,7 @@ def gap_fills(*, data_dir: Path | None = None) -> list[GapFill]:
                 _trading_days_between(around[2], day),
             )
             linear, june = _fills(day, around, steps, one, two)
-            linear_error, june_error, tested = _fill_errors(steps, one, two)
+            linear_error, june_error, june_bias, june_spread, tested = _fill_errors(steps, one, two)
             found.append(
                 GapFill(
                     year=trade.year,
@@ -462,6 +476,8 @@ def gap_fills(*, data_dir: Path | None = None) -> list[GapFill]:
                     june=june,
                     linear_error=linear_error,
                     june_error=june_error,
+                    june_bias=june_bias,
+                    june_spread=june_spread,
                     tested=tested,
                 )
             )
