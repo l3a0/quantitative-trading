@@ -233,10 +233,13 @@ FILL_TWO_LABELS = [
 MISS_LABELS = [
     "loss",
     "profit",
+    "σ = 0.89",
     "1997",
     "67%",
+    "σ = 0.76",
     "1998",
     "74%",
+    "σ = 0.65",
     "1999",
     "82%",
     "-1",
@@ -244,7 +247,7 @@ MISS_LABELS = [
     "cents a gallon",
     "chance of profit",
     "dot: the year’s move with fill 2",
-    "bar: fill 2’s typical miss either side",
+    "bar: σ, fill 2’s typical miss, either side",
     "gasoline, May contract",
 ]
 
@@ -1137,6 +1140,15 @@ class TestTheFillMissesSketch:
             assert _span_ends(_stroke(scene, f"miss-{fill.year}")) == pytest.approx(
                 (_cents_x(move - miss), _cents_x(move + miss))
             )
+
+    def test_each_bar_carries_its_sigma_over_its_right_half(self, every) -> None:
+        scene = every[6]
+        for fill in seasonals.gap_fills():
+            move, miss = 100 * fill.move(fill.june), 100 * fill.june_error
+            label = _label(scene, f"σ = {miss:.2f}")
+            assert label.names == f"miss-{fill.year}"
+            assert label.x == pytest.approx(_cents_x(move + miss / 2))
+            assert label.y > _stroke(scene, f"miss-{fill.year}").y.max()
 
     def test_every_bar_crosses_zero_and_every_dot_is_a_profit(self, every) -> None:
         scene = every[6]

@@ -1219,6 +1219,15 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
                 frames=1,
                 dots=8.0,
             ),
+            Label(
+                f"σ = {miss:.2f}",
+                _cents_x(move + miss / 2),
+                row + 0.31,
+                names=f"miss-{fill.year}",
+                color=INK,
+                size=10,
+                ha="center",
+            ),
             Label(str(fill.year), 0.3, row, names=f"miss-{fill.year}", color=INK, size=12),
             Label(
                 f"{100 * fill.june_chance:.0f}%",
@@ -1253,7 +1262,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
             size=10,
         ),
         Label(
-            "bar: fill 2’s typical miss either side",
+            "bar: σ, fill 2’s typical miss, either side",
             0.3,
             3.45,
             names=f"miss-{first}",
