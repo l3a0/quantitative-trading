@@ -4,7 +4,7 @@ Daily closes of a stock follow something close to a random walk, but Chan
 argues at Kindle location 1948 that the open can overshoot. On a morning when
 index futures are down, some stocks open far below the previous day's low
 under panic selling, and drift back up once it is over. So each day the rule
-buys at the open the ten stocks that dropped furthest below their previous low,
+buys at the open up to ten stocks that dropped furthest below their previous low,
 by more than one 90-day standard deviation of their daily returns, provided the
 open is still above the 20-day moving average of closes, and sells them at the
 same day's close. At location 1974 Chan reports an APR of 8.7 percent and a
@@ -44,7 +44,8 @@ holds three tenths of the book and leaves the rest idle. Example 7.2's fixed
 ``bog.m`` prints two figures, and :class:`Side` carries both.
 
 1. ``prod(1 + ret)^(252 / n) − 1`` over all 1,500 days, the compounded APR.
-   The script labels it APR and its closing comment gives 8.7 percent.
+   The script labels it APR, and the comment after its last print statement
+   gives 8.7 percent.
 2. ``mean(ret) · √252 / std(ret)``, the Sharpe ratio, with MATLAB's own
    ``std``, which divides by n − 1. That is
    :func:`chan.khandani_lo.plain_sharpe` exactly, so it is called rather than
@@ -101,16 +102,17 @@ against its manifest entry before parsing it. ``bog.m`` loads
 ``inputDataOHLCDaily_20120424``, with no ``_stocks``. EpchanPreview at
 ``e4bc46f`` ships a file of exactly that name, under
 ``public/img/book3/Chap3 Time Series/``, and it is the same git blob as the
-``_stocks`` file, with the sha256 ``data/README.md`` records for it. Neither
-public mirror holds another file of that name. That shows what the name
-points at in the code Chan published, not that the file he ran in 2012 is the
-one he later shipped under it.
+``_stocks`` file, with the sha256 ``data/README.md`` records for it. No other
+public mirror this repository has read holds a file of that name. That shows
+what the name points at in the code Chan published, not that the file he ran
+in 2012 is the one he later shipped under it.
 
-**Every figure here is about survivors.** The price file is the S&P 500 as
-Chan held it on 2012-04-24, carried backwards, and location 1974 says so.
+**Every figure here is about survivors.** The price file holds stocks that
+were in the S&P 500 in late 2011, carried backwards, and location 1974 says
+the universe has survivorship bias.
 
-**The scale-break guard is not called, and issue 295 decided that.**
-:func:`chan.series.refuse_window_crossing_a_break` flags 30 days in 17 of this
+**The run does not call the scale-break guard, and issue 295 decided that.**
+:func:`chan.series.refuse_window_crossing_a_break` flags 30 closes in 17 of this
 file's stocks, every one between 2007 and 2009, and this window holds all 30,
 so calling it the way :mod:`chan.pead` does would refuse the run. Issues 18,
 21 and 22 each declined it because the job is to reproduce what Chan's script
@@ -175,7 +177,8 @@ SPREAD_LOOKBACK = 90
 #: The annualisation in both figures ``bog.m`` prints.
 TRADING_DAYS = 252
 
-#: What location 1974 and ``bog.m``'s closing comment print for buy on gap.
+#: What location 1974 and the comment after ``bog.m``'s last print statement
+#: give for buy on gap.
 BOOK_APR_PERCENT = 8.7
 BOOK_SHARPE = 1.5
 SCRIPT_COMMENT = "APR=8.7%, Sharpe=1.5"
@@ -233,6 +236,14 @@ def trailing_average(closes: np.ndarray) -> np.ndarray:
     return backshift(1, smart_moving_avg(closes, AVERAGE_LOOKBACK))
 
 
+def entry_price(lows: np.ndarray, spread: np.ndarray) -> np.ndarray:
+    """``buyPrice``: the previous day's low times one less ``ENTRY_ZSCORE`` spreads.
+
+    An open has to fall strictly below it to qualify.
+    """
+    return backshift(1, lows) * (1 - ENTRY_ZSCORE * spread)
+
+
 def drop_qualifiers(
     opens: np.ndarray, lows: np.ndarray, spread: np.ndarray, average: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -246,7 +257,7 @@ def drop_qualifiers(
     """
     previous = backshift(1, lows)
     with np.errstate(invalid="ignore", divide="ignore"):
-        buy_price = previous * (1 - ENTRY_ZSCORE * spread)
+        buy_price = entry_price(lows, spread)
         drop = (opens - previous) / previous
         qualifies = np.isfinite(drop) & (opens < buy_price) & (opens > average)
     return qualifies, drop
@@ -422,7 +433,7 @@ def report(members: list[VintageEntry], long: Side, short: Side) -> None:
         print(f"  {label:<32} {computed:>10} {printed:>10} {script:>8} {book:>12}")
     print()
     print(
-        "  The price file holds only the stocks in the index on 2012-04-24, "
+        "  The price file holds only stocks that were in the index in late 2011, "
         "so every figure above is about survivors."
     )
     print(

@@ -722,7 +722,7 @@ measurements below and the decision behind the shape.
    far more than one two-for-one gap, which is an expectation rather than a
    measurement. So the file is recorded as split-adjusted, and CBU's day is a
    likely exception nobody here has verified.
-6. **The scale-break guard flags 62 days in 52 of the 1,100, on the close.** They are pinned
+6. **The scale-break guard flags 62 closes in 52 of the 1,100, on 57 days.** They are pinned
    by path and day in [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
    A flag is a day's close below 0.625 or above 1.6 times the one before. Most
    are real moves, such as AAPL falling to 0.4813 of its close on 2000-09-29,
@@ -788,10 +788,10 @@ moved between the saves.
    within 0.01 of a two-for-one split: CBU on 2004-04-13, as in the earlier
    save, and INSP on 2008-01-07, the step point 3 describes. Five sit within
    0.01 of a three-for-two split, against four in the earlier save.
-5. **The scale-break guard flags 21 days in 19 of the 600, on the close.**
+5. **The scale-break guard flags 21 closes in 19 of the 600, on 21 days.**
    Seventeen of the earlier save's eighteen flagged stocks flag the same days.
    INSP's flag moves to 2008-01-07, per point 3. IDXX is new, and its two
-   days are one close: 30.05 on 2008-01-25, between 55.60 and 53.75, equal
+   flags come from one bad close: 30.05 on 2008-01-25, between 55.60 and 53.75, equal
    to that day's low and far below its open of 55.28. Example 7.6 reads
    neither stock on those days, because its January 2008 holding reads the
    closes of 2007-12-31 and 2008-01-31. All 21 are pinned in
@@ -812,12 +812,13 @@ Examples 6.2 and 4.1 on the price file alone,
 opens and closes for Examples 4.3 and 4.4, and
 [issue 343](https://github.com/l3a0/quantitative-trading/issues/343) reads its
 closes against the ETF file's SPY for Example 4.2.
-`inputdataohlcdaily_stocks_20120424/` is the S&P 500 as Chan held it on
-2012-04-24, with the same five fields per stock as the first two
-directories. `earnannfile/` holds his earnings-announcement flags for the same
-497 stocks, a 0 or 1 for each trading day. Like the first two, the price file
-holds only the companies still in the index on its date, so a figure computed
-from it is a figure about survivors.
+`inputdataohlcdaily_stocks_20120424/` holds 497 stocks that were in the S&P
+500 in late 2011, with the same five fields per stock as the first two
+directories. The date in its name is the last day of its prices, not the date
+of its list of stocks. `earnannfile/` holds his earnings-announcement flags for
+the same 497 stocks, a 0 or 1 for each trading day. Like the first two, the
+price file leaves out every company that was out of the index when its list was
+drawn, so a figure computed from it is a figure about survivors.
 [`chan.cross_sectional_momentum`](../src/chan/cross_sectional_momentum.py) reads
 the price file's closes for Example 6.2, for
 [issue 297](https://github.com/l3a0/quantitative-trading/issues/297), and
@@ -870,7 +871,7 @@ measurements below.
    two days late, which moves the reproduction off every figure Chan printed.
    `chan.mat_columns.flag_round_trip_differs` rebuilt the 330 by 497 array from
    the committed bytes and found it identical, day for day.
-4. **The scale-break guard flags 30 days in 17 of the 497, on the close.** Every
+4. **The scale-break guard flags 30 closes in 17 of the 497.** Every
    one falls between 2007 and 2009, most are banks and insurers in the 2008
    crisis, such as AIG on 2008-09-15, and none sits near a split. None falls in
    the 2011 and 2012 window Example 7.2 trades. Example 6.2's script reads
@@ -1304,7 +1305,7 @@ carries the measurements below.
    EWA's 7.49 to SPY's 60.48. `TestTheETFFileSubtractsEachDividend` in
    [tests/test_series.py](../tests/test_series.py) pins every figure in this
    point.
-4. **The scale-break guard flags 58 days in eight of the 67, on the close.** Each
+4. **The scale-break guard flags 58 closes in eight of the 67, on 45 days.** Each
    of the eight is a leveraged or inverse fund, and every day falls between
    2008-04-16 and 2009-06-25.
 
@@ -1317,7 +1318,7 @@ carries the measurements below.
    7. SMN on 24.
    8. TNA on 1.
 
-   None of them is an ETF the examples above read. All 58 are pinned in
+   None of them is an ETF the examples above read. All 58 closes are pinned in
    [tests/test_scale_breaks.py](../tests/test_scale_breaks.py).
 5. **It fits the budget.** The directory holds 3.40 MB, and its manifest and
    checksum lines and this section add 0.03 MB, which takes `data/` from

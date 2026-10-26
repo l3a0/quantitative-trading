@@ -8,6 +8,11 @@ because a figure's labels are prose and the suite is the authority for every
 number prose quotes. No test compares bytes, for the reason
 ``tests/test_regime_figure.py`` gives.
 
+The post's alt text for the figure names each rule's colour and what the
+title and note say, so those words are read here against what the figure
+draws. The alt text's numbers are read in ``TestWhatThePostQuotes`` in
+``tests/test_cl_reversal_momentum.py``.
+
 The figure reads the vintages and the specification
 ``tests/test_cl_reversal_momentum.py`` states in its module docstring: CL on
 the 2012-05-04 save over its 1,000 rows for the upper panel, and on the
@@ -17,6 +22,8 @@ Every number here is exploratory, like everything computed for location 2701.
 """
 
 from __future__ import annotations
+
+import re
 
 import numpy as np
 import pandas as pd
@@ -33,13 +40,22 @@ from chan.cl_reversal_momentum_figures import (
     make_join_figure,
     percent,
 )
-from chan.paths import FIGURES_DIR
+from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, INK, LOST
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 
 BEFORE_END = pd.Timestamp("2008-05-16")
 NAMES = ("combination", "momentum", "reversal")
+POST = REPO_ROOT / "blog" / "crude-oil-reversal-momentum-lessons.md"
+
+
+@pytest.fixture(scope="module")
+def alt() -> str:
+    post = POST.read_text(encoding="utf-8")
+    found = re.findall(r"!\[([^\]]*)\]\(\.\./docs/figures/" + re.escape(JOIN_FIGURE) + r"\)", post)
+    assert len(found) == 1
+    return found[0]
 
 
 @pytest.fixture(scope="module")
@@ -99,7 +115,11 @@ class TestThePanels:
             BEFORE_END,
         )
 
-    def test_the_title_carries_the_label_and_the_note_names_both_saves(self, figure) -> None:
+    def test_the_title_carries_the_label_and_the_note_names_both_saves(self, figure, alt) -> None:
+        assert (
+            "The title calls the chart exploratory, and the note says the lower chart’s prices "
+            "sit far above the traded price."
+        ) in alt
         assert figure._suptitle.get_text() == (
             "Exploratory: Chan's crude oil join against each of the two rules it joins"
         )
@@ -168,8 +188,12 @@ class TestTheCurves:
                 assert lines[name].get_color() == colour
                 assert handle.get_color() == colour
 
-    def test_each_rule_keeps_the_colour_the_alt_text_names(self, axes) -> None:
+    def test_each_rule_keeps_the_colour_the_alt_text_names(self, axes, alt) -> None:
         """The post's alt text calls the join black, momentum brown and reversal red."""
+        assert (
+            "the join in a heavy black line, momentum alone in brown and reversal alone in red"
+            in alt
+        )
         for ax in axes.values():
             lines = _by_gid(ax.lines)
             assert tuple(lines[name].get_color() for name in NAMES) == (INK, ACCENT, LOST)
@@ -274,7 +298,7 @@ class TestTheFile:
         assert str(stopped.value) == str(refusal)
 
     def test_a_missing_save_reaches_the_operator_as_one_line(self, monkeypatch, tmp_path) -> None:
-        """The real read path, not a stand-in, so the guard and the read are both exercised."""
+        """The real read path, not a stand-in, so the read itself refuses the missing save."""
         from chan import paths
 
         monkeypatch.setattr(paths, "DATA_DIR", tmp_path)

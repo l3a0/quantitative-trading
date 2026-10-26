@@ -74,7 +74,7 @@ dollars and earns log returns, so the formula differs.
 **The screen is a search, and the count is reported as one.** Lines 26 to 28
 test 480 stocks against one bar each, at 90 percent. The bar's nominal 10
 percent would put about 48 passes down to chance, but the test does not hold
-its nominal rate. Random walks unrelated to SPY pass it 28 percent of the
+its nominal rate. Random walks unrelated to SPY pass it 28.1 percent of the
 time against SPY's 2007 closes, which is about 135 of 480 and more than the 98
 that pass. ``tests/test_index_arbitrage.py`` measures that on seeded walks. So
 the count is stocks passing a per-test 90 percent bar among 480 tested, never
@@ -84,10 +84,11 @@ seen, so no false-discovery control is computed. ``coint_johansen`` returns no
 p-values for one to read.
 
 **SPY is guarded and the stocks are not.** SPY carries no flagged day over the
-two files' common days. The stocks carry all 30 of the panel's flagged days
-inside the window this run reads, ETFC's 2007-11-12 in training and 29 more in
-the test, and the guard would refuse the run on them. ``indexArb.m`` ran on
-these prices as they stand, so this run does too, following
+two files' common days. The stocks carry all 30 of the panel's flagged closes,
+on 26 dates, inside the window this run reads, ETFC's 2007-11-12 in training
+and 29 more in the test, and the guard would refuse the run on them.
+``indexArb.m`` ran on these prices as they stand, so this run does too,
+following
 [issue 295](https://github.com/l3a0/quantitative-trading/issues/295).
 ``TestTheScaleBreakDecision`` in ``tests/test_index_arbitrage.py`` holds both.
 
@@ -98,8 +99,10 @@ has run zero times, and the repo's ranking rule defers it.
 
 Every result here is exploratory, survivor-only, and in-sample on its
 lookback. Reproducing Chan's figures spends the 2007 to 2012 sample on a rule
-he chose. The panel is the index as Chan held it on 2012-04-24, carried
-backwards, so the 2007 screen picks only from stocks that survived to 2012.
+he chose. The panel holds stocks that were in the S&P 500 in late 2011,
+carried back to 2006, so the 2007 screen picks only from those. Twelve of the
+98 it picks were not in the index on 2007-11-23, and two more were out of it
+for part of the test, which ``TestTheBasketsStocksAndTheIndex`` holds.
 The stocks and weights are fitted on 2007 and traded from 2008, but location
 2035 says the lookback of 5 was fixed with the benefit of hindsight, so the
 APR and Sharpe ratio are not out-of-sample figures.
@@ -374,7 +377,7 @@ def report(
     print("Beside the replication. No book prints these, so none carries a verdict.")
     print(
         f"  {len(found.tested)} stocks tested at a per-test {SCREEN_LEVEL}% bar, with no "
-        "false-discovery control. Walks unrelated to SPY pass it about 28% of the time."
+        "false-discovery control. Walks unrelated to SPY pass it 28.1% of the time."
     )
     print(
         f"  {len(found.skipped)} skipped: "
