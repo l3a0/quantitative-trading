@@ -3623,7 +3623,7 @@ Every other number in the post traces to an assertion in
 [tests/test_momentum_factor.py](tests/test_momentum_factor.py) or
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
 [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py)'s
-`TestTheVintages::test_the_large_cap_panel` for the S&P 500 file's span, to
+`TestThePanels::test_the_large_cap_panel` for the S&P 500 file's span, to
 [tests/test_momentum_factor_figures.py](tests/test_momentum_factor_figures.py)
 for the figure's own labels, or to
 [tests/test_factor_models_whiteboard.py](tests/test_factor_models_whiteboard.py)
