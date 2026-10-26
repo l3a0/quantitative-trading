@@ -4011,7 +4011,7 @@ each orientation, null sets reaching each verdict, slow-reversion means,
 handover tallies and the months they span, and what a rule two days off would
 misread, to
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) for the
-16 contracts whose exchange dates check the expiry rule, to
+40 contracts whose exchange dates check the expiry rule, to
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
 for the figure's own labels, or to
 [tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py)

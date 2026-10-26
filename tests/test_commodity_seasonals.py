@@ -160,13 +160,23 @@ class TestTheNaturalGasExpiries:
     """Which numbered file holds the June contract rests on these dates."""
 
     #: Each contract's last trading day as the Massive futures API's contracts
-    #: endpoint recorded it, read on 2026-10-03 for the four years queried.
+    #: endpoint recorded it, for every year its records hold. They begin on
+    #: 2017-01-01, so 2017 is the first year. Each year was read as of its own
+    #: early January, on 2026-10-26: tickers such as NGH7 through 2025 and
+    #: NGH26 after Massive's 2025-03-12 change of format. A first read on
+    #: 2026-10-03 covered 2017, 2018, 2021 and 2024 and gave the same dates.
     #: Nothing here can re-read them, so they are pinned as a measurement.
     EXCHANGE = {
         2017: ("2017-02-24", "2017-03-29", "2017-04-26", "2017-05-26"),
         2018: ("2018-02-26", "2018-03-27", "2018-04-26", "2018-05-29"),
+        2019: ("2019-02-26", "2019-03-27", "2019-04-26", "2019-05-29"),
+        2020: ("2020-02-26", "2020-03-27", "2020-04-28", "2020-05-27"),
         2021: ("2021-02-24", "2021-03-29", "2021-04-28", "2021-05-26"),
+        2022: ("2022-02-24", "2022-03-29", "2022-04-27", "2022-05-26"),
+        2023: ("2023-02-24", "2023-03-29", "2023-04-26", "2023-05-26"),
         2024: ("2024-02-27", "2024-03-26", "2024-04-26", "2024-05-29"),
+        2025: ("2025-02-26", "2025-03-27", "2025-04-28", "2025-05-28"),
+        2026: ("2026-02-25", "2026-03-27", "2026-04-28", "2026-05-27"),
     }
 
     @pytest.mark.parametrize("year", sorted(EXCHANGE))
@@ -771,11 +781,11 @@ class TestThePostQuotesThePins:
         ]
         assert f"it moved {words[len(moved)]} trade dates between 1994 and 2023" in self.text
         exchange = sorted(TestTheNaturalGasExpiries.EXCHANGE)
-        listed = ", ".join(str(y) for y in exchange[:-1]) + f" and {exchange[-1]}"
+        assert exchange == list(range(exchange[0], exchange[-1] + 1))
         assert (
-            f"For {4 * len(exchange)} contracts, March to June of {listed}, the rule gives"
-            in self.text
-        )
+            f"For all {4 * len(exchange)} contracts it records, March to June of every year "
+            f"from {exchange[0]} to {exchange[-1]}, the rule gives"
+        ) in self.text
         early = sorted({ng_lead_days(1996, 1), ng_lead_days(1996, 2)})
         assert (
             f"stopping {words[early[0]]} or {words[early[1]]} trading days before delivery "

@@ -343,7 +343,7 @@ For gasoline that is always contract 1. The April contract stops trading on the 
 
 Because the June contract moves between files, the expiry rule is part of the result, so the run checks it three ways.
 
-1. **Against the exchange’s own dates.** For 16 contracts, March to June of 2017, 2018, 2021 and 2024, the rule gives the last trading day that Massive, a market data vendor, recorded from the exchange.
+1. **Against the exchange’s own dates.** Massive, a market data vendor, records each contract’s last trading day as the exchange set it. For all 40 contracts it records, March to June of every year from 2017 to 2026, the rule gives the same day. Massive’s records begin in 2017, so the years before rest on the next check.
 2. **Against the files’ own handovers.** When a contract expires, every later contract moves up one number, so each file’s price should carry on from the next file’s price the day before. Before mid-1997 the handovers show contracts stopping five or six trading days before delivery rather than three, so for those years the run follows the handovers. That moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either.
 3. **Against the edge cases.** In 10 of the 30 years, the entry date falls on the March contract’s last trading day. A contract still trades on its own last day, so the run reads June as contract 4 then. Reading contract 3 instead flips no year’s result.
 

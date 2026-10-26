@@ -35,7 +35,8 @@ contract stops three trading days before delivery, and before mid-1997 it
 stopped five or six days before, which :data:`chan.futures.NG_LEAD_DAYS`
 records.
 ``tests/test_commodity_seasonals.py`` checks it against the last trading days
-the Massive futures API recorded for four years, and against the files, which
+the Massive futures API recorded for every year from 2017, where its records
+begin, to 2026, and against the files, which
 keep an expiring contract in contract 1 on its last day.
 
 **The gasoline contract changes in 2006.** RBOB futures began trading in

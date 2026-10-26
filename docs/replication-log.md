@@ -3383,10 +3383,11 @@ no count. Three of the rules carry the result, so they are stated here.
    natural gas. [data/README.md](../data/README.md) says what each holds. Each
    file numbers contracts by expiry, so the run maps a date to the file that
    holds the May or June contract. The expiry rule behind that map gives the
-   last trading day the Massive futures API recorded for all 16 contracts
-   checked, March to June of 2017, 2018, 2021 and 2024. Those 16 dates were read
-   from the API on 2026-10-03 and are pinned as a measurement, because nothing
-   in this repo can read them again. Before mid-1997 contracts stopped trading
+   last trading day the Massive futures API recorded for all 40 contracts it
+   holds, March to June of every year from 2017, where its records begin, to
+   2026. Those 40 dates were read from the API on 2026-10-26, after a first
+   read of 16 on 2026-10-03 that agreed, and are pinned as a measurement,
+   because nothing in this repo can read them again. Before mid-1997 contracts stopped trading
    five or six days before delivery rather than three, which the files'
    handovers show, and the rule follows them. That moves the 1996 and 1997
    entries to contract 3 and changes neither year's sign.

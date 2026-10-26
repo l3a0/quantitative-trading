@@ -27,7 +27,8 @@ other years, so a row's presence does not say the exchange was open.
 :func:`is_trading_day` uses NYMEX's holiday rules instead.
 
 **The expiry rules were checked two ways.** Against the last trading days the
-Massive futures API recorded for 16 natural gas contracts, which
+Massive futures API recorded for 40 natural gas contracts, March to June of
+every year from 2017, where its records begin, to 2026, which
 ``tests/test_commodity_seasonals.py`` pins. And against the files themselves,
 through :func:`handover_fit`, which asks whether the files' prices hand over
 from one contract to the next on the day the rule says. Read over every
