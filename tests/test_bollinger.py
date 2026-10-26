@@ -57,6 +57,7 @@ from chan.bollinger import (
 from chan.matlab_helpers import (
     calculate_max_dd,
     drawdown_path,
+    moving_avg,
     smart_moving_avg,
     smart_moving_std,
 )
@@ -339,14 +340,27 @@ class TestTheDivisor:
     ) -> None:
         """Of the 1,461 days with a z-score, 756 sit beyond ±1 under n − 1 and 777 under n.
         The units differ on 15 of the 1,480 days, which is all it takes to move both
-        figures."""
+        figures. Seven are the short only the run divided by n holds, from 2007-05-29 to
+        the day before its exit on 2007-06-07. On the other eight that run enters a
+        position from flat one day before the n − 1 run enters the same side."""
 
         def beyond(z: np.ndarray) -> int:
             return int((np.abs(z[np.isfinite(z)]) > ENTRY_ZSCORE).sum())
 
         assert int(np.isfinite(result.zscore).sum()) == 1461, SPEC
         assert (beyond(result.zscore), beyond(by_n.zscore)) == (756, 777), SPEC
-        assert int((result.bollinger.units != by_n.bollinger.units).sum()) == 15, SPEC
+        differ = np.flatnonzero(result.bollinger.units != by_n.bollinger.units)
+        assert len(differ) == 15, SPEC
+        days = result.bollinger.signal.days
+        short = [i for i in differ if "2007-05-29" <= str(days[i].date()) < "2007-06-07"]
+        assert len(short) == 7, SPEC
+        assert all(by_n.bollinger.units[i] == -1 and result.bollinger.units[i] == 0 for i in short)
+        early = [i for i in differ if i not in short]
+        assert len(early) == 8, SPEC
+        for i in early:
+            assert result.bollinger.units[i] == 0 and by_n.bollinger.units[i - 1] == 0, SPEC
+            assert by_n.bollinger.units[i] != 0, SPEC
+            assert result.bollinger.units[i + 1] == by_n.bollinger.units[i], SPEC
 
     def test_the_exit_test_passes_on_the_same_days_but_one_more_exit_happens(
         self, result: ExampleThreeTwo, by_n: ExampleThreeTwo
@@ -386,9 +400,13 @@ class TestTheDivisor:
             patch.setattr(price_spread, "moving_avg", smart_moving_avg)
             both = example_three_two(closes)
         np.testing.assert_array_equal(both.bollinger.daily, by_n.bollinger.daily)
-        # smartMovingAvg differs from movingAvg only by skipping what is not finite, and
-        # the spread on the kept rows has nothing for it to skip.
-        assert np.isfinite(by_n.bollinger.signal.value).all(), SPEC
+        # smartMovingAvg skips what is not finite and adds a window newest first, where
+        # movingAvg adds it oldest first. The spread on the kept rows has nothing to skip,
+        # so the two averages differ only in rounding, which moves no day's return.
+        value = by_n.bollinger.signal.value
+        assert np.isfinite(value).all(), SPEC
+        gap = np.nanmax(np.abs(smart_moving_avg(value, LOOKBACK) - moving_avg(value, LOOKBACK)))
+        assert 0 < gap < 1e-13, SPEC
 
 
 class TestWhatMovesNothing:
@@ -475,6 +493,13 @@ class TestBandUnits:
         z = np.array([np.nan, -1.5, -0.5, 1.5, 0.5, -0.5])
         units = band_units(z < -1, z > 0, z > 1, z < 0)
         assert list(units) == [0, 1, 1, -1, -1, 0]
+
+    def test_a_short_becomes_a_long_in_one_day(self) -> None:
+        """The mirror: a z-score below −1 also clears 0, so the short's exit and the long's
+        entry fall on one row."""
+        z = np.array([np.nan, 1.5, 0.5, -1.5, -0.5, 0.5])
+        units = band_units(z < -1, z > 0, z > 1, z < 0)
+        assert list(units) == [0, -1, -1, 1, 1, 0]
 
     def test_a_long_and_a_short_held_together_net_to_0(self) -> None:
         """Bands whose exits sit beyond the other side's entry can hold both at once."""

@@ -6178,8 +6178,8 @@ Seven rows, all derivable from
 
 **Both figures `bollinger.m` prints reproduce to six digits on Chan's own
 file, and the band beats Example 3.1's linear rule on both.** Entry 21's linear
-rule holds minus the spread's z-score in units of the pair every day, so it is
-always in the market. Example 3.2 trades the same GLD and USO price spread with
+rule holds minus the spread's z-score in units of the pair on every day the z-score
+exists, so from then on it is always in the market. Example 3.2 trades the same GLD and USO price spread with
 a Bollinger band instead. It buys one unit when the z-score falls below −1,
 sells one short when it rises above 1, and holds either until the z-score
 crosses back through 0. On days with no signal it carries yesterday's units
@@ -6243,7 +6243,7 @@ The script closes on a comment holding the six decimals its
 | 1 | 0.000000 against the script, 0.0 against the book | reproduced | Chan's figure, on his own file, through his own script transcribed. The book's 17.8 percent is the script's figure rounded, unlike Entry 21's 10.9. |
 | 2 | 0.000000 against the script, 0.00 against the book | reproduced | The same as row 1. |
 | 3 | none, a claim | reproduced | The APR and the Sharpe ratio are both above the linear rule's on the same spread. The criterion was written on [issue 341](https://github.com/l3a0/quantitative-trading/issues/341) after a first transcription ran, as Entry 21's rows 7 and 8 were, and reads the sentence's comparison on the two figures the book prints. |
-| 4 | none | none, not a replication | `bollinger.m` calls `movingStd`, so n − 1 is the transcription. Entry 21's linear rule could not see the divisor, because a constant on every unit cancels out of profit over gross dollars. This rule compares the z-score with a fixed threshold, so the scale decides which days trade, and both figures move. |
+| 4 | none | none, not a replication | `bollinger.m` calls `movingStd`, so n − 1 is the transcription. Entry 21's linear rule could not see the divisor, because a constant on every unit cancels out of profit over gross dollars. This rule compares the z-score with a fixed threshold, so the factor changes which days trade, and both figures move. |
 | 5 | none | none, not a replication | `movingStd` first fills on the 20th kept row, and the band enters there, so the run holds its first position into 2006-06-22, the same days as Entry 21's row 10. |
 | 6 | none | none, not a replication | Neither mirror holds `lag.m`. A NaN pad makes the first row's return NaN. A zero pad divides by a price of 0, so the first row's profit is NaN over zero gross dollars, and either NaN is set to 0. |
 | 7 | none | none, not a replication | No kept row of the real data has a z-score of exactly −1, 0 or 1, which `TestTheFigures::test_no_kept_row_sits_exactly_on_a_band` holds, so only synthetic arrays reach the edges of the band. |
@@ -6278,13 +6278,14 @@ holds unchanged, because this run trades the same spread. GLD and USO do not
 cointegrate on this file, and the 20-day hedge ratio changes sign.
 
 **What costs would take.** No script charges any. The band's units change on
-162 of the 1,480 days, which `TestTheSpecification` holds, against every day
-for the linear rule. That understates how often the band trades, because a
+162 of the 1,480 days, which `TestTheSpecification` holds, against 1,460 for
+the linear rule. That understates how often the band trades, because a
 held unit's GLD leg is resized every day as the hedge ratio is refitted.
 Nothing here measures what a cost per trade would take from either rule.
 
 **Whether 1, 0 and 20 were fair choices.** Location 1548 calls the entry
-threshold and the lookback free parameters to be optimized on a training set.
+threshold a free parameter to be optimized in a training set, and says the
+lookback can be one too or can be set to the half-life of mean reversion.
 Location 1559 sets the thresholds without saying how they were chosen, and the
 lookback is the one Entry 21 records Chan tuned on this sample. Every figure
 above is in-sample.

@@ -4991,12 +4991,16 @@ seventh.
    two different counts that are both 334.
 4. Dividing the deviation by n multiplies every z-score by √(20/19), 1.0260.
    It puts the z-score beyond ±1 on 777 of the 1,461 days where it exists,
-   against 756 under n − 1, and moves the units on 15 days. The exit test at 0
+   against 756 under n − 1, and moves the units on 15 days. Seven are a short
+   that only the run divided by n holds, and on the other eight that run
+   enters a position one day before the n − 1 run. The exit test at 0
    passes on the same days under either divisor. All 76 exits under n − 1 fall
    on the same days under n, and a 77th under n, on 2007-06-07, closes a short
    entered on 2007-05-29 that the n − 1 run never opened.
-5. That the spread has no missing values on the kept days, which is why
-   swapping the moving average as well moves nothing further.
+5. That the spread has no missing values on the kept days, so swapping the
+   moving average as well skips nothing and leaves every daily return, and so
+   both figures, exactly where they were. The two averages add up a window in
+   opposite orders, so they still differ by less than 1e-13.
 6. That the hedge ratio changes on all 1,479 steps between the 1,480 days, so a
    held unit's GLD leg is resized every day.
 7. The figure's own lines and labels.

@@ -1,9 +1,9 @@
 """Bollinger bands on GLD and USO, *Algorithmic Trading*'s Example 3.2.
 
 Example 3.1 holds a position in proportion to how far the spread sits from its
-average, so it is always in the market and always rebalancing. Chan's Example
-3.2, at Kindle location 1559, trades the same GLD and USO price spread with a
-Bollinger band instead. It enters one unit when the spread's z-score passes
+average, so once its z-score exists it is always in the market and always
+rebalancing. Chan's Example 3.2, at Kindle location 1559, trades the same GLD
+and USO price spread with a Bollinger band instead. It enters one unit when the spread's z-score passes
 one standard deviation and holds it until the spread crosses back through its
 moving average, where the z-score is 0. The book reports "APR = 17.8 percent, and Sharpe ratio of
 0.96, quite an improvement from the linear mean reversal strategy".
