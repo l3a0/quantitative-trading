@@ -751,10 +751,10 @@ class TestThePostQuotesTheRun:
     editing a copy it reads fails here. It reads every row of the four tables
     with its verdict, and at least one copy of each figure the run computes
     that the prose writes in numerals, with enough words around each that only
-    that copy matches. A figure the post prints again, such as the $2.09 miss
-    in the opening findings or the 449 test days in Lesson 4's first paragraph,
-    is read only where the fragment's words put it. README says which copies
-    it leaves unread.
+    that copy matches. A figure the post prints again is read only where the
+    fragment's words put it, so a second copy, such as the $2.09 miss in the
+    opening findings or the 449 test days in Lesson 4's first paragraph, is
+    not read. README names more of the copies it leaves unread.
     """
 
     def test_the_post_prints_each_figure_the_run_computes(self, legs, script_legs, result) -> None:
