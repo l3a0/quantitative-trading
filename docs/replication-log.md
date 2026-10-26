@@ -7767,13 +7767,14 @@ closing one pair and opening the next.
 
 **Whether the direction holds outside 2008 to 2012.** The script's rule
 first holds a pair on 2006-09-05, and it also earns 0.050334 on the 332 rows
-from then to 2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is the same file
-and before costs.
+from then to 2007-12-31, which `TestBeforeAndAcrossTheWindow` pins. That is
+the same file and before costs.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md)
-moves with it, since that post quotes most of these figures. So does its one
+moves with it, since that post quotes most of these figures and
+`TestWhatThePostQuotes` fails until it does. So does its one
 figure, which `uv run python -m chan.calendar_spread_reversion_figures`
 redraws.
 

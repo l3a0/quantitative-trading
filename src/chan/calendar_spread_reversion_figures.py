@@ -18,9 +18,9 @@ the post, and its plan set the two panels.
    Under Example 5.3's model the spread is γ(T1 − T2), so it falls as γ rises.
    Line 107 of the script reverses the long-far position wherever γ's z-score
    is above 0, so the downward slope here means its short sits where γ is
-   high. On 841 of the 1,097 held days that is also where the spread sits
-   below its own 36-day average, so the trade mostly sells the spread when it
-   is low.
+   high. On 841 of the 1,097 held days the spread's own 36-day z-score has
+   the opposite sign to γ's, so the trade mostly sells the spread when it is
+   low and buys it when it is high.
 
 The upper panel is still the book's one-panel plot, and the lower one is
 what the post adds. Every value comes from :func:`chan.roll_returns.load_strip`

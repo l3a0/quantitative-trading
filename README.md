@@ -5927,11 +5927,13 @@ Five groups of what it says are not pinned here.
    2321, 2326, 2364, 2449, 2453, 2461, 2471 and 2502, with Figure 5.7's
    caption at 2471.
 2. Facts about the script rather than the data: the comments at its lines 71
-   and 99, its `idx=find(tday==20080102)` and `3*21`, and the expiry mark at
-   line 75, all at `e4bc46f` of ericnberwick/EpchanPreview.
+   and 99, the reversal at its line 107, its `idx=find(tday==20080102)` and
+   `3*21`, and the expiry mark at line 75, all at `e4bc46f` of
+   ericnberwick/EpchanPreview.
 3. Readings no test asserts: that the correlation is strong but not the
    one-for-one the model gives, that the ADF test's long-run reversion and the
-   trade's short-run continuation can both hold of one series, that the half-life
+   trade's day-to-day continuation measure different spans and so do not
+   conflict, that the half-life
    measures a reversion the trade bets against, that the log of a VIX pair's
    ratio of far to near is that pair's log spread, that the book's ratio of
    back to front most plainly reads the two nearest contracts, and that any
@@ -5942,6 +5944,16 @@ Five groups of what it says are not pinned here.
    about three days in four. The figure's alt text reads its curves and the
    scatter's ranges approximately too.
 5. Its references, cited rather than computed.
+
+The post states some run figures more than once, and only one copy of each
+is read. `TestWhatThePostQuotes` in
+[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py)
+reads the post itself. It builds each run figure the post quotes from the
+run, at the precision the post prints it, and looks for one copy of it in the
+post, so a typo in that copy fails a test. Lessons 1 and 3's tables are read
+whole, as the multiset of their number cells. It also reads the alt text's
+counts, dates and correlation, and its peak, low and ends rounded to a whole
+percent.
 
 Every other number in the post traces to an assertion in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),

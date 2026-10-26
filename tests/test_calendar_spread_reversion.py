@@ -5,7 +5,7 @@ about this example and the rows beside it. ``docs/replication-log.md`` Entry 34
 carries the verdicts and points here row by row. The rows are the ones
 [issue 348](https://github.com/l3a0/quantitative-trading/issues/348) declared
 before the build. ``blog/crude-oil-calendar-spread-lessons.md`` quotes these
-figures too. The strip's 6,467 days from 1986-11-03, and γ as −12 times the
+figures too, and ``TestWhatThePostQuotes`` reads one copy of each. The strip's 6,467 days from 1986-11-03, and γ as −12 times the
 slope of the nearest contracts' log prices, are held in
 ``tests/test_roll_returns.py``, and ``README.md`` lists what the post says
 that nothing asserts. ``blog/vx-calendar-spread-lessons.md`` cites the
@@ -51,6 +51,7 @@ figures. The example first ran here on 2026-10-10.
 from __future__ import annotations
 
 import io
+import re
 from contextlib import redirect_stdout
 
 import numpy as np
@@ -86,10 +87,10 @@ from chan.calendar_spread_reversion import (
     run_spread,
     spread_returns,
 )
-from chan.khandani_lo import plain_sharpe
+from chan.khandani_lo import TRADING_DAYS, plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, gap, matches
 from chan.price_spread import zscore
-from chan.roll_returns import SOURCE_FILES, Strip, load_strip, roll_returns
+from chan.roll_returns import MONTH_LETTERS, SOURCE_FILES, Strip, load_strip, roll_returns
 from chan.series import WindowCrossesScaleBreak
 from chan.stationarity_tests import jplv7_adf
 from chan.vintage import VintageUnavailable
@@ -435,7 +436,8 @@ class TestTheSpreadsOwnAverage:
     """Where γ's z-score and the spread's own z-score disagree, and what each rule earns.
 
     γ's z-score is not the spread's, so selling where γ's is above 0 sells the
-    spread below its own average on most held days and not on all of them.
+    spread below its own average on most of the days it sells, and not on all
+    of them.
     The spread's own z-score is :func:`held_spread_zscore` over S's 36 rows.
     """
 
@@ -565,6 +567,295 @@ class TestTheArgumentsOnCl:
         """No pair is held after 2012-05-08, so an end of 2012-06-29 is not a held day."""
         found = run_spread(strip.contracts, gamma, start=START, end=pd.Timestamp("2012-06-29"))
         assert str(found.last_held.date()) == "2012-05-08", f"{S_SPEC}, cut at 2012-06-29"
+
+
+POST = paths.REPO_ROOT / "blog" / "crude-oil-calendar-spread-lessons.md"
+#: A number cell of a ``math`` table: a date, then a signed decimal or integer.
+CELL = re.compile(r"\d{4}-\d{2}-\d{2}|-?\d+(?:\.\d+)?")
+
+
+def _minus(x: float, places: int) -> str:
+    """A figure in prose, with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _month(contract: str) -> str:
+    """``CL-2007F`` as the post names it, January 2007."""
+    year, letter = contract[-5:-1], contract[-1]
+    return f"{pd.Timestamp(int(year), MONTH_LETTERS.index(letter) + 1, 1):%B %Y}"
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/crude-oil-calendar-spread-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here. Lesson 1's two tables
+    and Lesson 3's one are each read as the multiset of their number cells, so
+    a cell changed, added or dropped fails whichever way a table is laid out.
+
+    The post states several figures more than once, and only one copy of each
+    is read. The copies left unread include the 12 in the opening's
+    "12-month", the 36-day half-life the earlier post borrowed, the 10 days in
+    Lesson 4 and the 2008-01-02 in the closing list. The alt text's 1,097
+    days, correlation, 66 days and three dates are read, and so are its peak,
+    its low and the two ends, each rounded to a whole percent as the alt text
+    gives them. The scatter's ranges of γ and of the spread are read off the
+    drawing and are not. The 126 of 847 VIX days are
+    ``tests/test_vx_calendar_spread.py``'s. The strip's 6,467 days, read here,
+    are also held in ``tests/test_roll_returns.py``, which alone holds γ as −12
+    times the slope. Nothing checks Chan's words against their source, nor the
+    Kindle locations, the script's line numbers, the four contracts each roll
+    trades or the references, and ``README.md`` lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    @staticmethod
+    def tables(text: str) -> list[list[str]]:
+        """Each ``math`` array's number cells, sorted, in the order the arrays appear.
+
+        ``\\small``, each array's column spec and ``\\text{-}`` inside a date
+        are dealt with first, so neither the layout nor a date split for
+        typesetting adds or splits a number.
+        """
+        blocks = re.findall(r"```math\n(.*?)```", text, flags=re.S)
+        cells = []
+        for block in blocks:
+            if "\\begin{array}" not in block:
+                continue
+            plain = re.sub(r"\\small|\\begin\{array\}\{[^}]*\}", "", block)
+            cells.append(sorted(CELL.findall(plain.replace("\\text{-}", "-"))))
+        return cells
+
+    def test_the_post_holds_three_tables(self, text) -> None:
+        assert len(self.tables(text)) == 3
+
+    def test_the_opening_and_the_file(self, strip, gamma, runs, text) -> None:
+        s, r1 = runs["S"], runs["R1"]
+        filled = gamma.ffill().dropna()
+        columns = strip.contracts.columns
+        (saved,) = {m.obtained for m in strip.members}
+        reversed_apr = compounded_apr(-s.returns.to_numpy())
+        fragments = [
+            f"“stationary with 99 percent probability, and a half-life of {BOOK_HALFLIFE} days”",
+            f"“an APR of {BOOK_APR_PERCENT} percent and a Sharpe ratio of {BOOK_SHARPE} from "
+            "January 2, 2008, to August 13, 2012”",
+            f"match to every digit only when the backtest starts on {r1.returns.index[0].date()} "
+            f"rather than the {s.returns.index[0].date()} the script states.",
+            f"Taking the opposite side of every position the script takes loses "
+            f"{-100 * reversed_apr:.1f} percent a year",
+            f"after the pair it closes in {s.last_held:%B %Y} the trade takes on no other.",
+            f"rounds γ’s half-life to a lookback of {s.lookback} days. Each day it computes γ’s "
+            "z-score, "
+            f"the number of {s.lookback}-day moving standard deviations γ sits from its "
+            f"{s.lookback}-day moving average.",
+            f"Contract c is held short against contract c + {SPREAD_MONTH} long",
+            f"Each pair is held until {NUM_DAYS_END} trading days before the last day its near "
+            f"contract has a price. The first pair starts {HOLDDAYS + NUM_DAYS_END} days before "
+            f"that last priced day, the {HOLDDAYS}-day minimum below plus {NUM_DAYS_END},",
+            f"A later pair is held only when its last day comes at least {HOLDDAYS} trading days "
+            "after its first",
+            f"`{SOURCE_FILES[module.ROOT]}`, saved {saved} and recorded",
+            f"It holds {len(columns)} CL contracts, one for each month from "
+            f"{_month(columns[0])} to {_month(columns[-1])}, and the spot price, over "
+            f"{len(strip.contracts):,} days from {strip.contracts.index[0].date()}.",
+            f"γ can be fitted on {len(filled):,} of them, from {filled.index[0].date()}. The "
+            f"backtest’s window, the span the figures cover, is the {len(s.returns):,} days "
+            f"from {s.returns.index[0].date()} to {s.returns.index[-1].date()}. The APR "
+            f"compounds the daily returns and scales them to a year of {TRADING_DAYS} days.",
+            f"times √{TRADING_DAYS}, with no risk-free rate.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1(self, runs, text) -> None:
+        s, r1 = runs["S"], runs["R1"]
+        adf = s.adf
+        assert matches(100 * s.apr, BOOK_APR_PERCENT) and matches(s.sharpe, BOOK_SHARPE)
+        returns = s.returns.to_numpy().copy()
+        first = returns[0]
+        returns[0] = 0.0
+        fragments = [
+            f"The deepest fall in the cumulative return is {-100 * s.max_dd:.1f} percent, and "
+            f"the longest stretch below a previous high lasts {s.max_dd_days} days.",
+            f"The APR of {100 * s.apr:.2f} percent rounds to {BOOK_APR_PERCENT}, and the Sharpe "
+            f"ratio of {s.sharpe:.3f} rounds to {BOOK_SHARPE}.",
+            f"The statistic of {_minus(adf.statistic, 6)} clears the critical value of "
+            f"{_minus(adf.critical[0], 4)} by {adf.critical[0] - adf.statistic:.6f}.",
+            f"fall short of the comment’s {SCRIPT_APR} and {SCRIPT_SHARPE} by "
+            f"{-gap(s.apr, SCRIPT_APR):.6f} and {-gap(s.sharpe, SCRIPT_SHARPE):.6f}.",
+            f"Starting one day later, on {r1.returns.index[0].date()}, matches both to every digit",
+            f"The trade lost {-100 * first:.2f} percent on {s.returns.index[0].date()}",
+            f"Keeping that day in the window with its return set to 0 gives "
+            f"{compounded_apr(returns):.6f} and "
+            f"{plain_sharpe(returns):.6f}",
+        ]
+        assert self.missing(text, fragments) == []
+        table = sorted(
+            [
+                f"{s.half_life:.6f}",
+                SCRIPT_HALFLIFE,
+                BOOK_HALFLIFE,
+                f"{s.apr:.6f}",
+                SCRIPT_APR,
+                BOOK_APR_PERCENT,
+                f"{s.sharpe:.6f}",
+                SCRIPT_SHARPE,
+                BOOK_SHARPE,
+                f"{s.max_dd:.6f}",
+                SCRIPT_MAX_DD,
+                str(s.max_dd_days),
+                SCRIPT_MAX_DD_DAYS,
+                f"{adf.statistic:.6f}",
+            ]
+        )
+        first, second = self.tables(text)[:2]
+        assert sorted(first + second) == table
+
+    def test_lesson_2(self, runs, held_window, spread_z, day_to_day, text) -> None:
+        s = runs["S"]
+        n = len(held_window)
+        corr = np.corrcoef(held_window["spread"], held_window["gamma"])[0, 1]
+        own = spread_z.loc[held_window.index].to_numpy()
+        z = held_window["z"].to_numpy()
+        opposite = int((np.sign(own) != np.sign(z)).sum())
+        assert round(4 * opposite / n) == 3, "about three days in four"
+        reversed_ = -s.returns.to_numpy()
+        bet = day_to_day["far_yesterday"] * day_to_day["spread_change"]
+        earned = np.corrcoef(day_to_day["s_return"], bet)[0, 1]
+        changes = np.corrcoef(day_to_day["spread_change"], day_to_day["gamma_change"])[0, 1]
+        fragments = [
+            f"On the {n:,} days of the window that hold a pair, the held pair’s log spread, far "
+            f"minus near, correlates with γ at {_minus(corr, 6)}.",
+            f"has the opposite sign to γ’s on {opposite} of those {n:,} days and the same sign "
+            f"on {n - opposite}.",
+            "on about three days in four,",
+            f"Of the {n:,} days that hold a pair, γ’s z-score is above 0 on {int((z > 0).sum())}, "
+            "and on every one of them the trade is short the far contract and long the near "
+            f"one. On all {int((z < 0).sum())} where it is below 0, the trade is the other way "
+            "round.",
+            f"So on the same {len(reversed_):,} days its Sharpe ratio is exactly the script’s with "
+            f"the sign changed, {_minus(plain_sharpe(reversed_), 6)}. Its APR is "
+            f"{_minus(compounded_apr(reversed_), 6)}, or "
+            f"{_minus(100 * compounded_apr(reversed_), 1)} percent, rather than "
+            f"{_minus(-s.apr, 6)},",
+            f"Over the {len(day_to_day):,} days when the same pair is held on two days running, "
+            f"the script’s daily return correlates at {earned:.6f} with yesterday’s position "
+            "in the far contract",
+            f"the spread’s change and γ’s change correlate at only {_minus(changes, 6)}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_spreads_own_reversion(self, strip, spread_z, text) -> None:
+        positions = flip_on_zscore(calendar_schedule(strip.contracts), spread_z)
+        daily = spread_returns(positions, strip.contracts).loc[START:].to_numpy()
+        fragments = [
+            f"loses as well, with an APR of {_minus(compounded_apr(daily), 6)} and a Sharpe "
+            f"ratio of {_minus(plain_sharpe(daily), 6)}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_figures_alt_text(self, runs, held_window, text) -> None:
+        s = runs["S"]
+        returns = s.returns
+        curve = pd.Series(np.cumprod(1 + returns.to_numpy()) - 1, index=returns.index)
+        mirror = pd.Series(np.cumprod(1 - returns.to_numpy()) - 1, index=returns.index)
+        flat = returns.index[(returns.index > returns.index[(returns != 0).to_numpy()][-1])]
+        corr = np.corrcoef(held_window["spread"], held_window["gamma"])[0, 1]
+        fragments = [
+            f"peaks near {round(100 * curve.max())} percent in {curve.idxmax():%B %Y} and ends "
+            f"near {round(100 * curve.iloc[-1])} percent.",
+            f"reaching its low near {_minus(round(100 * mirror.min()), 0)} percent in "
+            f"{mirror.idxmin():%B %Y} and ending near {_minus(round(100 * mirror.iloc[-1]), 0)} "
+            "percent.",
+            f"A dashed vertical mark labels {s.last_held.date()} as the last day a pair is held, "
+            f"and a shaded band covers the last {len(flat)} days, from {flat[0].date()},",
+            f"on the {len(held_window):,} days a pair is held from {held_window.index[0].date()}.",
+            f"the panel’s title gives the correlation as {_minus(corr, 6)}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3(self, runs, text) -> None:
+        s, r2 = runs["S"], runs["R2"]
+        assert not matches(100 * r2.apr, BOOK_APR_PERCENT)
+        assert not matches(r2.sharpe, BOOK_SHARPE)
+        fragments = [
+            f"## Lesson 3: the book’s {BOOK_HOLDDAYS} days and the script’s {HOLDDAYS} give "
+            "different trades",
+            f"The script sets it to `3*21`, which is {HOLDDAYS}.",
+            f"At {BOOK_HOLDDAYS} days the APR falls to {100 * r2.apr:.1f} percent and the "
+            f"Sharpe ratio to {r2.sharpe:.2f}, both well short of the book’s "
+            f"{BOOK_APR_PERCENT} percent and {BOOK_SHARPE}.",
+            f"the trade’s last pair is held to {r2.last_held.date()}.",
+        ]
+        assert self.missing(text, fragments) == []
+        table = sorted(
+            [
+                str(HOLDDAYS),
+                str(BOOK_HOLDDAYS),
+                *(f"{run.apr:.6f}" for run in (s, r2)),
+                *(f"{run.sharpe:.6f}" for run in (s, r2)),
+                *(f"{run.max_dd:.6f}" for run in (s, r2)),
+                *(str(run.max_dd_days) for run in (s, r2)),
+                *(str(run.last_held.date()) for run in (s, r2)),
+            ]
+        )
+        assert self.tables(text)[2] == table
+
+    def test_lesson_4(self, runs, text) -> None:
+        s = runs["S"]
+        returns = s.returns
+        last = returns.index[(returns != 0).to_numpy()][-1]
+        flat = int((returns.index > last).sum())
+        cut = returns.loc[:last].to_numpy()
+        end = returns.index[-1].date()
+        fragments = [
+            f"## Lesson 4: the last {flat} days earn nothing",
+            f"every contract still trading on {end} looks as if it expired on {end}.",
+            f"a new pair’s last day must come at least {HOLDDAYS} days after its first. After "
+            f"{s.last_held.date()} no pair",
+            f"So the trade holds its last pair on {s.last_held.date()}.",
+            f"the window’s last {flat} days return exactly 0.",
+            f"The APR is a compounded return spread over {len(returns):,} days, and {flat} of "
+            "those days earn nothing",
+            f"Measured over the {len(cut):,} days to {last.date()}, the last day with a return, "
+            f"the APR is {100 * compounded_apr(cut):.1f} percent, {compounded_apr(cut):.6f}, and "
+            f"the Sharpe ratio is {plain_sharpe(cut):.6f}. The cumulative return is "
+            f"{np.prod(1 + returns.to_numpy()) - 1:.6f} either way.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_5_and_the_years_outside(self, runs, gamma, early, text) -> None:
+        s = runs["S"]
+        filled = gamma.ffill().dropna()
+        daily = early.returns
+        by_year = {
+            year: np.prod(1 + s.returns[s.returns.index.year == year].to_numpy()) - 1
+            for year in (2009, 2012)
+        }
+        assert by_year[2012] < 0, "2012 lost"
+        fragments = [
+            f"measured on every day γ can be fitted, {len(filled):,} of them from "
+            f"{filled.index[0].date()}. The traded window is {len(s.returns):,} of those days, "
+            f"{round(100 * len(s.returns) / len(filled))} percent.",
+            f"The ADF test says γ returns to a long-run level over the {len(filled):,} days from "
+            f"{filled.index[0].year}.",
+            f"The script’s rule first holds a pair on {daily.index[0].date()}, and on the "
+            f"{len(daily)} days from then to {daily.index[-1].date()} it has a cumulative return "
+            f"of {np.prod(1 + daily.to_numpy()) - 1:.6f}, an APR of {early.apr:.6f} with a "
+            f"Sharpe ratio of {early.sharpe:.6f}.",
+            f"2009 alone returned {by_year[2009]:.6f}, and 2012 lost {-by_year[2012]:.6f}.",
+        ]
+        assert self.missing(text, fragments) == []
 
 
 # --- the rules on synthetic frames ---------------------------------------------
