@@ -66,7 +66,8 @@ name.
    ``find`` on ``tday``.
 2. Each example's window is an argument, so the first bridge below can hand
    Example 4.3 the first book's file and year.
-3. The two ``plot`` lines are not carried. The run prints and draws nothing.
+3. The two ``plot`` lines are not carried, so the run draws nothing.
+   :mod:`chan.khandani_lo_book_two_figures` draws both curves.
 4. The commented-out cost and Kelly lines print nothing and are not carried.
    One of them still reads "Sharpe ratio should be about 0.25", which is
    ``example3_7.m``'s comment, so the script began as a copy of the first

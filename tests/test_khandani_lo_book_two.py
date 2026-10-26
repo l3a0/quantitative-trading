@@ -663,7 +663,7 @@ def _math_block(*rows: str) -> str:
 
 
 class TestWhatThePostQuotes:
-    """One copy of each run figure ``blog/khandani-lo-reversal-lessons.md`` quotes.
+    """At least one copy of each run figure ``blog/khandani-lo-reversal-lessons.md`` quotes.
 
     The classes above pin each figure once, and the post copies it by hand.
     Here each figure is built from the run at the precision the post prints
@@ -878,11 +878,11 @@ class TestWhatThePostQuotes:
         assert held - rule > 2 * (rule - first_book)  # "more than twice what the change gave"
         fragments = [
             table,
-            "of the rise is still left, more than twice what the change of rule gave",
+            "is still left, more than twice what the change of rule gave",
             f"`{khandani_lo.SOURCE_FILE}`, the {first_file.shape[1]} stocks in the S&P 500 on "
             f"2007-11-23, over the {len(days)} trading days of 2006",
             f"from {first_book:.4f} to {rule:.4f}, by {rule - first_book:.4f}",
-            f"Example 4.3 reaches {held:.4f}, so {held - rule:.4f} of the rise is still left",
+            f"Example 4.3 reaches {held:.4f}, so a rise of {held - rule:.4f} is still left",
             f"the year’s first two days, {days[0].date()} and {days[1].date()}, earn nothing",
             f"those two days lose {-100 * lost[0]:.2f} and {-100 * lost[1]:.2f} percent",
             f"to {rule:.4f}, by {rule - returns_first:.4f}, about a third of {returns_first:.4f}. "
