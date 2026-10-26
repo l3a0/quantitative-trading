@@ -3655,7 +3655,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries eight looping whiteboard sketches, drawn by
+The post also carries nine looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3683,20 +3683,23 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    prices around 1997's gap, June's rise across it carried onto May as fill
    2's guess, and a band of fill 2's typical miss either side that the exit
    price splits.
-7. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
+7. `commodity_sketch_miss_sign.gif`, in Lesson 2, 1997's missing entry and
+   1998's missing exit side by side, each guess lifted by fill 2's average
+   miss, so the move shortens for the entry and lengthens for the exit.
+8. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
    with fill 2's guess corrected by its average miss, and a bar of the spread
    of its misses either side, which 1999's move clears.
-8. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
+9. `commodity_sketch_june_file.gif`, in Lesson 4, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.
 
-All eight build more slowly than the USD.CAD post's sketches and hold their
+All nine build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in.
 
 None is schematic. Each reads the natural gas or gasoline run on the
-committed EIA files, so none needs the owner's archive. Redraw all eight with:
+committed EIA files, so none needs the owner's archive. Redraw all nine with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard

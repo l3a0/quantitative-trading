@@ -1,11 +1,12 @@
-"""The pins for the eight whiteboard GIFs in the commodity seasonals post.
+"""The pins for the nine whiteboard GIFs in the commodity seasonals post.
 
 Two sketches draw Lesson 1, its natural gas streaks and gasoline's two claims.
-Five draw Lesson 2: the range the missing rows leave, a guessed price, what
-Chan's 19 needs, how fill 2 carries June's move, and each fill's miss against
-each year's move. One draws Lesson 4's numbered files. The scenes are built
-from the natural gas and gasoline runs on the committed EIA files rather than
-from a pinned copy of their figures. Most tests check the drawing against the
+Six draw Lesson 2: the range the missing rows leave, a guessed price, what
+Chan's 19 needs, how fill 2 carries June's move, why a miss subtracts at an
+entry and adds at an exit, and each fill's miss against each year's move. One
+draws Lesson 4's numbered files. The scenes are built from the natural gas and
+gasoline runs on the committed EIA files rather than from a pinned copy of
+their figures. Most tests check the drawing against the
 run, and a few check the run against literal dates, counts and labels the post
 quotes, such as test_the_run_gives_these_dates_and_files.
 
@@ -44,11 +45,16 @@ quotes, such as test_the_run_gives_these_dates_and_files.
    both arrows rise by June's change, that the guess is fill 2's, that the
    band spans fill 2's typical miss and splits at the exit price, and that
    May and June differ by mark as well as by ink.
-7. The fill-miss sketch draws each missing year's move with fill 2's guess
+7. The miss-sign sketch draws 1997's missing entry and 1998's missing exit,
+   each guess lifted by fill 2's average miss. What is pinned is that each
+   bracket spans its two prices on one scale, that the lift is the run's
+   average miss, and that the lifted bracket is shorter for the entry and
+   longer for the exit by exactly that miss.
+8. The fill-miss sketch draws each missing year's move with fill 2's guess
    corrected by its average miss, and a bar of the spread of its misses. What
    is pinned is that each dot, bar and σ sit at the run's figures on one scale,
    and that a bar crosses zero exactly when its move is under one spread.
-8. The calendar sketch draws the March to June contracts in 2008 and 2006,
+9. The calendar sketch draws the March to June contracts in 2008 and 2006,
    each bar ending at its last trading day, with a dashed line at each entry
    and exit. What is pinned is that June's number in each label is how many
    bars reach that line, that it equals the file the run reads, and that the
@@ -107,6 +113,8 @@ from chan.commodity_seasonals_whiteboard import (
     _interpolation_guess,
     _june_file,
     _june_move_fill,
+    _miss_sign,
+    _sign_y,
     _streak_start,
     _streak_x,
     gif_name,
@@ -141,6 +149,7 @@ GIFS = [
     "commodity_sketch_interpolation_guess.gif",
     "commodity_sketch_chan_needs_gaps.gif",
     "commodity_sketch_june_move_fill.gif",
+    "commodity_sketch_miss_sign.gif",
     "commodity_sketch_fill_misses.gif",
     "commodity_sketch_june_file.gif",
 ]
@@ -153,6 +162,7 @@ FOLLOWS = (
     "Interpolating, which here means",
     "The losses say more than the gaps.",
     "1. **Fill 1, a straight line**",
+    "```math\n\\begin{aligned}\n\\text{true move} &= (\\text{guess} + e) - \\text{entry}",
     "So the chance that all three years were profits",
     "For gasoline that is always contract 1.",
 )
@@ -229,6 +239,23 @@ FILL_TWO_LABELS = [
     "fill 2’s typical miss either side",
     "entry here: a loss",
     "entry here: a profit",
+]
+
+SIGN_LABELS = [
+    "1997: the entry is missing",
+    "exit 0.625",
+    "guess 0.621",
+    "guess + e",
+    "m",
+    "m − e",
+    "1998: the exit is missing",
+    "entry 0.498",
+    "guess 0.503",
+    "guess + e",
+    "m",
+    "m + e",
+    "e drawn at fill 2’s average miss",
+    "gasoline, May contract",
 ]
 
 MISS_LABELS = [
@@ -377,7 +404,7 @@ def _alt(text: str, scene) -> str:
 
 
 class TestTheScenes:
-    def test_there_are_eight_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_nine_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -409,6 +436,7 @@ class TestTheScenes:
             "chan_needs_gaps": ("gasoline", "May contract"),
             "fill_misses": ("gasoline", "May contract"),
             "june_move_fill": ("gasoline", "gasoline"),
+            "miss_sign": ("gasoline", "May contract"),
         }
         assert set(trades) | {"june_file"} == {scene.slug for scene in every}
         for scene in every:
@@ -501,6 +529,7 @@ class TestTheGifs:
             "interpolation_guess",
             "chan_needs_gaps",
             "june_move_fill",
+            "miss_sign",
             "fill_misses",
             "june_file",
         )
@@ -1118,13 +1147,69 @@ class TestTheFillTwoSketch:
         assert "The guess sits in the green part just under the line" in alt
 
 
+class TestTheMissSignSketch:
+    def test_its_words(self, every) -> None:
+        assert every[6].title == "A miss at the entry subtracts, at the exit it adds"
+        assert every[6].labels == SIGN_LABELS
+
+    def test_its_inks(self, every) -> None:
+        scene = every[6]
+        for tag in ("entry", "exit"):
+            assert _stroke(scene, f"{tag}-known").color == INK
+            assert _stroke(scene, f"{tag}-guess").color == ACCENT
+            assert _stroke(scene, f"{tag}-lifted").color == MUTED
+            assert _stroke(scene, f"{tag}-m").color == ACCENT
+            assert _stroke(scene, f"{tag}-c").color == INK
+            for k in range(3):
+                guide = _stroke(scene, f"{tag}-guide-{k}")
+                assert (guide.color, guide.dashed) == (MUTED, True)
+
+    def test_it_draws_1997s_entry_and_1998s_exit(self) -> None:
+        entry, exit_ = seasonals.gap_fills()[:2]
+        assert (entry.year, entry.leg, exit_.year, exit_.leg) == (1997, "entry", 1998, "exit")
+
+    def test_each_bracket_spans_its_prices(self, every) -> None:
+        scene = every[6]
+        for tag, f in zip(("entry", "exit"), seasonals.gap_fills()[:2], strict=True):
+            known, guess, lifted = float(f.other), f.june, f.june + f.june_bias
+            m, c = _stroke(scene, f"{tag}-m"), _stroke(scene, f"{tag}-c")
+            assert (m.y.min(), m.y.max()) == pytest.approx(
+                tuple(sorted((_sign_y(guess, f), _sign_y(known, f))))
+            ), tag
+            assert (c.y.min(), c.y.max()) == pytest.approx(
+                tuple(sorted((_sign_y(lifted, f), _sign_y(known, f))))
+            ), tag
+            ring = _stroke(scene, f"{tag}-lifted")
+            assert (ring.y.min() + ring.y.max()) / 2 == pytest.approx(_sign_y(lifted, f)), tag
+
+    def test_the_lift_shortens_the_entry_and_lengthens_the_exit_by_the_miss(self, every) -> None:
+        scene = every[6]
+        for tag, f, sign in zip(("entry", "exit"), seasonals.gap_fills()[:2], (-1, 1), strict=True):
+            m, c = _stroke(scene, f"{tag}-m"), _stroke(scene, f"{tag}-c")
+            m_len, c_len = m.y.max() - m.y.min(), c.y.max() - c.y.min()
+            lift = _sign_y(f.june + f.june_bias, f) - _sign_y(f.june, f)
+            assert lift == pytest.approx(f.june_bias * 100 * sketches.SIGN_CENT), tag
+            assert c_len == pytest.approx(m_len + sign * lift), tag
+
+    def test_other_figures_move_the_prices_and_labels(self) -> None:
+        entry, exit_ = seasonals.gap_fills()[:2]
+        scene = _miss_sign(dataclasses.replace(entry, june=0.619), exit_)
+        assert "guess 0.619" in scene.labels
+        assert "guess 0.621" not in scene.labels
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[6])
+        assert "a black one from the ring up to the exit, labelled “m − e”, which is shorter" in alt
+        assert "labelled “m + e”, is longer" in alt
+
+
 class TestTheFillMissesSketch:
     def test_its_words(self, every) -> None:
-        assert every[6].title == "Each corrected move against fill 2’s spread"
-        assert every[6].labels == MISS_LABELS
+        assert every[7].title == "Each corrected move against fill 2’s spread"
+        assert every[7].labels == MISS_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[6]
+        scene = every[7]
         zero = _stroke(scene, "zero")
         assert (zero.color, zero.dashed) == (MUTED, True)
         assert _label(scene, "loss").color == LOST
@@ -1134,7 +1219,7 @@ class TestTheFillMissesSketch:
             assert _stroke(scene, f"miss-{year}").color == INK
 
     def test_each_dot_and_bar_sit_at_the_runs_figures(self, every) -> None:
-        scene = every[6]
+        scene = every[7]
         for fill in seasonals.gap_fills():
             move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
             assert _stroke(scene, f"move-{fill.year}").x[0] == pytest.approx(_cents_x(move))
@@ -1143,7 +1228,7 @@ class TestTheFillMissesSketch:
             )
 
     def test_each_bar_carries_its_sigma_over_its_right_half(self, every) -> None:
-        scene = every[6]
+        scene = every[7]
         for fill in seasonals.gap_fills():
             move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
             label = _label(scene, f"σ = {miss:.2f}")
@@ -1154,7 +1239,7 @@ class TestTheFillMissesSketch:
     def test_a_bar_crosses_zero_exactly_when_its_move_is_under_one_spread(self, every) -> None:
         """Every dot is a profit. 1997's and 1998's bars cross zero and 1999's
         stops short, because only 1999's corrected move clears one spread."""
-        scene = every[6]
+        scene = every[7]
         zero = _stroke(scene, "zero").x[0]
         crossing = {}
         for fill in seasonals.gap_fills():
@@ -1173,7 +1258,7 @@ class TestTheFillMissesSketch:
         assert "100%" in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[6])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[7])
         assert (
             "a brown dot right of zero marks the year’s move with fill 2’s guess corrected" in alt
         )
@@ -1237,11 +1322,11 @@ class TestTheJuneYears:
 
 class TestTheJuneSketch:
     def test_its_words(self, every) -> None:
-        assert every[7].title == "Which file holds the June contract"
-        assert every[7].labels == JUNE_LABELS
+        assert every[8].title == "Which file holds the June contract"
+        assert every[8].labels == JUNE_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[7]
+        scene = every[8]
         for tag in ("2008", "2006"):
             assert _stroke(scene, f"{tag}-june").color == ACCENT
             for month in ("march", "april", "may"):
@@ -1266,7 +1351,7 @@ class TestTheJuneSketch:
         assert _day_x(date(2006, 4, 13)) == _day_x(date(2008, 4, 13))
 
     def test_each_bar_ends_at_its_last_trading_day_and_june_runs_off(self, every, years) -> None:
-        scene = every[7]
+        scene = every[8]
         for f in years:
             for month, last in zip(("march", "april", "may"), f.last_trade, strict=False):
                 bar = _stroke(scene, f"{f.year}-{month}")
@@ -1282,7 +1367,7 @@ class TestTheJuneSketch:
             assert f.last_trade[3] > CALENDAR[1].replace(year=f.year)
 
     def test_june_is_numbered_by_the_bars_each_line_crosses(self, every, years) -> None:
-        scene = every[7]
+        scene = every[8]
         for f in years:
             tag = str(f.year)
             for moment, day, number in (
@@ -1302,7 +1387,7 @@ class TestTheJuneSketch:
                 assert label.x == pytest.approx(line.x[0])
 
     def test_each_line_spans_its_years_four_bars(self, every, years) -> None:
-        scene = every[7]
+        scene = every[8]
         for f in years:
             rows = [_stroke(scene, f"{f.year}-{m}").y[0] for m in ("march", "april", "may", "june")]
             for moment in ("entry", "exit"):
@@ -1310,14 +1395,14 @@ class TestTheJuneSketch:
                 assert line.y.max() > max(rows) and line.y.min() < min(rows)
 
     def test_march_is_drawn_still_trading_in_2008_and_expired_in_2006(self, every, years) -> None:
-        scene = every[7]
+        scene = every[8]
         still, expired = years
         assert _stroke(scene, "2008-march").x.max() > _stroke(scene, "2008-entry").x[0]
         assert _stroke(scene, "2006-march").x.max() < _stroke(scene, "2006-entry").x[0]
         assert (still.march_trading, expired.march_trading) == (True, False)
 
     def test_the_years_are_stacked_and_their_rows_ordered_by_expiry(self, every) -> None:
-        scene = every[7]
+        scene = every[8]
         for tag in ("2008", "2006"):
             rows = [_stroke(scene, f"{tag}-{m}").y[0] for m in ("march", "april", "may", "june")]
             assert rows == sorted(rows, reverse=True)
@@ -1337,11 +1422,11 @@ class TestTheJuneSketch:
         assert len(_reaches(scene, "2008", _stroke(scene, "2008-entry").x[0])) == 3
 
     def test_it_closes_on_the_rule_it_draws(self, every) -> None:
-        last = every[7].steps[-1]
+        last = every[8].steps[-1]
         assert (last.text, last.color) == ("June’s number is how many bars each line crosses", INK)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, years) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[7])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[8])
         still, expired = years
         for f in years:
             assert f"March’s bar ends on {f.last_trade[0]:%B} {f.last_trade[0].day}" in alt

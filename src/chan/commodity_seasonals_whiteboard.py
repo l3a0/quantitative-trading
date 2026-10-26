@@ -1,15 +1,15 @@
 """Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 4.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Eight of its passages turn on a picture a
+trades against EIA's settlements. Nine of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
 missing one, what Chan's 19 needs of the missing years, how the second fill
-carries June's move across a gap, how far a fill misses against each year's
-move, and which numbered file holds the June contract on a given day. This
-module draws those eight as scenes, and the post places each right after the
-paragraph it draws.
+carries June's move across a gap, why a miss subtracts at an entry and adds at
+an exit, how far a fill misses against each year's move, and which numbered
+file holds the June contract on a given day. This module draws those nine as
+scenes, and the post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
@@ -49,12 +49,18 @@ paragraph it draws.
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the list opening
    "1. **Fill 1, a straight line**".
-7. Each corrected move against fill 2's spread: for each missing year, the
+7. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
+   missing entry and 1998's missing exit, each with the known price, fill 2's
+   guess, the guess lifted by fill 2's average miss, and brackets for the move
+   with the guess and the move with the lifted guess, shorter for the entry
+   and longer for the exit. It sits after the exit's derivation, which opens
+   "```math".
+8. Each corrected move against fill 2's spread: for each missing year, the
    year's move with fill 2's guess corrected by its average miss, a bar of the
    spread of its misses either side, and each year's chance of a profit. The
    bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
    the paragraph opening "So the chance that all three years were profits".
-8. Which file holds the June contract: the March, April, May and June natural
+9. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -63,7 +69,7 @@ paragraph it draws.
    sits in Lesson 4, after the paragraph opening "For gasoline the answer is
    simple."
 
-All eight carry data, and none needs the owner's archive.
+All nine carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -94,7 +100,7 @@ Both years' calendars are drawn on one axis of month and day.
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
 Each sketch carries more than a reader takes in at that post's pace, so
-all eight are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all nine are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -102,7 +108,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all eight with::
+with no change is a no-op diff. Redraw all nine with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -1175,6 +1181,140 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
     return Scene("Fill 2 carries June’s move across the gap", "june_move_fill", tuple(steps))
 
 
+# --- Lesson 2: a miss at the entry subtracts, at the exit it adds -----------
+
+#: Board units per cent on the miss-sign sketch's price scale, and the height
+#: of each panel's lowest price.
+SIGN_CENT, SIGN_BASE_Y = 3.0, 1.15
+#: Where each panel starts, the entry gap's on the left and the exit gap's on
+#: the right of the divider.
+SIGN_PANELS = (0.45, 5.05)
+SIGN_DIVIDER = 5.0
+
+
+def _sign_y(price: float, f: seasonals.GapFill) -> float:
+    """Where ``price`` sits in ``f``'s panel, the lowest of its three prices at the base."""
+    lo = min(float(f.other), f.june, f.june + f.june_bias)
+    return SIGN_BASE_Y + (price - lo) * 100 * SIGN_CENT
+
+
+def _vspan(x: float, y0: float, y1: float, tick: float = 0.1) -> tuple:
+    """An upright bracket from ``y0`` to ``y1`` with a tick at each end."""
+    return _line(
+        [(x - tick, y0), (x + tick, y0), (x, y0), (x, y1), (x - tick, y1), (x + tick, y1)],
+        per_unit=10,
+    )
+
+
+def _price_dot(gid: str, x: float, y: float, color: str) -> Stroke:
+    return Stroke(gid, np.array([x]), np.array([y]), color=color, frames=1, dots=8.0)
+
+
+def _sign_panel(f: seasonals.GapFill, x0: float, tag: str) -> list[Stroke | Label]:
+    """One gap: the known price, the guess, the guess lifted by fill 2's average
+    miss, and the move with each, measured on dashed guides."""
+    entry_missing = f.leg == "entry"
+    known, guess, lifted = float(f.other), f.june, f.june + f.june_bias
+    y = lambda price: _sign_y(price, f)  # noqa: E731
+    entry_x, exit_x = x0 + 1.4, x0 + 2.5
+    gap_x, known_x = (entry_x, exit_x) if entry_missing else (exit_x, entry_x)
+    m_x, c_x = x0 + 2.95, x0 + 3.65
+    m_ends = (guess, known) if entry_missing else (known, guess)
+    c_ends = (lifted, known) if entry_missing else (known, lifted)
+    top = known == max(known, guess, lifted)
+    return [
+        _price_dot(f"{tag}-known", known_x, y(known), INK),
+        Label(
+            f"{f.year}: the {f.leg} is missing",
+            x0 + 2.2,
+            3.75,
+            names=f"{tag}-known",
+            color=INK,
+            size=12,
+            ha="center",
+        ),
+        Label(
+            f"{'exit' if entry_missing else 'entry'} {f.other}",
+            known_x,
+            y(known) + (0.36 if top else -0.4),
+            names=f"{tag}-known",
+            color=INK,
+            size=11,
+            ha="center",
+        ),
+        _price_dot(f"{tag}-guess", gap_x, y(guess), ACCENT),
+        Label(
+            f"guess {guess:.3f}",
+            gap_x - 0.3,
+            y(guess) - 0.05,
+            names=f"{tag}-guess",
+            color=ACCENT,
+            size=11,
+            ha="right",
+        ),
+        _ring(f"{tag}-lifted", gap_x, y(lifted)),
+        _stroke(
+            f"{tag}-e",
+            _arrow(gap_x, y(guess) + 0.12, gap_x, y(lifted) - 0.1),
+            color=MUTED,
+            frames=3,
+        ),
+        Label(
+            "guess + e",
+            gap_x - 0.3,
+            y(lifted) + 0.05,
+            names=f"{tag}-lifted",
+            color=MUTED,
+            size=11,
+            ha="right",
+        ),
+        *[
+            _stroke(
+                f"{tag}-guide-{k}",
+                _line([(x + 0.15, y(price)), (c_x + 0.1, y(price))]),
+                color=MUTED,
+                dashed=True,
+                width=1.0,
+                frames=3,
+            )
+            for k, (x, price) in enumerate(((known_x, known), (gap_x, guess), (gap_x, lifted)))
+        ],
+        _stroke(f"{tag}-m", _vspan(m_x, y(m_ends[0]), y(m_ends[1])), color=ACCENT, frames=4),
+        Label("m", m_x, y(m_ends[0]) - 0.38, names=f"{tag}-m", color=ACCENT, size=12, ha="center"),
+        _stroke(f"{tag}-c", _vspan(c_x, y(c_ends[0]), y(c_ends[1])), color=INK, frames=4),
+        Label(
+            "m − e" if entry_missing else "m + e",
+            c_x,
+            y(c_ends[0]) - 0.38,
+            names=f"{tag}-c",
+            color=INK,
+            size=12,
+            ha="center",
+        ),
+    ]
+
+
+def _miss_sign(entry: seasonals.GapFill, exit_: seasonals.GapFill) -> Scene:
+    """Lesson 2: the same upward miss shortens the move when the entry is
+    missing and lengthens it when the exit is, drawn at fill 2's average miss."""
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "divider",
+            _line([(SIGN_DIVIDER, 0.55), (SIGN_DIVIDER, 3.95)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        )
+    ]
+    steps += _sign_panel(entry, SIGN_PANELS[0], "entry")
+    steps += _sign_panel(exit_, SIGN_PANELS[1], "exit")
+    steps += [
+        Label("e drawn at fill 2’s average miss", 0.3, 0.3, names="entry-e", color=MUTED, size=10),
+        Label(GASOLINE_TRADE, 9.7, 0.3, names="divider", color=MUTED, size=10, ha="right"),
+    ]
+    return Scene("A miss at the entry subtracts, at the exit it adds", "miss_sign", tuple(steps))
+
+
 # --- Lesson 2: each fill's miss against each year's move ---------------------
 
 #: Where zero cents sits, how wide a cent is, the scale's ends in cents, and
@@ -1450,6 +1590,7 @@ PACED = (
     "interpolation_guess",
     "chan_needs_gaps",
     "june_move_fill",
+    "miss_sign",
     "fill_misses",
     "june_file",
 )
@@ -1484,7 +1625,7 @@ def scenes(
     guess: GuessFigures | None = None,
     fill_two: FillTwoFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The eight scenes in the order the post reads them, Lessons 1, 2 and 4."""
+    """The nine scenes in the order the post reads them, Lessons 1, 2 and 4."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
@@ -1497,6 +1638,7 @@ def scenes(
         _interpolation_guess(guess),
         _chan_needs_gaps(gasoline),
         _june_move_fill(fill_two),
+        _miss_sign(*seasonals.gap_fills()[:2]),
         _fill_misses(tuple(seasonals.gap_fills())),
         _june_file(*years),
     )

@@ -165,6 +165,8 @@ In 1998 and 1999 it is the exit:
 \end{aligned}
 ```
 
+![“A miss at the entry subtracts, at the exit it adds”, drawn slowly stroke by stroke in two panels split by a dashed line. On the left, “1997: the entry is missing”, a black dot marks the “exit 0.625”, a brown dot marks fill 2’s “guess 0.621” for the entry, and a grey arrow lifts the guess by e to a ring, “guess + e”. Dashed guides run from the three prices to two brackets: a brown one from the guess up to the exit, labelled “m”, and a black one from the ring up to the exit, labelled “m − e”, which is shorter. On the right, “1998: the exit is missing”, a black dot marks the “entry 0.498”, a brown dot marks the “guess 0.503” for the exit, and a grey arrow lifts it to a ring, “guess + e”. The brown bracket from the entry up to the guess is labelled “m”, and the black one from the entry up to the ring, labelled “m + e”, is longer. A caption reads “e drawn at fill 2’s average miss”, and a note names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_miss_sign.gif)
+
 So a miss above the guess lowers an entry’s move and raises an exit’s. Putting the average miss `b` in place of `e` gives each case its corrected move `c`:
 
 ```math
