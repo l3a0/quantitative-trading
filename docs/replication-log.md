@@ -3543,7 +3543,7 @@ seventeen.
 13. Student's t's 95% multiplier for few results against the normal curve's.
 14. Natural gas's ±12% half-width built from its spread, count and multiplier.
 15. Each period's mean and 95% range, with each trade's earlier mean carried
-   down through its later range.
+   down past its later range.
 16. Natural gas's mean after 2008 with and without 2022, against all 30
    years ranked.
 17. Which numbered file holds the June contract on the entry and exit days of

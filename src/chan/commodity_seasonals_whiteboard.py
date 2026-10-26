@@ -93,7 +93,7 @@ and the post places each right after the paragraph it draws.
    trade's worked range, which opens "```math".
 15. One range holds the earlier mean, one does not: each period's mean and
    95% range, with each trade's earlier mean carried down as a dashed line
-   through its later bar. It sits after the paragraph opening "That range,
+   past its later bar. It sits after the paragraph opening "That range,
    −6% to +2%, leaves out".
 16. One year moves the mean, not the ranks: natural gas's returns from 2009
    to 2023 as dots on a percentage axis, with ticks at their mean and at
@@ -2142,7 +2142,7 @@ def _t_multiplier(counts: tuple[int, int]) -> Scene:
         Label(f"normal, {normal:.2f}", 2.0, y, names="normal", color=MUTED, size=10, ha="right"),
         Label("95% multiplier from Student’s t", 0.3, 3.75, names="base", color=INK, size=10),
         Label(
-            f"purple: this post’s {counts[0]} and {counts[1]} years",
+            f"purple: the later periods’ {counts[0]} and {counts[1]} years",
             9.7,
             3.75,
             names="base",
@@ -2193,11 +2193,26 @@ def _half_width(row: MeanRow, earlier: MeanRow) -> Scene:
         ]
     x = HALF_X + gap * HALF_POINT
     steps += [
-        _stroke("gap", _line([(x, 0.95), (x, 3.55)]), color=MUTED, dashed=True, frames=6),
         Label(
-            f"the earlier mean, {gap:.1f} points above",
+            f"start: the later mean, {row.mean:+.1f}%",
+            HALF_X,
+            0.4,
+            names="half-0",
+            color=MUTED,
+            size=10,
+            ha="center",
+        ),
+        _stroke(
+            "gap",
+            _line([(x, HALF_ROWS[2] - 0.35), (x, HALF_ROWS[2] + 0.35)]),
+            color=MUTED,
+            dashed=True,
+            frames=3,
+        ),
+        Label(
+            f"the earlier mean, {gap:.1f} points higher",
             x,
-            0.65,
+            0.75,
             names="gap",
             color=MUTED,
             size=10,

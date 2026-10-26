@@ -83,7 +83,7 @@ post quotes, such as test_the_run_gives_these_dates_and_files.
    earlier mean. What is pinned is that each bar is the run's figure on one
    scale and that the last bar reaches past the gap.
 15. The mean-range sketch draws each period's mean and 95% range, with each
-   trade's earlier mean carried down through its later bar. What is pinned is
+   trade's earlier mean carried down past its later bar. What is pinned is
    that each dot, bar and dashed line sit at the run's figures, and that
    natural gas's line lands inside its later bar and gasoline's outside.
 16. The one-year sketch draws natural gas's returns after 2008 with ticks at
@@ -476,14 +476,15 @@ T_LABELS = [
     "many",
     "normal, 1.96",
     "95% multiplier from Student’s t",
-    "purple: this post’s 8 and 15 years",
+    "purple: the later periods’ 8 and 15 years",
 ]
 
 HALF_LABELS = [
     "spread s = 21.6%",
     "s / √15 = 5.6%",
     "× 2.14 = 12.0%",
-    "the earlier mean, 11.0 points above",
+    "start: the later mean, -0.4%",
+    "the earlier mean, 11.0 points higher",
     "natural gas, June contract, 2009 to 2023",
 ]
 
@@ -1747,7 +1748,7 @@ class TestTheMultiplierSketch:
 
     def test_other_counts_move_the_bars_and_the_note(self) -> None:
         scene = _t_multiplier((5, 12))
-        assert "purple: this post’s 5 and 12 years" in scene.labels
+        assert "purple: the later periods’ 5 and 12 years" in scene.labels
         assert "5 results" in scene.labels and "8 results" not in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:

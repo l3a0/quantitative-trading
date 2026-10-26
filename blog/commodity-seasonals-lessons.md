@@ -285,7 +285,7 @@ The 95% range for a mean return from `n` results, with standard deviation `s`, u
 \bar r \pm t_{n-1} \times \frac{s}{\sqrt{n}}
 ```
 
-![“Fewer results, a wider range”, drawn slowly stroke by stroke. Four bars rise from a grey base, each labelled with its height: “2.36” over “8 results”, “2.14” over “15 results”, “2.05” over “30 results” and “1.96” over “many”. A dashed grey line runs across at the normal curve’s value, labelled “normal, 1.96”, and the fewer the results, the higher a bar stands above it. A caption reads “95% multiplier from Student’s t”. The first two bars are purple, and a note reads “purple: this post’s 8 and 15 years”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_t_multiplier.gif)
+![“Fewer results, a wider range”, drawn slowly stroke by stroke. Four bars rise from a grey base, each labelled with its height: “2.36” over “8 results”, “2.14” over “15 results”, “2.05” over “30 results” and “1.96” over “many”. A dashed grey line runs across at the normal curve’s value, labelled “normal, 1.96”, and the fewer the results, the higher a bar stands above it. A caption reads “95% multiplier from Student’s t”. The first two bars are purple, and a note reads “purple: the later periods’ 8 and 15 years”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_t_multiplier.gif)
 
 Natural gas after 2008 averaged −0.4% a year with a standard deviation of 21.6% over 15 years, and `t` for 14 degrees of freedom is 2.14:
 
@@ -296,7 +296,7 @@ Natural gas after 2008 averaged −0.4% a year with a standard deviation of 21.6
 \end{aligned}
 ```
 
-![“Where ±12% comes from”, drawn slowly stroke by stroke. Three bars start at one left edge. The first, black, is “spread s = 21.6%”. The second, black and about a quarter as long, is “s / √15 = 5.6%”. The third, purple, is “× 2.14 = 12.0%”. A dashed grey line marks “the earlier mean, 11.0 points above” the later one, and the purple bar reaches past it, so the range around the later mean holds the earlier one. A note in the upper right names the trade as “natural gas, June contract, 2009 to 2023”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_half_width.gif)
+![“Where ±12% comes from”, drawn slowly stroke by stroke. Three bars start at one left edge. The first, black, is “spread s = 21.6%”. The second, black and about a quarter as long, is “s / √15 = 5.6%”. The third, purple, is “× 2.14 = 12.0%”. Under the shared left edge a note reads “start: the later mean, -0.4%”. A short dashed grey line across the purple bar marks “the earlier mean, 11.0 points higher”, and the purple bar reaches past it, so the range around the later mean holds the earlier one. A note in the upper right names the trade as “natural gas, June contract, 2009 to 2023”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_half_width.gif)
 
 That range, −12% to +12%, still holds the +10.6% natural gas earned before 2009. So 15 years cannot tell a trade that weakened from one that had a bad run. Gasoline after 2015 averaged −1.9% with a standard deviation of 4.8% over 8 years, and `t` for 7 degrees of freedom is 2.36:
 
@@ -309,7 +309,7 @@ That range, −12% to +12%, still holds the +10.6% natural gas earned before 200
 
 That range, −6% to +2%, leaves out the +3.2% gasoline earned before.
 
-![“One range holds the earlier mean, one does not”, drawn slowly stroke by stroke. A dashed grey line marks “0%”. Four rows follow, each with a black bar of its 95% range, a purple dot at its mean, and the mean written at the right edge: “natural gas, 1994 to 2008” at “+10.6%”, “natural gas, 2009 to 2023” at “-0.4%”, “gasoline, 1995 to 2015” at “+3.2%” and “gasoline, 2016 to 2023” at “-1.9%”. A dashed grey line drops from each trade’s earlier mean through its later bar. Natural gas’s lands inside the later range, and gasoline’s lands just past its right end. A scale along the foot is marked “-10%”, “+10%” and “+20%” and labelled “mean yearly return”. Captions read “dot: the mean” and “bar: 95% range   dashed: the earlier mean”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_mean_ranges.gif)
+![“One range holds the earlier mean, one does not”, drawn slowly stroke by stroke. A dashed grey line marks “0%”. Four rows follow, each with a black bar of its 95% range, a purple dot at its mean, and the mean written at the right edge: “natural gas, 1994 to 2008” at “+10.6%”, “natural gas, 2009 to 2023” at “-0.4%”, “gasoline, 1995 to 2015” at “+3.2%” and “gasoline, 2016 to 2023” at “-1.9%”. A dashed grey line drops from each trade’s earlier mean past its later bar. Natural gas’s lands inside the later range, and gasoline’s lands just past its right end. A scale along the foot is marked “-10%”, “+10%” and “+20%” and labelled “mean yearly return”. Captions read “dot: the mean” and “bar: 95% range   dashed: the earlier mean”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_mean_ranges.gif)
 
 ### Whether the typical year changed
 
