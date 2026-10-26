@@ -5468,8 +5468,7 @@ Five groups of what it says are not pinned here.
    third of Lesson 1's margins is the tightest, that the trading barely
    changes, and that −3.2337 is lower than −3.1884. So is what a figure would
    print as at the book's precision in Lesson 1's margins, 1.2, 10 and
-   0.731552, and 0.625, the bounce sketch's caption's 1 / 1.6 of the
-   scale-break check's bound.
+   0.731552.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -5479,7 +5478,8 @@ for the figure's own numbers, or to
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) for the first book's
 0.2510, −3.1884 and −3.2337 and its average day on 2006, or to
 [tests/test_khandani_lo_book_two_whiteboard.py](tests/test_khandani_lo_book_two_whiteboard.py)
-for the sketches' labels and the alt texts that quote them. Four had no pin
+for the sketches' labels, the alt texts that quote them and the bounce
+caption's axis foot and bounds. Four had no pin
 before it.
 
 1. Each calendar year's APR for both examples, 2007 to 2011, and Example

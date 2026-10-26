@@ -494,6 +494,8 @@ class TestTheReport:
         assert "Sharpe 0.5484, where Example 3.7 printed 0.25" in out
         assert "Sharpe 1.2219 before costs and 0.3797 after 5 bp a side" in out
         assert "about survivors" in out
+        assert "stocks that were in the S&P 500 in late 2011" in out
+        assert "2012-04-24, so every figure" not in out
         assert "Exploratory." in out
 
     def test_a_missing_vintage_reaches_the_reader_as_one_line(

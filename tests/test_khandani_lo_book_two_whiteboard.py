@@ -95,6 +95,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from chan.vintage import VintageUnavailable
 
 POST = REPO_ROOT / "blog" / "khandani-lo-reversal-lessons.md"
 
@@ -525,6 +526,29 @@ class TestThePost:
             assert ("drawn slowly" in alt) == paced, scene.slug
             assert ("twelve seconds" in alt) == paced, scene.slug
 
+    def test_the_bounce_caption_and_alt_give_the_sketchs_own_figures(self, bounce) -> None:
+        """The axis's foot and the guard's two bounds, as the sketch holds them."""
+        text = POST.read_text(encoding="utf-8")
+        low, bound = f"{PRICE_LOW:g}", f"{bounce.bound:g}"
+        assert f"on a price axis that starts at {low} rather than 0" in text
+        assert f"so it starts at {low} rather than 0" in text
+        assert f"above {bound} or below 1 / {bound}, which is {1 / bounce.bound:g}." in text
+
+    def test_the_command_draws_the_runs_figures(self, every) -> None:
+        """The default path the command takes draws what the fixtures pin."""
+        for drawn, pinned in zip(scenes(), every, strict=True):
+            assert (drawn.title, drawn.labels) == (pinned.title, pinned.labels)
+
+    def test_from_run_reads_the_committed_files_or_the_folder_given(
+        self, bounce, days, tmp_path
+    ) -> None:
+        assert Bounce.from_run() == bounce
+        assert AverageDays.from_run() == days
+        with pytest.raises(VintageUnavailable):
+            Bounce.from_run(data_dir=tmp_path)
+        with pytest.raises(VintageUnavailable):
+            AverageDays.from_run(data_dir=tmp_path)
+
     def test_the_module_says_neither_is_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
         assert "Neither is schematic." in doc
@@ -705,12 +729,34 @@ class TestTheBounceSketch:
             ({"weight": -0.01}, "bought CAH"),
             ({"apr_without": 0.137}, "neither figure"),
             ({"sharpe_without": 1.26}, "neither figure"),
+            ({"flagged": ("2009-09-01",)}, "lets the fall through"),
+            ({"weight": 0.0}, "bought CAH"),
         ],
-        ids=["fall flagged", "rise not flagged", "shorted", "apr matches", "sharpe matches"],
+        ids=[
+            "fall flagged",
+            "rise not flagged",
+            "shorted",
+            "apr matches",
+            "sharpe matches",
+            "another day flagged",
+            "not bought",
+        ],
     )
     def test_it_refuses_figures_that_make_its_words_false(self, bounce, change, message) -> None:
         with pytest.raises(ValueError, match=message):
             replace(bounce, **change).refuse_false_words()
+
+    def test_it_refuses_a_panel_missing_one_of_the_days(self, frames) -> None:
+        panel = frames[0].drop(index=pd.Timestamp("2009-09-02"))
+        with pytest.raises(ValueError, match="do not fall on"):
+            Bounce.from_panel(panel)
+
+    def test_the_axes_reach_past_every_mark(self, every) -> None:
+        scene = every[0]
+        price_axis, time_axis = _stroke(scene, "price-axis"), _stroke(scene, "time-axis")
+        tops = [_stroke(scene, f"close-{k}").y[0] for k in range(3)]
+        assert price_axis.y.min() == PRICE_FOOT and price_axis.y.max() > max(tops)
+        assert time_axis.x.min() == PRICE_AXIS_X and time_axis.x.max() > max(DAY_X)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
@@ -763,6 +809,7 @@ class TestTheAverageDaySketch:
         assert round(days.profit_ratio) == 20
         assert times_in_words(days.profit_ratio) == "twenty"
         assert days.profit_ratio - 19.5 == pytest.approx(0.44, abs=5e-3)
+        assert spelled(1000) == "1,000"
         assert [spelled(n) for n in (0, 7, 13, 20, 21, 99, 100)] == [
             "no",
             "seven",
@@ -864,6 +911,20 @@ class TestTheAverageDaySketch:
             sketches.PER_POINT * days.panel_kept
         )
 
+    def test_the_axis_reaches_past_every_bar_and_each_tick_label_stands_on_its_tick(
+        self, every
+    ) -> None:
+        scene = every[1]
+        axis = _stroke(scene, "axis")
+        bars = ("year-cost", "year-profit", "panel-cost", "panel-profit")
+        ends = [_stroke(scene, gid).x.max() for gid in bars]
+        ends += [_stroke(scene, f"tick-{p}").x[0] for p in (0, 5, 10)]
+        assert axis.x.min() == on_scale(0) and axis.x.max() > max(ends)
+        for points in (0, 5, 10):
+            (label,) = _labels_of(scene, f"tick-{points}")
+            assert (label.text, label.x) == (f"{points}", on_scale(points))
+            assert label.y < axis.y[0]
+
     def test_each_pair_sits_under_its_heading(self, every) -> None:
         scene = every[1]
         year_heading = _label(scene, "2006, the first book’s file")
@@ -902,8 +963,9 @@ class TestTheAverageDaySketch:
             ({"year_cost": 0.4}, "2006's cost passes its profit"),
             ({"panel_cost": 11.0}, "less than a third"),
             ({"panel_cost": 6.0}, "less than a third"),
+            ({"year_profit": -0.5}, "2006's cost passes its profit"),
         ],
-        ids=["2006 pays its cost", "panel loses", "panel keeps a third or more"],
+        ids=["2006 pays its cost", "panel loses", "panel keeps a third or more", "2006 loses"],
     )
     def test_it_refuses_figures_that_make_its_words_false(self, days, change, message) -> None:
         with pytest.raises(ValueError, match=message):
