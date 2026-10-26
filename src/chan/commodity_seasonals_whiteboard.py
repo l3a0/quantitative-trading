@@ -1,7 +1,7 @@
 """Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2, 4 and 5.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Seventeen of its passages turn on a picture a
+trades against EIA's settlements. Twenty-one of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
@@ -12,8 +12,9 @@ subtracts at an entry and adds at an exit, how far a fill misses against each
 year's move, how far a Sharpe ratio from so few years can stray, why fewer
 results widen a range, where natural gas's ±12% comes from, which later range
 holds its earlier mean, how one year moves natural gas's mean but not its
-ranks, and which numbered file holds the
-June contract on a given day. This module draws those seventeen as scenes,
+ranks, which numbered file holds the June contract on a given day, and how
+the expiry rule behind it is checked. This module draws those twenty-one as
+scenes,
 and the post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
@@ -108,10 +109,26 @@ and the post places each right after the paragraph it draws.
    still trading on the entry date and one in which it has expired. A dashed
    line at each entry and exit crosses the contracts still trading that day,
    and June's number is how many it crosses, which its closing label says. It
-   sits in Lesson 5, after the paragraph opening "For gasoline the answer is
-   simple."
+   sits in Lesson 5, after the paragraph opening "For gasoline that is always
+   contract 1."
+18. A handover shows when March stopped: the contract-1 and contract-2 files'
+   settlements in late February 1996, where file 1 picks up file 2's price the
+   day after March's last trading day, five days before delivery, against
+   where a three-day rule would put it. It sits under "Against the files’ own
+   handovers", after the paragraph opening "When a contract expires".
+19. Which years each check reaches: a year axis with the files' handover fit
+   from 1994 to 2024 and the exchange's dates from 2017, where Massive's
+   records begin, to 2026. It sits after the paragraph opening "Over every
+   natural gas contract delivered".
+20. An entry on March's own last day: 2018's March to June contracts on a
+   calendar of late February, where the entry line meets the end of March's
+   bar, so June is contract 4. It sits under "Against the edge cases".
+21. A row in the file is not a trading day: Christmas week of 2018, where the
+   contract-1 file repeats Dec 24's price on the 25th, beside 2016, where the
+   closed 26th has no row. It sits after the paragraph opening "The run
+   computes its own calendar".
 
-All seventeen carry data, and none needs the owner's archive.
+All twenty-one carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -131,6 +148,10 @@ too.
 :func:`chan.commodity_seasonals.mean_interval`, and
 :meth:`OneYearFigures.from_run` reads natural gas's yearly returns from
 :func:`chan.commodity_seasonals.natural_gas_trades`.
+:meth:`CheckCoverage.from_run` counts the files' handover fit through
+:func:`chan.futures.handover_fit` and the exchange's dates in
+:data:`EXCHANGE_LAST_TRADES` that match :func:`chan.futures.ng_last_trade`.
+The handover and holiday sketches read the contract-1 and contract-2 files.
 :meth:`JuneYear.from_run` reads one year's entry and exit days and file
 numbers from :func:`chan.commodity_seasonals.natural_gas_trade`, and each
 contract's last trading day from :func:`chan.futures.ng_last_trade`. Three
@@ -150,7 +171,7 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
-all seventeen are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all twenty-one are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
 half-width sketch is in :data:`SLOWER` too, so its strokes draw at 250 ms a
@@ -160,7 +181,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all seventeen with::
+with no change is a no-op diff. Redraw all twenty-one with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -179,7 +200,7 @@ from scipy import stats
 
 from chan import commodity_seasonals as seasonals
 from chan.commodity_seasonals_figures import GASOLINE_BOOK_END
-from chan.futures import ng_last_trade
+from chan.futures import is_trading_day, ng_last_trade, ng_lead_days
 from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED
@@ -2622,6 +2643,484 @@ def _june_file(still: JuneYear, expired: JuneYear) -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+# --- Lesson 5: three checks of the expiry rule -------------------------------
+
+#: The last trading days the Massive futures API recorded from the exchange,
+#: by year, for the March to June natural gas contracts: every year its records
+#: hold, from 2017, where they begin, to 2026. Nothing in the repo can read them
+#: again, so they are a measurement, as ``tests/test_commodity_seasonals.py``
+#: pins them.
+EXCHANGE_LAST_TRADES = {
+    year: tuple(date.fromisoformat(d) for d in days)
+    for year, days in {
+        2017: ("2017-02-24", "2017-03-29", "2017-04-26", "2017-05-26"),
+        2018: ("2018-02-26", "2018-03-27", "2018-04-26", "2018-05-29"),
+        2019: ("2019-02-26", "2019-03-27", "2019-04-26", "2019-05-29"),
+        2020: ("2020-02-26", "2020-03-27", "2020-04-28", "2020-05-27"),
+        2021: ("2021-02-24", "2021-03-29", "2021-04-28", "2021-05-26"),
+        2022: ("2022-02-24", "2022-03-29", "2022-04-27", "2022-05-26"),
+        2023: ("2023-02-24", "2023-03-29", "2023-04-26", "2023-05-26"),
+        2024: ("2024-02-27", "2024-03-26", "2024-04-26", "2024-05-29"),
+        2025: ("2025-02-26", "2025-03-27", "2025-04-28", "2025-05-28"),
+        2026: ("2026-02-25", "2026-03-27", "2026-04-28", "2026-05-27"),
+    }.items()
+}
+#: The months the files' handover survey reads, by delivery month.
+HANDOVER_SPAN = ((1994, 2), (2024, 4))
+
+
+@dataclass(frozen=True)
+class CheckCoverage:
+    """What each check of the expiry rule reaches: the files' handovers over
+    every delivery month, and the exchange's dates over Massive's years."""
+
+    handover_span: tuple[tuple[int, int], tuple[int, int]]
+    handover_fits: int
+    handover_readable: int
+    exchange_years: tuple[int, int]
+    exchange_matches: int
+    exchange_contracts: int
+
+    @classmethod
+    def from_run(cls) -> CheckCoverage:
+        from chan.futures import NATURAL_GAS_CONTRACTS, handover_fit, month_step
+
+        fits, readable, month = 0, 0, HANDOVER_SPAN[0]
+        while month <= HANDOVER_SPAN[1]:
+            fit = handover_fit(NATURAL_GAS_CONTRACTS, NATURAL_GAS_CONTRACTS.last_trade(*month))
+            if fit is not None:
+                readable += 1
+                fits += fit < 0
+            month = month_step(*month, 1)
+        years = sorted(EXCHANGE_LAST_TRADES)
+        matches = sum(
+            ng_last_trade(year, month) == day
+            for year in years
+            for month, day in zip(MONTHS, EXCHANGE_LAST_TRADES[year], strict=True)
+        )
+        return cls(
+            handover_span=HANDOVER_SPAN,
+            handover_fits=fits,
+            handover_readable=readable,
+            exchange_years=(years[0], years[-1]),
+            exchange_matches=matches,
+            exchange_contracts=len(years) * len(MONTHS),
+        )
+
+
+#: The coverage timeline: its years, where they run on the board, and its rows.
+COVER_YEARS = (1994, 2027)
+COVER_X = (1.0, 9.4)
+COVER_AXIS_Y, COVER_FILES_Y, COVER_EXCHANGE_Y = 1.15, 2.05, 3.05
+
+
+def _cover_x(year: float) -> float:
+    span = COVER_YEARS[1] - COVER_YEARS[0]
+    return COVER_X[0] + (year - COVER_YEARS[0]) / span * (COVER_X[1] - COVER_X[0])
+
+
+def _check_coverage(f: CheckCoverage) -> Scene:
+    """Lesson 5's checks of the expiry rule: which years each one reaches, the
+    files' handovers from 1994 and the exchange's dates from 2017."""
+    (y0, m0), (y1, m1) = f.handover_span
+    files_from, files_to = y0 + (m0 - 1) / 12, y1 + m1 / 12
+    ex_from, ex_to = f.exchange_years[0], f.exchange_years[1] + 1
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "axis",
+            _line([(COVER_X[0], COVER_AXIS_Y), (COVER_X[1], COVER_AXIS_Y)]),
+            color=MUTED,
+            frames=6,
+        ),
+        *[
+            Label(
+                str(year),
+                _cover_x(year),
+                COVER_AXIS_Y - 0.35,
+                names="axis",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
+            for year in (1994, 2000, 2010, ex_from, f.exchange_years[1])
+        ],
+        _stroke(
+            "files",
+            _span(_cover_x(files_from), _cover_x(files_to), COVER_FILES_Y, tick=0.12),
+            color=INK,
+            width=3.0,
+            frames=8,
+        ),
+        Label(
+            f"the files’ handovers: {f.handover_fits} of {f.handover_readable} expiries fit",
+            _cover_x(files_from),
+            COVER_FILES_Y + 0.46,
+            names="files",
+            color=INK,
+            size=11,
+        ),
+        _stroke(
+            "exchange",
+            _span(_cover_x(ex_from), _cover_x(ex_to), COVER_EXCHANGE_Y, tick=0.12),
+            color=ACCENT,
+            width=3.0,
+            frames=6,
+        ),
+        Label(
+            f"the exchange’s dates: {f.exchange_matches} of {f.exchange_contracts} contracts match",
+            _cover_x(ex_to),
+            COVER_EXCHANGE_Y + 0.46,
+            names="exchange",
+            color=ACCENT,
+            size=11,
+            ha="right",
+        ),
+        _stroke(
+            "begins",
+            _line(
+                [
+                    (_cover_x(ex_from), COVER_AXIS_Y + 0.15),
+                    (_cover_x(ex_from), COVER_EXCHANGE_Y - 0.25),
+                ]
+            ),
+            color=MUTED,
+            dashed=True,
+            frames=4,
+        ),
+        Label(
+            "before 2017, the files alone",
+            _cover_x(ex_from) - 0.2,
+            (COVER_AXIS_Y + COVER_FILES_Y) / 2,
+            names="begins",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            "natural gas, every contract’s last trading day",
+            0.3,
+            0.35,
+            names="axis",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    return Scene("Which years each check reaches", "check_coverage", tuple(steps))
+
+
+#: The handover sketch: the trading days it spans, where they run on the
+#: board, and its price scale.
+HANDOVER_DAYS = (date(1996, 2, 14), date(1996, 3, 1))
+HANDOVER_X = (2.5, 8.4)
+HANDOVER_PRICE = (2.0, 2.8)
+HANDOVER_Y = (0.95, 3.5)
+
+
+def _last_trade_with_lead(year: int, month: int, lead: int) -> date:
+    """The last trading day ``lead`` trading days before delivery, as the rule
+    since mid-1997 counts it."""
+    day, counted = date(year, month, 1), 0
+    while counted < lead:
+        day = date.fromordinal(day.toordinal() - 1)
+        counted += is_trading_day(day)
+    return day
+
+
+def _handover(year: int, month: int) -> Scene:
+    """Lesson 5's second check: the contract-1 file jumps to carry on from the
+    contract-2 file the trading day after a contract expires, which shows
+    when it stopped."""
+    one = seasonals.settlements(seasonals.NATURAL_GAS[1])[1]
+    two = seasonals.settlements(seasonals.NATURAL_GAS[2])[1]
+    days = [
+        d
+        for d in (
+            date.fromordinal(o)
+            for o in range(HANDOVER_DAYS[0].toordinal(), HANDOVER_DAYS[1].toordinal() + 1)
+        )
+        if d in one and d in two
+    ]
+    step = (HANDOVER_X[1] - HANDOVER_X[0]) / (len(days) - 1)
+    xs = {d: HANDOVER_X[0] + k * step for k, d in enumerate(days)}
+    span = HANDOVER_PRICE[1] - HANDOVER_PRICE[0]
+
+    def y(price) -> float:
+        return HANDOVER_Y[0] + (float(price) - HANDOVER_PRICE[0]) / span * (
+            HANDOVER_Y[1] - HANDOVER_Y[0]
+        )
+
+    last = ng_last_trade(year, month)
+    after = days[days.index(last) + 1]
+    three_day = _last_trade_with_lead(year, month, 3)
+    mid = (xs[last] + xs[after]) / 2
+    steps: list[Stroke | Label] = [
+        Stroke(
+            "file-1",
+            np.array([xs[d] for d in days]),
+            np.array([y(one[d]) for d in days]),
+            color=INK,
+            frames=len(days) // 2,
+            dots=7.0,
+        ),
+        Label(
+            "contract-1 file",
+            xs[days[0]] - 0.25,
+            y(one[days[0]]),
+            names="file-1",
+            color=INK,
+            size=10,
+            ha="right",
+        ),
+        Stroke(
+            "file-2",
+            np.array([xs[d] for d in days]),
+            np.array([y(two[d]) for d in days]),
+            color=MUTED,
+            frames=len(days) // 2,
+            dots=7.0,
+        ),
+        Label(
+            "contract-2 file",
+            xs[days[0]] - 0.25,
+            y(two[days[0]]),
+            names="file-2",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        _stroke(
+            "carry",
+            _arrow(xs[last] + 0.1, y(two[last]), xs[after] - 0.1, y(one[after])),
+            color=ACCENT,
+            frames=4,
+        ),
+        Label(
+            f"{_short_date(after)}: file 1 picks up file 2’s price",
+            mid + 0.15,
+            0.5,
+            names="carry",
+            color=ACCENT,
+            size=10,
+        ),
+    ]
+    steps += [
+        _stroke("expiry", _line([(mid, 0.92), (mid, 3.75)]), color=ACCENT, dashed=True, frames=4),
+        Label(
+            f"March stopped {_short_date(last)}, {ng_lead_days(year, month)} days before delivery",
+            mid - 0.15,
+            3.95,
+            names="expiry",
+            color=ACCENT,
+            size=10,
+            ha="right",
+        ),
+    ]
+    if three_day in xs:
+        nxt = (
+            days[days.index(three_day) + 1] if days.index(three_day) + 1 < len(days) else three_day
+        )
+        x3 = (xs[three_day] + xs[nxt]) / 2
+        steps += [
+            _stroke("three", _line([(x3, 0.92), (x3, 3.5)]), color=MUTED, dashed=True, frames=4),
+            Label("3-day rule: here", x3 + 0.22, 3.6, names="three", color=MUTED, size=10),
+        ]
+    steps.append(
+        Label(
+            "natural gas, March contract, Feb 1996", 0.3, 0.55, names="file-1", color=MUTED, size=10
+        )
+    )
+    return Scene("A handover shows when March stopped", "handover", tuple(steps))
+
+
+#: The edge-case sketch's calendar: its days and where they run on the board.
+EDGE_DAYS = (date(2018, 2, 20), date(2018, 3, 2))
+EDGE_X = (2.0, 9.3)
+EDGE_ROWS = (3.3, 2.72, 2.14, 1.56)
+
+
+def _edge_x(day: date) -> float:
+    span = (EDGE_DAYS[1] - EDGE_DAYS[0]).days
+    return EDGE_X[0] + (day - EDGE_DAYS[0]).days / span * (EDGE_X[1] - EDGE_X[0])
+
+
+def _edge_day(f: JuneYear, edge_years: tuple[int, ...], of: int) -> Scene:
+    """Lesson 5's third check: on March's own last day, the entry still counts
+    March as trading, so June is contract 4."""
+    steps: list[Stroke | Label] = []
+    for month, row, last in zip(MONTHS, EDGE_ROWS, f.last_trade, strict=True):
+        gid = f"bar-{month}"
+        june = month == MONTHS[-1]
+        if last <= EDGE_DAYS[1]:
+            end = _edge_x(last)
+            shape = _line([(EDGE_X[0], row), (end, row), (end, row + 0.09), (end, row - 0.09)])
+        else:
+            shape = _line(
+                [(EDGE_X[0], row), (9.7, row), (9.55, row + 0.08), (9.7, row), (9.55, row - 0.08)]
+            )
+        steps += [
+            _stroke(
+                gid, shape, color=ACCENT if june else INK, width=3.0 if june else 2.2, frames=6
+            ),
+            Label(
+                MONTH_NAMES[month],
+                EDGE_X[0] - 0.2,
+                row,
+                names=gid,
+                color=ACCENT if june else MUTED,
+                size=10,
+                ha="right",
+            ),
+        ]
+    x = _edge_x(f.entry)
+    steps += [
+        _stroke(
+            "entry",
+            _line([(x, EDGE_ROWS[0] + 0.25), (x, EDGE_ROWS[-1] - 0.3)], per_unit=10),
+            color=MUTED,
+            dashed=True,
+            frames=4,
+        ),
+        Label(
+            f"entry, close of {_short_date(f.entry)}",
+            x,
+            EDGE_ROWS[0] + 0.55,
+            names="entry",
+            color=INK,
+            size=10,
+            ha="center",
+        ),
+        Label(
+            "March’s last day: it still trades at this close",
+            x - 0.2,
+            (EDGE_ROWS[0] + EDGE_ROWS[1]) / 2,
+            names="bar-3",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            f"June is contract {f.entry_number}",
+            x,
+            EDGE_ROWS[-1] - 0.6,
+            names="entry",
+            color=ACCENT,
+            size=11,
+            ha="center",
+        ),
+        Label(
+            f"{len(edge_years)} of {of} years enter on March’s last day.",
+            0.3,
+            0.55,
+            names="entry",
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            "Reading the contract-3 file instead changes no year’s result.",
+            0.3,
+            0.25,
+            names="entry",
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            "natural gas, June contract", 9.7, 0.25, names="entry", color=MUTED, size=10, ha="right"
+        ),
+    ]
+    return Scene(f"{f.year}: entry on March’s own last day", "edge_day", tuple(steps))
+
+
+#: The holiday sketch: the days each row spans and where they run on the board.
+HOLIDAY_ROWS = ((2018, 3.05), (2016, 1.5))
+HOLIDAY_DAYS = 8
+HOLIDAY_X, HOLIDAY_DX = 2.0, 0.95
+
+
+def _before(rows: dict, day: date) -> date:
+    """The last day before ``day`` that ``rows`` holds."""
+    earlier = date.fromordinal(day.toordinal() - 1)
+    while earlier not in rows:
+        earlier = date.fromordinal(earlier.toordinal() - 1)
+    return earlier
+
+
+def _holiday_rows() -> Scene:
+    """The calendar paragraph: the natural gas file holds a row on Christmas
+    2018 that repeats the day before, and none on Christmas 2016."""
+    file = seasonals.settlements(seasonals.NATURAL_GAS[1])[1]
+    steps: list[Stroke | Label] = []
+    for year, y in HOLIDAY_ROWS:
+        first = date(year, 12, 21)
+        axis = f"row-{year}"
+        steps.append(
+            _stroke(
+                axis,
+                _line(
+                    [
+                        (HOLIDAY_X - 0.3, y - 0.3),
+                        (HOLIDAY_X + HOLIDAY_DX * (HOLIDAY_DAYS - 1) + 0.3, y - 0.3),
+                    ]
+                ),
+                color=MUTED,
+                frames=6,
+            )
+        )
+        steps.append(Label(str(year), 0.4, y, names=axis, color=INK, size=12))
+        for k in range(HOLIDAY_DAYS):
+            day = date.fromordinal(first.toordinal() + k)
+            x = HOLIDAY_X + k * HOLIDAY_DX
+            steps.append(
+                Label(f"{day.day}", x, y - 0.62, names=axis, color=MUTED, size=10, ha="center")
+            )
+            if day in file:
+                open_ = is_trading_day(day)
+                steps.append(
+                    Stroke(
+                        f"day-{year}-{day.day}",
+                        np.array([x]),
+                        np.array([y]),
+                        color=INK if open_ else LOST,
+                        frames=1,
+                        dots=9.0,
+                    )
+                )
+                if not open_:
+                    prev = _before(file, day)
+                    steps.append(
+                        Label(
+                            f"Dec {day.day}: closed, row repeats Dec {prev.day}’s {file[day]}",
+                            x,
+                            y + 0.42,
+                            ha="center",
+                            names=f"day-{year}-{day.day}",
+                            color=LOST,
+                            size=10,
+                        )
+                    )
+            elif day.weekday() < 5:
+                steps.append(
+                    Label(
+                        f"Dec {day.day}: closed, no row",
+                        x - 0.1,
+                        y + 0.42,
+                        names=axis,
+                        color=MUTED,
+                        size=10,
+                    )
+                )
+    steps.append(
+        Label(
+            "dot: a row in the contract-1 file   no dot: a weekend or a closed day",
+            0.4,
+            0.35,
+            names="row-2018",
+            color=MUTED,
+            size=10,
+        )
+    )
+    return Scene("A row in the file is not a trading day", "holiday_rows", tuple(steps))
+
+
 PACED = (
     "streak_start",
     "gasoline_editions",
@@ -2640,12 +3139,41 @@ PACED = (
     "mean_ranges",
     "one_year",
     "june_file",
+    "handover",
+    "check_coverage",
+    "edge_day",
+    "holiday_rows",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 #: Paced scenes the owner still found too fast, with each one's stroke frame
 #: and label hold in milliseconds. Each has few steps, so the usual pace
 #: finished it before a reader had followed it.
 SLOWER = {"half_width": (250, 1800)}
+
+
+def edge_years(first: int = 1994, last: int = 2023) -> tuple[int, ...]:
+    """The years whose natural gas entry falls on the March contract's own last day."""
+    return tuple(
+        y
+        for y in range(first, last + 1)
+        if seasonals.natural_gas_trade(y).entry_day == ng_last_trade(y, 3)
+    )
+
+
+#: The years the expiry sketches draw: the handover the files first showed
+#: under the earlier lead time, and an entry on March's own last day.
+HANDOVER_YEAR, EDGE_YEAR = 1996, 2018
+
+
+def _expiry_scenes() -> tuple[Scene, Scene, Scene, Scene]:
+    """The four sketches of Lesson 5's checks of the expiry rule, in the post's order."""
+    years = edge_years()
+    return (
+        _handover(HANDOVER_YEAR, 3),
+        _check_coverage(CheckCoverage.from_run()),
+        _edge_day(JuneYear.from_run(EDGE_YEAR), years, len(range(1994, 2024))),
+        _holiday_rows(),
+    )
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
@@ -2683,7 +3211,7 @@ def scenes(
     misses: MissFigures | None = None,
     narrowing: NarrowingFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The seventeen scenes in the order the post reads them, Lessons 1, 2, 4 and 5."""
+    """The twenty-one scenes in the order the post reads them, Lessons 1, 2, 4 and 5."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
@@ -2707,6 +3235,7 @@ def scenes(
         *_mean_scenes(mean_rows()),
         _one_year(OneYearFigures.from_run()),
         _june_file(*years),
+        *_expiry_scenes(),
     )
 
 

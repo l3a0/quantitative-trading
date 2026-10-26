@@ -3724,7 +3724,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries seventeen looping whiteboard sketches, drawn by
+The post also carries twenty-one looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3786,14 +3786,23 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.
+18. `commodity_sketch_handover.gif`, in Lesson 5, the contract-1 and contract-2
+   files in February 1996, where file 1 picks up file 2's price the day after
+   March's last trading day.
+19. `commodity_sketch_check_coverage.gif`, in Lesson 5, which years each check
+   of the expiry rule reaches: the files from 1994, the exchange from 2017.
+20. `commodity_sketch_edge_day.gif`, in Lesson 5, 2018's entry on March's own
+   last trading day, so June is contract 4.
+21. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
+   where the file holds a row on the closed 25th, beside 2016.
 
-All seventeen build more slowly than the USD.CAD post's sketches and hold their
+All twenty-one build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in. The half-width sketch, with few steps, draws
 slower still, its strokes at 250 ms a frame and its labels for 1.8 seconds.
 
 None is schematic. Each reads the natural gas or gasoline run on the
-committed EIA files, so none needs the owner's archive. Redraw all seventeen with:
+committed EIA files, so none needs the owner's archive. Redraw all twenty-one with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard

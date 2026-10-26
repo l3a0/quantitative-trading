@@ -1,4 +1,4 @@
-"""The pins for the seventeen whiteboard GIFs in the commodity seasonals post.
+"""The pins for the twenty-one whiteboard GIFs in the commodity seasonals post.
 
 Two sketches draw Lesson 1, its natural gas streaks and gasoline's two claims.
 Nine draw Lesson 2: the range the missing rows leave, a guessed price, what
@@ -96,6 +96,17 @@ post quotes, such as test_the_run_gives_these_dates_and_files.
    and exit. What is pinned is that June's number in each label is how many
    bars reach that line, that it equals the file the run reads, and that the
    March note follows the dates.
+18. The handover sketch draws the two files in February 1996. What is pinned
+   is that the files hand over the day after the rule's last day, and that
+   each dashed line sits between its two days.
+19. The coverage sketch draws which years each check reaches. What is pinned
+   is that its counts are the run's, that the exchange's dates are the ones
+   ``tests/test_commodity_seasonals.py`` pins, and that each bar spans its
+   years.
+20. The edge-day sketch draws 2018's entry on March's own last day. What is
+   pinned is that the entry line meets the end of March's bar.
+21. The holiday sketch draws Christmas week of 2018 and 2016. What is pinned is
+   that a dot stands on exactly the days the contract-1 file holds a row.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, every
@@ -128,9 +139,12 @@ from chan import usdcad_tests_whiteboard as whiteboard
 from chan.commodity_seasonals_whiteboard import (
     CALENDAR,
     CALENDAR_X,
+    EDGE_YEAR,
+    EXCHANGE_LAST_TRADES,
     FIRST_EDITION,
     HALF_POINT,
     HALF_X,
+    HANDOVER_YEAR,
     PERIODS,
     RANK_AFTER_Y,
     RANK_BEFORE_Y,
@@ -139,6 +153,7 @@ from chan.commodity_seasonals_whiteboard import (
     T_BASE,
     T_COMPARE,
     T_UNIT,
+    CheckCoverage,
     FillTwoFigures,
     GasolineFigures,
     GuessFigures,
@@ -151,8 +166,11 @@ from chan.commodity_seasonals_whiteboard import (
     _bar_x,
     _cents_x,
     _chan_needs_gaps,
+    _check_coverage,
     _count_x,
+    _cover_x,
     _day_x,
+    _expiry_scenes,
     _fill_misses,
     _fill_two_x,
     _fill_two_y,
@@ -165,6 +183,7 @@ from chan.commodity_seasonals_whiteboard import (
     _interpolation_guess,
     _june_file,
     _june_move_fill,
+    _last_trade_with_lead,
     _mean_ranges,
     _mean_scenes,
     _mean_x,
@@ -182,6 +201,7 @@ from chan.commodity_seasonals_whiteboard import (
     _test_days,
     _three_numbers,
     _year_x,
+    edge_years,
     gif_name,
     june_years,
     main,
@@ -191,7 +211,7 @@ from chan.commodity_seasonals_whiteboard import (
     sharpe_rows,
     sketch_timeline,
 )
-from chan.futures import ng_last_trade
+from chan.futures import is_trading_day, ng_last_trade
 from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import INK, MUTED
@@ -228,6 +248,10 @@ GIFS = [
     "commodity_sketch_mean_ranges.gif",
     "commodity_sketch_one_year.gif",
     "commodity_sketch_june_file.gif",
+    "commodity_sketch_handover.gif",
+    "commodity_sketch_check_coverage.gif",
+    "commodity_sketch_edge_day.gif",
+    "commodity_sketch_holiday_rows.gif",
 ]
 
 #: The paragraph each GIF follows, by its opening words.
@@ -249,6 +273,10 @@ FOLLOWS = (
     "That range, −6% to +2%, leaves out",
     "Gasoline’s fall shows on both.",
     "For gasoline that is always contract 1.",
+    "When a contract expires, every later contract moves up one number",
+    "Over every natural gas contract delivered from February 1994",
+    "In 10 of the 30 years, the entry date falls",
+    "The run computes its own calendar of trading days",
 )
 
 STREAK_LABELS = [
@@ -424,6 +452,52 @@ GUESS_LABELS = [
     "one typical miss either side",
     "entry here: a loss",
     "entry here: a profit",
+]
+
+HANDOVER_LABELS = [
+    "contract-1 file",
+    "contract-2 file",
+    "Feb 26: file 1 picks up file 2’s price",
+    "March stopped Feb 23, 5 days before delivery",
+    "3-day rule: here",
+    "natural gas, March contract, Feb 1996",
+]
+
+COVERAGE_LABELS = [
+    "1994",
+    "2000",
+    "2010",
+    "2017",
+    "2026",
+    "the files’ handovers: 298 of 316 expiries fit",
+    "the exchange’s dates: 40 of 40 contracts match",
+    "before 2017, the files alone",
+    "natural gas, every contract’s last trading day",
+]
+
+EDGE_LABELS = [
+    "March",
+    "April",
+    "May",
+    "June",
+    "entry, close of Feb 26",
+    "March’s last day: it still trades at this close",
+    "June is contract 4",
+    "10 of 30 years enter on March’s last day.",
+    "Reading the contract-3 file instead changes no year’s result.",
+    "natural gas, June contract",
+]
+
+HOLIDAY_LABELS = [
+    "2018",
+    *("21", "22", "23", "24", "25"),
+    "Dec 25: closed, row repeats Dec 24’s 3.467",
+    *("26", "27", "28"),
+    "2016",
+    *("21", "22", "23", "24", "25", "26"),
+    "Dec 26: closed, no row",
+    *("27", "28"),
+    "dot: a row in the contract-1 file   no dot: a weekend or a closed day",
 ]
 
 JUNE_LABELS = [
@@ -626,7 +700,7 @@ def _alt(text: str, scene) -> str:
 
 
 class TestTheScenes:
-    def test_there_are_seventeen_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_twenty_one_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -665,8 +739,17 @@ class TestTheScenes:
             "april_leans": ("gasoline", "May contract"),
             "one_year": ("natural gas", "June contract"),
             "half_width": ("natural gas", "June contract"),
+            "handover": ("natural gas", "March contract"),
+            "edge_day": ("natural gas", "June contract"),
         }
-        exceptions = {"june_file", "sharpe_ranges", "t_multiplier", "mean_ranges"}
+        exceptions = {
+            "june_file",
+            "sharpe_ranges",
+            "t_multiplier",
+            "mean_ranges",
+            "check_coverage",
+            "holiday_rows",
+        }
         assert set(trades) | exceptions == {scene.slug for scene in every}
         for scene in every:
             if scene.slug not in trades:
@@ -770,6 +853,10 @@ class TestTheGifs:
             "mean_ranges",
             "one_year",
             "june_file",
+            "handover",
+            "check_coverage",
+            "edge_day",
+            "holiday_rows",
         )
         assert sketches.SLOWER == {"half_width": (250, 1800)}
         for scene in every:
@@ -2155,3 +2242,133 @@ class TestTheJuneSketch:
         assert "crosses only April, May and June" in alt
         assert alt.count("crosses May and June") == 2
         assert (still.entry_number, expired.entry_number) == (4, 3)
+
+
+# --- Lesson 5: the three checks of the expiry rule ---------------------------
+
+
+class TestTheHandoverSketch:
+    def test_its_words(self, every) -> None:
+        assert every[17].title == "A handover shows when March stopped"
+        assert every[17].labels == HANDOVER_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[17]
+        assert _stroke(scene, "file-1").color == INK
+        assert _stroke(scene, "file-2").color == MUTED
+        assert _stroke(scene, "carry").color == ACCENT
+        expiry, three = _stroke(scene, "expiry"), _stroke(scene, "three")
+        assert (expiry.color, expiry.dashed) == (ACCENT, True)
+        assert (three.color, three.dashed) == (MUTED, True)
+
+    def test_the_files_hand_over_the_day_after_the_rule_s_last_day(self) -> None:
+        """The day after March's last trading day, contract 1's file carries on
+        from contract 2's price rather than from its own."""
+        last = ng_last_trade(HANDOVER_YEAR, 3)
+        one = seasonals.settlements(seasonals.NATURAL_GAS[1])[1]
+        two = seasonals.settlements(seasonals.NATURAL_GAS[2])[1]
+        after = min(d for d in one if d > last)
+        assert (last, after) == (date(1996, 2, 23), date(1996, 2, 26))
+        assert abs(one[after] - two[last]) < abs(one[after] - one[last])
+        assert _last_trade_with_lead(HANDOVER_YEAR, 3, 3) == date(1996, 2, 27)
+
+    def test_the_lines_sit_between_their_days(self, every) -> None:
+        scene = every[17]
+        dots = _stroke(scene, "file-1").x
+        expiry, three = _stroke(scene, "expiry").x[0], _stroke(scene, "three").x[0]
+        assert dots[6] < expiry < dots[7]
+        assert dots[8] < three < dots[9]
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[17])
+        assert "a grey dashed line two trading days later marks" in alt
+
+
+class TestTheCoverageSketch:
+    def test_its_words(self, every) -> None:
+        assert every[18].title == "Which years each check reaches"
+        assert every[18].labels == COVERAGE_LABELS
+
+    def test_its_figures_are_the_runs(self) -> None:
+        from tests.test_commodity_seasonals import TestTheNaturalGasExpiries
+
+        f = CheckCoverage.from_run()
+        assert (f.handover_fits, f.handover_readable) == (298, 316)
+        assert (f.exchange_matches, f.exchange_contracts) == (40, 40)
+        assert f.exchange_years == (2017, 2026)
+        pinned = TestTheNaturalGasExpiries.EXCHANGE
+        assert {
+            y: tuple(d.isoformat() for d in days) for y, days in EXCHANGE_LAST_TRADES.items()
+        } == pinned
+
+    def test_each_bar_spans_its_years(self, every) -> None:
+        scene = every[18]
+        assert _span_ends(_stroke(scene, "files")) == pytest.approx(
+            (_cover_x(1994 + 1 / 12), _cover_x(2024 + 4 / 12))
+        )
+        assert _span_ends(_stroke(scene, "exchange")) == pytest.approx(
+            (_cover_x(2017), _cover_x(2027))
+        )
+        assert _stroke(scene, "begins").x[0] == pytest.approx(_cover_x(2017))
+        assert _stroke(scene, "files").color == INK
+        assert _stroke(scene, "exchange").color == ACCENT
+
+    def test_other_figures_move_the_labels(self) -> None:
+        f = dataclasses.replace(CheckCoverage.from_run(), handover_fits=300, exchange_matches=39)
+        labels = _check_coverage(f).labels
+        assert "the files’ handovers: 300 of 316 expiries fit" in labels
+        assert "the exchange’s dates: 39 of 40 contracts match" in labels
+
+
+class TestTheEdgeDaySketch:
+    def test_its_words(self, every) -> None:
+        assert every[19].title == "2018: entry on March’s own last day"
+        assert every[19].labels == EDGE_LABELS
+
+    def test_the_entry_falls_on_march_s_last_day(self, every) -> None:
+        scene = every[19]
+        f = sketches.JuneYear.from_run(EDGE_YEAR)
+        assert f.entry == f.last_trade[0] and f.entry_number == 4
+        assert _stroke(scene, "entry").x[0] == pytest.approx(_stroke(scene, "bar-3").x.max())
+        assert len(edge_years()) == 10 and EDGE_YEAR in edge_years()
+
+    def test_its_colours(self, every) -> None:
+        scene = every[19]
+        assert _stroke(scene, "bar-6").color == ACCENT
+        assert [_stroke(scene, f"bar-{m}").color for m in (3, 4, 5)] == [INK] * 3
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[19])
+        assert "exactly where March’s bar ends" in alt
+
+
+class TestTheHolidaySketch:
+    def test_its_words(self, every) -> None:
+        assert every[20].title == "A row in the file is not a trading day"
+        assert every[20].labels == HOLIDAY_LABELS
+
+    def test_the_rows_are_the_files(self, every) -> None:
+        scene = every[20]
+        rows = seasonals.settlements(seasonals.NATURAL_GAS[1])[1]
+        christmas, boxing = date(2018, 12, 25), date(2016, 12, 26)
+        assert not is_trading_day(christmas) and not is_trading_day(boxing)
+        assert christmas in rows and rows[christmas] == rows[date(2018, 12, 24)]
+        assert boxing not in rows
+        assert _stroke(scene, "day-2018-25").color == LOST
+        assert not [s for s in scene.strokes if s.gid == "day-2016-26"]
+        for year in (2018, 2016):
+            for day in range(21, 29):
+                drawn = [s for s in scene.strokes if s.gid == f"day-{year}-{day}"]
+                assert bool(drawn) == (date(year, 12, day) in rows), (year, day)
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[20])
+        assert "so the weekend of the 22nd and 23rd has none" in alt
+
+    def test_the_four_come_in_the_post_s_order(self) -> None:
+        assert [s.slug for s in _expiry_scenes()] == [
+            "handover",
+            "check_coverage",
+            "edge_day",
+            "holiday_rows",
+        ]

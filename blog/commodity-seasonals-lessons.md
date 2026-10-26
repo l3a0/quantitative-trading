@@ -343,11 +343,29 @@ For gasoline that is always contract 1. The April contract stops trading on the 
 
 Because the June contract moves between files, the expiry rule is part of the result, so the run checks it three ways.
 
-1. **Against the exchange’s own dates.** Massive, a market data vendor, records each contract’s last trading day as the exchange set it. For all 40 contracts it records, March to June of every year from 2017 to 2026, the rule gives the same day. Massive’s records begin in 2017, so the years before rest on the next check.
-2. **Against the files’ own handovers.** When a contract expires, every later contract moves up one number, so each file’s price should carry on from the next file’s price the day before. Before mid-1997 the handovers show contracts stopping five or six trading days before delivery rather than three, so for those years the run follows the handovers. That moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either. Over every natural gas contract delivered from February 1994 to April 2024, the handover falls on the rule’s day for 298 of the 316 expiries the files hold rows to check. Moved a day earlier or later, the rule fits only 38 and 16 of 324.
-3. **Against the edge cases.** In 10 of the 30 years, the entry date falls on the March contract’s last trading day. A contract still trades on its own last day, so the run reads June as contract 4 then. Reading the contract-3 file instead leaves every year’s profit or loss unchanged.
+#### Against the exchange’s own dates
+
+Massive, a market data vendor, records each contract’s last trading day as the exchange set it. For all 40 contracts it records, March to June of every year from 2017 to 2026, the rule gives the same day. Massive’s records begin in 2017, so the years before rest on the next check.
+
+#### Against the files’ own handovers
+
+When a contract expires, every later contract moves up one number, so each file’s price should carry on from the next file’s price the day before. Before mid-1997 the handovers show contracts stopping five or six trading days before delivery rather than three, so for those years the run follows the handovers. That moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either.
+
+![“A handover shows when March stopped”, drawn slowly stroke by stroke. Two rows of dots run across the trading days of late February 1996, the settlements in the “contract-1 file” in black and in the “contract-2 file” in grey. A purple arrow runs from the contract-2 file’s Feb 23 price to the contract-1 file’s next price, labelled “Feb 26: file 1 picks up file 2’s price”. A purple dashed line between Feb 23 and Feb 26 marks “March stopped Feb 23, 5 days before delivery”, and a grey dashed line two trading days later marks “3-day rule: here”, where a three-day rule would have put the handover. A note reads “natural gas, March contract, Feb 1996”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_handover.gif)
+
+Over every natural gas contract delivered from February 1994 to April 2024, the handover falls on the rule’s day for 298 of the 316 expiries the files hold rows to check. Moved a day earlier or later, the rule fits only 38 and 16 of 324.
+
+![“Which years each check reaches”, drawn slowly stroke by stroke. A year axis is marked “1994”, “2000”, “2010”, “2017” and “2026”. A black bar runs from 1994 to 2024, labelled “the files’ handovers: 298 of 316 expiries fit”. A purple bar runs from 2017 to 2026, labelled “the exchange’s dates: 40 of 40 contracts match”. A dashed grey line at 2017, where Massive’s records begin, marks “before 2017, the files alone”. A note reads “natural gas, every contract’s last trading day”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_check_coverage.gif)
+
+#### Against the edge cases
+
+In 10 of the 30 years, the entry date falls on the March contract’s last trading day. A contract still trades on its own last day, so the run reads June as contract 4 then. Reading the contract-3 file instead leaves every year’s profit or loss unchanged.
+
+![“2018: entry on March’s own last day”, drawn slowly stroke by stroke. Four bars stand for the natural gas contracts, “March”, “April”, “May” and “June” in purple, on a calendar of late February 2018. March’s bar ends at its last trading day, and the April, May and June bars run off the right. A dashed grey line marks the “entry, close of Feb 26”, exactly where March’s bar ends, and a note beside it reads “March’s last day: it still trades at this close”. The line reaches all four bars, so “June is contract 4”. Notes read “10 of 30 years enter on March’s last day.” and “Reading the contract-3 file instead changes no year’s result.”, and a note names the trade as “natural gas, June contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_edge_day.gif)
 
 The run computes its own calendar of trading days rather than reading one from the files, because a row in the files does not show that the exchange was open. On every exchange holiday from January 2018 to November 2019, the natural gas files hold a row that repeats the previous trading day’s settlement, and in other years almost none. Of NYMEX’s holidays, only Good Friday can land on a trade date, and it moved six trade dates between 1994 and 2023.
+
+![“A row in the file is not a trading day”, drawn slowly stroke by stroke. The top row, “2018”, numbers its days “21”, “22”, “23”, “24” and “25”, where an orange dot is labelled “Dec 25: closed, row repeats Dec 24’s 3.467”, then “26”, “27” and “28”. A black dot stands on each other day the contract-1 file holds a row, so the weekend of the 22nd and 23rd has none. The bottom row, “2016”, numbers “21”, “22”, “23”, “24”, “25” and “26”, labelled “Dec 26: closed, no row”, then “27” and “28”, and its weekend of the 24th and 25th and the closed 26th have no dot. A caption reads “dot: a row in the contract-1 file   no dot: a weekend or a closed day”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_holiday_rows.gif)
 
 The same map from dates to contracts serves Chan’s calendar spreads, which [the calendar spreads post](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md) tests on the same files.
 

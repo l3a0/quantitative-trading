@@ -3515,9 +3515,9 @@ misses are normal and independent, all three years were profits with a chance
 of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
 was 41%.
 
-The post also carries seventeen whiteboard sketches that draw this entry's run,
+The post also carries twenty-one whiteboard sketches that draw this entry's run,
 and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all
-seventeen.
+twenty-one.
 
 1. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
    against the 2009 loss and the first edition's release.
@@ -3549,9 +3549,13 @@ seventeen.
    years ranked.
 17. Which numbered file holds the June contract on the entry and exit days of
    2008 and 2006.
+18. The files handing over the day after March 1996's last trading day.
+19. Which years each check of the expiry rule reaches.
+20. 2018's entry on March's own last trading day.
+21. A holiday row in the files, at Christmas 2018, beside none in 2016.
 
 [tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
-reads all seventeen from the run, so a change to the streak counts, to a gasoline
+reads all twenty-one from the run, so a change to the streak counts, to a gasoline
 year's result or to the expiry rule moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
