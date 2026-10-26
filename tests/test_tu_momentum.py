@@ -987,7 +987,7 @@ class TestWhatThePostQuotes:
             f"to {later.traded.coefficient:.6f}, which rounds to "
             f"{later.traded.coefficient:.2f} rather than the book’s {BOOK_CORRELATION}. Run "
             f"over the whole later file, which also ends {SPELLED[shift]} trading days later, "
-            f"the script gives a Kelly f of {later.figures.kelly:.6f}, off the comment’s "
+            f"`TU_mom.m` gives a Kelly f of {later.figures.kelly:.6f}, off the comment’s "
             "digits.",
             "So the book’s figures come "
             f"from the file whose closes end on {closes.index[-1].date()}. "

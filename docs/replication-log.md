@@ -7513,7 +7513,7 @@ and nothing about whether the rule pays today.
 | 9 | 0 days | reproduced | Exact. |
 | 10 | −0.000000 | reproduced | Exact at the six decimals the script prints. |
 | 11 | none | none, not a replication | The book prints one cell. The six compromise pairs all correlate positively, and five of them are significant at 5 percent. The exception is 250/120, at a p-value of 0.0617 on 14 days. |
-| 12 | none | none, not a replication | The active line lands none of the comment's six figures, so the comment comes from `idx = 1`. The comment also prints no annual volatility although the printing line asks for one, which suggests it was pasted from an earlier version of that line. |
+| 12 | none | none, not a replication | The active line lands none of the comment's six figures, so the comment comes from `idx = 1`. The comment also lists no annual volatility although the printing line asks for one, which suggests it was pasted from an earlier version of that line. |
 | 13 | none | none, not a replication | TU's close is the same on every day the two saves share, so only the window moves, four trading days later. That is enough to move the correlation to 0.29 at two decimals and the Kelly f off the printed digits, which places the book's figures on the 2012-05-11 save. |
 | 14 | none | none, not a replication | Tried after row 3 missed, as a diagnostic rather than a reading. |
 | 15 | none | none, not a replication | `TU_mom_hypothesisTest.m` prints 2.93, which is Example 1.1's figure, replicated as Entry 37's row 1. It is pinned here because it shows that the returns Entry 37 imports are this entry's. |
