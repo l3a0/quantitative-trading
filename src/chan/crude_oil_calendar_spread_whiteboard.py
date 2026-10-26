@@ -461,7 +461,8 @@ DAYS_Y = 1.08
 #: The made-up curves' samples, how many lead in before the first drawn one
 #: so the first average has a full window, and that window.
 SAMPLES, LEAD, WINDOW = 120, 24, 24
-#: Where the tint starts and the arrows point, as fractions of the drawn span.
+#: Where the tint starts and the green arrow points, as fractions of the drawn
+#: span. The red arrow points at the spread a little to the green one's left.
 TINT_FROM, SPOT = 0.55, 0.66
 #: The tint's top and bottom.
 TINT_Y0, TINT_Y1 = 1.22, 3.85
@@ -539,6 +540,8 @@ def _script_sells(signs: Signs) -> Scene:
     tint_x0 = float(x[tint_start()])
     spot = int(np.argmin(np.abs(x - (CURVE_X0 + (CURVE_X1 - CURVE_X0) * SPOT))))
     sx, s_y = float(x[spot]), float(sy[spot])
+    red = int(np.argmin(np.abs(x - (sx - 0.22))))
+    rx, r_y = float(x[red]), float(sy[red])
     right = CURVE_X1 + 0.3
     steps: list[Stroke | Fill | Label] = [
         _stroke("days", _line([(CURVE_X0, DAYS_Y), (CURVE_X1, DAYS_Y)]), color=MUTED, frames=6),
@@ -573,7 +576,7 @@ def _script_sells(signs: Signs) -> Scene:
             color=MUTED,
             size=11,
         ),
-        _stroke("sell", _arrow(right - 0.22, 2.98, sx + 0.1, s_y + 0.17), color=LOST, frames=6),
+        _stroke("sell", _arrow(right - 0.22, 2.98, rx, r_y + 0.07), color=LOST, frames=6),
         Label("script: sell the spread,", right, 3.15, names="sell", color=LOST, size=12),
         Label("short far and long near", right, 2.8, names="sell", color=LOST, size=12),
         _stroke("buy", _arrow(right - 0.22, 2.3, sx + 0.16, s_y + 0.02), color=GOOD, frames=6),

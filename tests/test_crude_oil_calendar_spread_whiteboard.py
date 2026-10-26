@@ -857,25 +857,28 @@ class TestTheScriptSellsSketch:
         with pytest.raises(ValueError, match="every sample of the tint"):
             tint_start()
 
-    def test_both_arrows_point_at_the_same_place_on_the_spread_inside_the_tint(self, every) -> None:
+    def test_both_arrows_point_at_the_spread_inside_the_tint(self, every) -> None:
+        """Each tip sits on the solid spread, not on its dashed average just above it.
+
+        Inside the tint the two black lines run about 0.2 apart, so a tip
+        placed by its distance from one spot can land on either. Each tip is
+        held to the spread at its own x, and nearer it than the average.
+        """
         scene = every[1]
         x, _, _, sy, say = board_curves()
         tint = next(f for f in scene.fills if f.gid == "high")
-        spot = int(
-            np.argmin(
-                np.abs(
-                    x
-                    - (sketches.CURVE_X0 + (sketches.CURVE_X1 - sketches.CURVE_X0) * sketches.SPOT)
-                )
-            )
-        )
-        assert x[spot] > tint.x0
-        assert sy[spot] < say[spot]
+        tips = {}
         for gid in ("sell", "buy"):
             arrow = _stroke(scene, gid)
             tip = int(np.flatnonzero(np.isclose(arrow.x, arrow.x.min()))[0])
-            assert math.hypot(arrow.x[tip] - x[spot], arrow.y[tip] - sy[spot]) < 0.25, gid
+            tx, ty = float(arrow.x[tip]), float(arrow.y[tip])
+            spread, average = float(np.interp(tx, x, sy)), float(np.interp(tx, x, say))
+            assert tint.x0 < tx < tint.x1, gid
+            assert abs(ty - spread) < 0.1, gid
+            assert abs(ty - spread) < abs(ty - average), gid
             assert arrow.x[0] > tint.x1, gid
+            tips[gid] = tx
+        assert tips["sell"] < tips["buy"]
         assert _stroke(scene, "sell").y[0] > _stroke(scene, "buy").y[0]
 
     def test_the_spread_keeps_falling_after_the_arrows(self, every) -> None:
@@ -898,7 +901,7 @@ class TestTheScriptSellsSketch:
             in alt
         )
         assert "A red arrow points at the spread inside the box" in alt
-        assert "a green arrow points at the same spot" in alt
+        assert "a green arrow points at the spread just to the right of the red one" in alt
 
 
 class TestTheScheduleAltText:
