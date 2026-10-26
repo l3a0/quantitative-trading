@@ -382,8 +382,8 @@ def revised_python(
 def revised_r_reading(closes: pd.DataFrame, *, fill: bool) -> Run:
     """The revised edition's R, read rather than run, which prints the Python's figures.
 
-    Two readings, because the printed code is ambiguous in one place and
-    unprinted in another.
+    Two readings of the one ambiguous line, plus one assumption where the code
+    is unprinted.
 
     1. ``na.fill(cl, type="locf", nan=NA, fill=NA)`` replaces each missing
        close with NA under zoo's signature, which fills nothing. That is

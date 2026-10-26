@@ -9273,8 +9273,10 @@ and seven of the issue's rules, each as the issue fixed it.
    five carries its own verdict, under the owner's ruling.
 7. **The printouts.** The revised MATLAB only, because its 2 percent is the
    figure location 4051 quotes. The revised Python and the R regress with an
-   intercept that cancels their factors, Entry 13's row 11, so they have no
-   factor returns to test. The first edition is not tested, for the reasons
+   intercept that cancels their factors, Entry 13's row 11 for the Python and
+   [issue 21](https://github.com/l3a0/quantitative-trading/issues/21)'s reading
+   of the R's printed `lm(R[,s] ~ X)` for the R, so they have no factor
+   returns to test. The first edition is not tested, for the reasons
    `### What this entry cannot say` gives.
 8. **The hypothesis space.** Five hypotheses, one per factor, each at lag 1
    on the committed file with a lookback of 252 and five factors. No other

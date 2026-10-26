@@ -237,7 +237,7 @@ MKT is the exception. It reads SPY, which held the index as it stood each day, s
 Six things.
 
 1. **What Example 7.4 earned on the S&P 600 as it stood each day, and whether its factors persist there.** A rerun on a universe without survivorship waits on data.
-2. **What the printed R computed.** Without its helper file and an R runtime, the R’s figures here come from a reading rather than a run.
+2. **What the printed R computed.** Without its helper file and an R runtime, the R’s figures here come from two readings of its code rather than a run.
 3. **What costs would take.** Every printout charges none, and the positions turn over daily.
 4. **What survivorship does to WML.** That needs a file of the index’s members as they stood each day, with their prices, and such a file has to be bought.
 5. **Whether the factors persist at another frequency or lag.** MKT and WML were computed on monthly returns, and Example 7.4’s factors on daily returns one day apart, each under rules fixed in advance.
