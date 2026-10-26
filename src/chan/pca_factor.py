@@ -101,9 +101,10 @@ The R buys 52, from ``(length(result$ix)-topN-1):length(result$ix)``.
 
 **One splice in the file.** PMC holds two price histories under one symbol. It
 closes at 6.02 on 2004-03-12, is missing for 851 days, and resumes at 17.25 on
-2007-08-01. The three printouts that run forward-fill, as does the R reading
-with ``fill=True``, so that gap is one day's return. :func:`without` reruns a
-program without it, and the report prints the result beside the verdicts.
+2007-08-01. The two MATLAB printouts and the Python forward-fill, as does the
+R reading with ``fill=True``, so that gap is one day's return. :func:`without`
+reruns a program without it, and the report prints the result beside the
+verdicts.
 The scale-break guard is not applied, for the reason the comment above
 ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py`` gives.
 

@@ -3767,10 +3767,10 @@ absence.
 
 Two things.
 
-1. **The three printouts that can run reproduce on Chan's file.** The first
-   edition's −1.8099 and the revised MATLAB's 0.020205 and 0.211120 land at
-   the precision printed, and the revised Python's three 17-digit figures land
-   within 1e-15.
+1. **The first edition's MATLAB, the revised MATLAB and the revised Python
+   reproduce on Chan's file.** The first edition's −1.8099 and the revised
+   MATLAB's 0.020205 and 0.211120 land at the precision printed, and the
+   revised Python's three 17-digit figures land within 1e-15.
 2. **The 2-versus-4 spread is two different strategies, not round-off.** The
    revised MATLAB trades a factor model and the Python trades a year of
    momentum, because its regression's intercept cancels its factors. Three
