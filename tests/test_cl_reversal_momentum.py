@@ -305,8 +305,9 @@ class TestTheJoinIsHalfOfEachRule:
     join holds it. Where they disagree, half of each sums to flat, and so does
     the join. A close that equals its lag leaves that rule flat while the
     other holds a position, so half of each is half a position and the join
-    is flat. Off those rows the join earns the average of the two rules'
-    daily returns, which is what the post's Lessons 2 and 3 rest on.
+    is flat. Except on the day after each of those rows, the join earns the
+    average of the two rules' daily returns, which is what the post's Lessons 2
+    and 3 rest on.
     """
 
     def test_on_the_book_s_window_it_differs_on_the_10_warm_up_rows_only(self, book) -> None:
@@ -362,6 +363,8 @@ class TestTheJoinIsHalfOfEachRule:
         ties = before_cl.index[close == backshift(MOMENTUM_LOOKBACK, close)]
         assert list(ties) == [pd.Timestamp("2005-06-15"), pd.Timestamp("2007-04-17")]
         assert set(ties) <= set(differ)
+        combo_or = before.combination.days[before.either.positions != before.combination.positions]
+        assert list(combo_or) == list(differ), "ComboOR leaves the join on the same 12 rows"
         assert not before.combination.positions[before_cl.index.isin(ties)].any()
         assert not (close == backshift(REVERSAL_LOOKBACK, close)).any()
 
@@ -1106,6 +1109,10 @@ class TestWhatThePostQuotes:
             f"{MOMENTUM_LOOKBACK}-day lag exactly, so wherever both lags exist, a close that is "
             "not below a lag is above it.",
             "On those rows, ComboOR’s buy conditions decide its position.",
+            "Where both buy conditions hold, neither short condition does, so it holds one long.",
+            "Where neither buy condition holds, both short conditions do, so it holds one short.",
+            "Where exactly one buy condition holds, the short condition on the other lag holds "
+            "too, so it scores a long and a short, which add to nothing.",
             f"On the first {int(neither.sum())} rows neither lag exists, and it holds nothing, as "
             "the join does.",
             f"So it matches the join everywhere except the same {SPELLED[int(rows.sum())]} early "
