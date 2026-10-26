@@ -11,8 +11,8 @@ post places right after the text it draws.
    2006-08-17, the z-score as black dots against red dashed lines at −1 and
    +1 and a grey line at 0, above a strip of the units held. The strip turns
    green and long where the z-score enters below −1 and stays long while
-   three dots sit back inside the band, two just above −1, which a note
-   names, and one just below 0. It turns red and short on the one close
+   three dots sit back inside the band, two just above −1, which a bracket
+   and a note name, and one just below 0. It turns red and short on the one close
    that a ring marks, where the z-score jumps from below 0 to above 1. It
    goes flat and then long again at the end. It sits after the paragraph
    opening "At these thresholds", in "The rule and the file".
@@ -69,6 +69,7 @@ from chan.usdcad_tests_whiteboard import (
     Scene,
     Stroke,
     _line,
+    _span,
     _stroke,
     render,
     timeline,
@@ -351,18 +352,28 @@ def _one_close(stretch: Stretch) -> Scene:
                 size=12,
                 ha="right",
             ),
+            _stroke(
+                "inside",
+                _span(
+                    float(x[marks.inside[0]]) - 0.1,
+                    float(x[marks.inside[-1]]) + 0.1,
+                    float(turn_y(-ENTRY_ZSCORE)) - 0.22,
+                ),
+                color=MUTED,
+                frames=3,
+            ),
             Label(
                 "back inside the band, still long",
                 inside_x,
                 TURN_NOTES,
-                names=f"units-{marks.entry}",
+                names="inside",
                 color=MUTED,
                 size=12,
                 ha="center",
             ),
             _stroke("turn", _ring(ring_x, ring_y, TURN_RING), color=ACCENT, frames=4),
             Label(
-                "one close: exit at 0 and short above 1",
+                "one close: exit at 0 and short above +1",
                 ring_x - TURN_RING - 0.17,
                 ring_y + 0.2,
                 names="turn",

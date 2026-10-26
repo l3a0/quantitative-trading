@@ -94,7 +94,7 @@ ONE_CLOSE_LABELS = [
     "long",
     "enters below −1",
     "back inside the band, still long",
-    "one close: exit at 0 and short above 1",
+    "one close: exit at 0 and short above +1",
     "short",
     "flat",
     "long",
@@ -558,7 +558,7 @@ class TestTheTurnSketch:
             ("units held", INK),
             ("enters below −1", GOOD),
             ("back inside the band, still long", MUTED),
-            ("one close: exit at 0 and short above 1", ACCENT),
+            ("one close: exit at 0 and short above +1", ACCENT),
         ):
             assert _label(scene, text).color == ink, text
 
@@ -596,7 +596,7 @@ class TestTheTurnSketch:
         assert run.turn.zscore[turned - 1] < 0 < 1 < run.turn.zscore[turned]
         assert ring.x.mean() == pytest.approx(x[turned], abs=0.02)
         assert (ring.y.max() + ring.y.min()) / 2 == pytest.approx(y[turned])
-        note = _label(scene, "one close: exit at 0 and short above 1")
+        note = _label(scene, "one close: exit at 0 and short above +1")
         assert note.ha == "right" and note.x < ring.x.min() and note.y > ring.y.max() - 0.2
 
     def test_the_notes_sit_under_the_days_they_name(self, every, run) -> None:
@@ -613,6 +613,11 @@ class TestTheTurnSketch:
         assert [str(run.turn.days[t].date()) for t in (6, 7)] == ["2006-08-04", "2006-08-07"]
         assert all(-1 < z[t] < 0 and run.turn.units[t] == 1 for t in (6, 7))
         assert z[5] < -1 and z[8] < -1
+        assert inside.names == "inside"
+        bracket = _stroke(scene, "inside")
+        assert bracket.color == MUTED
+        assert x[5] < bracket.x.min() < x[6] and x[7] < bracket.x.max() < x[8]
+        assert bracket.y.max() < float(turn_y(-1))
 
     def test_its_title_counts_the_days_it_draws(self, run) -> None:
         shorter = replace(
