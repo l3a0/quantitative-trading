@@ -329,7 +329,7 @@ class TestWhatThePostQuotes:
     the paragraphs on the month-ends and the statistic, Lesson 3's table and
     the paragraphs and two verdicts after it, Lesson 4's display equation and
     its paragraph on the average returns, the figure's alt text, and Lesson
-    6's third point. Other copies are not read, so a typo in one of them
+    6's example of a file saved in 2007 and its third point. Other copies are not read, so a typo in one of them
     passes. Among them are the 0.0675 and −0.1099 in Lesson 4's prose, the
     ±1.96/√83 in Lesson 4's sentence before its equation, the 446 and
     ±0.2151 in the paragraph before the figure, and the repeats of 83, 12
@@ -358,6 +358,7 @@ class TestWhatThePostQuotes:
             f"three-month Treasury bill rate divided by {momentum_factor.MONTHS}.",
             f"a stock is a winner if its return from {LOOKBACK} months back to {SKIP} month "
             "back was positive",
+            f"A company that left the S&P 500 in 2003 is not in a file saved in {saved[:4]}.",
         ]
         assert self.missing(text, fragments) == []
 

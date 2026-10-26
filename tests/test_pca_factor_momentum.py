@@ -698,13 +698,12 @@ class TestWhatTheFactorModelsPostQuotes:
     is a different post, and this class does not read it.
 
     The copies read are the paragraphs on how each day's weights make a pair,
-    the daily table, the paragraph after it, and all three of the points that
-    follow, and Lesson 6's third point. Other copies are not
-    read, so a typo in one of them passes. Among them are the 1.8654 and
-    186.54 percent in the third point, which ``tests/test_pca_factor.py``
-    reads in Lesson 6, the 752 in Lesson 5, which counts days rather than
-    pairs, and the "four of Example 7.4's five" in the headings, subtitle and
-    closing habits.
+    the daily table, the paragraph after it, the three points that follow, and
+    Lesson 6's third point. Other copies are not read, so a typo in one of
+    them passes. Among them are the 1.8654 and 186.54 percent in the third
+    point, which ``tests/test_pca_factor.py`` reads in Lesson 6, the 752 in
+    Lesson 5, which counts days rather than pairs, and the "four of Example
+    7.4's five" in the headings, subtitle and closing habits.
     """
 
     @pytest.fixture(scope="class")
@@ -720,6 +719,8 @@ class TestWhatTheFactorModelsPostQuotes:
         c = results.spliced.comparison
         fragments = [
             f"The {WORDS[FACTORS]} factors are {NAMES[0]} to {NAMES[-1]},",
+            f"{NAMES[0]} carries the most of the year’s variation in returns, and each later "
+            "one less.",
             f"Each day’s weights come from the {LOOKBACK} days of returns that end the day before.",
             f"the correlation of the {c.pairs} pairs computed without subtracting their means "
             "first.",
@@ -762,12 +763,20 @@ class TestWhatTheFactorModelsPostQuotes:
         outside = [(n, v) for n, v in zip(NAMES, c.factors, strict=True) if abs(v) > c.band]
         ((name, value),) = outside
         assert not results.spliced.survives.any(), SPEC
+        assert (results.spliced.p_values >= FALSE_DISCOVERY).all(), SPEC
+        k = NAMES.index(name)
+        first, second = np.argsort(-np.abs(results.spliced.pairs.today[:, k]))[:2]
+        assert abs(int(first) - int(second)) == 1, SPEC
         fragments = [
             f"Over {c.pairs} pairs it lands inside ±{CRITICAL}/√{c.pairs} = ±{c.band:.4f}",
             f"{name}’s {value:.4f} is outside it and the other {WORDS[FACTORS - 1]} are inside.",
             f"So the Benjamini-Hochberg procedure runs across all {WORDS[FACTORS]}. Among the "
             "factors it declares significant, it holds the expected share of false findings "
-            f"to {100 * FALSE_DISCOVERY:.0f} percent. None survives, {name} included,",
+            f"to {100 * FALSE_DISCOVERY:.0f} percent. None survives, {name} included, and no "
+            f"factor’s p-value would pass at {100 * FALSE_DISCOVERY:.0f} percent even alone.",
+            f"{name}’s largest returns fell on neighbouring days, so two of its {c.pairs} "
+            "products are far larger than all the others.",
+            f"which is how {name} can sit outside the band and still fail the test.",
         ]
         assert self.missing(text, fragments) == []
 

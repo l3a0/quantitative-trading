@@ -415,14 +415,15 @@ class TestWhatThePostQuotes:
     record of the printout and is held against the run, and Lesson 2's table
     and its labels come from the run.
 
-    The copies read are the section on the file and the four steps, Lesson 1's
-    tables and the paragraph and three points around them, Lesson 2's third
-    and fourth points, the three choices listed after them and its table, and
-    Lesson 6's first and fourth points. Other copies are not read, so a typo
-    in one of them passes. Among them are the 2 and 4 percent in the subtitle,
-    the opening and Lesson 2, the 10⁻¹⁵ the Python lands within, the 1.8654
-    and 186.54 percent in Lesson 3's third point, the 0 identical days out of
-    752 in Lesson 5, and the repeats of 600, 50, 252 and "five" elsewhere.
+    The copies read are the section on the file and the four steps, every copy
+    of Chan's 2 and 4 percent, Lesson 1's tables and the paragraph and three
+    points around them, Lesson 2's equation, its third and fourth points, the
+    three choices listed after them and its table, and Lesson 6's first and
+    fourth points. Other copies are not read, so a typo in one of them passes.
+    Among them are the 10⁻¹⁵ the Python lands within, the "three of the four"
+    printouts in the title and Lesson 1's heading, the 1.8654 and 186.54
+    percent in Lesson 3's third point, the 0 identical days out of 752 in
+    Lesson 5, and the repeats of 600, 50, 252 and "five" elsewhere.
     ``tests/test_pca_factor_momentum.py`` reads Lesson 3's figures on
     Example 7.4's own factors, and ``tests/test_momentum_factor.py`` those on
     MKT and WML.
@@ -512,6 +513,7 @@ class TestWhatThePostQuotes:
         held = int((np.abs(results.python.positions).sum(axis=1) > 0).sum())
         assert held == sized.days == traded + 1
         fragments = [
+            f"r_{{i,t}} = a_i + \\sum_{{k=1}}^{{{FACTORS}}} b_{{ik}} f_{{k,t}} + e_{{i,t}}",
             f"The printed Python buys {python} stocks, because its index range skips the "
             f"top-ranked one, while the MATLAB buys {matlab}.",
             f"On an average day, {100 * names.share:.2f} percent of the MATLAB’s names sit on "
@@ -549,6 +551,20 @@ class TestWhatThePostQuotes:
             ],
         )
         assert self.missing(text, [table]) == []
+
+    def test_chans_2_and_4_percent_wherever_the_post_repeats_them(self, text) -> None:
+        two, four = BOOK_MATLAB_PERCENT, BOOK_PYTHON_R_PERCENT
+        fragments = [
+            f"*Chan’s {two} and {four} percent come from two methods, not round-off.",
+            f"he reports {two} percent a year from the MATLAB program and {four} percent from "
+            "the Python and R,",
+            f"it cannot be set beside the revised edition’s {two} percent.",
+            f"Chan’s explanation of {two} against {four} percent is round-off,",
+            f"So the gap between {two} and {four} percent is method,",
+            f"None of them says how much of the revised MATLAB’s {two} percent the factors’ "
+            "momentum earns.",
+        ]
+        assert self.missing(text, fragments) == []
 
     def test_lesson_6s_survivors_and_pmc(self, results: Results, panel, text) -> None:
         _, closes = panel

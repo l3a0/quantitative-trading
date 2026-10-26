@@ -3638,20 +3638,21 @@ fails a test.
 1. `TestWhatThePostQuotes` in
    [tests/test_pca_factor.py](tests/test_pca_factor.py) reads Example 7.4's
    figures. That covers the S&P 600 file's members, saved date, span and days,
-   the steps' 252 days and 50 a side, Lesson 1's two tables, its sentence
-   naming Chan's 2 and 4 percent and the three points after them, Lesson 2's
-   third and fourth points and its table, and Lesson 6's first and fourth
+   the steps' 252 days and 50 a side, every copy of Chan's 2 and 4 percent,
+   Lesson 1's two tables and the three points after them, Lesson 2's equation,
+   its third and fourth points and its table, and Lesson 6's first and fourth
    points, with PMC's 851-day gap, its 1.8654 return written as 186.54
    percent, and the three printouts without it. Each printed figure in Lesson
    1's tables is held against the run.
 2. `TestWhatThePostQuotes` in
    [tests/test_momentum_factor.py](tests/test_momentum_factor.py) reads the
-   figures on MKT and WML. That covers the three files' dates and the S&P
-   500 file's span, the 12 and 1 months of the lookback, the 96 month-ends,
-   the 83 holding months, the 442 to 494 stocks each month and the 446 with a
-   return in all of them, Lesson 3's table, quartiles and two verdicts,
-   Lesson 4's display equation, average returns and t-statistics, the
-   figure's alt text, and Lesson 6's monthly median.
+   figures on MKT and WML. That covers the three files' dates and the S&P 500
+   file's span, the 12 and 1 months of the lookback, the 96 month-ends, the 83
+   holding months, the 442 to 494 stocks each month and the 446 with a return
+   in all of them, Lesson 3's table, quartiles and two verdicts, Lesson 4's
+   display equation, average returns and t-statistics, the figure's alt text,
+   the year Lesson 6 says the S&P 500 file was saved, and Lesson 6's monthly
+   median.
 3. `TestWhatTheFactorModelsPostQuotes` in
    [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py)
    reads the figures on Example 7.4's own five factors. That covers the
@@ -3662,12 +3663,12 @@ fails a test.
 All five of the post's tables are rebuilt whole, so a digit added to a cell
 fails as well as a digit changed, and each verdict's words come from the
 verdict. The classes read one copy of each figure, so a typo in another copy
-passes. Among those left unread are the 2 and 4 percent in the subtitle and
-the opening, the 1.8654 and 186.54 percent in Lesson 3, the 0 identical days
-out of 752 in Lesson 5, the 0.0675, −0.1099 and ±1.96/√83 in Lesson 4's prose,
-the 446 and ±0.2151 in the paragraph before the figure, and the repeats of
-600, 50, 252, 83 and 446. Each class docstring names the copies it leaves
-unread.
+passes. Among those left unread are the 10⁻¹⁵ the Python lands within, the
+"three of the four" printouts in the title and Lesson 1's heading, the 1.8654
+and 186.54 percent in Lesson 3, the 0 identical days out of 752 in Lesson 5,
+the 0.0675, −0.1099 and ±1.96/√83 in Lesson 4's prose, the 446 and ±0.2151 in
+the paragraph before the figure, and the repeats of 600, 50, 252, 83 and 446.
+Each class docstring names the copies it leaves unread.
 
 Its one figure is drawn from the committed S&P 500 file by
 [src/chan/momentum_factor_figures.py](src/chan/momentum_factor_figures.py). It
