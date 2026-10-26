@@ -8748,9 +8748,9 @@ Sixteen rows, all derivable from
 [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
 derives two of their figures as well, for the close alone. Row 8's 45
 agreeing days of 1,996 come from
-`tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences`,
+`tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_the_symbols_rolled_in_between_take_many_differences`,
 and row 9's equal closes from
-`tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`.
+`tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_and_hold_still_across_the_other_pair`.
 Rows 1, 2 and 4 each match one printed figure to one computation, and rows 10
 and 11 each match two figures Chan's Python port prints to the port's rule.
 The other eleven say what they do in their own cells. Row 3 checks one
@@ -8866,8 +8866,8 @@ script nor the port's, is evidence that an opening jump pays today.
 | 5 | The APR and the Sharpe ratio under the momentum reading | −0.124236 and −1.441620 | `TestTheClaim::test_the_momentum_reading_s_figures` and `::test_neither_lands_the_book` |
 | 6 | `calculateMaxDD(cumprod(1 + ret) − 1)` under each reading | literal −0.190023 over 287 days, momentum −0.651056 over 1,909 days | `TestBesideTheReplication::test_the_literal_reading_s_drawdown` and `::test_the_momentum_reading_s_drawdown` |
 | 7 | The days each test qualifies, and the first day holding a position | long on 278, short on 191, both on 0, flat on 1,531, first position 2004-11-22 | `TestBesideTheReplication::test_the_days_each_side_qualifies` and `::test_the_first_position_is_on_2004_11_22` |
-| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 days of 1,996 on which each of the four fields agrees, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` for the close and `TestWhatThePostMeasures::test_the_2012_05_17_save_restates_every_field` for all four |
-| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, for the equal closes `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`, and for all four fields `TestWhatThePostMeasures::test_the_two_earlier_saves_price_all_four_fields_alike` |
+| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 days of 1,996 on which each of the four fields agrees, `tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_the_symbols_rolled_in_between_take_many_differences` for the close and `TestWhatThePostMeasures::test_the_2012_05_17_save_restates_every_field` for all four |
+| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, for the equal closes `tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_and_hold_still_across_the_other_pair`, and for all four fields `TestWhatThePostMeasures::test_the_two_earlier_saves_price_all_four_fields_alike` |
 | 10 | The port's rule, its `prod(1 + ret)^(252 / 2000) − 1`, and its `mean(ret) · √252 / std(ret)` with `np.std` dividing by n | APR 0.0748641057, Sharpe ratio 0.4948573171, and 0.4947335873 dividing by n − 1 | `TestChansPythonPort::test_row_10_the_apr_and_the_sharpe_ratio_over_n_reproduce_the_comment` and `::test_row_10_over_n_minus_1_the_sharpe_ratio_misses_the_comment` |
 | 11 | `calculateMaxDD(cumprod(1 + ret) − 1)` on the port's returns | −0.2336291171 over 789 days | `TestChansPythonPort::test_row_11_the_drawdown_and_its_days_reproduce_the_comment` |
 | 12 | The days the port holds each side, and the first day its spread is set | long on 0, short on 1,718, flat on 282, both tests passed on 278, first spread 2004-11-22 | `TestChansPythonPort::test_row_12_the_port_is_never_long` and `::test_the_port_s_spread_starts_on_2004_11_22_a_row_after_the_script_s` |

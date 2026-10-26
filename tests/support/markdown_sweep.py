@@ -717,12 +717,15 @@ def sweep_fragment_links(root: Path) -> list[ReferenceFinding]:
 # 1. `TestClass::test_name`, sometimes with a parametrize id in brackets.
 # 2. `::test_name`, which continues the class cited before it, often in an
 #    earlier table row whose citation the next row says "the same" about.
-# 3. `TestClass` on its own.
+# 3. `TestClass` on its own, or ahead of a dot and an attribute it holds.
 # 4. `test_name` on its own, a module function or any class's method.
 # 5. `tests/test_file.py`, alone or ahead of `::` and one of the shapes above.
 #
 # A parametrize id in brackets is not checked. The ids come from running the
 # decorator, which an index read from the syntax tree does not do.
+#
+# A continuation's class resets at a level-one or level-two heading, so a
+# replication log entry cannot lean on a class the entry before it cited.
 #
 # Only shape 5 binds a citation to a file. A paragraph naming a test file
 # beside a test class is not a claim that the class lives there, and binding
@@ -730,11 +733,15 @@ def sweep_fragment_links(root: Path) -> list[ReferenceFinding]:
 # correct prose naming the file for a different sentence.
 
 _PARAMETRIZE_ID = r"(?:\[[^\]`]*\])?"
-_SPAN = re.compile(r"`([^`\n]+)`")
+# A span may wrap across a line in a hard-wrapped file, as a heading span can,
+# and a pattern that stops at the line end pairs the wrapped span's closing
+# backtick with the next opening one, which hides every citation after it.
+_SPAN = re.compile(r"`([^`]+)`")
+_TOP_HEADING = re.compile(r"^ {0,3}#{1,2}[ \t]")
 _FILE_CITATION = re.compile(r"^tests/(test_\w+\.py)(?:::(.+?))?$")
 _CLASS_AND_TEST = re.compile(rf"^(Test\w+)::(test\w*){_PARAMETRIZE_ID}$")
 _CONTINUATION = re.compile(rf"^::(test\w*){_PARAMETRIZE_ID}$")
-_CLASS = re.compile(r"^Test[A-Z]\w*$")
+_CLASS = re.compile(r"^(Test[A-Z]\w*)(?:\.[A-Za-z_]\w*)?$")
 _TEST = re.compile(rf"^(test_\w+){_PARAMETRIZE_ID}$")
 
 
@@ -744,8 +751,9 @@ class CitedTest:
 
     `node` is `TestClass::test_name`, `TestClass` or `test_name`, the id
     pytest prints after the file. It is empty when the span names a file and
-    nothing in it. `file` is the test file the span itself names, or empty
-    when it names none.
+    nothing in it, and it keeps its leading `::` when it continues nothing.
+    `file` is the test file the span itself names, or the one a continuation
+    inherits, and empty when there is none.
     """
 
     path: Path
@@ -786,25 +794,44 @@ def cited_tests(text: str, path: Path) -> list[CitedTest]:
 
     A continuation takes the class of the citation before it, which can sit
     in an earlier unit. A replication log row that says "the same, and" a
-    continuation is relying on the row above it.
+    continuation is relying on the row above it. A level-one or level-two
+    heading ends what a continuation can reach, since one entry's class says
+    nothing about the next entry's rows.
     """
     found: list[CitedTest] = []
     file, cls = "", ""
     for unit in units(blank_fences(text)):
+        if _TOP_HEADING.match(unit.text):
+            file, cls = "", ""
         for match in _SPAN.finditer(unit.text):
             written = match.group(1)
             line = unit.line_of(match.start())
             if named := _FILE_CITATION.match(written):
-                file, node = named.group(1), named.group(2) or ""
-                node = re.sub(_PARAMETRIZE_ID + "$", "", node)
+                node = re.sub(_PARAMETRIZE_ID + "$", "", named.group(2) or "")
+                if not node:
+                    # A file named alone says where something lives and
+                    # starts no context, so a continuation after it keeps
+                    # the class cited before it.
+                    found.append(CitedTest(path, line, written, "", named.group(1)))
+                    continue
+                file = named.group(1)
                 cls = node.partition("::")[0] if node.startswith("Test") else ""
             elif named := _CLASS_AND_TEST.match(written):
                 file, cls = "", named.group(1)
                 node = f"{cls}::{named.group(2)}"
             elif named := _CONTINUATION.match(written):
-                node = f"{cls}::{named.group(1)}" if cls else named.group(1)
-            elif _CLASS.match(written):
-                file, cls, node = "", written, written
+                test = named.group(1)
+                if cls:
+                    node = f"{cls}::{test}"
+                elif file:
+                    node = test
+                else:
+                    # Nothing before it to continue, so it keeps its leading
+                    # `::`, which no node id matches.
+                    node = f"::{test}"
+            elif named := _CLASS.match(written):
+                file, cls = "", named.group(1)
+                node = cls
             elif named := _TEST.match(written):
                 found.append(CitedTest(path, line, written, named.group(1), ""))
                 continue
@@ -819,9 +846,10 @@ def sweep_cited_tests(
 ) -> list[ReferenceFinding]:
     """Flag every cited test the suite does not hold.
 
-    A citation naming a file must resolve in that file. One naming none may
-    resolve in any, and a bare `test_name` matches a method of any class as
-    well as a module function.
+    A citation naming a file must be a node id of that file, exactly as
+    pytest would take it on the command line. One naming none may resolve in
+    any file, and a bare `test_name` matches a method of any class as well as
+    a module function.
     """
     findings: list[ReferenceFinding] = []
     for document in documents:
@@ -845,8 +873,12 @@ def _cited_test_problem(cited: CitedTest, index: dict[str, frozenset[str]]) -> s
         return f"names tests/{cited.file}, which this repo does not keep"
     if not cited.node:
         return ""
-    files = [index[cited.file]] if cited.file else list(index.values())
-    if any(_holds(ids, cited.node) for ids in files):
+    if cited.node.startswith("::"):
+        return "continues no class cited before it in its section"
+    if cited.file:
+        if cited.node in index[cited.file]:
+            return ""
+    elif any(_holds(ids, cited.node) for ids in index.values()):
         return ""
     where = f"tests/{cited.file}" if cited.file else "the suite"
     return f"names no test in {where}"
@@ -866,9 +898,12 @@ def _nearest_test(node: str, index: dict[str, frozenset[str]]) -> str:
     """The present test a missing citation most likely meant.
 
     The test named under the wrong class is the failure seen so far, so a
-    test of the same name under another class wins outright. Otherwise the id
-    of the same shape sharing the most words, and nothing when none shares
-    one, as `nearest_heading` does.
+    test of the same name under another class wins outright. Otherwise the
+    test sharing the most words with the cited one, where a class name is
+    split at its capitals and the words every test name carries are dropped,
+    since those would tie the citation to everything. A bare name is
+    compared with methods as well as functions, as it resolves against both.
+    Nothing comes back when nothing shares a word, as with `nearest_heading`.
     """
     if not node:
         return ""
@@ -878,16 +913,21 @@ def _nearest_test(node: str, index: dict[str, frozenset[str]]) -> str:
         same_name = [one for one in present if one.endswith(f"::{wanted}")]
         if same_name:
             return same_name[0]
-    shape = node.count("::")
+    is_class = node.startswith("Test") and "::" not in node
     best, score = "", 0
     for one in present:
-        test = one.partition("::")[2]
-        if test.count("::") != shape:
+        last = one.rpartition("::")[2]
+        if last.startswith("Test") != is_class:
             continue
-        shared = len(_words(node) & _words(test))
+        shared = len(_name_words(node) & _name_words(one.partition("::")[2]))
         if shared > score:
             best, score = one, shared
     return best
+
+
+def _name_words(name: str) -> set[str]:
+    spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", name)
+    return _words(spaced) - {"test", "the", "a", "of"}
 
 
 def _test_names(body: list[ast.stmt]) -> list[str]:
