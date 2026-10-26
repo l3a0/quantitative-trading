@@ -682,7 +682,7 @@ class TestThePostQuotesThePins:
         rollover = _percent(result.rollover, 2)
         for phrase in (
             f"reaches {aud.max():.2f} in {aud_peak:%B %Y}",
-            f"green on the {long} days held long, red on the {short} held short",
+            f"blue on the {long} days held long, vermilion on the {short} held short",
             f"over {days} days.*",
             f"Averaged over all {days} days",
             f"is {rollover} percent a year on these files, not almost 5",

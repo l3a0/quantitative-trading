@@ -40,8 +40,9 @@ from chan.cl_reversal_momentum_figures import (
     make_join_figure,
     percent,
 )
+from chan.palette import ACCENT, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, INK, LOST
+from chan.regime_figure import INK
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 
@@ -189,10 +190,10 @@ class TestTheCurves:
                 assert handle.get_color() == colour
 
     def test_each_rule_keeps_the_colour_the_alt_text_names(self, axes, alt) -> None:
-        """The post's alt text calls the join black, momentum brown and reversal red."""
+        """The post's alt text calls the join black, momentum berry and reversal vermilion."""
         assert (
-            "the join in a heavy black line, momentum alone in brown and reversal alone in red"
-            in alt
+            "the join in a heavy black line, momentum alone in berry and reversal alone "
+            "in vermilion" in alt
         )
         for ax in axes.values():
             lines = _by_gid(ax.lines)

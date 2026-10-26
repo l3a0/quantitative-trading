@@ -20,8 +20,8 @@ cumulative curve, with MKT, WML, the median stock, zero and the band on it.
    equals either factor's, so the share at or below and the share strictly
    below, which :meth:`chan.momentum_factor.Comparison.percentile` counts,
    agree.
-3. **The band is shaded.** It runs ±1.96/√83, where a series with no
-   autocorrelation lands about 95 percent of the time. Both factors sit
+3. **The band is shaded.** It runs ±1.96/√83, where a series of
+   independent returns lands about 95 percent of the time. Both factors sit
    inside it.
 
 The figure uses neither the green nor the red that other figures here give a
@@ -125,7 +125,7 @@ def make_autocorrelation_figure(comparison: Comparison, out: Path | None = None)
         gid="label-median",
     )
     ax.annotate(
-        f"±{band:.4f}, where a series with no\nautocorrelation lands 95 percent of the time",
+        f"±{band:.4f}, where a series of independent\nreturns lands 95 percent of the time",
         (band, 0.03),
         xytext=(-6, 0),
         textcoords="offset points",
