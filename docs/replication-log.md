@@ -1345,9 +1345,10 @@ each row gives its dates.
 
 Nothing compares the numbers in this document against the assertions they name.
 [tests/test_markdown_hygiene.py](../tests/test_markdown_hygiene.py) sweeps this
-file's formatting and resolves every anchor its Contents carries, and neither
-reads a figure, so a re-pin that moves a number leaves this entry stale and
-the suite green. Whether that guard gets built is the decision on
+file's formatting, resolves every anchor its Contents carries, and checks that
+every test it names exists. None of these checks reads a figure, so a re-pin
+that moves a number leaves this entry stale and the suite green. Whether that
+guard gets built is the decision on
 [issue 6](https://github.com/l3a0/quantitative-trading/issues/6).
 
 Until then this file joins the re-pin sweep by hand. A change to any assertion
@@ -2205,7 +2206,7 @@ these two funds cointegrate over this span and nothing about bonds in general.
 | 2 | The statistic is 0.65 short of the 10% bar, and row 3's is 0.72 short. The half-life of 333.2 trading days is more than a year, which is a spread that barely pulls back at all. |
 | 3 | The other orientation, 0.0719 away from row 2, so this is a pair where the choice of dependent leg could not have turned the finding. On GLD/GDX's full raw history the two orientations sit 0.5352 apart, at −1.2893 and −1.8245. That comparison was measured on [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) and nothing in this suite pins it, because pinning the engine's asymmetry is [issue 127](https://github.com/l3a0/quantitative-trading/issues/127). |
 | 4 | The one-lag fits leave autocorrelation at nearly every residual lag, so their statistics are read against critical values that do not apply. |
-| 5 | The first fits whose residuals pass are further from rejecting than the one-lag fits, so the check strengthens the finding rather than weakening it. On GLD/GDX the band was the half of the check that decided. Here every autocorrelation is inside the band from 9 lags for TLT on IEF and from 10 for IEF on TLT, and the Breusch-Godfrey half is what holds the passing count at 31. `::test_the_breusch_godfrey_half_is_what_holds_the_count_at_31` pins that. |
+| 5 | The first fits whose residuals pass are further from rejecting than the one-lag fits, so the check strengthens the finding rather than weakening it. On GLD/GDX the band was the half of the check that decided. Here every autocorrelation is inside the band from 9 lags for TLT on IEF and from 10 for IEF on TLT, and the Breusch-Godfrey half is what holds the passing count at 31. `TestTheResidualCheck::test_the_breusch_godfrey_half_is_what_holds_the_count_at_31` pins that. |
 | 6 | A description of the span, not a second finding. About one window in five clears 10% each way round. On GLD/GDX's raw history `TestRollingRegime` pins 31 of 231 for GLD on GDX, about one in seven, and pins no figure for the other orientation. No window that rejects is promoted to a claim about the pair, under [issue 16](https://github.com/l3a0/quantitative-trading/issues/16)'s rule. |
 
 ### What the entry concludes
@@ -2357,7 +2358,7 @@ columns have nothing to hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | The criterion was declared on the issue before any statistic was computed: the one-lag statistic and the statistic at the first residual-clean lag count both below the 5% bar. They are −3.2136 and −2.9946. Neither clears 1%, at −3.43, so "quite stationary" holds at the level the criterion asks for and no stronger. |
-| 2 | none, not a replication | The headline statistic. Lag 1 was fixed before any number was seen, as the rule [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) set for both candidates. Every count from 0 to the ceiling of 32 also rejects at 5%, the closest being 6 at −2.8739, so the lag rule does not decide the verdict here. `::test_every_lag_up_to_the_ceiling_rejects_at_five_percent` pins that. |
+| 2 | none, not a replication | The headline statistic. Lag 1 was fixed before any number was seen, as the rule [issue 136](https://github.com/l3a0/quantitative-trading/issues/136) set for both candidates. Every count from 0 to the ceiling of 32 also rejects at 5%, the closest being 6 at −2.8739, so the lag rule does not decide the verdict here. `TestTheCrossRateStatistic::test_every_lag_up_to_the_ceiling_rejects_at_five_percent` pins that. |
 | 3 | none, not a replication | The one-lag fit leaves autocorrelation, so its statistic is read against critical values that do not apply. The fit that earns them is further from rejecting and still past the bar. Without the constant the check would audit a different regression, whose one-lag statistic is −2.5159 rather than −3.2136 and is read against a different table, so the check would no longer be about this test. |
 | 4 | none, not a replication | The book prints no half-life. At 141.6 trading days a deviation takes a little over half a year to halve, which is a rate that pulls back slowly. |
 | 5 | none, not a replication | Chan writes CAD/AUD without saying which currency is the unit, and a rate can be quoted either way round, so the test was run on the log, where the two directions give one answer. On the level they part, and both statistics the verdict reads still reject at 5% in both directions, so the scale did not decide the verdict either. |
@@ -7370,7 +7371,7 @@ hedges EWA and EWC today.
 | 3 | none, a claim | none, a finding | The median rounds to 1.0 and the mean to 1.1, and the slope crosses 1 54 times, one of them the step up from the zero start on row 2. The only criterion was written after the run, and the median sits 0.002633 inside the line it would have drawn, so the owner ruled the row carries no verdict. |
 | 4 | none, a claim | none, a finding | Every yearly mean is above the year before, and the intercept falls at every finer grain, including 513 of its 1,499 daily steps. It peaks on 2011-09-08 above its last value. The only criterion was written after the run and chose the yearly grain, at which the claim holds, after the finer grains had been seen to fall, so the owner ruled the row carries no verdict. |
 | 5 | none | none, not a replication | On row 1 the state is still 0, so the forecast is 0 and `e` is EWC's whole close. The script shorts EWC alone, with no EWA leg, on the file's first day. |
-| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, and `::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds that this row is not that reading. |
+| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, and `TestTheFigures::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds that this row is not that reading. |
 | 7 | none | none, not a replication | Row 2's state matches `c·y·[x 1]' / (c·(x² + 1) + Ve)` with `c = delta / (1 − delta)` to 1e-12, which is what the zero start predicts. |
 
 ### What the entry concludes
@@ -8747,9 +8748,9 @@ Sixteen rows, all derivable from
 [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
 derives two of their figures as well, for the close alone. Row 8's 45
 agreeing days of 1,996 come from
-`tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences`,
+`tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_the_symbols_rolled_in_between_take_many_differences`,
 and row 9's equal closes from
-`tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`.
+`tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_and_hold_still_across_the_other_pair`.
 Rows 1, 2 and 4 each match one printed figure to one computation, and rows 10
 and 11 each match two figures Chan's Python port prints to the port's rule.
 The other eleven say what they do in their own cells. Row 3 checks one
@@ -8865,8 +8866,8 @@ script nor the port's, is evidence that an opening jump pays today.
 | 5 | The APR and the Sharpe ratio under the momentum reading | −0.124236 and −1.441620 | `TestTheClaim::test_the_momentum_reading_s_figures` and `::test_neither_lands_the_book` |
 | 6 | `calculateMaxDD(cumprod(1 + ret) − 1)` under each reading | literal −0.190023 over 287 days, momentum −0.651056 over 1,909 days | `TestBesideTheReplication::test_the_literal_reading_s_drawdown` and `::test_the_momentum_reading_s_drawdown` |
 | 7 | The days each test qualifies, and the first day holding a position | long on 278, short on 191, both on 0, flat on 1,531, first position 2004-11-22 | `TestBesideTheReplication::test_the_days_each_side_qualifies` and `::test_the_first_position_is_on_2004_11_22` |
-| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 days of 1,996 on which each of the four fields agrees, `tests/test_continuous_futures.py::test_the_symbols_rolled_in_between_take_many_differences` for the close and `TestWhatThePostMeasures::test_the_2012_05_17_save_restates_every_field` for all four |
-| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, for the equal closes `tests/test_continuous_futures.py::test_and_hold_still_across_the_other_pair`, and for all four fields `TestWhatThePostMeasures::test_the_two_earlier_saves_price_all_four_fields_alike` |
+| 8 | The literal reading on `inputdataohlcdaily_20120511/fstx.csv`, chan-mat, adjusted, saved 2012-05-12, 2,000 days from 2004-07-12 to 2012-05-11 | APR 0.131543, Sharpe ratio 1.448082 | `TestTheEarlierSaves::test_each_misses_the_script_s_apr`, and for the 45 days of 1,996 on which each of the four fields agrees, `tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_the_symbols_rolled_in_between_take_many_differences` for the close and `TestWhatThePostMeasures::test_the_2012_05_17_save_restates_every_field` for all four |
+| 9 | The literal reading on `inputdataohlcdaily_20120507/fstx.csv`, chan-mat, adjusted, saved 2012-05-09, 2,000 days from 2004-07-07 to 2012-05-08 | APR 0.133561, Sharpe ratio 1.466345 | the same test, for the equal closes `tests/test_continuous_futures.py::TestWhatMovesBetweenSaves::test_and_hold_still_across_the_other_pair`, and for all four fields `TestWhatThePostMeasures::test_the_two_earlier_saves_price_all_four_fields_alike` |
 | 10 | The port's rule, its `prod(1 + ret)^(252 / 2000) − 1`, and its `mean(ret) · √252 / std(ret)` with `np.std` dividing by n | APR 0.0748641057, Sharpe ratio 0.4948573171, and 0.4947335873 dividing by n − 1 | `TestChansPythonPort::test_row_10_the_apr_and_the_sharpe_ratio_over_n_reproduce_the_comment` and `::test_row_10_over_n_minus_1_the_sharpe_ratio_misses_the_comment` |
 | 11 | `calculateMaxDD(cumprod(1 + ret) − 1)` on the port's returns | −0.2336291171 over 789 days | `TestChansPythonPort::test_row_11_the_drawdown_and_its_days_reproduce_the_comment` |
 | 12 | The days the port holds each side, and the first day its spread is set | long on 0, short on 1,718, flat on 282, both tests passed on 278, first spread 2004-11-22 | `TestChansPythonPort::test_row_12_the_port_is_never_long` and `::test_the_port_s_spread_starts_on_2004_11_22_a_row_after_the_script_s` |
