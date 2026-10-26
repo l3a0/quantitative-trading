@@ -239,7 +239,7 @@ So the chance that all three years were profits, which Chan’s 19 needs, is 42%
 
 ## Lesson 3: a trade chosen after looking at the history is tested by the years after the book
 
-Chan picked both trades by studying past prices, and both rules name exact days. A rule chosen on the past tends to look good on the past, so only the years after the book test it. The book’s years end where Chan’s counts end: 2015 for gasoline, and 2008 for natural gas under Lesson 1’s reading. Natural gas starts in 1994, the first year the files hold a whole trade.
+Chan picked both trades by studying past prices, and both rules name exact days. That invites **data-snooping bias**, Chan’s own name for it: searching the past for a rule that worked picks up chance patterns along with real ones, so the winning rule looks better on the years it was chosen from than it will on new ones. Only the years after the book test it. The book’s years end where Chan’s counts end: 2015 for gasoline, and 2008 for natural gas under Lesson 1’s reading. Natural gas starts in 1994, the first year the files hold a whole trade.
 
 Natural gas went from winning 15 of 15 years, with a mean return of 10.6%, to winning 7 of 15 with a mean near zero. Chan says as much: the trade “didn’t hold up as well out-of-sample” (p. 185), meaning in years he did not use to choose the rule, though he prints no figure. Its drawdown before 2009 came inside 2002’s trade, which rose 48% before giving back 22 points and ending 40% up.
 
@@ -317,7 +317,7 @@ Two tests compare the periods directly, and they ask different questions. Welch�
 
 Gasoline’s fall shows on both. Natural gas splits on one year. Its typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%, close enough to what came before that the mean cannot tell the periods apart. Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.001. That year was a real gain that a trader holding every year would have collected, so it stays in the record. Neither test was chosen before the numbers were seen, so the post reports both rather than the one that reads better.
 
-Chan makes the same point and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias, a pattern found by searching the past that will not repeat, is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a bar that rises with the number tried, and years the search never sees.
+Chan makes the same point and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a bar that rises with the number tried, and years the search never sees.
 
 ## Lesson 5: reading one named contract from files numbered by expiry needs a calendar checked outside the files
 
