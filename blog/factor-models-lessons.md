@@ -10,7 +10,7 @@ Ernest Chan’s *Quantitative Trading* names the bridge from explanation to trad
 
 Example 7.4 is built on that assumption. It takes five statistical factors from a year of returns on the S&P 600, assumes, in Chan’s words, that the factor returns “remain constant from the current time period to the next”, and buys the stocks with the highest expected returns (p. 164). In the revised edition he reports 2 percent a year from the MATLAB program and 4 percent from the Python and R, before costs, and calls the difference “essentially round off errors” (p. 164).
 
-This repository ran every printed program of Example 7.4 it could run on Chan’s own data file, and read the one it could not. It then tested whether factor returns persist, on the two factors Chan names that can be built from prices alone and on the five statistical factors Example 7.4 fits for itself. Six lessons follow. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+This repository ran a Python transcription of every printed program of Example 7.4 on Chan’s own data file. The R’s is only a reading, because the R loads a helper file the book does not print. It then tested whether factor returns persist, on the two factors Chan names that can be built from prices alone and on the five statistical factors Example 7.4 fits for itself. Six lessons follow. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 Every result below is **exploratory**. Reproducing a printed figure, or testing a claim from the book, tests a hypothesis Chan chose rather than one written down here in advance. It says whether his numbers reproduce on his file, and nothing about whether factor models earn money today. Where a rule was fixed before its number, as Lessons 3 and 5 describe, the verdict cannot have been fitted to the number, and the hypothesis is still Chan’s.
 
@@ -59,7 +59,7 @@ The month-ends are the S&P 500 file’s rows whose next row falls in another mon
 
 ## Lesson 1: three of the four printouts reproduce, and the fourth prints another program’s figures
 
-Here is every figure the four printouts show, at the precision each prints it, and whether this repository reaches it. It ran the two MATLAB printouts and the Python, and read the R. Each comparison is an **exploratory** reproduction. The revised edition’s returns are fractions of capital, so 0.020205 is Chan’s 2 percent and 0.04052422056844459 his 4 percent. The first edition’s −1.8099 is a sum over positions rather than a return, as the first point below explains. The Sharpe ratio is the annual mean return divided by its annual standard deviation, with no risk-free rate subtracted.
+Here is every figure the four printouts show, at the precision each prints it, and whether this repository reaches it. The figures here come from Python transcriptions of the printouts, and the R’s is only a reading, as the second point below explains. Each comparison is an **exploratory** reproduction. The revised edition’s returns are fractions of capital, so 0.020205 is Chan’s 2 percent and 0.04052422056844459 his 4 percent. The first edition’s −1.8099 is a sum over positions rather than a return, as the first point below explains. The Sharpe ratio is the annual mean return divided by its annual standard deviation, with no risk-free rate subtracted.
 
 The runs here reproduce all three figures the two MATLAB printouts show.
 
@@ -188,7 +188,7 @@ The same statistic is computed for each of the 579 stocks with a return on every
 
 The median stock’s statistic is −0.0283. The claim that factors “often” autocorrelate more strongly holds for four of the five, and does not hold for PC3, which sits above the median stock but below 0. Each of the five verdicts is **exploratory**, and three things say how little they rest on.
 
-1. **The band.** A series of independent returns centred on zero still gives a nonzero statistic from a finite sample. Over 752 pairs it lands inside ±1.96/√752 = ±0.0715 about 95 percent of the time, and Lesson 4 draws the same kind of band for the monthly factors. PC2’s 0.0778 is outside it and the other four are inside.
+1. **The band.** A series of returns that average zero, each one independent of every other day’s, still gives a nonzero statistic from a finite sample. Over 752 pairs it lands inside ±1.96/√752 = ±0.0715 about 95 percent of the time, and Lesson 4 draws the same kind of band for the monthly factors. PC2’s 0.0778 is outside it and the other four are inside.
 2. **A test across all five.** Each day’s factor return times the next day’s gives one product per pair. A Newey-West t-statistic tests whether those products average above zero. It divides the average by how far it would wander by chance, widened for neighbouring days whose products move together and for days whose products swing wider than others. Its one-sided p-value is the chance that luck alone would give a t that large. Testing five factors at once raises the chance that one looks significant by luck. So the Benjamini-Hochberg procedure runs across all five. Among the factors it declares significant, it holds the expected share of false findings to 5 percent. None survives, PC2 included, and no factor’s p-value would pass at 5 percent even alone. The band is right only for a series in which a large return, up or down, makes a large one the next day no more likely. PC2’s largest returns fell on neighbouring days, so two of its 752 products, one positive and one negative, are far larger in size than all the others. The t measures how widely the products themselves scatter, so those two make its average far less certain than the band allows, which is how PC2 can sit outside the band and still fail the test.
 3. **One symbol decides which factor misses and which fall outside the band.** PMC is one ticker in the S&P 600 file that holds two price histories with a gap between them. Filling the gap with the last price joins them into one day’s return of 1.8654, a rise of 186.54 percent, and Lesson 6 gives the details. Without PMC, PC2 falls to −0.0152 and PC3 rises to 0.0139, so the claim would miss PC2 rather than PC3. PC1 at 0.0740 and PC4 at 0.0975 would sit outside the band in place of PC2. PC4’s one-sided p-value of 0.0319 would then pass at 5 percent on its own, but no factor would survive the test across all five.
 
@@ -198,7 +198,7 @@ Every one of these figures is about survivors, as Lesson 6 says of the whole S&P
 
 The criterion for MKT and WML asks whether each factor’s autocorrelation is above 0 and whether it is above the median stock. It does not ask whether 83 months can tell the answer from chance.
 
-A series of independent monthly returns still produces a nonzero estimate from a finite sample. With 83 months, the estimate falls inside ±1.96/√83 about 95 percent of the time:
+A series of monthly returns, each one independent of every other month’s, still produces a nonzero estimate from a finite sample. With 83 months, the estimate falls inside ±1.96/√83 about 95 percent of the time:
 
 ```math
 \pm \frac{1.96}{\sqrt{83}} = \pm 0.2151
@@ -210,7 +210,7 @@ The figure below draws all of it at once. The curve is the 446 stocks’ autocor
 
 ![A step curve of the 446 stocks’ lag-1 autocorrelations over 83 months, rising to 1. A shaded band covers −0.2151 to 0.2151. A dashed vertical line for WML at −0.1099 meets the curve at the 27.8027th percentile, a solid line for MKT at 0.0675 meets it at the 80.7175th, and a dotted line marks the median stock at −0.0392. A thin grey line marks zero. Both factor lines and the median sit inside the band. The title calls the test exploratory, and the note says the stocks and WML are survivors while MKT, from SPY, is not.](../docs/figures/factor_momentum_autocorrelations.png)
 
-*Both factors and the median stock sit inside the band where a series of independent returns lands 95 percent of the time.*
+*Both factors and the median stock sit inside the band where the autocorrelation of a series of independent returns lands 95 percent of the time.*
 
 The criterion does not use the two factors’ average returns, and those are just as uncertain. MKT earned 0.0185 a year over the bill, and WML, which subtracts no bill rate, earned 0.0241, each the mean monthly return times 12. A t-statistic divides an average by how far it would wander by chance, and values near 0 are what luck alone produces. MKT’s is 0.3660 and WML’s 0.4505, with no correction for autocorrelation.
 
@@ -228,7 +228,7 @@ Each stock file holds only the companies in its index on the file’s last day, 
 1. **Example 7.4’s positions, in every printout.** Every printout ranks and trades only the 600 stocks still in the S&P 600 on 2008-01-14.
 2. **WML.** The loser leg lacks the losers that fell out of the index, which pushes WML down. The winner leg lacks past winners that later collapsed out of the index, which pushes WML up. Nothing here measures which of the two dominates, so this post does not guess a direction.
 3. **Where the median sits.** On the S&P 500 file the median stock’s monthly autocorrelation is −0.0392, and on the S&P 600 file the median daily statistic is −0.0283. Both are below 0, so on either file a factor above 0 is also above the median stock. That is a fact about these files of survivors, not about single stocks in general.
-4. **One symbol holds two price histories.** PMC in the S&P 600 file closes, goes missing for 851 trading days, and resumes as a different price history under the same ticker. The three printouts that run fill the gap with the last price, so when the second history begins on 2007-08-01 the file shows one day’s return of 1.8654, a rise of 186.54 percent. Without PMC, the first edition gives −1.8014, the revised MATLAB 0.0180 at a Sharpe ratio of 0.1869, and the revised Python 0.0408 at 0.5851.
+4. **One symbol holds two price histories.** PMC in the S&P 600 file closes, goes missing for 851 trading days, and resumes as a different price history under the same ticker. The two MATLAB printouts and the Python fill the gap with the last price, so when the second history begins on 2007-08-01 the file shows one day’s return of 1.8654, a rise of 186.54 percent. Without PMC, the first edition gives −1.8014, the revised MATLAB 0.0180 at a Sharpe ratio of 0.1869, and the revised Python 0.0408 at 0.5851.
 
 MKT is the exception. It reads SPY, which held the index as it stood each day, so it carries no survivorship.
 
