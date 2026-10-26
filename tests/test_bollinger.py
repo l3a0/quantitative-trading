@@ -29,7 +29,7 @@ both are stated once here and carried in every figure's failure message as
   ``std``, over 1,480 rows.
 
 Each figure is pinned twice. Once at the six decimals the script's ``%f``
-prints, against its closing comment, and once at eight, so a later change
+prints, against the comment under its ``fprintf``, and once at eight, so a later change
 cannot move it inside the printed digits unnoticed. The book's own rounding at
 location 1559 is pinned beside them.
 
@@ -356,6 +356,21 @@ class TestTheDivisor:
         assert (beyond(result.zscore), beyond(by_n.zscore)) == (756, 777), SPEC
         differ = np.flatnonzero(result.bollinger.units != by_n.bollinger.units)
         assert len(differ) == 15, SPEC
+        finite = np.isfinite(result.zscore)
+        z, zn = np.where(finite, result.zscore, 0), np.where(finite, by_n.zscore, 0)
+        assert not (np.abs(z) > ENTRY_ZSCORE)[np.abs(zn) <= ENTRY_ZSCORE].any(), SPEC
+        extra = np.flatnonzero((np.abs(zn) > ENTRY_ZSCORE) & (np.abs(z) <= ENTRY_ZSCORE))
+        assert len(extra) == 21, SPEC
+        side = -np.sign(zn[extra])
+        held = by_n.bollinger.units[extra - 1] == side
+        assert int(held.sum()) == 12, SPEC
+        quiet = extra[held]
+        np.testing.assert_array_equal(result.bollinger.units[quiet], by_n.bollinger.units[quiet])
+        entered = extra[~held]
+        assert all(
+            by_n.bollinger.units[i] == side_ for i, side_ in zip(entered, side[~held], strict=True)
+        )
+        assert set(entered.tolist()) <= set(differ.tolist()), SPEC
         days = result.bollinger.signal.days
         short = [i for i in differ if "2007-05-29" <= str(days[i].date()) < "2007-06-07"]
         assert len(short) == 7, SPEC
@@ -658,8 +673,8 @@ class TestThePostQuotesThePins:
     def test_the_band_s_figures(self, result: ExampleThreeTwo) -> None:
         band = result.bollinger
         assert (
-            f"Both figures the script prints match to six decimals, an APR of {band.apr:.6f} "
-            f"and a Sharpe ratio of {band.sharpe:.6f}."
+            "The transcription reproduces both figures the script prints to six decimals, "
+            f"an APR of {band.apr:.6f} and a Sharpe ratio of {band.sharpe:.6f}."
         ) in self.text
         for run_ in (band, result.linear):
             assert f"\\text{{Computed}} & {run_.apr:.6f} & {run_.sharpe:.6f}" in self.text
@@ -723,13 +738,25 @@ class TestThePostQuotesThePins:
             f"but the run with divisor n has a {len(n)}th, on {days[extra].date()}. It closes a "
             f"short entered on {days[entered].date()}"
         ) in self.text
+        finite = np.isfinite(result.zscore)
+        z, zn = np.abs(np.where(finite, result.zscore, 0)), np.abs(np.where(finite, by_n.zscore, 0))
+        only_n = np.flatnonzero((zn > ENTRY_ZSCORE) & (z <= ENTRY_ZSCORE))
+        side_n = -np.sign(by_n.zscore[only_n])
+        already = int((by_n.bollinger.units[only_n - 1] == side_n).sum())
+        words = {12: "Twelve"}
+        assert (
+            f"on {beyond(by_n.zscore)} with divisor n. {words[already]} of the {len(only_n)} "
+            "extra days fall while a unit is already held on the side they would enter, so they "
+            "change nothing."
+        ) in self.text
         differ = int((result.bollinger.units != by_n.bollinger.units).sum())
         short = extra - entered
-        words = {7: "Seven", 8: "eight"}
+        words = {7: "seven", 8: "eight"}
         assert (
-            f"The units differ on {differ} days, and that is enough to move both figures. "
-            f"{words[short]} of them are that short. On the other {words[differ - short]}, the "
-            "run with divisor n enters a position one day before the run with divisor n − 1 does."
+            f"The units differ on {differ} days. On {words[short]} of them, the run with divisor n "
+            f"holds that short. On the other {words[differ - short]}, it enters a position one day "
+            f"before the run with divisor n − 1 does. Those {differ} days are enough to move both "
+            "figures."
         ) in self.text
         band, moved = result.bollinger, by_n.bollinger
         assert (

@@ -4921,8 +4921,8 @@ twenty-first post, about Example 3.2 of Chan's *Algorithmic Trading*, which
 trades Example 3.1's GLD and USO price spread with a Bollinger band instead of
 the linear rule. It holds one unit at most, entering when the 20-day z-score
 passes ±1 and leaving when it crosses 0. Chan reports an APR of 17.8 percent
-and a Sharpe ratio of 0.96, "quite an improvement" on the linear rule, and the
-script's closing comment prints six decimals. The post answers the Example 3.1
+and a Sharpe ratio of 0.96, "quite an improvement" on the linear rule, and a
+comment in the script records both to six decimals. The post answers the Example 3.1
 post's Lesson 5 and draws five lessons from Entry 26 of the replication log.
 
 1. Both figures `bollinger.m` prints reproduce to six digits, and the book's

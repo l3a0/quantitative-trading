@@ -6214,8 +6214,8 @@ reproduce on his file and nothing about whether the rule pays today.
 
 ### What the book printed
 
-The script closes on a comment holding the six decimals its
-`fprintf('APR=%f Sharpe=%f')` prints, and location 1559 rounds both.
+The script records the six decimals its `fprintf('APR=%f Sharpe=%f')` prints
+in a comment on the next line, and location 1559 rounds both.
 
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |

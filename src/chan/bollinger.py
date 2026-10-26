@@ -108,7 +108,7 @@ from chan.vintage import VintageEntry, VintageUnavailable
 ENTRY_ZSCORE = 1
 EXIT_ZSCORE = 0
 
-#: What ``bollinger.m``'s closing comment prints, ``APR=%f Sharpe=%f``.
+#: What the comment under ``bollinger.m``'s ``fprintf`` records, ``APR=%f Sharpe=%f``.
 SCRIPT_BOLLINGER = ("0.178249", "0.964673")
 #: What location 1559 prints: "APR = 17.8 percent, and Sharpe ratio of 0.96".
 BOOK_BOLLINGER = (17.8, 0.96)
