@@ -471,9 +471,10 @@ class TestTheReturn:
         assert not same_color(lines["high"].get_markerfacecolor(), LOST)
 
     def test_vermilion_falls_short_on_the_spell_band_and_clears_on_white(self, axes) -> None:
-        """The 3.64 and 4.69 the ``LABEL_BOX`` comment quotes. The spell and trough
-        labels sit on the band, which is ``LOST`` at its alpha over the axes'
-        ground, and ``tests/test_palette.py`` pins the ground's 4.30."""
+        """The 3.64 and 4.69 the ``LABEL_BOX`` comment quotes. The spell label sits
+        on the band, which is ``LOST`` at its alpha over the axes' ground, and the
+        trough label straddles its right edge. ``tests/test_palette.py`` pins the
+        ground's 4.30."""
         ax = axes["returns"]
         *band, alpha = _by_gid(ax.patches)["spell"].get_facecolor()
         ground = to_rgb(ax.get_facecolor())
@@ -491,7 +492,7 @@ class TestTheReturn:
             note for ax in axes.values() for note in ax.texts if same_color(note.get_color(), LOST)
         ]
         # A list rather than a map by gid, so a second label reusing a gid is counted.
-        assert sorted(note.get_gid() for note in found) == [
+        assert sorted((note.get_gid() for note in found), key=str) == [
             "eigen-short-label",
             "spell-label",
             "trough-label",
