@@ -4972,9 +4972,11 @@ Every other number in the post traces to an assertion in
 [tests/test_price_spread.py](tests/test_price_spread.py) for Example 3.1's
 book figure of 10.9 percent against its script's 10.8, the file's 1,500 days
 and the hedge ratio's 334 days below zero, to
-[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, or to
+[tests/test_series.py](tests/test_series.py) for the file's 67 ETFs, to
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) for the
-figure's own numbers. Seven had no pin before it.
+figure's own numbers, or to
+[tests/test_bollinger_whiteboard.py](tests/test_bollinger_whiteboard.py) for
+the whiteboard sketches'. Seven had no pin before it.
 [tests/test_bollinger.py](tests/test_bollinger.py) now pins the first six, and
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) pins the
 seventh.
@@ -5018,6 +5020,41 @@ uv run python -m chan.bollinger_figures
 
 [tests/test_bollinger_figures.py](tests/test_bollinger_figures.py) holds what
 it draws rather than its bytes, for the reason given above for the regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/bollinger_whiteboard.py](src/chan/bollinger_whiteboard.py) on the
+USD.CAD post's sketch machinery. Each sits after the text it draws, and both
+build slowly and hold their finished drawing for twelve seconds. Neither is
+schematic. Each draws every day's z-score as a dot to one scale, above a strip
+of the units held.
+
+1. One in "The rule and the file", `bollinger_sketch_one_close.gif`, after the
+   paragraph on a long turning short in a single day. It draws the 16 days
+   from 2006-07-27 to 2006-08-17, where a long entered below −1 is held while
+   two z-scores sit back inside the band, then turns short on 2006-08-11, when
+   the z-score jumps from below 0 to above 1.
+2. One in Lesson 3, `bollinger_sketch_two_divisors.gif`, after the list of
+   the two moved figures. It draws the 11 days from 2007-05-24 to 2007-06-08
+   with each day's z-score under both divisors side by side. On 2007-05-29
+   the n − 1 z-score is 0.9867 and the n z-score 1.0124, so the run divided by
+   n enters a short `bollinger.m` never opens and exits it on 2007-06-07,
+   while the n − 1 run stays flat.
+
+```bash
+uv run python -m chan.bollinger_whiteboard
+```
+
+[tests/test_bollinger_whiteboard.py](tests/test_bollinger_whiteboard.py) reads
+the run on the committed file and holds what each sketch says and draws: each
+dot at its z-score on one scale, each strip's units under their day, the
+counts the labels print, and that days which would make a sketch's words false
+are refused. The n divisor's z-score comes from `zscore_divided_by_n` in
+[src/chan/bollinger_figures.py](src/chan/bollinger_figures.py), the helper the
+figure's dashed line also trades on, so the two cannot drift apart. It also
+holds that no label touches a line, another label or the frame's edge, and
+that each GIF follows its text in the post. It compares each committed GIF
+with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS, as the
+USD.CAD sketches' test does.
 
 [blog/kalman-hedge-lessons.md](blog/kalman-hedge-lessons.md) is a
 twenty-second post, about Kindle locations 1633 to 1726 of Chan's
