@@ -667,17 +667,21 @@ class TestWhatThePostQuotes:
 
     The classes above pin each figure once, and the post copies it by hand.
     Here each figure is built from the run at the precision the post prints
-    it, and looked for in one copy: a short fragment holding the number and
-    the few words that name one place in the post. A typo in that copy, or a
-    re-pin that leaves the post behind, fails here. Lesson 1's two tables and
-    Lesson 3's table are rebuilt whole, so a digit added to a cell fails as
-    well as a digit changed.
+    it, and looked for in at least one copy: a short fragment holding the
+    number and the few words that name one place in the post. A typo in a
+    copy it reads, or a re-pin that leaves the post behind, fails here.
+    Lesson 1's two tables and Lesson 3's table are rebuilt whole, so a digit
+    added to a cell fails as well as a digit changed.
 
-    Only one copy of each figure is read. The yearly APRs are read in the
-    figure's alt text and not in the paragraph under the caption, the Sharpe
-    ratios of Lesson 3 in its table and not in the sentences that repeat them,
-    and the rounding margins and the average day in their lessons and not in
-    the closing habits. The Kindle locations, the book's own figures beyond
+    Some figures are read in more than one copy. Each example's APR and
+    Sharpe ratio are read in Lesson 1's tables and again in the figure's alt
+    text. Lesson 3's Sharpe ratios are read in its table and again in the
+    sentences that take differences between them, and 0.2510 and 1.2219 again
+    in Lesson 4's first paragraph. Other copies are not read. The yearly APRs
+    are read in the figure's alt text and not in the paragraph under the
+    caption, Lesson 3's Sharpe ratios not in its opening sentence, and the
+    rounding margins and the average day in their lessons and not in the
+    closing habits. The Kindle locations, the book's own figures beyond
     the tables, the ratios README lists and the facts outside the data are
     checked by nothing. The figures only the two sketches print, such as CAH's
     3.17 cents and the 3.2366 the panel keeps, are read in the alt texts by

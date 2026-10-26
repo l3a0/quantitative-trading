@@ -5347,15 +5347,21 @@ before it.
 `TestWhatThePostQuotes` in
 [tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) reads
 the post itself. It rebuilds Lesson 1's two tables and Lesson 3's table whole
-from the run, checks one copy of every other figure the post takes from a run
-outside the two sketches' alt texts and captions, at the precision the post
-prints, including the first book's 2006 figures, and
+from the run, checks at least one copy of every other figure the post takes
+from a run outside the two sketches' alt texts and captions, at the precision
+the post prints, including the first book's 2006 figures, and
 reads each sentence that dates the stock list to late 2011. It also asserts on
 the run four comparisons the post's words draw: that Example 4.3's curve ends
 2007 below zero, that what is left of the rise is more than twice what the
 change of rule gave, that the profit is about twenty times 2006's, and that
 the rule keeps less than a third of its daily profit after costs, and it
-reads the sentences that draw them. It reads no second copy of a figure.
+reads the sentences that draw them. It reads some figures in more than one
+place. It reads each example's APR and Sharpe ratio in Lesson 1's tables and
+again in the figure's alt text, and Lesson 3's Sharpe ratios in its table and
+again in the sentences that take differences between them. It reads 0.2510
+and 1.2219 again in Lesson 4's first paragraph. Other copies go unread, such
+as the yearly APRs under the chart's caption, Lesson 3's opening sentence and
+the closing habits, so a typo in one of those passes.
 
 Its one figure is drawn from the committed panel by
 [src/chan/khandani_lo_book_two_figures.py](src/chan/khandani_lo_book_two_figures.py),

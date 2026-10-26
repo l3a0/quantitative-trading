@@ -4966,7 +4966,7 @@ figures from Entries 8 and 10 in `tests/test_khandani_lo.py`.
 Three things.
 
 1. **Examples 4.3 and 4.4 reproduce on Chan's own file.** All six figures
-   the book prints land at its precision, and Example 4.4's two lands at the
+   the book prints land at its precision, and Example 4.4's two land at the
    six decimals the script printed.
 2. **The distance from the first book's 0.25 to this book's 1.3 is mostly
    the data and the window rather than the rule.** Entry 8's rule on this
