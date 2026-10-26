@@ -76,7 +76,7 @@ from PIL import Image
 from scipy.stats import norm
 
 from chan import palette as own
-from chan import usdcad_mean_reversion
+from chan import regime_figure, usdcad_mean_reversion
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR
 from chan.series import WindowCrossesScaleBreak
@@ -1318,6 +1318,18 @@ class TestLeaningNotCrossing:
     def test_each_tint_is_a_colour_the_palette_already_holds(self) -> None:
         for tint in (own.TINT, own.REJECT_TINT):
             assert [round(255 * c) for c in matplotlib.colors.to_rgb(tint)] in _palette_rgbs()
+
+    def test_the_shared_tints_stay_the_shared_inks_at_the_lightest_blend(self) -> None:
+        """The module's own ``TINT`` and ``REJECT_TINT`` are what the posts that
+        have not moved draw in, so they stay the shared green and red blended,
+        not this post's blue and vermilion."""
+        for tint, ink in (
+            (whiteboard.TINT, whiteboard.GOOD),
+            (whiteboard.REJECT_TINT, whiteboard.LOST),
+        ):
+            blended = [round(255 * c) for c in whiteboard._blend(ink, whiteboard.BLENDS[-1])]
+            assert [round(255 * c) for c in matplotlib.colors.to_rgb(tint)] == blended
+        assert (whiteboard.GOOD, whiteboard.LOST) == (regime_figure.GOOD, regime_figure.LOST)
 
     def test_each_dot_sits_on_the_reverting_side_short_of_its_threshold(self, drawn) -> None:
         scene = drawn[11]

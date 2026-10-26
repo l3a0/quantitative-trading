@@ -32,7 +32,7 @@ from matplotlib.colors import same_color
 from matplotlib.dates import DateFormatter, MonthLocator, YearLocator, date2num, num2date
 from matplotlib.figure import Figure
 
-from chan import paths, usdcad_mean_reversion
+from chan import paths, regime_figure, usdcad_mean_reversion
 from chan import usdcad_mean_reversion_figures as figures
 from chan.matlab_helpers import moving_avg, moving_std
 from chan.palette import ACCENT, GOOD, LOST
@@ -913,3 +913,21 @@ class TestTheFallFollowsTheRun:
         assert _days(_by_gid(pnl.lines)["pnl"])[0] == pd.Timestamp("2008-07-23")
         assert pnl.get_xlim()[0] == date2num(pd.Timestamp("2008-07-23") - FALL_MARGIN)
         assert _text(pnl, "peak-label").endswith(", 2008-07-23")
+
+
+class TestNoSharedColourIsLeft:
+    """Every coloured line, patch and fill in both figures is drawn in
+    :mod:`chan.palette`'s colours, so a call site left in the shared brass,
+    green or red fails here on every platform rather than only in the pixel
+    comparison, which runs on macOS arm64 alone."""
+
+    def test_no_artist_is_in_a_shared_colour(self, axes, fall_axes) -> None:
+        shared = (regime_figure.ACCENT, regime_figure.GOOD, regime_figure.LOST)
+        for name, ax in [*axes.items(), *fall_axes.items()]:
+            for artist in [*ax.lines, *ax.patches, *ax.collections]:
+                if hasattr(artist, "get_facecolors") or not hasattr(artist, "get_color"):
+                    colours = [c[:3] for c in np.atleast_2d(artist.get_facecolor())]
+                else:
+                    colours = [artist.get_color()]
+                for colour in colours:
+                    assert not any(same_color(colour, s) for s in shared), (name, artist.get_gid())
