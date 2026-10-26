@@ -29,6 +29,7 @@ from chan.commodity_seasonals import (
     RBOB_GASOLINE,
     RUN_START,
     Trade,
+    count_test_days,
     daily_marks,
     easter,
     gap_fills,
@@ -470,6 +471,13 @@ class TestTheGapFills:
         assert [round(m, 2) for m in raw] == [0.45, 0.66, 0.93]
         assert [round(f.linear_margin, 2) for f in self.FILLS] == [0.46, 0.76, 0.11]
 
+    def test_the_april_days_narrow_to_each_patterns_test_days(self) -> None:
+        """All April trading days, those whose pattern fits inside April, those
+        with every May price, and those with both June prices too."""
+        counts = [count_test_days(f) for f in self.FILLS]
+        assert counts == [(247, 187, 108, 80), (247, 199, 126, 90), (247, 211, 139, 102)]
+        assert [c[-1] for c in counts] == [f.tested for f in self.FILLS]
+
     def test_fill_2_guesses_may_low(self) -> None:
         """Its average miss, the true price minus the guess, is above zero by
         between 2.7 and 3.2 standard errors in every pattern. The test days
@@ -770,6 +778,23 @@ class TestThePostQuotesThePins:
             f"The sketch draws `e` at each year’s average miss `b`, {biases[0]} cents for "
             f"{fills[0].year} and {biases[1]} for {fills[1].year}."
         ) in self.text
+
+    def test_the_table_of_test_days(self) -> None:
+        """Each missing year's gap, how far back fill 2 starts, and how many
+        test days its pattern leaves, read from the run."""
+        fills = gap_fills()
+        rows = {
+            "Missing year": [str(f.year) for f in fills],
+            "Missing price": [f"\\text{{{f.leg}}}" for f in fills],
+            "Missing day": [f"\\text{{{f.day.day} {f.day:%b}}}" for f in fills],
+            "Fill 2 starts": [f"\\text{{{f.base.day} {f.base:%b}}}" for f in fills],
+            "Days back": [str(f.steps[2]) for f in fills],
+            "Test days": [str(f.tested) for f in fills],
+        }
+        for name, cells in rows.items():
+            assert f"\\text{{{name}}} & {' & '.join(cells)}" in self.text, name
+        total, *_, kept = count_test_days(fills[0])
+        assert f"For {fills[0].year}, {total} April trading days narrow to {kept}:" in self.text
 
     def test_the_derivation_of_the_chance(self) -> None:
         """The worked example and the product in the derivation read the run."""

@@ -128,6 +128,23 @@ Fill 2 takes May’s last known price and moves it by June’s change since that
 
 To measure a fill, the run hid April days from 1994 to 2005 whose May price the file does hold, each with the rows around it the same number of trading days away as in the real gap. It filled them and took the root mean square error, the typical size of a miss.
 
+Not every April day can serve as a test. A test day needs prices at the same distances as the real gap, and each missing year’s gap sits at its own distances:
+
+```math
+\small\begin{array}{l|c|c|c}
+\text{Missing year} & 1997 & 1998 & 1999 \\ \hline
+\text{Missing price} & \text{entry} & \text{exit} & \text{exit} \\
+\text{Missing day} & \text{14 Apr} & \text{24 Apr} & \text{23 Apr} \\
+\text{Fill 2 starts} & \text{8 Apr} & \text{21 Apr} & \text{21 Apr} \\
+\text{Days back} & 4 & 3 & 2 \\
+\text{Test days} & 80 & 90 & 102
+\end{array}
+```
+
+A pattern that reaches back fewer days fits more April days, so 1998 and 1999 have more test days than 1997. For 1997, 247 April trading days narrow to 80:
+
+![“Which April days can test a fill”, drawn slowly stroke by stroke as four bars drawn to scale, each shorter than the one above. The first, “April trading days, 1994 to 2005”, reads “247”. The second, “the pattern fits inside April”, reads “187”, beside “−60: fall outside April”. The third, “May has all four prices”, reads “108”, beside “−79: lack a May price”. The fourth, in brown, “June has both of fill 2’s prices”, reads “80”, beside “−28: lack a June price”. A caption reads “1997’s gap: rows 2 days back and 1 ahead, fill 2 starts 4 back”, and a note names the trade as “gasoline, May contract”. Most of the days lost lack a price in EIA’s files. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_test_days.gif)
+
 Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 2 gives moves of +0.4, +0.5 and +0.6 cents a gallon and misses by 0.89, 0.76 and 0.65. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss.
 
 Fill 2’s misses also lean one way. On the test days it guessed May too low by 0.26, 0.21 and 0.20 cents on average, each between 2.7 and 3.2 standard errors from zero, a standard error being how far an average drawn from that many days would typically stray.

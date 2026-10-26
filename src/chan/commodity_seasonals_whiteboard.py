@@ -1,15 +1,16 @@
 """Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2 and 4.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Eleven of its passages turn on a picture a
+trades against EIA's settlements. Twelve of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
 missing one, what Chan's 19 needs of the missing years, how the second fill
-carries June's move across a gap, how its misses lean and spread, how the lean
+carries June's move across a gap, which April days can test a fill, how its
+misses lean and spread, how the lean
 looks April by April, why a miss subtracts at an entry and adds at an exit, how
 far a fill misses against each year's move, and which numbered file holds the
-June contract on a given day. This module draws those eleven as scenes, and the
+June contract on a given day. This module draws those twelve as scenes, and the
 post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
@@ -51,26 +52,30 @@ post places each right after the paragraph it draws.
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the sentence opening
    "Fill 2 takes May’s last known price".
-7. One set of misses, three numbers: fill 2's misses on every test day of
+7. Which April days can test a fill: four bars, the April trading days from
+   1994 to 2005 narrowing to 1997's test days as each check removes days,
+   with how many each check removes. It sits after the sentence opening "A
+   pattern that reaches back fewer days".
+8. One set of misses, three numbers: fill 2's misses on every test day of
    1997's pattern, stacked as dots on a scale in cents, with the average miss
    and a bar of the spread around it, and a bar of the typical miss around
    zero. It sits after the paragraph opening "Fill 2’s misses also lean one
    way."
-8. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
+9. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
    bar from zero, with the number of test days that April. It sits after the
    paragraph opening "The test days overlap".
-9. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
+10. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
    missing entry and 1998's missing exit, each with the known price, fill 2's
    guess, the guess lifted by fill 2's average miss, and brackets for the move
    with the guess and the move with the lifted guess, shorter for the entry
    and longer for the exit. It sits after the exit's derivation, which opens
    "```math".
-10. Each corrected move against fill 2's spread: for each missing year, the
+11. Each corrected move against fill 2's spread: for each missing year, the
    year's move with fill 2's guess corrected by its average miss, a bar of the
    spread of its misses either side, and each year's chance of a profit. The
    bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
    the paragraph opening "So the chance that all three years were profits".
-11. Which file holds the June contract: the March, April, May and June natural
+12. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -79,7 +84,7 @@ post places each right after the paragraph it draws.
    sits in Lesson 4, after the paragraph opening "For gasoline the answer is
    simple."
 
-All eleven carry data, and none needs the owner's archive.
+All twelve carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -110,7 +115,7 @@ Both years' calendars are drawn on one axis of month and day.
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.
 Each sketch carries more than a reader takes in at that post's pace, so
-all eleven are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all twelve are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
@@ -118,7 +123,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all eleven with::
+with no change is a no-op diff. Redraw all twelve with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -1207,6 +1212,93 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
     return Scene("Fill 2 carries June’s move across the gap", "june_move_fill", tuple(steps))
 
 
+# --- Lesson 2: which April days can test a fill ------------------------------
+
+
+@dataclass(frozen=True)
+class NarrowingFigures:
+    """What the test-day sketch draws: 1997's gap and how the April trading
+    days narrow to its test days, as
+    :func:`chan.commodity_seasonals.count_test_days` counts them."""
+
+    fill: seasonals.GapFill
+    counts: tuple[int, int, int, int]
+
+    @classmethod
+    def from_run(cls) -> NarrowingFigures:
+        fill = seasonals.gap_fills()[0]
+        return cls(fill=fill, counts=seasonals.count_test_days(fill))
+
+
+#: The test-day sketch's bars: where each starts, how long the first one is,
+#: each bar's height, and what each one keeps and what each drop loses.
+NARROW_X0, NARROW_LONGEST = 0.5, 6.6
+NARROW_ROWS = (3.4, 2.55, 1.7, 0.85)
+NARROW_KEPT = (
+    "April trading days, 1994 to 2005",
+    "the pattern fits inside April",
+    "May has all four prices",
+    "June has both of fill 2’s prices",
+)
+NARROW_LOST = ("fall outside April", "lack a May price", "lack a June price")
+
+
+def _narrow_end(count: int, f: NarrowingFigures) -> float:
+    return NARROW_X0 + count * NARROW_LONGEST / f.counts[0]
+
+
+def _test_days(f: NarrowingFigures) -> Scene:
+    """Lesson 2: the April trading days of the test years, narrowed by each
+    check a day must pass to test a fill in 1997's pattern."""
+    steps: list[Stroke | Label] = []
+    for k, (count, y, kept) in enumerate(zip(f.counts, NARROW_ROWS, NARROW_KEPT, strict=True)):
+        ink = ACCENT if k == len(f.counts) - 1 else INK
+        steps += [
+            _stroke(
+                f"stage-{k}",
+                _line([(NARROW_X0, y), (_narrow_end(count, f), y)], per_unit=10),
+                color=ink,
+                width=9.0,
+                frames=4,
+            ),
+            Label(kept, NARROW_X0, y + 0.4, names=f"stage-{k}", color=INK, size=11),
+            Label(
+                str(count),
+                _narrow_end(count, f) + 0.3,
+                y - 0.07,
+                names=f"stage-{k}",
+                color=ink,
+                size=12,
+            ),
+        ]
+        if k:
+            steps.append(
+                Label(
+                    f"−{f.counts[k - 1] - count}: {NARROW_LOST[k - 1]}",
+                    9.7,
+                    y - 0.07,
+                    names=f"stage-{k}",
+                    color=LOST,
+                    size=10,
+                    ha="right",
+                )
+            )
+    back, ahead, start = f.fill.steps
+    steps += [
+        Label(
+            f"{f.fill.year}’s gap: rows {back} days back and {ahead} ahead, "
+            f"fill 2 starts {start} back",
+            0.3,
+            0.25,
+            names="stage-0",
+            color=MUTED,
+            size=10,
+        ),
+        Label(GASOLINE_TRADE, 9.7, 0.25, names="stage-0", color=MUTED, size=10, ha="right"),
+    ]
+    return Scene("Which April days can test a fill", "test_days", tuple(steps))
+
+
 # --- Lesson 2: how fill 2's misses lean and spread ---------------------------
 
 
@@ -1835,6 +1927,7 @@ PACED = (
     "chan_needs_gaps",
     "interpolation_guess",
     "june_move_fill",
+    "test_days",
     "three_numbers",
     "april_leans",
     "miss_sign",
@@ -1872,14 +1965,16 @@ def scenes(
     guess: GuessFigures | None = None,
     fill_two: FillTwoFigures | None = None,
     misses: MissFigures | None = None,
+    narrowing: NarrowingFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The eleven scenes in the order the post reads them, Lessons 1, 2 and 4."""
+    """The twelve scenes in the order the post reads them, Lessons 1, 2 and 4."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
     guess = guess if guess is not None else GuessFigures.from_run()
     fill_two = fill_two if fill_two is not None else FillTwoFigures.from_run()
     misses = misses if misses is not None else MissFigures.from_run()
+    narrowing = narrowing if narrowing is not None else NarrowingFigures.from_run()
     return (
         _streak_start(streaks),
         _gasoline_editions(gasoline),
@@ -1887,6 +1982,7 @@ def scenes(
         _chan_needs_gaps(gasoline),
         _interpolation_guess(guess),
         _june_move_fill(fill_two),
+        _test_days(narrowing),
         _three_numbers(misses),
         _april_leans(misses),
         _miss_sign(*seasonals.gap_fills()[:2]),
@@ -1918,11 +2014,13 @@ def make_commodity_seasonals_whiteboards(
     guess: GuessFigures | None = None,
     fill_two: FillTwoFigures | None = None,
     misses: MissFigures | None = None,
+    narrowing: NarrowingFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, in the post's order."""
     folder = out_dir if out_dir is not None else FIGURES_DIR
     return [
-        _write(scene, folder) for scene in scenes(streaks, years, gasoline, guess, fill_two, misses)
+        _write(scene, folder)
+        for scene in scenes(streaks, years, gasoline, guess, fill_two, misses, narrowing)
     ]
 
 

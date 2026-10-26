@@ -405,30 +405,61 @@ def _fills(day: date, around: tuple[date, date, date], steps: tuple[int, int, in
     return linear, june
 
 
-def _test_days(steps: tuple[int, int, int], one, two) -> list[tuple[date, tuple[date, date, date]]]:
-    """Every April day whose fills can be tested in a gap's pattern of steps.
+def _test_day_stage(day: date, steps: tuple[int, int, int], last: date, one, two) -> int:
+    """How far ``day`` gets through the checks that make it a test day.
 
-    Each test day keeps the gap's pattern: its row before, its row after and
-    its base sit the same numbers of trading days away as the gap's. Every day
-    used lies in April, when May is contract 1, so no fill reaches across a
-    roll. Each entry is the day and its row before, row after and base.
+    0 means its pattern reaches outside April, 1 that it fits but May's file
+    misses a price it needs, 2 that May's prices are all there but June's file
+    misses one, and 3 that it is a test day. The pattern is the row before,
+    the row after and fill 2's base, the same numbers of trading days away as
+    the gap's, and all of it must lie in April, when May is contract 1, so no
+    fill reaches across a roll.
     """
-    found = []
+    around = (_step(day, -steps[0]), _step(day, steps[1]), _step(day, -steps[2]))
+    before, after, base = around
+    if min(before, base).month != 4 or after > last:
+        return 0
+    if not all(d in one for d in (*around, day)):
+        return 1
+    if not all(d in two for d in (base, day)):
+        return 2
+    return 3
+
+
+def _april_days():
+    """Every April trading day of :data:`FILL_TEST_YEARS`, with its month's last."""
     for year in range(FILL_TEST_YEARS[0], FILL_TEST_YEARS[1] + 1):
         last = last_business_day(year, 4)
         day = on_or_after(date(year, 4, 1))
         while day <= last:
-            around = (_step(day, -steps[0]), _step(day, steps[1]), _step(day, -steps[2]))
-            before, after, base = around
-            if (
-                min(before, base).month == 4
-                and after <= last
-                and all(d in one for d in (*around, day))
-                and all(d in two for d in (base, day))
-            ):
-                found.append((day, around))
+            yield day, last
             day = _step(day, 1)
-    return found
+
+
+def _test_days(steps: tuple[int, int, int], one, two) -> list[tuple[date, tuple[date, date, date]]]:
+    """Every April day whose fills can be tested in a gap's pattern of steps,
+    with its row before, row after and base."""
+    return [
+        (day, (_step(day, -steps[0]), _step(day, steps[1]), _step(day, -steps[2])))
+        for day, last in _april_days()
+        if _test_day_stage(day, steps, last, one, two) == 3
+    ]
+
+
+def count_test_days(fill: GapFill, *, data_dir: Path | None = None) -> tuple[int, int, int, int]:
+    """How the April trading days narrow to ``fill``'s test days: all of them,
+    those whose pattern fits inside April, those with every May price the fills
+    need, and those that also have both of fill 2's June prices. The last is
+    ``fill.tested``."""
+    one = settlements(HARBOR_GASOLINE, data_dir=data_dir)[1]
+    two = settlements(HARBOR_GASOLINE_2, data_dir=data_dir)[1]
+    stages = [_test_day_stage(day, fill.steps, last, one, two) for day, last in _april_days()]
+    return (
+        len(stages),
+        sum(stage >= 1 for stage in stages),
+        sum(stage >= 2 for stage in stages),
+        sum(stage == 3 for stage in stages),
+    )
 
 
 def _fill_errors(steps: tuple[int, int, int], one, two) -> tuple[float, float, float, float, int]:
