@@ -80,6 +80,8 @@ Gasoline’s main text says 19 profitable years of the last 21 “as of 2015” 
 
 ## Lesson 2: a missing row is not a losing year
 
+### Three missing rows bound the count
+
 Chan counts 19 profitable gasoline years of 21, from 1995 to 2015. The files give this:
 
 ```math
@@ -96,9 +98,13 @@ EIA’s New York Harbor file holds no row on 14 April 1997, the entry date that 
 
 ![“Three missing rows leave a range, not a count”, drawn slowly stroke by stroke. A year axis labelled only at “1995” and “2015” carries a green dot for each profitable gasoline year and a red cross at 2009 and 2012. A grey span under 1997 to 1999, which have no mark, reads “no row: a profit or a loss?”. Below, a scale of profitable years is labelled “15”, “16”, “17”, “18”, “19” and “20”. A brown bracket over 16 to 19 reads “the files allow 16 to 19”, and a black mark at 19, the bracket’s top end, reads “Chan: 19”. A caption names the scale as “profitable years of 21”, and a note in the lower right names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_gap_range.gif)
 
+### A filled gap is a guess
+
 Interpolating, which here means taking a neighboring day’s price, would turn a gap into a guess, and the guess would decide the count it is meant to check.
 
 ![“Interpolating turns a gap into a guess”, drawn slowly stroke by stroke. Black dots mark the May gasoline contract’s settlements one trading day apart along an axis labelled “gasoline, May contract, April 1997”, with no dot on the day labelled “Apr 14, the entry: no row”. The file misses April 11, 16 and 18 too, so those days have no dot either. A dashed grey line marks the “exit price 0.625”. A brown straight line joins the dots either side of the gap, and a brown dot on it at the gap is the “straight-line guess 0.616”. Around the guess a band of close strokes runs from “0.635” down to “0.597”, “one typical miss either side”. The dashed exit line splits it into a red part above, “entry here: a loss”, and a green part below, “entry here: a profit”. The guess sits in the green part, and the band reaches into the red. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_interpolation_guess.gif)
+
+### Chan’s 19 needs all three missing years
 
 The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing years, and the files show exactly 2, in 2009 and 2012. If Chan’s data agrees with EIA’s on the other 18 years, his 19 holds only if all 3 missing years were profitable in his data. No source here covers the contract in those years.
 
