@@ -539,6 +539,18 @@ class TestTheFigures:
         with pytest.raises(ValueError, match="a rule is flat on a row where both lags exist"):
             JoinFigures.from_run()
 
+    def test_it_refuses_a_reversal_rule_flat_where_both_lags_exist(self, monkeypatch) -> None:
+        real = crude.reversal_positions
+
+        def one_flat(closes, **kwargs):
+            held = real(closes, **kwargs)
+            held[crude.MOMENTUM_LOOKBACK + 5] = 0.0
+            return held
+
+        monkeypatch.setattr(crude, "reversal_positions", one_flat)
+        with pytest.raises(ValueError, match="a rule is flat on a row where both lags exist"):
+            JoinFigures.from_run()
+
     def test_it_refuses_a_join_that_is_not_half_of_each_rule(self, monkeypatch) -> None:
         real = crude.combination_positions
 
@@ -1089,11 +1101,13 @@ class TestTheSwingSketch:
         assert tallest.y1 == pytest.approx(SWING_TOP)
 
     def test_a_rule_that_keeps_nothing_is_refused(self, figures) -> None:
-        """Kept at zero or below has no lower part to draw."""
+        """Kept at zero or below has no lower part to draw, on any of the three bars."""
         for kept in (0.0, -0.0002):
-            losing = (*figures.swings[:2], Swing("reversal alone", 0.0001, kept))
-            with pytest.raises(ValueError, match="reversal alone keeps nothing"):
-                scenes(replace(figures, swings=losing))
+            for at, swing in enumerate(figures.swings):
+                losing = list(figures.swings)
+                losing[at] = Swing(swing.rule, 0.0001, kept)
+                with pytest.raises(ValueError, match=f"{swing.rule} keeps nothing"):
+                    scenes(replace(figures, swings=tuple(losing)))
 
     def test_its_caption(self) -> None:
         """The rows, the save and the 252 days it names, read where they
