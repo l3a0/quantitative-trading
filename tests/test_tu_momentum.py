@@ -27,7 +27,8 @@ specification, so they are stated once here.
   pin reads it unless it names the second.
 - **The second vintage.** ``inputdataohlcdaily_20120517/tu.csv``, chan-mat,
   adjusted, saved 2012-05-18, the save ``correlationTest.m`` loads, 2,000 days
-  from 2004-06-07 to 2012-05-17. ``TestTheSave`` alone reads it.
+  from 2004-06-07 to 2012-05-17. ``TestTheSave`` pins it, ``TestTheGuardAndTheReads``
+  guards it, and ``TestWhatThePostQuotes`` reads it against the post.
 - **Specification.** ``TU_mom.m`` at EpchanPreview ``e4bc46f``, git blob
   ``f7935c7``, with ``idx = 1``, as :mod:`chan.tu_momentum` transcribes it.
   The correlation table takes past and future returns for every pair of 1, 5,
@@ -800,7 +801,8 @@ class TestWhatThePostQuotes:
       over by then, and the active line sees a smaller gain and a shallower
       fall.
     - The two saves agree on every shared day, the later one starts and ends
-      four trading days later, each gives the traded cell 69 days and no day
+      four trading days later, the days the traded cell keeps start four
+      trading days later too, each gives the traded cell 69 days and no day
       appears in both, and the shift alone moves the correlation in its
       second decimal, off the book's 0.27, and the Kelly f off the comment's
       digits.
@@ -876,7 +878,7 @@ class TestWhatThePostQuotes:
         )
         assert stronger > 2, "several pairs correlate more strongly"
         fragments = [
-            f"the correlation that picked the rule rests on {cell.rows} days.",
+            f"the correlation that picked the rule’s periods rests on {cell.rows} days.",
             f"The comment at the end of the script lists {SPELLED[six]} figures.",
             f"The one it runs starts in {ACTIVE_LINE_START.year} and lands none of the "
             f"{SPELLED[six]}. The one below it starts in {closes.index[0].year} and reads "

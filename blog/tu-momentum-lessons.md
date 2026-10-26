@@ -1,6 +1,6 @@
 # Chan’s TU momentum figures land on a window his script does not run, and the momentum behind them is thin
 
-*Chapter 6 of Algorithmic Trading measures whether two-year Treasury note futures trend before it trades them. On Chan’s own file every figure in his script’s closing comment lands, but only on the full window, whose line the script leaves commented out. The Hurst exponent misses, and the correlation that picked the rule rests on 69 days.*
+*Chapter 6 of Algorithmic Trading measures whether two-year Treasury note futures trend before it trades them. On Chan’s own file every figure in his script’s closing comment lands, but only on the full window, whose line the script leaves commented out. The Hurst exponent misses, and the correlation that picked the rule’s periods rests on 69 days.*
 
 ## Why measure momentum before trading it
 
@@ -192,7 +192,7 @@ Three questions are beyond this replication.
 
 1. **Whether 250/25 would be chosen without hindsight.** The pair was picked from a table of 49 computed on the 2004 to 2012 closes it then trades, so its p-value is not corrected for the other 48. [Entry 37 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-37-three-hypothesis-tests-on-tu-momentum-chans-algorithmic-trading) is where that significance question is asked, through Example 1.1’s three tests, and the [post on those three tests](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md) works through it.
 2. **What computed the book’s 0.44.** A setting tried after the miss lands it on TU and moves USD.CAD further from its 0.49, and Lesson 2 says why the search stopped there.
-3. **What a trader would earn.** The returns are measured against the notional value of the contract, the face value of the notes it controls, about \$200,000 (Chan, 2013, location 2668), rather than against the margin, the deposit a broker holds against each contract. They take off no transaction cost. Chan puts the margin at about \$400 and says leverage can boost the 1.7 percent. Leverage would multiply the drawdowns along with it. Nothing here measures what costs or leverage would do.
+3. **What a trader would earn.** The returns are measured against the notional value of the contract, the face value of the notes it controls, about \$200,000 (Chan, 2013, location 2668), rather than against the margin, the deposit a broker holds against each contract. They take off no transaction cost. Chan puts the margin at about \$400 and says leverage can boost the book’s APR of 1.7 percent. Leverage would multiply the drawdowns along with it. Nothing here measures what costs or leverage would do.
 
 ## What this means for a trader
 
