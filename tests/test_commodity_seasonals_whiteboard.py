@@ -1164,6 +1164,13 @@ class TestTheMissSignSketch:
                 guide = _stroke(scene, f"{tag}-guide-{k}")
                 assert (guide.color, guide.dashed) == (MUTED, True)
 
+    def test_the_entry_panel_sits_left_of_the_divider_and_the_exit_right(self, every) -> None:
+        scene = every[6]
+        divider = _stroke(scene, "divider").x[0]
+        for gid in ("known", "guess", "lifted", "m", "c"):
+            assert _stroke(scene, f"entry-{gid}").x.max() < divider, gid
+            assert _stroke(scene, f"exit-{gid}").x.min() > divider, gid
+
     def test_it_draws_1997s_entry_and_1998s_exit(self) -> None:
         entry, exit_ = seasonals.gap_fills()[:2]
         assert (entry.year, entry.leg, exit_.year, exit_.leg) == (1997, "entry", 1998, "exit")

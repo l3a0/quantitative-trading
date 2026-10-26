@@ -743,6 +743,34 @@ class TestThePostQuotesThePins:
         chance = math.prod(f.june_chance for f in fills)
         assert f"which Chan’s 19 needs, is {100 * chance:.0f}%" in self.text
 
+    def test_the_derivations_of_the_entry_and_exit_moves(self) -> None:
+        """A miss lowers the move when the entry is missing and raises it when
+        the exit is, in each derivation and in the table of the two cases.
+        Which gap is which comes from the run."""
+        fills = gap_fills()
+        entries = [f.year for f in fills if f.leg == "entry"]
+        exits = [f.year for f in fills if f.leg == "exit"]
+        assert (entries, exits) == ([1997], [1998, 1999])
+        entry_block = (
+            "\\text{true move} &= \\text{exit} - (\\text{guess} + e) \\\\\n"
+            "&= \\underbrace{(\\text{exit} - \\text{guess})}_{m} - e \\\\\n"
+            "&= m - e"
+        )
+        exit_block = (
+            "\\text{true move} &= (\\text{guess} + e) - \\text{entry} \\\\\n"
+            "&= \\underbrace{(\\text{guess} - \\text{entry})}_{m} + e \\\\\n"
+            "&= m + e"
+        )
+        assert entry_block in self.text
+        assert exit_block in self.text
+        assert f"\\text{{Entry, {entries[0]}}} & m - e & m - b" in self.text
+        assert f"\\text{{Exit, {exits[0]}, {exits[1]}}} & m + e & m + b" in self.text
+        biases = [f"{100 * f.june_bias:.2f}" for f in fills[:2]]
+        assert (
+            f"The sketch draws `e` at each year’s average miss `b`, {biases[0]} cents for "
+            f"{fills[0].year} and {biases[1]} for {fills[1].year}."
+        ) in self.text
+
     def test_the_derivation_of_the_chance(self) -> None:
         """The worked example and the product in the derivation read the run."""
         fills = gap_fills()
