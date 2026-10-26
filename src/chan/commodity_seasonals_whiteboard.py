@@ -33,23 +33,24 @@ post places each right after the paragraph it draws.
    which the files allow 16 to 19 profitable years and Chan's 19 sits at the
    top. It sits in Lesson 2 after the paragraph opening "EIA’s New York
    Harbor file holds no row".
-4. Interpolating turns a gap into a guess: the May gasoline contract's
-   settlements around April 14, 1997, the entry day with no row, a straight
-   line between the rows on either side and the guess it gives that day, and
-   a band of one typical miss either side of the guess, split at the exit
-   price into a part where the year is a loss and a part where it is a profit.
-   It sits after the paragraph opening "Interpolating, which here means".
-5. Chan's 19 needs all three gaps to be profits: Chan's 21 years as one bar
+4. Chan's 19 needs all three gaps to be profits: Chan's 21 years as one bar
    of 19 profits and 2 losses, and the files' as 16 profits, 3 years with no
    row and the 2 losses of 2009 and 2012, so the missing years sit under the
    end of Chan's profits. It sits after the paragraph opening "The losses say
    more than the gaps."
+5. Interpolating turns a gap into a guess: the May gasoline contract's
+   settlements around April 14, 1997, the entry day with no row, a straight
+   line between the rows on either side and the guess it gives that day, and
+   a band of one typical miss either side of the guess, split at the exit
+   price into a part where the year is a loss and a part where it is a profit.
+   It sits in the fill section, after the sentence opening "Fill 1 draws a
+   straight line".
 6. Fill 2 carries June's move across the gap: May's and June's settlements
    around April 14, 1997, May as dots and June as rings, June's rise from the
    last day both files hold to the gap day, the same rise added to May's
    price there to give fill 2's guess, and a band of fill 2's typical miss
-   either side, split at the exit price. It sits after the list opening
-   "1. **Fill 1, a straight line**".
+   either side, split at the exit price. It sits after the sentence opening
+   "Fill 2 takes May’s last known price".
 7. One set of misses, three numbers: fill 2's misses on every test day of
    1997's pattern, stacked as dots on a scale in cents, with the average miss
    and a bar of the spread around it, and a bar of the typical miss around
@@ -1831,8 +1832,8 @@ PACED = (
     "streak_start",
     "gasoline_editions",
     "gap_range",
-    "interpolation_guess",
     "chan_needs_gaps",
+    "interpolation_guess",
     "june_move_fill",
     "three_numbers",
     "april_leans",
@@ -1883,8 +1884,8 @@ def scenes(
         _streak_start(streaks),
         _gasoline_editions(gasoline),
         _gap_range(gasoline),
-        _interpolation_guess(guess),
         _chan_needs_gaps(gasoline),
+        _interpolation_guess(guess),
         _june_move_fill(fill_two),
         _three_numbers(misses),
         _april_leans(misses),

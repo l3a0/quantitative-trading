@@ -98,12 +98,6 @@ EIA’s New York Harbor file holds no row on 14 April 1997, the entry date that 
 
 ![“Three missing rows leave a range, not a count”, drawn slowly stroke by stroke. A year axis labelled only at “1995” and “2015” carries a green dot for each profitable gasoline year and a red cross at 2009 and 2012. A grey span under 1997 to 1999, which have no mark, reads “no row: a profit or a loss?”. Below, a scale of profitable years is labelled “15”, “16”, “17”, “18”, “19” and “20”. A brown bracket over 16 to 19 reads “the files allow 16 to 19”, and a black mark at 19, the bracket’s top end, reads “Chan: 19”. A caption names the scale as “profitable years of 21”, and a note in the lower right names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_gap_range.gif)
 
-### A filled gap is a guess
-
-Interpolating, which here means taking a neighboring day’s price, would turn a gap into a guess, and the guess would decide the count it is meant to check.
-
-![“Interpolating turns a gap into a guess”, drawn slowly stroke by stroke. Black dots mark the May gasoline contract’s settlements one trading day apart along an axis labelled “gasoline, May contract, April 1997”, with no dot on the day labelled “Apr 14, the entry: no row”. The file misses April 11, 16 and 18 too, so those days have no dot either. A dashed grey line marks the “exit price 0.625”. A brown straight line joins the dots either side of the gap, and a brown dot on it at the gap is the “straight-line guess 0.616”. Around the guess a band of close strokes runs from “0.635” down to “0.597”, “one typical miss either side”. The dashed exit line splits it into a red part above, “entry here: a loss”, and a green part below, “entry here: a profit”. The guess sits in the green part, and the band reaches into the red. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_interpolation_guess.gif)
-
 ### Chan’s 19 needs all three missing years
 
 The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing years, and the files show exactly 2, in 2009 and 2012. If Chan’s data agrees with EIA’s on the other 18 years, his 19 holds only if all 3 missing years were profitable in his data. No source here covers the contract in those years.
@@ -114,10 +108,19 @@ The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing yea
 
 #### Two ways to fill a gap
 
+Interpolating, which here means taking a neighboring day’s price, would turn a gap into a guess, and the guess would decide the count it is meant to check.
+
 The files do hold something on each missing day. EIA’s file for the second contract out, which holds June while May is the first, has a row on all three dates. So the run tried two fills and measured how far each can be trusted.
 
-1. **Fill 1, a straight line** between the May rows on either side of the gap, the guess the interpolation sketch above draws.
-2. **Fill 2, June’s move.** May’s last known price, moved by June’s change since that day, because the two contracts move almost together.
+##### Fill 1, a straight line
+
+Fill 1 draws a straight line between the May rows on either side of the gap.
+
+![“Interpolating turns a gap into a guess”, drawn slowly stroke by stroke. Black dots mark the May gasoline contract’s settlements one trading day apart along an axis labelled “gasoline, May contract, April 1997”, with no dot on the day labelled “Apr 14, the entry: no row”. The file misses April 11, 16 and 18 too, so those days have no dot either. A dashed grey line marks the “exit price 0.625”. A brown straight line joins the dots either side of the gap, and a brown dot on it at the gap is the “straight-line guess 0.616”. Around the guess a band of close strokes runs from “0.635” down to “0.597”, “one typical miss either side”. The dashed exit line splits it into a red part above, “entry here: a loss”, and a green part below, “entry here: a profit”. The guess sits in the green part, and the band reaches into the red. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_interpolation_guess.gif)
+
+##### Fill 2, June’s move
+
+Fill 2 takes May’s last known price and moves it by June’s change since that day, because the two contracts move almost together.
 
 ![“Fill 2 carries June’s move across the gap”, drawn slowly stroke by stroke. Black dots are the May gasoline contract’s settlements and grey rings the June contract’s, one trading day apart from April 7 to April 17, 1997, named “May” and “June” at their first marks, with a caption “dot: May   ring: June” and a note “gasoline”. May has no dot on the day labelled “Apr 14, the entry: no May row”, nor on April 11 or 16. A grey arrow carries June from April 8, the last day both files hold, to April 14, labelled “June rose 0.9¢”, and a brown arrow of the same rise starts at May’s April 8 price and ends on a brown dot, “same rise on May: guess 0.621”. A dashed grey line marks the “exit price 0.625”. Around the guess a band of close strokes runs from “0.630” down to “0.612”, “fill 2’s typical miss either side”. The exit line splits it into a red part above, “entry here: a loss”, and a green part below, “entry here: a profit”. The guess sits in the green part just under the line, and the band reaches into the red. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_june_move_fill.gif)
 

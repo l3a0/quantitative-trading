@@ -3523,10 +3523,10 @@ eleven.
    past both losses.
 3. The range of 16 to 19 profitable gasoline years the three missing rows
    leave, with Chan's 19 at its top.
-4. A straight-line guess for 1997's missing entry, with a band of one typical
-   miss either side that the exit price splits.
-5. Chan's years and the files' as two bars, the missing years filling the
+4. Chan's years and the files' as two bars, the missing years filling the
    gap between the files' 16 profits and Chan's 19.
+5. A straight-line guess for 1997's missing entry, with a band of one typical
+   miss either side that the exit price splits.
 6. Fill 2 for 1997: June's rise across the gap carried onto May, with a band
    of fill 2's typical miss either side that the exit price splits.
 7. Fill 2's misses on the 80 test days of 1997's pattern, with their

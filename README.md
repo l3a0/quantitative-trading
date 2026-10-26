@@ -3672,13 +3672,13 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 3. `commodity_sketch_gap_range.gif`, in Lesson 2, gasoline's years with the
    three missing ones marked, and a scale of counts on which the files allow
    16 to 19 profitable years, with Chan's 19 at the top.
-4. `commodity_sketch_interpolation_guess.gif`, in Lesson 2, the May contract
+4. `commodity_sketch_chan_needs_gaps.gif`, in Lesson 2, Chan's 21 years and
+   the files' as two bars, the missing years filling the gap between the
+   files' 16 profits and Chan's 19.
+5. `commodity_sketch_interpolation_guess.gif`, in Lesson 2, the May contract
    around 1997's missing entry, the straight-line guess across the gap, and a
    band of one typical miss either side that the exit price splits into a
    loss part and a profit part.
-5. `commodity_sketch_chan_needs_gaps.gif`, in Lesson 2, Chan's 21 years and
-   the files' as two bars, the missing years filling the gap between the
-   files' 16 profits and Chan's 19.
 6. `commodity_sketch_june_move_fill.gif`, in Lesson 2, May's and June's
    prices around 1997's gap, June's rise across it carried onto May as fill
    2's guess, and a band of fill 2's typical miss either side that the exit

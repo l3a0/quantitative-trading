@@ -29,7 +29,11 @@ quotes, such as test_the_run_gives_these_dates_and_files.
 3. The range sketch draws gasoline's years and a scale of counts. What is
    pinned is that the files' range runs from the profitable years to those
    plus the missing ones, and that Chan's count sits at its top end.
-4. The interpolation sketch draws the May contract around 1997's missing
+4. The Chan's-19 sketch draws Chan's years and the files' as two bars. What
+   is pinned is that each box spans its count, that the missing years fill
+   exactly the gap between the files' profits and Chan's, and that both bars'
+   losses line up.
+5. The interpolation sketch draws the May contract around 1997's missing
    entry, the straight line across the gap and its guess, and a band of one
    typical miss either side of the guess, split at the exit price. What is
    pinned is that each settlement sits at its trading day and price on one
@@ -37,10 +41,6 @@ quotes, such as test_the_run_gives_these_dates_and_files.
    typical miss and splits where the exit price is, that the guess sits on
    the profit side while the band reaches the loss side, and that other
    figures move it.
-5. The Chan's-19 sketch draws Chan's years and the files' as two bars. What
-   is pinned is that each box spans its count, that the missing years fill
-   exactly the gap between the files' profits and Chan's, and that both bars'
-   losses line up.
 6. The fill 2 sketch draws May's and June's prices around 1997's gap, June's
    rise and the same rise on May, and fill 2's band. What is pinned is that
    both arrows rise by June's change, that the guess is fill 2's, that the
@@ -160,8 +160,8 @@ GIFS = [
     "commodity_sketch_streak_start.gif",
     "commodity_sketch_gasoline_editions.gif",
     "commodity_sketch_gap_range.gif",
-    "commodity_sketch_interpolation_guess.gif",
     "commodity_sketch_chan_needs_gaps.gif",
+    "commodity_sketch_interpolation_guess.gif",
     "commodity_sketch_june_move_fill.gif",
     "commodity_sketch_three_numbers.gif",
     "commodity_sketch_april_leans.gif",
@@ -175,9 +175,9 @@ FOLLOWS = (
     "1. **They rule out the revised edition.**",
     "Gasoline’s main text says 19 profitable years",
     "EIA’s New York Harbor file holds no row",
-    "Interpolating, which here means",
     "The losses say more than the gaps.",
-    "1. **Fill 1, a straight line**",
+    "Fill 1 draws a straight line",
+    "Fill 2 takes May’s last known price",
     "Fill 2’s misses also lean one way.",
     "The test days overlap, though,",
     "```math\n\\begin{aligned}\n\\text{true move} &= (\\text{guess} + e) - \\text{entry}",
@@ -585,8 +585,8 @@ class TestTheGifs:
             "streak_start",
             "gasoline_editions",
             "gap_range",
-            "interpolation_guess",
             "chan_needs_gaps",
+            "interpolation_guess",
             "june_move_fill",
             "three_numbers",
             "april_leans",
@@ -1008,11 +1008,11 @@ class TestTheGuessFigures:
 
 class TestTheInterpolationSketch:
     def test_its_words(self, every) -> None:
-        assert every[3].title == "Interpolating turns a gap into a guess"
-        assert every[3].labels == GUESS_LABELS
+        assert every[4].title == "Interpolating turns a gap into a guess"
+        assert every[4].labels == GUESS_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[3]
+        scene = every[4]
         assert _stroke(scene, "prices").color == INK
         exit_line = _stroke(scene, "exit")
         assert (exit_line.color, exit_line.dashed) == (MUTED, True)
@@ -1025,7 +1025,7 @@ class TestTheInterpolationSketch:
         assert _label(scene, "entry here: a profit").color == GOOD
 
     def test_each_price_sits_at_its_trading_day_and_price(self, every, guess) -> None:
-        prices = _stroke(every[3], "prices")
+        prices = _stroke(every[4], "prices")
         assert list(prices.x) == pytest.approx([_guess_x(d, guess) for d, _ in guess.prices])
         assert list(prices.y) == pytest.approx([_guess_y(p, guess) for _, p in guess.prices])
         steps = np.diff(prices.x)
@@ -1033,7 +1033,7 @@ class TestTheInterpolationSketch:
         assert steps[gap] == pytest.approx(3 * steps[0])
 
     def test_the_guess_lies_on_the_line(self, every, guess) -> None:
-        scene = every[3]
+        scene = every[4]
         line, dot = _stroke(scene, "line"), _stroke(scene, "guess")
         x0, x1, y0, y1 = line.x[0], line.x[-1], line.y[0], line.y[-1]
         on_line = y0 + (dot.x[0] - x0) * (y1 - y0) / (x1 - x0)
@@ -1042,7 +1042,7 @@ class TestTheInterpolationSketch:
         assert dot.y[0] == pytest.approx(_guess_y(guess.fill.linear, guess))
 
     def test_the_band_is_one_typical_miss_either_side_split_at_the_exit(self, every, guess) -> None:
-        scene = every[3]
+        scene = every[4]
         loss, profit = _stroke(scene, "loss-zone"), _stroke(scene, "profit-zone")
         exit_y = _guess_y(guess.fill.other, guess)
         assert (loss.y.min(), loss.y.max()) == pytest.approx((exit_y, _guess_y(guess.top, guess)))
@@ -1062,18 +1062,18 @@ class TestTheInterpolationSketch:
         assert {"0.610", "0.590"} <= set(scene.labels)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[3])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[4])
         assert "settlements one trading day apart" in alt
         assert "The guess sits in the green part, and the band reaches into the red" in alt
 
 
 class TestTheChanNeedsGapsSketch:
     def test_its_words(self, every) -> None:
-        assert every[4].title == "Chan’s 19 needs all three gaps to be profits"
-        assert every[4].labels == NEEDS_LABELS
+        assert every[3].title == "Chan’s 19 needs all three gaps to be profits"
+        assert every[3].labels == NEEDS_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[4]
+        scene = every[3]
         for gid in ("chan-won", "files-won"):
             assert _stroke(scene, gid).color == GOOD, gid
         for gid in ("chan-lost", "files-lost"):
@@ -1084,7 +1084,7 @@ class TestTheChanNeedsGapsSketch:
         assert _label(scene, "1997 to 1999 must all be profits for Chan’s 19").color == ACCENT
 
     def test_each_box_spans_its_count(self, every, gasoline) -> None:
-        scene = every[4]
+        scene = every[3]
         won = len(gasoline.won)
         spans = {
             "chan-won": (0, 19),
@@ -1099,7 +1099,7 @@ class TestTheChanNeedsGapsSketch:
             ), gid
 
     def test_the_missing_years_fill_the_gap_to_chans_profits(self, every) -> None:
-        scene = every[4]
+        scene = every[3]
         assert _span_ends(_stroke(scene, "files-gap"))[1] == pytest.approx(
             _span_ends(_stroke(scene, "chan-won"))[1]
         )
@@ -1118,7 +1118,7 @@ class TestTheChanNeedsGapsSketch:
         assert "2000 to 2001 must all be profits for Chan’s 19" in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[4])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[3])
         assert "two bars of 21 years" in alt
         assert "both bars end in the same two losses" in alt
         assert "sits under the last three of Chan’s profits" in alt
