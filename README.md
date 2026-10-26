@@ -4706,13 +4706,18 @@ Every other number in the post traces to an assertion in
 own numbers, or to
 [tests/test_vx_es_whiteboard.py](tests/test_vx_es_whiteboard.py) for the
 sketches' labels and pace. `TestThePostQuotesTheRun` in
-[tests/test_vx_es.py](tests/test_vx_es.py) reads the post itself, so a figure
-edited in the post alone fails. It reads every row of the four tables with its
-verdict, and one copy of each figure the run computes that the prose writes in
-numerals. It does not read the subtitle or the closing list, which only repeat
-figures. Nor does it read the dates that name the saves, in the prose or in
-Lesson 2's column headings, or a count written as a word, such as the four
-bets. Three groups had no pin
+[tests/test_vx_es.py](tests/test_vx_es.py) reads the post itself. It reads
+every row of the four tables with its verdict, and at least one copy of each
+figure the run computes that the prose writes in numerals, so editing a copy it
+reads fails. A figure printed a second time is read only where the words
+around it match. So it leaves the other copies unread, such as the \$2.09 miss
+in the opening findings and in Lesson 1's heading, the 449 days in the opening
+findings and in Lesson 4's first paragraph, the 500 in "Those 500 days are the
+training days", and the fitted 0.390594 beside the rounded hedge. It
+does not read the subtitle, the closing list or the chart's alt text, which
+only repeat figures, such as the alt text's −3.89 and 22.92. Nor does it read
+the dates that name the saves, in the prose or in Lesson 2's column headings,
+or a count written as a word, such as the four bets. Three groups had no pin
 before the post, and
 [tests/test_vx_es.py](tests/test_vx_es.py) now pins them.
 
