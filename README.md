@@ -3572,8 +3572,8 @@ together. Every result in it is exploratory.
    another program's figures.
 2. Chan's round-off is a second strategy, because the revised Python's
    intercept cancels its factors and leaves single-stock momentum.
-3. The momentum the strategy assumes held for the market factor and not the
-   momentum factor, and for four of Example 7.4's own five factors. Each
+3. Chan's factor-momentum claim held for the market factor and four of
+   Example 7.4's five factors, and not for the momentum factor. Each
    verdict stands on its own, none of the five survives a test across all
    five, and which one misses, and which fall outside the band, moves when PMC
    is dropped.
@@ -3612,7 +3612,10 @@ Four groups of its figures are not pinned here.
    rests on 82 pairs. 1.96 marks a two-sided 5 percent, which is what puts
    the band at 95 percent. Each annual mean is the monthly mean times 12. The
    Python's 255 rows with no position are its 1,006 rows less its 751 traded
-   days.
+   days. The 83 holding months are the 96 month-ends less the 12 before the
+   first pick and the last, which has no month after it. 1.8654 is written as
+   186.54 percent. That neither printout's Sharpe ratio subtracts a risk-free
+   rate is a reading of their code.
 4. Its references. The five citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
