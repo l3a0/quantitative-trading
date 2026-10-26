@@ -476,7 +476,14 @@ def _no_shared_day(figures: SaveFigures) -> Scene:
         )
         save = figures.earlier if name == "upper" else figures.later
         steps.append(
-            Label(f"{save.save} save", ROW_NAMES_X, y, names=f"{name}-ticks", color=color, size=12)
+            Label(
+                f"file ending {save.save}",
+                ROW_NAMES_X,
+                y,
+                names=f"{name}-ticks",
+                color=color,
+                size=12,
+            )
         )
         steps.append(
             Label(
@@ -535,7 +542,7 @@ def _no_shared_day(figures: SaveFigures) -> Scene:
     )
     cell = f"{figures.lookback}/{figures.hold}"
     lines = (
-        f"{count(figures.shared)} closes in both saves, {every}",
+        f"{count(figures.shared)} closes in both files, {every}",
         kept_words,
         f"{cell} correlation: {four(figures.earlier.coefficient)} on the earlier, "
         f"{four(figures.later.coefficient)} on the later",

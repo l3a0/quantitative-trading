@@ -6015,7 +6015,7 @@ TU posts to link, and draws three lessons from Entry 33 of the replication log.
    share the same closes, and the variance ratio test cannot tell TU from a
    random walk.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6028,30 +6028,30 @@ Five groups of what it says are not pinned here.
    sentence, the notional value of about \$200,000, the margin of about \$400,
    the case for leverage and Figure 6.2's caption at 2668, and the sign of
    roll returns at 2683. The book's figures are pinned, and its words are not.
-2. Facts about the code rather than the data: the active line
+2. Facts about the code and the contract rather than the data: the active line
    `idx=find(tday==20090102);` and the commented-out `% idx=1;` under it,
    the comment printing no annual volatility, the `q` of 2 the script passes
    `genhurst`, `genhurst`'s default `maxT` of 19, and `correlationTest.m`
-   loading the 2012-05-17 save.
-   [src/chan/tu_momentum.py](src/chan/tu_momentum.py) records each in its
-   docstring.
+   loading the 2012-05-17 save, each of which
+   [src/chan/tu_momentum.py](src/chan/tu_momentum.py) records in its
+   docstring, and that TU's note matures in about two years and trades on the
+   Chicago Board of Trade, part of CME Group since 2007.
 3. Readings no test asserts: that TU's price rises when two-year yields fall,
-   that consecutive future returns overlap on 24 of 25 days, that a four-day
-   shift moving the correlation's second decimal shows how few days stand
-   behind it, that 2008 was the year of the financial crisis, that the
-   back-adjusted series carries roll return as well as moves in yields, that
-   the comment's missing volatility suggests it was pasted from an earlier
-   version of the printing line, that a rule mostly long on a rising price
-   earns part of the rise, and that leverage would multiply the drawdowns
-   along with the return.
-4. Ratios and roundings the post takes between pinned figures in words: more
-   than half of the gain in by 2009-01-02, 2008 earning about four-fifths as
-   much as the other years combined, 2.484746 percent rounding to 2.5, and
-   what a figure prints as at the book's precision, such as 0.43 and 0.45.
-   The figure's alt text reads both curves approximately too, such as TU's
+   that a four-day shift moving the correlation's second decimal shows how few
+   days stand behind it, that 2008 was the year of the financial crisis, that
+   the back-adjusted series carries roll return as well as moves in yields,
+   that the comment's missing volatility suggests it was pasted from an
+   earlier version of the printing line, that a rule mostly long on a rising
+   price earns part of the rise, and that leverage would multiply the
+   drawdowns along with the return.
+4. The figure's alt text reading both curves approximately, such as TU's
    closes drifting down until mid-2007 and the cumulative return dipping
    below zero in 2005 and flattening through 2009.
-5. Its references, cited rather than computed.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a table,
+   the closing list or the figure's alt text, and a typo in a copy the class
+   does not read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py), which also holds
@@ -6059,7 +6059,15 @@ USD.CAD's H at a `maxT` of 19 and 24, or to
 [tests/test_tu_momentum_figures.py](tests/test_tu_momentum_figures.py) for the
 figure's own numbers, or to
 [tests/test_tu_momentum_whiteboard.py](tests/test_tu_momentum_whiteboard.py)
-for the sketches'. Four had no pin before `TestBesideThePost` in
+for the sketches'. `TestWhatThePostQuotes` in the first of those files reads
+at least one copy of each run figure the post quotes outside the two sketches'
+alt text, and checks it against the run. It rebuilds the post's four tables
+whole, reads the figure's alt text only for the highest close and the curve's
+high, each with its day, since those appear nowhere else, and asserts on the
+run each comparison the post's words draw, such as more than half of the gain
+being in by 2009-01-02, the two files keeping none of the same 69 days and
+2008 earning about four-fifths as much as the other years. The sketches' test
+reads their alt text. Four had no pin before `TestBesideThePost` in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py), which now pins them
 all.
 

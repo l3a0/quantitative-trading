@@ -115,13 +115,13 @@ TILE_LABELS = [
 ]
 
 SAVES_LABELS = [
-    "2012-05-11 save",
+    "file ending 2012-05-11",
     "2005-06-01",
-    "2012-05-17 save",
+    "file ending 2012-05-17",
     "2005-06-07",
     "each 4 trading days later",
     "first 4 kept days of each",
-    "1,996 closes in both saves, every one equal",
+    "1,996 closes in both files, every one equal",
     "69 kept days in each, none shared",
     "250/25 correlation: 0.2719 on the earlier, 0.2870 on the later",
     "at the book’s two decimals: 0.27 against 0.29",
@@ -717,9 +717,9 @@ class TestTheSavesSketch:
         for k in range(1, SHOWN + 1):
             link = _stroke(scene, f"link-{k}")
             assert (link.color, link.dashed) == (MUTED, True)
-        for text in ("2012-05-11 save", "2005-06-01"):
+        for text in ("file ending 2012-05-11", "2005-06-01"):
             assert _label(scene, text).color == INK
-        for text in ("2012-05-17 save", "2005-06-07"):
+        for text in ("file ending 2012-05-17", "2005-06-07"):
             assert _label(scene, text).color == ACCENT
         for text in ("each 4 trading days later", "first 4 kept days of each"):
             assert _label(scene, text).color == MUTED
@@ -772,7 +772,7 @@ class TestTheSavesSketch:
         made_up = replace(figures, later=later, offset=3, shared=1990, equal=1989)
         labels = scenes(made_up)[1].labels
         assert "each 3 trading days later" in labels
-        assert "1,990 closes in both saves, 1,989 equal" in labels
+        assert "1,990 closes in both files, 1,989 equal" in labels
         assert "69 kept days in each, 1 shared" in labels
         assert "250/25 correlation: 0.2719 on the earlier, 0.3123 on the later" in labels
         assert "at the book’s two decimals: 0.27 against 0.31" in labels

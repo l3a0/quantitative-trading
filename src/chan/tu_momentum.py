@@ -55,8 +55,8 @@ line.** The script picks its window with ``idx=find(tday==20090102);`` and
 leaves ``% idx=1;`` commented out under it. All six figures in its closing
 comment land on ``idx = 1``, the 2,000 rows from 2004-06-01 that the book's
 sentence names, and none lands on 2009-01-02. The comment also prints no
-annual volatility although the format string asks for one, so it was pasted
-from an earlier version of the printing line. The specification is therefore
+annual volatility although the format string asks for one, which suggests it
+was pasted from an earlier version of the printing line. The specification is therefore
 ``TU_mom.m`` with ``idx = 1``, and :func:`tu_momentum` carries the 2009-01-02
 window beside it as a row with no published figure.
 
