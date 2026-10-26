@@ -340,7 +340,7 @@ where they were first built. The other forty-five were built here.
 24. SPY against the S&P 500 stocks that pass a cointegration screen, Example
     4.2 of *Algorithmic Trading*, on Chan's own 2012 S&P 500 file and his ETF
     file's SPY. `indexArb.m` tests each of 480 stocks against SPY over 2007
-    and keeps the 98 that pass a 90 percent bar. That bar passes about 28
+    and keeps the 98 that pass a 90 percent bar. That bar passes 28.1
     percent of random walks unrelated to SPY, about 135 of 480, so the count
     alone does not show that any stock cointegrates with SPY. It holds them with equal capital against SPY on the basket test's
     first eigenvector and trades from 2008 with a lookback of 5. Every figure
@@ -5123,16 +5123,18 @@ replication log.
 3. The basket's two relations with SPY make the same full-rank claim as the
    Entry 23 post's pair, and the ADF test rejects a unit root for neither
    series alone.
-4. The 4.5 percent is in-sample on its lookback and survivor-only.
+4. The 4.5 percent rests on a lookback chosen with hindsight and a stock list
+   from late 2011.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    "Such a well-known strategy that the difference in market values has become
    extremely small" and picking "all the stocks that cointegrate individually
-   with the ETF" are at 2006. "With at least 90 percent probability" and "an
-   arbitrary assignment of equal capital weight" are at 2027. The 98 stocks
+   with the ETF" are at 2006. "With at least 90 percent probability", "an
+   arbitrary assignment of equal capital weight" and "rebalance this portfolio
+   every day" are at 2027. The 98 stocks
    "each separately", "better than 95 percent probability", "two cointegrating
    relations", "the one with the largest eigenvalue", the equal weight on each
    stock, "the benefit of hindsight", the 4.5 percent and 1.3, "the
@@ -5143,24 +5145,35 @@ Five groups of what it says are not pinned here.
 2. Facts outside the committed data. That a second public copy of Chan's code
    holds `indexArb.m` byte for byte, which `src/chan/index_arbitrage.py`'s
    docstring records, that both files were converted to one file per symbol,
-   which [data/README.md](data/README.md) records, that the stock file holds
-   the index as Chan held it on 2012-04-24, the date in its name, and that the
-   committed index holdings under `research/filings/ivv/` start at the end of
-   2008.
-3. Arithmetic and readings no test asserts: the nominal 48 as 10 percent of
-   480, that a 90 percent bar bounds how often the test rejects with no
-   relation rather than giving a probability about one stock, and that four
-   years of returns are unlikely to separate a decline from noise.
+   which [data/README.md](data/README.md) records, that ACE is an insurer, and
+   that the iShares fund whose holdings `research/filings/ivv/` keeps tracks the
+   S&P 500. That every stock in the file was in the index in late 2011 rests on
+   `TestTheListDatesFromLate2011` in
+   [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py), which holds examples
+   rather than every stock.
+3. Readings no test asserts: that a 90 percent bar bounds how often the test
+   rejects with no relation rather than giving a probability about one stock,
+   that a day's change in a log price is close to that day's return, that the
+   holding stays at $1 a stock only with daily rebalancing, that the two
+   random-walk measurements differ only in their second series and their random
+   draws, that an ADF test over 251 days has little power, and that four years
+   of returns are unlikely to separate a decline from noise.
 4. The book's Figure 4.3, which the post's figure redraws from the script's
    `plot` call and which nothing compares with the book's own. The alt text's
    description of the curve's shape, such as its steep climb from late 2008
    and its high in late 2010, is read off the drawing rather than asserted.
-5. Its references, cited rather than computed.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a table,
+   the alt text or the closing list, and a typo in a copy the class does not
+   read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) or to
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py), to
 [tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, or to
+[tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
+for the whiteboard sketch's. Three had no pin before it.
 
 1. The 98 stock weights together, 107.198, against SPY's −105.560, a
    difference of 1.638, so one unit is close to as long in stocks as it is
@@ -5171,7 +5184,28 @@ for the figure's own numbers. Three had no pin before it.
 
 [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) pins the first,
 and [tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
-pins the other two with the figure's lines and labels.
+pins the other two with the figure's lines and labels. The review before the
+post published added one more pin, `TestTheBasketsStocksAndTheIndex`: 12 of
+the 98 are missing from Chan's list of the index on 2007-11-23, and ACE and
+Cooper Industries are missing from the iShares holdings at quarter-ends of the
+test.
+
+`TestWhatThePostQuotes` in
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) reads the post
+itself. It builds each run figure the post quotes from the run, at the
+precision the post prints it, and looks for one copy of it in the post, so a
+typo in that copy fails a test. That covers the files' days and dates, the
+screen's counts, its 90 percent bar and its 5-day lookback, the nominal 48 as
+10 percent of 480, one unit's weights and dollars, the strategy's first return
+and the 1,071 days from there on, the book's 4.5 percent and 1.3 as the script's
+figures rounded, the second test's margin over its 95 percent bar, the two
+eigen statistics that sum to its trace statistic and its count of relations,
+the two random-walk measurements, the ADF statistics, and the APR, Sharpe
+ratio, first return and last cumulative return in the figure's alt text. Lesson
+1's four tables are rebuilt whole, so a digit added to a cell fails as well as
+a digit changed. The sketch's caption and alt text are read by
+[tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
+instead.
 
 Its one figure is drawn from the committed files by
 [src/chan/index_arbitrage_figures.py](src/chan/index_arbitrage_figures.py),
@@ -5194,6 +5228,30 @@ uv run python -m chan.index_arbitrage_figures
 [tests/test_index_arbitrage_figures.py](tests/test_index_arbitrage_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries one looping whiteboard sketch,
+`index_arbitrage_sketch_one_unit.gif`, drawn by
+[src/chan/index_arbitrage_whiteboard.py](src/chan/index_arbitrage_whiteboard.py)
+on the USD.CAD post's sketch machinery. It sits in "What one unit holds, and when it
+first earns", after the paragraph on one unit, and draws the 98 stocks as green dots of
+$1.09386 each, gathered into a green column long $107.198 beside a red column
+short SPY $105.560. Both columns stand on one baseline at one scale, so their
+tops differ by 1.5 percent of the height, about 3 pixels, and a callout names
+the $1.638 between them rather than magnifying it. It is not schematic. It
+reads every figure from the committed files through the same `read_sources`
+and `index_arbitrage`, scale-break guard included.
+
+```bash
+uv run python -m chan.index_arbitrage_whiteboard
+```
+
+[tests/test_index_arbitrage_whiteboard.py](tests/test_index_arbitrage_whiteboard.py)
+holds what the sketch says and draws, that it draws one dot for each stock,
+that each column's height is one affine function of its dollars, that
+made-up figures move its words and heights, that a run whose stocks do not
+share one long weight or whose SPY weight is not short is refused, and that
+its GIF follows its paragraph in the post. It compares the committed GIF with
+a fresh draw byte for byte only on macOS arm64 in Comic Sans MS.
 
 [blog/usdcad-stationarity-lessons.md](blog/usdcad-stationarity-lessons.md) is a
 twenty-fourth post, about Examples 2.1 to 2.5 of Chan's *Algorithmic Trading*,
