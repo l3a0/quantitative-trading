@@ -778,6 +778,7 @@ class TestThePost:
         alt = _alt(scene)
         assert [_stroke(scene, g).color for g in ("c-before", "c-after")] == [ACCENT, ACCENT]
         assert alt.count("berry dot") == 2
+        assert "a berry label reads “≈" in alt and _label(scene, "≈").color == ACCENT
         assert "a grey cloud" in alt and "A black cloud" in alt
         assert "a black ring circles the last black point" in alt
 
