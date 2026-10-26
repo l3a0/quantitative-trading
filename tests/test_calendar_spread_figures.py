@@ -33,7 +33,8 @@ from chan.calendar_spread_figures import (
 )
 from chan.futures import settlements
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.palette import ACCENT, GOOD, LOST
+from chan.regime_figure import INK, MUTED
 from chan.stationary_candidates import SPREAD_PRODUCTS
 from chan.vintage import VintageUnavailable
 
@@ -129,7 +130,7 @@ class TestTheRealCount:
         assert drawn[f"{name}-real-line"].get_zorder() > max(b.get_zorder() for b in bins)
 
     def test_the_line_and_marker_wear_neither_null_s_colour(self, figure) -> None:
-        """In grey or brass the real count would read as one of the nulls."""
+        """In grey or berry the real count would read as one of the nulls."""
         drawn = _by_gid(figure)
         for name, _, _ in PANELS:
             line, marker = drawn[f"{name}-real-line"], drawn[f"{name}-real"]
@@ -193,8 +194,8 @@ class TestTheHistograms:
         bins = [*_by_gid(figure)[f"{name}-declared-bin"], *_by_gid(figure)[f"{name}-corrected-bin"]]
         assert ax.get_ylim()[1] >= 1.3 * max(b.get_height() for b in bins)
 
-    def test_the_note_s_grey_and_brass_are_the_nulls_colours(self) -> None:
-        """The note names the declared null grey and the corrected one brass."""
+    def test_the_note_s_grey_and_berry_are_the_nulls_colours(self) -> None:
+        """The note names the declared null grey and the corrected one berry."""
         assert (DECLARED_COLOUR, CORRECTED_COLOUR) == (MUTED, ACCENT)
 
     def test_the_two_nulls_wear_different_colours(self) -> None:
@@ -246,7 +247,7 @@ class TestTheWords:
         assert note.replace("\n", " ").endswith(
             "Each histogram is 1,000 sets of simulated contracts that do not cointegrate, "
             "read on the days the real pairs keep. The grey null makes every contract an "
-            "independent walk, as declared before any statistic. The brass null correlates "
+            "independent walk, as declared before any statistic. The berry null correlates "
             "them at the files' own median, the correction made after the result was seen."
         )
 

@@ -44,7 +44,8 @@ from numpy.typing import NDArray
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, INK, MUTED, SURFACE
+from chan.palette import ACCENT
+from chan.regime_figure import INK, MUTED, SURFACE
 from chan.stationary_candidates import SPREAD_PRODUCTS, CalendarSpread, calendar_spread
 from chan.vintage import VintageUnavailable
 
@@ -166,7 +167,7 @@ def make_nulls_figure(
         f"EIA's NYMEX settlements, downloaded {DOWNLOADED}:\n{symbols}.\n"
         "Each histogram is 1,000 sets of simulated contracts that do not cointegrate, "
         "read on the days the real pairs keep.\nThe grey null makes every contract an "
-        "independent walk, as declared before any statistic. The brass null\ncorrelates "
+        "independent walk, as declared before any statistic. The berry null\ncorrelates "
         "them at the files' own median, the correction made after the result was seen.",
     )
     fig.tight_layout(rect=(0, 0.14, 1, 0.96))
