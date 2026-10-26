@@ -7,9 +7,10 @@ returns—they exhibit stronger serial autocorrelations than individual stock's
 returns. In other words, they have momentum." Two of the factors his section
 names can be built from prices alone. The market factor, named at location
 3978 as "the return of the market", is built here as the index's return over
-the bill rate, the way French's market factor is. WML, winners minus losers,
-defined at location 4004, longs the stocks "that previously had positive
-returns" and shorts those "that previously had negative returns".
+the three-month bill rate, the way French's market factor is built over the
+one-month rate. WML, winners minus losers, defined at location 4004, longs the
+stocks "that previously had positive returns" and shorts those "that previously
+had negative returns".
 [Issue 22](https://github.com/l3a0/quantitative-trading/issues/22) carries the
 plan, and every rule below was fixed there before any return was computed.
 

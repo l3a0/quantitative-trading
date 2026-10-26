@@ -3820,9 +3820,10 @@ autocorrelations than individual stock's returns", and so "have momentum".
 That persistence is what lets this period's factor return stand in for the
 next. Two of the factors his section names need only prices. MKT, which
 location 3978 names as "the return of the market", is built here as the
-index's return over the bill rate, the way French's market factor is. WML, winners
-minus losers, defined at location 4004, longs the stocks whose past return was
-positive and shorts those whose past return was negative. Over 83 months,
+index's return over the three-month bill rate, the way French's market factor
+is built over the one-month rate. WML, winners minus losers, defined at
+location 4004, longs the stocks whose past return was positive and shorts
+those whose past return was negative. Over 83 months,
 MKT's lag-1 autocorrelation is 0.0675 and WML's is −0.1099, against a median
 of −0.0392 across the 446 stocks priced in every month. MKT is above 0 and
 above the median stock. WML is below both.
@@ -9342,7 +9343,7 @@ columns have nothing to hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | The claim holds for PC1, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's, under the criterion declared on the issue before any factor return was computed. It sits at 0.0316, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
-| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band assumes every day's product is drawn alike and the t does not, which is how the two can disagree. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
+| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t measures that scatter. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
 | 3 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for PC3. Its −0.0189 is above the median stock's −0.0283 and below 0. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 to 5. The value is forced, because the log's two other verdicts both need the claim to survive. It sits inside row 10's band, so this miss could be noise as much as row 1's pass could. Without PMC its statistic rises to 0.0139, above both, and PC2 misses in its place under row 16, so which factor misses rests on one symbol. Two more causes outside the method are open and neither is measured: the file holds only survivors, and 2005 to 2008 is one window. |
 | 4 | reproduced | The claim holds for PC4, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0305, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
 | 5 | reproduced | The claim holds for PC5, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0710, just inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. Its pairs share a sign exactly as often as not, under row 9, so the positive statistic comes from its larger pairs agreeing in sign. |

@@ -3603,7 +3603,7 @@ Four groups of its figures are not pinned here.
    p. 165 and the R's on p. 167, as Entry 13 records from the same reader. The
    suite pins the 2 and the 4 as whole percents, not the words.
 2. Facts outside the committed data. That French's market factor subtracts
-   the bill rate and his momentum factor skips the latest month. That the
+   the one-month bill rate and his momentum factor skips the latest month. That the
    revised MATLAB repost at `7430b84` carries *Algorithmic Trading*'s
    `smartstd`. The commits the sources are read at: `1a71950` of the
    first-edition mirror, `7430b84` of the MATLAB repost and `5fcab61` of the
