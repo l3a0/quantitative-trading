@@ -18,15 +18,17 @@ Exploratory, like everything locations 2546 to 2559 compute here.
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
-from matplotlib.colors import to_hex, to_rgb
+from matplotlib.colors import to_hex, to_rgb, to_rgba
 from matplotlib.dates import date2num
 
 from chan import vx_es_figures
 from chan.palette import ACCENT, GOOD, LOST
-from chan.paths import FIGURES_DIR
+from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import GROUND, INK, RULE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
@@ -296,6 +298,23 @@ class TestTheCumulativeReturn:
         label = _by_gid(axes["returns"].texts)["downgrade-label"]
         assert label.get_color() == LOST
         assert label.get_bbox_patch().get_facecolor() == (1.0, 1.0, 1.0, 1.0)
+
+    def test_the_changes_are_berry_and_the_downgrade_vermilion(self, axes) -> None:
+        lines = _by_gid(axes["returns"].lines)
+        assert lines["changes"].get_color() == ACCENT
+        assert lines["downgrade"].get_color() == LOST
+        label = _by_gid(axes["returns"].texts)["downgrade-label"]
+        assert label.arrow_patch.get_edgecolor() == pytest.approx(to_rgba(LOST))
+
+    def test_the_post_s_alt_text_names_the_palette_s_colours(self) -> None:
+        text = (REPO_ROOT / "blog" / "vx-es-lessons.md").read_text(encoding="utf-8")
+        alt = re.search(r"!\[([^\]]*)\]\(\.\./docs/figures/vx_es\.png\)", text).group(1)
+        assert "Days from 2004 to May 2008, in berry," in alt
+        assert "A vermilion line, the fit on the 500 training days" in alt
+        assert "shaded blue while the position is long and vermilion while it is short" in alt
+        assert "it stays shaded blue and mostly below minus one" in alt
+        assert "switches between vermilion, blue and vermilion" in alt
+        assert "a dashed vermilion line at 2011-08-05" in alt
 
     def test_the_heading_sets_the_figures_beside_the_book_s(self, axes) -> None:
         assert _title(axes["returns"]) == (
