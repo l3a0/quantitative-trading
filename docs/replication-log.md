@@ -3752,7 +3752,7 @@ absence.
 | 4 | under 1e-15 | reproduced | Within 1e-12 of each figure printed to 17 digits, the verdict's criterion, and within 1e-15, the pin. They agree to 15 significant digits. |
 | 5 | under 1e-15 | reproduced | The same. |
 | 6 | under 1e-15 | reproduced | The same. |
-| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days with no position, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it once Chan's download is in hand. |
+| 7 | none | did not reproduce | Neither reading of the printed R lands its printed figures, which are the Python's to the last digit. The R's window ends today rather than yesterday, it buys 52, its mean skips the days that earn no return, and its `sd` divides by n − 1. It sources a `calculateReturns.R` the book does not print, and no R runtime is installed here, so the row is a reading of the code rather than a run of it. [Issue 271](https://github.com/l3a0/quantitative-trading/issues/271) runs it once Chan's download is in hand. |
 | 8 | 0 | reproduced | 2.02 percent rounds to 2. |
 | 9 | 0 | reproduced | The Python's 4.05 percent rounds to 4, and so does each R reading. The whole-percent figure is reached even by the code whose 17-digit figures are not. |
 | 10 | none | did not reproduce | Round-off would leave two books of one size the same on every day. The printed Python buys 49 and the MATLAB 50, so the comparison gives the Python 50, and the books then match on none of 752 days and differ in at least 125 positions on each. The criterion was written on [issue 21](https://github.com/l3a0/quantitative-trading/issues/21) after the overlap was measured, which is the cost named there. |
@@ -3773,7 +3773,8 @@ Two things.
    revised Python's three 17-digit figures land within 1e-15.
 2. **The 2-versus-4 spread is two different strategies, not round-off.** The
    revised MATLAB trades a factor model and the Python trades a year of
-   momentum, because its regression's intercept cancels its factors. Three
+   momentum, because it ranks on fitted values summed over the year, which its
+   regression's intercept makes equal to summed returns. Three
    bookkeeping choices each lower the Python's figure toward the MATLAB's: its
    long side, its averaging, and the first book it clears. Without any one of
    them the Python's figure is higher than 4.05 percent, rows 13 and 14.
@@ -9254,8 +9255,8 @@ and seven of the issue's rules, each as the issue fixed it.
    subtracting either series' mean first. A singular vector's sign is
    arbitrary, and flipping it on one day flips both members of that day's
    pair, so no product and no sum of squares moves. Leaving out the centring
-   is deliberate. A factor return that keeps a steady value from one day to
-   the next counts as persistent, which is what location 4051's "remain
+   is deliberate. A factor return that keeps a steady nonzero mean in one
+   orientation counts as persistent, which is what location 4051's "remain
    constant from the current time period to the next" asks. The price is that
    a few large days can carry the statistic, so row 9 reports beside it the
    share of pairs whose two members have the same sign.

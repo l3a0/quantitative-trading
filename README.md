@@ -205,8 +205,9 @@ where they were first built. The other forty-five were built here.
     The first edition's MATLAB, the revised MATLAB and the revised Python
     reproduce every figure they print, the Python's 17-digit figures within
     1e-15. The R block prints the Python's figures and its own code reads
-    differently. The round-off account does not hold. The Python's regression
-    carries an intercept, which cancels its factors, so it ranks on a year of
+    differently. The round-off account does not hold. The Python ranks each
+    stock on its fitted values summed over the year, which its regression's
+    intercept makes equal to its summed returns, so it ranks on a year of
     momentum. Given the same 50 longs, its book matches the revised MATLAB's on
     none of 752 days. Every figure is exploratory and about survivors.
 14. The market and momentum factors, built on Chan's S&P 500 file to test his
@@ -3570,8 +3571,9 @@ together. Every result in it is exploratory.
 
 1. Three of the four printouts reproduce, and the fourth, the R, prints
    another program's figures.
-2. Chan's round-off is a second strategy, because the revised Python's
-   intercept cancels its factors and leaves single-stock momentum.
+2. Chan's round-off is a second strategy, because the revised Python ranks on
+   fitted values summed over the year, which its intercept makes equal to
+   summed returns, leaving single-stock momentum.
 3. Chan's factor-momentum claim held for the market factor and four of
    Example 7.4's five factors, and not for the momentum factor. Each
    verdict stands on its own, none of the five survives a test across all
@@ -3616,6 +3618,9 @@ Four groups of its figures are not pinned here.
    before the first pick and the last, which has no month after it. That no
    printout's Sharpe ratio subtracts a risk-free rate is a reading of their
    code. The year 2003 in Lesson 6 is an example rather than a measured date.
+   That the band's 95 percent also needs every return to be no more likely to
+   be large than any other, as well as independent, is a property of the
+   statistic that no test asserts.
 4. Its references. The five citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -3632,7 +3637,7 @@ half pinned before it, and
 `TestTheSplice::test_pmc_forward_fills_into_one_days_return` now pins both
 ends of PMC's 851-day gap rather than only the days inside it.
 
-Three classes read the post itself. Each builds every figure it reads from
+Three classes read the post's figures. Each builds every figure it reads from
 the run, the committed files or a module constant, at the precision the post
 prints it, and looks for one copy of it in the post, so a typo in that copy
 fails a test.
@@ -7423,17 +7428,19 @@ Four groups of what it says are not pinned here.
 2. Facts outside the committed data: that 2007-08-09 and 2007-08-10 fall in
    the week Khandani and Lo studied, and that the revised MATLAB prints
    Chan's 2 percent a year before costs.
-3. Readings and arithmetic no test asserts: that the library's own signs
-   flipped on about half the days on the two machines that ran the checks
-   and disagreed about which, which no test pins because it depends on the
-   library, that a principal component's rank can change from day to day in
-   general, the closed form of
-   the slope and intercept written out in Lesson 3, that the positions chosen
-   on day t earn day t + 1's return, 5/√70 written as positive, 1.8654 written
-   as 186.54 percent, a fifth of 5 percent written as 0.01, the same-sign
-   shares called close to a coin toss, that PC1 is the factor that moves the
-   whole market, that 2007-08-09 and 2007-08-10 are what put PC2 outside the
-   band, and that the window's effect on PC2 is not explained. The figure's alt text reads its curve approximately too.
+3. Readings and arithmetic no test asserts: that the band is right only when a
+   large return makes a large one the next day no more likely, that the
+   library's own signs flipped on about half the days on the two machines that
+   ran the checks and disagreed about which, which no test pins because it
+   depends on the library, that a principal component's rank can change from
+   day to day in general, the closed form of the slope and intercept written
+   out in Lesson 3, that the positions chosen on day t earn day t + 1's
+   return, 5/√70 written as positive, 1.8654 written as 186.54 percent, a
+   fifth of 5 percent written as 0.01, the same-sign shares called close to a
+   coin toss, that PC1 is the factor that moves the whole market, that
+   2007-08-09 and 2007-08-10 are what put PC2 outside the band, and that the
+   window's effect on PC2 is not explained. The figure's alt text reads its
+   curve approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in

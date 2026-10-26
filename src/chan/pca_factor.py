@@ -73,8 +73,8 @@ The report prints what each gives when it is changed.
 2. ``positionsTable[capital==0,]=0`` zeroes every row whose previous row
    holds nothing, and the first day's book is one of those rows, so the
    strategy never earns on it.
-3. ``np.nanmean`` runs over all 1,006 rows, including the ones that hold no
-   position, and ``np.nanstd`` divides by n.
+3. ``np.nanmean`` runs over all 1,006 rows, including the 255 that earn no
+   return, and ``np.nanstd`` divides by n.
 
 The R buys 52, from ``(length(result$ix)-topN-1):length(result$ix)``.
 
