@@ -5933,9 +5933,9 @@ Five groups of what it says are not pinned here.
    closing one pair and opening the next, and on each day the roll return's
    z-score crosses 0 while a pair is held, when it reverses both legs.
 3. Readings no test asserts: that the correlation is strong but not the
-   one-for-one the model gives, that the ADF test's long-run reversion and the
-   trade's day-to-day continuation measure different spans and so do not
-   conflict, that the half-life measures a reversion the trade bets against,
+   one-for-one the model gives, that the ADF test's long-run reversion in γ
+   and the trade's next-day bet that the spread moves further from its average
+   measure different spans and so do not conflict, that the half-life measures a reversion the trade bets against,
    that the log of a VIX pair's
    ratio of far to near is that pair's log spread, that the book's ratio of
    back to front most plainly reads the two nearest contracts, and that any
@@ -5977,7 +5977,9 @@ quote both sketches' labels, to
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) for the
 126 of 847 held days on which the VIX trade's near leg is the front contract,
 or to [tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's
-6,467 days from 1986-11-03 and γ as −12 times the slope. Twelve things had no
+6,467 days from 1986-11-03, γ as −12 times the slope of a fit on contract
+positions 1 to 5, and CL's five nearest contracts being a month apart on every
+day that fit runs. Twelve things had no
 pin before it.
 
 1. The held pair's log spread correlates with γ at −0.883910 on the window's
@@ -6033,8 +6035,8 @@ finished drawing for twelve seconds.
 1. `crude_oil_calendar_spread_schedule.gif`, in "The spread, the signal and
    the file", draws item 6's schedule on Chan's file. The pair short K2008 and
    long K2009 runs from 2007-12-05 to 2008-04-08. The M2008, N2008 and Q2008
-   windows that would start on 2008-04-09 are crossed out, because each ends
-   fewer than 63 trading days after it starts. The pair short U2008 and long
+   pairs that would start on 2008-04-09 are crossed out, because each one's
+   last day would come fewer than 63 trading days after its first. The pair short U2008 and long
    U2009 runs from 2008-04-09 to 2008-08-06. Every date and count on it is
    read from the script's schedule on the committed CL strip.
 2. `crude_oil_calendar_spread_script_sells.gif`, in Lesson 2, draws the roll
