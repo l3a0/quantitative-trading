@@ -5907,8 +5907,8 @@ the VX against E-mini post and the VIX calendar spread post rather than
 repeating them, and draws five lessons from Entry 34 of the replication log.
 
 1. The book's figures reproduce on Chan's own file, and the figures in the
-   script's comment land only on a window starting a day later, found by a
-   scan.
+   script's comment match only on a window starting a day later, found by a
+   search over windows.
 2. The spread moves against the roll return, and the script reverses its
    position where the roll return's z-score is above 0, so it mostly sells the
    spread when the spread is low. Reversing every position gives an APR of
@@ -5917,8 +5917,8 @@ repeating them, and draws five lessons from Entry 34 of the replication log.
    the script's is the one that printed the figures.
 4. The window's last 66 days earn nothing, because contracts still trading
    when the file was saved look expired on its last day.
-5. The half-life that sets the lookback is measured on the days the trade
-   uses, and it measures a reversion the trade bets against.
+5. The half-life that sets the lookback is measured partly on the days the
+   script trades, and it measures a reversion the trade bets against.
 
 Five groups of what it says are not pinned here.
 
@@ -5929,20 +5929,24 @@ Five groups of what it says are not pinned here.
 2. Facts about the script rather than the data: the comments at its lines 71
    and 99, the reversal at its line 107, its `idx=find(tday==20080102)` and
    `3*21`, and the expiry mark at line 75, all at `e4bc46f` of
-   ericnberwick/EpchanPreview.
+   ericnberwick/EpchanPreview. It also trades four contracts at each roll,
+   closing one pair and opening the next, and on each day the roll return's
+   z-score crosses 0 while a pair is held, when it reverses both legs.
 3. Readings no test asserts: that the correlation is strong but not the
    one-for-one the model gives, that the ADF test's long-run reversion and the
    trade's day-to-day continuation measure different spans and so do not
-   conflict, that the half-life
-   measures a reversion the trade bets against, that the log of a VIX pair's
+   conflict, that the half-life measures a reversion the trade bets against,
+   that the log of a VIX pair's
    ratio of far to near is that pair's log spread, that the book's ratio of
    back to front most plainly reads the two nearest contracts, and that any
    backtest inferring expiry from the last price goes flat at the end of a
    file saved while contracts trade.
-4. Figures the post states in words or as percentages of pinned ones, such as
-   8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and
-   about three days in four. The figure's alt text reads its curves and the
-   scatter's ranges approximately too. The sketches' alt texts place their
+4. Figures the post gives as an example or approximately rather than from the
+   run: the two days of +10 percent and −10 percent that compound to +21 and
+   −19 percent, the "about three months" that the last 66 days span, and where
+   the chart's alt text says when each curve leaves zero, which years the solid
+   line climbs through, and the scatter's ranges of γ and of the spread. The
+   sketches' alt texts place their
    marks in words, such as "ends just before the K tick" and "wanders and then
    climbs", and
    [tests/test_crude_oil_calendar_spread_whiteboard.py](tests/test_crude_oil_calendar_spread_whiteboard.py)
@@ -5955,10 +5959,12 @@ is read. `TestWhatThePostQuotes` in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py)
 reads the post itself. It builds each run figure the post quotes from the
 run, at the precision the post prints it, and looks for one copy of it in the
-post, so a typo in that copy fails a test. Lessons 1 and 3's tables are read
-whole, as the multiset of their number cells. It also reads the alt text's
-counts, dates and correlation, and its peak, low and ends rounded to a whole
-percent.
+post, so a typo in that copy fails a test. Each of the three tables in
+Lessons 1 and 3 is read whole, cell by cell, so a number in the wrong row,
+column or table fails, while the table turned on its side still passes. It
+also reads the chart's alt text's two day counts, its three full dates and its
+correlation, the month of the peak and of the low, and the peak, low and both
+ends rounded to a whole percent.
 
 Every other number in the post traces to an assertion in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),

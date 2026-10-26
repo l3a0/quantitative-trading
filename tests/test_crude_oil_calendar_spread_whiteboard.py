@@ -83,7 +83,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
-from tests.test_calendar_spread_reversion import VINTAGE
+from tests.test_calendar_spread_reversion import VINTAGE, _month
 
 POST = REPO_ROOT / "blog" / "crude-oil-calendar-spread-lessons.md"
 
@@ -453,6 +453,8 @@ class TestThePost:
             "holds the pair short K2008 and long K2009, skips the three pairs whose near "
             "contracts are M2008, N2008 and Q2008, and then holds the pair short U2008 and long "
             "U2009.",
+            f"so K2008 delivers in {_month(schedule_run.before.near)} "
+            f"and U2008 in {_month(schedule_run.after.near)}.",
         ):
             assert phrase in lead_in, phrase
 

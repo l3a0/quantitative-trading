@@ -343,9 +343,11 @@ def held_window(strip, gamma) -> pd.DataFrame:
 class TestTheTradesDirection:
     """The spread moves against γ, and line 107 sells it where γ's z-score is above 0.
 
-    So the script shorts the spread where γ is high, which on most held days
-    is where the spread sits below its own average. ``TestTheSpreadsOwnAverage``
-    counts how many. The spread is :func:`held_log_spread` on the unflipped
+    So the script shorts the spread where γ is high, which on 377 of the 554
+    days it sells is where the spread sits below its own average.
+    ``tests/test_crude_oil_calendar_spread_whiteboard.py`` pins those 377, and
+    ``TestTheSpreadsOwnAverage`` counts the 841 of 1,097 held days on which the
+    two z-scores have opposite signs. The spread is :func:`held_log_spread` on the unflipped
     schedule, and z is ``zscore`` of filled γ over S's 36 rows.
     """
 
@@ -594,8 +596,9 @@ class TestWhatThePostQuotes:
     it, and looked for in a short fragment holding the number and the few
     words that name one place in the post. A typo in a copy that is read, or
     a re-pin that leaves the post behind, fails here. Lesson 1's two tables
-    and Lesson 3's one are each read as the multiset of their number cells, so
-    a cell changed, added or dropped fails whichever way a table is laid out.
+    and Lesson 3's one are each read whole, as the grid of its number cells,
+    so a cell changed, added, dropped or moved to another row, column or table
+    fails, while the same table turned on its side still passes.
 
     The post states several figures more than once, and only one copy of each
     is read. The copies left unread include the 12 in the opening's
@@ -608,8 +611,8 @@ class TestWhatThePostQuotes:
     ``tests/test_vx_calendar_spread.py``'s. The strip's 6,467 days, read here,
     are also held in ``tests/test_roll_returns.py``, which alone holds γ as −12
     times the slope. Nothing checks Chan's words against their source, nor the
-    Kindle locations, the script's line numbers, the four contracts each roll
-    trades or the references, and ``README.md`` lists them.
+    Kindle locations, the script's line numbers, the four contracts a roll or a
+    reversal trades, or the references, and ``README.md`` lists them.
     """
 
     @pytest.fixture(scope="class")
@@ -622,21 +625,34 @@ class TestWhatThePostQuotes:
         return [fragment for fragment in fragments if fragment not in text]
 
     @staticmethod
-    def tables(text: str) -> list[list[str]]:
-        """Each ``math`` array's number cells, sorted, in the order the arrays appear.
+    def tables(text: str) -> list[list[list[str]]]:
+        """Each ``math`` array's number cells, row by row, in the order the arrays appear.
 
-        ``\\small``, each array's column spec and ``\\text{-}`` inside a date
-        are dealt with first, so neither the layout nor a date split for
-        typesetting adds or splits a number.
+        A cell holding no number, such as a heading or ``\\text{none}``, reads
+        as ``""``. ``\\small``, each array's column spec, ``\\hline`` and
+        ``\\text{-}`` inside a date are dealt with first, so neither the layout
+        nor a date split for typesetting adds or splits a number.
         """
         blocks = re.findall(r"```math\n(.*?)```", text, flags=re.S)
-        cells = []
+        grids = []
         for block in blocks:
             if "\\begin{array}" not in block:
                 continue
-            plain = re.sub(r"\\small|\\begin\{array\}\{[^}]*\}", "", block)
-            cells.append(sorted(CELL.findall(plain.replace("\\text{-}", "-"))))
-        return cells
+            plain = re.sub(
+                r"\\small|\\hline|\\begin\{array\}\{[^}]*\}|\\end\{array\}", "", block
+            ).replace("\\text{-}", "-")
+            grid = []
+            for row in plain.split("\\\\"):
+                numbers = [CELL.findall(cell) for cell in row.split("&")]
+                assert all(len(found) <= 1 for found in numbers), row
+                grid.append([found[0] if found else "" for found in numbers])
+            grids.append(grid)
+        return grids
+
+    @staticmethod
+    def either_way(rows: list[list[str]]) -> tuple[list[list[str]], list[list[str]]]:
+        """A table as the post lays it out, and the same table turned on its side."""
+        return rows, [list(column) for column in zip(*rows, strict=True)]
 
     def test_the_post_holds_three_tables(self, text) -> None:
         assert len(self.tables(text)) == 3
@@ -702,26 +718,21 @@ class TestWhatThePostQuotes:
             f"{plain_sharpe(returns):.6f}",
         ]
         assert self.missing(text, fragments) == []
-        table = sorted(
-            [
-                f"{s.half_life:.6f}",
-                SCRIPT_HALFLIFE,
-                BOOK_HALFLIFE,
-                f"{s.apr:.6f}",
-                SCRIPT_APR,
-                BOOK_APR_PERCENT,
-                f"{s.sharpe:.6f}",
-                SCRIPT_SHARPE,
-                BOOK_SHARPE,
-                f"{s.max_dd:.6f}",
-                SCRIPT_MAX_DD,
-                str(s.max_dd_days),
-                SCRIPT_MAX_DD_DAYS,
-                f"{adf.statistic:.6f}",
-            ]
-        )
+        printed = [
+            ["", "", "", ""],
+            ["", f"{s.half_life:.6f}", SCRIPT_HALFLIFE, BOOK_HALFLIFE],
+            ["", f"{s.apr:.6f}", SCRIPT_APR, BOOK_APR_PERCENT],
+            ["", f"{s.sharpe:.6f}", SCRIPT_SHARPE, BOOK_SHARPE],
+        ]
+        unprinted = [
+            ["", "", ""],
+            ["", f"{s.max_dd:.6f}", SCRIPT_MAX_DD],
+            ["", str(s.max_dd_days), SCRIPT_MAX_DD_DAYS],
+            ["", f"{adf.statistic:.6f}", ""],
+        ]
         first, second = self.tables(text)[:2]
-        assert sorted(first + second) == table
+        assert first in self.either_way(printed)
+        assert second in self.either_way(unprinted)
 
     def test_lesson_2(self, runs, held_window, spread_z, day_to_day, text) -> None:
         s = runs["S"]
@@ -801,18 +812,15 @@ class TestWhatThePostQuotes:
             f"the trade’s last pair is held to {r2.last_held.date()}.",
         ]
         assert self.missing(text, fragments) == []
-        table = sorted(
-            [
-                str(HOLDDAYS),
-                str(BOOK_HOLDDAYS),
-                *(f"{run.apr:.6f}" for run in (s, r2)),
-                *(f"{run.sharpe:.6f}" for run in (s, r2)),
-                *(f"{run.max_dd:.6f}" for run in (s, r2)),
-                *(str(run.max_dd_days) for run in (s, r2)),
-                *(str(run.last_held.date()) for run in (s, r2)),
-            ]
-        )
-        assert self.tables(text)[2] == table
+        table = [
+            ["", str(HOLDDAYS), str(BOOK_HOLDDAYS)],
+            ["", *(f"{run.apr:.6f}" for run in (s, r2))],
+            ["", *(f"{run.sharpe:.6f}" for run in (s, r2))],
+            ["", *(f"{run.max_dd:.6f}" for run in (s, r2))],
+            ["", *(str(run.max_dd_days) for run in (s, r2))],
+            ["", *(str(run.last_held.date()) for run in (s, r2))],
+        ]
+        assert self.tables(text)[2] in self.either_way(table)
 
     def test_lesson_4(self, runs, text) -> None:
         s = runs["S"]

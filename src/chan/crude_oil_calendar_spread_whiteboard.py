@@ -23,7 +23,7 @@ the passage it draws.
    CL strip, and every mark sits on the axis at its own trading day.
 2. High roll return, low spread, and the script sells, in Lesson 2, after the
    paragraph opening "The script does the opposite.": the roll return in
-   brass over the held spread in black, each with its dashed 36-day average,
+   brown over the held spread in black, each with its dashed 36-day average,
    a tint over a stretch where the roll return's z-score is above 0 and the
    spread sits below its own average, a red arrow where the script sells the
    spread and a green one where a bet on reversion would buy it, and the
