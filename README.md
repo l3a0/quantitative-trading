@@ -279,8 +279,8 @@ where they were first built. The other forty-five were built here.
     gross of 1, leaves a missing price's weight missing, charges no cost, and
     cuts the window before taking returns. Example 4.3 holds the weights from
     close to close, and Example 4.4 trades
-    from the open to the same day's close on the overnight gap. Every figure
-    Chan prints reproduces: an APR of 13.68 percent and a Sharpe ratio of
+    from the open to the same day's close on the overnight gap. Every return
+    and Sharpe ratio Chan prints reproduces: an APR of 13.68 percent and a Sharpe ratio of
     1.2595 against his 13.7 and 1.3, 30.16 percent in 2008 and 10.58 in 2011
     against his 30 and 11, and 0.731553 and 4.713284 for Example 4.4, the six
     decimals his script printed. The first book's rule on the same panel and
@@ -5424,19 +5424,19 @@ a Sharpe ratio of 1.3 for the close-to-close rule, with 30 percent in 2008 and
 links the earlier post on the first book's rule rather than repeating it, and
 draws four lessons from Entry 19 of the replication log.
 
-1. Every figure the book prints lands on Chan's own file, and so do the two
-   the script printed at six decimals, though two of the book's roundings have
-   little room.
+1. Every return and Sharpe ratio the book prints lands on Chan's own file,
+   and so do Example 4.4's APR and Sharpe ratio as the script printed them at
+   six decimals, though two of the book's roundings have little room.
 2. The match needs CAH's prices of 2009-08-31 to 2009-09-02, which read as a
    data error or a corporate action, so a cleaner file would miss both of
    Example 4.3's figures.
 3. Most of the rise from the first book's 0.25 to this book's 1.3 comes from
    the data and the window rather than the rule, and two days the cut zeroes
    carry 0.1313 of the rule's 0.2974.
-4. Costs still take most of the first book's rule's edge on the panel, but
-   they cost 0.6924 of a day's profit there against 13.7453 times it on 2006,
-   because the profit is about twenty times larger and the trading barely
-   changes.
+4. After costs, the first book's rule keeps under a third of its profit on
+   the panel and loses money over 2006. Its costs are 0.6924 of a day's profit
+   there against 13.7453 times it over 2006, because the profit is about
+   twenty times larger and the trading barely changes.
 
 Five groups of what it says are not pinned here.
 
@@ -5459,15 +5459,16 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that most of the scale-break guard's flags on
    this window fall in the 2008 crisis, that CAH's prices read as a data error
    or a corporate action, and that a longer stretch of survivors leaves out
-   more of the companies that left the index. The survivor horizons of five
-   years and under two are arithmetic on the two files' membership dates.
-4. Ratios the post takes between pinned figures in words: about five times,
-   nearly four times, four times the average return, about the same standard
-   deviation, more than twice, by about a third, and less than a third. So is
-   what a figure would print as at the book's precision, such as 1.2, 10, 13.3
-   and 0.731552.
-   The figure's alt text reads its curves approximately too, such as "about 70
-   percent" and "about 1,460 percent".
+   more of the companies that left the index. The survivor horizons of almost
+   five years and under two are arithmetic on each window's first day and the
+   date of its file's list of stocks.
+4. Ratios and orderings the post takes between pinned figures in words: about
+   five times, nearly four times, four times the average return, about the
+   same standard deviation, by about a third, that 2009 beat 2008, that the
+   third of Lesson 1's margins is the tightest, that the trading barely
+   changes, and that −3.2337 is lower than −3.1884. So is what a figure would
+   print as at the book's precision in Lesson 1's margins, 1.2, 10 and
+   0.731552.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -5475,7 +5476,10 @@ Every other number in the post traces to an assertion in
 [tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
 for the figure's own numbers, or to
 [tests/test_khandani_lo.py](tests/test_khandani_lo.py) for the first book's
-0.2510, −3.1884 and −3.2337 and its average day on 2006. Four had no pin
+0.2510, −3.1884 and −3.2337 and its average day on 2006, or to
+[tests/test_khandani_lo_book_two_whiteboard.py](tests/test_khandani_lo_book_two_whiteboard.py)
+for the sketches' labels, the alt texts that quote them and the bounce
+caption's axis foot and bounds. Four had no pin
 before it.
 
 1. Each calendar year's APR for both examples, 2007 to 2011, and Example
@@ -5488,6 +5492,25 @@ before it.
 4. The first book's rule's average day on the panel: a profit of 10.5234 and a
    cost of 7.2868 basis points of its position, 0.6924 of the profit, a
    turnover of 1.4574, and a profit 19.94 times 2006's.
+
+`TestWhatThePostQuotes` in
+[tests/test_khandani_lo_book_two.py](tests/test_khandani_lo_book_two.py) reads
+the post itself. It rebuilds Lesson 1's two tables and Lesson 3's table whole
+from the run, checks at least one copy of every other figure the post takes
+from a run outside the two sketches' alt texts and captions, at the precision
+the post prints, including the first book's 2006 figures, and
+reads each sentence that dates the stock list to late 2011. It also asserts on
+the run four comparisons the post's words draw: that Example 4.3's curve ends
+2007 below zero, that what is left of the rise is more than twice what the
+change of rule gave, that the profit is about twenty times 2006's, and that
+the rule keeps less than a third of its daily profit after costs, and it
+reads the sentences that draw them. It reads some figures in more than one
+place. It reads each example's APR and Sharpe ratio in Lesson 1's tables and
+again in the figure's alt text, and Lesson 3's Sharpe ratios in its table and
+again in the sentences that take differences between them. It reads 0.2510
+and 1.2219 again in Lesson 4's first paragraph. Other copies go unread, such
+as the yearly APRs under the chart's caption, Lesson 3's opening sentence and
+the closing habits, so a typo in one of those passes.
 
 Its one figure is drawn from the committed panel by
 [src/chan/khandani_lo_book_two_figures.py](src/chan/khandani_lo_book_two_figures.py),
@@ -5508,6 +5531,36 @@ uv run python -m chan.khandani_lo_book_two_figures
 [tests/test_khandani_lo_book_two_figures.py](tests/test_khandani_lo_book_two_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/khandani_lo_book_two_whiteboard.py](src/chan/khandani_lo_book_two_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+draws, and both build slowly and hold their finished drawing for twelve
+seconds. Neither is schematic.
+
+1. One in Lesson 2, `khandani_lo_book_two_sketch_cah_bounce.gif`, which draws
+   CAH's closes from 2009-08-31 to 2009-09-02 to one scale, with the fall the
+   scale-break guard lets through, the rise it flags, the weight Example 4.3
+   bought at the middle close and what that weight earned the next day, and
+   the example's two figures without CAH.
+2. One in Lesson 4, `khandani_lo_book_two_sketch_average_day.gif`, which draws
+   the first book's rule's average daily cost and profit on 2006's file and
+   on the panel as bars on one scale, in basis points of its average gross
+   position.
+
+```bash
+uv run python -m chan.khandani_lo_book_two_whiteboard
+```
+
+[tests/test_khandani_lo_book_two_whiteboard.py](tests/test_khandani_lo_book_two_whiteboard.py)
+holds what each sketch says and draws, reads every figure from the runs on the
+committed files, and refuses figures that would make a sketch's words false.
+It pins the figures only the sketches print, such as CAH's weight of 3.17
+cents of the $1 and the 3.2366 basis points the panel keeps. It also holds
+that the kept part is less than a third of the profit, and that the profit
+ratio of 19.94 rounds to the twenty the second sketch's title spells. It
+compares each committed GIF with a fresh draw byte for byte only on macOS
+arm64 in Comic Sans MS, where the files were drawn.
 
 [blog/aud-cad-johansen-lessons.md](blog/aud-cad-johansen-lessons.md) is a
 twenty-sixth post, about Example 5.1 of Chan's *Algorithmic Trading*, which

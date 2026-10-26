@@ -4826,7 +4826,7 @@ apart from Examples 3.7 and 3.8, which are *Quantitative Trading*'s.
 Eleven rows, all derivable from
 [tests/test_khandani_lo_book_two.py](../tests/test_khandani_lo_book_two.py).
 
-**Every figure Chan prints reproduces on his own file.** The rule is the one
+**Every return and Sharpe ratio Chan prints reproduces on his own file.** The rule is the one
 Entries 8 and 10 run: weight every stock by minus its return against the
 equal-weighted market, so the rule buys what fell most against its peers and
 shorts what rose most. Example 4.3 holds the weights from one close to the
@@ -4853,8 +4853,8 @@ its rows is a check on theirs.
    profit afterwards.
 5. **The Sharpe ratio takes MATLAB's own mean and standard deviation**, where
    Entry 8's pairs `smartmean` with the first edition's `smartstd`. The two
-   agree on a series with no missing day, which every series here is, so this
-   difference moves no figure in this entry.
+   agree on a series with no missing day, which both examples' series are, so
+   this difference moves neither example's figures.
 
 Entry 10's rule A, Chan's Python notebook, already scales to a gross of 1 and
 skips a missing return the same way. Without its forward-fill, its profit
@@ -4874,7 +4874,8 @@ rows 10 and 11 run a rule other than this one, and each row says which.
    loads `inputDataOHLCDaily_20120424`, without `_stocks`, and
    [data/README.md](../data/README.md) records that the copy under that name
    is the same bytes. **Every figure here is about survivors**, because the
-   panel is the S&P 500 as Chan held it on 2012-04-24, carried backwards.
+   panel holds 497 stocks that were in the S&P 500 in late 2011, and the run
+   treats them as the index on every earlier day it has a price for them.
 2. **The specification.** `andrewlo_2007_2012.m` at `e4bc46f` in
    [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview),
    identical to the copy at `4567024` in
@@ -4964,8 +4965,8 @@ figures from Entries 8 and 10 in `tests/test_khandani_lo.py`.
 
 Three things.
 
-1. **Examples 4.3 and 4.4 reproduce on Chan's own file.** All six figures
-   the book prints land at its precision, and Example 4.4's two lands at the
+1. **Examples 4.3 and 4.4 reproduce on Chan's own file.** All six returns and Sharpe
+   ratios the book prints land at its precision, and Example 4.4's two land at the
    six decimals the script printed.
 2. **The distance from the first book's 0.25 to this book's 1.3 is mostly
    the data and the window rather than the rule.** Entry 8's rule on this
@@ -4976,10 +4977,10 @@ Three things.
    of it (row 11), because a window of 251 days lets two days move a Sharpe
    ratio by a third. Both differences come from the unrounded figures,
    which `TestBesideTheFirstBook::test_the_differences_the_post_quotes_round_from_the_unrounded_figures`
-   holds. The data include a longer survivor horizon, since this
-   panel carries 2012-04-24's membership back to 2007, five years, where
-   Entry 8's file carries 2007-11-23's back to 2006, under two, and nothing
-   here prices what that adds.
+   holds. The data include a longer survivor horizon. This panel's list
+   dates from late 2011, almost five years after the window opens in 2007,
+   where Entry 8's dates from 2007-11-23, under two years after its window
+   opens in 2006. Nothing here prices what that adds.
 3. **Entry 8's lesson survives the move to the 2012 panel.** Charged 5 basis
    points a side, the first book's rule falls from 1.2219 to 0.3797 over 2007
    to 2011 (row 10). Chan prints both of this book's figures before costs.
@@ -4994,14 +4995,14 @@ it.
 Five things.
 
 **What the rule earned on the index as it stood each day.** Every stock here
-was in the S&P 500 on 2012-04-24.
+was in the S&P 500 in late 2011.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) prices
 survivorship on this file for Example 7.2 over 2011 and 2012, and nothing yet
 prices it for this rule over 2007 to 2011.
 
 **Whether 2008 to 2011 is out of sample in Chan's sense.** He calls it "a
 true out-of-sample test, as the strategy was published in 2007". It is out of
-sample in time, but the stocks were chosen with 2012's membership, so the
+sample in time, but the stocks were chosen from the index of late 2011, so the
 entry repeats his sentence and gives it no verdict.
 
 **What costs would take from Example 4.4.** It trades twice a day, which Chan
@@ -5018,7 +5019,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/khandani-lo-reversal-lessons.md](../blog/khandani-lo-reversal-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
-figure, which `uv run python -m chan.khandani_lo_book_two_figures` redraws.
+figure, which `uv run python -m chan.khandani_lo_book_two_figures` redraws,
+and so do its two whiteboard sketches, CAH's bounce in Lesson 2 and the
+average day's cost and profit in Lesson 4, which
+`uv run python -m chan.khandani_lo_book_two_whiteboard` redraws from the same
+runs.
 
 ## Entry 20: constant leverage and capped Kelly allocation, Chan's *Algorithmic Trading*
 

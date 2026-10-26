@@ -166,9 +166,9 @@ def make_reversal_figure(
         f"Algorithmic Trading, Examples 4.3 and 4.4, {days[0].date()} to {days[-1].date()}, "
         f"{len(days):,} trading days, as andrewlo_2007_2012.m runs them.\n"
         f"Prices from {SOURCE_FILE}, saved {', '.join(saved)}, for the {len(members)} stocks "
-        "Chan held as the S&P 500 on 2012-04-24.\n"
-        "Their prices are carried back, so every figure is about survivors. No cost is "
-        "charged.",
+        "that were in the S&P 500 in late 2011.\n"
+        "They stand in for the index on every earlier day, so every figure is about "
+        "survivors. No cost is charged.",
     )
     fig.subplots_adjust(left=0.09, right=0.97, top=0.9, bottom=0.13)
     return _save(fig, out, REVERSAL_FIGURE)

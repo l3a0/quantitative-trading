@@ -66,7 +66,8 @@ name.
    ``find`` on ``tday``.
 2. Each example's window is an argument, so the first bridge below can hand
    Example 4.3 the first book's file and year.
-3. The two ``plot`` lines are not carried. The run prints and draws nothing.
+3. The two ``plot`` lines are not carried, so the run draws nothing.
+   :mod:`chan.khandani_lo_book_two_figures` draws both curves.
 4. The commented-out cost and Kelly lines print nothing and are not carried.
    One of them still reads "Sharpe ratio should be about 0.25", which is
    ``example3_7.m``'s comment, so the script began as a copy of the first
@@ -103,12 +104,15 @@ error or a corporate action rather than a crash, and without CAH Example 4.3
 gives 13.26 percent and 1.2267, so neither of Chan's figures reproduces. The
 opens' flags were counted rather than read, and three of their stocks, HBAN,
 SLM and ZION, are flagged on the open only. The decision is about reproducing
-this script, and it is not a ruling for any other rule on this panel.
+this script, and it is not a ruling for any other rule on this panel. The
+first book's rule, which ``book_two`` also runs on this panel, computes across
+the same flags on the closes.
 
-**Every figure here is about survivors.** The panel is the S&P 500 as Chan
-held it on 2012-04-24, carried backwards. Chan calls the years from 2008 "a
+**Every figure here is about survivors.** The panel holds 497 stocks that
+were in the S&P 500 in late 2011, and the run treats them as the index on
+every earlier day it has a price for them. Chan calls the years from 2008 "a
 true out-of-sample test" because the strategy was published in 2007. They are
-out of sample in time, but the stocks were chosen with 2012's membership.
+out of sample in time, but the stocks were chosen from the index of late 2011.
 [Issue 252](https://github.com/l3a0/quantitative-trading/issues/252) prices
 survivorship on this file for Example 7.2 over 2011 and 2012, and nothing yet
 prices it for this rule over 2007 to 2011.
@@ -336,7 +340,7 @@ def report(members, result: BookTwo) -> None:
     )
     print()
     print(
-        "  The panel holds only the stocks still in the index on 2012-04-24, "
+        "  The panel holds stocks that were in the S&P 500 in late 2011, "
         "so every figure is about survivors."
     )
     print("  Exploratory. docs/replication-log.md carries the verdicts.")
