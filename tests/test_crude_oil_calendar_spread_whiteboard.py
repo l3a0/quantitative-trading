@@ -137,8 +137,8 @@ SELLS_LABELS = [
     "script: sell the spread,",
     "short far and long near",
     "reversion would buy it here",
-    "the bet pays if the",
-    "spread keeps falling",
+    "the script’s bet pays",
+    "if the spread keeps falling",
     "the two z-scores have opposite signs on 841 of 1,097 held days from 2008-01-02",
     "short far on all 554 held days with the roll return’s z-score above 0",
 ]
@@ -879,7 +879,7 @@ class TestTheScriptSellsSketch:
             tx, ty = float(arrow.x[tip]), float(arrow.y[tip])
             spread, average = float(np.interp(tx, x, sy)), float(np.interp(tx, x, say))
             assert tint.x0 < tx < tint.x1, gid
-            assert abs(ty - spread) < 0.1, gid
+            assert abs(ty - spread) < 0.05, gid
             assert abs(ty - spread) < abs(ty - average), gid
             assert arrow.x[0] > tint.x1, gid
             tips[gid] = tx

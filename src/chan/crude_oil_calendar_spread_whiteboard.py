@@ -576,13 +576,13 @@ def _script_sells(signs: Signs) -> Scene:
             color=MUTED,
             size=11,
         ),
-        _stroke("sell", _arrow(right - 0.22, 2.98, rx, r_y + 0.07), color=LOST, frames=6),
+        _stroke("sell", _arrow(right - 0.22, 2.98, rx, r_y + 0.02), color=LOST, frames=6),
         Label("script: sell the spread,", right, 3.15, names="sell", color=LOST, size=12),
         Label("short far and long near", right, 2.8, names="sell", color=LOST, size=12),
         _stroke("buy", _arrow(right - 0.22, 2.3, sx + 0.16, s_y + 0.02), color=GOOD, frames=6),
         Label("reversion would buy it here", right, 2.3, names="buy", color=GOOD, size=12),
-        Label("the bet pays if the", right, 1.86, names="spread", color=INK, size=12),
-        Label("spread keeps falling", right, 1.52, names="spread", color=INK, size=12),
+        Label("the script’s bet pays", right, 1.86, names="spread", color=INK, size=12),
+        Label("if the spread keeps falling", right, 1.52, names="spread", color=INK, size=12),
         Label(
             f"the two z-scores have opposite signs on {_thousands(signs.opposite)} "
             f"of {_thousands(signs.held)} held days from {signs.start}",
