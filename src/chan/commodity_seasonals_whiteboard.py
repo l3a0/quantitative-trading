@@ -1970,13 +1970,15 @@ class OneYearFigures:
         return cls(before=returns(1994, 2008), after=returns(2009, 2023))
 
 
-#: The return axis: where 0% sits, how wide a percentage point is, its
-#: ends, the width of a stack of dots, and the axis, dot and mean heights.
+#: The return axis: where 0% sits, how wide a percentage point is, its ends,
+#: how close two dots may sit on one level before the later one stacks above,
+#: and the axis, dot and mean heights. Each dot sits at its true return, so
+#: none lands on the wrong side of zero or of either mean tick.
 YEAR_ZERO_X, YEAR_POINT = 3.52, 0.084
 YEAR_SCALE = (-30.0, 70.0)
-YEAR_BIN = 3.0
+YEAR_DOT_GAP = 0.14
 YEAR_AXIS_Y, YEAR_DOT_BASE, YEAR_DOT_STEP = 2.6, 2.8, 0.17
-YEAR_MEAN = (2.45, 2.75)
+YEAR_MEAN = (2.35, 2.6)
 #: The ranks strip: its ends, and the before and after rows.
 RANK_X = (1.9, 9.4)
 RANK_BEFORE_Y, RANK_AFTER_Y = 1.3, 0.9
@@ -2006,15 +2008,16 @@ def _one_year(f: OneYearFigures) -> Scene:
         Label("0%", _year_x(0), 3.56, names="zero", color=MUTED, size=10, ha="center"),
         Label("returns, 2009 to 2023", 0.3, 3.75, names="axis", color=MUTED, size=10),
     ]
-    heights: dict[float, int] = {}
+    placed: list[tuple[float, int]] = []
     for year, pct in sorted(f.after, key=lambda pair: pair[1]):
-        stack = round(pct / YEAR_BIN) * YEAR_BIN
-        level = heights.get(stack, 0)
-        heights[stack] = level + 1
+        x, level = _year_x(pct), 0
+        while any(abs(x - px) < YEAR_DOT_GAP and pl == level for px, pl in placed):
+            level += 1
+        placed.append((x, level))
         steps.append(
             Stroke(
                 f"year-{year}",
-                np.array([_year_x(stack)]),
+                np.array([x]),
                 np.array([YEAR_DOT_BASE + level * YEAR_DOT_STEP]),
                 color=GOOD if pct > 0 else LOST,
                 frames=1,
@@ -2024,7 +2027,7 @@ def _one_year(f: OneYearFigures) -> Scene:
     steps += [
         Label(
             f"{best_year}: {best:+.0f}%",
-            _year_x(round(best / YEAR_BIN) * YEAR_BIN),
+            _year_x(best),
             3.16,
             names=f"year-{best_year}",
             color=GOOD,
@@ -2040,7 +2043,7 @@ def _one_year(f: OneYearFigures) -> Scene:
         Label(
             f"mean {f.mean_after:+.1f}%",
             _year_x(f.mean_after) + 0.1,
-            2.2,
+            2.08,
             names="mean",
             color=INK,
             size=10,
@@ -2059,7 +2062,7 @@ def _one_year(f: OneYearFigures) -> Scene:
         Label(
             f"without {best_year}: {f.mean_without_best:+.1f}%",
             _year_x(f.mean_without_best) - 0.1,
-            2.2,
+            2.08,
             names="mean-without",
             color=ACCENT,
             size=10,

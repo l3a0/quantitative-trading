@@ -1677,6 +1677,22 @@ class TestTheOneYearSketch:
         without = _stroke(scene, "mean-without").x
         assert list(without) == pytest.approx([_year_x(f.mean_without_best)] * len(without))
 
+    def test_each_return_dot_sits_at_its_true_return(self, every) -> None:
+        """No rounding moves a dot, so each one sits on its true side of zero and
+        of both mean ticks. 2021's -4.5% once sat left of the -5.0% tick."""
+        scene, f = every[12], OneYearFigures.from_run()
+        means = (0.0, f.mean_after, f.mean_without_best)
+        for year, pct in f.after:
+            x = _stroke(scene, f"year-{year}").x[0]
+            assert x == pytest.approx(_year_x(pct)), year
+            for mean in means:
+                assert (x < _year_x(mean)) == (pct < mean), (year, mean)
+        dots = [_stroke(scene, f"year-{year}") for year, _ in f.after]
+        for k, one in enumerate(dots):
+            for two in dots[k + 1 :]:
+                if one.y[0] == two.y[0]:
+                    assert abs(one.x[0] - two.x[0]) >= sketches.YEAR_DOT_GAP, (one.gid, two.gid)
+
     def test_each_rank_dot_sits_in_its_row_in_rank_order(self, every) -> None:
         scene, f = every[12], OneYearFigures.from_run()
         ranked = self.ranked(f)
