@@ -535,9 +535,10 @@ class TestLongAndShortDaysCancel:
     def test_the_leftover_words_hang_under_the_short_half_from_the_bars_end(
         self, either, monkeypatch, fallback
     ) -> None:
-        """Red is the only ink tying them to the leftover span, and to a reader who
-        cannot tell red from grey their place has to do it. Two lines, each ending at
-        the bar's right end, keep them clear of the long half and of the grey label."""
+        """Vermilion is the only ink tying them to the leftover span, and to a reader
+        who cannot tell vermilion from grey their place has to do it. Two lines, each
+        ending at the bar's right end, keep them clear of the long half and of the
+        grey label."""
         _font(monkeypatch, fallback)
         scene = scenes(either)[1]
         words = [s for s in scene.steps if isinstance(s, Label) and s.names == "leftover"]

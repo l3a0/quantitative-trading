@@ -23,13 +23,13 @@ places each right after the text it draws.
    position, to scale, blue for the 510 days long and vermilion for the 707
    short. A grey bracket pairs the 510 long days with 510 of the short ones,
    and a thinner grey line laid over those days says they cancel. A vermilion
-   bracket marks the 197 short days left over, 16.2 percent of the days held,
-   and its words name them, so the leftover reads apart from the grey pair
-   under any colour vision. That share times the 3.26 percent a year gives
-   −0.528 percent, beside the −0.522 percent that rollover interest added to
-   the returns. The bar groups
-   the days by side rather than by date, since the rule changes sides
-   throughout the sample. That grouping is the one schematic part.
+   bracket marks the 197 short days left over, 16.2 percent of the days held.
+   That share times the 3.26 percent a year gives −0.528 percent, beside the
+   −0.522 percent that rollover interest added to the returns. The leftover's
+   words name it, so it reads apart from the grey pair under any colour
+   vision. The bar groups the days by side rather than by date, since the
+   rule changes sides throughout the sample. That grouping is the one
+   schematic part.
 
 Every figure comes from :class:`RunFigures`, which
 :meth:`RunFigures.from_run` reads from :func:`chan.aud_cad_rollover.aud_cad_rollover`
