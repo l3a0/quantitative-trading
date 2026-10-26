@@ -3818,9 +3818,9 @@ The post also carries one looping whiteboard sketch,
 [src/chan/buy_on_gap_whiteboard.py](src/chan/buy_on_gap_whiteboard.py) on the
 USD.CAD post's sketch machinery. It sits after the paragraph on Chan's reason
 for rule 2, and draws to scale the two levels an open has to land between, on
-PCS on 2011-01-06. The open of 13.01 lands in a green band under the dashed
+PCS on 2011-01-06. The open of 13.01 lands in a blue band under the dashed
 line at 13.39, one standard deviation below the previous low of 13.68, and
-above the 20-day average of 12.70, with a red zone below the average for
+above the 20-day average of 12.70, with a vermilion zone below the average for
 Chan's reason and an arrow to the close of 13.30. It reads every price from
 the committed file through `chan.buy_on_gap`'s own functions, so the dashed
 line is the price the run compares the open against.

@@ -11,14 +11,14 @@ post places right after the paragraph that opens "Chan gives a reason for rule
 
 1. Where the open has to land: a price axis with three levels across it, the
    previous day's low, a dashed line at that low times one less the standard
-   deviation, and the 20-day average lower still. A green band between the
-   dashed line and the average is where an open qualifies, and a brown dot
+   deviation, and the 20-day average lower still. A blue band between the
+   dashed line and the average is where an open qualifies, and a berry dot
    for the day's open lands in it. Rule 3 then buys the ten deepest drops
    among the day's qualifiers, so an open in the band is not always bought,
    which is why the band says it qualifies rather than that it is bought. A
-   red hatched zone below the average carries Chan's reason for the second
-   rule, and a brown arrow from the open to the close says the position is
-   sold at the close.
+   vermilion hatched zone below the average carries Chan's reason for the
+   second rule, and a berry arrow from the open to the close says the position
+   is sold at the close.
 
 The sketch is not schematic. It draws one real stock on one real day to
 scale, so every level stands at an affine function of its price. That day is
@@ -68,10 +68,10 @@ from chan.buy_on_gap import (
     trailing_average,
 )
 from chan.matlab_helpers import backshift
+from chan.palette import ACCENT, GOOD, INKS, LOST, TINT
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, LOST, MUTED
+from chan.regime_figure import MUTED
 from chan.usdcad_tests_whiteboard import (
-    TINT,
     Fill,
     Label,
     Scene,
@@ -106,7 +106,7 @@ LEFT_X = 2.2
 #: other price stands at the affine function of its value these two fix.
 AVERAGE_Y = 1.3
 LOW_Y = 3.5
-#: The bottom of the red zone below the average, which marks a region rather
+#: The bottom of the vermilion zone below the average, which marks a region rather
 #: than a price.
 ZONE_BOTTOM = 0.3
 #: How far the band and the zone stand inside the lines that bound them, so
@@ -117,7 +117,7 @@ OPEN_X = 3.1
 CLOSE_X = 4.7
 #: The least height between two labels to the right of the levels.
 LABEL_APART = 0.36
-#: The width of the green edge round the pale tint, as
+#: The width of the blue edge round the pale tint, as
 #: :mod:`chan.equity_seasonals_whiteboard` draws it.
 TINT_EDGE = 1.2
 
@@ -181,7 +181,7 @@ def gif_name(scene: Scene) -> str:
 
 
 def _tinted(gid: str, x0: float, y0: float, x1: float, y1: float) -> tuple[Fill, Stroke]:
-    """A pale tint and a thin green edge round it, so the region it marks
+    """A pale tint and a thin blue edge round it, so the region it marks
     reads at WCAG's 3 to 1 for graphical objects. The edge is ``gid`` plus
     ``-edge``."""
     return Fill(gid, x0, y0, x1, y1, TINT), _stroke(
@@ -267,7 +267,7 @@ def _where_the_open_lands(day: GapDay) -> Scene:
             names="band",
             color=GOOD,
         ),
-        _dot("open", OPEN_X, opened),
+        _dot("open", OPEN_X, opened, color=ACCENT),
         Label(f"open {day.open:.2f}", LEFT_X, opened, names="open", ha="right", color=ACCENT),
         _stroke("zone", _hatched(*zone), color=LOST, width=1.4, frames=10),
         Label("not bought", LEFT_X, reason, names="zone", ha="right", color=LOST),
@@ -317,7 +317,7 @@ def make_buy_on_gap_whiteboards(
     paths = []
     for scene in scenes(day):
         frames = timeline(scene)
-        first, *rest = render(scene, frames)
+        first, *rest = render(scene, frames, INKS)
         path = folder / gif_name(scene)
         first.save(
             path,

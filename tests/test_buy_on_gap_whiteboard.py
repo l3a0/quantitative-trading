@@ -3,7 +3,7 @@
 The GIF sketches the strategy's first two rules and sits right after the
 paragraph that opens "Chan gives a reason for rule 2". It draws PCS on
 2011-01-06 to scale: the previous low, the dashed line one standard deviation
-below it, and the 20-day average, with the open landing in the green band
+below it, and the 20-day average, with the open landing in the blue band
 between the last two and an arrow to the close. So what is pinned is what a
 reader takes from it: what it says and in which order, that every price stands
 at an affine function of its value, that the open sits inside the band and the
@@ -65,8 +65,9 @@ from chan.buy_on_gap_whiteboard import (
     read_gap_day,
     scenes,
 )
+from chan.palette import ACCENT, GOOD, INKS, LOST, TINT
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -223,13 +224,13 @@ class TestTheScene:
     def test_only_the_entry_line_is_dashed(self, drawn) -> None:
         assert [s.gid for s in drawn[0].strokes if s.dashed] == ["entry"]
 
-    def test_every_pale_tint_has_a_green_edge(self, drawn) -> None:
-        """The tint alone stands 1.29 to 1 against the white board, under WCAG
-        2.1's 3 to 1 for a graphical object, so the band gets a green edge that
+    def test_every_pale_tint_has_a_blue_edge(self, drawn) -> None:
+        """The tint alone stands 1.31 to 1 against the white board, under WCAG
+        2.1's 3 to 1 for a graphical object, so the band gets a blue edge that
         runs round it."""
         assert sketches.TINT_EDGE >= 1.0
         (fill,) = drawn[0].fills
-        assert fill.color == whiteboard.TINT
+        assert fill.color == TINT
         edge = _stroke(drawn[0], "band-edge")
         assert edge.color == GOOD and edge.width == sketches.TINT_EDGE
         assert (edge.x.min(), edge.x.max()) == pytest.approx((fill.x0, fill.x1))
@@ -239,8 +240,8 @@ class TestTheScene:
 class TestTheColours:
     def test_each_stroke_and_label_is_in_the_ink_its_meaning_calls_for(self, drawn) -> None:
         """The axis and the note are grey context, the three levels black, the
-        band where an open qualifies green, the zone that is not red, and the open and
-        its path to the close brown."""
+        band where an open qualifies blue, the zone that is not vermilion, and the open
+        and its path to the close berry."""
         scene = drawn[0]
         inks = {"axis": MUTED, "low": INK, "entry": INK, "average": INK}
         inks |= {"band-edge": GOOD, "open": ACCENT, "zone": LOST, "sell": ACCENT}
@@ -515,6 +516,14 @@ class TestTheGifs:
         for path in gifs:
             assert path.stat().st_size < 1_000_000, path.name
 
+    def test_each_draws_on_the_palette_of_the_colour_blind_safe_inks(self, gifs) -> None:
+        """Drawn on the shared inks' palette, the blue band and edge, the berry
+        dot and the vermilion zone would each land on the nearest colour that palette
+        holds rather than their own."""
+        for path in gifs:
+            with Image.open(path) as image:
+                assert image.getpalette() == whiteboard.palette(INKS).getpalette(), path.name
+
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, day) -> None:
         again = make_buy_on_gap_whiteboards(out_dir=tmp_path, day=day)
         for first, second in zip(gifs, again, strict=True):
@@ -538,6 +547,13 @@ class TestTheCommittedGifs:
                     0,
                 )
             assert _durations(committed) == [f.ms for f in steps], name
+
+    def test_each_draws_on_the_palette_of_the_colour_blind_safe_inks(self) -> None:
+        """Unlike the byte comparison below, this runs on any machine, so a GIF
+        committed before the post moved to ``chan.palette`` fails on every one."""
+        for name in GIFS:
+            with Image.open(FIGURES_DIR / name) as image:
+                assert image.getpalette() == whiteboard.palette(INKS).getpalette(), name
 
     def test_each_is_a_fresh_draw_byte_for_byte(self, gifs) -> None:
         system, machine, font = platform.system(), platform.machine(), whiteboard.hand_font()
@@ -586,10 +602,10 @@ class TestThePost:
         assert -1 not in places, [w for w, at in zip(scene.labels, places, strict=True) if at < 0]
         assert places == sorted(places)
         assert "drawn to scale" in alt
-        assert "A pale green band with a green edge fills the space between" in alt
-        assert "A brown dot lands inside the band" in alt
-        assert "a brown arrow rises from the dot to the right" in alt
-        assert "A red hatched zone below the average" in alt
+        assert "A pale blue band with a blue edge fills the space between" in alt
+        assert "A berry dot lands inside the band" in alt
+        assert "a berry arrow rises from the dot to the right" in alt
+        assert "A vermilion hatched zone below the average" in alt
         assert "ends inside the band, just under the dashed line and well under" in alt
         assert alt.endswith("holds for four seconds before it redraws.")
 
