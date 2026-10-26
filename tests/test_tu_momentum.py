@@ -786,8 +786,10 @@ class TestWhatThePostQuotes:
     post behind, fails here. Each of the four ``\\small`` tables is rebuilt
     whole, so a cell changed there fails too, bold included in Lesson 3's.
 
-    These comparisons the post's words draw are asserted on the run, and one
-    copy of the words for each is read.
+    These comparisons the post's words draw are asserted on the run, except
+    the traded pair's place among Chan's compromises, which is checked
+    against the module's transcription of location 2646, and one copy of the
+    words for each is read.
 
     - TU's column spans the window the book names, the full window lands all
       six of the comment's figures and the active line none, and the traded
