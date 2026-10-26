@@ -326,8 +326,8 @@ class TestTheJoinIsHalfOfEachRule:
 
     def test_the_warm_up_shorts_put_the_join_below_the_plain_average(self, book) -> None:
         """On the 10 early rows, where only the 30-day lag exists, reversal alone is short,
-        and the shorts earn on the days after, so the join's average day sits below the
-        plain average of the two."""
+        and the shorts earn on balance on the days after, so the join's average day sits
+        below the plain average of the two."""
         rows = _half_of_each(book) != book.combination.positions
         assert (book.reversal.positions[rows] == -1).all()
         earned = backshift(1, rows.astype(float)) == 1

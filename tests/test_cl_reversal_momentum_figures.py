@@ -298,7 +298,7 @@ class TestTheFile:
         assert str(stopped.value) == str(refusal)
 
     def test_a_missing_save_reaches_the_operator_as_one_line(self, monkeypatch, tmp_path) -> None:
-        """The real read path, not a stand-in, so the guard and the read are both exercised."""
+        """The real read path, not a stand-in, so the read itself refuses the missing save."""
         from chan import paths
 
         monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
