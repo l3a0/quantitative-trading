@@ -1232,7 +1232,8 @@ def test_a_failed_read_fails_the_run(
 
     An error read as an empty list publishes a board with no pull requests,
     which reads as correct. So every failure stops the run, and the last good
-    board stays up.
+    board stays up. A server error is tried again first, and the tests below
+    cover that.
     """
     done = subprocess.CompletedProcess([], returncode, stdout=stdout, stderr="")
     monkeypatch.setattr(bb.subprocess, "run", lambda *a, **k: done)
@@ -1287,8 +1288,9 @@ def test_two_server_errors_then_an_answer_still_build_the_board(
     """Protects the board from one bad minute at GitHub.
 
     Between 17:58 and 18:33 UTC on 2026-10-26, 11 of the 16 Board runs that
-    finished failed on a single 502 or 504, and each one turned a pull
-    request's ``build`` check red for a reason outside the pull request.
+    finished failed on a single 502 or 504. Four of them ran for a pull
+    request, and each of those turned its ``build`` check red for a reason
+    outside the pull request.
     """
     gh = FlakyGh(["gh: HTTP 502", "gh: HTTP 502"], FakeGitHub([issue(1)], [pull(2, closes=(1,))]))
     waits: list[float] = []
@@ -1336,6 +1338,8 @@ def test_a_server_error_on_every_attempt_fails_after_three(
         "gh: Resource not accessible by integration (HTTP 403)",
         "gh: Field 'nosuch' doesn't exist on type 'User'",
         "gh: Something went wrong (HTTP 5020)",
+        "gh: Something went wrong while executing your query. This may be the result of a "
+        "timeout, or it could be a GitHub bug.",
     ],
 )
 def test_an_error_that_would_repeat_fails_at_once(
@@ -1346,8 +1350,11 @@ def test_an_error_that_would_repeat_fails_at_once(
     A refused token or a query GitHub rejects gets the same answer every time,
     so trying it again only delays the red check. ``gh`` printed the first and
     fourth forms on 2026-10-26. The second is a 4xx with no message, printed
-    the way ``gh`` prints a bare 504, and the last guards the match against a
-    status that only starts with a 5.
+    the way ``gh`` prints a bare 504. The fifth guards the match against a
+    status that only starts with a 5. The last is GitHub's GraphQL timeout,
+    which arrives in the body's ``errors`` list, so ``gh`` prints it with no
+    status. It fails at once like any GraphQL error, and none of the 18 failed
+    Board runs on record by 2026-10-26 showed it.
     """
     gh = FlakyGh([stderr], FakeGitHub([], []))
     waits: list[float] = []
@@ -1364,8 +1371,8 @@ def test_an_error_that_would_repeat_fails_at_once(
     [
         "gh: HTTP 504",
         "gh: HTTP 502",
-        "gh: Something went wrong while executing your query. (HTTP 502)",
-        "gh: Something went wrong while executing your query. (HTTP 502)\nfurther detail",
+        "gh: Server Error (HTTP 502)",
+        "gh: Server Error (HTTP 502)\nfurther detail",
         "error connecting to api.github.com\n"
         "check your internet connection or https://githubstatus.com",
         'Post "https://api.github.com/graphql": read tcp 10.1.0.4:41234->140.82.112.6:443: '
@@ -1378,8 +1385,10 @@ def test_a_server_or_connection_error_is_tried_again(
     """Protects a read from each way ``gh`` reports GitHub being unreachable.
 
     ``gh`` printed the first, second and fifth forms on 2026-10-26. The third
-    is a 5xx that carries a message, and the fourth the same with a line after
-    it, since the match reads each line rather than only the last. The last is
+    is a 5xx whose body carries a top-level ``message``, which is the only
+    case where ``gh`` adds the status after the text. The fourth is the same
+    with a line after it, since the match reads each line rather than only the
+    last. The last is
     Go's own error for a connection that dropped, which ``gh`` passes through
     unchanged.
     """

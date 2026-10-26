@@ -296,12 +296,15 @@ Gql = Callable[[str, dict], dict]
 LIST_READS = 3
 
 
-# A call `gh` reports as a server error, as `gh: HTTP 504` or as a message
-# ending `(HTTP 502)`, or as one that never got an answer, which `gh` prints as
-# `error connecting to <host>` or as Go's `Post "https://...": <cause>`. A 4xx
-# such as `gh: Bad credentials (HTTP 401)` and a GraphQL error such as
+# A call `gh` reports as a server error, as `gh: HTTP 504` or, when the body
+# carries a top-level message, as that message followed by `(HTTP 502)`. Or a
+# call that never got an answer, which `gh` prints as `error connecting to
+# <host>` or as Go's `Post "https://...": <cause>`. A 4xx such as
+# `gh: Bad credentials (HTTP 401)` and a GraphQL error such as
 # `gh: Field 'x' doesn't exist` match none of these, because trying them again
-# gets the same answer.
+# gets the same answer. GitHub's GraphQL timeout also arrives as an entry in
+# the body's `errors` list, which `gh` prints with no status, so it fails at
+# once too. None of the 18 failed runs on record by 2026-10-26 showed it.
 TRANSIENT = re.compile(
     r'^(?:gh: (?:HTTP 5\d\d\b|.*\(HTTP 5\d\d\)$)|error connecting to |Post "https?://)',
     re.MULTILINE,
