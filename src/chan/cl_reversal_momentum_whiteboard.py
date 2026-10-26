@@ -2,8 +2,8 @@
 
 ``blog/crude-oil-reversal-momentum-lessons.md`` makes three claims a sentence
 has to build in the reader's head: the join buys a dip inside a rise and
-shorts a bounce inside a fall, half a position in each rule adds up to the
-join's position, and compounding takes more from a rule's average day the
+shorts a bounce inside a fall, half a position in each rule adds up to almost
+exactly the join's position, and compounding takes more from a rule's average day the
 more the rule swings. This module draws the three as scenes, and the post
 places each right after the text it draws.
 

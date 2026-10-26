@@ -7122,10 +7122,10 @@ day `TestTheRules::test_the_literal_return_fades_the_jump` holds. The port's
 figures, its 1,718 short days and its never holding a long trace to
 `TestChansPythonPort`. A save a week later moving the APR at the fourth
 decimal, which the post cites from the crude oil reversal and momentum post,
-traces to `TestTheRowsBeside::test_the_later_save` in
+traces to the two saves' APRs pinned in
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py), and
-a save halving an APR, which it cites from the volatility post, to
-`test_the_2012_05_17_save_misses` in [tests/test_vx_es.py](tests/test_vx_es.py).
+a save halving an APR, which it cites from the volatility post, to the two
+pinned in [tests/test_vx_es.py](tests/test_vx_es.py).
 Eleven had no pin before the post.
 
 1. The first edition's `smartstd` moves the standard deviation and changes

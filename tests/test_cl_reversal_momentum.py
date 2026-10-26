@@ -240,7 +240,7 @@ class TestTheRowsBeside:
     def test_combo_or(self, book) -> None:
         assert _six(book.either) == (0.125917, 1.123042)
 
-    def test_combo_or_differs_on_10_warm_up_rows_only(self, book) -> None:
+    def test_combo_or_differs_on_10_early_rows_only(self, book) -> None:
         differ = book.combination.days[book.combination.positions != book.either.positions]
         assert len(differ) == 10
         assert (differ[0], differ[-1]) == (pd.Timestamp("2008-07-01"), pd.Timestamp("2008-07-15"))
@@ -313,7 +313,7 @@ class TestTheJoinIsHalfOfEachRule:
     and 3 rest on.
     """
 
-    def test_on_the_book_s_window_it_differs_on_the_10_warm_up_rows_only(self, book) -> None:
+    def test_on_the_book_s_window_it_differs_on_the_10_early_rows_only(self, book) -> None:
         differ = book.combination.days[_half_of_each(book) != book.combination.positions]
         assert len(differ) == 10
         assert (differ[0], differ[-1]) == (pd.Timestamp("2008-07-01"), pd.Timestamp("2008-07-15"))
@@ -324,7 +324,7 @@ class TestTheJoinIsHalfOfEachRule:
         assert len(differ) == 10
         assert (differ[0], differ[-1]) == (pd.Timestamp("2008-07-02"), pd.Timestamp("2008-07-16"))
 
-    def test_the_warm_up_shorts_put_the_join_below_the_plain_average(self, book) -> None:
+    def test_the_early_shorts_put_the_join_below_the_plain_average(self, book) -> None:
         """On the 10 early rows, where only the 30-day lag exists, reversal alone is short,
         and the shorts earn on balance on the days after, so the join's average day sits
         below the plain average of the two."""
@@ -359,7 +359,7 @@ class TestTheJoinIsHalfOfEachRule:
         assert book.combination.daily.std() < book.momentum.daily.std() / 2.5
         assert book.combination.daily.std() < book.reversal.daily.std() / 2.5
 
-    def test_before_it_differs_on_the_warm_up_and_on_two_ties(self, before_cl, before) -> None:
+    def test_before_it_differs_on_the_early_rows_and_on_two_ties(self, before_cl, before) -> None:
         differ = before.combination.days[_half_of_each(before) != before.combination.positions]
         assert len(differ) == 12
         close = before_cl.to_numpy()
