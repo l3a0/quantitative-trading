@@ -3611,10 +3611,9 @@ Four groups of its figures are not pinned here.
 3. Counts and arithmetic no test asserts. 1.96 marks a two-sided 5 percent,
    which is what puts the band at 95 percent. Each annual mean is the monthly
    mean times 12. The 83 holding months are the 96 month-ends less the 12
-   before the first pick and the last, which has no month after it. 1.8654 is
-   written as 186.54 percent. That no printout's Sharpe ratio subtracts a
-   risk-free rate is a reading of their code. The year 2003 in Lesson 6 is an
-   example rather than a measured date.
+   before the first pick and the last, which has no month after it. That no
+   printout's Sharpe ratio subtracts a risk-free rate is a reading of their
+   code. The year 2003 in Lesson 6 is an example rather than a measured date.
 4. Its references. The five citations are cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -3630,6 +3629,45 @@ for the sketches' labels and the alt texts that quote them. One figure was
 half pinned before it, and
 `TestTheSplice::test_pmc_forward_fills_into_one_days_return` now pins both
 ends of PMC's 851-day gap rather than only the days inside it.
+
+Three classes read the post itself. Each builds every figure it reads from
+the run, the committed files or a module constant, at the precision the post
+prints it, and looks for one copy of it in the post, so a typo in that copy
+fails a test.
+
+1. `TestWhatThePostQuotes` in
+   [tests/test_pca_factor.py](tests/test_pca_factor.py) reads Example 7.4's
+   figures. That covers the S&P 600 file's members, saved date, span and days,
+   the steps' 252 days and 50 a side, Lesson 1's two tables, its sentence
+   naming Chan's 2 and 4 percent and the three points after them, Lesson 2's
+   third and fourth points and its table, and Lesson 6's first and fourth
+   points, with PMC's 851-day gap, its 1.8654 return written as 186.54
+   percent, and the three printouts without it. Each printed figure in Lesson
+   1's tables is held against the run.
+2. `TestWhatThePostQuotes` in
+   [tests/test_momentum_factor.py](tests/test_momentum_factor.py) reads the
+   figures on MKT and WML. That covers the three files' dates and the S&P
+   500 file's span, the 12 and 1 months of the lookback, the 96 month-ends,
+   the 83 holding months, the 442 to 494 stocks each month and the 446 with a
+   return in all of them, Lesson 3's table, quartiles and two verdicts,
+   Lesson 4's display equation, average returns and t-statistics, the
+   figure's alt text, and Lesson 6's monthly median.
+3. `TestWhatTheFactorModelsPostQuotes` in
+   [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py)
+   reads the figures on Example 7.4's own five factors. That covers the
+   252-day weights, the 752 pairs and the 579 stocks, Lesson 3's daily table
+   and the paragraph after it, the band and the test across all five, what
+   dropping PMC moves, and Lesson 6's daily median.
+
+All five of the post's tables are rebuilt whole, so a digit added to a cell
+fails as well as a digit changed, and each verdict's words come from the
+verdict. The classes read one copy of each figure, so a typo in another copy
+passes. Among those left unread are the 2 and 4 percent in the subtitle and
+the opening, the 1.8654 and 186.54 percent in Lesson 3, the 0 identical days
+out of 752 in Lesson 5, the 0.0675, −0.1099 and ±1.96/√83 in Lesson 4's prose,
+the 446 and ±0.2151 in the paragraph before the figure, and the repeats of
+600, 50, 252, 83 and 446. Each class docstring names the copies it leaves
+unread.
 
 Its one figure is drawn from the committed S&P 500 file by
 [src/chan/momentum_factor_figures.py](src/chan/momentum_factor_figures.py). It

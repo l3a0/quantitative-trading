@@ -49,7 +49,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from chan import pca_factor_momentum
+from chan import paths, pca_factor_momentum
 from chan.pca_factor import (
     FACTORS,
     LOOKBACK,
@@ -657,6 +657,147 @@ class TestTheReport:
         monkeypatch.setattr("sys.argv", ["pca_factor_momentum"])
         with pytest.raises(SystemExit, match="no committed vintage is lifted from IJR_20080114"):
             main()
+
+
+# --- what the factor-models post quotes --------------------------------------------
+
+FACTOR_MODELS_POST = paths.REPO_ROOT / "blog" / "factor-models-lessons.md"
+
+#: The counts the post spells out.
+WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
+
+
+def _minus(x: float, places: int) -> str:
+    """A figure in prose, with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _array(head: str, rows: list[list[str]]) -> str:
+    """One of the post's ``array`` tables, from its header row to its last row."""
+    body = " \\\\\n".join(" & ".join(row) for row in rows)
+    return f"{head} \\\\ \\hline\n{body}\n\\end{{array}}"
+
+
+def _side(above: bool) -> str:
+    return "above" if above else "below"
+
+
+class TestWhatTheFactorModelsPostQuotes:
+    """Each figure ``blog/factor-models-lessons.md`` quotes on Example 7.4's own factors.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run or a module constant at the
+    precision the post prints it, and looked for in one copy: a short fragment
+    holding the number and the few words that name one place in the post. A
+    typo in a copy that is read, or a re-pin that leaves the post behind,
+    fails here. Lesson 3's daily table is rebuilt whole, its claim column from
+    :meth:`chan.pca_factor_momentum.Result.verdicts`, so a digit added to a
+    cell fails as well as a digit changed. Every factor a sentence names, and
+    each count it spells out, comes from the run too, so a sentence that
+    names the wrong factor fails as well. ``blog/pca-factor-momentum-lessons.md``
+    is a different post, and this class does not read it.
+
+    The copies read are the paragraph on how each day's weights make a pair,
+    the daily table, the paragraph after it, and the first and third of the
+    three points that follow, and Lesson 6's third point. Other copies are not
+    read, so a typo in one of them passes. Among them are the 1.8654 and
+    186.54 percent in the third point, which ``tests/test_pca_factor.py``
+    reads in Lesson 6, the 752 in Lesson 5, which counts days rather than
+    pairs, and the "four of Example 7.4's five" in the headings, subtitle and
+    closing habits.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return FACTOR_MODELS_POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_how_each_pair_is_built(self, results: Results, text) -> None:
+        c = results.spliced.comparison
+        fragments = [
+            f"The {WORDS[FACTORS]} factors are {NAMES[0]} to {NAMES[-1]},",
+            f"Each day’s weights come from the {LOOKBACK} days of returns that end the day before.",
+            f"the correlation of the {c.pairs} pairs computed without subtracting their means "
+            "first.",
+            f"The same statistic is computed for each of the {len(c.stocks)} stocks with a "
+            "return on every day the pairs read.",
+            f"its percentile is the share of the {len(c.stocks)} stocks whose statistic is "
+            "below it.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_daily_table_and_its_verdicts(self, results: Results, text) -> None:
+        c = results.spliced.comparison
+        verdicts = results.spliced.verdicts()
+        claim = {True: "\\text{holds}", False: "\\text{does not hold}"}
+        (missed,) = [v for v in verdicts if not v.holds]
+        held = sum(v.holds for v in verdicts)
+        fragments = [
+            _array(
+                "\\small\\begin{array}{l|r|r|l}\n"
+                "\\text{Factor} & \\text{Correlation} & \\text{Percentile} & \\text{Claim}",
+                [
+                    [
+                        f"\\text{{{v.factor}}}",
+                        f"{v.statistic:.4f}",
+                        f"{c.percentile(v.statistic):.4f}",
+                        claim[v.holds],
+                    ]
+                    for v in verdicts
+                ],
+            ),
+            f"The median stock’s statistic is {_minus(c.median, 4)}. The claim that factors "
+            f"“{OFTEN}” autocorrelate more strongly holds for {WORDS[held]} of the "
+            f"{WORDS[len(verdicts)]}, and does not hold for {missed.factor}, which sits "
+            f"{_side(missed.above_median)} the median stock but {_side(missed.above_zero)} 0.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_band_and_the_test_across_all_five(self, results: Results, text) -> None:
+        c = results.spliced.comparison
+        outside = [(n, v) for n, v in zip(NAMES, c.factors, strict=True) if abs(v) > c.band]
+        ((name, value),) = outside
+        assert not results.spliced.survives.any(), SPEC
+        fragments = [
+            f"Over {c.pairs} pairs it lands inside ±{CRITICAL}/√{c.pairs} = ±{c.band:.4f}",
+            f"{name}’s {value:.4f} is outside it and the other {WORDS[FACTORS - 1]} are inside.",
+            f"to {100 * FALSE_DISCOVERY:.0f} percent, runs across all {WORDS[FACTORS]}. None "
+            f"survives, {name} included,",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_what_dropping_pmc_moves(self, results: Results, text) -> None:
+        before, after = results.spliced, results.unspliced
+        was = {v.factor: v for v in before.verdicts()}
+        now = {v.factor: v for v in after.verdicts()}
+        (fell,) = [n for n in NAMES if was[n].above_zero and not now[n].above_zero]
+        (rose,) = [n for n in NAMES if not was[n].above_zero and now[n].above_zero]
+        (missed,) = [n for n in NAMES if not was[n].holds]
+        (spliced_outside,) = [n for n in NAMES if abs(was[n].statistic) > before.comparison.band]
+        first, second = [n for n in NAMES if abs(now[n].statistic) > after.comparison.band]
+        (passing,) = [k for k, p in enumerate(after.p_values) if p < FALSE_DISCOVERY]
+        assert not after.survives.any(), SPEC
+        fragments = [
+            f"Without {SPLICED}, {fell} falls to {_minus(now[fell].statistic, 4)} and {rose} "
+            f"rises to {now[rose].statistic:.4f}, so the claim would miss {fell} rather than "
+            f"{missed}.",
+            f"{first} at {now[first].statistic:.4f} and {second} at "
+            f"{now[second].statistic:.4f} would sit outside the band in place of "
+            f"{spliced_outside}.",
+            f"{NAMES[passing]}’s one-sided p-value of {after.p_values[passing]:.4f} would then "
+            f"pass at {100 * FALSE_DISCOVERY:.0f} percent on its own, but no factor would "
+            f"survive the test across all {WORDS[FACTORS]}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_6s_median(self, results: Results, text) -> None:
+        median = results.spliced.comparison.median
+        fragment = f"on the S&P 600 file the median daily statistic is {_minus(median, 4)}."
+        assert self.missing(text, [fragment]) == []
 
 
 # --- the rules, on data small enough to read ---------------------------------------

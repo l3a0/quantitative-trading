@@ -38,13 +38,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from chan import momentum_factor
+from chan import momentum_factor, paths
 from chan.momentum_factor import (
     CLAIM_LOCATION,
     CRITICAL,
     FIRST_FORMATION,
     LAST_FORMATION,
     LOOKBACK,
+    MARKET,
     MARKET_LOCATION,
     SKIP,
     SOURCE_FILE,
@@ -289,6 +290,158 @@ class TestTheRun:
         assert "= 0.2151" in out and "Outside it: neither factor." in out
         assert "about survivors" in out
         assert "Exploratory." in out
+
+
+# --- what the post quotes ------------------------------------------------------
+
+POST = paths.REPO_ROOT / "blog" / "factor-models-lessons.md"
+
+
+def _minus(x: float, places: int) -> str:
+    """A figure in prose, with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _array(head: str, rows: list[list[str]]) -> str:
+    """One of the post's ``array`` tables, from its header row to its last row."""
+    body = " \\\\\n".join(" & ".join(row) for row in rows)
+    return f"{head} \\\\ \\hline\n{body}\n\\end{{array}}"
+
+
+def _side(above: bool) -> str:
+    return "above" if above else "below"
+
+
+class TestWhatThePostQuotes:
+    """Each figure ``blog/factor-models-lessons.md`` quotes about MKT and WML, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run, the files or a module constant at
+    the precision the post prints it, and looked for in one copy: a short
+    fragment holding the number and the few words that name one place in the
+    post. A typo in a copy that is read, or a re-pin that leaves the post
+    behind, fails here. Lesson 3's monthly table is rebuilt whole, its claim
+    row from :func:`chan.momentum_factor.verdicts`, so a digit added to a cell
+    fails as well as a digit changed. Each verdict's words, above or below 0
+    and the median stock, come from the verdict too.
+
+    The copies read are the list of files, the definitions of MKT and WML,
+    the paragraphs on the month-ends and the statistic, Lesson 3's table and
+    the paragraphs and two verdicts after it, Lesson 4's display equation and
+    its paragraph on the average returns, the figure's alt text, and Lesson
+    6's third point. Other copies are not read, so a typo in one of them
+    passes. Among them are the 0.0675 and −0.1099 in Lesson 4's prose, the
+    ±1.96/√83 in Lesson 4's sentence before its equation, the 446 and
+    ±0.2151 in the paragraph before the figure, and the repeats of 83, 12
+    and 446 elsewhere. ``tests/test_momentum_factor_figures.py`` holds what
+    the figure draws, and never reads the post.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_files_and_the_factors(self, sources, text) -> None:
+        members, closes, spy_entry, _, bill_entry, _ = sources
+        (saved,) = {m.obtained for m in members}
+        fragments = [
+            f"`{SOURCE_FILE}`, the {len(members)} members of the S&P 500 as he saved them on "
+            f"{saved}, spanning {closes.index[0].date()} to {closes.index[-1].date()}.",
+            f"{MARKET}’s dividend-adjusted close from his `example6_2.xls`, saved "
+            f"{spy_entry.obtained}.",
+            f"{bill_entry.symbol}, downloaded on {bill_entry.obtained} from FRED",
+            f"three-month Treasury bill rate divided by {momentum_factor.MONTHS}.",
+            f"a stock is a winner if its return from {LOOKBACK} months back to {SKIP} month "
+            "back was positive",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_calendar_and_the_statistic(self, factors: Factors, comparison, text) -> None:
+        held = len(factors.formed)
+        fewest, most = min(factors.eligible), max(factors.eligible)
+        stocks = len(comparison.stocks)
+        assert comparison.months == held
+        fragments = [
+            f"there are {len(factors.month_ends)} of them. The first month-end that picks "
+            f"winners and losers needs {LOOKBACK} month-ends of history behind it",
+            f"so {held} holding months remain, from {factors.held_to[0]:%B %Y} to "
+            f"{factors.held_to[-1]:%B %Y}.",
+            f"from {LOOKBACK} before the pick to the end of the month held, which leaves "
+            f"{fewest} to {most} stocks each month.",
+            f"the median of the {stocks} stocks with a return in all {held} months. The "
+            f"{stocks} can exceed {fewest}, the fewest stocks in any month, because a stock "
+            f"can have a return in all {held} months",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3s_table_and_verdicts(self, comparison: Comparison, text) -> None:
+        c = comparison
+        mkt, wml = verdicts(c)
+        claim = {True: "\\text{holds}", False: "\\text{does not hold}"}
+        above_mkt, above_wml = int((c.stocks < c.mkt).sum()), int((c.stocks < c.wml).sum())
+        fragments = [
+            f"A factor’s percentile is the share of the {len(c.stocks)} stocks whose "
+            "autocorrelation is below the factor’s.",
+            _array(
+                f"\\begin{{array}}{{l|r|r}}\n\\text{{{c.months} months}} & "
+                f"\\text{{{mkt.factor}}} & \\text{{{wml.factor}}}",
+                [
+                    ["\\text{Autocorrelation}", f"{c.mkt:.4f}", f"{c.wml:.4f}"],
+                    [
+                        "\\text{Percentile}",
+                        f"{c.percentile(c.mkt):.4f}",
+                        f"{c.percentile(c.wml):.4f}",
+                    ],
+                    ["\\text{Claim}", claim[mkt.holds], claim[wml.holds]],
+                ],
+            ),
+            f"The {len(c.stocks)} stocks’ autocorrelations have a lower quartile of "
+            f"{_minus(c.lower_quartile, 4)}, a median of {_minus(c.median, 4)} and an upper "
+            f"quartile of {_minus(c.upper_quartile, 4)}",
+            f"{mkt.factor}’s {_minus(c.mkt, 4)} is {_side(mkt.above_zero)} 0 and "
+            f"{_side(mkt.above_median)} the median stock’s {_minus(c.median, 4)}. It sits above "
+            f"{above_mkt} of the {len(c.stocks)} stocks.",
+            f"{wml.factor}’s {_minus(c.wml, 4)} is {_side(wml.above_zero)} 0 and "
+            f"{_side(wml.above_median)} the median stock. It sits above only {above_wml} of the "
+            f"{len(c.stocks)} stocks",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_4s_band_and_average_returns(self, factors: Factors, comparison, text) -> None:
+        c = comparison
+        fragments = [
+            f"\\pm \\frac{{{CRITICAL}}}{{\\sqrt{{{c.months}}}}} = \\pm {c.band:.4f}",
+            f"MKT earned {annual_mean(factors.mkt):.4f} a year over the bill, and WML, which "
+            f"has no bill leg, earned {annual_mean(factors.wml):.4f}, each the mean monthly "
+            f"return times {momentum_factor.MONTHS}.",
+            f"MKT’s is {t_statistic(factors.mkt):.4f} and WML’s "
+            f"{t_statistic(factors.wml):.4f}, with no correction for autocorrelation.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_figures_alt_text(self, comparison: Comparison, text) -> None:
+        c = comparison
+        fragments = [
+            f"![A step curve of the {len(c.stocks)} stocks’ lag-1 autocorrelations over "
+            f"{c.months} months, rising to 1. A shaded band covers {_minus(-c.band, 4)} to "
+            f"{c.band:.4f}. A dashed vertical line for WML at {_minus(c.wml, 4)} meets the curve "
+            f"at the {c.percentile(c.wml):.4f}th percentile, a solid line for MKT at "
+            f"{_minus(c.mkt, 4)} meets it at the {c.percentile(c.mkt):.4f}th, and a dotted line "
+            f"marks the median stock at {_minus(c.median, 4)}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_6s_median(self, comparison: Comparison, text) -> None:
+        fragment = (
+            "On the S&P 500 file the median stock’s monthly autocorrelation is "
+            f"{_minus(comparison.median, 4)},"
+        )
+        assert self.missing(text, [fragment]) == []
 
 
 # --- the rule, on frames built by hand -----------------------------------------
