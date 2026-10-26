@@ -10,8 +10,9 @@ post places right after the text it draws.
 1. Sixteen days of the band: the 16 traded days from 2006-07-27 to
    2006-08-17, the z-score as black dots against red dashed lines at −1 and
    +1 and a grey line at 0, above a strip of the units held. The strip turns
-   green and long where the z-score enters below −1, stays long while two
-   dots sit back inside the band, and turns red and short on the one close
+   green and long where the z-score enters below −1 and stays long while
+   three dots sit back inside the band, two just above −1, which a note
+   names, and one just below 0. It turns red and short on the one close
    that a ring marks, where the z-score jumps from below 0 to above 1. It
    goes flat and then long again at the end. It sits after the paragraph
    opening "At these thresholds", in "The rule and the file".
@@ -183,9 +184,11 @@ def _ordinal(count: int) -> str:
     return f"{count}{tail}"
 
 
-def _signed(value: float, places: int) -> str:
-    """``value`` to ``places`` decimals with a typographic minus, as the post prints one."""
-    return f"{value:.{places}f}".replace("-", "−")
+def _article(count: int) -> str:
+    """``an`` before an ordinal said with a vowel first, such as 8th, 11th, 18th or 80th."""
+    digits = str(count)
+    spoken_eight = digits.startswith("8") or (digits[:2] in ("11", "18") and len(digits) % 3 == 2)
+    return "an" if spoken_eight else "a"
 
 
 def _ring(x: float, y: float, radius: float) -> tuple[np.ndarray, np.ndarray]:
@@ -479,7 +482,8 @@ def _two_divisors(run: BandRun) -> Scene:
         {
             marks.exit: [
                 Label(
-                    f"a {_ordinal(run.exits_n)} exit, on {stretch.days[marks.exit].date()}",
+                    f"{_article(run.exits_n)} {_ordinal(run.exits_n)} exit, "
+                    f"on {stretch.days[marks.exit].date()}",
                     exit_x,
                     NOTE_Y,
                     names=f"n-{marks.exit}",

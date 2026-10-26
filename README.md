@@ -4964,7 +4964,12 @@ Five groups of what it says are not pinned here.
    `plot` call and which nothing compares with the book's own. The alt text's
    description of shapes, such as the band ending well above the linear rule
    and the dashed line running close to the band, is read off the drawing
-   rather than asserted.
+   rather than asserted. Of the sketches' alt texts,
+   [tests/test_bollinger_whiteboard.py](tests/test_bollinger_whiteboard.py)
+   reads the quoted labels, the pace, and the counts and phrases it quotes
+   about each drawing. It does not read every level the rest of each
+   description gives, such as the dots falling to just above 0 and then far
+   below −1.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -5030,9 +5035,9 @@ of the units held.
 
 1. One in "The rule and the file", `bollinger_sketch_one_close.gif`, after the
    paragraph on a long turning short in a single day. It draws the 16 days
-   from 2006-07-27 to 2006-08-17, where a long entered below −1 is held while
-   two z-scores sit back inside the band, then turns short on 2006-08-11, when
-   the z-score jumps from below 0 to above 1.
+   from 2006-07-27 to 2006-08-17, where a long entered below −1 is held through
+   three days back inside the band, then turns short on 2006-08-11, when the
+   z-score jumps from below 0 to above 1.
 2. One in Lesson 3, `bollinger_sketch_two_divisors.gif`, after the list of
    the two moved figures. It draws the 11 days from 2007-05-24 to 2007-06-08
    with each day's z-score under both divisors side by side. On 2007-05-29

@@ -529,7 +529,7 @@ class TestTheTurnSketch:
         assert str(turn.days[11].date()) == "2006-08-11"
 
     def test_its_colours(self, every) -> None:
-        """Red dashed entry lines, a grey solid exit line, black dots, a brass
+        """Red dashed entry lines, a grey solid exit line, black dots, a brown
         ring, and each strip bar in the ink of its word."""
         scene = every[0]
         for gid, ink, dashed in (
@@ -623,6 +623,42 @@ class TestTheTurnSketch:
         assert "2006-07-27 to 2006-08-16" in scene.labels
         assert _stroke(scene, "zscore").points == 15
 
+    def test_it_refuses_a_count_its_title_cannot_spell(self, run) -> None:
+        t = run.turn
+        short = replace(
+            t,
+            days=t.days[:10],
+            zscore=t.zscore[:10],
+            units=t.units[:10],
+            zscore_n=t.zscore_n[:10],
+            units_n=t.units_n[:10],
+        )
+        with pytest.raises(ValueError, match="no word for 10"):
+            scenes(replace(run, turn=short))
+
+    def test_its_alt_text_says_what_the_picture_shows(self, run) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), scenes(run)[0])
+        z, units = run.turn.zscore, run.turn.units
+        assert "Sixteen black dots" in alt and len(z) == 16
+        assert "The first dot sits just below 0." in alt and -0.5 < z[0] < 0
+        assert "The next nine sit near −1, seven of them below it and two just above it" in alt
+        assert np.count_nonzero(z[1:10] < -1) == 7
+        assert np.count_nonzero((-1 < z[1:10]) & (z[1:10] < -0.8)) == 2
+        assert "The eleventh rises to just below 0, and the twelfth jumps above +1" in alt
+        assert -0.5 < z[10] < 0 < 1 < z[11]
+        assert "The one after stays just above +1" in alt and 1 < z[12] < 1.1
+        assert "turns into a thick green bar marked “long” at the second dot" in alt
+        assert "A brown ring circles the twelfth dot, the first above +1" in alt
+        assert "a thick red bar marked “short” runs for three days" in alt
+        assert "“flat” for one day and a green bar marked “long” on the last day" in alt
+        assert runs(units) == [
+            (0, 0, 0.0),
+            (1, 10, 1.0),
+            (11, 13, -1.0),
+            (14, 14, 0.0),
+            (15, 15, 1.0),
+        ]
+
     @pytest.mark.parametrize(
         ("edit", "words"),
         [
@@ -630,8 +666,17 @@ class TestTheTurnSketch:
             (lambda u, z: (u, np.where(np.arange(16) == 11, 0.9, z)), "exit at 0 and the entry"),
             (lambda u, z: (u, np.where(np.arange(16) == 1, -0.9, z)), "entered below −1"),
             (lambda u, z: (u, np.where((z > -1) & (z < 0) & (u == 1), -1.1, z)), "inside the band"),
+            (lambda u, z: (u, np.where(np.arange(16) == 10, 0.1, z)), "exit at 0 and the entry"),
+            (lambda u, z: (np.where(np.arange(16) < 11, 1.0, u), z), "entered below −1"),
         ],
-        ids=["no turn", "turn below 1", "entry inside", "never inside"],
+        ids=[
+            "no turn",
+            "turn below 1",
+            "entry inside",
+            "never inside",
+            "day before the turn above 0",
+            "long held from the first day",
+        ],
     )
     def test_it_refuses_days_that_would_make_its_words_false(self, run, edit, words) -> None:
         units, zscore = edit(run.turn.units.copy(), run.turn.zscore.copy())
@@ -760,13 +805,41 @@ class TestTheDivisorSketch:
         assert label.x == pytest.approx(short.x.max())
         assert label.y < min(b.y.min() for b in _bars(scene, "n"))
 
+    def test_its_alt_text_and_caption_say_what_the_picture_shows(self, run) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), scenes(run)[1])
+        z, zn = run.divisors.zscore, run.divisors.zscore_n
+        assert "two dots for each of 11 traded days" in alt and len(z) == 11
+        assert "each level with its black neighbour to the eye" in alt
+        assert np.all(np.abs(zn - z) * sketches.DIVISOR_PER_Z * HEIGHT / whiteboard.YLIM[1] < 2)
+        assert "The dots start at about 0.3" in alt and round(float(z[0]), 1) == 0.3
+        assert "between about 0.8 and +1 from the second day to the seventh" in alt
+        assert np.all((0.8 < z[1:7]) & (z[1:7] < 1)) and z[7] < 0.8
+        assert "the last two sit below 0" in alt
+        assert np.all(z[-2:] < 0) and np.all(z[:-2] > 0)
+        assert "the black dot sits just under +1 and the brown just over it" in alt
+        assert "a thin grey line marked “flat” for two days" in alt
+        assert "a thick red bar marked “short” from the ringed day for seven days" in alt
+        assert "a thin grey line marked “flat” for the last two" in alt
+        assert runs(run.divisors.units_n) == [(0, 1, 0.0), (2, 8, -1.0), (9, 10, 0.0)]
+        paragraphs = _paragraphs()
+        (index,) = [
+            k
+            for k, p in enumerate(paragraphs)
+            if f"({GIFS[1]})" in p.replace("../docs/figures/", "")
+        ]
+        assert "differ by too little to see at this scale" in paragraphs[index + 1]
+
     def test_its_counts_follow_made_up_figures(self, run) -> None:
         """Another run's counts print their own words."""
         scene = scenes(replace(run, differ=20, exits=10, exits_n=11))[1]
-        assert "a 11th exit, on 2007-06-07" in scene.labels
+        assert "an 11th exit, on 2007-06-07" in scene.labels
         assert "the units differ on 7 days here and 20 in all" in scene.labels
         scene = scenes(replace(run, exits=21, exits_n=22))[1]
         assert "a 22nd exit, on 2007-06-07" in scene.labels
+        scene = scenes(replace(run, exits=22, exits_n=23))[1]
+        assert "a 23rd exit, on 2007-06-07" in scene.labels
+        scene = scenes(replace(run, exits=79, exits_n=80))[1]
+        assert "an 80th exit, on 2007-06-07" in scene.labels
 
     @pytest.mark.parametrize(
         ("change", "words"),
@@ -793,8 +866,14 @@ class TestTheDivisorSketch:
                 ),
                 "one exit under n",
             ),
+            (
+                lambda r: replace(
+                    r, divisors=replace(r.divisors, zscore=r.divisors.zscore_n.copy())
+                ),
+                "under 1 and the n z-score over it",
+            ),
         ],
-        ids=["exit count", "n − 1 not flat", "no straddle", "no entry", "no exit"],
+        ids=["exit count", "n − 1 not flat", "no straddle", "no entry", "no exit", "both over 1"],
     )
     def test_it_refuses_figures_that_would_make_its_words_false(self, run, change, words) -> None:
         with pytest.raises(ValueError, match=words):
