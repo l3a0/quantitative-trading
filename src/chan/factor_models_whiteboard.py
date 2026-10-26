@@ -22,8 +22,8 @@ after the paragraph it draws.
    returns the same arrows reversed, so a series built from each day's fresh
    weights reads f and then −g, and the flip reads as a reversal. In the pair,
    a flip reverses both members, (−f)(−g) = fg, so the product stays. It sits
-   in Lesson 3, after the paragraph opening "Each day’s principal component
-   analysis gives each factor".
+   in Lesson 3, after the paragraph opening "The statistic is an uncentred
+   correlation".
 
 Both sketches are schematic and carry no figures from the run. The returns,
 the five factor series, the weights and the four ranked stocks are made up to

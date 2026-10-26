@@ -100,7 +100,7 @@ GIFS = ["factor_models_residuals_cancel.gif", "factor_models_sign_flip.gif"]
 #: follows the display equation after its paragraph, as the post tests check.
 FOLLOWS = (
     "The revised Python regresses each stock’s returns",
-    "Each day’s principal component analysis gives each factor",
+    "The statistic is an uncentred correlation",
 )
 
 RESIDUALS_LABELS = [
@@ -426,7 +426,7 @@ class TestThePost:
         paragraphs = self._paragraphs()
         (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(FOLLOWS[1])]
         self._embed(GIFS[1], paragraphs[index + 1])
-        assert paragraphs[index + 2].startswith("The revised MATLAB’s five factors are")
+        assert paragraphs[index + 2].startswith("The same statistic is computed for each of the")
         assert paragraphs[index + 3].startswith("```math")
         assert "\\text{Factor} & \\text{Correlation}" in paragraphs[index + 3]
 

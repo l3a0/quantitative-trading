@@ -3693,8 +3693,8 @@ on the USD.CAD post's sketch machinery. Each sits after the text it draws.
    below. With an intercept the gaps sum to 0, so the summed returns and the
    summed fitted values stand at the same height, and a ranking on one is a
    ranking on the other.
-2. `factor_models_sign_flip.gif`, in Lesson 3 after the paragraph on how each
-   day's weights make a pair, draws day t's weights, the pair f and g they
+2. `factor_models_sign_flip.gif`, in Lesson 3 after the paragraph that defines
+   the statistic, draws day t's weights, the pair f and g they
    give and its positive product, the same weights reversed, the negative
    product a series of fresh weights would read, and the pair under the flip,
    where (−f)(−g) = fg.

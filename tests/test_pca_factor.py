@@ -415,14 +415,14 @@ class TestWhatThePostQuotes:
     record of the printout and is held against the run, and Lesson 2's table
     and its labels come from the run.
 
-    The copies read are the section on the file and the four steps, Lesson
-    1's tables and the paragraph and three points around them, Lesson 2's
-    third and fourth points and its table, and Lesson 6's first and fourth
-    points. Other copies are not read, so a typo in one of them passes. Among
-    them are the 2 and 4 percent in the subtitle, the opening and Lesson 2,
-    the 10⁻¹⁵ the Python lands within, the 1.8654 and 186.54 percent in
-    Lesson 3's third point, the 0 identical days out of 752 in Lesson 5, and
-    the repeats of 600, 50, 252 and "five" elsewhere.
+    The copies read are the section on the file and the four steps, Lesson 1's
+    tables and the paragraph and three points around them, Lesson 2's third
+    and fourth points, the three choices listed after them and its table, and
+    Lesson 6's first and fourth points. Other copies are not read, so a typo
+    in one of them passes. Among them are the 2 and 4 percent in the subtitle,
+    the opening and Lesson 2, the 10⁻¹⁵ the Python lands within, the 1.8654
+    and 186.54 percent in Lesson 3's third point, the 0 identical days out of
+    752 in Lesson 5, and the repeats of 600, 50, 252 and "five" elsewhere.
     ``tests/test_pca_factor_momentum.py`` reads Lesson 3's figures on
     Example 7.4's own factors, and ``tests/test_momentum_factor.py`` those on
     MKT and WML.
@@ -508,6 +508,9 @@ class TestWhatThePostQuotes:
         python, matlab = _longs(results.python), _longs(results.matlab)
         fifty = _longs(results.python_fifty)
         assert fifty == matlab
+        traded = int(results.python.traded.sum())
+        held = int((np.abs(results.python.positions).sum(axis=1) > 0).sum())
+        assert held == sized.days == traded + 1
         fragments = [
             f"The printed Python buys {python} stocks, because its index range skips the "
             f"top-ranked one, while the MATLAB buys {matlab}.",
@@ -519,11 +522,12 @@ class TestWhatThePostQuotes:
             f"those days at least {sized.fewest_differing} of the {closes.shape[1]} stocks "
             "hold a different position in the two.",
             f"The printed Python buys the {python} stocks ranked second to {TOP_N}th rather "
-            f"than the top {TOP_N}. It averages its daily returns over all {len(closes):,} "
-            f"trading days rather than the {int(results.python.traded.sum())} on which it "
-            "trades.",
-            f"the Python’s annual mean return rises from {PYTHON_PRINTS[0]}, and its Sharpe "
-            f"ratio from {PYTHON_PRINTS[2]}. The revised MATLAB prints "
+            f"than the top {TOP_N}.",
+            f"It averages its daily returns over all {len(closes):,} trading days rather than "
+            f"the {traded} on which its positions earn a return. It holds positions on {held} "
+            "days, and the last is the file’s final day,",
+            f"Each change raises both, from the printed {PYTHON_PRINTS[0]} and "
+            f"{PYTHON_PRINTS[2]}, so each moves the Python further from the revised MATLAB’s "
             f"{REVISED_MATLAB_PRINTS[0]} and {REVISED_MATLAB_PRINTS[1]}.",
         ]
         assert self.missing(text, fragments) == []

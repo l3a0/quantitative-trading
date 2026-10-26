@@ -697,9 +697,9 @@ class TestWhatTheFactorModelsPostQuotes:
     names the wrong factor fails as well. ``blog/pca-factor-momentum-lessons.md``
     is a different post, and this class does not read it.
 
-    The copies read are the paragraph on how each day's weights make a pair,
-    the daily table, the paragraph after it, and the first and third of the
-    three points that follow, and Lesson 6's third point. Other copies are not
+    The copies read are the paragraphs on how each day's weights make a pair,
+    the daily table, the paragraph after it, and all three of the points that
+    follow, and Lesson 6's third point. Other copies are not
     read, so a typo in one of them passes. Among them are the 1.8654 and
     186.54 percent in the third point, which ``tests/test_pca_factor.py``
     reads in Lesson 6, the 752 in Lesson 5, which counts days rather than
@@ -765,8 +765,9 @@ class TestWhatTheFactorModelsPostQuotes:
         fragments = [
             f"Over {c.pairs} pairs it lands inside ±{CRITICAL}/√{c.pairs} = ±{c.band:.4f}",
             f"{name}’s {value:.4f} is outside it and the other {WORDS[FACTORS - 1]} are inside.",
-            f"to {100 * FALSE_DISCOVERY:.0f} percent, runs across all {WORDS[FACTORS]}. None "
-            f"survives, {name} included,",
+            f"So the Benjamini-Hochberg procedure runs across all {WORDS[FACTORS]}. Among the "
+            "factors it declares significant, it holds the expected share of false findings "
+            f"to {100 * FALSE_DISCOVERY:.0f} percent. None survives, {name} included,",
         ]
         assert self.missing(text, fragments) == []
 

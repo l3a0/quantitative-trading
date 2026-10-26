@@ -417,7 +417,7 @@ class TestWhatThePostQuotes:
         fragments = [
             f"\\pm \\frac{{{CRITICAL}}}{{\\sqrt{{{c.months}}}}} = \\pm {c.band:.4f}",
             f"MKT earned {annual_mean(factors.mkt):.4f} a year over the bill, and WML, which "
-            f"has no bill leg, earned {annual_mean(factors.wml):.4f}, each the mean monthly "
+            f"subtracts no bill rate, earned {annual_mean(factors.wml):.4f}, each the mean monthly "
             f"return times {momentum_factor.MONTHS}.",
             f"MKT’s is {t_statistic(factors.mkt):.4f} and WML’s "
             f"{t_statistic(factors.wml):.4f}, with no correction for autocorrelation.",
