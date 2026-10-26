@@ -584,7 +584,7 @@ def test_the_job_summary_lists_what_disagrees(
 ) -> None:
     """Protects the one place a conflict is reported, since it does not fail the run."""
     fake = FakeGitHub([issue(1, labels=("band:1", "band:3"))], [])
-    fake.requests, fake.cost = 1, 1
+    fake.requests, fake.retries, fake.cost = 1, 0, 1
     monkeypatch.setattr(bb, "GhGraphql", lambda: fake)
     summary = tmp_path / "summary.md"
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
@@ -1232,7 +1232,8 @@ def test_a_failed_read_fails_the_run(
 
     An error read as an empty list publishes a board with no pull requests,
     which reads as correct. So every failure stops the run, and the last good
-    board stays up.
+    board stays up. A server error is tried again first, and the tests below
+    cover that.
     """
     done = subprocess.CompletedProcess([], returncode, stdout=stdout, stderr="")
     monkeypatch.setattr(bb.subprocess, "run", lambda *a, **k: done)
@@ -1243,11 +1244,159 @@ def test_a_failed_read_fails_the_run(
 def test_the_cli_exits_non_zero_when_github_cannot_be_read(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    done = subprocess.CompletedProcess([], 1, stdout="", stderr="HTTP 502")
+    done = subprocess.CompletedProcess([], 1, stdout="", stderr="gh: HTTP 502")
     monkeypatch.setattr(bb.subprocess, "run", lambda *a, **k: done)
+    monkeypatch.setattr(bb.time, "sleep", lambda _: None)
     argv = ["build", "--repo", REPO, "--workflow", str(WORKFLOW), "--out", str(tmp_path)]
     assert bb.main(argv) == 1
     assert not (tmp_path / "board.json").exists()
+
+
+# ---- A server error is tried again ----
+
+
+class FlakyGh:
+    """Stands in for ``subprocess.run`` running ``gh api graphql``.
+
+    Each call fails with the next of ``failures`` as its stderr, the way ``gh``
+    prints it, until none are left. After that it answers from ``github``,
+    reading the query and variables back out of the arguments the generator
+    built.
+    """
+
+    def __init__(self, failures: list[str], github: FakeGitHub | None = None):
+        self.failures = list(failures)
+        self.github = github
+        self.calls = 0
+
+    def __call__(self, args: list[str], **_: object) -> subprocess.CompletedProcess:
+        self.calls += 1
+        if self.failures:
+            return subprocess.CompletedProcess(args, 1, stdout="", stderr=self.failures.pop(0))
+        query = args[4].removeprefix("query=")
+        variables: dict = {}
+        for flag, pair in zip(args[5::2], args[6::2], strict=True):
+            key, value = pair.split("=", 1)
+            variables[key] = int(value) if flag == "-F" else value
+        data = self.github(query, variables) if self.github else {}
+        return subprocess.CompletedProcess(args, 0, stdout=json.dumps({"data": data}), stderr="")
+
+
+def test_two_server_errors_then_an_answer_still_build_the_board(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Protects the board from one bad minute at GitHub.
+
+    Between 17:58 and 18:33 UTC on 2026-10-26, 11 of the 16 Board runs that
+    finished failed on a single 502 or 504. Four of them ran for a pull
+    request, and each of those turned its ``build`` check red for a reason
+    outside the pull request.
+    """
+    gh = FlakyGh(["gh: HTTP 502", "gh: HTTP 502"], FakeGitHub([issue(1)], [pull(2, closes=(1,))]))
+    waits: list[float] = []
+    monkeypatch.setattr(bb.subprocess, "run", gh)
+    monkeypatch.setattr(bb.time, "sleep", waits.append)
+    summary = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+    monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
+    out = tmp_path / "site"
+    assert bb.main(["build", "--repo", REPO, "--workflow", str(WORKFLOW), "--out", str(out)]) == 0
+    board = json.loads((out / "board.json").read_text())
+    assert [c["n"] for c in board["tracker"]["items"]] == [1]
+    assert [(p["pr"], p["issue"]) for p in board["prs"]["items"]] == [(2, 1)]
+    assert waits == [5, 20]
+    assert "| GraphQL requests tried again after a server or connection error | 2 |" in (
+        summary.read_text()
+    )
+
+
+def test_a_server_error_on_every_attempt_fails_after_three(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Protects the last good board from an outage longer than the waits.
+
+    The retry is bounded, so a GitHub that stays down still stops the run
+    rather than holding the job until its timeout.
+    """
+    gh = FlakyGh(["gh: HTTP 504"] * 4)
+    waits: list[float] = []
+    monkeypatch.setattr(bb.subprocess, "run", gh)
+    monkeypatch.setattr(bb.time, "sleep", waits.append)
+    gql = bb.GhGraphql()
+    with pytest.raises(bb.BoardError, match="HTTP 504"):
+        gql("query { viewer { login } }", {})
+    assert gh.calls == gql.requests == 3
+    assert gql.retries == 2
+    assert waits == [5, 20]
+
+
+@pytest.mark.parametrize(
+    "stderr",
+    [
+        "gh: Bad credentials (HTTP 401)",
+        "gh: HTTP 404",
+        "gh: Resource not accessible by integration (HTTP 403)",
+        "gh: Field 'nosuch' doesn't exist on type 'User'",
+        "gh: Something went wrong (HTTP 5020)",
+        "gh: Something went wrong while executing your query. This may be the result of a "
+        "timeout, or it could be a GitHub bug.",
+    ],
+)
+def test_an_error_that_would_repeat_fails_at_once(
+    monkeypatch: pytest.MonkeyPatch, stderr: str
+) -> None:
+    """Protects the run from waiting on an answer that will not change.
+
+    A refused token or a query GitHub rejects gets the same answer every time,
+    so trying it again only delays the red check. ``gh`` printed the first and
+    fourth forms on 2026-10-26. The second is a 4xx with no message, printed
+    the way ``gh`` prints a bare 504. The fifth guards the match against a
+    status that only starts with a 5. The last is GitHub's GraphQL timeout,
+    which arrives in the body's ``errors`` list, so ``gh`` prints it with no
+    status. It fails at once like any GraphQL error, and none of the 18 failed
+    Board runs on record by 2026-10-26 showed it.
+    """
+    gh = FlakyGh([stderr], FakeGitHub([], []))
+    waits: list[float] = []
+    monkeypatch.setattr(bb.subprocess, "run", gh)
+    monkeypatch.setattr(bb.time, "sleep", waits.append)
+    with pytest.raises(bb.BoardError, match="gh api graphql failed"):
+        bb.GhGraphql()("query { viewer { login } }", {})
+    assert gh.calls == 1
+    assert waits == []
+
+
+@pytest.mark.parametrize(
+    "stderr",
+    [
+        "gh: HTTP 504",
+        "gh: HTTP 502",
+        "gh: Server Error (HTTP 502)",
+        "gh: Server Error (HTTP 502)\nfurther detail",
+        "error connecting to api.github.com\n"
+        "check your internet connection or https://githubstatus.com",
+        'Post "https://api.github.com/graphql": read tcp 10.1.0.4:41234->140.82.112.6:443: '
+        "read: connection reset by peer",
+    ],
+)
+def test_a_server_or_connection_error_is_tried_again(
+    monkeypatch: pytest.MonkeyPatch, stderr: str
+) -> None:
+    """Protects a read from each way ``gh`` reports GitHub being unreachable.
+
+    ``gh`` printed the first, second and fifth forms on 2026-10-26. The third
+    is a 5xx whose body carries a top-level ``message``, which is the only
+    case where ``gh`` adds the status after the text. The fourth is the same
+    with a line after it, since the match reads each line rather than only the
+    last. The last is
+    Go's own error for a connection that dropped, which ``gh`` passes through
+    unchanged.
+    """
+    gh = FlakyGh([stderr])
+    monkeypatch.setattr(bb.subprocess, "run", gh)
+    monkeypatch.setattr(bb.time, "sleep", lambda _: None)
+    assert bb.GhGraphql()("query { viewer { login } }", {}) == {}
+    assert gh.calls == 2
 
 
 # ---- The stale threshold ----
@@ -1289,7 +1438,7 @@ def test_the_cli_writes_the_workflows_gap_and_threshold(
     any even split of the hour, and the threshold differs from the gap.
     """
     fake = FakeGitHub([issue(1)], [])
-    fake.requests, fake.cost = 1, 1
+    fake.requests, fake.retries, fake.cost = 1, 0, 1
     monkeypatch.setattr(bb, "GhGraphql", lambda: fake)
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
     monkeypatch.delenv("GITHUB_OUTPUT", raising=False)

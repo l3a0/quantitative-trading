@@ -1,4 +1,4 @@
-"""Cross-sectional momentum on Chan's 2012 S&P 500 file, *Algorithmic Trading*'s Example 6.2.
+"""Cross-sectional momentum on Chan's 2012 stock file, *Algorithmic Trading*'s Example 6.2.
 
 Stocks that rose most over the past year tend to keep rising for a while, and
 those that fell most tend to keep falling. Chan trades that by buying the
@@ -89,9 +89,10 @@ ranking is meant to see a real collapse, which is the decision
 :mod:`chan.momentum_factor` recorded. The comment above
 ``FLAGGED_IN_CHANS_MAT_FILES`` in ``tests/test_scale_breaks.py`` records it.
 
-**Every figure here is about survivors.** The file is the S&P 500 as Chan held
-it on 2012-04-24, carried backwards, so every stock in it lasted until that
-day, and any stock it holds in 2008 and 2009 survived them. That reaches the
+**Every figure here is about survivors.** The file holds 497 stocks that were
+in the S&P 500 in late 2011, carried backwards. A company that was out of the
+index for all of late 2011 is not in it, so a stock that left the index in
+2008 or 2009 is in the file only if it was back by then. That reaches the
 two legs in opposite directions. The short leg lacks stocks that fell and
 then left the index, which pushes the strategy down, and the long leg lacks
 past winners that later collapsed out of it, which pushes it up. Which
@@ -464,7 +465,7 @@ def report(members: list[VintageEntry], results: dict[str, dict[str, Figures]]) 
     )
     print()
     print(
-        "  The file holds only the stocks in the index on 2012-04-24, "
+        "  The file holds only stocks that were in the index in late 2011, "
         "so every figure above is about survivors."
     )
     print(

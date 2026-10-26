@@ -276,7 +276,7 @@ where they were first built. The other forty-five were built here.
     percent and 1.27, and does not reproduce, though its drawdown is the
     steeper as he says. Every figure is exploratory and about survivors.
 19. Khandani and Lo's reversal again, as *Algorithmic Trading*'s Examples 4.3
-    and 4.4 run it on Chan's 2012 S&P 500 file over 2007 to 2011. Book two
+    and 4.4 run it on Chan's 2012 stock file over 2007 to 2011. Book two
     changes the rule as well as the data: it scales each day's weights to a
     gross of 1, leaves a missing price's weight missing, charges no cost, and
     cuts the window before taking returns. Example 4.3 holds the weights from
@@ -340,7 +340,7 @@ where they were first built. The other forty-five were built here.
     own printout already shows. Every figure is exploratory, and the
     portfolio's weights are fitted on the days it trades.
 24. SPY against the S&P 500 stocks that pass a cointegration screen, Example
-    4.2 of *Algorithmic Trading*, on Chan's own 2012 S&P 500 file and his ETF
+    4.2 of *Algorithmic Trading*, on Chan's own 2012 stock file and his ETF
     file's SPY. `indexArb.m` tests each of 480 stocks against SPY over 2007
     and keeps the 98 that pass a 90 percent bar. That bar passes 28.1
     percent of random walks unrelated to SPY, about 135 of 480, so the count
@@ -1587,12 +1587,12 @@ prices.
 1. The S&P 500 as it stood on 2007-11-23.
 2. The S&P 600 in a save named for 2008-01-14.
 3. The S&P 600 in a later save named for 2008-01-31.
-4. The S&P 500 as he held it on 2012-04-24.
+4. His list of the S&P 500 from late 2011, in a save named for 2012-04-24.
 5. The 67 ETFs his second book's examples read, as he saved them on
    2012-04-10.
 
-The sixth holds his earnings-announcement flags for the 497 stocks of the 2012 S&P
-500 file, a 0 or 1 for each day. Each is committed as one vintage per stock or
+The sixth holds his earnings-announcement flags for the 497 stocks of the 2012
+stock file, a 0 or 1 for each day. Each is committed as one vintage per stock or
 ETF, 2,761 between them, written by
 `src/chan/mat_columns.py` under a directory per file. A price file's member
 holds its close, high, low, open and volume, and a flag file's member holds its
@@ -2160,7 +2160,7 @@ value, then every member that did not pass. `history` reads the archive and
 sorts each passing member by its 2006 rows, then lists those a run over 2006
 leaves out.
 
-Cross-sectional momentum reads Chan's 2012 S&P 500 file and takes no option,
+Cross-sectional momentum reads Chan's 2012 stock file and takes no option,
 because the issue fixed the rule, the windows and the readings before any
 return was computed:
 
@@ -5218,7 +5218,7 @@ regime map.
 
 [blog/index-arbitrage-lessons.md](blog/index-arbitrage-lessons.md) is a
 twenty-third post, about Example 4.2 of Chan's *Algorithmic Trading*, which
-tests each stock in his 2012 S&P 500 file against SPY over 2007 with the
+tests each stock in his 2012 stock file against SPY over 2007 with the
 Johansen test, holds the ones that pass as one basket, and trades the basket
 against SPY from 2008. Chan reports 98 stocks, a basket that cointegrates with
 SPY "with better than 95 percent probability", an APR of 4.5 percent and a
@@ -6012,8 +6012,8 @@ the VX against E-mini post and the VIX calendar spread post rather than
 repeating them, and draws five lessons from Entry 34 of the replication log.
 
 1. The book's figures reproduce on Chan's own file, and the figures in the
-   script's comment land only on a window starting a day later, found by a
-   scan.
+   script's comment match only on a window starting a day later, found by a
+   search over windows.
 2. The spread moves against the roll return, and the script reverses its
    position where the roll return's z-score is above 0, so it mostly sells the
    spread when the spread is low. Reversing every position gives an APR of
@@ -6022,8 +6022,8 @@ repeating them, and draws five lessons from Entry 34 of the replication log.
    the script's is the one that printed the figures.
 4. The window's last 66 days earn nothing, because contracts still trading
    when the file was saved look expired on its last day.
-5. The half-life that sets the lookback is measured on the days the trade
-   uses, and it measures a reversion the trade bets against.
+5. The half-life that sets the lookback is measured partly on the days the
+   script trades, and it measures a reversion the trade bets against.
 
 Five groups of what it says are not pinned here.
 
@@ -6032,31 +6032,60 @@ Five groups of what it says are not pinned here.
    2321, 2326, 2364, 2449, 2453, 2461, 2471 and 2502, with Figure 5.7's
    caption at 2471.
 2. Facts about the script rather than the data: the comments at its lines 71
-   and 99, its `idx=find(tday==20080102)` and `3*21`, and the expiry mark at
-   line 75, all at `e4bc46f` of ericnberwick/EpchanPreview.
+   and 99, the reversal at its line 107, its `idx=find(tday==20080102)` and
+   `3*21`, and the expiry mark at line 75, all at `e4bc46f` of
+   ericnberwick/EpchanPreview. It also trades four contracts at each roll,
+   closing one pair and opening the next, and on each day the roll return's
+   z-score crosses 0 while a pair is held, when it reverses both legs.
 3. Readings no test asserts: that the correlation is strong but not the
-   one-for-one the model gives, that the ADF test's long-run reversion and the
-   trade's short-run continuation can both hold of one series, that the half-life
-   measures a reversion the trade bets against, that the log of a VIX pair's
+   one-for-one the model gives, that the ADF test's long-run reversion in γ
+   and the trade's next-day bet that the spread moves further from its average
+   measure different spans and so do not conflict, that the half-life measures a reversion the trade bets against,
+   that the log of a VIX pair's
    ratio of far to near is that pair's log spread, that the book's ratio of
    back to front most plainly reads the two nearest contracts, and that any
    backtest inferring expiry from the last price goes flat at the end of a
    file saved while contracts trade.
-4. Figures the post states in words or as percentages of pinned ones, such as
-   8.27 percent, 0.28 percent, −8.0 percent, 8.8 percent, 6.7 percent and
-   about three days in four. The figure's alt text reads its curves and the
-   scatter's ranges approximately too.
+4. Figures the post gives as an example or approximately rather than from the
+   run: the two days of +10 percent and −10 percent that compound to +21 and
+   −19 percent, the "about three months" that the last 66 days span, and where
+   the chart's alt text says when each curve leaves zero, which years the solid
+   line climbs through, and the scatter's ranges of γ and of the spread. The
+   sketches' alt texts place their
+   marks in words, such as "ends just before the K tick" and "wanders and then
+   climbs", and
+   [tests/test_crude_oil_calendar_spread_whiteboard.py](tests/test_crude_oil_calendar_spread_whiteboard.py)
+   reads their quoted labels, their pace, the colour each names and a few of
+   those places rather than every one.
 5. Its references, cited rather than computed.
+
+The post states some run figures more than once, and only one copy of each
+is read. `TestWhatThePostQuotes` in
+[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py)
+reads the post itself. It builds each run figure the post quotes from the
+run, at the precision the post prints it, and looks for one copy of it in the
+post, so a typo in that copy fails a test. Each of the three tables in
+Lessons 1 and 3 is read whole, cell by cell, so a number in the wrong row,
+column or table fails, and so does a row label or column head swapped, while
+the table turned on its side still passes. It
+also reads the chart's alt text's two day counts, its three full dates and its
+correlation, the month of the peak and of the low, and the peak, low and both
+ends rounded to a whole percent.
 
 Every other number in the post traces to an assertion in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
 to
 [tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
 for the figure's own numbers, to
+[tests/test_crude_oil_calendar_spread_whiteboard.py](tests/test_crude_oil_calendar_spread_whiteboard.py)
+for the schedule sketch's pairs, dates and day counts and the alt texts that
+quote both sketches' labels, to
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py) for the
 126 of 847 held days on which the VIX trade's near leg is the front contract,
 or to [tests/test_roll_returns.py](tests/test_roll_returns.py) for the strip's
-6,467 days from 1986-11-03 and γ as −12 times the slope. Twelve things had no
+6,467 days from 1986-11-03, γ as −12 times the slope of a fit on contract
+positions 1 to 5, and CL's five nearest contracts being a month apart on every
+day that fit runs. Twelve things had no
 pin before it.
 
 1. The held pair's log spread correlates with γ at −0.883910 on the window's
@@ -6078,8 +6107,8 @@ pin before it.
    spread.
 9. Line 107 run on the spread's own z-score gives an APR of −0.027380 and a
    Sharpe ratio of −0.402360.
-10. The script's rule on the 332 days before the window, from 2006-09-05 to
-    2007-12-31, earns 0.050334, an APR of 0.037979 with a Sharpe ratio of
+10. The script's rule on the 332 days from its first held day, 2006-09-05,
+    to 2007-12-31, earns 0.050334, an APR of 0.037979 with a Sharpe ratio of
     0.770953.
 11. The script's compounded return in each calendar year from 2008 to 2012.
 12. `held_log_spread` and `held_spread_zscore`, on synthetic frames.
@@ -6102,6 +6131,38 @@ uv run python -m chan.calendar_spread_reversion_figures
 [tests/test_calendar_spread_reversion_figures.py](tests/test_calendar_spread_reversion_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/crude_oil_calendar_spread_whiteboard.py](src/chan/crude_oil_calendar_spread_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawing for twelve seconds.
+
+1. `crude_oil_calendar_spread_schedule.gif`, in "The spread, the signal and
+   the file", draws item 6's schedule on Chan's file. The pair short K2008 and
+   long K2009 runs from 2007-12-05 to 2008-04-08. The M2008, N2008 and Q2008
+   pairs that would start on 2008-04-09 are crossed out, because each one's
+   last day would come fewer than 63 trading days after its first. The pair short U2008 and long
+   U2009 runs from 2008-04-09 to 2008-08-06. Every date and count on it is
+   read from the script's schedule on the committed CL strip.
+2. `crude_oil_calendar_spread_script_sells.gif`, in Lesson 2, draws the roll
+   return over the held spread with their 36-day averages, a tint where the
+   roll return's z-score is above 0, and arrows where the script sells the
+   spread and where reversion would buy it. It is schematic apart from its
+   closing note, whose two counts of held days, 841 of 1,097 and 554, come from
+   the run.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.crude_oil_calendar_spread_whiteboard
+```
+
+[tests/test_crude_oil_calendar_spread_whiteboard.py](tests/test_crude_oil_calendar_spread_whiteboard.py)
+derives every date and count the schedule sketch prints from the script's
+schedule again, holds that each mark sits at its own trading day, and holds
+that the Lesson 2 sketch's tint covers only samples where the roll return sits
+above its average and the spread below its own.
 
 [blog/tu-momentum-lessons.md](blog/tu-momentum-lessons.md) is a thirtieth post,
 about Example 6.1 of Chan's *Algorithmic Trading*, which correlates TU's past

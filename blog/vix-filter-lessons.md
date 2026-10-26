@@ -36,7 +36,7 @@ So the run can say whether his numbers follow from his files, and nothing about 
 **The files.** Three of Chan’s saved files, each recorded in the repository’s [data README](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md).
 
 1. **VIX** from Chan’s `VIX.csv`, saved 2012-05-09, 5,635 closes from 1990-01-02 to 2012-05-08.
-2. **The stocks** from Chan’s `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, 1,500 days from 2006-05-11 to 2012-04-24. Every stock was in the S&P 500 on the last day, so every figure on them is about survivors.
+2. **The stocks** from Chan’s `inputDataOHLCDaily_stocks_20120424.mat`, saved 2012-04-25, 1,500 days from 2006-05-11 to 2012-04-24. Every stock was in the S&P 500 in late 2011, so every figure on them is about survivors.
 3. **FSTX** from Chan’s `inputDataOHLCDaily_20120517.mat`, saved 2012-05-18, 2,000 days from 2004-07-16 to 2012-05-17.
 
 **The join.** Each rule runs on its own full calendar first. The join then keeps each rule’s daily returns on the days that rule’s calendar shares with VIX’s, and the filter reads the previous shared day. Buy on gap keeps all 1,500 of its days, because the stocks traded on exactly VIX’s days. FSTX keeps 1,945 of its 2,000. It loses the 7 days after VIX’s last close and 48 days on which Eurex, the European exchange FSTX trades on, was open and the US exchanges were not.
@@ -171,7 +171,7 @@ Six questions are beyond it.
 1. **What Chan’s own code for the filter did.** No script ships for location 3509, and a search chose the join for FSTX.
 2. **Whether Chan filtered before or after running the rule.** Both give the same figures on FSTX’s kept days, as Lesson 3 says.
 3. **Whether the filter guards either rule after 2012.** Every kept day falls from 2008 to 2011. A test of it would fix the threshold and the join in writing first and run them on later data.
-4. **What buy on gap earned on the index as it stood each day.** Every stock here was in the S&P 500 on 2012-04-24, so the [buy on gap post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#lesson-6-an-exact-reproduction-checks-the-arithmetic-not-the-edge) applies to the kept days too.
+4. **What buy on gap earned on the index as it stood each day.** Every stock here was in the S&P 500 in late 2011, so the [buy on gap post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#lesson-6-an-exact-reproduction-checks-the-arithmetic-not-the-edge) applies to the kept days too.
 5. **Whether every VIX close is a clean print.** The repository’s check for a sudden change of scale flags one day, 2007-02-27, a real move from 11.15 to 18.31, and nothing here compares it with a second source. That check sees only a move of 1.6 times or more, so a smaller rescale anywhere in the file could move a day into the filter unseen.
 6. **What costs would take.** Nothing is charged on either rule, and a filter that keeps few traded days leaves each cost a larger share of the return.
 

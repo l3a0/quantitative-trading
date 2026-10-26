@@ -213,9 +213,9 @@ def calendar_schedule(
     position. The first pair starts ``holddays + 10`` rows before its near
     contract's last expiry and every pair ends :data:`NUM_DAYS_END` rows
     before it. A later pair starts the row after the previous pair's end, and
-    is skipped when that leaves fewer than ``holddays`` rows, in which case the
-    previous end stands. A pair is held only when its end is after its start,
-    rows inclusive.
+    is skipped when its end would come fewer than ``holddays`` rows after its
+    start, in which case the previous end stands. A pair is held only when its
+    end is after its start, rows inclusive.
     """
     cl = contracts.to_numpy(dtype=float)
     is_expire_date = np.isfinite(cl) & ~np.isfinite(fwdshift(1, cl))

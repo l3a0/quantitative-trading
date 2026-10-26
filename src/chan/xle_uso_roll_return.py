@@ -63,7 +63,7 @@ no band, and the two legs are equal and fixed.
 row both define. It differs in three ways.
 
 1. It starts the first pair ``holddays + 10`` rows before expiry, not 40.
-2. It drops a pair with fewer than ``holddays`` rows.
+2. It drops a later pair whose end would come fewer than ``holddays`` rows after its start.
 3. ``held_pair_ratio`` fills forward across unheld rows, where this script
    leaves NaN.
 

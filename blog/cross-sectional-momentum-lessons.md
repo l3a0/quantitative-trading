@@ -17,7 +17,7 @@ The APR is harder. Before any run, this repository wrote down a rule that read t
 Two cautions apply to every figure below.
 
 1. **Every result is exploratory.** Chan chose the strategy and its settings, and the reproduction tests them on the same days he did. It can say whether his numbers follow from his file and nothing about whether momentum pays.
-2. **Every figure is about survivors.** The file is Chan’s list of the S&P 500 stocks on 2012-04-24, with each one’s earlier closes. So every stock in it lasted until 2012-04-24, and none of them dropped out during 2008 and 2009.
+2. **Every figure is about survivors.** The file holds 497 stocks that were in the S&P 500 in late 2011, with each one’s earlier closes. A company that was out of the index for all of late 2011 is not in the file, so a stock that dropped out during 2008 and 2009 is in it only if it was back in the index by then.
 
 The four lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -157,7 +157,7 @@ Nothing compares the redraw with the chart the book prints as Figure 6.6, so it 
 
 The code’s Sharpe ratio rounds to the book’s, and its compounded figures round to both APRs. That says the code, the data and the book sit close together. It says nothing about whether momentum paid, for four reasons.
 
-1. **Every stock is a survivor, and the two legs lose different stocks.** A company that left the S&P 500 between 2006 and 2012, because it was acquired, shrank or failed, is absent. The short leg could not have sold it as it fell and the long leg could not have held it as it collapsed. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day.
+1. **Every stock is a survivor, and the two legs lose different stocks.** A company that was out of the S&P 500 for all of late 2011 is absent, whether it was acquired, shrank, failed or left for another reason. The short leg could not have sold it as it fell and the long leg could not have held it as it collapsed. [The post on survivorship and transaction costs](https://github.com/l3a0/quantitative-trading/blob/main/blog/survivorship-and-transaction-costs.md) teaches in full what a database of survivors does to a backtest. This repository has not yet rerun this strategy on the index as it stood each day.
 2. **No cost is charged.** `kentdaniel.m` charges nothing, yet every day one cohort of 100 picks enters and the one formed 25 days earlier leaves.
 3. **Chan chose both the strategy and the days it is tested on.** Reproducing his figures on his window tests his arithmetic, so the result is exploratory. A result that could confirm the edge would need a strategy fixed in writing first and data the strategy had never seen.
 4. **The sample ends in April 2012.** Nothing here says whether momentum pays today.
@@ -167,7 +167,7 @@ The code’s Sharpe ratio rounds to the book’s, and its compounded figures rou
 Six questions are beyond it.
 
 1. **Which run printed the comment.** Lesson 1 gives the reason none was searched for.
-2. **What survivorship does to these figures.** Every stock here was in the S&P 500 on 2012-04-24. Measuring it needs prices for the companies that left.
+2. **What survivorship does to these figures.** Every stock here was in the S&P 500 in late 2011. Measuring it needs prices for the companies that left.
 3. **What costs would take.** Nothing here charges any.
 4. **Whether momentum pays today.** That needs data from after April 2012.
 5. **Whether Chan’s cause for momentum crashes holds here.** He attributes them to short positions rebounding after a crisis. Splitting each day’s return by the side of each position would test that on this strategy, and this replication does not.
