@@ -820,6 +820,29 @@ class TestThePostQuotesThePins:
         assert round(biggest.change) == 3
         assert f"one gain near three dollars in {biggest.year}" in alt
 
+    def test_the_handover_fit_over_every_expiry(self) -> None:
+        """The second check's counts, the survey ``tests/test_stationary_candidates.py`` pins."""
+        from chan.futures import NATURAL_GAS_CONTRACTS, handover_fit, month_step, shifted
+
+        def survey(shift: int) -> tuple[int, int]:
+            rule = shifted(NATURAL_GAS_CONTRACTS, shift) if shift else NATURAL_GAS_CONTRACTS
+            fits, readable, month = 0, 0, (1994, 2)
+            while month <= (2024, 4):
+                fit = handover_fit(NATURAL_GAS_CONTRACTS, rule.last_trade(*month))
+                if fit is not None:
+                    readable += 1
+                    fits += fit < 0
+                month = month_step(*month, 1)
+            return fits, readable
+
+        (fits, readable), early, late = survey(0), survey(-1), survey(1)
+        assert early[1] == late[1]
+        text = " ".join(self.text.split())
+        assert (
+            f"the handover falls on the rule’s day for {fits} of the {readable} expiries"
+        ) in text
+        assert f"the rule fits only {early[0]} and {late[0]} of {early[1]}." in text
+
     def test_the_files_first_whole_trade(self) -> None:
         """1993's trade has neither price and 1994's has both, which the post says twice."""
         first = NG_YEARS[0]
