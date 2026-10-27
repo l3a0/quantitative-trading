@@ -272,7 +272,7 @@ FOLLOWS = (
     "```math\n\\bar r \\pm t_{n-1}",
     "```math\n\\begin{aligned}\n&-0.4\\%",
     "That range, −6% to +2%, leaves out",
-    "Gasoline’s fall shows on both.",
+    "Gasoline’s fall clears the line on both.",
     "For gasoline that is always contract 1.",
     "When a contract expires, every later contract moves up one number",
     "Over every natural gas contract delivered from February 1994",
@@ -555,10 +555,10 @@ T_LABELS = [
 ]
 
 HALF_LABELS = [
+    "the later mean, -0.4%",
     "spread s = 21.6%",
     "s / √15 = 5.6%",
     "× 2.14 = 12.0%",
-    "start: the later mean, -0.4%",
     "the earlier mean, 11.0 points higher",
     "natural gas, June contract, 2009 to 2023",
 ]
@@ -1854,8 +1854,9 @@ class TestTheHalfWidthSketch:
     def test_its_colours(self, every) -> None:
         scene = every[13]
         assert [_stroke(scene, f"half-{k}").color for k in range(3)] == [INK, INK, ACCENT]
-        gap = _stroke(scene, "gap")
-        assert (gap.color, gap.dashed) == (MUTED, True)
+        for name in ("start", "gap"):
+            line = _stroke(scene, name)
+            assert (line.color, line.dashed) == (MUTED, True), name
 
     def test_each_bar_is_the_runs_figure_and_the_last_passes_the_gap(self, every) -> None:
         from scipy import stats
@@ -1880,6 +1881,15 @@ class TestTheHalfWidthSketch:
         assert _span_ends(_stroke(scene, "half-2"))[1] > gap
         line, purple = _stroke(scene, "gap"), _stroke(scene, "half-2")
         assert line.y.min() < purple.y.min() and line.y.max() > purple.y.max()
+
+    def test_every_bar_starts_on_the_dashed_line_at_the_later_mean(self, every) -> None:
+        scene = every[13]
+        start = _stroke(scene, "start")
+        assert start.x == pytest.approx(np.full(len(start.x), HALF_X))
+        bars = [_stroke(scene, f"half-{k}") for k in range(3)]
+        assert start.y.min() < min(bar.y.min() for bar in bars)
+        assert start.y.max() > max(bar.y.max() for bar in bars)
+        assert scene.steps.index(start) < min(scene.steps.index(bar) for bar in bars)
 
     def test_the_title_follows_the_figures(self) -> None:
         before, after = mean_rows()[0], mean_rows()[1]

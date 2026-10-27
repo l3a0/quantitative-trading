@@ -296,7 +296,7 @@ Natural gas after 2008 averaged −0.4% a year with a standard deviation of 21.6
 \end{aligned}
 ```
 
-![“Where ±12% comes from”, drawn slowly stroke by stroke. Three bars start at one left edge. The first, black, is “spread s = 21.6%”. The second, black and about a quarter as long, is “s / √15 = 5.6%”. The third, purple, is “× 2.14 = 12.0%”. Under the shared left edge a note reads “start: the later mean, -0.4%”. A short dashed grey line across the purple bar marks “the earlier mean, 11.0 points higher”, and the purple bar reaches past it, so the range around the later mean holds the earlier one. A note in the upper right names the trade as “natural gas, June contract, 2009 to 2023”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_half_width.gif)
+![“Where ±12% comes from”, drawn slowly stroke by stroke. A dashed grey line comes first, marking “the later mean, -0.4%”, and three bars grow from it. The first, black, is “spread s = 21.6%”. The second, black and about a quarter as long, is “s / √15 = 5.6%”. The third, purple, is “× 2.14 = 12.0%”. A short dashed grey line across the purple bar marks “the earlier mean, 11.0 points higher”, and the purple bar reaches past it, so the range around the later mean holds the earlier one. A note in the upper right names the trade as “natural gas, June contract, 2009 to 2023”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_half_width.gif)
 
 That range, −12% to +12%, still holds the +10.6% natural gas earned before 2009. So 15 years cannot tell a trade that weakened from one that had a bad run. Gasoline after 2015 averaged −1.9% with a standard deviation of 4.8% over 8 years, and `t` for 7 degrees of freedom is 2.36:
 

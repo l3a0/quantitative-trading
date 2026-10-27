@@ -3775,7 +3775,8 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    multiplier for 8, 15 and 30 results and for very many, against the normal
    curve's 1.96.
 14. `commodity_sketch_half_width.gif`, in Lesson 4, natural gas's ±12% built
-   from its spread, its count and its multiplier, reaching past the gap to its
+   from its spread, its count and its multiplier, each bar starting on a
+   dashed line at its later mean and the last reaching past the gap to its
    earlier mean.
 15. `commodity_sketch_mean_ranges.gif`, in Lesson 4, each period's mean and
    95% range, where natural gas's later range holds its earlier mean and

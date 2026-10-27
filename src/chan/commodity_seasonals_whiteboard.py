@@ -88,8 +88,8 @@ scenes, and the post places each right after the paragraph it draws.
    a dashed line at the normal curve's 1.96. It sits in Lesson 4, after the
    general range formula, r̄ ± t × s / √n.
 14. Where ±12% comes from: natural gas's spread after 2008, divided by the
-   root of its 15 years, times its multiplier, as three bars from one edge,
-   against a dashed line at the gap to its earlier mean. It sits in Lesson 4,
+   root of its 15 years, times its multiplier, as three bars starting on a
+   dashed line at its later mean, against a dashed line at its earlier mean. It sits in Lesson 4,
    after that trade's worked range, -0.4% ± 12.0%.
 15. One range holds the earlier mean, one does not: each period's mean and
    95% range, with each trade's earlier mean carried down as a dashed line
@@ -101,7 +101,7 @@ scenes, and the post places each right after the paragraph it draws.
    1994 to 2023 ranked worst to best, the earlier ones above a line and the
    later ones below it. A note names the two gains too close to zero for
    their side to show. It sits in Lesson 4, after the paragraph opening
-   "Gasoline’s fall shows on both."
+   "Gasoline’s fall clears the line on both."
 17. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
@@ -2177,6 +2177,8 @@ def _t_multiplier(counts: tuple[int, int]) -> Scene:
 #: The half-width build: where each bar starts, how wide a point is, and the rows.
 HALF_X, HALF_POINT = 3.3, 0.27
 HALF_ROWS = (3.2, 2.35, 1.5)
+#: where the dashed line at the later mean, which every bar starts from, ends below
+HALF_START_LOW = 0.7
 
 
 def _half_width(row: MeanRow, earlier: MeanRow) -> Scene:
@@ -2192,7 +2194,24 @@ def _half_width(row: MeanRow, earlier: MeanRow) -> Scene:
         f"s / √{row.count} = {shrunk:.1f}%",
         f"× {t:.2f} = {half:.1f}%",
     )
-    steps: list[Stroke | Label] = []
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "start",
+            _line([(HALF_X, HALF_START_LOW), (HALF_X, HALF_ROWS[0] + 0.35)]),
+            color=MUTED,
+            dashed=True,
+            frames=5,
+        ),
+        Label(
+            f"the later mean, {row.mean:+.1f}%",
+            HALF_X,
+            0.4,
+            names="start",
+            color=MUTED,
+            size=10,
+            ha="center",
+        ),
+    ]
     for k, (y, width, text) in enumerate(zip(HALF_ROWS, widths, texts, strict=True)):
         steps += [
             _stroke(
@@ -2213,15 +2232,6 @@ def _half_width(row: MeanRow, earlier: MeanRow) -> Scene:
         ]
     x = HALF_X + gap * HALF_POINT
     steps += [
-        Label(
-            f"start: the later mean, {row.mean:+.1f}%",
-            HALF_X,
-            0.4,
-            names="half-0",
-            color=MUTED,
-            size=10,
-            ha="center",
-        ),
         _stroke(
             "gap",
             _line([(x, HALF_ROWS[2] - 0.35), (x, HALF_ROWS[2] + 0.35)]),
