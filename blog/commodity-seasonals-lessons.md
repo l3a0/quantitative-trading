@@ -319,7 +319,13 @@ Welch’s t-test compares the average yearly returns. It lets each period keep i
 
 The Mann-Whitney test ignores how large each return was. It pairs every year before the split with every year after and records which one returned more. If nothing had changed, the earlier year would win about half the pairs. For gasoline the earlier year won 117 of 144 pairs, where chance would give about 72. For natural gas the earlier year won 177 of 225 pairs, where chance would give about 112.
 
-Each test gives the chance that luck alone would produce a difference this large if the trade had worked equally well in both periods. A small chance means luck explains the difference poorly. The usual line is 5%, and a chance below it counts as evidence that the trade changed:
+![“177 of 225 pairs”, drawn slowly dot by dot. A 15 by 15 grid of dots pairs every natural gas year from 1994 to 2008 with every year from 2009 to 2023. Blue dots fill most of the grid first. Notes on the left then read “rows: 1994 to 2008,” and “worst at the bottom”, a note below reads “columns: 2009 to 2023, worst on the left”, and the blue dots are labelled “blue: the earlier year did better”. Vermilion dots then fill the rest, toward the right, labelled “vermilion: the later year did”. The rightmost column, headed “2022”, is all vermilion, and a note reads “2022 beats all 15 earlier years”. A black staircase traces the edge between the blue and the vermilion. A tally on the right reads “earlier year won 177 of 225 pairs” and, beneath it, “chance alone: about 112”. A note in the upper right names the trade as “natural gas, June contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_rank_pairs.gif)
+
+Each test gives the chance that luck alone would produce a difference this large if the trade had worked equally well in both periods. A small chance means luck explains the difference poorly. The usual line is 5%, and a chance below it counts as evidence that the trade changed. For natural gas’s 177 pairs, luck alone lands that far from the middle 0.8% of the time.
+
+![“What 0.8% means”, drawn slowly stroke by stroke. A grey axis is labelled “pairs the earlier years win, of 225”. A black bell curve rises over it, labelled “what luck alone gives,” and “if nothing changed”. A dashed grey line at its peak marks “about 112: no change”, and a dashed grey line to its right marks “the 5% line”. A purple line further right, beyond the 5% line, marks “177 pairs:” and “what the years did”. Purple strokes shade the curve’s two thin tails, the right one beyond 177 and its mirror on the left, and a note reads “this far out, either side: 0.8% of luck’s draws”. The tails are so thin that they barely rise off the axis. A note in the upper right names the trade as “natural gas, June contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_luck_curve.gif)
+
+The four chances, as percentages:
 
 ```math
 \small\begin{array}{l|r|r}
@@ -329,6 +335,8 @@ Each test gives the chance that luck alone would produce a difference this large
 \text{Natural gas} & 9.2\% & 0.8\%
 \end{array}
 ```
+
+![“Four chances against the 5% line”, drawn slowly stroke by stroke. A grey scale runs from “0%” through “5%” to “10%”, and a dashed grey line rises from 5%, with “below: luck explains it poorly” on its left and “above: luck could explain it” on its right. A row for “gasoline” gets a black dot at “Welch, 2.3%” and one at “Mann-Whitney, 1.1%”. A row for “natural gas” gets a purple dot at “Welch, 9.2%”, the only one right of the line, and a black dot at “Mann-Whitney, 0.8%”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_four_chances.gif)
 
 Gasoline’s fall clears the line on both. Natural gas splits on one year. Its typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%, close enough to what came before that Welch’s chance, 9.2%, sits above the line. The ranks still see the change, because 2022 counts as 15 pairs won however large its gain. Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.1%. That year was a real gain that a trader holding every year would have collected, so it stays in the record. Neither test was chosen before the numbers were seen, so the post reports both rather than the one that reads better.
 

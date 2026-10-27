@@ -744,6 +744,11 @@ class TestThePostQuotesThePins:
                 f"For {name.lower()} the earlier year won {won:.0f} of {pairs} pairs, "
                 f"where chance would give about {round(pairs / 2)}"
             ) in text, name
+        won, _ = pairs_won(*ng)
+        assert (
+            f"For natural gas’s {won:.0f} pairs, luck alone lands that far from the middle "
+            f"{100 * rank_p_value(*ng):.1f}% of the time."
+        ) in text
 
         before, after = ng
         best = max(after, key=lambda trade: trade.relative_change)

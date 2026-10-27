@@ -3725,7 +3725,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries twenty-one looping whiteboard sketches, drawn by
+The post also carries twenty-four looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3784,27 +3784,36 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 16. `commodity_sketch_one_year.gif`, in Lesson 4, natural gas's returns after
    2008 with their mean with and without 2022, above all 30 years ranked
    worst to best, where 2022 is one top rank however large its gain.
-17. `commodity_sketch_june_file.gif`, in Lesson 5, the March to June natural
+17. `commodity_sketch_rank_pairs.gif`, in Lesson 4, every pairing of an
+   earlier natural gas year with a later one as a dot, blue where the earlier
+   year did better, so the earlier years win 177 of 225 pairs.
+18. `commodity_sketch_luck_curve.gif`, in Lesson 4, the pair counts luck alone
+   gives as a normal curve, with natural gas's 177 beyond the 5% line and the
+   0.8% of draws that land that far out shaded.
+19. `commodity_sketch_four_chances.gif`, in Lesson 4, the table's four
+   chances on one percentage scale, where only natural gas's Welch chance
+   sits past the 5% line.
+20. `commodity_sketch_june_file.gif`, in Lesson 5, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.
-18. `commodity_sketch_handover.gif`, in Lesson 5, the contract-1 and contract-2
+21. `commodity_sketch_handover.gif`, in Lesson 5, the contract-1 and contract-2
    files in February 1996, where file 1 picks up file 2's price the day after
    March's last trading day.
-19. `commodity_sketch_check_coverage.gif`, in Lesson 5, which years each check
+22. `commodity_sketch_check_coverage.gif`, in Lesson 5, which years each check
    of the expiry rule reaches: the files from 1994, the exchange from 2017.
-20. `commodity_sketch_edge_day.gif`, in Lesson 5, 2018's entry on March's own
+23. `commodity_sketch_edge_day.gif`, in Lesson 5, 2018's entry on March's own
    last trading day, so June is contract 4.
-21. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
+24. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
    where the file holds a row on the closed 25th, beside 2016.
 
-All twenty-one build more slowly than the USD.CAD post's sketches and hold their
+All twenty-four build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
-pace lets a reader take in. The half-width sketch, with few steps, draws
+pace lets a reader take in. The half-width and pairs sketches draw
 slower still, its strokes at 250 ms a frame and its labels for 1.8 seconds.
 
 None is schematic. Each reads the natural gas or gasoline run on the
-committed EIA files, so none needs the owner's archive. Redraw all twenty-one with:
+committed EIA files, so none needs the owner's archive. Redraw all twenty-four with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard

@@ -1,7 +1,7 @@
 """Whiteboard sketches for the commodity seasonals post, for Lessons 1, 2, 4 and 5.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Twenty-one of its passages turn on a picture a
+trades against EIA's settlements. Twenty-four of its passages turn on a picture a
 sentence has to build in the reader's head: where a count of profitable years
 starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
@@ -11,9 +11,10 @@ misses lean and spread, how the lean looks April by April, why a miss
 subtracts at an entry and adds at an exit, how far a fill misses against each
 year's move, how far a Sharpe ratio from so few years can stray, why fewer
 results widen a range, where natural gas's ±12% comes from, which later range
-holds its earlier mean, how one year moves natural gas's mean but not its
-ranks, which numbered file holds the June contract on a given day, and how
-the expiry rule behind it is checked. This module draws those twenty-one as
+holds its earlier mean, what the Mann-Whitney test counts, what its chance
+means, how the four chances sit against the 5% line, how one year moves
+natural gas's mean but not its ranks, which numbered file holds the June
+contract on a given day, and how the expiry rule behind it is checked. This module draws those twenty-four as
 scenes, and the post places each right after the paragraph it draws.
 
 1. Where the count starts decides where a streak ends: a year axis from 1994
@@ -89,8 +90,8 @@ scenes, and the post places each right after the paragraph it draws.
    general range formula, r̄ ± t × s / √n.
 14. Where ±12% comes from: natural gas's spread after 2008, divided by the
    root of its 15 years, times its multiplier, as three bars starting on a
-   dashed line at its later mean, against a dashed line at its earlier mean. It sits in Lesson 4,
-   after that trade's worked range, -0.4% ± 12.0%.
+   dashed line at its later mean, against a dashed line at its earlier mean.
+   It sits in Lesson 4, after that trade's worked range, -0.4% ± 12.0%.
 15. One range holds the earlier mean, one does not: each period's mean and
    95% range, with each trade's earlier mean carried down as a dashed line
    past its later bar. It sits after the paragraph opening "That range,
@@ -102,7 +103,22 @@ scenes, and the post places each right after the paragraph it draws.
    later ones below it. A note names the two gains too close to zero for
    their side to show. It sits in Lesson 4, after the paragraph opening
    "Gasoline’s fall clears the line on both."
-17. Which file holds the June contract: the March, April, May and June natural
+17. The earlier year won 177 of 225 pairs: every pairing of a natural gas
+   year from 1994 to 2008 with one from 2009 to 2023 as a dot in a grid,
+   rows and columns sorted worst to best, blue where the earlier year did
+   better and vermilion where the later year did, with a staircase along the
+   edge between them. 2022's column is all vermilion. It sits after the
+   paragraph opening "The Mann-Whitney test ignores".
+18. What 0.8% means: the normal curve of the pair counts luck alone gives,
+   which is what the Mann-Whitney p-value is read from, with dashed lines at
+   its middle and at the 5% line, natural gas's 177 marked beyond them, and
+   both tails past it shaded. It sits after the paragraph opening "Each test
+   gives the chance".
+19. Four chances against the 5% line: the table's Welch and Mann-Whitney
+   chances for both trades as dots on a percentage scale, against a dashed
+   line at 5%. Only natural gas's Welch chance sits past it. It sits after
+   the table of the four chances.
+20. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -110,24 +126,24 @@ scenes, and the post places each right after the paragraph it draws.
    and June's number is how many it crosses, which its closing label says. It
    sits in Lesson 5, after the paragraph opening "For gasoline that is always
    contract 1."
-18. A handover shows when March stopped: the contract-1 and contract-2 files'
+21. A handover shows when March stopped: the contract-1 and contract-2 files'
    settlements in late February 1996, where file 1 picks up file 2's price the
    day after March's last trading day, five days before delivery, against
    where a three-day rule would put it. It sits under "Against the files’ own
    handovers", after the paragraph opening "When a contract expires".
-19. Which years each check reaches: a year axis with the files' handover fit
+22. Which years each check reaches: a year axis with the files' handover fit
    from 1994 to 2024 and the exchange's dates from 2017, where Massive's
    records begin, to 2026. It sits after the paragraph opening "Over every
    natural gas contract delivered".
-20. An entry on March's own last day: 2018's March to June contracts on a
+23. An entry on March's own last day: 2018's March to June contracts on a
    calendar of late February, where the entry line meets the end of March's
    bar, so June is contract 4. It sits under "Against the edge cases".
-21. A row in the file is not a trading day: Christmas week of 2018, where the
+24. A row in the file is not a trading day: Christmas week of 2018, where the
    contract-1 file repeats Dec 24's price on the 25th, beside 2016, where the
    closed 26th has no row. It sits after the paragraph opening "The run
    computes its own calendar".
 
-All twenty-one carry data, and none needs the owner's archive.
+All twenty-four carry data, and none needs the owner's archive.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -146,7 +162,10 @@ too.
 :func:`mean_rows` reads each period's mean, spread, count and 95% range from
 :func:`chan.commodity_seasonals.mean_interval`, and
 :meth:`OneYearFigures.from_run` reads natural gas's yearly returns from
-:func:`chan.commodity_seasonals.natural_gas_trades`.
+:func:`chan.commodity_seasonals.natural_gas_trades`, which the pairs and luck
+sketches count from too, and :func:`chance_rows` reads the four chances from
+:func:`chan.commodity_seasonals.change_p_value` and
+:func:`chan.commodity_seasonals.rank_p_value`.
 :meth:`CheckCoverage.from_run` counts the files' handover fit through
 :func:`chan.futures.handover_fit` and the exchange's dates in
 :data:`EXCHANGE_LAST_TRADES` that match :func:`chan.futures.ng_last_trade`.
@@ -170,17 +189,17 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
-all twenty-one are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all twenty-four are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
-half-width sketch is in :data:`SLOWER` too, so its strokes draw at 250 ms a
-frame and its labels hold 1.8 seconds. Only
+half-width and pairs sketches are in :data:`SLOWER` too, so their strokes
+draw at 250 ms a frame and their labels hold 1.8 seconds. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-one with::
+with no change is a no-op diff. Redraw all twenty-four with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -2271,6 +2290,312 @@ def _mean_scenes(rows: tuple[MeanRow, ...]) -> tuple[Scene, Scene, Scene]:
     )
 
 
+# --- Lesson 4: whether the typical year changed ------------------------------
+
+
+#: The pairs grid: its lower left corner, one cell's side, and where the notes
+#: on its right start.
+PAIRS_X0, PAIRS_Y0, PAIRS_CELL = 2.6, 0.75, 0.2
+PAIRS_NOTE_X = 6.15
+
+
+def _pairs(f: OneYearFigures) -> Scene:
+    """Lesson 4: every pairing of an earlier natural gas year with a later one,
+    and which won, the count the Mann-Whitney test tests."""
+    rows = sorted(r for _, r in f.before)
+    cols = sorted(f.after, key=lambda pair: pair[1])
+    won_x, won_y, lost_x, lost_y = [], [], [], []
+    for i, r in enumerate(rows):
+        for j, (_, c) in enumerate(cols):
+            x, y = PAIRS_X0 + (j + 0.5) * PAIRS_CELL, PAIRS_Y0 + (i + 0.5) * PAIRS_CELL
+            if r > c:
+                won_x.append(x)
+                won_y.append(y)
+            else:
+                lost_x.append(x)
+                lost_y.append(y)
+    # The edge between the regions: each row's earlier year beats every later
+    # year left of it.
+    edge: list[tuple[float, float]] = []
+    for i, r in enumerate(rows):
+        x = PAIRS_X0 + sum(1 for _, c in cols if c < r) * PAIRS_CELL
+        edge += [(x, PAIRS_Y0 + i * PAIRS_CELL), (x, PAIRS_Y0 + (i + 1) * PAIRS_CELL)]
+    won, pairs = len(won_x), len(rows) * len(cols)
+    best_year = cols[-1][0]
+    beaten = sum(1 for r in rows if r < cols[-1][1])
+    right = PAIRS_X0 + len(cols) * PAIRS_CELL
+    top = PAIRS_Y0 + len(rows) * PAIRS_CELL
+    steps: list[Stroke | Label] = [
+        Stroke("won", np.array(won_x), np.array(won_y), color=GOOD, frames=15, dots=6.0),
+        Label(
+            f"rows: {f.before[0][0]} to {f.before[-1][0]},",
+            PAIRS_X0 - 0.2,
+            top - 0.1,
+            names="won",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            "worst at the bottom",
+            PAIRS_X0 - 0.2,
+            top - 0.4,
+            names="won",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            f"columns: {f.after[0][0]} to {f.after[-1][0]}, worst on the left",
+            PAIRS_X0,
+            0.42,
+            names="won",
+            color=MUTED,
+            size=10,
+        ),
+        Label(
+            "blue: the earlier year did better", PAIRS_NOTE_X, 3.6, names="won", color=GOOD, size=10
+        ),
+        Stroke("lost", np.array(lost_x), np.array(lost_y), color=LOST, frames=10, dots=6.0),
+        Label(
+            "vermilion: the later year did", PAIRS_NOTE_X, 3.25, names="lost", color=LOST, size=10
+        ),
+        Label(
+            f"{best_year}",
+            right - PAIRS_CELL / 2,
+            top + 0.3,
+            names="lost",
+            color=LOST,
+            size=10,
+            ha="center",
+        ),
+        Label(
+            f"{best_year} beats all {beaten} earlier years",
+            PAIRS_NOTE_X,
+            1.0,
+            names="lost",
+            color=INK,
+            size=10,
+        ),
+        _stroke("edge", _line(edge, per_unit=8), color=INK, frames=10),
+        Label(
+            f"earlier year won {won} of {pairs} pairs",
+            PAIRS_NOTE_X,
+            2.45,
+            names="edge",
+            color=INK,
+            size=11,
+        ),
+        Label(
+            f"chance alone: about {round(pairs / 2)}",
+            PAIRS_NOTE_X,
+            2.1,
+            names="edge",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    steps.append(
+        Label(
+            "natural gas, June contract", 9.7, 3.95, names="won", color=MUTED, size=10, ha="right"
+        )
+    )
+    return Scene(f"{won} of {pairs} pairs", "rank_pairs", tuple(steps))
+
+
+#: The luck curve: its ends, how many standard deviations of the count it
+#: spans either side of the middle, its baseline and its peak's height.
+LUCK_X = (1.0, 9.2)
+LUCK_SPAN = 4.2
+LUCK_BASE, LUCK_PEAK = 0.85, 2.55
+
+
+def _luck(f: OneYearFigures) -> Scene:
+    """Lesson 4: the pair counts luck alone gives, the normal curve the
+    Mann-Whitney p-value is read from, against natural gas's count."""
+    n1, n2 = len(f.before), len(f.after)
+    won = sum(1 for _, r in f.before for _, c in f.after if r > c)
+    mu, sd = n1 * n2 / 2, math.sqrt(n1 * n2 * (n1 + n2 + 1) / 12)
+    lo, hi = mu - LUCK_SPAN * sd, mu + LUCK_SPAN * sd
+
+    def x_of(u: float) -> float:
+        return LUCK_X[0] + (u - lo) / (hi - lo) * (LUCK_X[1] - LUCK_X[0])
+
+    def y_of(u: float) -> float:
+        return LUCK_BASE + LUCK_PEAK * math.exp(-(((u - mu) / sd) ** 2) / 2)
+
+    # scipy subtracts half a pair from the gap before reading the tail, and so
+    # does the shading, so the shaded share is the p-value the post prints.
+    cut = won - 0.5
+    share = 2 * stats.norm.sf((cut - mu) / sd)
+    five = mu + stats.norm.isf(0.025) * sd + 0.5
+
+    def tail(a: float, b: float) -> tuple:
+        points: list[tuple[float, float]] = []
+        for k, u in enumerate(np.linspace(a, b, max(3, int((x_of(b) - x_of(a)) / 0.09)))):
+            rung = [(x_of(u), LUCK_BASE), (x_of(u), y_of(u))]
+            points += rung if k % 2 == 0 else rung[::-1]
+        return _line(points, per_unit=10)
+
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "axis", _line([(LUCK_X[0], LUCK_BASE), (LUCK_X[1], LUCK_BASE)]), color=MUTED, frames=5
+        ),
+        Label(
+            f"pairs the earlier years win, of {n1 * n2}",
+            LUCK_X[0],
+            LUCK_BASE - 0.32,
+            names="axis",
+            color=MUTED,
+            size=10,
+        ),
+        _stroke(
+            "bell",
+            _line([(x_of(u), y_of(u)) for u in np.linspace(lo, hi, 120)], per_unit=8),
+            color=INK,
+            frames=10,
+        ),
+        Label("what luck alone gives,", 1.2, 3.55, names="bell", color=INK, size=10),
+        Label("if nothing changed", 1.2, 3.25, names="bell", color=INK, size=10),
+        _stroke(
+            "middle",
+            _line([(x_of(mu), LUCK_BASE), (x_of(mu), y_of(mu) + 0.15)]),
+            color=MUTED,
+            dashed=True,
+            frames=4,
+        ),
+        Label(
+            f"about {round(mu)}: no change",
+            x_of(mu) + 0.15,
+            y_of(mu) + 0.38,
+            names="middle",
+            color=MUTED,
+            size=10,
+        ),
+        _stroke(
+            "five",
+            _line([(x_of(five), LUCK_BASE), (x_of(five), 2.85)]),
+            color=MUTED,
+            dashed=True,
+            frames=4,
+        ),
+        Label(
+            "the 5% line", x_of(five) + 0.3, 3.17, names="five", color=MUTED, size=10, ha="right"
+        ),
+        _stroke("ours", _line([(x_of(won), LUCK_BASE), (x_of(won), 3.3)]), color=ACCENT, frames=4),
+        Label(f"{won} pairs:", x_of(won) + 0.2, 3.1, names="ours", color=ACCENT, size=11),
+        Label("what the years did", x_of(won) + 0.2, 2.78, names="ours", color=ACCENT, size=10),
+        _stroke("tail-high", tail(cut, hi), color=ACCENT, width=1.4, frames=4),
+        _stroke("tail-low", tail(lo, 2 * mu - cut), color=ACCENT, width=1.4, frames=4),
+        Label(
+            f"this far out, either side: {100 * share:.1f}% of luck’s draws",
+            LUCK_X[1],
+            LUCK_BASE - 0.32,
+            names="tail-high",
+            color=ACCENT,
+            size=10,
+            ha="right",
+        ),
+    ]
+    steps.append(
+        Label(
+            "natural gas, June contract", 9.7, 4.3, names="axis", color=MUTED, size=10, ha="right"
+        )
+    )
+    return Scene(f"What {100 * share:.1f}% means", "luck_curve", tuple(steps))
+
+
+@dataclass(frozen=True)
+class ChanceRow:
+    """One trade's two chances, in percent, that luck alone opens its gap."""
+
+    trade: str
+    welch: float
+    rank: float
+
+
+def chance_rows() -> tuple[ChanceRow, ...]:
+    """Gasoline's and natural gas's chances, earlier period against later."""
+    rows = []
+    for trade in ("gasoline", "natural gas"):
+        before, after = (_period_trades(*p) for p in PERIODS if p[0] == trade)
+        rows.append(
+            ChanceRow(
+                trade,
+                100 * seasonals.change_p_value(before, after),
+                100 * seasonals.rank_p_value(before, after),
+            )
+        )
+    return tuple(rows)
+
+
+#: The chances scale: where 0% sits, how wide one point is, where it ends,
+#: the line every chance is read against, each trade's row, and how far each
+#: test's dot sits above or below it.
+CHANCE_X0, CHANCE_POINT, CHANCE_END = 2.3, 0.66, 10.8
+CHANCE_LINE = 5.0
+CHANCE_ROWS = (2.85, 1.55)
+CHANCE_DY = 0.25
+
+
+def _chances(rows: tuple[ChanceRow, ...]) -> Scene:
+    """Lesson 4: the table's four chances on one scale, against the 5% line."""
+
+    def x_of(pct: float) -> float:
+        return CHANCE_X0 + pct * CHANCE_POINT
+
+    steps: list[Stroke | Label] = [
+        _stroke("scale", _line([(x_of(0), 0.75), (x_of(CHANCE_END), 0.75)]), color=MUTED, frames=5),
+        *(
+            Label(f"{p}%", x_of(p), 0.45, names="scale", color=MUTED, size=10, ha="center")
+            for p in (0, 5, 10)
+        ),
+        _stroke(
+            "line",
+            _line([(x_of(CHANCE_LINE), 0.75), (x_of(CHANCE_LINE), 3.55)]),
+            color=MUTED,
+            dashed=True,
+            frames=5,
+        ),
+        Label(
+            "below: luck explains it poorly",
+            x_of(CHANCE_LINE) - 0.15,
+            3.75,
+            names="line",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+        Label(
+            "above: luck could explain it",
+            x_of(CHANCE_LINE) + 0.15,
+            3.75,
+            names="line",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    for row, y in zip(rows, CHANCE_ROWS, strict=True):
+        steps.append(
+            Label(row.trade, CHANCE_X0 - 0.3, y, names="line", color=INK, size=11, ha="right")
+        )
+        for test, pct, dy in (
+            ("Welch", row.welch, CHANCE_DY),
+            ("Mann-Whitney", row.rank, -CHANCE_DY),
+        ):
+            color = ACCENT if pct > CHANCE_LINE else INK
+            gid = f"{row.trade}-{test}"
+            steps += [
+                Stroke(
+                    gid, np.array([x_of(pct)]), np.array([y + dy]), color=color, frames=1, dots=9.0
+                ),
+                Label(
+                    f"{test}, {pct:.1f}%", x_of(pct) + 0.27, y + dy, names=gid, color=color, size=10
+                ),
+            ]
+    return Scene("Four chances against the 5% line", "four_chances", tuple(steps))
+
+
 # --- Lesson 4: one year moves the mean, not the ranks -----------------------
 
 
@@ -3151,6 +3476,9 @@ PACED = (
     "t_multiplier",
     "half_width",
     "mean_ranges",
+    "rank_pairs",
+    "luck_curve",
+    "four_chances",
     "one_year",
     "june_file",
     "handover",
@@ -3162,7 +3490,7 @@ PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 #: Paced scenes the owner still found too fast, with each one's stroke frame
 #: and label hold in milliseconds. Each has few steps, so the usual pace
 #: finished it before a reader had followed it.
-SLOWER = {"half_width": (250, 1800)}
+SLOWER = {"half_width": (250, 1800), "rank_pairs": (250, 1800)}
 
 
 def edge_years(first: int = 1994, last: int = 2023) -> tuple[int, ...]:
@@ -3177,6 +3505,11 @@ def edge_years(first: int = 1994, last: int = 2023) -> tuple[int, ...]:
 #: The years the expiry sketches draw: the handover the files first showed
 #: under the earlier lead time, and an entry on March's own last day.
 HANDOVER_YEAR, EDGE_YEAR = 1996, 2018
+
+
+def _typical_scenes(f: OneYearFigures) -> tuple[Scene, Scene, Scene, Scene]:
+    """The four sketches of whether the typical year changed, in the post's order."""
+    return _pairs(f), _luck(f), _chances(chance_rows()), _one_year(f)
 
 
 def _expiry_scenes() -> tuple[Scene, Scene, Scene, Scene]:
@@ -3225,7 +3558,7 @@ def scenes(
     misses: MissFigures | None = None,
     narrowing: NarrowingFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The twenty-one scenes in the order the post reads them, Lessons 1, 2, 4 and 5."""
+    """The twenty-four scenes in the order the post reads them, Lessons 1, 2, 4 and 5."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
@@ -3247,7 +3580,7 @@ def scenes(
         _fill_misses(tuple(seasonals.gap_fills())),
         _sharpe_ranges(sharpe_rows()),
         *_mean_scenes(mean_rows()),
-        _one_year(OneYearFigures.from_run()),
+        *_typical_scenes(OneYearFigures.from_run()),
         _june_file(*years),
         *_expiry_scenes(),
     )
