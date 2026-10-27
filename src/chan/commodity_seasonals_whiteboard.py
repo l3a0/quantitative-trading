@@ -97,28 +97,28 @@ the paragraph it draws.
    95% range, with each trade's earlier mean carried down as a dashed line
    past its later bar. It sits after the paragraph opening "That range,
    −6% to +2%, leaves out".
-16. One year moves the mean, not the ranks: natural gas's returns from 2009
+16. The earlier year won 177 of 225 pairs: every pairing of a natural gas
+   year from 1994 to 2008 with one from 2009 to 2023 as a dot in a grid,
+   rows and columns sorted worst to best, blue where the earlier year did
+   better and vermilion where the later year did, with a staircase along the
+   edge between them. 2022's column is all vermilion. It sits after the
+   paragraph opening "The Mann-Whitney test ignores".
+17. What 0.7% means: the exact chance of each count of pairs won when luck
+   alone splits the years, which is what the Mann-Whitney p-value is counted
+   from, with dashed lines at its middle and at the 5% line, natural gas's
+   177 marked beyond them, and both tails from it shaded. It sits after the
+   paragraph opening "Each test gives the chance".
+18. Four chances against the 5% line: the table's Welch and Mann-Whitney
+   chances for both trades as dots on a percentage scale, against a dashed
+   line at 5%. Only natural gas's Welch chance sits past it. It sits after
+   the table of the four chances.
+19. One year moves the mean, not the ranks: natural gas's returns from 2009
    to 2023 as dots on a percentage axis, with ticks at their mean and at
    their mean without the best year, 2022, and below them all 30 years from
    1994 to 2023 ranked worst to best, the earlier ones above a line and the
    later ones below it. A note names the two gains too close to zero for
    their side to show. It sits in Lesson 4, after the paragraph opening
    "Gasoline’s fall clears the line on both."
-17. The earlier year won 177 of 225 pairs: every pairing of a natural gas
-   year from 1994 to 2008 with one from 2009 to 2023 as a dot in a grid,
-   rows and columns sorted worst to best, blue where the earlier year did
-   better and vermilion where the later year did, with a staircase along the
-   edge between them. 2022's column is all vermilion. It sits after the
-   paragraph opening "The Mann-Whitney test ignores".
-18. What 0.8% means: the normal curve of the pair counts luck alone gives,
-   which is what the Mann-Whitney p-value is read from, with dashed lines at
-   its middle and at the 5% line, natural gas's 177 marked beyond them, and
-   both tails past it shaded. It sits after the paragraph opening "Each test
-   gives the chance".
-19. Four chances against the 5% line: the table's Welch and Mann-Whitney
-   chances for both trades as dots on a percentage scale, against a dashed
-   line at 5%. Only natural gas's Welch chance sits past it. It sits after
-   the table of the four chances.
 20. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
@@ -2388,7 +2388,7 @@ def _pairs(f: OneYearFigures) -> Scene:
             size=11,
         ),
         Label(
-            f"chance alone: about {round(pairs / 2)}",
+            f"chance alone: {pairs / 2:g}",
             PAIRS_NOTE_X,
             2.1,
             names="edge",
@@ -2411,29 +2411,52 @@ LUCK_SPAN = 4.2
 LUCK_BASE, LUCK_PEAK = 0.85, 2.55
 
 
+def pair_count_chances(m: int, n: int) -> np.ndarray:
+    """The chance of each count of pairs won, 0 to ``m * n``, when ``m``
+    earlier years and ``n`` later ones are a random split of one set of
+    years with no ties: the exact distribution Mann-Whitney's p-value counts.
+
+    The best of the ``m + n`` years beats every year of the other period when
+    it is an earlier year, and adds nothing when it is a later one, so the
+    counts for ``(m, n)`` are those for ``(m - 1, n)`` moved up by ``n`` plus
+    those for ``(m, n - 1)``.
+    """
+    ways = {(0, j): np.ones(1) for j in range(n + 1)}
+    ways.update({(i, 0): np.ones(1) for i in range(m + 1)})
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            count = np.zeros(i * j + 1)
+            count[j : j + (i - 1) * j + 1] += ways[i - 1, j]
+            count[: i * (j - 1) + 1] += ways[i, j - 1]
+            ways[i, j] = count
+    return ways[m, n] / math.comb(m + n, m)
+
+
 def _luck(f: OneYearFigures) -> Scene:
-    """Lesson 4: the pair counts luck alone gives, the normal curve the
-    Mann-Whitney p-value is read from, against natural gas's count."""
+    """Lesson 4: the exact chance of each count of pairs won when luck alone
+    splits the years, the distribution the Mann-Whitney p-value is counted
+    from, against natural gas's count."""
     n1, n2 = len(f.before), len(f.after)
     won = sum(1 for _, r in f.before for _, c in f.after if r > c)
+    chances = pair_count_chances(n1, n2)
     mu, sd = n1 * n2 / 2, math.sqrt(n1 * n2 * (n1 + n2 + 1) / 12)
     lo, hi = mu - LUCK_SPAN * sd, mu + LUCK_SPAN * sd
+    counts = range(math.ceil(lo), math.floor(hi) + 1)
 
     def x_of(u: float) -> float:
         return LUCK_X[0] + (u - lo) / (hi - lo) * (LUCK_X[1] - LUCK_X[0])
 
-    def y_of(u: float) -> float:
-        return LUCK_BASE + LUCK_PEAK * math.exp(-(((u - mu) / sd) ** 2) / 2)
+    def y_of(u: int) -> float:
+        return LUCK_BASE + LUCK_PEAK * chances[u] / chances.max()
 
-    # scipy subtracts half a pair from the gap before reading the tail, and so
-    # does the shading, so the shaded share is the p-value the post prints.
-    cut = won - 0.5
-    share = 2 * stats.norm.sf((cut - mu) / sd)
-    five = mu + stats.norm.isf(0.025) * sd + 0.5
+    # The counts are symmetric about the middle, so the share as far out on
+    # either side is twice the share at or above the years' count.
+    share = 2 * chances[won:].sum()
+    five = next(u for u in range(math.ceil(mu), n1 * n2 + 1) if 2 * chances[u:].sum() <= 0.05)
 
-    def tail(a: float, b: float) -> tuple:
+    def tail(us: range) -> tuple:
         points: list[tuple[float, float]] = []
-        for k, u in enumerate(np.linspace(a, b, max(3, int((x_of(b) - x_of(a)) / 0.09)))):
+        for k, u in enumerate(us):
             rung = [(x_of(u), LUCK_BASE), (x_of(u), y_of(u))]
             points += rung if k % 2 == 0 else rung[::-1]
         return _line(points, per_unit=10)
@@ -2452,7 +2475,7 @@ def _luck(f: OneYearFigures) -> Scene:
         ),
         _stroke(
             "bell",
-            _line([(x_of(u), y_of(u)) for u in np.linspace(lo, hi, 120)], per_unit=8),
+            _line([(x_of(u), y_of(u)) for u in counts], per_unit=8),
             color=INK,
             frames=10,
         ),
@@ -2460,15 +2483,15 @@ def _luck(f: OneYearFigures) -> Scene:
         Label("if nothing changed", 1.2, 3.25, names="bell", color=INK, size=10),
         _stroke(
             "middle",
-            _line([(x_of(mu), LUCK_BASE), (x_of(mu), y_of(mu) + 0.15)]),
+            _line([(x_of(mu), LUCK_BASE), (x_of(mu), LUCK_BASE + LUCK_PEAK + 0.15)]),
             color=MUTED,
             dashed=True,
             frames=4,
         ),
         Label(
-            f"about {round(mu)}: no change",
+            f"{mu:g}: no change",
             x_of(mu) + 0.15,
-            y_of(mu) + 0.38,
+            LUCK_BASE + LUCK_PEAK + 0.38,
             names="middle",
             color=MUTED,
             size=10,
@@ -2486,8 +2509,14 @@ def _luck(f: OneYearFigures) -> Scene:
         _stroke("ours", _line([(x_of(won), LUCK_BASE), (x_of(won), 3.3)]), color=ACCENT, frames=4),
         Label(f"{won} pairs:", x_of(won) + 0.2, 3.1, names="ours", color=ACCENT, size=11),
         Label("what the years did", x_of(won) + 0.2, 2.78, names="ours", color=ACCENT, size=10),
-        _stroke("tail-high", tail(cut, hi), color=ACCENT, width=1.4, frames=4),
-        _stroke("tail-low", tail(lo, 2 * mu - cut), color=ACCENT, width=1.4, frames=4),
+        _stroke("tail-high", tail(range(won, counts[-1] + 1)), color=ACCENT, width=1.4, frames=4),
+        _stroke(
+            "tail-low",
+            tail(range(counts[0], n1 * n2 - won + 1)),
+            color=ACCENT,
+            width=1.4,
+            frames=4,
+        ),
         Label(
             f"this far out, either side: {100 * share:.1f}% of luck’s draws",
             LUCK_X[1],

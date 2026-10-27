@@ -89,23 +89,24 @@ post quotes, such as test_the_run_gives_these_dates_and_files.
    trade's earlier mean carried down past its later bar. What is pinned is
    that each dot, bar and dashed line sit at the run's figures, and that
    natural gas's line lands inside its later bar and gasoline's outside.
-16. The one-year sketch draws natural gas's returns after 2008 with ticks at
-   their mean with and without 2022, and all 30 years ranked. What is pinned
-   is that the ticks sit at the run's means, that each rank dot sits in its
-   period's row in rank order, that the nine worst ranks are later years, and
-   that shrinking 2022's gain moves the mean and leaves every rank in place.
-17. The pairs sketch draws every pairing of an earlier natural gas year with
+16. The pairs sketch draws every pairing of an earlier natural gas year with
    a later one as a dot. What is pinned is that each dot sits in its cell,
    blue exactly where the earlier year returned more, that the blue count is
    :func:`chan.commodity_seasonals.pairs_won`'s, that the edge falls after
    each row's last blue dot, and that 2022's column is all vermilion.
-18. The luck sketch draws the normal curve the Mann-Whitney p-value is read
-   from. What is pinned is that its shaded share is
+17. The luck sketch draws the exact chance of each count of pairs won, which
+   the Mann-Whitney p-value is counted from. What is pinned is that the
+   chances add to one, that its shaded share is
    :func:`chan.commodity_seasonals.rank_p_value`'s, that the curve peaks at
    half the pairs, and that the years' count sits past the 5% line.
-19. The chances sketch draws the table's four chances on one scale. What is
+18. The chances sketch draws the table's four chances on one scale. What is
    pinned is that each dot sits at its chance from the run, and that only a
    chance past 5% is drawn in purple.
+19. The one-year sketch draws natural gas's returns after 2008 with ticks at
+   their mean with and without 2022, and all 30 years ranked. What is pinned
+   is that the ticks sit at the run's means, that each rank dot sits in its
+   period's row in rank order, that the nine worst ranks are later years, and
+   that shrinking 2022's gain moves the mean and leaves every rank in place.
 20. The calendar sketch draws the March to June contracts in 2008 and 2006,
    each bar ending at its last trading day, with a dashed line at each entry
    and exit. What is pinned is that June's number in each label is how many
@@ -166,6 +167,7 @@ from chan.commodity_seasonals_whiteboard import (
     HALF_X,
     HANDOVER_YEAR,
     LUCK_BASE,
+    LUCK_PEAK,
     LUCK_SPAN,
     LUCK_X,
     PAIRS_CELL,
@@ -238,6 +240,7 @@ from chan.commodity_seasonals_whiteboard import (
     main,
     make_commodity_seasonals_whiteboards,
     mean_rows,
+    pair_count_chances,
     scenes,
     sharpe_rows,
     sketch_timeline,
@@ -626,7 +629,7 @@ PAIRS_LABELS = [
     "2022",
     "2022 beats all 15 earlier years",
     "earlier year won 177 of 225 pairs",
-    "chance alone: about 112",
+    "chance alone: 112.5",
     "natural gas, June contract",
 ]
 
@@ -634,11 +637,11 @@ LUCK_LABELS = [
     "pairs the earlier years win, of 225",
     "what luck alone gives,",
     "if nothing changed",
-    "about 112: no change",
+    "112.5: no change",
     "the 5% line",
     "177 pairs:",
     "what the years did",
-    "this far out, either side: 0.8% of luck’s draws",
+    "this far out, either side: 0.7% of luck’s draws",
     "natural gas, June contract",
 ]
 
@@ -653,7 +656,7 @@ CHANCE_LABELS = [
     "Mann-Whitney, 1.1%",
     "natural gas",
     "Welch, 9.2%",
-    "Mann-Whitney, 0.8%",
+    "Mann-Whitney, 0.7%",
 ]
 
 ONE_YEAR_LABELS = [
@@ -2118,7 +2121,7 @@ class TestThePairsSketch:
 
 class TestTheLuckSketch:
     def test_its_words(self, every) -> None:
-        assert every[16].title == "What 0.8% means"
+        assert every[16].title == "What 0.7% means"
         assert every[16].labels == LUCK_LABELS
 
     def test_its_colours(self, every) -> None:
@@ -2133,10 +2136,28 @@ class TestTheLuckSketch:
         assert every[16].title == f"What {100 * p:.1f}% means"
         assert _luck(OneYearFigures.from_run()).title == every[16].title
 
+    def test_the_counts_are_the_exact_distribution(self) -> None:
+        """Each count's chance is its share of every way to split the years,
+        counted by brute force on small splits, and the chances add to one."""
+        from itertools import combinations
+
+        for m, n in ((3, 4), (5, 5), (4, 7)):
+            tally = np.zeros(m * n + 1)
+            for earlier in combinations(range(m + n), m):
+                later = set(range(m + n)) - set(earlier)
+                tally[sum(1 for e in earlier for x in later if e > x)] += 1
+            assert pair_count_chances(m, n) == pytest.approx(tally / tally.sum()), (m, n)
+        chances = pair_count_chances(15, 15)
+        assert len(chances) == 226
+        assert chances.sum() == pytest.approx(1)
+        assert chances == pytest.approx(chances[::-1])
+
     def test_its_curve_and_marks_sit_at_the_counts(self, every) -> None:
         scene, f = every[16], OneYearFigures.from_run()
         n1, n2 = len(f.before), len(f.after)
         won, _ = seasonals.pairs_won(*_natural_gas_periods())
+        won = int(won)
+        chances = pair_count_chances(n1, n2)
         mu, sd = n1 * n2 / 2, math.sqrt(n1 * n2 * (n1 + n2 + 1) / 12)
         lo, hi = mu - LUCK_SPAN * sd, mu + LUCK_SPAN * sd
 
@@ -2144,16 +2165,25 @@ class TestTheLuckSketch:
             return LUCK_X[0] + (u - lo) / (hi - lo) * (LUCK_X[1] - LUCK_X[0])
 
         bell = _stroke(scene, "bell")
-        assert bell.x[np.argmax(bell.y)] == pytest.approx(x_of(mu), abs=0.05)
+        for u in (100, 112, 150, 177):
+            at = np.isclose(bell.x, x_of(u))
+            assert at.any() and bell.y[at][0] == pytest.approx(
+                LUCK_BASE + LUCK_PEAK * chances[u] / chances.max()
+            ), u
         assert _stroke(scene, "middle").x[0] == pytest.approx(x_of(mu))
         assert _stroke(scene, "ours").x[0] == pytest.approx(x_of(won))
         five = _stroke(scene, "five").x[0]
-        assert five == pytest.approx(x_of(mu + 1.959964 * sd + 0.5), abs=1e-4)
+        line = min(u for u in range(113, n1 * n2 + 1) if 2 * chances[u:].sum() <= 0.05)
+        assert 2 * chances[line - 1 :].sum() > 0.05
+        assert five == pytest.approx(x_of(line))
         assert five < _stroke(scene, "ours").x[0]
         high, low = _stroke(scene, "tail-high"), _stroke(scene, "tail-low")
-        assert high.x.min() == pytest.approx(x_of(won - 0.5))
-        assert low.x.max() == pytest.approx(x_of(n1 * n2 - won + 0.5))
+        assert high.x.min() == pytest.approx(x_of(won))
+        assert low.x.max() == pytest.approx(x_of(n1 * n2 - won))
         assert high.y.min() == pytest.approx(LUCK_BASE) and low.y.min() == pytest.approx(LUCK_BASE)
+        assert 2 * chances[won:].sum() == pytest.approx(
+            seasonals.rank_p_value(*_natural_gas_periods())
+        )
 
     def test_the_title_follows_the_figures(self) -> None:
         f = OneYearFigures.from_run()

@@ -310,10 +310,18 @@ def rank_p_value(before: list[Trade], after: list[Trade]) -> float:
     It ranks every year from worst to best and ignores how far apart they are,
     so it asks whether the typical year changed. One extreme year moves it
     by one rank, where it can move :func:`change_p_value` a long way.
+
+    The p-value is exact, counted over every way the years could split
+    between the periods. scipy's default switches to a normal approximation
+    once both periods hold more than eight years, which gives natural gas's
+    15 against 15 a chance of 0.79% where the exact count gives 0.66%, while
+    gasoline's 8 later years would stay exact. So the method is named rather
+    than left to the sample sizes. The years hold no ties, so the exact count
+    needs no correction for them.
     """
     one = [trade.relative_change for trade in _readable(before)]
     two = [trade.relative_change for trade in _readable(after)]
-    return float(stats.mannwhitneyu(one, two, alternative="two-sided").pvalue)
+    return float(stats.mannwhitneyu(one, two, alternative="two-sided", method="exact").pvalue)
 
 
 def pairs_won(before: list[Trade], after: list[Trade]) -> tuple[float, int]:

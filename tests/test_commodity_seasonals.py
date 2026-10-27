@@ -423,7 +423,18 @@ class TestTheReturns:
     def test_the_rank_test_and_welch_split_on_natural_gas(self) -> None:
         gas = (self.years("gasoline, 1995 to 2015"), self.years("gasoline, 2016 to 2023"))
         ng = (self.years("natural gas, 1994 to 2008"), self.years("natural gas, 2009 to 2023"))
-        assert (rank_p_value(*gas), rank_p_value(*ng)) == pytest.approx((0.0111, 0.0079), abs=5e-5)
+        assert (rank_p_value(*gas), rank_p_value(*ng)) == pytest.approx((0.0111, 0.0066), abs=5e-5)
+
+    def test_the_rank_test_is_exact_where_scipy_would_approximate(self) -> None:
+        """scipy's default normal approximation gives natural gas 0.79%, which
+        the docstring of rank_p_value quotes, and the exact count 0.66%."""
+        from scipy import stats
+
+        ng = (self.years("natural gas, 1994 to 2008"), self.years("natural gas, 2009 to 2023"))
+        one, two = ([t.relative_change for t in p if t.change is not None] for p in ng)
+        assert len(set(one + two)) == len(one + two)
+        default = stats.mannwhitneyu(one, two, alternative="two-sided").pvalue
+        assert (default, rank_p_value(*ng)) == pytest.approx((0.0079, 0.0066), abs=5e-5)
 
     def test_the_earlier_years_win_most_pairs(self) -> None:
         """The count the rank test tests: earlier years beating later ones, of all pairings."""
@@ -742,7 +753,7 @@ class TestThePostQuotesThePins:
             won, pairs = pairs_won(*pair)
             assert (
                 f"For {name.lower()} the earlier year won {won:.0f} of {pairs} pairs, "
-                f"where chance would give about {round(pairs / 2)}"
+                f"where chance would give half, {pairs / 2:g}"
             ) in text, name
         won, _ = pairs_won(*ng)
         assert (

@@ -3781,18 +3781,18 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 15. `commodity_sketch_mean_ranges.gif`, in Lesson 4, each period's mean and
    95% range, where natural gas's later range holds its earlier mean and
    gasoline's does not.
-16. `commodity_sketch_one_year.gif`, in Lesson 4, natural gas's returns after
-   2008 with their mean with and without 2022, above all 30 years ranked
-   worst to best, where 2022 is one top rank however large its gain.
-17. `commodity_sketch_rank_pairs.gif`, in Lesson 4, every pairing of an
+16. `commodity_sketch_rank_pairs.gif`, in Lesson 4, every pairing of an
    earlier natural gas year with a later one as a dot, blue where the earlier
    year did better, so the earlier years win 177 of 225 pairs.
-18. `commodity_sketch_luck_curve.gif`, in Lesson 4, the pair counts luck alone
-   gives as a normal curve, with natural gas's 177 beyond the 5% line and the
-   0.8% of draws that land that far out shaded.
-19. `commodity_sketch_four_chances.gif`, in Lesson 4, the table's four
+17. `commodity_sketch_luck_curve.gif`, in Lesson 4, the pair counts luck alone
+   gives, counted exactly, with natural gas's 177 beyond the 5% line and the
+   0.7% of splits that land that far out shaded.
+18. `commodity_sketch_four_chances.gif`, in Lesson 4, the table's four
    chances on one percentage scale, where only natural gas's Welch chance
    sits past the 5% line.
+19. `commodity_sketch_one_year.gif`, in Lesson 4, natural gas's returns after
+   2008 with their mean with and without 2022, above all 30 years ranked
+   worst to best, where 2022 is one top rank however large its gain.
 20. `commodity_sketch_june_file.gif`, in Lesson 5, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
@@ -3810,7 +3810,7 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 All twenty-four build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in. The half-width and pairs sketches draw
-slower still, its strokes at 250 ms a frame and its labels for 1.8 seconds.
+slower still, their strokes at 250 ms a frame and their labels for 1.8 seconds.
 
 None is schematic. Each reads the natural gas or gasoline run on the
 committed EIA files, so none needs the owner's archive. Redraw all twenty-four with:

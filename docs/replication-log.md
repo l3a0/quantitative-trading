@@ -3545,13 +3545,13 @@ twenty-four.
 14. Natural gas's ±12% half-width built from its spread, count and multiplier.
 15. Each period's mean and 95% range, with each trade's earlier mean carried
    down past its later range.
-16. Natural gas's mean after 2008 with and without 2022, against all 30
-   years ranked.
-17. Every pairing of an earlier natural gas year with a later one, 177 of 225
+16. Every pairing of an earlier natural gas year with a later one, 177 of 225
    won by the earlier year.
-18. The pair counts luck alone gives, with natural gas's 177 in the 0.8% of
-   draws that land that far out.
-19. The four chances against the 5% line.
+17. The pair counts luck alone gives, counted exactly, with natural gas's 177
+   in the 0.7% of splits that land that far out.
+18. The four chances against the 5% line.
+19. Natural gas's mean after 2008 with and without 2022, against all 30
+   years ranked.
 20. Which numbered file holds the June contract on the entry and exit days of
    2008 and 2006.
 21. The files handing over the day after March 1996's last trading day.
