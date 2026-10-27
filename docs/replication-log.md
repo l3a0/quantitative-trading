@@ -3380,12 +3380,13 @@ no count. Three of the rules carry the result, so they are stated here.
    York Harbor regular gasoline, through 2005,
    `eia_eer-epmrr-pe1-y35ny-dpg_raw_2005-10-03_2024-04-05_dl2026-10-02.csv`,
    RBOB gasoline, from 2006, and `eia_rngc2`, `eia_rngc3` and `eia_rngc4` for
-   natural gas. [data/README.md](../data/README.md) says what each holds. Each
+   natural gas. Lesson 2's fills also read New York Harbor's contract 2,
+   `eia_eer-epmr-pe2-y35ny-dpg`, and Lesson 5's checks read natural gas's
+   contract 1, `eia_rngc1`. [data/README.md](../data/README.md) says what each holds. Each
    file numbers contracts by expiry, so the run maps a date to the file that
    holds the May or June contract. The expiry rule behind that map gives the
-   last trading day the Massive futures API recorded for all 40 contracts it
-   holds, March to June of every year from 2017, where its records begin, to
-   2026. Those 40 dates were read from the API on 2026-10-26, after a first
+   last trading day the Massive futures API recorded for all 40 March to June
+   contracts it holds from 2017, where its records begin, to 2026. Those 40 dates were read from the API on 2026-10-26, after a first
    read of 16 on 2026-10-03 that agreed, and are pinned as a measurement,
    because nothing in this repo can read them again. Before mid-1997 contracts stopped trading
    five or six days before delivery rather than three, which the files'

@@ -41,7 +41,7 @@ Each trade happens once a year, so each of the table’s four periods, two for e
 
 ## The two trades and the files
 
-A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 183 to 185). Chan names no time of day for the natural gas exit, so the run, this post’s code, exits at the close. A year is **profitable** when the exit settlement is strictly above the entry settlement.
+A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 184 and 185). Chan names no time of day for the natural gas exit, so the run, this post’s code, exits at the close. A year is **profitable** when the exit settlement is strictly above the entry settlement.
 
 Every passage quoted here is in the revised edition of 2021. The first edition matters to Lesson 1. Wiley released it in November 2008 and dated it 2009.
 
@@ -366,7 +366,7 @@ Nothing in the files says which contract a file holds on a given day. The run wo
 
 #### Against the exchange’s own dates
 
-Massive, a market data vendor, records each contract’s last trading day as the exchange set it. For all 40 contracts it records, March to June of every year from 2017 to 2026, the rule gives the same day. Massive’s records begin in 2017, so the years before rest on the next check.
+Massive, a market data vendor, records each contract’s last trading day as the exchange set it. For all 40 March to June contracts it records from 2017 to 2026, the rule gives the same day. Massive’s records begin in 2017, so the years before rest on the next check.
 
 #### Against the files’ own handovers
 

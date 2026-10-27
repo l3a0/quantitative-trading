@@ -645,7 +645,10 @@ class TestThePostQuotesThePins:
             f"\\quad\\text{{Years won}} & {won} \\text{{ of }} {len(readable)} & "
             f"{later} \\text{{ of }} {later_of}"
         ) in self.text
-        assert f"leaves out the {len(missing)} years with no price" in self.text
+        assert (
+            f"leaves out the {len(missing)} years each missing one trade date’s price"
+        ) in self.text
+        assert all((t.entry_price is None) != (t.exit_price is None) for t in missing)
         entry_gap = [trade.entry_day for trade in missing if trade.entry_price is None]
         exit_gap = [trade.exit_day for trade in missing if trade.exit_price is None]
         assert (
@@ -821,8 +824,8 @@ class TestThePostQuotesThePins:
         exchange = sorted(TestTheNaturalGasExpiries.EXCHANGE)
         assert exchange == list(range(exchange[0], exchange[-1] + 1))
         assert (
-            f"For all {4 * len(exchange)} contracts it records, March to June of every year "
-            f"from {exchange[0]} to {exchange[-1]}, the rule gives"
+            f"For all {4 * len(exchange)} March to June contracts it records from "
+            f"{exchange[0]} to {exchange[-1]}, the rule gives"
         ) in self.text
         early = sorted({ng_lead_days(1996, 1), ng_lead_days(1996, 2)})
         assert (
