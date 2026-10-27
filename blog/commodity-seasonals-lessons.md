@@ -262,7 +262,7 @@ For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sam
 
 *Every year of both trades. Each dashed line is where the book’s years end, and the marks along each foot give every year’s sign, including years too small to see as bars.*
 
-The book’s years include the years Chan chose each rule on, so the drop after the book can overstate how far either trade weakened.
+Chan picked each rule because it did well in years inside the book’s span, so those years make the rule look better than it is. Part of the drop after the book comes from that, not from the trade getting worse.
 
 Publishing a trade can also fade its edge. Once a rule is in print, traders who read it can act before its dates, so the price move it relies on comes sooner and leaves less for anyone who waits for the date. McLean and Pontiff (2016) measured this for 97 published predictors of stock returns. Returns were 26% lower in the years after each study’s data ended but before it was published, and 58% lower after publication. They attribute the 32-percentage-point difference to traders acting on what was published. Their predictors are stock anomalies rather than commodity trades, so their sizes do not carry over to these two trades.
 
