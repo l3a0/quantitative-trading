@@ -8250,8 +8250,8 @@ strategies" (location 674).
 beside them point at TU's drift rather than its kurtosis.** The second test lands
 inside the band around the book's 1,166 and far outside the one around the
 script's 0.027500. Rows 6 to 8 were added after a scratch run had seen
-results, and they show that a normal draw gives the same count while removing
-the drift removes almost all of it.
+results, and they show that a normal draw gives nearly the same count, 1,165
+against 1,221, while removing the drift removes almost all of it.
 
 Every row reads one vintage and one specification unless it names another, so
 both are stated once here.

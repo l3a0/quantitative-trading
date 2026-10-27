@@ -5992,29 +5992,33 @@ Five groups of what it says are not pinned here.
    return's definition at 2326, the roll return behind TU's momentum at 2683
    and the 12 percent at 2923. The book's figures are pinned, and its words
    are not.
-2. Facts about the script rather than the data: that it writes the shuffled
-   tranches into `pos` rather than `pos_sim`, that its comments print 2.93 and
-   0.027500, that its file has one commit, and that MathWorks does not state
-   the criterion `pearsrnd` uses.
+2. Facts about the script and the contract rather than the data: that the
+   script writes the shuffled tranches into `pos` rather than `pos_sim`, that
+   its comments print 2.93 and 0.027500, that its file has one commit, and that
+   MathWorks does not state the criterion `pearsrnd` uses, each of which
    [src/chan/tu_hypothesis_tests.py](src/chan/tu_hypothesis_tests.py) records
-   each in its docstring.
+   in its docstring, and that TU is the two-year US Treasury note future.
 3. Readings and arithmetic no test asserts: that if the true chance equals the
    printed proportion, two standard errors either side cover about 95 percent
    of counts, that a rerun lands inside less often because Chan's own count is
    one random draw, that a normal distribution's kurtosis is 3, that 1,166 of
-   10,000 is 0.1166, that 20 million is 10,000 series of 2,000 days, that 49 is
+   10,000 is 0.1166, that 20 million is 10,000 series of 2,000 days, that 2,000
+   trading days from 2004-06-01 to 2012-05-11 run about eight years, that 49 is
    seven lookbacks against seven holds, that the rule of three bounds a
    p-value at 3/N, that a position nearly the same on every shuffle earns
    nearly the same mean on the same returns, and that a rule net long on most
    days collects a drift wherever its entries fall.
 4. The figure's alt text, whose readings of the histograms, such as "near
    3e-5" and "from about 1e-5 to 4e-5", are approximate by design.
-5. Its references, cited rather than computed.
+5. Its references, and its pointers to the book's chapters and example, the
+   log's entry and other posts' lessons, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py), to
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) for the seven periods
-behind the 49 pairs, or to
+behind the 49 pairs, to
+[tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) for the index
+arbitrage post's screen of 480 stocks, or to
 [tests/test_tu_hypothesis_tests_figures.py](tests/test_tu_hypothesis_tests_figures.py)
 for the figure's own numbers. Four groups of them had no pin before it, and
 [tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) now pins
