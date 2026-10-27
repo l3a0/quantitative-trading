@@ -74,7 +74,7 @@ The natural gas files first hold a whole trade in 1994. Every year from 1994 to 
 Counted from 1995, the main text’s 13 is the streak ending in 2007 and the sidebar’s 14 is the streak ending in 2008. Each natural gas trade closes by mid-April, so both streaks end before the first edition’s release in November 2008. Both counts reproduce if they were written for that edition. The files settle half of that reading.
 
 1. **They rule out the revised edition.** Because 2009 is a loss, a streak of 13 or more counted from 1995 can end only in 2007 or 2008, more than a decade before the revised edition of 2021.
-2. **They cannot pick the start year.** 1994 is profitable too. Counted from 1994, the streaks of 13 and 14 end in 2006 and 2007 instead. Only Chan’s gasoline sidebar, which counts from 1995, favors 1995.
+2. **They cannot pick the start year.** 1994 is profitable too. Counted from 1994, the streaks of 13 and 14 end in 2006 and 2007 instead. Only Chan’s gasoline counts favor 1995. The sidebar counts from 1995, and the main text’s 21 years to 2015 start there too.
 
 ![“The start year decides where a streak ends”, drawn slowly stroke by stroke on a year axis from 1994 to 2009 that carries a label only at “1994”, “1995”, “2006”, “2007”, “2008” and “2009”. Each year from 1994 to 2008 has a blue dot on the axis, and 2009 has a vermilion cross labelled “loss”. A caption reads “dot: a profitable year”. A note in the lower right names the trade as “natural gas, June contract”. A dashed grey line between 2008 and 2009 marks the “first edition, Nov 2008”. Above the axis two purple brackets start at 1995. “13 from 1995, main text” ends at 2007 and “14 from 1995, sidebar” ends at 2008, both before the dashed line. Below the axis two black brackets start at 1994. “13 from 1994” ends at 2006 and “14 from 1994” ends at 2007. Starting the count a year earlier ends each streak a year earlier. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_streak_start.gif)
 
@@ -126,7 +126,7 @@ Fill 1 draws a straight line between the May rows on either side of the gap.
 
 ##### Fill 2, June’s move
 
-Fill 2 takes May’s last known price and moves it by June’s change since that day, because the two contracts move almost together.
+Fill 2 takes May’s price on the last day before the gap that both files hold, and moves it by June’s change since that day, because the two contracts move almost together.
 
 ![“Fill 2 carries June’s move across the gap”, drawn slowly stroke by stroke. Black dots are the May gasoline contract’s settlements and grey rings the June contract’s, one trading day apart from April 7 to April 17, 1997, named “May” and “June” at their first marks, with a caption “dot: May   ring: June” and a note “gasoline”. May has no dot on the day labelled “Apr 14, the entry: no May row”, nor on April 11 or 16. A grey arrow carries June from April 8, the last day both files hold, to April 14, labelled “June rose 0.9¢”, and a purple arrow of the same rise starts at May’s April 8 price and ends on a purple dot, “same rise on May: guess 62.1¢”. A dashed grey line marks the “exit price 62.5¢”. Around the guess a band of close strokes runs from “63.0¢” down to “61.2¢”, “fill 2’s typical miss either side”. The exit line splits it into a vermilion part above, “entry here: a loss”, and a blue part below, “entry here: a profit”. The guess sits in the blue part just under the line, and the band reaches into the vermilion. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_june_move_fill.gif)
 
@@ -151,7 +151,7 @@ A pattern that reaches back fewer days fits more April days, so 1998 and 1999 ha
 
 ![“Which April days can test a fill”, drawn slowly stroke by stroke as four bars drawn to scale, each shorter than the one above. The first, “April trading days, 1994 to 2005”, reads “247”. The second, “the pattern fits inside April”, reads “187”, beside “−60: fall outside April”. The third, “May has all four prices”, reads “108”, beside “−79: lack a May price”. The fourth, in purple, “June has both of fill 2’s prices”, reads “80”, beside “−28: lack a June price”. A caption reads “1997’s gap: rows 2 days back and 1 ahead, fill 2 starts 4 back”, and a note names the trade as “gasoline, May contract”. Most of the days lost lack a price in EIA’s files. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_test_days.gif)
 
-Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 2 gives moves of +0.4, +0.5 and +0.6 cents a gallon, against typical misses of 0.89, 0.76 and 0.65. Fill 1 does no better than fill 2, with moves between 0.1 and 0.8 of its own typical miss.
+Both fills guess a profit in all three years, and every move is smaller than its fill’s typical miss. Fill 2 gives moves of +0.4, +0.5 and +0.6 cents a gallon, against typical misses of 0.89, 0.76 and 0.65. Fill 1 settles no year either, with moves between 0.1 and 0.8 of its own typical miss.
 
 Fill 2’s misses also lean one way. A standard error is how far an estimate, here an average miss, typically strays from its true value. On the test days fill 2 guessed May too low by 0.26, 0.21 and 0.20 cents on average, each between 2.7 and 3.2 standard errors from zero.
 
@@ -242,7 +242,7 @@ For 1997, `m` is 0.4 cents, `b` is 0.26 and `σ` is 0.86, so `c` is 0.14. From t
 
 #### What the chance rests on
 
-So the chance that all three years were profits, which Chan’s 19 needs, is 42%. The correction barely moves that figure, but it moves the years apart: 1997 is close to a coin flip, and 1999 reaches 90%, still short of 95%. The run tested neither remaining assumption, that the misses are normal and that they are independent. Heavier tails than a normal curve would raise each chance rather than lower it, because a curve with heavier tails and the same spread puts more of its misses near the average. Misses that are not independent, as when a fill misses the same way every April, could move the figure either way.
+So the chance that all three years were profits, which Chan’s 19 needs, is 42%. The correction barely moves that figure, but it moves the years apart: 1997 is close to a coin flip, and 1999 reaches 90%, still short of 95%. The run tested neither remaining assumption, that the misses are normal and that they are independent. Heavier tails than a normal curve would raise each chance rather than lower it, because a curve with heavier tails and the same spread puts more of its misses near the average. Misses that are not independent could move the figure either way, because a miss that helps 1998’s and 1999’s exits hurts 1997’s entry.
 
 ![“Each corrected move against fill 2’s spread”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, each with its σ above its bar: “σ = 0.86” for “1997”, with “57%”, then “σ = 0.74” for “1998”, with “83%”, then “σ = 0.62” for “1999”, with “90%”. In each row a purple dot right of zero marks the year’s move with fill 2’s guess corrected by its average miss, and a black bar of one spread either side. The bar for 1997 reaches well across zero, the bar for 1998 only just reaches past it, and the bar for 1999 stops just short of it. A scale below reads “-1” and “+1” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal around their average. Captions read “dot: the corrected move” and “bar: σ, fill 2’s spread, either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
 
@@ -296,7 +296,7 @@ The 95% range for a mean return from `n` results, with standard deviation `s`, u
 
 ![“Fewer results, a wider range”, drawn slowly stroke by stroke. Four bars rise from a grey base, each labelled with its height: “2.36” over “8 results”, “2.14” over “15 results”, “2.05” over “30 results” and “1.96” over “many”. A dashed grey line runs across at the normal curve’s value, labelled “normal, 1.96”, and the fewer the results, the higher a bar stands above it. A caption reads “95% multiplier from Student’s t”. The first two bars are purple, and a note reads “purple: the later periods’ 8 and 15 years”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_t_multiplier.gif)
 
-Natural gas after 2008 averaged −0.4% a year with a standard deviation of 21.6% over 15 years, and `t` for 14 degrees of freedom is 2.14:
+Natural gas after 2008 averaged −0.4% a year with a standard deviation of 21.6% over 15 years, and `t` for 14 degrees of freedom is 2.14. From the unrounded values:
 
 ```math
 \begin{aligned}

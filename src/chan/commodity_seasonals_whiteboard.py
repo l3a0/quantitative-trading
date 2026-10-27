@@ -56,7 +56,7 @@ the paragraph it draws.
    last day both files hold to the gap day, the same rise added to May's
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the sentence opening
-   "Fill 2 takes May’s last known price".
+   "Fill 2 takes May’s price on the last day before the gap".
 7. Which April days can test a fill: four bars, the April trading days from
    1994 to 2005 narrowing to 1997's test days as each check removes days,
    with how many each check removes. It sits after the sentence opening "A

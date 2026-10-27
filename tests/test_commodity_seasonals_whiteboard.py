@@ -298,7 +298,7 @@ FOLLOWS = (
     "EIA’s New York Harbor file holds no row",
     "The losses say more than the gaps.",
     "Fill 1 draws a straight line",
-    "Fill 2 takes May’s last known price",
+    "Fill 2 takes May’s price on the last day before the gap",
     "A pattern that reaches back fewer days",
     "Fill 2’s misses also lean one way.",
     "Test days close together read some of the same prices, though,",
