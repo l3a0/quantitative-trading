@@ -907,7 +907,7 @@ class TestThePostQuotesThePins:
         ) in text
         assert (
             f"{early_fits} of the {fits} are contracts delivered before June 1997, where the "
-            "rule’s lead was read from these handovers."
+            "rule’s count of days before delivery came from these handovers."
         ) in text
         assert (
             f"the rule fits only {early[0]} and {late[0]} of the {early[1]} expiries the files "

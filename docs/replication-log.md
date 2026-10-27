@@ -3501,7 +3501,7 @@ pins. EIA's contract-2 file, which holds June while May is contract 1, has a
 row on all three days, so the run filled each gap two ways.
 
 1. A straight line between the contract-1 rows on either side.
-2. May's price on the last day before the gap that both files hold, moved by June's change since that day.
+2. May's price on the last day before the gap, counting only days both files hold, moved by June's change since that day.
 
 Each fill's typical miss was measured as a root mean square error on hidden
 April days from 1994 to 2005 in the gap's own pattern of trading days. June's
