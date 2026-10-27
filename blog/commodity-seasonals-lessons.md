@@ -13,6 +13,8 @@ Chan gives two trades, each with a count of profitable years.
 1. **Gasoline.** Buy the May contract at the close of April 13 and sell it at the close of April 25, ahead of the summer driving season. Chan counts 19 profitable years of 21, from 1995 to 2015.
 2. **Natural gas.** Buy the June contract at the close of February 25 and sell it on April 15, as power generators buy ahead of the air-conditioning season. Chan counts 13 consecutive profitable years in the main text and 14 in a sidebar.
 
+![“Two trades on one calendar”, drawn slowly stroke by stroke. A grey calendar axis is marked “Feb”, “Mar”, “Apr” and “May”. A long black bar runs from February 25 to April 15, labelled “natural gas: buy June contract Feb 25, sell Apr 15”, with a grey note on the left, “demand: air conditioning”, and a purple caption under the bar, “Chan: 13 years in a row, 14 in the sidebar”. A short black bar below it runs from April 13 to April 25, labelled “gasoline: buy May contract Apr 13, sell Apr 25”, with a grey note on the left, “demand: summer driving”, and a purple caption beside the bar’s left end, “Chan: 19 of 21 years, 1995 to 2015”. The natural gas trade stays open for about seven weeks and the gasoline trade for under two, and both are open from April 13 to April 15. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_two_trades.gif)
+
 Both trades ran on the free settlement prices that the US Energy Information Administration (EIA) publishes for futures traded on the New York Mercantile Exchange (NYMEX). Three results came out.
 
 1. **Natural gas reproduces both of Chan’s counts** if both were written for the book’s first edition, released in November 2008, and count from 1995.
@@ -34,6 +36,8 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 \quad\text{Drawdown} & 11\% & 30\%
 \end{array}
 ```
+
+![“Years won, in Chan’s years and after”, drawn slowly stroke by stroke. Two rows share a year axis from 1994 to 2023. The upper row, “natural gas, June contract”, has a blue dot for each profitable year and a vermilion cross for each loss, and a dashed grey line after 2008 splits it into “15 of 15 won” on the left and, in purple, “7 of 15 won” on the right. Every year before the line is a dot, and all eight crosses fall after it. The lower row, “gasoline, May contract”, starts in 1995, and a dashed grey line after 2015 splits it into “16 of 18 won” and, in purple, “3 of 8 won”. Before its line the crosses are 2009 and 2012, and after it five of the eight years are crosses. A grey span under 1997 to 1999, which have no mark, reads “no row”. The axis is labelled “1994”, “2008”, “2015” and “2023”, and captions read “dot: a profitable year   x: a loss” and “dashed: where Chan’s years end”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_after_book.gif)
 
 A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by the standard deviation of the yearly returns. The drawdown is the largest fall from a peak in the running total of yearly returns. The post’s code marks that total on every trading day the files hold a price, so the drawdown counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake.
 
