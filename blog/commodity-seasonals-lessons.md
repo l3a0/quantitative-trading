@@ -1,4 +1,4 @@
-# Chan’s commodity seasonals fit his counts in every year the files have prices for, and win a smaller share of years after the book
+# Two commodity seasonals show an edge that has faded after being published
 
 *A count of profitable years is only as good as the years it counts, where it starts, and who chose the trade.*
 
