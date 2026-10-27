@@ -55,7 +55,7 @@ EIA publishes settlement prices for the nearest four contracts of each product. 
 2. RBOB gasoline, contract 1, from 2006. RBOB replaced the New York Harbor contract and began trading in October 2005.
 3. Henry Hub natural gas, contracts 2, 3 and 4, one file each.
 
-Lesson 2’s second way of guessing the missing gasoline prices also reads New York Harbor’s contract 2 file, and one of Lesson 5’s checks of when contracts expire reads natural gas’s contract 1 file, both from the same download.
+Lesson 2’s second way of guessing the missing gasoline prices also reads New York Harbor’s contract 2 file. Lesson 5’s check of the files’ handovers and its count of holiday rows also read natural gas’s contract 1 file. Both files come from the same download.
 
 ## Lesson 1: a count of consecutive years needs its start year and its edition
 

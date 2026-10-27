@@ -3381,9 +3381,9 @@ no count. Three of the rules carry the result, so they are stated here.
    York Harbor regular gasoline, through 2005,
    `eia_eer-epmrr-pe1-y35ny-dpg_raw_2005-10-03_2024-04-05_dl2026-10-02.csv`,
    RBOB gasoline, from 2006, and `eia_rngc2`, `eia_rngc3` and `eia_rngc4` for
-   natural gas. Lesson 2's fills also read New York Harbor's contract 2,
-   `eia_eer-epmr-pe2-y35ny-dpg`, and Lesson 5's checks read natural gas's
-   contract 1, `eia_rngc1`. [data/README.md](../data/README.md) says what each holds. Each
+   natural gas. Lesson 2's second fill also reads New York Harbor's contract 2,
+   `eia_eer-epmr-pe2-y35ny-dpg`, and Lesson 5's handover check and holiday
+   count read natural gas's contract 1, `eia_rngc1`. [data/README.md](../data/README.md) says what each holds. Each
    file numbers contracts by expiry, so the run maps a date to the file that
    holds the May or June contract. The expiry rule behind that map gives the
    last trading day the Massive futures API recorded for all 40 March to June

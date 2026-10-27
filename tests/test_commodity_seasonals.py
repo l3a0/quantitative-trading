@@ -616,6 +616,9 @@ class TestThePostQuotesThePins:
         ) in self.text
 
     def test_the_streak_table_and_the_start_years(self) -> None:
+        assert all(t.exit_day <= date(t.year, 4, 15) for t in GAS)
+        assert any(t.exit_day > date(t.year, 4, 15) for t in GASOLINE)
+        assert "Each natural gas trade closes by mid-April, so both streaks end before" in self.text
         from_1995 = runs_ending([trade for trade in GAS if trade.year >= RUN_START])
         from_1994 = runs_ending(GAS)
         for year in (2007, 2008):
@@ -709,6 +712,8 @@ class TestThePostQuotesThePins:
         errors = [sharpe_standard_error(TestTheReturns.years(split)) for split in splits]
         text = " ".join(self.text.split())
         assert f"rests on only {min(counts)} to {max(counts)} yearly results" in text
+        assert len(splits) == 4
+        assert "each of the table’s four periods, two for each trade" in text
         assert f"the standard error runs from {min(errors):.1f} to {max(errors):.1f}" in text
         assert (
             f"range reaches {1.96 * min(errors):.1f} to {1.96 * max(errors):.1f} either side"
@@ -753,6 +758,9 @@ class TestThePostQuotesThePins:
             TestTheReturns.years("natural gas, 1994 to 2008"),
             TestTheReturns.years("natural gas, 2009 to 2023"),
         )
+        assert max(change_p_value(*gas), rank_p_value(*gas)) < 0.05 < change_p_value(*ng)
+        assert "Gasoline’s fall passes both tests, with each chance below the 5% line." in text
+        assert "The usual line is 5%" in text
         spreads = [
             statistics.stdev([t.relative_change for t in p if t.change is not None]) for p in ng
         ]
@@ -955,6 +963,10 @@ class TestThePostQuotesThePins:
             "1997 and 2005."
         ) in text
         assert f"{len(close)} fail by under 9 cents" in text
+        assert (
+            f"One of those {len(close)}, March 2023, fails although the exchange’s own date "
+            "matches the rule’s."
+        ) in text
         assert (
             f"That is true of {len(moved)} of the {len(misfit)}, all March contracts at an "
             f"entry, and of none of the {len(unread)}"

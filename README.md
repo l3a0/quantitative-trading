@@ -3764,8 +3764,10 @@ not pinned here.
    The gasoline rule's April dates and the profit every year since 1995 are
    on p. 184. 13 consecutive years and the demand from power generators, 14
    consecutive years and the exit on April 15, and "didn't hold up as well
-   out-of-sample" are on p. 185. The warning about data-snooping and the
-   suggestion to try nearby dates are on p. 186.
+   out-of-sample" are on p. 185. The rule that a trade date falling on a
+   holiday moves to the next trading day at the entry and to the previous one
+   at the exit is in both sidebars, on pp. 184 and 185. The warning about
+   data-snooping and the suggestion to try nearby dates are on p. 186.
 2. Facts outside the committed data. RBOB beginning to trade in October 2005,
    the first edition's release in November 2008 and its 2009 date, RB as the
    symbol RBOB trades under, a natural gas contract stopping three trading days
