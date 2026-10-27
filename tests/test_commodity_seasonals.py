@@ -1068,7 +1068,7 @@ class TestThePostQuotesThePins:
         assert (
             f"For {first.year}, `m` is {100 * first.move(first.june):.1f} cents, `b` is "
             f"{100 * first.june_bias:.2f} and `σ` is {100 * first.june_spread:.2f}, so `c` is "
-            f"{100 * first.move(first.june_corrected):.2f} and, from the unrounded values, "
+            f"{100 * first.move(first.june_corrected):.2f}. From the unrounded values, "
             "the chance is "
             f"Φ({first.june_margin:.2f}), or {100 * first.june_chance:.0f}%."
         ) in self.text

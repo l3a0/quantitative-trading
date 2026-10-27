@@ -35,9 +35,11 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 \end{array}
 ```
 
-A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by the standard deviation of the yearly returns. The drawdown is the largest fall from a peak in the running total of yearly returns. That total is marked on every trading day the files hold a price, so the drawdown counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake. Gasoline’s 1995 to 2015 leaves out the 3 years each missing one trade date’s price. Natural gas’s years start in 1994, the first year the files hold a whole trade, one year before the 1995 start that Lesson 1 reads into Chan’s counts. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim.
+A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by the standard deviation of the yearly returns. The drawdown is the largest fall from a peak in the running total of yearly returns. That total is marked on every trading day the files hold a price, so the drawdown counts a fall inside a trade that still ended the year ahead. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake.
 
-Each trade happens once a year, so each of the table’s four periods, two for each trade, rests on only 8 to 18 yearly results. Lesson 4 works out what so few results can show. Gasoline’s fall after the book stands out from its noise. Natural gas’s years got worse as a rule, while its average return cannot be told apart from the average before. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Gasoline’s 1995 to 2015 leaves out the 3 years each missing one trade date’s price. Natural gas’s years start in 1994, the first year the files hold a whole trade, one year before the 1995 start that Lesson 1 reads into Chan’s counts. Nobody set a pass mark for the years after the book before computing them, so the split describes the record rather than grading Chan’s claim.
+
+Each trade happens once a year, so each of the table’s four periods, two for each trade, rests on only 8 to 18 yearly results. Lesson 4 works out what so few results can show. Gasoline’s fall after the book stands out from its noise. Natural gas’s typical year got worse, while its average return cannot be told apart from the average before. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The two trades and the files
 
@@ -45,7 +47,7 @@ A **futures contract** is an agreement to buy a fixed amount of a commodity at a
 
 Every passage quoted here is in the revised edition of 2021. The first edition matters to Lesson 1. Wiley released it in November 2008 and dated it 2009.
 
-### Five files from EIA, numbered by expiry
+### The files from EIA, numbered by expiry
 
 EIA publishes settlement prices for the nearest four contracts of each product. It numbers them by expiry rather than by month: contract 1 is whichever contract stops trading next, and each number has its own file. So the run has to work out which file holds the May or June contract on each trade date, which Lesson 5 comes back to. The two trades read five files covering three products, all downloaded on 2 October 2026:
 
@@ -53,7 +55,7 @@ EIA publishes settlement prices for the nearest four contracts of each product. 
 2. RBOB gasoline, contract 1, from 2006. RBOB replaced the New York Harbor contract and began trading in October 2005.
 3. Henry Hub natural gas, contracts 2, 3 and 4, one file each.
 
-Lesson 2’s fills also read New York Harbor’s contract 2 file, and Lesson 5’s checks read natural gas’s contract 1 file, from the same download.
+Lesson 2’s second way of guessing the missing gasoline prices also reads New York Harbor’s contract 2 file, and one of Lesson 5’s checks of when contracts expire reads natural gas’s contract 1 file, both from the same download.
 
 ## Lesson 1: a count of consecutive years needs its start year and its edition
 
@@ -69,9 +71,9 @@ The natural gas files first hold a whole trade in 1994. Every year from 1994 to 
 \end{array}
 ```
 
-Counted from 1995, the main text’s 13 is the streak ending in 2007 and the sidebar’s 14 is the streak ending in 2008. Each trade closes by mid-April, so both streaks end before the first edition’s release in November 2008. Both counts reproduce if they were written for that edition. The files settle half of that reading.
+Counted from 1995, the main text’s 13 is the streak ending in 2007 and the sidebar’s 14 is the streak ending in 2008. Each natural gas trade closes by mid-April, so both streaks end before the first edition’s release in November 2008. Both counts reproduce if they were written for that edition. The files settle half of that reading.
 
-1. **They rule out the revised edition.** Neither count can have been written for it, because 2009 is a loss, so counted from 1995 a streak of 13 or more can end only in 2007 or 2008.
+1. **They rule out the revised edition.** Neither count can have been written for it. Because 2009 is a loss, a streak of 13 or more counted from 1995 can end only in 2007 or 2008.
 2. **They cannot pick the start year.** 1994 is profitable too. Counted from 1994, the streaks of 13 and 14 end in 2006 and 2007 instead. Only Chan’s gasoline sidebar, which counts from 1995, favors 1995.
 
 ![“The start year decides where a streak ends”, drawn slowly stroke by stroke on a year axis from 1994 to 2009 that carries a label only at “1994”, “1995”, “2006”, “2007”, “2008” and “2009”. Each year from 1994 to 2008 has a blue dot on the axis, and 2009 has a vermilion cross labelled “loss”. A caption reads “dot: a profitable year”. A note in the lower right names the trade as “natural gas, June contract”. A dashed grey line between 2008 and 2009 marks the “first edition, Nov 2008”. Above the axis two purple brackets start at 1995. “13 from 1995, main text” ends at 2007 and “14 from 1995, sidebar” ends at 2008, both before the dashed line. Below the axis two black brackets start at 1994. “13 from 1994” ends at 2006 and “14 from 1994” ends at 2007. Starting the count a year earlier ends each streak a year earlier. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_streak_start.gif)
@@ -114,7 +116,7 @@ The losses say more than the gaps. Chan’s 19 of 21 allows exactly 2 losing yea
 
 Interpolating, which here means drawing a guess from the neighbouring days’ prices, would turn a gap into a guess, and the guess would decide the count it is meant to check.
 
-The files do hold something on each missing day. EIA’s file for the second contract out, which holds June while May is the first, has a row on all three dates. So besides a straight line between the May rows, the run could fill from June. It tried both and measured how far each can be trusted.
+The files do hold something on each missing day. EIA’s file for the second contract out, which holds June while May is the first, has a row on all three dates. So besides a straight line, the run could fill from June. It tried both and measured how far each can be trusted.
 
 ##### Fill 1, a straight line
 
@@ -130,9 +132,9 @@ Fill 2 takes May’s last known price and moves it by June’s change since that
 
 #### How far each fill misses
 
-To measure a fill, the run took April days from 1994 to 2005 whose May price the file does hold, and hid that price. It used only days where the rows each fill reads sit the same numbers of trading days away as the rows around the real gap. It filled each hidden price and took the root mean square error, the typical size of a miss.
+To measure a fill, the run took April days from 1994 to 2005 whose May price the file does hold, and hid that price. It filled each hidden price and took the root mean square error, the typical size of a miss.
 
-Not every April day can serve as a test. A test day needs rows at the same numbers of trading days away as the real gap, and each missing year’s gap has its own pattern of distances:
+Not every April day can serve as a test. The rows each fill reads have to sit the same numbers of trading days away as the rows around the real gap, and each missing year’s gap has its own pattern of distances:
 
 ```math
 \small\begin{array}{l|c|c|c}
@@ -159,7 +161,12 @@ The test days overlap, though, and days in one April share its price moves, so t
 
 ![“Twelve Aprils, eight lean low”, drawn slowly stroke by stroke. Each April from 1994 to 2005 has a row labelled with its year and its number of test days, “1994 (5)”, “1995 (5)”, “1996 (8)”, “1997 (3)”, “1998 (1)”, “1999 (2)”, “2000 (8)”, “2001 (9)”, “2002 (11)”, “2003 (8)”, “2004 (15)” and “2005 (5)”, and a bar from a dashed zero line to that April’s average miss. Eight bars, in purple, run right of zero, and the longest, for 1996, 2001 and 2003, carry most of the lean. The other four, in grey, sit left of zero or on it. Captions read “left: May guessed too high”, “right: too low” and “(n): test days that April”, a summary reads “8 of 12 Aprils lean low”, and a note names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_april_leans.gif)
 
-Two numbers come from the same misses. The average miss corrects each guess and gives each year a corrected move. The spread of the misses around that average, the typical miss with the lean taken out, sets how far that move can be trusted, and together they give each year a chance of a profit. The correction subtracts in 1997, where the entry is missing, and adds in 1998 and 1999, where the exit is, for a reason worked out below. Moves and misses are in cents a gallon:
+Two numbers come from the same misses, and together they give each year a chance of a profit.
+
+1. The average miss corrects each guess and gives each year a corrected move. The correction subtracts in 1997, where the entry is missing, and adds in 1998 and 1999, where the exit is missing, for a reason worked out below.
+2. The spread of the misses around that average, the typical miss with the lean taken out, sets how far that move can be trusted.
+
+Moves and misses are in cents a gallon:
 
 ```math
 \small\begin{array}{l|r|r|r}
@@ -174,7 +181,7 @@ Two numbers come from the same misses. The average miss corrects each guess and 
 
 #### From a miss to a chance of a profit
 
-The chances come from a model of the miss. Write the missing price as fill 2’s guess plus an unknown miss `e`, and suppose `e` is normal, with a mean `b` equal to fill 2’s average miss and a standard deviation `σ` equal to the spread:
+The chances come from a model of the miss. Write the missing price as fill 2’s guess plus an unknown miss `e`, and suppose `e` follows a normal curve, a symmetric bell shape, with a mean `b` equal to fill 2’s average miss and a standard deviation `σ` equal to the spread:
 
 ```math
 \begin{gathered}
@@ -227,7 +234,7 @@ Both cases give the chance of a profit by the same formula. `Φ(z)` is the share
 P(\text{profit}) = \Phi\left(\frac{c}{\sigma}\right)
 ```
 
-For 1997, `m` is 0.4 cents, `b` is 0.26 and `σ` is 0.86, so `c` is 0.14 and, from the unrounded values, the chance is Φ(0.17), or 57%. If the three misses are also independent of each other, the three chances multiply:
+For 1997, `m` is 0.4 cents, `b` is 0.26 and `σ` is 0.86, so `c` is 0.14. From the unrounded values, the chance is Φ(0.17), or 57%. If the three misses are also independent of each other, the three chances multiply:
 
 ```math
 0.566 \times 0.832 \times 0.900 = 0.424
@@ -281,7 +288,7 @@ For the four Sharpe ratios in the returns table at the top of the post, each tra
 
 ### Whether the mean return changed
 
-The 95% range for a mean return from `n` results, with standard deviation `s`, uses Student’s t, which widens the range to allow for estimating `s` from so few. Its subscript, `n` − 1, is called the degrees of freedom:
+The 95% range for a mean return from `n` results, with standard deviation `s`, uses Student’s t, which widens the range to allow for estimating `s` from so few. The formula writes `t` with the subscript `n` − 1, which statisticians call the degrees of freedom:
 
 ```math
 \bar r \pm t_{n-1} \times \frac{s}{\sqrt{n}}
@@ -342,13 +349,13 @@ The four chances, as percentages:
 
 ![“Four chances against the 5% line”, drawn slowly stroke by stroke. A grey scale runs from “0%” through “5%” to “10%”, and a dashed grey line rises from 5%, with “below: luck explains it poorly” on its left and “above: luck could explain it” on its right. A row for “gasoline” gets a black dot at “Welch, 2.3%” and one at “Mann-Whitney, 1.1%”. A row for “natural gas” gets a purple dot at “Welch, 9.2%”, the only one right of the line, and a black dot at “Mann-Whitney, 0.7%”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_four_chances.gif)
 
-Gasoline’s fall passes both tests, with each chance below the 5% line. For natural gas the two tests disagree, and one year decides it. Its typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%, close enough to the +10.6% before, given how much its years vary, that Welch’s chance, 9.2%, sits above the line. Mann-Whitney still sees the change, because 2022 counts as 15 pairs won however large its gain.
+Gasoline’s fall passes both tests, with each chance below the 5% line. For natural gas the two tests disagree, and one year decides it. Its typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%. Natural gas’s years vary so widely that luck could explain the gap from the +10.6% before, and Welch’s chance, 9.2%, sits above the line. Mann-Whitney still sees the change, because 2022 counts as 15 pairs won however large its gain.
 
-Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.1%. That year was a real gain that a trader holding every year would have collected, so it stays in the record. Nothing written before the numbers came out picked one test, so the post reports both rather than the one that reads better.
+Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.1%. That year was a real gain that a trader holding every year would have collected, so it stays in the record. No plan written before the numbers came out picked one of the tests, so the post reports both rather than the one that reads better.
 
 ![“One year moves the mean, not the ranks”, drawn slowly stroke by stroke. A grey axis carries a dashed line at “0%”, and a caption reads “returns, 2009 to 2023”. Natural gas’s 15 returns from 2009 to 2023 sit on it as dots at their true values, stacked where they would touch, vermilion left of zero for the 8 losses and blue right of it for the 7 gains. Two gains sit so close to the line that a note names them, “2014 and 2018: just above 0%”, and one blue dot sits far to the right, labelled “2022: +64%”. A black tick under the axis marks the “mean -0.4%”, and a purple tick left of it marks the mean “without 2022: -5.0%”. Below, a grey line carries all 30 years from 1994 to 2023 ranked from worst to best, with black dots above it for “1994 to 2008” and purple dots below it for “2009 to 2023”. The nine worst ranks all belong to years after 2008, and 2022 takes the top rank on the right. The ends are marked “worst” and “best: 2022”, and a caption reads “ranked worst to best, 2022 is the top rank however large its gain”. A note in the upper right names the trade as “natural gas, June contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_one_year.gif)
 
-Chan makes the point about few results too, and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a pass mark that gets stricter the more variants are tried, and years the search never sees.
+Chan makes the point about few results too, and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a pass mark that gets stricter the more variants the search tries, and years the search never sees.
 
 ## Lesson 5: reading one named contract from files numbered by expiry needs a calendar checked outside the files
 
@@ -370,7 +377,7 @@ Massive, a market data vendor, records each contract’s last trading day as the
 
 #### Against the files’ own handovers
 
-When a contract expires, every later contract moves up one number. So on the next trading day, each file holds the contract that the file numbered one higher held the day before, and its price carries on from that file’s price. That jump is the handover this check looks for. Before mid-1997 the handovers show contracts stopping five or six trading days before delivery rather than three, so for those years the run follows the handovers. That moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either.
+When a contract expires, every later contract moves up one number. So on the next trading day, each file holds the contract that the file numbered one higher held the day before. Each file’s price then carries on from the price in the file numbered one higher the day before, not from its own. That switch is the handover this check looks for. Before mid-1997 the handovers show contracts stopping five or six trading days before delivery rather than three, so for those years the run follows the handovers. That moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either.
 
 ![“A handover shows when March stopped”, drawn slowly stroke by stroke. Two rows of dots run across the trading days from mid-February to March 1, 1996, one dot a trading day, the settlements in the “contract-1 file” in black and in the “contract-2 file” in grey. A purple arrow runs from the contract-2 file’s Feb 23 price to the contract-1 file’s next price, labelled “Feb 26: file 1 picks up file 2’s price”. A purple dashed line between Feb 23 and Feb 26 marks “March stopped Feb 23, 5 trading days before delivery”, and a grey dashed line two trading days later marks “3-day rule: here”, where a three-day rule would have put the handover. A note reads “natural gas, March contract, Feb 1996”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_handover.gif)
 
@@ -380,7 +387,7 @@ Over every natural gas contract delivered from February 1994 to April 2024, the 
 
 The other 47 expiries cannot be checked this way, because a file lacks a row on the expiry day or the day after, 40 of them between 1997 and 2005.
 
-The 18 that do not fit are mostly close calls. 15 fail by under 9 cents, meaning the files’ prices around the expiry fit no handover better than a handover by less than 9 cents. That happens where neighbouring contracts trade so close together that the two look alike. One of those 15, March 2023, fails although the exchange’s own date matches the rule’s.
+The 18 that do not fit are mostly close calls. 15 fail by under 9 cents, meaning the files’ prices around the expiry fit slightly better with no handover than with one. That happens where neighbouring contracts trade so close together that a handover and no handover look alike. One of those 15, March 2023, fails although the exchange’s own date matches the rule’s.
 
 A rule wrong by a day would matter only where it moves which file holds June on a trade date. That is true of 4 of the 18, all March contracts at an entry, and of none of the 47. In those 4 years, reading the other file turns none from a profit to a loss.
 
