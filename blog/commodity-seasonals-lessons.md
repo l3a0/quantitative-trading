@@ -18,7 +18,7 @@ Chan gives two trades, each with a count of profitable years.
 Both trades ran on the free settlement prices that the US Energy Information Administration (EIA) publishes for futures traded on the New York Mercantile Exchange (NYMEX). Three results came out.
 
 1. **Natural gas reproduces both of Chan’s counts** if both were written for the book’s first edition, released in November 2008, and count from 1995.
-2. **Gasoline matches Chan’s count in every year the files have both prices for.** They show 2 losing years, the most his count allows, and 3 years each missing one of the two prices.
+2. **Gasoline matches Chan’s count in every year the files have both prices for.** They show 2 losing years, the most his count allows, and 3 years each missing the entry or the exit price.
 3. **Both trades averaged a loss after the years Chan counted.**
 
 ```math
