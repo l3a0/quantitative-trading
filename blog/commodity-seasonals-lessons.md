@@ -348,7 +348,7 @@ For gasoline that is always contract 1. The April contract stops trading on the 
 
 ### Three checks of the expiry rule
 
-Because the June contract moves between files, the expiry rule is part of the result, so the run checks it three ways.
+Nothing in the files says which contract a file holds on a given day. The run works it out from the expiry rule, so a rule wrong by a day on a trade date reads May’s or July’s price instead of June’s. That price looks like any other, and the trade’s return would then come from two different contracts with nothing in the results to show it. So the run checks the rule three ways.
 
 #### Against the exchange’s own dates
 
