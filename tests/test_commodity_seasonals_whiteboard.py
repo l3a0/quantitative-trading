@@ -459,8 +459,8 @@ NARROW_LABELS = [
 ]
 
 THREE_LABELS = [
-    "-2¢",
-    "-1¢",
+    "−2¢",
+    "−1¢",
     "0¢",
     "+1¢",
     "+2¢",
@@ -522,7 +522,7 @@ MISS_LABELS = [
     "σ = 0.62¢",
     "1999",
     "90%",
-    "-1¢",
+    "−1¢",
     "+1¢",
     "cents a gallon",
     "chance of profit",
@@ -619,8 +619,8 @@ SHARPE_LABELS = [
     "gasoline, 1995 to 2015",
     "0.8",
     "gasoline, 2016 to 2023",
-    "-0.4",
-    "-1",
+    "−0.4",
+    "−1",
     "+1",
     "+2",
     "Sharpe ratio",
@@ -643,7 +643,7 @@ T_LABELS = [
 ]
 
 HALF_LABELS = [
-    "the later mean, -0.4%",
+    "the later mean, −0.4%",
     "spread s = 21.6%",
     "s / √15 = 5.6%",
     "× 2.14 = 12.0%",
@@ -656,12 +656,12 @@ MEAN_LABELS = [
     "natural gas, 1994 to 2008",
     "+10.6%",
     "natural gas, 2009 to 2023",
-    "-0.4%",
+    "−0.4%",
     "gasoline, 1995 to 2015",
     "+3.2%",
     "gasoline, 2016 to 2023",
-    "-1.9%",
-    "-10%",
+    "−1.9%",
+    "−10%",
     "+10%",
     "+20%",
     "mean yearly return",
@@ -713,8 +713,8 @@ ONE_YEAR_LABELS = [
     "returns, 2009 to 2023",
     "2014 and 2018: just above 0%",
     "2022: +64%",
-    "mean -0.4%",
-    "without 2022: -5.0%",
+    "mean −0.4%",
+    "without 2022: −5.0%",
     "1994 to 2008",
     "2009 to 2023",
     "worst",
@@ -1845,6 +1845,17 @@ class TestTheFillTwoSketch:
         assert grey_rise == pytest.approx(purple_rise)
         assert purple.y[tip(purple)] == pytest.approx(_fill_two_y(fill.june, fill_two))
         assert _stroke(scene, "guess").y[0] == pytest.approx(_fill_two_y(fill.june, fill_two))
+
+    def test_no_may_dot_sits_on_junes_arrow(self, every, fill_two) -> None:
+        """Each May dot clears the grey June arrow by 5 pixels, edge to edge, so
+        no May price reads as part of June's path. A straight arrow put April
+        10's dot on the line."""
+        scene = every[7]
+        grey, may = _stroke(scene, "june-rise"), _stroke(scene, "may")
+        dot_radius, half_line = 6.0 * 100 / 72 / 2, grey.width * 100 / 72 / 2
+        for x, y in zip(may.x, may.y, strict=True):
+            gap = np.hypot(grey.x - x, grey.y - y).min() * 68 - dot_radius - half_line
+            assert gap >= 5, (x, y, gap)
 
     def test_the_band_is_fill_twos_miss_split_at_the_exit(self, every, fill_two) -> None:
         scene = every[7]

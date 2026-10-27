@@ -1099,6 +1099,9 @@ class GuessFigures:
 GUESS_X = (0.7, 9.3)
 GUESS_Y = (0.85, 3.9)
 BAND_HALF = 0.3
+#: How far the grey June arrow bows up at its middle, so May's dots between
+#: the two rows sit clear of it rather than on it.
+JUNE_ARROW_BOW = 0.2
 #: The gap between the strokes that fill the band.
 BAND_STEP = 0.07
 
@@ -1447,6 +1450,18 @@ def _ring(gid: str, x: float, y: float) -> Stroke:
     return Stroke(gid, x + RING * np.cos(t), y + RING * np.sin(t), color=MUTED, width=1.6, frames=2)
 
 
+def _bowed_arrow(x0: float, y0: float, x1: float, y1: float, bow: float = JUNE_ARROW_BOW) -> tuple:
+    """An arrow whose shaft bows up by ``bow`` at its middle, its head along the last segment."""
+    xs, ys = _line([(x0, y0), (x1, y1)])
+    t = (xs - x0) / (x1 - x0)
+    ys = ys + bow * 4 * t * (1 - t)
+    angle, head = math.atan2(ys[-1] - ys[-2], xs[-1] - xs[-2]), 0.22
+    left = (x1 - head * math.cos(angle - 0.5), y1 - head * math.sin(angle - 0.5))
+    right = (x1 - head * math.cos(angle + 0.5), y1 - head * math.sin(angle + 0.5))
+    hx, hy = _line([(x1, y1), left, (x1, y1), right])
+    return np.concatenate([xs, hx[1:]]), np.concatenate([ys, hy[1:]])
+
+
 def _june_move_fill(f: FillTwoFigures) -> Scene:
     """Lesson 2: June's rise across the gap, added to May's price on the last day
     both files hold, is fill 2's guess, and fill 2's typical miss around it still
@@ -1498,7 +1513,7 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
         ),
         _stroke(
             "june-rise",
-            _arrow(bx, y(two[fill.base]), gx - 0.12, y(two[fill.day])),
+            _bowed_arrow(bx, y(two[fill.base]), gx - BAND_HALF - 0.08, y(two[fill.day])),
             color=MUTED,
             frames=6,
         ),
@@ -1513,7 +1528,7 @@ def _june_move_fill(f: FillTwoFigures) -> Scene:
         ),
         _stroke(
             "may-rise",
-            _arrow(bx, y(one[fill.base]), gx - 0.12, y(fill.june)),
+            _arrow(bx, y(one[fill.base]), gx - BAND_HALF - 0.08, y(fill.june)),
             color=ACCENT,
             frames=6,
         ),
@@ -1765,7 +1780,7 @@ def _three_numbers(f: MissFigures) -> Scene:
         _stroke("scale", _line([(_miss_x(-2), 1.05), (_miss_x(3.4), 1.05)]), color=MUTED, frames=6),
         *[
             Label(
-                f"{c:+d}¢" if c else "0¢",
+                _minus(f"{c:+d}¢") if c else "0¢",
                 _miss_x(c),
                 0.7,
                 names="scale",
@@ -2132,7 +2147,15 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
             frames=6,
         ),
         *[
-            Label(f"{c:+d}¢", _cents_x(c), 0.33, names="scale", color=MUTED, size=10, ha="center")
+            Label(
+                _minus(f"{c:+d}¢"),
+                _cents_x(c),
+                0.33,
+                names="scale",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
             for c in (-1, 1)
         ],
         Label("cents a gallon", 0.3, 0.33, names="scale", color=MUTED, size=10),
@@ -2220,10 +2243,15 @@ SHARPE_TOP, SHARPE_STEP = 3.05, 0.62
 SHARPE_AXIS_Y = 0.75
 
 
+def _minus(text: str) -> str:
+    """``text`` with each hyphen a typographic minus, as the post prints a negative number."""
+    return text.replace("-", "−")
+
+
 def _one_place(value: float) -> str:
     """``value`` to one place, with no sign on a value that rounds to zero."""
     text = f"{value:.1f}"
-    return "0.0" if text == "-0.0" else text
+    return "0.0" if text == "-0.0" else _minus(text)
 
 
 def _sharpe_x(ratio: float) -> float:
@@ -2287,7 +2315,15 @@ def _sharpe_ranges(rows: tuple[SharpeRow, ...]) -> Scene:
             frames=6,
         ),
         *[
-            Label(f"{v:+d}", _sharpe_x(v), 0.4, names="scale", color=MUTED, size=10, ha="center")
+            Label(
+                _minus(f"{v:+d}"),
+                _sharpe_x(v),
+                0.4,
+                names="scale",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
             for v in (-1, 1, 2)
         ],
         Label("Sharpe ratio", 0.3, 0.4, names="scale", color=MUTED, size=10),
@@ -2385,7 +2421,7 @@ def _mean_ranges(rows: tuple[MeanRow, ...]) -> Scene:
                 dots=8.0,
             ),
             Label(
-                f"{row.mean:+.1f}%",
+                _minus(f"{row.mean:+.1f}%"),
                 9.7,
                 y,
                 names=f"mean-{tag}",
@@ -2413,7 +2449,15 @@ def _mean_ranges(rows: tuple[MeanRow, ...]) -> Scene:
             frames=6,
         ),
         *[
-            Label(f"{v:+d}%", _mean_x(v), 0.4, names="scale", color=MUTED, size=10, ha="center")
+            Label(
+                _minus(f"{v:+d}%"),
+                _mean_x(v),
+                0.4,
+                names="scale",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
             for v in (-10, 10, 20)
         ],
         Label("mean yearly return", 0.3, 0.4, names="scale", color=MUTED, size=10),
@@ -2531,7 +2575,7 @@ def _half_width(row: MeanRow, earlier: MeanRow) -> Scene:
             frames=5,
         ),
         Label(
-            f"the later mean, {row.mean:+.1f}%",
+            _minus(f"the later mean, {row.mean:+.1f}%"),
             HALF_X,
             0.4,
             names="start",
@@ -3053,7 +3097,7 @@ def _one_year(f: OneYearFigures) -> Scene:
             frames=2,
         ),
         Label(
-            f"mean {f.mean_after:+.1f}%",
+            _minus(f"mean {f.mean_after:+.1f}%"),
             _year_x(f.mean_after) + 0.1,
             2.08,
             names="mean",
@@ -3072,7 +3116,7 @@ def _one_year(f: OneYearFigures) -> Scene:
             frames=2,
         ),
         Label(
-            f"without {best_year}: {f.mean_without_best:+.1f}%",
+            _minus(f"without {best_year}: {f.mean_without_best:+.1f}%"),
             _year_x(f.mean_without_best) - 0.1,
             2.08,
             names="mean-without",
