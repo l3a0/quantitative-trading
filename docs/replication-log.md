@@ -8385,8 +8385,8 @@ different null. Rows 7 and 8 suggest the count barely depends on the shape,
 which limits what a different type could move.
 
 **What computed the script's 0.027500.** Row 6 lands it with a test the
-script does not contain, and the file has one commit, so the history behind
-that comment is gone.
+script does not contain, and the public copy holds the file in one commit,
+with no earlier version to read.
 
 **Whether drift explains momentum's significance elsewhere.** Rows 6 to 8
 were chosen after a scratch run on other seeds had seen results, on one

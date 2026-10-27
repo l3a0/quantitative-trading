@@ -26,7 +26,7 @@ The five lessons below say what the reproduction teaches. The code is open sourc
 
 ## The rule, the file and the three tests
 
-**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. Each day’s signal opens a slice of one unit, held 25 days, so up to 25 slices overlap. Each day’s return is yesterday’s position times today’s return on TU, divided by 25. TU appeared here once before, as the series [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a setting from.
+**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. Each day’s signal opens a slice of one unit, held 25 days, so up to 25 slices overlap. Each day’s return is yesterday’s position times today’s return on TU, divided by 25. Elsewhere on this blog, [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a `genhurst` setting from Chan’s Hurst example on TU.
 
 **The file.** Chan’s own MATLAB file `inputDataOHLCDaily_20120511.mat`, saved on 2012-05-12, holds TU’s closes for 2,000 trading days from 2004-06-01 to 2012-05-11. The rule’s **observed mean**, its average daily return over those days, is 6.626644e-05. Every test below asks how often chance alone reaches that number. The script that runs the tests is `TU_mom_hypothesisTest.m`, as published with the book’s code.
 
@@ -107,7 +107,7 @@ The written declaration that fixed the bands also fixed the seeds, 20261010 for 
 
 Writing the band first matters because a band chosen after the count can always be widened to fit it. [The calendar spreads post’s Lesson 1](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md#lesson-1-a-claim-with-no-number-still-needs-a-pass-mark-written-down-first) makes the same point about a pass mark.
 
-**The result.** On seed 20261010 the second test gives 1,221 of 10,000. That is inside 1,102 to 1,230, nine counts below the top, so the book’s 1,166 **reproduced**, with a gap of +55. The same count, 1,221, is far outside the script’s 243 to 307, so the script’s 0.027500 **did not reproduce**. As a p-value the count is 0.122100, a gap of +0.0946 from the script’s.
+**The result.** On seed 20261010 the second test gives 1,221 of 10,000. That is inside 1,102 to 1,230, nine counts below the top, so the book’s 1,166 **reproduced**, with a gap of +55. The same count, 1,221, is far outside the script’s 243 to 307, so the script’s 0.027500 **did not reproduce**. As a p-value the count is 0.122100, a gap of +0.094600 from the script’s.
 
 **The sampler hits its targets.** Over all 20 million simulated daily returns, the average is 6.014505e-05 against TU’s 5.999783e-05, and the standard deviation is 1.095392e-03 against 1.095464e-03. Both sit within four standard errors of their targets. So the miss on the script’s figure does not come from a sampler that missed TU’s mean or spread.
 
@@ -117,7 +117,7 @@ The book’s count and the script’s comment cannot both come from the second t
 
 One of the three checks added after the trial run matches the script’s figure. It takes the rule’s actual positions, the ones it held on TU’s real closes, and applies them unchanged to each set of simulated returns. That gives 277 of 10,000, or 0.027700, inside the script’s 243 to 307.
 
-That is a test of a different question. The second test reruns the rule on each simulated price, so the rule chooses new positions every time. The added check keeps one fixed set of bets and asks how those bets would have paid on returns with TU’s moments. Nothing in the script runs it. The file in the published code has one commit, so the history behind the comment is gone, and the match is numerical rather than recovered history. This check came after the trial run, so it carries no verdict.
+That is a test of a different question. The second test reruns the rule on each simulated price, so the rule chooses new positions every time. The added check keeps one fixed set of bets and asks how those bets would have paid on returns with TU’s moments. Nothing in the script runs it. The public copy of Chan’s code read here holds the script in one commit, with no earlier version to show where the comment came from. So the match is one of numbers only, and recovers no history. This check came after the trial run, so it carries no verdict.
 
 The habit it teaches is to ask which test printed a figure before comparing it with anything. A p-value in a comment, a caption and a paragraph can come from three different runs.
 
@@ -137,13 +137,13 @@ The habit is to feed a test a case it must fail before trusting a 0.
 
 ## Lesson 5: two checks added afterwards point at drift, not kurtosis
 
-Location 674 reads the second test as showing “any random returns distribution with high kurtosis can be favorable to momentum strategies”. Location 2923 repeats it: simulated TU returns with no serial correlation match the strategy “in 12 percent of the random realizations”. Two of the three added checks test that reading by removing one input at a time. Each runs on the same random numbers as the second test, so it differs from that test in the one input alone.
+Location 674 reads the second test as showing “any random returns distribution with high kurtosis can be favorable to momentum strategies”. Location 2923 repeats it: simulated TU returns with no serial correlation match the strategy “in 12 percent of the random realizations”. Two of the three added checks test that reading by removing either the drift or the shape of the distribution. Each runs on the same random numbers as the second test, so it differs from that test only in what it removes.
 
 **Removing the fat tails moves the count little.** A normal draw with TU’s mean and standard deviation, and no skewness or excess kurtosis, gives 1,165 of 10,000, against 1,221 for type IV. The middle panel shows the two histograms nearly on top of each other.
 
 **Removing the drift moves it a lot.** Type IV with the mean set to zero gives 19 of 10,000, or 0.001900, close to the Gaussian test’s one-sided 0.001677. The average simulated mean falls from 3.220302e-05 to 3.604899e-07. Those 10,000 means spread with a standard deviation of 2.127120e-05, close to the Gaussian null’s 2.259145e-05. The top panel shows that histogram sitting on the dashed curve. Set against the middle panel, it shows that the drift also widens the type IV means’ spread, from 2.127120e-05 to 2.819219e-05.
 
-**The mechanism is the rule itself.** A series that drifts upward has a positive 250-day return most of the time, so the rule is long most of the time and collects the drift. On the first 1,000 simulated series the rule is long on 0.804654 of signal days, and on 0.502401 once the mean is removed. TU did drift upward, at a mean daily return of 5.999783e-05. Chan’s own Chapter 6 traces TU’s momentum to its roll return, the part of a future’s return that comes from its price converging on the spot price as expiry nears, whose sign rarely changes (Chan, 2013, locations 2326 and 2683).
+**The mechanism is the rule itself.** A series that drifts upward has a positive 250-day return most of the time, so the rule is long most of the time and collects the drift. On the first 1,000 simulated series the rule is long on 0.804654 of signal days, and on 0.502401 once the mean is removed. TU did drift upward, at a mean daily return of 5.999783e-05. Chan’s Chapter 5 defines a future’s roll return as the part of its return that comes from its price converging on the spot price as expiry nears (Chan, 2013, location 2326). His Chapter 6 traces TU’s momentum to that roll return, whose sign rarely changes (Chan, 2013, location 2683).
 
 The book saw this possibility and set it aside. Location 652 names the mean as one way the strategy could be lucky. Location 665 then says it is less likely, “since the position can be long or short at different times”. The checks here say the position is not long or short evenly on a drifting series.
 
@@ -158,7 +158,7 @@ No false-discovery-rate control appears here. Such a control limits the share of
 Four questions are beyond it.
 
 1. **Which Pearson type `pearsrnd` drew from.** Type IV is inferred from the standard criterion rather than read from MathWorks’ code. If `pearsrnd` drew from another type with the same four moments, the second test here judges a different null. The added checks suggest the count barely depends on the shape, which limits what another type could move.
-2. **What computed the script’s 0.027500.** One added check lands it with a test the script does not contain, and the file’s history is gone.
+2. **What computed the script’s 0.027500.** One added check lands it with a test the script does not contain, and the public copy holds no earlier version of the file.
 3. **Whether drift explains momentum’s significance elsewhere.** The checks ran on one strategy and one future, after a trial run on other seeds. A registered test would declare the drift reading first and run it on data this replication never loaded.
 4. **What any of the p-values means once the selection is counted.** The rule came from 49 pairs on the same closes, and nothing here corrects for that.
 
@@ -175,7 +175,7 @@ One habit for each lesson.
 ## References
 
 1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 1.1 and Kindle locations 593, 606, 616, 623, 642, 652, 665, 669, 672, 674, 2326, 2683 and 2923.
-2. Chan, E. P. `TU_mom_hypothesisTest.m`, git blob `c0dda16` under `public/img/book2/`, the book’s code, as published at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview).
+2. Chan, E. P. `TU_mom_hypothesisTest.m`, git blob `c0dda16` under `public/img/book2/`, the book’s code, at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview), a public copy of Chan’s code.
 3. Heinrich, J. (2004). A guide to the Pearson type IV distribution. CDF/MEMO/STATISTICS/PUBLIC/6820.
 4. Lo, Mamaysky and Wang (2000), Berntson (2002) and Gill (1999), as *Algorithmic Trading* cites them at locations 623, 606 and 674.
 
