@@ -3772,12 +3772,14 @@ not pinned here.
    before delivery and the April and May gasoline contracts trading until the
    last trading day of the month before delivery as the exchange's rules, Good
    Friday as the only NYMEX holiday that can land on a trade date, EIA
-   publishing the nearest four contracts numbered by expiry, and EIA's
-   statement that its source is NYMEX.
+   publishing the nearest four contracts numbered by expiry, EIA's statement
+   that its source is NYMEX, and the contract numbers of the two extra files
+   Lesson 2 and Lesson 5 read.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
    all three unreadable years profitable, that 21 less the 3 unreadable years
-   is 18, and that the last 9 of 1995 to 2015 are 2007 to 2015.
+   is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 15 trading
+   days are three weeks, and that 1994 is one year before 1995.
 4. Its references. The four citations are cited rather than computed.
 5. One date no test asserts: the files' last row on 5 April 2024, which
    their file names record.

@@ -753,6 +753,15 @@ class TestThePostQuotesThePins:
             TestTheReturns.years("natural gas, 1994 to 2008"),
             TestTheReturns.years("natural gas, 2009 to 2023"),
         )
+        spreads = [
+            statistics.stdev([t.relative_change for t in p if t.change is not None]) for p in ng
+        ]
+        assert round(spreads[1] / spreads[0]) == 2
+        assert "natural gas’s standard deviation doubled after 2008" in text
+        assert (
+            "15 years give 15 results, about what a strategy that trades every day "
+            "collects in three weeks"
+        ) in text
         for name, pair in (("Gasoline", gas), ("Natural gas", ng)):
             welch, rank = change_p_value(*pair), rank_p_value(*pair)
             assert f"\\text{{{name}}} & {100 * welch:.1f}\\% & {100 * rank:.1f}\\%" in text, name

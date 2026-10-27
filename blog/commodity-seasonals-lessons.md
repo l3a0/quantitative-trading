@@ -389,7 +389,7 @@ The other 47 expiries cannot be checked this way, because a file lacks a row on 
 
 The 18 that do not fit are mostly close calls. 15 fail by under 9 cents, meaning the files’ prices around the expiry fit slightly better with no handover than with one. That happens where neighbouring contracts trade so close together that a handover and no handover look alike. One of those 15, March 2023, fails although the exchange’s own date matches the rule’s.
 
-A rule wrong by a day would matter only where it moves which file holds June on a trade date. That is true of 4 of the 18, all March contracts at an entry, and of none of the 47. In those 4 years, reading the other file turns none from a profit to a loss.
+A rule wrong by a day would matter only where it moves which file holds June on a trade date. That is true of 4 of the 18, all March contracts at an entry, and of none of the 47. In those 4 years, reading the other file turns none from a profit to a loss, or from a loss to a profit.
 
 #### Against the edge cases
 
