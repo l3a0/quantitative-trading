@@ -426,7 +426,9 @@ class TestWhatThePostMeasures:
     def test_the_2012_05_17_save_restates_every_field(self, prices, earlier, field) -> None:
         """Against the 2012-05-11 save, on the 1,996 days the two share.
 
-        Distinct differences are rounded to the micro-unit, zero included, as
+        The 45 days that agree are the last 45, from 2012-03-07, which one roll
+        between the saves would have moved with the rest. Distinct differences
+        are rounded to the micro-unit, zero included, as
         ``tests/test_continuous_futures.py`` counts them for the close.
         """
         older = earlier["20120511"]
@@ -437,6 +439,7 @@ class TestWhatThePostMeasures:
         distinct = set(np.round(moved, 6))
         assert len(distinct) == 25
         assert len(distinct - {0.0}) == 24
+        assert list(shared[moved == 0]) == list(shared[shared >= day("2012-03-07")])
 
     def test_at_a_fixed_window_the_restated_prices_move_the_apr(self, prices, earlier) -> None:
         """The 2012-05-11 save is cut to start on 2004-07-16, the 2012-05-17 save's first day.

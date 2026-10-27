@@ -1283,7 +1283,7 @@ holds and the literal rule on the two earlier saves. On synthetic days it
 holds both entry tests non-strict, a missing spread qualifying nothing, a
 short overriding a long, and the sign of each reading's open-to-close
 return. It also holds the read guarded. For Chan's Python port it pins the
-four figures the port's comments print, the days it holds each side, and
+four figures the port's comments record, the days it holds each side, and
 three variants that each swap one difference between the two programs. On
 synthetic days it holds the port's spread dividing by n − 1 and starting a
 row later, its short test flipped and non-strict, an open above the
@@ -7491,16 +7491,15 @@ Five groups of what it says are not pinned here.
    [tests/test_vix_filter.py](tests/test_vix_filter.py), and its words are
    not.
 2. Facts about the scripts and the instrument rather than the data: line 23's
-   text and the closing comment in `gapFutures_FSTX.m` at `e4bc46f` of
+   text and the comment at its line 27 in `gapFutures_FSTX.m` at `e4bc46f` of
    ericnberwick/EpchanPreview, the name and source text of the Python port
    `gapFutures_FSTX.py`, which `chan.opening_gap.python_port` transcribes,
    that the STOXX Europe 50 is fifty large European companies once named the
    Dow Jones STOXX 50, and GBPUSD's open and close in Eastern time.
 3. Readings no test asserts: that triggered stops carry a move through the
    day, that the literal reading trades in buy on gap's direction, that a
-   roll between the 2012-05-11 and 2012-05-17 saves would shift the history
-   the way it moved, where [data/README.md](data/README.md) records only that
-   FSTX moves between them, that a round trip costing 0.002177 of the price
+   single roll between the 2012-05-11 and 2012-05-17 saves would shift every
+   shared day by one amount, that a round trip costing 0.002177 of the price
    would erase the mean, and that a split by year was measured and left out.
 4. Figures the post states in words or rounds from pinned ones, such as 12
    percent a year, about three quarters, fewer than a quarter and about a

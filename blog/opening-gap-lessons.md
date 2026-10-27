@@ -1,6 +1,6 @@
 # Chan’s opening gap strategy reproduces on his own file, and the script trades the opposite of what the text describes
 
-*Chan describes a momentum rule on STOXX Europe 50 futures, which buys an upward jump at the open and shorts a downward one, and reports an APR of 13 percent. His script reproduces those figures exactly, but its return line pays a long when the price falls from the open. Read with the sign the text describes, the same trades lose 12 percent a year.*
+*Chan describes a momentum rule on STOXX Europe 50 futures, which buys an upward jump at the open and shorts a downward one, and reports an APR of 13 percent. His script reproduces it exactly, but its return line pays a long when the price falls from the open. Read with the sign the text describes, the same trades lose 12 percent a year.*
 
 ## Why trade the jump at the open
 
@@ -11,9 +11,9 @@ Chan’s Chapter 4 had argued the reverse for stocks. A stock that opens far bel
 This repository transcribed the script line by line and ran it on the file it loads. The results fall into six groups.
 
 1. **The script trades against the jump.** Its return line pays a long when the price falls from the open, so it sells an upward jump and buys a downward one, the direction of Chapter 4. Chan’s later Python port takes the text’s sign, and a flipped test has it sell every upward jump all the same.
-2. **Every printed figure lands on the script as written.** A figure lands when the computed value rounds to the printed one at the decimals printed, and misses when it does not. The APR is 0.132733 and the Sharpe ratio 1.441620, which land on the 0.1327 and 1.44 in the script’s closing comment and on the book’s 13 percent and 1.4.
+2. **Every printed figure lands on the script as written.** A figure lands when the computed value rounds to the printed one at the decimals printed, and misses when it does not. The APR is 0.132733 and the Sharpe ratio 1.441620, which land on the 0.1327 and 1.44 in the script’s comment and on the book’s 13 percent and 1.4.
 3. **The momentum the text describes loses.** The same trades with the sign the text gives earn an APR of −0.124236 and a Sharpe ratio of −1.441620.
-4. **The save and its window both move the last printed digit.** Chan saved this file under several dates, and the two earlier saves that hold FSTX miss the comment’s APR. Comparing the three separates the window’s effect from that of the earlier prices each later save rewrote.
+4. **The save and its window both move the last printed digit.** Chan saved this file on several dates, and three of the saves hold FSTX over a different span of 2,000 days, its window. The two earlier ones miss the comment’s APR. Comparing the three separates the effect of the window from the effect of the prices the latest save restated.
 5. **The rule is rarely in the market.** It holds a position on 469 of 2,000 days.
 6. **The long days earn about three quarters of the return.** Selling an upward jump earns 0.749529 of the summed 1.020809.
 
@@ -29,7 +29,7 @@ This repository transcribed the script line by line and ran it on the file it lo
 2. **Short** when the open is at or below the previous low times one minus a tenth of the standard deviation.
 3. **Flat** on every other day.
 
-Each position is taken at the open and closed at the same day’s close. The standard deviation needs 90 returns, so the first 90 rows, from 2004-07-16 to 2004-11-18, hold nothing. The first position comes on 2004-11-22.
+Each position is taken at the open and closed at the same day’s close. The standard deviation reads a window of 90 rows and is used from the next day, so the first 90 rows, from 2004-07-16 to 2004-11-18, hold nothing. The first position comes on 2004-11-22.
 
 **Two readings of one line.** Line 23 of the script computes each day’s return as `positions.*(op-cl)./op`, the position times the open less the close, over the open. Call that the literal reading. The text describes the other sign, which this post calls the momentum reading. With pₜ the position, Oₜ the open and Cₜ the close:
 
@@ -39,7 +39,7 @@ r_t^{\text{literal}} = p_t \, \frac{O_t - C_t}{O_t}, \qquad r_t^{\text{momentum}
 
 The two differ only in sign, day by day. Neither charges a cost. The APR compounds the daily returns over all 2,000 rows and annualises at 252 days a year, and the Sharpe ratio is the mean daily return over its standard deviation, times √252, with no risk-free rate. The [buy on gap post’s Lesson 1](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#lesson-1-both-figures-bogm-prints-reproduce-on-chans-own-file) covers both.
 
-**The file** is FSTX’s column of Chan’s `inputDataOHLCDaily_20120517.mat`, saved 2012-05-18 and recorded in the repository’s [data README](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md). Its open, high, low and close each hold 2,000 days from 2004-07-16 to 2012-05-17, the book’s window exactly. Chan saved dated versions of this file on other days in May 2012, and this post calls each one a save and names it by the date in its file name. Two earlier saves, `inputDataOHLCDaily_20120507.mat` and `inputDataOHLCDaily_20120511.mat`, also hold FSTX, and Lesson 4 reads them.
+**The file** is FSTX’s column of Chan’s `inputDataOHLCDaily_20120517.mat`, saved 2012-05-18 and recorded in the repository’s [data README](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md). Its open, high, low and close each hold 2,000 days from 2004-07-16 to 2012-05-17, the book’s window exactly. Chan saved dated versions of this file on other days in May 2012, and this post calls each one a save and names it by the date in its file name. Two earlier saves, `inputDataOHLCDaily_20120507.mat` and `inputDataOHLCDaily_20120511.mat`, also hold 2,000 days of FSTX, and Lesson 4 reads them.
 
 The rules that decide each result are in [Entry 40 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-40-the-opening-gap-strategy-on-stoxx-europe-50-futures-chans-algorithmic-trading), which records each figure beside the test that computes it.
 
@@ -49,13 +49,13 @@ Take a long day. The open jumped above the previous high, and the rule is long. 
 
 Held from the open to the close that way, the trade sells an upward jump during the day and buys a downward one. That is fading, trading against a move in the expectation that it reverses. It is the direction of Chapter 4’s buy on gap, run on a future, the strategy that location 2965 calls this rule’s opposite. The [buy on gap post’s Lesson 4](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#lesson-4-a-mirror-written-down-before-the-run-lands-at-12-percent-not-46) cites this same script for the mirror of buy on gap, a rule that shorts an upward jump. As written, the script’s return line does exactly that.
 
-A script in this book has disagreed with the words around it before. The [cross-sectional momentum post](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md#lesson-1-the-040-is-the-comments-not-the-codes) found a script whose printed comment disagreed with its own code. Here the comment and the code agree, and the text is the odd one out.
+A script in this book has disagreed with the words around it before. The [cross-sectional momentum post](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md#lesson-1-the-040-is-the-comments-not-the-codes) found a script whose closing comment disagreed with its own code. Here the comment and the code agree, and the text is the odd one out.
 
-Chan’s later Python port of the script, `gapFutures_FSTX.py`, takes the sign the text describes, and it still sells the upward jump. It flips the script’s short test, from an open at or below the previous low to one at or above it. Any open that clears the previous high also clears the previous low, and the port assigns the short after the long, so it never holds a long. It is short on 1,718 of the 2,000 days, every one of the 278 upward jumps among them. A short under the momentum sign earns exactly what the script’s long earns under its own, so on those 278 days the port’s returns are the script’s, day for day. They sum to 0.749529, and the port’s other 1,440 short days sum to −0.050957. So the port’s gain comes from selling the upward jump too. Two smaller changes sit beside that. Its 90-day standard deviation divides by n − 1 and is first set one row later, and its Sharpe ratio divides by n rather than n − 1. All four figures its comments print land on the committed file, among them an APR of 0.074864 and a Sharpe ratio of 0.494857.
+Chan’s later Python port of the script, `gapFutures_FSTX.py`, takes the sign the text describes, and it still sells the upward jump. It flips the script’s short test, from an open at or below the previous low to one at or above it. Any open that clears the previous high also clears the previous low, and the port assigns the short after the long, so it never holds a long. It is short on 1,718 of the 2,000 days, every one of the 278 upward jumps among them. A short under the momentum sign earns exactly what the script’s long earns under its own, so on those 278 days the port’s returns are the script’s, day for day. They sum to 0.749529, and the port’s other 1,440 short days sum to −0.050957. So the port’s gain comes from selling the upward jump too. Two smaller changes sit beside that. Its 90-day standard deviation divides by n − 1 and is first set one row later, and its Sharpe ratio divides by n rather than n − 1. All four figures its comments record land on the committed file, among them an APR of 0.074864 and a Sharpe ratio of 0.494857.
 
 ## Lesson 2: both printed figures land on the script as written
 
-The script’s closing comment reads `APR=    0.1327 Sharpe=1.44`.
+Line 27 of the script is a comment recording what the line above it printed, `APR=    0.1327 Sharpe=1.44`.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -99,7 +99,7 @@ The figure is exploratory like every number here.
 
 ## Lesson 4: the save and its window both decide the printed digit
 
-Chan saved at least three dated versions of this file in May 2012, and each save holds FSTX over a different 2,000 days. The script as written gives a different APR on each.
+Chan saved dated versions of this file in May 2012, and three of them hold FSTX over 2,000 days, a different 2,000 in each. The script as written gives a different APR on each of the three.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -113,7 +113,7 @@ Chan saved at least three dated versions of this file in May 2012, and each save
 All three round to the book’s 13 percent. Only the 2012-05-17 save lands the comment’s 0.1327. Two causes move the APR, and the three saves separate them.
 
 1. **The window alone.** The 2012-05-07 and 2012-05-11 saves price FSTX’s open, high, low and close identically on all 1,997 days they share. Only their windows differ, and the window moves the APR by 0.002017.
-2. **The restated prices alone.** The 2012-05-11 and 2012-05-17 saves share 1,996 days, and on all but 45 of them each of the four fields differs, by 24 distinct amounts. Nothing committed records why the prices moved, though a roll between the two saves would shift the history this way. To hold the window fixed, the replication runs the 2012-05-11 save from 2004-07-16, the later save’s first day, so both standard deviations start on the same rows. Over the shared days the two runs then take a different position on 6 days, and the APR moves from 0.130360 to 0.133016, by 0.002655.
+2. **The restated prices alone.** The 2012-05-11 and 2012-05-17 saves share 1,996 days, and on all but 45 of them each of the four fields differs, by 24 distinct amounts. Nothing committed records why the prices moved, and a single roll between the two saves does not explain it. A roll would shift every shared day by one amount, while here the last 45 shared days, from 2012-03-07, do not move. To hold the window fixed, the replication runs the 2012-05-11 save from 2004-07-16, the later save’s first day, so both standard deviations start on the same rows. Over the shared days the two runs then take a different position on 6 days, and the APR moves from 0.130360 to 0.133016, by 0.002655.
 
 Each move is more than ten times the comment’s last printed digit, 0.0001. So the printed 0.1327 specifies both the save and the window, and neither alone. The [crude oil reversal and momentum post](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-reversal-momentum-lessons.md#lesson-1-both-figures-land-and-a-save-a-week-later-prints-the-same-to-the-books-precision) found a save a week later moving the APR at the fourth decimal, and the [volatility post](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#lesson-2-the-save-decides-and-the-script-that-ships-is-not-the-run) found one halving an APR. Here the move falls between the two in size. Like the crude oil move, it stays inside the book’s rounding and outside the comment’s.
 
@@ -152,7 +152,7 @@ The last two rows are FSTX’s own move, with no position attached. After an upw
 
 Six questions are beyond it.
 
-1. **Which sign Chan meant.** His text describes momentum, his script trades the fade, and its comment prints the fade’s figures. His Python port takes the text’s sign and still sells the upward jump, so it does not settle the question either. The reproduction shows which sign earns the printed figures, not which one he intended.
+1. **Which sign Chan meant.** His text describes momentum, his script trades the fade, and its comment records the fade’s figures. His Python port takes the text’s sign and still sells the upward jump, so it does not settle the question either. The reproduction shows which sign earns the printed figures, not which one he intended.
 2. **Whether the rule works on GBPUSD.** Location 2971 reports “an APR of 7.2 percent and a Sharpe ratio of 1.3” on the British pound against the dollar, with the open at 5 a.m. and the close at 5 p.m., Eastern time. No such series is committed here, and neither is the code that ran it.
 3. **What the VIX filter does, and under which sign.** Location 3509 reports that on a day when the preceding day’s VIX, the market’s implied volatility index, is over 35, the strategy’s annualized average return drops to “2.6 percent” and its Sharpe ratio to “0.16”. That filter is not run here, and the 13 percent it starts from belongs to the literal sign. The [post on the VIX filter](https://github.com/l3a0/quantitative-trading/blob/main/blog/vix-filter-lessons.md#lesson-2-fstxs-figures-belong-to-the-scripts-fading-sign) runs it. Both filtered figures land under the literal sign too, on a way of joining VIX’s calendar to FSTX’s that the replication chose after seeing the figures. The momentum sign gives them negated, and a test cannot tell the kept days from the rest.
 4. **How far the roll’s restatements move the returns.** Every later roll shifts the continuous future’s early prices, and nothing committed holds the prices that traded.
