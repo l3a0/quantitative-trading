@@ -3778,7 +3778,7 @@ not pinned here.
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
    all three unreadable years profitable, that 21 less the 3 unreadable years
    is 18, and that the last 9 of 1995 to 2015 are 2007 to 2015.
-4. Its references. The three citations are cited rather than computed.
+4. Its references. The four citations are cited rather than computed.
 5. One date no test asserts: the files' last row on 5 April 2024, which
    their file names record.
 

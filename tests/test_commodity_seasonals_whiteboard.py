@@ -1167,7 +1167,7 @@ class TestTheStreakSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, streaks) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
-        assert "a blue dot" in alt and "an orange cross" in alt and "dashed grey line" in alt
+        assert "a blue dot" in alt and "a vermilion cross" in alt and "dashed grey line" in alt
         assert "names the trade as “natural gas, June contract”" in alt
         for start, colour in ((1995, "purple"), (1994, "black")):
             assert f"two {colour} brackets start at {start}" in alt
@@ -1273,7 +1273,7 @@ class TestTheGasolineSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
-        assert "2009 and 2012 each have an orange cross" in alt
+        assert "2009 and 2012 each have a vermilion cross" in alt
         assert "Under 1997 to 1999, which have no mark" in alt
         assert (
             "a purple bracket, “sidebar: a profit every year since 1995”, runs from 1995 to 2008"
@@ -1340,7 +1340,7 @@ class TestTheRangeSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[2])
-        assert "an orange cross at 2009 and 2012" in alt
+        assert "a vermilion cross at 2009 and 2012" in alt
         assert "A grey span under 1997 to 1999, which have no mark" in alt
         assert "A purple bracket over 16 to 19" in alt
         assert "a black mark at 19, the bracket’s top end" in alt
@@ -1420,7 +1420,7 @@ class TestTheInterpolationSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[4])
         assert "settlements one trading day apart" in alt
-        assert "The guess sits in the blue part, and the band reaches into the orange" in alt
+        assert "The guess sits in the blue part, and the band reaches into the vermilion" in alt
 
 
 class TestTheChanNeedsGapsSketch:
