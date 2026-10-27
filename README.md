@@ -6021,7 +6021,7 @@ for the figure's own numbers. Four groups of them had no pin before it, and
 them all.
 
 1. The strategy's daily standard deviation, 1.010320e-03, and the Gaussian
-   null's spread of the mean, 2.259145e-05, in closed form.
+   null's standard error of the mean, 2.259145e-05, in closed form.
 2. The spreads of the simulated means on seed 20261010: 2.819219e-05 for type
    IV and 2.127120e-05 with the mean set to zero.
 3. The spread of the 100,000 shuffled means on seed 20261011, 3.788199e-06.

@@ -4,7 +4,7 @@
 
 ## Why ask what chance alone would give
 
-A backtest reports an average daily return, and the number means little on its own. A rule with no edge at all can earn a positive average over eight years if the market drifted its way or the days happened to fall well. The useful question is how often chance alone would do as well. Ernest Chan’s second book, *Algorithmic Trading*, sets out a framework for asking it in its first chapter (Chan, 2013, location 593). In paraphrase, it runs four steps.
+A backtest reports an average daily return, and the number means little on its own. A rule with no edge at all can earn a positive average over eight years if the market drifted its way or the days happened to fall well. The useful question is how often chance alone would do as well. Ernest Chan’s second book, *Algorithmic Trading*, sets out a framework for asking it in its first chapter (Chan, 2013, Kindle location 593). In paraphrase, it runs four steps.
 
 1. Compute a **test statistic** from the backtest, such as its average daily return.
 2. Suppose the true average is zero. The book calls that supposition “the null hypothesis”. It states, as a number, the claim that the rule has no edge.
@@ -13,20 +13,22 @@ A backtest reports an average daily return, and the number means little on its o
 
 The whole procedure is a **hypothesis test**. Step 3 decides the answer, and Example 1.1 shows how much. Chan takes his momentum strategy on TU, the two-year US Treasury note future, and builds the null three ways. One test finds chance matching the strategy in 1,166 of 10,000 tries. Another finds it in none of 100,000.
 
-This repository reran all three tests on Chan’s own data file. Four results came out, three with verdicts and one without.
+### What the reproduction found
+
+This repository reran all three tests in Python on Chan’s own data file. It set the results beside two sources of Chan’s figures, the book’s text and the comments in the MATLAB script published with the book’s code. Four results came out, three with verdicts and one without.
 
 1. **The Gaussian test lands the script’s 2.93.**
 2. **The second test lands the book’s count and misses the script’s p-value.** It gives 1,221 of 10,000 against the book’s 1,166, and a p-value of 0.122100 against the 0.027500 printed in the script’s comment.
 3. **The third test as printed cannot fail.** Corrected, it still finds no shuffle as good as the real rule.
 4. **Two of three checks added after a trial run point at TU’s drift, rather than its kurtosis, as what drives the second test.** That is a finding with no verdict.
 
-**Every result here is exploratory.** Chan chose the strategy and the three tests, and reproducing his figures spends the 2004 to 2012 sample on his choices. The reproduction can say whether his numbers follow from his file. Before the random draws and pass marks of the run reported here were written down, a **trial run** executed the same tests on other draws, and its results were seen. The three added checks were chosen after that trial run, so they can motivate a registered test, one whose hypothesis is written down before any number exists, and cannot confirm anything.
+**Every result here is exploratory.** Chan chose the strategy and the three tests, and reproducing his figures spends the 2004 to 2012 sample on his choices. The reproduction can say whether his numbers follow from his file. A **trial run** first executed the same tests on other random draws, and its results were already in hand when the replication wrote down the draws and pass marks for the run reported here. The three added checks were chosen after that trial run. So they can motivate a registered test, one whose hypothesis is written down before any number exists, and cannot confirm anything.
 
 The five lessons below say what the reproduction teaches. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The rule, the file and the three tests
 
-**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. Each day’s signal opens a slice of one unit, held 25 days, so up to 25 slices overlap. Each day’s return is yesterday’s position times today’s return on TU, divided by 25. Elsewhere on this blog, [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a `genhurst` setting from Chan’s Hurst example on TU.
+**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. Each day’s signal opens a new one-unit trade, long or short, and holds it 25 days, so up to 25 trades are open at once. The rule’s position on a day is its open long trades minus its open short trades, and each day’s return is yesterday’s position times today’s return on TU, divided by 25. Elsewhere on this blog, [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a `genhurst` setting from Chan’s Hurst example on TU.
 
 **The file.** Chan’s own MATLAB file `inputDataOHLCDaily_20120511.mat`, saved on 2012-05-12, holds TU’s closes for 2,000 trading days from 2004-06-01 to 2012-05-11. The rule’s **observed mean**, its average daily return over those days, is 6.626644e-05. Every test below asks how often chance alone reaches that number. The script that runs the tests is `TU_mom_hypothesisTest.m`, as published with the book’s code.
 
@@ -34,9 +36,9 @@ The five lessons below say what the reproduction teaches. The code is open sourc
 
 The three tests differ only in how they build the null.
 
-1. **The Gaussian test.** Suppose the daily returns are normal, with “a mean of zero and a standard deviation given by the sample standard deviation of the daily returns” (Chan, 2013, location 606). The statistic is then the mean divided by the standard deviation, times the square root of the number of days.
+1. **The Gaussian test.** Suppose the strategy’s daily returns are normal, with “a mean of zero and a standard deviation given by the sample standard deviation of the daily returns” (Chan, 2013, location 606). The statistic is then the mean divided by the standard deviation, times the square root of the number of days.
 2. **The second test, simulating prices.** Generate “simulated historical price data and feed these simulated data into our strategy” (Chan, 2013, location 616). The script draws 2,000 daily returns for TU, builds a price from them, reruns the rule on that price and records its mean return. It repeats this 10,000 times. The draws share TU’s first four moments, listed after the three tests.
-3. **The third test, resampling trades.** Keep the real returns, and “generate sets of simulated trades” instead (Chan, 2013, location 623), a method the book credits to Lo, Mamaysky and Wang (2000). The script shuffles the days on which the rule enters long or short, “randomizing the long and short entry dates” (Chan, 2013, location 669). Each shuffle moves the long and the short entry days together, so the rule keeps its 1,274 long entry days and 474 short entry days. It repeats this 100,000 times.
+3. **The third test, resampling trades.** Keep the real returns, and “generate sets of simulated trades” instead (Chan, 2013, location 623), a method the book credits to Lo, Mamaysky and Wang (2000). The script shuffles the rule’s **entry days**, the days whose signal opens a long or a short trade, “randomizing the long and short entry dates” (Chan, 2013, location 669). Each shuffle reorders all 2,000 days with one permutation, which keeps the rule’s 1,274 long entry days and 474 short entry days and never makes a day both long and short. It repeats this 100,000 times.
 
 Each of the last two tests counts how many simulated means are at or above the observed mean. That count divided by the number drawn is the p-value. Chan reports that “1,166 have average strategy return greater than or equal to the observed average return” (Chan, 2013, location 665), so his p-value is 1,166 / 10,000, or 0.1166.
 
@@ -47,9 +49,9 @@ Each of the last two tests counts how many simulated means are at or above the o
 3. The skewness, which measures how lopsided the days are.
 4. The **kurtosis**, which measures how much of the variance comes from rare large days.
 
-A normal distribution’s kurtosis is 3, and TU’s is 12.115073. So the null keeps TU’s drift and its fat tails, and drops any pattern in the order of the days (Chan, 2013, location 652).
+A normal distribution’s kurtosis is 3, and TU’s is 12.115073. So the null keeps TU’s **drift**, its average daily return of 5.999783e-05, and its fat tails, and drops any pattern in the order of the days (Chan, 2013, location 652).
 
-MATLAB’s `pearsrnd` makes the draws from the **Pearson system**, one family of distributions with a member for nearly any four moments. A number called κ, computed from the skewness and the kurtosis, picks the type, and the four moments then fix the distribution within it. TU’s κ is 0.004645, between 0 and 1, which puts it in type IV. MathWorks does not state which criterion `pearsrnd` applies, so type IV is an inference from the standard criterion in Heinrich (2004), and the draws here follow type IV.
+MATLAB’s `pearsrnd` makes the draws from the **Pearson system**, one family of distributions with a member for nearly any four moments. The family is split into numbered types, each with its own formula. A number called κ, computed from the skewness and the kurtosis, picks the type, and the four moments then fix the distribution within it. TU’s κ is 0.004645, between 0 and 1, which puts it in type IV. MathWorks does not state which criterion `pearsrnd` applies, so type IV is an inference from the standard criterion in Heinrich (2004), and the draws here follow type IV.
 
 The figure stacks the three nulls on one shared axis. Like everything here it is exploratory.
 
@@ -62,16 +64,23 @@ The figure stacks the three nulls on one shared axis. Like everything here it is
 The script’s comment prints 2.93 for the Gaussian statistic. The run here gives 2.933253, which rounds to it.
 
 ```math
-t = \frac{\bar r}{s}\,\sqrt{n} = \frac{6.626644\times10^{-5}}{1.010320\times10^{-3}}\,\sqrt{2000} = 2.933253
+\begin{aligned}
+t &= \frac{\bar r}{s}\,\sqrt{n} \\
+&= \frac{6.626644\times10^{-5}}{1.010320\times10^{-3}}\,\sqrt{2000} \\
+&= 2.933253
+\end{aligned}
 ```
 
-Here r̄ is the observed mean, s is the strategy’s daily standard deviation and n is the 2,000 days. The **spread of the mean**, the standard deviation of an average of n such days, is the daily standard deviation over √n. Read as a test, the statistic counts how many of those spreads the observed mean sits above zero.
+Here r̄ is the observed mean, s is the strategy’s daily standard deviation and n is the 2,000 days. The **standard error** of the mean, the standard deviation of an average of n such days, is the daily standard deviation over √n. Read as a test, the statistic counts how many standard errors the observed mean sits above zero.
 
 ```math
-\frac{s}{\sqrt{n}} = \frac{1.010320\times10^{-3}}{\sqrt{2000}} = 2.259145\times10^{-5}
+\begin{aligned}
+\frac{s}{\sqrt{n}} &= \frac{1.010320\times10^{-3}}{\sqrt{2000}} \\
+&= 2.259145\times10^{-5}
+\end{aligned}
 ```
 
-Under the Gaussian null the mean is normal with that spread and a centre of zero, which is the dashed curve in the figure’s top panel. The chance of a mean at or above 6.626644e-05 is the one-sided tail beyond 2.933253 spreads, 0.001677.
+Under the Gaussian null the mean is normal with that standard error and a centre of zero, which is the dashed curve in the figure’s top panel. The chance of a mean at or above 6.626644e-05 is the one-sided tail beyond 2.933253 standard errors, 0.001677.
 
 That null assumes three things, and each is a choice.
 
@@ -85,7 +94,7 @@ The second test drops the second assumption and keeps TU’s fat tails. Lesson 5
 
 The Gaussian test is arithmetic, so its figure either matches or does not. The second and third tests count random draws, and a different set of draws gives a different count. Each run starts from a **seed**, the number that fixes the random draws so a rerun gives the same ones. A run on another seed than Chan’s, or with another generator, can land only near his count. [The coin-toss post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/coin-toss-expected-value-vs-growth.md#lesson-6-a-simulation-of-the-coin-can-mislead-in-two-ways) shows a simulated figure moving with its seed.
 
-So the replication wrote down what counts as landing before any draw on the seeds it reports. Call the number of draws N. Each draw either beats the observed mean or does not. If the chance that one draw beats the observed mean is p, the count follows a binomial distribution, the count of successes in N independent tries, and has a standard error of
+So before drawing anything on the seeds whose results appear here, the replication wrote down what counts as landing. Call the number of draws N. Each draw either beats the observed mean or does not. If the chance that one draw beats the observed mean is p, the count follows a binomial distribution, the count of successes in N independent tries, and has a standard error of
 
 ```math
 \text{SE} = \sqrt{N\,p\,(1-p)}
@@ -109,7 +118,7 @@ Writing the band first matters because a band chosen after the count can always 
 
 **The result.** On seed 20261010 the second test gives 1,221 of 10,000. That is inside 1,102 to 1,230, nine counts below the top, so the book’s 1,166 **reproduced**, with a gap of +55. The same count, 1,221, is far outside the script’s 243 to 307, so the script’s 0.027500 **did not reproduce**. As a p-value the count is 0.122100, a gap of +0.094600 from the script’s.
 
-**The sampler hits its targets.** Over all 20 million simulated daily returns, the average is 6.014505e-05 against TU’s 5.999783e-05, and the standard deviation is 1.095392e-03 against 1.095464e-03. Both sit within four standard errors of their targets. So the miss on the script’s figure does not come from a sampler that missed TU’s mean or spread.
+**The sampler hits its targets.** Over all 20 million simulated daily returns, the average is 6.014505e-05 against TU’s mean daily return of 5.999783e-05, and the standard deviation is 1.095392e-03 against 1.095464e-03. Both sit within four standard errors of their targets. So the miss on the script’s figure does not come from a sampler that missed TU’s mean or spread.
 
 ## Lesson 3: the second test does not give the script’s 0.027500
 
@@ -129,9 +138,9 @@ A test that cannot fail tells nothing. Here the printed answer happens to surviv
 
 **Corrected.** Building each draw’s positions from its own shuffled signals gives 0 of 100,000 on seed 20261011. The band for the book’s 0 is only 0, so location 672’s “There is not a single sample out of 100,000” **reproduced**. When no draw in N reaches a value, the rule of three puts the p-value below 3/N at 95 percent confidence, so here below 3e-05. The largest shuffled mean is 3.973594e-05 and their average is 2.409664e-05. The observed mean sits 11.131886 standard deviations above that average.
 
-**Why the bottom panel is narrow.** Shuffling scatters the long and short entry days across the sample. So the up to 25 slices held on any day mostly cancel into a net long position, of about the same size on every shuffle. Over the first 500 of those shuffles the net position averages 9.975403 units in absolute size and is long on 0.983958 of days, against 20.58 units and 0.638 of days for the real rule. A position that is nearly the same on every shuffle earns nearly the same mean on the same returns. The shuffled means’ standard deviation is 3.788199e-06, against 2.819219e-05 for the second test’s means on new returns.
+**Why the bottom panel is narrow.** Shuffling scatters the long and short entry days across the sample. So the up to 25 trades open on any day mostly cancel into a net long position, of about the same size on every shuffle. Over the first 500 of those shuffles the net position averages 9.975403 units in absolute size and is long on 0.983958 of all days, against 20.58 units and 0.638 of its 2,000 days for the real rule. A position that is nearly the same on every shuffle earns nearly the same mean on the same returns. The shuffled means’ standard deviation is 3.788199e-06, against 2.819219e-05 for the second test’s means on new returns.
 
-**What it rejects.** It rejects the claim that the rule’s timing earns nothing beyond its mix of long and short days. It keeps the real returns, drift included, so the shuffled means average 2.409664e-05 rather than zero. A rule that enters long on 1,274 days and short on 474 holds a net long position on most days, and collects TU’s drift wherever those entries fall.
+**What the corrected test rejects.** It rejects the claim that the rule’s timing earns nothing beyond its mix of long and short days. It keeps the real returns, drift included, so the shuffled means average 2.409664e-05 rather than zero. A rule that enters long on 1,274 days and short on 474 holds a net long position on most days, and collects TU’s drift wherever those entries fall.
 
 The habit is to feed a test a case it must fail before trusting a 0.
 
@@ -139,19 +148,19 @@ The habit is to feed a test a case it must fail before trusting a 0.
 
 Location 674 reads the second test as showing “any random returns distribution with high kurtosis can be favorable to momentum strategies”. Location 2923 repeats it: simulated TU returns with no serial correlation match the strategy “in 12 percent of the random realizations”. Two of the three added checks test that reading by removing either the drift or the shape of the distribution. Each runs on the same random numbers as the second test, so it differs from that test only in what it removes.
 
-**Removing the fat tails moves the count little.** A normal draw with TU’s mean and standard deviation, and no skewness or excess kurtosis, gives 1,165 of 10,000, against 1,221 for type IV. The middle panel shows the two histograms nearly on top of each other.
+**Removing the fat tails moves the count little.** A normal draw with TU’s mean and standard deviation, which has no skewness and a kurtosis of 3 against TU’s 12.115073, gives 1,165 of 10,000, against 1,221 for type IV. The middle panel shows the two histograms nearly on top of each other.
 
-**Removing the drift moves it a lot.** Type IV with the mean set to zero gives 19 of 10,000, or 0.001900, close to the Gaussian test’s one-sided 0.001677. The average simulated mean falls from 3.220302e-05 to 3.604899e-07. Those 10,000 means spread with a standard deviation of 2.127120e-05, close to the Gaussian null’s 2.259145e-05. The top panel shows that histogram sitting on the dashed curve. Set against the middle panel, it shows that the drift also widens the type IV means’ spread, from 2.127120e-05 to 2.819219e-05.
+**Removing the drift moves it a lot.** Type IV with TU’s mean set to zero gives 19 of 10,000, or 0.001900, close to the Gaussian test’s one-sided 0.001677. The average simulated mean falls from 3.220302e-05 to 3.604899e-07.
 
-**The mechanism is the rule itself.** A series that drifts upward has a positive 250-day return most of the time, so the rule is long most of the time and collects the drift. On the first 1,000 simulated series the rule is long on 0.804654 of signal days, and on 0.502401 once the mean is removed. TU did drift upward, at a mean daily return of 5.999783e-05. Chan’s Chapter 5 defines a future’s roll return as the part of its return that comes from its price converging on the spot price as expiry nears (Chan, 2013, location 2326). His Chapter 6 traces TU’s momentum to that roll return, whose sign rarely changes (Chan, 2013, location 2683).
+Those 10,000 means spread with a standard deviation of 2.127120e-05, close to the Gaussian null’s 2.259145e-05, and the top panel shows their histogram sitting on the dashed curve. Comparing the top panel with the middle one shows that the drift also widens the type IV means’ spread, from 2.127120e-05 to 2.819219e-05.
+
+**The mechanism is the rule itself.** A series that drifts upward has a positive 250-day return most of the time, so the rule is long most of the time and collects the drift. On the first 1,000 simulated series, long entry days make up on average 0.804654 of all entry days, and 0.502401 once the mean is removed. TU did drift upward, at a mean daily return of 5.999783e-05. Chan’s Chapter 5 defines a future’s roll return as the part of its return that comes from its price converging on the spot price as expiry nears (Chan, 2013, location 2326). His Chapter 6 traces TU’s momentum to that roll return, whose sign rarely changes (Chan, 2013, location 2683).
 
 The book saw this possibility and set it aside. Location 652 names the mean as one way the strategy could be lucky. Location 665 then says it is less likely, “since the position can be long or short at different times”. The checks here say the position is not long or short evenly on a drifting series.
 
-**The status of this finding.** The two checks came after a trial run had seen results, so the drift reading is exploratory. It is a reason to register a test that names drift as the hypothesis before any number exists, and runs it on data Entry 37 never loaded. It is not a verdict that drift explains momentum on TU.
+**The status of this finding.** The two checks came after a trial run had seen results, so the drift reading is exploratory. It is a reason to register a test that names drift as the hypothesis before any number exists, and runs it on data this replication never loaded. It is not a verdict that drift explains momentum on TU.
 
 No false-discovery-rate control appears here. Such a control limits the share of false passes across a batch of tests, and it applies when many tests are run and the ones that pass are kept, as [the index arbitrage post’s Lesson 2](https://github.com/l3a0/quantitative-trading/blob/main/blog/index-arbitrage-lessons.md#lesson-2-the-screens-98-is-a-count-of-tests-passed-and-random-walks-unrelated-to-spy-pass-more-often) shows with a screen of 480 stocks. This replication runs Chan’s three tests of one strategy rather than a screen, keeps none for a better p-value, and the three added checks carry the exploratory label instead.
-
-**Exploratory.** The drift reading rests on checks chosen after a trial run, and it stays a reason for a registered test rather than a result.
 
 ## What this replication cannot say
 
@@ -170,7 +179,7 @@ One habit for each lesson.
 2. **Fix the seed and the band before the draw.** A simulated count lands only within sampling error, and a band chosen afterwards fits anything.
 3. **Check which test printed a figure.** The script’s comment and the book’s paragraph cannot both come from the second test.
 4. **Make a test fail once.** A test that returns 0 whatever the data looks exactly like a strong result.
-5. **Remove one input at a time before crediting a cause.** Taking out the skewness and excess kurtosis moved the count from 1,221 to 1,165. Taking out the drift took it to 19.
+5. **Remove one input at a time before crediting a cause.** Taking out the skewness and the fat tails moved the count from 1,221 to 1,165. Taking out the drift took it to 19.
 
 ## References
 
