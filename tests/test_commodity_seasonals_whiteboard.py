@@ -311,7 +311,7 @@ FOLLOWS = (
     "The Mann-Whitney test ignores how large each return was.",
     "Each test gives the chance that luck alone",
     "```math\n\\small\\begin{array}{l|r|r}\n & \\text{Welch}",
-    "Gasoline’s fall clears the line on both.",
+    "Without 2022 the average after 2008 is −5.0%",
     "For gasoline that is always contract 1.",
     "When a contract expires, every later contract moves up one number",
     "Over every natural gas contract delivered from February 1994",

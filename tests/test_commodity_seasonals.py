@@ -707,7 +707,10 @@ class TestThePostQuotesThePins:
         text = " ".join(self.text.split())
         assert f"rests on only {min(counts)} to {max(counts)} yearly results" in text
         assert f"the standard error runs from {min(errors):.1f} to {max(errors):.1f}" in text
-        assert f"sit {1.96 * min(errors):.1f} to {1.96 * max(errors):.1f} higher or lower" in text
+        assert (
+            f"range reaches {1.96 * min(errors):.1f} to {1.96 * max(errors):.1f} either side"
+            in text
+        )
 
         ng_before = TestTheReturns.years("natural gas, 1994 to 2008")
         ratio, error = sharpe_ratio(ng_before), sharpe_standard_error(ng_before)
@@ -755,10 +758,10 @@ class TestThePostQuotesThePins:
                 f"For {name.lower()} the earlier year won {won:.0f} of {pairs} pairs, "
                 f"where chance would give half, {pairs / 2:g}"
             ) in text, name
-        won, _ = pairs_won(*ng)
+        won, pairs = pairs_won(*ng)
         assert (
-            f"For natural gas’s {won:.0f} pairs, luck alone lands that far from the middle "
-            f"{100 * rank_p_value(*ng):.1f}% of the time."
+            f"For natural gas’s {won:.0f} pairs, luck alone lands that far from the middle, "
+            f"{pairs / 2:g}, on either side, {100 * rank_p_value(*ng):.1f}% of the time."
         ) in text
 
         before, after = ng
@@ -780,7 +783,7 @@ class TestThePostQuotesThePins:
         assert beaten == len(before)
         assert (
             f"Welch’s chance, {100 * change_p_value(*ng):.1f}%, sits above the line. "
-            f"The ranks still see the change, because {best.year} counts as {beaten} pairs won "
+            f"Mann-Whitney still sees the change, because {best.year} counts as {beaten} pairs won "
             "however large its gain"
         ) in text
 
@@ -789,8 +792,8 @@ class TestThePostQuotesThePins:
         marks = daily_marks(trade)
         high = float((max(marks) - trade.entry_price) / trade.entry_price)
         assert (
-            f"came inside 2002’s trade, which rose {round(100 * high)}% before giving back "
-            f"{round(100 * max_drawdown([trade]))} points and ending "
+            f"came inside 2002’s trade, which rose {round(100 * high)}%, gave back "
+            f"{round(100 * max_drawdown([trade]))} points, then recovered to end "
             f"{round(100 * trade.relative_change)}% up"
         ) in self.text
 
@@ -876,7 +879,10 @@ class TestThePostQuotesThePins:
         assert (
             f"the handover falls on the rule’s day for {fits} of the {readable} expiries"
         ) in text
-        assert f"the rule fits only {early[0]} and {late[0]} of {early[1]}." in text
+        assert (
+            f"the rule fits only {early[0]} and {late[0]} of the {early[1]} expiries the files "
+            "hold rows to check on the moved days."
+        ) in text
 
     def test_why_the_rest_of_the_expiries_do_not_count(self) -> None:
         """The paragraph after the coverage sketch: what the unreadable and
@@ -992,7 +998,7 @@ class TestThePostQuotesThePins:
         last = fills[-1]
         assert (
             f"Fill 2 gives moves of {moves} and {100 * last.move(last.june):+.1f} cents a "
-            f"gallon and misses by {misses} and {100 * last.june_error:.2f}."
+            f"gallon, against typical misses of {misses} and {100 * last.june_error:.2f}."
         ) in self.text
         biases = ", ".join(f"{100 * f.june_bias:.2f}" for f in fills[:-1])
         errors = [f.june_bias / (f.june_spread / math.sqrt(f.tested)) for f in fills]
@@ -1059,7 +1065,7 @@ class TestThePostQuotesThePins:
         assert (
             f"For {first.year}, `m` is {100 * first.move(first.june):.1f} cents, `b` is "
             f"{100 * first.june_bias:.2f} and `σ` is {100 * first.june_spread:.2f}, so `c` is "
-            f"{100 * first.move(first.june_corrected):.2f} and the chance is "
+            f"{100 * first.move(first.june_corrected):.2f} and, from the unrounded values, the chance is "
             f"Φ({first.june_margin:.2f}), or {100 * first.june_chance:.0f}%."
         ) in self.text
         product = " \\times ".join(f"{f.june_chance:.3f}" for f in fills)

@@ -118,7 +118,7 @@ the paragraph it draws.
    1994 to 2023 ranked worst to best, the earlier ones above a line and the
    later ones below it. A note names the two gains too close to zero for
    their side to show. It sits in Lesson 4, after the paragraph opening
-   "Gasoline’s fall clears the line on both."
+   "Without 2022 the average after 2008 is −5.0%".
 20. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
