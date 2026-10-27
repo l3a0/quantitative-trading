@@ -668,6 +668,8 @@ class TestThePostQuotesThePins:
         ) in self.text
         won, of = _tally(GASOLINE, 2007, 2015)
         assert f"The trade won {won} of those {of}" in self.text
+        won, of = _tally(GASOLINE, 2009, 2015)
+        assert f"It won {won} of its {of} years from 2009 to 2015" in self.text
         gasoline, gasoline_of = _tally(GASOLINE, 2016, 2023)
         gas, gas_of = _tally(GAS, 2016, 2023)
         assert (
@@ -1051,6 +1053,11 @@ class TestThePostQuotesThePins:
         assert "so neither fill decides a year" in self.text
         chance = math.prod(f.june_chance for f in fills)
         assert f"which Chan’s 19 needs, is {100 * chance:.0f}%" in self.text
+        uncorrected = math.prod(
+            0.5 * (1 + math.erf(f.move(f.june) / f.june_error / math.sqrt(2))) for f in fills
+        )
+        assert f"{100 * uncorrected:.0f}" != f"{100 * chance:.0f}"
+        assert f"and no correction, gives {100 * uncorrected:.0f}%" in self.text
 
     def test_the_derivations_of_the_entry_and_exit_moves(self) -> None:
         """A miss lowers the move when the entry is missing and raises it when
