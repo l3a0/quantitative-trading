@@ -1765,7 +1765,7 @@ def _three_numbers(f: MissFigures) -> Scene:
         _stroke("scale", _line([(_miss_x(-2), 1.05), (_miss_x(3.4), 1.05)]), color=MUTED, frames=6),
         *[
             Label(
-                f"{c:+d}" if c else "0",
+                f"{c:+d}¢" if c else "0¢",
                 _miss_x(c),
                 0.7,
                 names="scale",
@@ -1791,7 +1791,7 @@ def _three_numbers(f: MissFigures) -> Scene:
             frames=6,
         ),
         Label(
-            f"typical miss ±{typical:.2f}, around zero",
+            f"typical miss ±{typical:.2f}¢, around zero",
             _miss_x(typical) + 0.2,
             MISS_TYPICAL_Y - 0.05,
             names="typical",
@@ -1813,7 +1813,7 @@ def _three_numbers(f: MissFigures) -> Scene:
             dots=9.0,
         ),
         Label(
-            f"average {mean:+.2f}, spread ±{spread:.2f}",
+            f"average {mean:+.2f}¢, spread ±{spread:.2f}¢",
             _miss_x(mean + spread) + 0.2,
             MISS_SPREAD_Y - 0.05,
             names="spread",
@@ -2104,7 +2104,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
                 dots=8.0,
             ),
             Label(
-                f"σ = {miss:.2f}",
+                f"σ = {miss:.2f}¢",
                 _cents_x(move + miss / 2),
                 row + 0.31,
                 names=f"miss-{fill.year}",
@@ -2132,7 +2132,7 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
             frames=6,
         ),
         *[
-            Label(f"{c:+d}", _cents_x(c), 0.33, names="scale", color=MUTED, size=10, ha="center")
+            Label(f"{c:+d}¢", _cents_x(c), 0.33, names="scale", color=MUTED, size=10, ha="center")
             for c in (-1, 1)
         ],
         Label("cents a gallon", 0.3, 0.33, names="scale", color=MUTED, size=10),
@@ -3762,7 +3762,7 @@ def _holiday_rows() -> Scene:
                 if not open_ and file[day] == file[prev]:
                     steps.append(
                         Label(
-                            f"Dec {day.day}: closed, row repeats Dec {prev.day}’s {file[day]}",
+                            f"Dec {day.day}: closed, row repeats Dec {prev.day}’s ${file[day]}",
                             x,
                             y + 0.42,
                             ha="center",

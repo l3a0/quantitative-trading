@@ -459,15 +459,15 @@ NARROW_LABELS = [
 ]
 
 THREE_LABELS = [
-    "-2",
-    "-1",
-    "0",
-    "+1",
-    "+2",
+    "-2¢",
+    "-1¢",
+    "0¢",
+    "+1¢",
+    "+2¢",
     "cents a gallon",
     "dot: one test day’s miss, 80 days",
-    "typical miss ±0.89, around zero",
-    "average +0.26, spread ±0.86",
+    "typical miss ±0.89¢, around zero",
+    "average +0.26¢, spread ±0.86¢",
     "gasoline, May contract",
 ]
 
@@ -513,17 +513,17 @@ SIGN_LABELS = [
 MISS_LABELS = [
     "loss",
     "profit",
-    "σ = 0.86",
+    "σ = 0.86¢",
     "1997",
     "57%",
-    "σ = 0.74",
+    "σ = 0.74¢",
     "1998",
     "83%",
-    "σ = 0.62",
+    "σ = 0.62¢",
     "1999",
     "90%",
-    "-1",
-    "+1",
+    "-1¢",
+    "+1¢",
     "cents a gallon",
     "chance of profit",
     "dot: the corrected move",
@@ -580,7 +580,7 @@ EDGE_LABELS = [
 HOLIDAY_LABELS = [
     "2018",
     *("21", "22", "23", "24", "25"),
-    "Dec 25: closed, row repeats Dec 24’s 3.467",
+    "Dec 25: closed, row repeats Dec 24’s $3.467",
     *("26", "27", "28"),
     "2016",
     *("21", "22", "23", "24", "25", "26"),
@@ -1962,7 +1962,7 @@ class TestTheThreeNumbersSketch:
             misses, misses=tuple((d, b, m + 0.01) for d, b, m in misses.misses)
         )
         scene = _three_numbers(shifted)
-        assert "average +1.26, spread ±0.86" in scene.labels
+        assert "average +1.26¢, spread ±0.86¢" in scene.labels
         assert _stroke(scene, "average").x[0] == pytest.approx(_miss_x(1.2575), abs=1e-3)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
@@ -2105,7 +2105,7 @@ class TestTheFillMissesSketch:
         scene = every[12]
         for fill in seasonals.gap_fills():
             move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
-            label = _label(scene, f"σ = {miss:.2f}")
+            label = _label(scene, f"σ = {miss:.2f}¢")
             assert label.names == f"miss-{fill.year}"
             assert label.x == pytest.approx(_cents_x(move + miss / 2))
             assert label.y > _stroke(scene, f"miss-{fill.year}").y.max()
