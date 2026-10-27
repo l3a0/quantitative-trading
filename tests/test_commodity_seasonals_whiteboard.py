@@ -1166,6 +1166,11 @@ class TestTheTwoTradesSketch:
             assert (bar.x.min(), bar.x.max()) == pytest.approx(
                 (_trades_x(entry), _trades_x(exit_))
             ), gid
+        first, last = sketches.TRADES_SPAN
+        assert (first, last) == (date(sketches.TRADES_YEAR, 2, 1), date(sketches.TRADES_YEAR, 5, 1))
+        assert (_trades_x((2, 1)), _trades_x((5, 1))) == pytest.approx(sketches.TRADES_X)
+        axis = _stroke(scene, "axis")
+        assert (axis.x.min(), axis.x.max()) == pytest.approx(sketches.TRADES_X)
         day = _trades_x((3, 2)) - _trades_x((3, 1))
         assert _trades_x((4, 1)) - _trades_x((3, 1)) == pytest.approx(31 * day)
         for month, words in ((2, "Feb"), (3, "Mar"), (4, "Apr"), (5, "May")):
@@ -1196,6 +1201,11 @@ class TestTheTwoTradesSketch:
         gasoline = date(2001, *seasonals.GASOLINE_EXIT) - date(2001, *seasonals.GASOLINE_ENTRY)
         assert gasoline < timedelta(weeks=2) and "the gasoline trade for under two" in alt
         assert "both are open from April 13 to April 15" in alt
+        # The ink each part is named in follows the drawing.
+        assert "a purple caption under the bar, “Chan: 13 years in a row" in alt
+        assert "a purple caption under the label, “Chan: 19 of 21 years" in alt
+        assert "with its label on its left, “gasoline:" in alt
+        assert alt.count("a grey note") == 2 and alt.count("black bar") == 2
 
 
 class TestTheSplitFigures:
@@ -1350,6 +1360,10 @@ class TestTheSplitSketch:
         assert "five of the eight years are crosses" in alt
         assert "a dashed grey line after 2008" in alt and "a dashed grey line after 2015" in alt
         assert "A grey span under 1997 to 1999, which have no mark" in alt
+        # The inks and the gasoline row's first year follow the drawing.
+        assert "a blue dot for each profitable year and a vermilion cross for each loss" in alt
+        assert "in purple, “7 of 15 won”" in alt and "in purple, “3 of 8 won”" in alt
+        assert f"“gasoline, May contract”, starts in {split.gasoline[0][0]}," in alt
 
 
 # --- Lesson 1: the streak sketch -----------------------------------------------
