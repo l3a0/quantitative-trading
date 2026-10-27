@@ -2614,7 +2614,9 @@ def _chances(rows: tuple[ChanceRow, ...]) -> Scene:
             ("Welch", row.welch, CHANCE_DY),
             ("Mann-Whitney", row.rank, -CHANCE_DY),
         ):
-            color = ACCENT if pct > CHANCE_LINE else INK
+            # Only a chance below the line counts as evidence, as the post says,
+            # so one exactly on it is drawn with the chances that do not.
+            color = ACCENT if pct >= CHANCE_LINE else INK
             gid = f"{row.trade}-{test}"
             steps += [
                 Stroke(

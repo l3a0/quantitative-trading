@@ -2233,6 +2233,8 @@ class TestTheChancesSketch:
         assert purple == ["natural gas-Welch"]
         made_up = (ChanceRow("gasoline", 6.0, 1.0), ChanceRow("natural gas", 4.0, 0.5))
         assert [s.gid for s in _chances(made_up).strokes if s.color == ACCENT] == ["gasoline-Welch"]
+        on_line = (ChanceRow("gasoline", CHANCE_LINE, 1.0), ChanceRow("natural gas", 4.0, 0.5))
+        assert [s.gid for s in _chances(on_line).strokes if s.color == ACCENT] == ["gasoline-Welch"]
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[17])
