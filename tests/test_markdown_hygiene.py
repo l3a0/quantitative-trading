@@ -9,6 +9,11 @@ The cross-document layer reads one document against another. A heading quoted
 in prose and an anchor written into a link both name a heading somewhere, and
 both stop resolving when the heading is renamed with nothing else noticing.
 
+The suite layer is `TestCitedTestsExist`. It reads every test that README,
+the replication log and data/README name against the tests this folder
+holds, since a sentence naming a missing test quotes a number nothing
+asserts.
+
 The cross-surface layer is `TestTheFigureHasThreeCopies`. The essay's regime
 map exists as a PNG, as a base64 copy inlined in the HTML essay, and as an
 embed in the blog Markdown. Redrawing it updates one of the three, and nothing
@@ -35,6 +40,7 @@ from tests.support.markdown_sweep import (
     attribution,
     blank_code,
     blank_fences,
+    cited_tests,
     document_headings,
     entry_sections,
     fragment_links,
@@ -43,6 +49,8 @@ from tests.support.markdown_sweep import (
     markdown_files,
     nearest_heading,
     slug,
+    suite_index,
+    sweep_cited_tests,
     sweep_file,
     sweep_fragment_links,
     sweep_heading_references,
@@ -1119,6 +1127,302 @@ def test_every_fragment_link_resolves_to_a_heading() -> None:
     working link, and GitHub answers it by leaving the reader at the top."""
     findings = sweep_fragment_links(REPO_ROOT)
     assert not findings, "\n".join(_messages(findings))
+
+
+# --- The suite layer ----------------------------------------------------------
+# A test named in prose is a reference into tests/ rather than into another
+# document, and the suite is what gives a quoted number its authority. Each
+# case below builds a small suite in a temporary folder, so the index is read
+# from files whose contents the case states.
+
+CITING_DOCUMENTS = ("README.md", "docs/replication-log.md", "data/README.md")
+
+
+def _cited_findings(tmp_path: Path, prose: str, suite: dict[str, str]) -> list[str]:
+    tests = tmp_path / "tests"
+    tests.mkdir()
+    for name, body in suite.items():
+        (tests / name).write_text(body, encoding="utf-8")
+    document = tmp_path / "README.md"
+    document.write_text(prose, encoding="utf-8")
+    return _messages(sweep_cited_tests([document], tmp_path, suite_index(tests)))
+
+
+PANELS = """
+class TestThePanels:
+    def test_the_large_cap_panel(self): ...
+
+class TestTheVintages:
+    def test_the_small_cap_file(self): ...
+
+def test_the_manifest_reads(): ...
+"""
+
+
+class TestCitedTestsExist:
+    def test_a_class_and_its_test_resolve(self, tmp_path: Path) -> None:
+        prose = "`TestThePanels::test_the_large_cap_panel` pins the span.\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_test_under_the_wrong_class_names_the_class_it_is_under(self, tmp_path: Path) -> None:
+        # README carried this exact mistake from the pull request that wrote
+        # the sentence until a review loop found it by hand.
+        prose = "`TestTheVintages::test_the_large_cap_panel` pins the span.\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == [
+            "README.md:1: `TestTheVintages::test_the_large_cap_panel` names no test in"
+            " the suite, nearest present is"
+            " `tests/test_panels.py::TestThePanels::test_the_large_cap_panel`"
+        ]
+
+    def test_the_same_name_under_another_class_beats_a_closer_spelling(
+        self, tmp_path: Path
+    ) -> None:
+        # The decoy shares as many words and sorts first, so only the rule
+        # that prefers the same test name picks the class that holds it.
+        suite = {
+            "test_a.py": "class TestTheVintages:\n    def test_the_large_cap_file(self): ...\n",
+            "test_b.py": PANELS,
+        }
+        prose = "`TestTheVintages::test_the_large_cap_panel` pins the span.\n"
+        (finding,) = _cited_findings(tmp_path, prose, suite)
+        assert finding.endswith(
+            "nearest present is `tests/test_b.py::TestThePanels::test_the_large_cap_panel`"
+        )
+
+    def test_a_renamed_test_is_flagged(self, tmp_path: Path) -> None:
+        prose = "`TestThePanels::test_the_mid_cap_panel` pins the span.\n"
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.endswith(
+            "nearest present is `tests/test_panels.py::TestThePanels::test_the_large_cap_panel`"
+        )
+
+    def test_a_class_on_its_own_resolves_and_a_missing_one_is_flagged(self, tmp_path: Path) -> None:
+        prose = "`TestThePanels` holds it, and `TestTheMidCaps` does not exist.\n"
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.startswith("README.md:1: `TestTheMidCaps` names no test in the suite")
+
+    def test_a_bare_test_name_resolves_to_a_function_or_a_method(self, tmp_path: Path) -> None:
+        prose = "`test_the_manifest_reads` and `test_the_small_cap_file` both run.\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_bare_test_name_the_suite_lacks_is_flagged(self, tmp_path: Path) -> None:
+        prose = "`test_the_manifest_writes` runs.\n"
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.startswith("README.md:1: `test_the_manifest_writes` names no test")
+
+    def test_a_continuation_takes_the_class_cited_before_it(self, tmp_path: Path) -> None:
+        prose = (
+            "| 1 | `TestTheVintages::test_the_small_cap_file` |\n"
+            "| 2 | `TestThePanels::test_the_large_cap_panel` |\n"
+            "| 3 | the same, and `::test_the_large_cap_panel` |\n"
+        )
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_continuation_after_another_class_is_flagged(self, tmp_path: Path) -> None:
+        # The replication log carried three of these. Each pointed back at a
+        # row further up while a different class sat in between.
+        prose = (
+            "| 1 | `TestThePanels::test_the_large_cap_panel` |\n"
+            "| 2 | `TestTheVintages::test_the_small_cap_file` |\n"
+            "| 3 | `::test_the_large_cap_panel` |\n"
+        )
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.startswith("README.md:3: `::test_the_large_cap_panel` names no test")
+
+    def test_a_named_file_must_hold_the_test(self, tmp_path: Path) -> None:
+        suite = {"test_panels.py": PANELS, "test_other.py": "def test_elsewhere(): ...\n"}
+        prose = "`tests/test_other.py::TestThePanels::test_the_large_cap_panel` pins it.\n"
+        (finding,) = _cited_findings(tmp_path, prose, suite)
+        assert "names no test in tests/test_other.py" in finding
+
+    def test_a_continuation_after_a_named_file_takes_that_citations_class(
+        self, tmp_path: Path
+    ) -> None:
+        prose = (
+            "`TestTheVintages::test_the_small_cap_file`, then\n"
+            "`tests/test_panels.py::TestThePanels::test_the_large_cap_panel` and\n"
+            "`::test_the_large_cap_panel`\n"
+        )
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_named_file_holding_the_test_resolves(self, tmp_path: Path) -> None:
+        prose = "`tests/test_panels.py::test_the_manifest_reads` and `::test_the_manifest_reads`\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_test_file_this_repo_does_not_keep_is_flagged(self, tmp_path: Path) -> None:
+        prose = "`tests/test_panels.py` and `tests/test_gone.py` hold the pins.\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == [
+            "README.md:1: `tests/test_gone.py` names tests/test_gone.py,"
+            " which this repo does not keep"
+        ]
+
+    def test_a_file_named_beside_a_class_does_not_bind_it(self, tmp_path: Path) -> None:
+        # README names a test file in a paragraph for one sentence and a class
+        # in another file for the next. Binding the two failed twelve correct
+        # citations on main.
+        suite = {"test_panels.py": PANELS, "test_figure.py": "def test_draws(): ...\n"}
+        prose = (
+            "`TestThePanels` pins the numbers, and\n"
+            "[tests/test_figure.py](tests/test_figure.py) holds the picture.\n"
+        )
+        assert _cited_findings(tmp_path, prose, suite) == []
+
+    def test_a_parametrize_id_is_read_past(self, tmp_path: Path) -> None:
+        prose = "`TestThePanels::test_the_large_cap_panel[A]` and `::test_the_large_cap_panel[B]`\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_an_inherited_test_belongs_to_the_subclass(self, tmp_path: Path) -> None:
+        suite = {
+            "test_runs.py": (
+                "class _Shared:\n"
+                "    def test_the_figures(self): ...\n"
+                "\n"
+                "class TestTheArchiveRuns(_Shared):\n"
+                "    pass\n"
+            )
+        }
+        prose = "`TestTheArchiveRuns::test_the_figures[C]` pins it.\n"
+        assert _cited_findings(tmp_path, prose, suite) == []
+
+    def test_a_citation_inside_a_fence_is_not_read(self, tmp_path: Path) -> None:
+        # A tilde fence, because without blanking a backtick fence's own runs
+        # pair with the span inside it and the case would pass either way.
+        prose = "~~~text\n`TestTheMidCaps` pins it.\n~~~\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_span_shaped_otherwise_is_not_a_citation(self, tmp_path: Path) -> None:
+        prose = (
+            "`urca::ur.df`, `tests/test_*_figures.py`, `testpaths`, `Foo::bar`\n"
+            "and `Testing` are not tests.\n"
+        )
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_an_attribute_of_a_test_class_checks_the_class(self, tmp_path: Path) -> None:
+        # README cites a constant a test class carries, which goes stale with
+        # the class rather than with any test in it.
+        prose = "`TestThePanels.MATLAB_5PCT` holds, and `TestTheMidCaps.LIMIT` does not.\n"
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.startswith("README.md:1: `TestTheMidCaps.LIMIT` names no test")
+
+    def test_a_span_wrapped_across_a_line_does_not_hide_what_follows(self, tmp_path: Path) -> None:
+        # The replication log wraps spans like the first one here. Reading a
+        # span as ending at the line end pairs its closing backtick with the
+        # next opening one, and the missing class after it goes unread.
+        prose = (
+            "The run prints `Verdict: REJECTS the\n"
+            "no-cointegration null`, and `TestTheMidCaps` pins it.\n"
+        )
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.startswith("README.md:2: `TestTheMidCaps` names no test")
+
+    def test_a_continuation_does_not_reach_past_an_entry_heading(self, tmp_path: Path) -> None:
+        prose = (
+            "## Entry 1\n\n`TestThePanels::test_the_large_cap_panel` pins it.\n\n"
+            "## Entry 2\n\n`::test_the_large_cap_panel` pins it too.\n"
+        )
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding == (
+            "README.md:7: `::test_the_large_cap_panel` continues no class cited before"
+            " it in its section, nearest present is"
+            " `tests/test_panels.py::TestThePanels::test_the_large_cap_panel`"
+        )
+
+    def test_a_continuation_reaches_past_a_lower_heading(self, tmp_path: Path) -> None:
+        # The log's "What each row says" table continues citations from the
+        # table under the heading before it.
+        prose = (
+            "`TestThePanels::test_the_large_cap_panel` pins it.\n\n"
+            "### What each row says\n\n`::test_the_large_cap_panel` pins it too.\n"
+        )
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_file_named_alone_keeps_the_class_before_it(self, tmp_path: Path) -> None:
+        suite = {"test_panels.py": PANELS, "test_figure.py": "def test_draws(): ...\n"}
+        prose = (
+            "| 1 | `TestThePanels::test_the_large_cap_panel` |\n"
+            "| 2 | drawn by `tests/test_figure.py` |\n"
+            "| 3 | `::test_the_large_cap_panel` |\n"
+        )
+        assert _cited_findings(tmp_path, prose, suite) == []
+
+    def test_a_continuation_stays_in_the_file_cited_before_it(self, tmp_path: Path) -> None:
+        suite = {"test_panels.py": PANELS, "test_other.py": "def test_elsewhere(): ...\n"}
+        prose = "`tests/test_other.py::test_elsewhere` and `::test_the_manifest_reads`\n"
+        (finding,) = _cited_findings(tmp_path, prose, suite)
+        assert "names no test in tests/test_other.py" in finding
+
+    def test_a_class_citation_leaves_the_file_cited_before_it(self, tmp_path: Path) -> None:
+        suite = {"test_panels.py": PANELS, "test_other.py": "def test_elsewhere(): ...\n"}
+        prose = (
+            "`tests/test_other.py::test_elsewhere`, then `TestThePanels` and\n"
+            "`::test_the_large_cap_panel`, then\n"
+            "`tests/test_other.py::test_elsewhere` and\n"
+            "`TestTheVintages::test_the_small_cap_file`\n"
+        )
+        assert _cited_findings(tmp_path, prose, suite) == []
+
+    def test_a_named_file_needs_the_node_id_pytest_would_take(self, tmp_path: Path) -> None:
+        # The replication log cited four tests by file and bare name while
+        # they sat under a class, which pytest refuses on the command line.
+        prose = "`tests/test_panels.py::test_the_large_cap_panel` pins it.\n"
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.endswith(
+            "nearest present is `tests/test_panels.py::TestThePanels::test_the_large_cap_panel`"
+        )
+
+    def test_a_named_file_reads_past_a_parametrize_id(self, tmp_path: Path) -> None:
+        prose = "`tests/test_panels.py::TestThePanels::test_the_large_cap_panel[C]`\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == []
+
+    def test_a_misspelt_bare_name_suggests_the_method_it_resembles(self, tmp_path: Path) -> None:
+        prose = "`test_the_small_cap_files` runs.\n"
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.endswith(
+            "nearest present is `tests/test_panels.py::TestTheVintages::test_the_small_cap_file`"
+        )
+
+    def test_a_missing_class_suggests_a_class_split_at_its_capitals(self, tmp_path: Path) -> None:
+        # The method shares two words and the class one, so only comparing a
+        # class with classes, word by capitalised word, suggests the class.
+        prose = "`TestTheVintagesFile` holds it.\n"
+        (finding,) = _cited_findings(tmp_path, prose, {"test_panels.py": PANELS})
+        assert finding.endswith("nearest present is `tests/test_panels.py::TestTheVintages`")
+
+    def test_a_name_sharing_no_word_suggests_nothing(self, tmp_path: Path) -> None:
+        prose = "`test_qqq_zzz` runs.\n"
+        assert _cited_findings(tmp_path, prose, {"test_panels.py": PANELS}) == [
+            "README.md:1: `test_qqq_zzz` names no test in the suite"
+        ]
+
+    def test_the_index_holds_classes_their_tests_and_module_functions(self, tmp_path: Path) -> None:
+        helper = "\nclass _Shared:\n    def test_the_figures(self): ...\n"
+        (tmp_path / "test_panels.py").write_text(PANELS + helper, encoding="utf-8")
+        (tmp_path / "helpers.py").write_text("def test_not_collected(): ...\n", "utf-8")
+        assert suite_index(tmp_path) == {
+            "test_panels.py": frozenset(
+                {
+                    "TestThePanels",
+                    "TestThePanels::test_the_large_cap_panel",
+                    "TestTheVintages",
+                    "TestTheVintages::test_the_small_cap_file",
+                    "test_the_manifest_reads",
+                }
+            )
+        }
+
+    def test_the_citing_documents_cite_tests(self) -> None:
+        """An empty scan and a clean repo are the same green suite otherwise."""
+        for name in CITING_DOCUMENTS:
+            document = REPO_ROOT / name
+            assert cited_tests(document.read_text("utf-8"), document), name
+
+    def test_every_test_the_citing_documents_name_exists(self) -> None:
+        """The suite is the single authority for every number the prose
+        quotes. A sentence pointing at a test the suite does not hold quotes
+        a number nothing asserts, and reads exactly like one that does."""
+        documents = [REPO_ROOT / name for name in CITING_DOCUMENTS]
+        findings = sweep_cited_tests(documents, REPO_ROOT, suite_index(REPO_ROOT / "tests"))
+        assert not findings, "\n".join(_messages(findings))
 
 
 # --- The cross-surface layer ---------------------------------------------------

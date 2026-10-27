@@ -62,8 +62,9 @@ from chan.aud_cad_rollover_whiteboard import (
     sketch_timeline,
     week_days_paid,
 )
+from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -127,8 +128,8 @@ LABELS = [
         "what is left is the net position",
     ],
 ]
-#: The ink of each label, in the order of :data:`LABELS`: green for what earns
-#: or checks out, red for what pays or overstates, grey for context, brown for
+#: The ink of each label, in the order of :data:`LABELS`: blue for what earns
+#: or checks out, vermilion for what pays or overstates, grey for context, berry for
 #: the tripled days and the closing words, black for the rest.
 LABEL_INKS = [
     [INK] * 6
@@ -318,7 +319,7 @@ class TestTheScenes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
     def test_neither_draws_a_tint(self, drawn) -> None:
-        """A tint would need a green edge, and neither sketch shades a region."""
+        """A tint would need a blue edge, and neither sketch shades a region."""
         assert not [fill for scene in drawn for fill in scene.fills]
 
 
@@ -338,7 +339,7 @@ class TestFiveDaysPayForSeven:
         assert aud == [str(d) for d in week_days_paid(rollover.AUD_TRIPLE_WEEKDAY)]
         assert cad == [str(d) for d in week_days_paid(rollover.CAD_TRIPLE_WEEKDAY)]
 
-    def test_the_tripled_box_sits_under_its_weekday_in_brown(self, drawn) -> None:
+    def test_the_tripled_box_sits_under_its_weekday_in_berry(self, drawn) -> None:
         scene = drawn[0]
         width = (CELLS_X[1] - CELLS_X[0]) / len(WEEK)
         for gid, weekday in (
@@ -364,7 +365,7 @@ class TestFiveDaysPayForSeven:
             assert brace.y.max() < row.y.min()
             assert words.y < brace.y.min() and words.names == gid
 
-    def test_252_is_green_and_365_red_with_the_closing_words_brown(self, drawn) -> None:
+    def test_252_is_blue_and_365_vermilion_with_the_closing_words_berry(self, drawn) -> None:
         scene = drawn[0]
         assert _stroke(scene, "by-252").color == GOOD
         assert _stroke(scene, "by-365").color == LOST
@@ -470,7 +471,7 @@ class TestLongAndShortDaysCancel:
             (_x_at(2 * either.long_days, either), BAR_X[1])
         )
 
-    def test_long_is_green_short_red_the_pairs_grey_and_the_check_green(self, drawn) -> None:
+    def test_long_is_blue_short_vermilion_the_pairs_grey_and_the_check_blue(self, drawn) -> None:
         scene = drawn[1]
         inks = {s.gid: s.color for s in scene.strokes}
         assert inks == {
@@ -534,9 +535,10 @@ class TestLongAndShortDaysCancel:
     def test_the_leftover_words_hang_under_the_short_half_from_the_bars_end(
         self, either, monkeypatch, fallback
     ) -> None:
-        """Red is the only ink tying them to the leftover span, and to a reader who
-        cannot tell red from grey their place has to do it. Two lines, each ending at
-        the bar's right end, keep them clear of the long half and of the grey label."""
+        """Vermilion is the only ink tying them to the leftover span, and to a reader
+        who cannot tell vermilion from grey their place has to do it. Two lines, each
+        ending at the bar's right end, keep them clear of the long half and of the
+        grey label."""
         _font(monkeypatch, fallback)
         scene = scenes(either)[1]
         words = [s for s in scene.steps if isinstance(s, Label) and s.names == "leftover"]
@@ -708,25 +710,25 @@ class TestThePost:
             drawn,
             (
                 [
-                    "outlined in brown and holds “3”",
+                    "outlined in berry and holds “3”",
                     "holds five boxes",
                     "A grey brace",
                     "between the two rows",
-                    "a green arrow labelled “average of AUD less CAD”",
-                    "a red arrow labelled “the same average × 365",
+                    "a blue arrow labelled “average of AUD less CAD”",
+                    "a vermilion arrow labelled “the same average × 365",
                     "A grey note",
-                    "a brown line closes",
+                    "a berry line closes",
                 ],
                 [
                     f"the {figures.held_days:,} days the rule holds a position",
-                    f"a green part labelled “{figures.long_days:,} days long",
-                    f"a red part labelled “{figures.short_days:,} days short",
+                    f"a blue part labelled “{figures.long_days:,} days long",
+                    f"a vermilion part labelled “{figures.short_days:,} days short",
                     "A grey bracket under the bar",
                     "a thinner grey line",
-                    "A red bracket",
-                    "a green tick",
+                    "A vermilion bracket",
+                    "a blue tick",
                     "A grey note",
-                    "a brown line closes",
+                    "a berry line closes",
                 ],
             ),
             strict=True,
@@ -737,8 +739,8 @@ class TestThePost:
 
     def test_the_five_days_alt_text_names_the_tripled_days(self, drawn) -> None:
         alt = _alt(drawn[0])
-        assert "“AUD”" in alt and "except Wednesday, which is outlined in brown" in alt
-        assert "“CAD”" in alt and "except that Thursday is the box outlined in brown" in alt
+        assert "“AUD”" in alt and "except Wednesday, which is outlined in berry" in alt
+        assert "“CAD”" in alt and "except that Thursday is the box outlined in berry" in alt
 
 
 class TestTheCommand:
@@ -747,3 +749,24 @@ class TestTheCommand:
         main()
         assert sorted(path.name for path in tmp_path.iterdir()) == sorted(GIFS)
         assert capsys.readouterr().out.splitlines() == [f"wrote {tmp_path / name}" for name in GIFS]
+        # The scenes name chan.palette's inks, but render quantizes every frame
+        # onto the palette it is passed, so a GIF written without INKS would
+        # land on the shared brass, green and red whatever the scenes say.
+        for name in GIFS:
+            assert _gif_palette(tmp_path / name) == _ink_palette(INKS), name
+
+    def test_each_committed_gif_carries_the_colour_blind_safe_palette(self) -> None:
+        for name in GIFS:
+            assert _gif_palette(FIGURES_DIR / name) == _ink_palette(INKS), name
+        assert _ink_palette(INKS) != _ink_palette(whiteboard.INKS)
+
+
+def _ink_palette(inks) -> list[int]:
+    """The leading entries of the renderer's palette for ``inks``: white, then each ink's blends."""
+    flat = whiteboard.palette(inks).getpalette()
+    return flat[: 3 * (1 + len(inks) * len(whiteboard.BLENDS))]
+
+
+def _gif_palette(path) -> list[int]:
+    with Image.open(path) as gif:
+        return gif.getpalette()[: len(_ink_palette(INKS))]

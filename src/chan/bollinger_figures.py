@@ -19,9 +19,10 @@ The band, the linear rule and the spread come from
 :func:`chan.bollinger.example_three_two`, the run's own path, so the
 scale-break guard runs here too. The dashed line comes from
 :func:`divided_by_n` instead. It takes that run's spread and recomputes the
-z-score with ``smartMovingStd`` in place of ``movingStd``, and
-``tests/test_bollinger_figures.py`` holds it equal to the patched run that
-``tests/test_bollinger.py`` builds. Redraw it with::
+z-score with ``smartMovingStd`` in place of ``movingStd``, through
+:func:`zscore_divided_by_n`, which the post's second whiteboard sketch reads
+too. ``tests/test_bollinger_figures.py`` holds it equal to the patched run
+that ``tests/test_bollinger.py`` builds. Redraw it with::
 
     uv run python -m chan.bollinger_figures
 """
@@ -74,16 +75,26 @@ def cumulative_return(run: Run) -> np.ndarray:
     return np.cumprod(1 + run.daily) - 1
 
 
+def zscore_divided_by_n(signal: Signal, lookback: int = LOOKBACK) -> np.ndarray:
+    """The z-score of ``signal`` with ``smartMovingStd``, which divides by n.
+
+    :func:`divided_by_n` trades on it, and :mod:`chan.bollinger_whiteboard`
+    draws it, so the figure's dashed line and the sketch read one calculation.
+    """
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return (signal.value - moving_avg(signal.value, lookback)) / smart_moving_std(
+            signal.value, lookback
+        )
+
+
 def divided_by_n(signal: Signal, lookback: int = LOOKBACK) -> Run:
     """The band on ``signal`` with ``smartMovingStd``, which divides by n.
 
     Everything else is :func:`chan.bollinger.bollinger_band`'s: the same
     ``movingAvg``, the same thresholds and the same returns.
     """
-    with np.errstate(invalid="ignore", divide="ignore"):
-        z = (signal.value - moving_avg(signal.value, lookback)) / smart_moving_std(
-            signal.value, lookback
-        )
+    z = zscore_divided_by_n(signal, lookback)
+    with np.errstate(invalid="ignore"):
         units = band_units(z < -ENTRY_ZSCORE, z > -EXIT_ZSCORE, z > ENTRY_ZSCORE, z < EXIT_ZSCORE)
     positions = units[:, None] * signal.unit_dollars
     return Run(signal, units, positions, daily_returns(positions, signal.prices))

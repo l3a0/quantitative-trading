@@ -60,8 +60,9 @@ from chan.etf_cointegration_whiteboard import (
     make_etf_cointegration_whiteboards,
     scenes,
 )
+from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -171,6 +172,17 @@ def _durations(path) -> list[int]:
         return found
 
 
+def _assert_the_new_inks(path) -> None:
+    """``render`` maps every frame onto the palette of the inks it is handed,
+    and defaults to the shared brass, green and red. A sketch drawn without
+    :data:`chan.palette.INKS` carries those colours whatever its strokes asked
+    for. The byte comparison that would notice runs only on macOS arm64, and
+    this check runs everywhere."""
+    with Image.open(path) as image:
+        flat = image.getpalette()
+    assert flat == whiteboard.palette(INKS).getpalette(), path.name
+
+
 def _alt(text: str, scene) -> str:
     match = re.search(rf"!\[([^\]]+)\]\(\.\./docs/figures/{re.escape(gif_name(scene))}\)", text)
     assert match, scene.slug
@@ -200,8 +212,8 @@ class TestTheScenes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
     def test_neither_carries_a_tint(self, every) -> None:
-        """A pale tint needs a green edge to read, as the equity seasonals
-        module's ``_tinted`` draws. These two carry none, so none is owed."""
+        """A pale tint needs an edge in its full ink to read, as the equity
+        seasonals module's ``_tinted`` draws. These two carry none, so none is owed."""
         assert [scene.fills for scene in every] == [[], []]
 
 
@@ -263,6 +275,10 @@ class TestTheGifs:
         for path in gifs:
             assert path.stat().st_size < 1_000_000, path.name
 
+    def test_each_is_drawn_on_the_palette_of_the_new_inks(self, gifs) -> None:
+        for path in gifs:
+            _assert_the_new_inks(path)
+
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path, stack) -> None:
         again = make_etf_cointegration_whiteboards(out_dir=tmp_path, stack=stack)
         for first, second in zip(gifs, again, strict=True):
@@ -270,6 +286,10 @@ class TestTheGifs:
 
 
 class TestTheCommittedGifs:
+    def test_each_is_drawn_on_the_palette_of_the_new_inks(self) -> None:
+        for name in GIFS:
+            _assert_the_new_inks(FIGURES_DIR / name)
+
     def test_each_has_the_size_frames_loop_and_timing_of_a_fresh_draw(self, every) -> None:
         for name, scene in zip(GIFS, every, strict=True):
             steps = timeline(scene)
@@ -414,7 +434,7 @@ class TestTheStackSketch:
 
     def test_its_colours(self, every) -> None:
         """The first piece is black in both columns, the two the trace test
-        adds are brown, the verdicts are red and green, and the bars and floor
+        adds are berry, the verdicts are vermilion and blue, and the bars and floor
         are black and grey. Each verdict is said in words too."""
         scene = every[0]
         colours = {s.gid: s.color for s in scene.strokes}

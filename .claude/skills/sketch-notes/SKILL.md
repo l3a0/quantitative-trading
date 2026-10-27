@@ -51,7 +51,12 @@ colours keep the meanings above: a blue `GOOD`, a vermilion `LOST` and a berry
 `REJECT_TINT` from `chan.palette`, and passes `chan.palette.INKS` to `render`.
 A tint from anywhere else would land on the nearest colour in that post's
 palette rather than its own. So check which colours the post already draws in
-before copying a newer post's imports.
+before copying a newer post's imports. The draft script below draws a scene in
+`chan.palette.INKS` when its module imports them, when it is run with
+`--palette`, or when the scene uses the berry, the blue, the vermilion or one
+of their tints. In a post that has moved, it flags any shared colour left in a
+scene, such as a `_dot` on its default brass, which the renderer would turn
+grey. Pass `--palette` when drafting a moved post's scene from a scratch file.
 
 Each post gets its own module and its own test module, both named for the post,
 such as `chan.usdcad_tests_whiteboard` and `tests/test_usdcad_tests_whiteboard.py`.

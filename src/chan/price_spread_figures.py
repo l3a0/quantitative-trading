@@ -32,6 +32,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import PercentFormatter
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
 from chan.price_spread import (
     LOOKBACK,
@@ -41,7 +42,7 @@ from chan.price_spread import (
     example_three_one,
     read_sources,
 )
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
+from chan.regime_figure import INK, MUTED, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 

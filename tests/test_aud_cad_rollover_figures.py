@@ -43,8 +43,9 @@ from chan.aud_cad_rollover_figures import (
     spells,
 )
 from chan.matlab_helpers import lag1
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, RULE
+from chan.regime_figure import INK, MUTED, RULE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 
@@ -282,7 +283,7 @@ class TestTheHeldPositions:
         assert (closes.max(), str(closes.idxmax().date())) == (1.07555, "2012-02-08")
         assert _title(axes["close"]) == (
             "The AUD.CAD close, from 0.72500 on 2008-10-08 to 1.07555 on 2012-02-08.\n"
-            "Shaded green on the 510 days held long and red on the 707 held short. The first "
+            "Shaded blue on the 510 days held long and vermilion on the 707 held short. The first "
             "20 days hold nothing."
         )
 
@@ -314,7 +315,7 @@ class TestTheHeldPositions:
         (unfilled,) = _spans(axes["close"], "unfilled")
         assert unfilled == (date2num(result.days[0]), date2num(result.days[19]))
 
-    def test_long_is_green_short_is_red_and_the_unfilled_days_grey(self, axes) -> None:
+    def test_long_is_blue_short_is_vermilion_and_the_unfilled_days_grey(self, axes) -> None:
         """No legend tells the two apart, so the colour and the heading are the claim."""
         assert same_color(HELD_COLOURS["long"], GOOD)
         assert same_color(HELD_COLOURS["short"], LOST)

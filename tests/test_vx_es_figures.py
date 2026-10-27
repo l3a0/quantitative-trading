@@ -18,20 +18,25 @@ Exploratory, like everything locations 2546 to 2559 compute here.
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.colors import to_hex, to_rgb, to_rgba
 from matplotlib.dates import date2num
 
 from chan import vx_es_figures
-from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, RULE
+from chan.palette import ACCENT, GOOD, LOST
+from chan.paths import FIGURES_DIR, REPO_ROOT
+from chan.regime_figure import GROUND, INK, RULE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from chan.vx_es import ES, VX, position_changes, read_legs, vx_es
 from chan.vx_es_figures import (
     DOWNGRADE,
     REGIMES,
+    SHADE_ALPHA,
     VX_ES_FIGURE,
     Holding,
     cumulative_return,
@@ -41,6 +46,7 @@ from chan.vx_es_figures import (
     regime_masks,
     signed,
 )
+from tests.test_palette import _MACHADO, _apart
 
 
 @pytest.fixture(scope="module")
@@ -207,7 +213,7 @@ class TestTheZScore:
         ]
 
     def test_each_shade_runs_from_an_entry_to_the_next(self, axes, result) -> None:
-        """Green for a long and red for a short, with the flat start left unshaded."""
+        """Blue for a long and vermilion for a short, with the flat start left unshaded."""
         runs = holdings(result.trade)
         shades = [p for p in axes["z"].patches if p.get_gid() in ("long", "short")]
         held = [r for r in runs if r.units]
@@ -223,11 +229,27 @@ class TestTheZScore:
                 tuple(int(colour[i : i + 2], 16) / 255 for i in (1, 3, 5))
             )
 
+    def test_the_long_and_short_shades_stay_apart_under_colour_blindness(self, axes) -> None:
+        """Each shade is its colour laid on the axes' ground at SHADE_ALPHA. The
+        two sit at least 8 apart in normal vision and under each kind of colour
+        blindness, which the 0.13 the shared colours used did not reach."""
+        shades = {}
+        for patch in axes["z"].patches:
+            if patch.get_gid() in ("long", "short"):
+                *rgb, alpha = patch.get_facecolor()
+                assert alpha == pytest.approx(SHADE_ALPHA)
+                ground = to_rgb(GROUND)
+                shades[patch.get_gid()] = to_hex(
+                    [alpha * c + (1 - alpha) * g for c, g in zip(rgb, ground, strict=True)]
+                )
+        for kind in (None, *_MACHADO):
+            assert _apart(shades["long"], shades["short"], kind) >= 8, kind
+
     def test_the_heading_names_the_band_and_the_lowest_day(self, axes) -> None:
         assert _title(axes["z"]) == (
-            "The z-score from 2008-08-04, with the band at ±1. Shaded green while long and red "
-            "while short.\nDashed: the last training day, 2010-07-28. The lowest, −3.89, is on "
-            "2011-08-08."
+            "The z-score from 2008-08-04, with the band at ±1. Shaded blue while long and "
+            "vermilion while short.\nDashed: the last training day, 2010-07-28. The lowest, "
+            "−3.89, is on 2011-08-08."
         )
 
 
@@ -269,6 +291,30 @@ class TestTheCumulativeReturn:
         label = _by_gid(axes["returns"].texts)["downgrade-label"]
         assert label.get_text() == "−4.59 percent at the close of 2011-08-05"
         assert label.xy == (DOWNGRADE, cumulative_return(result.trade).loc[DOWNGRADE])
+
+    def test_the_downgrade_label_is_vermilion_on_a_white_box(self, axes) -> None:
+        """The vermilion reaches 4.30 to 1 on the axes' ground, short of 4.5,
+        so the label reads only on the box behind it."""
+        label = _by_gid(axes["returns"].texts)["downgrade-label"]
+        assert label.get_color() == LOST
+        assert label.get_bbox_patch().get_facecolor() == (1.0, 1.0, 1.0, 1.0)
+
+    def test_the_changes_are_berry_and_the_downgrade_vermilion(self, axes) -> None:
+        lines = _by_gid(axes["returns"].lines)
+        assert lines["changes"].get_color() == ACCENT
+        assert lines["downgrade"].get_color() == LOST
+        label = _by_gid(axes["returns"].texts)["downgrade-label"]
+        assert label.arrow_patch.get_edgecolor() == pytest.approx(to_rgba(LOST))
+
+    def test_the_post_s_alt_text_names_the_palette_s_colours(self) -> None:
+        text = (REPO_ROOT / "blog" / "vx-es-lessons.md").read_text(encoding="utf-8")
+        alt = re.search(r"!\[([^\]]*)\]\(\.\./docs/figures/vx_es\.png\)", text).group(1)
+        assert "Days from 2004 to May 2008, in berry," in alt
+        assert "A vermilion line, the fit on the 500 training days" in alt
+        assert "shaded blue while the position is long and vermilion while it is short" in alt
+        assert "it stays shaded blue and mostly below minus one" in alt
+        assert "switches between vermilion, blue and vermilion" in alt
+        assert "a dashed vermilion line at 2011-08-05" in alt
 
     def test_the_heading_sets_the_figures_beside_the_book_s(self, axes) -> None:
         assert _title(axes["returns"]) == (
