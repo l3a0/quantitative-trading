@@ -3830,7 +3830,7 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    it and Chan's count for it.
 2. `commodity_sketch_after_book.gif`, in the opening, both trades' years on
    one axis from 1994 to 2023, a dot for each profitable year and a cross for
-   each loss, each row split where Chan's years end, with the years won on
+   each loss, each row split where the book's years end, with the years won on
    each side.
 3. `commodity_sketch_streak_start.gif`, in Lesson 1, a year axis from 1994 to
    the 2009 loss with a dot for each profitable year of the natural gas
@@ -3924,7 +3924,7 @@ uv run python -m chan.commodity_seasonals_whiteboard
 
 [tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
 holds that each opening bar runs from its trade's entry to its exit, that
-the opening's split falls after the last year Chan counted with the table's
+the opening's split falls after the last of the book's years with the table's
 years won on each side, that each natural gas bracket ends where the run's
 streak reaches Chan's count, that gasoline's sidebar bracket ends before its first loss while the
 main text's covers both, that the Lesson 2 sketches draw the run's range,

@@ -3523,7 +3523,7 @@ and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all
 twenty-six.
 
 1. Each trade's entry and exit on one calendar, with Chan's count for it.
-2. Both trades' years won, split where Chan's years end: 15 of 15 then 7 of
+2. Both trades' years won, split where the book's years end: 15 of 15 then 7 of
    15 for natural gas, and 16 of 18 then 3 of 8 for gasoline.
 3. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
    against the 2009 loss and the first edition's release.

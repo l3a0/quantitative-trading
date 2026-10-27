@@ -1,7 +1,7 @@
 """The pins for the twenty-six whiteboard GIFs in the commodity seasonals post.
 
 Two sketches draw the opening, the two trades on one calendar and the years
-each won in Chan's years and after. Two draw Lesson 1, its natural gas streaks
+each won in the book's years and after. Two draw Lesson 1, its natural gas streaks
 and gasoline's two claims.
 Nine draw Lesson 2: the range the missing rows leave, a guessed price, what
 Chan's 19 needs, how fill 2 carries June's move, which April days can test a
@@ -19,14 +19,14 @@ than from a pinned copy of their figures. Most tests check the drawing against
 the run, and a few check the run against literal dates, counts and labels the
 post quotes, such as test_the_run_gives_these_dates_and_files.
 
-1. The calendar sketch draws each trade's entry and exit as a bar on one
+1. The two-trades sketch draws each trade's entry and exit as a bar on one
    calendar. What is pinned is that each bar runs from the run's entry date to
    its exit date on one scale, that its labels name those dates and Chan's
    counts, and that other dates move the bars and the labels.
-2. The split sketch draws both trades' years on one axis, split where Chan's
-   years end. What is pinned is that each mark sits at its year on one scale,
-   that no year without a row gets a mark, that each dashed line falls between
-   the last year Chan counted and the next, that the counts on each side are
+2. The split sketch draws both trades' years on one axis, split where the
+   book's years end. What is pinned is that each mark sits at its year on one
+   scale, that no year without a row gets a mark, that each dashed line falls
+   between the last of the book's years and the next, that the counts on each side are
    the run's and the opening table's, and that other figures move them.
 3. The streak sketch draws a dot at each profitable year from 1994 to the
    first loss, a cross at that loss, a note naming the trade as natural gas's
@@ -365,7 +365,7 @@ SPLIT_LABELS = [
     "2015",
     "2023",
     "dot: a profitable year   x: a loss",
-    "dashed: where Chan’s years end",
+    "dashed: where the book’s years end",
 ]
 
 STREAK_LABELS = [
@@ -1121,7 +1121,7 @@ class TestThePost:
                 at = found + len(label) + 2
 
 
-# --- The opening: the two trades and the years after Chan's ---------------------
+# --- The opening: the two trades and the years after the book's ----------------
 
 
 class TestTheTwoTradesSketch:
@@ -1219,9 +1219,24 @@ class TestTheSplitFigures:
         )
 
 
+def _centre(stroke) -> tuple[float, float]:
+    """The middle of a stroke's extent, which for a cross is the point it is
+    drawn around, since its points are spread unevenly along its arms."""
+    return (stroke.x.min() + stroke.x.max()) / 2, (stroke.y.min() + stroke.y.max()) / 2
+
+
+def _split_counts(scene, tag: str) -> list:
+    """The years-won labels either side of a row's dashed line, before then after."""
+    return [
+        s
+        for s in scene.steps
+        if isinstance(s, Label) and s.names == f"{tag}-split" and s.text.endswith(" won")
+    ]
+
+
 class TestTheSplitSketch:
     def test_its_words(self, every) -> None:
-        assert every[1].title == "Years won, in Chan’s years and after"
+        assert every[1].title == "Years won, in the book’s years and after"
         assert every[1].labels == SPLIT_LABELS
 
     def test_its_colours(self, every, split) -> None:
@@ -1234,15 +1249,14 @@ class TestTheSplitSketch:
                     assert _stroke(scene, f"{tag}-lost-{year}").color == LOST, year
             line = _stroke(scene, f"{tag}-split")
             assert (line.color, line.dashed) == (MUTED, True)
-            words = [s for s in scene.steps if isinstance(s, Label) and s.names == f"{tag}-split"]
-            assert [s.color for s in words] == [INK, ACCENT], tag
+            assert [s.color for s in _split_counts(scene, tag)] == [INK, ACCENT], tag
         assert _label(scene, "natural gas, June contract").color == INK
         assert _label(scene, "gasoline, May contract").color == INK
         assert _stroke(scene, "gap-0").color == MUTED
         for words in (
             "no row",
             "dot: a profitable year   x: a loss",
-            "dashed: where Chan’s years end",
+            "dashed: where the book’s years end",
         ):
             assert _label(scene, words).color == MUTED
 
@@ -1269,17 +1283,16 @@ class TestTheSplitSketch:
             assert set(dots.y) == {y}
             for year, w in years:
                 if w is False:
-                    cross = _stroke(scene, f"{tag}-lost-{year}")
-                    assert (cross.x.mean(), cross.y.mean()) == pytest.approx(
+                    assert _centre(_stroke(scene, f"{tag}-lost-{year}")) == pytest.approx(
                         (_split_x(year, split), y)
-                    )
+                    ), year
         for year in ("1994", "2008", "2015", "2023"):
             assert _label(scene, year).x == pytest.approx(_split_x(int(year), split))
 
     def test_a_year_with_no_row_gets_no_mark_and_sits_under_the_span(self, every, split) -> None:
         scene = every[1]
         marked = list(_stroke(scene, "gasoline-won").x) + [
-            s.x.mean() for s in scene.strokes if s.gid.startswith("gasoline-lost-")
+            _centre(s)[0] for s in scene.strokes if s.gid.startswith("gasoline-lost-")
         ]
         span = _stroke(scene, "gap-0")
         for year in (1997, 1998, 1999):
@@ -1288,16 +1301,14 @@ class TestTheSplitSketch:
             assert span.x.min() < x < span.x.max(), year
         assert span.y.max() < sketches.SPLIT_YS[1]
 
-    def test_each_dashed_line_falls_after_the_last_year_chan_counted(self, every, split) -> None:
+    def test_each_dashed_line_falls_after_the_last_of_the_books_years(self, every, split) -> None:
         scene = every[1]
         for tag, end in (("gas", split.gas_end), ("gasoline", split.gasoline_end)):
             line = _stroke(scene, f"{tag}-split")
-            assert set(line.x) == {pytest.approx(_split_x(end + 0.5, split))}, tag
-            before, after = (
-                s for s in scene.steps if isinstance(s, Label) and s.names == f"{tag}-split"
-            )
+            assert list(line.x) == pytest.approx([_split_x(end + 0.5, split)] * len(line.x)), tag
+            before, after = _split_counts(scene, tag)
             assert before.x < line.x[0] < after.x, tag
-        gas_losses = [s.x.mean() for s in scene.strokes if s.gid.startswith("gas-lost-")]
+        gas_losses = [_centre(s)[0] for s in scene.strokes if s.gid.startswith("gas-lost-")]
         assert min(gas_losses) > _stroke(scene, "gas-split").x[0]
 
     def test_other_figures_move_the_counts_and_the_lines(self) -> None:
@@ -1310,7 +1321,7 @@ class TestTheSplitSketch:
             gasoline_end=2007,
         )
         scene = _after_book(made_up)
-        assert {"4 of 6 won", "3 of 5 won", "5 of 6 won", "2 of 3 won"} <= set(scene.labels)
+        assert {"4 of 6 won", "3 of 5 won", "6 of 6 won", "2 of 3 won"} <= set(scene.labels)
         assert {"2000", "2005", "2007", "2010"} <= set(scene.labels)
         assert "2023" not in scene.labels
         assert _stroke(scene, "gas-split").x[0] == pytest.approx(_split_x(2005.5, made_up))

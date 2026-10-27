@@ -3,7 +3,7 @@
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
 trades against EIA's settlements. Twenty-six of its passages turn on a picture a
 sentence has to build in the reader's head: when each trade buys and sells,
-how many years each won in Chan's years and after, where a count of
+how many years each won in the book's years and after, where a count of
 profitable years starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
 missing one, what Chan's 19 needs of the missing years, how the second fill
@@ -24,10 +24,12 @@ the paragraph it draws.
    a bar on a calendar from February to May, with the demand behind it and
    Chan's count for it. It sits in the opening, after the list that opens
    "1. **Gasoline.**".
-2. Years won, in Chan's years and after: both trades' years on one axis from
+2. Years won, in the book's years and after: both trades' years on one axis
+   from
    1994 to 2023, a dot for each profitable year, a cross for each loss and a
    span under gasoline's years with no row, each row split by a dashed line
-   where Chan's years end, after 2008 for natural gas and 2015 for gasoline,
+   where the book's years end, after 2008 for natural gas and 2015 for
+   gasoline,
    with the years won on each side. It sits after the opening's table of the
    periods before and after the book.
 3. Where the count starts decides where a streak ends: a year axis from 1994
@@ -157,7 +159,7 @@ the paragraph it draws.
    computes its own calendar".
 
 All twenty-six carry data, and none needs the owner's archive.
-The calendar sketch reads its dates from the run's trade dates,
+The two-trades sketch reads its dates from the run's trade dates,
 :data:`chan.commodity_seasonals.NG_ENTRY` and the three beside it, and
 :meth:`SplitFigures.from_run` reads every year of both trades from
 :func:`chan.commodity_seasonals.natural_gas_trades` and
@@ -192,7 +194,7 @@ The handover and holiday sketches read the contract-1 and contract-2 files.
 numbers from :func:`chan.commodity_seasonals.natural_gas_trade`, and each
 contract's last trading day from :func:`chan.futures.ng_last_trade`. Three
 figures are the book's rather than the run's: the counts 13 and 14 Chan
-prints, which the calendar sketch writes and the streak sketch looks up in
+prints, which the two-trades sketch writes and the streak sketch looks up in
 the run's streaks, gasoline's 19 profitable years of 21 as of 2015, which four
 sketches draw, and the first
 edition's release in November 2008, which the post cites.
@@ -391,9 +393,10 @@ class SplitFigures:
     """What the split sketch draws, read from both runs.
 
     ``gas`` and ``gasoline`` hold each year of their trade with ``True`` for a
-    profit, ``False`` for a loss and ``None`` for a year whose trade dates have
-    no row in the file. ``gas_end`` and ``gasoline_end`` are the last years
-    Chan counted, after which the post's table splits each trade's record.
+    profit, ``False`` for a loss and ``None`` for a year one of whose trade
+    dates has no row in the file. ``gas_end`` and ``gasoline_end`` are the
+    last of the book's years, after which the post's table splits each
+    trade's record.
     """
 
     gas: tuple[tuple[int, bool | None], ...]
@@ -495,8 +498,8 @@ def _split_row(
 
 
 def _after_book(f: SplitFigures) -> Scene:
-    """The opening: each trade's years on one axis, split where Chan's years
-    end, with the years won on each side."""
+    """The opening: each trade's years on one axis, split where the book's
+    years end, with the years won on each side."""
     gas_y, gasoline_y = SPLIT_YS
     steps = _split_row("gas", f.gas, f.gas_end, gas_y, TRADE, f)
     steps += _split_row("gasoline", f.gasoline, f.gasoline_end, gasoline_y, GASOLINE_TRADE, f)
@@ -545,7 +548,7 @@ def _after_book(f: SplitFigures) -> Scene:
             size=10,
         ),
         Label(
-            "dashed: where Chan’s years end",
+            "dashed: where the book’s years end",
             9.7,
             0.3,
             names="gasoline-split",
@@ -554,7 +557,7 @@ def _after_book(f: SplitFigures) -> Scene:
             ha="right",
         ),
     ]
-    return Scene("Years won, in Chan’s years and after", "after_book", tuple(steps))
+    return Scene("Years won, in the book’s years and after", "after_book", tuple(steps))
 
 
 # --- Lesson 1: where the count starts ----------------------------------------
