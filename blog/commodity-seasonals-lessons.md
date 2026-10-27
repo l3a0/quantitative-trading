@@ -61,7 +61,7 @@ EIA publishes settlement prices for the nearest four contracts of each product. 
 
 Lesson 2’s second way of guessing the missing gasoline prices also reads New York Harbor’s contract 2 file. Lesson 5 reads natural gas’s contract 1 file as well, to check the expiry rule against the files’ own prices and to count holiday rows. Both files come from the same download.
 
-## Lesson 1: a count of consecutive years needs its start year and its edition
+## Lesson 1: ask a consecutive count where it starts and which edition wrote it
 
 The main text says the natural gas trade “has been profitable for 13 consecutive years as of this writing” (p. 185). The sidebar says 14 (p. 185). Neither says which year its streak ends in, and either may be text kept from the first edition.
 
@@ -88,7 +88,7 @@ Gasoline’s main text says 19 profitable years of the last 21 “as of 2015” 
 
 ![“Gasoline’s two claims read as two editions”, drawn slowly stroke by stroke on a year axis from 1995 to 2015 that carries a label only at “1995”, “2008” and “2015”. Each profitable year has a blue dot on the axis, and 2009 and 2012 each have a vermilion cross. Under 1997 to 1999, which have no mark, a grey span reads “no row”. A dashed grey line between 2008 and 2009 marks the “first edition, Nov 2008”. Above the axis a purple bracket, “sidebar: a profit every year since 1995”, runs from 1995 to 2008 and ends before the dashed line and before either cross. Above it a black bracket, “main text: 19 of 21, as of 2015”, runs from 1995 to 2015, past the dashed line and both crosses. Captions read “dot: a profitable year” and “x: a loss, 2009 and 2012”, and a note in the lower right names the contract as “May contract”. The sidebar’s claim fits the first edition’s years and the main text’s count fits the revised edition’s. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_gasoline_editions.gif)
 
-## Lesson 2: a missing row is not a losing year
+## Lesson 2: read a missing row as missing, not as a loss
 
 ### Three missing rows bound the count
 
@@ -250,7 +250,7 @@ So the chance that all three years were profits, which Chan’s 19 needs, is 42%
 
 ![“Each corrected move against fill 2’s spread”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, each with its σ above its bar: “σ = 0.86¢” for “1997”, with “57%”, then “σ = 0.74¢” for “1998”, with “83%”, then “σ = 0.62¢” for “1999”, with “90%”. In each row a purple dot right of zero marks the year’s move with fill 2’s guess corrected by its average miss, and a black bar of one spread either side. The bar for 1997 reaches well across zero, the bar for 1998 only just reaches past it, and the bar for 1999 stops just short of it. A scale below reads “-1¢” and “+1¢” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal around their average. Captions read “dot: the corrected move” and “bar: σ, fill 2’s spread, either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
 
-## Lesson 3: out-of-sample testing
+## Lesson 3: test the trade out of sample
 
 Chan picked both trades by studying past prices, and both rules name exact days. That invites **data-snooping bias**, Chan’s own name for it: searching the past for a rule that worked picks up chance patterns along with real ones, so the winning rule looks better on the years it was chosen from than it will on new ones. Only an out-of-sample test checks it, one run on years the rule was not chosen from. Here those are the years after the book. The book’s years end where Chan’s counts end: 2015 for gasoline, and 2008 for natural gas under Lesson 1’s reading. Natural gas starts in 1994, the first year the files hold a whole trade.
 
@@ -272,7 +272,7 @@ Natural gas’s years after the book are also its years after publication, since
 2. The market changed.
 3. Traders acted on the rule once it was in print.
 
-## Lesson 4: one trade a year leaves too few results to grade a split
+## Lesson 4: count the results before grading a split
 
 Each trade happens once a year, so 15 years give 15 results, about what a strategy that trades every day collects in three weeks. The rest of this lesson works out how far to trust so few results.
 
@@ -369,7 +369,7 @@ Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.
 
 Chan makes the point about few results too, and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a pass mark that gets stricter the more variants the search tries, and years the search never sees.
 
-## Lesson 5: reading one named contract from files numbered by expiry needs a calendar checked outside the files
+## Lesson 5: find a contract’s file with the exchange’s calendar
 
 EIA’s files hold contract 1, contract 2 and so on, not the May or June contract, so every trade date needs the file that holds Chan’s contract.
 
