@@ -423,7 +423,7 @@ Four habits follow from the first four lessons.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
 2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighbouring day would decide the answer instead of checking it. Even the closer of the run’s two fills, fill 2, has a typical miss larger than each year’s move with its guess, and correcting its lean still leaves no year at 95%.
-3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a Sharpe ratio of 1.0, and averaged a loss of 0.4% a year after.
+3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a mean return of 10.6% a year, and averaged a loss of 0.4% a year after.
 4. **Count the results behind a Sharpe ratio, and ask which test a claimed change rests on.** Fifteen yearly trades leave a standard error near 0.3, and one year, 2022, decides whether the fall in natural gas’s average stands out from luck.
 
 ## References
