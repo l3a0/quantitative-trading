@@ -719,7 +719,10 @@ class TestTheReport:
         assert "0.2719 (0.0238)" in printed
         assert "2.9333" in printed
         assert "2009-01-02 to 2012-05-11, 849 days" in printed
-        assert "250/25 correlation 0.2870, p 0.0168" in printed, "the 2012-05-17 save"
+        assert (
+            "2004-06-07 to 2012-05-17, 250/25 correlation 0.2870, p 0.0168, Hurst 0.446556, "
+            "Kelly f 64.930941" in printed
+        ), "the 2012-05-17 save"
 
 
 POST = paths.REPO_ROOT / "blog" / "tu-momentum-lessons.md"

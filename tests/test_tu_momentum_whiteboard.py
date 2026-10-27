@@ -45,6 +45,7 @@ from dataclasses import replace
 
 import matplotlib
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 from scipy.stats import pearsonr
@@ -448,6 +449,24 @@ class TestThePost:
 
 
 class TestTheFigures:
+    def test_from_closes_reads_the_offset_the_equal_closes_and_the_cell_it_is_given(self) -> None:
+        """Made-up closes, so no figure can come from the committed saves.
+
+        The later series starts three days in, ends three days past the earlier
+        one, and differs on one shared day, and the cell is 40/10 rather than
+        the traded 250/25.
+        """
+        days = pd.bdate_range("2020-01-01", periods=303)
+        closes = 100 * np.exp(np.cumsum(np.random.default_rng(7).normal(0, 0.01, 303)))
+        earlier = pd.Series(closes[:300], index=days[:300])
+        later = pd.Series(closes[3:], index=days[3:]).copy()
+        later.iloc[10] += 1
+        made_up = SaveFigures.from_closes(earlier, later, lookback=40, hold=10)
+        assert made_up.offset == 3
+        assert (made_up.shared, made_up.equal) == (297, 296)
+        assert made_up.earlier.coefficient == tu.correlation(earlier.to_numpy(), 40, 10).coefficient
+        assert made_up.later.coefficient == tu.correlation(later.to_numpy(), 40, 10).coefficient
+
     def test_the_cell_is_the_traded_one(self, figures) -> None:
         assert (figures.lookback, figures.hold) == (tu.LOOKBACK, tu.HOLD_DAYS) == (250, 25)
         assert (figures.step, figures.overlap) == (25, 225)
