@@ -209,6 +209,7 @@ class TestTheWords:
         assert "over 30, unlevered and before costs" in note
         assert "inputDataOHLCDaily_stocks_20120424.mat" in note
         assert "earnannFile.mat" in note
+        assert "stocks that were in the S&P 500 in late 2011" in note
         assert "every stock is a survivor" in note
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:

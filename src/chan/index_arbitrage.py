@@ -1,6 +1,6 @@
 """SPY against the S&P 500 stocks that pass a Johansen screen, *Algorithmic Trading*'s Example 4.2.
 
-Chan tests each stock in his 2012 S&P 500 file against SPY over 2007 and keeps
+Chan tests each stock in his 2012 stock file against SPY over 2007 and keeps
 the ones that pass. He holds those stocks with equal capital, checks that the
 basket cointegrates with SPY, and trades the basket against SPY with a linear
 mean-reversion rule from 2008. At Kindle location 2035 he reports "98 stocks

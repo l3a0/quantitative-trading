@@ -34,11 +34,13 @@ from matplotlib.dates import DateFormatter, YearLocator, date2num, num2date
 from chan import buy_on_gap
 from chan.buy_on_gap import SPREAD_LOOKBACK, both_sides
 from chan.buy_on_gap_figures import CUMULATIVE_FIGURE, main, make_cumulative_figure, panel_heading
+from chan.palette import LOST
 from chan.paths import FIGURES_DIR
 from chan.pead_figures import cumulative_return, longest_spell
-from chan.regime_figure import LOST, RULE
+from chan.regime_figure import GROUND, RULE, SURFACE
 from chan.vintage import VintageUnavailable
 from tests.test_buy_on_gap import SPEC
+from tests.test_palette import _contrast
 
 #: Each side's longest spell as the figure draws it: the high, the spell's
 #: first and last days, the trough, the depth, and the spell's length in days.
@@ -212,7 +214,7 @@ class TestTheSpells:
         assert bottom["trough-label"] == "deepest drawdown −0.064928,\n2009-02-03"
 
     def test_each_spell_and_its_label_are_drawn_in_lost(self, figure) -> None:
-        """The red band is what marks the days spent below the high."""
+        """The vermilion band is what marks the days spent below the high."""
         for ax in figure.axes:
             band = _by_gid(ax.patches)["spell"]
             label = {t.get_gid(): t for t in ax.texts}["spell-label"]
@@ -220,7 +222,7 @@ class TestTheSpells:
             assert same_color(label.get_color(), LOST)
 
     def test_the_trough_is_marked_in_lost_and_the_high_in_the_line_s_colour(self, figure) -> None:
-        """Swapped, the red mark would sit on the high and say the drawdown is there."""
+        """Swapped, the vermilion mark would sit on the high and say the drawdown is there."""
         for ax in figure.axes:
             lines = _by_gid(ax.lines)
             notes = {t.get_gid(): t for t in ax.texts}
@@ -229,6 +231,28 @@ class TestTheSpells:
             assert same_color(lines["high"].get_color(), lines["cumulative"].get_color())
             assert same_color(notes["high-label"].get_color(), lines["cumulative"].get_color())
             assert not same_color(lines["trough"].get_color(), lines["high"].get_color())
+
+    def test_each_vermilion_label_sits_on_the_figure_s_ground(self, figure) -> None:
+        """On the axes' own ground the vermilion reaches 4.30 to 1, short of
+        WCAG's 4.5 for text, so each label in it sits on a box of the lighter
+        figure ground, where it clears 4.5."""
+        assert _contrast(LOST, GROUND) < 4.5 <= _contrast(LOST, SURFACE)
+        for ax in figure.axes:
+            notes = {t.get_gid(): t for t in ax.texts}
+            for gid in ("spell-label", "trough-label"):
+                box = notes[gid].get_bbox_patch()
+                assert box is not None, gid
+                assert same_color(box.get_facecolor(), SURFACE), gid
+                assert box.get_alpha() in (None, 1.0), gid
+
+    def test_no_label_box_hides_the_zero_line(self, figure) -> None:
+        """The top panel's drawdown label sits across the zero line, so its box
+        draws under it rather than breaking it."""
+        for ax in figure.axes:
+            (zero,) = [line for line in ax.lines if list(line.get_ydata()) == [0, 0]]
+            notes = {t.get_gid(): t for t in ax.texts}
+            for gid in ("spell-label", "trough-label"):
+                assert notes[gid].get_zorder() < zero.get_zorder(), gid
 
     def test_each_label_points_at_the_row_it_names(self, panels) -> None:
         """The text alone would pass with the arrow anchored at the wrong day."""
@@ -254,7 +278,7 @@ class TestTheIdleStart:
             assert _day(side, SPREAD_LOOKBACK) == "2006-09-19", SPEC
 
     def test_each_band_is_grey_and_not_the_spell_s_colour(self, figure) -> None:
-        """An idle start shaded in the spell's red would read as a drawdown."""
+        """An idle start shaded in the spell's vermilion would read as a drawdown."""
         for ax in figure.axes:
             bands = _by_gid(ax.patches)
             idle = to_rgb(bands["unfilled"].get_facecolor())
@@ -269,7 +293,7 @@ class TestTheIdleStart:
         assert "unfilled-label" not in bottom
 
     def test_its_label_is_not_the_spell_s_colour(self, figure) -> None:
-        """Red text in the grey band would read as part of the spell."""
+        """Vermilion text in the grey band would read as part of the spell."""
         label = {t.get_gid(): t for t in figure.axes[0].texts}["unfilled-label"]
         assert not same_color(label.get_color(), LOST)
 

@@ -698,7 +698,7 @@ measurements below and the decision behind the shape.
    0.26 and then at 31.85 on 2006-08-01, and `spx_20071123/dfs.csv` does the
    same across 400 days to 2007-07-02. `ijr_20080114/pmc.csv` holds two price
    histories the same way, closing at 6.02 on 2004-03-12 and then at 17.25 on
-   2007-08-01, 851 trading days apart.
+   2007-08-01, 852 trading days apart.
 4. **The date is the save.** It comes from each file's MAT header, which
    records when the file was created. That is a day after the date in each
    name, because the name carries the last trading day.

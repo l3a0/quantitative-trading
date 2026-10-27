@@ -54,8 +54,9 @@ from matplotlib.figure import Figure
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.matlab_helpers import moving_avg, moving_std
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
+from chan.regime_figure import INK, MUTED, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_mean_reversion import (
     StationarityRun,

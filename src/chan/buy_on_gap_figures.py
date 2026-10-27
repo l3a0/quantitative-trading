@@ -59,12 +59,20 @@ from chan.buy_on_gap import (
     both_sides,
 )
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
+from chan.palette import LOST
 from chan.paths import FIGURES_DIR
 from chan.pead_figures import _signed, cumulative_return, longest_spell
-from chan.regime_figure import INK, LOST, MUTED, RULE, SURFACE
+from chan.regime_figure import INK, MUTED, RULE, SURFACE
 from chan.vintage import VintageUnavailable
 
 CUMULATIVE_FIGURE = "buy_on_gap_cumulative_returns.png"
+#: The figure's ground behind each label drawn in ``LOST``. On the axes' own
+#: darker ground the vermilion reaches only 4.30 to 1, short of the 4.5 text
+#: needs, and on the figure's ground it clears it.
+LABEL_BOX = {"facecolor": SURFACE, "edgecolor": "none", "pad": 1.5}
+#: Those labels draw under the lines, whose zorder is 2, so the box hides no
+#: part of the zero line that runs under the top panel's drawdown label.
+LABEL_ZORDER = 1.9
 
 
 def panel_heading(side: Side, *, mirror: bool) -> str:
@@ -105,6 +113,8 @@ def _panel(ax, side: Side, *, mirror: bool) -> None:
         color=LOST,
         fontsize=9.5,
         fontweight="bold",
+        bbox=LABEL_BOX,
+        zorder=LABEL_ZORDER,
         gid="spell-label",
     )
     for gid, row, colour in (("high", spell.high, INK), ("trough", spell.trough, LOST)):
@@ -138,6 +148,8 @@ def _panel(ax, side: Side, *, mirror: bool) -> None:
         color=LOST,
         fontsize=9.5,
         fontweight="bold",
+        bbox=LABEL_BOX,
+        zorder=LABEL_ZORDER,
         gid="trough-label",
     )
     ax.set_title(

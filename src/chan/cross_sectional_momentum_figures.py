@@ -268,7 +268,8 @@ def make_cumulative_figure(out: Path | None = None, closes: pd.DataFrame | None 
         "costs.\n"
         f"Prices from {PRICE_FILE}. Each panel restarts at zero on its window's first day, "
         "as the script does.\n"
-        "The file holds the S&P 500 as Chan held it on 2012-04-24, so every stock is a survivor.",
+        "The file holds stocks that were in the S&P 500 in late 2011, "
+        "so every stock is a survivor.",
     )
     fig.tight_layout(rect=(0, 0.09, 1, 0.97))
     return _save(fig, out, CUMULATIVE_FIGURE)

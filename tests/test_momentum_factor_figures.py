@@ -180,7 +180,7 @@ class TestTheWords:
         assert labels["label-wml"].get_text() == "WML −0.1099\n27.8027th percentile"
         assert labels["label-median"].get_text() == "median stock −0.0392"
         assert labels["label-band"].get_text() == (
-            "±0.2151, where a series with no\nautocorrelation lands 95 percent of the time"
+            "±0.2151, where a series of independent\nreturns lands 95 percent of the time"
         )
 
     def test_each_factor_label_hangs_off_its_own_point(self, figure, comparison) -> None:

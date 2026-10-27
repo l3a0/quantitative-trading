@@ -46,8 +46,9 @@ from chan.aud_cad_rollover import (
 )
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.matlab_helpers import lag1
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, RULE, SURFACE
+from chan.regime_figure import INK, MUTED, RULE, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 
@@ -209,8 +210,8 @@ def make_rollover_figure(out: Path | None = None, sources: Sources | None = None
     _heading(
         close_ax,
         f"The AUD.CAD close, from {closes.min():.5f} on {closes.idxmin().date()} to "
-        f"{closes.max():.5f} on {closes.idxmax().date()}.\nShaded green on the {long_days} "
-        f"days held long and red on the {short_days} held short. The first "
+        f"{closes.max():.5f} on {closes.idxmax().date()}.\nShaded blue on the {long_days} "
+        f"days held long and vermilion on the {short_days} held short. The first "
         f"{SCRIPT_LOOKBACK} days hold nothing.",
     )
 

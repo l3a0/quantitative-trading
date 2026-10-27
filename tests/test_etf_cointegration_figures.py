@@ -30,7 +30,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from ithildincore.timeseries import ols
-from matplotlib.colors import same_color, to_rgb
+from matplotlib.colors import same_color, to_hex, to_rgb
 from matplotlib.dates import DateFormatter, YearLocator, date2num
 
 from chan import etf_cointegration as experiment
@@ -46,11 +46,13 @@ from chan.etf_cointegration_figures import (
     residual,
 )
 from chan.johansen import Johansen
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST
+from chan.regime_figure import INK
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.test_etf_cointegration import SPEC
+from tests.test_palette import _contrast
 
 #: The triplet's statistics as ``tests/test_etf_cointegration.py`` rows 7 and 8 pin them.
 TRACE = [34.428620, 17.531719, 4.471021]
@@ -457,7 +459,7 @@ class TestTheReturn:
         assert texts["trough-label"] == "deepest drawdown −0.101249,\n2010-08-16", SPEC
 
     def test_the_spell_and_the_trough_wear_lost_and_the_high_the_lines_colour(self, axes) -> None:
-        """Swapped, the red mark would sit on the high and say the drawdown is there."""
+        """Swapped, the vermilion mark would sit on the high and say the drawdown is there."""
         ax = axes["returns"]
         lines, notes = _by_gid(ax.lines), _by_gid(ax.texts)
         assert same_color(to_rgb(_by_gid(ax.patches)["spell"].get_facecolor()), LOST)
@@ -467,6 +469,43 @@ class TestTheReturn:
             assert same_color(lines[gid].get_markerfacecolor(), colour), gid
             assert same_color(notes[f"{gid}-label"].get_color(), colour), gid
         assert not same_color(lines["high"].get_markerfacecolor(), LOST)
+
+    def test_vermilion_falls_short_on_the_spell_band_and_clears_on_white(self, axes) -> None:
+        """The 3.64 and 4.69 the ``LABEL_BOX`` comment quotes. The spell label sits
+        on the band, which is ``LOST`` at its alpha over the axes' ground, and the
+        trough label straddles its right edge. ``tests/test_palette.py`` pins the
+        ground's 4.30."""
+        ax = axes["returns"]
+        *band, alpha = _by_gid(ax.patches)["spell"].get_facecolor()
+        ground = to_rgb(ax.get_facecolor())
+        tint = to_hex([alpha * b + (1 - alpha) * g for b, g in zip(band, ground, strict=True)])
+        assert round(_contrast(LOST, tint), 2) == 3.64
+        assert round(_contrast(LOST, "white"), 2) == 4.69
+
+    def test_every_vermilion_label_sits_on_a_white_box(self, axes) -> None:
+        """``LOST`` reaches only 4.30 to 1 on the axes' darker ground and 3.64 on
+        the spell band's tint, short of the 4.5 a label needs, and clears it on
+        white, as ``tests/test_palette.py`` pins for the ground and white. So
+        every label drawn in it inside the axes carries an opaque white box.
+        The labels are found by their colour, so a new one is held too."""
+        found = [
+            note for ax in axes.values() for note in ax.texts if same_color(note.get_color(), LOST)
+        ]
+        # A list rather than a map by gid, so a second label reusing a gid is counted.
+        assert sorted((note.get_gid() for note in found), key=str) == [
+            "eigen-short-label",
+            "spell-label",
+            "trough-label",
+        ]
+        for note in found:
+            gid = note.get_gid()
+            box = note.get_bbox_patch()
+            assert box is not None, gid
+            assert same_color(box.get_facecolor(), "white"), gid
+            # A leader line in another colour would point the warning at nothing.
+            arrow = getattr(note, "arrow_patch", None)
+            if arrow is not None:
+                assert same_color(arrow.get_edgecolor(), LOST), gid
 
     def test_each_label_points_at_the_row_it_names(self, axes, result) -> None:
         """The text alone would pass with the arrow anchored at the wrong day."""

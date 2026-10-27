@@ -21,12 +21,10 @@ from matplotlib.colors import same_color, to_rgb
 from matplotlib.dates import date2num
 
 from chan import price_spread_figures
-from chan.paths import FIGURES_DIR
+from chan.palette import ACCENT, GOOD, LOST
+from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.price_spread import example_three_one, read_sources
 from chan.price_spread_figures import (
-    ACCENT,
-    GOOD,
-    LOST,
     RUNS,
     SIGNALS_FIGURE,
     cumulative_return,
@@ -134,6 +132,20 @@ class TestTheSignals:
     def test_the_negative_days_are_shaded_in_lost(self, axes) -> None:
         shaded = _by_gid(axes["hedge"].collections)["negative"]
         assert same_color(to_rgb(shaded.get_facecolor()[0]), LOST)
+
+    def test_the_post_names_the_shading_by_the_colour_it_is_drawn_in(self, axes) -> None:
+        """The alt text and the caption call it vermilion, the colour ``LOST`` draws."""
+        post = (REPO_ROOT / "blog" / "price-spread-ratio-lessons.md").read_text(encoding="utf-8")
+        shaded = _by_gid(axes["hedge"].collections)["negative"]
+        assert same_color(to_rgb(shaded.get_facecolor()[0]), LOST)
+        assert "the stretches below zero shaded vermilion" in post
+        assert "Vermilion shading marks the days the hedge ratio is below zero" in post
+
+    def test_the_hedge_ratio_is_blue_and_the_ratio_vermilion(self, axes) -> None:
+        """The hedge ratio wears the price spread run's colour and the ratio its run's,
+        so the top three panels match the lines below them."""
+        assert same_color(_by_gid(axes["hedge"].lines)["hedge"].get_color(), GOOD)
+        assert same_color(_by_gid(axes["ratio"].lines)["ratio"].get_color(), LOST)
 
     def test_the_spread_and_returns_panels_mark_zero(self, axes) -> None:
         for name in ("spread", "returns"):

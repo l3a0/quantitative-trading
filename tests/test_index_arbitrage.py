@@ -90,7 +90,7 @@ from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
 
 POST = paths.REPO_ROOT / "blog" / "index-arbitrage-lessons.md"
-SPEC = "indexArb.m at blob dcb079a on the 2012 S&P 500 file and the ETF file's SPY"
+SPEC = "indexArb.m at blob dcb079a on the 2012 stock file and the ETF file's SPY"
 
 #: The 17 stocks line 26 skips, with the 2007 rows each keeps.
 SKIPPED = {

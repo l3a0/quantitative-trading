@@ -10,9 +10,9 @@ places each right after the text it draws.
    that land inside the pass mark. Two rows of five weekdays, AUD above CAD,
    each day holding the days of interest it pays: one, except AUD's Wednesday
    and CAD's Thursday, which pay three. A brace under each row says the five
-   trading days pay seven days of interest. Between the two rows, a green
+   trading days pay seven days of interest. Between the two rows, a blue
    branch multiplies the average of AUD less CAD by 252 trading days and ends
-   at 3.26 percent, and a red one multiplies it by 365 and ends at 4.73
+   at 3.26 percent, and a vermilion one multiplies it by 365 and ends at 4.73
    percent, which counts every weekend again. The rows are schematic, a week
    at a constant rate, but each day's count is read from
    :func:`chan.aud_cad_rollover.daily_rates` on that rate, so the tripling the
@@ -20,14 +20,16 @@ places each right after the text it draws.
    365 / 252 are the run's.
 2. Long and short days cancel, after Lesson 3's paragraph opening "Net
    position explains the cost." One bar of the 1,217 days the rule holds a
-   position, to scale, green for the 510 days long and red for the 707 short.
-   A grey bracket pairs the 510 long days with 510 of the short ones, and a
-   thinner grey line laid over those days says they cancel. A red bracket
-   marks the 197 short days left over, 16.2 percent of the days held. That
-   share times the 3.26 percent a year gives −0.528 percent, beside the
-   −0.522 percent that rollover interest added to the returns. The bar groups
-   the days by side rather than by date, since the rule changes sides
-   throughout the sample. That grouping is the one schematic part.
+   position, to scale, blue for the 510 days long and vermilion for the 707
+   short. A grey bracket pairs the 510 long days with 510 of the short ones,
+   and a thinner grey line laid over those days says they cancel. A vermilion
+   bracket marks the 197 short days left over, 16.2 percent of the days held.
+   That share times the 3.26 percent a year gives −0.528 percent, beside the
+   −0.522 percent that rollover interest added to the returns. The leftover's
+   words name it, so it reads apart from the grey pair under any colour
+   vision. The bar groups the days by side rather than by date, since the
+   rule changes sides throughout the sample. That grouping is the one
+   schematic part.
 
 Every figure comes from :class:`RunFigures`, which
 :meth:`RunFigures.from_run` reads from :func:`chan.aud_cad_rollover.aud_cad_rollover`
@@ -35,8 +37,10 @@ on Chan's committed files. ``tests/test_aud_cad_rollover_whiteboard.py`` reads
 the same run, so no figure is typed into a scene.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look, frame rate and colours. The
-second sketch prints nine figures, so it is in :data:`PACED`: each label
+than copied, so these GIFs share that post's look and frame rate. Their colours
+are :mod:`chan.palette`'s, which a colour-blind reader can tell apart, so
+:func:`_write` passes :data:`chan.palette.INKS` to :func:`render`. The second
+sketch prints nine figures, so it is in :data:`PACED`: each label
 shows 900 ms rather than 350, and the finished drawing holds 12 seconds rather
 than 4, as :func:`sketch_timeline` sets. Each GIF is named :data:`GIF_PREFIX`
 plus the scene's slug, and a redraw with no change is a no-op diff. Redraw
@@ -65,8 +69,9 @@ from chan.aud_cad_rollover import (
 )
 from chan.khandani_lo import TRADING_DAYS
 from chan.matlab_helpers import lag1
+from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     DPI,
     WIDTH,
@@ -173,12 +178,12 @@ BRACE_LABEL_DROP = 0.6
 #: Where the two branches and the note sit, on the right of the rows. Both
 #: arrows sit between the two rows, because each multiplies the average of AUD
 #: less CAD. An arrow level with one row reads as that currency's figure, and
-#: so do words, which have no room between the rows. So the green one's words,
-#: above it, open by naming the average of AUD less CAD, and the red one's,
+#: so do words, which have no room between the rows. So the 252 branch's words,
+#: above it, open by naming the average of AUD less CAD, and the 365 branch's,
 #: below it, call it the same average.
 BRANCH_X = (5.45, 7.3)
-GREEN_Y, RED_Y = 2.8, 2.17
-#: The grey note under the red branch's words, on two lines.
+BY_252_Y, BY_365_Y = 2.8, 2.17
+#: The grey note under the 365 branch's words, on two lines.
 NOTE_Y = 1.0
 
 
@@ -304,11 +309,11 @@ def _five_pay_seven(f: RunFigures) -> Scene:
             *headers,
             *aud_row[2:],
             *_week_row("CAD", CAD_Y, cad),
-            _stroke("by-252", _arrow(x0, GREEN_Y, x1, GREEN_Y), color=GOOD, frames=5),
+            _stroke("by-252", _arrow(x0, BY_252_Y, x1, BY_252_Y), color=GOOD, frames=5),
             Label(
                 "average of AUD less CAD",
                 x0,
-                GREEN_Y + 0.8,
+                BY_252_Y + 0.8,
                 names="by-252",
                 color=GOOD,
                 size=12,
@@ -316,7 +321,7 @@ def _five_pay_seven(f: RunFigures) -> Scene:
             Label(
                 f"× {TRADING_DAYS} trading days",
                 x0,
-                GREEN_Y + 0.45,
+                BY_252_Y + 0.45,
                 names="by-252",
                 color=GOOD,
                 size=12,
@@ -324,25 +329,25 @@ def _five_pay_seven(f: RunFigures) -> Scene:
             Label(
                 f"{100 * f.rollover:.2f} percent",
                 x1 + 0.2,
-                GREEN_Y,
+                BY_252_Y,
                 names="by-252",
                 color=GOOD,
                 size=14,
             ),
-            _stroke("by-365", _arrow(x0, RED_Y, x1, RED_Y), color=LOST, frames=5),
+            _stroke("by-365", _arrow(x0, BY_365_Y, x1, BY_365_Y), color=LOST, frames=5),
             Label(
                 f"the same average × {DAYS_IN_YEAR} counts",
                 x0,
-                RED_Y - 0.43,
+                BY_365_Y - 0.43,
                 names="by-365",
                 color=LOST,
                 size=12,
             ),
-            Label("every weekend again", x0, RED_Y - 0.79, names="by-365", color=LOST, size=12),
+            Label("every weekend again", x0, BY_365_Y - 0.79, names="by-365", color=LOST, size=12),
             Label(
                 f"{100 * f.over_365_days:.2f} percent",
                 x1 + 0.2,
-                RED_Y,
+                BY_365_Y,
                 names="by-365",
                 color=LOST,
                 size=14,
@@ -384,9 +389,9 @@ BAR_Y = 3.3
 BAR_WIDTH = 14.0
 BRACKET_Y = 2.85
 #: How far below the bracket the two lines naming the leftover days sit. Two
-#: short lines ending at the bar's right end keep the words close to the red
-#: span they name. On one line they reached back past the bracket's middle tick,
-#: under the long days, and only their red ink tied them to the leftover.
+#: short lines ending at the bar's right end keep the words close to the
+#: vermilion span they name. On one line they reached back past the bracket's
+#: middle tick, under the long days, and only their ink tied them to the leftover.
 LEFTOVER_DROP = (0.45, 0.79)
 #: The row that multiplies the net share by the rate, and the row that checks it.
 PRODUCT_Y, ADDED_Y = 1.64, 1.15
@@ -594,7 +599,7 @@ def sketch_timeline(scene: Scene) -> list[Frame]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
+    first, *rest = render(scene, frames, INKS)
     path = folder / gif_name(scene)
     first.save(
         path,

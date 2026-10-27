@@ -44,8 +44,9 @@ from chan.cl_reversal_momentum import (
     read_cl,
 )
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
+from chan.palette import ACCENT, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, INK, LOST, MUTED, SURFACE
+from chan.regime_figure import INK, MUTED, SURFACE
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 

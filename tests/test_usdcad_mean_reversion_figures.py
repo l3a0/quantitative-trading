@@ -32,11 +32,12 @@ from matplotlib.colors import same_color
 from matplotlib.dates import DateFormatter, MonthLocator, YearLocator, date2num, num2date
 from matplotlib.figure import Figure
 
-from chan import paths, usdcad_mean_reversion
+from chan import paths, regime_figure, usdcad_mean_reversion
 from chan import usdcad_mean_reversion_figures as figures
 from chan.matlab_helpers import moving_avg, moving_std
+from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.series import WindowCrossesScaleBreak
 from chan.usdcad_mean_reversion import market_value, read_sources, stationarity_tests
 from chan.usdcad_mean_reversion_figures import (
@@ -181,7 +182,7 @@ class TestTheCloses:
         assert result.closes.index[114] == AVERAGE_STARTS, SPEC
         assert y[114] == pytest.approx(1.0087995652, abs=5e-11), SPEC
 
-    def test_the_closes_are_ink_and_the_average_brass(self, axes) -> None:
+    def test_the_closes_are_ink_and_the_average_berry(self, axes) -> None:
         lines = _by_gid(axes["closes"].lines)
         assert same_color(lines["closes"].get_color(), INK)
         assert same_color(lines["moving-average"].get_color(), ACCENT)
@@ -253,7 +254,7 @@ class TestThePnl:
         assert fall == pytest.approx(result.drawdown.depth, abs=1e-12)
         assert fall == pytest.approx(0.6425313986, abs=5e-11), SPEC
 
-    def test_the_curve_is_green(self, axes) -> None:
+    def test_the_curve_is_blue(self, axes) -> None:
         assert same_color(_by_gid(axes["pnl"].lines)["pnl"].get_color(), GOOD)
 
     def test_the_heading_sets_the_start_the_total_and_the_fall(self, axes) -> None:
@@ -912,3 +913,21 @@ class TestTheFallFollowsTheRun:
         assert _days(_by_gid(pnl.lines)["pnl"])[0] == pd.Timestamp("2008-07-23")
         assert pnl.get_xlim()[0] == date2num(pd.Timestamp("2008-07-23") - FALL_MARGIN)
         assert _text(pnl, "peak-label").endswith(", 2008-07-23")
+
+
+class TestNoSharedColourIsLeft:
+    """Every coloured line, patch and fill in both figures is drawn in
+    :mod:`chan.palette`'s colours, so a call site left in the shared brass,
+    green or red fails here on every platform rather than only in the pixel
+    comparison, which runs on macOS arm64 alone."""
+
+    def test_no_artist_is_in_a_shared_colour(self, axes, fall_axes) -> None:
+        shared = (regime_figure.ACCENT, regime_figure.GOOD, regime_figure.LOST)
+        for name, ax in [*axes.items(), *fall_axes.items()]:
+            for artist in [*ax.lines, *ax.patches, *ax.collections]:
+                if hasattr(artist, "get_facecolors") or not hasattr(artist, "get_color"):
+                    colours = [c[:3] for c in np.atleast_2d(artist.get_facecolor())]
+                else:
+                    colours = [artist.get_color()]
+                for colour in colours:
+                    assert not any(same_color(colour, s) for s in shared), (name, artist.get_gid())

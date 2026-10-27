@@ -44,6 +44,20 @@ sketch.
 | `LOST`, red | shorted, negative, the side that loses, or a warning, a refusal or a zone that rejects |
 | `ACCENT`, brass, which posts call brown | the one series or idea the sketch points at |
 
+Posts are moving one at a time to the colours in `chan.palette`, which a
+colour-blind reader can tell apart, and `docs/design.md` says why. Those
+colours keep the meanings above: a blue `GOOD`, a vermilion `LOST` and a berry
+`ACCENT`. A post that has moved imports `ACCENT`, `GOOD`, `LOST`, `TINT` and
+`REJECT_TINT` from `chan.palette`, and passes `chan.palette.INKS` to `render`.
+A tint from anywhere else would land on the nearest colour in that post's
+palette rather than its own. So check which colours the post already draws in
+before copying a newer post's imports. The draft script below draws a scene in
+`chan.palette.INKS` when its module imports them, when it is run with
+`--palette`, or when the scene uses the berry, the blue, the vermilion or one
+of their tints. In a post that has moved, it flags any shared colour left in a
+scene, such as a `_dot` on its default brass, which the renderer would turn
+grey. Pass `--palette` when drafting a moved post's scene from a scratch file.
+
 Each post gets its own module and its own test module, both named for the post,
 such as `chan.usdcad_tests_whiteboard` and `tests/test_usdcad_tests_whiteboard.py`.
 Each module sets a `GIF_PREFIX` that every one of its GIFs starts with. Copy
@@ -128,9 +142,10 @@ its list.
   math unless it is written as a formula, such as the USD.CAD post's Hurst
   exponent.
 - Every stroke has at least as many points as frames.
-- A pale tint that carries meaning gets a green edge. `TINT` stands 1.29 to 1
-  against the white board, under WCAG 2.1's 3 to 1 for a graphical object,
-  and `GOOD` stands 4.86 to 1. The equity seasonals module's `_tinted` draws
+- A pale tint that carries meaning gets an edge in `GOOD`. The shared `TINT`
+  stands 1.29 to 1 against the white board, under WCAG 2.1's 3 to 1 for a
+  graphical object, and the shared green stands 4.86 to 1. In `chan.palette`
+  they stand 1.31 and 4.77 to 1. The equity seasonals module's `_tinted` draws
   both, and `test_every_pale_tint_has_a_green_edge` holds every tint to it.
   The published USD.CAD post's sketches keep their unedged tints until the
   owner rules on changing a live post.
