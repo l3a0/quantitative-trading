@@ -292,7 +292,7 @@ For the four Sharpe ratios in the returns table at the top of the post, each tra
 
 ### Whether the mean return changed
 
-The 95% range for a mean return from `n` results, with standard deviation `s`, uses Student’s t, which widens the range to allow for estimating `s` from so few. The formula writes `t` with the subscript `n` − 1, which statisticians call the degrees of freedom:
+The 95% range for a mean return from `n` results, with standard deviation `s`, uses Student’s t, which widens the range to allow for estimating `s` from so few. The formula writes `t` with the subscript `n − 1`, which statisticians call the degrees of freedom:
 
 ```math
 \bar r \pm t_{n-1} \times \frac{s}{\sqrt{n}}
