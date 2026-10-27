@@ -237,6 +237,36 @@ class TestTheSignalsOnVx:
         entered = [schedule.index[(schedule[c] == -1).to_numpy()][0] for c in near]
         assert sum(day >= START for day in entered) == 42, SPECS["B3"]
 
+    def test_from_2008_10_27_b3s_rolls_trade_two_or_four_and_its_reversals_most(
+        self, strip, result
+    ) -> None:
+        """What the entry's cost sentence counts. Each new pair's near contract is the old
+        pair's far one, so a roll trades two contracts where that contract keeps its side
+        and four where it switches. Between rolls B3 reverses both legs, and those
+        reversals are most of the 554 contracts it trades. Measured after the run."""
+        schedule = calendar_schedule(
+            strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
+        )
+        short = schedule.eq(-1)
+        near = short.idxmax(axis=1).where(short.any(axis=1))
+        before = near.shift()
+        roll = ((near != before) & near.notna() & before.notna()).loc[START:]
+        leaves = (near.isna() & before.notna()).loc[START:]
+        positions = result.rows["B3"].positions
+        traded = positions.diff().abs().sum(axis=1).loc[START:]
+        reversal = (traded > 0) & ~roll & ~leaves
+        assert sorted(traded[roll].value_counts().items()) == [(2.0, 26), (4.0, 16)], (
+            f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        )
+        assert traded[reversal].value_counts().to_dict() == {4.0: 109}, (
+            f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        )
+        now, then = positions.loc[START:][reversal], positions.shift().loc[START:][reversal]
+        assert (now == -then).all().all(), f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        assert (traded.sum(), traded[reversal].sum()) == (554.0, 436.0), (
+            f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        )
+
     def test_the_shipped_spread_month_of_12_holds_the_front_contract_alone(self, strip) -> None:
         """Why S edits ``spreadMonth``. The strip lists 2 to 10 contracts a day, so pairing
         contract c with c + 12 leaves the far leg unpriced on most held days, and the

@@ -7973,8 +7973,8 @@ Three things.
    ratio's ADF statistic of −5.568107 clears the 1 percent value by 2.109807.
    Trading it as the book's text describes, with the script's 63-day holding
    period, gives an APR of −4.045401 percent and a Sharpe ratio of −0.563912.
-2. **The evidence favours B3 as what Chan ran.** Two things single it out
-   from the other four rows.
+2. **B3 is the row that matches the book, and it was found by a search.**
+   Two things single it out from the other four rows.
    1. On the book's window it rounds to both printed figures, 0.176952 and
       1.475658.
    2. It is the only row that does worse before October 2008, as the book's
@@ -8034,7 +8034,13 @@ search `CLAUDE.md`'s research pins put under their own rail.
 2008-10-27, B3 holds a near leg in 43 pairs, every one from VX-2008X's to
 VX-2012K's, and enters 42 of them on or after that date.
 `TestTheSignalsOnVx::test_from_2008_10_27_b3_holds_43_pairs_and_enters_42`
-pins both counts. Each roll trades four legs.
+pins both counts. Each new pair's near leg is the old pair's far one, so a
+roll trades two contracts when that leg keeps its side and four when it
+switches, on 26 and 16 of the 42 rolls. B3 also reverses both legs on 109
+days between rolls, each a day its z-score crosses 0, which is 436 of the 554
+contracts it trades from 2008-10-27.
+`TestTheSignalsOnVx::test_from_2008_10_27_b3s_rolls_trade_two_or_four_and_its_reversals_most`
+pins those counts.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

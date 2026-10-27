@@ -6483,16 +6483,19 @@ Five groups of what it says are not pinned here.
    VX file, its pairs 12 months apart, its flip where the z-score is above 0,
    its return summed over the legs that have one and halved, its roll 10 days
    before expiry, its expiry marked on a contract's last priced day, and four
-   contracts traded at each roll, all at `e4bc46f` of
+   contracts traded at each roll of pairs that share no contract, as the
+   script's 12-month pairs and S's never do, all at `e4bc46f` of
    ericnberwick/EpchanPreview.
-3. Readings no test asserts: that the ratio moves with the spread's log value,
+3. Readings no test asserts: that the ratio rises on exactly the days a spread
+   long the back contract and short the front earns,
    that B2's 420 days are the 10 after each roll, that four readings show a pattern rather than a cause, and
    that a rule selling one spread on another's z-score bets on the two moving
    together.
 4. Figures the post states in words or rounded from pinned ones, such as 4.0
    percent, −0.56, six days in seven, three or four months between pairs,
-   three or four earlier contracts still trading, at least 73 days, and B2's
-   share of days reading its held pair against S's. The figure's alt text
+   three or four earlier contracts still trading, at least 73 days, B2's
+   share of days reading its held pair against S's, B3's 17.3 percent, the
+   0.0451 percentage points B4 moves the APR, and the rounded half-life of 13. The figure's alt text
    reads its curves approximately too.
 5. Its references, cited rather than computed.
 
@@ -6502,7 +6505,7 @@ Every other number in the post traces to an assertion in
 for the figure's own numbers. Crude oil's spread mostly falling as γ rises,
 which the post cites from the crude oil post, is `TestTheTradesDirection` in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py).
-Four had no pin before it.
+Five had no pin before it.
 
 1. The specification's near leg is the front contract on 126 of its 847 held
    rows from 2008-10-27, and the second to the fifth on 229, 221, 201 and 70,
@@ -6513,6 +6516,9 @@ Four had no pin before it.
    S and B2 lose.
 4. Each curve's end, 0.758213 for B3, −0.135565 for S, 0.123003 for B1 and
    −0.345330 for B2, and B3's 0.765276 on 2012-04-23.
+5. From 2008-10-27, B3's rolls trade two contracts on 26 of 42 and four on
+   16, and its 109 reversals between rolls are 436 of the 554 contracts it
+   trades.
 
 Its one figure is drawn from the committed VX strip by
 [src/chan/vx_calendar_spread_figures.py](src/chan/vx_calendar_spread_figures.py),
