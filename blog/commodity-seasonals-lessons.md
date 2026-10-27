@@ -6,7 +6,7 @@
 
 A reader might put money on a claim that a trade still pays, so the record behind the claim is worth checking.
 
-Ernest Chan’s *Quantitative Trading* makes that claim for seasonal trades in commodity futures, trades that buy and sell on the same calendar dates every year. Much of the seasonality in equity markets, he writes, has weakened or disappeared, while some commodity seasonals are still profitable (Chan, 2021, p. 175). He calls them “alive and well”, perhaps because the demand behind them is a real economic need rather than speculation (p. 183). [The companion post on the equity seasonals](https://github.com/l3a0/quantitative-trading/blob/main/blog/equity-seasonals-lessons.md) tested the equity half of that claim. This one tests the commodity half.
+Ernest Chan’s *Quantitative Trading* makes that claim for seasonal trades in commodity futures, trades that buy and sell on the same calendar dates every year. Much of the seasonality in equity markets, he writes, has weakened or disappeared, while some commodity seasonals are still profitable (Chan, 2021, p. 175). He calls them “alive and well”, perhaps because the demand behind them is a real economic need rather than speculation (p. 183). [The companion post on the equity seasonals](https://baowebdev.substack.com/p/two-equity-seasonals-show-no-edge) tested the equity half of that claim. This one tests the commodity half.
 
 Chan gives two trades, each with a count of profitable years.
 
