@@ -1003,7 +1003,11 @@ class TestTheGifs:
             "edge_day",
             "holiday_rows",
         )
-        assert sketches.SLOWER == {"half_width": (250, 1800), "rank_pairs": (250, 1800)}
+        assert sketches.SLOWER == {
+            "gasoline_editions": (250, 1800),
+            "half_width": (250, 1800),
+            "rank_pairs": (250, 1800),
+        }
         for scene in every:
             frames = sketch_timeline(scene)
             paced = scene.slug in sketches.PACED
