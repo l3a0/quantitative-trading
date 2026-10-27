@@ -967,7 +967,9 @@ class TestTheGifs:
     def test_every_sketch_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
         """The pace the owner asked for, for each sketch in turn: each label alone
         for 0.9 s, or 1.8 s with strokes at 250 ms a frame for the sketches in
-        SLOWER, and the drawing for 12 s, the equity post's slow pace."""
+        SLOWER, and the drawing for 12 s, the equity post's slow pace. A
+        sketch in DRAW_MS draws each part-drawn stroke frame at its own pace
+        and keeps SLOWER's 250 ms on each finished stroke."""
         from chan import equity_seasonals_whiteboard as equity
 
         assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
@@ -1008,6 +1010,7 @@ class TestTheGifs:
             "half_width": (250, 1800),
             "rank_pairs": (250, 1800),
         }
+        assert sketches.DRAW_MS == {"gasoline_editions": whiteboard.FRAME_MS}
         for scene in every:
             frames = sketch_timeline(scene)
             paced = scene.slug in sketches.PACED
@@ -1024,7 +1027,10 @@ class TestTheGifs:
             )
             if slower:
                 drawn = [f for f in frames[1:-1] if f not in labels]
-                assert drawn and {f.ms for f in drawn} == {slower[0]}, scene.slug
+                draw_ms = sketches.DRAW_MS.get(scene.slug, slower[0])
+                partial = {f.ms for f in drawn if f.partial}
+                finished = {f.ms for f in drawn if not f.partial}
+                assert partial == {draw_ms} and finished == {slower[0]}, scene.slug
             assert frames[-1].ms == (sketches.PACED_HOLD_MS if paced else HOLD_MS)
             assert [(f.done, f.partial) for f in frames] == [
                 (f.done, f.partial) for f in timeline(scene)

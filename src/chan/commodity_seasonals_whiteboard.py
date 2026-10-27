@@ -213,8 +213,11 @@ Each sketch carries more than a reader takes in at that post's pace, so
 all twenty-six are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
-gasoline editions, half-width and pairs sketches are in :data:`SLOWER` too, so their strokes
-draw at 250 ms a frame and their labels hold 1.8 seconds. Only
+gasoline editions, half-width and pairs sketches are in :data:`SLOWER` too,
+so their labels hold 1.8 seconds. The half-width and pairs sketches draw their
+strokes at 250 ms a frame. The gasoline editions sketch draws its strokes at
+the usual 100 ms a frame and holds each finished stroke for 250 ms, which
+:data:`DRAW_MS` sets. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
@@ -244,6 +247,7 @@ from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED
 from chan.usdcad_tests_whiteboard import (
+    FRAME_MS,
     Frame,
     Label,
     Scene,
@@ -3833,6 +3837,12 @@ SLOWER = {
     "half_width": (250, 1800),
     "rank_pairs": (250, 1800),
 }
+#: Scenes in :data:`SLOWER` whose strokes draw at the usual pace, with each
+#: frame of a part-drawn stroke showing for this many milliseconds. Each
+#: finished stroke and label still holds for its :data:`SLOWER` time, so the
+#: waits between the drawing's parts stay as long. The owner found gasoline's
+#: editions drawn too slowly at 250 ms a frame, and its waits right.
+DRAW_MS = {"gasoline_editions": FRAME_MS}
 
 
 def edge_years(first: int = 1994, last: int = 2023) -> tuple[int, ...]:
@@ -3867,15 +3877,19 @@ def _expiry_scenes() -> tuple[Scene, Scene, Scene, Scene]:
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
     """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`, and
-    slower still for those in :data:`SLOWER`."""
+    slower still for those in :data:`SLOWER`, except that a part-drawn stroke
+    in a scene in :data:`DRAW_MS` shows at that scene's pace."""
     frames = timeline(scene)
     if scene.slug not in PACED:
         return frames
     stroke_ms, label_ms = SLOWER.get(scene.slug, (None, PACED_LABEL_MS))
+    draw_ms = DRAW_MS.get(scene.slug)
 
     def slowed(f: Frame) -> Frame:
         if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke):
             return Frame(f.done, f.partial, label_ms)
+        if draw_ms is not None and f.partial:
+            return Frame(f.done, f.partial, draw_ms)
         if stroke_ms is not None and f.done + f.partial:
             return Frame(f.done, f.partial, stroke_ms)
         return f
