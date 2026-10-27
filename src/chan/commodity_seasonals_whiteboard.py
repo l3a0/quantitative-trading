@@ -3519,8 +3519,8 @@ PACED = (
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 #: Paced scenes the owner still found too fast, with each one's stroke frame
-#: and label hold in milliseconds. Each has few steps, so the usual pace
-#: finished it before a reader had followed it.
+#: and label hold in milliseconds. At the usual pace each finished before a
+#: reader had followed it.
 SLOWER = {"half_width": (250, 1800), "rank_pairs": (250, 1800)}
 
 

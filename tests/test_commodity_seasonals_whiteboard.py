@@ -82,7 +82,7 @@ post quotes, such as test_the_run_gives_these_dates_and_files.
    multiplier for its count and that the post's counts come from the run.
 14. The half-width sketch builds natural gas's ±12% from its spread, divided
    by the root of its count and times the multiplier, each bar starting on a
-   dashed line at the later mean, against the gap to the earlier mean. What
+   dashed line at the later mean, against a dashed line at its earlier mean. What
    is pinned is that each bar is the run's figure on one scale, that every
    bar starts on that line, and that the last bar reaches past the gap.
 15. The mean-range sketch draws each period's mean and 95% range, with each

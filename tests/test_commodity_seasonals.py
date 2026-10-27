@@ -803,8 +803,8 @@ class TestThePostQuotesThePins:
         assert beaten == len(before)
         assert (
             f"Welch’s chance, {100 * change_p_value(*ng):.1f}%, sits above the line. "
-            f"Mann-Whitney still sees the change, because {best.year} counts as {beaten} pairs won "
-            "however large its gain"
+            f"Mann-Whitney still sees the change, because {best.year} beats each of the {beaten} "
+            "earlier years once, however large its gain"
         ) in text
 
     def test_the_2002_drawdown(self) -> None:

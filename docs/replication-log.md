@@ -3510,7 +3510,8 @@ move misses by 0.65 to 0.89 cents a gallon, and the straight line by 1.8 to
 typical miss.
 
 Fill 2's misses also average 0.20 to 0.26 cents above zero, so it guesses May
-low, by 2.7 to 3.2 standard errors that overlapping test days understate.
+low, by 2.7 to 3.2 standard errors that understate the truth, because test days
+close together read some of the same prices.
 Corrected by that average and set against the spread around it, the three
 years' chances of a profit are 57%, 83% and 90%, none reaching 95%. If the
 misses are normal and independent, all three years were profits with a chance

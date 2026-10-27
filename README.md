@@ -1575,7 +1575,7 @@ Information Administration publishes them: contracts 1 to 4 of RBOB gasoline,
 of the New York Harbor gasoline contract it replaced, and of Henry Hub natural
 gas. `src/chan/commodity_seasonals.py` reads six of them for
 [issue 19](https://github.com/l3a0/quantitative-trading/issues/19), five for
-the trades and New York Harbor's contract 2 for Lesson 2's fills, and the
+the trades and New York Harbor's contract 2 for Lesson 2's second fill, and the
 issue records the owner's decision to commit all twelve.
 `src/chan/stationary_candidates.py` reads eight, every natural gas and RBOB
 file, for [issue 137](https://github.com/l3a0/quantitative-trading/issues/137).

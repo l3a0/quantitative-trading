@@ -190,7 +190,7 @@ e \sim N(b,\ \sigma^{2})
 \end{gathered}
 ```
 
-A year’s move is its exit price minus its entry price:
+As an equation:
 
 ```math
 \text{move} = \text{exit} - \text{entry}
@@ -349,7 +349,7 @@ The four chances, as percentages:
 
 ![“Four chances against the 5% line”, drawn slowly stroke by stroke. A grey scale runs from “0%” through “5%” to “10%”, and a dashed grey line rises from 5%, with “below: luck explains it poorly” on its left and “above: luck could explain it” on its right. A row for “gasoline” gets a black dot at “Welch, 2.3%” and one at “Mann-Whitney, 1.1%”. A row for “natural gas” gets a purple dot at “Welch, 9.2%”, the only one right of the line, and a black dot at “Mann-Whitney, 0.7%”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_four_chances.gif)
 
-Gasoline’s fall passes both tests, with each chance below the 5% line. For natural gas the two tests disagree because of one year, 2022. The trade’s typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%. Natural gas’s years vary so widely that luck could explain the difference from the +10.6% before, and Welch’s chance, 9.2%, sits above the line. Mann-Whitney still sees the change, because 2022 counts as 15 pairs won however large its gain.
+Gasoline’s fall passes both tests, with each chance below the 5% line. For natural gas the two tests disagree because of one year, 2022. The trade’s typical year clearly got worse, from 15 wins in 15 years before 2009 to 7 in 15 after. But 2022’s +64% lifts its average after 2008 to −0.4%. Natural gas’s years vary so widely that luck could explain the difference from the +10.6% before, and Welch’s chance, 9.2%, sits above the line. Mann-Whitney still sees the change, because 2022 beats each of the 15 earlier years once, however large its gain.
 
 Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.1%. That year was a real gain that a trader holding every year would have collected, so it stays in the record. No plan written before the numbers came out picked one of the tests, so the post reports both rather than the one that reads better.
 
@@ -377,7 +377,7 @@ Massive, a market data vendor, records each contract’s last trading day as the
 
 #### Against the files’ own handovers
 
-When a contract expires, every later contract moves forward one place: contract 2 becomes contract 1, contract 3 becomes contract 2, and so on. So on the next trading day, each file’s price carries on from the price the file numbered one higher showed the day before, not from its own, and so do the gaps between neighbouring files. That switch is the handover this check looks for, and it reads it in those gaps. Before mid-1997 the handovers show contracts stopping five or six trading days before delivery rather than three, so for those years the run follows the handovers. That moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either.
+When a contract expires, every later contract moves forward one place: contract 2 becomes contract 1, contract 3 becomes contract 2, and so on. So on the next trading day, each file’s price carries on from the price the file numbered one higher showed the day before, not from its own, and so do the differences between neighbouring files’ prices. That switch is the handover this check looks for, and it reads it in those differences. Before mid-1997 the handovers show contracts stopping five or six trading days before delivery rather than three, so for those years the run follows the handovers. That moves the 1996 and 1997 entries from contract 4 to contract 3, and both years are profitable on either.
 
 ![“A handover shows when March stopped”, drawn slowly stroke by stroke. Two rows of dots run across the trading days from mid-February to March 1, 1996, one dot a trading day, the settlements in the “contract-1 file” in black and in the “contract-2 file” in grey. A purple arrow runs from the contract-2 file’s Feb 23 price to the contract-1 file’s next price, labelled “Feb 26: file 1 picks up file 2’s price”. A purple dashed line between Feb 23 and Feb 26 marks “March stopped Feb 23, 5 trading days before delivery”, and a grey dashed line two trading days later marks “3-day rule: here”, where a three-day rule would have put the handover. A note reads “natural gas, March contract, Feb 1996”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_handover.gif)
 
@@ -387,7 +387,7 @@ Over every natural gas contract delivered from February 1994 to April 2024, the 
 
 Outside those 316, the check cannot reach 47 expiries, because a file lacks a row on the expiry day or the day after. 40 of the 47 fall between 1997 and 2005.
 
-The 18 that do not fit are mostly close calls. 15 fail by under 9 cents, meaning the gaps between the files’ prices around the expiry fit slightly better with no handover than with one. That happens where neighbouring contracts trade so close together that a handover and no handover look alike. One of those 15, March 2023, fails although the exchange’s own date matches the rule’s.
+The 18 that do not fit are mostly close calls. 15 fail by under 9 cents, meaning the differences between the files’ prices around the expiry fit slightly better with no handover than with one. That happens where neighbouring contracts trade so close together that a handover and no handover look alike. One of those 15, March 2023, fails although the exchange’s own date matches the rule’s.
 
 A rule wrong by a day would matter only where it moves which file holds June on a trade date. That is true of 4 of the 18, all March contracts at an entry, and of none of the 47. In those 4 years, reading the other file turns none from a profit to a loss, or from a loss to a profit.
 
