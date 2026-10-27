@@ -51,12 +51,12 @@ percent.
    and the Kelly f's ``std`` is MATLAB's, which divides by n − 1.
 
 **The book's figures come from the full window, not the script's active
-line.** The script picks its window with ``idx = find(tday == 20090102)`` and
+line.** The script picks its window with ``idx=find(tday==20090102);`` and
 leaves ``% idx=1;`` commented out under it. All six figures in its closing
 comment land on ``idx = 1``, the 2,000 rows from 2004-06-01 that the book's
-sentence names, and none lands on 2009-01-02. The comment also prints no
-annual volatility although the format string asks for one, so it was pasted
-from an earlier version of the printing line. The specification is therefore
+sentence names, and none lands on 2009-01-02. The comment also lists no
+annual volatility although the format string asks for one, which suggests it
+was pasted from an earlier version of the printing line. The specification is therefore
 ``TU_mom.m`` with ``idx = 1``, and :func:`tu_momentum` carries the 2009-01-02
 window beside it as a row with no published figure.
 
@@ -68,9 +68,9 @@ window beside it as a row with no published figure.
 
 **The Hurst exponent misses.** H on TU is 0.43 at two decimals, against the
 book's 0.44. Example 2.2's H on USD.CAD misses the same way through the same
-:func:`chan.stationarity_tests.genhurst`, and raising ``maxT`` moves TU
-towards 0.44 while it moves USD.CAD further from 0.49, so no single ``maxT``
-lands both. ``tests/test_tu_momentum.py`` pins every one of those numbers.
+:func:`chan.stationarity_tests.genhurst`, and raising ``maxT`` to 24 lands
+TU on 0.44 while it moves USD.CAD further from 0.49, and no ``maxT`` from 5
+to 40 lands both. ``tests/test_tu_momentum.py`` pins every one of those numbers.
 
 **Chan's Python port is a different strategy.** ``TU_mom.py`` in the 2018
 ``PythonCodesAndData.zip`` loops ``h`` over 0 to 23 rather than 24 and divides
@@ -168,9 +168,10 @@ PERIODS = (1, 5, 10, 25, 60, 120, 250)
 COMPROMISES = ((60, 10), (60, 25), (250, 10), (250, 25), (250, 60), (250, 120))
 #: ``genhurst(log(cl), 2)``.
 HURST_Q = 2
-#: The ``maxT`` the diagnostic beside the Hurst row reads, where H on TU first rounds to 0.44.
+#: The ``maxT`` the diagnostic beside the Hurst row reads, one at which H on TU prints as the
+#: book's 0.44.
 HURST_DIAGNOSTIC_MAX_T = 24
-#: The script's active line, ``idx = find(tday == 20090102)``.
+#: The script's active line, ``idx=find(tday==20090102);``.
 ACTIVE_LINE_START = pd.Timestamp("2009-01-02")
 
 #: ``TU_mom.m``'s closing comment.

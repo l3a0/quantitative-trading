@@ -9,9 +9,12 @@ too. ``blog/tu-hypothesis-tests-lessons.md`` quotes the 49 pairs of lookback
 and hold the rule was picked from, which ``PERIODS`` and
 ``TestTheCorrelationTable`` hold here. ``blog/tu-momentum-lessons.md`` teaches
 this example and quotes most of these pins, with the numbers it adds in
-``TestBesideThePost`` and its figure's in
-``tests/test_tu_momentum_figures.py``. README lists what the post says that
-nothing asserts.
+``TestBesideThePost``, its figure's in ``tests/test_tu_momentum_figures.py``,
+and its two sketches' in ``tests/test_tu_momentum_whiteboard.py``, which also
+pins the dates of each save's kept days after the first.
+``TestWhatThePostQuotes`` reads at least one copy of each run figure the post
+quotes, outside the sketches' alt text, against the run. README lists what the
+post says that nothing asserts.
 
 Every pin on the committed files reads one of two vintages and one
 specification, so they are stated once here.
@@ -24,7 +27,8 @@ specification, so they are stated once here.
   pin reads it unless it names the second.
 - **The second vintage.** ``inputdataohlcdaily_20120517/tu.csv``, chan-mat,
   adjusted, saved 2012-05-18, the save ``correlationTest.m`` loads, 2,000 days
-  from 2004-06-07 to 2012-05-17. ``TestTheSave`` alone reads it.
+  from 2004-06-07 to 2012-05-17. ``TestTheSave`` pins it, and every
+  other test that reads it names it where it does.
 - **Specification.** ``TU_mom.m`` at EpchanPreview ``e4bc46f``, git blob
   ``f7935c7``, with ``idx = 1``, as :mod:`chan.tu_momentum` transcribes it.
   The correlation table takes past and future returns for every pair of 1, 5,
@@ -292,7 +296,7 @@ class TestTheTwoTests:
         assert gap(result.hurst, BOOK_HURST) == -0.01
         assert result.hurst < 0.5
 
-    def test_no_single_max_t_lands_both_books_figures(self, closes) -> None:
+    def test_max_t_24_lands_tu_and_moves_usdcad_further(self, closes) -> None:
         """Raising ``maxT`` to 24 lands TU's 0.44 and moves USD.CAD further from its 0.49."""
         usdcad = read_usdcad()[1].to_numpy(dtype=float)
         assert HURST_DIAGNOSTIC_MAX_T == 24
@@ -304,6 +308,24 @@ class TestTheTwoTests:
         assert at_default == pytest.approx(0.473233, abs=5e-7)
         assert at_24 == pytest.approx(0.471426, abs=5e-7)
         assert abs(at_24 - 0.49) > abs(at_default - 0.49)
+
+    def test_no_max_t_from_5_to_40_lands_both(self, closes) -> None:
+        """Every ``maxT`` that lands TU's 0.44 moves USD.CAD further from its 0.49.
+
+        No ``maxT`` from 5 to 40 lands USD.CAD's 0.49 either.
+
+        24 is not the only ``maxT`` that lands TU, and not the first. Below 5 the
+        function has too few gaps to fit and gives no H.
+        """
+        usdcad = read_usdcad()[1].to_numpy(dtype=float)
+        at_default = hurst_at(usdcad, 19)
+        landing = []
+        for max_t in range(5, 41):
+            if matches(hurst_at(closes, max_t), BOOK_HURST):
+                landing.append(max_t)
+                assert abs(hurst_at(usdcad, max_t) - 0.49) > abs(at_default - 0.49)
+            assert not matches(hurst_at(usdcad, max_t), "0.49")
+        assert landing == [6, 7, 21, 22, 23, 24, 25, 26, 27]
 
     def test_the_variance_ratio_test_does_not_reject(self, result) -> None:
         vr = result.variance_ratio
@@ -356,7 +378,10 @@ class TestTheFigures:
 
 
 class TestTheWindow:
-    """The script's active line, ``idx = find(tday == 20090102)``, which no figure lands on."""
+    """The script's active line, ``idx=find(tday==20090102);``.
+
+    It lands none of the comment's six figures.
+    """
 
     def test_the_active_line_reads_849_days(self, result) -> None:
         days = result.active_line_days
@@ -403,6 +428,17 @@ class TestTheSave:
         shared = closes.index.intersection(tu.index)
         assert len(shared) == 1996
         assert closes.loc[shared].equals(tu.loc[shared])
+
+    def test_the_two_saves_keep_none_of_the_same_69_days(self, closes) -> None:
+        """The later save starts four trading days later, so every kept day at 250/25 moves."""
+        tu = read_later_save()[1]
+
+        earlier, later_days = _kept(closes), _kept(tu)
+        assert len(earlier) == len(later_days) == 69
+        assert closes.index.get_loc(tu.index[0]) == 4
+        assert str(earlier[0].date()) == "2005-06-01"
+        assert str(later_days[0].date()) == "2005-06-07"
+        assert earlier.intersection(later_days).empty
 
     def test_its_traded_cell_and_kelly_f_miss(self, later) -> None:
         assert later.traded.coefficient == pytest.approx(0.287046, abs=5e-7)
@@ -488,6 +524,12 @@ class TestBesideThePost:
         assert int((held == -HOLD_DAYS).sum()) == 397
         assert int((held == 0).sum()) == 251
         assert np.flatnonzero(held)[0] == 250
+
+    def test_the_other_176_days_hold_a_partial_position(self, result) -> None:
+        """Between −25 and +25, neither flat nor full, on the days the three counts leave out."""
+        held = result.positions
+        assert int(((np.abs(held) < HOLD_DAYS) & (held != 0)).sum()) == 176
+        assert 1176 + 397 + 251 + 176 == len(held)
 
     def test_tu_s_close_rose_from_the_first_day_to_the_last(self, result) -> None:
         assert result.closes[0] == 97.9219
@@ -677,4 +719,490 @@ class TestTheReport:
         assert "0.2719 (0.0238)" in printed
         assert "2.9333" in printed
         assert "2009-01-02 to 2012-05-11, 849 days" in printed
-        assert "250/25 correlation 0.2870, p 0.0168" in printed
+        assert (
+            "2004-06-07 to 2012-05-17, 250/25 correlation 0.2870, p 0.0168, Hurst 0.446556, "
+            "Kelly f 64.930941" in printed
+        ), "the 2012-05-17 save"
+
+
+POST = paths.REPO_ROOT / "blog" / "tu-momentum-lessons.md"
+
+#: Counts the post spells out in words rather than printing as digits.
+SPELLED = {4: "four", 5: "five", 6: "six", 7: "seven", 10: "ten", 14: "fourteen"}
+
+#: The six figures in the script's closing comment, each beside the field of
+#: :class:`Figures` that gives it.
+SCRIPT_FIGURES = (
+    ("average_annual_return", SCRIPT_AVERAGE_ANNUAL_RETURN),
+    ("sharpe", SCRIPT_SHARPE),
+    ("apr", SCRIPT_APR),
+    ("max_drawdown", SCRIPT_MAX_DRAWDOWN),
+    ("max_drawdown_days", str(SCRIPT_MAX_DRAWDOWN_DAYS)),
+    ("kelly", SCRIPT_KELLY),
+)
+
+
+def _minus(x: float, places: int) -> str:
+    """``x`` at ``places`` decimals with a true minus sign, as the post's prose prints it."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _landed(found) -> int:
+    """How many of the closing comment's six figures ``found`` lands, every printed digit."""
+    return sum(matches(getattr(found, name), printed) for name, printed in SCRIPT_FIGURES)
+
+
+def _array(columns: str, header: list[str], rows: list[str]) -> str:
+    """One of the post's ``\\small`` tables, rebuilt whole from its header and rows."""
+    return (
+        f"\\small\\begin{{array}}{{{columns}}}\n"
+        + " & "
+        + " & ".join(header)
+        + " \\\\ \\hline\n"
+        + " \\\\\n".join(rows)
+        + "\n\\end{array}"
+    )
+
+
+def _cell(cell) -> str:
+    """One cell of Lesson 3's tables, bold where its p-value is below 0.05."""
+    value = f"{cell.coefficient:.4f}"
+    return f"\\mathbf{{{value}}}" if cell.p_value < 0.05 else value
+
+
+def _kept(series: pd.Series) -> pd.DatetimeIndex:
+    """The days the 250/25 cell keeps on one save, every 25th from the first with both returns."""
+    rows = np.arange(LOOKBACK, len(series) - HOLD_DAYS)[:: min(LOOKBACK, HOLD_DAYS)]
+    assert len(rows) == correlation(series, LOOKBACK, HOLD_DAYS).rows
+    return series.index[rows]
+
+
+class TestWhatThePostQuotes:
+    """Each run figure ``blog/tu-momentum-lessons.md`` quotes, read in the post against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in the post inside a fragment holding the number and
+    the words that place it. A typo in that copy, or a re-pin that leaves the
+    post behind, fails here. Each of the four ``\\small`` tables is rebuilt
+    whole, so a cell changed there fails too, bold included in Lesson 3's.
+
+    These comparisons the post's words draw are asserted on the run, except
+    two. The traded pair's place among Chan's compromises is checked against
+    the module's transcription of location 2646, and the kept past returns
+    still overlapping on the module's lookback and hold. One copy of the
+    words for each is read.
+
+    - TU's column spans the window the book names, the full window lands all
+      six of the comment's figures and the active line none, and the traded
+      pair is one of Chan's compromises while several pairs, read as more
+      than two, correlate more strongly.
+    - The position runs from −25 to 25.
+    - The full window's maximum drawdown rounds to the book's 2.5 percent,
+      and the active line's daily standard deviation shrinks by more than
+      its mean, so its Sharpe ratio and Kelly f are higher.
+    - More than half of the gain is in by 2009-01-02, the maximum drawdown is
+      over by then, and the active line sees a smaller gain and a shallower
+      fall.
+    - The two saves agree on every shared day, the later one starts and ends
+      four trading days later, the days the traded cell keeps start four
+      trading days later too, each gives the traded cell 69 days and no day
+      appears in both, and the shift alone moves the correlation in its
+      second decimal, off the book's 0.27, and the Kelly f off the comment's
+      digits.
+    - At the scripts' settings H lands neither the book's 0.44 on TU nor its
+      0.49 on USD.CAD, TU's H misses low and the later save's on the other
+      side, a ``maxT`` of 24 lands TU and moves USD.CAD further from its
+      0.49, and every H the post gives sits below 0.5 with the book's.
+    - The traded cell lands the book's 0.27 and 0.02, the past returns its
+      kept days look back on still overlap, and the four negative cells are
+      exactly the shortest pairs. Every pair of two periods of 60 days or
+      more keeps fewer days than any other pair, and one of them correlates
+      more strongly than the traded cell with a p-value of 0.05 or more. All
+      six compromises correlate positively, all but one with a p-value below
+      0.05. The variance ratio test keeps a whole number of two-day periods
+      and does not reject.
+    - The rule is fully long on most days of a rising price, the return
+      leans on 2008, which holds the maximum drawdown, and 2008 earned about
+      four-fifths as much as the other years, read as between 0.75 and 0.85.
+
+    No other comparison is asserted here, so a flipped word elsewhere in the
+    post passes unless it sits inside a fragment read here. The sampling step
+    and the rule's direction are two such comparisons, which
+    ``TestTheCorrelationTable`` and ``TestTheRule`` assert on the code
+    without reading the post.
+
+    What it leaves unread is listed in README. Every copy of a figure or of an
+    asserted comparison but the one read here can carry a typo that passes,
+    and the post states several figures more than once, in its opening, a
+    lesson, a table, the closing list or the figure's alt text. Of that alt
+    text it reads only the two figures that appear nowhere else, the highest
+    close and the curve's high, each with its day. The two sketches' alt texts are
+    read by ``tests/test_tu_momentum_whiteboard.py``, not here. Chan's words,
+    the Kindle locations, the mirror's commit, the facts about the script and the contract
+    that README's second group lists, such as the ``q`` of 2 and the default
+    ``maxT`` of 19, the book's chapter, example,
+    figure and table numbers, the replication log's entry number, the post's
+    counts of its own groups, lessons, tables and lists and its pointers to
+    its lessons and tables, its counts of what other surfaces hold, the one
+    setting the replication tried, a random walk's 0.5 and its two-day
+    variance of twice its one-day, the 1 the cumulative return's definition
+    subtracts and the references stay unread.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def later_closes(cls) -> pd.Series:
+        return read_later_save()[1]
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def curve(cls, closes) -> pd.Series:
+        from chan.tu_momentum_figures import cumulative_return, daily_returns
+
+        return pd.Series(cumulative_return(daily_returns(closes)), index=closes.index)
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_opening_and_the_file(self, sources, result, text) -> None:
+        entry, closes = sources
+        cell = result.traded
+        six = len(SCRIPT_FIGURES)
+        assert _landed(result.figures) == six
+        assert _landed(result.active_line_figures) == 0
+        assert (closes.index[0], closes.index[-1]) == (BOOK_FIRST_DAY, BOOK_LAST_DAY)
+        assert (LOOKBACK, HOLD_DAYS) in COMPROMISES
+        stronger = sum(
+            other.coefficient > cell.coefficient for other in result.correlations.values()
+        )
+        assert stronger > 2, "several pairs correlate more strongly"
+        fragments = [
+            f"the correlation that picked the rule’s periods rests on {cell.rows} days.",
+            f"The comment at the end of the script lists {SPELLED[six]} figures.",
+            f"The one it runs starts in {ACTIVE_LINE_START.year} and lands none of the "
+            f"{SPELLED[six]}. The one below it starts in {closes.index[0].year} and reads "
+            "every day",
+            f"That line lands all {SPELLED[_landed(result.figures)]}.",
+            f"The book prints {BOOK_HURST}, and the transcription gives {result.hurst:.6f}.",
+            f"looking back {LOOKBACK} days and holding for {HOLD_DAYS}.",
+            "he names it among the best compromises between a strong correlation and a small "
+            "p-value, though several pairs correlate more strongly.",
+            f"The pair correlates at {cell.coefficient:.2f} with a p-value of "
+            f"{cell.p_value:.2f}. The correlation rests on {cell.rows} days, and the pair is "
+            f"one of {len(result.correlations)} tried on the same closes.",
+            f"a table computed on the {closes.index[0].year} to {closes.index[-1].year} closes "
+            "the rule then trades",
+            f"Chan’s own MATLAB file `{SOURCE_FILE}`, saved on {entry.obtained} and converted "
+            f"here to one file per future. TU’s column holds {len(closes):,} daily closes of the "
+            "continuous future, from "
+            f"{closes.index[0].date()} to {closes.index[-1].date()}, the window the book names.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_table_and_the_rule(self, result, text) -> None:
+        days = result.days
+        first_position = days[int(np.flatnonzero(result.positions)[0])].date()
+        first_return = days[int(np.flatnonzero(result.daily)[0])].date()
+        periods = ", ".join(map(str, PERIODS[:-1])) + f" and {PERIODS[-1]}"
+        step = min(LOOKBACK, HOLD_DAYS)
+        shared = set(range(1, HOLD_DAYS + 1)) & set(range(2, HOLD_DAYS + 2))
+        assert (result.positions.min(), result.positions.max()) == (-HOLD_DAYS, HOLD_DAYS)
+        fragments = [
+            f"The table starts from one cell, a lookback of {LOOKBACK} days and a hold of "
+            f"{HOLD_DAYS}. On each day the past return is the percentage change in TU’s close "
+            f"over the previous {LOOKBACK} days, and the future return is the percentage change "
+            f"over the next {HOLD_DAYS}.",
+            f"Two consecutive future returns overlap on {len(shared)} of their {HOLD_DAYS} days",
+            f"For {LOOKBACK} and {HOLD_DAYS} it keeps every {step}th day, and "
+            f"{result.traded.rows} days survive.",
+            f"every pairing of {periods} days, {SPELLED[len(PERIODS)]} lookbacks against "
+            f"{SPELLED[len(PERIODS)]} holds, which makes {len(result.correlations)} cells. In "
+            f"what follows, {LOOKBACK}/{HOLD_DAYS} means a lookback of {LOOKBACK} days and a "
+            f"hold of {HOLD_DAYS}.",
+            f"Chan picks {LOOKBACK}/{HOLD_DAYS} from the table and then looks for a rule to "
+            "trade it.",
+            f"sets the rule’s year at {LOOKBACK} trading days and its month at {HOLD_DAYS}",
+            f"Each tranche is held for {HOLD_DAYS} days, so up to {HOLD_DAYS} are open at once. "
+            f"Counted in tranches, the position runs from −{HOLD_DAYS}, all short, to "
+            f"{HOLD_DAYS}, all long. A day’s return is yesterday’s position times today’s "
+            f"percentage change in the close, divided by {HOLD_DAYS}. The first {LOOKBACK} days "
+            f"have no {LOOKBACK}-day return, so the rule holds nothing until {first_position} "
+            f"and earns its first return on {first_return}.",
+            f"the mean daily return times {module.TRADING_DAYS}, the number of trading days a "
+            "year the script uses to annualize",
+            f"times √{module.TRADING_DAYS}.",
+            f"annualizes it over {module.TRADING_DAYS} days a year",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1s_tables(self, result, text) -> None:
+        full, active = result.figures, result.active_line_figures
+        days = result.active_line_days
+        assert matches(-100 * full.max_drawdown, BOOK_MAX_DRAWDOWN_PERCENT)
+        start = result.days.get_loc(ACTIVE_LINE_START)
+        whole, tail = result.daily, result.daily[start:]
+        assert tail.mean() < whole.mean() and tail.std() < whole.std()
+        assert tail.std() / whole.std() < tail.mean() / whole.mean(), (
+            "standard deviation shrinks more"
+        )
+        assert active.sharpe > full.sharpe and active.kelly > full.kelly
+        returns = _array(
+            "l|r|r|r",
+            ["\\text{Return}", "\\text{Sharpe}", "\\text{APR}"],
+            [
+                *(
+                    f"\\text{{{label}}} & {f.average_annual_return:.6f} & {f.sharpe:.6f} & "
+                    f"{f.apr:.6f}"
+                    for label, f in (("Full window", full), ("Active line", active))
+                ),
+                f"\\text{{Comment}} & {SCRIPT_AVERAGE_ANNUAL_RETURN} & {SCRIPT_SHARPE} & "
+                f"{SCRIPT_APR}",
+                f"\\text{{Book}} & \\text{{none}} & {BOOK_SHARPE} & "
+                f"{BOOK_APR_PERCENT}\\text{{ percent}}",
+            ],
+        )
+        drawdowns = _array(
+            "l|r|r|r",
+            ["\\text{Drawdown}", "\\text{Days}", "\\text{Kelly f}"],
+            [
+                *(
+                    f"\\text{{{label}}} & {f.max_drawdown:.6f} & {f.max_drawdown_days} & "
+                    f"{f.kelly:.6f}"
+                    for label, f in (("Full window", full), ("Active line", active))
+                ),
+                f"\\text{{Comment}} & {SCRIPT_MAX_DRAWDOWN} & {SCRIPT_MAX_DRAWDOWN_DAYS} & "
+                f"{SCRIPT_KELLY}",
+                f"\\text{{Book}} & {BOOK_MAX_DRAWDOWN_PERCENT}\\text{{ percent}} & "
+                "\\text{none} & \\text{none}",
+            ],
+        )
+        fragments = [
+            f"The full window is all {len(result.days):,} days. The active line, the one the "
+            f"script runs, reads the {len(days)} days from {days[0].date()}.",
+            returns,
+            drawdowns,
+            f"The maximum drawdown of {_minus(full.max_drawdown, 6)} is a fall of "
+            f"{-100 * full.max_drawdown:.6f} percent, which rounds to the book’s "
+            f"{BOOK_MAX_DRAWDOWN_PERCENT} percent.",
+            "The standard deviation of its daily returns shrinks by more than their mean does, "
+            "so its Sharpe ratio and Kelly f come out higher.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_curve_and_the_alt_text(self, curve, closes, result, text) -> None:
+        from chan.cross_sectional_momentum_figures import deepest_drawdown
+
+        drawdown = deepest_drawdown(curve.to_numpy())
+        at_start, last = curve[ACTIVE_LINE_START], curve.iloc[-1]
+        high, low = curve.index[drawdown.high], curve.index[drawdown.trough]
+        assert at_start / last > 0.5, "more than half of the gain"
+        assert low < ACTIVE_LINE_START, "the active line starts after the maximum drawdown"
+        start = result.days.get_loc(ACTIVE_LINE_START)
+        assert np.prod(1 + result.daily[start:]) - 1 < last, "a smaller gain"
+        assert result.active_line_figures.max_drawdown > result.figures.max_drawdown, (
+            "a shallower fall"
+        )
+        fragments = [
+            f"The curve stands at {at_start:.6f} on {ACTIVE_LINE_START.date()} and ends at "
+            f"{last:.6f}, so the active line starts after more than half of the gain was "
+            "already in. The active line also starts after the maximum drawdown, which runs "
+            f"from {high.date()} to {low.date()}. The active line sees a smaller gain and a "
+            "shallower fall, and every figure moves.",
+            f"keep rising to a high of {closes.max():.4f} on {closes.idxmax().date()}",
+            f"to its highest point, {curve.max():.6f} on {curve.idxmax().date()}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_later_file(self, closes, later_closes, result, later, text) -> None:
+        shared = closes.index.intersection(later_closes.index)
+        assert closes.loc[shared].equals(later_closes.loc[shared])
+        shift = closes.index.get_loc(later_closes.index[0])
+        earlier_kept, later_kept = _kept(closes), _kept(later_closes)
+        assert len(earlier_kept) == len(later_kept)
+        assert earlier_kept.intersection(later_kept).empty
+        assert closes.index.get_loc(later_kept[0]) - closes.index.get_loc(earlier_kept[0]) == shift
+        assert round(later.traded.coefficient, 2) != round(result.traded.coefficient, 2)
+        assert not matches(later.traded.coefficient, BOOK_CORRELATION)
+        assert not matches(later.figures.kelly, SCRIPT_KELLY)
+        assert len(later_closes) - len(shared) == shift, "it also ends that many days later"
+        on_shared = correlation(later_closes.loc[shared], LOOKBACK, HOLD_DAYS).coefficient
+        assert on_shared == pytest.approx(later.traded.coefficient, abs=1e-12), "shift alone"
+        fragments = [
+            f"whose closes run to {later_closes.index[-1].date()}. TU’s close is the same on all "
+            f"{len(shared):,} days the two files share. The later file’s "
+            f"{len(later_closes):,} days start on {later_closes.index[0].date()}, "
+            f"{SPELLED[shift]} trading days later, so the days the {LOOKBACK}/{HOLD_DAYS} cell "
+            f"keeps, every {HOLD_DAYS}th one, start {SPELLED[shift]} trading days later too, on "
+            f"{later_kept[0].date()} rather than {earlier_kept[0].date()}. Each file gives the "
+            f"cell {len(earlier_kept)} days, and no day appears in both sets.",
+            f"The {SPELLED[shift]}-day shift alone moves the {LOOKBACK}/{HOLD_DAYS} correlation "
+            f"to {later.traded.coefficient:.6f}, which rounds to "
+            f"{later.traded.coefficient:.2f} rather than the book’s {BOOK_CORRELATION}. Run "
+            f"over the whole later file, which also ends {SPELLED[shift]} trading days later, "
+            f"`TU_mom.m` gives a Kelly f of {later.figures.kelly:.6f}, off the comment’s "
+            "digits.",
+            "So the book’s figures come "
+            f"from the file whose closes end on {closes.index[-1].date()}. "
+            f"{SPELLED[shift].capitalize()} days at the start move the correlation in its "
+            "second decimal",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2(self, result, later, later_closes, closes, text) -> None:
+        usdcad = read_usdcad()[1].to_numpy(dtype=float)
+        at_default, at_24 = hurst_at(usdcad, 19), hurst_at(usdcad)
+        book = float(BOOK_HURST)
+        assert result.hurst < book < later.hurst, "misses on the other side"
+        assert not matches(result.hurst, BOOK_HURST) and not matches(at_default, "0.49"), (
+            "lands neither H at the scripts' settings"
+        )
+        assert matches(hurst_at(closes), BOOK_HURST)
+        assert abs(at_24 - 0.49) > abs(at_default - 0.49), "further from its printed 0.49"
+        assert max(result.hurst, hurst_at(closes), later.hurst, book) < 0.5, "below 0.5"
+        fragments = [
+            f"On TU’s log closes the transcription gives {result.hurst:.6f}. That prints as "
+            f"{result.hurst:.2f}, so it misses the book’s {BOOK_HURST} with a gap of "
+            f"{_minus(gap(result.hurst, BOOK_HURST), 2)}, computed minus published.",
+            f"Chan’s later file, whose closes run to {later_closes.index[-1].date()}, gives "
+            f"{later.hurst:.6f}, which prints as {later.hurst:.2f} and misses on the other side.",
+            f"Raising `maxT` to {HURST_DIAGNOSTIC_MAX_T} lands TU at {hurst_at(closes):.6f}. The "
+            "same change moves USD.CAD, the other series the book prints an H for, from "
+            f"{at_default:.6f} to {at_24:.6f}, further from its printed 0.49. No value of "
+            "`maxT` from 5 to 40 lands both.",
+            f"Every H here, {result.hurst:.6f}, {hurst_at(closes):.6f} and the later file’s "
+            f"{later.hurst:.6f}, sits below 0.5, on the same side as the book’s {BOOK_HURST}.",
+            "At the settings Chan’s scripts use, the Python copy of `genhurst` lands neither H "
+            "the book prints, so no figure of Chan’s confirms the copy.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3s_tables(self, result, text) -> None:
+        first, second = PERIODS[:4], PERIODS[4:]
+
+        def table(holds: tuple[int, ...]) -> str:
+            return _array(
+                "r|" + "r" * len(holds),
+                [str(hold) for hold in holds],
+                [
+                    f"{lookback} & "
+                    + " & ".join(_cell(result.correlations[(lookback, hold)]) for hold in holds)
+                    for lookback in PERIODS
+                ],
+            )
+
+        fragments = [
+            f"Here are all {len(result.correlations)} correlations of the table in two parts, "
+            f"holds of {first[0]} to {first[-1]} days and then holds of {second[0]} to "
+            f"{second[-1]} days.",
+            table(first),
+            table(second),
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3(self, result, closes, text) -> None:
+        cell = result.traded
+        cells = len(result.correlations)
+        significant = {p: c for p, c in result.correlations.items() if c.p_value < 0.05}
+        positive = sum(c.coefficient > 0 for c in significant.values())
+        negative = sorted(p for p, c in significant.items() if c.coefficient < 0)
+        assert negative == [(lb, h) for lb in PERIODS[:2] for h in PERIODS[:2]], "the shortest"
+        chance = cells * 0.05
+        step = min(LOOKBACK, HOLD_DAYS)
+        assert LOOKBACK - step > 0, "the past returns still overlap"
+        long_pairs = {p: c for p, c in result.correlations.items() if min(p) >= 60}
+        others = [c.rows for p, c in result.correlations.items() if p not in long_pairs]
+        assert max(c.rows for c in long_pairs.values()) < min(others), "keeps few days"
+        assert any(
+            c.coefficient > cell.coefficient and c.p_value >= 0.05 for c in long_pairs.values()
+        ), "a strong correlation there can still have a large p-value"
+        compromises = [f"{lb}/{h}" for lb, h in COMPROMISES]
+        assert all(result.correlations[p].coefficient > 0 for p in COMPROMISES)
+        below = sum(result.correlations[p].p_value < 0.05 for p in COMPROMISES)
+        (exception,) = [p for p in COMPROMISES if result.correlations[p].p_value >= 0.05]
+        vr = result.variance_ratio
+        assert vr.rejects is False and vr.nobs % 2 == 0
+        assert matches(cell.coefficient, BOOK_CORRELATION)
+        assert matches(cell.p_value, BOOK_P_VALUE)
+        fragments = [
+            f"The traded cell, {LOOKBACK}/{HOLD_DAYS}, is {cell.coefficient:.6f} with a p-value "
+            f"of {cell.p_value:.6f}, and both land the book’s {BOOK_CORRELATION} and "
+            f"{BOOK_P_VALUE}.",
+            f"**It rests on {cell.rows} days.**",
+            f"The past returns still overlap, since each kept one shares {LOOKBACK - step} of its "
+            f"{LOOKBACK} days with the next.",
+            f"{SPELLED[len(significant)].capitalize()} of the {cells} cells have a p-value below "
+            f"0.05. {SPELLED[positive].capitalize()} of them are positive. The "
+            f"{SPELLED[len(negative)]} negative ones are exactly the shortest pairs, "
+            + ", ".join(f"{lb}/{h}" for lb, h in negative[:-1])
+            + f" and {negative[-1][0]}/{negative[-1][1]},",
+            f"If the cells were {cells} independent tests of returns with no pattern at all, "
+            f"chance alone would put {chance:.2f} of them below 0.05 on average.",
+            f"Every cell reads the same {len(closes):,} closes",
+            "and neighbouring cells share a lookback or a hold, so their returns overlap. So "
+            f"comparing {len(significant)} with {chance:.2f} is not a valid test.",
+            "A pair of two long periods keeps few days, so a strong correlation there can still "
+            "have a large p-value.",
+            "Chan weighs a strong correlation against a small p-value, and calls "
+            f"{SPELLED[len(COMPROMISES)]} pairs",
+            f": {', '.join(compromises[:-1])} and {compromises[-1]}. All "
+            f"{SPELLED[len(COMPROMISES)]} correlate positively and {SPELLED[below]} have a "
+            "p-value below 0.05. The exception is "
+            f"{exception[0]}/{exception[1]}, whose p-value is "
+            f"{result.correlations[exception].p_value:.4f} on "
+            f"{result.correlations[exception].rows} days.",
+            f"It uses {vr.nobs:,} of the {len(closes) - 1:,} daily changes in TU’s log close, "
+            "because it keeps a whole number of two-day periods. Its p-value is "
+            f"{vr.p_value:.6f}, so it cannot tell TU from a random walk.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_drift_and_the_one_year(self, result, curve, text) -> None:
+        from chan.cross_sectional_momentum_figures import deepest_drawdown
+
+        held = result.positions
+        long, short = int((held == HOLD_DAYS).sum()), int((held == -HOLD_DAYS).sum())
+        flat = int((held == 0).sum())
+        partial = int(((np.abs(held) < HOLD_DAYS) & (held != 0)).sum())
+        assert long + short + flat + partial == len(held)
+        assert 2 * long > len(held) and result.closes[-1] > result.closes[0], (
+            "fully long on most days of a rising price"
+        )
+        before = int(np.flatnonzero(held)[0])
+        growth = (1 + pd.Series(result.daily, index=result.days)).groupby(result.days.year).prod()
+        assert growth.idxmax() == 2008, "the return leans on one year"
+        in_2008, the_rest = growth[2008] - 1, growth.drop(2008).prod() - 1
+        assert 0.75 < in_2008 / the_rest < 0.85, "about four-fifths"
+        drawdown = deepest_drawdown(curve.to_numpy())
+        assert {curve.index[drawdown.high].year, curve.index[drawdown.trough].year} == {2008}
+        first, last = result.days[before], result.days[-1]
+        fragments = [
+            f"TU’s close rose from {result.closes[0]:.4f} on the first day to "
+            f"{result.closes[-1]:.4f} on the last. The position was +{HOLD_DAYS}, fully long, on "
+            f"{long:,} of the {len(held):,} days and −{HOLD_DAYS} on {short}. It was between "
+            f"−{HOLD_DAYS} and +{HOLD_DAYS} but not 0 on {partial} days, and 0 on the other "
+            f"{flat}, of which {before} came before the first signal. A rule that is fully long "
+            "on most days of a rising price earns",
+            "The return also leans on one year. Calendar 2008 alone compounds to "
+            f"{in_2008:.6f}, and the other years together, from the first trade in "
+            f"{first:%B %Y} to {last:%B %Y}, compound to "
+            f"{the_rest:.6f}. So 2008, the year of the financial crisis, earned about "
+            "four-fifths as much as the rest of the run combined, and it holds the maximum "
+            "drawdown too.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_what_this_replication_cannot_say(self, result, closes, text) -> None:
+        cells = len(result.correlations)
+        fragments = [
+            f"The pair was picked from a table of {cells} computed on the "
+            f"{closes.index[0].year} to {closes.index[-1].year} closes it then trades, so its "
+            f"p-value is not corrected for the other {cells - 1}.",
+        ]
+        assert self.missing(text, fragments) == []

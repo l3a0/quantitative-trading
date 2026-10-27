@@ -7445,9 +7445,9 @@ Chan trades them: long when the 250-day return is positive, short when it is
 negative, deciding every day with a twenty-fifth of the capital and holding
 each day's call for 25 days.
 
-**Every figure the script prints reproduces, on a window the script's active
+**Every figure in the script's closing comment reproduces, on a window the script's active
 line does not read, and the Hurst exponent misses.** `TU_mom.m` picks its
-window with `idx = find(tday == 20090102)` and leaves `% idx=1;` commented out
+window with `idx=find(tday==20090102);` and leaves `% idx=1;` commented out
 under it. All six figures in its closing comment land on `idx = 1`, the full
 2004-06-01 window the book's sentence names, and none lands on 2009. Row 12
 runs the active line.
@@ -7490,7 +7490,7 @@ and nothing about whether the rule pays today.
 | 8 | The maximum drawdown | −0.024847, and 2.5 percent | `TU_mom.m`'s comment, location 2668 |
 | 9 | The longest drawdown | 343 days | `TU_mom.m`'s comment |
 | 10 | The Kelly f | 64.919535 | `TU_mom.m`'s comment |
-| 11 to 15 | the whole correlation table, the script's active line, the 2012-05-17 save, H at another `maxT`, and the statistic Example 1.1 starts from | none here, as each row says | n/a |
+| 11 to 15 | the whole correlation table, the script's active line, the 2012-05-17 save, H at other values of `maxT`, and the statistic Example 1.1 starts from | none here, as each row says | n/a |
 
 ### What this repo computed
 
@@ -7509,7 +7509,7 @@ and nothing about whether the rule pays today.
 | 11 | every pair of 1, 5, 10, 25, 60, 120 and 250 days, and the six pairs location 2646 calls the best compromises | 49 coefficients and p-values. The six are 0.1718, 0.2592, 0.1784, 0.2719, 0.4245 and 0.5112 | `TestTheCorrelationTable::test_every_cell` and `::test_the_six_compromises` |
 | 12 | rows 5 to 10 from the script's active line, 849 days from 2009-01-02 | 0.014042, 1.187438, 0.014069, −0.009851, 164 days and 100.298107 | `TestTheWindow::test_its_figures` |
 | 13 | rows 1, 2, 3 and 10, and row 4's p-value, on `inputdataohlcdaily_20120517/tu.csv`, saved 2012-05-18, 2,000 days from 2004-06-07 to 2012-05-17 | 0.287046, 0.016785, 0.446556, 64.930941 and 0.132819 | `TestTheSave::test_its_traded_cell_and_kelly_f_miss` and `::test_its_two_tests` |
-| 14 | row 3 at `maxT` 24, and Entry 22's H on USD.CAD at `maxT` 19 and 24 | 0.440450 on TU, and 0.473233 and 0.471426 on USD.CAD | `TestTheTwoTests::test_no_single_max_t_lands_both_books_figures` |
+| 14 | row 3 at `maxT` 24, Entry 22's H on USD.CAD at `maxT` 19 and 24, and both at every `maxT` from 5 to 40 | 0.440450 on TU, and 0.473233 and 0.471426 on USD.CAD. TU lands 0.44 at `maxT` 6, 7 and 21 to 27, and USD.CAD lands 0.49 at none | `TestTheTwoTests::test_max_t_24_lands_tu_and_moves_usdcad_further` and `::test_no_max_t_from_5_to_40_lands_both` |
 | 15 | `mean(ret) / std(ret) · √2000` with the n − 1 `std`, on the returns built from the module's exported functions | 2.933253 | `TestTheGaussianStatistic::test_the_exports_give_tu_mom_hypothesis_test_s_2_93` |
 
 ### The verdicts
@@ -7518,7 +7518,7 @@ and nothing about whether the rule pays today.
 | --- | --- | --- | --- |
 | 1 | +0.00 | reproduced | 0.2719 rounds to the printed 0.27. |
 | 2 | +0.00 | reproduced | 0.0238 rounds to the printed 0.02, and the correlation is significant at 5 percent, which is what location 2659 picks the pair for. |
-| 3 | −0.01 | did not reproduce | 0.433357 prints as 0.43 on Chan's own saved file, so the vintage explanation is spent. Row 14 is the one reading tried after the miss. H rises with `maxT` and first prints as 0.44 at 24, but the same change moves Entry 22's USD.CAD further from its 0.49. No single `maxT` lands both, so the miss is not a different default. The claim the figure was printed for survives, since H is below a half here too. |
+| 3 | −0.01 | did not reproduce | 0.433357 prints as 0.43 on Chan's own saved file, so the vintage explanation is spent. Row 14 holds the diagnostic tried after the miss, every `maxT` from 5 to 40. At `maxT` 24 H prints as 0.44, but the same change moves Entry 22's USD.CAD further from its 0.49. TU also lands at `maxT` 6, 7 and 21 to 27, and each of them moves USD.CAD further from its 0.49. No `maxT` from 5 to 40 lands both, so the miss is not a different default. The claim the figure was printed for survives, since H is below a half here too. |
 | 4 | none, a claim | reproduced | h is 0 at `vratiotest`'s default 5 percent, the level the script reads `h` at, so the test does not reject a random walk. |
 | 5 | −0.0000 | reproduced | 0.016699 rounds to the printed 0.0167. |
 | 6 | +0.00, and +0 against the book | reproduced | 1.041462 rounds to 1.04 and to 1. `chan.khandani_lo.plain_sharpe` divides by n − 1 and gives 1.041201, which `TestTheFigures::test_the_sharpe_ratio_divides_by_n` holds. That also prints as 1.04, so the row uses the script's divisor because it is the script's, not because it lands. |
@@ -7527,7 +7527,7 @@ and nothing about whether the rule pays today.
 | 9 | 0 days | reproduced | Exact. |
 | 10 | −0.000000 | reproduced | Exact at the six decimals the script prints. |
 | 11 | none | none, not a replication | The book prints one cell. The six compromise pairs all correlate positively, and five of them are significant at 5 percent. The exception is 250/120, at a p-value of 0.0617 on 14 days. |
-| 12 | none | none, not a replication | The active line lands none of the comment's six figures, so the comment comes from `idx = 1`. The comment also prints no annual volatility although the printing line asks for one, so it was pasted from an earlier version of that line. |
+| 12 | none | none, not a replication | The active line lands none of the comment's six figures, so the comment comes from `idx = 1`. The comment also lists no annual volatility although the printing line asks for one, which suggests it was pasted from an earlier version of that line. |
 | 13 | none | none, not a replication | TU's close is the same on every day the two saves share, so only the window moves, four trading days later. That is enough to move the correlation to 0.29 at two decimals and the Kelly f off the printed digits, which places the book's figures on the 2012-05-11 save. |
 | 14 | none | none, not a replication | Tried after row 3 missed, as a diagnostic rather than a reading. |
 | 15 | none | none, not a replication | `TU_mom_hypothesisTest.m` prints 2.93, which is Example 1.1's figure, replicated as Entry 37's row 1. It is pinned here because it shows that the returns Entry 37 imports are this entry's. |
@@ -7536,16 +7536,16 @@ and nothing about whether the rule pays today.
 
 Three things.
 
-1. **The book's figures come from the full window.** All six of the
-   script's printed figures reproduce on `idx = 1`, the window the book's
+1. **The book's figures come from the full window.** All six figures in
+   the script's closing comment reproduce on `idx = 1`, the window the book's
    sentence names, while the line the script runs as shipped starts in 2009
    and lands none of them. The 2012-05-11 save is the one behind them, since
    the 2012-05-17 save that `correlationTest.m` loads moves both the
    correlation and the Kelly f.
 2. **`genhurst` misses on both series the book prints an H for.** USD.CAD's
    0.4732 against 0.49 in Entry 22 and TU's 0.4334 against 0.44 here run
-   through the same transcription, on Chan's own data, and no `maxT` lands
-   both. No figure of Chan's vouches for the transcription. What checks its
+   through the same transcription, on Chan's own data, and no `maxT` from 5
+   to 40 lands both. No figure of Chan's vouches for the transcription. What checks its
    rules is the invariances `TestGenhurst` checks on synthetic series, and
    the two pins on USD.CAD and TU catch a change without showing it is right.
 3. **The momentum the table shows is thin.** The traded pair's correlation
@@ -7564,12 +7564,12 @@ p-value is not corrected for the other 48. Example 1.1's three tests of the
 same returns, in Entry 37, are where the significance question is asked.
 
 **What computed the book's 0.44.** Row 14 found a `maxT` that lands it on TU
-and breaks USD.CAD. Searching further would be choosing a reading after its
-number is seen.
+and breaks USD.CAD, and no `maxT` from 5 to 40 lands both. Searching other
+settings would be choosing a reading after its number is seen.
 
 **What a trader would earn.** The returns are on the notional value of the
-contract with no cost and no margin, and location 2668 says leverage is
-needed to make the 1.7 percent worth having. Nothing here measures what costs
+contract with no cost and no margin, and location 2668 says the 1.7
+percent may seem low and leverage can boost it. Nothing here measures what costs
 or leverage would do.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
@@ -7578,6 +7578,27 @@ change to any assertion named above moves this entry in the same commit, and
 write-up, moves with it, since that post quotes most of these figures. The
 post's one figure moves too, and `uv run python -m chan.tu_momentum_figures`
 redraws it.
+
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **Future returns end to end, past returns overlap**, in "The correlation table". It draws the
+   first three days the 250/25 cell keeps on the 2012-05-11 save, 2005-06-01,
+   2005-07-07 and 2005-08-11, each as a 250-day past bar and a 25-day future
+   bar to scale. Each future starts where the one before ends, and each past
+   shares 225 of its 250 days with the next, which is why keeping every 25th
+   day stops the futures overlapping and not the pasts. A row of 69 dots, not
+   to scale, counts the kept days.
+2. **Same closes, no kept day shared**, in Lesson 1. It draws the first four days
+   the cell keeps on each save. The 2012-05-17 save starts four trading days
+   later, so each of its kept days falls four trading days after one of the
+   earlier save's, and the two sets of 69 share none although all 1,996 shared closes
+   are equal. The correlations are 0.2719 and 0.2870, which print as 0.27 and
+   0.29.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.tu_momentum_whiteboard` redraws both through the same
+`read_sources`, `read_later_save` and `correlation`.
 
 ## Entry 34: mean reversion on crude oil's 12-month calendar spread, Chan's *Algorithmic Trading*
 

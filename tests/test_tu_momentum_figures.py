@@ -217,8 +217,8 @@ class TestTheCumulativeReturn:
         np.testing.assert_array_equal(cumulative_return(run.daily), expected)
 
     def test_it_is_zero_until_2005_06_02(self, curve) -> None:
-        """The first 250 rows have no signal and the next 25 hold no tranche yet, so the
-        first return that is not zero falls on 2005-06-02."""
+        """The first 250 rows have no signal, so the first tranche opens on 2005-06-01
+        and earns its first return the next day, 2005-06-02."""
         nonzero = curve.to_numpy() != 0
         assert curve.index[int(np.argmax(nonzero))] == FIRST_RETURN, SPEC
         assert (curve[curve.index < FIRST_RETURN] == 0).all(), SPEC

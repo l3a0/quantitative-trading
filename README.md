@@ -1171,8 +1171,10 @@ precision Chan printed, all 49 cells of the correlation table, the script's
 2009 window, and the 2012-05-17 save that `correlationTest.m` loads. It also
 holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
 start from, the rule on synthetic arrays, the refusal of a position larger
-than the tranche count, and the scale-break guard on TU. The blog post about it
-is the exception, and what it says that nothing here asserts is listed below.
+than the tranche count, and the scale-break guard on TU.
+`TestWhatThePostQuotes` reads at least one copy in the post of each run figure
+the post quotes outside the sketches' alt text, so editing a copy it reads
+fails. What the post says that nothing here asserts is listed below.
 
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py) does it
 for the crude oil calendar spread. It pins the script's window and the window
@@ -6221,15 +6223,16 @@ maximum drawdown of 2.5 percent. The post explains the strategy for the other
 TU posts to link, and draws three lessons from Entry 33 of the replication log.
 
 1. The book's figures come from the full window, whose line the script
-   leaves commented out, while the line it runs from 2009 lands none of them.
-2. H misses 0.44 on Chan's own file, and the `maxT` that lands it on TU moves
+   leaves commented out, while the line it runs from 2009 lands none of the
+   six figures in the script's closing comment.
+2. H misses 0.44 on Chan's own file, and a `maxT` that lands it on TU moves
    USD.CAD further from its 0.49, so no figure of Chan's vouches for the
    Python copy of `genhurst`.
 3. The momentum is thin: the traded cell rests on 69 days, is one of 49 that
    share the same closes, and the variance ratio test cannot tell TU from a
    random walk.
 
-Five groups of what it says are not pinned here.
+Seven groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6242,44 +6245,76 @@ Five groups of what it says are not pinned here.
    sentence, the notional value of about \$200,000, the margin of about \$400,
    the case for leverage and Figure 6.2's caption at 2668, and the sign of
    roll returns at 2683. The book's figures are pinned, and its words are not.
-2. Facts about the code rather than the data: the active line
-   `idx = find(tday == 20090102)` and the commented-out `% idx=1;` under it,
-   the comment printing no annual volatility, `genhurst`'s default `maxT` of
-   19, and `correlationTest.m` loading the 2012-05-17 save.
-   [src/chan/tu_momentum.py](src/chan/tu_momentum.py) records each in its
-   docstring.
+2. Facts about the code and the contract rather than the data: the commit
+   `e4bc46f` of the public copy the script was transcribed from, the active line
+   `idx=find(tday==20090102);` and the commented-out `% idx=1;` under it,
+   the comment listing no annual volatility, the `q` of 2 the script passes
+   `genhurst`, `genhurst`'s default `maxT` of 19, and `correlationTest.m`
+   loading the 2012-05-17 save, each of which
+   [src/chan/tu_momentum.py](src/chan/tu_momentum.py) records in its
+   docstring, and that TU's note matures in about two years and trades on the
+   Chicago Board of Trade, part of CME Group since 2007.
 3. Readings no test asserts: that TU's price rises when two-year yields fall,
-   that consecutive future returns overlap on 24 of 25 days and each kept past
-   return shares 225 of its 250 days with the next, that a four-day shift
-   moving the correlation's second decimal shows how few days stand behind
-   it, that 2008 was the year of the financial crisis, that the back-adjusted
-   series carries roll return as well as moves in yields, that the comment's
-   missing volatility suggests it was pasted from an earlier version of the
-   printing line, that a rule mostly long on a rising price earns part of the
-   rise, and that leverage would multiply the drawdowns along with the
-   return.
-4. Ratios and roundings the post takes between pinned figures in words: more
-   than half of the gain in by 2009-01-02, 2008 earning about four-fifths as
-   much as the other years combined, four trading days between the two saves'
-   first days, 2.484746 percent rounding to 2.5, and what a figure prints as
-   at the book's precision, such as 0.43, 0.45 and 0.29. The figure's alt text
-   reads both curves approximately too, such as TU's closes drifting down
-   until mid-2007 and the cumulative return dipping below zero in 2005 and
-   flattening through 2009.
-5. Its references, cited rather than computed.
+   that a four-day shift moving the correlation's second decimal shows how few
+   days stand behind it, that 2008 was the year of the financial crisis, that
+   the back-adjusted series carries roll return as well as moves in yields,
+   that the comment's missing volatility suggests it was pasted from an
+   earlier version of the printing line, that a rule mostly long on a rising
+   price earns part of the rise, and that leverage would multiply the
+   drawdowns along with the return.
+4. The figure's alt text reading both curves approximately, such as TU's
+   closes drifting down until mid-2007 and the cumulative return dipping
+   below zero in 2005 and flattening through the first half of 2009.
+5. Every copy of a figure or of an asserted comparison but the one
+   `TestWhatThePostQuotes` reads. The post states several figures more than
+   once, in its opening, a lesson, a table, the closing list or the figure's
+   alt text, and some comparisons twice, such as the past returns still
+   overlapping. A typo in a copy the class does not read passes.
+6. Numbers that point, count or define rather than measure the run: the
+   book's Chapters 2 and 6, Examples 1.1 and 6.1, Figures 6.1 and 6.2 and
+   Table 5.1, the replication log's Entry 37, the post's counts of its own
+   groups, lessons, tables and lists and its pointers to its own lessons and
+   tables, and its counts of what other surfaces hold, such as the five
+   futures the spot and roll returns post splits, Example 1.1's three tests
+   and the two checks that post reports, the six decimals the tests hold
+   each H to, and the pairs and lines the sketches' alt texts count. The
+   one setting the replication tried, a random walk's H of 0.5 and its
+   two-day variance of twice its one-day, and the 1 that the cumulative
+   return's definition subtracts belong here too.
+7. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py), which also holds
 USD.CAD's H at a `maxT` of 19 and 24, or to
 [tests/test_tu_momentum_figures.py](tests/test_tu_momentum_figures.py) for the
-figure's own numbers. Four had no pin before it, and `TestBesideThePost` now
-pins them all.
+figure's own numbers, or to
+[tests/test_tu_momentum_whiteboard.py](tests/test_tu_momentum_whiteboard.py)
+for the sketches'. `TestWhatThePostQuotes` in the first of those files reads
+at least one copy of each run figure the post quotes outside the two sketches'
+alt text, and checks it against the run. It rebuilds the post's four tables
+whole, and reads the figure's alt text only for the highest close and the
+curve's high, each with its day, since those appear nowhere else. It asserts
+each comparison its docstring lists, such as more than half of the gain
+being in by 2009-01-02, no day appearing in both files' 69 kept days, and
+2008 earning about four-fifths as much as the other years, and reads one copy
+of the words for each. It asserts them on the run except two. It checks the
+traded pair's place among Chan's compromises against the module's
+transcription of location 2646, and the kept past returns still overlapping
+on the module's lookback and hold. It asserts no other comparison the
+post's words draw, so a flipped word in one passes unless it sits inside a
+fragment the class reads. The sampling step and the rule's direction are
+two of those, and `TestTheCorrelationTable` and `TestTheRule` assert both on
+the code without reading the post. The sketches' test reads their alt text.
+Four had no pin before `TestBesideThePost` in
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py), which now pins them
+all.
 
 1. Fourteen of the 49 cells have a p-value below 0.05, ten positive and four
    negative, against the 2.45 that 49 independent tests would give, and the
    negative four are exactly 1/1, 1/5, 5/1 and 5/5.
 2. The position is +25 on 1,176 of the 2,000 days, −25 on 397 and 0 on 251,
-   of which 250 precede the first signal.
+   of which 250 precede the first signal, and between −25 and +25 on the
+   other 176.
 3. TU's close is 97.9219 on the first day and 110.2734 on the last.
 4. Calendar 2008 compounds to 0.060565, and every other year together to
    0.075414.
@@ -6302,6 +6337,36 @@ uv run python -m chan.tu_momentum_figures
 [tests/test_tu_momentum_figures.py](tests/test_tu_momentum_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/tu_momentum_whiteboard.py](src/chan/tu_momentum_whiteboard.py) on
+the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `tu_momentum_sketch_futures_tile.gif`, in "The correlation table", the
+   first three days the 250/25 cell keeps on the 2012-05-11 save, from
+   2005-06-01, each as a 250-day past bar and a 25-day future bar to scale.
+   Each future starts where the one before ends, each past shares 225 of its
+   250 days with the next, and a row of 69 dots, not to scale, counts the
+   kept days.
+2. `tu_momentum_sketch_no_shared_day.gif`, in Lesson 1, the first four days
+   the cell keeps on each save, to scale, each kept day of the 2012-05-17 save
+   four trading days after one of the 2012-05-11 save's. It prints the 1,996
+   equal closes the saves share, the 69 kept days in each with none shared,
+   and the correlations 0.2719 and 0.2870, which print as 0.27 and 0.29.
+
+Neither is schematic: every day, count and correlation comes from the run.
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in. Redraw both with:
+
+```bash
+uv run python -m chan.tu_momentum_whiteboard
+```
+
+[tests/test_tu_momentum_whiteboard.py](tests/test_tu_momentum_whiteboard.py)
+holds what each draws, the days, counts and correlations it reads from the
+run, and that each GIF follows its paragraph in the post. The kept days'
+dates after the first had no pin before it.
 
 [blog/roll-momentum-lessons.md](blog/roll-momentum-lessons.md) is a
 thirty-first post, about location 2690 of Chan's *Algorithmic Trading*, which
