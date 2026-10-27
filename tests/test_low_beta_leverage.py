@@ -25,7 +25,7 @@ so both are stated once here and carried in every figure's failure message as
 The result is registered. The plan, its criterion and its first three
 outcomes' wording were written on the issue before any number was computed.
 The fourth outcome, ruin, is the amendment of 2026-10-11, which the owner ruled
-after the build stopped on the first ruined month. So the ruin case was
+after the build found two ruined months and stopped. So the ruin case was
 settled after its first instance was visible, and the amendment names what
 had been seen by then.
 

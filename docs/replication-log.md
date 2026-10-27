@@ -10196,15 +10196,15 @@ work against the claim, and that is a hypothesis rather than a finding.
 Row 1 is **registered**, under the issue's amendment of 2026-10-11. The plan
 and its criterion were written on the issue before any number was computed.
 The plan left one case undefined, because ln(1 + r) needs r above −1. The
-build stopped on the first such month, June 2001, before computing anything
-the criterion reads. The owner then ruled that ruin reads as the claim
-contradicted, and the amendment lists what had been seen by then: the
-calendar, the leverage path, the two ruined months, and both groups' unlevered
-returns for the first eight formations. So the ruin case and its wording were
-settled after its first instance was visible. Registration rules out a
-specification tuned on this panel by this repo. It does not make the span a
-holdout, because Chan wrote the claim in 2008 from "empirical studies" and the
-low-beta literature's own samples cover 1999 to 2007. Rows 2 to 9 are
+build found two such months, June and September 2001, and stopped before
+computing anything the criterion reads. The owner then ruled that ruin reads
+as the claim contradicted, and the amendment lists what had been seen by then:
+the calendar, the leverage path, the two ruined months, and both groups'
+unlevered returns for the first eight formations. So the ruin case and its
+wording were settled after its first instance was visible. Registration rules
+out a specification tuned on this panel by this repo. It does not make the
+span a holdout, because Chan wrote the claim in 2008 from "empirical studies"
+and the low-beta literature's own samples cover 1999 to 2007. Rows 2 to 9 are
 **exploratory**. The plan declared them, and each is a point estimate that
 nothing tests.
 

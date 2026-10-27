@@ -27,7 +27,7 @@ This repository tested Chan’s rule on his own S&P 500 file. Each month the tes
 
 **The verdict is registered, and every other figure here is exploratory.** A registered result is one whose test and criterion were written down before any number was seen. Before any beta or return was computed, the plan wrote down the test’s specification, which is the five parts below, along with the first three outcomes of its criterion. The fourth outcome, ruin, is the one that decided the verdict. The repository’s owner added it after the first ruined month was visible, so its wording is not registered, and Lesson 5 says what had been seen. Registration rules out a specification tuned on this file. It does not make 2000 to 2007 unseen data, as Lesson 6 explains.
 
-This is the first post in the series whose headline result is registered. Earlier posts that reproduced Chan’s figures labelled their results exploratory, because each reran a rule Chan had already chosen, on his own files. Every other figure here is a single measurement with no statistical test behind it, and each number this write-up measured after the run says so where it appears. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Reproducing Chan’s figures is exploratory, because it reruns a rule Chan had already chosen, on his own files. Every other figure here is a single measurement with no statistical test behind it, and each number this write-up measured after the run says so where it appears. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The test and the file
 
@@ -57,7 +57,7 @@ Unlevered, the low fifth did look like the better portfolio. The table’s growt
 \end{array}
 ```
 
-Every one of those figures rests on survivors, and nothing tests the differences between them, so none decides anything. The levered row’s Sharpe ratio reads each month as if it were funded afresh at its start, which is how the plan defines the series. An investor ruined in June 2001 had no capital left to fund the months after it.
+Every figure but SPY’s rests on survivors, and nothing tests the differences between any of the rows, so none decides anything. The levered row’s Sharpe ratio reads each month as if it were funded afresh at its start, which is how the plan defines the series. An investor ruined in June 2001 had no capital left to fund the months after it.
 
 The levered path swung hard on the way up. It lost 0.5456 of its capital in January 2001 and 0.4516 in March, and still compounded to 4.8089 times its capital from December 2000 through May 2001. May 2001 alone returned 1.7253, at the highest leverage of the run, 69.0762, on a low-fifth month of 0.0279. The write-up measured all of those figures after the run except the 69.0762. Then June returned −2.5053 at a leverage of 58.0262, and a fresh stake in September −1.1278 at 31.5098. No t was computed, because the ruin ends the comparison, so nothing says what the statistic would have read without it.
 
@@ -65,7 +65,7 @@ The levered path swung hard on the way up. It lost 0.5456 of its capital in Janu
 
 The leverage is a ratio, and its denominator is the low fifth’s mean beta. When that beta approaches zero, the leverage has no ceiling. Over the 83 formations the low fifth’s mean beta ranged from 0.0280 to 0.6745, while the high fifth’s stayed between 1.4625 and 1.9532. The numerator moved within a narrow band, so the denominator set the leverage.
 
-At both formations in 2000 the low fifth’s mean beta sat near 0.15, at 0.1582 on 2000-11-30 and 0.1443 on 2000-12-29. Then the low fifth’s beta fell below 0.10 at nine formations, 2001-01-31 to 2001-09-28, and below 0.05 at four of them. The write-up measured those counts after the run, along with the 0.1443 and the table’s 0.0375 and 0.0448.
+At both formations in 2000 the low fifth’s mean beta sat near 0.15, at 0.1582 on 2000-11-30 and 0.1443 on 2000-12-29. Then the low fifth’s beta fell below 0.10 at nine formations, 2001-01-31 to 2001-09-28, and below 0.05 at four of them. The write-up counted those formations after the run.
 
 ```math
 \begin{array}{l|r}
@@ -113,9 +113,9 @@ Chan’s caveat at location 4700 warns against “too much leverage on normally 
 
 ### The ruin line across the whole run
 
-The ruin line was closest to zero in May 2001, at −0.0115, the month the leverage peaked. Once the leverage dropped, the line sank below the low fifth’s worst month. From 2002-02-28 on it sat below −0.10, while the low fifth’s worst month, July 2002, returned −0.0733, another figure the write-up measured after the run.
+The ruin line was closest to zero in May 2001, at −0.0115, the month the leverage peaked. Once the leverage dropped, the line sank below the low fifth’s worst month. From February 2002 on it sat below −0.10, while the low fifth’s worst month, July 2002, returned −0.0733, another figure the write-up measured after the run.
 
-![Three charts sharing one axis of holding months from December 2000 to October 2007. The top chart shows each fifth’s mean beta at formation. A muted grey line, the highest fifth, stays between about 1.5 and 2 throughout. A black line, the lowest fifth, starts near 0.15, falls almost to zero in the first half of 2001, with a red dot labelled 0.0280, formed 2001-04-30, then climbs to between 0.4 and 0.7 from late 2002 on. The middle chart shows the leverage on a log scale. A black line climbs from about 10 to a peak labelled highest, 69.0762, in May 2001, then falls below 10 in February 2002, sits between 7 and 9 until July 2002, and stays between 2 and 5 from August 2002 on. Two red dots mark the ruined months, June 2001 at k 58.0262 with a levered return of −2.5053, and September 2001 at k 31.5098 with a levered return of −1.1278. A dashed grey line at 9.9884 is labelled full-sample Kelly, look-ahead. The bottom chart shows the low fifth’s monthly return in black, swinging mostly between −0.05 and 0.08, against a dashed red ruin line that rises from −0.10 to about −0.01 in spring 2001 and then drops out of the bottom of the chart in early 2002. Two red dots mark the months the return fell below the line, June 2001 at −0.0403 against −0.0144 and September 2001 at −0.0337 against −0.0296. The title reads registered verdict, exploratory path.](../docs/figures/low_beta_leverage.png)
+![Three charts sharing one axis of holding months from December 2000 to October 2007. The top chart shows each fifth’s mean beta at formation. A muted grey line, the highest fifth, stays between about 1.5 and 2 throughout. A black line, the lowest fifth, starts near 0.15, falls almost to zero in the first half of 2001, with a red dot labelled 0.0280, formed 2001-04-30, then climbs to between 0.4 and 0.7 from late 2002 on. The middle chart shows the leverage on a log scale. A black line climbs from about 10 to a peak labelled highest, 69.0762, in May 2001, then falls below 10 in February 2002, sits between 7 and 9 until July 2002, and stays between 2 and 5 from August 2002 on. Two red dots mark the ruined months, June 2001 at k 58.0262 with a levered return of −2.5053, and September 2001 at k 31.5098 with a levered return of −1.1278. A dashed grey line at 9.9884 is labelled full-sample Kelly, look-ahead. The bottom chart shows the low fifth’s monthly return in black, swinging mostly between −0.05 and 0.08, against a dashed red ruin line that rises from −0.10 to about −0.01 in spring 2001 and then drops out of the bottom of the chart in early 2002. Two red dots mark the months the return fell below the line, June 2001 at −0.0403 against −0.0144 and September 2001 at −0.0337 against −0.0296. The title reads registered verdict, exploratory path, Chan’s low-beta fifth levered to the high fifth’s beta.](../docs/figures/low_beta_leverage.png)
 
 *Each value sits at the month it applied to, so the beta and the leverage formed on 2001-04-30 appear at May 2001. The ruined months carry the verdict, registered under the ruin outcome added after June 2001 was seen. Every path drawn is exploratory, and the ruin line and the Kelly line were added after the run. The Kelly line looks ahead and decides nothing.*
 
@@ -129,7 +129,7 @@ The beta match asked for more than that look-ahead Kelly leverage at 13 formatio
 
 ## Lesson 5: registering a criterion did not cover every case
 
-The plan’s statistic reads ln(1 + r) for every levered month, and that does not exist for r at −1 or below. The plan never said what such a month means. The build stopped at June 2001, before computing anything the criterion reads.
+The plan’s statistic reads ln(1 + r) for every levered month, and that does not exist for r at −1 or below. The plan never said what such a month means. The first run found two such months, June and September 2001, and stopped before computing anything the criterion reads.
 
 The repository’s owner then ruled that ruin means the claim is contradicted. By then four things had been seen.
 

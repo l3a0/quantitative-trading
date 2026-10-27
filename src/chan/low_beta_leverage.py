@@ -63,10 +63,10 @@ The first three were worded on the issue before any number:
 
 The fourth outcome is the issue's amendment of 2026-10-11, which the owner
 ruled after the leverage path was seen. The registered rules left a month
-below −1 undefined, and the build stopped on the first one, in June 2001, before
-anything the criterion reads had been computed. So the ruin case was settled
-after its first instance was visible, and the amendment names everything that
-had been seen.
+below −1 undefined. The build found two such months, June and September 2001,
+and stopped before anything the criterion reads had been computed. So the ruin
+case was settled after its first instance was visible, and the amendment names
+everything that had been seen.
 
 Beside the verdict the report prints the side figures the plan declared. Each
 is a point estimate that nothing tests, so each is exploratory and decides

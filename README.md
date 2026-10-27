@@ -7859,8 +7859,9 @@ Five groups of what it says are not pinned here.
    the rule at 4709.
 2. The plan's history rather than the data: that the plan, the
    specification and the first three outcomes were written before any number,
-   that the build stopped at June 2001, and the four things seen before the
-   ruin ruling. Entry 45 of the replication log records each.
+   that the first run found both ruined months and stopped, and the four
+   things seen before the ruin ruling. Entry 45 of the replication log records
+   each.
 3. Readings no test asserts: that the Fama-French model ties return to beta,
    size and book-to-price ratio, that growth at the Kelly leverage is the
    cash rate plus half the Sharpe ratio squared, which the Kelly post
