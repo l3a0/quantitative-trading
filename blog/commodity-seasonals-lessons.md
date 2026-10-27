@@ -264,6 +264,14 @@ For gasoline, Chan marks the last 9 of his 21 years, 2007 to 2015, as out of sam
 
 The book’s years include the years Chan chose each rule on, so the drop after the book can overstate how far either trade weakened.
 
+Publishing a trade can also fade its edge. Once a rule is in print, traders who read it can act before its dates, so the price move it relies on comes sooner and leaves less for anyone who waits for the date. McLean and Pontiff (2016) measured this for 97 published predictors of stock returns. Returns were 26% lower in the years after each study’s data ended but before it was published, and 58% lower after publication. They attribute the 32-percentage-point difference to traders acting on what was published. Their predictors are stock anomalies rather than commodity trades, so their sizes do not carry over to these two trades.
+
+Natural gas’s years after the book are also its years after publication, since Lesson 1 reads its counts as written for the first edition of November 2008. So its fall after 2008 mixes three causes that 15 yearly trades cannot separate.
+
+1. The rule fitted chance patterns in the years it was chosen from.
+2. The market changed.
+3. Traders acted on the rule once it was in print.
+
 ## Lesson 4: one trade a year leaves too few results to grade a split
 
 Each trade happens once a year, so 15 years give 15 results, about what a strategy that trades every day collects in three weeks. The rest of this lesson works out how far to trust so few results.
@@ -423,7 +431,7 @@ Four habits follow from the first four lessons.
 
 1. **Ask a consecutive count where it starts and when it was written.** The same files give 13, 14 or 15 consecutive years for natural gas, depending on both.
 2. **Read a missing year as missing.** Three gaps in one file leave Chan’s gasoline count anywhere between 16 and 19, and filling them with a neighbouring day would decide the answer instead of checking it. Even the closer of the run’s two fills, fill 2, has a typical miss larger than each year’s move with its guess, and correcting its lean still leaves no year at 95%.
-3. **Judge a seasonal trade on the years after it was chosen.** Natural gas won every year through 2008 with a mean return of 10.6% a year, and averaged a loss of 0.4% a year after.
+3. **Judge a seasonal trade on the years after it was chosen and published.** Natural gas won every year through 2008 with a mean return of 10.6% a year, and averaged a loss of 0.4% a year after.
 4. **Count the results behind a Sharpe ratio, and ask which test a claimed change rests on.** Fifteen yearly trades leave a standard error near 0.3, and one year, 2022, decides whether the fall in natural gas’s average stands out from luck.
 
 ## References
@@ -431,6 +439,7 @@ Four habits follow from the first four lessons.
 - Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Released in November 2008.
 - Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 175 and 183 to 186. Page numbers here are the revised edition’s. The replication log cites the passages on pp. 183 to 185 by Kindle location, 4529 to 4632.
 - Lo, A. W. (2002). The statistics of Sharpe ratios. *Financial Analysts Journal*, 58(4), 36 to 52.
+- McLean, R. D., and Pontiff, J. (2016). Does academic research destroy stock return predictability? *The Journal of Finance*, 71(1), 5 to 32.
 - US Energy Information Administration. NYMEX futures settlement prices, daily, for New York Harbor regular gasoline, RBOB gasoline and Henry Hub natural gas, contracts 1 to 4. Downloaded 2 October 2026.
 
 *Not investment advice. Code: [the two trades](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals.py), [the calendar and expiry rules](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/futures.py), [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals_figures.py) and [the whiteboard sketches](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/commodity_seasonals_whiteboard.py), with the checks behind [the trades’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals.py), [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals_figures.py) and [what the sketches draw](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_commodity_seasonals_whiteboard.py), and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-11-the-commodity-seasonals-chans-quantitative-trading) that sets each of Chan’s figures beside the one reproduced here.*
