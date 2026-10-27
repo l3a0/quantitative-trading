@@ -904,12 +904,14 @@ class TestThePostQuotesThePins:
 
         from chan.futures import NATURAL_GAS_CONTRACTS, handover_fit, month_step
 
-        unread, misfit, month = [], [], (1994, 2)
+        unread, misfit, readable, month = [], [], 0, (1994, 2)
         while month <= (2024, 4):
             fit = handover_fit(NATURAL_GAS_CONTRACTS, NATURAL_GAS_CONTRACTS.last_trade(*month))
             if fit is None:
                 unread.append(month)
-            elif fit >= 0:
+            else:
+                readable += 1
+            if fit is not None and fit >= 0:
                 misfit.append((month, fit))
             month = month_step(*month, 1)
 
@@ -947,9 +949,10 @@ class TestThePostQuotesThePins:
         assert date(2023, 2, 24).isoformat() in TestTheNaturalGasExpiries.EXCHANGE[2023]
         text = " ".join(self.text.split())
         assert (
-            f"The other {len(unread)} expiries cannot be checked this way, because a file "
-            f"lacks a row on the expiry day or the day after, "
-            f"{sum(1997 <= y <= 2005 for y, _ in unread)} of them between 1997 and 2005."
+            f"Outside those {readable}, the check cannot reach {len(unread)} expiries, because "
+            "a file lacks a row on the expiry day or the day after. "
+            f"{sum(1997 <= y <= 2005 for y, _ in unread)} of the {len(unread)} fall between "
+            "1997 and 2005."
         ) in text
         assert f"{len(close)} fail by under 9 cents" in text
         assert (

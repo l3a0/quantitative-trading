@@ -68,7 +68,7 @@ the paragraph it draws.
    way."
 9. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
    bar from zero, with the number of test days that April. It sits after the
-   paragraph opening "The test days overlap".
+   paragraph opening "Test days close together".
 10. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
    missing entry and 1998's missing exit, each with the known price, fill 2's
    guess, the guess lifted by fill 2's average miss, and brackets for the move
