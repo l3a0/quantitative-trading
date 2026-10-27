@@ -22,10 +22,8 @@ point that the later save keeps 69 other days from the same closes.
 
 Neither sketch is schematic. The run reads committed vintages, so the tests
 read it directly rather than a frozen copy of its figures, and a made-up set
-of figures checks that the words follow the data. The 225 shared days, the
-four trading days between the saves' first days, the dates of the kept days
-after the first, the count of kept days the saves share and the later save's
-0.29 at the book's precision had no pin before this module.
+of figures checks that the words follow the data. The dates of the kept days
+after the first had no pin before this module.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both

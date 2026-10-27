@@ -11,10 +11,10 @@ and hold the rule was picked from, which ``PERIODS`` and
 this example and quotes most of these pins, with the numbers it adds in
 ``TestBesideThePost``, its figure's in ``tests/test_tu_momentum_figures.py``,
 and its two sketches' in ``tests/test_tu_momentum_whiteboard.py``, which also
-pins the 225 days two kept pasts share and the four trading days between the
-two saves' first days. ``TestWhatThePostQuotes`` reads at least one copy of
-each run figure the post quotes, outside the sketches' alt text, against the
-run. README lists what the post says that nothing asserts.
+pins the dates of each save's kept days after the first.
+``TestWhatThePostQuotes`` reads at least one copy of each run figure the post
+quotes, outside the sketches' alt text, against the run. README lists what the
+post says that nothing asserts.
 
 Every pin on the committed files reads one of two vintages and one
 specification, so they are stated once here.
@@ -378,7 +378,10 @@ class TestTheFigures:
 
 
 class TestTheWindow:
-    """The script's active line, ``idx=find(tday==20090102);``, which no figure lands on."""
+    """The script's active line, ``idx=find(tday==20090102);``.
+
+    It lands none of the comment's six figures.
+    """
 
     def test_the_active_line_reads_849_days(self, result) -> None:
         days = result.active_line_days
@@ -430,12 +433,7 @@ class TestTheSave:
         """The later save starts four trading days later, so every kept day at 250/25 moves."""
         tu = read_later_save()[1]
 
-        def kept(series: pd.Series) -> pd.DatetimeIndex:
-            rows = np.arange(LOOKBACK, len(series) - HOLD_DAYS)[:: min(LOOKBACK, HOLD_DAYS)]
-            assert len(rows) == correlation(series, LOOKBACK, HOLD_DAYS).rows
-            return series.index[rows]
-
-        earlier, later_days = kept(closes), kept(tu)
+        earlier, later_days = _kept(closes), _kept(tu)
         assert len(earlier) == len(later_days) == 69
         assert closes.index.get_loc(tu.index[0]) == 4
         assert str(earlier[0].date()) == "2005-06-01"

@@ -7490,7 +7490,7 @@ and nothing about whether the rule pays today.
 | 8 | The maximum drawdown | −0.024847, and 2.5 percent | `TU_mom.m`'s comment, location 2668 |
 | 9 | The longest drawdown | 343 days | `TU_mom.m`'s comment |
 | 10 | The Kelly f | 64.919535 | `TU_mom.m`'s comment |
-| 11 to 15 | the whole correlation table, the script's active line, the 2012-05-17 save, H at another `maxT`, and the statistic Example 1.1 starts from | none here, as each row says | n/a |
+| 11 to 15 | the whole correlation table, the script's active line, the 2012-05-17 save, H at other values of `maxT`, and the statistic Example 1.1 starts from | none here, as each row says | n/a |
 
 ### What this repo computed
 
@@ -7518,7 +7518,7 @@ and nothing about whether the rule pays today.
 | --- | --- | --- | --- |
 | 1 | +0.00 | reproduced | 0.2719 rounds to the printed 0.27. |
 | 2 | +0.00 | reproduced | 0.0238 rounds to the printed 0.02, and the correlation is significant at 5 percent, which is what location 2659 picks the pair for. |
-| 3 | −0.01 | did not reproduce | 0.433357 prints as 0.43 on Chan's own saved file, so the vintage explanation is spent. Row 14 holds the readings tried after the miss, every `maxT` from 5 to 40. At `maxT` 24 H prints as 0.44, but the same change moves Entry 22's USD.CAD further from its 0.49. TU also lands at `maxT` 6, 7 and 21 to 27, and each of them moves USD.CAD further from its 0.49. No `maxT` from 5 to 40 lands both, so the miss is not a different default. The claim the figure was printed for survives, since H is below a half here too. |
+| 3 | −0.01 | did not reproduce | 0.433357 prints as 0.43 on Chan's own saved file, so the vintage explanation is spent. Row 14 holds the diagnostic tried after the miss, every `maxT` from 5 to 40. At `maxT` 24 H prints as 0.44, but the same change moves Entry 22's USD.CAD further from its 0.49. TU also lands at `maxT` 6, 7 and 21 to 27, and each of them moves USD.CAD further from its 0.49. No `maxT` from 5 to 40 lands both, so the miss is not a different default. The claim the figure was printed for survives, since H is below a half here too. |
 | 4 | none, a claim | reproduced | h is 0 at `vratiotest`'s default 5 percent, the level the script reads `h` at, so the test does not reject a random walk. |
 | 5 | −0.0000 | reproduced | 0.016699 rounds to the printed 0.0167. |
 | 6 | +0.00, and +0 against the book | reproduced | 1.041462 rounds to 1.04 and to 1. `chan.khandani_lo.plain_sharpe` divides by n − 1 and gives 1.041201, which `TestTheFigures::test_the_sharpe_ratio_divides_by_n` holds. That also prints as 1.04, so the row uses the script's divisor because it is the script's, not because it lands. |

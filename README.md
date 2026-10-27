@@ -1171,8 +1171,10 @@ precision Chan printed, all 49 cells of the correlation table, the script's
 2009 window, and the 2012-05-17 save that `correlationTest.m` loads. It also
 holds the Gaussian statistic of 2.9333 that Example 1.1's hypothesis tests
 start from, the rule on synthetic arrays, the refusal of a position larger
-than the tranche count, and the scale-break guard on TU. The blog post about it
-is the exception, and what it says that nothing here asserts is listed below.
+than the tranche count, and the scale-break guard on TU.
+`TestWhatThePostQuotes` reads at least one copy in the post of each run figure
+the post quotes outside the sketches' alt text, so editing a copy it reads
+fails. What the post says that nothing here asserts is listed below.
 
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py) does it
 for the crude oil calendar spread. It pins the script's window and the window
@@ -6363,10 +6365,8 @@ uv run python -m chan.tu_momentum_whiteboard
 
 [tests/test_tu_momentum_whiteboard.py](tests/test_tu_momentum_whiteboard.py)
 holds what each draws, the days, counts and correlations it reads from the
-run, and that each GIF follows its paragraph in the post. The 225 days two
-kept pasts share, the four trading days between the saves' first days, the
-kept days' dates after the first, the count of kept days the saves share,
-and the later save's 0.29 at the book's precision had no pin before it.
+run, and that each GIF follows its paragraph in the post. The kept days'
+dates after the first had no pin before it.
 
 [blog/roll-momentum-lessons.md](blog/roll-momentum-lessons.md) is a
 thirty-first post, about location 2690 of Chan's *Algorithmic Trading*, which

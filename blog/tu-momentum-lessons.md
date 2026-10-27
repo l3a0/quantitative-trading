@@ -199,7 +199,7 @@ Three questions are beyond this replication.
 One habit for each lesson.
 
 1. **Run a published script on every window it names.** A commented-out line can be the one behind the printed figures, and the line that runs can land none of them.
-2. **Do not tune an estimator until it lands a figure.** When the setting that lands one series moves another away, record the miss and check whether the conclusion still stands.
+2. **Do not tune an estimator until it lands a figure.** When a setting that lands one series moves another away, record the miss and check whether the conclusion still stands.
 3. **Count the cells tried and the days behind the chosen one.** A significant cell picked from 49 that share the same closes is a lead, not a finding, and a rule that is mostly long on a rising price earns part of its return from the rise.
 
 ## References
