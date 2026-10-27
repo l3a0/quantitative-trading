@@ -1043,9 +1043,11 @@ class TestThePostQuotesThePins:
             f"too low by {biases} and {100 * last.june_bias:.2f} cents on average, each "
             f"between {min(errors):.1f} and {max(errors):.1f} standard errors from zero"
         ) in self.text
-        low = min(f.linear_margin for f in fills)
-        high = max(f.linear_margin for f in fills)
-        assert f"moves between {low:.1f} and {high:.1f} of its own typical miss" in self.text
+        assert {f"{100 * f.linear_error:.0f}" for f in fills} == {"2"}
+        assert max(f.linear_margin for f in fills) < 1
+        assert (
+            "Fill 1’s typical miss is about 2 cents in each year, larger than any of its moves."
+        ) in self.text
         assert "so neither fill decides a year" in self.text
         chance = math.prod(f.june_chance for f in fills)
         assert f"which Chan’s 19 needs, is {100 * chance:.0f}%" in self.text
