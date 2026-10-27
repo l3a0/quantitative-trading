@@ -270,7 +270,7 @@ Each trade happens once a year, so 15 years give 15 results, about what a strate
 
 ### How far a Sharpe ratio can stray
 
-A Sharpe ratio has a standard error too. For one estimated from `n` independent returns, Lo (2002) gives:
+A Sharpe ratio has a standard error too, how far the estimate typically strays from the true ratio. For a Sharpe ratio `SR` estimated from `n` independent returns, Lo (2002) gives its standard error `SE`:
 
 ```math
 \text{SE} \approx \sqrt{\frac{1 + \text{SR}^2 / 2}{n}}
