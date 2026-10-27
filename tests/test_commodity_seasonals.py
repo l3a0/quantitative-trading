@@ -1046,6 +1046,7 @@ class TestThePostQuotesThePins:
         low = min(f.linear_margin for f in fills)
         high = max(f.linear_margin for f in fills)
         assert f"moves between {low:.1f} and {high:.1f} of its own typical miss" in self.text
+        assert "so neither fill decides a year" in self.text
         chance = math.prod(f.june_chance for f in fills)
         assert f"which Chan’s 19 needs, is {100 * chance:.0f}%" in self.text
 
@@ -1082,6 +1083,11 @@ class TestThePostQuotesThePins:
         """Each missing year's gap, how far back fill 2 starts, and how many
         test days its pattern leaves, read from the run."""
         fills = gap_fills()
+        assert fills[0].base < fills[0].before
+        assert (
+            "Fill 2 takes May’s price on the last day before the gap, counting only days "
+            "both files hold,"
+        ) in self.text
         rows = {
             "Missing year": [str(f.year) for f in fills],
             "Missing price": [f"\\text{{{f.leg}}}" for f in fills],

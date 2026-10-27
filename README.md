@@ -3781,7 +3781,8 @@ not pinned here.
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
    all three unreadable years profitable, that 21 less the 3 unreadable years
    is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 15 trading
-   days are three weeks, and that 1994 is one year before 1995.
+   days are three weeks, that 1994 is one year before 1995, that 21 years ending
+   in 2015 start in 1995, and that 2008 is more than a decade before 2021.
 4. Its references. The four citations are cited rather than computed.
 5. One date no test asserts: the files' last row on 5 April 2024, which
    their file names record.

@@ -58,7 +58,8 @@ Three gasoline years have no contract-1 row on a trade date, though the
 exchange traded and the contract-2 file holds a row. :func:`gap_fills` asks
 whether filling each missing price could decide its year. It fills each gap
 two ways, by drawing a straight line between the rows on either side, and by
-moving May's last price by June's change, since June sits in contract 2. It
+moving May's price on the last day before the gap that both files hold by
+June's change since that day, since June sits in contract 2. It
 measures each way's error by hiding April days whose price the file holds,
 in the same pattern of days as the gap, and filling them. Each year's
 estimated move is smaller than its fill's typical miss. Fill 2's misses also

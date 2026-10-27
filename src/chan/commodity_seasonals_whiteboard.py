@@ -1141,8 +1141,9 @@ def _ring(gid: str, x: float, y: float) -> Stroke:
 
 
 def _june_move_fill(f: FillTwoFigures) -> Scene:
-    """Lesson 2: June's rise across the gap, added to May's last price, is fill
-    2's guess, and fill 2's typical miss around it still reaches the exit."""
+    """Lesson 2: June's rise across the gap, added to May's price on the last day
+    both files hold, is fill 2's guess, and fill 2's typical miss around it still
+    reaches the exit."""
     fill, one, two = f.fill, dict(f.may), dict(f.june)
     x = lambda day: _fill_two_x(day, f)  # noqa: E731
     y = lambda price: _fill_two_y(price, f)  # noqa: E731
