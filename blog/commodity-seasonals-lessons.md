@@ -1,6 +1,6 @@
 # Two commodity seasonals show an edge that has faded after being published
 
-*A count of profitable years is only as good as the years it counts, where it starts, and who chose the trade.*
+*Gasoline’s seasonality has faded and natural gas is saved by one good year, but not enough data to be confident.*
 
 ## Why test a strategy published as alive
 
