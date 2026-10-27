@@ -6078,13 +6078,13 @@ at least one copy of each run figure the post quotes outside the two sketches'
 alt text, and checks it against the run. It rebuilds the post's four tables
 whole, and reads the figure's alt text only for the highest close and the
 curve's high, each with its day, since those appear nowhere else. It asserts
-each comparison its docstring lists, on the run except two. It checks the
+each comparison its docstring lists, such as more than half of the gain
+being in by 2009-01-02, no day appearing in both files' 69 kept days, and
+2008 earning about four-fifths as much as the other years, and reads one copy
+of the words for each. It asserts them on the run except two. It checks the
 traded pair's place among Chan's compromises against the module's
 transcription of location 2646, and the kept past returns still overlapping
-on the module's lookback and hold. It reads one copy of the words for each,
-such as more than half of the gain being in by 2009-01-02,
-no day appearing in both files' 69 kept days, and 2008 earning about
-four-fifths as much as the other years. It asserts no other comparison the
+on the module's lookback and hold. It asserts no other comparison the
 post's words draw, so a flipped word in one passes unless it sits inside a
 fragment the class reads. The sampling step and the rule's direction are
 two of those, and `TestTheCorrelationTable` and `TestTheRule` assert both on

@@ -27,8 +27,8 @@ specification, so they are stated once here.
   pin reads it unless it names the second.
 - **The second vintage.** ``inputdataohlcdaily_20120517/tu.csv``, chan-mat,
   adjusted, saved 2012-05-18, the save ``correlationTest.m`` loads, 2,000 days
-  from 2004-06-07 to 2012-05-17. ``TestTheSave`` pins it, ``TestTheGuardAndTheReads``
-  guards it, and ``TestWhatThePostQuotes`` reads it against the post.
+  from 2004-06-07 to 2012-05-17. ``TestTheSave`` pins it, and every
+  other test that reads it names it where it does.
 - **Specification.** ``TU_mom.m`` at EpchanPreview ``e4bc46f``, git blob
   ``f7935c7``, with ``idx = 1``, as :mod:`chan.tu_momentum` transcribes it.
   The correlation table takes past and future returns for every pair of 1, 5,
@@ -838,7 +838,9 @@ class TestWhatThePostQuotes:
     text it reads only the two figures that appear nowhere else, the highest
     close and the curve's high, each with its day. The two sketches' alt texts are
     read by ``tests/test_tu_momentum_whiteboard.py``, not here. Chan's words,
-    the Kindle locations, the mirror's commit, the book's chapter, example,
+    the Kindle locations, the mirror's commit, the facts about the script and the contract
+    that README's second group lists, such as the ``q`` of 2 and the default
+    ``maxT`` of 19, the book's chapter, example,
     figure and table numbers, the replication log's entry number, the post's
     counts of its own groups, lessons, tables and lists and its pointers to
     its lessons and tables, its counts of what other surfaces hold, the one
