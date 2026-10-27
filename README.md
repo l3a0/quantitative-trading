@@ -3738,19 +3738,26 @@ trades Chan says still pay where the equity ones weakened. It is the companion t
 the equity seasonals post, and draws five lessons from Entry 11 of the
 replication log.
 
-1. A count of consecutive years needs its start year and its edition, and the
+1. Ask a consecutive count where it starts and which edition wrote it. The
    natural gas counts reproduce only under the reading pinned on
    [issue 19](https://github.com/l3a0/quantitative-trading/issues/19).
-2. A missing row is not a losing year, so three gaps in EIA's file bound the
-   gasoline count between 16 and 19 rather than settling it.
-3. A trade chosen after looking at the history is tested by the years after
-   the book, and both trades win a smaller share of them.
-4. One trade a year leaves too few results to grade that split. It works the
-   Sharpe ratio's standard error and the 95% range of each mean through.
-   Welch's test and the Mann-Whitney rank test both find gasoline's fall, and
-   split on natural gas, whose average after 2008 only 2022 holds up.
-5. Reading one named contract from files numbered by expiry needs a calendar
-   checked against something the files do not supply.
+2. Read a missing row as missing, not as a loss. Three gaps in EIA's file
+   bound the gasoline count between 16 and 19 rather than settling it.
+3. Test the trade out of sample. Both trades win a smaller share of the years
+   after the book. Under Lesson 1's reading both rules were in print from the
+   first edition of November 2008, so all of those years come after
+   publication. Natural gas's fall after 2008 mixes chance patterns in the
+   years its rule was chosen from, a changed market and traders acting on the
+   rule once it was in print, and 15 yearly trades cannot separate them.
+4. Count the results before grading a split. One trade a year leaves too few
+   results to grade the split between the book's years and the years after.
+   It works the Sharpe ratio's standard error and the 95% range of each mean
+   through. Welch's test and the Mann-Whitney rank test both find gasoline's
+   fall, and split on natural gas, whose average after 2008 only 2022 holds
+   up.
+5. Find a contract's file with the exchange's calendar. Reading one named
+   contract from files numbered by expiry needs a calendar checked against
+   something the files do not supply.
 
 It cites the revised edition by page, while the replication log cites the
 passages on pp. 183 to 185 by Kindle location. Five groups of its figures are
@@ -3783,7 +3790,11 @@ not pinned here.
    is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 15 trading
    days are three weeks, that 1994 is one year before 1995, that 21 years ending
    in 2015 start in 1995, and that 2008 is more than a decade before 2021.
-4. Its references. The four citations are cited rather than computed.
+4. Its references. The five citations are cited rather than computed, and so
+   are McLean and Pontiff's figures in Lesson 3: 97 predictors, returns 26%
+   lower after each study's data ended but before publication and 58% lower
+   after publication, and the 32-percentage-point difference they attribute
+   to traders acting on what was published.
 5. One date no test asserts: the files' last row on 5 April 2024, which
    their file names record.
 

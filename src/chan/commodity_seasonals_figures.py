@@ -1,8 +1,8 @@
 """The commodity-seasonals post's chart, drawn from the committed EIA files.
 
-``blog/commodity-seasonals-lessons.md`` teaches in its Lesson 2 that a missing
-row is not a losing year, and in its Lesson 3 that a trade chosen after looking
-at the history is tested by the years after the book. Both lessons are about
+``blog/commodity-seasonals-lessons.md`` teaches in its Lesson 2 to read a missing
+row as missing, not as a loss, and in its Lesson 3 to test the trade out of
+sample, on the years after the book. Both lessons are about
 single years, so the figure draws every year of both trades rather than the
 counts. Issue 283 named it and planned its shape.
 
