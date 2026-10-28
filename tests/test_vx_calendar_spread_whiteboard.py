@@ -14,7 +14,8 @@ leaves the near leg alone. What is pinned is what a reader takes from each.
 2. The Lesson 4 sketch draws one day of the shipped schedule, 2010-01-04.
    Which contracts are priced, which pair is held and the closing counts are
    derived here again from the same schedule, the way
-   ``tests/test_vx_calendar_spread.py`` derives the counts.
+   ``tests/test_vx_calendar_spread.py`` derives the counts, and a made-up
+   day shows the title, the labels and the letters note follow it.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, the green edge on the pale tint, each GIF's size,
@@ -434,7 +435,9 @@ class TestThePost:
                 assert found >= 0, (scene.slug, label)
                 at = found + len(label) + 2
 
-    def test_each_alt_text_says_it_is_drawn_from_the_run_and_its_pace(self, every) -> None:
+    def test_no_alt_text_calls_its_sketch_schematic_and_the_first_names_its_pace(
+        self, every
+    ) -> None:
         one_hold, twelve_apart = (_alt(scene) for scene in every)
         for alt in (one_hold, twelve_apart):
             assert "schematic" not in alt
@@ -648,6 +651,19 @@ class TestTheHoldSketch:
         assert tint.y0 < place < tint.y1
         assert tint.x0 > _stroke(scene, "place-2").x.max()
 
+    def test_each_row_label_sits_at_the_height_of_the_stroke_it_names(self, every) -> None:
+        """The three labels left of the board name the bar, the near leg's
+        places and the front pairs, so each sits level with its row."""
+        scene = every[0]
+        for text, gid in (
+            ("S holds", "hold"),
+            ("near leg’s place", "place-0"),
+            ("signal reads", "front-0"),
+        ):
+            stroke = _stroke(scene, gid)
+            assert _label(scene, text).y == pytest.approx(float(np.median(stroke.y))), text
+            assert _label(scene, text).x < stroke.x.min(), text
+
     def test_the_rows_stack_from_the_bar_down_to_the_axis(self, every) -> None:
         scene = every[0]
         heights = [
@@ -746,6 +762,23 @@ class TestTheShippedFigures:
             Shipped.from_contracts(contracts)
 
 
+#: A made-up day of a schedule six months apart, so a word or a mark that should follow
+#: the run does. Its row starts at May rather than January, so the letters note does too.
+OTHER_SHIPPED = Shipped(
+    day="2011-04-25",
+    row=(*(f"VX-2011{m}" for m in "KMNQUVXZ"), "VX-2012F", "VX-2012G"),
+    priced=tuple(f"VX-2011{m}" for m in "KMNQU"),
+    near="VX-2011Q",
+    far="VX-2012G",
+    held=1500,
+    both=200,
+    near_alone=1234,
+    neither=66,
+    spread_month=6,
+)
+ORDINALS = {1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth", 6: "sixth"}
+
+
 class TestTheTwelveApartSketch:
     def test_its_words(self, every) -> None:
         assert every[1].title == "On 2010-01-04 the far leg has no price"
@@ -805,6 +838,10 @@ class TestTheTwelveApartSketch:
         near_x, far_x = (box_x(shipped.row.index(s)) for s in (shipped.near, shipped.far))
         assert arrow.x[0] == pytest.approx(near_x)
         assert arrow.x[39] == pytest.approx(far_x)
+        far_box = _stroke(scene, f"box-{shipped.row.index(shipped.far)}")
+        assert far_box.y.max() == pytest.approx(sketches.BOX_Y1)
+        # The curve ends just above the far box's top, where the module puts its head.
+        assert arrow.y[39] == pytest.approx(far_box.y.max() + 0.05)
         assert arrow.y.max() > _stroke(scene, "near").y.max()
         assert shipped.row.index(shipped.far) - shipped.row.index(shipped.near) == 12
 
@@ -816,19 +853,50 @@ class TestTheTwelveApartSketch:
             (box_x(0) - sketches.BOX_W / 2, box_x(n - 1) + sketches.BOX_W / 2)
         )
 
-    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+    def test_its_alt_text_says_what_the_picture_shows(self, every, shipped, contracts) -> None:
+        """The ring's box is named by the near leg's place among the contracts
+        priced that day, which is its place in the row, since the row starts
+        at the front contract."""
         alt = _alt(every[1])
+        rank = int(near_leg_rank(contracts, calendar_schedule(contracts)).loc[shipped.day])
+        assert rank == shipped.row.index(shipped.near) + 1, SHIPPED_SPEC
         for phrase in (
             "eight solid boxes",
             "eight dashed boxes",
             "F to Z",
             "F to J",
+            f"{ORDINALS[rank]} box, {shipped.near[-1]}",
+            "brown ring",
+            "brown arrow",
         ):
             assert phrase in alt, phrase
+
+    def test_a_made_up_day_moves_the_words_and_the_marks(self, hold) -> None:
+        scene = scenes(hold, OTHER_SHIPPED)[1]
+        assert scene.title == "On 2011-04-25 the far leg has no price"
+        assert scene.labels == [
+            *"KMNQUVXZFG",
+            "priced that day: 5 contracts",
+            "near: VX-2011Q",
+            "+6 months",
+            "far: VX-2012G, no price",
+            "letters are months: K to Z run May to Dec 2011, then F to G run Jan to Feb 2012",
+            "the script adds up the legs that have a price, so it holds VX-2011Q alone",
+            "near leg alone on 1,234 of 1,500 held days",
+        ]
+        assert _label(scene, "near: VX-2011Q").x == pytest.approx(box_x(3))
+        assert _stroke(scene, "later").x[39] == pytest.approx(box_x(9))
+        assert _stroke(scene, "priced").x.max() == pytest.approx(box_x(4) + sketches.BOX_W / 2)
+        assert [s.gid for s in scene.strokes if s.dashed] == [f"box-{k}" for k in range(5, 10)]
 
 
 class TestTheHoldAltText:
     def test_it_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(every[0])
-        for phrase in ("thick black bar", "grey bracket", "pale green box with a green edge"):
+        for phrase in (
+            "thick black bar",
+            "grey bracket",
+            "pale green box with a green edge",
+            "brown spans",
+        ):
             assert phrase in alt, phrase

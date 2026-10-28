@@ -6502,7 +6502,9 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py), or to
 [tests/test_vx_calendar_spread_figures.py](tests/test_vx_calendar_spread_figures.py)
-for the figure's own numbers. `TestWhatThePostQuotes` in the
+for the figure's own numbers, or to
+[tests/test_vx_calendar_spread_whiteboard.py](tests/test_vx_calendar_spread_whiteboard.py)
+for the sketches' dates, places and counts. `TestWhatThePostQuotes` in the
 first of those files reads at least one copy in the post of each run figure
 the post quotes outside the chart's and the sketches' alt texts, so editing a
 copy it reads fails. Crude oil's spread mostly falling as γ rises,

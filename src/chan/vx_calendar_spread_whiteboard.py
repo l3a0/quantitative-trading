@@ -531,8 +531,8 @@ def _twelve_apart(shipped: Shipped) -> Scene:
     first_x = box_x(0) - BOX_W / 2
     last_x = box_x(len(shipped.priced) - 1) + BOX_W / 2
     near_x, far_x = box_x(near_k), box_x(far_k)
-    year = shipped.row[0][-5:-1]
-    later = shipped.far[-5:-1]
+    first = shipped.row[0]
+    year, later = first[-5:-1], shipped.far[-5:-1]
     steps += [
         _stroke("priced", _span(first_x, last_x, BRACKET_Y, tick=0.08), color=MUTED, frames=6),
         Label(
@@ -580,8 +580,9 @@ def _twelve_apart(shipped: Shipped) -> Scene:
             ha="right",
         ),
         Label(
-            f"letters are months: F to Z run Jan to Dec {year}, then F to "
-            f"{_letter(shipped.far)} run Jan to {_month(shipped.far)} {later}",
+            f"letters are months: {_letter(first)} to {MONTH_LETTERS[-1]} run {_month(first)} "
+            f"to {_MONTHS[-1]} {year}, then {MONTH_LETTERS[0]} to {_letter(shipped.far)} run "
+            f"{_MONTHS[0]} to {_month(shipped.far)} {later}",
             0.3,
             0.88,
             names=f"box-{len(shipped.row) - 1}",
