@@ -7833,8 +7833,8 @@ Rationale*, Wiley, 2013, Chapter 5, Kindle location 2502. Shipped under
 [issue 349](https://github.com/l3a0/quantitative-trading/issues/349). No script
 ships under the experiment's own name. Example 5.4's
 `calendarSpdsMeanReversion.m`, in ericnberwick/EpchanPreview at `e4bc46f`
-under `public/img/book2/`, opens with a commented-out load of this strip above
-its live CL line, so Chan ran that script on VX. Every location in this entry
+under `public/img/book2/`, has a commented-out load of this strip just above
+its live CL line, so Chan most likely ran that script on VX. Every location in this entry
 is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
@@ -7907,9 +7907,10 @@ is reported and not promoted to the specification.
    front.
 2. **B2** sets `holddays=0`, so each pair is held from the day after the
    previous pair's last day to 10 rows before its own expiry. The first pair
-   is never held, because its window is one row, and pairs whose near
-   contract still trades on the file's last row are skipped once VX-2012K's
-   pair has taken the rows to the end. VX holds 64 of its 71 pairs.
+   is never held, because its window is one row, and the six pairs after
+   VX-2012K's, whose near contract also still trades on the file's last row,
+   are skipped, because VX-2012K's pair already ends on 2012-04-23, the row
+   where each of theirs would end. VX holds 64 of its 71 pairs.
 3. **B3** is B1's signal built on B2's schedule, run with `holddays=0`.
 4. **B4** is S measured to 2012-04-23, the book's end date, 879 rows.
 
@@ -7971,10 +7972,10 @@ Three things.
 
 1. **The specification fits the book's first claim and not its trade.** The
    ratio's ADF statistic of −5.568107 clears the 1 percent value by 2.109807.
-   Trading it as the book's text describes, with the script's 63-day holding
-   period, gives an APR of −4.045401 percent and a Sharpe ratio of −0.563912.
-2. **The evidence favours B3 as what Chan ran.** Two things single it out
-   from the other four rows.
+   Trading it as the book's text describes, with the script's minimum holding
+   period of 63 days, gives an APR of −4.045401 percent and a Sharpe ratio of −0.563912.
+2. **B3 is the row that matches the book, and it was found by a search.**
+   Two things single it out from the other four rows.
    1. On the book's window it rounds to both printed figures, 0.176952 and
       1.475658.
    2. It is the only row that does worse before October 2008, as the book's
@@ -7984,15 +7985,15 @@ Three things.
    single it out, because B2 ends there too. VX-2012K still trades on the
    file's last row, 2012-05-07, so the schedule reads that row as its expiry,
    and under `holddays=0` its pair ends 10 rows earlier, on 2012-04-23. The
-   date is evidence for holding each pair until 10 rows before its expiry,
-   which B2 and B3 share.
+   date is evidence for `holddays=0`, which holds each pair in turn and which
+   B2 and B3 share.
 
    B3 was picked out after the run among five rows, and the window the first
    point reads was chosen after seeing the table, so this is a search. A
    registered test of B3 on VX data after 2012-05-07 is what would confirm it.
 3. **The specification's signal mostly reads a pair it does not hold.** Each
    pair is held for at least 63 rows and let go 10 rows before its near
-   contract's expiry, and VX expires monthly, so S's near leg is the front
+   contract's last priced row, and VX expires monthly, so S's near leg is the front
    contract on 126 of its 847 held rows from 2008-10-27, and the second to the
    fifth on the rest. Under `holddays=0` it is the front on 459 of 879 and the
    second on the other 420. B1 and B3, which read the held pair's own ratio,
@@ -8007,7 +8008,7 @@ Three things.
 Four things.
 
 **Which rule Chan ran.** No script ships under the experiment's own name. The
-commented load line says which script he ran on VX. The book's text at
+commented load line says which script he most likely ran on VX. The book's text at
 location 2502 gives four things.
 
 1. VX as the instrument.
@@ -8018,7 +8019,8 @@ location 2502 gives four things.
 The rest of S is this repo's reading, in three choices.
 
 1. `spreadMonth=1`, forced by how few contracts the strip prices on a day.
-2. No signal where the nearest two priced contracts are not adjacent columns.
+2. The nearest two priced contracts as the back and the front, rather than the
+   held pair B1 reads, with no signal where the two are not adjacent columns.
 3. Measuring to the file's last row, as the script measures to its own,
    rather than to the book's printed end, which B4 does.
 
@@ -8034,7 +8036,13 @@ search `CLAUDE.md`'s research pins put under their own rail.
 2008-10-27, B3 holds a near leg in 43 pairs, every one from VX-2008X's to
 VX-2012K's, and enters 42 of them on or after that date.
 `TestTheSignalsOnVx::test_from_2008_10_27_b3_holds_43_pairs_and_enters_42`
-pins both counts. Each roll trades four legs.
+pins both counts. Each new pair's near leg is the old pair's far one, so a
+roll trades two contracts when that leg keeps its side and four when it
+switches, on 26 and 16 of the 42 rolls. B3 also reverses both legs on 109
+days between rolls, each a day its z-score crosses 0, which is 436 of the 554
+contracts it trades from 2008-10-27.
+`TestTheSignalsOnVx::test_from_2008_10_27_b3s_rolls_trade_two_or_four_and_its_reversals_most`
+pins those counts.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -8042,7 +8050,15 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.vx_calendar_spread_figures` redraws, and
 [blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md),
-which quotes the 126 of 847.
+which quotes the 126 of 847. The post's two whiteboard sketches move too, and
+`uv run python -m chan.vx_calendar_spread_whiteboard` redraws them. Neither is
+schematic. The one in Lesson 2 draws S's hold of the pair near VX-2009K and far
+VX-2009M from 2009-02-04 to 2009-05-06, 64 days. Its near leg is the 4th, 3rd
+and 2nd priced contract for 10, 20 and 19 of those days and the front one for
+the last 15, the only stretch on which the front pair the signal reads is the
+pair held. The one in Lesson 4 draws the script as shipped on 2010-01-04,
+when the near leg VX-2010J has a price and the far leg VX-2011J has none, and
+closes on the 1,183 of 1,284 held days with the near leg alone.
 
 ## Entry 36: TU momentum traded on the lagged roll return, Chan's *Algorithmic Trading*
 

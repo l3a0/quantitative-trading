@@ -1220,8 +1220,12 @@ too: the specification's near leg is the front contract on 126 of its 847
 held rows from 2008-10-27, and under `holddays=0` on 459 of 879. On synthetic
 frames it holds the two signals' rules and the near leg's place: a row whose
 nearest two contracts skip one, the held pair across a roll, and the fill
-across days nothing is held. The blog post about it is the exception, and what
-it says that nothing here asserts is listed below.
+across days nothing is held. It holds the counts of what B3's rolls and
+reversals trade from 2008-10-27, measured after the run as well.
+`TestWhatThePostQuotes` reads at least one copy in the post of each run figure
+the post quotes outside the chart's and the sketches' alt texts, so editing a
+copy it reads fails. What the post says that nothing here asserts is listed
+below.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) does it for TU's
 momentum on the roll return. It pins the three figures at six decimals and
@@ -6541,38 +6545,56 @@ replication log.
 3. B3 lands the book's figures on its window and alone does worse before
    October 2008, but it was picked out among five rows after the run, and the
    book's end date does not single it out.
-4. The script as shipped runs on VX without complaint while holding the near
-   leg alone on 1,183 of 1,284 held days.
+4. The script as shipped runs on VX without complaint while its schedule
+   leaves the far leg unpriced on 1,183 of the 1,284 days it holds a pair.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    All of them, and Figure 5.8's caption, are at 2502.
 2. Facts about the script rather than the data: its commented-out load of the
-   VX file, its pairs 12 months apart, its flip where the z-score is above 0,
-   its return summed over the legs that have one and halved, its roll 10 days
-   before expiry, its expiry marked on a contract's last priced day, and four
-   contracts traded at each roll, all at `e4bc46f` of
+   VX file, its comment calling the held pair's far and near contracts the back
+   and the front, its pairs 12 months apart, its lookback set to the half-life
+   rounded, its start each day long the far contract and short the near one,
+   its flip where the z-score is above 0, its return summed over the legs that
+   have one and halved, its roll 10 days before expiry, and its expiry marked
+   on a contract's last priced day, all at `e4bc46f` of
    ericnberwick/EpchanPreview.
-3. Readings no test asserts: that the ratio moves with the spread's log value,
-   that B2's 420 days are the 10 after each roll, that four readings show a pattern rather than a cause, and
-   that a rule selling one spread on another's z-score bets on the two moving
-   together.
-4. Figures the post states in words or rounded from pinned ones, such as 4.0
-   percent, −0.56, six days in seven, three or four months between pairs,
-   three or four earlier contracts still trading, at least 73 days, and B2's
-   share of days reading its held pair against S's. The figure's alt text
-   reads its curves approximately too.
-5. Its references, cited rather than computed.
+3. Readings no test asserts: that the ratio rises on exactly the days a spread
+   long the back contract and short the front earns, that four readings show a
+   pattern rather than a cause, and that a rule selling one spread on another's
+   z-score bets on the two moving together.
+4. Figures the post states in words rather than from the run: three or four
+   months between pairs, three earlier contracts still trading 73 days before
+   a contract's last priced day so that the near leg is the fourth, and four when most of S's
+   pairs open so that it is the fifth, two contracts traded to switch the
+   shared contract's side, and that B2 reads its held pair on more of its days
+   than S does. The counts of the post's own lists, such as five readings and
+   four questions, are read by no test either. The figure's alt text reads its
+   curves approximately too.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a table or
+   the closing list, and a typo in a copy the class does not read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py), or to
 [tests/test_vx_calendar_spread_figures.py](tests/test_vx_calendar_spread_figures.py)
-for the figure's own numbers. Crude oil's spread mostly falling as γ rises,
+for the figure's own numbers, or to
+[tests/test_vx_calendar_spread_whiteboard.py](tests/test_vx_calendar_spread_whiteboard.py)
+for the sketches' dates, places and counts. `TestWhatThePostQuotes` in the
+first of those files reads at least one copy in the post of each run figure
+the post quotes outside the chart's and the sketches' alt texts, so editing a
+copy it reads fails. Crude oil's spread mostly falling as γ rises,
 which the post cites from the crude oil post, is `TestTheTradesDirection` in
-[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py).
-Four had no pin before it.
+[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
+and γ's fit across the five nearest contracts, which it cites from the spot
+and roll returns post, is `test_a_row_with_four_priced_contracts_has_no_gamma`
+and `test_only_the_nearest_five_are_read_when_more_are_priced` in
+[tests/test_roll_returns.py](tests/test_roll_returns.py), which hold that a row
+needs five priced contracts and that a sixth is not read.
+Five had no pin before the post.
 
 1. The specification's near leg is the front contract on 126 of its 847 held
    rows from 2008-10-27, and the second to the fifth on 229, 221, 201 and 70,
@@ -6583,6 +6605,9 @@ Four had no pin before it.
    S and B2 lose.
 4. Each curve's end, 0.758213 for B3, −0.135565 for S, 0.123003 for B1 and
    −0.345330 for B2, and B3's 0.765276 on 2012-04-23.
+5. From 2008-10-27, B3's rolls trade two contracts on 26 of 42 and four on
+   16, and its 109 reversals between rolls are 436 of the 554 contracts it
+   trades.
 
 Its one figure is drawn from the committed VX strip by
 [src/chan/vx_calendar_spread_figures.py](src/chan/vx_calendar_spread_figures.py),
@@ -6601,6 +6626,36 @@ uv run python -m chan.vx_calendar_spread_figures
 [tests/test_vx_calendar_spread_figures.py](tests/test_vx_calendar_spread_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/vx_calendar_spread_whiteboard.py](src/chan/vx_calendar_spread_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws,
+and neither is schematic. Both build more slowly than the USD.CAD post's
+sketches and hold their finished drawings for twelve seconds.
+
+1. `vx_calendar_spread_sketch_one_hold.gif`, in Lesson 2, draws one hold of
+   the specification. It holds the pair near VX-2009K and far VX-2009M from
+   2009-02-04 to 2009-05-06, 64 days, and lets it go 10 days before
+   VX-2009K's last priced day. Under it the near leg is the 4th, 3rd and 2nd
+   priced contract for 10, 20 and 19 days, and the front one for the last 15,
+   while the front pair the signal reads steps from VX-2009G and VX-2009H to
+   VX-2009K and VX-2009M. Every date, place and count on it is read from the
+   specification's schedule and `near_leg_rank` on the committed VX strip.
+2. `vx_calendar_spread_sketch_twelve_apart.gif`, in Lesson 4, draws one day
+   of the script as shipped, 2010-01-04. The 8 contracts priced that day run
+   from VX-2010F to VX-2010Q, the near leg is VX-2010J, and the far leg 12
+   months on, VX-2011J, has no price. Its closing note gives the 1,183 of
+   1,284 held days on which the near leg is alone, read from the same run.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.vx_calendar_spread_whiteboard
+```
+
+[tests/test_vx_calendar_spread_whiteboard.py](tests/test_vx_calendar_spread_whiteboard.py)
+derives every date, place and count both sketches print from the schedules
+again, and holds that each mark sits at its own trading day or contract.
 
 [blog/capped-kelly-allocation-lessons.md](blog/capped-kelly-allocation-lessons.md)
 is a thirty-third post, about Examples 8.1 and 8.2 of Chan's *Algorithmic

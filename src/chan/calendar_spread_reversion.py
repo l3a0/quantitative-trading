@@ -103,7 +103,8 @@ calendar spread, builds against.
    last day to 10 rows before its own expiry, with two exceptions. The first
    pair is never held, because its window is one row and line 98's comparison
    is strict. A pair whose near contract still trades on the file's last row
-   is skipped once an earlier such pair has taken the rows up to the end.
+   is skipped once an earlier such pair has ended on the row where its own
+   would end, 10 rows before the file's last, which leaves it no rows.
 
 **What changed on the way over.** Four things, and none moves a figure.
 

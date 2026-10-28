@@ -21,7 +21,7 @@ failure message.
   five edits: the VX strip, ``spreadMonth=1``, the signal the second-nearest
   priced contract over the nearest where the two are adjacent columns and
   forward-filled, ``lookback=15``, and the window from 2008-10-27 to the
-  file's last row, 2012-05-07, 889 rows. Each pair is held for 63 days, the
+  file's last row, 2012-05-07, 889 rows. Each pair is held for at least 63 days, the
   spread is reversed where z is above 0, and the figures are annualised over
   252 days with no risk-free rate and no cost.
 - **B1.** S with the signal the far contract over the near one for the pair
@@ -34,15 +34,17 @@ Two measurements were taken after seeing the five rows, and their pins say so:
 B3 on the book's window, and each of S, B1, B2 and B3 from the first row its
 flipped positions hold anything to 2008-10-24. The write-up measured three
 more after the run, in ``TestWhichPairTheSignalReads``, and their pins say so
-too.
+too. The review of the post measured B3's roll and reversal counts after the
+run as well, in ``TestTheSignalsOnVx``.
 
 Each computed figure is held at six decimals, so a change cannot move it
 inside the published rounding unnoticed, and each published figure at the
 precision Chan printed, through ``matches``.
 
 ``blog/vx-calendar-spread-lessons.md`` quotes most of these figures, so a
-change to any of them moves that post too. ``TestWhichPairTheSignalReads`` holds
-the numbers the post added, and ``tests/test_vx_calendar_spread_figures.py``
+change to any of them moves that post too, and ``TestWhatThePostQuotes`` reads
+one copy of each. ``TestWhichPairTheSignalReads`` holds
+most of the numbers the post added, and ``tests/test_vx_calendar_spread_figures.py``
 holds what its figure draws. ``blog/crude-oil-calendar-spread-lessons.md``
 also quotes one of the class's numbers, the 126 of 847 held days whose near
 leg is the front contract.
@@ -62,10 +64,12 @@ import pandas as pd
 import pytest
 from ithildincore.timeseries import ou_half_life
 
+from chan import paths
 from chan import vx_calendar_spread as module
-from chan.calendar_spread_reversion import HOLDDAYS, calendar_schedule
+from chan.calendar_spread_reversion import HOLDDAYS, NUM_DAYS_END, calendar_schedule
+from chan.calendar_spread_reversion import SPREAD_MONTH as SHIPPED_SPREAD_MONTH
 from chan.khandani_lo_book_two import gap, matches
-from chan.roll_returns import SOURCE_FILES, Strip, contract_month, load_strip
+from chan.roll_returns import MONTH_LETTERS, SOURCE_FILES, Strip, contract_month, load_strip
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from chan.vx_calendar_spread import (
@@ -88,6 +92,7 @@ from chan.vx_calendar_spread import (
     vx_calendar_spread,
 )
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.support.post_tables import CELL, either_way, not_found_once, tables
 
 VINTAGE = (
     "inputdatadaily_vx_20120507/ chan-mat raw saved 2012-05-08, from "
@@ -95,7 +100,8 @@ VINTAGE = (
 )
 S_SPEC = (
     f"{VINTAGE}; S: calendarSpdsMeanReversion.m with spreadMonth=1, the nearest two priced "
-    "contracts' ratio forward-filled, lookback 15, held 63 days, from 2008-10-27 to 2012-05-07"
+    "contracts' ratio forward-filled, lookback 15, held at least 63 days, "
+    "from 2008-10-27 to 2012-05-07"
 )
 SPECS = {
     "S": S_SPEC,
@@ -167,6 +173,21 @@ class TestTheVintage:
         ), VINTAGE
 
 
+def _rolls(schedule: pd.DataFrame) -> pd.Series:
+    """The days from :data:`START` on which the held pair changes from one pair to the next."""
+    short = schedule.eq(-1)
+    near = short.idxmax(axis=1).where(short.any(axis=1))
+    before = near.shift()
+    return ((near != before) & near.notna() & before.notna()).loc[START:]
+
+
+def _leaves(schedule: pd.DataFrame) -> pd.Series:
+    """The days from :data:`START` on which a pair is let go and none follows it."""
+    short = schedule.eq(-1)
+    near = short.idxmax(axis=1).where(short.any(axis=1))
+    return (near.isna() & near.shift().notna()).loc[START:]
+
+
 class TestTheSignalsOnVx:
     def test_ss_signal_is_missing_only_on_its_first_148_rows(self, strip) -> None:
         """The nearest two priced columns skip a contract only before 2006-10-23, so the
@@ -191,7 +212,8 @@ class TestTheSignalsOnVx:
 
     def test_holddays_0_holds_64_of_vxs_71_pairs(self, strip) -> None:
         """The first pair's window is one row, and six pairs whose near contract still
-        trades on 2012-05-07 are skipped once VX-2012K's pair has taken the rows to the end."""
+        trades on 2012-05-07 are skipped, because VX-2012K's pair already ends on
+        2012-04-23, the row where each of theirs would end."""
         schedule = calendar_schedule(
             strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
         )
@@ -237,7 +259,33 @@ class TestTheSignalsOnVx:
         entered = [schedule.index[(schedule[c] == -1).to_numpy()][0] for c in near]
         assert sum(day >= START for day in entered) == 42, SPECS["B3"]
 
-    def test_the_shipped_spread_month_of_12_holds_the_front_contract_alone(self, strip) -> None:
+    def test_from_2008_10_27_b3s_rolls_trade_two_or_four_and_its_reversals_most(
+        self, strip, result
+    ) -> None:
+        """What the entry's cost sentence counts. Each new pair's near contract is the old
+        pair's far one, so a roll trades two contracts where that contract keeps its side
+        and four where it switches. Between rolls B3 reverses both legs, and those
+        reversals are most of the 554 contracts it trades. Measured after the run."""
+        schedule = calendar_schedule(
+            strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
+        )
+        roll, leaves = _rolls(schedule), _leaves(schedule)
+        positions = result.rows["B3"].positions
+        traded = positions.diff().abs().sum(axis=1).loc[START:]
+        reversal = (traded > 0) & ~roll & ~leaves
+        assert sorted(traded[roll].value_counts().items()) == [(2.0, 26), (4.0, 16)], (
+            f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        )
+        assert traded[reversal].value_counts().to_dict() == {4.0: 109}, (
+            f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        )
+        now, then = positions.loc[START:][reversal], positions.shift().loc[START:][reversal]
+        assert (now == -then).all().all(), f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        assert (traded.sum(), traded[reversal].sum()) == (554.0, 436.0), (
+            f"{SPECS['B3']}; {AFTER_THE_RUN}"
+        )
+
+    def test_the_shipped_spread_month_of_12_holds_the_near_contract_alone(self, strip) -> None:
         """Why S edits ``spreadMonth``. The strip lists 2 to 10 contracts a day, so pairing
         contract c with c + 12 leaves the far leg unpriced on most held days, and the
         script's ``smartsum`` then holds the near contract alone."""
@@ -368,7 +416,7 @@ class TestTheMeasurementsAfterTheRun:
     def test_each_row_before_october_2008(self, result, key, first, rows, apr, sharpe) -> None:
         found = result.before[key]
         days = found.returns.index
-        spec = f"{SPECS[key]}, from its first held row to 2008-10-24, {AFTER_THE_RUN}"
+        spec = f"{SPECS[key]}, from its first row with a position to 2008-10-24, {AFTER_THE_RUN}"
         assert (str(days[0].date()), str(days[-1].date()), len(days)) == (
             first,
             "2008-10-24",
@@ -403,8 +451,8 @@ class TestWhichPairTheSignalReads:
     exploratory as the rest."""
 
     def test_ss_near_leg_is_the_front_contract_on_126_of_its_847_held_rows(self, strip) -> None:
-        """S holds each pair from 73 rows before its near contract's expiry, and VX
-        expires monthly, so its near leg is usually two to five contracts out while its
+        """S holds each pair from at least 73 rows before its near contract's last priced row,
+        and VX expires monthly, so its near leg is usually two to five contracts out while its
         signal reads the front two."""
         schedule = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH)
         rank = near_leg_rank(strip.contracts, schedule).loc[START:].dropna()
@@ -423,7 +471,7 @@ class TestWhichPairTheSignalReads:
 
     def test_under_holddays_0_the_near_leg_is_the_front_or_the_second(self, strip) -> None:
         """Each pair starts the row after the last one ended, 10 rows before the old near
-        contract's expiry, so for those rows the old near contract is still the front."""
+        contract's last priced row, so for those rows the old near contract is still the front."""
         schedule = calendar_schedule(
             strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
         )
@@ -441,6 +489,254 @@ class TestWhichPairTheSignalReads:
         assert earns == {"S": False, "B1": True, "B2": False, "B3": True}, (
             f"{VINTAGE}; S and B1 to B3 to 2012-05-07; {AFTER_THE_RUN}"
         )
+
+
+POST = paths.REPO_ROOT / "blog" / "vx-calendar-spread-lessons.md"
+#: Chan's "99 percent", which the module prints inside its report and holds as no constant.
+BOOK_PROBABILITY = "99"
+#: The readings that run to the file's last day, the four the post's last table sets side by side.
+READINGS = tuple(key for key in ROWS if key != "B4")
+_WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven")
+
+
+def _minus(x: float, places: int) -> str:
+    """A figure in prose, with the post's typographic minus sign."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def _month(contract: str) -> str:
+    """``VX-2007F`` as the post names it, January 2007."""
+    year, letter = contract[-5:-1], contract[-1]
+    return f"{pd.Timestamp(int(year), MONTH_LETTERS.index(letter) + 1, 1):%B %Y}"
+
+
+def _reading(key: str) -> str:
+    """A reading's name as :func:`tables` reads its cell, so ``B1`` as ``1`` and ``S`` as ``S``."""
+    return (CELL.findall(key) or [key])[0]
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/vx-calendar-spread-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording the
+    prose between two figures does not. A figure the post rounds from a
+    pinned one, such as −4.0 percent, 17.3 percent or 0.0451 percentage
+    points, is rounded here from the run. The post's three tables are each
+    read whole, as the grid of its cells with its row labels and column
+    heads, through :func:`tests.support.post_tables.tables`, so a cell
+    changed, added, dropped or moved fails, and so does a label or head
+    swapped, while the same table turned on its side still passes.
+
+    Four things stay unread.
+
+    1. Second copies of a figure. The post states several figures more than
+       once, and only one copy of each is read. The copies left unread
+       include the opening's −4.0 and 17.7 percent, the 2 to 10 contracts a
+       day in "What changes from crude oil", the 459 of 879 days in Lesson
+       2's last paragraph, the 1,183 days after Lesson 4's counts, and the
+       126 of 847 in the closing list.
+    2. The figures in the chart's alt text.
+       ``tests/test_vx_calendar_spread_figures.py`` reads its eight bar figures
+       against the chart's labels, and its readings of the curves are
+       approximate.
+    3. Chan's words and their Kindle page, the script's name and
+       commit, and the references.
+    4. The numbers the two sketches print and their alt texts quote, which
+       ``tests/test_vx_calendar_spread_whiteboard.py`` derives from the
+       schedules.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    def test_the_post_holds_three_tables(self, text) -> None:
+        assert len(tables(text)) == 3
+
+    def test_a_fragment_must_occur_exactly_once(self) -> None:
+        """A second copy is reported as surely as a missing one, so a fragment names one place."""
+        assert not_found_once("a copy, and a copy", ["a copy", "and", "absent"]) == [
+            "a copy",
+            "absent",
+        ]
+
+    def test_the_file_and_the_readings(self, strip, result, text) -> None:
+        contracts = strip.contracts
+        columns, index = contracts.columns, contracts.index
+        (saved,) = {m.obtained for m in strip.members}
+        s, b4 = result.rows["S"], result.rows["B4"]
+        fragments = [
+            f"It is `{SOURCE_FILES[module.ROOT]}`, the file the commented-out line names, "
+            f"saved {saved}",
+            f"It holds {len(columns)} contracts, one for each month from {_month(columns[0])} "
+            f"to {_month(columns[-1])}, over {len(index):,} days from {index[0].date()} to "
+            f"{index[-1].date()}.",
+            f"The crude oil script pairs each contract with the one expiring "
+            f"{SHIPPED_SPREAD_MONTH} months later.",
+            f"S keeps the script’s own minimum, which holds each pair for at least "
+            f"{HOLDDAYS} days,",
+            f"The window from {s.returns.index[0].date()} to the file’s last day, "
+            f"{s.returns.index[-1].date()}, which is {len(s.returns):,} days.",
+            f"**B4** is S measured to {b4.returns.index[-1].date()}, the book’s end date, "
+            f"{len(b4.returns):,} days.",
+        ]
+        assert not_found_once(text, fragments) == [], S_SPEC
+
+    def test_lesson_1(self, strip, result, text) -> None:
+        s, b4 = result.rows["S"], result.rows["B4"]
+        adf = s.adf
+        critical = adf.critical[0]
+        ratio = nearest_two_ratio(strip.contracts).dropna()
+        assert s.apr < 0 and s.sharpe < 0, "both miss with the wrong sign"
+        fragments = [
+            f"The ADF statistic of S’s ratio is {_minus(adf.statistic, 6)}, against a 1 percent "
+            f"critical value of {_minus(critical, 4)},",
+            f"with a margin of {critical - adf.statistic:.6f}.",
+            f"The test reads all {len(ratio):,} days on which the ratio can be computed, from "
+            f"{ratio.index[0].date()}.",
+            f"so {_minus(s.apr, 6)} in the table below is {_minus(100 * s.apr, 1)} percent.",
+            f"The book gives the lookback as {LOOKBACK} days,",
+            f"the half-life rounded, which here would be {round(s.half_life)} days.",
+            f"The APR is {_minus(100 * s.apr, 1)} percent and the Sharpe ratio is "
+            f"{_minus(s.sharpe, 2)},",
+            f"lowers the APR by {s.apr - b4.apr:.6f}, which is {100 * (s.apr - b4.apr):.4f} "
+            f"percentage points, and the Sharpe ratio by {s.sharpe - b4.sharpe:.6f}.",
+        ]
+        assert not_found_once(text, fragments) == [], S_SPEC
+        table = [
+            ["Figure", "S", "Book"],
+            ["ADF statistic", f"{adf.statistic:.6f}", BOOK_PROBABILITY],
+            ["Half-life, days", f"{s.half_life:.6f}", "none printed"],
+            ["APR", f"{s.apr:.6f}", BOOK_APR_PERCENT],
+            ["Sharpe ratio", f"{s.sharpe:.6f}", BOOK_SHARPE],
+            ["Maximum drawdown", f"{s.max_dd:.6f}", "none printed"],
+        ]
+        assert tables(text)[0] in either_way(table), S_SPEC
+
+    def test_lesson_2(self, strip, result, text) -> None:
+        contracts = strip.contracts
+        schedule = calendar_schedule(contracts, spread_month=SPREAD_MONTH)
+        rank = near_leg_rank(contracts, schedule).loc[START:].dropna()
+        front = int((rank == 1).sum())
+        near = schedule.columns[(schedule.loc[START:] == -1).any(axis=0).to_numpy()]
+        sevenths = round(7 * (len(rank) - front) / len(rank))
+        each = calendar_schedule(contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN)
+        each_rank = near_leg_rank(contracts, each).loc[START:].dropna()
+        rolls = _rolls(each)
+        second = each_rank.index[(each_rank == 2).to_numpy()]
+        after_rolls = sorted(
+            contracts.index[contracts.index.get_loc(day) + k]
+            for day in rolls.index[rolls.to_numpy()]
+            for k in range(NUM_DAYS_END)
+        )
+        assert list(second) == after_rolls, f"{SPECS['B2']}; the first days after each roll"
+        fragments = [
+            f"The script holds each pair for at least {HOLDDAYS} days and lets it go "
+            f"{NUM_DAYS_END} days before its near contract’s last priced day, which the script "
+            f"takes as its expiry, so it opens each "
+            f"pair at least {HOLDDAYS + NUM_DAYS_END} days before that day.",
+            f"On the {len(rank):,} days from {START.date()} on which S holds a pair, its near leg "
+            f"is the front contract on {front}.",
+            f"S holds {len(near)} pairs in that time. The near leg of the first is {near[0]}, "
+            f"the {_month(near[0])} contract. The near leg of the last is {near[-1]}, the "
+            f"{_month(near[-1])} one.",
+            f"So on {_WORDS[sevenths]} days in seven,",
+            f"Its near leg is the front contract on {int((each_rank == 1).sum())} of its "
+            f"{len(each_rank):,} held days and the second on the other {len(second)}.",
+            f"Those {len(second)} are the first {NUM_DAYS_END} days after each of its "
+            f"{int(rolls.sum())} rolls in that time,",
+            f"against S’s {front} of {len(rank):,},",
+        ]
+        assert not_found_once(text, fragments) == [], f"{S_SPEC}; {SPECS['B2']}"
+        places = [
+            ["Near leg's place", "Days held by S"],
+            *(
+                [f"{place:.0f}", str(days)]
+                for place, days in rank.value_counts().sort_index().items()
+            ),
+        ]
+        assert tables(text)[1] in either_way(places), f"{S_SPEC}; {AFTER_THE_RUN}"
+        signal = {"S": "front pair", "B1": "held pair", "B2": "front pair", "B3": "held pair"}
+        readings = [
+            ["Reading", "Signal", "APR", "Sharpe"],
+            *(
+                [
+                    _reading(key),
+                    signal[key],
+                    f"{result.rows[key].apr:.6f}",
+                    f"{result.rows[key].sharpe:.6f}",
+                ]
+                for key in READINGS
+            ),
+        ]
+        assert tables(text)[2] in either_way(readings), "; ".join(SPECS[k] for k in READINGS)
+
+    def test_lesson_3(self, strip, result, text) -> None:
+        b3, book, early = result.rows["B3"], result.b3_book_window, result.before["B3"]
+        each = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN)
+        (last_near,) = each.columns[(each.loc[b3.last_held] == -1).to_numpy()]
+        fragments = [
+            f"Measured to {book.returns.index[-1].date()}, the book’s end date, its APR is "
+            f"{book.apr:.6f} and its Sharpe ratio {book.sharpe:.6f}, which round to the printed "
+            f"{BOOK_APR_PERCENT} percent and {BOOK_SHARPE}.",
+            f"Measured to the file’s last day, they are {b3.apr:.6f} and {b3.sharpe:.6f}.",
+            f"That APR is {100 * b3.apr:.1f} percent, which misses {BOOK_APR_PERCENT} percent by "
+            f"{-gap(100 * b3.apr, BOOK_APR_PERCENT)} percentage points",
+            f"From the first day it holds a position, {early.returns.index[0].date()}, to "
+            f"{early.returns.index[-1].date()}, its APR is {_minus(early.apr, 6)} and its "
+            f"Sharpe ratio {_minus(early.sharpe, 6)}.",
+            f"B3’s last held day is {b3.last_held.date()}, the book’s printed end date, "
+            f"and so is B2’s.",
+            f"{last_near} is the {_month(last_near)} contract.",
+            f"so it reads {strip.contracts.index[-1].date()} as {last_near}’s expiry and lets go "
+            f"of the pair {NUM_DAYS_END} days earlier, on {b3.last_held.date()}.",
+        ]
+        assert result.rows["B2"].last_held == b3.last_held, SPECS["B2"]
+        assert not_found_once(text, fragments) == [], f"{SPECS['B3']}; {AFTER_THE_RUN}"
+
+    def test_lesson_4(self, strip, text) -> None:
+        contracts = strip.contracts
+        priced = np.isfinite(contracts.to_numpy())
+        counts = priced.sum(axis=1)
+        median = float(np.median(counts))
+        assert median.is_integer(), VINTAGE
+        schedule = calendar_schedule(contracts).to_numpy()
+        held = (schedule != 0).any(axis=1)
+        near = ((schedule == -1) & priced).any(axis=1)
+        far = ((schedule == 1) & priced).any(axis=1)
+        fragments = [
+            f"loads a file that prices at most {counts.max()} contracts on any day.",
+            f"its schedule holds a pair on {int(held.sum()):,} days. Both legs have a price on "
+            f"{int((held & near & far).sum()):,} of them. On {int((held & near & ~far).sum()):,} "
+            f"only the near leg is priced, and on {int((held & ~near & ~far).sum()):,} neither is.",
+            f"which prices {counts.min()} to {counts.max()} contracts a day with a median of "
+            f"{median:.0f}.",
+        ]
+        assert not_found_once(text, fragments) == [], (
+            f"{VINTAGE}; the script as shipped, spreadMonth={SHIPPED_SPREAD_MONTH}"
+        )
+
+    def test_what_it_cannot_say_about_costs(self, strip, result, text) -> None:
+        each = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN)
+        near = each.columns[(each.loc[START:] == -1).any(axis=0).to_numpy()]
+        entered = sum(each.index[(each[c] == -1).to_numpy()][0] >= START for c in near)
+        rolls, leaves = _rolls(each), _leaves(each)
+        traded = result.rows["B3"].positions.diff().abs().sum(axis=1).loc[START:]
+        reversals = int(((traded > 0) & ~rolls & ~leaves).sum())
+        low, high = sorted(int(n) for n in traded[rolls].unique())
+        fragments = [
+            f"From {START.date()}, B3 holds {len(near)} pairs and enters {entered} of them,",
+            f"a roll trades {_WORDS[low]} contracts when that contract keeps its side and "
+            f"{_WORDS[high]} when it switches.",
+            f"B3 also reverses both legs on {reversals} days between rolls,",
+        ]
+        assert not_found_once(text, fragments) == [], f"{SPECS['B3']}; {AFTER_THE_RUN}"
 
 
 # --- the rules on synthetic frames ---------------------------------------------

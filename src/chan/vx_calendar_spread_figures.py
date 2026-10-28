@@ -16,7 +16,7 @@ the post, and its plan set the two panels.
    2008, from the first row its flipped positions hold anything to
    2008-10-24, beside its APR from 2008-10-27. The book says its rule
    "performed much more poorly prior to October 2008", and only B3's bar
-   falls.
+   before October 2008 is lower than its bar after.
 
 Every value comes from :func:`chan.roll_returns.load_strip` and
 :func:`chan.vx_calendar_spread.vx_calendar_spread`, the run's own path, so
@@ -58,7 +58,7 @@ CURVES = ("B3", "S", "B1", "B2")
 #: How each curve is drawn: colour, width, style, and what the legend calls it.
 CURVE_STYLE = {
     "B3": (INK, 1.8, "-", "B3, the held pair's ratio, each pair held in turn"),
-    "S": (ACCENT, 1.4, "-", "S, the specification, the front pair's ratio"),
+    "S": (ACCENT, 1.4, "-", "S, the plainest reading, the front pair's ratio"),
     "B1": (MUTED, 1.2, "--", "B1, the held pair's ratio"),
     "B2": (MUTED, 1.2, ":", "B2, the front pair's ratio, each pair held in turn"),
 }
@@ -116,7 +116,7 @@ def _returns_panel(ax, result: VxCalendarSpread) -> None:
     b3 = result.b3_book_window
     _heading(
         ax,
-        f"Figure 5.8: each row's cumulative return, {days[0].date()} to {days[-1].date()}. "
+        f"Figure 5.8: each reading's cumulative return, {days[0].date()} to {days[-1].date()}. "
         f"On the book's window to {BOOK_END.date()},\nB3's APR is {b3.apr:.6f} and its Sharpe "
         f"ratio {b3.sharpe:.6f}, where the book prints {BOOK_APR_PERCENT} percent and "
         f"{BOOK_SHARPE}.",
@@ -152,9 +152,9 @@ def _before_panel(ax, result: VxCalendarSpread) -> None:
     first = min(result.before[key].returns.index[0] for key in ROWS_BEFORE)
     _heading(
         ax,
-        f"Each row's APR before October 2008, from its first held row ({first.date()} at the "
-        "earliest) to 2008-10-24,\nbeside its APR from 2008-10-27. Only B3 does worse before, "
-        "as the book says of its rule.",
+        f"Each reading's APR before October 2008, from its first day with a position "
+        f"({first.date()} at the earliest)\nto 2008-10-24, beside its APR from 2008-10-27. "
+        "Only B3 does worse before, as the book says of its rule.",
     )
 
 
@@ -181,7 +181,7 @@ def make_vx_calendar_spread_figure(
         "Exploratory: VIX futures calendar spreads on the ratio of back to front",
         "Algorithmic Trading, Kindle edition, p. 187. Contracts from "
         f"{SOURCE_FILES[ROOT]}, saved "
-        f"{', '.join(saved)}.\nB3 was picked out after the run among five rows, and no cost "
+        f"{', '.join(saved)}.\nB3 was picked out after the run among five readings, and no cost "
         "is charged.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.09)
