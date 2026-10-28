@@ -97,7 +97,7 @@ as test_the_run_gives_these_dates_and_files.
    trade's mean return on a vertical scale, with a dot for the book's years
    above a dashed line for the trade's real edge and a dot for the years after
    the book below it. What is pinned is that order, that both brackets end at
-   the later dot, that the one measured from the book's dot is longer than the
+   the later dot's level, that the one measured from the book's dot is longer than the
    one from the real edge, that no label writes a number, that the board says
    it is schematic and keeps the paragraph's hedge, and that it draws with
    every settlement file out of reach.
@@ -2551,9 +2551,11 @@ class TestTheRaisedStartSketch:
         assert book.x[0] < after.x[0]
         assert (book.x[0], after.x[0]) == (RAISED_DOT_X["book"], RAISED_DOT_X["after"])
 
-    def test_both_brackets_end_at_the_later_dot_and_the_measured_one_is_longer(self, every) -> None:
+    def test_both_brackets_end_at_the_later_dots_level_and_the_measured_one_is_longer(
+        self, every
+    ) -> None:
         """The fall as measured runs from the book's dot and the fall the
-        trade took from the real edge, and both run down to the later dot."""
+        trade took from the real edge, and both run down to the later dot's level."""
         scene = every[14]
         book, after, edge = (_stroke(scene, gid).y[0] for gid in ("book", "after", "edge"))
         measured, real = _stroke(scene, "measured"), _stroke(scene, "real")
@@ -2575,7 +2577,7 @@ class TestTheRaisedStartSketch:
 
     def test_it_writes_no_number_says_it_is_schematic_and_keeps_the_hedge(self, every) -> None:
         """The paragraph gives no size for either fall, so no label writes a
-        number, and its "Where they do" stays on the board as a condition."""
+        number, and its "Where it does" stays on the board as a condition."""
         scene = every[14]
         assert not [label for label in scene.labels if re.search(r"\d", label)]
         assert "schematic, drawn to no scale" in scene.labels
@@ -2612,7 +2614,7 @@ class TestTheRaisedStartSketch:
         assert "A black dot below the line" in alt
         assert "A long black bracket runs from the book’s dot down to the later dot’s level" in alt
         assert "a shorter purple bracket runs from the real edge down to the same level" in alt
-        assert "Both brackets end at the later dot" in alt
+        assert "Both brackets end at the later dot’s level" in alt
         assert not re.search(r"\d", alt)
 
 
