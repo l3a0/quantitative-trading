@@ -3781,7 +3781,8 @@ not pinned here.
    before delivery and the April and May gasoline contracts trading until the
    last trading day of the month before delivery as the exchange's rules, Good
    Friday as the only NYMEX holiday that can land on a trade date, EIA
-   publishing the nearest four contracts numbered by expiry, EIA's statement
+   publishing the nearest four contracts numbered by expiry, with one
+   settlement a day for each contract, EIA's statement
    that its source is NYMEX, EIA publishing the natural gas and gasoline stock
    levels Further work names, and the contract numbers of the two extra files
    Lesson 2 and Lesson 5 read.
