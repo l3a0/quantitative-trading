@@ -8134,7 +8134,7 @@ Five groups of what it says are not pinned here.
    saved series reached no 18.4, that at the same daily risk a path of 100,000
    days is all but certain to reach a deeper drawdown than one of 612, that
    moving the draws to a Kelly of 18.4 lowers every seed's ruin leverage, so
-   the rule chosen after reads 39 seeds there rather than 40, that a band read
+   the rule chosen after keeps 39 seeds there rather than 40, that a band taken
    without the 30 seeds at or below 19.2 would hold neither of the book's
    figures, and that a picture built around one band rule would look like an
    endorsement of that rule.

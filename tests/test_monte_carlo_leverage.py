@@ -998,7 +998,8 @@ class TestWhatThePostSays:
         log_growth = math.exp(days * (m - var / 2)) - 1
         assert f"compounded over {days} days, which on the saved file is {script:.6f}." in self.text
         assert (
-            f"puts the APR at {log_growth:.6f}. So the first of the three ways below is the closest"
+            f"puts the APR at {log_growth:.6f}. So compounding the log growth, the first of the "
+            "three ways below, is the closest"
         ) in self.text
 
         sharpe, kelly_ = float(BOOK_SHARPE), float(BOOK_KELLY)
@@ -1031,7 +1032,7 @@ class TestWhatThePostSays:
 
     def test_the_declared_seed_and_the_further_seeds(self) -> None:
         assert (
-            f"So each simulated figure here comes from one seed, {SEED}, named in writing before "
+            f"Each simulated figure here comes from one seed, {SEED}, named in writing before "
             f"the run and called the declared seed. It is judged against {len(ENSEMBLE_SEEDS)} "
             f"further seeds, {ENSEMBLE_SEEDS[0]} to {ENSEMBLE_SEEDS[-1]}."
         ) in self.text
@@ -1059,7 +1060,7 @@ class TestWhatThePostSays:
             self.text,
             "Searched without the cap, the declared seed’s optimum is ",
             result.declared.uncapped,
-            f". The {on_cap} seeds split cleanly from the rest.",
+            f".\n\nThe {on_cap} seeds split cleanly from the rest.",
         )
         free = result.ensemble.values("uncapped")[result.ensemble.values("ruin") >= CAP]
         assert _says(self.text, "has an uncapped optimum above 20, the lowest at ", free.min(), ".")
@@ -1083,7 +1084,7 @@ class TestWhatThePostSays:
         ) in self.text
         assert _says(
             self.text,
-            "its 5th percentile is the same ",
+            "The capped band’s 5th percentile is the same ",
             result.ensemble.band("optimum").low,
             f", a point between the optima of two of those {int(low.sum())} seeds",
         )
