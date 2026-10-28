@@ -10328,6 +10328,23 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.low_beta_leverage_figures` redraws.
 
+The post also carries two whiteboard sketches in Lesson 3, added in the first
+round of its review before publishing.
+
+1. **The ruin line.** Two levered lines turn on the point (rf, rf), with rf at
+   0.0029. The leverage of 23.2017 that just ruins June 2001 meets −1 at June's
+   low-fifth return of −0.0403. June's k of 58.0262 is steeper and meets −1 at
+   −0.0144, so a smaller loss ruins it, and June's month sits on it at
+   −2.5053.
+2. **Thirteen of 83 months past June's line.** A bell curve with the low
+   fifth's mean of 0.0109 and standard deviation of 0.0292 puts 0.1931 of its
+   months at or below −0.0144, and a strip of the 83 monthly returns shows 13
+   there.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.levered_low_beta_whiteboard` redraws both through the
+same `read_sources` and `build_portfolios`.
+
 ## Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
