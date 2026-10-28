@@ -3518,9 +3518,10 @@ misses are normal and independent, all three years were profits with a chance
 of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
 was 41%.
 
-The post also carries twenty-seven whiteboard sketches that draw this entry's run,
-and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all
-twenty-seven.
+The post also carries twenty-eight whiteboard sketches, twenty-seven that draw
+this entry's run and one schematic sketch, and
+`uv run python -m chan.commodity_seasonals_whiteboard` redraws all
+twenty-eight.
 
 1. Each trade's entry and exit on one calendar, with Chan's count for it.
 2. Both trades' years won, split where the book's years end: 15 of 15 then 7 of
@@ -3567,9 +3568,11 @@ twenty-seven.
 25. Which years each check of the expiry rule reaches.
 26. 2018's entry on March's own last trading day.
 27. A holiday row in the files, at Christmas 2018, beside none in 2016.
+28. A schematic cliff beside a plateau, the shape a search across a trade's
+   parameters looks for, with no figures from the run.
 
 [tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
-reads all twenty-seven from the run, so a change to the streak counts, to a gasoline
+reads the first twenty-seven from the run, so a change to the streak counts, to a gasoline
 year's result or to the expiry rule moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*

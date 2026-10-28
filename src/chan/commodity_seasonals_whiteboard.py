@@ -1,7 +1,7 @@
-"""Whiteboard sketches for the commodity seasonals post's opening and Lessons 1, 2, 4 and 5.
+"""Whiteboard sketches for the commodity seasonals post, from its opening to Further work.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Twenty-seven of its passages turn on a picture a
+trades against EIA's settlements. Twenty-eight of its passages turn on a picture a
 sentence has to build in the reader's head: when each trade buys and sells,
 how many years each won in the book's years and after, how a drawdown can
 fall inside a winning year, where a count of
@@ -16,8 +16,9 @@ results widen a range, where natural gas's ±12% comes from, which later range
 holds its earlier mean, what the Mann-Whitney test counts, what its chance
 means, how the four chances sit against the 5% line, how one year moves
 natural gas's mean but not its ranks, which numbered file holds the June
-contract on a given day, and how the expiry rule behind it is checked. This
-module draws those twenty-seven as scenes, and the post places each right after
+contract on a given day, how the expiry rule behind it is checked, and what
+shape a search across a trade's parameters looks for. This
+module draws those twenty-eight as scenes, and the post places each right after
 the paragraph it draws.
 
 1. Two trades on one calendar: natural gas's June contract from February 25
@@ -165,8 +166,15 @@ the paragraph it draws.
    contract-1 file repeats Dec 24's price on the 25th, beside 2016, where the
    closed 26th has no row. It sits after the paragraph opening "The run
    computes its own calendar".
+28. A cliff or a plateau: profit against one parameter moved either way from
+   Chan's value, spiking only at his value on the left and staying high
+   around it on the right. It sits under "One search across every
+   parameter", after the paragraph opening "The search asks whether the
+   neighbourhood".
 
-All twenty-seven carry data, and none needs the owner's archive.
+The first twenty-seven carry data, and none needs the owner's archive. The
+cliff-or-plateau sketch is schematic: its curves are shapes, not figures from
+the run, and it says so on the board.
 The two-trades sketch reads its dates from the run's trade dates,
 :data:`chan.commodity_seasonals.NG_ENTRY` and the three beside it, and
 :meth:`SplitFigures.from_run` reads every year of both trades from
@@ -223,7 +231,7 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
-all twenty-seven are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all twenty-eight are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
 gasoline editions, half-width and pairs sketches are in :data:`SLOWER` too,
@@ -236,7 +244,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-seven with::
+with no change is a no-op diff. Redraw all twenty-eight with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -4060,6 +4068,98 @@ def _holiday_rows() -> Scene:
     return Scene("A row in the file is not a trading day", "holiday_rows", tuple(steps))
 
 
+# --- Further work: one search across every parameter --------------------------
+
+#: Where the plateau sketch's two panels sit, and the height of their zero line.
+PLATEAU_PANELS = ((0.6, 4.5), (5.5, 9.4))
+PLATEAU_BASE = 1.7
+#: How far each schematic curve stands above the zero line away from Chan's
+#: value, and how much higher it reaches at its top.
+PLATEAU_FLOOR, PLATEAU_RISE = 0.15, {"cliff": 1.6, "plateau": 1.45}
+#: The cliff's half-width and the plateau's, in board units.
+PLATEAU_WIDTH = {"cliff": 0.12, "plateau": 1.25}
+
+
+def _plateau_profit(kind: str, x: np.ndarray, centre: float) -> np.ndarray:
+    """The schematic profit a parameter's values give: a narrow spike at
+    Chan's value for the cliff, and a wide flat top around it for the
+    plateau. Each carries a small ripple so it reads as hand-drawn."""
+    u = x - centre
+    if kind == "cliff":
+        shape, ripple = np.exp(-((u / PLATEAU_WIDTH[kind]) ** 2)), 0.08 * np.sin(5.3 * u)
+    else:
+        shape, ripple = np.exp(-((u / PLATEAU_WIDTH[kind]) ** 4)), 0.05 * np.sin(4.1 * u)
+    return PLATEAU_BASE + PLATEAU_FLOOR + ripple + PLATEAU_RISE[kind] * shape
+
+
+def _plateau() -> Scene:
+    """Further work: the shape a search across one parameter looks for. Profit
+    spikes only at Chan's value on a cliff and stays high around it on a
+    plateau. Schematic, so it draws no figures from the run."""
+    steps: list[Stroke | Label] = []
+    for (x0, x1), kind, color, head, verdict in (
+        (PLATEAU_PANELS[0], "cliff", LOST, "a cliff: only Chan’s value pays", "likely chance"),
+        (
+            PLATEAU_PANELS[1],
+            "plateau",
+            GOOD,
+            "a plateau: nearby values pay too",
+            "worth a closer look",
+        ),
+    ):
+        centre = (x0 + x1) / 2
+        x = np.linspace(x0, x1, 160)
+        top = float(_plateau_profit(kind, np.array([centre]), centre)[0])
+        steps += [
+            _stroke(
+                f"{kind}-axis",
+                _line([(x0, PLATEAU_BASE), (x1, PLATEAU_BASE)]),
+                color=MUTED,
+                frames=6,
+            ),
+            Label(
+                "0", x0 - 0.22, PLATEAU_BASE, names=f"{kind}-axis", color=MUTED, size=10, ha="right"
+            ),
+            _stroke(kind, (x, _plateau_profit(kind, x, centre)), color=color, width=2.6, frames=10),
+            _dot(f"{kind}-chan", centre, top, color=ACCENT),
+            Label(
+                "Chan’s",
+                centre,
+                PLATEAU_BASE - 0.32,
+                names=f"{kind}-chan",
+                color=ACCENT,
+                size=10,
+                ha="center",
+            ),
+            Label(head, centre, 3.85, names=kind, color=color, size=11, ha="center"),
+            Label(
+                verdict, centre, PLATEAU_BASE - 0.72, names=kind, color=color, size=11, ha="center"
+            ),
+        ]
+    steps += [
+        Label("profit", 0.2, 2.75, names="cliff-axis", color=MUTED, size=10),
+        Label(
+            "each axis: one parameter, moved either way from Chan’s value",
+            5.0,
+            0.55,
+            names="plateau-axis",
+            color=MUTED,
+            size=10,
+            ha="center",
+        ),
+        Label(
+            "schematic, drawn to no scale",
+            5.0,
+            0.22,
+            names="plateau-axis",
+            color=MUTED,
+            size=10,
+            ha="center",
+        ),
+    ]
+    return Scene("A cliff or a plateau", "plateau", tuple(steps))
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
@@ -4092,6 +4192,7 @@ PACED = (
     "check_coverage",
     "edge_day",
     "holiday_rows",
+    "plateau",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 #: Paced scenes the owner still found too fast, with each one's stroke frame
@@ -4181,8 +4282,8 @@ def scenes(
     split: SplitFigures | None = None,
     drawdown: DrawdownFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The twenty-seven scenes in the order the post reads them, from the opening
-    to Lesson 5."""
+    """The twenty-eight scenes in the order the post reads them, from the opening
+    to Further work."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
     gasoline = gasoline if gasoline is not None else GasolineFigures.from_run()
@@ -4212,6 +4313,7 @@ def scenes(
         *_typical_scenes(OneYearFigures.from_run()),
         _june_file(*years),
         *_expiry_scenes(),
+        _plateau(),
     )
 
 

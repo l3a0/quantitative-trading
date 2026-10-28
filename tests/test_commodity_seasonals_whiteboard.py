@@ -1,4 +1,4 @@
-"""The pins for the twenty-seven whiteboard GIFs in the commodity seasonals post.
+"""The pins for the twenty-eight whiteboard GIFs in the commodity seasonals post.
 
 Three sketches draw the opening: the two trades on one calendar, the years
 each won in the book's years and after, and the fall inside 2002's natural
@@ -14,8 +14,8 @@ which later range holds its earlier mean, what the Mann-Whitney test counts,
 what its chance means, the four chances against the 5% line, and how one year
 moves natural gas's mean but not its ranks. Five draw Lesson 5: which numbered file holds
 June, a handover, which years each check reaches, an entry on March's last
-day, and a holiday row. The scenes are
-built from the natural gas and gasoline runs on the committed EIA files rather
+day, and a holiday row. One draws Further work, a cliff beside a plateau.
+The data scenes are built from the natural gas and gasoline runs on the committed EIA files rather
 than from a pinned copy of their figures. Most tests check the drawing against
 the run, and a few check the run against literal dates, counts and labels the
 post quotes, such as test_the_run_gives_these_dates_and_files.
@@ -142,6 +142,10 @@ post quotes, such as test_the_run_gives_these_dates_and_files.
    pinned is that the entry line meets the end of March's bar.
 27. The holiday sketch draws Christmas week of 2018 and 2016. What is pinned is
    that a dot stands on exactly the days the contract-1 file holds a row.
+28. The plateau sketch is schematic and draws no figures. What is pinned is
+   that Chan's dot sits on each curve at its panel's centre, that the cliff
+   falls back to its floor close to that dot while the plateau stays near
+   its top well to either side, and that the board says it is schematic.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, every
@@ -193,6 +197,10 @@ from chan.commodity_seasonals_whiteboard import (
     PAIRS_X0,
     PAIRS_Y0,
     PERIODS,
+    PLATEAU_BASE,
+    PLATEAU_FLOOR,
+    PLATEAU_PANELS,
+    PLATEAU_RISE,
     RANK_AFTER_Y,
     RANK_BEFORE_Y,
     RANK_X,
@@ -249,6 +257,8 @@ from chan.commodity_seasonals_whiteboard import (
     _narrow_end,
     _one_year,
     _pairs,
+    _plateau,
+    _plateau_profit,
     _sharpe_ranges,
     _sharpe_x,
     _sign_y,
@@ -320,6 +330,7 @@ GIFS = [
     "commodity_sketch_check_coverage.gif",
     "commodity_sketch_edge_day.gif",
     "commodity_sketch_holiday_rows.gif",
+    "commodity_sketch_plateau.gif",
 ]
 
 #: The paragraph each GIF follows, by its opening words.
@@ -351,6 +362,7 @@ FOLLOWS = (
     "Over every natural gas contract delivered from February 1994",
     "In 10 of the 30 years, the entry date falls",
     "The run computes its own calendar of trading days",
+    "The search asks whether the neighbourhood of Chan’s rules holds up",
 )
 
 TWO_TRADES_LABELS = [
@@ -750,6 +762,20 @@ ONE_YEAR_LABELS = [
     "natural gas, June contract",
 ]
 
+PLATEAU_LABELS = [
+    "0",
+    "Chan’s",
+    "a cliff: only Chan’s value pays",
+    "likely chance",
+    "0",
+    "Chan’s",
+    "a plateau: nearby values pay too",
+    "worth a closer look",
+    "profit",
+    "each axis: one parameter, moved either way from Chan’s value",
+    "schematic, drawn to no scale",
+]
+
 #: The same limits the USD.CAD sketches hold, in pixels.
 CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
 
@@ -874,7 +900,7 @@ def _or(words: list[str]) -> str:
 
 
 class TestTheScenes:
-    def test_there_are_twenty_seven_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_twenty_eight_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -930,6 +956,7 @@ class TestTheScenes:
             "four_chances",
             "check_coverage",
             "holiday_rows",
+            "plateau",
         }
         assert set(trades) | exceptions == {scene.slug for scene in every}
         for scene in every:
@@ -3285,3 +3312,61 @@ class TestTheHolidaySketch:
             "edge_day",
             "holiday_rows",
         ]
+
+
+# --- Further work: one search across every parameter --------------------------
+
+
+class TestThePlateauSketch:
+    def test_its_words(self, every) -> None:
+        assert every[27].title == "A cliff or a plateau"
+        assert every[27].labels == PLATEAU_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[27]
+        assert _stroke(scene, "cliff").color == LOST
+        assert _stroke(scene, "plateau").color == GOOD
+        for kind in ("cliff", "plateau"):
+            assert _stroke(scene, f"{kind}-chan").color == ACCENT
+            assert _stroke(scene, f"{kind}-axis").color == MUTED
+        assert _label(scene, "a cliff: only Chan’s value pays").color == LOST
+        assert _label(scene, "likely chance").color == LOST
+        assert _label(scene, "a plateau: nearby values pay too").color == GOOD
+        assert _label(scene, "worth a closer look").color == GOOD
+        assert _label(scene, "schematic, drawn to no scale").color == MUTED
+
+    def test_chans_dot_sits_on_each_curve_at_its_panels_centre(self, every) -> None:
+        scene = every[27]
+        for (x0, x1), kind in zip(PLATEAU_PANELS, ("cliff", "plateau"), strict=True):
+            centre = (x0 + x1) / 2
+            dot, curve = _stroke(scene, f"{kind}-chan"), _stroke(scene, kind)
+            assert dot.x[0] == pytest.approx(centre)
+            assert dot.y[0] == pytest.approx(np.interp(centre, curve.x, curve.y), abs=0.02)
+            assert (curve.x[0], curve.x[-1]) == pytest.approx((x0, x1))
+
+    def test_the_cliff_falls_close_to_chans_value_and_the_plateau_does_not(self, every) -> None:
+        """A step of a fifth of a panel either side of Chan's value leaves the
+        cliff near its floor and the plateau near its top."""
+        for (x0, x1), kind in zip(PLATEAU_PANELS, ("cliff", "plateau"), strict=True):
+            centre, step = (x0 + x1) / 2, (x1 - x0) / 5
+            curve = _stroke(every[27], kind)
+            for x in (centre - step, centre + step):
+                above = np.interp(x, curve.x, curve.y) - PLATEAU_BASE - PLATEAU_FLOOR
+                if kind == "cliff":
+                    assert abs(above) < 0.1 * PLATEAU_RISE[kind], x
+                else:
+                    assert above > 0.8 * PLATEAU_RISE[kind], x
+
+    def test_each_curve_stays_above_its_zero_line(self) -> None:
+        for (x0, x1), kind in zip(PLATEAU_PANELS, ("cliff", "plateau"), strict=True):
+            x = np.linspace(x0, x1, 400)
+            assert _plateau_profit(kind, x, (x0 + x1) / 2).min() > PLATEAU_BASE
+
+    def test_it_is_built_without_the_run(self) -> None:
+        assert _plateau().labels == PLATEAU_LABELS
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[27])
+        assert "schematic and to no scale" in alt
+        assert "spikes in one narrow peak at a purple dot" in alt
+        assert "stays high well to either side of it" in alt

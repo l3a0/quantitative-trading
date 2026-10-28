@@ -468,6 +468,8 @@ Chan suggests trying somewhat different entry and exit dates to see whether the 
 
 The search asks whether the neighbourhood of Chan’s rules holds up, not which neighbour does best.
 
+![“A cliff or a plateau”, drawn slowly stroke by stroke, schematic and to no scale. Two panels each draw profit against one parameter. On the left a grey line marks “0”, and a vermilion line runs low and nearly flat, then spikes in one narrow peak at a purple dot labelled “Chan’s”, under the heading “a cliff: only Chan’s value pays” and above the caption “likely chance”. On the right a second grey line marks “0”, and a blue line rises into a broad flat top that holds a purple dot labelled “Chan’s” and stays high well to either side of it, under the heading “a plateau: nearby values pay too” and above the caption “worth a closer look”. A grey note on the left reads “profit”, and notes below read “each axis: one parameter, moved either way from Chan’s value” and “schematic, drawn to no scale”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_plateau.gif)
+
 ### Entry and exit dates
 
 Each date moves within a set range of Chan’s, counted in trading days so each one lands on a day the exchange is open. Moving both dates also changes how long the trade is held, so a range wide enough to matter for gasoline’s twelve calendar days can put its entry after its exit.

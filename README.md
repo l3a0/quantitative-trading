@@ -3832,7 +3832,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries twenty-seven looping whiteboard sketches, drawn by
+The post also carries twenty-eight looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3924,16 +3924,21 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    last trading day, so June is contract 4.
 27. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
    where the file holds a row on the closed 25th, beside 2016.
+28. `commodity_sketch_plateau.gif`, in Further work, profit against one
+   parameter moved either way from Chan's value, as a cliff that pays only at
+   his value beside a plateau that pays around it.
 
-All twenty-seven build more slowly than the USD.CAD post's sketches and hold their
+All twenty-eight build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in. The gasoline editions, half-width and pairs
 sketches hold their labels for 1.8 seconds. The half-width and pairs sketches
 draw their strokes at 250 ms a frame, and the gasoline editions sketch draws
 its strokes at the usual 100 ms and holds each finished stroke for 250 ms.
 
-None is schematic. Each reads the natural gas or gasoline run on the
-committed EIA files, so none needs the owner's archive. Redraw all twenty-seven with:
+One is schematic, the cliff-or-plateau sketch, whose curves are shapes
+rather than figures and which says so on the board. Each of the other
+twenty-seven reads the natural gas or gasoline run on the committed EIA
+files, so none needs the owner's archive. Redraw all twenty-eight with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard
