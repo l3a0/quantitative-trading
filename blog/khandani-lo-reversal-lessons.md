@@ -8,7 +8,7 @@ The [post on trading costs and failed companies](https://github.com/l3a0/quantit
 
 The Sharpe ratio measures how well a strategy pays for its risk: the average daily return over its standard deviation, scaled to a year, with no interest rate subtracted. Over 2006 the rule’s Sharpe ratio was 0.2510 before costs. A basis point is a hundredth of a percent. Charging 5 basis points on every buy and every sell, so that a position pays the charge once to open and once to close, took it to −3.1884, the figure behind Chan’s printed −3.19. That post works through the cost in detail, and Lesson 4 here draws on it.
 
-Chan’s second book, *Algorithmic Trading*, brings the rule back as its lesson on cross-sectional mean reversion (Chan, 2013, Kindle location 2087). A stock is judged against its peers on the same day rather than against its own past, so the bet is that a stock that did worse than the rest will do better next, “and vice versa”. He runs it as Example 4.3, on a newer file over 2007 to 2011, and reports a Sharpe ratio of 1.3, about five times the first book’s. For an intraday version, Example 4.4, he reports 4.7 (locations 2110 and 2135).
+Chan’s second book, *Algorithmic Trading*, brings the rule back as its lesson on cross-sectional mean reversion (Chan, 2013, Kindle edition, p. 156). A stock is judged against its peers on the same day rather than against its own past, so the bet is that a stock that did worse than the rest will do better next, “and vice versa”. He runs it as Example 4.3, on a newer file over 2007 to 2011, and reports a Sharpe ratio of 1.3, about five times the first book’s. For an intraday version, Example 4.4, he reports 4.7 (pp. 158 and 160).
 
 ### What the reproduction found
 
@@ -20,11 +20,11 @@ The four lessons below say what the reproduction does teach. The code is open so
 
 ## The rule and the file
 
-Each day the rule computes every stock’s return, subtracts the average return of all the stocks, and sets the stock’s weight to the negative of that difference. A positive weight is a dollar amount bought and a negative one a dollar amount sold short. The second book then divides each day’s weights by the sum of their absolute values, so on every day that has a return the dollars bought and the dollars sold short come to $0.50 each, $1 in all. That total is the gross, and Chan writes that the rule invests “the same total gross capital of $1” each day (location 2087).
+Each day the rule computes every stock’s return, subtracts the average return of all the stocks, and sets the stock’s weight to the negative of that difference. A positive weight is a dollar amount bought and a negative one a dollar amount sold short. The second book then divides each day’s weights by the sum of their absolute values, so on every day that has a return the dollars bought and the dollars sold short come to $0.50 each, $1 in all. That total is the gross, and Chan writes that the rule invests “the same total gross capital of $1” each day (p. 156).
 
-**Example 4.3** sets the weights at the close and holds them to the next close. **Example 4.4** keeps the rule and changes the signal and the holding (location 2124). Its weights come from the overnight move, from yesterday’s close to today’s open. It enters at the open and closes everything at the same day’s close. That differs from the first book’s Example 3.8, which the earlier post covers. Example 3.8 sets its weights from the opens and holds them from one open to the next.
+**Example 4.3** sets the weights at the close and holds them to the next close. **Example 4.4** keeps the rule and changes the signal and the holding (p. 159). Its weights come from the overnight move, from yesterday’s close to today’s open. It enters at the open and closes everything at the same day’s close. That differs from the first book’s Example 3.8, which the earlier post covers. Example 3.8 sets its weights from the opens and holds them from one open to the next.
 
-Chan calls the rule “almost perfectly dollar neutral” (location 2110), meaning the dollars bought match the dollars sold short. Each weight is the day’s average return minus the stock’s return, so the weights sum to zero, and dividing them by the gross keeps them summing to zero. They do on every day of both examples, to within the rounding of the arithmetic.
+Chan calls the rule “almost perfectly dollar neutral” (p. 158), meaning the dollars bought match the dollars sold short. Each weight is the day’s average return minus the stock’s return, so the weights sum to zero, and dividing them by the gross keeps them summing to zero. They do on every day of both examples, to within the rounding of the arithmetic.
 
 The second book’s rule differs from the first book’s in five ways.
 
@@ -68,7 +68,7 @@ The script prints no yearly figure. So each year’s APR here applies the script
 
 The jump from 1.3 to 4.7 comes from the average return, since the two examples have about the same standard deviation. Scaled to a year, Example 4.3’s daily returns average 0.1338 with a standard deviation of 0.1063, and Example 4.4’s average 0.5565 with a standard deviation of 0.1181. These are averages of daily returns, not the compounded APRs in the tables. The Sharpe ratio is the average over the standard deviation, so four times the average return with a similar standard deviation gives a ratio nearly four times as large.
 
-At location 2890 Chan sets the same 4.7 against cross-sectional momentum, which instead buys the stocks that rose most against their peers. The [post on cross-sectional momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md) covers that comparison.
+On p. 224 Chan sets the same 4.7 against cross-sectional momentum, which instead buys the stocks that rose most against their peers. The [post on cross-sectional momentum](https://github.com/l3a0/quantitative-trading/blob/main/blog/cross-sectional-momentum-lessons.md) covers that comparison.
 
 ### How much room each rounding has
 
@@ -88,7 +88,7 @@ The figure below redraws the book’s Figure 4.4, Example 4.3’s cumulative ret
 
 *Example 4.3’s cumulative return, which the book draws as its Figure 4.4, above Example 4.4’s on a scale of its own. Both are compounded and before costs, over the 1,260 days the script cuts from Chan’s 2012 panel. The shaded years are the two whose APR the book prints.*
 
-The book gives the APR for two of the years: 2008, “the year of Lehman Brothers’ bankruptcy”, and 2011 (location 2110). The chart shows the other three years too. Example 4.3’s APR was −3.05 percent in 2007, 33.45 percent in 2009 and 1.82 percent in 2010, so 2009 beat 2008’s 30.16 percent. Example 4.4’s APR falls in every year after 2008, from 161.09 percent to 91.87, 36.84 and 15.04.
+The book gives the APR for two of the years: 2008, “the year of Lehman Brothers’ bankruptcy”, and 2011 (pp. 158 to 159). The chart shows the other three years too. Example 4.3’s APR was −3.05 percent in 2007, 33.45 percent in 2009 and 1.82 percent in 2010, so 2009 beat 2008’s 30.16 percent. Example 4.4’s APR falls in every year after 2008, from 161.09 percent to 91.87, 36.84 and 15.04.
 
 ## Lesson 2: the match needs one stock’s odd prices
 
@@ -140,16 +140,16 @@ So over 2006 the cost was 13.7453 times a day’s profit, and on the panel the c
 
 *Drawn to one scale from the run, in basis points of the rule’s average gross position. Each red bar is the average day’s cost and each green bar the average day’s profit. The red hatching is how far 2006’s cost passes its profit, and the brown bracket is what the rule keeps on the panel.*
 
-Example 4.4 would pay more than Example 4.3. Chan writes that its costs “will be doubled, because we are trading twice a day instead of just once a day” (location 2135), and it is charged no cost here.
+Example 4.4 would pay more than Example 4.3. Chan writes that its costs “will be doubled, because we are trading twice a day instead of just once a day” (p. 160), and it is charged no cost here.
 
 ## What this replication cannot say
 
 Five questions are beyond it.
 
 1. **What the rule earned on the index as it stood each day.** Every stock on the panel was in the S&P 500 in late 2011, and nothing here measures how survivorship moves this rule over 2007 to 2011.
-2. **Whether 2008 to 2011 is out of sample in Chan’s sense**, meaning data the rule was not designed on. He calls it “a true out-of-sample test, as the strategy was published in 2007” (location 2110). It is out of sample in time, but the stocks were chosen from the index as it stood in late 2011, at the end of the window.
+2. **Whether 2008 to 2011 is out of sample in Chan’s sense**, meaning data the rule was not designed on. He calls it “a true out-of-sample test, as the strategy was published in 2007” (p. 159). It is out of sample in time, but the stocks were chosen from the index as it stood in late 2011, at the end of the window.
 3. **What costs would take from Example 4.4.** It trades twice a day and is charged no cost.
-4. **Whether a trade can get the open price that set its weight.** Example 4.4 sets its weights from today’s open and enters at that same open, so the price that sets a weight may not be a price the trade can get. Chan calls this “trading signal noise” at location 2135, and the run does not measure it.
+4. **Whether a trade can get the open price that set its weight.** Example 4.4 sets its weights from today’s open and enters at that same open, so the price that sets a weight may not be a price the trade can get. Chan calls this “trading signal noise” on p. 160, and the run does not measure it.
 5. **Whether the rule pays today.** The window ends in 2011, and the result is exploratory.
 
 ## What this means for a trader
@@ -163,7 +163,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.3 and 4.4, and Kindle locations 2087, 2110, 2124, 2135 and 2890.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.3 and 4.4, with pages 156, 158 to 160 and 224 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Example 3.7.
 3. Khandani, A. E., & Lo, A. W. (2007). What happened to the quants in August 2007? Working paper, MIT.
 4. `andrewlo_2007_2012.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.

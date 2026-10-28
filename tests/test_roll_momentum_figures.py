@@ -233,7 +233,8 @@ class TestTheFigure:
             "Exploratory: TU momentum traded on the lagged roll return, against Example 6.1"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, location 2690. TU contracts from inputdatadaily_tu_20120813/, "
+            "Algorithmic Trading, Kindle edition, p. 206. TU contracts from "
+            "inputdatadaily_tu_20120813/, "
             "saved 2012-08-14.\nThe series is the front contract rebuilt from the strip, rolling "
             "7 rows before its last price.\nThe rule was declared after about 90 scratch "
             "readings, so this is no registered test, and no cost is taken."

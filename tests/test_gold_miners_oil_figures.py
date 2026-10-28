@@ -95,7 +95,8 @@ class TestThePanels:
             "Exploratory: GLD and GDX either side of July 14, 2008, on Chan's own closes"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, location 1922, 2006-05-23 to 2012-04-09, the 1,481 days "
+            "Algorithmic Trading, Kindle edition, p. 141, 2006-05-23 to 2012-04-09, the "
+            "1,481 days "
             "GDX is priced.\nPrices from inputData_ETF.mat, saved 2012-04-10. The split date "
             "was chosen after the break was seen,\nso a test that splits there is favoured "
             "by construction."

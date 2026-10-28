@@ -20,6 +20,7 @@ and a note could keep its total while losing them.
 
 from __future__ import annotations
 
+import csv
 import re
 from pathlib import Path
 
@@ -163,3 +164,24 @@ def test_the_roll_returns_post_cites_the_figure_number_the_notes_record() -> Non
     captions = [line for line in post.splitlines() if line.startswith("*Each future’s spot return")]
     assert len(captions) == 1
     assert re.findall(r"Figure (\d+\.\d+)", captions[0]) == [recorded.group(1)]
+
+
+@pytest.mark.parametrize("name", sorted(EXPECTED_HIGHLIGHTS))
+def test_the_kindle_page_map_covers_every_highlight_in_order(name: str) -> None:
+    """Each note's Kindle page map has one row per highlight, in the note's order.
+
+    The posts cite pages, and the map is how a page leads back to a highlight.
+    A map that skipped a highlight, or a re-extraction that added one the map
+    lacks, would leave a cited page with nothing to check it against.
+    """
+    text = (NOTES_DIR / name).read_text(encoding="utf-8")
+    locations = [int(n) for n in re.findall(r"^### Location (\d+)", text, re.MULTILINE)]
+    path = NOTES_DIR / name.replace(".md", "-kindle-pages.csv")
+    with path.open(encoding="utf-8", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    assert [int(r["location"]) for r in rows] == locations
+    numeric = [int(r["start_page"]) for r in rows if r["start_page"].isdigit()]
+    assert numeric == sorted(numeric)
+    for r in rows:
+        if r["end_page"] and r["start_page"].isdigit():
+            assert int(r["end_page"]) >= int(r["start_page"])
