@@ -61,6 +61,7 @@ from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.pca_factor import LOOKBACK, SPLICED
 from chan.pca_factor_momentum import decompose
 from chan.pca_factor_momentum_whiteboard import (
+    BAR_HALF,
     BAR_X,
     BARS_BASE,
     BRACKET_Y,
@@ -102,7 +103,7 @@ GIFS = [
 #: The paragraph each GIF follows, by its opening words, and the paragraph
 #: after it.
 FOLLOWS = (
-    ("The window closes that gap.", "The figure at the end of Lesson 4 draws this table"),
+    ("The window closes that gap.", "The figure at the end of Lesson 4 draws the table above"),
     (
         "A return of 186.54 percent dominates any window that holds it.",
         "### What the factors read without PMC",
@@ -150,7 +151,7 @@ WINDOW_LABELS = [
     "today",
     "tomorrow",
     "day t’s weights: 252 days to t − 1",
-    "day t+1’s weights: 252 days to t",
+    "day t + 1’s weights: 252 days to t",
     "already holds",
     "today’s return",
     "tomorrow’s weights, 251 days, today left out",
@@ -536,7 +537,8 @@ class TestThePost:
             "Under the axis, red words",
             "A black bracket from t − 252 to t − 1",
             "A red bracket from t − 251 to t, its right end over today’s dot",
-            "A brass bracket runs from the red bracket’s left end to the black bracket’s right end",
+            "A brass bracket runs from t − 251, the red bracket’s left end, to t − 1, the black "
+            "bracket’s right end",
             "red words read “PC2: tomorrow’s own weights",
             "brass words “→ today left out",
             "black words “≈ the pair",
@@ -612,7 +614,7 @@ class TestTheWindowSketch:
         assert _stroke(scene, "tomorrow-return").color == INK
 
     def test_each_bracket_covers_the_rows_decompose_reads_for_it(self, monkeypatch) -> None:
-        """Day t's weights read the 252 rows before row t, day t+1's own the
+        """Day t's weights read the 252 rows before row t, day t + 1's own the
         252 rows to row t, and the weights that leave today out the 251 rows
         before row t, as ``weight_statistics`` asks for them."""
         rows = []
@@ -808,10 +810,8 @@ class TestTheRankShiftSketch:
         scene = every[1]
         r = PINNED_RANK_SHIFT
         for k, (x, share) in enumerate(zip(BAR_X, (1 - r.share, *r.shares), strict=True)):
-            bar = _stroke(scene, f"bar-{k}")
-            assert set(bar.x) == {x}, k
-            assert (float(bar.y[0]), float(bar.y[-1])) == pytest.approx(
-                (BARS_BASE, BARS_BASE + SHARE_SCALE * share)
+            assert _box_of(scene, f"bar-{k}") == pytest.approx(
+                (x - BAR_HALF, BARS_BASE, x + BAR_HALF, BARS_BASE + SHARE_SCALE * share)
             ), k
         base = _stroke(scene, "baseline")
         assert set(np.round(base.y, 12)) == {BARS_BASE}
@@ -857,7 +857,7 @@ class TestTheRankShiftSketch:
             "without PMC: the same two days, 70.00% of PC1’s",
             "PC2: 0.0412 with PMC → 0.0105 without",
         ]
-        heights = [float(_stroke(scene, f"bar-{k}").y[-1]) - BARS_BASE for k in range(3)]
+        heights = [float(_stroke(scene, f"bar-{k}").y.max()) - BARS_BASE for k in range(3)]
         assert heights == pytest.approx([SHARE_SCALE * s for s in (0.25, 0.5, 0.25)])
 
     @pytest.mark.parametrize(

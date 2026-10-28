@@ -7963,7 +7963,7 @@ lessons from Entry 42 of the replication log.
 1. A factor re-estimated every day has no fixed sign, and tomorrow's weights
    have already seen today's return. With each sign fixed by a rule, signs
    still flip on 1, 14, 6, 22 and 24 of 752 days, all but five where the
-   largest weight moves to a stock the earlier day weighed the other way, and
+   largest weight moves to a stock the earlier day weighed below zero, and
    ranks swap on 15. On tomorrow's
    own weights PC2 reads −0.1105, matched −0.0161, and on weights fitted
    without today 0.0776, beside the test's 0.0778. A 251-day window that
@@ -8000,16 +8000,17 @@ Four groups of what it says are not pinned here.
    ran the checks and disagreed about which, which no test pins because it
    depends on the library, that a principal component's rank can change from
    day to day in general, the closed form of the slope and intercept written
-   out in Lesson 3, that the positions chosen on day t earn day t + 1's
-   return, the same-sign shares called close to a coin toss, that PC2's
-   −0.1105 on tomorrow's own weights would fail outright, that of the sign, the rank and the window only leaving today's
-   return out moves a factor across 0, putting PC2 and PC4 back above it,
-   that a test on the regression's printed coefficient would weight each day
-   by 1/sₖ², that Newey-West's adjustment for neighbouring days widens the
-   measure when their products move together and narrows it when they move
+   out in Lesson 3, that the positions chosen on day t earn day t + 1's return,
+   the same-sign shares called close to a coin toss, that PC2's −0.1105 on
+   tomorrow's own weights would fail outright, that of the sign, the rank and
+   the window only leaving today's return out moves a factor across 0, putting
+   PC2 and PC4 above it, that PC2's two large products also widen the products'
+   scatter, that a test on the regression's printed coefficient would weight
+   each day by 1/sₖ², that Newey-West's adjustment for neighbouring days widens
+   the measure when their products move together and narrows it when they move
    in opposite directions, that 2007-08-09 and 2007-08-10 are what put PC2
-   outside the band, and that the window's effect on PC2 is not explained.
-   The figure's alt text reads its curve approximately too.
+   outside the band, and that the window's effect on PC2 is not explained. The
+   figure's alt text reads its curve approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8106,7 +8107,7 @@ draws.
 
 1. `pca_factor_momentum_sketch_window.gif`, in Lesson 1, draws one day axis
    from t − 252 to t + 1 and three windows over it: day t's weights on the
-   252 days to t − 1, day t+1's on the 252 days to t, which hold today's
+   252 days to t − 1, day t + 1's on the 252 days to t, which hold today's
    return, and tomorrow's weights on the 251 days that leave today out. Its
    foot prints PC2's −0.0161 matched, 0.0776 with today left out and the
    pair's 0.0778, and in grey the −0.0158 of 251 days that still hold today.

@@ -982,10 +982,9 @@ class TestWhatThePostQuotes:
         each = [f"{name}’s on {n}" for name, n in zip(NAMES[1:], flips[1:], strict=True)]
         fragments = [
             f"{NAMES[0]}’s vector points the other way on {flips[0]} of the {days} days, "
-            f"{_listed(each)}.",
-            f"On {opposite.sum()} of those {flips.sum()} flips, the largest weight moves to a "
-            f"stock the earlier day weighed the other way. The other {WORDS[len(others)]} all "
-            "fall on days two",
+            f"{_listed(each)}, {flips.sum()} flips in all.",
+            f"On {opposite.sum()} of them, the largest weight moves to a stock the earlier day "
+            f"weighed below zero. The other {WORDS[len(others)]} all fall on days two",
             f"On {swap_days(components)} of the {days} days, two or more factors trade places.",
         ]
         assert self.missing(text, fragments) == []
@@ -1048,12 +1047,18 @@ class TestWhatThePostQuotes:
     def test_lesson_2s_two_days_and_same_sign_shares(self, results: Results, text) -> None:
         s = results.spliced
         (k,) = np.flatnonzero(np.abs(s.comparison.factors) > s.comparison.band)
-        share, days = share_of_largest(s.pairs.today[:, k] * s.pairs.tomorrow[:, k], 2)
+        products = s.pairs.today[:, k] * s.pairs.tomorrow[:, k]
+        share, days = share_of_largest(products, 2)
         first, second = (s.pairs.days[i].date() for i in days)
+        reversed_, kept = sorted(days, key=lambda i: products[i])
+        assert products[reversed_] < 0 < products[kept], SPEC
+        assert products[kept] > -products[reversed_], SPEC
         shares = [f"{v:.4f} for {name}" for name, v in zip(NAMES, s.same_sign, strict=True)]
         fragments = [
             f"Two days, {first} and {second}, hold {100 * share:.2f} percent of the sum of "
             f"{NAMES[k]}’s squared products.",
+            f"On {s.pairs.days[reversed_].date()} {NAMES[k]}’s return reversed the next day, and "
+            f"on {s.pairs.days[kept].date()} it kept its sign, with the larger product.",
             f"It is {_listed(shares)}, all close to a coin toss.",
         ]
         assert self.missing(text, fragments) == []
@@ -1208,6 +1213,8 @@ class TestWhatThePostQuotes:
         smallest = int(np.argmin(after.p_values))
         held_to = FALSE_DISCOVERY / FACTORS
         assert after.p_values[smallest] > held_to, SPEC
+        rest = np.delete(after.p_values, smallest)
+        assert (rest > FALSE_DISCOVERY).all(), SPEC
         fragments = [
             _table(
                 "l|r|r",
@@ -1229,9 +1236,12 @@ class TestWhatThePostQuotes:
             f"Without {SPLICED}, {fell} falls below 0 and {rose} rises above it, so the "
             f"criterion would miss {fell} instead of {missed}. {_listed(outside)} move outside "
             f"the band, and {back} moves back inside it. Benjamini-Hochberg still declares none. "
-            f"The smallest p-value is {NAMES[smallest]}’s {after.p_values[smallest]:.4f}, and as "
-            f"the smallest of {WORDS[FACTORS]} it is held to a {ORDINALS[FACTORS]} of "
-            f"{100 * FALSE_DISCOVERY:.0f} percent, {held_to:g}.",
+            f"It holds the smallest of {WORDS[FACTORS]} p-values to a {ORDINALS[FACTORS]} of "
+            f"{100 * FALSE_DISCOVERY:.0f} percent, the second smallest to two "
+            f"{ORDINALS[FACTORS]}s, and so on up to {100 * FALSE_DISCOVERY:.0f} percent for the "
+            f"largest. The smallest is {NAMES[smallest]}’s {after.p_values[smallest]:.4f}, over "
+            f"its {held_to:g}, and the other {WORDS[FACTORS - 1]} are all above "
+            f"{100 * FALSE_DISCOVERY:.0f} percent, so none clears its step.",
         ]
         assert self.missing(text, fragments) == []
 
