@@ -20,7 +20,7 @@ line::
 
     % load('inputDataDaily_VX_20120507', 'tday', 'contracts', 'cl');
 
-So Chan ran Example 5.4's script on VX, and the book's text names what he
+So Chan most likely ran Example 5.4's script on VX, and the book's text names what he
 changed. :mod:`chan.calendar_spread_reversion` transcribes that script, and
 every row here calls its :func:`~chan.calendar_spread_reversion.run_spread`.
 
@@ -70,7 +70,7 @@ the first row its flipped positions hold anything to 2008-10-24.
 ``tests/test_vx_calendar_spread.py`` pins every figure.
 
 The post on these lessons found a third thing, which :func:`near_leg_rank`
-measures. S holds each pair from 73 rows before its near contract's expiry, so
+measures. S holds each pair from at least 73 rows before its near contract's expiry, so
 on most of its held rows the pair it trades is not the front pair its signal
 reads. :mod:`chan.vx_calendar_spread_figures` draws the post's figure, since
 the run prints its figures and draws nothing.

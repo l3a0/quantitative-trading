@@ -7834,7 +7834,7 @@ Rationale*, Wiley, 2013, Chapter 5, Kindle location 2502. Shipped under
 ships under the experiment's own name. Example 5.4's
 `calendarSpdsMeanReversion.m`, in ericnberwick/EpchanPreview at `e4bc46f`
 under `public/img/book2/`, opens with a commented-out load of this strip above
-its live CL line, so Chan ran that script on VX. Every location in this entry
+its live CL line, so Chan most likely ran that script on VX. Every location in this entry
 is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
 
@@ -8007,7 +8007,7 @@ Three things.
 Four things.
 
 **Which rule Chan ran.** No script ships under the experiment's own name. The
-commented load line says which script he ran on VX. The book's text at
+commented load line says which script he most likely ran on VX. The book's text at
 location 2502 gives four things.
 
 1. VX as the instrument.

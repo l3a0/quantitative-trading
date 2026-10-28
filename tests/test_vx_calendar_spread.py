@@ -21,7 +21,7 @@ failure message.
   five edits: the VX strip, ``spreadMonth=1``, the signal the second-nearest
   priced contract over the nearest where the two are adjacent columns and
   forward-filled, ``lookback=15``, and the window from 2008-10-27 to the
-  file's last row, 2012-05-07, 889 rows. Each pair is held for 63 days, the
+  file's last row, 2012-05-07, 889 rows. Each pair is held for at least 63 days, the
   spread is reversed where z is above 0, and the figures are annualised over
   252 days with no risk-free rate and no cost.
 - **B1.** S with the signal the far contract over the near one for the pair
@@ -95,7 +95,7 @@ VINTAGE = (
 )
 S_SPEC = (
     f"{VINTAGE}; S: calendarSpdsMeanReversion.m with spreadMonth=1, the nearest two priced "
-    "contracts' ratio forward-filled, lookback 15, held 63 days, from 2008-10-27 to 2012-05-07"
+    "contracts' ratio forward-filled, lookback 15, held at least 63 days, from 2008-10-27 to 2012-05-07"
 )
 SPECS = {
     "S": S_SPEC,
@@ -433,7 +433,7 @@ class TestWhichPairTheSignalReads:
     exploratory as the rest."""
 
     def test_ss_near_leg_is_the_front_contract_on_126_of_its_847_held_rows(self, strip) -> None:
-        """S holds each pair from 73 rows before its near contract's expiry, and VX
+        """S holds each pair from at least 73 rows before its near contract's expiry, and VX
         expires monthly, so its near leg is usually two to five contracts out while its
         signal reads the front two."""
         schedule = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH)
