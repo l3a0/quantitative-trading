@@ -350,6 +350,37 @@ def weights(pca_factor_momentum_run) -> WeightStatistics:
     return pca_factor_momentum_run[2]
 
 
+def _flips_by_cause(components: list[Decomposition], closes: pd.DataFrame):
+    """Each factor's flips between consecutive days, once every sign is fixed by rule.
+
+    Returns four things. The flips, the ones where the stock holding the
+    largest weight changed, and the ones where it moved to a stock the earlier
+    day weighed below zero, each counted by factor. Then every other flip as
+    its factor, its earlier day, and whether two or more factors swap rank
+    that day.
+    """
+    fixed = [with_largest_weight_positive(d) for d in components]
+    flips, moved, opposite, others = (
+        np.zeros(FACTORS, int),
+        np.zeros(FACTORS, int),
+        np.zeros(FACTORS, int),
+        [],
+    )
+    for earlier, later in zip(fixed[:-1], fixed[1:], strict=True):
+        swapped = bool((match(earlier, later)[0] != np.arange(FACTORS)).any())
+        for k in np.flatnonzero(np.diag(overlaps(earlier, later)) < 0):
+            flips[k] += 1
+            before = earlier.stocks[np.abs(earlier.vectors[:, k]).argmax()]
+            after = later.stocks[np.abs(later.vectors[:, k]).argmax()]
+            held = np.flatnonzero(earlier.stocks == after)
+            moved[k] += before != after
+            if before != after and held.size and earlier.vectors[held[0], k] < 0:
+                opposite[k] += 1
+            else:
+                others.append((NAMES[k], str(closes.index[earlier.end].date()), swapped))
+    return flips, moved, opposite, others
+
+
 class TestWhatThePostMeasured:
     """Numbers ``blog/pca-factor-momentum-lessons.md`` quotes that no row of Entry 42 declared.
 
@@ -395,25 +426,7 @@ class TestWhatThePostMeasured:
         its earlier day.
         """
         _, closes = panel
-        fixed = [with_largest_weight_positive(d) for d in components]
-        flips, moved, opposite, others = (
-            np.zeros(FACTORS, int),
-            np.zeros(FACTORS, int),
-            np.zeros(FACTORS, int),
-            [],
-        )
-        for earlier, later in zip(fixed[:-1], fixed[1:], strict=True):
-            swapped = bool((match(earlier, later)[0] != np.arange(FACTORS)).any())
-            for k in np.flatnonzero(np.diag(overlaps(earlier, later)) < 0):
-                flips[k] += 1
-                before = earlier.stocks[np.abs(earlier.vectors[:, k]).argmax()]
-                after = later.stocks[np.abs(later.vectors[:, k]).argmax()]
-                held = np.flatnonzero(earlier.stocks == after)
-                moved[k] += before != after
-                if before != after and held.size and earlier.vectors[held[0], k] < 0:
-                    opposite[k] += 1
-                else:
-                    others.append((NAMES[k], str(closes.index[earlier.end].date()), swapped))
+        flips, moved, opposite, others = _flips_by_cause(components, closes)
         assert flips.tolist() == [1, 14, 6, 22, 24], SPEC
         assert moved.tolist() == [1, 14, 6, 20, 23], f"{SPEC}; {AFTER_THE_RUN}"
         assert opposite.tolist() == [1, 14, 5, 19, 23], f"{SPEC}; {AFTER_THE_RUN}"
@@ -823,6 +836,364 @@ class TestWhatTheFactorModelsPostQuotes:
         median = results.spliced.comparison.median
         fragment = f"on the S&P 600 file the median daily statistic is {_minus(median, 4)}."
         assert self.missing(text, [fragment]) == []
+
+
+# --- what the post quotes -----------------------------------------------------------
+
+POST = paths.REPO_ROOT / "blog" / "pca-factor-momentum-lessons.md"
+
+#: The one fraction the post spells out, a fifth of the false-discovery rate.
+ORDINALS = {5: "fifth"}
+
+
+def _listed(items: list[str]) -> str:
+    """Items as the post lists them, "PC1, PC2, PC4 and PC5"."""
+    return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} and {items[-1]}"
+
+
+def _table(spec: str, header: list[str], rows: list[list[str]], last: list[str] | None = None):
+    """One of the post's ``math`` tables, from ``\\small`` to its end, with an optional last row.
+
+    The last row sits below a second rule, as Lesson 5's median stock does.
+    """
+    cells = [" & ".join(row) for row in [header, *rows]]
+    table = f"\\small\n\\begin{{array}}{{{spec}}}\n{cells[0]} \\\\ \\hline\n"
+    table += " \\\\\n".join(cells[1:])
+    if last is not None:
+        table += f" \\\\ \\hline\n{' & '.join(last)}"
+    return f"{table}\n\\end{{array}}"
+
+
+def _gap(closes: pd.DataFrame) -> tuple[int, int]:
+    """The rows either side of PMC's longest run of missing closes, both priced."""
+    missing = np.r_[0, closes[SPLICED].isna().to_numpy().astype(int), 0]
+    starts = np.flatnonzero(np.diff(missing) == 1)
+    ends = np.flatnonzero(np.diff(missing) == -1)
+    longest = int(np.argmax(ends - starts))
+    return int(starts[longest]) - 1, int(ends[longest])
+
+
+def _text(name: str) -> str:
+    return f"\\text{{{name}}}"
+
+
+class TestWhatThePostQuotes:
+    """Each figure ``blog/pca-factor-momentum-lessons.md`` quotes, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run, the file or a module constant at
+    the precision the post prints it, and looked for in one copy: a short
+    fragment holding the number and the few words that name one place in the
+    post. A typo in a copy that is read, or a re-pin that leaves the post
+    behind, fails here. The tables in Lessons 1, 4 and 5 are rebuilt whole, so
+    a digit added to a cell fails as well as a digit changed. Every factor a
+    sentence names, and each count it spells out, comes from the run too, so a
+    sentence that names the wrong factor fails as well. PMC's 1.8654 and its
+    851 days are pinned on the file by ``TestTheSplice`` in
+    ``tests/test_pca_factor.py``, and this class rebuilds them from the file
+    only to read the post's copy.
+
+    The copies read are these.
+
+    - The section on how the test works: the file, the decomposition, the
+      first day and the pair count, and the comparison set.
+    - Lesson 1's counts of flips and swaps, the 251-day window in the list
+      before its table, the table, and the two paragraphs after it.
+    - Lesson 2's two worked series, PC2's two days and their share, and the
+      same-sign shares.
+    - Lesson 3's count of checked days and its intercept figures.
+    - Lesson 4's table, its quartiles, its verdicts and its three points.
+    - Lesson 5's splice, its weights on PMC, its table and the paragraph
+      after it.
+
+    Other copies are not read, so a typo in one of them passes. Among them
+    are the repeats of 600, 252, 251, 579, 752 and the dates elsewhere, such
+    as the 752 days t in Lesson 3 and the two dates in Lesson 4's second
+    point, the "four of" five in the title, the subtitle and Lesson 4's
+    heading, Chan's 2 percent, the figure's alt text and caption, the closing
+    habits, the page numbers and the references.
+    ``tests/test_pca_factor_momentum_figures.py`` holds what the figure draws.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_how_the_test_works(self, panel, results: Results, text) -> None:
+        members, closes = panel
+        (saved,) = {m.obtained for m in members}
+        c = results.spliced.comparison
+        days = results.spliced.pairs.days
+        assert days[-1] == closes.index[-2], "the second-to-last row"
+        fragments = [
+            f"holds the {closes.shape[1]} members of the S&P 600 as he saved them on {saved}, "
+            f"with {len(closes):,} trading days of closes from {closes.index[0].date()} to "
+            f"{closes.index[-1].date()}.",
+            f"It takes the {LOOKBACK} daily returns ending the day before",
+            f"finds the window’s {WORDS[FACTORS]} largest principal components.",
+            f"These {WORDS[FACTORS]} components are the strategy’s {WORDS[FACTORS]} statistical "
+            f"factors, {NAMES[0]} to {NAMES[-1]},",
+            f"The first day with a full window is {days[0].date()}. Every day from then to the "
+            f"second-to-last row has a next day, which gives {c.pairs} days t.",
+            f"The comparison set is the {len(c.stocks)} stocks priced on every day the pairs read",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1s_flips_and_swaps(self, panel, components, text) -> None:
+        _, closes = panel
+        flips, _, opposite, others = _flips_by_cause(components, closes)
+        assert all(swapped for _, _, swapped in others), f"{SPEC}; {AFTER_THE_RUN}"
+        assert len(others) == flips.sum() - opposite.sum()
+        days = len(components) - 1
+        each = [f"{name}’s on {n}" for name, n in zip(NAMES[1:], flips[1:], strict=True)]
+        fragments = [
+            f"{NAMES[0]}’s vector points the other way on {flips[0]} of the {days} days, "
+            f"{_listed(each)}.",
+            f"On {opposite.sum()} of those {flips.sum()} flips, the largest weight moves to a "
+            f"stock the earlier day weighed the other way. The other {WORDS[len(others)]} all "
+            "fall on days two",
+            f"On {swap_days(components)} of the {days} days, two or more factors trade places.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1s_table_and_the_two_paragraphs_after_it(
+        self, weights, results: Results, text
+    ) -> None:
+        paired = results.spliced.comparison.factors
+        columns = (weights.own, weights.matched, weights.left_out, paired)
+        low = int(np.argmin(weights.own))
+        near = int(np.argmin(np.abs(weights.own)))
+        assert weights.own[low] < min(0.0, results.spliced.comparison.median), "fails outright"
+        matched_gap = np.abs(weights.matched - paired)
+        left_out_gap = np.abs(weights.left_out - paired)
+        matched, left_out = int(matched_gap.argmax()), int(left_out_gap.argmax())
+        fragments = [
+            f"Weights fitted on the {LOOKBACK - 1} days before today, a window that leaves "
+            "today’s return out, then matched.",
+            _table(
+                "l|r|r|r|r",
+                [_text("Factor"), *(_text(str(n)) for n in range(1, len(columns) + 1))],
+                [
+                    [_text(name), *(f"{column[k]:.4f}" for column in columns)]
+                    for k, name in enumerate(NAMES)
+                ],
+            ),
+            f"On tomorrow’s own weights, {NAMES[low]} reads {_minus(weights.own[low], 4)} and "
+            f"would fail outright, and {NAMES[near]} reads {weights.own[near]:.4f}.",
+            f"and {NAMES[low]} still reads {_minus(weights.matched[low], 4)}. The largest gap "
+            f"left between a matched figure and the test’s own is {NAMES[matched]}’s, "
+            f"{matched_gap[matched]:.4f}.",
+            f"The largest gap left is {NAMES[left_out]}’s, {left_out_gap[left_out]:.4f}.",
+            f"with {NAMES[low]} at {_minus(weights.shortened[low], 4)}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_worked_series(self, text) -> None:
+        first, second = [1, 2, 3], [2, 0, 1]
+        products = int(np.dot(first, second))
+        squares = int(np.dot(first, first)), int(np.dot(second, second))
+        statistic = float(uncentred(np.array(first, float), np.array(second, float)))
+        assert statistic == pytest.approx(products / math.sqrt(squares[0] * squares[1]))
+        assert statistic > 0, "positive"
+        steady = [1, 1.2, 0.9, 1.1, 1.0]
+        series = np.array(steady)
+        fragments = [
+            f"Two series, ({', '.join(map(str, first))}) and ({', '.join(map(str, second))}), "
+            f"show the difference. Their products sum to {products}, and their squares to "
+            f"{squares[0]} and {squares[1]}, so the statistic is "
+            f"{products}/√{squares[0] * squares[1]}, which is positive. Their ordinary "
+            f"correlation is {_minus(np.corrcoef(first, second)[0, 1], 1)}.",
+            f"The series ({', '.join(map(str, steady))}), read one day apart, shows it. Its "
+            f"uncentred statistic is {float(uncentred(series[:-1], series[1:])):.4f}, close to "
+            "perfect persistence, while its ordinary correlation is "
+            f"{_minus(np.corrcoef(series[:-1], series[1:])[0, 1], 1)}, because each wiggle "
+            "reverses.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2s_two_days_and_same_sign_shares(self, results: Results, text) -> None:
+        s = results.spliced
+        (k,) = np.flatnonzero(np.abs(s.comparison.factors) > s.comparison.band)
+        share, days = share_of_largest(s.pairs.today[:, k] * s.pairs.tomorrow[:, k], 2)
+        first, second = (s.pairs.days[i].date() for i in days)
+        shares = [f"{v:.4f} for {name}" for name, v in zip(NAMES, s.same_sign, strict=True)]
+        fragments = [
+            f"Two days, {first} and {second}, hold {100 * share:.2f} percent of the sum of "
+            f"{NAMES[k]}’s squared products.",
+            f"It is {_listed(shares)}, all close to a coin toss.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3s_check_and_the_intercept(self, results: Results, text) -> None:
+        slope = TestOnRealDays.test_each_factor_return_is_s_times_the_programs_slope
+        _, checked = slope.pytestmark[0].args
+        s = results.spliced
+        fragments = [
+            f"A check on {WORDS[len(checked)]} of the file’s days confirms",
+            f"Its own figures are {_minus(s.intercept_uncentred, 4)} uncentred and "
+            f"{_minus(s.intercept_pearson, 4)} as an ordinary correlation.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_4s_table_quartiles_and_verdicts(self, results: Results, text) -> None:
+        s = results.spliced
+        c = s.comparison
+        verdicts = s.verdicts()
+        held = [v.factor for v in verdicts if v.holds]
+        (missed,) = [v for v in verdicts if not v.holds]
+        assert c.median < 0, "the median stock's statistic is negative"
+        fragments = [
+            _table(
+                "l|r|r|r|r",
+                [_text("Factor"), _text("Statistic"), _text("Percentile"), "t", "p"],
+                [
+                    [
+                        _text(name),
+                        f"{c.factors[k]:.4f}",
+                        f"{c.percentile(c.factors[k]):.4f}",
+                        f"{s.t_newey_west[k]:.4f}",
+                        f"{s.p_values[k]:.4f}",
+                    ]
+                    for k, name in enumerate(NAMES)
+                ],
+            ),
+            f"Among the {len(c.stocks)} stocks, the lower quartile’s statistic is "
+            f"{_minus(c.lower_quartile, 4)}, the median’s is {_minus(c.median, 4)} and the "
+            f"upper quartile’s is {_minus(c.upper_quartile, 4)}.",
+            f"The claim holds for {_listed(held)}, which are above 0 and above the median "
+            f"stock. It does not hold for {missed.factor}, which is "
+            f"{_side(missed.above_median)} the median stock and {_side(missed.above_zero)} 0.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_4s_three_points(self, results: Results, text) -> None:
+        s, u = results.spliced, results.unspliced
+        c = s.comparison
+        (out,) = np.flatnonzero(np.abs(c.factors) > c.band)
+        inside = [k for k in range(FACTORS) if k != out]
+        edge = max(inside, key=lambda k: abs(c.factors[k]))
+        two = share_of_largest(s.pairs.today[:, out] * s.pairs.tomorrow[:, out], 2)[1]
+        shares = [
+            share_of_largest(u.pairs.today[:, k] * u.pairs.tomorrow[:, k], 2)
+            for k in range(FACTORS)
+        ]
+        carried = max(range(FACTORS), key=lambda k: shares[k][0])
+        assert shares[carried][1].tolist() == two.tolist(), "the same two days"
+        assert not s.survives.any(), SPEC
+        smallest = int(np.argmin(s.p_values))
+        assert s.p_values[smallest] >= FALSE_DISCOVERY, SPEC
+        percent = f"{100 * FALSE_DISCOVERY:.0f}"
+        fragments = [
+            f"Over {c.pairs} pairs it lands inside ±{CRITICAL}/√{c.pairs} = ±{c.band:.4f} about "
+            f"{100 * math.erf(CRITICAL / math.sqrt(2)):.0f} percent of the time",
+            f"{NAMES[out]}’s {c.factors[out]:.4f} is outside it. {NAMES[edge]}’s "
+            f"{c.factors[edge]:.4f} is just inside, and the other {WORDS[len(inside) - 1]} well "
+            "inside.",
+            f"So {NAMES[out]} clears the band and its t is only {s.t_newey_west[out]:.4f}.",
+            f"Run without {SPLICED}, the same two days fall on {NAMES[carried]} and hold "
+            f"{100 * shares[carried][0]:.2f} percent of its squared products.",
+            f"to {percent} percent. Run across the {WORDS[FACTORS]} p-values, it declares none. "
+            f"The smallest p-value is {NAMES[smallest]}’s {s.p_values[smallest]:.4f}, so none "
+            f"would pass at {percent} percent even tested alone.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_5s_splice(self, panel, text) -> None:
+        _, closes = panel
+        before, after = _gap(closes)
+        filled = closes[SPLICED].ffill()
+        jump = float(filled.iloc[after] / filled.iloc[after - 1] - 1)
+        fragments = [
+            f"It closes on {closes.index[before].date()}, has no close for {after - before - 1} "
+            f"trading days, and resumes on {closes.index[after].date()} as a different price "
+            "history under the same ticker.",
+            f"one day’s return of {jump:.4f}, a rise of {100 * jump:.2f} percent, on "
+            f"{closes.index[after].date()}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_5s_weights_on_pmc(self, panel, components, results: Results, text) -> None:
+        _, closes = panel
+        _, row = _gap(closes)
+        column = closes.columns.get_loc(SPLICED)
+        holding = windows_holding(components, row)
+        assert holding[-1] is components[-1], "to the end of the file"
+        paired = windows_holding(components[:-1], row)
+        largest = [largest_loading(d, column) for d in paired]
+        days = [closes.index[d.end].date() for d in paired]
+        carried = np.bincount([k for _, k in largest], minlength=FACTORS)
+        order = [k for k in np.argsort(-carried, kind="stable") if carried[k]]
+        lead = largest[0][1]
+        streak = next(i for i, (_, k) in enumerate(largest) if k != lead)
+        sizes = [size for size, _ in largest[:streak]]
+        s = results.spliced
+        (out,) = np.flatnonzero(np.abs(s.comparison.factors) > s.comparison.band)
+        two = share_of_largest(s.pairs.today[:, out] * s.pairs.tomorrow[:, out], 2)[1]
+        first, second = (s.pairs.days[i].date() for i in two)
+        assert {first, second} <= set(days[:streak]), "both days fall while PMC holds PC1"
+        fragments = [
+            f"Every day from {days[0]} to the end of the file fits its components on a window "
+            f"that holds it. That is {len(holding)} days, and {len(paired)} of them have a next "
+            f"day to pair with, the last being {days[-1]}.",
+            f"On each of those {len(paired)} days, one of the top {WORDS[FACTORS]} factors puts "
+            f"a weight of at least {min(size for size, _ in largest):.4f} on {SPLICED} alone,",
+            f"{NAMES[order[0]]} carries it on {carried[order[0]]} of the days, "
+            f"{_listed([f'{NAMES[k]} on {carried[k]}' for k in order[1:]])}.",
+            f"From {days[0]} to {days[streak - 1]}, {NAMES[lead]} carries {SPLICED}, with a weight "
+            f"between {min(sizes):.4f} and {max(sizes):.4f}.",
+            f"So on {first} and {second} the factor that would be {NAMES[lead]} without "
+            f"{SPLICED} sits in {NAMES[out]}’s place.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_5s_table_and_what_moves(self, results: Results, text) -> None:
+        before, after = results.spliced, results.unspliced
+        was = {v.factor: v for v in before.verdicts()}
+        now = {v.factor: v for v in after.verdicts()}
+        (fell,) = [n for n in NAMES if was[n].above_zero and not now[n].above_zero]
+        (rose,) = [n for n in NAMES if not was[n].above_zero and now[n].above_zero]
+        (missed,) = [n for n in NAMES if not was[n].holds]
+        (new_miss,) = [n for n in NAMES if not now[n].holds]
+        assert new_miss == fell, SPEC
+        band = after.comparison.band
+        outside = [n for n in NAMES if abs(now[n].statistic) > band]
+        (back,) = [
+            n
+            for n in NAMES
+            if abs(was[n].statistic) > before.comparison.band and abs(now[n].statistic) <= band
+        ]
+        assert not after.survives.any(), SPEC
+        smallest = int(np.argmin(after.p_values))
+        held_to = FALSE_DISCOVERY / FACTORS
+        assert after.p_values[smallest] > held_to, SPEC
+        fragments = [
+            _table(
+                "l|r|r",
+                [
+                    _text("Factor"),
+                    _text(f"With {SPLICED}, {len(before.comparison.stocks)} stocks"),
+                    _text(f"Without {SPLICED}, {len(after.comparison.stocks)} stocks"),
+                ],
+                [[_text(n), f"{was[n].statistic:.4f}", f"{now[n].statistic:.4f}"] for n in NAMES],
+                [
+                    _text("Median stock"),
+                    f"{before.comparison.median:.4f}",
+                    f"{after.comparison.median:.4f}",
+                ],
+            ),
+            f"Without {SPLICED}, {fell} falls below 0 and {rose} rises above it, so the "
+            f"criterion would miss {fell} instead of {missed}. {_listed(outside)} move outside "
+            f"the band, and {back} moves back inside it. Benjamini-Hochberg still declares none. "
+            f"The smallest p-value is {NAMES[smallest]}’s {after.p_values[smallest]:.4f}, and as "
+            f"the smallest of {WORDS[FACTORS]} it is held to a {ORDINALS[FACTORS]} of "
+            f"{100 * FALSE_DISCOVERY:.0f} percent, {held_to:g}.",
+        ]
+        assert self.missing(text, fragments) == []
 
 
 # --- the rules, on data small enough to read ---------------------------------------

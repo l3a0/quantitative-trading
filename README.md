@@ -8046,6 +8046,29 @@ no pin before it, all measured after the run.
    PC2's squared products.
 7. The steady series' 0.9798 uncentred against −0.8 centred.
 
+`TestWhatThePostQuotes` in the same file reads the post itself. It builds
+each figure from the run, the file or a module constant at the precision the
+post prints it, and checks one copy of it, in six places.
+
+1. The section on how the test works: the file, the decomposition, the first
+   day, the pair count and the comparison set.
+2. Lesson 1's counts of flips and swaps, the 251-day window listed before its
+   table, the table rebuilt whole, and the two paragraphs after it.
+3. Lesson 2's two worked series, PC2's two days and their share, and the
+   same-sign shares.
+4. Lesson 3's count of checked days and the intercept's two figures.
+5. Lesson 4's table rebuilt whole, its quartiles, its verdicts and its three
+   points.
+6. Lesson 5's splice, its weights on PMC, its table rebuilt whole and the
+   paragraph after it.
+
+Every factor those sentences name, and each count they spell out, comes from
+the run too. A second copy of a figure is not read, such as the 752 days t in
+Lesson 3 or the two dates in Lesson 4's second point, and neither are the
+"four of" five in the title, the subtitle and Lesson 4's heading, Chan's 2
+percent, the figure's alt text and caption, the closing habits, the page
+numbers and the references.
+
 Its one figure is drawn from the committed file by
 [src/chan/pca_factor_momentum_figures.py](src/chan/pca_factor_momentum_figures.py),
 which reads it through the same `load_panel`, `compute_both` and
