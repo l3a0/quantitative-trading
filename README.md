@@ -5936,7 +5936,9 @@ day. Chan reports an APR of 11 percent and a Sharpe ratio of 1.6 from
 test, the linear rule, rollover interest, the Kelly leverage, Chan's stationary
 candidates and the gold miners rather than repeating them, and the later post
 on Chapter 8's leverage for where the book's Kelly of 18.4 most likely came
-from. It draws six lessons from Entry 25 of the replication log.
+from. It draws six lessons from Entry 25 of the replication log. Lessons 3
+and 4 also rest on numbers measured for the post, which had no pin before it
+and are listed below.
 
 1. Every figure the script prints matches, because every one of the 612
    returns matches the one Chan's script saved, within a criterion written
@@ -5959,8 +5961,8 @@ Five groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
-   The point move of equal dollar value is at 2169, and the commodity
-   currencies at 2173. The base and quote currencies, the AUD.ZAR quote of
+   The point move of equal dollar value is at 2169. The stock index funds of
+   Australia and Canada, and the commodity currencies, are at 2173. The base and quote currencies, the AUD.ZAR quote of
    9.58, the capital weights and the sale of USD.CAD are at 2186. Rollover
    interest "usually not large for short-term strategies" is at 2205. "A
    classic linear mean-reverting strategy", the gross market value, "better
@@ -5999,7 +6001,7 @@ finding on 18.4, that no series with Example 5.1's printed Sharpe ratio and
 APR reaches it under three ways of compounding the APR, and that finding
 traces to `TestRowGroup13TheEighteenPointFourGap` in
 [tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py). Seven
-of the post's numbers had no pin before the post.
+groups of the post's numbers had no pin before the post.
 
 1. The three stretches the trace test's 26 windows fall in, which hold the 19
    two-relation windows, and the stretch the eigen test's 11 fall in.
@@ -6010,11 +6012,17 @@ of the post's numbers had no pin before the post.
 4. The 90 days compounded alone to 0.1074 and the other 522 to 0.1696, so the
    90 carried 0.394 of the growth in log terms.
 5. The compounded return of 0.0214 on 2010-05-31 and 0.1170 on 2010-10-05.
-6. The two groups' standard deviations of 0.0073 and 0.0035, their means, and
-   a Welch t of 1.09 with a p-value of 0.28.
+6. The two groups' standard deviations of 0.0073 and 0.0035, their means of
+   0.0012 and 0.0003, and a Welch t of 1.09, whose p-value of 0.28 is what the
+   post calls far short of what would rule out chance.
 7. The closes in each full year of the two files, 259, 260 and 259, against
    the 252 days the script annualises by, and that no close carries more than
    six decimals.
+
+`TestWhatThePostQuotes` in the same test file reads the post itself. It builds
+one copy of each run figure the post quotes from the run, at the precision the
+post prints it, and looks for it in the post's own words, and it reads the
+Lesson 1 table whole. Its docstring lists what it leaves unread.
 
 Its one figure is drawn from the committed files by
 [src/chan/aud_cad_johansen_figures.py](src/chan/aud_cad_johansen_figures.py),

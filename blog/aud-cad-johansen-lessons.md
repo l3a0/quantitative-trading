@@ -14,16 +14,17 @@ Chan expects the two currencies to move together because the stock index funds o
 
 ### What the reproduction found
 
-This repository transcribed Chan’s MATLAB script, `AUDCAD_unequal.m`, line by line and ran it on the daily closes from his 2018 Python port of the book’s code. The port is his rewrite of that code in Python, and it comes with its own data files. The results fall into four groups.
+This repository transcribed Chan’s MATLAB script, `AUDCAD_unequal.m`, line by line and ran it on the daily closes from his 2018 Python port of the book’s code. The port is his rewrite of that code in Python, and it comes with its own data files. The results fall into five groups.
 
 1. **Every figure the script prints matches**, because every one of the 612 daily returns matches the return Chan’s own script saved.
 2. **The match shows that the closes run here are the ones Chan’s MATLAB script read**, except that each currency’s closes could all be multiplied by a constant of its own without changing the match. It shows nothing more.
-3. **The test rarely found a relation behind the hedge it supplied.** A relation is a weighted combination of the two prices that stays near a fixed level. Each day’s weights come from the 250 days before it, called that day’s window. The test found a relation in 26 of the 612 windows, and on 90 days the weights held both currencies long or both short.
-4. **The Python port’s version of the example is a different strategy**, so its printout is no check on the data.
+3. **The test rarely found a relation behind the hedge it supplied.** A relation is a weighted combination of the two prices that stays near a fixed level. Each day’s weights come from the 250 days before it, called that day’s window. The test found a relation in 26 of the 612 windows.
+4. **The hedge sometimes stopped being a spread.** On 90 days the weights held both currencies long or both short.
+5. **The Python port’s version of the example is a different strategy**, so its printout is no check on the data.
 
 **Every result here is exploratory.** Chan chose the currencies, the dates and the 250-day window, and the reproduction runs them on the same days he did. It can say whether his numbers follow from his files and nothing about whether the pair trades today.
 
-The six lessons below take the four groups in order, with the third split across Lessons 3 and 4, and close on what an exact match cannot show. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Lessons 1 to 5 take the five groups in order, and Lesson 6 closes on what an exact match cannot show. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The rule and the files
 
@@ -81,7 +82,7 @@ Each count is taken at 95 percent confidence, meaning the test reports a relatio
 1. **The trace test finds at least one relation in 26 windows.** It finds one in 7 of them and two in the other 19.
 2. **The eigen test finds one in 11 windows**, and never finds two.
 
-On 19 of its 26 windows the trace test found two relations between two series, which is a stronger claim than it sounds. It means every combination of the two stays near a fixed level, including each currency held alone. So the test is reading each currency as stationary on its own, returning to a fixed level by itself, rather than the two as sharing a level. The [post on the Johansen test on three ETFs](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md) works through why.
+On 19 of its 26 windows the trace test found two relations between two series, which is a stronger claim than it sounds. It means every combination of the two stays near a fixed level, including each currency held alone. So the test is reading each currency as stationary on its own, returning to a fixed level by itself, rather than the two as sharing a level. The [post on the Johansen test on three ETFs](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md#lesson-4-two-relations-between-two-series-claim-each-etf-reverts-alone) works through why.
 
 ### When the 26 windows fell
 

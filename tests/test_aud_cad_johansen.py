@@ -77,6 +77,12 @@ from chan.khandani_lo_book_two import matches
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import PYTHON_PORT, RETURN_CALENDAR
+from tests.support.post_tables import either_way, not_found_once, tables
+
+POST = paths.REPO_ROOT / "blog" / "aud-cad-johansen-lessons.md"
+
+#: The constant each leg is multiplied by in the scale check the post quotes.
+SCALE = (2.0, 0.37)
 
 
 @pytest.fixture(scope="module")
@@ -114,6 +120,26 @@ def _synthetic(rows: int = 80, seed: int = 7) -> pd.DataFrame:
     return pd.DataFrame(
         {LEGS[0]: aud, LEGS[1]: cad}, index=pd.bdate_range("2020-01-01", periods=rows)
     )
+
+
+def _both_windows_a_day_earlier(frame: pd.DataFrame) -> np.ndarray:
+    """The 612 test returns with the Johansen window and the z-score both ending a day earlier."""
+    prices = frame.to_numpy()
+    hedge = np.full(prices.shape, np.nan)
+    units = np.full(len(prices), np.nan)
+    for t in range(SCRIPT_TRAINING_DAYS + 1, len(prices)):
+        hedge[t] = johansen(prices[t - SCRIPT_TRAINING_DAYS - 1 : t - 1], 0, 1).eigenvectors[:, 0]
+        units[t] = units_on(prices, hedge[t], t - 1, SCRIPT_LOOKBACK)
+    return daily_returns(units[:, None] * hedge * prices, prices)[SCRIPT_TRAINING_DAYS:]
+
+
+def _minus(value: float, places: int) -> str:
+    """A number as the post prints it, with a true minus sign."""
+    return f"{value:.{places}f}".replace("-", "\u2212")
+
+
+#: The counts the post spells out in words.
+WORDS = {5: "five", 6: "six", 15: "fifteen", 85: "eighty-five"}
 
 
 def _returns_from(prices: np.ndarray, hedge: np.ndarray, start: int, lookback: int) -> np.ndarray:
@@ -273,7 +299,7 @@ class TestRow5TheReturnsAreChans:
 
     def test_a_constant_scale_on_either_leg_still_matches(self, frame, saved) -> None:
         """So row 5 says the inputs agree with Chan's up to a scale per leg, and no more."""
-        again = aud_cad(frame * [2.0, 0.37])
+        again = aud_cad(frame * list(SCALE))
         assert agreement(again.test, saved, again.test_days).holds
 
     def test_one_digit_on_a_test_window_close_breaks_the_match(self, frame, saved) -> None:
@@ -486,15 +512,7 @@ class TestTheRule:
         records the port printing, so the port differs in more than this and
         nothing here reproduces its printout.
         """
-        prices = frame.to_numpy()
-        hedge = np.full(prices.shape, np.nan)
-        units = np.full(len(prices), np.nan)
-        for t in range(SCRIPT_TRAINING_DAYS + 1, len(prices)):
-            hedge[t] = johansen(prices[t - SCRIPT_TRAINING_DAYS - 1 : t - 1], 0, 1).eigenvectors[
-                :, 0
-            ]
-            units[t] = units_on(prices, hedge[t], t - 1, SCRIPT_LOOKBACK)
-        shifted = daily_returns(units[:, None] * hedge * prices, prices)[SCRIPT_TRAINING_DAYS:]
+        shifted = _both_windows_a_day_earlier(frame)
         found = agreement(shifted, saved, result.test_days)
         assert not found.holds
         assert found.rows_over == 611
@@ -600,3 +618,162 @@ class TestTheGuardAndTheReads:
         assert "trace finds a relation in 26, one in 7 and two in 19" in out
         assert "CADUSD -0.7622" in out
         assert "Exploratory." in out
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/aud-cad-johansen-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording the
+    prose between two figures does not. The Lesson 1 table is read whole
+    through :func:`tests.support.post_tables.tables`, and passes either way
+    up.
+
+    Four things stay unread.
+
+    1. Second copies of a figure, such as the subtitle's 612, 26 and 90, the
+       Sharpe ratio of 1.610890 in Lesson 5 and the 90 days in the closing
+       lists.
+    2. The figure's alt text and caption, whose readings of the curves are
+       approximate. ``tests/test_aud_cad_johansen_figures.py`` holds what the
+       figure draws.
+    3. Chan's words, his figures as the book prints them outside the table,
+       their Kindle pages, the script's name and commit, and the references.
+    4. Ratios the post states in words from pinned figures, such as about
+       three quarters and about twice as wide, which README lists.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    def test_the_post_holds_one_table(self, text) -> None:
+        assert len(tables(text)) == 1
+
+    def test_the_groups_and_the_files(self, frame, result, saved, text) -> None:
+        trace = np.count_nonzero(result.trace_relations > 0)
+        per_year = frame.groupby(frame.index.year).size().loc[[2009, 2010, 2011]]
+        fragments = [
+            f"every one of the {len(result.test)} daily returns matches",
+            f"come from the {SCRIPT_TRAINING_DAYS} days before it, called that day’s window. "
+            f"The test found a relation in {trace} of the {len(result.test)} windows.",
+            f"On {np.count_nonzero(result.dollar_split > 0)} days the weights held",
+            f"Run the Johansen test on the {SCRIPT_TRAINING_DAYS} days before today.",
+            f"on each of the {SCRIPT_LOOKBACK} days ending today",
+            f"each holding {len(frame)} daily closes from {frame.index[0].date()} to "
+            f"{frame.index[-1].date()}, saved {DAILY_SAVED}.",
+            f"A third file from the port holds the {len(saved)} returns",
+            f"these files hold about {round(per_year.mean(), -1):.0f} closes a year",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_1(self, result, text) -> None:
+        found = figures(result.test)
+        days = result.test_days
+        table = [
+            ["", "APR", "Sharpe", "Kelly"],
+            ["Computed", f"{found.apr:.6f}", f"{found.sharpe:.6f}", f"{found.kelly:.6f}"],
+            ["Script", SCRIPT_APR, SCRIPT_SHARPE, SCRIPT_KELLY],
+            ["Book", BOOK_APR_PERCENT, BOOK_SHARPE, "none"],
+        ]
+        assert tables(text)[0] in either_way(table)
+        assert AGREEMENT == 1e-9
+        fragments = [
+            f"The test period is the {len(result.test)} days after the first "
+            f"{SCRIPT_TRAINING_DAYS} days, from {days[0].date()} to {days[-1].date()}",
+            "matches his to within one billionth, 1e-9,",
+            f"Dividing by n instead gives {result.test.mean() / result.test.var():.6f}.",
+            f"so this post quotes the script’s {found.kelly:.6f}.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_2(self, text) -> None:
+        aud, cad = SCALE
+        fragments = [
+            "one unit in the sixth decimal, 0.000001,",
+            f"Running the script with AUD.USD {'doubled' if aud == 2 else aud} and CAD.USD "
+            f"multiplied by {cad:g} still matches",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_3(self, result, text) -> None:
+        counts = np.bincount(result.trace_relations, minlength=3)
+        eigen = np.bincount(result.eigen_relations, minlength=3)
+        assert eigen[2] == 0, "the post says the eigen test never finds two"
+        days = result.test_days
+        rows = np.flatnonzero(result.trace_relations > 0)
+        stretches = np.split(rows, np.flatnonzero(np.diff(rows) > SCRIPT_LOOKBACK) + 1)
+        assert len(stretches) == 3
+        (a, b, c) = [(len(s), days[s[0]].date(), days[s[-1]].date()) for s in stretches]
+        on_eigen = days[result.eigen_relations > 0]
+        trace = counts[1] + counts[2]
+        fragments = [
+            f"**The trace test finds at least one relation in {trace} windows.** It finds one "
+            f"in {counts[1]} of them and two in the other {counts[2]}.",
+            f"**The eigen test finds one in {eigen[1]} windows**, and never finds two.",
+            f"On {counts[2]} of its {trace} windows the trace test found two relations",
+            f"The {trace} windows bunch into three stretches. {WORDS[a[0]].capitalize()} fall "
+            f"from {a[1]} to {a[2]}, {WORDS[b[0]]} from {b[1]} to {b[2]}, and {WORDS[c[0]]} "
+            f"from {c[1]} to {c[2]}.",
+            f"the eigen test’s {eigen[1]} all fall from {on_eigen[0].date()} to "
+            f"{on_eigen[-1].date()}.",
+            f"Each window shares {SCRIPT_TRAINING_DAYS - 1} of its {SCRIPT_TRAINING_DAYS} days",
+            f"what the rule did on the remaining {counts[0]} days.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_4(self, result, text) -> None:
+        days = result.test_days
+        split = result.dollar_split
+        same = split > 0
+        n, rest_n = np.count_nonzero(same), np.count_nonzero(~same)
+        in_2010 = (days >= "2010-06-01") & (days <= "2010-10-05")
+        edges = np.diff(np.concatenate(([0], same.astype(int), [0])))
+        starts, ends = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
+        longest = int(np.argmax(ends - starts))
+        test = result.test
+        those, rest = np.prod(1 + test[same]) - 1, np.prod(1 + test[~same]) - 1
+        total = (1 + those) * (1 + rest) - 1
+        assert round(5 * np.log1p(those) / np.log1p(total)) == 2, "about two fifths"
+        curve = np.cumprod(1 + test) - 1
+        first = int(np.flatnonzero(same)[0])
+        last = int(np.flatnonzero(same & in_2010)[-1])
+        welch = stats.ttest_ind(test[same], test[~same], equal_var=False)
+        dollars = result.positions[-1] / result.positions[-1, 0]
+        fragments = [
+            f"The hedge on {days[-1].date()} holds 1 unit of AUD.USD against "
+            f"{_minus(result.last_hedge[1], 4)} of CAD.USD.",
+            f"that is 1 against {_minus(dollars[1], 4)}, long the Australian dollar",
+            f"The hedge held both currencies the same way on {n} of the {len(test)} days. "
+            f"{WORDS[np.count_nonzero(same & in_2010)].capitalize()} of them fall from "
+            f"{days[first].date()} to {days[last].date()}, and the longest run is "
+            f"{ends[longest] - starts[longest]} days, from {days[starts[longest]].date()} to "
+            f"{days[ends[longest] - 1].date()}.",
+            f"Compounding the {n} days alone gives a return of {those:.4f}, and compounding "
+            f"the other {rest_n} alone gives {rest:.4f}.",
+            f"the run’s {total:.4f}: unrounded, {1 + those:.4f} times {1 + rest:.4f} is "
+            f"{1 + total:.4f}.",
+            f"ln {1 + those:.4f} is about two fifths of ln {1 + total:.4f}.",
+            f"So {100 * n / len(test):.0f} percent of the days, {n} of the {len(test)},",
+            f"the curve stood at {curve[first - 1]:.4f} on {days[first - 1].date()}, the day "
+            f"before the first of them, and at {curve[last]:.4f} on {days[last].date()},",
+            f"standard deviation of {test[same].std(ddof=1):.4f}, against "
+            f"{test[~same].std(ddof=1):.4f} on the other {rest_n} days",
+            f"{test[same].mean():.4f} a day against {test[~same].mean():.4f}.",
+            f"gives {welch.statistic:.2f} for that difference",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_5(self, frame, result, saved, text) -> None:
+        shifted = _both_windows_a_day_earlier(frame)
+        found = agreement(shifted, saved, result.test_days)
+        fragments = [
+            f"puts {found.rows_over} of the {len(shifted)} returns more than one billionth away",
+            f"Its Sharpe ratio comes out at {figures(shifted).sharpe:.6f},",
+        ]
+        assert not_found_once(text, fragments) == []
