@@ -3782,7 +3782,8 @@ not pinned here.
    last trading day of the month before delivery as the exchange's rules, Good
    Friday as the only NYMEX holiday that can land on a trade date, EIA
    publishing the nearest four contracts numbered by expiry, EIA's statement
-   that its source is NYMEX, and the contract numbers of the two extra files
+   that its source is NYMEX, EIA publishing the natural gas and gasoline stock
+   levels Further work names, and the contract numbers of the two extra files
    Lesson 2 and Lesson 5 read.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
@@ -3816,7 +3817,11 @@ the mean and the Sharpe ratio's standard error, and Welch's p-values for the
 two periods, the Mann-Whitney p-values and the pairs each earlier period
 won, and natural gas without 2022, and
 `test_lesson_4_works_the_sample_size_out` reads Lesson 4's worked equations
-and its table of tests against them.
+and its table of tests against them. The tests named for Further work read its
+trade dates and gasoline's holding period, the held-back gasoline years and the
+files' first months, the delivery-month check's years and EIA's decimal places.
+They take the held-back years from the manifest's dates and the run's year
+ranges, never from a price.
 
 Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).

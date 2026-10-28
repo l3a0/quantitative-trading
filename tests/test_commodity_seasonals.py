@@ -24,9 +24,15 @@ from scipy import stats
 
 from chan import futures
 from chan.commodity_seasonals import (
+    FILL_TEST_YEARS,
+    GASOLINE_ENTRY,
+    GASOLINE_EXIT,
     GASOLINE_YEARS,
     HARBOR_GASOLINE,
+    HARBOR_GASOLINE_2,
     NATURAL_GAS,
+    NG_ENTRY,
+    NG_EXIT,
     NG_YEARS,
     RBOB_GASOLINE,
     RUN_START,
@@ -59,6 +65,7 @@ from chan.commodity_seasonals import (
     sharpe_ratio,
     sharpe_standard_error,
 )
+from chan.vintage import resolve_vintage
 
 
 def outcomes(trades) -> dict[int, str]:
@@ -1138,6 +1145,110 @@ class TestThePostQuotesThePins:
             f"April 15 was a {asked_exit:%A} and the {good_friday.day}th was Good Friday, "
             f"so the exit moved back to the {trade.exit_day.day}th."
         ) in self.text
+
+    def test_further_work_s_trade_dates(self) -> None:
+        """Further work's list of each trade's dates, and how long gasoline is held."""
+        words = "zero one two three four five six seven eight nine ten eleven twelve".split()
+
+        def named(month_day: tuple[int, int]) -> str:
+            day = date(2001, *month_day)
+            return f"{day:%B} {day.day}"
+
+        held = (date(2001, *GASOLINE_EXIT) - date(2001, *GASOLINE_ENTRY)).days
+        assert (
+            f"**The entry date**, {named(GASOLINE_ENTRY)} for gasoline and "
+            f"{named(NG_ENTRY)} for natural gas."
+        ) in self.text
+        assert (
+            f"**The exit date**, {named(GASOLINE_EXIT)} for gasoline and "
+            f"{named(NG_EXIT)} for natural gas."
+        ) in self.text
+        assert f"Gasoline is held only {words[held]} calendar days" in self.text
+
+    def test_further_work_s_held_back_years(self) -> None:
+        """The gasoline Aprils Further work holds back, and why natural gas has none.
+
+        Everything here comes from the manifest's first and last dates, the
+        run's year ranges and the exchange's expiry rule, never from a price,
+        because a search is meant to test on those Aprils.
+        """
+        words = "zero one two three four five six seven eight nine ten eleven twelve".split()
+
+        def span(symbol: str) -> tuple[date, date]:
+            entry = resolve_vintage(vendor="eia", symbol=symbol, price_basis="raw")
+            return date.fromisoformat(entry.first_date), date.fromisoformat(entry.last_date)
+
+        one, two = span(HARBOR_GASOLINE)[0], span(HARBOR_GASOLINE_2)[0]
+        # The first April anything here reads, the trades' or the gap fills' test days.
+        first_april = min(GASOLINE_YEARS[0], FILL_TEST_YEARS[0])
+        held_back = range(one.year, first_april)
+        assert one < date(one.year, 4, 1)
+        assert date(first_april - 1, 4, 30) < two < date(first_april, 4, 1)
+        assert (
+            f"The New York Harbor gasoline contract-1 file begins in {one:%B %Y}, and nothing "
+            f"here has computed a trade on its Aprils before {first_april}. So "
+            f"{held_back[0]} to {held_back[-1]} give {words[len(held_back)]} years"
+        ) in self.text
+        # June in April and May in March are contract 2, the file that starts too late.
+        for year in held_back:
+            for day in futures.trading_days(date(year, 3, 1), date(year, 4, 30)):
+                month = 6 if day.month == 4 else 5
+                assert futures.contract_number(day, year, month, futures.rbob_last_trade) == 2
+        assert (
+            f"The contract-2 file begins only in {two:%B %Y}, so those years cannot test a "
+            "variant that reads it, such as the June contract in April or the May contract "
+            "in March."
+        ) in self.text
+        # Natural gas: no whole trade before the run's first year, and none after its last.
+        assert natural_gas_trade(NG_YEARS[0] - 1).entry_price is None
+        after = NG_YEARS[1] + 1
+        assert all(
+            span(symbol)[1] < on_or_before(date(after, *NG_EXIT)) for symbol in NATURAL_GAS.values()
+        )
+        assert (
+            f"so its held-back years would have to come after {NG_YEARS[1]}, which the files "
+            "do not reach"
+        ) in self.text
+        assert f"reaches back to the {NG_YEARS[0] // 10 * 10}s" in self.text
+
+    def test_further_work_s_neighbouring_delivery_months(self) -> None:
+        """The June gasoline and May natural gas contracts are among EIA's four on every date.
+
+        The files can still lack a row. The June gasoline file has none on
+        25 April 1997, a trading day the May file holds, so that year's June
+        trade would read as missing, as Lesson 2 reads May's 1997.
+        """
+        years = range(NG_YEARS[0], NG_YEARS[1] + 1)
+        assert GASOLINE_YEARS[1] == NG_YEARS[1]
+        for year in years:
+            for day in (
+                on_or_after(date(year, *GASOLINE_ENTRY)),
+                on_or_before(date(year, *GASOLINE_EXIT)),
+            ):
+                assert futures.contract_number(day, year, 6, futures.rbob_last_trade) <= 4
+            trade = natural_gas_trade(year)
+            for day in (trade.entry_day, trade.exit_day):
+                assert futures.contract_number(day, year, 5, ng_last_trade) <= 4
+        assert (
+            f"On every entry and exit date from {years[0]} to {years[-1]}, those include the "
+            "June gasoline contract and the May natural gas contract"
+        ) in self.text
+
+    def test_further_work_s_decimal_places(self) -> None:
+        """EIA prints every settlement the run reads to at most three decimal places.
+
+        It drops trailing zeros, so some rows show fewer. The harbor file is
+        read from 1994 only, leaving its earlier Aprils untouched.
+        """
+        symbols = (HARBOR_GASOLINE, HARBOR_GASOLINE_2, RBOB_GASOLINE, *NATURAL_GAS.values())
+        places = {
+            -price.as_tuple().exponent
+            for symbol in symbols
+            for day, price in settlements(symbol)[1].items()
+            if day.year >= FILL_TEST_YEARS[0]
+        }
+        assert max(places) == 3
+        assert "at the three decimal places EIA prints" in self.text
 
 
 def _weekend_roll(day: date, forward: bool) -> date:

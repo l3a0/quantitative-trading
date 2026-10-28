@@ -4114,7 +4114,7 @@ def _plateau_profit(kind: str, x: np.ndarray, centre: float) -> np.ndarray:
 
 
 def _plateau() -> Scene:
-    """Further work: the shape a search across one parameter looks for. Profit
+    """Further work: the two shapes a search across one parameter tells apart. Profit
     spikes only at Chan's value on a cliff and stays high around it on a
     plateau. Schematic, so it draws no figures from the run."""
     steps: list[Stroke | Label] = []

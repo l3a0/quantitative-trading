@@ -486,7 +486,7 @@ Every entry and exit in the run is a settlement price. Chan names no time of day
 
 ### Delivery month
 
-If seasonal demand drives the gain, a neighbouring delivery month bought and sold on the same dates should share it. If only Chan’s month shows the gain, chance is the likelier cause. EIA’s files hold the nearest four contracts at a time. On every entry and exit date from 1994 to 2023, those include the June gasoline contract and the May natural gas contract, so this check needs no new data.
+If seasonal demand drives the gain, a neighbouring delivery month bought and sold on the same dates should share it. If only Chan’s month shows the gain, chance is the likelier cause. EIA’s files hold the nearest four contracts at a time. On every entry and exit date from 1994 to 2023, those include the June gasoline contract and the May natural gas contract, so this check needs no new data on those years.
 
 ### The rule for a closed date
 

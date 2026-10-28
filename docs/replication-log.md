@@ -3568,8 +3568,8 @@ twenty-nine.
 25. Which years each check of the expiry rule reaches.
 26. 2018's entry on March's own last trading day.
 27. A holiday row in the files, at Christmas 2018, beside none in 2016.
-28. A schematic cliff beside a plateau, the shape a search across a trade's
-   parameters looks for, with no figures from the run.
+28. A schematic cliff beside a plateau, the two shapes a search across a
+   trade's parameters tells apart, with no figures from the run.
 29. Gasoline's 2019 entry date, Saturday, April 13, moved forward to Monday by
    Chan's rule and back to Friday by the outward rule and the nearest trading
    day. A trade date falls on a closed day in 17 of 29 gasoline years and 11
