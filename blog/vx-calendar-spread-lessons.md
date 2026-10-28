@@ -134,7 +134,7 @@ B3 was picked out after seeing all five readings, and the book’s window was me
 
 The script as Chan published it pairs each contract with the one expiring 12 months later, which suits crude oil. Swapping the commented-out VX load line in for the crude oil one loads a file that prices at most 10 contracts on any day. The script raises no error. It builds its schedule, holds positions, and prints an APR.
 
-Run on VX with Chan’s setting, it holds a pair on 1,284 days. Both legs have a price on 84 of them. On 1,183 only the near leg is priced, and on 17 neither is. The script sums the returns of the legs that have one and skips the rest, so on those 1,183 days it holds one VX contract outright, which is not a calendar spread at all. The number it prints at the end looks like any other APR.
+Run on VX with Chan’s setting, its schedule holds a pair on 1,284 days. Both legs have a price on 84 of them. On 1,183 only the near leg is priced, and on 17 neither is. The script sums the returns of the legs that have one and skips the rest, so on those 1,183 days any position it takes is one VX contract outright, which is not a calendar spread at all. The number it prints at the end looks like any other APR.
 
 That is why S changes the spacing to one month. The book’s text does not say so. It follows from the file, which prices 2 to 10 contracts a day with a median of 8.
 
