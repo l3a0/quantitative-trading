@@ -14,3 +14,20 @@ dist/
 
 # Editors / OS
 .DS_Store
+
+# Secrets. The repo is public, so a credential file that lands in a checkout
+# must never be one `git add` away from being published.
+.env
+.env.*
+.envrc
+*.pem
+*.key
+*.p12
+*.pfx
+*token*.json
+*credentials*.json
+secrets.*
+.netrc
+id_rsa
+id_ecdsa
+id_ed25519
