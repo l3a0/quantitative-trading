@@ -190,7 +190,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 3.1, with pages 105, 106, 108 and 109 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 3.1, with pages 105 to 106 and 108 to 109 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `PriceSpread.m`, `LogPriceSpread.m` and `Ratio.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. Engle, R. F., and Granger, C. W. J. (1987). Co-integration and error correction: representation, estimation, and testing. *Econometrica*, 55(2), 251–276.
 

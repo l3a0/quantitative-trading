@@ -184,7 +184,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 6.2 and 7.2, with pages 215, 216, 218, 224 and 236 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 6.2 and 7.2, with pages 215 to 216, 218, 224 and 236 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Daniel, K., and Moskowitz, T. J. (2011), as Chan (2013, pp. 218 and 224) cites them.
 3. `kentdaniel.m`, at commit `45670240` of ivanliu1989/algorithmic_trading, a public copy of Chan’s code. ericnberwick/EpchanPreview at commit `e4bc46f` holds the same bytes.
 

@@ -200,7 +200,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.1, Figure 8.2, Boxes 8.1 to 8.6, with pages 168, 252, 254 and 257 to 264 cited. The page numbers are the Kindle edition’s, read in the Kindle Cloud Reader, and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.1, Figure 8.2, Boxes 8.1 to 8.6, with pages 168, 252, 254 and 257 to 264 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. `monteCarloOptimLeverage.m`, git blob `fc32599` under `public/img/book2/`, the book’s code, as published at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview).
 3. Heinrich, J. (2004). A guide to the Pearson type IV distribution. CDF/MEMO/STATISTICS/PUBLIC/6820.
 

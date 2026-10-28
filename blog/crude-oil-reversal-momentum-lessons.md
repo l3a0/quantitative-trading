@@ -185,7 +185,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 207 and 208 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 207 to 208 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. `CL_rev.m`, as published in the [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) repository at commit `e4bc46f`.
 3. US Energy Information Administration. [Cushing, OK WTI Spot Price FOB, annual, dollars per barrel](https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=RWTC&f=A).
 

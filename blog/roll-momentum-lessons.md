@@ -162,7 +162,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 5.3 and 6.1, with pages 179 and 204 to 206 cited. The page numbers are the Kindle edition’s, read in the Kindle Cloud Reader, and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 5.3 and 6.1, with pages 179 and 204 to 206 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `TU_mom.m` and `estimateFuturesReturns.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 
 *Not investment advice. Code: [both rules and the rebuild](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/roll_momentum.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/roll_momentum_figures.py), with the checks behind [the numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_roll_momentum.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_roll_momentum_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-36-tu-momentum-traded-on-the-lagged-roll-return-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*

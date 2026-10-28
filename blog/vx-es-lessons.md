@@ -192,7 +192,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 191 to 194 and 211 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 191 to 194 and 211 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. `VX_ES.m` and `VX_ES_rollreturn.m`, as published in the [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) repository at commit `e4bc46f`.
 
 *Not investment advice. Code: [the replication](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_es.py), [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_es_figures.py) and [the whiteboard sketches](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_es_whiteboard.py), with the checks behind [the replication’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_es.py), [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_es_figures.py) and [what the sketches draw](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_es_whiteboard.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-28-vx-futures-against-e-mini-futures-chans-algorithmic-trading) that sets each of Chan’s figures beside what was found here.*

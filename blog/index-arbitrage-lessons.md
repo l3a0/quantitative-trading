@@ -199,7 +199,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.1 and 4.2, with pages 145, 149 to 152, 154 and 155 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.1 and 4.2, with pages 145, 149 to 152 and 154 to 155 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. LeSage, J. P. (1998). The Econometrics Toolbox for MATLAB, as Chan (2013) cites it on p. 154.
 3. MacKinnon, J. G. (2010). Critical values for cointegration tests. Queen’s Economics Department Working Paper No. 1227.
 4. `indexArb.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.

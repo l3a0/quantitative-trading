@@ -200,7 +200,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 7.2, with pages 233, 234 and 236 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 7.2, with pages 233 to 234 and 236 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `pead.m`, at commit `45670240` of the ivanliu1989/algorithmic_trading mirror of Chan’s code.
 3. U.S. Securities and Exchange Commission. EDGAR, the Form 8-K filings under Item 2.02 accepted from 2010-12-01 to 2012-04-24, as recorded on 2026-10-10.
 4. Welch, B. L. (1947). The generalization of “Student’s” problem when several different population variances are involved. *Biometrika*, 34, pages 28 to 35.

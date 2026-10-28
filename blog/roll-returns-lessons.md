@@ -202,7 +202,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.3, Table 5.1 and Figure 5.5, with pages 173, 176 to 179, 181 and 206 cited. The page numbers are the Kindle edition’s, read in the Kindle Cloud Reader, and differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.3, Table 5.1 and Figure 5.5, with pages 173, 176 to 179, 181 and 206 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `estimateFuturesReturns.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code, and `estimateFuturesReturns.py` in `PythonCodesAndData.zip` at the same commit, his 2018 Python port.
 3. Hull, J. C. (1997). *Options, Futures, and Other Derivatives*. Prentice Hall. Chan cites it on p. 176 for the model of a futures price.
 
