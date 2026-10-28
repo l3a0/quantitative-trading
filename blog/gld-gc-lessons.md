@@ -6,7 +6,7 @@
 
 A future’s total return splits into two parts. The spot return is the move of the price of the thing the contract is written on. The roll return is the drift of the contract’s price toward that spot price as it nears expiry. The [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#why-split-a-futures-return-in-two) builds both up, along with contango, the state in which later contracts trade above nearer ones and the roll return is negative.
 
-Ernest Chan’s *Algorithmic Trading* turns the split into a trade. If the roll return is negative, “buy the underlying asset and short the futures” (Chan, 2013, location 2718). The spot returns of the two legs cancel, and what is left is the roll return with its sign flipped, which is positive. The same passage cites gold futures’ roll return as “−4.9 percent annualized from December 1982 to May 2004”.
+Ernest Chan’s *Algorithmic Trading* turns the split into a trade. If the roll return is negative, “buy the underlying asset and short the futures” (Chan, 2013, Kindle edition, p. 208). The spot returns of the two legs cancel, and what is left is the roll return with its sign flipped, which is positive. The same passage cites gold futures’ roll return as “−4.9 percent annualized from December 1982 to May 2004”.
 
 Owning gold bars is awkward, so the long leg is GLD, an exchange-traded fund that holds gold. Chan writes that “GLD actually owns physical gold, and thus tracks the gold spot price very closely”. That is why GLD can stand in for spot gold. The short leg is GC, the gold future. GLD is also the gold leg of the pair in the [post on GLD and GDX](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gdx-cointegration-lessons.md), which pairs it with the gold miners instead.
 
@@ -119,9 +119,9 @@ The usual explanation is the **cost of carry** (Hull, 1997). Leaving storage asi
 
 ## Lesson 4: the closes line up, though not for the book’s reason
 
-The book raises a caveat itself. GC’s prices “are recorded at 1:30 p.m. ET, while those of GLD are recorded at 4:00 p.m. ET” (location 2730). A futures price from a data vendor is usually “the settlement price, not the last traded price” (location 561), and COMEX, the exchange GC trades on, sets its settlement at its own hour. Chapter 1 warns that a spread between two instruments closing at different times is wrong, and adds, “This is true also if we try to form a spread between a future and an ETF” (location 583).
+The book raises a caveat itself. GC’s prices “are recorded at 1:30 p.m. ET, while those of GLD are recorded at 4:00 p.m. ET” (p. 209). A futures price from a data vendor is usually “the settlement price, not the last traded price” (p. 39), and COMEX, the exchange GC trades on, sets its settlement at its own hour. Chapter 1 warns that a spread between two instruments closing at different times is wrong, and adds, “This is true also if we try to form a spread between a future and an ETF” (p. 41).
 
-Chan then dismisses the caveat because “the trading signals are generated based on GC closing prices alone” (location 2730). That reason does not fit `GLD_GC.m`, which has no signal. It holds the pair every day, and each day’s return is GLD’s return less GC’s. If GC were read two and a half hours before GLD, every row would carry gold’s move over those hours. The book’s reason cannot keep that difference in timing out of this backtest. The file Chan saved keeps it out, as two measurements show.
+Chan then dismisses the caveat because “the trading signals are generated based on GC closing prices alone” (p. 209). That reason does not fit `GLD_GC.m`, which has no signal. It holds the pair every day, and each day’s return is GLD’s return less GC’s. If GC were read two and a half hours before GLD, every row would carry gold’s move over those hours. The book’s reason cannot keep that difference in timing out of this backtest. The file Chan saved keeps it out, as two measurements show.
 
 The first is the calendar. A settlement series has no row on a day the exchange is shut, and the GC file holds 9 such rows, each a US exchange holiday. That rules out the settlement series the caveat describes.
 
@@ -157,7 +157,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Kindle locations 561, 583, 2718 and 2730.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 39, 41 and 208 to 209 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `GLD_GC.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. Hull, J. C. (1997). *Options, Futures, and Other Derivatives*. Prentice Hall. The cost-of-carry model of a futures price.
 

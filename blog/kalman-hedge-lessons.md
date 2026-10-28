@@ -4,11 +4,11 @@
 
 ## Why replace the rolling window with a filter
 
-A pair trade holds one fund against another in a fixed proportion, and the proportion is usually the slope of a regression of one price on the other. A slope fitted once over years of data cannot follow a relationship that drifts. A slope refitted over the last few weeks can, but it moves in jumps. Each day one old price leaves the window and one new price enters, and if the old one was unusual the slope lurches for no reason in today’s market. Ernest Chan’s second book, *Algorithmic Trading*, calls this “an abrupt and artificial impact on the hedge ratio” (Chan, 2013, location 1633).
+A pair trade holds one fund against another in a fixed proportion, and the proportion is usually the slope of a regression of one price on the other. A slope fitted once over years of data cannot follow a relationship that drifts. A slope refitted over the last few weeks can, but it moves in jumps. Each day one old price leaves the window and one new price enters, and if the old one was unusual the slope lurches for no reason in today’s market. Ernest Chan’s second book, *Algorithmic Trading*, calls this “an abrupt and artificial impact on the hedge ratio” (Chan, 2013, Kindle edition, p. 119).
 
 Two earlier posts here took the first two roads. [The post on the Johansen test](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md) regressed the Canadian fund EWC on the Australian fund EWA once over the whole file. [The post on Example 3.1](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-ratio-lessons.md) traded gold against oil with a slope refitted every day over the last 20 days. After Example 3.2 trades the same rolling spread with bands, Chan takes a third road. A Kalman filter moves the slope and the intercept a little every day, by an amount the filter sets for itself, so no window has to be chosen and no day drops out of it.
 
-He applies the filter to EWA and EWC with the script `KF_beta_EWA_EWC.m`. He reports an annual percentage rate, or APR, and a Sharpe ratio, the return per unit of risk, as “a reasonable APR of 26.2 percent and a Sharpe ratio of 2.4” and makes two claims about what the filter estimates (Chan, 2013, location 1726).
+He applies the filter to EWA and EWC with the script `KF_beta_EWA_EWC.m`. He reports an annual percentage rate, or APR, and a Sharpe ratio, the return per unit of risk, as “a reasonable APR of 26.2 percent and a Sharpe ratio of 2.4” and makes two claims about what the filter estimates (Chan, 2013, pp. 125 to 128).
 
 1. **The slope** “oscillates around 1”.
 2. **The intercept** “increases monotonically with time”.
@@ -21,10 +21,10 @@ The four lessons below say what the reproduction does teach. The code is open so
 
 ## The filter and the file
 
-A Kalman filter is an algorithm that updates its estimate of something it cannot see each time it observes something it can. The book calls that estimate “the expected value of a hidden variable” (Chan, 2013, location 1644). Here the observable is EWC’s close, and the hidden variable is a pair of numbers that link it to EWA’s close (Chan, 2013, location 1658).
+A Kalman filter is an algorithm that updates its estimate of something it cannot see each time it observes something it can. The book calls that estimate “the expected value of a hidden variable” (Chan, 2013, p. 119). Here the observable is EWC’s close, and the hidden variable is a pair of numbers that link it to EWA’s close (Chan, 2013, p. 120).
 
 1. **The slope**, the number of EWA shares held against one share of EWC. The book calls it the hedge ratio. This post says slope throughout.
-2. **The intercept**, the level EWC sits above the slope times EWA. The book uses it “in place of the moving average of the spread” (Chan, 2013, location 1678).
+2. **The intercept**, the level EWC sits above the slope times EWA. The book uses it “in place of the moving average of the spread” (Chan, 2013, p. 121).
 
 The filter never observes either number. It assumes each is yesterday’s value plus a little noise, and it estimates both from the closes.
 
@@ -32,7 +32,7 @@ In plain terms, each day runs four steps.
 
 1. **Hold a guess.** The filter carries a slope and an intercept from yesterday, and a measure of how unsure it is of them.
 2. **Forecast.** Before seeing EWC’s close, it forecasts that close as the intercept plus the slope times EWA’s close. It also says how far off the forecast could be, as a variance.
-3. **Measure the miss.** The **forecast error** is EWC’s actual close minus that forecast. The book calls it “the deviation of the spread EWC-EWA from its predicted mean value” (Chan, 2013, location 1726). This post says forecast error.
+3. **Measure the miss.** The **forecast error** is EWC’s actual close minus that forecast. The book calls it “the deviation of the spread EWC-EWA from its predicted mean value” (Chan, 2013, p. 127). This post says forecast error.
 4. **Update the guess.** The filter moves the slope and intercept toward values that would have explained today’s close. How far it moves is set by the **gain**. The gain is large when the filter is unsure of its guess and small when it is confident. After the move, the filter is a little more confident than before.
 
 Two constants set the filter’s pace.
@@ -40,7 +40,7 @@ Two constants set the filter’s pace.
 1. **`delta`** sets how far the slope and intercept are allowed to drift from one day to the next, and Chan sets it to 0.0001. The script calls the slope and intercept together beta. Its comment on `delta` says a value of 1 “gives fastest change in beta”, and a value near 0 “allows no change (like traditional linear regression)”.
 2. **`Ve`** sets how much noise the filter expects in a single day’s close, and Chan sets it to 0.001.
 
-The filter therefore gives three things at once, which is the point the book makes at location 1678.
+The filter therefore gives three things at once, which is the point the book makes on p. 121.
 
 1. **The slope** sets the hedge.
 2. **The intercept** takes the place of a moving average.
@@ -53,7 +53,7 @@ A rolling strategy needs a window for each, and the filter needs none.
 1. **A short** enters when the forecast error rises above the upper band, because EWC has closed further above its forecast than the filter expected. It exits when the forecast error falls back below the upper band.
 2. **A long** enters when the forecast error falls below the lower band, and exits when it rises back above the lower band.
 
-Each exit sits on its own entry band. That differs from Example 3.2, the band strategy the book trades on gold and oil just before this one. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md) covers it. There, a position enters one standard deviation from a rolling mean and exits at the mean itself (Chan, 2013, location 1559). Location 1726 says the rest of the Kalman code is the same as that example’s, with the filter’s slope in place of the rolling one.
+Each exit sits on its own entry band. That differs from Example 3.2, the band strategy the book trades on gold and oil just before this one. [The post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md) covers it. There, a position enters one standard deviation from a rolling mean and exits at the mean itself (Chan, 2013, p. 114). On p. 128 the book says the rest of the Kalman code is the same as that example’s, with the filter’s slope in place of the rolling one.
 
 One long unit is short the slope’s worth of EWA shares and long one share of EWC. A short unit is the reverse. Each day’s return is the profit on yesterday’s positions divided by the gross dollars they held, as in the earlier posts, and no cost is charged. Each trading day is one row of the file, and all 1,500 rows count toward the figures.
 
@@ -112,7 +112,7 @@ A filter needs a starting guess, and a start at 0 is wrong on day one. Withholdi
 
 ## Lesson 3: the grain decides “monotonically”
 
-Location 1726 says the slope “oscillates around 1” and the intercept “increases monotonically with time”. Neither claim comes with a number or a test. To judge either, a reader has to choose what would count. [The replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-32-a-kalman-filter-hedge-ratio-on-ewa-and-ewc-chans-algorithmic-trading) records how that went here. This repository wrote its only criteria for the two claims after a first run had measured them, so neither claim gets a verdict. This lesson reports what the measurements show, and what they show is how much a choice made after seeing the data can decide.
+The book says the slope “oscillates around 1” and the intercept “increases monotonically with time” (pp. 125 to 127). Neither claim comes with a number or a test. To judge either, a reader has to choose what would count. [The replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-32-a-kalman-filter-hedge-ratio-on-ewa-and-ewc-chans-algorithmic-trading) records how that went here. This repository wrote its only criteria for the two claims after a first run had measured them, so neither claim gets a verdict. This lesson reports what the measurements show, and what they show is how much a choice made after seeing the data can decide.
 
 **The intercept.** Whether a series rises “monotonically” depends on how closely it is looked at. Call that the **grain**: the length of the period averaged before each average is compared with the one before it. A day, a month, a quarter, a year and a rolling window of 250 days are all grains. At each one, the question is how many steps go down.
 
@@ -167,7 +167,7 @@ The result is exploratory however closely it matches. It shows that Chan’s num
 Four questions are beyond it.
 
 1. **What other values of `delta` or `Ve` give.** Trying several values and keeping the best is a search, and a search needs its own guard against finding something by luck. Nothing here runs one.
-2. **What the filter gives as a market-making model.** Location 1760 describes a second use of the filter, estimating the mean price of a single asset, and it prints no figure and names no script.
+2. **What the filter gives as a market-making model.** On pp. 129 to 131 the book describes a second use of the filter, estimating the mean price of a single asset, and it prints no figure and names no script.
 3. **Anything about costs.** The band changes the position whenever the forecast error crosses it, and the script charges nothing for those trades.
 4. **Whether the intercept’s rise belongs to the market or to the zero start.** The filter starts the intercept at 0. The single regression over the whole file puts it at 6.4113. A filter started from that value might show no rise at all. Nothing here starts the filter anywhere else, so the question stays open.
 
@@ -182,7 +182,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Kindle locations 1559, 1633, 1644, 1658, 1678, 1726 and 1760.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 114, 119 to 121 and 125 to 131 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. `KF_beta_EWA_EWC.m`, git blob `e2f8a62` under `public/img/book2/`, and `fillMissingData.m`, the book’s code, as published at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview).
 
 *Not investment advice. Code: [the replication](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/kalman_hedge.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/kalman_hedge_figures.py), with the checks behind [the replication’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_kalman_hedge.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_kalman_hedge_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-32-a-kalman-filter-hedge-ratio-on-ewa-and-ewc-chans-algorithmic-trading) that sets each of Chan’s claims beside what was found here.*

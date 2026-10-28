@@ -219,7 +219,8 @@ def make_vix_filter_figure(out: Path | None = None, sources: Sources | None = No
     _title(
         fig,
         "Exploratory: the VIX filter on buy on gap and on FSTX's opening gap rule",
-        f"Algorithmic Trading, location 3509. VIX saved {sources.vix_member.obtained}, the stocks "
+        f"Algorithmic Trading, Kindle edition, p. 269. VIX saved {sources.vix_member.obtained}, "
+        "the stocks "
         f"saved {sources.stock_members[0].obtained}, FSTX saved {sources.fstx_member.obtained}. "
         "No cost charged.\nThe FSTX alignment was chosen after its figures were seen, and "
         f"every kept day falls from {kept[0].year} to {kept[-1].year}.",

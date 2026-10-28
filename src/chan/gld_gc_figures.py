@@ -248,7 +248,7 @@ def make_gld_gc_figure(out: Path | None = None, sources: Sources | None = None) 
     _title(
         fig,
         "Exploratory: long GLD and short gold futures",
-        f"Algorithmic Trading, locations 2718 and 2730. GC from {GC_SOURCE_FILE}, saved "
+        f"Algorithmic Trading, Kindle edition, pp. 208 to 209. GC from {GC_SOURCE_FILE}, saved "
         f"{sources.gc_entry.obtained},\nGLD from {GLD_SOURCE_FILE}, saved "
         f"{sources.gld_entry.obtained}, and FRED's TB3MS, downloaded "
         f"{bill_rates.bill_vintage().obtained}.\nThe top panel was measured after the run, on "

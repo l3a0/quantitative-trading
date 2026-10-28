@@ -41,15 +41,12 @@ from matplotlib.ticker import MultipleLocator, NullLocator
 
 from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.low_beta_capped import (
-    MARGIN_LOCATION,
-    RETAIL_LOCATION,
     Outcome,
     assess,
     five_percent_line,
     yearly_standard_error,
 )
 from chan.low_beta_leverage import (
-    RULE_LOCATION,
     SOURCE_FILE,
     Portfolios,
     build_portfolios,
@@ -215,8 +212,8 @@ def make_low_beta_capped_figure(
     _title(
         fig,
         "Exploratory: neither capped gap reaches the line a 5 percent test draws",
-        f"Quantitative Trading, location {RULE_LOCATION}, ceilings from locations "
-        f"{MARGIN_LOCATION} and {RETAIL_LOCATION}. Stocks from {SOURCE_FILE}, saved "
+        "Quantitative Trading, Kindle edition, p. 191, ceilings from pp. 16 and 112. "
+        f"Stocks from {SOURCE_FILE}, saved "
         f"{members[0].obtained}, survivors only.\nSPY from {spy_entry.path}, saved "
         f"{spy_entry.obtained}, and FRED's TB3MS, downloaded {bill_entry.obtained}. "
         "Not a holdout.\nThe ceilings were chosen after Entry 45's figures were seen, and "

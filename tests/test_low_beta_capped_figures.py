@@ -115,7 +115,7 @@ class TestTheFigure:
             "Exploratory: neither capped gap reaches the line a 5 percent test draws"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Quantitative Trading, location 4709, ceilings from locations 814 and 2836. Stocks "
+            "Quantitative Trading, Kindle edition, p. 191, ceilings from pp. 16 and 112. Stocks "
             "from SPX_20071123.mat, saved 2007-11-24, survivors only.\nSPY from spy_chan.csv, "
             "saved 2008-01-29, and FRED's TB3MS, downloaded 2026-09-30. Not a holdout.\nThe "
             "ceilings were chosen after Entry 45's figures were seen, and the standard error "
