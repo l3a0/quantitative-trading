@@ -97,6 +97,7 @@ from chan.series import WindowCrossesScaleBreak
 from chan.stationarity_tests import jplv7_adf
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.support.post_tables import either_way, not_found_once, tables
 
 VINTAGE = (
     "inputdatadaily_cl_20120813/ chan-mat raw saved 2012-08-14, one vintage per contract "
@@ -574,8 +575,6 @@ class TestTheArgumentsOnCl:
 
 
 POST = paths.REPO_ROOT / "blog" / "crude-oil-calendar-spread-lessons.md"
-#: A number cell of a ``math`` table: a date, then a signed decimal or integer.
-CELL = re.compile(r"\d{4}-\d{2}-\d{2}|-?\d+(?:\.\d+)?")
 
 
 def _minus(x: float, places: int) -> str:
@@ -624,52 +623,8 @@ class TestWhatThePostQuotes:
     def text(cls) -> str:
         return POST.read_text(encoding="utf-8")
 
-    @staticmethod
-    def not_found_once(text: str, fragments: list[str]) -> list[str]:
-        """The fragments the post does not hold exactly once, so each names one place."""
-        return [fragment for fragment in fragments if text.count(fragment) != 1]
-
-    @staticmethod
-    def tables(text: str) -> list[list[list[str]]]:
-        """Each ``math`` array's cells, row by row, in the order the arrays appear.
-
-        A cell holding a number reads as that number. A cell holding none, such
-        as a row label, a column head or ``\\text{none}``, reads as the words
-        inside its ``\\text{}``, and an empty cell as ``""``. ``\\small``, each
-        array's column spec, ``\\hline`` and ``\\text{-}`` inside a date are
-        dealt with first, so neither the layout nor a date split for
-        typesetting adds or splits a number.
-        """
-        blocks = re.findall(r"```math\n(.*?)```", text, flags=re.S)
-        grids = []
-        for block in blocks:
-            if "\\begin{array}" not in block:
-                continue
-            plain = re.sub(
-                r"\\small|\\hline|\\begin\{array\}\{[^}]*\}|\\end\{array\}", "", block
-            ).replace("\\text{-}", "-")
-            grid = []
-            for row in plain.split("\\\\"):
-                cells = row.split("&")
-                numbers = [CELL.findall(cell) for cell in cells]
-                assert all(len(found) <= 1 for found in numbers), row
-                words = [re.search(r"\\text\{([^}]*)\}", cell) for cell in cells]
-                grid.append(
-                    [
-                        found[0] if found else (word[1].strip() if word else "")
-                        for found, word in zip(numbers, words, strict=True)
-                    ]
-                )
-            grids.append(grid)
-        return grids
-
-    @staticmethod
-    def either_way(rows: list[list[str]]) -> tuple[list[list[str]], list[list[str]]]:
-        """A table as the post lays it out, and the same table turned on its side."""
-        return rows, [list(column) for column in zip(*rows, strict=True)]
-
     def test_the_post_holds_three_tables(self, text) -> None:
-        assert len(self.tables(text)) == 3
+        assert len(tables(text)) == 3
 
     def test_lesson_1s_first_table_turned_on_its_side_still_passes(self, runs, text) -> None:
         """The class docstring's claim, made on the post's own first table.
@@ -718,7 +673,7 @@ class TestWhatThePostQuotes:
             f"a year of {TRADING_DAYS} days.",
             f"times √{TRADING_DAYS}, with no risk-free rate.",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
 
     def test_lesson_1(self, runs, text) -> None:
         s, r1 = runs["S"], runs["R1"]
@@ -742,7 +697,7 @@ class TestWhatThePostQuotes:
             f"{compounded_apr(returns):.6f} and "
             f"{plain_sharpe(returns):.6f}",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
         printed = [
             ["", "Computed", "Comment", "Book"],
             ["Half-life, days", f"{s.half_life:.6f}", SCRIPT_HALFLIFE, BOOK_HALFLIFE],
@@ -755,9 +710,9 @@ class TestWhatThePostQuotes:
             ["Longest drawdown", str(s.max_dd_days), SCRIPT_MAX_DD_DAYS],
             ["ADF statistic", f"{adf.statistic:.6f}", "none"],
         ]
-        first, second = self.tables(text)[:2]
-        assert first in self.either_way(printed)
-        assert second in self.either_way(unprinted)
+        first, second = tables(text)[:2]
+        assert first in either_way(printed)
+        assert second in either_way(unprinted)
 
     def test_lesson_2(self, runs, held_window, spread_z, day_to_day, text) -> None:
         s = runs["S"]
@@ -788,7 +743,7 @@ class TestWhatThePostQuotes:
             f"correlates at {earned:.6f} with yesterday’s position",
             f"the spread’s change and γ’s change correlate at only {_minus(changes, 6)}.",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
 
     def test_the_spreads_own_reversion(self, strip, spread_z, text) -> None:
         positions = flip_on_zscore(calendar_schedule(strip.contracts), spread_z)
@@ -797,7 +752,7 @@ class TestWhatThePostQuotes:
             f"loses as well, with an APR of {_minus(compounded_apr(daily), 6)} and a Sharpe "
             f"ratio of {_minus(plain_sharpe(daily), 6)}.",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
 
     def test_the_figures_alt_text(self, runs, held_window, text) -> None:
         s = runs["S"]
@@ -817,7 +772,7 @@ class TestWhatThePostQuotes:
             f"on the {len(held_window):,} days a pair is held from {held_window.index[0].date()}.",
             f"the panel’s title gives the correlation as {_minus(corr, 6)}.",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
 
     def test_lesson_3(self, runs, text) -> None:
         s, r2 = runs["S"], runs["R2"]
@@ -832,7 +787,7 @@ class TestWhatThePostQuotes:
             f"the book’s {BOOK_APR_PERCENT} percent and {BOOK_SHARPE}.",
             f"the trade’s last pair is held to {r2.last_held.date()}.",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
         table = [
             ["", str(HOLDDAYS), str(BOOK_HOLDDAYS)],
             ["APR", *(f"{run.apr:.6f}" for run in (s, r2))],
@@ -841,7 +796,7 @@ class TestWhatThePostQuotes:
             ["Longest drawdown", *(str(run.max_dd_days) for run in (s, r2))],
             ["Last day held", *(str(run.last_held.date()) for run in (s, r2))],
         ]
-        assert self.tables(text)[2] in self.either_way(table)
+        assert tables(text)[2] in either_way(table)
 
     def test_lesson_4(self, runs, text) -> None:
         s = runs["S"]
@@ -864,7 +819,7 @@ class TestWhatThePostQuotes:
             f"the Sharpe ratio is {plain_sharpe(cut):.6f}.",
             f"The cumulative return is {np.prod(1 + returns.to_numpy()) - 1:.6f} either way.",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
 
     def test_lesson_5_and_the_years_outside(self, runs, gamma, early, text) -> None:
         s = runs["S"]
@@ -888,7 +843,7 @@ class TestWhatThePostQuotes:
             f"an APR of {early.apr:.6f} with a Sharpe ratio of {early.sharpe:.6f}.",
             f"2009 alone returned {by_year[2009]:.6f}, and 2012 lost {-by_year[2012]:.6f}.",
         ]
-        assert self.not_found_once(text, fragments) == []
+        assert not_found_once(text, fragments) == []
 
 
 # --- the rules on synthetic frames ---------------------------------------------
