@@ -28,7 +28,7 @@ The five lessons below say what the reproduction teaches. The code is open sourc
 
 ## The rule, the file and the three tests
 
-**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. From the 251st day on, each day’s signal opens a new one-unit trade, long or short, and holds it 25 days, so up to 25 trades are open at once. The rule’s position on a day is its open long trades minus its open short trades, and each day’s return is yesterday’s position times today’s return on TU, divided by 25. Elsewhere on this blog, [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a `genhurst` setting from Chan’s Hurst example on TU.
+**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. From the 251st day on, each day with a nonzero 12-month return opens a new one-unit trade, long or short, and holds it 25 days, so up to 25 trades are open at once. The rule’s position on a day is its open long trades minus its open short trades, and each day’s return is yesterday’s position times today’s return on TU, divided by 25. Elsewhere on this blog, [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a `genhurst` setting from Chan’s Hurst example on TU.
 
 **The file.** Chan’s own MATLAB file `inputDataOHLCDaily_20120511.mat`, saved on 2012-05-12, holds TU’s closes for 2,000 trading days from 2004-06-01 to 2012-05-11. The rule’s **observed mean**, its average daily return over those days, is 6.626644e-05. Every test below asks how often chance alone reaches that number. The script that runs the tests is `TU_mom_hypothesisTest.m`, as published with the book’s code.
 
@@ -88,7 +88,7 @@ That null assumes three things, and each is a choice.
 2. **They are normal.** The tails are no fatter than a bell curve’s.
 3. **Their true mean is zero.** That rules out drift in the strategy’s own returns.
 
-The second test drops the second assumption and keeps TU’s fat tails. Lesson 5 shows that it drops the third as well, because it keeps TU’s drift. It assumes only that TU’s simulated daily returns are independent. The strategy’s returns on them are not, because the rule’s overlapping trades carry each day’s position into the next.
+The second test drops the second assumption and keeps TU’s fat tails. Lesson 5 shows that it drops the third as well, because it keeps TU’s drift. Of the three, it keeps only a form of the first. It draws TU’s simulated daily returns independently, but the strategy’s returns on them are not independent, because the rule’s overlapping trades carry each day’s position into the next.
 
 ## Lesson 2: a simulated count lands only within sampling error, so the band comes first
 
@@ -126,7 +126,7 @@ The book’s count and the script’s comment cannot both come from the second t
 
 One of the three checks added after the trial run matches the script’s figure. It takes the rule’s actual positions, the ones it held on TU’s real closes, and applies them unchanged to each set of simulated returns. That gives 277 of 10,000, or 0.027700, inside the script’s 243 to 307.
 
-That is a test of a different question. The second test reruns the rule on each simulated price, so the rule chooses new positions every time. The added check keeps one fixed set of bets and asks how those bets would have paid on returns with TU’s moments. Nothing in the script runs it. The public copy of Chan’s code read here holds a single version of the script, so nothing shows where the comment came from. The numbers match, and the match says nothing about how the comment was made. This check came after the trial run, so it carries no verdict.
+That is a test of a different question. The second test reruns the rule on each simulated price, so the rule chooses new positions every time. The added check keeps one fixed set of bets and asks how those bets would have paid on returns with TU’s moments. Nothing in the script runs it. The public copy of Chan’s code read here holds a single version of the script, so nothing shows where the comment came from. The numbers match, but a match alone does not prove how the comment was made. This check came after the trial run, so it carries no verdict.
 
 The habit it teaches is to ask which test printed a figure before comparing it with anything. A p-value in a comment, a caption and a paragraph can come from three different runs.
 

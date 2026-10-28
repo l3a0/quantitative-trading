@@ -826,9 +826,12 @@ class TestWhatThePostQuotes:
     def test_the_rule_the_file_and_the_three_tests(self, sources, strategy, result, text):
         entry, closes = sources
         longs, shorts = int(strategy["longs"].sum()), int(strategy["shorts"].sum())
+        first_entry = int(np.flatnonzero(strategy["longs"] | strategy["shorts"])[0])
+        assert first_entry == LOOKBACK
         periods = len(tu_momentum.PERIODS)
         fragments = [
-            f"The code counts 12 months as {LOOKBACK} trading days and a month as {HOLD_DAYS}.",
+            f"The code counts 12 months as {LOOKBACK} trading days and a month as {HOLD_DAYS}. "
+            f"From the {first_entry + 1}st day on,",
             f"holds it {HOLD_DAYS} days, so up to {HOLD_DAYS} trades are open at once.",
             f"times today’s return on TU, divided by {HOLD_DAYS}.",
             f"Chan’s own MATLAB file `{SOURCE_FILE}`, saved on {entry.obtained}, holds TU’s "
@@ -857,10 +860,14 @@ class TestWhatThePostQuotes:
         assert int(BOOK_RANDOMIZED_TRADES_COUNT) == 0, "the post spells the book's 0 as none"
         assert self.missing(text, fragments) == []
 
-    def test_the_moments_and_the_pearson_type(self, moments, text) -> None:
+    def test_the_moments_and_the_pearson_type(self, moments, strategy, text) -> None:
         kappa = pearson_kappa(moments.skewness, moments.kurtosis)
         assert 0 < kappa < 1
+        market = strategy["market"]
+        assert market[0] == 0
         fragments = [
+            f"of the {len(market):,} daily returns the script computes for TU. The first of those "
+            f"returns is {market[0]:g}, because day one has no close before it.",
             f"A normal distribution’s kurtosis is 3, and TU’s is {moments.kurtosis:.6f}. So the "
             f"null keeps TU’s **drift**, its average daily return of {moments.mean:.6e},",
             f"TU’s κ is {kappa:.6f}, between 0 and 1, which puts it in type IV.",
