@@ -13,7 +13,8 @@ so both are stated once here and carried in every figure's failure message as
   ``SPX_20071123.mat``, saved 2007-11-24, read through ``load_panel``.
   ``spy_chan.csv``, the adjusted-close column of Chan's ``example6_2.xls``,
   saved 2008-01-29. FRED's TB3MS, downloaded 2026-09-30. The stock file is the
-  S&P 500 as it stood on 2007-11-23, so every figure here is about survivors.
+  S&P 500 as it stood on 2007-11-23, so every figure drawn from it is about
+  survivors.
 - **Specification.** :mod:`chan.low_beta_leverage` as the issue registered it
   on 2026-10-11, with the amendment of the same day. The panel cut to the days
   it shares with SPY. Betas from 252 daily excess returns with an intercept,
@@ -29,10 +30,10 @@ after the build found two ruined months and stopped. So the ruin case was
 settled after its first instance was visible, and the amendment names what
 had been seen by then.
 
-Registration does not make the span a holdout. Chan wrote the claim in 2008
-from "empirical studies", and the low-beta literature's own samples cover 1999
-to 2007. Every figure beside the verdict is a point estimate nothing tests, so
-it is exploratory and decides nothing.
+Registration does not make the span a holdout. Chan's premise comes from
+"empirical studies" of past prices, and 2000 to 2007 were past prices by the
+time the book printed the claim. Every figure beside the verdict is a point
+estimate nothing tests, so it is exploratory and decides nothing.
 
 The figures are pinned at four decimals, which is what the log quotes. The
 verdict and the ruin threshold compare unrounded values, so their tests read
@@ -555,7 +556,7 @@ class TestThePostQuotesTheRun:
     changed eight of its numbers one at a time, and none failed a test.
 
     The italic summary and the six lessons' list are not read, and neither are
-    the chart's caption, which no test reads, and the two alt texts, which
+    the chart's caption, which no test reads, and the three alt texts, which
     ``tests/test_low_beta_leverage_figures.py`` and
     ``tests/test_levered_low_beta_whiteboard.py`` read. Chan's quotations
     and Kindle locations, Lesson 5's account of what had been seen, and the

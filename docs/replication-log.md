@@ -10187,12 +10187,12 @@ stated here.
    below, a levered month returning −1 or less contradicts it by ruin, and
    then neither t nor the detectable gap is computed.
 
-**Every figure is about survivors.** The panel is the S&P 500 as it stood on
-2007-11-23, carried backwards, so a stock that left the index before then is
-in neither portfolio. Which side that flatters is not measured here.
-Leaving out high-beta stocks that fell out of the index would flatter the high
-side and work against the claim, and that is a hypothesis rather than a
-finding.
+**Every figure drawn from the stocks is about survivors.** The panel is the
+S&P 500 as it stood on 2007-11-23, carried backwards, so a stock that left the
+index before then is in neither portfolio. Which side that flatters is not
+measured here. Leaving out high-beta stocks that fell out of the index would
+flatter the high side and work against the claim, and that is a hypothesis
+rather than a finding.
 
 Row 1 is **registered**, under the issue's amendment of 2026-10-11. The plan
 and its criterion were written on the issue before any number was computed.
@@ -10204,10 +10204,10 @@ the calendar, the leverage path, the two ruined months, and both groups'
 unlevered returns for the first eight formations. So the ruin case and its
 wording were settled after its first instance was visible. Registration rules
 out a specification tuned on this panel by this repo. It does not make the
-span a holdout, because Chan wrote the claim in 2008 from "empirical studies"
-and the low-beta literature's own samples cover 1999 to 2007. Rows 2 to 9 are
-**exploratory**. The plan declared them, and each is a point estimate that
-nothing tests.
+span a holdout, because Chan's premise comes from "empirical studies" of past
+prices, and 2000 to 2007 were past prices by the time the book printed the
+claim. Rows 2 to 9 are **exploratory**. The plan declared them, and each is a
+point estimate that nothing tests.
 
 ### What the book stated
 
