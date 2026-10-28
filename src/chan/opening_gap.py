@@ -41,8 +41,10 @@ The line numbers are the blob's.
 
 1. **Line 13**, :func:`spread`.
    ``backshift(1, smartMovingStd(calculateReturns(cl, 1), 90))``, so day t
-   reads the 90 close-to-close returns ending at t − 1, through book two's
-   ``smartstd``, which divides by n. The first 90 rows carry no spread.
+   reads the close-to-close returns in the 90 rows ending at t − 1, through
+   book two's ``smartstd``, which skips a missing return, such as the first
+   row's, and divides by n, the number it keeps. The first 90 rows carry no
+   spread.
 2. **Lines 15 and 16**, :func:`qualifiers`. A long qualifies when
    ``op >= backshift(1, hi) · (1 + 0.1 · spread)`` and a short when
    ``op <= backshift(1, lo) · (1 − 0.1 · spread)``. Both tests are
@@ -134,7 +136,7 @@ arithmetic. It differs from the script in four places.
 4. **The Sharpe ratio.** ``np.std`` on a series divides by n, where line 26's
    ``std`` divides by n − 1.
 
-Its comments print ``#APR=0.074864 Sharpe=0.494857`` and
+Its comments record ``#APR=0.074864 Sharpe=0.494857`` and
 ``#Max DD=-0.233629 Max DDD in days=789``, which :data:`PORT_APR`,
 :data:`PORT_SHARPE`, :data:`PORT_MAX_DRAWDOWN` and
 :data:`PORT_MAX_DRAWDOWN_DAYS` hold. Under pandas 3 the port prints its first
@@ -181,7 +183,7 @@ from chan.vintage import VintageEntry, VintageUnavailable
 
 #: The save ``gapFutures_FSTX.m`` loads.
 SOURCE_FILE = "inputDataOHLCDaily_20120517.mat"
-#: The two earlier saves holding FSTX, read for one row each beside the replication.
+#: The two earlier saves holding 2,000 days of FSTX, read for one row each beside the replication.
 EARLIER_SAVES = ("inputDataOHLCDaily_20120511.mat", "inputDataOHLCDaily_20120507.mat")
 SYMBOL = "FSTX"
 #: The four fields the script loads, ``op``, ``hi``, ``lo`` and ``cl``.
@@ -193,7 +195,7 @@ READINGS = ("literal", "momentum")
 #: The two sides a day can hold, by the position lines 18 to 21 give it.
 SIDES = {"long": 1.0, "short": -1.0}
 
-#: The script's closing comment, ``APR=    0.1327 Sharpe=1.44``.
+#: The script's comment at line 27, ``APR=    0.1327 Sharpe=1.44``.
 SCRIPT_APR = "0.1327"
 SCRIPT_SHARPE = "1.44"
 #: Location 2965's "13 percent" and "1.4".
@@ -202,7 +204,7 @@ BOOK_SHARPE = "1.4"
 #: Location 2965's window, "from July 16, 2004, to May 17, 2012".
 BOOK_FIRST_DAY = pd.Timestamp("2004-07-16")
 BOOK_LAST_DAY = pd.Timestamp("2012-05-17")
-#: What ``gapFutures_FSTX.py`` prints in its comments, ``#APR=0.074864 Sharpe=0.494857``
+#: What ``gapFutures_FSTX.py`` records in its comments, ``#APR=0.074864 Sharpe=0.494857``
 #: and ``#Max DD=-0.233629 Max DDD in days=789``.
 PORT_APR = "0.074864"
 PORT_SHARPE = "0.494857"

@@ -1283,7 +1283,7 @@ holds and the literal rule on the two earlier saves. On synthetic days it
 holds both entry tests non-strict, a missing spread qualifying nothing, a
 short overriding a long, and the sign of each reading's open-to-close
 return. It also holds the read guarded. For Chan's Python port it pins the
-four figures the port's comments print, the days it holds each side, and
+four figures the port's comments record, the days it holds each side, and
 three variants that each swap one difference between the two programs. On
 synthetic days it holds the port's spread dividing by n − 1 and starting a
 row later, its short test flipped and non-strict, an open above the
@@ -1299,8 +1299,10 @@ the mean return on a held day, each side's returns and FSTX's move from the
 open on long, short and flat days, and the port earning the script's returns
 on every upward jump. On synthetic days it holds the split by side, the move
 from the open, and two saves run from the same first day so their windows
-cannot differ. The blog post about it is the exception, and what it says
-that nothing here asserts is listed below.
+cannot differ. `TestThePostQuotesTheRun` reads one copy in the post of each
+figure the post takes from the run, so editing a copy it reads fails. The
+section on the post below says which copies it leaves unread, and what the
+post says that nothing here asserts.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both
@@ -7469,8 +7471,8 @@ pins.
 
 1. The script's return line pays a long when the price falls from the open,
    so it sells an upward jump and buys a downward one, against the text's
-   description. Chan's Python port takes the text's sign, and a flipped short
-   test has it sell every upward jump all the same.
+   description. Chan's Python port takes the text's sign, but it also flips
+   the script's short test, so it still sells every upward jump.
 2. Both printed figures land on the script as written, 252 times the mean
    also rounds to 13 percent, and the first edition's `smartstd` changes no
    position.
@@ -7494,33 +7496,40 @@ Five groups of what it says are not pinned here.
    Figure 7.1's captions and GBPUSD's 7.2 percent and 1.3 at 2971, the stop
    orders triggered at the open at 2985, "a breakout strategy" at 3170, and
    the annualized average return and the VIX filter's threshold of 35, 2.6
-   percent and 0.16 at 3509. The threshold, 2.6 percent and 0.16 are pinned,
-   as book targets in `TestTheSpecification` in
-   [tests/test_vix_filter.py](tests/test_vix_filter.py), and its words are
-   not.
+   percent and 0.16 at 3509. The 13 percent and 1.4 are pinned as book
+   targets in `TestTheSpecification` in
+   [tests/test_opening_gap.py](tests/test_opening_gap.py), and
+   `TestThePostQuotesTheRun` reads them from Lesson 2's table and the chart's
+   alt text. The threshold, 2.6 percent and 0.16 are pinned the same way in
+   `TestTheSpecification` in
+   [tests/test_vix_filter.py](tests/test_vix_filter.py). None of the words
+   are.
 2. Facts about the scripts and the instrument rather than the data: line 23's
-   text and the closing comment in `gapFutures_FSTX.m` at `e4bc46f` of
+   text and the comment at its line 27 in `gapFutures_FSTX.m` at `e4bc46f` of
    ericnberwick/EpchanPreview, the name and source text of the Python port
    `gapFutures_FSTX.py`, which `chan.opening_gap.python_port` transcribes,
    that the STOXX Europe 50 is fifty large European companies once named the
    Dow Jones STOXX 50, and GBPUSD's open and close in Eastern time.
 3. Readings no test asserts: that triggered stops carry a move through the
    day, that the literal reading trades in buy on gap's direction, that a
-   roll between the 2012-05-11 and 2012-05-17 saves would shift the history
-   the way it moved, where [data/README.md](data/README.md) records only that
-   FSTX moves between them, that a round trip costing 0.002177 of the price
+   single roll between the 2012-05-11 and 2012-05-17 saves would shift every
+   shared day by one amount, that a round trip costing 0.002177 of the price
    would erase the mean, and that a split by year was measured and left out.
 4. Figures the post states in words or rounds from pinned ones, such as 12
    percent a year, about three quarters, fewer than a quarter and about a
-   quarter of the days, the upward jumps reversing more strongly, and Chan
-   saving at least three dated versions of the file. The figure's alt text
-   reads its curves approximately too.
+   quarter of the days, and the upward jumps reversing more strongly. The
+   chart's alt text also describes the shapes of its curves in words, such as
+   a line falling almost steadily, and no test reads those words. Its two
+   approximate figures, about 18 percent in July 2008 and the rise in late
+   2008, are read by `TestThePostQuotesTheRun`.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_opening_gap.py](tests/test_opening_gap.py), or to
 [tests/test_opening_gap_figures.py](tests/test_opening_gap_figures.py) for the
-figure's own numbers. The 100, 90 and 120 of its worked day are the synthetic
+figure's own numbers, or to
+[tests/test_opening_gap_whiteboard.py](tests/test_opening_gap_whiteboard.py)
+for the sketches'. The 100, 90 and 120 of its worked day are the synthetic
 day `TestTheRules::test_the_literal_return_fades_the_jump` holds. The port's
 figures, its 1,718 short days and its never holding a long trace to
 `TestChansPythonPort`. A save a week later moving the APR at the fourth
@@ -7538,7 +7547,9 @@ Eleven had no pin before the post.
 3. The 2012-05-07 and 2012-05-11 saves price all four fields alike on the
    1,997 days they share, and the window alone moves the APR by 0.002017.
 4. The 2012-05-11 save differs from the 2012-05-17 save on each of the four
-   fields on all but 45 of 1,996 days, by 24 distinct amounts.
+   fields on all but 45 of 1,996 days, by 24 distinct amounts, and the 45
+   are the last 45, from 2012-03-07. The post's review added that last
+   date.
 5. With the 2012-05-11 save run from 2004-07-16, the 2012-05-17 save's first
    day, the two runs hold a different position on 6 of those 1,996 days,
    with an APR of 0.133016 and a Sharpe ratio of 1.443075 against 0.130360
@@ -7563,6 +7574,19 @@ Eleven had no pin before the post.
     and the short days' end of 0.290022 on 2012-05-07 after a high of
     0.176401 on 2008-07-08 and a low of −0.038153 on 2009-02-20.
 
+`TestThePostQuotesTheRun` in
+[tests/test_opening_gap.py](tests/test_opening_gap.py) reads the post itself
+and checks one copy of each figure it takes from the run: every computed table
+row, every figure in the chart's alt text, the days in the market, the first
+trade, the days each of the three saves holds, the first day each of the
+script's and the port's standard deviations holds a value, the two sides, the
+two causes in Lesson 4 and the port's figures. It also checks Chan's printed
+figures, the three saves' names, the latest save's date and the comment's last
+digit, 0.0001, against the code's own record of them. A second copy of a
+figure, such as the first trade's date in the section on the rule, is not
+always read, and neither are the figures inside the sentences the post quotes
+from Chan, such as his GBPUSD and VIX results.
+
 Its one figure is drawn from the committed vintage by
 [src/chan/opening_gap_figures.py](src/chan/opening_gap_figures.py), which
 reads it through the same `read_sources` and `opening_gap` as
@@ -7583,6 +7607,38 @@ uv run python -m chan.opening_gap_figures
 [tests/test_opening_gap_figures.py](tests/test_opening_gap_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/opening_gap_whiteboard.py](src/chan/opening_gap_whiteboard.py) on
+the USD.CAD post's sketch machinery. Both sit in Lesson 1, each after the
+paragraph it draws.
+
+1. `opening_gap_sketch_two_signs.gif`, the worked day: a long day falling
+   from an open of 100 to a close of 90, and a short day rising from 100 to
+   120, on one price scale, with what the literal and momentum readings pay
+   on each, +10% and −10% for the long and +20% and −20% for the short.
+2. `opening_gap_sketch_port_never_long.gif`, the script's zones beside the
+   port's. Both cross the same two levels, and the port's short zone runs
+   from the lower level past the top of its long zone, which is redrawn as
+   short. Its foot prints the port's 0 long days, its 1,718 short days and
+   the 278 upward jumps it sold.
+
+The first is schematic and carries no figure from the data: its prices are
+the worked day, and its returns come from `daily_returns` on that day. The
+second's levels and zones are schematic, and its counts come from the run,
+through `read_sources` and `python_port`. Both build more slowly than the
+USD.CAD post's sketches and hold their finished drawings for twelve seconds,
+because each carries more than that pace lets a reader take in. Both draw in
+the shared inks, as the post's chart does. Redraw both with:
+
+```bash
+uv run python -m chan.opening_gap_whiteboard
+```
+
+[tests/test_opening_gap_whiteboard.py](tests/test_opening_gap_whiteboard.py)
+holds what each draws, that the worked day's returns are `daily_returns`'
+and its arrows sit on one price scale, that the port's counts are the run's,
+and that each GIF follows its paragraph in the post.
 
 [blog/pca-factor-momentum-lessons.md](blog/pca-factor-momentum-lessons.md) is
 a forty-first post, about whether the five statistical factors Example 7.4

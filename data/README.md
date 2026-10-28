@@ -1489,7 +1489,7 @@ the measurements below.
    4. VX takes 79 distinct differences between those two saves and agrees on
       3 of 1,997 days.
    5. FSTX moves between the 2012-05-11 and 2012-05-17 saves, with 25 distinct
-      differences, and agrees on 45 of 1,996 days.
+      differences, zero included, and agrees on 45 of 1,996 days.
    6. Of the 2012-05-04 save's 51 members, 18 agree with the 2012-05-07 save
       on every field of every shared day. 31 of the other 33 differ on one row,
       2012-05-04, the earlier save's last day. FFI differs on two, and BZ on

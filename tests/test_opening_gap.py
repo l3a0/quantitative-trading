@@ -1,9 +1,15 @@
 """The pins for the opening gap strategy on FSTX, *Algorithmic Trading*'s Example 7.1.
 
 This file is the single authority for every number a prose surface quotes
-about this replication, with one exception, in ``blog/opening-gap-lessons.md``.
-``TestWhatThePostMeasures`` holds that post's own numbers, and the post's
-figure labels are held by ``tests/test_opening_gap_figures.py``.
+about this replication, with two exceptions, both in
+``blog/opening-gap-lessons.md``. ``tests/test_opening_gap_figures.py`` holds
+the post's figure labels, and ``tests/test_opening_gap_whiteboard.py`` holds
+its two sketches' labels and alt text. ``TestWhatThePostMeasures`` holds that
+post's own numbers. ``TestThePostQuotesTheRun`` reads the post itself. It
+checks one copy of each figure the post takes from the run and every figure in
+the chart's alt text, and it checks what Chan printed, the three saves' names,
+the latest save's date and the comment's last digit against the code's own
+record of them. So a typo in any copy it reads fails a test.
 ``docs/replication-log.md`` Entry 40 carries the verdicts and points here row
 by row.
 
@@ -19,8 +25,8 @@ unless it names another, so they are stated once here.
 - **The two earlier saves.** ``inputdataohlcdaily_20120511/fstx.csv``, saved
   2012-05-12, and ``inputdataohlcdaily_20120507/fstx.csv``, saved
   2012-05-09, both chan-mat and adjusted. ``TestTheEarlierSaves``,
-  ``TestWhatThePostMeasures``, ``TestTheGuardAndTheReads`` and
-  ``TestTheReport`` read them.
+  ``TestWhatThePostMeasures``, ``TestTheGuardAndTheReads``, ``TestTheReport``
+  and ``TestThePostQuotesTheRun`` read them.
 - **Specification.** ``gapFutures_FSTX.m``, git blob ``02db940`` at
   EpchanPreview ``e4bc46f``, as ``chan.opening_gap`` transcribes it. The
   spread is ``backshift(1, smartMovingStd(calculateReturns(cl, 1), 90))``. A
@@ -63,7 +69,7 @@ import pytest
 from chan import matlab_helpers, paths
 from chan import opening_gap as module
 from chan.khandani_lo_book_two import gap, matches
-from chan.matlab_helpers import backshift, smartstd_first_edition
+from chan.matlab_helpers import backshift, drawdown_path, smartstd_first_edition
 from chan.opening_gap import (
     BOOK_APR_PERCENT,
     BOOK_FIRST_DAY,
@@ -102,6 +108,7 @@ from chan.opening_gap import (
     run,
     spread,
 )
+from chan.opening_gap_figures import cumulative_return, signed
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
@@ -426,7 +433,9 @@ class TestWhatThePostMeasures:
     def test_the_2012_05_17_save_restates_every_field(self, prices, earlier, field) -> None:
         """Against the 2012-05-11 save, on the 1,996 days the two share.
 
-        Distinct differences are rounded to the micro-unit, zero included, as
+        The 45 days that agree are the last 45, from 2012-03-07, which one roll
+        between the saves would have moved with the rest. Distinct differences
+        are rounded to the micro-unit, zero included, as
         ``tests/test_continuous_futures.py`` counts them for the close.
         """
         older = earlier["20120511"]
@@ -437,6 +446,7 @@ class TestWhatThePostMeasures:
         distinct = set(np.round(moved, 6))
         assert len(distinct) == 25
         assert len(distinct - {0.0}) == 24
+        assert list(shared[moved == 0]) == list(shared[shared >= day("2012-03-07")])
 
     def test_at_a_fixed_window_the_restated_prices_move_the_apr(self, prices, earlier) -> None:
         """The 2012-05-11 save is cut to start on 2004-07-16, the 2012-05-17 save's first day.
@@ -460,7 +470,7 @@ class TestWhatThePostMeasures:
         assert apr["20120507"] - apr["20120511"] == pytest.approx(0.002017, abs=5e-7)
 
     def test_each_move_is_over_ten_times_the_comment_s_last_digit(self, prices, earlier) -> None:
-        """The comment prints four decimals, so its last digit is 0.0001."""
+        """The comment records four decimals, so its last digit is 0.0001."""
         last_digit = 10.0 ** -len(SCRIPT_APR.split(".")[1])
         assert last_digit == pytest.approx(0.0001)
         shared = on_shared_days(prices, earlier["20120511"])
@@ -1226,3 +1236,270 @@ class TestChansPythonPort:
             "long on 1 days, short on 1, flat on 1, both tests passed on 1"
         )
         assert lines[-1] == "  Exploratory. docs/replication-log.md carries the verdicts."
+
+
+POST = paths.REPO_ROOT / "blog" / "opening-gap-lessons.md"
+
+
+def _f(value: float) -> str:
+    """A figure at six decimals, with the true minus sign the post's prose uses."""
+    printed = f"{abs(value):.6f}"
+    return f"−{printed}" if value < 0 else printed
+
+
+def _tex(value: float) -> str:
+    """A figure at six decimals as a table cell writes it, with an ASCII minus."""
+    return f"{value:.6f}"
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure in ``blog/opening-gap-lessons.md``, read from the post itself.
+
+    The tests above derive these numbers and the post states them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review shifted 108 numbers in it at once, and none failed a test. Each
+    check reads one copy, keyed on a short phrase or a table row, so another
+    copy of the same figure elsewhere in the post, such as the first trade's
+    date in the section on the rule, is not read. Every figure in the chart's
+    alt text is read, through the arithmetic the chart draws with. What Chan
+    printed, the three saves' names, the latest save's date and the comment's
+    last digit are checked against the code's own record of them.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_two_readings_table(self, result) -> None:
+        lit, mom = result.literal_figures, result.momentum_figures
+        end_lit = float(np.prod(1 + result.literal) - 1)
+        end_mom = float(np.prod(1 + result.momentum) - 1)
+        for row in (
+            rf"\text{{APR}} & {_tex(lit.apr)} & {_tex(mom.apr)} \\",
+            rf"\text{{Sharpe ratio}} & {_tex(lit.sharpe)} & {_tex(mom.sharpe)} \\",
+            rf"\text{{Cumulative return}} & {_tex(end_lit)} & {_tex(end_mom)} \\",
+            rf"\text{{Maximum drawdown}} & {_tex(lit.max_drawdown)} & {_tex(mom.max_drawdown)} \\",
+            rf"\text{{Longest drawdown}} & {lit.max_drawdown_days} \text{{ days}} & "
+            rf"{mom.max_drawdown_days:,}".replace(",", "{,}")
+            + r" \text{ days}",
+        ):
+            assert row in self.text, row
+
+    def test_the_printed_figures_table_and_the_opening_list(self, result) -> None:
+        lit, mom = result.literal_figures, result.momentum_figures
+        assert (
+            rf"\text{{Computed}} & {_tex(lit.apr)} & {_tex(lit.sharpe)} & "
+            rf"{_tex(lit.average_annual_return)} \\"
+        ) in self.text
+        assert f"The APR is {_f(lit.apr)} and the Sharpe ratio {_f(lit.sharpe)}," in self.text
+        assert f"earn an APR of {_f(mom.apr)} and a Sharpe ratio of {_f(mom.sharpe)}." in self.text
+        assert f"and 252 times the mean daily return, {_f(lit.average_annual_return)}." in self.text
+
+    def test_the_days_in_the_market(self, result) -> None:
+        held = result.positions != 0
+        long, short = int((result.positions == 1).sum()), int((result.positions == -1).sum())
+        flat = int((result.positions == 0).sum())
+        n = len(result.positions)
+        assert f"It holds a position on {int(held.sum())} of {n:,} days." in self.text
+        assert f"long on {long}, short on {short} and flat on {flat:,}." in self.text
+        assert (
+            f"The mean return on a day holding a position is {_f(result.literal[held].mean())}."
+        ) in self.text
+
+    def test_the_first_trade_and_the_days_after_it(self, result) -> None:
+        first = int(np.argmax(result.positions != 0))
+        assert f"On {result.days[first].date()}, the first day holding a position" in self.text
+        assert f"the literal reading gains {_f(result.literal[first])}" in self.text
+        assert f"Over the {len(result.days) - first:,} days from then" in self.text
+
+    def test_the_sides_table_and_its_prose(self, prices, result) -> None:
+        sides, moves = by_side(result), open_to_close(prices, result)
+        long, short = sides["long"], sides["short"]
+        for row in (
+            rf"\text{{Days}} & {long.days} & {short.days} \\",
+            rf"\text{{Daily returns, summed}} & {_tex(long.summed)} & {_tex(short.summed)} \\",
+            rf"\text{{Compounded}} & {_tex(long.compounded)} & {_tex(short.compounded)} \\",
+            rf"\text{{APR}} & {_tex(long.figures.apr)} & {_tex(short.figures.apr)} \\",
+            rf"\text{{Sharpe ratio}} & {_tex(long.figures.sharpe)} & "
+            rf"{_tex(short.figures.sharpe)} \\",
+            rf"\text{{FSTX’s mean move}} & {_tex(moves['long'].mean)} & "
+            rf"{_tex(moves['short'].mean)} \\",
+            rf"\text{{Closes against the jump}} & {moves['long'].below} & {moves['short'].above}",
+        ):
+            assert row in self.text, row
+        total = float(result.literal.sum())
+        assert f"they earn {_f(long.summed)} of the {_f(total)} that all" in self.text
+        assert (
+            f"One plus the long side’s {_f(long.compounded)}, times one plus the short side’s "
+            f"{_f(short.compounded)}, gives one plus the whole curve’s "
+            f"{_f(float(np.prod(1 + result.literal) - 1))}."
+        ) in self.text
+        assert f"closed below the open on {moves['long'].below} of the {long.days} days" in (
+            self.text
+        )
+        assert f"closed above the open on {moves['short'].above} of the {short.days}." in self.text
+        assert (
+            f"On the {moves['flat'].days:,} flat days after the first 90, its mean move from "
+            f"the open is {_f(moves['flat'].mean)}."
+        ) in self.text
+
+    def test_the_saves_table(self, prices, earlier) -> None:
+        runs = {
+            "20120507": earlier["20120507"],
+            "20120511": earlier["20120511"],
+            "20120517": prices,
+        }
+        figs = {save: opening_gap(frame).literal_figures for save, frame in runs.items()}
+        order = ("20120507", "20120511", "20120517")
+        assert (
+            r"\text{From} & "
+            + " & ".join(rf"\text{{{runs[s].index[0].date()}}}" for s in order)
+            + r" \\"
+        ) in self.text
+        assert (
+            r"\text{To} & "
+            + " & ".join(rf"\text{{{runs[s].index[-1].date()}}}" for s in order)
+            + r" \\"
+        ) in self.text
+        assert (r"\text{APR} & " + " & ".join(_tex(figs[s].apr) for s in order) + r" \\") in (
+            self.text
+        )
+        assert (r"\text{Sharpe} & " + " & ".join(_tex(figs[s].sharpe) for s in order)) in (
+            self.text
+        )
+        (held,) = {len(frame) for frame in runs.values()}
+        assert f"three of them hold FSTX over {held:,} days, a different {held:,} in each." in (
+            self.text
+        )
+
+    def test_the_two_causes(self, prices, earlier) -> None:
+        older, newer = earlier["20120507"], earlier["20120511"]
+        window = opening_gap(older).literal_figures.apr - opening_gap(newer).literal_figures.apr
+        alike = older.index.intersection(newer.index)
+        assert f"identically on all {len(alike):,} days they share" in self.text
+        assert "1. **The window alone.** The 2012-05-07 and 2012-05-11 saves price" in self.text
+        assert (
+            "2. **The restated prices alone.** The 2012-05-11 and 2012-05-17 saves share"
+            in self.text
+        )
+        assert f"the window moves the APR by {_f(window)}." in self.text
+        restated = newer.index.intersection(prices.index)
+        moved = (prices.loc[restated, "Close"] - newer.loc[restated, "Close"]).to_numpy()
+        agree = restated[moved == 0]
+        nonzero = len(set(np.round(moved, 6)) - {0.0})
+        assert f"saves share {len(restated):,} days. On all but {len(agree)} of them" in self.text
+        assert f"the differences take {nonzero} distinct values" in self.text
+        assert f"the last {len(agree)} shared days, from {agree[0].date()}, do not move" in (
+            self.text
+        )
+        shared = on_shared_days(prices, newer)
+        assert (
+            f"a different position on {shared.differ} days, and the APR moves from "
+            f"{_f(shared.other.apr)} to {_f(shared.one.apr)}, by "
+            f"{_f(shared.one.apr - shared.other.apr)}."
+        ) in self.text
+
+    def test_the_port(self, result, port) -> None:
+        up = result.positions == SIDES["long"]
+        short = port.positions == SIDES["short"]
+        n = len(port.positions)
+        assert (
+            f"The port is short on {int(short.sum()):,} of the {n:,} days, every one of the "
+            f"{int(up.sum())} upward jumps among them."
+        ) in self.text
+        other = short & ~up
+        assert (
+            f"They sum to {_f(float(port.returns[up].sum()))}, and the port’s other "
+            f"{int(other.sum()):,} short days sum to {_f(float(port.returns[other].sum()))}."
+        ) in self.text
+        assert (
+            f"among them an APR of {_f(port.figures.apr)} and a Sharpe ratio of {_f(port.sharpe)}."
+        ) in self.text
+
+    def test_the_chart_s_alt_text(self, result) -> None:
+        """Every figure in the chart's alt text, by the arithmetic the chart draws with.
+
+        Each marked value is what :mod:`chan.opening_gap_figures` draws, through
+        ``cumulative_return``, ``drawdown_path``, ``by_side`` and ``signed``, picked
+        out the way that module picks it. The short side's high, which the chart
+        does not mark, is its highest point before its low, and the red line's
+        rise is dated by the year of the drawdown's trough.
+        ``tests/test_opening_gap_figures.py`` holds that the chart draws these
+        values.
+        """
+        alt = next(p for p in self.text.split("\n\n") if p.startswith("![Two charts on one"))
+        days, lit, mom = result.days, result.literal_figures, result.momentum_figures
+        literal, momentum = cumulative_return(result.literal), cumulative_return(result.momentum)
+        _, drawdown, duration = drawdown_path(literal)
+        trough = int(np.argmin(drawdown))
+        high = int(np.argmax(literal[: trough + 1]))
+        last = int(np.argmax(duration))
+        sides = by_side(result)
+        long = cumulative_return(sides["long"].daily)
+        short = cumulative_return(sides["short"].daily)
+        low = int(np.argmin(short))
+        peak = int(np.argmax(short[:low]))
+        assert momentum[trough] > momentum[high]
+        for phrase in (
+            "as a solid black line, beside the same trades with the sign the text describes "
+            "as a red line",
+            "The title calls the figure exploratory.",
+            f"with a brief rise in late {days[trough]:%Y}",
+            f"from {days[0]:%B %Y} to {days[-1]:%B %Y}",
+            f"covers the first {SPREAD_LOOKBACK} days, to {days[SPREAD_LOOKBACK - 1].date()},",
+            f"a marked high of {signed(literal[high], 6)} on {days[high].date()}",
+            f"a marked trough of {signed(literal[trough], 6)} on {days[trough].date()}",
+            f"stays below that high for {duration[last]} days to {days[last].date()}",
+            f"end at its highest, {signed(100 * literal[-1])} percent",
+            f"ends at its lowest, {signed(100 * momentum[-1])} percent",
+            f"the script’s APR of {lit.apr:.6f} and Sharpe ratio of {lit.sharpe:.6f} beside the "
+            f"book’s {BOOK_APR_PERCENT} percent and {BOOK_SHARPE}, and the described sign’s "
+            f"{signed(mom.apr, 6)} and {signed(mom.sharpe, 6)}.",
+            f"on the {sides['long'].days} long days only",
+            f"on the {sides['short'].days} short days only",
+            f"climbs to end at its highest, {signed(100 * long[-1])} percent",
+            f"a high of about {100 * short[peak]:.0f} percent in {days[peak]:%B %Y}",
+            f"a marked low of {signed(short[low], 6)} on {days[low].date()}",
+            f"ends at its highest, {signed(100 * short[-1])} percent. The title",
+        ):
+            assert phrase in alt, phrase
+
+    def test_the_spread_s_first_days(self, prices, result) -> None:
+        days = result.days
+        script = int(np.argmax(~np.isnan(result.spread)))
+        port = int(np.argmax(~np.isnan(python_port_spread(prices["Close"]))))
+        assert (
+            f"the first {SPREAD_LOOKBACK} rows, from {days[0].date()} to "
+            f"{days[SPREAD_LOOKBACK - 1].date()}, hold nothing."
+        ) in self.text
+        assert (
+            f"Its first value falls on {days[port].date()}, the trading day after the script’s "
+            f"first on {days[script].date()}."
+        ) in self.text
+
+    def test_chan_s_printed_figures_and_the_save_names(self, sources, prices, earlier) -> None:
+        """What Chan printed, which save is which, and the comment's last digit, none computed."""
+        entry, _ = sources
+        assert f"`{SOURCE_FILE}`, saved {entry.obtained} and recorded" in self.text
+        older, newer = sorted(EARLIER_SAVES)
+        assert f"Two earlier saves, `{older}` and `{newer}`, also hold" in self.text
+        assert rf"\text{{Comment}} & {SCRIPT_APR} & {SCRIPT_SHARPE} & \text{{none}} \\" in (
+            self.text
+        )
+        assert (
+            rf"\text{{Book}} & {BOOK_APR_PERCENT} \text{{ percent}} & {BOOK_SHARPE} & \text{{none}}"
+        ) in self.text
+        saved = sorted(
+            day(name.split("_")[1].removesuffix(".mat")) for name in (*EARLIER_SAVES, SOURCE_FILE)
+        )
+        assert (
+            r"\text{Save} & " + " & ".join(rf"\text{{{s.date()}}}" for s in saved) + r" \\"
+        ) in self.text
+        places = len(SCRIPT_APR.split(".")[1])
+        unit = 10.0**-places
+        assert f"one unit of the comment’s last printed digit, {unit:.{places}f}." in self.text
+        assert "Each move is more than ten times one unit" in self.text
+        window = (
+            opening_gap(earlier["20120507"]).literal_figures.apr
+            - opening_gap(earlier["20120511"]).literal_figures.apr
+        )
+        shared = on_shared_days(prices, earlier["20120511"])
+        assert min(abs(window), abs(shared.one.apr - shared.other.apr)) > 10 * unit
