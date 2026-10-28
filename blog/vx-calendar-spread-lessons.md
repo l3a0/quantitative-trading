@@ -49,7 +49,7 @@ The book names VX, the ratio, the 15-day lookback and the window, and leaves the
    4. The 15-day lookback.
    5. The window from 2008-10-27 to the file’s last day, 2012-05-07, which is 889 days.
 2. **B1** trades the ratio of the pair the script holds that day, the far contract over the near one, instead of the ratio of the nearest two. The script’s own comment calls the held pair’s far and near contracts the back and the front.
-3. **B2** sets the minimum holding period to 0, so B2 holds each pair from the day after the previous pair ends to 10 days before its own near contract expires.
+3. **B2** sets the minimum holding period to 0, so B2 holds each pair from the day after the previous pair ends to 10 days before its own near contract’s last priced day, which the script takes as its expiry.
 4. **B3** is B1’s signal with B2’s holding period.
 5. **B4** is S measured to 2012-04-23, the book’s end date, 879 days.
 
@@ -80,7 +80,7 @@ The ADF test says the ratio returns to a long-run level. The trade earns only if
 
 ## Lesson 2: the signal reads one pair and the trade holds another
 
-The script holds each pair for at least 63 days and lets it go 10 days before its near contract’s last priced day, which the script takes as its expiry, so it opens each pair at least 73 days before that day. VX contracts expire every month, so 73 trading days before a contract expires, three earlier contracts are still trading and that contract is the fourth nearest. S opens most of its pairs earlier still, when four earlier contracts are trading and the near leg is the fifth. So the pair the script holds is usually not the front pair. S’s signal reads the front pair all the same, because that is what the book’s “ratio back/front” most plainly means.
+The script holds each pair for at least 63 days and lets it go 10 days before its near contract’s last priced day, which the script takes as its expiry, so it opens each pair at least 73 days before that day. VX contracts expire every month, so 73 trading days before a contract’s last priced day, three earlier contracts are still trading and that contract is the fourth nearest. S opens most of its pairs earlier still, when four earlier contracts are trading and the near leg is the fifth. So the pair the script holds is usually not the front pair. S’s signal reads the front pair all the same, because that is what the book’s “ratio back/front” most plainly means.
 
 ![A whiteboard sketch titled “S holds one pair while its signal reads four”, drawn slowly and holding its finished drawing for twelve seconds. A grey trading-day axis runs along the bottom from early February to late May 2009, with a grey tick below it at each front contract’s last priced day, named and dated under it: “VX-2009G” and “Feb, 02-18”, “VX-2009H” and “Mar, 03-18”, “VX-2009J” and “Apr, 04-15”, and “VX-2009K” and “May, 05-20”. A grey note at the bottom reads “each tick: a contract’s last priced day, which the script takes as its expiry”. A thick black bar near the top, with “S holds” on its left and “near VX-2009K, far VX-2009M: 02-04 to 05-06, 64 days” above it, ends before the VX-2009K tick, and a thin grey bracket runs from its end to that tick, labelled “10 days to its” and “last priced day”. Under the bar a row of four thin black spans gives the near leg’s place among the contracts priced each day: “4th” above the first, with “near leg’s place” on its left and “10 days” below it, then “3rd” with “20 days”, “2nd” with “19 days”, and “front” above the last, which sits in a pale green box with a green edge labelled “same pair: 15 days” in green. Under that a row of four brown spans gives the front pair the signal reads, each ending at its front contract’s tick: “G and H”, with “signal reads” on its left, then “H and J”, “J and K” and “K and M”, the last running past the end of the black bar to the VX-2009K tick.](../docs/figures/vx_calendar_spread_sketch_one_hold.gif)
 
@@ -130,7 +130,7 @@ B3 matches the book’s figures on the book’s own window. Measured to 2012-04-
 Two things single B3 out from the other four readings.
 
 1. **It rounds to both printed figures**, on the book’s window.
-2. **It is the only reading that does worse before October 2008**, as the book’s third claim says. From its first held day, 2007-01-23, to 2008-10-24, its APR is −0.074173 and its Sharpe ratio −0.562291. S, B1 and B2 each do better before October 2008 than after. The bottom panel shows it.
+2. **It is the only reading that does worse before October 2008**, as the book’s third claim says. From the first day it holds a position, 2007-01-23, to 2008-10-24, its APR is −0.074173 and its Sharpe ratio −0.562291. S, B1 and B2 each do better before October 2008 than after. The bottom panel shows it.
 
 A third thing looks like evidence for B3 and is not. B3’s last held day is 2012-04-23, the book’s printed end date, and so is B2’s. VX-2012K is the May 2012 contract. It is the near leg of the last pair B2 and B3 hold, and it still trades on the file’s last day. The script marks a contract as expired on the last day it has a price, so it reads 2012-05-07 as VX-2012K’s expiry and lets go of the pair 10 days earlier, on 2012-04-23. So the book’s end date is what holding each pair in turn produces on this file. That is evidence for the way B2 and B3 hold pairs, and it does not tell the two apart.
 

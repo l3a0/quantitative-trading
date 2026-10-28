@@ -54,8 +54,9 @@ sign-of-z flip and the return divided by 2.
 2. B2 sets ``holddays=0``, so each pair is held from the day after the
    previous pair's last day to 10 rows before its own expiry. The first pair
    is never held, and a pair whose near contract still trades on the file's
-   last row is skipped once an earlier such pair has taken the rows to the
-   end, so VX holds 64 of its 71 pairs.
+   last row is skipped once an earlier such pair has ended on the row where
+   its own would end, 10 rows before the file's last, so VX holds 64 of its
+   71 pairs.
 3. B3 is B1 and B2 together.
 4. B4 is S measured to 2012-04-23, the book's end date.
 

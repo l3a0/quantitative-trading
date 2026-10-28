@@ -152,9 +152,9 @@ def _before_panel(ax, result: VxCalendarSpread) -> None:
     first = min(result.before[key].returns.index[0] for key in ROWS_BEFORE)
     _heading(
         ax,
-        f"Each reading's APR before October 2008, from its first held day ({first.date()} at the "
-        "earliest) to 2008-10-24,\nbeside its APR from 2008-10-27. Only B3 does worse before, "
-        "as the book says of its rule.",
+        f"Each reading's APR before October 2008, from its first day with a position "
+        f"({first.date()} at the earliest)\nto 2008-10-24, beside its APR from 2008-10-27. "
+        "Only B3 does worse before, as the book says of its rule.",
     )
 
 

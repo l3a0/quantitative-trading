@@ -197,7 +197,8 @@ class TestTheSignalsOnVx:
 
     def test_holddays_0_holds_64_of_vxs_71_pairs(self, strip) -> None:
         """The first pair's window is one row, and six pairs whose near contract still
-        trades on 2012-05-07 are skipped once VX-2012K's pair has taken the rows to the end."""
+        trades on 2012-05-07 are skipped, because VX-2012K's pair already ends on
+        2012-04-23, the row where each of theirs would end."""
         schedule = calendar_schedule(
             strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
         )
@@ -677,7 +678,7 @@ class TestWhatThePostQuotes:
             f"Measured to the file’s last day, they are {b3.apr:.6f} and {b3.sharpe:.6f}.",
             f"That APR is {100 * b3.apr:.1f} percent, which misses {BOOK_APR_PERCENT} percent by "
             f"{-gap(100 * b3.apr, BOOK_APR_PERCENT)} percentage points",
-            f"From its first held day, {early.returns.index[0].date()}, to "
+            f"From the first day it holds a position, {early.returns.index[0].date()}, to "
             f"{early.returns.index[-1].date()}, its APR is {_minus(early.apr, 6)} and its "
             f"Sharpe ratio {_minus(early.sharpe, 6)}.",
             f"B3’s last held day is {b3.last_held.date()}, the book’s printed end date",

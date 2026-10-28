@@ -283,9 +283,9 @@ class TestTheRowsBeforeOctober2008:
 
     def test_the_heading_names_the_windows_and_the_claim(self, axes) -> None:
         assert _title(axes["before"]) == (
-            "Each reading's APR before October 2008, from its first held day (2006-11-10 at the "
-            "earliest) to 2008-10-24,\nbeside its APR from 2008-10-27. Only B3 does worse "
-            "before, as the book says of its rule."
+            "Each reading's APR before October 2008, from its first day with a position "
+            "(2006-11-10 at the earliest)\nto 2008-10-24, beside its APR from 2008-10-27. "
+            "Only B3 does worse before, as the book says of its rule."
         ), SPEC
 
     def test_signed_prints_a_true_minus_sign(self) -> None:
