@@ -567,7 +567,7 @@ class TestWhatThePostQuotes:
             f"{index[-1].date()}.",
             f"The crude oil script pairs each contract with the one expiring "
             f"{SHIPPED_SPREAD_MONTH} months later.",
-            f"The script holds each pair for at least {HOLDDAYS} days, its own minimum",
+            f"S keeps the script’s own minimum, which holds each pair for at least {HOLDDAYS} days,",
             f"The window from {s.returns.index[0].date()} to the file’s last day, "
             f"{s.returns.index[-1].date()}, which is {len(s.returns):,} days.",
             f"**B4** is S measured to {b4.returns.index[-1].date()}, the book’s end date, "

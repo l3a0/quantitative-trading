@@ -1,6 +1,6 @@
 # Chan’s VIX calendar spread reverts on his own file, and the plainest reading of his text loses
 
-*Chan reports that the ratio of a far VIX future to a near one returns to its average, and that trading it earned 17.7 percent a year. On his own file the ratio passes the test, the trade read most plainly from his text loses 4.0 percent a year, and one of five readings of his text, written down before the run, matches his figures, which makes the match the result of a search.*
+*Chan reports that the ratio of a far VIX future to a near one returns to its average, and that trading it earned 17.7 percent a year. On his own file the ratio passes the test, the trade read most plainly from his text loses 4.0 percent a year, and one of five readings of his text, all written down before the run, matches his figures. Picking that one out after the run makes the match the result of a search.*
 
 ## Why trade the ratio of two VIX futures
 
@@ -14,7 +14,7 @@ The model of futures prices Chan uses for crude oil “works only for a future w
 
 ### What the reproduction found
 
-Chan’s published code has no script for the VX calendar spread. The script for crude oil’s calendar spread, `calendarSpdsMeanReversion.m`, opens with a line loading Chan’s VX file. That line is commented out, meaning turned into a note the script skips, and the line below it loads crude oil. So he most likely ran that script on VX. This repository ran it the same way, on that file.
+Chan’s published code has no script for the VX calendar spread. The script for crude oil’s calendar spread, `calendarSpdsMeanReversion.m`, opens with a line loading Chan’s VX file. That line is commented out, meaning turned into a note the script skips, and the line below it loads crude oil. That VX line suggests he ran the script on VX, with the line switched on. This repository ran it the same way, on that file.
 
 The results fall into four groups. Each result rests on a reading, meaning one way of filling in what the book’s text leaves open.
 
@@ -42,7 +42,7 @@ Each pair has two legs. The near leg is the contract that expires first and the 
 
 The book names VX, the ratio, the 15-day lookback and the window, and leaves the rest to the reader. So before computing any APR, Sharpe ratio or ADF statistic on VX, this repository wrote down one reading of the text, called S, and four more beside it. Writing all five down first means none could have been tuned to match. Picking the one that matches is still a choice made after the run, and Lesson 3 weighs it.
 
-1. **S, the plainest reading.** The script holds each pair for at least 63 days, its own minimum, and S makes five edits to it.
+1. **S, the plainest reading.** S keeps the script’s own minimum, which holds each pair for at least 63 days, and makes five edits to the script.
    1. The VX file.
    2. Contracts one month apart.
    3. The ratio of the front pair, the nearest two priced contracts, as the signal.
@@ -117,7 +117,7 @@ Three of the four readings beside S change which pair the signal reads, how each
 \end{array}
 ```
 
-The two readings whose signal reads the pair they hold are the two that earn. The logic of the bets suggests why, without settling it. A rule that sells a spread when its own z-score is high bets on that spread reverting. A rule that sells one spread when another spread’s z-score is high bets on the two moving together, which nothing here tested. Four readings written down in advance cannot establish a cause, and B2 argues against treating the pattern as one. Its signal reads the pair it holds on 459 of its 879 days, against S’s 126 of 847, and it loses more than S does.
+The two readings whose signal always reads the pair they hold, B1 and B3, are the two that earn. The logic of the bets suggests why, without settling it. A rule that sells a spread when its own z-score is high bets on that spread reverting. A rule that sells one spread when another spread’s z-score is high bets on the two moving together, which nothing here tested. Four readings written down in advance cannot establish a cause, and B2 argues against treating the pattern as one. Its signal reads the pair it holds on 459 of its 879 days, against S’s 126 of 847, and it loses more than S does.
 
 ## Lesson 3: one reading of five matches the book, and that is a search
 
