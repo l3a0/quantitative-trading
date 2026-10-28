@@ -30,14 +30,14 @@ pins the arithmetic.
 **No row passes, and none is registered yet. Six rows wait only on data.**
 
 1. **No row passes the pass mark.** A row passes with an after-cost t at 5 bp
-   a side of at least t* = 5.200, on a span no search had loaded. The only
+   a side of at least t\* = 5.200, on a span no search had loaded. The only
    statistics in either repository on such a span are registered holdouts, and
    the largest of them is a bound of 3.70 before costs, on a series whose
    other bound is −4.96. Every other figure was computed on loaded data, so it
    cannot pass whatever its size.
 2. **Six rows meet two of the three registration conditions.** Each has a
    positive Sharpe ratio after 5 bp a side and enough unloaded history that the
-   ratio, if it held, would reach t*. The third condition, that the data for
+   ratio, if it held, would reach t\*. The third condition, that the data for
    that history can be bought, is not yet shown for any of them. They are two
    rules.
    1. Entry 44's reversal at the open on the S&P 600, at 2.0257 after costs,
@@ -47,7 +47,7 @@ pins the arithmetic.
       32.89 years before Chan's file, and the lowest reading needs 26.25.
 3. **Sixteen more rows could become registrable once measured at 5 bp a side.**
    Their Sharpe ratios before costs, carried over the history no search loaded,
-   reach t*. None has an after-cost figure.
+   reach t\*. None has an after-cost figure.
 
 [Issue 777](https://github.com/l3a0/quantitative-trading/issues/777) carries
 both open steps. It finds out whether the data for the six can be bought, and
@@ -71,7 +71,7 @@ before any row was computed. In short:
 1. **The adjustment is Bonferroni.** A row passes when its after-cost t reaches
    the t whose one-sided normal tail equals the tail at t = 2 divided by N.
    That tail is 0.02275, so at N variants the hurdle is
-   t* = Φ⁻¹(1 − 0.02275 / N).
+   t\* = Φ⁻¹(1 − 0.02275 / N).
 2. **The t is the entry's own pinned t at 5 bp a side.** Where only a Sharpe
    ratio is pinned, t is the annualized Sharpe ratio times the root of the
    span's years. Where no after-cost figure is pinned, the before-cost t is an
@@ -82,7 +82,7 @@ before any row was computed. In short:
 4. **A row is registered only if a holdout test could pass.** That needs a
    positive after-cost Sharpe ratio, an unloaded span whose data exists or can
    be bought, and enough of that span for the Sharpe ratio, held exactly, to
-   reach t*.
+   reach t\*.
 
 "No search loaded" here means no run in either repository computed a
 statistic from the instrument's or universe's data over that span. A file read
@@ -100,7 +100,7 @@ but modest edge.
 
 ## How the variants were counted
 
-**N = 228,274 variants across both repositories, which puts t* at 5.200.**
+**N = 228,274 variants across both repositories, which puts t\* at 5.200.**
 
 A variant is one combination of rule, parameters, instrument or universe, and
 span whose trading return was computed. A cell rerun at another cost is the
@@ -160,7 +160,7 @@ could pick, and are left out.
 
 The pass verdict does not depend on these choices. Dropping Entry 34's scans,
 and counting the sibling's grids once per instrument and span, leaves
-N = 2,302 and t* = 4.268. No row passes at that hurdle either, and the largest
+N = 2,302 and t\* = 4.268. No row passes at that hurdle either, and the largest
 t at 5 bp a side on any span is 2.0217. The lower hurdle does widen the
 registration screen, which
 [What this ranking cannot say](#what-this-ranking-cannot-say) states.
@@ -208,7 +208,7 @@ figure at 5 bp.
 | Entry 41, VX against ES on VX's roll return | 1.030894 before any cost, 1.002020 under the script's 1 bp | no, the book's 2010 to 2012 | 3 | VX from its 2004-03-26 launch to 2004-05-31, and VX and ES from 2012-05-09 | not stated | no estimate | one day a signal, 224 of 448 test days held | needs 25.44 of 14.57 years |
 | Entry 16, Conditional Parameter Optimization on GLD and GDX minutes, the unconditional arm | 5.700 before costs, −7.614 at 1 bp a round trip. The conditional arm is 5.274 and −6.122 | no, the book's 2018 to 2020 | 803 | GLD and GDX minutes from 2021, which the archive holds and no run has computed on | not stated | no estimate | intraday, 46.7 round trips a day | negative after costs |
 | Sibling, registered put credit spread | t −2.26 on SPY and −2.51 on IWM at 0.5 bp (`docs/put_credit_spread_results.md:32-35`) | yes, registered and computed | 142 | none | not stated | not stated | about 11 spreads a year | negative |
-| Sibling, real-chain covered call | no cell above t +0.73, the hedged MSFT book at mid fills. The unhedged MSFT book is at Newey-West t −1.73 at bid and ask fills (`README.md:81`, `docs/explorations.md:289-292`) | walk-forward only | 152 | none | not stated | not stated | about 18 calls a year | below t* before costs |
+| Sibling, real-chain covered call | no cell above t +0.73, the hedged MSFT book at mid fills. The unhedged MSFT book is at Newey-West t −1.73 at bid and ask fills (`README.md:81`, `docs/explorations.md:289-292`) | walk-forward only | 152 | none | not stated | not stated | about 18 calls a year | below t\* before costs |
 | Sibling, volume-profile reversal, S&P 400 over 10 days | the trade earns +6.45 bp gross over 2016 to 2026, −2.16 bp over 2016 to 2021 and +16.11 bp over 2022 to 2026. Against a random-entry control the excess is +9.50 bp at Newey-West t 6.41 (`data/volume_profile_universe_results.json`, the `sp400` pool's `prior_lb20_b48_va70_s1_h10d` reversion cells) | the 2022 to 2026 holdout was computed, and the full span includes it | in the 20 | before 2016, if intraday bars are bought | not stated | not stated | 10 days | a 10 bp round trip exceeds the 6.45 bp trade |
 | Sibling, intraday breakout continuation | +6.5 bp at touch fills, below an 8 to 15 bp round trip. Mean R −0.22 net of 10 bp (`docs/explorations.md:1299-1320`, `:1384-1388`) | no | 46 | before 2016, if bought | not stated | not stated | intraday | negative after costs |
 
@@ -285,8 +285,8 @@ arithmetic, and count no variants.
 | Covered call in R-multiples | daily t +1.25 at most, with no hedge cost (`docs/explorations.md:680`, `:699`) | no | 42 with the coda | SPY chains before 2008, if bought | not stated | not stated | 30 days | needs 277.79 of 11.99 years |
 | Gap G, portfolio combinations | t 1.54 against its better leg's 2.47, and 1.01 against 2.56 (`docs/explorations.md:403-410`) | no | inside Gap E, G and the exits' 16 | as above | not stated | not stated | 30 days | needs 176.84 of 11.99 years |
 | QQQ one-day wheel | negative on all 48 cells. The hedged companion's +2.40 charges the hedge nothing (`docs/explorations.md:922-933`, `:978-988`) | no | 30 | not worked out | not stated | not stated | one day, about 124 sales a year | negative, and the companion is not screened |
-| Factor panel, 63 information coefficients | Newey-West \|t\| 1.52, with no cost and on a coefficient rather than a return (`docs/factor_real_panel.md:44-45`) | no | 63 | not assessed | not stated | not stated | one day | below t* before costs |
-| Proxy covered call | Newey-West t +0.46 on simulated chains (`README.md:50-52`) | walk-forward only | 36 | not applicable | not stated | not stated | about 18 calls a year | below t* |
+| Factor panel, 63 information coefficients | Newey-West \|t\| 1.52, with no cost and on a coefficient rather than a return (`docs/factor_real_panel.md:44-45`) | no | 63 | not assessed | not stated | not stated | one day | below t\* before costs |
+| Proxy covered call | Newey-West t +0.46 on simulated chains (`README.md:50-52`) | walk-forward only | 36 | not applicable | not stated | not stated | about 18 calls a year | below t\* |
 | Support and resistance catalog | 0 of 384 cells beat random entry (`docs/explorations.md:1095-1107`) | no | 384 | not assessed | not stated | not stated | by horizon | no edge |
 | Cup-and-handle scan | below the random null at every horizon (`docs/explorations.md:1503-1510`) | no | 12 | not assessed | not stated | not stated | by horizon | no edge |
 | Exit and sizing studies, random-entry replication | expectancy in R rather than a t. The best is +0.0011R pooled over 195,900 trades (`docs/explorations.md:488-501`) | no | inside the 16, and 3 | not assessed | not stated | not stated | a median of about 40 days | no t to test |
@@ -294,9 +294,9 @@ arithmetic, and count no variants.
 ## The registration screen
 
 A holdout can pass only if the years it covers are enough for the row's Sharpe
-ratio to reach t*. Held exactly, a Sharpe ratio S reaches t* after
-(t* / S)² years, and a t of t measured over Y years reaches it after
-Y × (t* / t)² years. Every positive row is screened this way in
+ratio to reach t\*. Held exactly, a Sharpe ratio S reaches t\* after
+(t\* / S)² years, and a t of t measured over Y years reaches it after
+Y × (t\* / t)² years. Every positive row is screened this way in
 `TestTheScreen`, except the QQQ wheel's hedged companion, whose unloaded span
 has not been worked out. Each Sharpe ratio is after 5 bp a side where one is
 pinned, and before costs otherwise.
@@ -405,9 +405,9 @@ needed, which is an addition the owner approves or replaces.
 
 The span after today is the one span no search can have loaded, so it is the
 one every row has. It is slow. Held exactly, a row's after-cost Sharpe ratio
-reaches t* after (t* / Sharpe)² years of forward data:
+reaches t\* after (t\* / Sharpe)² years of forward data:
 
-| Row | After-cost Sharpe | Years to reach t* = 5.200 |
+| Row | After-cost Sharpe | Years to reach t\* = 5.200 |
 | --- | --- | --- |
 | Entry 44, S&P 600 at the open | 2.0257 | 6.6 |
 | Entry 50, rebuilt S&P 600 at the open | 1.6903 | 9.5 |
@@ -423,7 +423,7 @@ every row here.
    the six can be bought.** That is
    [issue 777](https://github.com/l3a0/quantitative-trading/issues/777).
 2. **Whether the counting rules are right.** N moves by two orders of
-   magnitude between the rules and the narrowest reading, and t* moves from
+   magnitude between the rules and the narrowest reading, and t\* moves from
    5.200 to 4.268. No row passes at either hurdle. The lower one would add
    Entry 31 and Entry 52 to the rows to measure, and Entry 50's rebuilt S&P 600
    and Entry 10's rule B to the rows that wait on data, which
