@@ -1,4 +1,4 @@
-"""The pins for the twenty-eight whiteboard GIFs in the commodity seasonals post.
+"""The pins for the twenty-nine whiteboard GIFs in the commodity seasonals post.
 
 Three sketches draw the opening: the two trades on one calendar, the years
 each won in the book's years and after, and the fall inside 2002's natural
@@ -14,12 +14,12 @@ which later range holds its earlier mean, what the Mann-Whitney test counts,
 what its chance means, the four chances against the 5% line, and how one year
 moves natural gas's mean but not its ranks. Five draw Lesson 5: which numbered file holds
 June, a handover, which years each check reaches, an entry on March's last
-day, and a holiday row. One draws Further work, a cliff beside a plateau.
-The data scenes are built from the natural gas and gasoline runs on the
-committed EIA files rather than from a pinned copy of their figures. Most
-tests check the drawing against the run, and a few check the run against
-literal dates, counts and labels the post quotes, such as
-test_the_run_gives_these_dates_and_files.
+day, and a holiday row. Two draw Further work, a cliff beside a plateau and
+the three rules for a closed date. The data scenes are built from the natural
+gas and gasoline runs on the committed EIA files rather than from a pinned copy
+of their figures. Most tests check the drawing against the run, and a few
+check the run against literal dates, counts and labels the post quotes, such
+as test_the_run_gives_these_dates_and_files.
 
 1. The two-trades sketch draws each trade's entry and exit as a bar on one
    calendar. What is pinned is that each bar runs from the run's entry date to
@@ -147,6 +147,12 @@ test_the_run_gives_these_dates_and_files.
    that Chan's dot sits on each curve at its panel's centre, that the cliff
    falls back to its floor close to that dot while the plateau stays near
    its top well to either side, and that the board says it is schematic.
+29. The closed-date sketch draws the week of gasoline's 2019 entry date and
+   an arrow for each rule. What is pinned is that a dot stands on exactly the
+   trading days and a cross on the closed ones, that each arrow runs from the
+   trade date to the day its rule gives, which for Chan's is the run's entry
+   day, that the caption's counts are the run's, and that another year moves
+   the arrows and the labels.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, every
@@ -185,6 +191,10 @@ from chan.commodity_seasonals_whiteboard import (
     CHANCE_POINT,
     CHANCE_ROWS,
     CHANCE_X0,
+    CLOSED_DAYS,
+    CLOSED_DX,
+    CLOSED_X0,
+    CLOSED_YEAR,
     EDGE_YEAR,
     EXCHANGE_LAST_TRADES,
     FIRST_EDITION,
@@ -212,6 +222,7 @@ from chan.commodity_seasonals_whiteboard import (
     T_UNIT,
     ChanceRow,
     CheckCoverage,
+    ClosedDateFigures,
     DrawdownFigures,
     FillTwoFigures,
     GasolineFigures,
@@ -229,6 +240,8 @@ from chan.commodity_seasonals_whiteboard import (
     _chan_needs_gaps,
     _chances,
     _check_coverage,
+    _closed_date,
+    _closed_x,
     _count_x,
     _cover_x,
     _day_x,
@@ -274,6 +287,7 @@ from chan.commodity_seasonals_whiteboard import (
     _two_trades,
     _year_x,
     chance_rows,
+    closed_years,
     edge_years,
     gif_name,
     june_years,
@@ -333,6 +347,7 @@ GIFS = [
     "commodity_sketch_edge_day.gif",
     "commodity_sketch_holiday_rows.gif",
     "commodity_sketch_plateau.gif",
+    "commodity_sketch_closed_date.gif",
 ]
 
 #: The paragraph each GIF follows, by its opening words.
@@ -365,6 +380,7 @@ FOLLOWS = (
     "In 10 of the 30 years, the entry date falls",
     "The run computes its own calendar of trading days",
     "The search asks whether the neighbourhood of Chan’s rules holds up",
+    "Chan’s rule keeps a trade inside his dates",
 )
 
 TWO_TRADES_LABELS = [
@@ -778,6 +794,18 @@ PLATEAU_LABELS = [
     "schematic, drawn to no scale",
 ]
 
+CLOSED_LABELS = [
+    "April 2019",
+    *("Thu 11", "Fri 12", "Sat 13", "Sun 14", "Mon 15", "Tue 16"),
+    "weekend: closed",
+    "trade date: Sat Apr 13",
+    "Chan’s: the next trading day",
+    "outward: the trading day before",
+    "nearest trading day: Fri is 1 day away, Mon 2",
+    "gasoline, May contract",
+    "A trade date falls on a closed day in 17 of 29 gasoline years and 11 of 30 natural gas years.",
+]
+
 #: The same limits the USD.CAD sketches hold, in pixels.
 CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
 
@@ -902,7 +930,7 @@ def _or(words: list[str]) -> str:
 
 
 class TestTheScenes:
-    def test_there_are_twenty_eight_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_twenty_nine_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -947,6 +975,7 @@ class TestTheScenes:
             "half_width": ("natural gas", "June contract"),
             "handover": ("natural gas", "March contract"),
             "edge_day": ("natural gas", "June contract"),
+            "closed_date": ("gasoline", "May contract"),
         }
         exceptions = {
             "two_trades",
@@ -1076,6 +1105,7 @@ class TestTheGifs:
             "edge_day",
             "holiday_rows",
             "plateau",
+            "closed_date",
         )
         assert sketches.SLOWER == {
             "gasoline_editions": (250, 1800),
@@ -3404,3 +3434,140 @@ class TestThePlateauSketch:
         assert alt.count("purple dot") == 2
         assert "stays high well to either side of it" in alt
         assert "just left of its highest point" in alt
+
+
+# --- Further work: the rule for a closed date ---------------------------------
+
+
+def _tip(stroke) -> float:
+    """Where an arrow's head points: the point of its shaft farthest from its start."""
+    return float(stroke.x[np.argmax(np.abs(stroke.x - stroke.x[0]))])
+
+
+@pytest.fixture(scope="module")
+def closed():
+    return ClosedDateFigures.from_run()
+
+
+class TestTheClosedDateFigures:
+    def test_the_run_moves_2019s_saturday_entry_to_monday(self, closed) -> None:
+        """The post's case: April 13, 2019 is a Saturday, Chan's rule enters on
+        Monday the 15th, and Friday the 12th is both the trading day before and
+        the nearest one, one day back against two ahead."""
+        assert closed.trade_date == date(CLOSED_YEAR, *seasonals.GASOLINE_ENTRY)
+        assert closed.trade_date == date(2019, 4, 13) and closed.trade_date.weekday() == 5
+        assert closed.chans == seasonals.gasoline_trade(CLOSED_YEAR).entry_day
+        assert closed.chans == futures.next_trading_day(closed.trade_date) == date(2019, 4, 15)
+        assert closed.outward == futures.previous_trading_day(closed.trade_date)
+        assert closed.outward == date(2019, 4, 12)
+        assert (closed.back, closed.ahead) == (1, 2)
+        assert closed.nearest == closed.outward
+
+    def test_the_counts_are_the_years_with_a_trade_date_on_a_closed_day(self, closed) -> None:
+        """Counted a second way, from the calendar alone: a year counts when its
+        entry or exit date is not a trading day."""
+
+        def count(entry, exit_, years):
+            first, last = years
+            return sum(
+                1
+                for y in range(first, last + 1)
+                if not is_trading_day(date(y, *entry)) or not is_trading_day(date(y, *exit_))
+            ), last - first + 1
+
+        gasoline = count(
+            seasonals.GASOLINE_ENTRY, seasonals.GASOLINE_EXIT, seasonals.GASOLINE_YEARS
+        )
+        gas = count(seasonals.NG_ENTRY, seasonals.NG_EXIT, seasonals.NG_YEARS)
+        assert (closed.gasoline_closed, closed.gasoline_years) == gasoline == (17, 29)
+        assert (closed.ng_closed, closed.ng_years) == gas == (11, 30)
+        trades = seasonals.gasoline_trades(*seasonals.GASOLINE_YEARS)
+        assert CLOSED_YEAR in closed_years(
+            trades, seasonals.GASOLINE_ENTRY, seasonals.GASOLINE_EXIT
+        )
+
+    def test_a_tie_names_no_nearest_day(self) -> None:
+        """April 13, 2047 is a Saturday after Good Friday, two days from
+        Thursday and two from Monday, so the nearest-day rule names no day and
+        the sketch refuses to draw it."""
+        tie = ClosedDateFigures.from_run(2047)
+        assert (tie.back, tie.ahead, tie.nearest) == (2, 2, None)
+        with pytest.raises(ValueError, match="equally far"):
+            _closed_date(tie)
+
+
+class TestTheClosedDateSketch:
+    def test_its_words(self, every) -> None:
+        assert every[28].title == "Three rules for a closed entry date"
+        assert every[28].labels == CLOSED_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[28]
+        assert _stroke(scene, "chans").color == ACCENT
+        assert _label(scene, "Chan’s: the next trading day").color == ACCENT
+        for gid, text in (
+            ("outward", "outward: the trading day before"),
+            ("nearest", "nearest trading day: Fri is 1 day away, Mon 2"),
+        ):
+            assert _stroke(scene, gid).color == INK
+            assert _label(scene, text).color == INK
+        assert _stroke(scene, "week").color == MUTED
+        trade_date = _stroke(scene, "trade-date")
+        assert trade_date.color == MUTED and trade_date.dashed
+        assert _label(scene, "weekend: closed").color == LOST
+        assert _label(scene, CLOSED_LABELS[-2]).color == MUTED
+        assert _label(scene, CLOSED_LABELS[-1]).color == MUTED
+
+    def test_each_day_sits_on_one_scale_with_a_dot_if_open_and_a_cross_if_closed(
+        self, every, closed
+    ) -> None:
+        scene = every[28]
+        for k in CLOSED_DAYS:
+            day = closed.trade_date + timedelta(days=k)
+            mark = _stroke(scene, f"day-{day.day}")
+            x = CLOSED_X0 + (k - CLOSED_DAYS[0]) * CLOSED_DX
+            assert _closed_x(day, closed) == pytest.approx(x)
+            assert float(np.mean([mark.x.min(), mark.x.max()])) == pytest.approx(x)
+            assert _label(scene, f"{day:%a} {day.day}").x == pytest.approx(x)
+            if is_trading_day(day):
+                assert (mark.points, mark.color) == (1, INK), day
+            else:
+                assert (mark.points > 1, mark.color) == (True, LOST), day
+        crosses = [s for s in scene.strokes if s.gid.startswith("day-") and s.color == LOST]
+        assert len(crosses) == 2
+
+    def test_each_arrow_runs_from_the_trade_date_to_its_rules_day(self, every, closed) -> None:
+        scene = every[28]
+        start = _stroke(scene, "trade-date").x[0]
+        assert start == pytest.approx(_closed_x(closed.trade_date, closed))
+        for gid, day in (
+            ("chans", closed.chans),
+            ("outward", closed.outward),
+            ("nearest", closed.nearest),
+        ):
+            arrow = _stroke(scene, gid)
+            assert arrow.x[0] == pytest.approx(start), gid
+            assert _tip(arrow) == pytest.approx(_closed_x(day, closed)), gid
+            assert is_trading_day(day), gid
+        assert _tip(_stroke(scene, "chans")) > start > _tip(_stroke(scene, "outward"))
+
+    def test_another_year_moves_the_arrows_and_the_labels(self) -> None:
+        """April 13, 1997 is a Sunday, so Monday is both Chan's day and the
+        nearest, and only the outward rule goes back to Friday."""
+        f = ClosedDateFigures.from_run(1997)
+        scene = _closed_date(f)
+        assert f.nearest == f.chans == seasonals.gasoline_trade(1997).entry_day
+        assert _tip(_stroke(scene, "nearest")) == pytest.approx(_closed_x(f.chans, f))
+        assert "trade date: Sun Apr 13" in scene.labels
+        assert "nearest trading day: Mon is 1 day away, Fri 2" in scene.labels
+        moved = dataclasses.replace(f, gasoline_closed=16, ng_closed=12)
+        assert (
+            "A trade date falls on a closed day in 16 of 29 gasoline years and 12 of 30 natural"
+            " gas years."
+        ) in _closed_date(moved).labels
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[28])
+        assert "a vermilion cross on the Saturday and the Sunday" in alt
+        assert "a purple arrow runs forward to the Monday" in alt
+        assert "two black arrows run back to the Friday" in alt

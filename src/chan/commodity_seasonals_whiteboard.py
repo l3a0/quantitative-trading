@@ -1,7 +1,7 @@
 """Whiteboard sketches for the commodity seasonals post, from its opening to Further work.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Twenty-eight of its passages turn on a picture a
+trades against EIA's settlements. Twenty-nine of its passages turn on a picture a
 sentence has to build in the reader's head: when each trade buys and sells,
 how many years each won in the book's years and after, how a drawdown can
 fall inside a winning year, where a count of
@@ -16,9 +16,10 @@ results widen a range, where natural gas's ±12% comes from, which later range
 holds its earlier mean, what the Mann-Whitney test counts, what its chance
 means, how the four chances sit against the 5% line, how one year moves
 natural gas's mean but not its ranks, which numbered file holds the June
-contract on a given day, how the expiry rule behind it is checked, and what
-shape a search across a trade's parameters looks for. This
-module draws those twenty-eight as scenes, and the post places each right after
+contract on a given day, how the expiry rule behind it is checked, what
+shape a search across a trade's parameters looks for, and where each rule
+for a closed date moves a trade date. This
+module draws those twenty-nine as scenes, and the post places each right after
 the paragraph it draws.
 
 1. Two trades on one calendar: natural gas's June contract from February 25
@@ -171,10 +172,17 @@ the paragraph it draws.
    around it on the right. It sits under "One search across every
    parameter", after the paragraph opening "The search asks whether the
    neighbourhood".
+29. Three rules for a closed entry date: the week of gasoline's 2019 entry
+   date, Saturday, April 13, with a dot on each trading day and a cross on
+   each day of the weekend, and an arrow for each rule. Chan's moves the
+   entry forward to Monday, and the outward rule and the nearest trading day
+   both move it back to Friday. A caption counts the years in which a trade
+   date falls on a closed day. It sits under "The rule for a closed date",
+   after the paragraph opening "Chan’s rule keeps a trade inside his dates".
 
-The first twenty-seven carry data, and none needs the owner's archive. The
-cliff-or-plateau sketch is schematic: its curves are shapes, not figures from
-the run, and it says so on the board.
+Every sketch but the cliff-or-plateau carries data, and none needs the owner's
+archive. The cliff-or-plateau sketch is schematic: its curves are shapes, not
+figures from the run, and it says so on the board.
 The two-trades sketch reads its dates from the run's trade dates,
 :data:`chan.commodity_seasonals.NG_ENTRY` and the three beside it, and
 :meth:`SplitFigures.from_run` reads every year of both trades from
@@ -213,7 +221,12 @@ sketches count from too, and :func:`chance_rows` reads the four chances from
 The handover and holiday sketches read the contract-1 and contract-2 files.
 :meth:`JuneYear.from_run` reads one year's entry and exit days and file
 numbers from :func:`chan.commodity_seasonals.natural_gas_trade`, and each
-contract's last trading day from :func:`chan.futures.ng_last_trade`. Three
+contract's last trading day from :func:`chan.futures.ng_last_trade`.
+:meth:`ClosedDateFigures.from_run` reads gasoline's 2019 entry day from
+:func:`chan.commodity_seasonals.gasoline_trade`, the trading days either side
+of April 13 from :func:`chan.futures.previous_trading_day` and
+:func:`chan.futures.next_trading_day`, and the years in which either trade
+moved a date off its calendar day from both trades' runs. Three
 figures are the book's rather than the run's: the counts 13 and 14 Chan
 prints, which the two-trades sketch writes and the streak sketch looks up in
 the run's streaks, gasoline's 19 profitable years of 21 as of 2015, which four
@@ -231,7 +244,7 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
-all twenty-eight are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all twenty-nine are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
 gasoline editions, half-width and pairs sketches are in :data:`SLOWER` too,
@@ -244,7 +257,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-eight with::
+with no change is a no-op diff. Redraw all twenty-nine with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -263,7 +276,13 @@ from scipy import stats
 
 from chan import commodity_seasonals as seasonals
 from chan.commodity_seasonals_figures import GASOLINE_BOOK_END, NG_BOOK_END
-from chan.futures import is_trading_day, ng_last_trade, ng_lead_days
+from chan.futures import (
+    is_trading_day,
+    next_trading_day,
+    ng_last_trade,
+    ng_lead_days,
+    previous_trading_day,
+)
 from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED
@@ -4162,6 +4181,205 @@ def _plateau() -> Scene:
     return Scene("A cliff or a plateau", "plateau", tuple(steps))
 
 
+# --- Further work: the rule for a closed date ---------------------------------
+
+#: The gasoline year whose entry date the closed-date sketch draws. April 13,
+#: 2019 is a Saturday, and the rules move it to different days.
+CLOSED_YEAR = 2019
+#: The days the calendar shows, counted from the trade date.
+CLOSED_DAYS = range(-2, 4)
+CLOSED_X0, CLOSED_DX = 1.9, 1.1
+CLOSED_AXIS_Y = 1.45
+#: The heights of the three rules' arrows: Chan's, the outward rule and the
+#: nearest trading day.
+CLOSED_ARROWS = (3.2, 2.65, 2.1)
+
+
+def closed_years(trades: list[seasonals.Trade], entry: tuple, exit_: tuple) -> tuple[int, ...]:
+    """The years in which the run moved a trade's entry or exit off its
+    calendar date, because that date was not a trading day."""
+    return tuple(
+        t.year
+        for t in trades
+        if t.entry_day != date(t.year, *entry) or t.exit_day != date(t.year, *exit_)
+    )
+
+
+@dataclass(frozen=True)
+class ClosedDateFigures:
+    """One gasoline entry date on a closed day, the day each rule moves it to,
+    and how many years of each trade have a trade date on a closed day.
+
+    ``nearest`` is ``None`` when the trading days either side are equally far,
+    because the nearest-day rule then names no single day.
+    """
+
+    trade_date: date
+    chans: date
+    outward: date
+    nearest: date | None
+    back: int
+    ahead: int
+    gasoline_closed: int
+    gasoline_years: int
+    ng_closed: int
+    ng_years: int
+
+    @classmethod
+    def from_run(cls, year: int = CLOSED_YEAR) -> ClosedDateFigures:
+        trade_date = date(year, *seasonals.GASOLINE_ENTRY)
+        before, after = previous_trading_day(trade_date), next_trading_day(trade_date)
+        back, ahead = (trade_date - before).days, (after - trade_date).days
+        nearest = before if back < ahead else after if ahead < back else None
+        gasoline = seasonals.gasoline_trades(*seasonals.GASOLINE_YEARS)
+        gas = seasonals.natural_gas_trades(*seasonals.NG_YEARS)
+        return cls(
+            trade_date=trade_date,
+            chans=seasonals.gasoline_trade(year).entry_day,
+            outward=before,
+            nearest=nearest,
+            back=back,
+            ahead=ahead,
+            gasoline_closed=len(
+                closed_years(gasoline, seasonals.GASOLINE_ENTRY, seasonals.GASOLINE_EXIT)
+            ),
+            gasoline_years=len(gasoline),
+            ng_closed=len(closed_years(gas, seasonals.NG_ENTRY, seasonals.NG_EXIT)),
+            ng_years=len(gas),
+        )
+
+
+def _closed_x(day: date, f: ClosedDateFigures) -> float:
+    """Where a day sits on the calendar, one day to one step."""
+    return CLOSED_X0 + ((day - f.trade_date).days - CLOSED_DAYS[0]) * CLOSED_DX
+
+
+def _weekday_day(day: date) -> str:
+    """A day as the calendar names it, such as ``Sat Apr 13``."""
+    return f"{day:%a} {day:%b} {day.day}"
+
+
+def _closed_date(f: ClosedDateFigures) -> Scene:
+    """Further work's rule for a closed date: where Chan's rule, the outward
+    rule and the nearest trading day move gasoline's entry when April 13
+    falls on a weekend."""
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "week",
+            _line(
+                [
+                    (CLOSED_X0 - 0.5, CLOSED_AXIS_Y),
+                    (CLOSED_X0 + (len(CLOSED_DAYS) - 1) * CLOSED_DX + 0.5, CLOSED_AXIS_Y),
+                ]
+            ),
+            color=MUTED,
+            frames=6,
+        ),
+        Label(
+            f"{f.trade_date:%B %Y}",
+            CLOSED_X0 - 0.7,
+            CLOSED_AXIS_Y,
+            names="week",
+            size=10,
+            ha="right",
+        ),
+    ]
+    closed = []
+    for k in CLOSED_DAYS:
+        day = f.trade_date + timedelta(days=k)
+        x = _closed_x(day, f)
+        steps.append(
+            Label(
+                f"{day:%a} {day.day}",
+                x,
+                CLOSED_AXIS_Y - 0.45,
+                names="week",
+                color=MUTED,
+                size=10,
+                ha="center",
+            )
+        )
+        if is_trading_day(day):
+            steps.append(_dot(f"day-{day.day}", x, CLOSED_AXIS_Y, color=INK))
+        else:
+            steps.append(_cross(f"day-{day.day}", x, CLOSED_AXIS_Y, LOST))
+            closed.append((x, f"day-{day.day}"))
+    steps.append(
+        Label(
+            "weekend: closed",
+            sum(x for x, _ in closed) / len(closed),
+            CLOSED_AXIS_Y - 0.82,
+            names=closed[-1][1],
+            color=LOST,
+            size=10,
+            ha="center",
+        )
+    )
+    x0 = _closed_x(f.trade_date, f)
+    steps += [
+        _stroke(
+            "trade-date",
+            _line([(x0, CLOSED_ARROWS[0] + 0.3), (x0, CLOSED_AXIS_Y + 0.25)], per_unit=10),
+            color=MUTED,
+            dashed=True,
+            frames=4,
+        ),
+        Label(
+            f"trade date: {_weekday_day(f.trade_date)}",
+            x0,
+            CLOSED_ARROWS[0] + 0.6,
+            names="trade-date",
+            color=INK,
+            size=10,
+            ha="center",
+        ),
+    ]
+    if f.nearest is None:
+        raise ValueError(f"{f.trade_date}: the trading days either side are equally far")
+    before, after = f.outward, f.trade_date + timedelta(days=f.ahead)
+    near, far = (before, after) if f.nearest == before else (after, before)
+
+    def away(day: date) -> int:
+        return abs((day - f.trade_date).days)
+
+    near_days = f"{away(near)} day" + ("" if away(near) == 1 else "s")
+    for gid, day, y, color, text in (
+        ("chans", f.chans, CLOSED_ARROWS[0], ACCENT, "Chan’s: the next trading day"),
+        ("outward", f.outward, CLOSED_ARROWS[1], INK, "outward: the trading day before"),
+        (
+            "nearest",
+            near,
+            CLOSED_ARROWS[2],
+            INK,
+            f"nearest trading day: {near:%a} is {near_days} away, {far:%a} {away(far)}",
+        ),
+    ):
+        x1 = _closed_x(day, f)
+        steps += [
+            _stroke(
+                gid,
+                _arrow(x0, y, x1, y),
+                color=color,
+                width=3.0 if gid == "chans" else 2.2,
+                frames=6,
+            ),
+            Label(text, max(x0, x1) + 0.2, y, names=gid, color=color, size=10),
+        ]
+    steps += [
+        Label("gasoline, May contract", 9.7, 0.6, names="chans", color=MUTED, size=10, ha="right"),
+        Label(
+            f"A trade date falls on a closed day in {f.gasoline_closed} of {f.gasoline_years}"
+            f" gasoline years and {f.ng_closed} of {f.ng_years} natural gas years.",
+            0.3,
+            0.25,
+            names="chans",
+            color=MUTED,
+            size=10,
+        ),
+    ]
+    return Scene("Three rules for a closed entry date", "closed_date", tuple(steps))
+
+
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
@@ -4195,6 +4413,7 @@ PACED = (
     "edge_day",
     "holiday_rows",
     "plateau",
+    "closed_date",
 )
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 #: Paced scenes the owner still found too fast, with each one's stroke frame
@@ -4284,7 +4503,7 @@ def scenes(
     split: SplitFigures | None = None,
     drawdown: DrawdownFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The twenty-eight scenes in the order the post reads them, from the opening
+    """The twenty-nine scenes in the order the post reads them, from the opening
     to Further work."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
@@ -4316,6 +4535,7 @@ def scenes(
         _june_file(*years),
         *_expiry_scenes(),
         _plateau(),
+        _closed_date(ClosedDateFigures.from_run()),
     )
 
 

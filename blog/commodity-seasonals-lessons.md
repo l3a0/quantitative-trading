@@ -492,6 +492,8 @@ If seasonal demand drives the gain, a neighbouring delivery month bought and sol
 
 Chan’s rule keeps a trade inside his dates whenever one falls on a weekend or a holiday. The alternatives move it outward, entering on the trading day before and exiting on the one after, or move both dates to the nearest trading day. The choice of rule matters only in years when a trade date falls on a closed day. In those years it can change which ones win. So each alternative is one more variant, counted against the search’s pass mark like any other.
 
+![“Three rules for a closed entry date”, drawn slowly stroke by stroke. A grey line, “April 2019”, carries one week numbered “Thu 11”, “Fri 12”, “Sat 13”, “Sun 14”, “Mon 15” and “Tue 16”, with a black dot on each trading day and a vermilion cross on the Saturday and the Sunday, labelled “weekend: closed”. A grey dashed line rises from the Saturday under “trade date: Sat Apr 13”. From it a purple arrow runs forward to the Monday, labelled “Chan’s: the next trading day”, and two black arrows run back to the Friday, labelled “outward: the trading day before” and “nearest trading day: Fri is 1 day away, Mon 2”. A grey note reads “gasoline, May contract”, and a caption reads “A trade date falls on a closed day in 17 of 29 gasoline years and 11 of 30 natural gas years.” The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_closed_date.gif)
+
 ### Position size
 
 Each year stakes one contract’s entry value, so every year counts equally in the mean. A trader might size each year smaller the more the contract has been moving, which weights calm years more than wild ones. Sizing changes the mean return, the Sharpe ratio and the drawdown, but never which years won.
