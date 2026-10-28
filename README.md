@@ -6482,18 +6482,17 @@ Six groups of what it says are not pinned here.
 2. Facts about the script rather than the data: its commented-out load of the
    VX file, its pairs 12 months apart, its flip where the z-score is above 0,
    its return summed over the legs that have one and halved, its roll 10 days
-   before expiry, its expiry marked on a contract's last priced day, and four
-   contracts traded at each roll of pairs that share no contract, as the
-   script's 12-month pairs and S's never do, all at `e4bc46f` of
-   ericnberwick/EpchanPreview.
+   before expiry, and its expiry marked on a contract's last priced day, all
+   at `e4bc46f` of ericnberwick/EpchanPreview.
 3. Readings no test asserts: that the ratio rises on exactly the days a spread
    long the back contract and short the front earns, that four readings show a
    pattern rather than a cause, and that a rule selling one spread on another's
    z-score bets on the two moving together.
 4. Figures the post states in words rather than from the run: three or four
-   months between pairs, three or four earlier contracts still trading, and
-   that B2 reads its held pair on more of its days than S does. The figure's
-   alt text reads its curves approximately too.
+   months between pairs, three earlier contracts still trading 73 days before
+   an expiry and four when most of S's pairs open, and that B2 reads its held
+   pair on more of its days than S does. The figure's alt text reads its
+   curves approximately too.
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states several figures more than once, in its opening, a lesson, a table or
    the closing list, and a typo in a copy the class does not read passes.
