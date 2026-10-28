@@ -4,12 +4,12 @@
 
 ## Why filter a strategy on the VIX
 
-A risk indicator is a number read before a trade that is meant to say how risky the next day will be. If one worked, a trader could stand aside on the days it flags. Ernest Chan’s *Algorithmic Trading* argues that no single one serves every strategy: “There is no one risk indicator that is applicable to all strategies: What is a risky period to one strategy may be a highly profitable period for another” (Chan, 2013, location 3509).
+A risk indicator is a number read before a trade that is meant to say how risky the next day will be. If one worked, a trader could stand aside on the days it flags. Ernest Chan’s *Algorithmic Trading* argues that no single one serves every strategy: “There is no one risk indicator that is applicable to all strategies: What is a risky period to one strategy may be a highly profitable period for another” (Chan, 2013, Kindle edition, p. 269).
 
-He makes the case with the **VIX**, an index the Chicago Board Options Exchange computes from the prices of options on the S&P 500. It measures the swings those options imply for the next month, so it rises when traders expect turmoil. Chan keeps only the days after VIX closed above 35, “a common threshold for highly risky periods” (location 3509), and reruns two rules the book already ran.
+He makes the case with the **VIX**, an index the Chicago Board Options Exchange computes from the prices of options on the S&P 500. It measures the swings those options imply for the next month, so it rises when traders expect turmoil. Chan keeps only the days after VIX closed above 35, “a common threshold for highly risky periods” (p. 269), and reruns two rules the book already ran.
 
-1. **Buy on gap**, Example 4.1, which buys stocks that opened far below the previous day’s low and sells them at the close. On every day, Chan reports “an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” (location 3509). On the kept days he reports 17.2 percent and 1.4, and concludes that “this strategy benefits from the so-called risk!” (location 3509).
-2. **The opening gap rule on FSTX**, Example 7.1, a STOXX Europe 50 index future. On every day, Chan reports “around 13 percent and a Sharpe ratio of 1.4” (location 3509). On the kept days the return drops to “2.6 percent and the Sharpe ratio to 0.16” (location 3509). He concludes that “VIX tells us to avoid trading on the following day” (location 3509).
+1. **Buy on gap**, Example 4.1, which buys stocks that opened far below the previous day’s low and sells them at the close. On every day, Chan reports “an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” (p. 269). On the kept days he reports 17.2 percent and 1.4, and concludes that “this strategy benefits from the so-called risk!” (p. 269).
+2. **The opening gap rule on FSTX**, Example 7.1, a STOXX Europe 50 index future. On every day, Chan reports “around 13 percent and a Sharpe ratio of 1.4” (p. 269). On the kept days the return drops to “2.6 percent and the Sharpe ratio to 0.16” (p. 269). He concludes that “VIX tells us to avoid trading on the following day” (p. 269).
 
 This repository ran both rules unchanged on Chan’s own files and applied the filter. The results fall into five lessons.
 
@@ -41,11 +41,11 @@ So the run can say whether his numbers follow from his files, and nothing about 
 
 **The join.** Each rule runs on its own full calendar first. The join then keeps each rule’s daily returns on the days that rule’s calendar shares with VIX’s, and the filter reads the previous shared day. Buy on gap keeps all 1,500 of its days, because the stocks traded on exactly VIX’s days. FSTX keeps 1,945 of its 2,000. It loses the 7 days after VIX’s last close and 48 days on which Eurex, the European exchange FSTX trades on, was open and the US exchanges were not.
 
-**No script ships for location 3509.** Neither of the two public copies of Chan’s code on GitHub, ivanliu1989/algorithmic_trading and ericnberwick/EpchanPreview, holds a file that applies the filter. So this replication inferred the specification above from Chan’s four filtered figures, 17.2 percent and 1.4 for buy on gap, and 2.6 percent and 0.16 for FSTX, rather than reading it from code. The [replication log’s Entry 47](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-47-the-vix-filter-on-buy-on-gap-and-the-stoxx-europe-50-gap-rule-chans-algorithmic-trading) records every reading the replication tried and sets each figure beside the test that computes it.
+**No script ships for the filter on p. 269.** Neither of the two public copies of Chan’s code on GitHub, ivanliu1989/algorithmic_trading and ericnberwick/EpchanPreview, holds a file that applies the filter. So this replication inferred the specification above from Chan’s four filtered figures, 17.2 percent and 1.4 for buy on gap, and 2.6 percent and 0.16 for FSTX, rather than reading it from code. The [replication log’s Entry 47](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-47-the-vix-filter-on-buy-on-gap-and-the-stoxx-europe-50-gap-rule-chans-algorithmic-trading) records every reading the replication tried and sets each figure beside the test that computes it.
 
 ## Lesson 1: the filtered figure is 252 times the mean, and the unfiltered one beside it is compounded
 
-Chan calls both of buy on gap’s returns an “annualized average return” (location 3509). Two formulas could sit behind that phrase.
+Chan calls both of buy on gap’s returns an “annualized average return” (p. 269). Two formulas could sit behind that phrase.
 
 1. **The arithmetic figure**, 252 times the mean daily return. It scales an average day to a year of 252 trading days.
 2. **The compounded APR**, short for annual percentage rate. It is the yearly rate that, compounded, turns one dollar into what the daily returns multiply out to.
@@ -72,7 +72,7 @@ The comparison Chan draws survives the mismatch here. Like for like, 252 times t
 
 ## Lesson 2: FSTX’s figures belong to the script’s fading sign
 
-The [opening gap post’s Lesson 1](https://github.com/l3a0/quantitative-trading/blob/main/blog/opening-gap-lessons.md#lesson-1-the-script-trades-against-the-jump-the-text-says-it-follows) found that the script’s return line pays a long when the price falls from the open, so it trades against the jump. The text describes the opposite, “buying when the instrument gaps up, and shorting when it gaps down” (location 2965), and the [same post’s Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/opening-gap-lessons.md#lesson-3-the-momentum-the-book-describes-loses-what-the-script-earns) shows that sign losing what the script earns. This post calls the script’s sign the fade, which the opening gap post calls the literal reading, and the text’s sign momentum.
+The [opening gap post’s Lesson 1](https://github.com/l3a0/quantitative-trading/blob/main/blog/opening-gap-lessons.md#lesson-1-the-script-trades-against-the-jump-the-text-says-it-follows) found that the script’s return line pays a long when the price falls from the open, so it trades against the jump. The text describes the opposite, “buying when the instrument gaps up, and shorting when it gaps down” (p. 229), and the [same post’s Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/opening-gap-lessons.md#lesson-3-the-momentum-the-book-describes-loses-what-the-script-earns) shows that sign losing what the script earns. This post calls the script’s sign the fade, which the opening gap post calls the literal reading, and the text’s sign momentum.
 
 The filtered figures follow the fade.
 
@@ -90,13 +90,13 @@ The filtered figures follow the fade.
 
 The fade’s 0.025730 and 0.164869 print as the book’s 2.6 percent and 0.16. Momentum’s returns are the fade’s negated day for day, so it misses both, landing 5.2 percentage points and 0.32 below them.
 
-The two signs read the filter in opposite directions. Under the fade, 252 times the mean falls from 0.139950 on every joined day to 0.025730 on the kept days, which is what Chan reports. Under momentum it rises from −0.139950 to −0.025730, so for the sign the text describes, the kept days are the less bad ones. The script’s figures lean the way “VIX tells us to avoid trading” (location 3509) says, and the figures for the rule the text describes lean the opposite way. Lesson 5 tests whether either lean is larger than chance.
+The two signs read the filter in opposite directions. Under the fade, 252 times the mean falls from 0.139950 on every joined day to 0.025730 on the kept days, which is what Chan reports. Under momentum it rises from −0.139950 to −0.025730, so for the sign the text describes, the kept days are the less bad ones. The script’s figures lean the way “VIX tells us to avoid trading” (p. 269) says, and the figures for the rule the text describes lean the opposite way. Lesson 5 tests whether either lean is larger than chance.
 
-The book’s before and after for FSTX also come from different calendars. Its “around 13 percent and a Sharpe ratio of 1.4” (location 3509) is Example 7.1 on all 2,000 days, 0.128622 and 1.441620. On the 1,945 days joined to VIX, the same figures are 0.139950 and 1.589197, which print as 14 percent and 1.6. The filtered 2.6 percent is taken from the joined days, so the comparison the sentence draws mixes two calendars.
+The book’s before and after for FSTX also come from different calendars. Its “around 13 percent and a Sharpe ratio of 1.4” (p. 269) is Example 7.1 on all 2,000 days, 0.128622 and 1.441620. On the 1,945 days joined to VIX, the same figures are 0.139950 and 1.589197, which print as 14 percent and 1.6. The filtered 2.6 percent is taken from the joined days, so the comparison the sentence draws mixes two calendars.
 
 ## Lesson 3: the 2.6 percent depends on which VIX close each FSTX day reads, and a search chose the join
 
-FSTX trades on Eurex and the Chicago Board Options Exchange computes VIX, so the two calendars disagree on US and European holidays. Reading “the preceding day’s VIX” (location 3509) on FSTX’s days needs a choice for those days, and the sentence makes none. The replication tried six readings, saw their figures, and kept the one that lands both.
+FSTX trades on Eurex and the Chicago Board Options Exchange computes VIX, so the two calendars disagree on US and European holidays. Reading “the preceding day’s VIX” (p. 269) on FSTX’s days needs a choice for those days, and the sentence makes none. The replication tried six readings, saw their figures, and kept the one that lands both.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -143,9 +143,9 @@ A kept day is not a day traded. Buy on gap held a position on only 20 of its 190
 
 ![Two charts on one shared date axis from July 2004 to May 2012. The top chart shows VIX’s daily close as a black line, mostly between 10 and 20 until mid-2007, with a dashed red line at 35. A grey band covers 2008-09-18 to 2011-11-10. Brass dots mark the 190 closes above 35, which cluster in late 2008 and early 2009, with small groups in May and June 2010 and from August to November 2011. Labels mark the first close above 35 inside the window, 36.22 on 2008-09-17, the highest, 80.86 on 2008-11-20, and the last, 36.16 on 2011-11-09. The bottom chart shows each rule’s daily returns summed over its kept days, flat at zero before September 2008 and flat after November 2011. Buy on gap’s black line wavers between about −0.02 and 0.03 until April 2009, jumps at a brass dot labelled “2009-04-21 alone adds 0.093601”, and ends at 0.129625. FSTX under the script’s sign, a dashed grey line, swings between about −0.08 and 0.11 in late 2008 and early 2009 and ends at 0.018889. FSTX under the sign the text describes, a red line, mirrors it and ends at −0.018889. The heading sets each rule’s figures beside the book’s, and the title calls the figure exploratory.](../docs/figures/vix_filter.png)
 
-*Each curve in the bottom panel is a sum, unlike the compounded curves in the buy on gap and opening gap posts, because location 3509’s filtered figures are arithmetic means. Each ends at its 252 times the mean, times the kept days over 252. The book draws no figure for the filter.*
+*Each curve in the bottom panel is a sum, unlike the compounded curves in the buy on gap and opening gap posts, because the filtered figures on p. 269 are arithmetic means. Each ends at its 252 times the mean, times the kept days over 252. The book draws no figure for the filter.*
 
-Chan warns about testing any risk indicator on a sample like this one. “Since the occurrence of financial panic or crises is relatively rare, it is very easy to fall victim to data-snooping bias when we try to decide whether an indicator is useful” (location 3541). Data snooping is finding a pattern in a sample because someone searched the sample for one. Here the panic is one stretch of 2008 and 2009, and buy on gap’s 17.2 percent rests mostly on one day inside it. **Every result here is exploratory.**
+Chan warns about testing any risk indicator on a sample like this one. “Since the occurrence of financial panic or crises is relatively rare, it is very easy to fall victim to data-snooping bias when we try to decide whether an indicator is useful” (p. 271). Data snooping is finding a pattern in a sample because someone searched the sample for one. Here the panic is one stretch of 2008 and 2009, and buy on gap’s 17.2 percent rests mostly on one day inside it. **Every result here is exploratory.**
 
 ## Lesson 5: a test cannot tell the kept days from the rest
 
@@ -168,7 +168,7 @@ The test treats each day as independent of the others. Kept days come in runs, a
 
 Six questions are beyond it.
 
-1. **What Chan’s own code for the filter did.** No script ships for location 3509, and a search chose the join for FSTX.
+1. **What Chan’s own code for the filter did.** No script ships for the filter on p. 269, and a search chose the join for FSTX.
 2. **Whether Chan filtered before or after running the rule.** Both give the same figures on FSTX’s kept days, as Lesson 3 says.
 3. **Whether the filter guards either rule after 2012.** Every kept day falls from 2008 to 2011. A test of it would fix the threshold and the join in writing first and run them on later data.
 4. **What buy on gap earned on the index as it stood each day.** Every stock here was in the S&P 500 in late 2011, so the [buy on gap post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#lesson-6-an-exact-reproduction-checks-the-arithmetic-not-the-edge) applies to the kept days too.
@@ -187,6 +187,6 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.1 and 7.1, and Kindle locations 2965, 3509 and 3541.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.1 and 7.1, with pages 229, 269 and 271 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
 
 *Not investment advice. Code: [the filter](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vix_filter.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vix_filter_figures.py), with the checks behind [the filter’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vix_filter.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vix_filter_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-47-the-vix-filter-on-buy-on-gap-and-the-stoxx-europe-50-gap-rule-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*

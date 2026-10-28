@@ -8,13 +8,13 @@ A pair trade needs two prices that drift apart and come back. The earlier posts 
 
 The CADF test regresses one price on the other, which means fitting a straight line that predicts the first price from the second. The line’s slope is the hedge ratio, the number of shares of the second held against each share of the first. Then the test checks whether the leftover spread, the gap between the first price and the line, returns to a stable level. Two prices that wander on their own but hold such a spread are said to cointegrate.
 
-Ernest Chan’s second book, *Algorithmic Trading*, asks the same question of more than two prices. Canada and Australia both have economies that are “commodity based, so they seem likely to cointegrate” (Chan, 2013, location 1264). So EWA and EWC, the two countries’ stock ETFs, should form a pair. Chan then adds IGE, an ETF of natural resource stocks, to see how many stationary combinations the three hold together (Chan, 2013, location 1334). A stationary combination is a mix of the ETFs whose value returns to a stable level.
+Ernest Chan’s second book, *Algorithmic Trading*, asks the same question of more than two prices. Canada and Australia both have economies that are “commodity based, so they seem likely to cointegrate” (Chan, 2013, Kindle edition, p. 88). So EWA and EWC, the two countries’ stock ETFs, should form a pair. Chan then adds IGE, an ETF of natural resource stocks, to see how many stationary combinations the three hold together (Chan, 2013, p. 94). A stationary combination is a mix of the ETFs whose value returns to a stable level.
 
 A pair test cannot say how many such combinations the three hold. One regression predicts one price from the others. Its hedge ratios, one for each of the others, make a single set of weights, so it finds at most one combination. With three prices it also has to pick which price to predict, the one a regression puts on the left of its equation, and each choice can give a different answer. The Johansen test takes all three prices at once and counts how many stationary combinations they hold. It leaves out any combination that is only a mix of others already counted, and it returns the weights of each one it counts.
 
 Chan published `cointegrationTests.m`, the script behind the book’s Examples 2.6 to 2.8 on these ETFs, along with the data file it reads. The repository for this post keeps the file’s prices as one table per ETF, which together rebuild the file exactly. A line-by-line Python transcription of the script ran on those tables. Every figure the script prints lands to its last digit. The one difference is that the Johansen test’s sets of weights come back with their signs flipped, which Lesson 1 shows changes nothing.
 
-The CADF test finds that EWC and EWA cointegrate at 95 percent confidence. The CADF statistic is −3.64346635. The portfolio Chan builds from the three ETFs takes 22.662578 days to close half its distance to its average, which is its half-life. The strategy that trades the portfolio earns an annual percentage rate, or APR, of 0.125739 with a Sharpe ratio of 1.391310, the book’s 12.6 percent and 1.4 (Chan, 2013, location 1368). A Sharpe ratio divides the average daily return by the standard deviation of the daily returns and scales the result to a year, so it measures return per unit of risk.
+The CADF test finds that EWC and EWA cointegrate at 95 percent confidence. The CADF statistic is −3.64346635. The portfolio Chan builds from the three ETFs takes 22.662578 days to close half its distance to its average, which is its half-life. The strategy that trades the portfolio earns an annual percentage rate, or APR, of 0.125739 with a Sharpe ratio of 1.391310, the book’s 12.6 percent and 1.4 (Chan, 2013, pp. 98 to 99). A Sharpe ratio divides the average daily return by the standard deviation of the daily returns and scales the result to a year, so it measures return per unit of risk.
 
 **Every result here is exploratory.** Chan chose the ETFs, the test settings and the portfolio, and the reproduction tests them on the same days he did. It can say whether his numbers follow from his file and nothing about whether the portfolio pays.
 
@@ -22,7 +22,7 @@ The six lessons below say what the reproduction does teach. The code is open sou
 
 ## The tests and the file
 
-Chan runs four steps (Chan, 2013, locations 1264 to 1368).
+Chan runs four steps (Chan, 2013, pp. 88 to 99).
 
 1. **The CADF test, Example 2.6.** Regress EWC on EWA with an intercept, a constant term in the fitted line. Then test the residual, the leftover spread, for a unit root. A unit root means the residual wanders with no level to return to. The test starts from the claim that a unit root is present, so rejecting that claim is evidence the pair cointegrates. The unit-root test includes its own constant and one lagged daily change, both written out in the section below.
 2. **The Johansen test, Example 2.7.** Run it on EWC and EWA, then on EWC, EWA and IGE, each with a constant and one lagged daily change. The script orders the columns EWC, EWA, IGE, so every set of weights below lists them in that order.
@@ -43,7 +43,7 @@ Start from the CADF test’s second step, which writes the daily change in a spr
 
 Here zₜ is the spread on day t and Δzₜ its change from the day before. μ is a constant, φ carries yesterday’s change, the one lagged change the test’s settings allow, and εₜ is the part of today’s change the other terms do not explain. If λ is negative, a spread above its level tends to fall the next day and one below tends to rise, so it reverts. If λ is zero, yesterday’s level says nothing about today’s change, and the spread wanders. The test asks whether λ is far enough below zero to rule out the wandering case.
 
-The Johansen test writes the same equation for several prices at once (Chan, 2013, location 1295). Now the single spread becomes Yₜ, a list of today’s prices, one per ETF, and λ becomes a square table of coefficients Λ, one row and one column per ETF. M and Φ do for each ETF what μ and φ did for the spread.
+The Johansen test writes the same equation for several prices at once (Chan, 2013, p. 91). Now the single spread becomes Yₜ, a list of today’s prices, one per ETF, and λ becomes a square table of coefficients Λ, one row and one column per ETF. M and Φ do for each ETF what μ and φ did for the spread.
 
 ```math
 \Delta Y_t = \Lambda \, Y_{t-1} + M + \Phi \, \Delta Y_{t-1} + \varepsilon_t
@@ -74,9 +74,9 @@ For each candidate value of r, the test asks whether the eigenvalues past the fi
 
 The trace statistic asks whether all the eigenvalues past the first r could be zero together, so it adds up the evidence from each of them. The eigen statistic asks whether only the next one could be zero, so it uses that eigenvalue alone.
 
-The test compares each statistic with its critical value, the bar it must clear at a chosen confidence. The count comes from a sequence. First, test r ≤ 0, the claim that no relation exists. If its statistic clears the bar, reject it and test r ≤ 1, and so on. The count is the number of nulls rejected before the first one that is not. If the test rejects every null, the count is n (Chan, 2013, location 1295).
+The test compares each statistic with its critical value, the bar it must clear at a chosen confidence. The count comes from a sequence. First, test r ≤ 0, the claim that no relation exists. If its statistic clears the bar, reject it and test r ≤ 1, and so on. The count is the number of nulls rejected before the first one that is not. If the test rejects every null, the count is n (Chan, 2013, p. 92).
 
-Each eigenvalue comes with an eigenvector, a combination’s weights in shares of each ETF. The eigenvectors of the r eigenvalues the test counts are the relations’ weights, the hedge ratios the CADF test could find for only one combination at a time (Chan, 2013, location 1295). Any mix of those r sets of weights also reverts, so the test pins down how many relations exist, not one unique set of weights for each.
+Each eigenvalue comes with an eigenvector, a combination’s weights in shares of each ETF. The eigenvectors of the r eigenvalues the test counts are the relations’ weights, the hedge ratios the CADF test could find for only one combination at a time (Chan, 2013, p. 92). Any mix of those r sets of weights also reverts, so the test pins down how many relations exist, not one unique set of weights for each.
 
 ## Lesson 1: the script reproduces to its last digit
 
@@ -93,7 +93,7 @@ Each eigenvalue comes with an eigenvector, a combination’s weights in shares o
 \end{array}
 ```
 
-Chan’s text quotes four of these, rounded (Chan, 2013, locations 1292, 1347 and 1368).
+Chan’s text quotes four of these, rounded (Chan, 2013, pp. 91, 95 and 98 to 99).
 
 1. A CADF statistic of about −3.64.
 2. A half-life of 23 days.
@@ -124,7 +124,7 @@ It quotes none of the Johansen test’s figures, which the second table holds.
 \end{array}
 ```
 
-Every Johansen critical value matches the printout too, at the three decimals it prints. The CADF test’s critical values are LeSage’s own table, quoted rather than computed: −3.880 at 99 percent and −3.359 at 95. The computed −3.6435 is below −3.359 but above −3.880, and a CADF statistic clears its bar by falling below it. So the pair cointegrates at 95 percent, as Chan says (Chan, 2013, location 1292), and not at 99, which he does not claim.
+Every Johansen critical value matches the printout too, at the three decimals it prints. The CADF test’s critical values are LeSage’s own table, quoted rather than computed: −3.880 at 99 percent and −3.359 at 95. The computed −3.6435 is below −3.359 but above −3.880, and a CADF statistic clears its bar by falling below it. So the pair cointegrates at 95 percent, as Chan says (Chan, 2013, p. 91), and not at 99, which he does not claim.
 
 In all three of the first eigenvector’s rows, the computed weight has the opposite sign to the printed one. Every one of the three eigenvectors comes back with all its signs flipped. That follows from the software rather than the data. The statsmodels library multiplies all three eigenvectors by the sign of the first one’s first weight, so that weight always comes back positive, and MATLAB gave −1.0460 there. An eigenvector negated is the same portfolio held short, and its value and its z-score flip sign with it. The linear rule holds minus the z-score, so it holds the opposite number of units of the flipped portfolio, which is the same position as before. Flipping the sign therefore leaves the half-life, the lookback and every day’s return exactly where they were, which a test in the repository checks.
 
@@ -136,13 +136,13 @@ The figure below redraws three of the book’s charts and adds the statistics Le
 
 ## Lesson 2: one regression depends on its order, the Johansen test does not
 
-The CADF test puts one ETF on the left of the regression. Chan puts EWC there, asks whether swapping the two changes the result, and answers “yes” (Chan, 2013, location 1282). His advice is to “try each variable as independent”, meaning to run the regression once with each ETF on the right-hand side, and keep the order with the most negative statistic.
+The CADF test puts one ETF on the left of the regression. Chan puts EWC there, asks whether swapping the two changes the result, and answers “yes” (Chan, 2013, p. 90). His advice is to “try each variable as independent”, meaning to run the regression once with each ETF on the right-hand side, and keep the order with the most negative statistic.
 
 On this pair the swap moves little. With EWA on the left, the statistic is −3.6405 against −3.6435, and both are past the 95 percent bar of −3.359. The verdict holds either way, so the advice costs nothing here. With three ETFs it would mean three regressions, one per choice of the left-hand ETF. Each gives two hedge ratios, one for each ETF on the right.
 
 Whichever order it takes, the pair’s regression fits its hedge ratio once over all 1,500 days and holds it fixed. With EWC on the left, it finds a slope of 0.9624, which is the hedge ratio, and an intercept of 6.4113, the constant the regression adds. [The post on the Kalman filter hedge ratio](https://github.com/l3a0/quantitative-trading/blob/main/blog/kalman-hedge-lessons.md) trades EWC against EWA on the same file with a hedge ratio that a Kalman filter re-estimates every day.
 
-The Johansen test treats every ETF the same way, so the order of the columns should not matter, and Chan says it does not (Chan, 2013, location 1324). Running the triplet’s test again with the columns ordered EWA, EWC, IGE leaves every statistic and eigenvalue within 10⁻¹¹ of the first run. The eigenvectors list their weights in the new order, and two of the three come back negated, which the previous lesson showed changes nothing.
+The Johansen test treats every ETF the same way, so the order of the columns should not matter, and Chan says it does not (Chan, 2013, p. 94). Running the triplet’s test again with the columns ordered EWA, EWC, IGE leaves every statistic and eigenvalue within 10⁻¹¹ of the first run. The eigenvectors list their weights in the new order, and two of the three come back negated, which the previous lesson showed changes nothing.
 
 ## Lesson 3: the trace and eigen tests disagree
 
@@ -168,13 +168,13 @@ The first eigenvalue alone is not strong enough to clear the eigen test’s bar,
 
 ![An animated whiteboard sketch titled “Weak pieces add up”, drawn stroke by stroke. Two columns stand on one grey floor, drawn to one scale. On the left, a black block marked “16.897”, labelled “eigen test, r ≤ 0”, stops just below a dashed line labelled “90% eigen bar, 18.893”, and vermilion words say “falls short”. A grey arrow labelled “the same piece” carries the block to the right, where the same black block, marked “16.897” and labelled “trace test, r ≤ 0”, has two berry blocks stacked on it, “+ 13.061” and then “+ 4.471”. A dashed line labelled “95% trace bar, 29.796” crosses the stack at the top of the second block, and the blue words “34.429 clears it” close the sketch.](../docs/figures/etf_cointegration_trace_stack.gif)
 
-Chan’s text reads these statistics differently. “Both Trace statistic and Eigen statistic tests conclude” that the triplet holds three relations at 95 percent (Chan, 2013, location 1337). The trace test does. The eigen test does not, and the script’s own printout already shows it. A reader who trusts Chan’s paragraph over the printout takes away a stronger result than the run gave.
+Chan’s text reads these statistics differently. “Both Trace statistic and Eigen statistic tests conclude” that the triplet holds three relations at 95 percent (Chan, 2013, p. 94). The trace test does. The eigen test does not, and the script’s own printout already shows it. A reader who trusts Chan’s paragraph over the printout takes away a stronger result than the run gave.
 
 ## Lesson 4: two relations between two series claim each ETF reverts alone
 
 On the pair, both tests agree at 95 percent. The trace test rejects r ≤ 0 with 19.983, past even its 99 percent bar of 19.935, and the eigen test rejects it with 16.000 against 14.264 at 95. Both then reject r ≤ 1 with 3.983 against 3.841. So both count two relations between EWA and EWC.
 
-Chan reads the two relations as two hedge ratios, one from each order of the regression, “which are not necessarily reciprocal of each other” (Chan, 2013, location 1324). The test says something stronger. Two relations between two series is a full rank, r = n. A full rank means every combination of the two prices reverts, and holding EWA alone, a weight of one on EWA and zero on EWC, is one such combination. So the test is saying that each ETF reverts to a stable level on its own. The triplet’s trace count of three says the same of all three.
+Chan reads the two relations as two hedge ratios, one from each order of the regression, “which are not necessarily reciprocal of each other” (Chan, 2013, p. 93). The test says something stronger. Two relations between two series is a full rank, r = n. A full rank means every combination of the two prices reverts, and holding EWA alone, a weight of one on EWA and zero on EWC, is one such combination. So the test is saying that each ETF reverts to a stable level on its own. The triplet’s trace count of three says the same of all three.
 
 ![An animated whiteboard sketch titled “Every portfolio is a mix of the test’s two relations”, drawn stroke by stroke. It is schematic and carries none of the run’s figures. A grey axis across is labelled “shares of EWA” and a grey axis up is labelled “shares of EWC”. From where they cross, a black arrow labelled “relation 1” points down and to the right, and a black arrow labelled “relation 2” points up and to the right. A grey dashed line runs from each arrow’s tip, parallel to the other arrow. The two meet on the EWA axis, and the lower one is labelled “a mix of relations 1 and 2”. A thick berry arrow labelled “EWA alone” then runs along the EWA axis to where they meet, and the words “if both relations revert, so does EWA alone” close the sketch.](../docs/figures/etf_cointegration_two_relations.gif)
 
@@ -192,7 +192,7 @@ The full rank is also thin. The second relation, the one that makes the rank ful
 
 The first eigenvector sets the portfolio, in shares: 1.0460 of EWC, −0.7600 of EWA and −0.2233 of IGE. On the file’s last day, 2012-04-09, one unit of it holds $28.72 of EWC against −$17.43 of EWA and −$8.49 of IGE. It is long one country fund and short the other country fund and the resources fund together.
 
-Chan picks the first eigenvector because it has the largest eigenvalue, and so he expects it to revert fastest, with the shortest half-life (Chan, 2013, location 1340). It does. Its half-life is 22.7 days, against 43.7 for the second eigenvector’s portfolio and 151.5 for the third’s.
+Chan picks the first eigenvector because it has the largest eigenvalue, and so he expects it to revert fastest, with the shortest half-life (Chan, 2013, p. 95). It does. Its half-life is 22.7 days, against 43.7 for the second eigenvector’s portfolio and 151.5 for the third’s.
 
 The rule rounds 22.7 to a lookback of 23 days. Its first return comes on 2006-05-30, the trading day after the 23-day moving standard deviation first has 23 days to use, and it earns a return on every one of the 1,477 days from there on. The return each day is the profit on the positions held, divided by the dollars held long plus the dollars held short, each side counted as a positive amount.
 
@@ -200,8 +200,8 @@ The rule rounds 22.7 to a lookback of 23 days. Its first return comes on 2006-05
 
 Every printed figure matches, so the code, the data and the book’s figures agree. The match says nothing about whether the portfolio pays, for two reasons.
 
-1. **The weights and the lookback come from the days they trade.** The test fits the eigenvector on the same 1,500 days the rule then trades, and the half-life that sets the lookback comes from those days too. So the result is in-sample, scored on the same days that set its weights. Chan names this himself. Of the same rule in an earlier example, he says the lookback carries look-ahead bias from “the use of in-sample data to find the half-life” (Chan, 2013, location 1225). Look-ahead bias is the use of information no trader had on the day. He says the book’s backtests in general, its tests of trading rules on past prices, sometimes use “the same data for parameter optimization (such as finding the best hedge ratio) and for backtest” (Chan, 2013, location 1429). His claim that the rule has “no parameters to optimize” makes a different point, that nothing was searched over (Chan, 2013, location 1350). That claim holds too, and it leaves the 12.6 percent in-sample all the same.
-2. **The script charges no cost, though the rule never stops trading.** It resizes its position whenever the z-score moves, and Chan says it “continuously enters and exits positions”. He also calls it “obviously not a practical strategy”, since nobody knows at the start the most capital it will need, and it trades on every small move (Chan, 2013, location 1350).
+1. **The weights and the lookback come from the days they trade.** The test fits the eigenvector on the same 1,500 days the rule then trades, and the half-life that sets the lookback comes from those days too. So the result is in-sample, scored on the same days that set its weights. Chan names this himself. Of the same rule in an earlier example, he says the lookback carries look-ahead bias from “the use of in-sample data to find the half-life” (Chan, 2013, p. 84). Look-ahead bias is the use of information no trader had on the day. He says the book’s backtests in general, its tests of trading rules on past prices, sometimes use “the same data for parameter optimization (such as finding the best hedge ratio) and for backtest” (Chan, 2013, p. 104). His claim that the rule has “no parameters to optimize” makes a different point, that nothing was searched over (Chan, 2013, p. 96). That claim holds too, and it leaves the 12.6 percent in-sample all the same.
+2. **The script charges no cost, though the rule never stops trading.** It resizes its position whenever the z-score moves, and Chan says it “continuously enters and exits positions”. He also calls it “obviously not a practical strategy”, since nobody knows at the start the most capital it will need, and it trades on every small move (Chan, 2013, pp. 96 to 97).
 
 A drawdown is a fall from the highest value reached so far, and this return came with a long one. On the compounded cumulative return, the deepest drawdown is −0.101249, with its trough on 2010-08-16. Its longest spell below a high runs 598 trading days, from 2009-04-02 to 2011-08-15, which the figure’s last panel shades.
 
@@ -228,7 +228,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 2.6 to 2.8 and Kindle locations 1225, 1264, 1282, 1292, 1295, 1324, 1334, 1337, 1340, 1347, 1350, 1368 and 1429.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 2.6 to 2.8, with pages 84, 88 to 99 and 104 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
 2. `cointegrationTests.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. Johansen, S. (1991). Estimation and hypothesis testing of cointegration vectors in Gaussian vector autoregressive models. *Econometrica*, 59(6), 1551–1580.
 4. MacKinnon, J. G. (2010). Critical values for cointegration tests. Queen’s Economics Department Working Paper No. 1227.

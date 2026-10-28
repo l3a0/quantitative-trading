@@ -4,18 +4,18 @@
 
 ## Why trade volatility against the stock index
 
-Stocks and volatility move against each other. Ernest Chan puts it plainly in *Algorithmic Trading*: “When the market goes down, volatility shoots up” (Chan, 2013, location 2546). A trader can own both and bet that the link between them lasts. When one side runs ahead of the other, the trade expects the two to come back together.
+Stocks and volatility move against each other. Ernest Chan puts it plainly in *Algorithmic Trading*: “When the market goes down, volatility shoots up” (Chan, 2013, Kindle edition, p. 191). A trader can own both and bet that the link between them lasts. When one side runs ahead of the other, the trade expects the two to come back together.
 
 Chan builds that trade from two futures contracts. A futures contract is an agreement to buy or sell something at a set price on a set future date, and it trades on an exchange like a share.
 
 - **ES** is the E-mini S&P 500 future. Its price follows the S&P 500 index of large American companies.
 - **VX** is the VIX future. The VIX index measures how much volatility traders expect over the next month, read from the prices of S&P 500 options, so VX rises when traders grow nervous.
 
-Chan plots one against the other and sees “two main regimes, 2004 to May 2008 and August 2008 to 2012” (location 2552), two periods in which ES and VX keep a different relationship. He reads the second regime as having lower volatility for a given level of the index. A regression fits one straight line through the points, and Chan warns against fitting one across both regimes, so he fits only the second.
+Chan plots one against the other and sees “two main regimes, 2004 to May 2008 and August 2008 to 2012” (p. 192), two periods in which ES and VX keep a different relationship. He reads the second regime as having lower volatility for a given level of the index. A regression fits one straight line through the points, and Chan warns against fitting one across both regimes, so he fits only the second.
 
 ### What the book prints and what it leaves out
 
-At location 2559 Chan reports four figures.
+On pp. 193 to 194 Chan reports four figures.
 
 1. **The hedge.** A portfolio “long 0.3906 contracts of VX and long one contract of ES” should be stationary, meaning its value keeps returning to a stable average. Because the two move against each other, holding both long is what hedges each against the other.
 2. **The residual’s standard deviation.** The residual is the part of each day’s ES value the fit leaves unexplained, and “The standard deviation of the residues is \$2,047.”
@@ -84,7 +84,7 @@ Here is each figure beside the book’s. The computed APR is written as a fracti
 
 The fit lands the hedge to four decimals and misses the deviation by about a tenth of a percent. Fitting on one trading day fewer, from 2008-08-05, lands both, at 0.390635 and \$2,046.93. A search of [22,446 windows, recorded in this repository’s replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-28-vx-futures-against-e-mini-futures-chans-algorithmic-trading), found that window, and it is the only one of them that rounds to both printed figures. Nothing in the code reruns that search, so both counts, the 22,446 windows and the single match, rest on that record alone. A window found by searching for the answer shows only that a window close to Chan’s exists. It cannot say which window he used, so the run keeps the one `VX_ES_rollreturn.m` names, starting 2008-08-04.
 
-The printed hedge is also safe to reuse. Trading the rounded 0.3906 in place of the fitted 0.390594 gives an APR of 0.122810 and a Sharpe ratio of 1.393205, which changes neither figure at the precision Chan printed. The book’s next trade on these two futures, at location 2754, holds “0.3906 front contracts of VX” as a fixed number, so it trades the same portfolio to the book’s precision. Its script as published, `VX_ES_rollreturn.m`, does not trade that portfolio. Every line holding 0.3906 is a comment, which MATLAB skips, and the script trades one VX contract against one ES contract.
+The printed hedge is also safe to reuse. Trading the rounded 0.3906 in place of the fitted 0.390594 gives an APR of 0.122810 and a Sharpe ratio of 1.393205, which changes neither figure at the precision Chan printed. The book’s next trade on these two futures, on p. 211, holds “0.3906 front contracts of VX” as a fixed number, so it trades the same portfolio to the book’s precision. Its script as published, `VX_ES_rollreturn.m`, does not trade that portfolio. Every line holding 0.3906 is a comment, which MATLAB skips, and the script trades one VX contract against one ES contract.
 
 ## Lesson 2: the save decides, and the script that ships is not the run
 
@@ -165,7 +165,7 @@ An APR of 12.3 percent sounds like the summary of many trades. Here it is four. 
 
 The rule changes position at the close of 2011-11-08, 2011-12-19 and 2012-02-17, so each new position starts earning the next trading day, and the last one earns through 2012-05-08. The trade is in the market on all 449 test days. All four bets win, and compounded together they make the test set’s 22.92 percent. The test runs about a year and three quarters, so that gain works out to 12.3 percent a year, the APR.
 
-Chan writes that the trade “was particularly profitable” from around Standard and Poor’s downgrade of the U.S. credit rating (location 2559). The agency announced it after the close of Friday 2011-08-05. At that close, after 259 of the 449 test days, the trade was down 4.59 percent. On Monday 2011-08-08 it reached its lowest point, down 7.76 percent, and the z-score reached −3.89, its lowest since the fit’s first day in 2008. From the close of 2011-08-05 to the end of the test, the trade grew 28.84 percent in 190 days.
+Chan writes that the trade “was particularly profitable” from around Standard and Poor’s downgrade of the U.S. credit rating (p. 194). The agency announced it after the close of Friday 2011-08-05. At that close, after 259 of the 449 test days, the trade was down 4.59 percent. On Monday 2011-08-08 it reached its lowest point, down 7.76 percent, and the z-score reached −3.89, its lowest since the fit’s first day in 2008. From the close of 2011-08-05 to the end of the test, the trade grew 28.84 percent in 190 days.
 
 So after that close the trade earned more than its whole gain over the test, 28.84 percent against 22.92, because it was already down by then. That fits Chan’s sentence. But 2011-08-05 falls one trading day before the trade’s low, and dividing the test on any day near that low would show the same thing. Such a division dates when the trade made its money. It says nothing about what the downgrade did.
 
@@ -192,7 +192,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Kindle locations 2546, 2552, 2559 and 2754.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 191 to 194 and 211 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
 2. Chan, E. P. `VX_ES.m` and `VX_ES_rollreturn.m`, as published in the [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) repository at commit `e4bc46f`.
 
 *Not investment advice. Code: [the replication](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_es.py), [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_es_figures.py) and [the whiteboard sketches](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_es_whiteboard.py), with the checks behind [the replication’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_es.py), [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_es_figures.py) and [what the sketches draw](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_es_whiteboard.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-28-vx-futures-against-e-mini-futures-chans-algorithmic-trading) that sets each of Chan’s figures beside what was found here.*

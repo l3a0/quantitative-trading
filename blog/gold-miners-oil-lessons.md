@@ -9,7 +9,7 @@ A pair trade works only while its two prices keep a stable relationship, and tha
 1. Drop it.
 2. Ask why it failed and test the answer.
 
-Chan’s second book, *Algorithmic Trading*, takes the second road with the same pair. The reasoning for the pair is that a gold miner’s main asset is gold, so its shares should track the metal. Chan says they did, “until July 14, 2008, or thereabout” (Chan, 2013, location 1922). That was the day, he writes, that West Texas crude peaked at around $145 a barrel. His explanation is that dear oil makes gold dearer to mine, which cuts the miners’ profits, so their shares lag the metal. He cites a 2011 piece, “The Wacky World of Gold”, as the source of that explanation. To test it, he adds the oil fund USO and asks whether the three funds move together over the whole span.
+Chan’s second book, *Algorithmic Trading*, takes the second road with the same pair. The reasoning for the pair is that a gold miner’s main asset is gold, so its shares should track the metal. Chan says they did, “until July 14, 2008, or thereabout” (Chan, 2013, Kindle edition, p. 141). That was the day, he writes, that West Texas crude peaked at around $145 a barrel. His explanation is that dear oil makes gold dearer to mine, which cuts the miners’ profits, so their shares lag the metal. He cites a 2011 piece, “The Wacky World of Gold”, as the source of that explanation. To test it, he adds the oil fund USO and asks whether the three funds move together over the whole span.
 
 He makes three claims and prints no statistic for any of them. Each comes from a Johansen test, which counts the stable relationships among a set of prices. Chan calls prices that hold such a relationship cointegrated, and the section headed “The test and the file” explains the word and the test.
 
@@ -166,7 +166,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Kindle location 1922.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Page 141 cited. The page number is the Kindle edition’s and differs from the print edition’s.
 2. Johansen, S. (1991). Estimation and hypothesis testing of cointegration vectors in Gaussian vector autoregressive models. *Econometrica*, 59(6), 1551–1580.
 3. Engle, R. F., and Granger, C. W. J. (1987). Co-integration and error correction: representation, estimation, and testing. *Econometrica*, 55(2), 251–276.
 

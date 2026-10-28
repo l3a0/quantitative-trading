@@ -6,7 +6,7 @@
 
 A pair trade needs a signal that keeps coming back to where it started. [The post on testing a price spread](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-mean-reversion.md) shows how to check for one with a cointegration test, which asks whether some fixed mix of two prices is stationary, meaning it keeps returning to the same average rather than wandering off. Ernest Chan’s second book, *Algorithmic Trading*, asks the next question. What if the test fails?
 
-His Example 3.1 takes the gold ETF GLD and the oil ETF USO, which he says “are not, in fact, cointegrated”, and asks whether there is still enough short-term mean reversion to trade (Chan, 2013, Kindle location 1505). He builds the signal three ways and trades each with the same rule. He scores each by its APR and its Sharpe ratio. The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk.
+His Example 3.1 takes the gold ETF GLD and the oil ETF USO, which he says “are not, in fact, cointegrated”, and asks whether there is still enough short-term mean reversion to trade (Chan, 2013, Kindle edition, p. 108). He builds the signal three ways and trades each with the same rule. He scores each by its APR and its Sharpe ratio. The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk.
 
 1. **The price spread**, USO minus h shares of GLD, with the hedge ratio h refitted every day by regression over the last 20 days. He reports an APR of “about 10.9 percent” and a Sharpe ratio of “about 0.59”.
 2. **The log price spread**, the same construction on the logarithms of the prices. He reports an APR of 9 percent and a Sharpe ratio of 0.5.
@@ -16,7 +16,7 @@ Chan published a script for each signal and the data file they read. Each script
 
 For the price spread and the log price spread, the transcription reproduces both figures in each script’s comment, all four to six decimals. The ratio’s script, run on the same file, does not reproduce the figures in its own comment. The same script with GLD and USO swapped matches them exactly, which this repository found only after the miss.
 
-**Every result here is exploratory.** Chan chose the rule, the pair and a 20-day lookback, which he calls “near-optimal” with “the benefit of hindsight” (Chan, 2013, location 1505). The lookback is the number of past days that every regression, average and standard deviation reads. The reproduction tests these choices on the same days Chan ran them on. It can say whether his numbers follow from his file and nothing about whether the trade pays today.
+**Every result here is exploratory.** Chan chose the rule, the pair and a 20-day lookback, which he calls “near-optimal” with “the benefit of hindsight” (Chan, 2013, p. 108). The lookback is the number of past days that every regression, average and standard deviation reads. The reproduction tests these choices on the same days Chan ran them on. It can say whether his numbers follow from his file and nothing about whether the trade pays today.
 
 The six lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -80,11 +80,11 @@ The three signals are not three readings of one portfolio. Each one holds a diff
 
 The price spread is the market value of a portfolio holding a fixed number of shares, one of USO and −h of GLD, for a given h. Its value moves with the prices, and that value is the signal.
 
-The log price spread is different. Chan shows that a stationary mix of log prices is the value of a portfolio holding a constant dollar amount in each asset, with cash making up the rest (Chan, 2013, location 1435). Keeping the dollar amounts constant means rebalancing every day as the prices move. Chan names the extra cost of that daily rebalancing, and the backtest charges nothing for it. The log price spread’s figures are lower even so, an APR of 0.088863 against 0.108335 and a Sharpe ratio of 0.504153 against 0.589651, before any trade is priced. Chan’s sentence that the log price spread’s APR and Sharpe ratio are both “actually lower” holds on his file.
+The log price spread is different. Chan shows that a stationary mix of log prices is the value of a portfolio holding a constant dollar amount in each asset, with cash making up the rest (Chan, 2013, p. 105). Keeping the dollar amounts constant means rebalancing every day as the prices move. Chan names the extra cost of that daily rebalancing, and the backtest charges nothing for it. The log price spread’s figures are lower even so, an APR of 0.088863 against 0.108335 and a Sharpe ratio of 0.504153 against 0.589651, before any trade is priced. Chan’s sentence that the log price spread’s APR and Sharpe ratio are both “actually lower” holds on his file.
 
 The ratio holds the same portfolio as the log price spread would with h fixed at 1, long a dollar of USO and short a dollar of GLD. It trades on USO/GLD itself rather than on its logarithm.
 
-Chan notes that when a stationary mix weights the two prices equally and with opposite signs, the ratio or its logarithm is stationary. That holds exactly only for a mix of log prices, because with those weights the mix is a fixed multiple of the ratio’s logarithm. Chan calls equal and opposite weights “a special case”, so a ratio need not be stationary (Chan, 2013, location 1476).
+Chan notes that when a stationary mix weights the two prices equally and with opposite signs, the ratio or its logarithm is stationary. That holds exactly only for a mix of log prices, because with those weights the mix is a fixed multiple of the ratio’s logarithm. Chan calls equal and opposite weights “a special case”, so a ratio need not be stationary (Chan, 2013, p. 106).
 
 He also argues for using a ratio. It stays the same when both prices are multiplied by the same factor, a point he credits to a reader, and it needs no hedge ratio at all. He says he knows no general answer to whether a ratio beats a price spread or log price spread whose hedge ratio adapts as the prices move, as the 20-day refit here does.
 
@@ -109,7 +109,7 @@ This repository tried three other versions of the run after the miss, in this or
 \end{array}
 ```
 
-The book captions its Figure 3.2 “Ratio = USO/GLD” (Chan, 2013, location 1505), and the published script computes USO/GLD. So the evidence favours the comment coming from a run with GLD and USO the other way round, perhaps an earlier draft of the script. The APR and the Sharpe ratio are both computed from one series of daily returns, so their two matches are not independent coincidences. Still, a run that only came close to the one behind the comment would not match both of those summaries to six decimals.
+The book captions its Figure 3.2 “Ratio = USO/GLD” (Chan, 2013, p. 109), and the published script computes USO/GLD. So the evidence favours the comment coming from a run with GLD and USO the other way round, perhaps an earlier draft of the script. The APR and the Sharpe ratio are both computed from one series of daily returns, so their two matches are not independent coincidences. Still, a run that only came close to the one behind the comment would not match both of those summaries to six decimals.
 
 This post reports the swap as a cause the evidence favours, not as a reproduction, because this repository found it by trying versions after the first one failed. A version chosen after its number is seen proves less than one written down first, however well it matches. Chan’s conclusion that the ratio loses money survives either way. The ratio loses 13.5 percent a year as published and 14.2 percent with GLD and USO swapped.
 
@@ -136,7 +136,7 @@ The spread is not the regression’s leftover. Each 20-day regression fits USO =
 
 *Two real 20-day windows from Chan’s file, ending 7 and 14 July 2009, the second on the day the spread is lowest in the whole run. Between them the slope h rose by 1.20, from 0.97 to 2.17. Both clouds sit about 91.5 dollars to the right of GLD = 0, where c is read. Steepening the line by 1.20 while it still runs through the clouds moved c down by about 1.20 × 91.5 dollars. Over the same week the leftover e on each window’s last day moved only from −2.71 to −3.21, so c makes up nearly all of the spread’s fall. Every figure comes from the run, and the three lines under the frame are figures over all 1,480 traded days, not over these two windows. The frame on the right draws each dollar of USO about 12 times taller than the left side does.*
 
-So the spread in the second panel of Lesson 1’s figure, which Chan says looks stationary (Chan, 2013, location 1505), is mostly the 20-day intercept moving. The backtest cannot say whether trading it captures a real short-term reversion between gold and oil or only a pattern that refitting a line every day on the last 20 days creates by itself.
+So the spread in the second panel of Lesson 1’s figure, which Chan says looks stationary (Chan, 2013, p. 108), is mostly the 20-day intercept moving. The backtest cannot say whether trading it captures a real short-term reversion between gold and oil or only a pattern that refitting a line every day on the last 20 days creates by itself.
 
 ## Lesson 5: a return that cannot see its own scale
 
@@ -163,7 +163,7 @@ The next example in the book, Example 3.2, trades the same spread with Bollinger
 
 Two scripts that match to six decimals show that the code, the data and the scripts’ comments agree. That match says nothing about whether the trade paid, for four reasons.
 
-1. **No cost is charged.** Every script trades every day, because the units change with the z-score each day. Chan himself names an extra cost for the log price spread’s rebalancing (Chan, 2013, location 1505).
+1. **No cost is charged.** Every script trades every day, because the units change with the z-score each day. Chan himself names an extra cost for the log price spread’s rebalancing (Chan, 2013, pp. 108 to 109).
 2. **The lookback was chosen in hindsight.** Chan calls 20 days “near-optimal” with “the benefit of hindsight”, so the figures are in-sample, measured on the same data Chan chose the lookback on. A lookback chosen that way tends to flatter the figures it produces.
 3. **The pair shows no cointegration.** As Lesson 4 describes, the profit rests on a 20-day fit whose hedge changes sign and whose intercept is most of the spread, rather than on a relationship known to persist.
 4. **The rule was chosen on the same days it is tested on.** A result that could confirm the edge would need a rule fixed in writing first and data the rule had never seen.
@@ -190,7 +190,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 3.1 and Kindle locations 1435, 1476 and 1505.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 3.1, with pages 105, 106, 108 and 109 cited. The page numbers are the Kindle edition’s and differ from the print edition’s.
 2. `PriceSpread.m`, `LogPriceSpread.m` and `Ratio.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. Engle, R. F., and Granger, C. W. J. (1987). Co-integration and error correction: representation, estimation, and testing. *Econometrica*, 55(2), 251–276.
 
