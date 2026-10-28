@@ -56,6 +56,7 @@ from chan.aud_cad_johansen import (
     JOHANSEN_K,
     JOHANSEN_P,
     LEGS,
+    SCALE_CHECK,
     SCRIPT_APR,
     SCRIPT_KELLY,
     SCRIPT_LOOKBACK,
@@ -80,9 +81,6 @@ from tests.support.committed_vintages import PYTHON_PORT, RETURN_CALENDAR
 from tests.support.post_tables import either_way, not_found_once, tables
 
 POST = paths.REPO_ROOT / "blog" / "aud-cad-johansen-lessons.md"
-
-#: The constant each leg is multiplied by in the scale check the post quotes.
-SCALE = (2.0, 0.37)
 
 
 @pytest.fixture(scope="module")
@@ -208,8 +206,11 @@ class TestTheVintages:
             assert per_year.loc[[2009, 2010, 2011]].tolist() == [259, 260, 259]
         for name in ("inputData_AUDUSD_20120426.csv", "inputData_USDCAD_20120426.csv"):
             text = (paths.DATA_DIR / "pythoncodesanddata" / name).read_text()
-            decimals = [len(line.split(",")[1].strip().partition(".")[2])
-                        for line in text.splitlines()[1:] if line.strip()]
+            decimals = [
+                len(line.split(",")[1].strip().partition(".")[2])
+                for line in text.splitlines()[1:]
+                if line.strip()
+            ]
             assert len(decimals) == 862
             assert max(decimals) == 6
 
@@ -299,8 +300,27 @@ class TestRow5TheReturnsAreChans:
 
     def test_a_constant_scale_on_either_leg_still_matches(self, frame, saved) -> None:
         """So row 5 says the inputs agree with Chan's up to a scale per leg, and no more."""
-        again = aud_cad(frame * list(SCALE))
+        again = aud_cad(frame * list(SCALE_CHECK))
+        assert SCALE_CHECK == (2.0, 0.37)
         assert agreement(again.test, saved, again.test_days).holds
+
+    def test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars(
+        self, frame, result
+    ) -> None:
+        """Lesson 2's reason a scale is invisible. Every AUD.USD close times 2
+        halves AUD.USD's weight in each day's hedge and leaves CAD.USD's, so each
+        leg holds the same dollars on every test day."""
+        scale = SCALE_CHECK[0]
+        again = aud_cad(frame * [scale, 1.0])
+        t = result.training
+        np.testing.assert_allclose(
+            again.hedge[t:, 0] / result.hedge[t:, 0], 1 / scale, rtol=0, atol=1e-12
+        )
+        np.testing.assert_allclose(
+            again.hedge[t:, 1] / result.hedge[t:, 1], 1.0, rtol=0, atol=1e-12
+        )
+        np.testing.assert_allclose(again.positions[t:], result.positions[t:], rtol=0, atol=1e-10)
+        np.testing.assert_array_equal(np.sign(again.positions[t:]), np.sign(result.positions[t:]))
 
     def test_one_digit_on_a_test_window_close_breaks_the_match(self, frame, saved) -> None:
         """The files quote at most six decimals, so 1e-6 is one unit in the sixth.
@@ -693,7 +713,7 @@ class TestWhatThePostQuotes:
         assert not_found_once(text, fragments) == []
 
     def test_lesson_2(self, text) -> None:
-        aud, cad = SCALE
+        aud, cad = SCALE_CHECK
         fragments = [
             "one unit in the sixth decimal, 0.000001,",
             f"Running the script with AUD.USD {'doubled' if aud == 2 else aud} and CAD.USD "

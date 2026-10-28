@@ -6216,9 +6216,14 @@ Three things.
    `TestRow5TheReturnsAreChans` holds both.
    1. Scaling either leg by a constant moves no return, because a simple
       return ignores the scale and the eigenvector rescales to cancel it.
+      Doubling AUD.USD halves its weight in every day's hedge, so each leg
+      holds the same dollars, and
+      `test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars`
+      holds that too.
    2. A change of 1e-6, one unit in the sixth decimal, the most the files
       quote, on a close in the test window breaks the match, because the
-      close enters a simple return directly. The same change on the first training row does not,
+      close enters a simple return directly. The same change on the first
+      training row does not,
       because that close reaches the returns only through the hedge.
 
    So the match answers the question
@@ -6266,7 +6271,12 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/aud-cad-johansen-lessons.md](../blog/aud-cad-johansen-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.aud_cad_johansen_figures` redraws.
+which `uv run python -m chan.aud_cad_johansen_figures` redraws. So do the
+post's two whiteboard sketches, which print the run's figures, and
+`uv run python -m chan.aud_cad_johansen_whiteboard` redraws them. The scale
+sketch is schematic apart from its scales and its count of returns. The share
+sketch draws the last day's hedge from the run, and its equal pair and its
+pair held the same way are schematic.
 
 ## Entry 26: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*
 
