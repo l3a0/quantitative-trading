@@ -8,15 +8,15 @@ The [post on Example 3.1](https://github.com/l3a0/quantitative-trading/blob/main
 
 That post’s rule, called the linear rule here, holds a number of units equal to minus the spread’s z-score. So it buys more as the spread falls further below its average and sells more as the spread rises further above it. From the first day the z-score exists, it is in the market every day, and its size changes every day.
 
-Ernest Chan’s second book, *Algorithmic Trading*, offers the Bollinger band, a rule for practical trading on the same z-score (Chan, 2013, Kindle location 1548). The rule is named for a band drawn a set number of standard deviations either side of the spread’s moving average, and this post calls the rule itself the band. It opens a position only when the spread moves beyond an edge of that drawn band, the entry threshold. It closes the position when the spread crosses a second threshold, which Example 3.2 sets at the average. At any time it holds “either zero or one unit (long or short) invested”, which Chan says makes it “very easy to allocate capital to this strategy or to manage its risk”.
+Ernest Chan’s second book, *Algorithmic Trading*, offers the Bollinger band, a rule for practical trading on the same z-score (Chan, 2013, Kindle edition, p. 112). The rule is named for a band drawn a set number of standard deviations either side of the spread’s moving average, and this post calls the rule itself the band. It opens a position only when the spread moves beyond an edge of that drawn band, the entry threshold. It closes the position when the spread crosses a second threshold, which Example 3.2 sets at the average. At any time it holds “either zero or one unit (long or short) invested”, which Chan says makes it “very easy to allocate capital to this strategy or to manage its risk”.
 
-His Example 3.2 trades the GLD and USO spread with that band and reports an APR of 17.8 percent and a Sharpe ratio of 0.96, “quite an improvement from the linear mean reversal strategy” (Chan, 2013, location 1559). The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk.
+His Example 3.2 trades the GLD and USO spread with that band and reports an APR of 17.8 percent and a Sharpe ratio of 0.96, “quite an improvement from the linear mean reversal strategy” (Chan, 2013, p. 114). The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk.
 
 ### What the reproduction found
 
 Chan published the script, `bollinger.m`, and the data file it reads. The repository behind this post keeps the file’s contents, as one CSV per ETF, and ran a Python transcription of the script on them. The transcription reproduces both figures the script prints to six decimals, an APR of 0.178249 and a Sharpe ratio of 0.964673.
 
-**Every result here is exploratory.** Chan chose the pair, the thresholds and the 20-day lookback, which he calls “near-optimal” with “the benefit of hindsight” (Chan, 2013, location 1505), and the reproduction tests them on the same days he did. It can say whether his numbers follow from his file and nothing about whether the trade pays today.
+**Every result here is exploratory.** Chan chose the pair, the thresholds and the 20-day lookback, which he calls “near-optimal” with “the benefit of hindsight” (Chan, 2013, p. 108), and the reproduction tests them on the same days he did. It can say whether his numbers follow from his file and nothing about whether the trade pays today.
 
 The five lessons below say what the reproduction does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -68,7 +68,7 @@ Each rule has its own script, `bollinger.m` for the band and Example 3.1’s pri
 \end{array}
 ```
 
-All four computed figures match their scripts’ comments to the last digit printed. The band’s book figures are its script’s figures rounded, 0.178249 to 17.8 percent and 0.964673 to 0.96. That was not true of the linear rule’s APR in Example 3.1. Its script prints 0.108335, which is 10.8 percent at one decimal, and the book prints “about 10.9 percent” (Chan, 2013, location 1505). So for Example 3.2 the computation, the script and the book agree at every digit each one prints.
+All four computed figures match their scripts’ comments to the last digit printed. The band’s book figures are its script’s figures rounded, 0.178249 to 17.8 percent and 0.964673 to 0.96. That was not true of the linear rule’s APR in Example 3.1. Its script prints 0.108335, which is 10.8 percent at one decimal, and the book prints “about 10.9 percent” (Chan, 2013, p. 108). So for Example 3.2 the computation, the script and the book agree at every digit each one prints.
 
 ### The z-score, the units and the return, redrawn
 
@@ -126,7 +126,7 @@ Swapping the moving average as well, for Chan’s `smartMovingAvg`, which also s
 
 ## Lesson 4: one unit at most, and fewer trades
 
-The band holds one unit or none, as location 1548 says. Over the 1,480 traded days it is short on 547, flat on 334 and long on 599.
+The band holds one unit or none, as Chan says on p. 112. Over the 1,480 traded days it is short on 547, flat on 334 and long on 599.
 
 The Example 3.1 post reports the hedge ratio below zero on 334 days of the same 1,480. On those days −h is positive, so one unit is long both ETFs. The count of 334 matches the band’s flat count, which could suggest the band sits out exactly those days. It does not. The band is flat with the hedge ratio below zero on only 62 days.
 
@@ -138,13 +138,13 @@ Position changes are also far rarer. The band’s units change on 162 days, agai
 
 The count of 162 understates how much the band trades. One unit holds −h shares of GLD for each share of USO, and h is refitted every day. So a held unit’s GLD leg is resized every day, even on a day the unit count stands still. The reproduction charges neither rule a cost for any of it.
 
-Location 1548 adds that a shorter lookback and smaller thresholds bring “more round trip trades and generally higher profits”. Nothing here tests that sentence. It would take a search over lookbacks and thresholds, followed by a check of its findings on data the search had not seen.
+On p. 112 Chan adds that a shorter lookback and smaller thresholds bring “more round trip trades and generally higher profits”. Nothing here tests that sentence. It would take a search over lookbacks and thresholds, followed by a check of its findings on data the search had not seen.
 
 ## Lesson 5: an exact reproduction checks the arithmetic, not the edge
 
 That both figures match to six digits says the code, the data and the script’s comment agree. It says nothing about whether the band pays, for four reasons.
 
-1. **Nothing shows the parameters were fixed before these days were seen.** Location 1548 calls the entry threshold “a free parameter to be optimized in a training set”, and says the lookback “can be a free parameter to be optimized, or it can be set equal to the half-life of mean reversion”. The half-life is how long the spread takes, on average, to close half of its distance from its mean. Location 1559 sets the thresholds at 1 and 0 without saying how they were chosen. The 20-day lookback is the one location 1505 says was set with “the benefit of hindsight”.
+1. **Nothing shows the parameters were fixed before these days were seen.** On p. 112 Chan calls the entry threshold “a free parameter to be optimized in a training set”, and says the lookback “can be a free parameter to be optimized, or it can be set equal to the half-life of mean reversion”. The half-life is how long the spread takes, on average, to close half of its distance from its mean. On p. 114 Chan sets the thresholds at 1 and 0 without saying how they were chosen. The 20-day lookback is the one Chan says on p. 108 was set with “the benefit of hindsight”.
 2. **No cost is charged.** The band trades less often than the linear rule, but Lesson 4 shows it still resizes its GLD leg on every day it holds a unit.
 3. **The pair shows no cointegration.** A cointegration test asks whether some fixed mix of two prices is stationary, meaning it keeps returning to the same average rather than wandering off. The [post on testing a price spread](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-mean-reversion.md) explains how it works. The Example 3.1 post found that GLD and USO fail it on Chan’s file and that the 20-day hedge ratio changes sign. The band trades the same spread, so its profit too rests on a 20-day fit rather than on a relationship known to persist.
 4. **A confirming test needs rules fixed first.** Reproducing Chan’s figures on the days he used tests his arithmetic. A result that could confirm the edge would need thresholds and a lookback fixed in writing first, and data the rule had never seen.
@@ -171,7 +171,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 3.2 and Kindle locations 1505, 1548 and 1559.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 3.2, with pages 108, 112 and 114 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `bollinger.m` and `fillMissingData.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 
 *Not investment advice. Code: [the band](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/bollinger.py), [the spread it trades](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/price_spread.py), [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/bollinger_figures.py) and [the whiteboard sketches](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/bollinger_whiteboard.py), with the checks behind [the band’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_bollinger.py), [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_bollinger_figures.py) and [what the sketches draw](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_bollinger_whiteboard.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-26-bollinger-bands-on-gld-and-uso-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*

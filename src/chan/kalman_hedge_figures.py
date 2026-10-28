@@ -282,7 +282,7 @@ def make_kalman_figure(
     _title(
         fig,
         f"Exploratory: the Kalman filter hedge on Chan's own {X} and {Y} closes",
-        f"Algorithmic Trading, locations 1633 to 1726, {days[0].date()} to "
+        f"Algorithmic Trading, Kindle edition, pp. 119 to 128, {days[0].date()} to "
         f"{days[-1].date()}, {len(days):,} trading days, as KF_beta_EWA_EWC.m runs them.\n"
         f"Prices from {SOURCE_FILE}, saved {', '.join(saved)}. delta {DELTA:g} and Ve "
         f"{VE:g} are Chan's, and every figure is in-sample.",

@@ -154,7 +154,7 @@ def make_roll_momentum_figure(out: Path | None = None, strip: Strip | None = Non
     _title(
         fig,
         "Exploratory: TU momentum traded on the lagged roll return, against Example 6.1",
-        f"Algorithmic Trading, location 2690. TU contracts from {vintage}/, saved "
+        f"Algorithmic Trading, Kindle edition, p. 206. TU contracts from {vintage}/, saved "
         f"{strip.members[0].obtained}.\nThe series is the front contract rebuilt from the "
         f"strip, rolling {ROLL_ROWS} rows before its last price.\nThe rule was declared after "
         "about 90 scratch readings, so this is no registered test, and no cost is taken.",

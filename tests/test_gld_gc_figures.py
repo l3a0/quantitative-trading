@@ -108,7 +108,7 @@ class TestTheFigure:
     def test_the_title_carries_the_label_and_the_note_names_each_vintage(self, figure) -> None:
         assert figure._suptitle.get_text() == "Exploratory: long GLD and short gold futures"
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, locations 2718 and 2730. GC from "
+            "Algorithmic Trading, Kindle edition, pp. 208 to 209. GC from "
             "inputData_GC_1600_20100802.mat, saved 2012-05-07,\nGLD from inputData_ETF.mat, "
             "saved 2012-04-10, and FRED's TB3MS, downloaded 2026-09-30.\nThe top panel was "
             "measured after the run, on the book's window, and no cost is charged."

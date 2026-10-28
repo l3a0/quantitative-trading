@@ -3468,8 +3468,8 @@ the replication log.
 
 Three groups of its figures are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    "Used to last several days" and "barely until the market closes" are at
    2890. "The slow diffusion of news" is at 2990. "Known and studied since
    1968" and the trader needing no view of expectations are at 2994. The
@@ -3824,8 +3824,8 @@ from Entry 18 of the replication log.
 
 Five groups of its figures are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The four rules, "panic selling at the open", "will gradually appreciate
    over the course of the day", "a momentum filter superimposed on a
    mean-reverting strategy" and the drops of "just a little" and "a lot" are
@@ -3954,7 +3954,8 @@ draws four lessons from Entry 15 of the replication log.
 
 Five groups of its figures are not pinned here.
 
-1. Chan's words. "The simplest examples of cointegrating futures pairs" is
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location. "The simplest examples of cointegrating futures pairs" is
    quoted from location 3951 of *Quantitative Trading*. "Do not generally
    mean-revert" is quoted from location 2321 of *Algorithmic Trading*, and the
    12-month crude oil spread taken in logs, stationary
@@ -4093,7 +4094,8 @@ rules run on every clone.
 
 Six groups of its figures are not pinned here.
 
-1. Chan's words. "As frequently as they like" is quoted from location 3414 and
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location. "As frequently as they like" is quoted from location 3414 and
    "but nobody (until they read this book!) is predicting the returns of this
    particular GLD trading strategy" from location 3617, both through
    [its committed notes](research/book-notes/quantitative-trading.md). "May
@@ -4176,8 +4178,8 @@ Entry 17 of the replication log.
 
 Six groups of its figures are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The top and bottom deciles held for a month are at 2797. The 37 percent and
    4.1, "a miserable −30 percent", "did stabilize, though it hasn't returned
    to its former high level yet", and Daniel and Moskowitz's 16.7 percent and
@@ -4305,8 +4307,8 @@ post draws six lessons from Entry 21 of the replication log.
 
 Five groups of its figures are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    That a stationary mix of log prices is a portfolio of constant dollar
    weights rebalanced every day is at 1435. That a ratio or its logarithm is
    stationary in "a special case", when the two hedge ratios are equal and
@@ -4442,8 +4444,8 @@ replication log.
 
 Six groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    "Until July 14, 2008, or thereabout", the three claims' quotes, the
    triplet's "entire period from 2006 to 2012", the oil peak at around $145 a
    barrel, the mining-cost explanation and the 2011 piece it cites, the
@@ -4610,8 +4612,8 @@ from Entry 23 of the replication log.
 
 Five groups of its figures are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    "The use of in-sample data to find the half-life" is at 1225. "Commodity
    based, so they seem likely to cointegrate" is at 1264. The question of
    swapping the legs, its answer "yes" and "try each variable as independent"
@@ -4749,8 +4751,8 @@ lessons from Entry 28 of the replication log.
 
 Seven groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    "When the market goes down, volatility shoots up" is at 2546. The two
    regimes, the second's lower volatility for a given index level, and the
    warning against a regression across both are at 2552. The
@@ -4895,8 +4897,8 @@ post draws five lessons from Entry 30 of the replication log.
 
 Six groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The difference iB − iQ, which Chan calls "the interest differential" and
    "also called a rollover interest", the
    5 p.m. close, the T + 3 rule for a cross and the T + 1 exception for
@@ -5035,8 +5037,8 @@ post's Lesson 5 and draws five lessons from Entry 26 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The band as the rule for practical trading, "either zero or one unit (long
    or short) invested", "very easy to allocate capital to this strategy or to
    manage its risk", "a free parameter to be optimized in a training set" for
@@ -5198,8 +5200,8 @@ The post draws four lessons from Entry 32 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    Example 3.2's band, entered at one standard deviation and exited at the
    mean, is at 1559. "An abrupt and artificial impact on the hedge ratio" is
    at 1633, "the expected value of a hidden variable" at 1644, the slope and
@@ -5292,8 +5294,8 @@ replication log.
 
 Six groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    "Such a well-known strategy that the difference in market values has become
    extremely small" and picking "all the stocks that cointegrate individually
    with the ETF" are at 2006. "With at least 90 percent probability", "an
@@ -5599,8 +5601,8 @@ draws four lessons from Entry 19 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    Cross-sectional mean reversion, "and vice versa", and "the same total gross
    capital of $1" are at 2087. "Almost perfectly dollar neutral", "the year of
    Lehman Brothers' bankruptcy" and "a true out-of-sample test, as the
@@ -5750,8 +5752,8 @@ from. It draws six lessons from Entry 25 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The point move of equal dollar value is at 2169, and the commodity
    currencies at 2173. The base and quote currencies, the AUD.ZAR quote of
    9.58, the capital weights and the sale of USD.CAD are at 2186. Rollover
@@ -5846,8 +5848,8 @@ replication log.
 
 Six groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The roll return as "an intrinsic part of its total return", backwardation
    and contango are at 2326. The model and "total return = spot return + roll
    return" are at 2364. The loss of more than \$100,000 in 2006 and the ETF of
@@ -5986,8 +5988,8 @@ lessons from Entry 37 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The four steps of a hypothesis test and the null hypothesis are at 593, the
    Gaussian null at 606, simulated prices at 616, simulated trades and Lo,
    Mamaysky and Wang at 623, the rule at 642, the mean and shape as luck at
@@ -6081,8 +6083,8 @@ repeating them, and draws five lessons from Entry 34 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    2321, 2326, 2364, 2449, 2453, 2461, 2471 and 2502, with Figure 5.7's
    caption at 2471.
 2. Facts about the script rather than the data: the comments at its lines 71
@@ -6238,8 +6240,8 @@ TU posts to link, and draws three lessons from Entry 33 of the replication log.
 
 Seven groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The four causes of momentum and the persistence of roll returns are at
    2591, momentum as a correlation of past and future returns at 2600, the
    optimal pair at 2612, the two tests as momentum tests at 2620, the warning
@@ -6395,8 +6397,8 @@ lessons from Entry 36 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    Example 5.3's regression on "time to maturity" is at 2399. "A respectable
    1", the 1.7 and 2.5 percent, and TU's notional value of about $200,000
    against a margin of about $400 are at 2668. "The sign of roll returns does
@@ -6480,8 +6482,8 @@ replication log.
 
 Six groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    All of them, and Figure 5.8's caption, are at 2502.
 2. Facts about the script rather than the data: its commented-out load of the
    VX file, its comment calling the held pair's far and near contracts the back
@@ -6615,8 +6617,8 @@ and draws six lessons from Entry 20 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    "The leverage should be kept constant" is at 3210, the discomfort of
    selling into the loss at 3216, "a vicious cycle" and the August 2007
    meltdown at 3228, the upper bound, the broker's limit and the estimation
@@ -6723,8 +6725,8 @@ replication log.
 
 Four groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The rule, "may work better than each strategy by itself" and the two
    figures are at 2701, and the warning that the real test is out-of-sample
    is at 2715. Crude's peak on July 14, 2008 is location 1922's, cited
@@ -6870,8 +6872,8 @@ log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
    The trade, its figures, GLD owning physical gold, the −4.9 percent roll
    return from 1982 to 2004, the leverage of 5 or 6, the financing claim and
    "close to zero" are at 2718. The 1:30 p.m. and 4:00 p.m. times and the
@@ -6974,8 +6976,8 @@ repeating them, and draws five lessons from Entry 39 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    USO not owning oil at 1939, XLE and the spot price at 2385, the arbitrage
    of the underlying against the future at 2718, and the trade, its figures
    and Figure 6.3's caption at 2734.
@@ -7090,8 +7092,8 @@ repeating them, and draws five lessons from Entry 41 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    VX in contango about three fourths of the time at 2385, no fund holding
    VIX and ES's roll return of about 1 percent at 2747, and the rule, the
    0.3906, the price regression against the paper's returns, the −75 percent,
@@ -7214,8 +7216,8 @@ Entry 50 found on the S&P 400.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
-   through [its committed notes](research/book-notes/quantitative-trading.md).
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Quantitative Trading* through [its committed notes](research/book-notes/quantitative-trading.md).
    Khandani and Lo's 4.47 is at 2099, the explanation at 2137, the exercise at
    2236, the 5 basis points for S&P 500 stocks at 998, low-priced stocks'
    wider spreads at 2639, small caps being hard to borrow at 2730, and a move
@@ -7401,8 +7403,8 @@ exploratory, and the runs on the archive's prices cannot be rerun by a reader.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    the earnings.com calendar and its window from the previous close to the
    open at 3002, the 4:00 p.m. and 9:30 a.m. times at 3010, and the book's
    6.7 percent and 1.5 at 3024. The figures at 3024 are pinned by
@@ -7534,8 +7536,8 @@ pins.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    "the triggering of stops" at 2954, the rule's sentence, FSTX on Eurex, the
    13 percent and 1.4 and "the gap momentum code" at 2965, the example's and
    Figure 7.1's captions and GBPUSD's 7.2 percent and 1.3 at 2971, the stop
@@ -7784,8 +7786,8 @@ repeating them, and draws six lessons from Entry 43 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    the 11 percent and 1.6 at 2237, the Kelly as an upper bound and the
    bankruptcy in backtest at 3235, Monte Carlo at 3280, the Pearson system at
    3319, the 18.4, the type, the 19, "strikingly close", the −0.0331, the
@@ -7907,8 +7909,8 @@ and draws six lessons from Entry 45 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
-   through [its committed notes](research/book-notes/quantitative-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Quantitative Trading* through [its committed notes](research/book-notes/quantitative-trading.md):
    the beta match, the Fama-French model, the Kelly argument, "Empirical
    studies" and Qian's risk parity at 4684, the fat-tail caveat at 4700, and
    the rule at 4709.
@@ -8060,8 +8062,8 @@ log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
-   through [its committed notes](research/book-notes/quantitative-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Quantitative Trading* through [its committed notes](research/book-notes/quantitative-trading.md):
    "highly leveraged" at 4709, the beta match at 4684, Regulation T's
    overnight leverage of 2, portfolio margin's 20 percent for a portfolio of
    large-cap stocks hedged so that its long and short sides are equal in
@@ -8168,8 +8170,8 @@ repeating them, and draws five lessons from Entry 47 of the replication log.
 
 Five groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
-   through [its committed notes](research/book-notes/algorithmic-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    the momentum rule at 2965, the sentence that no one risk indicator suits
    every strategy, the threshold of 35, "a common threshold for highly risky
    periods", the four unfiltered and four filtered figures and both of
@@ -8273,8 +8275,8 @@ Entry 49 of the replication log.
 
 Six groups of what it says are not pinned here.
 
-1. Chan's words, each cited by its Kindle location in *Quantitative Trading*
-   through [its committed notes](research/book-notes/quantitative-trading.md):
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location in *Quantitative Trading* through [its committed notes](research/book-notes/quantitative-trading.md):
    the rule at 4709, the fat-tail caveat at 4700, and the equal average
    returns at 4684.
 2. The plan's history rather than the data: that the plan, the panel's

@@ -239,7 +239,8 @@ def make_opening_gap_figure(
     _title(
         fig,
         "Exploratory: the opening gap strategy on STOXX Europe 50 futures, both signs",
-        f"Algorithmic Trading, Example 7.1 and location 2965. FSTX from {SOURCE_FILE}, saved "
+        f"Algorithmic Trading, Kindle edition, Example 7.1 and p. 229. FSTX from {SOURCE_FILE}, "
+        "saved "
         f"{entry.obtained}.\n{len(result.days):,} days from {result.days[0].date()} to "
         f"{result.days[-1].date()}, each held from the open to the close, with no cost charged.",
     )

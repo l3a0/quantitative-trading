@@ -544,7 +544,7 @@ class TestWhatThePostQuotes:
        ``tests/test_vx_calendar_spread_figures.py`` reads its eight bar figures
        against the chart's labels, and its readings of the curves are
        approximate.
-    3. Chan's words and their Kindle locations, the script's name and
+    3. Chan's words and their Kindle page, the script's name and
        commit, and the references.
     4. The numbers the two sketches print and their alt texts quote, which
        ``tests/test_vx_calendar_spread_whiteboard.py`` derives from the

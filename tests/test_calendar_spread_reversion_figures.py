@@ -102,7 +102,7 @@ class TestTheFigure:
             "Exploratory: Example 5.4's calendar spread on crude oil, and the direction it trades"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, locations 2461 and 2471. Contracts from "
+            "Algorithmic Trading, Kindle edition, pp. 182 to 184. Contracts from "
             "inputDataDaily_CL_20120813.mat, saved 2012-08-14.\nThe 2008 to 2012 window is the "
             "one Chan chose, and no cost is charged."
         ]

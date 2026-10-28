@@ -159,7 +159,7 @@ class TestTheFigure:
             "Exploratory: Chapter 8's leverage on Example 5.1's returns, one declared seed"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, Figure 8.2 and locations 3342 to 3438. Returns from "
+            "Algorithmic Trading, Kindle edition, Figure 8.2 and pp. 258 to 264.\nReturns from "
             "pythoncodesanddata/AUDCAD_unequal_ret.csv, saved 2018-12-26.\nDraws: 100,000 "
             "from the Pearson type IV with the returns' four moments, on seed 20261012. No "
             "further seed is drawn here."
@@ -378,7 +378,7 @@ class TestTheCppiPanel:
             "−0.5 on 6,034 days from day 303",
             "Box 8.6's loop: deepest −0.848088 on day 37,071, below −0.5 on 5,681 days from "
             "day 303",
-            "location 3426's scheme: deepest −0.495638 on day 33,785, never below −0.5",
+            "the scheme on p. 263: deepest −0.495638 on day 33,785, never below −0.5",
         ], SPEC
 
     def test_the_loop_is_red_the_scheme_green_and_the_full_account_muted(self, axes) -> None:
@@ -407,7 +407,8 @@ class TestTheCppiPanel:
     def test_the_heading(self, axes) -> None:
         assert axes["cppi"].get_title(loc="left") == (
             "Two CPPI forms on the same draws, at the script's f of 20.000000 and D = 0.5.\n"
-            "Location 3438 says CPPI's drawdown is less than 0.5 by design. The dashed line is "
+            "Chan says on p. 264 that CPPI's drawdown is less than 0.5 by design. The dashed line "
+            "is "
             "−0.5."
         )
 
