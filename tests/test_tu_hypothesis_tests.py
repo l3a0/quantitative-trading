@@ -823,6 +823,11 @@ class TestWhatThePostQuotes:
     def missing(text: str, fragments: list[str]) -> list[str]:
         return [fragment for fragment in fragments if fragment not in text]
 
+    def test_the_check_reports_a_fragment_the_post_lacks(self):
+        """Every test below passes when ``missing`` returns nothing, so its own
+        failure has to be seen once."""
+        assert self.missing("abc def", ["abc", "xyz"]) == ["xyz"]
+
     def test_the_rule_the_file_and_the_three_tests(self, sources, strategy, result, text):
         entry, closes = sources
         longs, shorts = int(strategy["longs"].sum()), int(strategy["shorts"].sum())

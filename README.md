@@ -6012,7 +6012,8 @@ Six groups of what it says are not pinned here.
    [tests/test_tu_hypothesis_tests_whiteboard.py](tests/test_tu_hypothesis_tests_whiteboard.py)
    reads the quoted labels, the pace and the phrases it quotes about each
    drawing. It does not read every position the rest of each description
-   gives, such as the lower line wandering level and the grey arrows between the lower boxes.
+   gives, such as the brass line running from left to right and the closing
+   line at the bottom left.
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states most figures more than once, in its subtitle, its opening list, a
    lesson, the closing habits, the list of what it cannot say or the alt text,

@@ -664,6 +664,8 @@ class TestTheWrongArraySketch:
             "grey box labelled “ret_sim built from pos_sim = 0”",
             "red box labelled “every simulated mean: 0”",
             "Green words to the left of the red box",
+            "A grey arrow runs from that box into a wide grey box",
+            "a grey arrow runs down from that into a red box",
         ):
             assert words in alt, words
 
@@ -713,6 +715,7 @@ class TestTheMostlyLongSketch:
                 line.x, [day_x(figures, d) for d in days], rtol=0, atol=1e-12
             )
             assert days[-1] == LOOKBACK * WINDOWS
+            assert np.isclose(line.x[-1], sketches.LINE_X[1]), name
 
     def test_each_bracket_spans_its_250_days(self, mostly_long, figures) -> None:
         """The bracket's level part runs from its window's first day to its last."""
@@ -760,6 +763,16 @@ class TestTheMostlyLongSketch:
         assert "long on 0.250000" in scene.labels
         assert scene.labels[-1] == "not long most days, so it misses the drift"
 
+    def test_the_title_reads_the_drifting_share_and_not_the_flat_one(self, figures) -> None:
+        """The run's two shares both sit above a half, so only made-up shares on
+        opposite sides of it tell the two apart."""
+        for drifting, flat, title in (
+            (0.45, 0.55, "Drift does not make the rule mostly long"),
+            (0.55, 0.45, "Drift makes the rule mostly long"),
+        ):
+            made_up = replace(figures, drifting_share=drifting, flat_share=flat)
+            assert scenes(made_up)[1].title == title
+
     def test_a_made_up_drift_moves_the_arrows(self, figures) -> None:
         """With no drift the top line draws the flat line's arrows, five up."""
         made_up = replace(figures, daily_mean=0.0)
@@ -772,11 +785,22 @@ class TestTheMostlyLongSketch:
         flat_up = int((window_changes(figures, drift=False) > 0).sum())
         assert "Both lines are schematic random walks" in alt
         assert "the upper one with TU’s daily mean as well" in alt
-        assert "not TU’s closes" in alt
+        assert "not TU’s closes and not the run’s simulated series" in alt
         assert "noisy brass line rises" in alt
         assert f"{WORDS[WINDOWS]} brackets each 250 days long end in an arrow" in alt
-        assert "up in green" in alt and "down in red" in alt
+        assert (
+            "up in green where the line ends the 250 days higher"
+            " and down in red where it ends lower"
+        ) in alt
         assert f"{WORDS[up]} of the {WORDS[WINDOWS]} point up" in alt
         assert f"{WORDS[flat_up]} of its {WORDS[WINDOWS]} arrows point up" in alt
         assert f"{WORDS[WINDOWS - flat_up]} down" in alt
         assert "black line with the same noise and no drift" in alt
+        for words in (
+            "“up: long” in green and “down: short” in red",
+            "brass words beside the line",
+            "wanders level",
+            "Black words beside it",
+            "Grey words at the bottom right",
+        ):
+            assert words in alt, words
