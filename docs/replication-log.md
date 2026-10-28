@@ -6207,8 +6207,8 @@ entry it was 2.0e-15.
 
 Three things.
 
-1. **The committed currency files agree with the ones Chan's MATLAB read,
-   up to a constant scale on each leg.** The script loaded two minute `.mat`
+1. **The committed currency files carry the closes Chan's MATLAB traded, up
+   to a constant scale on each leg.** The script loaded two minute `.mat`
    files that neither mirror carries, and this run read the Python port's daily
    copies. Every one of the 612 returns lands on the one Chan saved, inside the
    1e-9 declared before the run, and the largest difference was 2.0e-15 where

@@ -306,7 +306,7 @@ class TestRow5TheReturnsAreChans:
         assert found.first_over == result.test_days[7]
 
     def test_a_constant_scale_on_either_leg_still_matches(self, frame, saved) -> None:
-        """So row 5 says the inputs agree with Chan's up to a scale per leg, and no more."""
+        """So row 5 says the traded closes agree with Chan's up to a scale per leg, and no more."""
         again = aud_cad(frame * list(SCALE_CHECK))
         assert SCALE_CHECK == (2.0, 0.37)
         assert agreement(again.test, saved, again.test_days).holds
