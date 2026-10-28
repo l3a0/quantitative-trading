@@ -8042,7 +8042,15 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.vx_calendar_spread_figures` redraws, and
 [blog/crude-oil-calendar-spread-lessons.md](../blog/crude-oil-calendar-spread-lessons.md),
-which quotes the 126 of 847.
+which quotes the 126 of 847. The post's two whiteboard sketches move too, and
+`uv run python -m chan.vx_calendar_spread_whiteboard` redraws them. Neither is
+schematic. The one in Lesson 2 draws S's hold of the pair near VX-2009K and far
+VX-2009M from 2009-02-04 to 2009-05-06, 64 days. Its near leg is the 4th, 3rd
+and 2nd priced contract for 10, 20 and 19 of those days and the front one for
+the last 15, the only stretch on which the front pair the signal reads is the
+pair held. The one in Lesson 4 draws the script as shipped on 2010-01-04,
+when the near leg VX-2010J has a price and the far leg VX-2011J has none, and
+closes on the 1,183 of 1,284 held days with the near leg alone.
 
 ## Entry 36: TU momentum traded on the lagged roll return, Chan's *Algorithmic Trading*
 

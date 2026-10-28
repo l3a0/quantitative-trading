@@ -6532,6 +6532,36 @@ uv run python -m chan.vx_calendar_spread_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/vx_calendar_spread_whiteboard.py](src/chan/vx_calendar_spread_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws,
+and neither is schematic. The first builds more slowly than the USD.CAD post's
+sketches and holds its finished drawing for twelve seconds.
+
+1. `vx_calendar_spread_sketch_one_hold.gif`, in Lesson 2, draws one hold of
+   the specification. It holds the pair near VX-2009K and far VX-2009M from
+   2009-02-04 to 2009-05-06, 64 days, and lets it go 10 days before
+   VX-2009K's last priced day. Under it the near leg is the 4th, 3rd and 2nd
+   priced contract for 10, 20 and 19 days, and the front one for the last 15,
+   while the front pair the signal reads steps from VX-2009G and VX-2009H to
+   VX-2009K and VX-2009M. Every date, place and count on it is read from the
+   specification's schedule and `near_leg_rank` on the committed VX strip.
+2. `vx_calendar_spread_sketch_twelve_apart.gif`, in Lesson 4, draws one day
+   of the script as shipped, 2010-01-04. The 8 contracts priced that day run
+   from VX-2010F to VX-2010Q, the near leg is VX-2010J, and the far leg 12
+   months on, VX-2011J, has no price. Its closing note gives the 1,183 of
+   1,284 held days on which the near leg is alone, read from the same run.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.vx_calendar_spread_whiteboard
+```
+
+[tests/test_vx_calendar_spread_whiteboard.py](tests/test_vx_calendar_spread_whiteboard.py)
+derives every date, place and count both sketches print from the schedules
+again, and holds that each mark sits at its own trading day or contract.
+
 [blog/capped-kelly-allocation-lessons.md](blog/capped-kelly-allocation-lessons.md)
 is a thirty-third post, about Examples 8.1 and 8.2 of Chan's *Algorithmic
 Trading*, which hold a leverage constant through a loss and a gain and then
