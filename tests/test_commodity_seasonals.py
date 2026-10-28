@@ -1185,8 +1185,8 @@ class TestThePostQuotesThePins:
         assert one < date(one.year, 4, 1)
         assert date(first_april - 1, 4, 30) < two < date(first_april, 4, 1)
         assert (
-            f"The New York Harbor gasoline contract-1 file begins in {one:%B %Y}, and nothing "
-            f"here has computed a trade on its Aprils before {first_april}. So "
+            f"The New York Harbor gasoline contract-1 file begins in {one:%B %Y}, and none of "
+            f"the run’s results comes from its Aprils before {first_april}. So "
             f"{held_back[0]} to {held_back[-1]} give {words[len(held_back)]} years"
         ) in self.text
         # June in April and May in March are contract 2, the file that starts too late.
@@ -1232,6 +1232,27 @@ class TestThePostQuotesThePins:
         assert (
             f"On every entry and exit date from {years[0]} to {years[-1]}, those include the "
             "June gasoline contract and the May natural gas contract"
+        ) in self.text
+        # The other neighbours: April gasoline has stopped trading by every
+        # entry and exit date, and July natural gas is contract 5 on most entries.
+        for year in years:
+            for day in (
+                on_or_after(date(year, *GASOLINE_ENTRY)),
+                on_or_before(date(year, *GASOLINE_EXIT)),
+            ):
+                with pytest.raises(ValueError):
+                    futures.contract_number(day, year, 4, futures.rbob_last_trade)
+        fifth = [
+            year
+            for year in years
+            if futures.contract_number(natural_gas_trade(year).entry_day, year, 7, ng_last_trade)
+            > 4
+        ]
+        assert len(years) / 2 < len(fifth) < len(years)
+        assert (
+            "The April gasoline contract stops trading at the end of March, before the entry "
+            "date, and the July natural gas contract is contract 5, one beyond EIA’s four, on "
+            "most entry dates."
         ) in self.text
 
     def test_further_work_s_decimal_places(self) -> None:

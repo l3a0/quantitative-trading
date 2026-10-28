@@ -3819,7 +3819,8 @@ won, and natural gas without 2022, and
 `test_lesson_4_works_the_sample_size_out` reads Lesson 4's worked equations
 and its table of tests against them. The tests named for Further work read its
 trade dates and gasoline's holding period, the held-back gasoline years and the
-files' first months, the delivery-month check's years and EIA's decimal places.
+files' first months, the delivery-month check's years and the neighbours it
+cannot reach, and EIA's decimal places.
 They take the held-back years from the manifest's dates and the run's year
 ranges, never from a price.
 
