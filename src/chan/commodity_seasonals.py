@@ -338,7 +338,8 @@ def pairs_won(before: list[Trade], after: list[Trade]) -> tuple[float, int]:
 
 
 def max_drawdown(trades: list[Trade], *, data_dir: Path | None = None) -> float:
-    """The largest fall from a peak in the summed returns, marked every trading day.
+    """The largest fall from a peak in the summed returns, marked every trading day
+    the files hold a price.
 
     Each year stakes one contract's value at entry, so the years' returns add
     rather than compound, and the fall is a fraction of one stake. Marking

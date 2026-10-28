@@ -1421,7 +1421,7 @@ class TestTheSplitSketch:
 
 
 class TestTheDrawdownFigures:
-    def test_the_run_gives_one_mark_for_each_trading_day_of_2002s_trade(self, drawdown) -> None:
+    def test_the_run_marks_each_trading_day_the_files_price_in_2002s_trade(self, drawdown) -> None:
         trade = seasonals.natural_gas_trade(2002)
         assert (drawdown.year, drawdown.entry_day, drawdown.exit_day) == (
             2002,
@@ -1975,9 +1975,14 @@ class TestTheInterpolationSketch:
         assert "straight-line guess 60.0¢" in scene.labels
         assert {"61.0¢", "59.0¢"} <= set(scene.labels)
 
-    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+    def test_its_alt_text_says_what_the_picture_shows(self, every, guess) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[7])
         assert "settlements one trading day apart" in alt
+        days = [day for day, _ in guess.prices]
+        span = (days[0] + timedelta(n) for n in range((days[-1] - days[0]).days + 1))
+        missed = [str(d.day) for d in span if is_trading_day(d) and d not in days]
+        missed.remove(str(guess.fill.day.day))
+        assert f"The file misses April {', '.join(missed[:-1])} and {missed[-1]} too" in alt
         assert "The guess sits in the blue part, and the band reaches into the vermilion" in alt
 
 
@@ -2131,6 +2136,7 @@ class TestTheFillTwoSketch:
         alt = _alt(POST.read_text(encoding="utf-8"), every[8])
         assert "Black dots are the May gasoline contract’s settlements and grey rings" in alt
         first, last = fill_two.window
+        assert f"apart from April {first.day} to April {last.day}, {last.year}" in alt
         days = [first + timedelta(n) for n in range((last - first).days + 1)]
         trading = [day for day in days if is_trading_day(day)]
         june = {day for day, _ in fill_two.june}
@@ -3260,6 +3266,8 @@ class TestTheHolidaySketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[26])
         assert "so the weekend of the 22nd and 23rd has none" in alt
+        assert [date(2016, 12, d).weekday() for d in (24, 25)] == [5, 6]
+        assert "its weekend of the 24th and 25th and the closed 26th have no dot" in alt
 
     def test_the_four_come_in_the_post_s_order(self) -> None:
         assert [s.slug for s in _expiry_scenes()] == [

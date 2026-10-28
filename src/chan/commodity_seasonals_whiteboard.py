@@ -173,8 +173,9 @@ The two-trades sketch reads its dates from the run's trade dates,
 :func:`chan.commodity_seasonals.natural_gas_trades` and
 :func:`chan.commodity_seasonals.gasoline_trades`.
 :meth:`DrawdownFigures.from_run` reads 2002's natural gas trade from
-:func:`chan.commodity_seasonals.natural_gas_trade` and its settlement on each
-trading day from :func:`chan.commodity_seasonals.daily_marks`, the marks
+:func:`chan.commodity_seasonals.natural_gas_trade`, and from
+:func:`chan.commodity_seasonals.daily_marks` its settlement on each trading day
+the files hold a price. Those are the marks
 :func:`chan.commodity_seasonals.max_drawdown` measures its fall on.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
