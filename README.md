@@ -3844,8 +3844,9 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    each loss, each row split where the book's years end, with the years won on
    each side.
 3. `commodity_sketch_drawdown_2002.gif`, in the opening, natural gas's 2002
-   trade as its return over its entry price on every trading day, which rose
-   to 48%, fell 22 points, the drawdown, and ended the year 40% up.
+   trade as its return over its entry price on every trading day the files
+   hold a price. The return rose to 48%, fell 22 points, the drawdown, and
+   ended the year 40% up.
 4. `commodity_sketch_streak_start.gif`, in Lesson 1, a year axis from 1994 to
    the 2009 loss with a dot for each profitable year of the natural gas
    trade, a note naming it, a dashed mark for the first edition's release in

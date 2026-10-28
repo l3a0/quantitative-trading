@@ -34,11 +34,12 @@ the paragraph it draws.
    with the years won on each side. It sits after the opening's table of the
    periods before and after the book.
 3. A 22-point fall inside a winning year: natural gas's 2002 trade, its
-   return over its entry price on each trading day from February 25 to April
-   15 as a line above a dashed 0% line, a dot at its peak, a purple bracket
-   from the peak down to the lowest mark after it for the drawdown, and a dot
-   at the exit, where the year ended a profit. It sits after the paragraph
-   opening "A year’s return is the change in the contract’s price".
+   return over its entry price on each trading day the files hold a price
+   from February 25 to April 15 as a line above a dashed 0% line, a dot at its
+   peak, a purple bracket from the peak down to the lowest mark after it for
+   the drawdown, and a dot at the exit, where the year ended a profit. It sits
+   after the paragraph opening "A year’s return is the change in the
+   contract’s price".
 4. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
    the loss, a note naming the trade as natural gas's June contract, a dashed
@@ -661,8 +662,9 @@ def _whole_pct(value: float) -> str:
 
 
 def _drawdown(f: DrawdownFigures) -> Scene:
-    """The opening: one trade's return on every trading day, with the largest
-    fall inside it, which counts as a drawdown although the year ended ahead."""
+    """The opening: one trade's return on every trading day the files hold a
+    price, with the largest fall inside it, which counts as a drawdown although
+    the year ended ahead."""
     top, low = f.fall
     end = len(f.returns) - 1
     xs = np.array([_drawdown_x(k, f) for k in range(len(f.returns))])

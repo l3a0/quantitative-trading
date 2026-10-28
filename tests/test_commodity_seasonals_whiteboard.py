@@ -30,12 +30,12 @@ post quotes, such as test_the_run_gives_these_dates_and_files.
    between the last of the book's years and the next, that the counts on each side are
    the run's and the opening table's, and that other figures move them.
 3. The drawdown sketch draws natural gas's 2002 trade as its return over its
-   entry price on each trading day, with its peak, the largest fall after it
-   and its exit. What is pinned is that each mark sits at its trading day and
-   its return on one scale, that the marks are the run's, one per trading day,
-   that the bracket spans the run's drawdown, the same as the book's years'
-   drawdown, that the labels read their figures from the run, and that other
-   figures move them.
+   entry price on each trading day the files hold a price, with its peak, the
+   largest fall after it and its exit. What is pinned is that each mark sits at
+   its trading day and its return on one scale, that the marks are the run's,
+   one per trading day the files hold a price, that the bracket spans the
+   run's drawdown, the same as the book's years' drawdown, that the labels
+   read their figures from the run, and that other figures move them.
 4. The streak sketch draws a dot at each profitable year from 1994 to the
    first loss, a cross at that loss, a note naming the trade as natural gas's
    June contract, the first edition's release between 2008 and 2009, and
@@ -863,6 +863,11 @@ def _alt(text: str, scene) -> str:
     alt = match.group(1)
     assert f"“{scene.title}”" in alt, scene.slug
     return alt
+
+
+def _or(words: list[str]) -> str:
+    """Words joined as the alt text writes them: "9", "9 or 15", "9, 10 or 15"."""
+    return words[0] if len(words) == 1 else f"{', '.join(words[:-1])} or {words[-1]}"
 
 
 # --- The rules every sketch shares --------------------------------------------
@@ -2122,9 +2127,18 @@ class TestTheFillTwoSketch:
         scene = _june_move_fill(dataclasses.replace(fill_two, fill=moved))
         assert {"62.3¢", "61.9¢"} <= set(scene.labels)
 
-    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+    def test_its_alt_text_says_what_the_picture_shows(self, every, fill_two) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[8])
         assert "Black dots are the May gasoline contract’s settlements and grey rings" in alt
+        first, last = fill_two.window
+        days = [first + timedelta(n) for n in range((last - first).days + 1)]
+        trading = [day for day in days if is_trading_day(day)]
+        june = {day for day, _ in fill_two.june}
+        no_ring = [str(day.day) for day in trading if day not in june]
+        assert f"June has no ring on April {_or(no_ring)}." in alt
+        may = {day for day, _ in fill_two.may}
+        no_dot = [str(d.day) for d in trading if d not in may and d != fill_two.fill.day]
+        assert f"nor on April {_or(no_dot)}." in alt
         assert "a purple arrow of the same rise starts at May’s April 8 price" in alt
         assert "The guess sits in the blue part just under the line" in alt
 

@@ -3525,8 +3525,9 @@ twenty-seven.
 1. Each trade's entry and exit on one calendar, with Chan's count for it.
 2. Both trades' years won, split where the book's years end: 15 of 15 then 7 of
    15 for natural gas, and 16 of 18 then 3 of 8 for gasoline.
-3. Natural gas's 2002 trade on every trading day, whose 22-point fall from
-   its 48% peak is the drawdown before 2009, inside a year that ended 40% up.
+3. Natural gas's 2002 trade on every trading day the files hold a price. Its
+   22-point fall from its 48% peak is the drawdown before 2009, inside a year
+   that ended 40% up.
 4. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
    against the 2009 loss and the first edition's release.
 5. Gasoline's two claims, the sidebar's profit every year since 1995 ending
