@@ -6,11 +6,11 @@
 
 A trend-following rule on futures has a puzzle behind it. Why should a future’s past return say anything about its next one? Ernest Chan’s second book, *Algorithmic Trading*, offers an answer and then tests it.
 
-The test starts from Example 6.1, a momentum strategy on TU, the two-year Treasury note future. Each day it buys if TU’s price is above its level 250 trading days earlier and sells if it is below, and it holds each of those bets for 25 days. Chan reports that from 2004-06-01 to 2012-05-11 “the Sharpe ratio is a respectable 1”, with an APR of 1.7 percent and a maximum drawdown of 2.5 percent (Chan, 2013, location 2668). The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk. The maximum drawdown is the largest fall from a peak.
+The test starts from Example 6.1, a momentum strategy on TU, the two-year Treasury note future. Each day it buys if TU’s price is above its level 250 trading days earlier and sells if it is below, and it holds each of those bets for 25 days. Chan reports that from 2004-06-01 to 2012-05-11 “the Sharpe ratio is a respectable 1”, with an APR of 1.7 percent and a maximum drawdown of 2.5 percent (Chan, 2013, Kindle edition, pp. 204 to 205). The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk. The maximum drawdown is the largest fall from a peak.
 
-Then comes the explanation. A future’s total return splits into the move of the spot price under it and a roll return, which the future earns by converging on the spot as it nears expiry. Chan argues that the roll return is what makes futures trend: “Typically, the sign of roll returns does not vary very often” (Chan, 2013, location 2683). The spot return swings in both directions from day to day. So if the roll return keeps its sign for months and dominates the average, a long holding period sees a total return that keeps its sign too.
+Then comes the explanation. A future’s total return splits into the move of the spot price under it and a roll return, which the future earns by converging on the spot as it nears expiry. Chan argues that the roll return is what makes futures trend: “Typically, the sign of roll returns does not vary very often” (Chan, 2013, p. 206). The spot return swings in both directions from day to day. So if the roll return keeps its sign for months and dominates the average, a long holding period sees a total return that keeps its sign too.
 
-If that is the cause, the roll return itself should be a better signal than the past total return. Location 2690 says so, calling it “a cleaner and potentially better momentum signal”, and tries it on TU. The rule goes long when the lagged roll return, yesterday’s value, is above 3 percent a year, short when it is below −3 percent, and flat otherwise. Chan reports “a higher APR of 2.5 percent and Sharpe ratio of 2.1 from January 2, 2009, to August 13, 2012, with a reduced maximum drawdown of 1.1 percent” (Chan, 2013, location 2690).
+If that is the cause, the roll return itself should be a better signal than the past total return. Chan says so on p. 206, calling it “a cleaner and potentially better momentum signal”, and tries it on TU. The rule goes long when the lagged roll return, yesterday’s value, is above 3 percent a year, short when it is below −3 percent, and flat otherwise. Chan reports “a higher APR of 2.5 percent and Sharpe ratio of 2.1 from January 2, 2009, to August 13, 2012, with a reduced maximum drawdown of 1.1 percent” (Chan, 2013, p. 206).
 
 No script ships for that experiment, so this repository wrote the rule down itself and ran it on Chan’s own files. The rule misses all three printed figures. It does beat Example 6.1 on all three when both run on one series over one window, and a second copy of the prices that Chan saved agrees. The Sharpe ratio carries most of that win. The APR margin is about as small as the error in the price series this repository had to rebuild.
 
@@ -24,9 +24,9 @@ A futures contract is a promise to buy or sell something on a set date, and each
 
 ### The roll return γ
 
-Chan estimates the roll return, which he writes γ, in Example 5.3, by regressing “the prices of the various contracts against their time to maturity” on a fixed day (Chan, 2013, location 2399). His script, `estimateFuturesReturns.m`, does it on each day with the log prices of the five nearest contracts against their place in line, 1 to 5. Then γ is −12 times the slope, an annual rate. A positive γ means the later contracts are cheaper, which is backwardation and pays a long position. The [post on Chan’s spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#the-model-and-the-files) reproduces this fit on TU and four other futures.
+Chan estimates the roll return, which he writes γ, in Example 5.3, by regressing “the prices of the various contracts against their time to maturity” on a fixed day (Chan, 2013, p. 179). His script, `estimateFuturesReturns.m`, does it on each day with the log prices of the five nearest contracts against their place in line, 1 to 5. Then γ is −12 times the slope, an annual rate. A positive γ means the later contracts are cheaper, which is backwardation and pays a long position. The [post on Chan’s spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#the-model-and-the-files) reproduces this fit on TU and four other futures.
 
-The −12 assumes adjacent contracts are a month apart. This post calls that the script’s column units, since each contract sits in its own column of Chan’s file. That post’s [second lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-2-the-script-counts-contracts-not-months) shows what the assumption does to a future whose contracts are not a month apart. TU’s contracts are a quarter apart, so on all 1,087 days where γ is defined, γ in column units is exactly three times γ measured in months, the rate the book’s words describe. Location 2690 gives its threshold in annualized terms, so γ in months might look like the right one. It peaks at 2.447 percent inside the test window and never reaches 3 percent, so a rule on it never trades. The rule here therefore reads γ in column units. That is a reading of the book, and the post says so wherever it matters.
+The −12 assumes adjacent contracts are a month apart. This post calls that the script’s column units, since each contract sits in its own column of Chan’s file. That post’s [second lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-2-the-script-counts-contracts-not-months) shows what the assumption does to a future whose contracts are not a month apart. TU’s contracts are a quarter apart, so on all 1,087 days where γ is defined, γ in column units is exactly three times γ measured in months, the rate the book’s words describe. Chan gives the threshold on p. 206 in annualized terms, so γ in months might look like the right one. It peaks at 2.447 percent inside the test window and never reaches 3 percent, so a rule on it never trades. The rule here therefore reads γ in column units. That is a reading of the book, and the post says so wherever it matters.
 
 ### Example 6.1’s rule
 
@@ -39,7 +39,7 @@ With no script to transcribe, this repository wrote the rule down in five parts 
 1. **The signal.** γ in column units, from Chan’s Example 5.3 fit.
 2. **The threshold.** Long where γ is above 0.03 and short where it is below −0.03, both strict. A day with no γ opens neither.
 3. **The lag.** The position set on one day earns the next day’s return, which is Example 6.1’s own convention.
-4. **The window.** Every series is computed on the full file and cut last to 2009-01-02 to 2012-08-13, the 913 trading days location 2690 names. Cutting first would leave Example 6.1’s 250-day signal off for the window’s first 250 trading days. Its signal would then be live on only 663 of the 913, and its APR would fall to 0.008435.
+4. **The window.** Every series is computed on the full file and cut last to 2009-01-02 to 2012-08-13, the 913 trading days of the window Chan names on p. 206. Cutting first would leave Example 6.1’s 250-day signal off for the window’s first 250 trading days. Its signal would then be live on only 663 of the 913, and its APR would fall to 0.008435.
 5. **The arithmetic.** Example 6.1’s script, `TU_mom.m`, for the APR, the Sharpe ratio and the drawdown, with 252 trading days a year, no risk-free rate and no cost.
 
 ### The files
@@ -77,7 +77,7 @@ The figure below draws both rules on the rebuilt series. The book prints no char
 
 ## Lesson 2: the declared rule beats Example 6.1 by stepping out of the market
 
-Location 2690’s comparison is three claims: a higher APR, a higher Sharpe ratio and a smaller drawdown than Example 6.1. A claim holds when the declared rule beats Example 6.1’s rule on the same series and days. Here are the two rules side by side.
+The comparison on p. 206 is three claims: a higher APR, a higher Sharpe ratio and a smaller drawdown than Example 6.1. A claim holds when the declared rule beats Example 6.1’s rule on the same series and days. Here are the two rules side by side.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -130,7 +130,7 @@ A rule fixed before the data is read can be tested by the data. A rule fixed aft
 The declaration rests on three grounds the scratch runs did not choose.
 
 1. **The lag** is Example 6.1’s own convention, a position set on one day earning the next.
-2. **The series** is the one location 2690 says it revises, Example 6.1’s front contract.
+2. **The series** is the one Chan says on p. 206 that the rule revises, Example 6.1’s front contract.
 3. **The roll day** was read off the 2012-05-11 save, as Lesson 3 describes, rather than chosen by any strategy figure.
 
 One variant in the scratch runs came close to the book. It holds the fifth contract priced the day before, the farthest of the five that γ is fitted on, instead of the front contract. That gives an APR of 2.4712 percent, a Sharpe ratio of 2.144165 and a drawdown of 1.1583 percent. The first two land the book’s 2.5 percent and 2.1. The drawdown misses 1.1 percent.
@@ -148,8 +148,8 @@ The same reasoning is why every result here is exploratory. The declaration came
 Three things are beyond it.
 
 1. **Whether the signal works out of sample.** The rule was written down after about 90 variants on the same strip, so its margins are not a test.
-2. **What Chan held.** No script ships for location 2690, and the book does not say how far the roll return is lagged or which price the position earns. The fifth-contract variant lands near the book, and choosing it after its number was seen would fit the rule to the answer.
-3. **What a trader would earn.** The returns are on the notional value of one contract, the face value of the notes it controls, with no cost and no margin, the deposit a broker requires to hold it. Location 2668 puts TU’s notional value at about $200,000 against a margin of about $400, so any real position would be leveraged, and the figures here say nothing about the leverage.
+2. **What Chan held.** No script ships for the rule on p. 206, and the book does not say how far the roll return is lagged or which price the position earns. The fifth-contract variant lands near the book, and choosing it after its number was seen would fit the rule to the answer.
+3. **What a trader would earn.** The returns are on the notional value of one contract, the face value of the notes it controls, with no cost and no margin, the deposit a broker requires to hold it. Chan puts TU’s notional value at about $200,000 against a margin of about $400 (pp. 204 to 205), so any real position would be leveraged, and the figures here say nothing about the leverage.
 
 ## What this means for a trader
 
@@ -162,7 +162,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 5.3 and 6.1 and Kindle locations 2399, 2668, 2683 and 2690.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 5.3 and 6.1, with pages 179 and 204 to 206 cited. The page numbers are the Kindle edition’s, read in the Kindle Cloud Reader, and differ from the print edition’s.
 2. `TU_mom.m` and `estimateFuturesReturns.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 
 *Not investment advice. Code: [both rules and the rebuild](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/roll_momentum.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/roll_momentum_figures.py), with the checks behind [the numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_roll_momentum.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_roll_momentum_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-36-tu-momentum-traded-on-the-lagged-roll-return-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*
