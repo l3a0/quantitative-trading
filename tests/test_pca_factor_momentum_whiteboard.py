@@ -46,9 +46,11 @@ import hashlib
 import math
 import platform
 import re
+from types import SimpleNamespace
 
 import matplotlib
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 
@@ -56,7 +58,7 @@ from chan import pca_factor_momentum
 from chan import pca_factor_momentum_whiteboard as sketches
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.pca_factor import LOOKBACK
+from chan.pca_factor import LOOKBACK, SPLICED
 from chan.pca_factor_momentum import decompose
 from chan.pca_factor_momentum_whiteboard import (
     BAR_X,
@@ -258,7 +260,7 @@ def _ends(stroke) -> tuple[float, float]:
 class TestTheScenes:
     def test_there_are_two_in_the_order_the_post_reads_them(self, every) -> None:
         assert [scene.title for scene in every] == [
-            "Tomorrow’s weights have seen today’s return",
+            "Tomorrow’s own weights have seen today’s return",
             "PMC takes PC1, so the usual PC1 lands in PC2",
         ]
 
@@ -530,6 +532,8 @@ class TestThePost:
             "so it is not to scale",
             "Black dots on the axis at t and t + 1",
             "from the top down",
+            "Three brackets follow above the axis",
+            "Under the axis, red words",
             "A black bracket from t − 252 to t − 1",
             "A red bracket from t − 251 to t, its right end over today’s dot",
             "A brass bracket runs from the red bracket’s left end to the black bracket’s right end",
@@ -545,6 +549,8 @@ class TestThePost:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
         for words in (
             "Three grey shelves mark three slots",
+            "named “PC1”, “PC2” and “PC3” from the top",
+            "To the right, three bars",
             "In the left column, a black box marked “usual PC1” sits in the first slot",
             "In the right column, a brass box marked “mostly PMC”",
             "takes the first slot",
@@ -632,16 +638,23 @@ class TestTheWindowSketch:
         }
 
     def test_weight_statistics_fits_the_left_out_weights_on_the_251_rows_before_today(
-        self,
+        self, monkeypatch
     ) -> None:
-        """The source asks ``decompose`` for ``LOOKBACK - 1`` rows ending
-        before row t for the weights that leave today out, and ending at row t
-        for the control that keeps today in."""
-        import inspect
+        """Every short window it fits is ``LOOKBACK - 1`` rows long and ends
+        before row t, which leaves today out, or at row t, which keeps it in."""
+        rng = np.random.default_rng(11)
+        returns = rng.normal(0, 0.02, size=(LOOKBACK + 4, 12))
+        components = pca_factor_momentum.daily_components(returns)
+        asked, real = [], pca_factor_momentum.decompose
 
-        source = inspect.getsource(pca_factor_momentum.weight_statistics)
-        assert "unseen = decompose(returns, t, LOOKBACK - 1)" in source
-        assert "seen = decompose(returns, t + 1, LOOKBACK - 1)" in source
+        def record(returns, t, lookback=LOOKBACK):
+            asked.append((t, lookback))
+            return real(returns, t, lookback)
+
+        monkeypatch.setattr(pca_factor_momentum, "decompose", record)
+        pca_factor_momentum.weight_statistics(returns, components)
+        days = [d.end for d in components[:-1]]
+        assert asked == [call for t in days for call in ((t, LOOKBACK - 1), (t + 1, LOOKBACK - 1))]
 
     def test_each_bracket_spans_its_days_on_the_axis_top_to_bottom(self, every) -> None:
         scene = every[0]
@@ -682,6 +695,8 @@ class TestTheWindowSketch:
             assert tick.y < DAY_AXIS_Y
             assert np.isclose(axis.x, x).any(), offset
         assert sorted(DAY_X) == [-LOOKBACK, -(LOOKBACK - 1), -1, 0, 1]
+        xs = [DAY_X[offset] for offset in sorted(DAY_X)]
+        assert xs == sorted(xs) and len(set(xs)) == len(xs)
         skip = _label(scene, "…")
         assert DAY_X[-(LOOKBACK - 1)] < skip.x < DAY_X[-1]
         for gid, offset, word in (("today-return", 0, "today"), ("tomorrow-return", 1, "tomorrow")):
@@ -691,6 +706,11 @@ class TestTheWindowSketch:
                 DAY_X[offset],
                 True,
             )
+
+    def test_the_foot_sits_under_the_axis(self, every) -> None:
+        scene = every[0]
+        for text in WINDOW_LABELS[13:]:
+            assert _label(scene, text).y < DAY_AXIS_Y - sketches.TICK_WORDS_BELOW, text
 
     def test_other_figures_move_the_words(self, every) -> None:
         moved = Window(matched=-0.2, left_out=0.031, shortened=0.05, paired=0.03)
@@ -852,3 +872,63 @@ class TestTheRankShiftSketch:
     def test_figures_the_words_would_misdescribe_are_refused(self, changes) -> None:
         with pytest.raises(ValueError):
             sketches._rank_shift(dataclasses.replace(PINNED_RANK_SHIFT, **changes))
+
+
+#: Nine made-up trading days for :class:`TestTheRankShiftReader`.
+READER_DAYS = pd.bdate_range("2007-07-30", periods=9)
+
+
+def _pairs(column: int, large: tuple[int, int]) -> SimpleNamespace:
+    """Six pair days whose products on ``column`` are large on the two ``large`` days."""
+    tomorrow = np.full((6, 5), 0.1)
+    tomorrow[list(large), column] = (3.0, 4.0)
+    return SimpleNamespace(today=np.ones((6, 5)), tomorrow=tomorrow, days=READER_DAYS[2:8])
+
+
+def _from_run(monkeypatch, carriers: list[int], without: tuple[int, int]) -> RankShift:
+    """PMC's return on row 1, held by one window per carrier, each ending a day later."""
+    closes = pd.DataFrame(1.0, index=READER_DAYS, columns=[SPLICED, "X"])
+    returns = np.zeros((len(READER_DAYS), 2))
+    returns[1, 0] = 1.0
+    holding = [SimpleNamespace(end=2 + k) for k in range(len(carriers))]
+    monkeypatch.setattr(sketches, "file_returns", lambda _: returns)
+    monkeypatch.setattr(sketches, "windows_holding", lambda _, row: holding if row == 1 else [])
+    monkeypatch.setattr(
+        sketches, "largest_loading", lambda d, column: (0.9 + d.end / 100, carriers[d.end - 2])
+    )
+    results = SimpleNamespace(
+        spliced=SimpleNamespace(
+            pairs=_pairs(sketches.FACTOR, (1, 2)), comparison=SimpleNamespace(factors=[0.0] * 5)
+        ),
+        unspliced=SimpleNamespace(
+            pairs=_pairs(0, without), comparison=SimpleNamespace(factors=[0.0] * 5)
+        ),
+    )
+    return RankShift.from_run(closes, [None] * 7, results)
+
+
+class TestTheRankShiftReader:
+    """:meth:`RankShift.from_run` on a made-up run of nine days, so its
+    refusals are reached without the decompositions."""
+
+    def test_it_reads_the_days_pmc_carries_pc1_and_the_two_large_days(self, monkeypatch) -> None:
+        found = _from_run(monkeypatch, [0, 0, 0, 1, 1, 2], without=(1, 2))
+        assert found.span == ("2007-08-01", "2007-08-03")
+        assert found.weights == pytest.approx((0.92, 0.94))
+        assert found.days == ("2007-08-02", "2007-08-03")
+        assert found.others == 4
+
+    @pytest.mark.parametrize(
+        "carriers",
+        [[1, 1, 0], [0, 1, 0], [0, 0, 1, 0]],
+        ids=["PMC not on PC1 first", "PC1 again after a gap", "PC1 again at the end"],
+    )
+    def test_pmc_off_pc1_on_its_first_days_or_back_on_it_later_is_refused(
+        self, monkeypatch, carriers
+    ) -> None:
+        with pytest.raises(ValueError, match="first days"):
+            _from_run(monkeypatch, carriers, without=(1, 2))
+
+    def test_two_other_days_carrying_pc1_without_pmc_is_refused(self, monkeypatch) -> None:
+        with pytest.raises(ValueError, match="same two days"):
+            _from_run(monkeypatch, [0, 0, 1], without=(3, 4))

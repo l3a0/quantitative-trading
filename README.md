@@ -8105,7 +8105,7 @@ uv run python -m chan.pca_factor_momentum_whiteboard
 pins both sketches' figures, so it runs without the decompositions, and
 `test_the_whiteboard_draws_this_runs_figures` in
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py) holds
-that the run gives them. It holds that each bracket covers the rows
+that the run gives them. The sketch tests also hold that each bracket covers the rows
 `decompose` reads for it, that each box sits in its slot and each bar at its
 share, what each sketch says and in which colour, that figures the words would
 misdescribe are refused, that each GIF follows its paragraph in the post, and

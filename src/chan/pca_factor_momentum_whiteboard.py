@@ -7,7 +7,7 @@ factor's place, so the factor that is usually first lands second. This module
 draws the two as scenes, and the post places each right after the paragraph
 it draws.
 
-1. Tomorrow's weights have already seen today's return, in Lesson 1: a day
+1. Tomorrow's own weights have already seen today's return, in Lesson 1: a day
    axis from t − 252 to t + 1 with today's and tomorrow's returns as dots, and
    three brackets over it. Day t's weights, black, cover the 252 days to
    t − 1. Day t+1's weights, red, cover the 252 days to t, so their right end
@@ -32,8 +32,9 @@ the run, through :class:`Window` and :class:`RankShift`, and the rank shift's
 bars stand at each day's share of PC2's squared products. The window
 sketch's axis is not to scale, since it skips from t − 251 to t − 1, and the
 slots carry no figure of their own. ``tests/test_pca_factor_momentum_whiteboard.py``
-pins what each draws, and two tests in ``tests/test_pca_factor_momentum.py``
-hold that the run gives the figures it pins.
+pins what each draws, and ``test_the_whiteboard_draws_this_runs_figures`` in
+``tests/test_pca_factor_momentum.py`` holds that the run gives the figures it
+pins.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. They draw
@@ -108,7 +109,7 @@ def _signed(value: float) -> str:
     return f"{value:.4f}".replace("-", "−")
 
 
-# --- Lesson 1: tomorrow's weights have already seen today's return -------------
+# --- Lesson 1: tomorrow's own weights have already seen today's return ---------
 
 
 @dataclass(frozen=True)
@@ -287,7 +288,7 @@ def _window(w: Window) -> Scene:
             size=10,
         ),
     ]
-    return Scene("Tomorrow’s weights have seen today’s return", "window", tuple(steps))
+    return Scene("Tomorrow’s own weights have seen today’s return", "window", tuple(steps))
 
 
 # --- Lesson 5: PMC takes PC1, so the usual PC1 lands in PC2 --------------------
