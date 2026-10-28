@@ -4082,8 +4082,10 @@ PLATEAU_WIDTH = {"cliff": 0.12, "plateau": 1.25}
 
 def _plateau_profit(kind: str, x: np.ndarray, centre: float) -> np.ndarray:
     """The schematic profit a parameter's values give: a narrow spike at
-    Chan's value for the cliff, and a wide flat top around it for the
-    plateau. Each carries a small ripple so it reads as hand-drawn."""
+    Chan's value for the cliff, and a wide, rounded top around it for the
+    plateau. Each carries a small ripple so it reads as hand-drawn. On the
+    plateau the ripple tilts the top, so its highest point sits a little past
+    Chan's value, a reminder that a neighbour could do better."""
     u = x - centre
     if kind == "cliff":
         shape, ripple = np.exp(-((u / PLATEAU_WIDTH[kind]) ** 2)), 0.08 * np.sin(5.3 * u)

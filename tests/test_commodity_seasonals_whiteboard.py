@@ -15,10 +15,11 @@ what its chance means, the four chances against the 5% line, and how one year
 moves natural gas's mean but not its ranks. Five draw Lesson 5: which numbered file holds
 June, a handover, which years each check reaches, an entry on March's last
 day, and a holiday row. One draws Further work, a cliff beside a plateau.
-The data scenes are built from the natural gas and gasoline runs on the committed EIA files rather
-than from a pinned copy of their figures. Most tests check the drawing against
-the run, and a few check the run against literal dates, counts and labels the
-post quotes, such as test_the_run_gives_these_dates_and_files.
+The data scenes are built from the natural gas and gasoline runs on the
+committed EIA files rather than from a pinned copy of their figures. Most
+tests check the drawing against the run, and a few check the run against
+literal dates, counts and labels the post quotes, such as
+test_the_run_gives_these_dates_and_files.
 
 1. The two-trades sketch draws each trade's entry and exit as a bar on one
    calendar. What is pinned is that each bar runs from the run's entry date to
@@ -3336,6 +3337,9 @@ class TestThePlateauSketch:
         assert _label(scene, "a plateau: nearby values pay too").color == GOOD
         assert _label(scene, "worth a closer look").color == GOOD
         assert _label(scene, "schematic, drawn to no scale").color == MUTED
+        assert _label(scene, "Chan’s").color == ACCENT
+        for text in ("profit", "0", "each axis: one parameter, moved either way from Chan’s value"):
+            assert _label(scene, text).color == MUTED, text
 
     def test_chans_dot_sits_on_each_curve_at_its_panels_centre(self, every) -> None:
         scene = every[27]
@@ -3345,6 +3349,22 @@ class TestThePlateauSketch:
             assert dot.x[0] == pytest.approx(centre)
             assert dot.y[0] == pytest.approx(np.interp(centre, curve.x, curve.y), abs=0.02)
             assert (curve.x[0], curve.x[-1]) == pytest.approx((x0, x1))
+
+    def test_the_cliff_peaks_at_chans_value_and_the_plateau_just_past_it(self) -> None:
+        """The cliff's peak is Chan's value. The plateau's highest point sits a
+        little to its right and a little higher, which the owner kept so the
+        sketch shows a neighbour could do better, though not by much."""
+        for (x0, x1), kind in zip(PLATEAU_PANELS, ("cliff", "plateau"), strict=True):
+            centre = (x0 + x1) / 2
+            x = np.linspace(x0, x1, 2001)
+            profit = _plateau_profit(kind, x, centre)
+            top = _plateau_profit(kind, np.array([centre]), centre)[0]
+            if kind == "cliff":
+                assert profit.max() == pytest.approx(top, abs=0.005)
+                assert x[profit.argmax()] == pytest.approx(centre, abs=0.05)
+            else:
+                assert 0.02 < profit.max() - top < 0.1 * PLATEAU_RISE[kind]
+                assert 0.1 < x[profit.argmax()] - centre < 0.6
 
     def test_the_cliff_falls_close_to_chans_value_and_the_plateau_does_not(self, every) -> None:
         """A step of a fifth of a panel either side of Chan's value leaves the
@@ -3379,4 +3399,8 @@ class TestThePlateauSketch:
         assert "schematic and to no scale" in alt
         assert "spikes in one narrow peak at a purple dot" in alt
         assert "falls back low" in alt
+        assert "a vermilion line runs low" in alt
+        assert "a blue line rises" in alt
+        assert alt.count("purple dot") == 2
         assert "stays high well to either side of it" in alt
+        assert "just left of its highest point" in alt

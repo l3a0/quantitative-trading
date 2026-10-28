@@ -3962,8 +3962,10 @@ how many bars its line crosses and the file the run reads, that the handover
 sketch's dots are the files' prices and its files hand over the day after the
 rule's last day, that the coverage sketch's counts are the run's, that 2018's
 entry line meets the end of March's bar, that a holiday dot stands on exactly
-the days the file holds a row, and that each GIF follows the paragraph it
-draws.
+the days the file holds a row, that the plateau sketch's dot sits on each curve
+at its panel's centre, with the cliff back near its floor a fifth of a panel
+away and the plateau still near its top, and that each GIF follows the
+paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
