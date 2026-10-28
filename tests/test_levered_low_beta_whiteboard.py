@@ -217,6 +217,27 @@ class TestTheScenes:
     def test_there_are_two_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
+    def test_each_draws_its_strokes_in_order(self, every) -> None:
+        assert [s.gid for s in every[0].strokes] == [
+            "y-axis",
+            "x-axis",
+            "floor",
+            "pivot",
+            "ruinous",
+            "ruinous-drop",
+            "asked",
+            "asked-drop",
+            "month",
+        ]
+        assert [s.gid for s in every[1].strokes] == [
+            "axis",
+            "curve",
+            "line",
+            "tail",
+            "months",
+            "past",
+        ]
+
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
         for scene in every:
             for index, step in enumerate(scene.steps):
@@ -381,6 +402,14 @@ class TestTheCommand:
 
 
 class TestThePost:
+    def test_the_footer_links_the_sketch_code_and_its_tests(self) -> None:
+        footer = POST.read_text(encoding="utf-8").rstrip().splitlines()[-1]
+        base = "https://github.com/l3a0/quantitative-trading/blob/main/"
+        assert f"[the whiteboard sketches]({base}src/chan/levered_low_beta_whiteboard.py)" in footer
+        assert (
+            f"[what the sketches draw]({base}tests/test_levered_low_beta_whiteboard.py)" in footer
+        )
+
     def test_each_gif_follows_the_paragraph_it_draws(self) -> None:
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         (ruin,) = [k for k, p in enumerate(paragraphs) if RUIN_FRAGMENT in p]
@@ -614,7 +643,7 @@ class TestTheRuinSketch:
         assert "September’s k = 31.5098" in labels
         assert "September: −1.1278" in labels
 
-    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+    def test_its_alt_text_says_what_the_picture_shows(self, every, figures) -> None:
         scene = every[0]
         alt = _alt(POST.read_text(encoding="utf-8"), scene)
         assert "a grey axis along the bottom, on a far finer scale" in alt
@@ -625,6 +654,8 @@ class TestTheRuinSketch:
         assert "A grey line rises gently through that dot" in alt
         assert "A steeper black line through the same dot meets the red line further right" in alt
         assert _stroke(scene, "asked-drop").x[0] > _stroke(scene, "ruinous-drop").x[0]
+        assert "meets the red line further right, nearer zero," in alt
+        assert abs(figures.line) < abs(figures.low)
         assert "on the first drop and well below the red line" in alt
 
 
@@ -670,6 +701,29 @@ class TestTheMonthsSketch:
         assert set(np.round(line.x, 12)) == {round(float(tail_x(figures.line)), 12)}
         dots = _stroke(every[1], "months").y.tolist() + _stroke(every[1], "past").y.tolist()
         assert line.y.min() < min(dots) and line.y.max() > TAIL_AXIS_Y + CURVE_HEIGHT * 0.69
+
+    def test_each_hatch_reaches_the_curve(self, every, figures) -> None:
+        """Each upright hatch rises from the axis to the curve itself, not short of it."""
+        tail = _stroke(every[1], "tail")
+        xs = np.round(tail.x, 9)
+        uprights = [x for x in np.unique(xs) if (xs == x).sum() > 2]
+        assert len(uprights) >= 10
+        (r0, r1), (x0, x1) = sketches.TAIL_R, sketches.TAIL_X
+        for x in uprights:
+            r = r0 + (x - x0) * (r1 - r0) / (x1 - x0)
+            top = float(sketches.curve_y(figures, r))
+            assert tail.y[xs == x].max() == pytest.approx(top, abs=1e-9)
+
+    def test_a_month_on_the_line_is_drawn_red(self, figures) -> None:
+        """At or below, as the post says, so a return equal to the line is a red dot."""
+        on = replace(figures, returns=(*figures.returns, figures.line))
+        past = _stroke(scenes(on)[1], "past")
+        assert past.points == on.reached == 14
+        assert np.isclose(past.x, tail_x(figures.line)).any()
+
+    def test_the_dots_are_drawn_left_to_right(self, every) -> None:
+        for gid in ("months", "past"):
+            assert np.all(np.diff(_stroke(every[1], gid).x) >= 0), gid
 
     def test_the_shading_stays_left_of_the_line_and_under_the_curve(self, every, figures) -> None:
         scene = every[1]
@@ -744,6 +798,9 @@ class TestTheMonthsSketch:
         assert tail_x(figures.line) < tail_x(figures.mean)
         assert "The part of the curve left of it is shaded with red upright strokes" in alt
         assert "Under the axis sit dots, one for each month, in order of return" in alt
+        assert "stacked in short columns where they would overlap" in alt
+        ys = np.concatenate([_stroke(scene, g).y for g in ("months", "past")])
+        assert len(np.unique(np.round(ys, 9))) > 1
         assert "The dots right of the red line come first, in black" in alt
         assert "Then the dots at or left of it appear in red" in alt
         steps = [s for s in scene.steps if not isinstance(s, Label)]
