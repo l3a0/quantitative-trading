@@ -39,6 +39,7 @@ import re
 
 import matplotlib
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 
@@ -427,8 +428,8 @@ class TestThePost:
         text = POST.read_text(encoding="utf-8")
         assert "It is schematic, drawn from the worked day above" in _alt(text, every[0])
         assert (
-            "Its levels and zones are schematic, and only its two closing counts come from the run"
-            in _alt(text, every[1])
+            "Its levels and zones are schematic, and only the counts in its two closing lines"
+            " come from the run" in _alt(text, every[1])
         )
 
     def test_the_module_says_which_is_schematic(self) -> None:
@@ -551,6 +552,9 @@ class TestTheWorkedDaySketch:
         assert "twice as far as the left arrow falls" in alt
         assert "in green, “literal: long earns +10%”, and in red, “momentum" in alt
         assert "in green, “literal: short earns +20%”, and in red, “momentum" in alt
+        assert "On the left, under “a long day”" in alt
+        assert "On the right, under “a short day”" in alt
+        assert "a black arrow runs up from the tick, through that line, to “close 120”" in alt
         assert worked_days()[0].side == "long" and sketches.PANEL_XS[0] < sketches.PANEL_XS[1]
 
 
@@ -568,6 +572,23 @@ class TestThePortCounts:
             upward=int(port.longs.sum()),
             sold=int((port.longs & (held == -1)).sum()),
         )
+
+    def test_counts_follow_the_held_positions_on_a_made_up_port(self) -> None:
+        """Four days: a long the short does not cover, a long it does, a bare
+        short and a flat day, so a port that ever held a long reaches the refusal."""
+        longs = np.array([True, True, False, False])
+        shorts = np.array([False, True, True, False])
+        made_up = og.PythonPort(
+            days=pd.date_range("2020-01-01", periods=4),
+            spread=np.zeros(4),
+            longs=longs,
+            shorts=shorts,
+            positions=og._held(longs, shorts),
+            returns=np.zeros(4),
+        )
+        assert PortCounts.from_port(made_up) == PortCounts(long=1, short=2, upward=2, sold=1)
+        with pytest.raises(ValueError, match="never long"):
+            scenes(PortCounts.from_port(made_up))
 
     def test_the_port_is_never_long_and_sells_every_upward_jump(self, counts, port) -> None:
         assert counts.long == 0
@@ -594,10 +615,11 @@ class TestThePortSketch:
         every_one = scenes(PortCounts(long=0, short=1200, upward=1100, sold=1100))[1].labels
         assert "all 1,100 upward jumps sold" in every_one
 
-    def test_a_port_that_is_ever_long_is_refused(self) -> None:
+    @pytest.mark.parametrize("long", [1, 2, 1718])
+    def test_a_port_that_is_ever_long_is_refused(self, long) -> None:
         """The title would be false."""
         with pytest.raises(ValueError, match="never long"):
-            scenes(PortCounts(long=1, short=1717, upward=278, sold=277))
+            scenes(PortCounts(long=long, short=1718 - long, upward=278, sold=278 - long))
 
     def test_its_colours(self, every) -> None:
         scene = every[1]
@@ -697,4 +719,9 @@ class TestThePortSketch:
         assert "The green bar is redrawn red" in alt
         assert "Below the lower line the port’s arrow is bare, marked “flat”" in alt
         assert f"“long on {counts.long:,} days, short on {counts.short:,}”" in alt
+        assert "the upper marked “high × (1 + 0.1σ)” and the lower “low × (1 − 0.1σ)”" in alt
+        assert "a grey note under the script reads" in alt
+        assert "On the port’s arrow, a green bar above the upper line is marked “long”" in alt
+        assert "with the grey note “short set last, so it wins”" in alt
+        assert "“→ short” appears after its “long”" in alt
         assert SCRIPT_X < PORT_X

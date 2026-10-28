@@ -2,8 +2,9 @@
 
 This file is the single authority for every number a prose surface quotes
 about this replication, with one exception, in ``blog/opening-gap-lessons.md``.
-``TestWhatThePostMeasures`` holds that post's own numbers, and the post's
-figure labels are held by ``tests/test_opening_gap_figures.py``.
+``TestWhatThePostMeasures`` holds that post's own numbers, the post's
+figure labels are held by ``tests/test_opening_gap_figures.py``, and its two
+sketches' labels and alt text by ``tests/test_opening_gap_whiteboard.py``.
 ``docs/replication-log.md`` Entry 40 carries the verdicts and points here row
 by row.
 
@@ -1268,7 +1269,8 @@ class TestThePostQuotesTheRun:
             rf"\text{{Cumulative return}} & {_tex(end_lit)} & {_tex(end_mom)} \\",
             rf"\text{{Maximum drawdown}} & {_tex(lit.max_drawdown)} & {_tex(mom.max_drawdown)} \\",
             rf"\text{{Longest drawdown}} & {lit.max_drawdown_days} \text{{ days}} & "
-            rf"{mom.max_drawdown_days:,}".replace(",", "{,}") + r" \text{ days}",
+            rf"{mom.max_drawdown_days:,}".replace(",", "{,}")
+            + r" \text{ days}",
         ):
             assert row in self.text, row
 
@@ -1331,7 +1333,11 @@ class TestThePostQuotesTheRun:
         ) in self.text
 
     def test_the_saves_table(self, prices, earlier) -> None:
-        runs = {"20120507": earlier["20120507"], "20120511": earlier["20120511"], "20120517": prices}
+        runs = {
+            "20120507": earlier["20120507"],
+            "20120511": earlier["20120511"],
+            "20120517": prices,
+        }
         figs = {save: opening_gap(frame).literal_figures for save, frame in runs.items()}
         order = ("20120507", "20120511", "20120517")
         assert (
@@ -1387,6 +1393,5 @@ class TestThePostQuotesTheRun:
             f"{int(other.sum()):,} short days sum to {_f(float(port.returns[other].sum()))}."
         ) in self.text
         assert (
-            f"among them an APR of {_f(port.figures.apr)} and a Sharpe ratio of "
-            f"{_f(port.sharpe)}."
+            f"among them an APR of {_f(port.figures.apr)} and a Sharpe ratio of {_f(port.sharpe)}."
         ) in self.text
