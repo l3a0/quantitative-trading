@@ -50,9 +50,9 @@ The code measured all three on Chan’s file after the verdicts were in. **These
 
 The library’s signs are not even reproducible. On the two machines that ran the project’s tests, they flipped between consecutive days on about half the days, and the two machines disagreed about which days.
 
-So before measuring anything, the code sets each day’s vectors by a rule that reads only the vector. It turns a vector over where needed so that its largest weight in size is positive. The rule settles the library’s choice, but it cannot keep a direction steady. When a vector’s largest weight in size moves to a stock it weighed the other way, the rule turns the whole vector over.
+So before measuring anything, the code sets each day’s vectors by a rule that reads only the vector. It turns a vector over where needed so that its largest weight in size is positive. The rule settles the library’s choice, but it cannot keep a direction steady. When a vector’s largest weight in size moves to a stock it weighed the other way, the rule can turn the whole vector over.
 
-Comparing each day’s weights with the next day’s, on the stocks both days keep, PC1’s vector points the other way on 1 of the 752 days, PC2’s on 14, PC3’s on 6, PC4’s on 22 and PC5’s on 24. A largest weight moving to another stock accounts for every one of those flips except three, and those three fall on days two factors swap rank. Rank swaps are rare too. On 15 of the 752 days, two or more factors trade places.
+Comparing each day’s weights with the next day’s, on the stocks both days keep, PC1’s vector points the other way on 1 of the 752 days, PC2’s on 14, PC3’s on 6, PC4’s on 22 and PC5’s on 24. On 62 of those 67 flips, the largest weight moves to a stock the earlier day weighed the other way. The other five all fall on days two factors swap rank. Rank swaps are rare too. On 15 of the 752 days, two or more factors trade places.
 
 ### What each fix does to the statistic
 
@@ -127,7 +127,7 @@ The intercept is added to every stock’s forecast alike, so it cannot change wh
 
 ## Lesson 4: four of five passing says little
 
-The table gives each factor’s statistic, its percentile among the 579 stocks, and a Newey-West t-statistic with its p-value. A factor’s percentile is the percentage of the 579 stocks whose statistic is below its own. The Newey-West t asks whether the products fₜ fₜ₊₁ average above zero. It divides their average by how far that average would wander by chance, widened for neighbouring days that move together and for days of different size. The p-value is one-sided, the chance that luck alone gives a t that large.
+The table gives each factor’s statistic, its percentile among the 579 stocks, and a Newey-West t-statistic with its p-value. A factor’s percentile is the percentage of the 579 stocks whose statistic is below its own. The Newey-West t asks whether the products fₜ fₜ₊₁ average above zero. It divides their average by how far that average would wander by chance, measured from the products’ own scatter so that days of different size count at their size. Newey-West then adjusts that measure for neighbouring days. Products that move together widen it, and products that move in opposite directions narrow it. The p-value is one-sided, the chance that luck alone gives a t that large.
 
 ```math
 \small

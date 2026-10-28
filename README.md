@@ -7962,8 +7962,9 @@ lessons from Entry 42 of the replication log.
 
 1. A factor re-estimated every day has no fixed sign, and tomorrow's weights
    have already seen today's return. With each sign fixed by a rule, signs
-   still flip on 1, 14, 6, 22 and 24 of 752 days, all but three where the
-   largest weight moves to another stock, and ranks swap on 15. On tomorrow's
+   still flip on 1, 14, 6, 22 and 24 of 752 days, all but five where the
+   largest weight moves to a stock the earlier day weighed the other way, and
+   ranks swap on 15. On tomorrow's
    own weights PC2 reads −0.1105, matched −0.0161, and on weights fitted
    without today 0.0776, beside the test's 0.0778. A 251-day window that
    still holds today reads −0.0158, like the matched row.
@@ -8002,9 +8003,10 @@ Four groups of what it says are not pinned here.
    out in Lesson 3, that the positions chosen on day t earn day t + 1's
    return, 5/√70 written as positive, 1.8654 written as 186.54 percent, a
    fifth of 5 percent written as 0.01, the same-sign shares called close to a
-   coin toss, that PC1 is the factor that moves the whole market, that
-   2007-08-09 and 2007-08-10 are what put PC2 outside the band, and that the
-   window's effect on PC2 is not explained. The figure's alt text reads its
+   coin toss, that Newey-West's adjustment for neighbouring days widens the
+   measure when their products move together and narrows it when they move
+   in opposite directions, that 2007-08-09 and 2007-08-10 are what put PC2
+   outside the band, and that the window's effect on PC2 is not explained. The figure's alt text reads its
    curve approximately too.
 4. Its references, cited rather than computed.
 
@@ -8019,9 +8021,10 @@ no pin before it, all measured after the run.
 1. Each factor's sign flips once every vector's largest weight is made
    positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
    factors swap rank, over 753 decompositions. The stock holding the largest
-   weight moves on 1, 14, 6, 20 and 23 of those flips, and the three left,
-   PC4 on 2005-06-15 and 2007-06-29 and PC5 on 2007-08-01, fall on days two
-   or more factors swap rank.
+   weight moves on 1, 14, 6, 20 and 23 of those flips, and to a stock the
+   earlier day weighed below zero on 1, 14, 5, 19 and 23. The five left, PC3
+   on 2005-06-15, PC4 on 2005-06-15, 2007-06-29 and 2007-08-01, and PC5 on
+   2007-08-01, fall on days two or more factors swap rank.
 2. The statistic on tomorrow's own weights under the same rule, 0.0326,
    −0.1105, −0.0283, −0.0315 and 0.0025, matched, 0.0246, −0.0161, −0.0318,
    −0.0285 and 0.0768, and on weights fitted on the 251 days that leave today

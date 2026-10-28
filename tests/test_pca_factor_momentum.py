@@ -383,34 +383,45 @@ class TestWhatThePostMeasured:
     def test_two_factors_swap_rank_on_15_of_752_days(self, components) -> None:
         assert swap_days(components) == 15, f"{SPEC}; {AFTER_THE_RUN}"
 
-    def test_every_remaining_flip_moves_the_largest_weight_or_swaps_rank(
+    def test_every_flip_but_five_moves_the_largest_weight_to_a_stock_weighed_the_other_way(
         self, panel, components
     ) -> None:
-        """A vector turns over when its largest weight moves to a stock it weighed the other way.
+        """Every flip but five moves the largest weight to a stock weighed the other way.
 
         Of the 1, 14, 6, 22 and 24 flips, the stock holding the largest weight
-        changed between the two days on 1, 14, 6, 20 and 23. Each of the three
-        left falls on a day two or more factors swap rank, named by its
-        earlier day.
+        changed between the two days on 1, 14, 6, 20 and 23, and the earlier
+        day had weighed the new one below zero on 1, 14, 5, 19 and 23. Each of
+        the five left falls on a day two or more factors swap rank, named by
+        its earlier day.
         """
         _, closes = panel
         fixed = [with_largest_weight_positive(d) for d in components]
-        flips, moved, others = np.zeros(FACTORS, int), np.zeros(FACTORS, int), []
+        flips, moved, opposite, others = (
+            np.zeros(FACTORS, int),
+            np.zeros(FACTORS, int),
+            np.zeros(FACTORS, int),
+            [],
+        )
         for earlier, later in zip(fixed[:-1], fixed[1:], strict=True):
             swapped = bool((match(earlier, later)[0] != np.arange(FACTORS)).any())
             for k in np.flatnonzero(np.diag(overlaps(earlier, later)) < 0):
                 flips[k] += 1
                 before = earlier.stocks[np.abs(earlier.vectors[:, k]).argmax()]
                 after = later.stocks[np.abs(later.vectors[:, k]).argmax()]
-                if before != after:
-                    moved[k] += 1
+                held = np.flatnonzero(earlier.stocks == after)
+                moved[k] += before != after
+                if before != after and held.size and earlier.vectors[held[0], k] < 0:
+                    opposite[k] += 1
                 else:
                     others.append((NAMES[k], str(closes.index[earlier.end].date()), swapped))
         assert flips.tolist() == [1, 14, 6, 22, 24], SPEC
         assert moved.tolist() == [1, 14, 6, 20, 23], f"{SPEC}; {AFTER_THE_RUN}"
+        assert opposite.tolist() == [1, 14, 5, 19, 23], f"{SPEC}; {AFTER_THE_RUN}"
         assert others == [
+            ("PC3", "2005-06-15", True),
             ("PC4", "2005-06-15", True),
             ("PC4", "2007-06-29", True),
+            ("PC4", "2007-08-01", True),
             ("PC5", "2007-08-01", True),
         ], f"{SPEC}; {AFTER_THE_RUN}"
 
