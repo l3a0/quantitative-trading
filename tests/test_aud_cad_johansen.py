@@ -56,6 +56,7 @@ from chan.aud_cad_johansen import (
     JOHANSEN_K,
     JOHANSEN_P,
     LEGS,
+    SCALE_CHECK,
     SCRIPT_APR,
     SCRIPT_KELLY,
     SCRIPT_LOOKBACK,
@@ -254,8 +255,27 @@ class TestRow5TheReturnsAreChans:
 
     def test_a_constant_scale_on_either_leg_still_matches(self, frame, saved) -> None:
         """So row 5 says the inputs agree with Chan's up to a scale per leg, and no more."""
-        again = aud_cad(frame * [2.0, 0.37])
+        again = aud_cad(frame * list(SCALE_CHECK))
+        assert SCALE_CHECK == (2.0, 0.37)
         assert agreement(again.test, saved, again.test_days).holds
+
+    def test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars(
+        self, frame, result
+    ) -> None:
+        """Lesson 2's reason a scale is invisible. Every AUD.USD close times 2
+        halves AUD.USD's weight in each day's hedge and leaves CAD.USD's, so each
+        leg holds the same dollars on every test day."""
+        scale = SCALE_CHECK[0]
+        again = aud_cad(frame * [scale, 1.0])
+        t = result.training
+        np.testing.assert_allclose(
+            again.hedge[t:, 0] / result.hedge[t:, 0], 1 / scale, rtol=0, atol=1e-12
+        )
+        np.testing.assert_allclose(
+            again.hedge[t:, 1] / result.hedge[t:, 1], 1.0, rtol=0, atol=1e-12
+        )
+        np.testing.assert_allclose(again.positions[t:], result.positions[t:], rtol=0, atol=1e-10)
+        np.testing.assert_array_equal(np.sign(again.positions[t:]), np.sign(result.positions[t:]))
 
     def test_one_digit_on_a_test_window_close_breaks_the_match(self, frame, saved) -> None:
         """The files quote six decimals, so 1e-6 is one unit in the last digit.

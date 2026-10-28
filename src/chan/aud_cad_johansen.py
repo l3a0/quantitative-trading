@@ -145,6 +145,11 @@ AGREEMENT = 1e-9
 #: The level the two relation counts beside the replication read.
 RELATION_LEVEL = 95
 
+#: The constant scale the post's Lesson 2 puts on each leg, AUD.USD then
+#: CAD.USD, to show that the returns cannot see it. Its tests and its sketch
+#: read it from here.
+SCALE_CHECK = (2.0, 0.37)
+
 
 def cross_rates(audusd: pd.Series, usdcad: pd.Series) -> pd.DataFrame:
     """Lines 18 to 25: AUD.USD and the inverse of USD.CAD, on dates the two must share.

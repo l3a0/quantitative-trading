@@ -6031,6 +6031,36 @@ uv run python -m chan.aud_cad_johansen_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/aud_cad_johansen_whiteboard.py](src/chan/aud_cad_johansen_whiteboard.py)
+on the USD.CAD post's sketch machinery, in the shared inks the post's chart
+draws in. Each sits after the text it draws.
+
+1. `aud_cad_johansen_no_return_moves.gif`, in Lesson 2, AUD.USD's closes
+   doubled, leaving each percent change, each leg's dollars and so every
+   return as they were. It is schematic apart from the scales of 2 and 0.37
+   and the count of 612 returns.
+2. `aud_cad_johansen_share.gif`, in Lesson 4, the last day's hedge in dollars
+   and its share of −0.4325 on a line from −1 to 1, equal dollars at −0.5,
+   and the band from 0 to 1 where both legs are held the same way. Its equal
+   bars and its band's bars are schematic, and it builds slowly and holds its
+   finished drawing for twelve seconds.
+
+```bash
+uv run python -m chan.aud_cad_johansen_whiteboard
+```
+
+[tests/test_aud_cad_johansen_whiteboard.py](tests/test_aud_cad_johansen_whiteboard.py)
+reads the run on the committed files and holds that each sketch prints the
+run's figures and puts each mark where they say, that figures its words would
+misdescribe are refused, that no label touches a line, another label or the
+frame's edge, and that each GIF follows its text in the post. It compares each
+committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic
+Sans MS, as the USD.CAD sketches' test does. The halving the scale sketch
+draws, AUD.USD's weight in every day's hedge when its closes double, is held
+by `test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars` in
+[tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py).
+
 [blog/roll-returns-lessons.md](blog/roll-returns-lessons.md) is a
 twenty-seventh post, about Example 5.3 of Chan's *Algorithmic Trading*, which
 splits five futures' returns into a spot return and a roll return under a
