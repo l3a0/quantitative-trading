@@ -27,7 +27,7 @@ This repository tested Chan’s rule on his own S&P 500 file. Each month the tes
 
 **The verdict is registered under a ruin outcome added after June 2001 was seen, and every other figure here is exploratory.** A registered result is one whose test and criterion were written down before any number was seen. Before any beta or return was computed, the plan wrote down the test’s specification, which is the five parts below, along with the first three outcomes of its criterion. The fourth outcome, ruin, is the one that decided the verdict. The repository’s owner added it after the first ruined month was visible, so its wording is not registered, and Lesson 5 says what had been seen. Registration rules out a specification tuned on this file. It does not make 2000 to 2007 unseen data, as Lesson 6 explains.
 
-Reproducing Chan’s figures is exploratory, because it reruns a rule Chan had already chosen, on his own files. Every other figure here is a single measurement with no statistical test behind it, and each number this write-up measured after the run says so where it appears. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
+Chan prints no figure for this rule, so nothing here reproduces one of his. Every figure but the verdict is a single measurement with no statistical test behind it, so it can justify a closer look and confirms nothing. Each number this write-up measured after the run says so where it appears. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The test and the file
 
@@ -127,7 +127,7 @@ The ruin line was closest to zero in May 2001, at −0.0115, the month the lever
 
 Location 4709 says “highly leveraged” and names no number. Location 4684 names the beta match, which the passage proposes, and the Kelly leverage, which its growth argument rests on. The plan tested the beta match, the leverage the passage spells out, which is known before the month it applies to.
 
-The Kelly leverage can only be computed from the whole sample, so testing the rule at it looks ahead and decides nothing. The low fifth’s full-sample Kelly leverage is 9.9884. At that leverage the formula’s growth is the bill rate plus half the Sharpe ratio squared, 0.0283 + 0.5132 = 0.5415 a year, against the high fifth’s realised 0.1183. That comparison is built to favour the low fifth. In-sample Kelly leverage gives a portfolio the highest growth the formula allows, so the low fifth gets its best case while the high fifth stays unlevered. The 0.5415 is also the formula’s figure, and no portfolio realised it.
+A Kelly leverage computed from the whole sample needs every month’s return before the first month is held, so testing the rule at it looks ahead and decides nothing. The low fifth’s full-sample Kelly leverage is 9.9884. At that leverage the formula’s growth is the bill rate plus half the Sharpe ratio squared, 0.0283 + 0.5132 = 0.5415 a year, against the high fifth’s realised 0.1183. That comparison is built to favour the low fifth. Full-sample Kelly leverage gives a portfolio the highest growth the formula allows, so the low fifth gets its best case while the high fifth stays unlevered. The 0.5415 is also the formula’s figure, and no portfolio realised it.
 
 The beta match asked for more than that look-ahead Kelly leverage at 13 formations, all between 2000-12-29 and 2001-12-31, a count the write-up measured after the run. Overshooting the Kelly leverage is costly even when returns follow a bell curve. The [post on the Kelly leverage on SPY](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-6-twice-the-kelly-leverage-earns-only-the-cash-rate) shows that twice the Kelly leverage earns only the cash rate, and that growth falls below zero not far past it.
 
@@ -163,7 +163,7 @@ Five questions are beyond it.
 2. **Whether fat tails or near-zero betas did more damage.** The betas set the leverage and an ordinary month met it, and the test does not separate the two.
 3. **What survivorship does to either side.** The file lacks every stock that left the index before 2007-11-23.
 4. **Whether the claim holds after the book.** Every year here was available to the claim’s source.
-5. **The model’s half of the argument.** Location 4684’s equal average returns assume both portfolios have the same market capitalisation and book value, and this file holds neither.
+5. **The model’s half of the argument.** Location 4684’s equal average returns assume both portfolios’ stocks have the same average market capitalisation and book value, and this file holds neither.
 
 ## What this means for a trader
 

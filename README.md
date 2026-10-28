@@ -7835,12 +7835,12 @@ forty-third post, about Chan's rule at Kindle location 4709 of *Quantitative
 Trading* that a highly levered portfolio of low-beta stocks should
 out-compound an unlevered portfolio of high-beta stocks, with the beta match
 of location 4684 and the fat-tail caveat of location 4700. Its verdict is
-registered under a ruin outcome added after June 2001 was seen, and it says
-why that differs from the exploratory label on a reproduction of Chan's
-figures. The post links the Kelly leverage on SPY post, the risk parity post
-and the factor models post rather than repeating them, and links the holdout
-and capped posts as the two further tests of the rule. It draws six lessons
-from Entry 45 of the replication log.
+registered under a ruin outcome added after June 2001 was seen, and Chan
+prints no figure for the rule, so nothing in it reproduces one. The post links
+the Kelly leverage on SPY post, the risk parity post and the factor models
+post rather than repeating them, and links the holdout and capped posts as the
+two further tests of the rule. It draws six lessons from Entry 45 of the
+replication log.
 
 1. The low fifth had the higher Sharpe ratio, 1.0132 against 0.4457, and
    levered to the high fifth's beta it lost more than its capital in June
