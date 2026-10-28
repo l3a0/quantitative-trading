@@ -43,6 +43,7 @@ on it. It first ran here on 2026-10-10.
 
 from __future__ import annotations
 
+import dataclasses
 import math
 
 import numpy as np
@@ -538,6 +539,29 @@ class TestWhatThePostMeasured:
         """What lets the figure's curve meet each factor at its percentile, which counts below."""
         assert f"{smallest_gap(results.spliced.comparison):.2e}" == "1.06e-04", SPEC
         assert f"{smallest_gap(results.unspliced.comparison):.2e}" == "3.85e-05", SPEC
+
+    def test_the_whiteboard_draws_this_runs_figures(
+        self, panel, components, results: Results, weights
+    ) -> None:
+        """The two sketches ``tests/test_pca_factor_momentum_whiteboard.py`` pins
+        draw its ``PINNED_WINDOW`` and ``PINNED_RANK_SHIFT``, so they run without
+        the decompositions. This holds that the run gives them, each figure
+        within 1e-12 of the one the sketches were drawn from."""
+        from chan.pca_factor_momentum_whiteboard import RankShift, Window
+        from tests.test_pca_factor_momentum_whiteboard import PINNED_RANK_SHIFT, PINNED_WINDOW
+
+        _, closes = panel
+        drawn = (
+            Window.from_run(results, weights),
+            RankShift.from_run(closes, components, results),
+        )
+        for found, pinned in zip(drawn, (PINNED_WINDOW, PINNED_RANK_SHIFT), strict=True):
+            for field in dataclasses.fields(pinned):
+                value, expected = getattr(found, field.name), getattr(pinned, field.name)
+                if field.name in ("span", "days", "others"):
+                    assert value == expected, field.name
+                else:
+                    assert value == pytest.approx(expected, abs=1e-12), field.name
 
     def test_two_days_carry_97_percent_of_pc2s_squared_products(self, results: Results) -> None:
         """2007-08-09 and 2007-08-10, which is how PC2 clears the band and not the t-test."""

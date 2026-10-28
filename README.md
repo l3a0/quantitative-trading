@@ -8011,10 +8011,13 @@ Four groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
 `TestTheSplice` in [tests/test_pca_factor.py](tests/test_pca_factor.py) for
-PMC's 1.8654 and its 851 days, or to
+PMC's 1.8654 and its 851 days, to
 [tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
-for the figure's own labels. `TestWhatThePostMeasured` holds the ones that had
-no pin before it, all measured after the run.
+for the figure's own labels, or to
+[tests/test_pca_factor_momentum_whiteboard.py](tests/test_pca_factor_momentum_whiteboard.py)
+for the sketches' labels and the alt texts that quote them.
+`TestWhatThePostMeasured` holds the ones that had no pin before it, all
+measured after the run.
 
 1. Each factor's sign flips once every vector's largest weight is made
    positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
@@ -8063,6 +8066,50 @@ uv run python -m chan.pca_factor_momentum_figures
 [tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/pca_factor_momentum_whiteboard.py](src/chan/pca_factor_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+draws.
+
+1. `pca_factor_momentum_sketch_window.gif`, in Lesson 1, draws one day axis
+   from t − 252 to t + 1 and three windows over it: day t's weights on the
+   252 days to t − 1, day t+1's on the 252 days to t, which hold today's
+   return, and tomorrow's weights on the 251 days that leave today out. Its
+   foot prints PC2's −0.0161 matched, 0.0776 with today left out and the
+   pair's 0.0778, and in grey the −0.0158 of 251 days that still hold today.
+2. `pca_factor_momentum_sketch_rank_shift.gif`, in Lesson 5, draws three
+   slots for PC1 to PC3. Without PMC the usual PC1 sits first. With PMC, from
+   2007-08-02 to 2007-08-10, a box that is mostly PMC, at a weight of 0.9144
+   to 0.9223, takes the first slot and pushes the usual PC1 into the second.
+   Beside the slots, 2007-08-09 and 2007-08-10 stand as two red bars at their
+   shares of PC2's squared products, 97.04 percent together, beside one grey
+   bar for the other 750 days. Its foot gives the 94.61 percent the same two
+   days hold of PC1's without PMC, and PC2's 0.0778 with PMC and −0.0152
+   without.
+
+Neither is schematic in its figures. Every number either prints is read from
+the run, and the rank shift's bars stand at each day's share to one scale.
+The window sketch's axis skips from t − 251 to t − 1, so it is not to scale,
+and the slots carry no figure of their own. Both build more slowly than the
+USD.CAD post's sketches and hold their finished drawings for twelve seconds,
+because each carries more than that pace lets a reader take in. Both draw in
+the shared inks, as the post's chart does. A redraw runs the decompositions
+the figures come from, about a minute:
+
+```bash
+uv run python -m chan.pca_factor_momentum_whiteboard
+```
+
+[tests/test_pca_factor_momentum_whiteboard.py](tests/test_pca_factor_momentum_whiteboard.py)
+pins both sketches' figures, so it runs without the decompositions, and
+`test_the_whiteboard_draws_this_runs_figures` in
+[tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py) holds
+that the run gives them. It holds that each bracket covers the rows
+`decompose` reads for it, that each box sits in its slot and each bar at its
+share, what each sketch says and in which colour, that figures the words would
+misdescribe are refused, that each GIF follows its paragraph in the post, and
+that each alt text quotes every label in drawing order.
 
 [blog/monte-carlo-leverage-lessons.md](blog/monte-carlo-leverage-lessons.md)
 is a forty-second post, about Chapter 8 of Chan's *Algorithmic Trading*,
