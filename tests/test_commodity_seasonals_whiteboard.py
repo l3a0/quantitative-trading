@@ -3652,6 +3652,7 @@ class TestTheClosedDateSketch:
         assert _stroke(scene, "week").color == MUTED
         trade_date = _stroke(scene, "trade-date")
         assert trade_date.color == MUTED and trade_date.dashed
+        assert _label(scene, "trade date: Sat Apr 13").color == INK
         assert _label(scene, "weekend: closed").color == LOST
         assert _label(scene, CLOSED_LABELS[-2]).color == MUTED
         assert _label(scene, CLOSED_LABELS[-1]).color == MUTED
@@ -3703,6 +3704,13 @@ class TestTheClosedDateSketch:
             "A trade date falls on a closed day in 16 of 29 gasoline years and 12 of 30 natural"
             " gas years."
         ) in _closed_date(moved).labels
+
+    def test_a_weekday_holiday_gets_a_cross(self) -> None:
+        """April 13, 2001 is Good Friday, a weekday the exchange is closed."""
+        f = ClosedDateFigures.from_run(2001)
+        scene = _closed_date(f)
+        crosses = {s.gid for s in scene.strokes if s.gid.startswith("day-") and s.color == LOST}
+        assert crosses == {"day-13", "day-14", "day-15"}
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[29])

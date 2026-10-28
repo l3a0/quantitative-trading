@@ -1165,6 +1165,33 @@ class TestThePostQuotesThePins:
         ) in self.text
         assert f"Gasoline is held only {words[held]} calendar days" in self.text
 
+    def test_further_work_s_other_parameters(self) -> None:
+        """Further work's items for the time of day, the delivery month and the
+        closed-date rule, each checked against what the run does."""
+        assert (
+            "**The time of day**, the close, which the run chose for the natural gas exit."
+            in self.text
+        )
+        for year in range(GASOLINE_YEARS[0], GASOLINE_YEARS[1] + 1):
+            trade = gasoline_trade(year)
+            entry, exit_ = date(year, *GASOLINE_ENTRY), date(year, *GASOLINE_EXIT)
+            assert trade.entry_day == (
+                entry if is_trading_day(entry) else futures.next_trading_day(entry)
+            )
+            assert trade.exit_day == (
+                exit_ if is_trading_day(exit_) else futures.previous_trading_day(exit_)
+            )
+        assert ("**The delivery month**, May for gasoline and June for natural gas.") in self.text
+        assert (
+            "**The rule for a closed date**, which enters on the next trading day and exits on "
+            "the previous one."
+        ) in self.text
+        fall = max_drawdown([natural_gas_trade(2002)])
+        assert (
+            "2002 trade, the drawdown example near the top of the post, "
+            f"fell {100 * fall:.0f} points" in self.text
+        )
+
     def test_further_work_s_held_back_years(self) -> None:
         """The gasoline Aprils Further work holds back, and why natural gas has none.
 
@@ -1205,6 +1232,7 @@ class TestThePostQuotesThePins:
         assert all(
             span(symbol)[1] < on_or_before(date(after, *NG_EXIT)) for symbol in NATURAL_GAS.values()
         )
+        assert "Every natural gas year in EIA’s files is already used" in self.text
         assert (
             f"so its held-back years would have to come after {NG_YEARS[1]}, which the files "
             "do not reach"
@@ -1235,6 +1263,11 @@ class TestThePostQuotesThePins:
         assert (
             f"On every entry and exit date from {years[0]} to {years[-1]}, those include the "
             "June gasoline contract and the May natural gas contract"
+        ) in self.text
+        assert "EIA’s files hold the nearest four contracts at a time." in self.text
+        assert (
+            "The June gasoline contract is one neighbour of Chan’s May, and the May natural gas "
+            "contract is one neighbour of his June."
         ) in self.text
         # The other neighbours: April gasoline has stopped trading by every
         # entry and exit date, and July natural gas is contract 5 on most entries.
