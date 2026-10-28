@@ -276,11 +276,14 @@ SP600 = ((date(1994, 10, 28), date(2004, 1, 14)),)
 SP400 = ((date(1991, 6, 19), date(2005, 11, 30)), (date(2007, 1, 1), date(2015, 12, 31)))
 MOM_SEASON = ((date(1927, 1, 1), date(1964, 12, 31)),)
 NATURAL_GAS = ((date(1990, 4, 3), date(1993, 12, 19)), (date(2024, 4, 6), SPAN_END))
-#: Gasoline before Entry 11 starts its run in 1995, in a committed EIA file.
-GASOLINE = ((date(1985, 1, 2), date(1994, 12, 31)), (date(2024, 4, 6), SPAN_END))
-#: Option chains before the sibling's store starts in 2008, to be bought.
-SPY_CHAINS = ((date(1996, 1, 4), date(2007, 12, 31)),)
-IWM_CHAINS = ((date(2000, 5, 26), date(2007, 12, 31)),)
+#: Gasoline before Entry 11's fill test reads April 1994, in a committed EIA file.
+GASOLINE = ((date(1985, 1, 2), date(1994, 3, 31)), (date(2024, 4, 6), SPAN_END))
+#: Option chains before the sibling's first search day, to be bought. SPY's
+#: options listed in January 2005. The sibling drops SPY's 2008 to 2010-05-16
+#: chains at load time, before any statistic, and fetched IWM's from 2010-12-01.
+#: IWM's span starts at the fund's launch, an upper bound for its options.
+SPY_CHAINS = ((date(2005, 1, 10), date(2010, 5, 16)),)
+IWM_CHAINS = ((date(2000, 5, 26), date(2010, 11, 30)),)
 USD_CAD = ((date(1971, 1, 4), date(2007, 7, 21)),)
 NVDA_BARS = ((date(1999, 1, 22), date(2015, 12, 31)),)
 
@@ -370,7 +373,8 @@ T_SCREEN = {
     # Entry 51, the registered holdout, before costs
     "51 USD/CAD after 2012": (0.2670, years(date(2012, 3, 29), date(2026, 10, 12)), USD_CAD),
     # trading-strategies docs/explorations.md:699, the daily t, no hedge cost
-    "sibling covered call in R": (1.25, years(date(2010, 5, 17), date(2026, 6, 5)), SPY_CHAINS),
+    # its +1.25 is the arm on the registered span, from 2010-12-01
+    "sibling covered call in R": (1.25, years(date(2010, 12, 1), date(2026, 6, 5)), SPY_CHAINS),
     # trading-strategies docs/explorations.md:403-410
     "sibling Gap G combination": (1.54, years(date(2010, 12, 1), date(2026, 6, 5)), SPY_CHAINS),
     # trading-strategies docs/vol_premium.md:278-281 and :323-326, at 0.5 bp
@@ -419,11 +423,11 @@ class TestTheScreen:
             ("41 VX against ES on roll", 14.57, 25.44),
             ("52 MomSeasonShort", 38.00, 41.25),
             ("11 natural gas seasonal", 6.20, 27.00),
-            ("11 gasoline seasonal", 12.48, 44.86),
+            ("11 gasoline seasonal", 11.72, 44.86),
             ("22 USD.CAD linear mean reversion", 36.54, 1914.39),
             ("13 PCA factor model", 9.21, 80.74),
             ("30 AUD.CAD with rollover", 23.60, 92.11),
-            ("sibling generative 0.05 delta call", 11.99, 57.12),
+            ("sibling generative 0.05 delta call", 5.34, 57.12),
             ("44b S&P 600 opens", 9.21, 6.59),
             ("50d S&P 600 control opens", 9.21, 9.46),
             ("10 rule A S&P 500 opens", 32.89, 13.80),
@@ -487,10 +491,10 @@ class TestTheScreen:
             ("48 low beta, first ceiling", 32.89, 162.90),
             ("48 low beta, second ceiling", 32.89, 127.51),
             ("51 USD/CAD after 2012", 36.54, 5514.21),
-            ("sibling covered call in R", 11.99, 277.79),
-            ("sibling Gap G combination", 11.99, 176.84),
-            ("sibling put wing on IWM", 7.60, 506.44),
-            ("sibling straddle on IWM", 7.60, 255.97),
+            ("sibling covered call in R", 5.34, 268.41),
+            ("sibling Gap G combination", 5.34, 176.84),
+            ("sibling put wing on IWM", 10.51, 506.44),
+            ("sibling straddle on IWM", 10.51, 255.97),
             ("sibling NVDA continuation", 16.94, 132926.00),
         ],
     )
@@ -510,6 +514,14 @@ class TestTheScreen:
         opened = ((date(1994, 10, 28), date(1999, 10, 31)),)
         assert available(opened) == pytest.approx(5.01, abs=0.005)
         assert available(opened) < needed(2.0257) <= available(SP600)
+
+    def test_khandani_and_los_sample_alone_leaves_entry_10_its_years(self) -> None:
+        """Dropping 1995 on leaves the S&P 500 rows 27.99 years, which still
+        covers every reading of Entry 10, so excluding Khandani and Lo's sample
+        decides Entry 44 and leaves Entry 10 to Lo and MacKinlay's."""
+        before_1995 = ((date(1967, 1, 3), date(1994, 12, 31)),)
+        assert available(before_1995) == pytest.approx(27.99, abs=0.005)
+        assert needed(1.0149) <= available(before_1995)
 
     def test_the_cl_row_turns_on_joining_spans(self) -> None:
         """After 2012 alone falls short. Joined to the years before 1986, it does not."""
