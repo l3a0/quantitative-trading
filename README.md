@@ -8001,10 +8001,8 @@ Four groups of what it says are not pinned here.
    depends on the library, that a principal component's rank can change from
    day to day in general, the closed form of the slope and intercept written
    out in Lesson 3, that the positions chosen on day t earn day t + 1's
-   return, 5/√70 written as positive, 1.8654 written as 186.54 percent, a
-   fifth of 5 percent written as 0.01, the same-sign shares called close to a
-   coin toss, that PC2's −0.1105 on tomorrow's own weights would fail
-   outright, that of the sign, the rank and the window only leaving today's
+   return, the same-sign shares called close to a coin toss, that PC2's
+   −0.1105 on tomorrow's own weights would fail outright, that of the sign, the rank and the window only leaving today's
    return out moves a factor across 0, putting PC2 and PC4 back above it,
    that a test on the regression's printed coefficient would weight each day
    by 1/sₖ², that Newey-West's adjustment for neighbouring days widens the
