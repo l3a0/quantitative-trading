@@ -7219,6 +7219,35 @@ uv run python -m chan.gld_gc_figures
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) holds what it
 draws rather than its bytes, for the reason given above for the regime map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/gld_gc_whiteboard.py](src/chan/gld_gc_whiteboard.py) on the
+USD.CAD post's sketch machinery. Each sits after the paragraph it draws. Both
+build more slowly than the USD.CAD post's sketches and hold their finished
+drawings for twelve seconds.
+
+1. `gld_gc_sketch_roll_left.gif`, under "Why own the metal and short the
+   future", draws owning the metal for the spot return and shorting the
+   future for minus the spot return and minus the roll return, strikes out
+   the two spot returns, and leaves minus the roll return, above 0 in
+   contango. It is schematic and carries no figures, and its words name
+   neither GLD nor GC, which the post names in the next paragraph.
+2. `gld_gc_sketch_two_moves.gif`, in Lesson 4, supposes GC were recorded at
+   1:30 p.m. and GLD at 4 p.m., marks gold's move between the two times on
+   two days, and says why each daily change in log(GC / GLD) would then
+   carry two such moves. It is schematic apart from its last line, which
+   reads the bound of 0.001775 from `identity`, as `python -m chan.gld_gc`
+   does, and about 2.6 minutes from that share of a 24-hour day.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.gld_gc_whiteboard
+```
+
+[tests/test_gld_gc_whiteboard.py](tests/test_gld_gc_whiteboard.py) holds
+what each draws, derives the bound again from the run, and holds that each
+GIF follows its paragraph in the post.
+
 [blog/xle-uso-roll-return-lessons.md](blog/xle-uso-roll-return-lessons.md) is
 a thirty-sixth post, about the XLE against USO trade at location 2734 of
 Chan's *Algorithmic Trading*. The trade is short USO and long XLE when crude

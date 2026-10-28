@@ -8710,7 +8710,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/gld-gc-lessons.md](../blog/gld-gc-lessons.md) moves with it, since that
 post quotes most of these figures. So does its one figure, which
-`uv run python -m chan.gld_gc_figures` redraws.
+`uv run python -m chan.gld_gc_figures` redraws. Of its two whiteboard
+sketches, the one in "Why own the metal and short the future" is schematic
+and draws none of these figures. The one in Lesson 4 is schematic apart from
+its last line, which reads row 11's bound of 0.001775 from the run.
+`uv run python -m chan.gld_gc_whiteboard` redraws them.
 
 ## Entry 39: XLE against USO signed by crude oil's contango, Chan's *Algorithmic Trading*
 
