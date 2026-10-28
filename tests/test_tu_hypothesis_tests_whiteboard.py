@@ -123,7 +123,7 @@ WRONG_ARRAY_LABELS = [
 ]
 
 MOSTLY_LONG_LABELS = [
-    "simulated, with TU’s drift",
+    "schematic, with TU’s drift",
     "up: long",
     "down: short",
     "long on 0.804654",
@@ -131,6 +131,7 @@ MOSTLY_LONG_LABELS = [
     "same noise, no drift",
     "long on 0.502401",
     "once the mean is removed",
+    "shares from 1,000 simulated series",
     "long most days, so it collects the drift",
 ]
 
@@ -470,6 +471,10 @@ class TestThePost:
     def test_the_module_says_the_second_sketch_is_schematic(self) -> None:
         assert "The second sketch's lines are schematic." in (sketches.__doc__ or "")
 
+    def test_the_drawing_itself_says_the_lines_are_schematic(self, mostly_long) -> None:
+        """A Substack reader does not see the alt text, so the frame says it."""
+        assert mostly_long.labels[0].startswith("schematic")
+
 
 # --- The figures, read from the run ----------------------------------------------
 
@@ -670,6 +675,7 @@ class TestTheMostlyLongSketch:
         labels = mostly_long.labels
         assert f"long on {figures.drifting_share:.6f}" in labels
         assert f"long on {figures.flat_share:.6f}" in labels
+        assert f"shares from {sketches.SHARE_SERIES:,} simulated series" in labels
 
     def test_its_colours(self, mostly_long, figures) -> None:
         assert _stroke(mostly_long, "drifting-line").color == ACCENT
@@ -680,7 +686,7 @@ class TestTheMostlyLongSketch:
                 assert stroke.color == (GOOD if change > 0 else LOST), stroke.gid
         words = {s.text: s.color for s in mostly_long.steps if isinstance(s, Label)}
         assert words == {
-            "simulated, with TU’s drift": ACCENT,
+            "schematic, with TU’s drift": ACCENT,
             "up: long": GOOD,
             "down: short": LOST,
             "long on 0.804654": ACCENT,
@@ -688,6 +694,7 @@ class TestTheMostlyLongSketch:
             "same noise, no drift": INK,
             "long on 0.502401": INK,
             "once the mean is removed": INK,
+            "shares from 1,000 simulated series": MUTED,
             "long most days, so it collects the drift": INK,
         }
 
@@ -747,6 +754,7 @@ class TestTheMostlyLongSketch:
         up = int((window_changes(figures, drift=True) > 0).sum())
         flat_up = int((window_changes(figures, drift=False) > 0).sum())
         assert "Both lines are schematic random walks" in alt
+        assert "the upper one with TU’s daily mean as well" in alt
         assert "not TU’s closes" in alt
         assert "noisy brass line rises" in alt
         assert f"{WORDS[WINDOWS]} brackets each 250 days long end in an arrow" in alt

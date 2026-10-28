@@ -6,7 +6,7 @@ to the wrong array, so it cannot fail, and a drifting series keeps the rule
 long on most days, so the rule collects the drift. This module draws the two
 as scenes, and the post places each right after the paragraph it draws.
 
-1. The shuffled trades land in the wrong place: four boxes joined by arrows,
+1. The shuffled trades land in the wrong place: five boxes joined by arrows,
    the script's third test as written. The shuffled trades go into ``pos``,
    the real positions, along an arrow labelled "added here", while a dashed
    arrow toward ``pos_sim``, which starts as zeros, is labelled "never
@@ -21,17 +21,21 @@ as scenes, and the post places each right after the paragraph it draws.
    brackets 250 days long end in an arrow, up in green where the price ends
    the 250 days higher, which makes the rule long, and down in red where it
    ends lower, which makes it short. Eight of the ten point up on the
-   drifting line and five on the flat one. Labels give the share of its
-   trading days the rule is long on the first 1,000 of the second test's
-   simulated series, with and without the mean, and a closing line says the
-   rule collects the drift. It sits in Lesson 5, after the paragraph opening
-   "**The mechanism is the rule itself.**"
+   drifting line and five on the flat one. Labels give the share of its days
+   with a long or short signal on which the rule is long, averaged over the
+   first 1,000 of the second test's simulated series, with and without the
+   mean. The upper line's label calls it schematic, a grey note says the
+   shares come from those series, and a closing line says the rule collects
+   the drift. It
+   sits in Lesson 5, after the paragraph opening "**The mechanism is the rule
+   itself.**"
 
-The second sketch's lines are schematic. Each is a random walk drawn from
-:data:`WALK_SEED` with TU's daily mean and standard deviation, which keeps
-the drift at its real size against the noise over 250 days, about 0.87 of one
-standard deviation. Neither line is TU's own closes, on which the rule is long
-on a different share of days, and neither is one of the second test's series.
+The second sketch's lines are schematic. Both are random walks drawn from
+:data:`WALK_SEED` with TU's daily standard deviation, and the upper one adds
+TU's daily mean. That keeps the drift at its real size against the noise over
+250 days, about 0.87 of one standard deviation. Neither line is TU's own
+closes, on which the rule is long on a different share of days, and neither
+is one of the second test's series.
 Its two shares and the first sketch's observed mean, draw count and simulated
 means are not schematic. :meth:`SketchFigures.from_run` reads each of them
 from :mod:`chan.tu_hypothesis_tests` on Chan's committed file, so a sketch
@@ -344,6 +348,8 @@ EVERY = 5
 WORDS_X, LEGEND_STEP = 6.15, 1.3
 DRIFTING_WORDS_YS = (3.85, 3.4, 3.05)
 FLAT_WORDS_YS = (2.0, 1.55, 1.2)
+#: Where the note naming the shares' source ends across, on the closing line's height.
+SOURCE_X = 9.85
 
 
 def walk(figures: SketchFigures, drift: bool) -> NDArray[np.float64]:
@@ -418,7 +424,7 @@ def _mostly_long(figures: SketchFigures) -> Scene:
     steps.append(drifting[0])
     steps.append(
         Label(
-            "simulated, with TU’s drift",
+            "schematic, with TU’s drift",
             WORDS_X,
             DRIFTING_WORDS_YS[0],
             names="drifting-line",
@@ -452,6 +458,17 @@ def _mostly_long(figures: SketchFigures) -> Scene:
         strict=True,
     ):
         steps.append(Label(text, WORDS_X, y, names=flat[-1].gid, size=12))
+    steps.append(
+        Label(
+            f"shares from {count(SHARE_SERIES)} simulated series",
+            SOURCE_X,
+            CLOSING_Y,
+            names=flat[-1].gid,
+            color=MUTED,
+            size=12,
+            ha="right",
+        )
+    )
     mostly = figures.drifting_share > 0.5
     steps.append(
         Label(

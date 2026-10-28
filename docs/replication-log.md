@@ -8411,10 +8411,11 @@ review before publishing.
 2. **Drift makes the rule mostly long**, in Lesson 5. It draws a noisy line
    with TU's drift above one with the same noise and none, each under ten
    250-day brackets ending in an arrow up where the rule is long and down
-   where it is short. It prints the shares of days the rule is long on the
-   first 1,000 of row 2's series, 0.804654 as drawn and 0.502401 with the mean
-   removed. Its two lines are schematic random walks with TU's daily mean and
-   standard deviation, not TU's closes and not row 2's series.
+   where it is short. It prints the share of days with a long or short signal
+   on which the rule is long, averaged over the first 1,000 of row 2's series,
+   0.804654 as drawn and 0.502401 with the mean removed. Its two lines are
+   schematic random walks with TU's daily standard deviation, the upper one
+   with TU's daily mean as well, not TU's closes and not row 2's series.
 
 A change to those figures moves the sketches too, and
 `uv run python -m chan.tu_hypothesis_tests_whiteboard` redraws both through

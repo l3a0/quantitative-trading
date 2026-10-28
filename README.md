@@ -6067,14 +6067,16 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    with TU's drift above one with the same noise and no drift. Under each, ten
    brackets 250 days long end in an arrow, up where the line ends higher and
    the rule is long, down where it ends lower and the rule is short. Eight of
-   the ten point up with the drift and five without it. It prints the shares
-   of days the rule is long on the first 1,000 of the second test's series,
-   0.804654 as drawn and 0.502401 with the mean removed.
+   the ten point up with the drift and five without it. It prints the share
+   of days with a long or short signal on which the rule is long, averaged
+   over the first 1,000 of the second test's series, 0.804654 as drawn and
+   0.502401 with the mean removed.
 
-The second sketch's two lines are schematic. Each is a random walk with TU's
-daily mean and standard deviation, which keeps the drift over 250 days at
-about 0.87 of the noise's standard deviation over the same days, and neither
-is TU's closes or one of the run's series. Every figure either sketch prints
+The second sketch's two lines are schematic, and its labels say so. Both are
+random walks with TU's daily standard deviation, and the upper one adds TU's
+daily mean, which keeps the drift over 250 days at about 0.87 of the noise's
+standard deviation over the same days. Neither is TU's closes or one of the
+run's series. Every figure either sketch prints
 comes from the run. Both build more slowly than the USD.CAD post's sketches
 and hold their finished drawings for twelve seconds, because each carries
 more than that pace lets a reader take in. Redraw both with:
