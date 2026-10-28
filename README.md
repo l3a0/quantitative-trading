@@ -6493,8 +6493,11 @@ Six groups of what it says are not pinned here.
    z-score bets on the two moving together.
 4. Figures the post states in words rather than from the run: three or four
    months between pairs, three earlier contracts still trading 73 days before
-   an expiry and four when most of S's pairs open, and that B2 reads its held
-   pair on more of its days than S does. The figure's alt text reads its
+   an expiry so that the near leg is the fourth, and four when most of S's
+   pairs open so that it is the fifth, two contracts traded to switch the
+   shared contract's side, and that B2 reads its held pair on more of its days
+   than S does. The counts of the post's own lists, such as five readings and
+   four questions, are read by no test either. The figure's alt text reads its
    curves approximately too.
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states several figures more than once, in its opening, a lesson, a table or
@@ -6511,7 +6514,11 @@ first of those files reads at least one copy in the post of each run figure
 the post quotes outside the chart's and the sketches' alt texts, so editing a
 copy it reads fails. Crude oil's spread mostly falling as γ rises,
 which the post cites from the crude oil post, is `TestTheTradesDirection` in
-[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py).
+[tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
+and γ's fit across the five nearest contracts, which it cites from the spot
+and roll returns post, is
+`test_only_the_nearest_five_are_read_when_more_are_priced` in
+[tests/test_roll_returns.py](tests/test_roll_returns.py).
 Five had no pin before the post.
 
 1. The specification's near leg is the front contract on 126 of its 847 held
