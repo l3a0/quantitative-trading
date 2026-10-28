@@ -28,7 +28,7 @@ The five lessons below say what the reproduction teaches. The code is open sourc
 
 ## The rule, the file and the three tests
 
-**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. Each day’s signal opens a new one-unit trade, long or short, and holds it 25 days, so up to 25 trades are open at once. The rule’s position on a day is its open long trades minus its open short trades, and each day’s return is yesterday’s position times today’s return on TU, divided by 25. Elsewhere on this blog, [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a `genhurst` setting from Chan’s Hurst example on TU.
+**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. From the 251st day on, each day’s signal opens a new one-unit trade, long or short, and holds it 25 days, so up to 25 trades are open at once. The rule’s position on a day is its open long trades minus its open short trades, and each day’s return is yesterday’s position times today’s return on TU, divided by 25. Elsewhere on this blog, [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a `genhurst` setting from Chan’s Hurst example on TU.
 
 **The file.** Chan’s own MATLAB file `inputDataOHLCDaily_20120511.mat`, saved on 2012-05-12, holds TU’s closes for 2,000 trading days from 2004-06-01 to 2012-05-11. The rule’s **observed mean**, its average daily return over those days, is 6.626644e-05. Every test below asks how often chance alone reaches that number. The script that runs the tests is `TU_mom_hypothesisTest.m`, as published with the book’s code.
 
@@ -42,7 +42,7 @@ The three tests differ only in how they build the null.
 
 Each of the last two tests counts how many simulated means are at or above the observed mean. That count divided by the number drawn is the p-value. Chan reports that “1,166 have average strategy return greater than or equal to the observed average return” (Chan, 2013, location 665), so his p-value is 1,166 / 10,000, or 0.1166.
 
-**How the draws keep four moments.** The second test’s draws share TU’s first **four moments**, the summary numbers of a distribution.
+**How the draws keep four moments.** The second test’s draws share the first **four moments**, the summary numbers of a distribution, of the 2,000 daily returns the script computes for TU. The first of those returns is 0, because day one has no close before it.
 
 1. The mean.
 2. The standard deviation.
@@ -88,7 +88,7 @@ That null assumes three things, and each is a choice.
 2. **They are normal.** The tails are no fatter than a bell curve’s.
 3. **Their true mean is zero.** That rules out drift in the strategy’s own returns.
 
-The second test drops the second assumption and keeps TU’s fat tails. Lesson 5 shows that it drops the third as well, because it keeps TU’s drift.
+The second test drops the second assumption and keeps TU’s fat tails. Lesson 5 shows that it drops the third as well, because it keeps TU’s drift. It assumes only that TU’s simulated daily returns are independent. The strategy’s returns on them are not, because the rule’s overlapping trades carry each day’s position into the next.
 
 ## Lesson 2: a simulated count lands only within sampling error, so the band comes first
 
@@ -183,7 +183,7 @@ One habit for each lesson.
 2. **Fix the seed and the band before the draw.** A simulated count lands only within sampling error, and a band chosen afterwards fits anything.
 3. **Check which test printed a figure.** The script’s comment and the book’s paragraph cannot both come from the second test.
 4. **Make a test fail once.** A test that returns 0 whatever the data looks exactly like a strong result.
-5. **Remove one input at a time before crediting a cause.** Taking out the skewness and the fat tails moved the count from 1,221 to 1,165. Taking out the drift took it to 19.
+5. **Remove each candidate cause separately before crediting one.** Taking out the shape, meaning the skewness and the fat tails, moved the count from 1,221 to 1,165. Taking out the drift took it to 19.
 
 ## References
 

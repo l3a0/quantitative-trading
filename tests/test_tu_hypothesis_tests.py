@@ -2,9 +2,11 @@
 
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it. One surface also quotes numbers
-held elsewhere: ``blog/tu-hypothesis-tests-lessons.md`` takes the 49 pairs
-behind the rule from ``tests/test_tu_momentum.py``, and its figure's labels
-from ``tests/test_tu_hypothesis_tests_figures.py``.
+held elsewhere. ``blog/tu-hypothesis-tests-lessons.md`` takes the 49 pairs
+behind the rule from ``tests/test_tu_momentum.py``, its figure's labels from
+``tests/test_tu_hypothesis_tests_figures.py``, its sketches' labels from
+``tests/test_tu_hypothesis_tests_whiteboard.py``, and the index arbitrage
+post's 480 stocks from ``tests/test_index_arbitrage.py``.
 README lists what the post says that nothing asserts. ``docs/replication-log.md``
 Entry 37 carries the verdicts and points here row by row. The run itself comes
 from ``tu_hypothesis_run`` in ``tests/conftest.py``, which the figure's pins
@@ -581,7 +583,7 @@ class TestRow4TheCorrectedTrades:
         """The n − 1 ``std`` of seed 20261011's 100,000 means, against seed 20261010's 10,000.
 
         Shuffling scatters the long and short entry days across the sample,
-        so the slices held on any day mostly cancel into a net long position
+        so the trades open on any day mostly cancel into a net long position
         of about the same size on every shuffle. A position nearly the same on
         every shuffle earns nearly the same mean on the same returns, so the
         shuffled means vary far less than means on new returns do, which is why
@@ -803,8 +805,9 @@ class TestWhatThePostQuotes:
     ``tests/test_tu_hypothesis_tests_figures.py``.
 
     Also unread are Chan's words and the Kindle locations, the book's chapter
-    and example numbers, location 2923's 12 percent, the replication log's
-    entry number, the post's counts of its own results, lessons, tests,
+    and example numbers, location 2923's 12 percent, TU's two-year term, the
+    first section's eight years, the replication log's entry number, the
+    post's counts of its own results, lessons, tests,
     assumptions, moments and questions, the normal distribution's kurtosis of
     3, the two standard errors of the band rule and its 95 percent, the rule
     of three's 3/N and its 95 percent, the 2004 to 2012 of the exploratory
