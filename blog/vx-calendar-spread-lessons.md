@@ -68,7 +68,7 @@ The second claim does not. This post’s tables give the APR and the maximum dra
 \text{Half-life, days} & 13.036829 & \text{none printed} \\
 \text{APR} & -0.040454 & 17.7 \text{ percent} \\
 \text{Sharpe ratio} & -0.563912 & 1.5 \\
-\text{Maximum drawdown} & -0.255618 & \text{none}
+\text{Maximum drawdown} & -0.255618 & \text{none printed}
 \end{array}
 ```
 

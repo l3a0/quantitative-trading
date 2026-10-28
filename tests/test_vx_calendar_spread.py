@@ -34,7 +34,8 @@ Two measurements were taken after seeing the five rows, and their pins say so:
 B3 on the book's window, and each of S, B1, B2 and B3 from the first row its
 flipped positions hold anything to 2008-10-24. The write-up measured three
 more after the run, in ``TestWhichPairTheSignalReads``, and their pins say so
-too.
+too. The review of the post measured B3's roll and reversal counts after the
+run as well, in ``TestTheSignalsOnVx``.
 
 Each computed figure is held at six decimals, so a change cannot move it
 inside the published rounding unnoticed, and each published figure at the
@@ -43,7 +44,7 @@ precision Chan printed, through ``matches``.
 ``blog/vx-calendar-spread-lessons.md`` quotes most of these figures, so a
 change to any of them moves that post too, and ``TestWhatThePostQuotes`` reads
 one copy of each. ``TestWhichPairTheSignalReads`` holds
-the numbers the post added, and ``tests/test_vx_calendar_spread_figures.py``
+most of the numbers the post added, and ``tests/test_vx_calendar_spread_figures.py``
 holds what its figure draws. ``blog/crude-oil-calendar-spread-lessons.md``
 also quotes one of the class's numbers, the 126 of 847 held days whose near
 leg is the front contract.
@@ -602,7 +603,7 @@ class TestWhatThePostQuotes:
             ["Half-life, days", f"{s.half_life:.6f}", "none printed"],
             ["APR", f"{s.apr:.6f}", BOOK_APR_PERCENT],
             ["Sharpe ratio", f"{s.sharpe:.6f}", BOOK_SHARPE],
-            ["Maximum drawdown", f"{s.max_dd:.6f}", "none"],
+            ["Maximum drawdown", f"{s.max_dd:.6f}", "none printed"],
         ]
         assert tables(text)[0] in either_way(table), S_SPEC
 

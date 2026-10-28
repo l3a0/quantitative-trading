@@ -7984,8 +7984,8 @@ Three things.
    single it out, because B2 ends there too. VX-2012K still trades on the
    file's last row, 2012-05-07, so the schedule reads that row as its expiry,
    and under `holddays=0` its pair ends 10 rows earlier, on 2012-04-23. The
-   date is evidence for holding each pair until 10 rows before its expiry,
-   which B2 and B3 share.
+   date is evidence for `holddays=0`, which holds each pair in turn and which
+   B2 and B3 share.
 
    B3 was picked out after the run among five rows, and the window the first
    point reads was chosen after seeing the table, so this is a search. A
@@ -8018,7 +8018,8 @@ location 2502 gives four things.
 The rest of S is this repo's reading, in three choices.
 
 1. `spreadMonth=1`, forced by how few contracts the strip prices on a day.
-2. No signal where the nearest two priced contracts are not adjacent columns.
+2. The nearest two priced contracts as the back and the front, rather than the
+   held pair B1 reads, with no signal where the two are not adjacent columns.
 3. Measuring to the file's last row, as the script measures to its own,
    rather than to the book's printed end, which B4 does.
 
