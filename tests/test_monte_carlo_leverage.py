@@ -933,7 +933,8 @@ class TestWhatThePostSays:
     Other copies of the same figure elsewhere in the post are not always read.
     Each expected value comes from the run, or from the book's printed figures
     the module holds as constants, and is compared at the precision the post
-    prints it. A table is read by its row labels, and a sentence by the words
+    prints it, except a figure that rests on an optimum, which is compared
+    within ``NEAR``. A table is read by its row labels, and a sentence by the words
     around its number.
 
     The prose states these numbers and the tests above derive them, so before

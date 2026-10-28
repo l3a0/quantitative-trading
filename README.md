@@ -8156,8 +8156,9 @@ for the figure's own numbers, or to
 for the sketches'. `TestWhatThePostSays` in the first file reads one copy of
 each figure the post takes from the run, its five tables by row label and its
 prose by the words around each number, and fails when that copy drifts from
-the run. A second copy of the same figure elsewhere in the post is not always
-read, and neither is the figure's alt text. The sketches' file also holds the
+the run, by more than 1.5e-6 for a figure that rests on an optimum. A second
+copy of the same figure elsewhere in the post is not always read, and neither
+is the figure's alt text. The sketches' file also holds the
 reading that the account at the script's f moves about ten times the
 unlevered returns, so the loop barely cuts its leverage while the account
 falls. Its leverage on the account is f·D = 10 at the account's high on day
