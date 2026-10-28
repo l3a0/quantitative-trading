@@ -9626,7 +9626,14 @@ statistic, which carry PC1's without PMC. Its one figure, which
 redraws, moves with them. The factor models post's Lesson 3 whiteboard
 sketch, which draws a sign flip in one day's weights changing both members of
 a pair, is schematic and draws none of these figures, and
-`uv run python -m chan.factor_models_whiteboard` redraws it.
+`uv run python -m chan.factor_models_whiteboard` redraws it. This post's two
+whiteboard sketches draw some of them. The window sketch draws PC2's statistic
+four ways: on tomorrow's own weights matched, with today left out, on the 251
+days that still hold today, and as the pair reads it. The rank shift sketch
+draws PMC's weight on PC1, the days PMC carries PC1, the two days' shares of
+PC2's squared products and of PC1's without PMC, and PC2's statistic with PMC
+and without. They move with a re-pin of any of those, and
+`uv run python -m chan.pca_factor_momentum_whiteboard` redraws them.
 
 ## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
 
