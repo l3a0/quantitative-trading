@@ -138,7 +138,7 @@ On these bars, Chan’s method does not beat holding the parameters fixed, his f
 
 ## References
 
-1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Example 7.1 at pp. 137 to 146, with pages 137 to 138, 140, 142 and 145 to 146 cited. The page numbers are the Kindle edition’s, read in the Kindle Cloud Reader.
+1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Example 7.1 at pp. 137 to 146, with pages 137 to 138, 140, 142 and 145 to 146 cited. The page numbers are the Kindle edition’s, read in the Kindle Cloud Reader, and match the print edition’s.
 2. Chan, E. P. (2021, April). A post on Conditional Parameter Optimization on his blog, at [epchan.blogspot.com](http://epchan.blogspot.com/2021/04/conditional-parameter-optimization.html). It prints the same three pairs of annual return, Sharpe ratio and Calmar ratio as the book, and states no window, grid or costs.
 3. jeffmcphail/mctheory-praxis at commit `b7c5b5d`, a third-party reproduction on Kibot bars, cited for its own figures.
 4. Alpha Vantage, `TIME_SERIES_INTRADAY` at one-minute intervals and `adjusted=false`, the source of the bars. Their hashes are in [data/archive_vintages.jsonl](https://github.com/l3a0/quantitative-trading/blob/main/data/archive_vintages.jsonl).

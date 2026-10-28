@@ -370,9 +370,59 @@ fits on one page.
 These are the Kindle edition's page numbers. For *Algorithmic Trading* they
 differ from the 2013 hardcover's: the hardcover runs to 224 pages and the
 Kindle edition to 302, and four quotes the usdcad posts cite at print pages
-39, 44, 49 and 60 sit on Kindle pages 71, 77, 84 and 96. Nothing here has
-compared the revised *Quantitative Trading*'s Kindle pages with its print
-pages.
+39, 44, 49 and 60 sit on Kindle pages 71, 77, 84 and 96.
+
+For the revised *Quantitative Trading* they match print from Chapter 1 to the
+index, so a post may say its pages are the print edition's too. Only the
+front matter differs, and no post cites it.
+
+### How the revised *Quantitative Trading*'s pages were compared
+
+A Kindle edition either carries the print book's page numbers or makes up its
+own, and a made-up numbering drifts away from print as the book goes on, the
+way *Algorithmic Trading*'s does. So agreement at a dozen points from p. 26 to
+p. 188 rules out any drift between them. Two print sources were read on
+2026-10-28.
+
+1. **The 2021 hardcover's contents pages,** ISBN 9781119800064, which Wiley
+   publishes as a PDF on the book's product page, at
+   `media.wiley.com/product_data/excerpt/64/11198000/1119800064-39.pdf`.
+2. **The same hardcover's index,** whose first page O'Reilly shows as a
+   preview at
+   `oreilly.com/library/view/quantitative-trading-2nd/9781119800064/b04.xhtml`.
+   An index cites the pages of the print book it was set for.
+
+Each row below sets a highlight's Kindle page beside the page a print source
+gives for the same passage.
+
+| Location | The passage | Kindle page | Print page | Print source |
+| --- | --- | --- | --- | --- |
+| 1012 | Survivorship bias defined | 26 | 26 to 27 | Index, "impact of survivorship bias on" backtesting |
+| 1060 | Artificial intelligence as curve fitting | 28 | 28 to 29 | Index, "AI (artificial intelligence)" |
+| 2099 | Khandani and Lo's reversal, Example 3.7 | 72 to 73 | from 72 | Contents, "Transaction Costs" starts on 72 |
+| 2387 | A trading platform's API | 86 | 86 | Index, "Application programming interface (API)" |
+| 2642 | Orders sized to average daily volume | 101 | 101 to 102 | Index, "Average daily volume" |
+| 3072 | Trading at half-Kelly | 122 | 122 to 123 | Index, backtesting "of half-Kelly betting" |
+| 3978 | The Fama-French three-factor model | 160 | 160 | Contents, "Factor Models" starts on 160 |
+| 4182 | The four kinds of exit signal | 169 | 169 | Contents, "What Is Your Exit Strategy?" starts on 169 |
+| 4197 | Holding period from the Ornstein-Uhlenbeck formula | 170 | 170 | Index, "determining optimal holding period with" backtesting |
+| 4308 | The January effect | 175 | 175 to 179 | Index, backtesting "of January effect" |
+| 4425 | Heston and Sadka's seasonal strategy | 179 | 179 | Index, backtesting "of January effect" ends on 179 |
+| 4668 | Backtesting high-frequency strategies | 188 | 188 | Index, backtesting "of high-frequency strategies" |
+
+The Kindle edition is a later printing than the 2021 hardcover. Its front
+matter opens with a foreword by Rishi K. Narang that the hardcover lacks, and
+the highlights at locations 339 to 350 come from it, on Kindle pages xi and
+xii. A paperback Wiley issued in 2026 as the revised edition, ISBN
+9781394378043, lists that foreword at p. xi in its contents, which the
+booksellers Ex Libris and Schweitzer reprint. That paperback's contents give every chapter and section the
+same page as the 2021 hardcover's, from Chapter 1 on p. 1 to the index on
+p. 211. Its front matter runs four pages later: the Preface to the 2nd Edition
+starts on p. xv rather than p. xi, the Preface on p. xix rather than p. xv,
+and the Acknowledgments on p. xxv rather than p. xxi. So the roman page
+numbers in
+[quantitative-trading-kindle-pages.csv](quantitative-trading-kindle-pages.csv)
+are the 2026 printing's and not the 2021 hardcover's.
 
 ## These files are quoted, not authored
 

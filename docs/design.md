@@ -108,7 +108,7 @@ than prints traces to
 document whole. The *Quantitative Trading* notes are that book's 2021
 revised edition. Some chapter and page citations of it in this repo are
 first-edition, while the blog posts cite the revised edition by its Kindle
-page numbers. The *Algorithmic Trading* notes are that book's only edition,
+page numbers, which match its print pages. The *Algorithmic Trading* notes are that book's only edition,
 of 2013. The next subsection says what follows from that, because the
 two editions do not tell the same story about where these numbers come from.
 
