@@ -458,6 +458,24 @@ class TestThePostsAltText:
             k = "k " if label.startswith("ruined") else ""
             assert f"{month:%B %Y} at {k}{first}" in alt, label
 
+    def test_it_pairs_each_marked_months_figures_with_that_month(self, axes) -> None:
+        """Every figure in a marked label follows that label's month, in order.
+
+        The test above reads only each label's first figure, so June's and
+        September's second figures could trade places in the alt text and pass.
+        """
+        text = POST.read_text("utf-8")
+        alt = re.search(r"!\[([^\]]+)\]\(\.\./docs/figures/low_beta_leverage\.png\)", text)[1]
+        labels = [t.get_text() for ax in axes.values() for t in ax.texts if t.get_gid()]
+        marked = [label for label in labels if re.match(r"(ruined )?\d{4}-\d{2}-\d{2}:", label)]
+        assert len(marked) == 4, marked
+        for label in marked:
+            month = pd.Timestamp(re.search(r"\d{4}-\d{2}-\d{2}", label)[0])
+            figures = re.findall(r"−?\d+\.\d{4}", label)
+            k = "k " if label.startswith("ruined") else ""
+            after = alt[alt.index(f"{month:%B %Y} at {k}{figures[0]}") :]
+            assert re.findall(r"−?\d+\.\d{4}", after)[: len(figures)] == figures, label
+
     def test_it_quotes_the_month_of_the_highest_k(self, axes, portfolios) -> None:
         text = POST.read_text("utf-8")
         alt = re.search(r"!\[([^\]]+)\]\(\.\./docs/figures/low_beta_leverage\.png\)", text)[1]
