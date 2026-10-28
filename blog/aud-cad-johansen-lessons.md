@@ -4,11 +4,11 @@
 
 ## Why the quote currency decides what a hedge means
 
-A pair trade holds one thing against another in proportions chosen so the combination stays near a fixed level. In Ernest Chan’s *Algorithmic Trading*, those proportions often come from the Johansen test, which reads several price series together and returns weights for each. With currencies the weights only mean something if each price is measured the same way. Chan warns that the test and the returns need “a point move in one currency pair” to have “the same dollar value as a point move in another currency pair”, and that otherwise “the results will not make sense” (Chan, 2013, location 2169).
+A pair trade holds one thing against another in proportions chosen so the combination stays near a fixed level. In Ernest Chan’s *Algorithmic Trading*, those proportions often come from the Johansen test, which reads several price series together and returns weights for each. With currencies the weights only mean something if each price is measured the same way. Chan warns that the test and the returns need “a point move in one currency pair” to have “the same dollar value as a point move in another currency pair”, and that otherwise “the results will not make sense” (Chan, 2013, Kindle edition, p. 163).
 
-A currency price names two currencies. Chan’s own example is AUD.ZAR: the Australian dollar is the base currency, the one being bought, and the South African rand is the quote currency, the one the price is counted in. A quote of 9.58 means it takes 9.58 rand to buy one Australian dollar (Chan, 2013, location 2186). AUD.USD is therefore counted in US dollars. The Canadian dollar is normally quoted the other way, as USD.CAD, the price of a US dollar in Canadian dollars. A move of 0.01 in AUD.USD is worth one US cent per unit, and a move of 0.01 in USD.CAD is worth one Canadian cent, so the two are not the same size.
+A currency price names two currencies. Chan’s own example is AUD.ZAR: the Australian dollar is the base currency, the one being bought, and the South African rand is the quote currency, the one the price is counted in. A quote of 9.58 means it takes 9.58 rand to buy one Australian dollar (Chan, 2013, p. 164). AUD.USD is therefore counted in US dollars. The Canadian dollar is normally quoted the other way, as USD.CAD, the price of a US dollar in Canadian dollars. A move of 0.01 in AUD.USD is worth one US cent per unit, and a move of 0.01 in USD.CAD is worth one Canadian cent, so the two are not the same size.
 
-Example 5.1 fixes that by turning USD.CAD over into CAD.USD, so both legs are quoted in US dollars. Location 2186 gives the reason: “in order to interpret the eigenvector from the Johansen test as capital weights, the two price series must have the same quote currency.” The eigenvector is the test’s set of weights, one per currency. A capital weight says how many dollars to hold of each. Chan expects the two currencies to move together because the stock index funds of Australia and Canada do, and he notes that traders call both commodity currencies, the currencies of countries that export a lot of raw materials (Chan, 2013, location 2173). He reports an annual return of 11 percent and a Sharpe ratio of 1.6 from 2009-12-18 to 2012-04-26 (Chan, 2013, location 2237). The Sharpe ratio is the average daily return over its standard deviation, scaled to a year.
+Example 5.1 fixes that by turning USD.CAD over into CAD.USD, so both legs are quoted in US dollars. On pp. 164 to 165 Chan gives the reason: “in order to interpret the eigenvector from the Johansen test as capital weights, the two price series must have the same quote currency.” The eigenvector is the test’s set of weights, one per currency. A capital weight says how many dollars to hold of each. Chan expects the two currencies to move together because the stock index funds of Australia and Canada do, and he notes that traders call both commodity currencies, the currencies of countries that export a lot of raw materials (Chan, 2013, p. 163). He reports an annual return of 11 percent and a Sharpe ratio of 1.6 from 2009-12-18 to 2012-04-26 (Chan, 2013, p. 168). The Sharpe ratio is the average daily return over its standard deviation, scaled to a year.
 
 This repository transcribed his script, `AUDCAD_unequal.m`, line by line and ran it on the daily closes from his 2018 Python port of the book’s code. The results fall into four groups.
 
@@ -23,20 +23,20 @@ The six lessons below say what the reproduction teaches. The code is open source
 
 ## The rule and the files
 
-Location 2237 calls the rule “a classic linear mean-reverting strategy”, the one the [post on the price spread, the log price spread and the ratio](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-ratio-lessons.md) builds up on two ETFs. Here it runs in four steps each day.
+On p. 167 Chan calls the rule “a classic linear mean-reverting strategy”, the one the [post on the price spread, the log price spread and the ratio](https://github.com/l3a0/quantitative-trading/blob/main/blog/price-spread-ratio-lessons.md) builds up on two ETFs. Here it runs in four steps each day.
 
 1. **The legs.** AUD.USD, and CAD.USD computed as one over USD.CAD. Every set of weights lists AUD.USD first.
 2. **The hedge.** Run the Johansen test on the 250 days before today. It includes a constant, so the level need not be zero, and the previous day’s change in each price. Take its first eigenvector, the set of weights whose combination the test finds pulled back to its level most strongly. That is the day’s hedge: how many units of each currency one portfolio holds. The [post on the Johansen test on three ETFs](https://github.com/l3a0/quantitative-trading/blob/main/blog/johansen-etf-lessons.md) explains the eigenvectors and how the test counts relations.
 3. **The units.** Value the hedge portfolio on each of the 20 days ending today. Today’s z-score is the number of standard deviations today’s value sits from that 20-day average. Hold minus that many portfolios, so the rule sells the portfolio when it is high and buys it when it is low.
-4. **The return.** Each day’s profit is yesterday’s holding in each currency, in dollars, times today’s percent change in its price. The return is that profit over yesterday’s total position, long and short together, which location 2237 calls the gross market value.
+4. **The return.** Each day’s profit is yesterday’s holding in each currency, in dollars, times today’s percent change in its price. The return is that profit over yesterday’s total position, long and short together, which Chan calls the gross market value (p. 167).
 
-The script charges no transaction cost and leaves out rollover interest, the interest a currency position earns or pays overnight. Location 2205 says rollover interest is “usually not large for short-term strategies” like this one. The [post on AUD.CAD with rollover interest](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-rollover-lessons.md) measures what it did to the next example, which trades the same two currencies as one cross-rate, a single price of the Australian dollar in Canadian dollars.
+The script charges no transaction cost and leaves out rollover interest, the interest a currency position earns or pays overnight. On p. 166 Chan says rollover interest is “usually not large for short-term strategies” like this one. The [post on AUD.CAD with rollover interest](https://github.com/l3a0/quantitative-trading/blob/main/blog/aud-cad-rollover-lessons.md) measures what it did to the next example, which trades the same two currencies as one cross-rate, a single price of the Australian dollar in Canadian dollars.
 
 The data is [two files](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) from Chan’s Python port, each holding 862 daily closes from 2009-01-02 to 2012-04-26, saved 2018-12-12. The script loads two MATLAB files of prices taken every minute, which neither public copy of his code includes. A third file holds the 612 returns his MATLAB script saved. This repository transcribed the script from `ericnberwick/EpchanPreview` at commit `e4bc46f`.
 
 ## Lesson 1: every figure matches, because every return does
 
-Here is each figure, computed, beside the value the script’s comments record and the one the book prints. The test period is the 612 days after the first 250, from 2009-12-18 to 2012-04-26, as location 2237 says.
+Here is each figure, computed, beside the value the script’s comments record and the one the book prints. The test period is the 612 days after the first 250, from 2009-12-18 to 2012-04-26, as Chan says on p. 168.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -54,7 +54,7 @@ Three figures that agree this closely could still come from different returns. T
 Two details sit inside that match.
 
 1. **The variance divides by n − 1**, where n is the number of returns. The Kelly leverage matches only with this sample variance, the one MATLAB’s `std` computes. Dividing by n instead gives 23.884354.
-2. **The book quotes another figure for the same returns.** Location 3342 says “the Kelly leverage is 18.4” for this strategy. Neither variance takes the saved returns to 18.4, so this post quotes the script’s 23.845328. The [post on Chapter 8’s leverage](https://github.com/l3a0/quantitative-trading/blob/main/blog/monte-carlo-leverage-lessons.md#lesson-2-example-51s-own-figures-rule-184-out) finds that no daily series with this example’s printed Sharpe ratio and APR has a Kelly of 18.4, under any of the three ways of compounding the APR it tries, and infers that Chapter 8 ran on a different series of returns, with a Kelly near 18.4, that nobody holds. The evidence cannot tell when or how that series differed from the saved file.
+2. **The book quotes another figure for the same returns.** On p. 258 Chan says “the Kelly leverage is 18.4” for this strategy. Neither variance takes the saved returns to 18.4, so this post quotes the script’s 23.845328. The [post on Chapter 8’s leverage](https://github.com/l3a0/quantitative-trading/blob/main/blog/monte-carlo-leverage-lessons.md#lesson-2-example-51s-own-figures-rule-184-out) finds that no daily series with this example’s printed Sharpe ratio and APR has a Kelly of 18.4, under any of the three ways of compounding the APR it tries, and infers that Chapter 8 ran on a different series of returns, with a Kelly near 18.4, that nobody holds. The evidence cannot tell when or how that series differed from the saved file.
 
 ## Lesson 2: the match ties the traded closes to Chan’s up to a scale on each leg, and no more
 
@@ -91,7 +91,7 @@ What the count does show is what the rule did on the other days. On those 586 da
 
 ## Lesson 4: a capital weight that wandered, and sometimes stopped being a spread
 
-Location 2186’s point is that, once both legs share a quote currency, each weight times its price is a number of US dollars, so the weights translate directly into capital. The last day shows how. The hedge on 2012-04-26 holds 1 unit of AUD.USD against −0.7797 of CAD.USD. A unit is worth its price in US dollars, so in dollars that is 1 against −0.7622, long the Australian dollar and short about three quarters as much of the Canadian. Chan notes that this makes live trading no harder: an order to buy a unit of CAD.USD is placed as a sale of USD.CAD (Chan, 2013, location 2186).
+The point Chan makes on pp. 164 to 165 is that, once both legs share a quote currency, each weight times its price is a number of US dollars, so the weights translate directly into capital. The last day shows how. The hedge on 2012-04-26 holds 1 unit of AUD.USD against −0.7797 of CAD.USD. A unit is worth its price in US dollars, so in dollars that is 1 against −0.7622, long the Australian dollar and short about three quarters as much of the Canadian. Chan notes that this makes live trading no harder: an order to buy a unit of CAD.USD is placed as a sale of USD.CAD (Chan, 2013, p. 165).
 
 That day’s hedge is one of 612. The top panel of the figure draws each as CAD.USD’s share of the total position, with AUD.USD held long. At −0.5 the two legs hold equal dollars against each other, which is what a pair trade looks like. Above 0 the two are held the same way, long both or short both.
 
@@ -111,7 +111,7 @@ The port’s number therefore says nothing about whether its files are Chan’s.
 
 ## Lesson 6: an exact reproduction checks the arithmetic, not the edge
 
-Every figure in Lesson 1 matches, and none of that says the strategy would have paid. Location 2237 says the 250-day window “gives better results in hindsight”, so it was chosen after the returns were seen. A rule chosen by looking at these days cannot also be tested on them, which is why every result here is exploratory.
+Every figure in Lesson 1 matches, and none of that says the strategy would have paid. Chan says on p. 167 that the 250-day window “gives better results in hindsight”, so it was chosen after the returns were seen. A rule chosen by looking at these days cannot also be tested on them, which is why every result here is exploratory.
 
 Lessons 3 and 4 say what the arithmetic rested on. The weights came from a test that found a relation in a few windows, and for part of 2010 they turned the pair into a bet on the US dollar. A rule that trades those weights unread can still reproduce to the last digit.
 
@@ -119,7 +119,7 @@ Lessons 3 and 4 say what the arithmetic rested on. The weights came from a test 
 
 Three questions are beyond it.
 
-1. **What costs and rollover interest would take.** The rule trades every day, and the script charges no cost. Location 2205 sets rollover interest aside as small, and nothing here measures how small.
+1. **What costs and rollover interest would take.** The rule trades every day, and the script charges no cost. Chan sets rollover interest aside as small (p. 166), and nothing here measures how small.
 2. **Whether the 250-day window was chosen on this sample.** Chan says it gives better results in hindsight. No run here tries another length, and any that did would be searching days already used to choose this one.
 3. **Whether the pair trades today.** The run ends on 2012-04-26 with Chan’s data. It says whether his numbers reproduce on his files and nothing about the two currencies since.
 
@@ -136,7 +136,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.1 and Kindle locations 2169, 2173, 2186, 2205, 2237 and 3342.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.1 and pages 163 to 168 and 258. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `AUDCAD_unequal.m`, git blob `5b8fbc2`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code. Its comments on lines 60 and 66 record the printouts `APR=0.112410 Sharpe=1.610890` and `f=23.845328`.
 3. Johansen, S. (1991). Estimation and hypothesis testing of cointegration vectors in Gaussian vector autoregressive models. *Econometrica*, 59(6), 1551–1580.
 4. Welch, B. L. (1947). The generalization of “Student’s” problem when several different population variances are involved. *Biometrika*, 34(1–2), 28–35.

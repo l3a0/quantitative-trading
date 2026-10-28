@@ -4,7 +4,7 @@
 
 ## Why test the method Chan added to the revised edition
 
-The revised edition of Ernest Chan’s *Quantitative Trading* adds a method the first edition does not have. Traders usually fit a strategy’s parameters once on a stretch of history, or re-fit them on a moving window, and Chan argues that both react too slowly. Re-fitting on a window that moves one day at a time changes the parameters very little, because one day changes the history very little. His method, Conditional Parameter Optimization, trains a model to predict the strategy’s own next-day return from the parameters and the day’s market conditions. After each close the model scores every parameter set, and the strategy trades the best one the next day. That lets traders change parameters “as frequently as they like” (Chan, 2021, location 3414).
+The revised edition of Ernest Chan’s *Quantitative Trading* adds a method the first edition does not have. Traders usually fit a strategy’s parameters once on a stretch of history, or re-fit them on a moving window, and Chan argues that both react too slowly. Re-fitting on a window that moves one day at a time changes the parameters very little, because one day changes the history very little. His method, Conditional Parameter Optimization, trains a model to predict the strategy’s own next-day return from the parameters and the day’s market conditions. After each close the model scores every parameter set, and the strategy trades the best one the next day. That lets traders change parameters “as frequently as they like” (Chan, 2021, Kindle edition, p. 138).
 
 Example 7.1 tests the method on a strategy that trades gold. Chan reports that holding the parameters fixed on the three test years earned a Sharpe ratio of 1.947, and that re-choosing them daily earned 2.325, with “all other metrics” improved (Chan, 2021, p. 145). The Sharpe ratio divides the average daily return by its standard deviation and scales the result to a year, so it measures return per unit of risk.
 
@@ -123,7 +123,7 @@ Every result above is exploratory, for the reason the opening gives. Five questi
 2. **What would reproduce Chan’s numbers.** Lesson 4 places his Sharpe ratio among cells that trade far less, and shows the chosen cell losing once trading costs something. Searching costs and fill delays until one matched is the search the declared readings forbid, so it was not run.
 3. **Whether the strategy pays.** At 1 basis point a round trip both arms lose heavily. What a round trip in GLD actually costs, with its spread and its fees, is not measured here.
 4. **Anything a public clone can check.** The bars are licensed, so the checks on the run’s figures run only where the owner’s archive is. The hashes say exactly which bytes were read, and nothing here can show those bytes to anyone else.
-5. **Whether predicting a strategy’s return is less crowded than predicting gold’s.** Chan argues that everyone tries to predict GLD’s return, “but nobody (until they read this book!) is predicting the returns of this particular GLD trading strategy” (Chan, 2021, location 3617). Nothing here tests that.
+5. **Whether predicting a strategy’s return is less crowded than predicting gold’s.** Chan argues that everyone tries to predict GLD’s return, “but nobody (until they read this book!) is predicting the returns of this particular GLD trading strategy” (Chan, 2021, p. 146). Nothing here tests that.
 
 ## What this means for a trader
 
@@ -138,7 +138,7 @@ On these bars, Chan’s method does not beat holding the parameters fixed, his f
 
 ## References
 
-1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Example 7.1 at pp. 137 to 146, with pages 137, 140, 142 and 145 quoted, and Kindle locations 3414 and 3617. The pages were read in the Kindle Cloud Reader on 2026-10-03, which labels each screen with the print page it opens on. That reading placed neither location 3414 nor 3617 on a page, so those two are cited by location from [the committed notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/quantitative-trading.md).
+1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Example 7.1 at pp. 137 to 146, with pages 137 to 138, 140, 142 and 145 to 146 cited. The pages were read in the Kindle Cloud Reader. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. (2021, April). A post on Conditional Parameter Optimization on his blog, at [epchan.blogspot.com](http://epchan.blogspot.com/2021/04/conditional-parameter-optimization.html). It prints the same three pairs of annual return, Sharpe ratio and Calmar ratio as the book, and states no window, grid or costs.
 3. jeffmcphail/mctheory-praxis at commit `b7c5b5d`, a third-party reproduction on Kibot bars, cited for its own figures.
 4. Alpha Vantage, `TIME_SERIES_INTRADAY` at one-minute intervals and `adjusted=false`, the source of the bars. Their hashes are in [data/archive_vintages.jsonl](https://github.com/l3a0/quantitative-trading/blob/main/data/archive_vintages.jsonl).

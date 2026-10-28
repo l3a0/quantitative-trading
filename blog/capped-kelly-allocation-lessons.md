@@ -4,7 +4,7 @@
 
 ## Why a leverage cap changes the answer
 
-The Kelly formula says how much leverage makes capital grow fastest. Ernest Chan’s second book, *Algorithmic Trading*, treats that number as a ceiling. His experience is that the Kelly leverage “is best viewed as an upper bound”, and that it often comes out so high “that it far exceeds the maximum leverage allowed by our brokers” (Chan, 2013, location 3235). So the question a trader with several strategies faces is how to spend the leverage a broker allows, rather than how to reach Kelly.
+The Kelly formula says how much leverage makes capital grow fastest. Ernest Chan’s second book, *Algorithmic Trading*, treats that number as a ceiling. His experience is that the Kelly leverage “is best viewed as an upper bound”, and that it often comes out so high “that it far exceeds the maximum leverage allowed by our brokers” (Chan, 2013, Kindle edition, p. 252). So the question a trader with several strategies faces is how to spend the leverage a broker allows, rather than how to reach Kelly.
 
 Chan answers it with Example 8.2, two strategies under a broker’s cap of 2. The usual advice shrinks every Kelly leverage by one factor until the total fits. His example shows that putting the whole cap on the better strategy grows faster. Example 8.1, just before it, shows what holding a leverage constant asks of a trader after a loss and after a gain.
 
@@ -20,13 +20,13 @@ The six lessons below say what the reproduction teaches. The code is open source
 
 ## Two strategies and a cap of 2
 
-Example 8.2’s two strategies have annual mean excess returns of 30 and 60 percent, meaning returns above the risk-free rate, and annual volatilities of 26 and 35 percent. Their returns are uncorrelated, the risk-free rate is 0 and the broker allows a leverage of 2 (Chan, 2013, location 3287).
+Example 8.2’s two strategies have annual mean excess returns of 30 and 60 percent, meaning returns above the risk-free rate, and annual volatilities of 26 and 35 percent. Their returns are uncorrelated, the risk-free rate is 0 and the broker allows a leverage of 2 (Chan, 2013, p. 255).
 
-The cap is on **gross leverage**. Location 3268 defines it as “the absolute sum of the long and short market values divided by our equity”. A trader with \$1 of equity, \$1.50 long in one strategy and \$0.50 short in another, has a gross leverage of 2 and a net leverage, long less short, of 1. Because the cap is on the gross, a short uses it up as much as a long does.
+The cap is on **gross leverage**. Chan defines it on p. 253 as “the absolute sum of the long and short market values divided by our equity”. A trader with \$1 of equity, \$1.50 long in one strategy and \$0.50 short in another, has a gross leverage of 2 and a net leverage, long less short, of 1. Because the cap is on the gross, a short uses it up as much as a long does.
 
 The [post on the Kelly leverage on SPY](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md) derives the one-strategy formula from Chan’s first book. With a mean excess return m and a standard deviation s, the leverage that grows fastest is m / s², and the growth rate there is r + S² / 2, where r is the risk-free rate and S = m / s is the Sharpe ratio.
 
-With several strategies the leverage becomes a vector, one leverage per strategy drawn from a common pool of equity. Chan writes it as F, and location 3259 says the Kelly formula “tells us how to optimally allocate our buying power”:
+With several strategies the leverage becomes a vector, one leverage per strategy drawn from a common pool of equity. Chan writes it as F, and on p. 253 he says the Kelly formula “tells us how to optimally allocate our buying power”:
 
 ```math
 F = C^{-1} M
@@ -34,7 +34,7 @@ F = C^{-1} M
 
 M holds each strategy’s mean excess return and C is the covariance matrix of their returns. When the strategies are uncorrelated, C has only the variances on its diagonal, and each leverage reduces to the one-strategy m / s². Strategy 1 gets 4.437870 and strategy 2 gets 4.897959, for a gross total of 9.335829. Chan prints 4.4, 4.9 and 9.3.
 
-Chan cites Thorp (1997) for Equation 8.3, the growth rate at the Kelly leverages, and adds that it “applies only when the leverages used are optimal” (Chan, 2013, location 3287). At any leverages F, the growth rate is
+Chan cites Thorp (1997) for Equation 8.3, the growth rate at the Kelly leverages, and adds that it “applies only when the leverages used are optimal” (Chan, 2013, p. 255). At any leverages F, the growth rate is
 
 ```math
 g = r + F'M - \frac{F'CF}{2}
@@ -71,9 +71,9 @@ Here is each figure Chan prints for the two examples, computed beside printed.
 
 Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
 
-Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position. A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, location 3216). Location 3210 explains why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”. The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and Example 8.1’s trades run through the same function as the SPY post’s.
+Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position. A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on p. 250 why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”. The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and Example 8.1’s trades run through the same function as the SPY post’s.
 
-Location 3228 adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces the trading rule from that paper.
+On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces the trading rule from that paper.
 
 No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so every verdict was known before the code was written. What the reproduction adds is three things the table does not show.
 
@@ -83,9 +83,9 @@ No choice of data could have moved these figures. Nothing between the stated inp
 
 ## Lesson 2: scaling every leverage down is the recommendation the example refutes
 
-Location 3268 states the advice the example refutes: “The usual recommendation is to multiply all Fi” by the cap over the total, so the gross leverage equals the cap. Here that factor is 0.214228, and the scaled leverages are 0.950718 and 1.049282, the book’s 0.95 and 1.05. This post calls that the **proportional split**. It grows at 0.816798.
+On p. 253 Chan states the advice the example refutes: “The usual recommendation is to multiply all Fi” by the cap over the total, so the gross leverage equals the cap. Here that factor is 0.214228, and the scaled leverages are 0.950718 and 1.049282, the book’s 0.95 and 1.05. This post calls that the **proportional split**. It grows at 0.816798.
 
-Chan then fixes the gross at the cap, sets F1 = 2 − F2 and draws the growth rate as F2 runs from 0 to 2. His Figure 8.1 is that curve, captioned “Constrained Growth Rate g as Function of F2” (Chan, 2013, location 3287). Along that line the slope of the growth rate is
+Chan then fixes the gross at the cap, sets F1 = 2 − F2 and draws the growth rate as F2 runs from 0 to 2. His Figure 8.1 is that curve, captioned “Constrained Growth Rate g as Function of F2” (Chan, 2013, p. 255). Along that line the slope of the growth rate is
 
 ```math
 \frac{dg}{dF_2} = 0.4352 - 0.1901\,F_2
@@ -120,15 +120,15 @@ So the printed digit lands under two rules and cannot say which one Chan used. T
 
 The slope in Lesson 2 is a straight line in F2, so the growth rate along F1 = 2 − F2 is a parabola, and a parabola has a top. Solving for it without keeping F2 between 0 and 2 finds it at F2 = 2.289321 and F1 = −0.289321, growing at 0.962956. That is higher than the corner’s 0.955, and it is the hollow marker on the dashed part of the figure.
 
-The allocation is not allowed. F1 is negative, a short position in strategy 1, so the gross leverage, the short plus the long, is 2.578643, over the cap of 2. The line F1 + F2 = 2 fixes the net leverage, and only between F2 = 0 and 2 does it also fix the gross. Location 3268 is explicit that the cap is on gross leverage, “not the net leverage”.
+The allocation is not allowed. F1 is negative, a short position in strategy 1, so the gross leverage, the short plus the long, is 2.578643, over the cap of 2. The line F1 + F2 = 2 fixes the net leverage, and only between F2 = 0 and 2 does it also fix the gross. Chan is explicit on p. 253 that the cap is on gross leverage, “not the net leverage”.
 
 A solver handed the line and no bounds reports this point. The mistake is easy to overlook, because 0.962956 rounds to the same 0.96 the book prints for the corner. The sign of F1 gives it away. Strategy 1 has a positive mean, so a short in it loses money on average, and the only reason to hold one here is to make room in F1 + F2 for more of strategy 2. A cap on the gross forbids exactly that.
 
 ## Lesson 5: everything on one strategy stays best only below a cap of 2.45
 
-Location 3268 states the example’s upshot. When the cap “is much smaller than” the total Kelly leverage, it is often best to put most or all of the buying power on the strategy with the highest mean excess return. Location 3287 says the same with “the highest growth rate”. On these inputs strategy 2 has both. Its Sharpe ratio is higher, 1.714286 against 1.153846, and with the whole cap of 2 on it alone it grows at 0.955 against strategy 1’s 0.4648. So the example cannot say which of the two Chan means when they disagree.
+Chan states the example’s upshot on pp. 253 to 254. When the cap “is much smaller than” the total Kelly leverage, it is often best to put most or all of the buying power on the strategy with the highest mean excess return. On pp. 255 to 256 he says the same with “the highest growth rate”. On these inputs strategy 2 has both. Its Sharpe ratio is higher, 1.714286 against 1.153846, and with the whole cap of 2 on it alone it grows at 0.955 against strategy 1’s 0.4648. So the example cannot say which of the two Chan means when they disagree.
 
-On these inputs the “most” holds at every cap up to the total Kelly leverage. Strategy 2’s share of the best long-only split is the whole cap at 2.448980, 0.882 at a cap of 3, 0.750 at 4 and 0.525 at the total of 9.335829. What a tighter cap adds is the “all”, which is how location 3287 puts it: “apply all of our buying power” on one strategy.
+On these inputs the “most” holds at every cap up to the total Kelly leverage. Strategy 2’s share of the best long-only split is the whole cap at 2.448980, 0.882 at a cap of 3, 0.750 at 4 and 0.525 at the total of 9.335829. What a tighter cap adds is the “all”, which is how Chan puts it on pp. 255 to 256: “apply all of our buying power” on one strategy.
 
 The corner stays best while the slope of the growth rate at the corner is still positive. At the corner that slope is strategy 2’s extra mean less the drag that its last unit of leverage adds, and it falls as the cap rises. It reaches zero at
 
@@ -166,7 +166,7 @@ So the corner’s win in Example 8.2 is a property of its inputs, two uncorrelat
 Two questions are beyond it.
 
 1. **Whether Equation 8.3 prints a number.** The highlights this repository works from do not capture the equation, so the 2.135068 growth rate at the uncapped Kelly leverages has no published figure to land against. That waits on the book itself.
-2. **Anything about a real pair of strategies.** Every input is hypothetical, and the returns are Gaussian by assumption. Whether a cap makes a real second strategy worth dropping depends on means and variances estimated from data. Location 3235 warns that “we will inevitably suffer estimation errors” in those estimates, and the SPY post shows how far the choice of years alone can move a Kelly leverage.
+2. **Anything about a real pair of strategies.** Every input is hypothetical, and the returns are Gaussian by assumption. Whether a cap makes a real second strategy worth dropping depends on means and variances estimated from data. Chan warns on p. 252 that “we will inevitably suffer estimation errors” in those estimates, and the SPY post shows how far the choice of years alone can move a Kelly leverage.
 
 ## What this means for a trader
 
@@ -181,7 +181,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 8.1 and 8.2 and Kindle locations 3210, 3216, 3228, 3235, 3259, 3268 and 3287.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 8.1 and 8.2 and pages 250 to 256. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Khandani, A. E., & Lo, A. W. (2007). What happened to the quants in August 2007? Working paper, MIT.
 3. Thorp, E. O. (1997). The Kelly criterion in blackjack, sports betting, and the stock market. Paper presented at the 10th International Conference on Gambling and Risk Taking, Montreal.
 

@@ -4,7 +4,7 @@
 
 ## Why ask what chance alone would give
 
-A backtest reports an average daily return, and the number means little on its own. A rule with no edge at all can earn a positive average over eight years if the market drifted its way or the days happened to fall well. The useful question is how often chance alone would do as well. Ernest Chan’s second book, *Algorithmic Trading*, sets out a framework for asking it in its first chapter (Chan, 2013, location 593). In paraphrase, it runs four steps.
+A backtest reports an average daily return, and the number means little on its own. A rule with no edge at all can earn a positive average over eight years if the market drifted its way or the days happened to fall well. The useful question is how often chance alone would do as well. Ernest Chan’s second book, *Algorithmic Trading*, sets out a framework for asking it in its first chapter (Chan, 2013, Kindle edition, pp. 41 to 42). In paraphrase, it runs four steps.
 
 1. Compute a **test statistic** from the backtest, such as its average daily return.
 2. Suppose the true average is zero. The book calls that supposition “the null hypothesis”. It states, as a number, the claim that the rule has no edge.
@@ -26,7 +26,7 @@ The five lessons below say what the reproduction teaches. The code is open sourc
 
 ## The rule, the file and the three tests
 
-**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, location 642). The code counts 12 months as 250 trading days and a month as 25. Each day’s signal opens a slice of one unit, held 25 days, so up to 25 slices overlap. Each day’s return is yesterday’s position times today’s return on TU, divided by 25. TU appeared here once before, as the series [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a setting from.
+**The rule.** Chapter 6’s strategy “buys (sells) the TU future if it has a positive (negative) 12-month return, and holds the position for 1 month” (Chan, 2013, p. 44). The code counts 12 months as 250 trading days and a month as 25. Each day’s signal opens a slice of one unit, held 25 days, so up to 25 slices overlap. Each day’s return is yesterday’s position times today’s return on TU, divided by 25. TU appeared here once before, as the series [the USD.CAD post’s Hurst lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/usdcad-stationarity-lessons.md#lesson-3-h-misses-049-by-less-than-chance-moves-it) borrowed a setting from.
 
 **The file.** Chan’s own MATLAB file `inputDataOHLCDaily_20120511.mat`, saved on 2012-05-12, holds TU’s closes for 2,000 trading days from 2004-06-01 to 2012-05-11. The rule’s **observed mean**, its average daily return over those days, is 6.626644e-05. Every test below asks how often chance alone reaches that number. The script that runs the tests is `TU_mom_hypothesisTest.m`, as published with the book’s code.
 
@@ -34,11 +34,11 @@ The five lessons below say what the reproduction teaches. The code is open sourc
 
 The three tests differ only in how they build the null.
 
-1. **The Gaussian test.** Suppose the daily returns are normal, with “a mean of zero and a standard deviation given by the sample standard deviation of the daily returns” (Chan, 2013, location 606). The statistic is then the mean divided by the standard deviation, times the square root of the number of days.
-2. **The second test, simulating prices.** Generate “simulated historical price data and feed these simulated data into our strategy” (Chan, 2013, location 616). The script draws 2,000 daily returns for TU, builds a price from them, reruns the rule on that price and records its mean return. It repeats this 10,000 times. The draws share TU’s first four moments, listed after the three tests.
-3. **The third test, resampling trades.** Keep the real returns, and “generate sets of simulated trades” instead (Chan, 2013, location 623), a method the book credits to Lo, Mamaysky and Wang (2000). The script shuffles the days on which the rule enters long or short, “randomizing the long and short entry dates” (Chan, 2013, location 669). Each shuffle moves the long and the short entry days together, so the rule keeps its 1,274 long entry days and 474 short entry days. It repeats this 100,000 times.
+1. **The Gaussian test.** Suppose the daily returns are normal, with “a mean of zero and a standard deviation given by the sample standard deviation of the daily returns” (Chan, 2013, p. 42). The statistic is then the mean divided by the standard deviation, times the square root of the number of days.
+2. **The second test, simulating prices.** Generate “simulated historical price data and feed these simulated data into our strategy” (Chan, 2013, p. 43). The script draws 2,000 daily returns for TU, builds a price from them, reruns the rule on that price and records its mean return. It repeats this 10,000 times. The draws share TU’s first four moments, listed after the three tests.
+3. **The third test, resampling trades.** Keep the real returns, and “generate sets of simulated trades” instead (Chan, 2013, p. 43), a method the book credits to Lo, Mamaysky and Wang (2000). The script shuffles the days on which the rule enters long or short, “randomizing the long and short entry dates” (Chan, 2013, p. 46). Each shuffle moves the long and the short entry days together, so the rule keeps its 1,274 long entry days and 474 short entry days. It repeats this 100,000 times.
 
-Each of the last two tests counts how many simulated means are at or above the observed mean. That count divided by the number drawn is the p-value. Chan reports that “1,166 have average strategy return greater than or equal to the observed average return” (Chan, 2013, location 665), so his p-value is 1,166 / 10,000, or 0.1166.
+Each of the last two tests counts how many simulated means are at or above the observed mean. That count divided by the number drawn is the p-value. Chan reports that “1,166 have average strategy return greater than or equal to the observed average return” (Chan, 2013, p. 46), so his p-value is 1,166 / 10,000, or 0.1166.
 
 **How the draws keep four moments.** The second test’s draws share TU’s first **four moments**, the summary numbers of a distribution.
 
@@ -47,7 +47,7 @@ Each of the last two tests counts how many simulated means are at or above the o
 3. The skewness, which measures how lopsided the days are.
 4. The **kurtosis**, which measures how much of the variance comes from rare large days.
 
-A normal distribution’s kurtosis is 3, and TU’s is 12.115073. So the null keeps TU’s drift and its fat tails, and drops any pattern in the order of the days (Chan, 2013, location 652).
+A normal distribution’s kurtosis is 3, and TU’s is 12.115073. So the null keeps TU’s drift and its fat tails, and drops any pattern in the order of the days (Chan, 2013, p. 44).
 
 MATLAB’s `pearsrnd` makes the draws from the **Pearson system**, one family of distributions with a member for nearly any four moments. A number called κ, computed from the skewness and the kurtosis, picks the type, and the four moments then fix the distribution within it. TU’s κ is 0.004645, between 0 and 1, which puts it in type IV. MathWorks does not state which criterion `pearsrnd` applies, so type IV is an inference from the standard criterion in Heinrich (2004), and the draws here follow type IV.
 
@@ -127,7 +127,7 @@ The script writes the third test so that it returns 0 whatever the data. It sets
 
 A test that cannot fail tells nothing. Here the printed answer happens to survive the fix.
 
-**Corrected.** Building each draw’s positions from its own shuffled signals gives 0 of 100,000 on seed 20261011. The band for the book’s 0 is only 0, so location 672’s “There is not a single sample out of 100,000” **reproduced**. When no draw in N reaches a value, the rule of three puts the p-value below 3/N at 95 percent confidence, so here below 3e-05. The largest shuffled mean is 3.973594e-05 and their average is 2.409664e-05. The observed mean sits 11.131886 standard deviations above that average.
+**Corrected.** Building each draw’s positions from its own shuffled signals gives 0 of 100,000 on seed 20261011. The band for the book’s 0 is only 0, so the claim on p. 47, “There is not a single sample out of 100,000”, **reproduced**. When no draw in N reaches a value, the rule of three puts the p-value below 3/N at 95 percent confidence, so here below 3e-05. The largest shuffled mean is 3.973594e-05 and their average is 2.409664e-05. The observed mean sits 11.131886 standard deviations above that average.
 
 **Why the bottom panel is narrow.** Shuffling scatters the long and short entry days across the sample. So the up to 25 slices held on any day mostly cancel into a net long position, of about the same size on every shuffle. Over the first 500 of those shuffles the net position averages 9.975403 units in absolute size and is long on 0.983958 of days, against 20.58 units and 0.638 of days for the real rule. A position that is nearly the same on every shuffle earns nearly the same mean on the same returns. The shuffled means’ standard deviation is 3.788199e-06, against 2.819219e-05 for the second test’s means on new returns.
 
@@ -137,15 +137,15 @@ The habit is to feed a test a case it must fail before trusting a 0.
 
 ## Lesson 5: two checks added afterwards point at drift, not kurtosis
 
-Location 674 reads the second test as showing “any random returns distribution with high kurtosis can be favorable to momentum strategies”. Location 2923 repeats it: simulated TU returns with no serial correlation match the strategy “in 12 percent of the random realizations”. Two of the three added checks test that reading by removing one input at a time. Each runs on the same random numbers as the second test, so it differs from that test in the one input alone.
+On p. 47 Chan reads the second test as showing “any random returns distribution with high kurtosis can be favorable to momentum strategies”. On pp. 226 to 227 he repeats it: simulated TU returns with no serial correlation match the strategy “in 12 percent of the random realizations”. Two of the three added checks test that reading by removing one input at a time. Each runs on the same random numbers as the second test, so it differs from that test in the one input alone.
 
 **Removing the fat tails moves the count little.** A normal draw with TU’s mean and standard deviation, and no skewness or excess kurtosis, gives 1,165 of 10,000, against 1,221 for type IV. The middle panel shows the two histograms nearly on top of each other.
 
 **Removing the drift moves it a lot.** Type IV with the mean set to zero gives 19 of 10,000, or 0.001900, close to the Gaussian test’s one-sided 0.001677. The average simulated mean falls from 3.220302e-05 to 3.604899e-07. Those 10,000 means spread with a standard deviation of 2.127120e-05, close to the Gaussian null’s 2.259145e-05. The top panel shows that histogram sitting on the dashed curve. Set against the middle panel, it shows that the drift also widens the type IV means’ spread, from 2.127120e-05 to 2.819219e-05.
 
-**The mechanism is the rule itself.** A series that drifts upward has a positive 250-day return most of the time, so the rule is long most of the time and collects the drift. On the first 1,000 simulated series the rule is long on 0.804654 of signal days, and on 0.502401 once the mean is removed. TU did drift upward, at a mean daily return of 5.999783e-05. Chan’s own Chapter 6 traces TU’s momentum to its roll return, the part of a future’s return that comes from its price converging on the spot price as expiry nears, whose sign rarely changes (Chan, 2013, locations 2326 and 2683).
+**The mechanism is the rule itself.** A series that drifts upward has a positive 250-day return most of the time, so the rule is long most of the time and collects the drift. On the first 1,000 simulated series the rule is long on 0.804654 of signal days, and on 0.502401 once the mean is removed. TU did drift upward, at a mean daily return of 5.999783e-05. Chan’s own Chapter 6 traces TU’s momentum to its roll return, the part of a future’s return that comes from its price converging on the spot price as expiry nears, whose sign rarely changes (Chan, 2013, pp. 173 and 206).
 
-The book saw this possibility and set it aside. Location 652 names the mean as one way the strategy could be lucky. Location 665 then says it is less likely, “since the position can be long or short at different times”. The checks here say the position is not long or short evenly on a drifting series.
+The book saw this possibility and set it aside. On p. 44 Chan names the mean as one way the strategy could be lucky. On p. 46 he then says it is less likely, “since the position can be long or short at different times”. The checks here say the position is not long or short evenly on a drifting series.
 
 **The status of this finding.** The two checks came after a trial run had seen results, so the drift reading is exploratory. It is a reason to register a test that names drift as the hypothesis before any number exists, and runs it on data Entry 37 never loaded. It is not a verdict that drift explains momentum on TU.
 
@@ -174,9 +174,9 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 1.1 and Kindle locations 593, 606, 616, 623, 642, 652, 665, 669, 672, 674, 2326, 2683 and 2923.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 1.1 and pages 41 to 44, 46 to 47, 173, 206 and 226 to 227. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. `TU_mom_hypothesisTest.m`, git blob `c0dda16` under `public/img/book2/`, the book’s code, as published at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview).
 3. Heinrich, J. (2004). A guide to the Pearson type IV distribution. CDF/MEMO/STATISTICS/PUBLIC/6820.
-4. Lo, Mamaysky and Wang (2000), Berntson (2002) and Gill (1999), as *Algorithmic Trading* cites them at locations 623, 606 and 674.
+4. Lo, Mamaysky and Wang (2000), Berntson (2002) and Gill (1999), as *Algorithmic Trading* cites them on pages 43, 42 and 47 respectively.
 
 *Not investment advice. Code: [the three tests](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/tu_hypothesis_tests.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/tu_hypothesis_tests_figures.py), with the checks behind [the tests’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_tu_hypothesis_tests.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_tu_hypothesis_tests_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-37-three-hypothesis-tests-on-tu-momentum-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*
