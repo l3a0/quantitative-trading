@@ -42,7 +42,7 @@ The three tests differ only in how they build the null.
 
 Each of the last two tests counts how many simulated means are at or above the observed mean. That count divided by the number drawn is the p-value. Chan reports that “1,166 have average strategy return greater than or equal to the observed average return” (Chan, 2013, location 665), so his p-value is 1,166 / 10,000, or 0.1166.
 
-**How the draws keep four moments.** The second test’s draws share the first **four moments**, the summary numbers of a distribution, of the 2,000 daily returns the script computes for TU. The first of those returns is 0, because day one has no close before it.
+**How the draws keep four moments.** **Moments** are summary numbers of a distribution. The second test’s draws share the first four moments of the 2,000 daily returns the script computes for TU. The first of those returns is 0, because day one has no close before it.
 
 1. The mean.
 2. The standard deviation.
@@ -94,7 +94,7 @@ The second test drops the second assumption and keeps TU’s fat tails. Lesson 5
 
 The Gaussian test is arithmetic, so its figure either matches or does not. The second and third tests count random draws, and a different set of draws gives a different count. Each run starts from a **seed**, the number that fixes the random draws so a rerun gives the same ones. A run on another seed than Chan’s, or with another generator, can land only near his count. [The coin-toss post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/coin-toss-expected-value-vs-growth.md#lesson-6-a-simulation-of-the-coin-can-mislead-in-two-ways) shows a simulated figure moving with its seed.
 
-So before drawing anything on the seeds whose results appear here, the replication wrote down what counts as landing. Call the number of draws N. Each draw either beats the observed mean or does not. If the chance that one draw beats the observed mean is p, the count follows a binomial distribution, the count of successes in N independent tries, and its standard deviation across repeated runs, its standard error, is
+So before drawing anything on the seeds whose results appear here, the replication wrote down what counts as landing. Call the number of draws N. Each draw either beats the observed mean or does not. If the chance that one draw beats the observed mean is p, the count follows a binomial distribution, the count of successes in N independent tries. The count’s standard deviation across repeated runs is its standard error, and it is
 
 ```math
 \text{SE} = \sqrt{N\,p\,(1-p)}
@@ -112,7 +112,7 @@ That gives three bands.
 2. **The script’s 0.027500.** At N = 10,000 the standard error is 16.4, so the band runs from 243 to 307.
 3. **The book’s 0 of 100,000.** A printed proportion of 0 has a standard error of 0, so only 0 lands.
 
-The written declaration that fixed the bands also fixed the seeds, 20261010 for the second test and 20261011 for the third, and the method that turns each seed into draws. [Entry 37 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-37-three-hypothesis-tests-on-tu-momentum-chans-algorithmic-trading) records the seeds and the bands, written down before any draw on those seeds. A trial run on other seeds had already produced results before that declaration. No count from those seeds is quoted here, because no test in the repository checks them.
+The written declaration that fixed the bands also fixed the seeds, 20261010 for the second test and 20261011 for the third, and the method that turns each seed into draws. [Entry 37 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-37-three-hypothesis-tests-on-tu-momentum-chans-algorithmic-trading) records the seeds and the bands, written down before any draw on those seeds. A trial run on other seeds had already produced results before that declaration. No count from those seeds is quoted here, because the post quotes only counts that a test in the repository recomputes.
 
 Writing the band first matters because a band chosen after the count can always be widened to fit it. [The calendar spreads post’s Lesson 1](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md#lesson-1-a-claim-with-no-number-still-needs-a-pass-mark-written-down-first) makes the same point about a pass mark.
 
@@ -162,7 +162,7 @@ Those 10,000 means spread with a standard deviation of 2.127120e-05, close to th
 
 TU did drift upward, at a mean daily return of 5.999783e-05. Chan’s Chapter 5 defines a future’s roll return as the part of its return that comes from its price converging on the spot price as expiry nears (Chan, 2013, location 2326). His Chapter 6 traces TU’s momentum to that roll return, whose sign rarely changes (Chan, 2013, location 2683).
 
-The book saw this possibility and set it aside. Location 652 names the mean as one way the strategy could be lucky. Location 665 then says it is less likely, “since the position can be long or short at different times”. The checks here say the position is not long or short evenly on a drifting series.
+The book saw drift as a possible cause and set it aside. Location 652 names the mean as one way the strategy could be lucky. Location 665 then says it is less likely, “since the position can be long or short at different times”. The checks here say the position is not long or short evenly on a drifting series.
 
 **The status of this finding.** The two checks came after a trial run had produced results, so the drift reading is exploratory. It is a reason to register a test that names drift as the hypothesis before any number exists, and runs it on data this replication never loaded. It is not a verdict that drift explains momentum on TU.
 
