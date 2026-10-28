@@ -131,6 +131,13 @@ def _both_windows_a_day_earlier(frame: pd.DataFrame) -> np.ndarray:
     return daily_returns(units[:, None] * hedge * prices, prices)[SCRIPT_TRAINING_DAYS:]
 
 
+def _earned_by(hedge_days: np.ndarray) -> np.ndarray:
+    """The test days whose return those hedge days earned, each the next day's."""
+    earned = np.zeros_like(hedge_days)
+    earned[1:] = hedge_days[:-1]
+    return earned
+
+
 def _minus(value: float, places: int) -> str:
     """A number as the post prints it, with a true minus sign."""
     return f"{value:.{places}f}".replace("-", "\u2212")
@@ -444,40 +451,58 @@ class TestBesideTheReplication:
         np.testing.assert_array_equal(flipped.dollar_split, result.dollar_split)
         assert (flipped.hedge[result.training :, 0] < 0).any()
 
-    def test_the_90_days_compound_to_0_1074_and_the_other_522_to_0_1696(self, result):
-        """Together they make the run's 0.2953, so 15 percent of the days carried about two
-        fifths of the growth."""
-        same = result.dollar_split > 0
+    def test_the_90_days_hedges_earned_0_1111_and_the_other_522_0_1657(self, result):
+        """Each hedge earns the next day's return, so the 90 days' hedges earned the returns
+        dated a day later. Together they make the run's 0.2953, so 15 percent of the days
+        carried about two fifths of the growth."""
+        earned = _earned_by(result.dollar_split > 0)
         test = result.test
-        those, rest = np.prod(1 + test[same]) - 1, np.prod(1 + test[~same]) - 1
-        assert those == pytest.approx(0.1073962686, abs=1e-10)
-        assert rest == pytest.approx(0.1696463785, abs=1e-10)
+        those, rest = np.prod(1 + test[earned]) - 1, np.prod(1 + test[~earned]) - 1
+        assert np.count_nonzero(earned) == 90
+        assert those == pytest.approx(0.1111428480, abs=1e-10)
+        assert rest == pytest.approx(0.1657025354, abs=1e-10)
         assert (1 + those) * (1 + rest) - 1 == pytest.approx(0.2952620351, abs=1e-10)
-        assert np.log1p(those) / np.log1p(0.2952620351) == pytest.approx(0.394, abs=5e-4)
+        assert np.log1p(those) / np.log1p(0.2952620351) == pytest.approx(0.407, abs=5e-4)
 
-    def test_the_curve_climbed_from_0_0214_to_0_1170_across_the_2010_stretch(self, result):
-        """The compounded return on the last day before the first same-way day, and on the
-        last day of the 65-day run."""
-        curve = pd.Series(np.cumprod(1 + result.test) - 1, index=result.test_days)
-        assert str(curve.index[curve.index.get_loc(pd.Timestamp("2010-06-01")) - 1].date()) == (
-            "2010-05-31"
-        )
-        assert curve["2010-05-31"] == pytest.approx(0.0213815186, abs=1e-10)
-        assert curve["2010-10-05"] == pytest.approx(0.1170443008, abs=1e-10)
-
-    def test_the_90_days_swung_twice_as_wide_and_a_welch_t_of_1_09_cannot_rule_out_chance(
+    def test_dating_by_the_hedge_day_instead_would_credit_a_spread_with_each_runs_first_day(
         self, result
     ):
-        """The standard deviations are 0.0073 and 0.0035, and the means differ with p of 0.28."""
+        """The return dated on a same-way hedge's own day was earned by the day before's hedge.
+
+        On 2010-06-01, the first same-way day, that hedge was a spread, and the
+        pairing by hedge day gives 0.1074 rather than 0.1111.
+        """
         same = result.dollar_split > 0
+        days = result.test_days
+        first = int(np.flatnonzero(same)[0])
+        assert str(days[first].date()) == "2010-06-01"
+        assert result.dollar_split[first - 1] < 0
+        assert np.prod(1 + result.test[same]) - 1 == pytest.approx(0.1073962686, abs=1e-10)
+
+    def test_the_curve_climbed_from_0_0243_to_0_1118_across_the_2010_stretch(self, result):
+        """The compounded return on the day the first same-way hedge was set, before it earned,
+        and on the day after the 65-day run's last hedge, once it had earned."""
+        curve = pd.Series(np.cumprod(1 + result.test) - 1, index=result.test_days)
+        assert curve.index[curve.index.get_loc(pd.Timestamp("2010-10-05")) + 1] == pd.Timestamp(
+            "2010-10-06"
+        )
+        assert curve["2010-06-01"] == pytest.approx(0.0243291524, abs=1e-10)
+        assert curve["2010-10-06"] == pytest.approx(0.1117562924, abs=1e-10)
+
+    def test_the_90_days_hedges_swung_twice_as_wide_and_a_welch_t_of_1_13_cannot_rule_out_chance(
+        self, result
+    ):
+        """The returns they earned have standard deviations of 0.0074 and 0.0034, and the
+        means differ with p of 0.26."""
+        earned = _earned_by(result.dollar_split > 0)
         test = result.test
-        assert test[same].std(ddof=1) == pytest.approx(0.0072797972, abs=1e-10)
-        assert test[~same].std(ddof=1) == pytest.approx(0.0034753836, abs=1e-10)
-        assert test[same].mean() == pytest.approx(0.0011602616, abs=1e-10)
-        assert test[~same].mean() == pytest.approx(0.0003062562, abs=1e-10)
-        welch = stats.ttest_ind(test[same], test[~same], equal_var=False)
-        assert welch.statistic == pytest.approx(1.0916745496, abs=1e-9)
-        assert welch.pvalue == pytest.approx(0.2777053748, abs=1e-9)
+        assert test[earned].std(ddof=1) == pytest.approx(0.0074283217, abs=1e-10)
+        assert test[~earned].std(ddof=1) == pytest.approx(0.0034195643, abs=1e-10)
+        assert test[earned].mean() == pytest.approx(0.0011988934, abs=1e-10)
+        assert test[~earned].mean() == pytest.approx(0.0002995955, abs=1e-10)
+        welch = stats.ttest_ind(test[earned], test[~earned], equal_var=False)
+        assert welch.statistic == pytest.approx(1.1280848746, abs=1e-9)
+        assert welch.pvalue == pytest.approx(0.2621072094, abs=1e-9)
 
 
 class TestTheRule:
@@ -757,13 +782,14 @@ class TestWhatThePostQuotes:
         starts, ends = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
         longest = int(np.argmax(ends - starts))
         test = result.test
-        those, rest = np.prod(1 + test[same]) - 1, np.prod(1 + test[~same]) - 1
+        earned = _earned_by(same)
+        those, rest = np.prod(1 + test[earned]) - 1, np.prod(1 + test[~earned]) - 1
         total = (1 + those) * (1 + rest) - 1
         assert round(5 * np.log1p(those) / np.log1p(total)) == 2, "about two fifths"
         curve = np.cumprod(1 + test) - 1
         first = int(np.flatnonzero(same)[0])
         last = int(np.flatnonzero(same & in_2010)[-1])
-        welch = stats.ttest_ind(test[same], test[~same], equal_var=False)
+        welch = stats.ttest_ind(test[earned], test[~earned], equal_var=False)
         dollars = result.positions[-1] / result.positions[-1, 0]
         fragments = [
             f"The hedge on {days[-1].date()} holds 1 unit of AUD.USD against "
@@ -774,17 +800,19 @@ class TestWhatThePostQuotes:
             f"{days[first].date()} to {days[last].date()}, and the longest run is "
             f"{ends[longest] - starts[longest]} days, from {days[starts[longest]].date()} to "
             f"{days[ends[longest] - 1].date()}.",
-            f"Compounding the {n} days alone gives a return of {those:.4f}, and compounding "
+            f"Compounding those {n} alone gives a return of {those:.4f}, and compounding "
             f"the other {rest_n} alone gives {rest:.4f}.",
-            f"the run’s {total:.4f}: unrounded, {1 + those:.4f} times {1 + rest:.4f} is "
-            f"{1 + total:.4f}.",
+            f"the run’s {total:.4f}: {1 + those:.4f} times {1 + rest:.4f} is "
+            f"{(1 + round(those, 4)) * (1 + round(rest, 4)):.4f}, and {1 + total:.4f} before "
+            "the two factors are rounded.",
             f"ln {1 + those:.4f} is about two fifths of ln {1 + total:.4f}.",
             f"So {100 * n / len(test):.0f} percent of the days, {n} of the {len(test)},",
-            f"the curve stood at {curve[first - 1]:.4f} on {days[first - 1].date()}, the day "
-            f"before the first of them, and at {curve[last]:.4f} on {days[last].date()},",
-            f"standard deviation of {test[same].std(ddof=1):.4f}, against "
-            f"{test[~same].std(ddof=1):.4f} on the other {rest_n} days",
-            f"{test[same].mean():.4f} a day against {test[~same].mean():.4f}.",
+            f"the curve stood at {curve[first]:.4f} on {days[first].date()}, the day the "
+            f"first of them was set, and at {curve[last + 1]:.4f} on {days[last + 1].date()}, "
+            "the day after the last of them.",
+            f"standard deviation of {test[earned].std(ddof=1):.4f}, against "
+            f"{test[~earned].std(ddof=1):.4f} on the other {rest_n} days",
+            f"{test[earned].mean():.4f} a day against {test[~earned].mean():.4f}.",
             f"gives {welch.statistic:.2f} for that difference",
         ]
         assert not_found_once(text, fragments) == []

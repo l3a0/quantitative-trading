@@ -5950,9 +5950,10 @@ and are listed below.
    trace test finds a relation in 26 of the 612 windows, in three stretches,
    and two relations in 19 of them.
 4. The hedge is a capital weight that wandered. It held both currencies the
-   same way on 90 days, 85 of them from 2010-06-01 to 2010-10-05, and those
-   days carried about two fifths of the growth in log terms with twice the
-   volatility, though a Welch t of 1.09 cannot rule out chance.
+   same way on 90 days, 85 of them from 2010-06-01 to 2010-10-05. The returns
+   those hedges earned, each the next day's, carried about two fifths of the
+   growth in log terms with twice the volatility, though a Welch t of 1.13
+   cannot rule out chance.
 5. The Python port's version of the example is a different strategy, so its
    printout is no check on the data.
 6. An exact reproduction checks the arithmetic, not the edge.
@@ -6009,11 +6010,12 @@ groups of the post's numbers had no pin before the post.
    from 2010-06-01 to 2010-10-05, the longest run of 65 days, and that none
    falls in a window the trace test backed.
 3. The last day's hedge as CAD.USD's share of the gross, −0.4325.
-4. The 90 days compounded alone to 0.1074 and the other 522 to 0.1696, so the
-   90 carried 0.394 of the growth in log terms.
-5. The compounded return of 0.0214 on 2010-05-31 and 0.1170 on 2010-10-05.
-6. The two groups' standard deviations of 0.0073 and 0.0035, their means of
-   0.0012 and 0.0003, and a Welch t of 1.09, whose p-value of 0.28 is what the
+4. The returns the 90 days' hedges earned, each dated a day later,
+   compounded alone to 0.1111 and the other 522 to 0.1657, so the 90 carried
+   0.407 of the growth in log terms.
+5. The compounded return of 0.0243 on 2010-06-01 and 0.1118 on 2010-10-06.
+6. The two groups' standard deviations of 0.0074 and 0.0034, their means of
+   0.0012 and 0.0003, and a Welch t of 1.13, whose p-value of 0.26 is what the
    post calls far short of what would rule out chance.
 7. The closes in each full year of the two files, 259, 260 and 259, against
    the 252 days the script annualises by, and that no close carries more than
