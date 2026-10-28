@@ -5,9 +5,10 @@ Chapter 8, at Kindle locations 3319 to 3438, makes that case on Example 5.1's
 AUD.CAD returns three ways. It fits a Pearson distribution to their first four
 moments, draws 100,000 returns from it and finds the leverage that maximizes
 the simulated growth rate. It finds the same leverage on the historical
-returns. And it shows that constant proportion portfolio insurance (CPPI),
+returns. And it claims that constant proportion portfolio insurance (CPPI),
 which trades only a slice of the account and refills that slice at each new
 high, keeps the drawdown above a set floor at almost no cost in growth.
+Neither of the two CPPI forms run here does both.
 
 **The transcription.** ``monteCarloOptimLeverage.m`` was read in the mirror
 [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) at

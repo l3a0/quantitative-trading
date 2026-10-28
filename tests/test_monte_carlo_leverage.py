@@ -801,7 +801,7 @@ class TestWhatThePostMeasured:
     def test_the_seeds_at_or_below_the_book_s_optima_are_all_held_down_by_ruin(
         self, result
     ) -> None:
-        """Lesson 3: every seed whose uncapped optimum reaches 19 or 19.2 ruins below 20."""
+        """Lesson 3: every seed whose uncapped optimum is at or below 19 or 19.2 ruins below 20."""
         uncapped, ruin = result.ensemble.values("uncapped"), result.ensemble.values("ruin")
         low = uncapped <= float(BOOK_OPTIMUM)
         assert (int(low.sum()), int(np.count_nonzero(uncapped <= float(BOOK_OPTIMUM_FMINBND)))) == (

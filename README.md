@@ -8086,7 +8086,7 @@ repeating them, and draws six lessons from Entry 43 of the replication log.
    that nobody holds.
 3. The script's search stops at 20, and 158 of the 200 seeds sit on that cap,
    exactly the seeds whose ruin leverage is 20 or more. The 30 seeds whose
-   uncapped optimum reaches 19.2 all ruin below 20. Under the declared band
+   uncapped optimum is at or below 19.2 all ruin below 20. Under the declared band
    both of the book's optima land, and under the band chosen after the seeds
    were seen neither does. The post keeps both.
 4. The declared seed's least draw of −0.043071 is 1.9550 times as deep as the
@@ -8192,7 +8192,7 @@ which reads it through the same `read_returns`, `pearson_fit`, `draws`,
    with the script's cap, both optima, the Kelly, the Kelly range Example
    5.1's printed figures allow and the book's 18.4, 19 and 19.2 marked.
 2. The deepest drawdown in each 1,000 days of the draws for Box 8.6's loop,
-   location 3426's scheme and the full account at f·D, with a line at −0.5.
+   the scheme on p. 263 and the full account at f·D, with a line at −0.5.
 
 ```bash
 uv run python -m chan.monte_carlo_leverage_figures

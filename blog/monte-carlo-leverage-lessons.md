@@ -4,7 +4,7 @@
 
 ## Why find a leverage without the bell curve
 
-The leverage that grows capital fastest can still bring a loss of nearly everything along the way. Ernest Chan’s *Algorithmic Trading* makes that case in its Chapter 8. A fall from the account’s previous high is a drawdown, written here as a negative fraction, so a drawdown of −0.5 leaves the account at half its previous high. The usual answer to how much leverage to use is the Kelly leverage, the mean return over its variance. Chan calls it “best viewed as an upper bound”, because on returns that are not a bell curve it “would have bankrupted us even in backtest” (Chan, 2013, Kindle edition, p. 252). The [post on capped Kelly allocation](https://github.com/l3a0/quantitative-trading/blob/main/blog/capped-kelly-allocation-lessons.md#why-a-leverage-cap-changes-the-answer) covers that warning and the growth rate it rests on, from the first half of the same chapter.
+The leverage that grows capital fastest can still bring a loss of nearly everything along the way. Ernest Chan’s *Algorithmic Trading* makes that case in its Chapter 8. A fall from the account’s previous high is a drawdown, written here as a negative fraction, so a drawdown of −0.5 leaves the account at half its previous high. The usual answer to how much leverage to use is the Kelly leverage, the mean return over its variance. Chan calls it “best viewed as an upper bound”, because on returns that are not a bell curve it “would have bankrupted us even in backtest” (Chan, 2013, Kindle edition, p. 252). The [post on capped Kelly allocation](https://github.com/l3a0/quantitative-trading/blob/main/blog/capped-kelly-allocation-lessons.md#why-a-leverage-cap-changes-the-answer) covers the upper-bound warning and the growth rate it rests on, from the first half of the same chapter.
 
 The Kelly formula assumes returns follow a bell curve. Chapter 8 gives two ways to find a leverage without that assumption, and one way to cap the loss at whatever leverage is chosen.
 
@@ -21,7 +21,7 @@ Chan runs all three methods on the returns of Example 5.1, his trade of the Aust
 3. **The script stops its search at 20.** Rerun on 200 different sets of random draws, it returns the cap itself 158 times. The book prints two simulated optima, 19 and 19.2. Both fall inside the middle 90 percent of all 200 runs, the range a rule written down in advance allows. Neither falls inside the range of a rule chosen after the runs were seen, which reads only 40 of them.
 4. **The least of 100,000 draws is deeper than any day in Chan’s backtest, because there are about 163 times as many draws.** The fitted distribution’s left tail is thinner than his history’s. Even so, on 78 of 200 seeds the least draw puts the ruin leverage, where one day loses everything, at or below the Kelly.
 5. **The CPPI code Chan prints, the loop in Box 8.6, breaks the floor the text says CPPI keeps.** The scheme the text describes keeps it, at a cost of about a quarter of the growth.
-6. **Most of the book’s drawdowns and growth rates miss their bands.**
+6. **Four of the book’s six drawdowns and growth rates miss their bands.**
 
 **Every result here is exploratory.** Chan chose the strategy, the fitted distribution and the method, and the reproduction tests those choices on the same 612 returns, with no fresh data. It can say whether his numbers follow from his file and his script, and nothing about whether any leverage is safe to trade. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
