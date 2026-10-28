@@ -5975,7 +5975,7 @@ Five groups of what it says are not pinned here.
    holds at `e4bc46f`, that the script loads two minute files neither public
    copy carries, that line 57 plots against the row number, and that the
    port ends both windows a day earlier and prints a Sharpe ratio of
-   1.362926. So is that the files quote six decimals.
+   1.362926.
 3. Readings no test asserts: that the two rates are close to random walks,
    that the test has little power against them, that a position held both
    ways is a bet on the US dollar's direction, and that wider swings are what
@@ -5998,7 +5998,7 @@ for the figure's own numbers. The post also cites the Chapter 8 post's
 finding on 18.4, that no series with Example 5.1's printed Sharpe ratio and
 APR reaches it under three ways of compounding the APR, and that finding
 traces to `TestRowGroup13TheEighteenPointFourGap` in
-[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py). Six
+[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py). Seven
 of the post's numbers had no pin before the post.
 
 1. The three stretches the trace test's 26 windows fall in, which hold the 19
@@ -6012,6 +6012,9 @@ of the post's numbers had no pin before the post.
 5. The compounded return of 0.0214 on 2010-05-31 and 0.1170 on 2010-10-05.
 6. The two groups' standard deviations of 0.0073 and 0.0035, their means, and
    a Welch t of 1.09 with a p-value of 0.28.
+7. The closes in each full year of the two files, 259, 260 and 259, against
+   the 252 days the script annualises by, and that no close carries more than
+   six decimals.
 
 Its one figure is drawn from the committed files by
 [src/chan/aud_cad_johansen_figures.py](src/chan/aud_cad_johansen_figures.py),

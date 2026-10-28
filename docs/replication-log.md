@@ -6216,9 +6216,9 @@ Three things.
    `TestRow5TheReturnsAreChans` holds both.
    1. Scaling either leg by a constant moves no return, because a simple
       return ignores the scale and the eigenvector rescales to cancel it.
-   2. A change of 1e-6, one unit in the files' last decimal, on a close in
-      the test window breaks the match, because the close enters a simple
-      return directly. The same change on the first training row does not,
+   2. A change of 1e-6, one unit in the sixth decimal, the most the files
+      quote, on a close in the test window breaks the match, because the
+      close enters a simple return directly. The same change on the first training row does not,
       because that close reaches the returns only through the hedge.
 
    So the match answers the question

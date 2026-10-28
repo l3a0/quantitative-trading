@@ -168,6 +168,25 @@ class TestTheVintages:
             assert np.isfinite(closes.to_numpy()).all()
             assert (closes > 0).all()
 
+    def test_a_full_year_holds_about_260_closes_and_no_close_more_than_six_decimals(
+        self, sources
+    ) -> None:
+        """The post says the files hold about 260 closes a year, not the 252 the
+        script annualises by, and that six decimals is the most a close carries.
+
+        2009, 2010 and 2011 are the full years. The decimals are read from the
+        file's text, because a float does not keep how many digits were written.
+        """
+        for closes in (sources.audusd[1], sources.usdcad[1]):
+            per_year = closes.groupby(closes.index.year).size()
+            assert per_year.loc[[2009, 2010, 2011]].tolist() == [259, 260, 259]
+        for name in ("inputData_AUDUSD_20120426.csv", "inputData_USDCAD_20120426.csv"):
+            text = (paths.DATA_DIR / "pythoncodesanddata" / name).read_text()
+            decimals = [len(line.split(",")[1].strip().partition(".")[2])
+                        for line in text.splitlines()[1:] if line.strip()]
+            assert len(decimals) == 862
+            assert max(decimals) == 6
+
 
 class TestRow1TheTestWindow:
     def test_612_returns_from_the_books_first_day_to_its_last(self, result) -> None:
@@ -258,7 +277,7 @@ class TestRow5TheReturnsAreChans:
         assert agreement(again.test, saved, again.test_days).holds
 
     def test_one_digit_on_a_test_window_close_breaks_the_match(self, frame, saved) -> None:
-        """The files quote six decimals, so 1e-6 is one unit in the last digit.
+        """The files quote at most six decimals, so 1e-6 is one unit in the sixth.
 
         A close in the test window enters that day's or the next day's simple
         return, and the match fails. A close in the first training row reaches
