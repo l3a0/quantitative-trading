@@ -360,8 +360,8 @@ where they were first built. The other forty-five were built here.
     a Sharpe ratio of 1.610890, his 11 percent and 1.6, and a Kelly leverage of
     23.845328. They reproduce because all 612 daily returns match the ones the
     script saved, to within the 1e-9 declared before any return was computed,
-    which also shows the port's daily files agree with the inputs his MATLAB
-    read, up to a constant scale on each leg. The trace test finds a relation
+    which also shows the port's daily files carry the closes his MATLAB
+    traded, up to a constant scale on each leg. The trace test finds a relation
     in 26 of the 612 training windows, so on most days the rule traded a hedge
     the test did not back. Every figure is
     exploratory, and the 250-day training length was chosen in hindsight.

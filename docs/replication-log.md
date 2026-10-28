@@ -6122,7 +6122,7 @@ the day before.
 on every one of the 612 days.** Chan's script saved the
 returns it traded, and that file is committed. The criterion for comparing
 them was written on the issue before any return was computed. So the match
-says the committed daily files agree with the inputs the MATLAB read, up to a
+says the committed daily files carry the closes the MATLAB traded, up to a
 constant scale on each leg, which
 [issue 301](https://github.com/l3a0/quantitative-trading/issues/301) could not
 check because the `.mat` files are in neither mirror.

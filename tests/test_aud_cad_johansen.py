@@ -685,8 +685,9 @@ class TestWhatThePostQuotes:
     Four things stay unread.
 
     1. Second copies of a figure, such as the subtitle's 612, 26 and 90, the
-       Sharpe ratio of 1.610890 in Lesson 5, and every 90 in Lesson 4 after
-       the sentence that counts the 90 days.
+       Sharpe ratio of 1.610890 in Lesson 5, and the 90 in Lesson 4's
+       subheading and in its sentences opening "On all 90 days",
+       "None of the 90 days", "Each hedge earns" and "The same 90 days".
     2. The figure's alt text and caption, whose readings of the curves are
        approximate. ``tests/test_aud_cad_johansen_figures.py`` holds what the
        figure draws.

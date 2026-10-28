@@ -62,9 +62,10 @@ neither mirror.
 the question here, because Chan's saved returns are the one output of the
 MATLAB that can be compared. The criterion, fixed on issue 345 before any
 return was computed, is that the 612 returns agree with his to within 1e-9 on
-every row. A match says the inputs agree up to a constant scale on each leg,
-because a simple return ignores the scale and the eigenvector rescales to
-cancel it.
+every row. A match says the closes the script traded agree up to a constant
+scale on each leg, because a simple return ignores the scale and the
+eigenvector rescales to cancel it. The closes before the test period are
+checked only as far as they move a hedge.
 
 **The hedge's sign and scale move no return.** Multiplying day ``t``'s vector
 by any ``c ≠ 0`` multiplies that day's portfolio value by ``c``, so its z-score
