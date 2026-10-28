@@ -739,6 +739,42 @@ class TestWhatThePostMeasured:
         assert ruin_leverage(returns) == pytest.approx(45.390502, abs=5e-7)
         assert result.declared.minimum / returns.min() == pytest.approx(1.9550, abs=5e-5)
 
+    def test_the_script_s_apr_is_closest_to_the_log_growth_compounding(self, returns) -> None:
+        """Lesson 2: ``AUDCAD_unequal.m`` compounds the daily returns themselves.
+
+        On the saved file that APR is 0.112410, and compounding the log growth
+        ``m − σ²/2``, with σ divided by n − 1, gives 0.112426. The other two
+        compoundings land further off.
+        """
+        days = module.TRADING_DAYS
+        script = float(np.prod(1 + returns) ** (days / len(returns)) - 1)
+        m, var = float(returns.mean()), float(returns.var(ddof=1))
+        log_growth = math.exp(days * (m - var / 2)) - 1
+        assert script == pytest.approx(0.112410, abs=5e-7)
+        assert log_growth == pytest.approx(0.112426, abs=5e-7)
+        others = ((1 + m) ** days - 1, days * m)
+        assert all(abs(o - script) > abs(log_growth - script) for o in others)
+
+    def test_the_log_growth_apr_allows_a_second_sigma_near_0_2(self) -> None:
+        """Lesson 2: the quadratic in σ has a second root, a daily swing near 20 percent.
+
+        At every corner of the printed figures' rounding the smaller root is
+        under 10 percent a day, and the larger sits near 0.2 with a Kelly
+        near 0.5, so the smaller is the one :func:`implied_kelly` keeps.
+        """
+        days = module.TRADING_DAYS
+        for sharpe in (1.55, 1.65):
+            for apr in (0.105, 0.115):
+                per_bar = sharpe / math.sqrt(days)
+                spread = math.sqrt(per_bar * per_bar - 2 * math.log1p(apr) / days)
+                small, large = per_bar - spread, per_bar + spread
+                assert small < 0.1
+                assert sharpe / (math.sqrt(days) * small) == pytest.approx(
+                    implied_kelly(sharpe, apr), rel=1e-12
+                )
+                assert 0.19 < large < 0.21
+                assert 0.50 < sharpe / (math.sqrt(days) * large) < 0.52
+
     def test_612_draws_from_the_fit_rarely_reach_the_saved_returns_least_day(
         self, result, returns
     ) -> None:

@@ -8120,7 +8120,9 @@ Five groups of what it says are not pinned here.
 2. Facts about the script rather than the data: line 22's
    `fminbnd(minusGsim, 0, 20)` and Box 8.6 scaling its order by the drawdown
    of the unlevered returns, in `monteCarloOptimLeverage.m`, git blob
-   `fc32599` at `e4bc46f` of ericnberwick/EpchanPreview.
+   `fc32599` at `e4bc46f` of ericnberwick/EpchanPreview, and
+   `AUDCAD_unequal.m` compounding its APR from the daily returns themselves.
+   The 0.112410 that gives and the log growth's 0.112426 are pinned.
 3. Readings no test asserts: that a bell curve's parabola is defined at every
    leverage while a sampled curve stops at its ruin leverage, that moments
    below order 5.51 mean tails far heavier than a bell curve's, that the

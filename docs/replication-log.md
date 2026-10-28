@@ -9860,15 +9860,17 @@ returns, with a Kelly near 18.4, that neither mirror holds. It cannot tell when
 or how that series differed from the saved file. That is an inference rather
 than a held vintage, and row 13 is what it rests on.
 
-1. **No series matching Example 5.1's printed figures reaches 18.4, however
-   its APR compounds.** The Kelly is the Sharpe ratio per day over the daily
+1. **No series matching Example 5.1's printed figures reaches 18.4, under
+   any of three ways its APR compounds.** The Kelly is the Sharpe ratio per day over the daily
    standard deviation, and an APR fixes that deviation once the Sharpe ratio
    is given. Across the rounding of the printed 1.6 and 11 percent, the Kelly
    runs from 21.558894 to 26.757652 when the APR compounds the log growth
    m − σ²/2, which is what `implied_kelly` assumes. Compounding 1 + m exactly
    moves the lower edge to 22.065999, and taking the APR as a simple 252·m
-   moves it to 20.891304. So the edge depends on a convention the book does
-   not state, and none of the three reaches 18.4. At a Sharpe ratio of 1.6, a
+   moves it to 20.891304. So the edge depends on the convention, and none of
+   the three reaches 18.4. Example 5.1's script, `AUDCAD_unequal.m`,
+   compounds the daily returns themselves, which on the saved file gives
+   0.112410 against the log growth's 0.112426. At a Sharpe ratio of 1.6, a
    Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across the three. So
    that series disagreed with Example 5.1's own printed figures as well as
    with the saved file.

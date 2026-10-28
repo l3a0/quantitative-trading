@@ -121,7 +121,9 @@ holds the evidence for where 18.4 came from.
    their rounding, between 21.56 and 26.76, when the APR compounds the log
    growth ``m − σ²/2``. Compounding ``1 + m`` exactly moves the lower edge to
    22.07, and the simple ``252·m`` moves it to 20.89, so the edge depends on
-   how the book annualized. None of the three reaches 18.4.
+   the convention. Example 5.1's script, ``AUDCAD_unequal.m``, compounds the
+   daily returns themselves, which the log growth comes closest to. None of
+   the three reaches 18.4.
 2. The ensemble rerun with the draws' mean moved so that the Kelly is 18.4,
    which moves only λ, puts the median uncapped optimum at 18.470198 and
    lands four of the five simulated rows it reruns, row 3 under both its
@@ -418,8 +420,9 @@ def implied_kelly(sharpe: float, apr: float, days: int = TRADING_DAYS) -> float:
     moments. Together they give a quadratic in σ, whose smaller root is the
     daily σ of a strategy like Example 5.1's, and the Kelly is then ``S / (√days·σ)``.
 
-    The compounding is a choice the book does not state, and it moves the
-    result. Compounding ``1 + m`` exactly, or taking the simple ``days·m``,
+    The compounding is a choice, and it moves the result. Example 5.1's
+    script compounds the daily returns themselves, which this form comes
+    closest to on the saved file. Compounding ``1 + m`` exactly, or taking the simple ``days·m``,
     gives the Kelly ``S² / (days·m)`` with a different ``m``, and the tests
     measure how far each moves :func:`implied_kelly_band`.
     """

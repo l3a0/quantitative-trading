@@ -15,7 +15,7 @@ The Kelly formula assumes returns follow a bell curve. Chapter 8 gives two ways 
 Chan runs all three on the returns of Example 5.1, his trade of the Australian dollar against the Canadian dollar. He published the script, `monteCarloOptimLeverage.m`, and this repository transcribed it and ran it on the returns his earlier script saved. The results fall into six groups.
 
 1. **The book’s 18.4 does not reproduce on Chan’s own returns.** They give a Kelly of 23.845328 and a historical optimum of 23.721773, where the book prints 18.4 for both.
-2. **Example 5.1’s own printed figures rule 18.4 out.** Any series with that example’s Sharpe ratio and APR has a Kelly of at least 20.891304, however its APR is compounded.
+2. **Example 5.1’s own printed figures rule 18.4 out.** Any series with that example’s Sharpe ratio and APR, and a daily swing under 10 percent, has a Kelly of at least 20.891304 under each of three ways of compounding the APR.
 3. **The script stops its search at 20.** On 158 of 200 seeds the answer is the cap itself. Whether the book’s 19 and 19.2 land depends on a band rule chosen after the seeds were seen.
 4. **The least of 100,000 draws is deeper than any day in Chan’s backtest, because there are about 163 times as many draws.** The fitted distribution’s left tail is thinner than his history’s. Even so, on 78 of 200 seeds the least draw puts the ruin leverage, where one day loses everything, at or below the Kelly.
 5. **Box 8.6’s CPPI loop breaks the floor the text says CPPI keeps.** The scheme the text describes keeps it, at a cost of about a quarter of the growth.
@@ -67,13 +67,13 @@ The claim the two figures were printed to support still holds. The historical op
 
 A Kelly leverage of 18.4 needs a series that matches the rest of the book too. Example 5.1 prints a Sharpe ratio of 1.6 and an APR of 11 percent (p. 168). Together they fix the Kelly, once the APR’s compounding is chosen.
 
-The Sharpe ratio S fixes the daily mean m as S·σ / √252, where σ is the daily standard deviation. The APR fixes σ once S is known. The Kelly leverage then follows.
+The Sharpe ratio S fixes the daily mean m as S·σ / √252, where σ is the daily standard deviation. The APR then fixes σ. Under the second equation below it also allows a σ near 0.2, a daily swing of about 20 percent with a Kelly near 0.5, so the smaller σ is the one used. The Kelly leverage then follows.
 
 ```math
 f^{*} = \frac{m}{\sigma^{2}} = \frac{S}{\sqrt{252}\,\sigma}, \qquad 1 + \text{APR} = e^{\,252\,(m - \sigma^{2}/2)}
 ```
 
-The second equation compounds the log growth, the mean less half the variance. Across the rounding of the printed figures, a Sharpe ratio from 1.55 to 1.65 and an APR from 10.5 to 11.5 percent, the Kelly runs from 21.558894 to 26.757652. The book does not say how it compounded its APR, and the low end of that range depends on it.
+The second equation compounds the log growth, the mean less half the variance. Across the rounding of the printed figures, a Sharpe ratio from 1.55 to 1.65 and an APR from 10.5 to 11.5 percent, the Kelly runs from 21.558894 to 26.757652. The low end of that range depends on how the APR compounds. The script the book names for Example 5.1, `AUDCAD_unequal.m`, compounds the daily returns themselves, so its APR is the growth rate above at a leverage of 1, compounded over 252 days. On the saved file that gives 0.112410, and the second equation gives 0.112426, so the first of the three ways below is the closest to the script’s.
 
 1. **Compounding the log growth**, as above, puts the lowest Kelly at 21.558894.
 2. **Compounding 1 + m exactly** each day puts it at 22.065999.
@@ -201,7 +201,7 @@ One habit for each lesson.
 ## References
 
 1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.1, Figure 8.2, Boxes 8.1 to 8.6, with pages 168, 252, 254 and 257 to 264 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
-2. Chan, E. P. `monteCarloOptimLeverage.m`, git blob `fc32599` under `public/img/book2/`, the book’s code, as published at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview).
+2. Chan, E. P. `monteCarloOptimLeverage.m`, git blob `fc32599` under `public/img/book2/`, the book’s code, at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview), a public copy of Chan’s code.
 3. Heinrich, J. (2004). A guide to the Pearson type IV distribution. CDF/MEMO/STATISTICS/PUBLIC/6820.
 
 *Not investment advice. Code: [the three methods](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/monte_carlo_leverage.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/monte_carlo_leverage_figures.py), with the checks behind [the methods’ numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_monte_carlo_leverage.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_monte_carlo_leverage_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-43-monte-carlo-leverage-historical-optimization-and-cppi-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*
