@@ -477,6 +477,9 @@ class TestBesideTheReplication:
         first = int(np.flatnonzero(same)[0])
         assert str(days[first].date()) == "2010-06-01"
         assert result.dollar_split[first - 1] < 0
+        starts = np.flatnonzero(np.diff(np.concatenate(([0], same.astype(int)))) == 1)
+        assert len(starts) == 7
+        assert (result.dollar_split[starts - 1] < 0).all()
         assert np.prod(1 + result.test[same]) - 1 == pytest.approx(0.1073962686, abs=1e-10)
 
     def test_the_curve_climbed_from_0_0243_to_0_1118_across_the_2010_stretch(self, result):
@@ -682,9 +685,8 @@ class TestWhatThePostQuotes:
     Four things stay unread.
 
     1. Second copies of a figure, such as the subtitle's 612, 26 and 90, the
-       Sharpe ratio of 1.610890 in Lesson 5, and the 90 in Lesson 4's
-       subheading and in its sentences opening "None of the 90 days" and "The
-       same 90 days".
+       Sharpe ratio of 1.610890 in Lesson 5, and every 90 in Lesson 4 after
+       the sentence that counts the 90 days.
     2. The figure's alt text and caption, whose readings of the curves are
        approximate. ``tests/test_aud_cad_johansen_figures.py`` holds what the
        figure draws.
@@ -820,7 +822,7 @@ class TestWhatThePostQuotes:
             f"first of their hedges was set, and at {curve[last + 1]:.4f} on "
             f"{days[last + 1].date()}, the day the last of those hedges earned its return.",
             f"standard deviation of {test[earned].std(ddof=1):.4f}, against "
-            f"{test[~earned].std(ddof=1):.4f} on the other {rest_n} days",
+            f"{test[~earned].std(ddof=1):.4f} for the other {rest_n} returns",
             f"{test[earned].mean():.4f} a day against {test[~earned].mean():.4f}.",
             f"gives {welch.statistic:.2f} for that difference",
         ]

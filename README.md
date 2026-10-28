@@ -5980,9 +5980,9 @@ Five groups of what it says are not pinned here.
    port ends both windows a day earlier and prints a Sharpe ratio of
    1.362926.
 3. Readings no test asserts: that the two rates are close to random walks,
-   that the test has little power against them, that a position held both
-   ways is a bet on the US dollar's direction, and that wider swings are what
-   such a bet gives. That neighbouring windows share 249 of their 250 days
+   that the test has little power against them, that a position holding both
+   currencies the same way is a bet on the US dollar's direction, and that
+   wider swings are what such a bet gives. That neighbouring windows share 249 of their 250 days
    is arithmetic on the window length. That CAD/AUD tested stationary over
    nineteen years is the stationary-candidates post's, listed under its
    entry above.

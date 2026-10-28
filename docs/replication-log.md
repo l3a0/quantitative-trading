@@ -6259,9 +6259,10 @@ no cost is charged, as none is in the script. Location 2205 sets rollover
 interest aside for this example as small for a short-term strategy, and
 nothing here measures how small.
 
-**Whether the 250-day training length was chosen on this sample.** Location
-2237 says it gives better results in hindsight. No row runs another length, and
-any that did would be searching the sample this entry already spent.
+**What another training length would show.** Location 2237 says the 250-day
+length gives better results in hindsight, so it was chosen with this sample's
+results in view. No row runs another length, and any that did would be
+searching the sample this entry already spent.
 
 **Whether the pair trades today.** The run ends on 2012-04-26 with Chan's
 data. It says whether his numbers reproduce on his files and nothing about the

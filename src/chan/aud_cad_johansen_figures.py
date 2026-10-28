@@ -5,8 +5,9 @@ The post teaches what Entry 25 of the replication log found, and
 figure for it. :func:`make_aud_cad_figure` draws two panels that share the date
 axis over the 612 test days ``AUDCAD_unequal.m`` reports on.
 
-1. Each day's hedge as a dollar split, CAD.USD's signed share of the gross with
-   AUD.USD held long, from :attr:`chan.aud_cad_johansen.AudCad.dollar_split`.
+1. Each day's hedge as a dollar split, CAD.USD's signed share of the gross,
+   with the sign set so AUD.USD is the leg held long, from
+   :attr:`chan.aud_cad_johansen.AudCad.dollar_split`.
    The days it held both legs the same way are shaded, and the windows where
    the trace test found a relation at 95 percent are marked on the line, with
    windows finding one relation drawn differently from those finding two. The
