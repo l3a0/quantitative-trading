@@ -7972,8 +7972,8 @@ Three things.
 
 1. **The specification fits the book's first claim and not its trade.** The
    ratio's ADF statistic of −5.568107 clears the 1 percent value by 2.109807.
-   Trading it as the book's text describes, with the script's 63-day holding
-   period, gives an APR of −4.045401 percent and a Sharpe ratio of −0.563912.
+   Trading it as the book's text describes, with the script's minimum holding
+   period of 63 days, gives an APR of −4.045401 percent and a Sharpe ratio of −0.563912.
 2. **B3 is the row that matches the book, and it was found by a search.**
    Two things single it out from the other four rows.
    1. On the book's window it rounds to both printed figures, 0.176952 and
