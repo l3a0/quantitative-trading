@@ -13,7 +13,8 @@ so both are stated once here and carried in every figure's failure message as
   ``SPX_20071123.mat``, saved 2007-11-24, read through ``load_panel``.
   ``spy_chan.csv``, the adjusted-close column of Chan's ``example6_2.xls``,
   saved 2008-01-29. FRED's TB3MS, downloaded 2026-09-30. The stock file is the
-  S&P 500 as it stood on 2007-11-23, so every figure here is about survivors.
+  S&P 500 as it stood on 2007-11-23, so every figure drawn from it is about
+  survivors.
 - **Specification.** :mod:`chan.low_beta_leverage` as the issue registered it
   on 2026-10-11, with the amendment of the same day. The panel cut to the days
   it shares with SPY. Betas from 252 daily excess returns with an intercept,
@@ -25,14 +26,14 @@ so both are stated once here and carried in every figure's failure message as
 The result is registered. The plan, its criterion and its first three
 outcomes' wording were written on the issue before any number was computed.
 The fourth outcome, ruin, is the amendment of 2026-10-11, which the owner ruled
-after the build stopped on the first ruined month. So the ruin case was
+after the build found two ruined months and stopped. So the ruin case was
 settled after its first instance was visible, and the amendment names what
 had been seen by then.
 
-Registration does not make the span a holdout. Chan wrote the claim in 2008
-from "empirical studies", and the low-beta literature's own samples cover 1999
-to 2007. Every figure beside the verdict is a point estimate nothing tests, so
-it is exploratory and decides nothing.
+Registration does not make the span a holdout. Chan's premise comes from
+"empirical studies" of past prices, and 2000 to 2007 were past prices by the
+time the book printed the claim. Every figure beside the verdict is a point
+estimate nothing tests, so it is exploratory and decides nothing.
 
 The figures are pinned at four decimals, which is what the log quotes. The
 verdict and the ruin threshold compare unrounded values, so their tests read
@@ -44,6 +45,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import re
+from pathlib import Path
 from statistics import NormalDist
 
 import numpy as np
@@ -410,26 +412,27 @@ def dates(index: pd.Index) -> list[str]:
 class TestWhatThePostMeasured:
     """Numbers ``blog/levered-low-beta-lessons.md`` quotes that no row of Entry 45 declared.
 
-    The write-up measured every one of them after the run, on the vintages and
-    the specification in :data:`SPEC`, so each is exploratory and none carries
-    a verdict. The ruin line, the ruinous leverage and the levered wealth were
-    defined after the ruined months had been seen. A beta or a leverage is named
-    by its formation date, and a return or a ruin line by its holding month.
+    The write-up measured after the run every one of them tagged
+    :data:`AFTER_THE_RUN`, on the vintages and the specification in :data:`SPEC`,
+    so each is exploratory and none carries a verdict. A figure tagged
+    :data:`SPEC` alone is one the run printed. The ruin line, the ruinous
+    leverage and the levered wealth were defined after the ruined months had been
+    seen. A beta or a leverage is named by its formation date, and a return or a
+    ruin line by its holding month.
     """
 
     def test_the_low_fifths_beta_near_zero_in_spring_2001(self, portfolios: Portfolios) -> None:
         """Both 2000 formations sit near 0.15, and only four of 2001's fall below 0.05."""
         low = by_formation(portfolios, portfolios.low_beta)
-        assert round(float(low.loc["2000-12-29"]), 4) == 0.1443, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(float(low.loc["2000-12-29"]), 4) == 0.1443, SPEC
         below_5 = low[low < 0.05]
-        assert {
-            d: round(float(v), 4) for d, v in zip(dates(below_5.index), below_5, strict=True)
-        } == {
-            "2001-03-30": 0.0375,
-            "2001-04-30": 0.0280,
-            "2001-05-31": 0.0337,
-            "2001-06-29": 0.0448,
-        }, f"{SPEC}; {AFTER_THE_RUN}"
+        assert dates(below_5.index) == [
+            "2001-03-30",
+            "2001-04-30",
+            "2001-05-31",
+            "2001-06-29",
+        ], f"{SPEC}; {AFTER_THE_RUN}"
+        assert [round(float(v), 4) for v in below_5] == [0.0375, 0.0280, 0.0337, 0.0448], SPEC
         below_10 = dates(low[low < 0.10].index)
         assert (len(below_10), below_10[0], below_10[-1]) == (9, "2001-01-31", "2001-09-28"), (
             f"{SPEC}; {AFTER_THE_RUN}"
@@ -478,7 +481,9 @@ class TestWhatThePostMeasured:
 
     def test_the_ruin_line(self, portfolios: Portfolios) -> None:
         line = ruin_line(portfolios.rf, portfolios.leverage)
-        assert round(float(portfolios.rf.loc["2001-06-29"]), 4) == 0.0029, SPEC
+        assert round(float(portfolios.rf.loc["2001-06-29"]), 4) == 0.0029, (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
         assert round(float(line.loc["2001-06-29"]), 4) == -0.0144, f"{SPEC}; {AFTER_THE_RUN}"
         assert round(float(line.loc["2001-09-28"]), 4) == -0.0296, f"{SPEC}; {AFTER_THE_RUN}"
         assert round(float(line.max()), 4) == -0.0115, f"{SPEC}; {AFTER_THE_RUN}"
@@ -533,6 +538,200 @@ class TestWhatThePostMeasured:
         line = ruin_line(portfolios.rf, portfolios.leverage).loc["2001-06-29"]
         chance = NormalDist(mean, sd).cdf(float(line))
         assert round(chance, 4) == 0.1931, f"{SPEC}; {AFTER_THE_RUN}"
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "levered-low-beta-lessons.md"
+
+
+def prose(value: float) -> str:
+    """A figure as the post's prose prints it, four decimals and a true minus sign."""
+    return f"{value:.4f}".replace("-", "−")
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure the post takes from the run, read from the post itself.
+
+    The tests above derive these numbers and the prose states them, so before
+    this class a typo in the post passed every test. Round 1 of the post's review
+    changed eight of its numbers one at a time, and none failed a test.
+
+    The italic summary and the six lessons' list are not read, and neither are
+    the chart's caption, which no test reads, and the three alt texts, which
+    ``tests/test_low_beta_leverage_figures.py`` and
+    ``tests/test_levered_low_beta_whiteboard.py`` read. Chan's quotations
+    and Kindle locations, Lesson 5's account of what had been seen, and the
+    illustrative beta of 2 and leverage of 3 are not figures from the run.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_file_and_the_test(self, sources, portfolios: Portfolios) -> None:
+        members, closes, spy_entry, spy, bill_entry, _ = sources
+        stood = pd.Timestamp(members[0].path.split("/")[0].split("_")[1]).date()
+        assert (
+            f"holds {len(members)} stocks, saved {members[0].obtained}, as the S&P 500 stood on "
+            f"{stood}."
+        ) in self.text
+        assert f"saved {spy_entry.obtained} and committed here as `{spy_entry.path}`." in self.text
+        assert f"downloaded {bill_entry.obtained}" in self.text
+        shared = int(closes.index.isin(spy.index).sum())
+        sizes = [len(held) for held in portfolios.low_members]
+        assert (f"The stock file is cut to the {shared:,} days it shares with SPY.") in self.text
+        assert (
+            f"The fit uses the {BETA_DAYS} days ending there and needs at least {MIN_DAYS} of them."
+        ) in self.text
+        assert (
+            f"hold {min(sizes)} to {max(sizes)} stocks each, from {min(portfolios.eligible)} to "
+            f"{max(portfolios.eligible)} eligible."
+        ) in self.text
+        assert (
+            f"which gives {len(portfolios.levered)} holding months, December 2000 to October 2007."
+            in (self.text)
+        )
+        assert f"with a t of at least {CRITICAL}, the one-sided 5 percent line" in self.text
+        ruin = f"{RUIN:.0f}".replace("-", "−")
+        assert f"is ruin: a levered month at {ruin} or below" in self.text
+
+    def test_lesson_1s_table_and_verdict(self, portfolios: Portfolios, result: Verdict) -> None:
+        first = result.ruined[0]
+        assert (
+            f"in the month ending {first.held_to.date()}, at a leverage of {first.leverage:.4f}."
+        ) in self.text
+        rf = portfolios.rf
+        rows = [
+            ("low fifth", f"{sharpe(portfolios.low, rf):.4f}", f"{growth(portfolios.low):.4f}"),
+            ("high fifth", f"{sharpe(portfolios.high, rf):.4f}", f"{growth(portfolios.high):.4f}"),
+            ("SPY", "", f"{growth(portfolios.spy):.4f}"),
+            ("low fifth, levered", f"{sharpe(portfolios.levered, rf):.4f}", "\\text{ruin}"),
+        ]
+        for label, ratio, grew in rows:
+            cells = f" & {ratio} & " if ratio else " & & "
+            assert f"\\text{{{label}}}{cells}{grew}" in self.text, label
+
+    def test_lesson_1s_levered_path(self, portfolios: Portfolios, result: Verdict) -> None:
+        levered = portfolios.levered
+        wealth = levered_wealth(levered)
+        may = pd.Timestamp("2001-05-31")
+        june, september = result.ruined
+        assert (
+            f"It lost {-levered.loc['2001-01-31']:.4f} of its capital in January 2001 and "
+            f"{-levered.loc['2001-03-30']:.4f} in March, and still compounded to "
+            f"{wealth.loc[may]:.4f} times its capital"
+        ) in self.text
+        assert (
+            f"May 2001 alone returned {levered.loc[may]:.4f}, at the highest leverage of the run, "
+            f"{portfolios.leverage.max():.4f}, on a low-fifth month of "
+            f"{portfolios.low.loc[may]:.4f}."
+        ) in self.text
+        assert (
+            f"Then June returned {prose(june.levered)} at a leverage of {june.leverage:.4f}, and a "
+            f"fresh stake in September {prose(september.levered)} at {september.leverage:.4f}."
+        ) in self.text
+
+    def test_lesson_2s_betas_and_leverage(self, portfolios: Portfolios, result: Verdict) -> None:
+        low, high, k = portfolios.low_beta, portfolios.high_beta, portfolios.leverage
+        assert (
+            f"the low fifth’s mean beta ranged from {low.min():.4f} to {low.max():.4f}, while the "
+            f"high fifth’s stayed between {high.min():.4f} and {high.max():.4f}."
+        ) in self.text
+        formed = by_formation(portfolios, low)
+        assert (
+            f"at {formed.loc['2000-11-30']:.4f} on 2000-11-30 and {formed.loc['2000-12-29']:.4f} "
+            "on 2000-12-29."
+        ) in self.text
+        for day in ("2001-03-30", "2001-04-30", "2001-05-31", "2001-06-29"):
+            assert f"\\text{{{day}}} & {formed.loc[day]:.4f}" in self.text, day
+        assert (
+            f"So k averaged {k.mean():.4f} over the run and ranged from {k.min():.4f} to "
+            f"{k.max():.4f}."
+        ) in self.text
+        assert (
+            f"realised beta, its slope on SPY’s monthly return above the bill rate, came to "
+            f"{realised_beta(portfolios.levered, portfolios):.4f}, against the high fifth’s "
+            f"{realised_beta(portfolios.high, portfolios):.4f}."
+        ) in self.text
+        count = {4: "four", 8: "eight", 9: "nine"}
+        below_10 = dates(formed[formed < 0.10].index)
+        below_5 = dates(formed[formed < 0.05].index)
+        assert (
+            f"fell below 0.10 at {count[len(below_10)]} formations, {below_10[0]} to "
+            f"{below_10[-1]}, and below 0.05 at {count[len(below_5)]} of them."
+        ) in self.text
+        by_k = by_formation(portfolios, k)
+        above_20 = dates(by_k[by_k > 20].index)
+        assert (
+            f"It sat above 20 at {count[len(above_20)]} formations, {above_20[0]} to "
+            f"{above_20[-1]},"
+        ) in self.text
+        june = result.ruined[0]
+        assert (
+            f"The highest, {k.max():.4f}, was formed on {by_k.idxmax().date()} and applied in "
+            f"{k.idxmax():%B}. The {june.leverage:.4f} that ruined {june.held_to:%B} was formed on "
+            f"{june.formed.date()}."
+        ) in self.text
+
+    def test_lesson_3s_june_and_table(self, portfolios: Portfolios, result: Verdict) -> None:
+        june, sep = (month.held_to for month in result.ruined)
+        assert f" & \\text{{{june:%B %Y}}} & \\text{{{sep:%B %Y}}} \\\\ \\hline" in self.text
+        line = ruin_line(portfolios.rf, portfolios.leverage)
+        needed = ruinous_leverage(portfolios.low, portfolios.rf)
+        k = portfolios.leverage
+        assert (
+            f"In June 2001 the bill rate for the month was {portfolios.rf.loc[june]:.4f} and k was "
+            f"{k.loc[june]:.4f}, so the line sat at {prose(line.loc[june])}."
+        ) in self.text
+        assert f"The low fifth returned {prose(portfolios.low.loc[june])} that month." in self.text
+        rows = {
+            "k": (k.loc[june], k.loc[sep]),
+            "\\text{Ruin line}": (line.loc[june], line.loc[sep]),
+            "\\text{Low fifth}": (portfolios.low.loc[june], portfolios.low.loc[sep]),
+            "\\text{Ruinous leverage}": (needed.loc[june], needed.loc[sep]),
+        }
+        for label, (a, b) in rows.items():
+            assert f"{label} & {a:.4f} & {b:.4f}" in self.text, label
+        worst = list(portfolios.low.sort_values().index)
+        ordinal = {6: "6th", 8: "8th"}
+        assert (
+            f"\\text{{Rank of 83}} & \\text{{{ordinal[worst.index(june) + 1]} worst}} & "
+            f"\\text{{{ordinal[worst.index(sep) + 1]} worst}}"
+        ) in self.text
+        assert f"{k.loc[june] / needed.loc[june]:.2f} times the smallest leverage" in self.text
+
+    def test_lesson_3s_months_past_junes_line(self, portfolios: Portfolios) -> None:
+        line = float(ruin_line(portfolios.rf, portfolios.leverage).loc["2001-06-29"])
+        low = portfolios.low
+        reached = int((low <= line).sum())
+        mean, sd = float(low.mean()), float(low.std(ddof=1))
+        chance = NormalDist(mean, sd).cdf(line)
+        assert (
+            f"Of the {len(low)} months, {reached} fell at or below June’s line of {prose(line)}"
+        ) in self.text
+        assert (
+            f"monthly mean of {mean:.4f} and standard deviation of {sd:.4f} puts the chance of a "
+            f"month at or below that line at {chance:.4f}, about one month in "
+            f"{ {5: 'five'}[round(1 / chance)] }."
+        ) in self.text
+
+    def test_the_ruin_line_across_the_whole_run(self, portfolios: Portfolios) -> None:
+        line = ruin_line(portfolios.rf, portfolios.leverage)
+        low = portfolios.low
+        first_below = line.index[(line < -0.10).to_numpy()][0]
+        assert (
+            f"The ruin line was closest to zero in {line.idxmax():%B %Y}, at {prose(line.max())}"
+        ) in self.text
+        assert f"From {first_below:%B %Y} on it sat below −0.10" in self.text
+        assert f"{low.idxmin():%B %Y}, returned {prose(low.min())}" in self.text
+
+    def test_lesson_4s_kelly_figures(self, portfolios: Portfolios) -> None:
+        reading = kelly(portfolios)
+        k = by_formation(portfolios, portfolios.leverage)
+        above = dates(k[k > reading.leverage].index)
+        assert f"full-sample Kelly leverage is {reading.leverage:.4f}." in self.text
+        assert (
+            f"{reading.bill:.4f} + {reading.moments.levered_growth:.4f} = {reading.growth:.4f} a "
+            f"year, against the high fifth’s realised {growth(portfolios.high):.4f}."
+        ) in self.text
+        assert (f"at {len(above)} formations, all between {above[0]} and {above[-1]}") in self.text
 
 
 class TestThePostsHelpers:
@@ -634,9 +833,12 @@ class TestTheRun:
         assert "2007-09-28        495    99    0.6462     1.4847   2.2977" in out
         assert "36 low and 186 high stock-months of 15816" in out
         assert "quite wary of using too much leverage" in out
-        assert "about survivors" in out
+        assert "so every figure above drawn from the stocks is about survivors." in out
         assert "amendment of 2026-10-11" in out
-        assert "It is not a holdout" in out
+        assert (
+            "It is not a holdout: 2000 to 2007 were past prices by the time the book printed the "
+            "claim."
+        ) in out
 
 
 # --- the rule, on frames built by hand -----------------------------------------

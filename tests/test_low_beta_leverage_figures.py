@@ -19,6 +19,7 @@ exploratory, and the ruin line and the Kelly line were added after the run.
 from __future__ import annotations
 
 import dataclasses
+import re
 
 import numpy as np
 import pandas as pd
@@ -44,7 +45,7 @@ from chan.low_beta_leverage_figures import (
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, LOST, MUTED
 from chan.vintage import VintageUnavailable
-from tests.test_low_beta_leverage import SPEC
+from tests.test_low_beta_leverage import POST, SPEC
 from tests.test_regime_figure import png_size
 
 
@@ -421,6 +422,66 @@ class TestTheLabels:
                         & (xy[:, 1] <= box.y1)
                     )
                     assert not inside.any(), (panel, gid, line.get_gid())
+
+
+class TestThePostsAltText:
+    """The chart's alt text in ``blog/levered-low-beta-lessons.md`` against the labels drawn.
+
+    The alt text copies every figure the chart's labels and legend carry, and
+    the formation date and the month each marked figure belongs to, so a typo
+    in one of those copies, or a label redrawn without the post, fails here.
+    Its readings of the curves, such as a line near 0.15, are approximate by
+    design and are not read.
+    """
+
+    def test_it_quotes_every_figure_the_labels_carry(self, axes) -> None:
+        text = POST.read_text("utf-8")
+        alt = re.search(r"!\[([^\]]+)\]\(\.\./docs/figures/low_beta_leverage\.png\)", text)[1]
+        labels = [t.get_text() for ax in axes.values() for t in ax.texts if t.get_gid()]
+        labels += [t.get_text() for t in axes["leverage"].get_legend().get_texts()]
+        numbers = [n for label in labels for n in re.findall(r"−?\d+\.\d{4}", label)]
+        assert len(numbers) == 11, numbers
+        for number in numbers:
+            assert number in alt, number
+
+    def test_it_quotes_every_date_the_labels_carry(self, axes) -> None:
+        text = POST.read_text("utf-8")
+        alt = re.search(r"!\[([^\]]+)\]\(\.\./docs/figures/low_beta_leverage\.png\)", text)[1]
+        labels = [t.get_text() for ax in axes.values() for t in ax.texts if t.get_gid()]
+        formed = [d for label in labels for d in re.findall(r"formed (\d{4}-\d{2}-\d{2})", label)]
+        assert len(formed) == 1, formed
+        assert f"formed {formed[0]}," in alt, formed
+        marked = [label for label in labels if re.match(r"(ruined )?\d{4}-\d{2}-\d{2}:", label)]
+        assert len(marked) == 4, marked
+        for label in marked:
+            month = pd.Timestamp(re.search(r"\d{4}-\d{2}-\d{2}", label)[0])
+            first = re.search(r"−?\d+\.\d{4}", label)[0]
+            k = "k " if label.startswith("ruined") else ""
+            assert f"{month:%B %Y} at {k}{first}" in alt, label
+
+    def test_it_pairs_each_marked_months_figures_with_that_month(self, axes) -> None:
+        """Every figure in a marked label follows that label's month, in order.
+
+        The test above reads only each label's first figure, so June's and
+        September's second figures could trade places in the alt text and pass.
+        """
+        text = POST.read_text("utf-8")
+        alt = re.search(r"!\[([^\]]+)\]\(\.\./docs/figures/low_beta_leverage\.png\)", text)[1]
+        labels = [t.get_text() for ax in axes.values() for t in ax.texts if t.get_gid()]
+        marked = [label for label in labels if re.match(r"(ruined )?\d{4}-\d{2}-\d{2}:", label)]
+        assert len(marked) == 4, marked
+        for label in marked:
+            month = pd.Timestamp(re.search(r"\d{4}-\d{2}-\d{2}", label)[0])
+            figures = re.findall(r"−?\d+\.\d{4}", label)
+            k = "k " if label.startswith("ruined") else ""
+            after = alt[alt.index(f"{month:%B %Y} at {k}{figures[0]}") :]
+            assert re.findall(r"−?\d+\.\d{4}", after)[: len(figures)] == figures, label
+
+    def test_it_quotes_the_month_of_the_highest_k(self, axes, portfolios) -> None:
+        text = POST.read_text("utf-8")
+        alt = re.search(r"!\[([^\]]+)\]\(\.\./docs/figures/low_beta_leverage\.png\)", text)[1]
+        (label,) = [t.get_text() for t in axes["leverage"].texts if t.get_gid() == "highest-label"]
+        assert f"labelled {label}, in {portfolios.leverage.idxmax():%B %Y}" in alt, label
 
 
 class TestTheHelpers:

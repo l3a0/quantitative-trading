@@ -1367,17 +1367,23 @@ the run's `max_drawdown` shares, with a test holding its least value equal to
 the levered low-beta claim. It pins the calendar, the leverage path, both
 ruined months and the verdict's wording, and beside them the Sharpe ratios,
 the growth, the realised betas, the Kelly reading's Gaussian growth, the
-formation table and the flagged stock-months. On synthetic panels it holds the beta's intercept and its floor
-of 200 days, the tie-break by symbol, the leverage formula, the bill of the
-holding month, the ruin threshold, the 1.645 threshold and the detectable
-gap's formula. It holds what the write-up measured after the run too: the
-formations whose low-fifth beta fell below 0.05 and 0.10, the formations whose
-leverage passed 20 and the look-ahead Kelly leverage, the levered wealth
-before the first ruin and the two levered losses on the way, the ruin line,
-the low fifth's worst month, the leverage that ruins each month, and the
-chance a normal month reaches June 2001's line, with the three helpers
-behind them on synthetic months. The blog post about it is the
-exception, and what it says that nothing here asserts is listed below.
+formation table and the flagged stock-months. On synthetic panels it holds the
+beta's intercept and its floor of 200 days, the tie-break by symbol, the
+leverage formula, the bill of the holding month, the ruin threshold, the 1.645
+threshold and the detectable gap's formula. It holds what the write-up
+measured after the run too: the formations whose low-fifth beta fell below
+0.05 and 0.10, the formations whose leverage passed 20 and the look-ahead
+Kelly leverage, the levered wealth before the first ruin and the two levered
+losses on the way, the ruin line, the low fifth's worst month, the leverage
+that ruins each month, and the chance a normal month reaches June 2001's line,
+with the three helpers behind them on synthetic months.
+`TestThePostQuotesTheRun` reads the blog post itself against the run. It reads
+Lesson 1's and Lesson 3's tables row by row, Lesson 2's table of betas, and
+one prose copy of every other figure the post takes from the run, so editing a
+copy it reads fails. It does not read the italic summary, the list of six
+lessons, the chart's caption or the three alt texts. The figure and sketch
+tests read the alt texts, and no test reads the caption. What the post says
+that nothing here asserts is listed below.
 
 [tests/test_vix_filter.py](tests/test_vix_filter.py) does it for the VIX
 filter. It pins both rules' figures on the days kept at six decimals against
@@ -7827,14 +7833,16 @@ holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
 [blog/levered-low-beta-lessons.md](blog/levered-low-beta-lessons.md) is a
-forty-third post, about Chan's rule at Kindle location 4709 of
-*Quantitative Trading* that a highly levered portfolio of low-beta stocks
-should out-compound an unlevered portfolio of high-beta stocks, with the beta
-match of location 4684 and the fat-tail caveat of location 4700. It is the
-first post whose headline result is registered, and it says why that differs
-from the earlier posts' label. The post links the Kelly leverage on SPY post,
-the risk parity post and the factor models post rather than repeating them,
-and draws six lessons from Entry 45 of the replication log.
+forty-third post, about Chan's rule at Kindle location 4709 of *Quantitative
+Trading* that a highly levered portfolio of low-beta stocks should
+out-compound an unlevered portfolio of high-beta stocks, with the beta match
+of location 4684 and the fat-tail caveat of location 4700. Its verdict is
+registered under a ruin outcome added after June 2001 was seen, and Chan
+prints no figure for the rule, so nothing in it reproduces one. The post links
+the Kelly leverage on SPY post, the risk parity post and the factor models
+post rather than repeating them, and links the holdout and capped posts as the
+two further tests of the rule. It draws six lessons from Entry 45 of the
+replication log.
 
 1. The low fifth had the higher Sharpe ratio, 1.0132 against 0.4457, and
    levered to the high fifth's beta it lost more than its capital in June
@@ -7861,35 +7869,45 @@ Five groups of what it says are not pinned here.
    the rule at 4709.
 2. The plan's history rather than the data: that the plan, the
    specification and the first three outcomes were written before any number,
-   that the build stopped at June 2001, and the four things seen before the
-   ruin ruling. Entry 45 of the replication log records each.
+   that the first run found both ruined months and stopped, and the four
+   things seen before the ruin ruling. Entry 45 of the replication log records
+   each.
 3. Readings no test asserts: that the Fama-French model ties return to beta,
-   size and book-to-price ratio, that growth at the Kelly leverage is the
-   cash rate plus half the Sharpe ratio squared, which the Kelly post
-   derives, that in-sample Kelly leverage gives a portfolio the highest
-   growth the formula allows, that levering a portfolio k times multiplies
-   its beta by k, that the low fifth's 1.0132 and 0.4457 make the low fifth
-   look better, that the numerator of k moved within a narrow band, that
-   2000 to 2007 were past prices when the book printed the claim, and that
-   high-beta stocks leaving the index would flatter the high side, which is
-   a hypothesis.
-4. Figures the post states in words or rounds from pinned ones, such as
-   more than twice the high fifth's Sharpe ratio, both 2000 formations near
-   0.15, −1.44 percent for the line of −0.0144, and about one month in five
-   for 0.1931. The worked examples that gloss beta and leverage, a beta of 2
-   and a leverage of 3, are illustrations rather than figures from the file.
-   The figure's alt text reads its curves approximately too.
+   market capitalisation and book-to-price ratio, that growth at the Kelly
+   leverage is the bill rate plus half the Sharpe ratio squared, which the
+   Kelly post derives, that full-sample Kelly leverage gives a portfolio the
+   highest growth the formula allows, that levering a portfolio k times
+   multiplies its beta by k, that the low fifth's 1.0132 and 0.4457 make the
+   low fifth look better, that the numerator of k moved within a narrow band,
+   that 2000 to 2007 were past prices when the book printed the claim, and
+   that leaving out high-beta stocks that left the index would flatter the
+   high side, which is a hypothesis.
+4. Figures the post states in words or rounds from pinned ones, such as more
+   than twice the high fifth's Sharpe ratio, both 2000 formations near 0.15,
+   and −1.44 percent for the line of −0.0144. The worked examples that gloss
+   beta, leverage and fractions, a beta of 2, a leverage of 3 and a month
+   returning 0.05, are illustrations rather than figures from the file. The
+   figure's alt text reads its curves approximately too.
 5. Its reference, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py), or to
 [tests/test_low_beta_leverage_figures.py](tests/test_low_beta_leverage_figures.py)
-for the figure's own numbers. `TestWhatThePostMeasured` holds the ones that
-had no pin before it, all measured after the run.
+for the figure's own numbers, or to
+[tests/test_levered_low_beta_whiteboard.py](tests/test_levered_low_beta_whiteboard.py)
+for the sketches', or, for the caps of 2 and 5 and the December 2008 start
+that Lesson 6 gives the two later tests, to
+[tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) and
+[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py).
+`TestWhatThePostMeasured` holds the ones that had no pin before it. The
+write-up measured all of them after the run except the ones the run prints:
+the low fifth's betas in item 1, the look-ahead Kelly leverage of 9.9884 in
+item 2, and June's k of 58.0262 in items 6 and 7.
 
-1. The low fifth's beta of 0.1443 at the 2000-12-29 formation, below 0.05 at
-   four formations, 0.0375, 0.0280, 0.0337 and 0.0448 from 2001-03-30 to
-   2001-06-29, and below 0.10 at nine, 2001-01-31 to 2001-09-28.
+1. The low fifth's beta of 0.1443 at the 2000-12-29 formation, and the
+   formations where it fell below 0.05, four from 2001-03-30 to 2001-06-29, with
+   0.0375 at the first and 0.0448 at the last, and below 0.10, nine from
+   2001-01-31 to 2001-09-28. The write-up counted those formations after the run.
 2. k above 20 at eight formations, 2001-02-28 to 2001-09-28, and above the
    look-ahead Kelly leverage of 9.9884 at 13, 2000-12-29 to 2001-12-31.
 3. The levered wealth of 4.8089 through 2001-05-31, after levered returns of
@@ -7928,6 +7946,37 @@ holds what it draws rather than its bytes, for the reason given above for the
 regime map. It also holds where each label's rule points, and that each
 label's text sits inside its panel, clear of the other labels and of every
 line.
+
+The post also carries two looping whiteboard sketches in Lesson 3, drawn by
+[src/chan/levered_low_beta_whiteboard.py](src/chan/levered_low_beta_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `levered_low_beta_sketch_ruin_line.gif`, after the paragraph giving June
+   2001's ruin line. It draws two levered lines through the point (rf, rf),
+   with rf at 0.0029, against a floor at −1. The grey one, at the leverage of
+   23.2017 that just ruins June, meets the floor at June's low-fifth return of
+   −0.0403. The black one, at June's k of 58.0262, is steeper and meets it at
+   −0.0144, so a smaller loss ruins it. A red dot on the black line marks
+   June's levered return of −2.5053.
+2. `levered_low_beta_sketch_months_past.gif`, after the paragraph counting
+   the months at or below June's line. It draws a bell curve with the low
+   fifth's mean of 0.0109 and standard deviation of 0.0292, June's line at
+   −0.0144 with the 0.1931 of the curve left of it shaded, and the 83 monthly
+   returns as a strip of dots, the 13 at or below the line in red. The curve
+   is drawn to its own height rather than to a count of months.
+
+Neither is schematic: every figure and every position comes from the run,
+through the same `read_sources` and `build_portfolios`. Both build more slowly
+than the USD.CAD post's sketches and hold their finished drawings for twelve
+seconds. Redraw both with:
+
+```bash
+uv run python -m chan.levered_low_beta_whiteboard
+```
+
+[tests/test_levered_low_beta_whiteboard.py](tests/test_levered_low_beta_whiteboard.py)
+holds what each draws, the figures it reads from the run, where each mark sits
+on its axes, and that each GIF follows its paragraph in the post.
 
 [blog/build-board-on-github-lessons.md](blog/build-board-on-github-lessons.md)
 is a forty-fourth post, and the first about how the repository runs rather

@@ -10187,26 +10187,27 @@ stated here.
    below, a levered month returning −1 or less contradicts it by ruin, and
    then neither t nor the detectable gap is computed.
 
-**Every figure is about survivors.** The panel is the S&P 500 as it stood on
-2007-11-23, carried backwards, so a stock that left the index before then is
-in neither portfolio. Which side that flatters is not measured here.
-High-beta stocks that fell out of the index would flatter the high side and
-work against the claim, and that is a hypothesis rather than a finding.
+**Every figure drawn from the stocks is about survivors.** The panel is the
+S&P 500 as it stood on 2007-11-23, carried backwards, so a stock that left the
+index before then is in neither portfolio. Which side that flatters is not
+measured here. Leaving out high-beta stocks that fell out of the index would
+flatter the high side and work against the claim, and that is a hypothesis
+rather than a finding.
 
 Row 1 is **registered**, under the issue's amendment of 2026-10-11. The plan
 and its criterion were written on the issue before any number was computed.
 The plan left one case undefined, because ln(1 + r) needs r above −1. The
-build stopped on the first such month, June 2001, before computing anything
-the criterion reads. The owner then ruled that ruin reads as the claim
-contradicted, and the amendment lists what had been seen by then: the
-calendar, the leverage path, the two ruined months, and both groups' unlevered
-returns for the first eight formations. So the ruin case and its wording were
-settled after its first instance was visible. Registration rules out a
-specification tuned on this panel by this repo. It does not make the span a
-holdout, because Chan wrote the claim in 2008 from "empirical studies" and the
-low-beta literature's own samples cover 1999 to 2007. Rows 2 to 9 are
-**exploratory**. The plan declared them, and each is a point estimate that
-nothing tests.
+build found two such months, June and September 2001, and stopped before
+computing anything the criterion reads. The owner then ruled that ruin reads
+as the claim contradicted, and the amendment lists what had been seen by then:
+the calendar, the leverage path, the two ruined months, and both groups'
+unlevered returns for the first eight formations. So the ruin case and its
+wording were settled after its first instance was visible. Registration rules
+out a specification tuned on this panel by this repo. It does not make the
+span a holdout, because Chan's premise comes from "empirical studies" of past
+prices, and 2000 to 2007 were past prices by the time the book printed the
+claim. Rows 2 to 9 are **exploratory**. The plan declared them, and each is a
+point estimate that nothing tests.
 
 ### What the book stated
 
@@ -10243,7 +10244,7 @@ columns have nothing to hold in any row and are dropped, under
 | 3 | none, not a replication | Unlevered, the low fifth compounded at 0.1254 a year and the high fifth at 0.1183, both above SPY's 0.0379. Nothing tests either gap, and the panel holds only survivors, so neither is a finding about either fifth. |
 | 4 | none, not a replication | k is large because the low group's mean beta falls to 0.0280 while the high group's never falls below 1.4625. |
 | 5 | none, not a replication | The levered low's realised beta of 3.4596 is above the high fifth's 2.0671, so after the fact the match overshot the beta it aimed at. It reads all 83 months as if each were freshly funded. The low fifth's 0.4292 sits inside the range its formations gave, 0.0280 to 0.6745. SPY's is 1 by construction. |
-| 6 | none, not a replication | Look-ahead. The Kelly leverage can only be known from the whole sample, and at the in-sample Kelly leverage any portfolio grows at least as fast as it does unlevered. The 0.5415 is the Gaussian growth r + S²/2, a formula on the sample's moments, and no portfolio realised it. The reading is reported because location 4709 means it, and it decides nothing. |
+| 6 | none, not a replication | Look-ahead. The Kelly leverage here is computed from the whole sample, and at the full-sample Kelly leverage the Gaussian growth formula gives any portfolio at least the growth it gives the same portfolio unlevered. The 0.5415 is the Gaussian growth r + S²/2, a formula on the sample's moments, and no portfolio realised it. The reading is reported because location 4684's growth argument rests on it, and it decides nothing. |
 | 7 | none, not a replication | Every formation fills both fifths, so the refusal for an empty portfolio never fires. |
 | 8 | none, not a replication | No window is refused, as `tests/test_scale_breaks.py` records. The high fifth holds 186 flagged stock-months and the low fifth 36. |
 | 9 | none, not a replication | The first formation is the date the plan expected, so the 83 months are the plan's. |
@@ -10302,9 +10303,9 @@ ruin. Whether the near-zero betas or the fat tails did more of the damage is
 not measured here.
 
 **What survivorship does to either side.** The panel lacks the stocks that
-left the index before 2007-11-23. High-beta stocks that fell out of it would
-flatter the high side, which works against the claim, and that is a
-hypothesis rather than a finding.
+left the index before 2007-11-23. Leaving out the high-beta stocks that fell
+out of it would flatter the high side, which works against the claim, and that
+is a hypothesis rather than a finding.
 
 **Whether the claim holds after the book.** The point-in-time S&P 500 that
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built,
@@ -10327,6 +10328,23 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/levered-low-beta-lessons.md](../blog/levered-low-beta-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.low_beta_leverage_figures` redraws.
+
+The post also carries two whiteboard sketches in Lesson 3, added in the first
+round of its review before publishing.
+
+1. **The ruin line.** Two levered lines turn on the point (rf, rf), with rf at
+   0.0029. The leverage of 23.2017 that just ruins June 2001 meets −1 at June's
+   low-fifth return of −0.0403. June's k of 58.0262 is steeper and meets −1 at
+   −0.0144, so a smaller loss ruins it, and June's month sits on it at
+   −2.5053.
+2. **Thirteen of 83 months past June's line.** A bell curve with the low
+   fifth's mean of 0.0109 and standard deviation of 0.0292 puts 0.1931 of its
+   months at or below −0.0144, and a strip of the 83 monthly returns shows 13
+   there.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.levered_low_beta_whiteboard` redraws both through the
+same `read_sources` and `build_portfolios`.
 
 ## Entry 46: post-earnings drift on EDGAR's calendar and the archive's prices, Chan's *Algorithmic Trading*
 

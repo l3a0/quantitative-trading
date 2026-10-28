@@ -63,10 +63,10 @@ The first three were worded on the issue before any number:
 
 The fourth outcome is the issue's amendment of 2026-10-11, which the owner
 ruled after the leverage path was seen. The registered rules left a month
-below −1 undefined, and the build stopped on the first one, in June 2001, before
-anything the criterion reads had been computed. So the ruin case was settled
-after its first instance was visible, and the amendment names everything that
-had been seen.
+below −1 undefined. The build found two such months, June and September 2001,
+and stopped before anything the criterion reads had been computed. So the ruin
+case was settled after its first instance was visible, and the amendment names
+everything that had been seen.
 
 Beside the verdict the report prints the side figures the plan declared. Each
 is a point estimate that nothing tests, so each is exploratory and decides
@@ -85,17 +85,19 @@ The levered low's Sharpe ratio and realised beta read all 83 months of
 ``Portfolios.levered``, which holds rf + k × (r_low − rf) for each month as if
 the portfolio were freshly funded at its start. That is how the plan defines
 the series, and it is not what an investor ruined in June 2001 would have
-held. The Kelly reading is look-ahead, because the Kelly leverage can only be
-known from the whole sample, and at the in-sample Kelly leverage any
-portfolio's growth is at least its own unlevered growth by construction. Its
-growth is the Gaussian growth r + S² / 2, a formula on the sample's moments
-rather than a growth any portfolio realised.
+held. The Kelly reading is look-ahead, because the Kelly leverage it reads is
+computed from the whole sample, and at the full-sample Kelly leverage the
+Gaussian growth formula gives any portfolio at least the growth it gives the
+same portfolio unlevered. The Kelly reading's growth is the Gaussian growth r
++ S² / 2, a formula on the sample's moments rather than a growth any portfolio
+realised.
 
-**Every figure is about survivors.** ``spx_20071123/`` is the S&P 500 as it
-stood on 2007-11-23, carried backwards, so a stock that left the index before
-then is in neither portfolio. Which side that flatters is not measured here.
-High-beta stocks that fell out of the index would flatter the high side and
-work against the claim, and that is a hypothesis rather than a finding.
+**Every figure drawn from the stocks is about survivors.** ``spx_20071123/``
+is the S&P 500 as it stood on 2007-11-23, carried backwards, so a stock that
+left the index before then is in neither portfolio. Which side that flatters
+is not measured here. Leaving out high-beta stocks that fell out of the index
+would flatter the high side and work against the claim, and that is a
+hypothesis rather than a finding.
 
 The scale-break guard is not called, as in :mod:`chan.momentum_factor`. The
 run instead reports how many stock-months in either portfolio have a flagged
@@ -108,8 +110,9 @@ hypothesis, the specification and the first three outcomes' wording were
 committed on the issue before any number was seen, and the amendment covers
 only the case those rules left undefined. Registration rules out a
 specification tuned on this panel by this repo. It does not make 2000 to 2007
-a holdout: Chan wrote the claim in 2008 from "empirical studies", and the
-low-beta literature's own samples cover the span.
+a holdout, because Chan's premise comes from "empirical studies" of past
+prices, and those years were past prices by the time the book printed the
+claim.
 [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
 issue 275's registered specification on IVV's S&P 500 from 2008 to 2026, with
 the changes that panel forces and under both amendments of 2026-10-11, the
@@ -860,15 +863,15 @@ def report(
     )
     print(
         "  The panel holds only the stocks still in the index on 2007-11-23, so every figure "
-        "above is about survivors."
+        "above drawn from the stocks is about survivors."
     )
     print(
         "  Registered on the issue before any number, under its amendment of 2026-10-11. That "
         "rules out a specification"
     )
     print(
-        "  tuned here. It is not a holdout: the low-beta literature's samples cover 1999 to "
-        "2007. docs/replication-log.md Entry 45 carries the verdict."
+        "  tuned here. It is not a holdout: 2000 to 2007 were past prices by the time the "
+        "book printed the claim. docs/replication-log.md Entry 45 carries the verdict."
     )
 
 
