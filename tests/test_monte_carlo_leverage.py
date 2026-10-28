@@ -891,6 +891,29 @@ def _fixed(value: float, places: int = 6) -> str:
     return f"{value:.{places}f}"
 
 
+# A search stops within about 3e-7 of an optimum, so a figure that rests on one
+# can print a different sixth decimal on another machine. CI's runner printed
+# the Lesson 3 band's 22.969856 as 22.969857. These figures are compared as
+# numbers within this tolerance instead of as printed digits.
+NEAR = 1.5e-6
+
+
+def _near(cells: list[str], values, prefix: str = "") -> bool:
+    """Whether each cell, less ``prefix``, is within ``NEAR`` of its value."""
+    return len(cells) == len(values) and all(
+        cell.startswith(prefix) and abs(float(cell.removeprefix(prefix)) - value) <= NEAR
+        for cell, value in zip(cells, values, strict=True)
+    )
+
+
+def _says(text: str, before: str, value: float, after: str = "") -> bool:
+    """Whether ``text`` holds ``before``, a number within ``NEAR`` of ``value``, then ``after``."""
+    pattern = re.escape(before) + r"(−?\d+\.\d+)" + re.escape(after)
+    return any(
+        abs(float(found.replace("−", "-")) - value) <= NEAR for found in re.findall(pattern, text)
+    )
+
+
 def _lowest_kelly(compounding: str) -> float:
     """The least Kelly over the corners of Example 5.1's rounding, under one compounding."""
 
@@ -923,7 +946,8 @@ class TestWhatThePostSays:
 
     def test_lesson_1_s_table_and_the_two_methods_agreement(self, result) -> None:
         table = _table(self.text, "\\text{Historical}")
-        assert table["Computed"] == [[_fixed(result.kelly), _fixed(result.historical)]]
+        assert table["Computed"][0][0] == _fixed(result.kelly)
+        assert _near(table["Computed"][0][1:], [result.historical])
         assert table["Book"] == [[BOOK_KELLY, BOOK_HISTORICAL]]
         gaps = (gap(result.kelly, BOOK_KELLY), gap(result.historical, BOOK_HISTORICAL))
         assert table["Gap"] == [[f"{value:+.1f}" for value in gaps]]
@@ -989,9 +1013,7 @@ class TestWhatThePostSays:
     def test_lesson_2_s_shifted_draws(self, result) -> None:
         median = result.shifted.band("uncapped").median
         half = result.shifted.band("drawdown_half")
-        assert f"the median uncapped optimum becomes {median:.6f}, close to the book’s" in (
-            self.text
-        )
+        assert _says(self.text, "the median uncapped optimum becomes ", median, ", close")
         assert float(BOOK_DRAWDOWN_HALF) < half.low
         assert (
             f"Its {signed(float(BOOK_DRAWDOWN_HALF), 3)} sits just past a band that runs to "
@@ -1007,18 +1029,23 @@ class TestWhatThePostSays:
             f"return, and so it does on {on_cap} of the {len(runs)} further seeds."
         ) in self.text
         assert result.declared.on_the_cap
-        assert (
-            f"Searched without the cap, the declared seed’s optimum is "
-            f"{result.declared.uncapped:.6f}. The {on_cap} seeds split cleanly from the rest."
-        ) in self.text
+        assert _says(
+            self.text,
+            "Searched without the cap, the declared seed’s optimum is ",
+            result.declared.uncapped,
+            f". The {on_cap} seeds split cleanly from the rest.",
+        )
         free = result.ensemble.values("uncapped")[result.ensemble.values("ruin") >= CAP]
-        assert f"has an uncapped optimum above 20, the lowest at {free.min():.6f}." in self.text
+        assert _says(self.text, "has an uncapped optimum above 20, the lowest at ", free.min(), ".")
 
         declared = result.ensemble.band("uncapped")
-        assert (
-            f"Its band runs from {declared.low:.6f} to {declared.high:.6f}, and both "
-            f"{BOOK_OPTIMUM_FMINBND} and {BOOK_OPTIMUM} land inside it."
-        ) in self.text
+        assert _says(self.text, "Its band runs from ", declared.low, " to ")
+        assert _says(
+            self.text,
+            " to ",
+            declared.high,
+            f", and both {BOOK_OPTIMUM_FMINBND} and {BOOK_OPTIMUM} land inside it.",
+        )
         uncapped, ruin = result.ensemble.values("uncapped"), result.ensemble.values("ruin")
         low = uncapped <= float(BOOK_OPTIMUM)
         at_19 = int(np.count_nonzero(uncapped <= float(BOOK_OPTIMUM_FMINBND)))
@@ -1028,10 +1055,12 @@ class TestWhatThePostSays:
             f"and {at_19} at or below {BOOK_OPTIMUM_FMINBND}. All {int(low.sum())} have a ruin "
             f"leverage below 20, the largest {ruin[low].max():.6f}."
         ) in self.text
-        assert (
-            f"its 5th percentile is the same {result.ensemble.band('optimum').low:.6f}, a point "
-            f"between the optima of two of those {int(low.sum())} seeds"
-        ) in self.text
+        assert _says(
+            self.text,
+            "its 5th percentile is the same ",
+            result.ensemble.band("optimum").low,
+            f", a point between the optima of two of those {int(low.sum())} seeds",
+        )
         kept = len(result.ensemble.ruin_above(float(BOOK_RUIN)).runs)
         assert (
             f"seeds whose ruin leverage is above {BOOK_RUIN}, the ruin leverage the book prints "
@@ -1049,18 +1078,16 @@ class TestWhatThePostSays:
         runs = len(result.ensemble.runs)
         declared = (result.ensemble.band("uncapped"), result.shifted.band("uncapped"))
         chosen = (optimum_band(result.ensemble), optimum_band(result.shifted))
-        assert table["Declared rule"] == [[_fixed(found.low) for found in declared]]
-        assert table[f"all {runs} seeds"] == [
-            [f"to {_fixed(found.high)}" for found in declared],
-            [verdict(found) for found in declared],
-        ]
-        assert table["Rule chosen after"] == [[_fixed(found.low) for found in chosen]]
+        assert _near(table["Declared rule"][0], [found.low for found in declared])
+        upper, verdicts = table[f"all {runs} seeds"]
+        assert _near(upper, [found.high for found in declared], prefix="to ")
+        assert verdicts == [verdict(found) for found in declared]
+        assert _near(table["Rule chosen after"][0], [found.low for found in chosen])
         kept = [len(e.ruin_above(float(BOOK_RUIN)).runs) for e in (result.ensemble, result.shifted)]
-        assert table[f"ruin above {BOOK_RUIN}"] == [
-            [f"to {_fixed(found.high)}" for found in chosen],
-            [f"{count} seeds" for count in kept],
-            [verdict(found) for found in chosen],
-        ]
+        upper, counts, verdicts = table[f"ruin above {BOOK_RUIN}"]
+        assert _near(upper, [found.high for found in chosen], prefix="to ")
+        assert counts == [f"{count} seeds" for count in kept]
+        assert verdicts == [verdict(found) for found in chosen]
         assert all(found.holds(result.kelly) for found in (declared[0], chosen[0]))
         assert f"The Kelly of {result.kelly:.6f} lies inside both bands" in self.text
 
@@ -1128,9 +1155,9 @@ class TestWhatThePostSays:
         names = ("cppi_drawdown", "described_drawdown", "full_drawdown")
         bands = [result.ensemble.band(name) for name in names]
         table = _table(self.text, "\\text{Box 8.6's}")
-        assert table["Deepest"] == [[_fixed(getattr(result.declared, n)) for n in names]]
-        assert table["5th"] == [[_fixed(found.low) for found in bands]]
-        assert table["95th"] == [[_fixed(found.high) for found in bands]]
+        assert _near(table["Deepest"][0], [getattr(result.declared, n) for n in names])
+        assert _near(table["5th"][0], [found.low for found in bands])
+        assert _near(table["95th"][0], [found.high for found in bands])
         assert table["Days"] == [[f"{days_below(account):,}" for account in accounts]]
 
     def test_lesson_5_s_days_and_growth(self, result, declared_draws) -> None:
@@ -1176,18 +1203,18 @@ class TestWhatThePostSays:
         assert table["Book"] == [
             [BOOK_DRAWDOWN_OPTIMUM, BOOK_DRAWDOWN_HALF, f"about {BOOK_DRAWDOWN_SEVENTH}"]
         ]
-        assert table["Seed"] == [[_fixed(getattr(result.declared, n)) for n in names]]
-        assert table["5th"] == [[_fixed(found.low) for found in bands]]
-        assert table["95th"] == [[_fixed(found.high) for found in bands]]
+        assert _near(table["Seed"][0], [getattr(result.declared, n) for n in names])
+        assert _near(table["5th"][0], [found.low for found in bands])
+        assert _near(table["95th"][0], [found.high for found in bands])
 
     def test_lesson_6_s_growth_table(self, result) -> None:
         names = ("cppi_growth", "full_growth", "full_drawdown")
         bands = [result.ensemble.band(name) for name in names]
         table = _table(self.text, "\\text{Growth,}")
         assert table["Book"] == [[BOOK_CPPI_GROWTH, BOOK_FULL_GROWTH, BOOK_FULL_DRAWDOWN]]
-        assert table["Seed"] == [[_fixed(getattr(result.declared, n)) for n in names]]
-        assert table["5th"] == [[_fixed(found.low) for found in bands]]
-        assert table["95th"] == [[_fixed(found.high) for found in bands]]
+        assert _near(table["Seed"][0], [getattr(result.declared, n) for n in names])
+        assert _near(table["5th"][0], [found.low for found in bands])
+        assert _near(table["95th"][0], [found.high for found in bands])
 
     def test_lesson_6_s_seventh_and_the_saved_returns_drawdowns(self, result, returns) -> None:
         assert (
