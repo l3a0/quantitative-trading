@@ -179,7 +179,7 @@ def make_vx_calendar_spread_figure(
     _title(
         fig,
         "Exploratory: VIX futures calendar spreads on the ratio of back to front",
-        "Algorithmic Trading, Kindle edition, pp. 187 to 188. Contracts from "
+        "Algorithmic Trading, Kindle edition, p. 187. Contracts from "
         f"{SOURCE_FILES[ROOT]}, saved "
         f"{', '.join(saved)}.\nB3 was picked out after the run among five rows, and no cost "
         "is charged.",

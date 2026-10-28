@@ -172,7 +172,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 7.1, Figure 7.1, and pages 228 to 232, 247 and 269 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 7.1 and Figure 7.1, with pages 228 to 232, 247 and 269 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `gapFutures_FSTX.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 
 *Not investment advice. Code: [the strategy](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/opening_gap.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/opening_gap_figures.py), with the checks behind [the strategy’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_opening_gap.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_opening_gap_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-40-the-opening-gap-strategy-on-stoxx-europe-50-futures-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*

@@ -98,7 +98,7 @@ class TestTheFigure:
             "Exploratory: VIX futures calendar spreads on the ratio of back to front"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, Kindle edition, pp. 187 to 188. Contracts from "
+            "Algorithmic Trading, Kindle edition, p. 187. Contracts from "
             "inputDataDaily_VX_20120507.mat, "
             "saved 2012-05-08.\nB3 was picked out after the run among five rows, and no cost "
             "is charged."

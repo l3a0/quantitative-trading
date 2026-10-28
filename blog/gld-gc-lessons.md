@@ -157,7 +157,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 39, 41 and 208 to 209. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 39, 41 and 208 to 209 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `GLD_GC.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. Hull, J. C. (1997). *Options, Futures, and Other Derivatives*. Prentice Hall. The cost-of-carry model of a futures price.
 

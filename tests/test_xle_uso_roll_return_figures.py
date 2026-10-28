@@ -139,9 +139,9 @@ class TestTheFigure:
             "Exploratory: XLE against USO signed by crude oil's contango"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, Kindle edition, pp. 209 to 210. USO and XLE from "
+            "Algorithmic Trading, Kindle edition, p. 209. USO and XLE from "
             "inputData_ETF.mat, saved "
-            "2012-04-10, which subtracts dividends in dollars.\nContracts from "
+            "2012-04-10,\nwhich subtracts dividends in dollars. Contracts from "
             "inputDataDaily_CL_20120502.mat, saved 2012-05-03. No cost is charged."
         ]
 

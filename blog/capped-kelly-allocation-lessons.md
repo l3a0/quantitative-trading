@@ -71,7 +71,7 @@ Here is each figure Chan prints for the two examples, computed beside printed.
 
 Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
 
-Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position. A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on p. 250 why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”. The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and Example 8.1’s trades run through the same function as the SPY post’s.
+Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position. A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on the same page why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”. The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and Example 8.1’s trades run through the same function as the SPY post’s.
 
 On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces the trading rule from that paper.
 
@@ -181,7 +181,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 8.1 and 8.2 and pages 250 to 256. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 8.1 and 8.2, with pages 250 to 256 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Khandani, A. E., & Lo, A. W. (2007). What happened to the quants in August 2007? Working paper, MIT.
 3. Thorp, E. O. (1997). The Kelly criterion in blackjack, sports betting, and the stock market. Paper presented at the 10th International Conference on Gambling and Risk Taking, Montreal.
 

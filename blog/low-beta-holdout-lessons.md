@@ -202,6 +202,6 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 189 and 191 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 189 and 191 cited. The page numbers are the Kindle edition’s.
 
 *Not investment advice. Code: [the holdout](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/low_beta_holdout.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/low_beta_holdout_figures.py), with the checks behind [the holdout’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_low_beta_holdout.py), [the numbers on Chan’s file](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_low_beta_leverage.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_low_beta_holdout_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/quantitative-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-49-the-levered-low-beta-rule-after-the-book-on-ivvs-sp-500) that records the plan and every figure beside the test that computes it.*

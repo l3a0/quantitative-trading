@@ -130,7 +130,7 @@ A rule fixed before the data is read can be tested by the data. A rule fixed aft
 The declaration rests on three grounds the scratch runs did not choose.
 
 1. **The lag** is Example 6.1’s own convention, a position set on one day earning the next.
-2. **The series** is the one Chan says on p. 206 that the rule revises, Example 6.1’s front contract.
+2. **The series** is the one the rule on p. 206 revises, Example 6.1’s front contract.
 3. **The roll day** was read off the 2012-05-11 save, as Lesson 3 describes, rather than chosen by any strategy figure.
 
 One variant in the scratch runs came close to the book. It holds the fifth contract priced the day before, the farthest of the five that γ is fitted on, instead of the front contract. That gives an APR of 2.4712 percent, a Sharpe ratio of 2.144165 and a drawdown of 1.1583 percent. The first two land the book’s 2.5 percent and 2.1. The drawdown misses 1.1 percent.

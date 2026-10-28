@@ -251,7 +251,7 @@ def make_low_beta_leverage_figure(
         fig,
         "Registered verdict, exploratory path: Chan's low-beta fifth levered to the high "
         "fifth's beta",
-        f"Quantitative Trading, Kindle edition, pp. 189 to 191. Stocks from {SOURCE_FILE}, saved "
+        f"Quantitative Trading, Kindle edition, pp. 189 and 191. Stocks from {SOURCE_FILE}, saved "
         f"{members[0].obtained}, survivors only.\nSPY from {spy_entry.path}, saved "
         f"{spy_entry.obtained}, and FRED's TB3MS, downloaded {bill_entry.obtained}. "
         "Not a holdout.\nThe ruined months carry the verdict, registered under an amendment "

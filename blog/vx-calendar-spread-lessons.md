@@ -141,7 +141,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.4, Figure 5.8, and page 187. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.4, Figure 5.8, with page 187 cited. The page number is the Kindle edition’s, which differs from the print edition’s.
 2. `calendarSpdsMeanReversion.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 
 *Not investment advice. Code: [the trade](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread.py), [the script it runs](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/calendar_spread_reversion.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread_figures.py), with the checks behind [the trade’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-35-vix-futures-calendar-spreads-on-the-ratio-of-back-to-front-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*

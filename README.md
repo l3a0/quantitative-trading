@@ -3950,7 +3950,8 @@ draws four lessons from Entry 15 of the replication log.
 
 Five groups of its figures are not pinned here.
 
-1. Chan's words. "The simplest examples of cointegrating futures pairs" is
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location. "The simplest examples of cointegrating futures pairs" is
    quoted from location 3951 of *Quantitative Trading*. "Do not generally
    mean-revert" is quoted from location 2321 of *Algorithmic Trading*, and the
    12-month crude oil spread taken in logs, stationary
@@ -4089,7 +4090,8 @@ rules run on every clone.
 
 Six groups of its figures are not pinned here.
 
-1. Chan's words. "As frequently as they like" is quoted from location 3414 and
+1. Chan's words, cited by Kindle page in the post and traced here by Kindle
+   location. "As frequently as they like" is quoted from location 3414 and
    "but nobody (until they read this book!) is predicting the returns of this
    particular GLD trading strategy" from location 3617, both through
    [its committed notes](research/book-notes/quantitative-trading.md). "May

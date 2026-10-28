@@ -344,11 +344,11 @@ def make_monte_carlo_leverage_figure(
     _title(
         fig,
         "Exploratory: Chapter 8's leverage on Example 5.1's returns, one declared seed",
-        f"Algorithmic Trading, Kindle edition, Figure 8.2 and pp. 258 to 265. Returns from "
+        "Algorithmic Trading, Kindle edition, Figure 8.2 and pp. 258 to 264.\nReturns from "
         f"{d.entry.path}, saved {d.entry.obtained}.\nDraws: {DRAWS:,} from the Pearson type "
         f"IV with the returns' four moments, on seed {SEED}. No further seed is drawn here.",
     )
-    fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.1)
+    fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.12)
     return _save(fig, out, FIGURE)
 
 

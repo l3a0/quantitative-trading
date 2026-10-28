@@ -146,7 +146,7 @@ In *Algorithmic Trading* Chan said calendar spreads do not generally mean-revert
 ## References
 
 - Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 173, 182 and 184 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
-- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Page 158 cited. The page number is the Kindle edition’s, which differs from the print edition’s.
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Page 158 cited. The page number is the Kindle edition’s.
 - Engle, R. F., & Granger, C. W. J. (1987). Co-integration and error correction: Representation, estimation, and testing. *Econometrica*, 55(2), 251–276.
 - US Energy Information Administration. NYMEX futures settlement prices, daily, for Henry Hub natural gas and RBOB gasoline, contracts 1 to 4. Downloaded 2 October 2026.
 

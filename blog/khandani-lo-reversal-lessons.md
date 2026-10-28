@@ -163,7 +163,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.3 and 4.4, and pages 156, 158 to 160 and 224. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Examples 4.3 and 4.4, with pages 156, 158 to 160 and 224 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Example 3.7.
 3. Khandani, A. E., & Lo, A. W. (2007). What happened to the quants in August 2007? Working paper, MIT.
 4. `andrewlo_2007_2012.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.

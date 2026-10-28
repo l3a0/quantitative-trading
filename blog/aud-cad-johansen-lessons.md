@@ -136,7 +136,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.1 and pages 163 to 168 and 258. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.1, with pages 163 to 168 and 258 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `AUDCAD_unequal.m`, git blob `5b8fbc2`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code. Its comments on lines 60 and 66 record the printouts `APR=0.112410 Sharpe=1.610890` and `f=23.845328`.
 3. Johansen, S. (1991). Estimation and hypothesis testing of cointegration vectors in Gaussian vector autoregressive models. *Econometrica*, 59(6), 1551–1580.
 4. Welch, B. L. (1947). The generalization of “Student’s” problem when several different population variances are involved. *Biometrika*, 34(1–2), 28–35.

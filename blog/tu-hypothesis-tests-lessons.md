@@ -174,7 +174,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 1.1 and pages 41 to 44, 46 to 47, 173, 206 and 226 to 227. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 1.1, with pages 41 to 44, 46 to 47, 173, 206 and 226 to 227 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. `TU_mom_hypothesisTest.m`, git blob `c0dda16` under `public/img/book2/`, the book’s code, as published at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview).
 3. Heinrich, J. (2004). A guide to the Pearson type IV distribution. CDF/MEMO/STATISTICS/PUBLIC/6820.
 4. Lo, Mamaysky and Wang (2000), Berntson (2002) and Gill (1999), as *Algorithmic Trading* cites them on pages 43, 42 and 47 respectively.

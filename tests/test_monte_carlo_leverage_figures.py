@@ -159,7 +159,7 @@ class TestTheFigure:
             "Exploratory: Chapter 8's leverage on Example 5.1's returns, one declared seed"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, Kindle edition, Figure 8.2 and pp. 258 to 265. Returns from "
+            "Algorithmic Trading, Kindle edition, Figure 8.2 and pp. 258 to 264.\nReturns from "
             "pythoncodesanddata/AUDCAD_unequal_ret.csv, saved 2018-12-26.\nDraws: 100,000 "
             "from the Pearson type IV with the returns' four moments, on seed 20261012. No "
             "further seed is drawn here."

@@ -140,7 +140,7 @@ def make_break_figure(out: Path | None = None, closes: pd.DataFrame | None = Non
     _title(
         fig,
         "Exploratory: GLD and GDX either side of July 14, 2008, on Chan's own closes",
-        f"Algorithmic Trading, Kindle edition, pp. 141 to 142, {days[0].date()} to "
+        f"Algorithmic Trading, Kindle edition, p. 141, {days[0].date()} to "
         f"{days[-1].date()}, the "
         f"{len(days):,} days GDX is priced.\nPrices from {SOURCE_FILE}, saved 2012-04-10. "
         "The split date was chosen after the break was seen,\nso a test that splits there "

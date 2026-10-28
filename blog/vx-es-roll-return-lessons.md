@@ -155,7 +155,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Figure 6.4, and pages 178 and 211 to 213. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Figure 6.4, with pages 178 and 211 to 213 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `VX_ES_rollreturn.m`, git blob `849e0ac` at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 3. Simon, D. P., and Campasano, J. (2012), as *Algorithmic Trading* cites them on pages 178 and 211 to 212. The paper is not in this repository.
 

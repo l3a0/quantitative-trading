@@ -171,7 +171,7 @@ def make_index_arbitrage_figure(
     _title(
         fig,
         "Exploratory and survivor-only: SPY against the stocks that pass Chan's screen",
-        "Algorithmic Trading, Kindle edition, Example 4.2, pp. 151 to 153. Stocks from "
+        "Algorithmic Trading, Kindle edition, Example 4.2, pp. 151 to 152. Stocks from "
         f"{STOCK_FILE}, saved "
         f"{stock_members[0].obtained},\nand SPY from {ETF_FILE}, saved {spy_member.obtained}. "
         "The stocks and the weights are fitted on 2007 and traded from 2008,\nbut the lookback "

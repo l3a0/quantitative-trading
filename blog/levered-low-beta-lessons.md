@@ -107,7 +107,7 @@ Chan’s caveat on p. 189 warns against “too much leverage on normally low-bet
 
 ## Lesson 4: the rule names no leverage, and the argument behind it assumes Kelly’s
 
-Chan’s summary on p. 191 says “highly leveraged” and names no number. On p. 189 he names the beta match, which the passage proposes, and the Kelly leverage, which its growth argument rests on. The plan tested the beta match, the leverage the passage spells out, which is known before the month it applies to.
+Chan’s summary on p. 191 says “highly leveraged” and names no number. The passage on p. 189 names the beta match, which it proposes, and the Kelly leverage, which its growth argument rests on. The plan tested the beta match, the leverage the passage spells out, which is known before the month it applies to.
 
 The Kelly reading needs the whole sample, so it looks ahead and decides nothing. The low fifth’s full-sample Kelly leverage is 9.9884. At that leverage the formula’s growth is the bill rate plus half the Sharpe ratio squared, 0.0283 + 0.5132 = 0.5415 a year, against the high fifth’s realised 0.1183. That comparison is built to favour the low fifth. In-sample Kelly leverage gives a portfolio the highest growth the formula allows, so the low fifth gets its best case while the high fifth stays unlevered. The 0.5415 is also the formula’s figure, and no portfolio realised it.
 
@@ -157,6 +157,6 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 189 and 191 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Pages 189 and 191 cited. The page numbers are the Kindle edition’s.
 
 *Not investment advice. Code: [the test](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/low_beta_leverage.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/low_beta_leverage_figures.py), with the checks behind [the test’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_low_beta_leverage.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_low_beta_leverage_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/quantitative-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-45-a-levered-low-beta-portfolio-against-an-unlevered-high-beta-one-chans-quantitative-trading) that records the plan and every figure beside the test that computes it.*

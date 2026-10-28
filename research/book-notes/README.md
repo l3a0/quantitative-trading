@@ -347,6 +347,33 @@ each entry names the highlights it sits between instead. Whoever re-extracts
 carries this section over by hand too, and the same test file fails if it goes
 missing or if the post's caption cites a different number.
 
+## The Kindle page of each highlight
+
+The blog posts cite each book by the page number its Kindle edition shows,
+because a reader cannot look up a Kindle location. Two files map each
+highlight here to those pages.
+
+1. [algorithmic-trading-kindle-pages.csv](algorithmic-trading-kindle-pages.csv)
+   holds all 301 highlights of *Algorithmic Trading*.
+2. [quantitative-trading-kindle-pages.csv](quantitative-trading-kindle-pages.csv)
+   holds all 235 highlights of the revised *Quantitative Trading*.
+
+Each row gives a highlight's Kindle location, the page it starts on and the
+page it ends on. The start pages come from the Kindle Cloud Reader's
+annotations panel, read on 2026-10-27, which labels every highlight with the
+page it starts on. An end page is filled in only where it was measured, by
+searching the reader for the highlight's closing words, or where a later
+highlight starting after it sits on the same page. Every highlight a post cites
+has both. A blank end page means nobody measured it, not that the highlight
+fits on one page.
+
+These are the Kindle edition's page numbers. For *Algorithmic Trading* they
+differ from the 2013 hardcover's: the hardcover runs to 224 pages and the
+Kindle edition to 302, and four quotes the usdcad posts cite at print pages
+39, 44, 49 and 60 sit on Kindle pages 71, 77, 84 and 96. Nothing here has
+compared the revised *Quantitative Trading*'s Kindle pages with its print
+pages.
+
 ## These files are quoted, not authored
 
 Editing a highlight's text is out of bounds. A note is a record of what the
