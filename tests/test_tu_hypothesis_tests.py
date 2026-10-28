@@ -2,9 +2,11 @@
 
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it. One surface also quotes numbers
-held elsewhere: ``blog/tu-hypothesis-tests-lessons.md`` takes the 49 pairs
-behind the rule from ``tests/test_tu_momentum.py``, and its figure's labels
-from ``tests/test_tu_hypothesis_tests_figures.py``.
+held elsewhere. ``blog/tu-hypothesis-tests-lessons.md`` takes the 49 pairs
+behind the rule from ``tests/test_tu_momentum.py``, its figure's labels from
+``tests/test_tu_hypothesis_tests_figures.py``, its sketches' labels from
+``tests/test_tu_hypothesis_tests_whiteboard.py``, and the index arbitrage
+post's 480 stocks from ``tests/test_index_arbitrage.py``.
 README lists what the post says that nothing asserts. ``docs/replication-log.md``
 Entry 37 carries the verdicts and points here row by row. The run itself comes
 from ``tu_hypothesis_run`` in ``tests/conftest.py``, which the figure's pins
@@ -61,7 +63,9 @@ from chan.tu_hypothesis_tests import (
     BOOK_RANDOMIZED_RETURNS_COUNT,
     BOOK_RANDOMIZED_TRADES_COUNT,
     BOOK_RETURNS_BAND,
+    BOOK_RETURNS_DRAWS,
     BOOK_TRADES_BAND,
+    BOOK_TRADES_DRAWS,
     GRID_POINTS,
     RETURNS_DRAWS,
     RETURNS_SEED,
@@ -77,6 +81,7 @@ from chan.tu_hypothesis_tests import (
     main,
     pearson_iv_draws,
     pearson_iv_parameters,
+    pearson_kappa,
     permuted_strategy_returns,
     randomized_returns,
     randomized_trades,
@@ -103,6 +108,9 @@ EQUALITY_DRAWS = 200
 
 #: The shuffles the net-position pin reads, the first of the third test's draws.
 NET_POSITION_DRAWS = 500
+
+#: The simulated series the long-share pin reads, the first of the second test's.
+LONG_SHARE_DRAWS = 1_000
 
 
 @pytest.fixture(scope="module")
@@ -150,6 +158,41 @@ def result(ran) -> HypothesisTests:
 @pytest.fixture(scope="module")
 def printed(ran) -> str:
     return ran[1]
+
+
+@pytest.fixture(scope="module")
+def net_positions(strategy):
+    """The net position of each of the first 500 shuffles on seed 20261011, one row per draw.
+
+    Draw d here is the d-th ``default_rng(20261011).permutation(2_000)``
+    call, the same permutation the corrected third test applies as its draw
+    d. Module-scoped, so its pin and the post's reading share one computation.
+    """
+    longs, shorts = strategy["longs"], strategy["shorts"]
+    rng = np.random.default_rng(TRADES_SEED)
+    return np.stack(
+        [
+            positions(longs[order], shorts[order], HOLD_DAYS)
+            for order in (rng.permutation(len(longs)) for _ in range(NET_POSITION_DRAWS))
+        ]
+    )
+
+
+@pytest.fixture(scope="module")
+def long_shares(params, moments) -> tuple[float, float]:
+    """The long share of entry days on the first 1,000 series, with the drift and without it.
+
+    Module-scoped, so its pin and the post's reading share one computation.
+    """
+    uniforms = np.random.default_rng(RETURNS_SEED).random((LONG_SHARE_DRAWS, 2_000))
+    simulated = pearson_iv_draws(params, uniforms)
+    shares = []
+    for draws in (simulated, simulated - moments.mean):
+        cl_sim = np.cumprod(1 + draws, axis=1) - 1
+        longs = cl_sim[:, LOOKBACK:] > cl_sim[:, :-LOOKBACK]
+        shorts = cl_sim[:, LOOKBACK:] < cl_sim[:, :-LOOKBACK]
+        shares.append(float((longs.sum(axis=1) / (longs.sum(axis=1) + shorts.sum(axis=1))).mean()))
+    return shares[0], shares[1]
 
 
 @pytest.fixture
@@ -540,7 +583,7 @@ class TestRow4TheCorrectedTrades:
         """The n − 1 ``std`` of seed 20261011's 100,000 means, against seed 20261010's 10,000.
 
         Shuffling scatters the long and short entry days across the sample,
-        so the slices held on any day mostly cancel into a net long position
+        so the trades open on any day mostly cancel into a net long position
         of about the same size on every shuffle. A position nearly the same on
         every shuffle earns nearly the same mean on the same returns, so the
         shuffled means vary far less than means on new returns do, which is why
@@ -551,7 +594,9 @@ class TestRow4TheCorrectedTrades:
         assert shuffled == pytest.approx(3.788199e-06, rel=5e-7)
         assert shuffled < float(result.returns.declared.std(ddof=1)) / 7
 
-    def test_shuffled_entry_days_cancel_into_a_steady_net_long_position(self, strategy) -> None:
+    def test_shuffled_entry_days_cancel_into_a_steady_net_long_position(
+        self, strategy, net_positions
+    ) -> None:
         """The net position of the first 500 shuffles on seed 20261011, against the real rule's.
 
         Draw d here is the d-th ``default_rng(20261011).permutation(2_000)``
@@ -564,17 +609,12 @@ class TestRow4TheCorrectedTrades:
         average across shuffles, which is what "about the same size on every
         shuffle" means. 500 draws keep the test to about two seconds.
         """
-        longs, shorts, held = strategy["longs"], strategy["shorts"], strategy["held"]
+        held = strategy["held"]
         assert float(np.abs(held).mean()) == pytest.approx(20.58, rel=5e-7)
         assert float((held > 0).mean()) == pytest.approx(0.638, rel=5e-7)
 
-        rng = np.random.default_rng(TRADES_SEED)
-        shuffled = np.stack(
-            [
-                positions(longs[order], shorts[order], HOLD_DAYS)
-                for order in (rng.permutation(len(longs)) for _ in range(NET_POSITION_DRAWS))
-            ]
-        )
+        shuffled = net_positions
+        assert len(shuffled) == NET_POSITION_DRAWS
         assert float(np.abs(shuffled).mean()) == pytest.approx(9.975403, rel=5e-7)
         assert float((shuffled > 0).mean()) == pytest.approx(0.983958, rel=5e-7)
         per_shuffle = shuffled.mean(axis=1)
@@ -641,16 +681,9 @@ class TestTheRowsBesideAddedAfterTheScratchRun:
         assert float(found.normal.std(ddof=1)) == pytest.approx(2.806502e-05, rel=5e-7)
         assert float(found.mean_zero.std(ddof=1)) == pytest.approx(2.127120e-05, rel=5e-7)
 
-    def test_a_drifting_series_is_long_on_most_signal_days(self, params, moments) -> None:
+    def test_a_drifting_series_is_long_on_most_signal_days(self, long_shares) -> None:
         """Why the drift pays: the rule goes long on most signal days of a drifting series."""
-        uniforms = np.random.default_rng(RETURNS_SEED).random((1_000, 2_000))
-        simulated = pearson_iv_draws(params, uniforms)
-        for draws, expected in ((simulated, 0.804654), (simulated - moments.mean, 0.502401)):
-            cl_sim = np.cumprod(1 + draws, axis=1) - 1
-            longs = cl_sim[:, LOOKBACK:] > cl_sim[:, :-LOOKBACK]
-            shorts = cl_sim[:, LOOKBACK:] < cl_sim[:, :-LOOKBACK]
-            share = (longs.sum(axis=1) / (longs.sum(axis=1) + shorts.sum(axis=1))).mean()
-            assert share == pytest.approx(expected, abs=5e-7)
+        assert long_shares == pytest.approx((0.804654, 0.502401), abs=5e-7)
 
 
 class TestTheReport:
@@ -728,3 +761,246 @@ class TestTheReport:
         monkeypatch.setattr(paths, "DATA_DIR", tmp_path)
         with pytest.raises(SystemExit, match="inputDataOHLCDaily_20120511.mat"):
             main()
+
+
+POST = paths.REPO_ROOT / "blog" / "tu-hypothesis-tests-lessons.md"
+
+#: The counts the post spells out in words.
+SPELLED = {4: "four", 7: "seven", 9: "nine"}
+
+
+def _times_ten(value: float) -> str:
+    """``value`` at six decimals in the post's LaTeX, as in ``6.626644\\times10^{-5}``."""
+    mantissa, exponent = f"{value:.6e}".split("e")
+    return rf"{mantissa}\times10^{{{int(exponent)}}}"
+
+
+class TestWhatThePostQuotes:
+    """Each run figure ``blog/tu-hypothesis-tests-lessons.md`` quotes, read there against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in the post inside a fragment holding the number and
+    the words that place it. A typo in that copy, or a re-pin that leaves the
+    post behind, fails here. Lesson 1's two worked equations are rebuilt line
+    by line in the post's LaTeX.
+
+    Chan's printed figures are read through the module constants that hold
+    them, so the book's 1,166 and the 0.1166 it divides to, the script's
+    0.027500, and its 2.93 move with those constants. The comparisons the
+    post's words draw are asserted on the run where each is one line, such as
+    a count inside or outside its band, nine counts below the top, the
+    sampler within four standard errors of its targets, κ between 0 and 1,
+    and every as-written return being zero.
+
+    One copy of each figure is read, the one in the passage that explains
+    it, because the post states most figures more than once and a fragment
+    per copy costs more than the copies are worth. Every other copy can carry
+    a typo that passes. Those copies sit in the subtitle, the opening's
+    list of findings, the closing list of habits, the section on what the
+    replication cannot say and the figure's alt text, none of which is read
+    here. A restatement inside a lesson, such as Lesson 4's second 1,274 and
+    474, is read only where it shares a fragment with a figure the passage
+    explains. The figure's own labels are read by
+    ``tests/test_tu_hypothesis_tests_figures.py``.
+
+    Also unread are Chan's words and the Kindle pages, the book's chapter
+    and example numbers, the 12 percent on pages 226 to 227, TU's two-year term, the
+    first section's eight years, the replication log's entry number, the
+    post's counts of its own results, lessons, tests,
+    assumptions, moments and questions, the normal distribution's kurtosis of
+    3, the two standard errors of the band rule and its 95 percent, the rule
+    of three's 3/N and its 95 percent, the 2004 to 2012 of the exploratory
+    note, the other post's 480 stocks, and the references.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    def test_the_check_reports_a_fragment_the_post_lacks(self):
+        """Every test below passes when ``missing`` returns nothing, so its own
+        failure has to be seen once."""
+        assert self.missing("abc def", ["abc", "xyz"]) == ["xyz"]
+
+    def test_the_rule_the_file_and_the_three_tests(self, sources, strategy, result, text):
+        entry, closes = sources
+        longs, shorts = int(strategy["longs"].sum()), int(strategy["shorts"].sum())
+        first_entry = int(np.flatnonzero(strategy["longs"] | strategy["shorts"])[0])
+        assert first_entry == LOOKBACK
+        periods = len(tu_momentum.PERIODS)
+        fragments = [
+            f"The code counts 12 months as {LOOKBACK} trading days and a month as {HOLD_DAYS}. "
+            f"From the {first_entry + 1}st day on,",
+            f"holds it {HOLD_DAYS} days, so up to {HOLD_DAYS} trades are open at once.",
+            f"times today’s return on TU, divided by {HOLD_DAYS}.",
+            f"Chan’s own MATLAB file `{SOURCE_FILE}`, saved on {entry.obtained}, holds TU’s "
+            f"closes for {len(closes):,} trading days from {closes.index[0].date()} to "
+            f"{closes.index[-1].date()}. The rule’s **observed mean**, its average daily return "
+            f"over those days, is {result.observed_mean:.6e}.",
+            f"{SPELLED[periods]} lookbacks against {SPELLED[periods]} holds, "
+            f"{periods * periods} pairs in all.",
+            f"The script draws {len(closes):,} daily returns for TU",
+            f"It repeats this {RETURNS_DRAWS:,} times.",
+            f"which keeps the rule’s {longs:,} long entry days and {shorts} short entry days "
+            f"and never makes a day both long and short. It repeats this {TRADES_DRAWS:,} times.",
+        ]
+        assert not (strategy["longs"] & strategy["shorts"]).any()
+        assert self.missing(text, fragments) == []
+
+    def test_chan_s_printed_figures(self, text) -> None:
+        book = int(BOOK_RANDOMIZED_RETURNS_COUNT)
+        fragments = [
+            f"finds chance matching the strategy in {book:,} of {BOOK_RETURNS_DRAWS:,} tries. "
+            f"Another finds it in none of {BOOK_TRADES_DRAWS:,}.",
+            f"so his p-value is {book:,} / {BOOK_RETURNS_DRAWS:,}, or "
+            f"{book / BOOK_RETURNS_DRAWS:.4f}.",
+            f"**The Gaussian test lands the script’s {SCRIPT_GAUSSIAN_STATISTIC}.**",
+        ]
+        assert int(BOOK_RANDOMIZED_TRADES_COUNT) == 0, "the post spells the book's 0 as none"
+        assert self.missing(text, fragments) == []
+
+    def test_the_moments_and_the_pearson_type(self, moments, strategy, text) -> None:
+        kappa = pearson_kappa(moments.skewness, moments.kurtosis)
+        assert 0 < kappa < 1
+        market = strategy["market"]
+        assert market[0] == 0
+        fragments = [
+            f"of the {len(market):,} daily returns the script computes for TU. The first of those "
+            f"returns is {market[0]:g}, because day one has no close before it.",
+            f"A normal distribution’s kurtosis is 3, and TU’s is {moments.kurtosis:.6f}. So the "
+            f"null keeps TU’s **drift**, its average daily return of {moments.mean:.6e},",
+            f"TU’s κ is {kappa:.6f}, between 0 and 1, which puts it in type IV.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1_the_gaussian_test(self, result, text) -> None:
+        n = len(result.daily)
+        s = float(result.daily.std(ddof=1))
+        spread = s / math.sqrt(n)
+        tail = float(ndtr(-result.statistic))
+        assert matches(result.statistic, SCRIPT_GAUSSIAN_STATISTIC)
+        fragments = [
+            f"The script’s comment prints {SCRIPT_GAUSSIAN_STATISTIC} for the Gaussian "
+            f"statistic. The run here gives {result.statistic:.6f}, which rounds to it.",
+            rf"&= \frac{{{_times_ten(result.observed_mean)}}}{{{_times_ten(s)}}}\,"
+            rf"\sqrt{{{n}}} \\" + f"\n&= {result.statistic:.6f}\n",
+            rf"&= \frac{{{_times_ten(s)}}}{{\sqrt{{{n}}}}} \\" + f"\n&= {_times_ten(spread)}\n",
+            f"The chance of a mean at or above {result.observed_mean:.6e} is the one-sided tail "
+            f"beyond {result.statistic:.6f} standard errors, {tail:.6f}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2_the_bands_and_the_second_test(self, moments, result, text) -> None:
+        book = int(BOOK_RANDOMIZED_RETURNS_COUNT)
+        script = float(SCRIPT_RANDOMIZED_RETURNS_P_VALUE)
+        book_p = book / BOOK_RETURNS_DRAWS
+        book_se = math.sqrt(RETURNS_DRAWS * book_p * (1 - book_p))
+        script_se = math.sqrt(RETURNS_DRAWS * script * (1 - script))
+        trades_p = int(BOOK_RANDOMIZED_TRADES_COUNT) / BOOK_TRADES_DRAWS
+        trades_se = math.sqrt(TRADES_DRAWS * trades_p * (1 - trades_p))
+        (book_low, book_high), (script_low, script_high) = BOOK_RETURNS_BAND, SCRIPT_RETURNS_BAND
+        assert BOOK_TRADES_BAND[0] == BOOK_TRADES_BAND[1]
+
+        count = result.count(result.returns.declared)
+        proportion = count / RETURNS_DRAWS
+        assert band_verdict(count, BOOK_RETURNS_BAND) == "reproduced"
+        assert band_verdict(count, SCRIPT_RETURNS_BAND) == "did not reproduce"
+
+        n = RETURNS_DRAWS * len(result.daily)
+        mean_error = moments.std / math.sqrt(n)
+        std_error = moments.std * math.sqrt((moments.kurtosis - 1) / (4 * n))
+        returns = result.returns
+        assert abs(returns.draw_mean - moments.mean) < 4 * mean_error
+        assert abs(returns.draw_std - moments.std) < 4 * std_error
+        assert n % 1_000_000 == 0
+        fragments = [
+            f"1. **The book’s {book:,} of {BOOK_RETURNS_DRAWS:,}.** The standard error is "
+            f"{book_se:.1f}, so the band runs from {book_low:,} to {book_high:,}.",
+            f"2. **The script’s {SCRIPT_RANDOMIZED_RETURNS_P_VALUE}.** At N = {RETURNS_DRAWS:,} "
+            f"the standard error is {script_se:.1f}, so the band runs from {script_low} to "
+            f"{script_high}.",
+            f"3. **The book’s {BOOK_RANDOMIZED_TRADES_COUNT} of {BOOK_TRADES_DRAWS:,}.** A printed "
+            f"proportion of {trades_p:g} has a standard error of {trades_se:g}, so only "
+            f"{BOOK_TRADES_BAND[0]} lands.",
+            f"the seeds, {RETURNS_SEED} for the second test and {TRADES_SEED} for the third,",
+            f"**The result.** On seed {RETURNS_SEED} the second test gives {count:,} of "
+            f"{RETURNS_DRAWS:,}. That is inside {book_low:,} to {book_high:,}, "
+            f"{SPELLED[book_high - count]} counts below the top, so the book’s {book:,} "
+            f"**reproduced**, with a gap of {gap(count, BOOK_RANDOMIZED_RETURNS_COUNT):+.0f}. The "
+            f"same count, {count:,}, is far outside the script’s {script_low} to {script_high}, "
+            f"so the script’s {SCRIPT_RANDOMIZED_RETURNS_P_VALUE} **did not reproduce**. As a "
+            f"p-value the count is {proportion:.6f}, a gap of "
+            f"{gap(proportion, SCRIPT_RANDOMIZED_RETURNS_P_VALUE):+.6f} from the script’s.",
+            f"Over all {n // 1_000_000} million simulated daily returns, the average is "
+            f"{returns.draw_mean:.6e} against TU’s mean daily return of {moments.mean:.6e}, and "
+            f"the standard deviation is {returns.draw_std:.6e} against TU’s {moments.std:.6e}. "
+            f"Both sit within {SPELLED[4]} standard errors of their targets.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3_the_observed_positions(self, result, text) -> None:
+        count = result.count(result.returns.observed_positions)
+        low, high = SCRIPT_RETURNS_BAND
+        assert low <= count <= high
+        fragments = [
+            f"That gives {count} of {RETURNS_DRAWS:,}, or {count / RETURNS_DRAWS:.6f}, inside "
+            f"the script’s {low} to {high}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_4_the_third_test(self, strategy, result, net_positions, text) -> None:
+        written = result.as_written
+        assert (written.means == 0).all() and written.largest_return == 0.0
+        trades = result.trades
+        count = result.count(trades)
+        assert band_verdict(count, BOOK_TRADES_BAND) == "reproduced"
+        z = (result.observed_mean - trades.mean()) / trades.std(ddof=1)
+        held = strategy["held"]
+        fragments = [
+            f"The run here executes that loop as written for {AS_WRITTEN_DRAWS} draws, and every "
+            "simulated return is zero.",
+            "**Corrected.** Building each draw’s positions from its own shuffled entry days gives "
+            f"{count} of {TRADES_DRAWS:,} on seed {TRADES_SEED}.",
+            f"so here below {3 / TRADES_DRAWS:.0e}.",
+            f"The largest shuffled mean is {trades.max():.6e} and their average is "
+            f"{trades.mean():.6e}. The observed mean sits {z:.6f} standard deviations of the "
+            "shuffled means above that average.",
+            f"Over the first {len(net_positions)} of those shuffles the net position averages "
+            f"{np.abs(net_positions).mean():.6f} units in absolute size and is long on "
+            f"{(net_positions > 0).mean():.6f} of the {len(held):,} days, against "
+            f"{np.abs(held).mean():.2f} units and {(held > 0).mean():.3f} for the real rule.",
+            f"The shuffled means’ standard deviation is {trades.std(ddof=1):.6e}, against "
+            f"{result.returns.declared.std(ddof=1):.6e} for the second test’s means on new "
+            "returns.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_5_drift_and_kurtosis(self, moments, result, long_shares, text) -> None:
+        returns = result.returns
+        normal, mean_zero = result.count(returns.normal), result.count(returns.mean_zero)
+        declared = result.count(returns.declared)
+        spread = float(result.daily.std(ddof=1)) / math.sqrt(len(result.daily))
+        with_drift, without = long_shares
+        fragments = [
+            f"has no skewness and a kurtosis of 3, against TU’s {moments.kurtosis:.6f}. It gives "
+            f"{normal:,} of {RETURNS_DRAWS:,}, against {declared:,} for type IV.",
+            f"Type IV with TU’s mean set to zero gives {mean_zero} of {RETURNS_DRAWS:,}, or "
+            f"{mean_zero / RETURNS_DRAWS:.6f}, close to the Gaussian test’s one-sided "
+            f"{float(ndtr(-result.statistic)):.6f}. The average simulated mean falls from "
+            f"{returns.declared.mean():.6e} to {returns.mean_zero.mean():.6e}.",
+            f"Those {RETURNS_DRAWS:,} means spread with a standard deviation of "
+            f"{returns.mean_zero.std(ddof=1):.6e}, close to the Gaussian null’s standard error of "
+            f"{spread:.6e}",
+            f"from {returns.mean_zero.std(ddof=1):.6e} to {returns.declared.std(ddof=1):.6e}.",
+            f"On the first {LONG_SHARE_DRAWS:,} simulated series, long entry days make up on "
+            f"average {with_drift:.6f} of all entry days, and {without:.6f} once the mean is "
+            "removed.",
+            f"TU did drift upward, at a mean daily return of {moments.mean:.6e}.",
+        ]
+        assert self.missing(text, fragments) == []

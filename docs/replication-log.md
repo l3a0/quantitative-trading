@@ -8250,8 +8250,8 @@ strategies" (location 674).
 beside them point at TU's drift rather than its kurtosis.** The second test lands
 inside the band around the book's 1,166 and far outside the one around the
 script's 0.027500. Rows 6 to 8 were added after a scratch run had seen
-results, and they show that a normal draw gives the same count while removing
-the drift removes almost all of it.
+results, and they show that a normal draw gives nearly the same count, 1,165
+against 1,221, while removing the drift removes almost all of it.
 
 Every row reads one vintage and one specification unless it names another, so
 both are stated once here.
@@ -8341,7 +8341,7 @@ registered test of the drift reading and cannot confirm it.
 | 3 | +0.094600 | did not reproduce | 0.122100 lies far outside 243 to 307 of 10,000. So the second test this file carries does not give the script's comment on Chan's own file. Row 6 is the one test found to land it. |
 | 4 | +0 | reproduced | No draw of 100,000 reaches the observed mean, so the rule-of-three bound puts the p-value below 3e-05 at 95 percent. |
 | 5 | none | none, a finding | The count cannot fail, so it cannot reproduce anything. It is 0 because no draw writes to `pos_sim`, not because of any property of TU. |
-| 6 | none | none, not a replication | 277 lies inside the script's 243 to 307. Nothing in the script applies the observed positions to simulated returns, and the file has one commit, so the match is numerical rather than recovered history. |
+| 6 | none | none, not a replication | 277 lies inside the script's 243 to 307. Nothing in the script applies the observed positions to simulated returns, and the public copy holds the file in one commit, so nothing shows how the comment was made. |
 | 7 | none | none, not a replication | Removing the skewness and kurtosis moves the count little, 1,165 against 1,221. |
 | 8 | none | none, not a replication | Removing the drift takes the count from 1,221 to 19, close to the 0.001677 one-sided tail of row 1's Gaussian statistic. |
 
@@ -8385,8 +8385,8 @@ different null. Rows 7 and 8 suggest the count barely depends on the shape,
 which limits what a different type could move.
 
 **What computed the script's 0.027500.** Row 6 lands it with a test the
-script does not contain, and the file has one commit, so the history behind
-that comment is gone.
+script does not contain, and the public copy holds the file in one commit,
+with no earlier version to read.
 
 **Whether drift explains momentum's significance elsewhere.** Rows 6 to 8
 were chosen after a scratch run on other seeds had seen results, on one
@@ -8398,6 +8398,28 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/tu-hypothesis-tests-lessons.md](../blog/tu-hypothesis-tests-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.tu_hypothesis_tests_figures` redraws.
+
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **The shuffled trades land in the wrong place**, in Lesson 4. It draws row
+   5's loop as boxes. The shuffled trades go into `pos`, the real positions,
+   and never reach `pos_sim`, which starts as zeros. So `ret_sim` is built
+   from a `pos_sim` of 0, and every simulated mean is 0 against the observed
+   mean of 6.626644e-05. It closes on the 10 draws run as written, each
+   returning 0.
+2. **Drift makes the rule mostly long**, in Lesson 5. It draws a noisy line
+   with TU's drift above one with the same noise and none. Under each sit ten
+   250-day brackets, each ending in an arrow up where the rule is long and
+   down where it is short. It prints the share of days with a long or short
+   signal on which the rule is long, averaged over the first 1,000 of row 2's
+   series, 0.804654 as drawn and 0.502401 with the mean removed. Its two lines
+   are schematic random walks with TU's daily standard deviation, the upper
+   one with TU's daily mean as well, not TU's closes and not row 2's series.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.tu_hypothesis_tests_whiteboard` redraws both through
+the same `read_sources`, `pearson_iv_draws` and `randomized_trades_as_written`.
 
 ## Entry 38: long GLD and short gold futures, Chan's *Algorithmic Trading*
 
