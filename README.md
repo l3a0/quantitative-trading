@@ -8150,8 +8150,12 @@ Every other number in the post traces to an assertion in
 [tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py), or
 to
 [tests/test_monte_carlo_leverage_figures.py](tests/test_monte_carlo_leverage_figures.py)
-for the figure's own numbers. The 612 returns' dates, from 2009-12-18 to
-2012-04-26, trace to
+for the figure's own numbers. `TestWhatThePostSays` in the first file reads
+one copy of each figure the post takes from the run, its five tables by row
+label and its prose by the words around each number, and fails when that copy
+drifts from the run. A second copy of the same figure elsewhere in the post is
+not always read, and neither is the figure's alt text. The 612 returns'
+dates, from 2009-12-18 to 2012-04-26, trace to
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py). Twelve of
 the post's numbers had no pin before the post, all measured after the run.
 
