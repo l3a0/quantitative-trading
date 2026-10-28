@@ -112,7 +112,8 @@ class TestTheFigure:
             "fifth's beta"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Quantitative Trading, locations 4684 and 4709. Stocks from SPX_20071123.mat, saved "
+            "Quantitative Trading, Kindle edition, pp. 189 to 191. Stocks from SPX_20071123.mat, "
+            "saved "
             "2007-11-24, survivors only.\nSPY from spy_chan.csv, saved 2008-01-29, and FRED's "
             "TB3MS, downloaded 2026-09-30. Not a holdout.\nThe ruined months carry the "
             "verdict, registered under an amendment made after June 2001 was seen.\nThe paths "

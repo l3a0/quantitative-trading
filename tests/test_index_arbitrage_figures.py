@@ -178,7 +178,7 @@ class TestTheFigure:
             "Exploratory and survivor-only: SPY against the stocks that pass Chan's screen"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, Example 4.2, location 2035. Stocks from "
+            "Algorithmic Trading, Kindle edition, Example 4.2, pp. 151 to 153. Stocks from "
             "inputDataOHLCDaily_stocks_20120424.mat, saved 2012-04-25,\nand SPY from "
             "inputData_ETF.mat, saved 2012-04-10. The stocks and the weights are fitted on "
             "2007 and traded from 2008,\nbut the lookback of 5 was chosen with hindsight, and "

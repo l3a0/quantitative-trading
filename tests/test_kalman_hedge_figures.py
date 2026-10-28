@@ -151,7 +151,7 @@ class TestThePanels:
 
     def test_the_note_names_the_file_the_constants_and_the_look_ahead(self, figure) -> None:
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, locations 1633 to 1726, 2006-04-26 to 2012-04-09, 1,500 "
+            "Algorithmic Trading, Kindle edition, pp. 118 to 129, 2006-04-26 to 2012-04-09, 1,500 "
             "trading days, as KF_beta_EWA_EWC.m runs them.\nPrices from inputData_ETF.mat, "
             "saved 2012-04-10. delta 0.0001 and Ve 0.001 are Chan's, and every figure is "
             "in-sample."

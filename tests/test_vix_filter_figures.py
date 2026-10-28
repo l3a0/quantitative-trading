@@ -122,7 +122,7 @@ class TestTheFigure:
             "Exploratory: the VIX filter on buy on gap and on FSTX's opening gap rule"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, location 3509. VIX saved 2012-05-09, the stocks saved "
+            "Algorithmic Trading, Kindle edition, p. 269. VIX saved 2012-05-09, the stocks saved "
             "2012-04-25, FSTX saved 2012-05-18. No cost charged.\nThe FSTX alignment was chosen "
             "after its figures were seen, and every kept day falls from 2008 to 2011."
         ]
