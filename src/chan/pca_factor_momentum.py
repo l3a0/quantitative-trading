@@ -76,9 +76,10 @@ teaches why each pair reads one day's vectors, and the functions after
 give. A singular vector's sign is whatever the numerical library returns, and
 two machines running this suite returned different ones, so every vector's
 sign is first fixed by a rule, its largest weight positive. Then they count
-the days a vector's sign still flips and the days two factors swap rank, and
-compute the statistic on each day's own weights, with sign and rank matched,
-and with tomorrow's weights fitted on 251 days that leave today's return out.
+the days a vector's sign still flips and the days two or more factors swap
+rank, and compute the statistic on each day's own weights, with sign and rank
+matched, and with tomorrow's weights fitted on 251 days that leave today's
+return out.
 A control fits tomorrow's weights on the 251 days ending today, the same
 length with today's return kept in. They also read PMC's weight on the days
 whose window holds its one large return and which factor carries it, check

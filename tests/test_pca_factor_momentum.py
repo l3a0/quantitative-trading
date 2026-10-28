@@ -925,7 +925,7 @@ class TestWhatThePostQuotes:
     The copies read are these.
 
     - The section on how the test works: the file, the decomposition, the
-      first day and the pair count, and the comparison set.
+      first day and the pair count, the criterion, and the comparison set.
     - Lesson 1's counts of flips and swaps, the 251-day window in the list
       before its table, the table, and the two paragraphs after it.
     - Lesson 2's two worked series, PC2's two days and their share, and the
@@ -969,6 +969,7 @@ class TestWhatThePostQuotes:
             f"factors, {NAMES[0]} to {NAMES[-1]},",
             f"The first day with a full window is {days[0].date()}. Every day from then to the "
             f"second-to-last row has a next day, which gives {c.pairs} days t.",
+            "when its statistic is above 0 and above the median stock’s.",
             f"The comparison set is the {len(c.stocks)} stocks priced on every day the pairs read",
         ]
         assert self.missing(text, fragments) == []
@@ -1018,6 +1019,7 @@ class TestWhatThePostQuotes:
             f"{matched_gap[matched]:.4f}.",
             f"The largest gap left is {NAMES[left_out]}’s, {left_out_gap[left_out]:.4f}.",
             f"with {NAMES[low]} at {_minus(weights.shortened[low], 4)}.",
+            f"holds today’s return pushes {NAMES[matched]} so far.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -1055,6 +1057,7 @@ class TestWhatThePostQuotes:
         assert products[kept] > -products[reversed_], SPEC
         shares = [f"{v:.4f} for {name}" for name, v in zip(NAMES, s.same_sign, strict=True)]
         fragments = [
+            f"quiet ones. {NAMES[k]} shows how far that goes.",
             f"Two days, {first} and {second}, hold {100 * share:.2f} percent of the sum of "
             f"{NAMES[k]}’s squared products.",
             f"On {s.pairs.days[reversed_].date()} {NAMES[k]}’s return reversed the next day, and "
@@ -1102,6 +1105,7 @@ class TestWhatThePostQuotes:
             f"The claim holds for {_listed(held)}, which are above 0 and above the median "
             f"stock. It does not hold for {missed.factor}, which is "
             f"{_side(missed.above_median)} the median stock and {_side(missed.above_zero)} 0.",
+            "so on this file any factor above 0 clears the median too.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -1128,9 +1132,14 @@ class TestWhatThePostQuotes:
             f"{NAMES[out]}’s {c.factors[out]:.4f} is outside it. {NAMES[edge]}’s "
             f"{c.factors[edge]:.4f} is just inside, and the other {WORDS[len(inside) - 1]} well "
             "inside.",
+            f"The band and the t disagree about {NAMES[out]}.",
+            f"and {NAMES[out]}’s statistic rests on two days",
             f"So {NAMES[out]} clears the band and its t is only {s.t_newey_west[out]:.4f}.",
+            f"They land on {NAMES[out]} because of {SPLICED},",
             f"Run without {SPLICED}, the same two days fall on {NAMES[carried]} and hold "
             f"{100 * shares[carried][0]:.2f} percent of its squared products.",
+            f"{SPLICED} takes the {NAMES[carried]} slot on both days and pushes the factor that "
+            f"would be {NAMES[carried]} without {SPLICED} into {NAMES[out]}’s place.",
             f"to {percent} percent. Run across the {WORDS[FACTORS]} p-values, it declares none. "
             f"The smallest p-value is {NAMES[smallest]}’s {s.p_values[smallest]:.4f}, so none "
             f"would pass at {percent} percent even tested alone.",
@@ -1182,6 +1191,7 @@ class TestWhatThePostQuotes:
             f"between {min(sizes):.4f} and {max(sizes):.4f}.",
             f"So on {first} and {second} the factor that would be {NAMES[lead]} without "
             f"{SPLICED} sits in {NAMES[out]}’s place.",
+            f"Those are the two days that put {NAMES[out]} outside the band.",
         ]
         assert self.missing(text, fragments) == []
 

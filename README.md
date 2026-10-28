@@ -1338,8 +1338,9 @@ returns it holds that a flipped vector moves no statistic, that a steady value
 counts as persistence, and the Benjamini-Hochberg step-up. It holds what the
 write-up measured after the run too. Those pins count how often each factor's
 weights flip sign once each vector's largest weight is made positive, check
-that every flip left falls on a day the largest weight moves to another stock
-or two factors swap rank, and count how often they swap rank. They give the
+that all but five of those flips move the largest weight to a stock the
+earlier day weighed below zero and that the five left fall on days two or more
+factors swap rank, and count how often they swap rank. They give the
 statistic when tomorrow's return is read on tomorrow's own weights, matched,
 fitted on 251 days that leave today out, and fitted on the 251 days ending
 today as the control. They read PMC's weight on the days whose window holds
@@ -8060,7 +8061,7 @@ each figure from the run, the file or a module constant at the precision the
 post prints it, and checks one copy of it, in six places.
 
 1. The section on how the test works: the file, the decomposition, the first
-   day, the pair count and the comparison set.
+   day, the pair count, the criterion and the comparison set.
 2. Lesson 1's counts of flips and swaps, the 251-day window listed before its
    table, the table rebuilt whole, and the two paragraphs after it.
 3. Lesson 2's two worked series, PC2's two days and their share, and the

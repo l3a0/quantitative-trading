@@ -131,7 +131,7 @@ The intercept is added to every stock’s forecast alike, so it cannot change wh
 
 ## Lesson 4: four of five passing says little
 
-The table gives each factor’s statistic, its percentile among the 579 stocks, and a Newey-West t-statistic with its p-value. A factor’s percentile is the percentage of the 579 stocks whose statistic is below its own.
+The table gives each factor’s statistic, its percentile among the 579 stocks, and a Newey-West t-statistic (Newey & West, 1987) with its p-value. A factor’s percentile is the percentage of the 579 stocks whose statistic is below its own.
 
 The Newey-West t asks whether the products fₜ fₜ₊₁ average above zero. It divides their average by how far that average would wander by chance. That distance comes from how widely the products themselves scatter, so a day with a large product widens it more than a quiet day does. Newey-West then adjusts that measure for neighbouring days. Products that move together widen it, and products that move in opposite directions narrow it. The p-value is one-sided, the chance that luck alone gives a t that large.
 

@@ -9614,9 +9614,10 @@ moves with it too, since that post quotes most of them. It also quotes what
 the write-up measured after the run, which `TestWhatThePostMeasured` in
 [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
 pins and which decides nothing. It quotes how often each factor's weights
-flip sign once each vector's largest weight is made positive, and that every
-flip left falls on a day the largest weight moves to another stock or two
-factors swap rank. Those pins also count how often they swap rank from day to
+flip sign once each vector's largest weight is made positive, and that all but
+five of those flips move the largest weight to a stock the earlier day weighed
+below zero. The five left fall on days two or more factors swap rank. Those
+pins also count how often they swap rank from day to
 day, and give the statistic on three other ways of reading tomorrow's factor return and on
 a 251-day window that still holds today's return. They read PMC's weight on
 the 113 days from 2007-08-02 to 2008-01-11 whose window holds its one large
@@ -9626,8 +9627,8 @@ statistic, which carry PC1's without PMC. Its one figure, which
 redraws, moves with them. The factor models post's Lesson 3 whiteboard
 sketch, which draws a sign flip in one day's weights changing both members of
 a pair, is schematic and draws none of these figures, and
-`uv run python -m chan.factor_models_whiteboard` redraws it. This post's two
-whiteboard sketches draw some of them. The window sketch draws PC2's statistic
+`uv run python -m chan.factor_models_whiteboard` redraws it. The PCA factor
+momentum post's two whiteboard sketches draw some of them. The window sketch draws PC2's statistic
 four ways: on tomorrow's own weights matched, with today left out, on the 251
 days that still hold today, and as the pair reads it. The rank shift sketch
 draws PMC's weight on PC1, the days PMC carries PC1, the two days' shares of
