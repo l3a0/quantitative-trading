@@ -1384,7 +1384,7 @@ class TestThePostQuotesTheRun:
         short = port.positions == SIDES["short"]
         n = len(port.positions)
         assert (
-            f"It is short on {int(short.sum()):,} of the {n:,} days, every one of the "
+            f"The port is short on {int(short.sum()):,} of the {n:,} days, every one of the "
             f"{int(up.sum())} upward jumps among them."
         ) in self.text
         other = short & ~up
