@@ -174,6 +174,7 @@ from PIL import Image
 
 from chan import commodity_seasonals as seasonals
 from chan import commodity_seasonals_whiteboard as sketches
+from chan import futures
 from chan import usdcad_tests_whiteboard as whiteboard
 from chan.commodity_seasonals_whiteboard import (
     CALENDAR,
@@ -765,7 +766,7 @@ ONE_YEAR_LABELS = [
 PLATEAU_LABELS = [
     "0",
     "Chan’s",
-    "a cliff: only Chan’s value pays",
+    "a cliff: only Chan’s value pays well",
     "likely chance",
     "0",
     "Chan’s",
@@ -1073,6 +1074,7 @@ class TestTheGifs:
             "check_coverage",
             "edge_day",
             "holiday_rows",
+            "plateau",
         )
         assert sketches.SLOWER == {
             "gasoline_editions": (250, 1800),
@@ -3329,7 +3331,7 @@ class TestThePlateauSketch:
         for kind in ("cliff", "plateau"):
             assert _stroke(scene, f"{kind}-chan").color == ACCENT
             assert _stroke(scene, f"{kind}-axis").color == MUTED
-        assert _label(scene, "a cliff: only Chan’s value pays").color == LOST
+        assert _label(scene, "a cliff: only Chan’s value pays well").color == LOST
         assert _label(scene, "likely chance").color == LOST
         assert _label(scene, "a plateau: nearby values pay too").color == GOOD
         assert _label(scene, "worth a closer look").color == GOOD
@@ -3362,11 +3364,19 @@ class TestThePlateauSketch:
             x = np.linspace(x0, x1, 400)
             assert _plateau_profit(kind, x, (x0 + x1) / 2).min() > PLATEAU_BASE
 
-    def test_it_is_built_without_the_run(self) -> None:
+    def test_it_reads_no_prices(self, monkeypatch) -> None:
+        """Schematic, so it draws with every settlement file out of reach."""
+
+        def refuse(*args, **kwargs):
+            raise AssertionError("the plateau sketch read a settlement file")
+
+        monkeypatch.setattr(seasonals, "settlements", refuse)
+        monkeypatch.setattr(futures, "settlements", refuse)
         assert _plateau().labels == PLATEAU_LABELS
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[27])
         assert "schematic and to no scale" in alt
         assert "spikes in one narrow peak at a purple dot" in alt
+        assert "falls back low" in alt
         assert "stays high well to either side of it" in alt

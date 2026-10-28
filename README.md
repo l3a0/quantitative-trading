@@ -3925,8 +3925,8 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 27. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
    where the file holds a row on the closed 25th, beside 2016.
 28. `commodity_sketch_plateau.gif`, in Further work, profit against one
-   parameter moved either way from Chan's value, as a cliff that pays only at
-   his value beside a plateau that pays around it.
+   parameter moved either way from Chan's value, as a cliff that pays well
+   only at his value beside a plateau that pays around it.
 
 All twenty-eight build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that

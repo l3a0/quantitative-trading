@@ -4098,7 +4098,7 @@ def _plateau() -> Scene:
     plateau. Schematic, so it draws no figures from the run."""
     steps: list[Stroke | Label] = []
     for (x0, x1), kind, color, head, verdict in (
-        (PLATEAU_PANELS[0], "cliff", LOST, "a cliff: only Chan’s value pays", "likely chance"),
+        (PLATEAU_PANELS[0], "cliff", LOST, "a cliff: only Chan’s value pays well", "likely chance"),
         (
             PLATEAU_PANELS[1],
             "plateau",
