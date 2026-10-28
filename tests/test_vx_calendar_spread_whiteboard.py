@@ -46,7 +46,7 @@ from chan import vx_calendar_spread_whiteboard as sketches
 from chan.calendar_spread_reversion import NUM_DAYS_END, calendar_schedule
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.roll_returns import load_strip
+from chan.roll_returns import MONTH_LETTERS, load_strip
 from chan.usdcad_tests_whiteboard import (
     HEIGHT,
     HOLD_MS,
@@ -436,9 +436,7 @@ class TestThePost:
                 assert found >= 0, (scene.slug, label)
                 at = found + len(label) + 2
 
-    def test_no_alt_text_calls_its_sketch_schematic_and_each_names_its_pace(
-        self, every
-    ) -> None:
+    def test_no_alt_text_calls_its_sketch_schematic_and_each_names_its_pace(self, every) -> None:
         one_hold, twelve_apart = (_alt(scene) for scene in every)
         for alt in (one_hold, twelve_apart):
             assert "schematic" not in alt
@@ -778,6 +776,13 @@ OTHER_SHIPPED = Shipped(
     spread_month=6,
 )
 ORDINALS = {1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth", 6: "sixth"}
+#: The counts the two alt texts spell out, the spans of the first and the boxes of the second.
+COUNTS = {4: "four", 16: "sixteen"}
+
+
+def _month_year(symbol: str) -> str:
+    """``VX-2010F`` as an alt text names it, January 2010."""
+    return f"{pd.Timestamp(int(symbol[-5:-1]), MONTH_LETTERS.index(symbol[-1]) + 1, 1):%B %Y}"
 
 
 class TestTheTwelveApartSketch:
@@ -862,6 +867,9 @@ class TestTheTwelveApartSketch:
         rank = int(near_leg_rank(contracts, calendar_schedule(contracts)).loc[shipped.day])
         assert rank == shipped.row.index(shipped.near) + 1, SHIPPED_SPEC
         for phrase in (
+            f"A row of {COUNTS[len(shipped.row)]} boxes",
+            f"one for each VX contract from {_month_year(shipped.row[0])} to "
+            f"{_month_year(shipped.row[-1])}",
             "eight solid boxes",
             "eight dashed boxes",
             "F to Z",
@@ -892,9 +900,12 @@ class TestTheTwelveApartSketch:
 
 
 class TestTheHoldAltText:
-    def test_it_says_what_the_picture_shows(self, every) -> None:
+    def test_it_says_what_the_picture_shows(self, every, hold) -> None:
         alt = _alt(every[0])
+        first, last = pd.Timestamp(hold.days[0]), pd.Timestamp(hold.days[-1])
         for phrase in (
+            f"from early {first:%B} to late {last:%B %Y}",
+            f"a row of {COUNTS[len(hold.stretches)]} thin black spans",
             "thick black bar",
             "grey bracket",
             "pale green box with a green edge",

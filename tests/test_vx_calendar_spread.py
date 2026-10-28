@@ -535,8 +535,10 @@ class TestWhatThePostQuotes:
        day in "What changes from crude oil", the 459 of 879 days in Lesson
        2's last paragraph, the 1,183 days after Lesson 4's counts, and the
        126 of 847 in the closing list.
-    2. The figures in the chart's alt text, which
-       ``tests/test_vx_calendar_spread_figures.py`` holds against the chart.
+    2. The figures in the chart's alt text.
+       ``tests/test_vx_calendar_spread_figures.py`` reads its eight bar figures
+       against the chart's labels, and its readings of the curves are
+       approximate.
     3. Chan's words and their Kindle locations, the script's name and
        commit, and the references.
     4. The numbers the two sketches print and their alt texts quote, which
@@ -676,6 +678,7 @@ class TestWhatThePostQuotes:
             f"{early.returns.index[-1].date()}, its APR is {_minus(early.apr, 6)} and its "
             f"Sharpe ratio {_minus(early.sharpe, 6)}.",
             f"B3’s last held day is {b3.last_held.date()}, the book’s printed end date",
+            f"{last_near} is the {_month(last_near)} contract.",
             f"so it reads {strip.contracts.index[-1].date()} as {last_near}’s expiry and lets go "
             f"of the pair {NUM_DAYS_END} days earlier, on {b3.last_held.date()}.",
         ]

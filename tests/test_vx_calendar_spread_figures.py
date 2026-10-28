@@ -25,7 +25,7 @@ import pytest
 from matplotlib.dates import date2num
 
 from chan import vx_calendar_spread_figures as module
-from chan.paths import FIGURES_DIR
+from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, INK, MUTED
 from chan.roll_returns import load_strip
 from chan.series import WindowCrossesScaleBreak
@@ -99,7 +99,7 @@ class TestTheFigure:
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
             "Algorithmic Trading, location 2502. Contracts from inputDataDaily_VX_20120507.mat, "
-            "saved 2012-05-08.\nB3 was picked out after the run among five rows, and no cost "
+            "saved 2012-05-08.\nB3 was picked out after the run among five readings, and no cost "
             "is charged."
         ]
 
@@ -177,7 +177,7 @@ class TestTheCumulativeReturns:
         legend = [t.get_text() for t in axes["returns"].get_legend().get_texts()]
         assert legend == [
             "B3, the held pair's ratio, each pair held in turn, ending at 75.82 percent",
-            "S, the specification, the front pair's ratio, ending at −13.56 percent",
+            "S, the plainest reading, the front pair's ratio, ending at −13.56 percent",
             "B1, the held pair's ratio, ending at 12.30 percent",
             "B2, the front pair's ratio, each pair held in turn, ending at −34.53 percent",
         ], SPEC
@@ -199,7 +199,7 @@ class TestTheCumulativeReturns:
 
     def test_the_heading_sets_b3_on_the_books_window_beside_the_book(self, axes) -> None:
         assert _title(axes["returns"]) == (
-            "Figure 5.8: each row's cumulative return, 2008-10-27 to 2012-05-07. On the book's "
+            "Figure 5.8: each reading's cumulative return, 2008-10-27 to 2012-05-07. On the book's "
             "window to 2012-04-23,\nB3's APR is 0.176952 and its Sharpe ratio 1.475658, where "
             "the book prints 17.7 percent and 1.5."
         ), SPEC
@@ -271,9 +271,19 @@ class TestTheRowsBeforeOctober2008:
         labels = [t.get_text() for t in axes["before"].texts]
         assert labels == ["−2.8", "20.4", "−1.9", "−7.4", "−4.0", "3.3", "−11.3", "17.3"], SPEC
 
+    def test_the_posts_alt_text_quotes_each_bar_label(self, axes) -> None:
+        """The alt text reads the eight labels as pairs, before and then from 2008-10-27."""
+        labels = [t.get_text() for t in axes["before"].texts]
+        post = (REPO_ROOT / "blog" / "vx-calendar-spread-lessons.md").read_text(encoding="utf-8")
+        quoted = (
+            f"S shows {labels[0]} and {labels[4]} percent, B1 {labels[1]} and {labels[5]}, "
+            f"B2 {labels[2]} and {labels[6]}, and B3 {labels[3]} and {labels[7]}."
+        )
+        assert post.count(quoted) == 1, SPEC
+
     def test_the_heading_names_the_windows_and_the_claim(self, axes) -> None:
         assert _title(axes["before"]) == (
-            "Each row's APR before October 2008, from its first held row (2006-11-10 at the "
+            "Each reading's APR before October 2008, from its first held day (2006-11-10 at the "
             "earliest) to 2008-10-24,\nbeside its APR from 2008-10-27. Only B3 does worse "
             "before, as the book says of its rule."
         ), SPEC
