@@ -319,7 +319,8 @@ class TestTheGifs:
 
     def test_both_sketches_build_slowly_and_hold_twelve_seconds(self, every) -> None:
         """Each label and tint alone for 0.9 s and the drawing for 12 s, the
-        equity post's slow pace, in both sketches."""
+        equity post's slow pace, in both sketches. A one-letter box label keeps
+        the usual pace, and only the Lesson 4 sketch has any."""
         from chan import equity_seasonals_whiteboard as equity
 
         assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
@@ -331,16 +332,38 @@ class TestTheGifs:
         for scene in every:
             frames = sketch_timeline(scene)
             labels = [
-                f
+                (f, scene.steps[f.done - 1].text)
                 for f in frames[:-1]
                 if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
             ]
-            assert labels, scene.slug
-            assert {f.ms for f in labels} == {sketches.PACED_LABEL_MS}, scene.slug
+            words = [f for f, text in labels if len(text) > 1]
+            letters = [f for f, text in labels if len(text) == 1]
+            assert words, scene.slug
+            assert {f.ms for f in words} == {sketches.PACED_LABEL_MS}, scene.slug
+            assert {f.ms for f in letters} <= {whiteboard.LABEL_MS}, scene.slug
+            assert len(letters) == (16 if scene.slug == "twelve_apart" else 0), scene.slug
             assert [(f.done, f.partial) for f in frames] == [
                 (f.done, f.partial) for f in timeline(scene)
             ], scene.slug
             assert frames != timeline(scene), scene.slug
+
+    def test_the_lesson_4_sketch_reaches_its_point_within_15_seconds(self, every) -> None:
+        """The letters key, the finished ring and the far leg's label appear at
+        9.2 s, 12.1 s and 14.8 s, and the loop runs 28.6 s, because the 16 box
+        letters keep the usual 0.35 s each rather than the slow 0.9 s."""
+        twelve_apart = every[1]
+        frames = sketch_timeline(twelve_apart)
+        starts = np.cumsum([0] + [f.ms for f in frames[:-1]])
+
+        def finished(test) -> int:
+            """When the step ``test`` picks first shows complete, in ms."""
+            k = next(i for i, s in enumerate(twelve_apart.steps) if test(s))
+            return int(next(t for t, f in zip(starts, frames, strict=True) if f.done > k))
+
+        key = finished(lambda s: isinstance(s, Label) and s.text.startswith("letters are"))
+        ring = finished(lambda s: getattr(s, "gid", None) == "near")
+        far = finished(lambda s: isinstance(s, Label) and s.text.startswith("far:"))
+        assert (key, ring, far, sum(f.ms for f in frames)) == (9200, 12100, 14800, 28600)
 
     def test_an_unpaced_scene_keeps_the_usual_pace(self, every, monkeypatch) -> None:
         monkeypatch.setattr(sketches, "PACED", ())
