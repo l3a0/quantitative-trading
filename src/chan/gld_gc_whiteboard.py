@@ -1,4 +1,4 @@
-"""Whiteboard sketches for the long GLD, short gold futures post, one for its opening and one for Lesson 4.
+"""Whiteboard sketches for the GLD and gold futures post, one for its opening and one for Lesson 4.
 
 ``blog/gld-gc-lessons.md`` makes two claims a sentence has to build in the
 reader's head: owning the metal and shorting its future cancels the spot
@@ -27,11 +27,11 @@ places each right after the paragraph it draws.
 
 The first sketch is schematic and carries no figures. Its arrows and
 strikes draw the algebra of the post's sentence, which holds whatever the
-returns are. The second is schematic apart from its last line. Its price,
-its days and the width of the gap between its ticks are made up to show a
-shape, and the gap is drawn far wider than 150 minutes of a day would be. Its
-words are the supposition the post tests and rejects, which is why the GC
-tick is dashed and its label opens on "if". Its last line reads the bound,
+returns are. The second is schematic apart from its last line. Its price
+and its days are made up to show a shape, and the gap between its ticks is
+drawn about twice as wide as 150 minutes of a day would be. Its words are
+the supposition the post tests and rejects, which is why the GC tick is
+dashed and its label opens on "if". Its last line reads the bound,
 0.001775, from :attr:`chan.gld_gc.Identity.gap_share` on the committed files
 through :class:`Bound`, and the minutes from that share of a 24-hour day.
 

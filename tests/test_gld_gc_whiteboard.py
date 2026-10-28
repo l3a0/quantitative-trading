@@ -229,11 +229,15 @@ class TestTheLabelsStayClearOfTheLines:
     def test_every_label_and_title_clears_every_stroke(self, every, monkeypatch, fallback) -> None:
         """Every label clears every stroke, except that each strike crosses the
         spot return it strikes out. Leaving the strikes out, every label clears
-        the rest. Leaving the struck labels out, every label left clears the
-        strikes too."""
+        the rest. Keeping one strike and leaving out only the label it strikes,
+        every other label, the other spot return included, clears it too."""
         _font(monkeypatch, fallback)
         for scene in every:
-            for part in (_without(scene, gids=STRUCK), _without(scene, texts=STRUCK.values())):
+            parts = [_without(scene, gids=STRUCK)] + [
+                _without(scene, gids=set(STRUCK) - {gid}, texts={text})
+                for gid, text in STRUCK.items()
+            ]
+            for part in parts:
                 found = clearances(part)
                 assert set(found) == {*part.labels, part.title}
                 for text, pixels in found.items():
@@ -505,6 +509,27 @@ class TestTheRollLeftSketch:
             STRUCK.values()
         )
 
+    def test_each_strike_comes_after_the_term_it_strikes_and_before_what_is_left(
+        self, every
+    ) -> None:
+        scene = every[0]
+        order = [getattr(s, "gid", None) or s.text for s in scene.steps]
+        for gid, text in STRUCK.items():
+            assert order.index(text) < order.index(gid) < order.index("left"), gid
+        assert order.index("− roll return") < order.index("strike-own")
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(every[0])
+        for phrase in (
+            "A green arrow pointing up",
+            "a red arrow pointing down",
+            "with the two spot returns one above the other",
+            "A black slash then strikes out each spot return",
+            "A brown arrow points down from the roll return",
+            "a green check mark",
+        ):
+            assert phrase in alt, phrase
+
     def test_the_brown_arrow_runs_from_the_roll_return_down_to_what_is_left(self, every) -> None:
         scene = every[0]
         arrow = _stroke(scene, "left")
@@ -639,6 +664,26 @@ class TestTheTwoMovesSketch:
             assert (brace.x.min(), brace.x.max()) == pytest.approx((start, end))
             assert brace.y.max() <= _stroke(scene, f"gc-{day}").y.min()
             assert np.interp(end, x, y) > np.interp(start, x, y) + 0.2, day
+
+    def test_the_gap_is_drawn_about_twice_its_share_of_a_day(self, bound) -> None:
+        """A day runs from one day's tick to the same tick the next, so the
+        drawn gap's share of it against 150 minutes' share of 24 hours is the
+        "about twice" the alt text and the module docstring say."""
+        drawn = (GLD_AT - GC_AT) / (sketches.DAY_X0[1] - sketches.DAY_X0[0])
+        assert round(drawn / (bound.caveat_minutes / 1440)) == 2
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(every[1])
+        for phrase in (
+            "A wiggly brown line, gold’s price, runs across two days",
+            "a dashed grey tick stands where GC would be recorded",
+            "a solid black tick a little later stands where GLD is recorded",
+            "drawn about twice as wide as two and a half hours of a day would be",
+            "A brown brace under each day spans the gap between its two ticks, "
+            "where the price rises",
+            "a green check mark",
+        ):
+            assert phrase in alt, phrase
 
     def test_the_day_names_sit_in_their_days(self, every) -> None:
         scene = every[1]
