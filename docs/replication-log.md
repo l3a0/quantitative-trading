@@ -8341,7 +8341,7 @@ registered test of the drift reading and cannot confirm it.
 | 3 | +0.094600 | did not reproduce | 0.122100 lies far outside 243 to 307 of 10,000. So the second test this file carries does not give the script's comment on Chan's own file. Row 6 is the one test found to land it. |
 | 4 | +0 | reproduced | No draw of 100,000 reaches the observed mean, so the rule-of-three bound puts the p-value below 3e-05 at 95 percent. |
 | 5 | none | none, a finding | The count cannot fail, so it cannot reproduce anything. It is 0 because no draw writes to `pos_sim`, not because of any property of TU. |
-| 6 | none | none, not a replication | 277 lies inside the script's 243 to 307. Nothing in the script applies the observed positions to simulated returns, and the file has one commit, so the match is numerical rather than recovered history. |
+| 6 | none | none, not a replication | 277 lies inside the script's 243 to 307. Nothing in the script applies the observed positions to simulated returns, and the public copy holds the file in one commit, so nothing shows how the comment was made. |
 | 7 | none | none, not a replication | Removing the skewness and kurtosis moves the count little, 1,165 against 1,221. |
 | 8 | none | none, not a replication | Removing the drift takes the count from 1,221 to 19, close to the 0.001677 one-sided tail of row 1's Gaussian statistic. |
 

@@ -87,8 +87,8 @@ that input alone.
 
 1. The observed positions applied to the simulated returns, which is the test
    the scratch run found to match the script's 0.027500. Nothing in the
-   script does this, and the file has one commit, so the match is numerical
-   rather than recovered history.
+   script does this, and EpchanPreview holds the file in one commit, so
+   nothing shows how the comment was made.
 2. A normal draw with TU's mean and ``std``, which removes the skewness and
    kurtosis location 674 credits.
 3. The declared draws less their target mean, which removes the drift. Only
