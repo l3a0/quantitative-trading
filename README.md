@@ -7510,7 +7510,9 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_opening_gap.py](tests/test_opening_gap.py), or to
 [tests/test_opening_gap_figures.py](tests/test_opening_gap_figures.py) for the
-figure's own numbers. The 100, 90 and 120 of its worked day are the synthetic
+figure's own numbers, or to
+[tests/test_opening_gap_whiteboard.py](tests/test_opening_gap_whiteboard.py)
+for the sketches'. The 100, 90 and 120 of its worked day are the synthetic
 day `TestTheRules::test_the_literal_return_fades_the_jump` holds. The port's
 figures, its 1,718 short days and its never holding a long trace to
 `TestChansPythonPort`. A save a week later moving the APR at the fourth
@@ -7582,6 +7584,38 @@ uv run python -m chan.opening_gap_figures
 [tests/test_opening_gap_figures.py](tests/test_opening_gap_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the regime
 map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/opening_gap_whiteboard.py](src/chan/opening_gap_whiteboard.py) on
+the USD.CAD post's sketch machinery. Both sit in Lesson 1, each after the
+paragraph it draws.
+
+1. `opening_gap_sketch_two_signs.gif`, the worked day: a long day falling
+   from an open of 100 to a close of 90, and a short day rising from 100 to
+   120, on one price scale, with what the literal and momentum readings pay
+   on each, +10% and −10% for the long and +20% and −20% for the short.
+2. `opening_gap_sketch_port_never_long.gif`, the script's zones beside the
+   port's. Both cross the same two levels, and the port's short zone runs
+   from the lower level past the top of its long zone, which is redrawn as
+   short. Its foot prints the port's 0 long days, its 1,718 short days and
+   the 278 upward jumps it sold.
+
+The first is schematic and carries no figure from the data: its prices are
+the worked day, and its returns come from `daily_returns` on that day. The
+second's levels and zones are schematic, and its counts come from the run,
+through `read_sources` and `python_port`. Both build more slowly than the
+USD.CAD post's sketches and hold their finished drawings for twelve seconds,
+because each carries more than that pace lets a reader take in. Both draw in
+the shared inks, as the post's chart does. Redraw both with:
+
+```bash
+uv run python -m chan.opening_gap_whiteboard
+```
+
+[tests/test_opening_gap_whiteboard.py](tests/test_opening_gap_whiteboard.py)
+holds what each draws, that the worked day's returns are `daily_returns`'
+and its arrows sit on one price scale, that the port's counts are the run's,
+and that each GIF follows its paragraph in the post.
 
 [blog/pca-factor-momentum-lessons.md](blog/pca-factor-momentum-lessons.md) is
 a forty-first post, about whether the five statistical factors Example 7.4

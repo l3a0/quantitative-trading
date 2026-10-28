@@ -8989,6 +8989,25 @@ change to any assertion named above moves this entry in the same commit, and
 since that post quotes most of these figures. So does its one figure, which
 `uv run python -m chan.opening_gap_figures` redraws.
 
+The post also carries two whiteboard sketches, both in Lesson 1, added in the
+first round of its review before publishing.
+
+1. **One day, two signs**, after the paragraph on a long day. It draws the
+   post's worked day, a long day falling from 100 to 90 and a short day
+   rising from 100 to 120, with the literal reading earning +10% and +20%
+   and the momentum reading −10% and −20%. It is schematic and carries no
+   figure from the data.
+2. **Why Chan’s Python port never holds a long**, after the paragraph on
+   the port. It draws the script's long, flat and short zones beside the
+   port's, whose short zone runs from the lower level past the top of the
+   long zone and wins because it is set last. Its levels and zones are
+   schematic. Its counts come from the run: long on 0 days, short on 1,718,
+   and all 278 upward jumps sold.
+
+A change to the port's counts moves the second sketch too, and
+`uv run python -m chan.opening_gap_whiteboard` redraws both through the same
+`read_sources` and `python_port`.
+
 ## Entry 41: VX against ES on VX's roll return, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
