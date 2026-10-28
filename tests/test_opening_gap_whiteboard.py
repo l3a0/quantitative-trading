@@ -516,7 +516,10 @@ class TestTheWorkedDaySketch:
         for day in worked_days():
             move = _stroke(scene, f"{day.side}-move")
             open_y, close_y = price_y(day.open, day.open), price_y(day.close, day.open)
-            assert (move.y[0], move.y[-1]) == pytest.approx((open_y, close_y))
+            # The arrow's tip is its point furthest from the open, since its
+            # two head strokes fall back towards the open after it.
+            tip = move.y[np.argmax(np.abs(move.y - open_y))]
+            assert (move.y[0], tip) == pytest.approx((open_y, close_y))
             assert set(np.round(_stroke(scene, f"{day.side}-open").y, 12)) == {round(open_y, 12)}
             lengths[day.side] = abs(close_y - open_y)
             assert (close_y - open_y) / (day.close - day.open) == pytest.approx(sketches.PER_POINT)
