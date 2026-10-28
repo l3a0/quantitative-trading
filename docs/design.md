@@ -106,11 +106,13 @@ other three figures this doc names. A figure from a source Chan cites rather
 than prints traces to
 [research/papers](../research/papers/README.md) instead, which holds the
 document whole. The *Quantitative Trading* notes are that book's 2021
-revised edition. Some chapter and page citations of it in this repo are
-first-edition, while the blog posts cite the revised edition by its Kindle
-page numbers. The *Algorithmic Trading* notes are that book's only edition,
-of 2013. The next subsection says what follows from that, because the
-two editions do not tell the same story about where these numbers come from.
+revised edition, read in the Kindle edition of its 2026 issue. Some chapter
+and page citations of it in this repo are first-edition, while the blog posts
+cite the revised edition by its Kindle page numbers, which match the 2021
+hardcover's from Chapter 1 to the index. The *Algorithmic Trading* notes are
+that book's only edition, of 2013. The next subsection says what follows
+from that, because the two editions do not tell the same story about where
+these numbers come from.
 
 A gap between the published number and the reproduction is as informative as a
 match, and often more so, because it names something the method depends on
