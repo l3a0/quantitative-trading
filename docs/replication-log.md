@@ -3518,55 +3518,57 @@ misses are normal and independent, all three years were profits with a chance
 of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
 was 41%.
 
-The post also carries twenty-six whiteboard sketches that draw this entry's run,
+The post also carries twenty-seven whiteboard sketches that draw this entry's run,
 and `uv run python -m chan.commodity_seasonals_whiteboard` redraws all
-twenty-six.
+twenty-seven.
 
 1. Each trade's entry and exit on one calendar, with Chan's count for it.
 2. Both trades' years won, split where the book's years end: 15 of 15 then 7 of
    15 for natural gas, and 16 of 18 then 3 of 8 for gasoline.
-3. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
+3. Natural gas's 2002 trade on every trading day, whose 22-point fall from
+   its 48% peak is the drawdown before 2009, inside a year that ended 40% up.
+4. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
    against the 2009 loss and the first edition's release.
-4. Gasoline's two claims, the sidebar's profit every year since 1995 ending
+5. Gasoline's two claims, the sidebar's profit every year since 1995 ending
    in 2008 before the first loss, and the main text's 19 of 21 ending in 2015
    past both losses.
-5. The range of 16 to 19 profitable gasoline years the three missing rows
+6. The range of 16 to 19 profitable gasoline years the three missing rows
    leave, with Chan's 19 at its top.
-6. Chan's years and the files' as two bars, the missing years filling the
+7. Chan's years and the files' as two bars, the missing years filling the
    gap between the files' 16 profits and Chan's 19.
-7. A straight-line guess for 1997's missing entry, with a band of one typical
+8. A straight-line guess for 1997's missing entry, with a band of one typical
    miss either side that the exit price splits.
-8. Fill 2 for 1997: June's rise across the gap carried onto May, with a band
+9. Fill 2 for 1997: June's rise across the gap carried onto May, with a band
    of fill 2's typical miss either side that the exit price splits.
-9. The April trading days narrowing to 1997's 80 test days.
-10. Fill 2's misses on the 80 test days of 1997's pattern, with their
+10. The April trading days narrowing to 1997's 80 test days.
+11. Fill 2's misses on the 80 test days of 1997's pattern, with their
    average, spread and typical miss.
-11. Each April's average miss, eight of twelve leaning low.
-12. Why a miss subtracts at an entry and adds at an exit, from 1997's missing
+12. Each April's average miss, eight of twelve leaning low.
+13. Why a miss subtracts at an entry and adds at an exit, from 1997's missing
    entry and 1998's missing exit.
-13. Each missing year's move with fill 2's guess corrected by its average
+14. Each missing year's move with fill 2's guess corrected by its average
    miss, against the spread of its misses either side.
-14. Each period's Sharpe ratio with 1.96 standard errors either side.
-15. Student's t's 95% multiplier for few results against the normal curve's.
-16. Natural gas's ±12% half-width built from its spread, count and multiplier.
-17. Each period's mean and 95% range, with each trade's earlier mean carried
+15. Each period's Sharpe ratio with 1.96 standard errors either side.
+16. Student's t's 95% multiplier for few results against the normal curve's.
+17. Natural gas's ±12% half-width built from its spread, count and multiplier.
+18. Each period's mean and 95% range, with each trade's earlier mean carried
    down past its later range.
-18. Every pairing of an earlier natural gas year with a later one, 177 of 225
+19. Every pairing of an earlier natural gas year with a later one, 177 of 225
    won by the earlier year.
-19. The pair counts luck alone gives, counted exactly, with natural gas's 177
+20. The pair counts luck alone gives, counted exactly, with natural gas's 177
    in the 0.7% of splits that land that far out.
-20. The four chances against the 5% line.
-21. Natural gas's mean after 2008 with and without 2022, against all 30
+21. The four chances against the 5% line.
+22. Natural gas's mean after 2008 with and without 2022, against all 30
    years ranked.
-22. Which numbered file holds the June contract on the entry and exit days of
+23. Which numbered file holds the June contract on the entry and exit days of
    2008 and 2006.
-23. The files handing over the day after March 1996's last trading day.
-24. Which years each check of the expiry rule reaches.
-25. 2018's entry on March's own last trading day.
-26. A holiday row in the files, at Christmas 2018, beside none in 2016.
+24. The files handing over the day after March 1996's last trading day.
+25. Which years each check of the expiry rule reaches.
+26. 2018's entry on March's own last trading day.
+27. A holiday row in the files, at Christmas 2018, beside none in 2016.
 
 [tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
-reads all twenty-six from the run, so a change to the streak counts, to a gasoline
+reads all twenty-seven from the run, so a change to the streak counts, to a gasoline
 year's result or to the expiry rule moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*

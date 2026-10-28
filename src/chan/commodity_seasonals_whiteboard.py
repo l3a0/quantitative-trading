@@ -1,9 +1,10 @@
 """Whiteboard sketches for the commodity seasonals post's opening and Lessons 1, 2, 4 and 5.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Twenty-six of its passages turn on a picture a
+trades against EIA's settlements. Twenty-seven of its passages turn on a picture a
 sentence has to build in the reader's head: when each trade buys and sells,
-how many years each won in the book's years and after, where a count of
+how many years each won in the book's years and after, how a drawdown can
+fall inside a winning year, where a count of
 profitable years starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
 missing one, what Chan's 19 needs of the missing years, how the second fill
@@ -16,7 +17,7 @@ holds its earlier mean, what the Mann-Whitney test counts, what its chance
 means, how the four chances sit against the 5% line, how one year moves
 natural gas's mean but not its ranks, which numbered file holds the June
 contract on a given day, and how the expiry rule behind it is checked. This
-module draws those twenty-six as scenes, and the post places each right after
+module draws those twenty-seven as scenes, and the post places each right after
 the paragraph it draws.
 
 1. Two trades on one calendar: natural gas's June contract from February 25
@@ -32,7 +33,13 @@ the paragraph it draws.
    gasoline,
    with the years won on each side. It sits after the opening's table of the
    periods before and after the book.
-3. Where the count starts decides where a streak ends: a year axis from 1994
+3. A 22-point fall inside a winning year: natural gas's 2002 trade, its
+   return over its entry price on each trading day from February 25 to April
+   15 as a line above a dashed 0% line, a dot at its peak, a purple bracket
+   from the peak down to the lowest mark after it for the drawdown, and a dot
+   at the exit, where the year ended a profit. It sits after the paragraph
+   opening "A year’s return is the change in the contract’s price".
+4. Where the count starts decides where a streak ends: a year axis from 1994
    to the first losing year, a dot for each profitable year and a cross for
    the loss, a note naming the trade as natural gas's June contract, a dashed
    mark for the first edition's release in November 2008, brackets above the
@@ -40,7 +47,7 @@ the paragraph it draws.
    the same counts from 1994. It sits in Lesson 1, after the list of what the
    files rule out and cannot pick, which opens
    "1. **They rule out the revised edition.**".
-4. Gasoline's two claims read as two editions: a year axis from 1995 to
+5. Gasoline's two claims read as two editions: a year axis from 1995 to
    2015 with a dot for each profitable gasoline year, a cross for each loss,
    a span under the years with no row, a dashed mark for the first edition's
    release, a purple bracket from 1995 to 2008 for the sidebar's profit every
@@ -48,92 +55,92 @@ the paragraph it draws.
    19 of 21. The sidebar's bracket ends before the first loss, and the main
    text's runs past both. It sits in Lesson 1 after the paragraph opening
    "Gasoline’s main text says 19 profitable years".
-5. Three missing rows leave a range, not a count: gasoline's years from 1995
+6. Three missing rows leave a range, not a count: gasoline's years from 1995
    to 2015 with a span under the years with no row, then a scale of counts on
    which the files allow 16 to 19 profitable years and Chan's 19 sits at the
    top. It sits in Lesson 2 after the paragraph opening "EIA’s New York
    Harbor file holds no row".
-6. Chan's 19 needs all three gaps to be profits: Chan's 21 years as one bar
+7. Chan's 19 needs all three gaps to be profits: Chan's 21 years as one bar
    of 19 profits and 2 losses, and the files' as 16 profits, 3 years with no
    row and the 2 losses of 2009 and 2012, so the missing years sit under the
    end of Chan's profits. It sits after the paragraph opening "The losses say
    more than the gaps."
-7. Interpolating turns a gap into a guess: the May gasoline contract's
+8. Interpolating turns a gap into a guess: the May gasoline contract's
    settlements around April 14, 1997, the entry day with no row, a straight
    line between the rows on either side and the guess it gives that day, and
    a band of one typical miss either side of the guess, split at the exit
    price into a part where the year is a loss and a part where it is a profit.
    It sits in the fill section, after the sentence opening "Fill 1 draws a
    straight line".
-8. Fill 2 carries June's move across the gap: May's and June's settlements
+9. Fill 2 carries June's move across the gap: May's and June's settlements
    around April 14, 1997, May as dots and June as rings, June's rise from the
    last day both files hold to the gap day, the same rise added to May's
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the sentence opening
    "Fill 2 takes May’s price on the last day before the gap".
-9. Which April days can test a fill: four bars, the April trading days from
+10. Which April days can test a fill: four bars, the April trading days from
    1994 to 2005 narrowing to 1997's test days as each check removes days,
    with how many each check removes. It sits after the sentence opening "A
    pattern that reaches back fewer days".
-10. One set of misses, three numbers: fill 2's misses on every test day of
+11. One set of misses, three numbers: fill 2's misses on every test day of
    1997's pattern, stacked as dots on a scale in cents, with the average miss
    and a bar of the spread around it, and a bar of the typical miss around
    zero. It sits after the paragraph opening "Fill 2’s misses also lean one
    way."
-11. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
+12. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
    bar from zero, with the number of test days that April. It sits after the
    paragraph opening "Test days close together".
-12. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
+13. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
    missing entry and 1998's missing exit, each with the known price, fill 2's
    guess, the guess lifted by fill 2's average miss, and brackets for the move
    with the guess and the move with the lifted guess, shorter for the entry
    and longer for the exit. It sits after the exit's derivation, which opens
    "```math".
-13. Each corrected move against fill 2's spread: for each missing year, the
+14. Each corrected move against fill 2's spread: for each missing year, the
    year's move with fill 2's guess corrected by its average miss, a bar of the
    spread of its misses either side, and each year's chance of a profit. The
    bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
    the paragraph opening "So the chance that all three years were profits".
-14. How far each Sharpe ratio can stray: the four periods of the post's
+15. How far each Sharpe ratio can stray: the four periods of the post's
    returns table, each trade before and after the book, as a dot at its
    Sharpe ratio and a bar 1.96 standard errors either side, against a dashed
    zero line. Both periods after the book reach across zero. It sits in
    Lesson 4, after the paragraph opening "For the four Sharpe ratios".
-15. Fewer results, a wider range: Student's t's 95% multiplier as a bar for
+16. Fewer results, a wider range: Student's t's 95% multiplier as a bar for
    the post's 8 and 15 later years, for 30 results and for very many, against
    a dashed line at the normal curve's 1.96. It sits in Lesson 4, after the
    general range formula, r̄ ± t × s / √n.
-16. Where ±12% comes from: natural gas's spread after 2008, divided by the
+17. Where ±12% comes from: natural gas's spread after 2008, divided by the
    root of its 15 years, times its multiplier, as three bars starting on a
    dashed line at its later mean, against a dashed line at its earlier mean.
    It sits in Lesson 4, after that trade's worked range, -0.4% ± 12.0%.
-17. One range holds the earlier mean, one does not: each period's mean and
+18. One range holds the earlier mean, one does not: each period's mean and
    95% range, with each trade's earlier mean carried down as a dashed line
    past its later bar. It sits after the paragraph opening "That range,
    −6% to +2%, leaves out".
-18. The earlier year won 177 of 225 pairs: every pairing of a natural gas
+19. The earlier year won 177 of 225 pairs: every pairing of a natural gas
    year from 1994 to 2008 with one from 2009 to 2023 as a dot in a grid,
    rows and columns sorted worst to best, blue where the earlier year did
    better and vermilion where the later year did, with a staircase along the
    edge between them. 2022's column is all vermilion. It sits after the
    paragraph opening "The Mann-Whitney test ignores".
-19. What 0.7% means: the exact chance of each count of pairs won when luck
+20. What 0.7% means: the exact chance of each count of pairs won when luck
    alone splits the years, which is what the Mann-Whitney p-value is counted
    from, with dashed lines at its middle and at the 5% line, natural gas's
    177 marked beyond them, and both tails from it shaded. It sits after the
    paragraph opening "Each test gives the chance".
-20. Four chances against the 5% line: the table's Welch and Mann-Whitney
+21. Four chances against the 5% line: the table's Welch and Mann-Whitney
    chances for both trades as dots on a percentage scale, against a dashed
    line at 5%. Only natural gas's Welch chance sits past it. It sits after
    the table of the four chances.
-21. One year moves the mean, not the ranks: natural gas's returns from 2009
+22. One year moves the mean, not the ranks: natural gas's returns from 2009
    to 2023 as dots on a percentage axis, with ticks at their mean and at
    their mean without the best year, 2022, and below them all 30 years from
    1994 to 2023 ranked worst to best, the earlier ones above a line and the
    later ones below it. A note names the two gains too close to zero for
    their side to show. It sits in Lesson 4, after the paragraph opening
    "Without 2022 the average after 2008 is −5.0%".
-22. Which file holds the June contract: the March, April, May and June natural
+23. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -141,29 +148,33 @@ the paragraph it draws.
    and June's number is how many it crosses, which its closing label says. It
    sits in Lesson 5, after the paragraph opening "For gasoline that is always
    contract 1."
-23. A handover shows when March stopped: the contract-1 and contract-2 files'
+24. A handover shows when March stopped: the contract-1 and contract-2 files'
    settlements in late February 1996, where file 1 picks up file 2's price the
    day after March's last trading day, five days before delivery, against
    where a three-day rule would put it. It sits under "Against the files’ own
    handovers", after the paragraph opening "When a contract expires".
-24. Which years each check reaches: a year axis with the files' handover fit
+25. Which years each check reaches: a year axis with the files' handover fit
    from 1994 to 2024 and the exchange's dates from 2017, where Massive's
    records begin, to 2026. It sits after the paragraph opening "Over every
    natural gas contract delivered".
-25. An entry on March's own last day: 2018's March to June contracts on a
+26. An entry on March's own last day: 2018's March to June contracts on a
    calendar of late February, where the entry line meets the end of March's
    bar, so June is contract 4. It sits under "Against the edge cases".
-26. A row in the file is not a trading day: Christmas week of 2018, where the
+27. A row in the file is not a trading day: Christmas week of 2018, where the
    contract-1 file repeats Dec 24's price on the 25th, beside 2016, where the
    closed 26th has no row. It sits after the paragraph opening "The run
    computes its own calendar".
 
-All twenty-six carry data, and none needs the owner's archive.
+All twenty-seven carry data, and none needs the owner's archive.
 The two-trades sketch reads its dates from the run's trade dates,
 :data:`chan.commodity_seasonals.NG_ENTRY` and the three beside it, and
 :meth:`SplitFigures.from_run` reads every year of both trades from
 :func:`chan.commodity_seasonals.natural_gas_trades` and
 :func:`chan.commodity_seasonals.gasoline_trades`.
+:meth:`DrawdownFigures.from_run` reads 2002's natural gas trade from
+:func:`chan.commodity_seasonals.natural_gas_trade` and its settlement on each
+trading day from :func:`chan.commodity_seasonals.daily_marks`, the marks
+:func:`chan.commodity_seasonals.max_drawdown` measures its fall on.
 :meth:`StreakFigures.from_run` reads every natural gas trade from the
 committed EIA files through :func:`chan.commodity_seasonals.natural_gas_trades`
 and counts its streaks with :func:`chan.commodity_seasonals.runs_ending`.
@@ -210,7 +221,7 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
-all twenty-six are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all twenty-seven are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
 gasoline editions, half-width and pairs sketches are in :data:`SLOWER` too,
@@ -223,7 +234,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-six with::
+with no change is a no-op diff. Redraw all twenty-seven with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -254,6 +265,7 @@ from chan.usdcad_tests_whiteboard import (
     Stroke,
     _arrow,
     _box,
+    _dot,
     _line,
     _span,
     _stroke,
@@ -562,6 +574,211 @@ def _after_book(f: SplitFigures) -> Scene:
         ),
     ]
     return Scene("Years won, in the book’s years and after", "after_book", tuple(steps))
+
+
+#: The natural gas year whose trade holds the drawdown the opening's table
+#: gives for the book's years, a fall inside a trade that still ended ahead.
+DRAWDOWN_YEAR = 2002
+
+
+@dataclass(frozen=True)
+class DrawdownFigures:
+    """What the drawdown sketch draws, read from one natural gas trade.
+
+    ``returns`` holds the trade's return over its entry price on each trading
+    day from entry to exit that the files hold a price for, as
+    :func:`chan.commodity_seasonals.daily_marks` gives them, so the first is
+    zero and the last is the year's return.
+    """
+
+    year: int
+    entry_day: date
+    exit_day: date
+    returns: tuple[float, ...]
+
+    @property
+    def fall(self) -> tuple[int, int]:
+        """The marks the largest fall runs between, its peak and its low.
+
+        A running peak starts at the entry's zero, as
+        :func:`chan.commodity_seasonals.max_drawdown` starts it, and the fall
+        is the largest drop from it to any later mark.
+        """
+        peak, best = 0, (0, 0)
+        for k, value in enumerate(self.returns):
+            if value > self.returns[peak]:
+                peak = k
+            if self.returns[peak] - value > self.returns[best[0]] - self.returns[best[1]]:
+                best = (peak, k)
+        return best
+
+    @property
+    def drawdown(self) -> float:
+        top, low = self.fall
+        return self.returns[top] - self.returns[low]
+
+    @classmethod
+    def from_run(cls, year: int = DRAWDOWN_YEAR) -> DrawdownFigures:
+        trade = seasonals.natural_gas_trade(year)
+        entry = trade.entry_price
+        return cls(
+            year=year,
+            entry_day=trade.entry_day,
+            exit_day=trade.exit_day,
+            returns=tuple(float((price - entry) / entry) for price in seasonals.daily_marks(trade)),
+        )
+
+
+#: Where the trade's marks run across the board, one mark to one step,
+#: and the heights its lowest and highest return sit at, zero included.
+DRAWDOWN_X = (0.9, 5.2)
+DRAWDOWN_Y = (1.15, 3.4)
+#: Where the bracket stands, right of the trade's last mark and its labels.
+DRAWDOWN_BRACKET_X = 7.55
+
+
+def _drawdown_x(k: int, f: DrawdownFigures) -> float:
+    """Where the ``k``-th mark sits, one mark to one step.
+
+    A trading day the files hold no price for has no mark and no step. In 2002
+    that is one day of 35, April 9, so the steps stay within a day of the
+    calendar.
+    """
+    return DRAWDOWN_X[0] + k * (DRAWDOWN_X[1] - DRAWDOWN_X[0]) / (len(f.returns) - 1)
+
+
+def _drawdown_y(value: float, f: DrawdownFigures) -> float:
+    """Where a return sits, the lowest of the returns and zero at the base."""
+    lo, hi = min(0.0, *f.returns), max(0.0, *f.returns)
+    return DRAWDOWN_Y[0] + (value - lo) * (DRAWDOWN_Y[1] - DRAWDOWN_Y[0]) / (hi - lo)
+
+
+def _whole_pct(value: float) -> str:
+    """A return in whole percent with its sign, as the post writes 48% and 40%,
+    and a typographic minus on a loss."""
+    pct = round(100 * value)
+    return f"{'+' if pct > 0 else '−' if pct < 0 else ''}{abs(pct)}%"
+
+
+def _drawdown(f: DrawdownFigures) -> Scene:
+    """The opening: one trade's return on every trading day, with the largest
+    fall inside it, which counts as a drawdown although the year ended ahead."""
+    top, low = f.fall
+    end = len(f.returns) - 1
+    xs = np.array([_drawdown_x(k, f) for k in range(len(f.returns))])
+    ys = np.array([_drawdown_y(value, f) for value in f.returns])
+    zero = _drawdown_y(0.0, f)
+    top_y, low_y, end_y = ys[top], ys[low], ys[end]
+    points = round(100 * f.drawdown)
+    final = f.returns[end]
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "zero",
+            _line([(DRAWDOWN_X[0] - 0.05, zero), (DRAWDOWN_BRACKET_X + 0.3, zero)]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Label("0%", 0.3, zero - 0.06, names="zero", color=MUTED, size=10),
+        Stroke("path", xs, ys, color=INK, width=2.4, frames=12),
+        Label(
+            f"{f.entry_day:%b} {f.entry_day.day}",
+            xs[0],
+            DRAWDOWN_Y[0] - 0.4,
+            names="path",
+            color=MUTED,
+            size=10,
+            ha="center",
+        ),
+        Label(
+            f"{f.exit_day:%b} {f.exit_day.day}",
+            xs[end],
+            DRAWDOWN_Y[0] - 0.4,
+            names="path",
+            color=MUTED,
+            size=10,
+            ha="center",
+        ),
+        Label(
+            "return over the entry price, marked each day the files hold a price",
+            0.3,
+            0.3,
+            names="path",
+            color=MUTED,
+            size=10,
+        ),
+        _dot("peak", xs[top], top_y, color=INK),
+        Label(
+            f"peak: {_whole_pct(f.returns[top])}",
+            xs[top],
+            top_y + 0.38,
+            names="peak",
+            color=INK,
+            size=11,
+            ha="center",
+        ),
+        *[
+            _stroke(
+                f"{tag}-guide",
+                _line([(xs[k] + 0.15, ys[k]), (DRAWDOWN_BRACKET_X - 0.2, ys[k])]),
+                color=MUTED,
+                dashed=True,
+                frames=4,
+            )
+            for tag, k in (("peak", top), ("low", low))
+        ],
+        _stroke(
+            "fall",
+            _vspan(DRAWDOWN_BRACKET_X, low_y, top_y, tick=0.12),
+            color=ACCENT,
+            width=2.8,
+            frames=6,
+        ),
+        Label(
+            "drawdown:",
+            DRAWDOWN_BRACKET_X + 0.25,
+            (top_y + low_y) / 2 + 0.17,
+            names="fall",
+            color=ACCENT,
+            size=11,
+        ),
+        Label(
+            f"{points} points",
+            DRAWDOWN_BRACKET_X + 0.25,
+            (top_y + low_y) / 2 - 0.17,
+            names="fall",
+            color=ACCENT,
+            size=11,
+        ),
+        _dot("end", xs[end], end_y, color=INK),
+        Label(
+            f"exit: {_whole_pct(final)}",
+            xs[end] + 0.25,
+            (top_y + low_y) / 2 + 0.165,
+            names="end",
+            color=INK,
+            size=11,
+        ),
+        Label(
+            f"a {'profitable' if final > 0 else 'losing'} year",
+            xs[end] + 0.25,
+            (top_y + low_y) / 2 - 0.165,
+            names="end",
+            color=INK,
+            size=11,
+        ),
+        Label(
+            f"{TRADE}, {f.year}",
+            9.7,
+            DRAWDOWN_Y[0] - 0.4,
+            names="path",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+    ]
+    title = f"A {points}-point fall inside a {'winning' if final > 0 else 'losing'} year"
+    return Scene(title, f"drawdown_{f.year}", tuple(steps))
 
 
 # --- Lesson 1: where the count starts ----------------------------------------
@@ -3803,6 +4020,7 @@ def _holiday_rows() -> Scene:
 PACED = (
     "two_trades",
     "after_book",
+    "drawdown_2002",
     "streak_start",
     "gasoline_editions",
     "gap_range",
@@ -3914,8 +4132,9 @@ def scenes(
     misses: MissFigures | None = None,
     narrowing: NarrowingFigures | None = None,
     split: SplitFigures | None = None,
+    drawdown: DrawdownFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The twenty-six scenes in the order the post reads them, from the opening
+    """The twenty-seven scenes in the order the post reads them, from the opening
     to Lesson 5."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
@@ -3925,9 +4144,11 @@ def scenes(
     misses = misses if misses is not None else MissFigures.from_run()
     narrowing = narrowing if narrowing is not None else NarrowingFigures.from_run()
     split = split if split is not None else SplitFigures.from_run()
+    drawdown = drawdown if drawdown is not None else DrawdownFigures.from_run()
     return (
         _two_trades(),
         _after_book(split),
+        _drawdown(drawdown),
         _streak_start(streaks),
         _gasoline_editions(gasoline),
         _gap_range(gasoline),
@@ -3972,12 +4193,15 @@ def make_commodity_seasonals_whiteboards(
     misses: MissFigures | None = None,
     narrowing: NarrowingFigures | None = None,
     split: SplitFigures | None = None,
+    drawdown: DrawdownFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, in the post's order."""
     folder = out_dir if out_dir is not None else FIGURES_DIR
     return [
         _write(scene, folder)
-        for scene in scenes(streaks, years, gasoline, guess, fill_two, misses, narrowing, split)
+        for scene in scenes(
+            streaks, years, gasoline, guess, fill_two, misses, narrowing, split, drawdown
+        )
     ]
 
 
