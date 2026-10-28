@@ -57,7 +57,9 @@ Whether any tested strategy is worth taking forward is a separate question.
 [docs/candidate-ranking.md](docs/candidate-ranking.md) ranks every one here and
 in the sibling repo by after-cost evidence on data no search had loaded,
 against a pass mark fixed before the ranking was filled in. Read at `6da0ee38`,
-none clears.
+no row passes and none is registered yet.
+[Issue 777](https://github.com/l3a0/quantitative-trading/issues/777) carries the
+rows that could still be registered.
 
 ## Status
 
