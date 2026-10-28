@@ -8399,6 +8399,27 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.tu_hypothesis_tests_figures` redraws.
 
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **The shuffled trades land in the wrong place**, in Lesson 4. It draws row
+   5's loop as boxes: the shuffled trades go into `pos`, the real positions,
+   and never reach `pos_sim`, which starts as zeros, so `ret_sim` is built
+   from a `pos_sim` of 0 and every simulated mean is 0 against the observed
+   mean of 6.626644e-05. It closes on the 10 draws run as written, each
+   returning 0.
+2. **Drift makes the rule mostly long**, in Lesson 5. It draws a noisy line
+   with TU's drift above one with the same noise and none, each under ten
+   250-day brackets ending in an arrow up where the rule is long and down
+   where it is short. It prints the shares of days the rule is long on the
+   first 1,000 of row 2's series, 0.804654 as drawn and 0.502401 with the mean
+   removed. Its two lines are schematic random walks with TU's daily mean and
+   standard deviation, not TU's closes and not row 2's series.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.tu_hypothesis_tests_whiteboard` redraws both through
+the same `read_sources`, `pearson_iv_draws` and `randomized_trades_as_written`.
+
 ## Entry 38: long GLD and short gold futures, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
