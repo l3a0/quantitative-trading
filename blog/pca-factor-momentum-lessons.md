@@ -1,4 +1,4 @@
-# Four of Example 7.4’s five statistical factors pass Chan’s momentum test, and none clears the noise
+# Four of Example 7.4’s five statistical factors pass Chan’s momentum test, and none passes a test across all five
 
 *Example 7.4’s strategy, which finds its factors by principal component analysis, assumes its factor returns persist from one day to the next. Testing that needs each day’s factor return paired with the next day’s on one day’s weights, because the weights flip sign from day to day and tomorrow’s are fitted on a window that holds today’s return. Four of the five factors pass, one symbol with two price histories decides which one misses, and no test across all five finds anything.*
 
@@ -52,7 +52,7 @@ The library’s signs are not even reproducible. On the two machines that ran th
 
 So before measuring anything, the code sets each day’s vectors by a rule that reads only the vector. It turns a vector over where needed so that its largest weight in size is positive. The rule settles the library’s choice, but it cannot keep a direction steady. When a vector’s largest weight in size moves to a stock it weighed the other way, the rule can turn the whole vector over.
 
-Comparing each day’s weights with the next day’s, on the stocks both days keep, PC1’s vector points the other way on 1 of the 752 days, PC2’s on 14, PC3’s on 6, PC4’s on 22 and PC5’s on 24. On 62 of those 67 flips, the largest weight moves to a stock the earlier day weighed the other way. The other five all fall on days two factors swap rank. Rank swaps are rare too. On 15 of the 752 days, two or more factors trade places.
+Comparing each day’s weights with the next day’s, on the stocks both days keep, PC1’s vector points the other way on 1 of the 752 days, PC2’s on 14, PC3’s on 6, PC4’s on 22 and PC5’s on 24. On 62 of those 67 flips, the largest weight moves to a stock the earlier day weighed the other way. The other five all fall on days two or more factors swap rank. Rank swaps are rare too. On 15 of the 752 days, two or more factors trade places.
 
 ### What each fix does to the statistic
 
@@ -103,7 +103,7 @@ Two series, (1, 2, 3) and (2, 0, 1), show the difference. Their products sum to 
 
 The reason is in Chan’s sentence. A factor return that keeps a steady value from one day to the next, positive day after day, is what “remain constant from the current time period to the next” describes. Subtracting the mean removes that steady part and keeps only the wiggles around it. The series (1, 1.2, 0.9, 1.1, 1.0), read one day apart, shows it. Its uncentred statistic is 0.9798, close to perfect persistence, while its ordinary correlation is −0.8, because each wiggle reverses. The uncentred form also survives a sign flip, which Lesson 1 needs, because flipping both members of every pair leaves every product and every square where it was.
 
-The price is that a few large days can carry the statistic. Every product counts by its size, so one day with large factor returns outweighs many quiet ones. PC2 shows how far that goes. Squaring a daily product drops its sign, so the sum of squares counts a day by how large its product is, whichever way it points. Two days, 2007-08-09 and 2007-08-10, hold 97.04 percent of the sum of PC2’s squared products. So this post also gives a number that counts every day alike, the share of pairs whose two members have the same sign. It is 0.5226 for PC1, 0.5146 for PC2, 0.5106 for PC3, 0.5173 for PC4 and 0.5000 for PC5, all close to a coin toss.
+The price is that a few large days can carry the statistic. Every product counts by its size, so one day with large factor returns outweighs many quiet ones. PC2 shows how far that goes. Squaring a daily product drops its sign, so the sum of squares counts a day by how large its product is, whichever way it points. Two days, 2007-08-09 and 2007-08-10, hold 97.04 percent of the sum of PC2’s squared products. Their two products have opposite signs, so on one of those days PC2’s return kept its sign into the next day and on the other it reversed. So this post also gives a number that counts every day alike, the share of pairs whose two members have the same sign. It is 0.5226 for PC1, 0.5146 for PC2, 0.5106 for PC3, 0.5173 for PC4 and 0.5000 for PC5, all close to a coin toss.
 
 ## Lesson 3: the factor return the forecast reads is the slope times the day’s singular value, and the intercept moves nothing
 

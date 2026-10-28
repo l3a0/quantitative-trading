@@ -249,7 +249,7 @@ class TestTheWords:
             assert text.get_parse_math() is False
 
     def test_nothing_wears_a_verdict_colour(self, figure) -> None:
-        """No factor clears the noise, so nothing is green or red."""
+        """No factor passes a test across all five, so nothing is green or red."""
         verdicts = {to_rgba(GOOD)[:3], to_rgba(LOST)[:3]}
         assert to_rgba(figure.patch.get_facecolor())[:3] not in verdicts
         for ax in figure.axes:

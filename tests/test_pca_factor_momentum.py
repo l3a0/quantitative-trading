@@ -351,7 +351,12 @@ def weights(pca_factor_momentum_run) -> WeightStatistics:
 
 
 class TestWhatThePostMeasured:
-    """Numbers ``blog/pca-factor-momentum-lessons.md`` quotes that no row of Entry 42 declared.
+    """Numbers measured after the run that no row of Entry 42 declared.
+
+    ``blog/pca-factor-momentum-lessons.md`` quotes most of them. The rest, such
+    as the 753 decompositions, the control row's other four factors and each
+    gap between a factor and its nearest stock, back sentences the post writes
+    in words rather than figures.
 
     Every number in this class was measured after the run, on the same vintage
     and specification as :data:`SPEC`, and decides nothing. None of them moves

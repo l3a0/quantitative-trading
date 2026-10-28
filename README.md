@@ -8003,11 +8003,15 @@ Four groups of what it says are not pinned here.
    out in Lesson 3, that the positions chosen on day t earn day t + 1's
    return, 5/√70 written as positive, 1.8654 written as 186.54 percent, a
    fifth of 5 percent written as 0.01, the same-sign shares called close to a
-   coin toss, that Newey-West's adjustment for neighbouring days widens the
+   coin toss, that PC2's −0.1105 on tomorrow's own weights would fail
+   outright, that of the sign, the rank and the window only leaving today's
+   return out moves a factor across 0, putting PC2 and PC4 back above it,
+   that a test on the regression's printed coefficient would weight each day
+   by 1/sₖ², that Newey-West's adjustment for neighbouring days widens the
    measure when their products move together and narrows it when they move
    in opposite directions, that 2007-08-09 and 2007-08-10 are what put PC2
-   outside the band, and that the window's effect on PC2 is not explained. The figure's alt text reads its
-   curve approximately too.
+   outside the band, and that the window's effect on PC2 is not explained.
+   The figure's alt text reads its curve approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8044,7 +8048,10 @@ no pin before it, all measured after the run.
    without.
 6. The two days, 2007-08-09 and 2007-08-10, holding 0.9704 of the sum of
    PC2's squared products.
-7. The steady series' 0.9798 uncentred against −0.8 centred.
+
+`TestTheRules` holds Lesson 2's two worked series, the pair 1, 2, 3 and 2, 0, 1
+at 5/√70 uncentred against −0.5 centred, and the steady series 1, 1.2, 0.9,
+1.1, 1.0 at 0.9798 uncentred against −0.8 centred.
 
 Its one figure is drawn from the committed file by
 [src/chan/pca_factor_momentum_figures.py](src/chan/pca_factor_momentum_figures.py),

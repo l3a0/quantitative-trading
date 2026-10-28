@@ -24,8 +24,9 @@ the post and chose this figure, with two panels.
 
 The first panel draws the verdicts' figures, and the second figures measured
 after the run, which decide nothing. Neither uses the green or the red other
-figures here give a verdict, because no factor clears the noise. The title
-calls the test exploratory and the note says the file holds only survivors.
+figures here give a verdict, because no factor passes a test across all
+five. The title calls the test exploratory and the note says the file holds
+only survivors.
 
 Every value comes from one :class:`chan.pca_factor_momentum.Results` and one
 :class:`chan.pca_factor_momentum.WeightStatistics`, so the figure can only be
