@@ -51,7 +51,7 @@ Each trade happens once a year, so each of the table’s four periods, two for e
 
 ## The two trades and the files
 
-A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 184 and 185). The run, this post’s code, exits the natural gas trade at the close, a choice Further work returns to. A year is **profitable** when the exit settlement is strictly above the entry settlement.
+A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 184 and 185). The run, this post’s code, exits the natural gas trade at the close. Further work lists every parameter of the two trades and what varying each would take. A year is **profitable** when the exit settlement is strictly above the entry settlement.
 
 Every passage quoted here is in the revised edition of 2021. The first edition matters to Lesson 1. Wiley released it in November 2008 and dated it 2009.
 
@@ -447,37 +447,58 @@ Four habits follow from the first four lessons.
 
 ## Further work
 
-Seven checks would take this replication further. The first three each move a rule the run fixed, so they belong to one search, under one written list of variants and one pass mark. The other four test the record from other sides.
+Each trade is fixed by six parameters, five from Chan’s rules and one the run chose.
 
-### Nearby entry and exit dates
+1. **The entry date**, April 13 for gasoline and February 25 for natural gas.
+2. **The exit date**, April 25 for gasoline and April 15 for natural gas.
+3. **The time of day**, the close.
+4. **The delivery month**, May for gasoline and June for natural gas.
+5. **The rule for a closed date**, which enters on the next trading day and exits on the previous one.
+6. **The position size**, one contract’s entry value each year. This is the run’s choice.
 
-Chan suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). Varying the dates until some version works is a search across many trades, and the best of many looks profitable by chance alone. So running the check fairly needs three safeguards.
+Varying each one is a check of its own, and a seventh adds a parameter the rules lack, a stop. Three more checks test the record without changing the trade.
 
-1. **The variants.** Every pair of entry and exit dates within a set range of Chan’s, counted in trading days so each one lands on a day the exchange is open, written down before any is computed.
-2. **The pass mark.** It gets stricter the more pairs the search tries. Neighbouring dates share most of their holding period, so their results rise and fall together, and the pass mark has to stay valid when they do.
+### One search across every parameter
+
+Chan suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The same question applies to every parameter above. Varying them until some version works is a search across many trades, and the best of many looks profitable by chance alone. So the search needs three safeguards, shared by every variant below.
+
+1. **The variants.** Every value of every parameter to be tried, written down before any is computed.
+2. **The pass mark.** It gets stricter the more variants the search tries. Neighbouring variants overlap, such as two pairs of dates that share most of their holding period, so their results rise and fall together, and the pass mark has to stay valid when they do.
 3. **The held-back years.** The New York Harbor gasoline file begins in January 1985, and nothing here has read its Aprils before 1994, so 1985 to 1993 give nine years the search would never see, though Chan may have seen them. Every natural gas year in EIA’s files is already used, so its held-back years would have to come after 2023, which the files do not reach.
 
-The check asks whether the neighbourhood of Chan’s dates holds up, not which neighbour does best.
+The search asks whether the neighbourhood of Chan’s rules holds up, not which neighbour does best.
 
-### Other times of day
+### Entry and exit dates
+
+Each date moves within a set range of Chan’s, counted in trading days so each one lands on a day the exchange is open. Moving both dates also changes how long the trade is held, so a range wide enough to matter for gasoline’s twelve calendar days can put its entry after its exit.
+
+### Time of day
 
 Every entry and exit in the run is a settlement price. Chan names no time of day for the natural gas exit, so the close there is the run’s own choice. Trading at the open or at a set hour instead needs prices from inside the day, and EIA’s files hold one price a day for each contract. The run holds no prices from inside the day for these contracts, and whether any source reaches back to the 1990s is unmeasured.
 
+### Delivery month
+
+If seasonal demand drives the gain, a neighbouring delivery month bought and sold on the same dates should share it. If only Chan’s month shows the gain, chance is the likelier cause. EIA’s files hold four contracts at a time, which reach the June gasoline contract and the May natural gas contract on every entry and exit date from 1994 to 2023, so this check needs no new data.
+
+### The rule for a closed date
+
+Chan’s rule keeps a trade inside his dates whenever one falls on a weekend or a holiday. The alternatives move it outward, entering on the trading day before and exiting on the one after, or move both dates to the nearest trading day. A rule that only matters in some years can still change which of those years win, and the change is a variant like any other.
+
+### Position size
+
+Each year stakes one contract’s entry value, so every year counts equally in the mean. A trader might size each year by how much the contract has been moving, which weights calm years more than wild ones. Sizing changes the mean return, the Sharpe ratio and the drawdown, but never which years won.
+
 ### A stop that ends a trade early
 
-Natural gas’s 2002 trade, the drawdown example under the record, fell 22 points from its peak and still ended the year ahead. A rule that sells once a trade falls a set amount from its peak caps a fall like that. The price is selling some trades that would have recovered, as 2002’s did. Each level of stop tried is one more variant on the same list as the dates and times.
+Natural gas’s 2002 trade, the drawdown example under the record, fell 22 points from its peak and still ended the year ahead. A rule that sells once a trade falls a set amount from its peak caps a fall like that. The price is selling some trades that would have recovered, as 2002’s did. Each level of stop tried is one more variant.
 
 ### Costs
 
-Every return in the run is before costs. A commission is small next to a futures contract’s value, so the larger unknown is slippage, the gap between the settlement price and the price an order actually gets. Measuring it needs the same prices from inside the day that other times of day need. Costs only lower a return, so they cannot rescue either trade after the book. What they could change is how much the book’s years paid.
+Every return in the run is before costs. A commission is small next to a futures contract’s value, so the larger unknown is slippage, the gap between the settlement price and the price an order actually gets. Measuring it needs the same prices from inside the day that the time of day needs. Costs only lower a return, so they cannot rescue either trade after the book. What they could change is how much the book’s years paid.
 
 ### The three missing gasoline rows
 
 Lesson 2 leaves Chan’s gasoline count between 16 and 19 because EIA’s file holds no row on three dates. A second vendor with settlements on those dates would settle the count without guessing a price. Settlement prices come from the exchange, so the vendor should agree with EIA on every day both hold, which checks the vendor before its three prices are trusted.
-
-### Neighbouring delivery months
-
-Each trade names one contract, May for gasoline and June for natural gas. If seasonal demand drives the gain, a neighbouring delivery month bought and sold on the same dates should share it. If only Chan’s month shows the gain, chance is the likelier cause. EIA’s files hold four contracts at a time, which reach the June gasoline contract and the May natural gas contract on every entry and exit date from 1994 to 2023, so this check needs no new data.
 
 ### The demand behind each trade
 
