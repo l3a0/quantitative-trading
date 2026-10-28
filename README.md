@@ -7871,15 +7871,15 @@ Five groups of what it says are not pinned here.
    things seen before the ruin ruling. Entry 45 of the replication log records
    each.
 3. Readings no test asserts: that the Fama-French model ties return to beta,
-   size and book-to-price ratio, that growth at the Kelly leverage is the
-   cash rate plus half the Sharpe ratio squared, which the Kelly post
-   derives, that full-sample Kelly leverage gives a portfolio the highest
-   growth the formula allows, that levering a portfolio k times multiplies
-   its beta by k, that the low fifth's 1.0132 and 0.4457 make the low fifth
-   look better, that the numerator of k moved within a narrow band, that
-   2000 to 2007 were past prices when the book printed the claim, and that
-   leaving out high-beta stocks that left the index would flatter the high
-   side, which is a hypothesis.
+   market capitalisation and book-to-price ratio, that growth at the Kelly
+   leverage is the bill rate plus half the Sharpe ratio squared, which the
+   Kelly post derives, that full-sample Kelly leverage gives a portfolio the
+   highest growth the formula allows, that levering a portfolio k times
+   multiplies its beta by k, that the low fifth's 1.0132 and 0.4457 make the
+   low fifth look better, that the numerator of k moved within a narrow band,
+   that 2000 to 2007 were past prices when the book printed the claim, and
+   that leaving out high-beta stocks that left the index would flatter the
+   high side, which is a hypothesis.
 4. Figures the post states in words or rounds from pinned ones, such as more
    than twice the high fifth's Sharpe ratio, both 2000 formations near 0.15,
    and −1.44 percent for the line of −0.0144. The worked examples that gloss

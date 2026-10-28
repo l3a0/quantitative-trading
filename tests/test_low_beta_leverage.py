@@ -833,9 +833,12 @@ class TestTheRun:
         assert "2007-09-28        495    99    0.6462     1.4847   2.2977" in out
         assert "36 low and 186 high stock-months of 15816" in out
         assert "quite wary of using too much leverage" in out
-        assert "about survivors" in out
+        assert "so every figure above drawn from the stocks is about survivors." in out
         assert "amendment of 2026-10-11" in out
-        assert "It is not a holdout" in out
+        assert (
+            "It is not a holdout: 2000 to 2007 were past prices by the time the book printed the "
+            "claim."
+        ) in out
 
 
 # --- the rule, on frames built by hand -----------------------------------------
