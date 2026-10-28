@@ -188,7 +188,7 @@ Ranked by t after costs. Every Sharpe ratio converts to t over its span in
 | Entry 50, Khandani-Lo at the open, S&P 400 | 3.4533, t 3.4464. Then 0.4884, t 0.4874 | no, 2006 | in Entry 50's 6 | the S&P 400 from its 1991 launch, outside 2006 and 2016 on | as Entry 44 | no estimate | one day, daily | needs 113.36 of 23.45 years |
 | Entry 50, the rebuilt S&P 600 at the close | 3.5194, t 3.5124. Then 0.0575, t 0.0574 | no, 2006 | in Entry 50's 6 | as Entry 44 | as Entry 44 | no estimate | one day, daily | far short |
 | Entry 44, Chan's S&P 600 file at the close | 3.4086, t 3.4018. Then −0.3255 | no, 2006 | in Entry 44's 2 | as Entry 44 | as Entry 44 | no estimate | one day, daily | negative after costs |
-| Sibling, volatility premium, SPY 0.25Δ short call, delta-hedged | Sharpe 0.52 (`docs/vol_premium.md:209`) and Newey-West t +2.54 gross. t −0.35 at 5 bp (`docs/vol_premium.md:147-148`) | no, exploratory | in the 20 | SPY chains from their 2005-01-10 listing to 2007-12-31, if bought. The sibling's early walk-forwards trained on 2008 on | the doc names an index correlation risk premium (`docs/vol_premium.md:178-180`). Why not a fund: not stated | not stated. t falls below zero between 2 bp and 5 bp | 30 days to expiry, about 11 cycles a year | negative after costs |
+| Sibling, volatility premium, SPY 0.25Δ short call, delta-hedged | Sharpe 0.52 (`docs/vol_premium.md:209`) and Newey-West t +2.54 gross. t −0.35 at 5 bp (`docs/vol_premium.md:147-148`) | no, exploratory | in the 20 | SPY chains from their 2005-01-10 listing to 2007-12-31, if bought. The sibling's first SPY walk-forward trained on chains from 2008 onward | the doc names an index correlation risk premium (`docs/vol_premium.md:178-180`). Why not a fund: not stated | not stated. t falls below zero between 2 bp and 5 bp | 30 days to expiry, about 11 cycles a year | negative after costs |
 | Entry 50, S&P 400 at the close | 2.0338, t 2.0298. Then −1.4524 | no, 2006 | in Entry 50's 6 | as Entry 50 | as Entry 44 | no estimate | one day, daily | negative after costs |
 | Entry 8, Khandani-Lo at the close, S&P 500 | 0.2510, t 0.2505. Then −3.2337 | no, the book's 2006 | 1 | as Entry 10 | as Entry 10 | no estimate | one day, daily | negative after costs |
 
@@ -303,7 +303,8 @@ except six kinds.
    same span. That covers the structure campaign and the LLM proposer under the
    generative cell, Entry 37 under Entry 33, the SPY legs of the straddle and
    put wing under their IWM legs, and Gap G's 1.01 under its 1.54.
-2. A figure that is not a return, the factor panel's coefficient.
+2. A figure that is not a return, or has no t: the factor panel's coefficient,
+   and the exit, sizing and random-entry studies' expectancy in R.
 3. A figure from simulated rather than traded prices, the proxy covered call.
 4. A row that fails on cost by arithmetic, the volume-profile reversal.
 5. The QQQ wheel's hedged companion, whose hedge is charged nothing and whose
@@ -400,8 +401,8 @@ ranking's.
    1994-10-28 to 2004-01-14, lies almost wholly inside it, and so do the last
    five years of Entry 10's. A pass on those years would say little about
    trading the rule now. Excluding Khandani and Lo's years decides Entry 44.
-   Entry 10 keeps 27.99 years before 1995, enough for every one of its
-   readings, so it turns on Lo and MacKinlay's sample too, which this ranking
+   Entry 10 keeps 27.99 years before 1995, enough for each of its five rows
+   that wait on data, so it turns on Lo and MacKinlay's sample too, which this ranking
    has not checked.
    `TestTheScreen::test_khandani_and_los_sample_alone_leaves_entry_10_its_years`
    pins it. The method excludes only

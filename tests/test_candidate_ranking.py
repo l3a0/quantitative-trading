@@ -279,9 +279,9 @@ NATURAL_GAS = ((date(1990, 4, 3), date(1993, 12, 19)), (date(2024, 4, 6), SPAN_E
 #: Gasoline before Entry 11's fill test reads April 1994, in a committed EIA file.
 GASOLINE = ((date(1985, 1, 2), date(1994, 3, 31)), (date(2024, 4, 6), SPAN_END))
 #: Option chains before the sibling's first search day, to be bought. SPY's
-#: options listed in January 2005. The sibling's early SPY walk-forwards, at
-#: b440deb and 71a372c, trained on chains from 2008-01-02, before the era clip
-#: arrived. It fetched IWM's from 2010-12-01. IWM's span starts at the fund's
+#: options listed in January 2005. The sibling's SPY walk-forward at b440deb
+#: trained on chains from 2008-01-02, before the era clip arrived. It fetched
+#: IWM's from 2010-12-01. IWM's span starts at the fund's
 #: launch, an upper bound for its options.
 SPY_CHAINS = ((date(2005, 1, 10), date(2007, 12, 31)),)
 IWM_CHAINS = ((date(2000, 5, 26), date(2010, 11, 30)),)
