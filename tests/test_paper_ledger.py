@@ -4,13 +4,18 @@ Almost everything here runs on a fake lake built in this file, because CI
 installs no extra and so never has ``marketlake``'s package. The fake hands
 over quote rows and closes the way :class:`chan.paper_ledger.MarketLake` does,
 so every rule the ledger enforces is exercised with no lake at all.
+``TestMarketLake`` drives :class:`chan.paper_ledger.MarketLake` itself through
+a stand-in for that package, so its error paths run in CI too.
 
 ``TestTheLake`` is the exception. It reads a real lake through ``marketlake``'s
 package and skips, with a reason, wherever that package is not installed or no
-lake root is configured. Its vintage is the 86 partitions the run checks
-against ``marketlake``'s ``manifest.jsonl``, pinned as one digest of their
-names and sha256s, so a lake that restated any of them fails the pin rather
-than moving its numbers quietly.
+lake root is configured. Its input is the 86 partitions the run checks against
+``marketlake``'s ``manifest.jsonl``. They are not a vintage, because nothing in
+this repo commits them, so the pin holds them as one digest of their names and
+sha256s, and a lake that restated any of them fails it rather than moving the
+numbers quietly. These are the only figures from the twenty-session run that
+any tracked file holds, and issue 775 records why they sit here rather than
+nowhere.
 
 The placeholder strategy claims no edge, and nothing here tests that it pays.
 """
@@ -21,6 +26,7 @@ import hashlib
 import importlib.util
 import io
 import sys
+import types
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -377,6 +383,213 @@ class TestTheCommand:
         monkeypatch.setattr(pl, "MarketLake", lambda root: lake)
         assert pl.run(DAYS[2], DAYS[4], tmp_path, out=io.StringIO()) == 1
         assert pl.run(DAYS[2], DAYS[3], tmp_path, out=io.StringIO()) == 0
+
+
+class _Table:
+    """The two methods of a ``pyarrow.Table`` that ``MarketLake`` calls."""
+
+    def __init__(self, rows: list[dict]):
+        self.rows = rows
+
+    def column(self, name):
+        values = [r[name] for r in self.rows]
+        return types.SimpleNamespace(to_pylist=lambda: values)
+
+    def select(self, names):
+        return _Table([{n: r[n] for n in names} for r in self.rows])
+
+    def to_pandas(self):
+        return pd.DataFrame(self.rows)
+
+
+@pytest.fixture
+def fake_marketlake(monkeypatch, tmp_path):
+    """A stand-in for ``marketlake``'s ``lake`` package over a lake in ``tmp_path``.
+
+    Every partition the tables above name is written as a file and recorded in
+    a manifest, so ``MarketLake`` checks real bytes. ``state`` holds the knobs:
+    ``bar_errors`` and ``quote_errors`` map a ticker and day to an exception the
+    loader raises, and ``read_unchecked`` collects any partition the loader was
+    asked to read before ``MarketLake`` had checked it.
+    """
+    loader = types.ModuleType("lake.loader")
+    manifest = types.ModuleType("lake.manifest")
+    paths = types.ModuleType("lake.paths")
+    calendar = types.ModuleType("lake.calendar")
+    package = types.ModuleType("lake")
+
+    class LoadError(Exception):
+        pass
+
+    class PartitionQuarantined(LoadError):
+        pass
+
+    class ManifestError(Exception):
+        pass
+
+    loader.LoadError, loader.PartitionQuarantined = LoadError, PartitionQuarantined
+    manifest.ManifestError = ManifestError
+    state = {"bar_errors": {}, "quote_errors": {}, "read_unchecked": [], "lake": None}
+
+    def bars_path(ticker, freq, day):
+        return tmp_path / "bars" / f"ticker={ticker}" / f"freq={freq}" / f"date={day}.parquet"
+
+    def quotes_path(ticker, day):
+        return tmp_path / "quotes" / f"ticker={ticker}" / f"date={day}.parquet"
+
+    class LakePaths:
+        def __init__(self, root):
+            assert root == tmp_path
+
+        bars_partition_path = staticmethod(bars_path)
+        quotes_partition_path = staticmethod(quotes_path)
+
+    def digest(path):
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    entries = {}
+    for ticker in pl.TICKERS:
+        for day in DAYS:
+            for path in (bars_path(ticker, "1d", day), quotes_path(ticker, day)):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(f"{path.name} {ticker}".encode())
+                entries[path.relative_to(tmp_path).as_posix()] = {"sha256": digest(path)}
+
+    def unchecked(path):
+        name = path.relative_to(tmp_path).as_posix()
+        if name not in state["lake"].checked:
+            state["read_unchecked"].append(name)
+
+    def load_bars(ticker, freq, start, end, *, lake_root):
+        assert lake_root == tmp_path and start == end
+        unchecked(bars_path(ticker, freq, start))
+        if (ticker, start) in state["bar_errors"]:
+            raise state["bar_errors"][(ticker, start)]
+        return _Table([{"close": CLOSES[ticker][DAYS.index(start)]}])
+
+    def load_quotes(ticker, day, snap, *, lake_root):
+        assert lake_root == tmp_path
+        unchecked(quotes_path(ticker, day))
+        if (ticker, day) in state["quote_errors"]:
+            raise state["quote_errors"][(ticker, day)]
+        bid, ask = QUOTES[ticker][DAYS.index(day)]
+        return _Table([_row(day, snap, bid, ask)])
+
+    class ExchangeCalendar:
+        def is_session(self, day):
+            return day.weekday() < 5
+
+        def session_close(self, day):
+            return _close(day).to_pydatetime()
+
+    loader.load_bars, loader.load_quotes = load_bars, load_quotes
+    manifest.latest_entries = lambda root: entries
+    manifest.sha256_file = digest
+    paths.LakePaths = LakePaths
+    calendar.ExchangeCalendar = ExchangeCalendar
+    package.loader, package.manifest, package.paths = loader, manifest, paths
+    for name, module in [
+        ("lake", package),
+        ("lake.loader", loader),
+        ("lake.manifest", manifest),
+        ("lake.paths", paths),
+        ("lake.calendar", calendar),
+    ]:
+        monkeypatch.setitem(sys.modules, name, module)
+    real = pl.MarketLake
+
+    def built(root):
+        state["lake"] = real(root)
+        return state["lake"]
+
+    monkeypatch.setattr(pl, "MarketLake", built)
+    state.update(
+        root=tmp_path,
+        loader=loader,
+        manifest=manifest,
+        entries=entries,
+        bars_path=bars_path,
+        quotes_path=quotes_path,
+    )
+    return state
+
+
+class TestMarketLake:
+    """``MarketLake``'s error paths, through the fake package above."""
+
+    def _main(self, state, capsys, last=DAYS[4]):
+        argv = ["--from", str(DAYS[2]), "--to", str(last), "--lake-root", str(state["root"])]
+        with pytest.raises(SystemExit) as stopped:
+            pl.main(argv)
+        return stopped.value.code, capsys.readouterr()
+
+    def test_a_clean_lake_computes_every_session(self, fake_marketlake, capsys) -> None:
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 0
+        assert "Sessions computed: 3 of 3." in out.out
+        assert "Partitions read, each matching marketlake's manifest.jsonl: 18" in out.out
+
+    def test_every_partition_is_checked_before_it_is_read(self, fake_marketlake, capsys) -> None:
+        self._main(fake_marketlake, capsys)
+        assert fake_marketlake["read_unchecked"] == []
+
+    def test_a_quarantined_bar_refuses_its_sessions_and_the_run_goes_on(
+        self, fake_marketlake, capsys
+    ) -> None:
+        quarantined = fake_marketlake["loader"].PartitionQuarantined("flagged by the battery")
+        fake_marketlake["bar_errors"][("SPY", DAYS[4])] = quarantined
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 1
+        assert "Sessions computed: 2 of 3." in out.out
+        assert (
+            "Refused 2026-09-18: SPY daily bar on 2026-09-18: "
+            "PartitionQuarantined: flagged by the battery"
+        ) in out.out
+
+    def test_an_undecodable_bar_refuses_its_sessions(self, fake_marketlake, capsys) -> None:
+        fake_marketlake["bar_errors"][("QQQ", DAYS[4])] = ValueError("Parquet magic bytes")
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 1
+        assert "its partition cannot be decoded: ValueError: Parquet magic bytes" in out.out
+
+    def test_an_undecodable_quote_refuses_its_session(self, fake_marketlake, capsys) -> None:
+        fake_marketlake["quote_errors"][("SPY", DAYS[4])] = OSError("truncated")
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 1
+        assert "SPY quote: its partition cannot be decoded: OSError: truncated" in out.out
+
+    @pytest.mark.parametrize("surface", ["bar", "quote"])
+    def test_a_damaged_ledger_stops_the_run_with_one_line(
+        self, fake_marketlake, capsys, surface
+    ) -> None:
+        damaged = fake_marketlake["manifest"].ManifestError("torn quarantine.jsonl")
+        fake_marketlake[f"{surface}_errors"][("SPY", DAYS[3])] = damaged
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 2
+        assert out.err.strip().splitlines() == [
+            "Stopped: marketlake's ledgers cannot be read: torn quarantine.jsonl"
+        ]
+
+    @pytest.mark.parametrize("surface", ["bars", "quotes"])
+    def test_a_partition_that_no_longer_matches_stops_the_run(
+        self, fake_marketlake, capsys, surface
+    ) -> None:
+        path = (
+            fake_marketlake["bars_path"]("QQQ", "1d", DAYS[3])
+            if surface == "bars"
+            else fake_marketlake["quotes_path"]("QQQ", DAYS[3])
+        )
+        path.write_bytes(b"restated")
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 2
+        assert out.err.startswith(f"Stopped: {surface}/ticker=QQQ/")
+        assert "hashes to" in out.err
+
+    def test_a_bar_the_lake_does_not_hold_is_no_bar(self, fake_marketlake, capsys) -> None:
+        fake_marketlake["bars_path"]("SPY", "1d", DAYS[4]).unlink()
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 1
+        assert "Refused 2026-09-18: no SPY daily bar on 2026-09-18" in out.out
 
 
 def _configured_lake() -> Path | None:

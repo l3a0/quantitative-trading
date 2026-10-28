@@ -1749,6 +1749,11 @@ paragraph carried those three figures until 2026-09-18 and two of them were
 already wrong, because nothing fails when an issue is filed and a sentence here
 is not.
 
+One path that is not a replication runs here too. The paper ledger, under
+`## The paper ledger` below, decides a position on SPY and QQQ before each
+session's close, from quotes the sibling `marketlake` repo captured. It is a
+pipeline test, and its placeholder strategy claims no edge.
+
 ## Running a replication
 
 ```bash

@@ -8,73 +8,52 @@ backtest would have held.
 source of truth for what it must do.
 
 **The strategy claims no edge.** It is :func:`chan.khandani_lo.reversal_weights`
-on two tickers, long the day's laggard against their mean and short the
-leader, chosen because it rebalances every session and because the backtests
-of Entries 8 and 19 call the same function. Its positions answer one question:
-do this path and the backtest agree, and by how much do they differ on price?
-They are not evidence that the rule pays, and the module computes no paper
-profit, because that is the column a reader would mistake for such evidence.
-[Issue 774](https://github.com/l3a0/quantitative-trading/issues/774) chooses
-the strategy that replaces it.
+on two tickers, a placeholder until
+[issue 774](https://github.com/l3a0/quantitative-trading/issues/774) chooses a
+real one. Its positions say whether this path and the backtest agree, and the
+module computes no paper profit. ``docs/design.md``'s subsection on the paper
+ledger carries the reasoning behind every choice below, and this docstring
+says only what the code does.
 
 **What one session computes.** For session t, with yesterday's official close
 and today's quote at the decision minute:
 
 1. The decision minute is ten minutes before the session's close, by the
-   exchange calendar. That is 15:50 on a full session and 12:50 on a half day,
-   when a fixed 15:50 would read a quote after the bell.
+   exchange calendar, so 12:50 on a half day.
 2. The decision price is the mid of the quote at that minute.
    :func:`decision_quote` reads only rows stamped at or before it, and refuses
    a minute holding two rows, a quote that is not real-time, and a crossed or
    non-positive one.
 3. The weights are ``reversal_weights`` on a two-row array, yesterday's closes
-   over today's mids, which is the backtest's own function on the backtest's
-   own layout.
+   over today's mids.
 4. The position held coming in is the same computation one session earlier,
-   so a session needs no state carried between runs and a second run prints
-   what the first one did.
+   so a session needs no state carried between runs.
 5. The trade is the change in weight. A buy fills at the ask and a sell at the
    bid.
-6. The replay is ``reversal_weights`` on the panel of official closes, computed
-   on the whole panel and then read at each session, as
-   :func:`chan.khandani_lo.reversal` does.
+6. The replay is ``reversal_weights`` on the panel of official closes.
 
-**Three measures per session**, which the issue calls gaps. ``docs/design.md``
-pins *gap* for a published figure against a replication's number, so the code
-uses other words.
+**Three measures per session**, which the issue calls gaps and the code does
+not, because ``docs/design.md`` pins *gap* for another meaning.
 
 1. **Position mismatch**, the number of tickers whose side differs between the
-   ledger and the replay. A weight from a mid never equals one from a close, so
-   the side is what can agree. A side flips only when a ticker's return against
-   the mean changes sign between the decision minute and the close, and the
-   report prints both returns for each flip.
+   ledger and the replay. The report prints each flipped ticker's return
+   against the mean at the decision minute and at the close.
 2. **The decision-price difference**, ``(mid − close) / close`` in basis points.
-3. **The spread paid**, ``|fill − mid| / mid`` in basis points, which is half the
-   quoted spread. It sits beside :data:`chan.khandani_lo.ONE_WAY_COST`, the 5
-   basis points a side the backtest charges.
+3. **The spread paid**, ``|fill − mid| / mid`` in basis points, beside
+   :data:`chan.khandani_lo.ONE_WAY_COST`.
 
-**How it reads the lake.** Through ``marketlake``'s own ``lake`` package, the
-optional ``lake`` extra in ``pyproject.toml``, so the quarantine guard, the
-minute resolution on ``snap_ts`` and the overflow projection have one
-implementation. ``docs/design.md`` carries why. The package is imported only
-when :class:`MarketLake` is built, so nothing else here and nothing in the
-suite needs it. Every read passes the lake root explicitly, because
-``marketlake``'s loader would otherwise read its own config file, and that file
-holds a broker secret. :func:`lake_root` resolves the root from this repo's own
-setting instead. Each partition read is checked against the sha256 in
-``marketlake``'s ``manifest.jsonl`` before it is read, and the report prints
-every one it checked, which is what pins a run's inputs.
+**What it reads.** :class:`MarketLake` reads ``marketlake``'s lake through that
+repo's ``lake`` package, the optional ``lake`` extra, imported only when it is
+built. It passes the root :func:`lake_root` resolves to every read, so
+``marketlake``'s own config file, which holds a broker secret, is never read.
+It hashes each partition against ``marketlake``'s ``manifest.jsonl`` before
+reading it, and walks the exchange calendar's sessions rather than the bars
+the lake happens to hold.
 
-**The sessions come from the exchange calendar, not from the bars.**
-``marketlake``'s daily-bar read returns a range around a missing day without
-raising, so a session list built from the bars would quietly take the previous
-session two days back. A session whose bar is missing is refused instead.
-
-**One limitation, stated rather than fixed.** The closes are as-traded, so on
-an ex-dividend date the signal reads the dividend as a fall. The ledger and the
-replay read the same closes, so it causes no mismatch, and the two price
-measures are same-day figures it cannot touch. A strategy that claims an edge
-has to adjust.
+**How it fails.** A session that cannot be computed is one line in the report,
+and the command exits 1. A lake or environment that is wrong stops the run
+with one line on stderr and exit 2: the extra not installed, no lake root, a
+partition that does not match its sha256, and a damaged ``marketlake`` ledger.
 """
 
 from __future__ import annotations
@@ -83,7 +62,7 @@ import argparse
 import os
 import sys
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Protocol
@@ -171,11 +150,11 @@ def decision_quote(rows: pd.DataFrame, decision: pd.Timestamp) -> Quote:
     records two minutes written twice on one partition, and a delayed quote is
     fifteen minutes stale.
     """
-    stamps = pd.to_datetime(rows["snap_ts"], utc=True)
+    stamps = pd.to_datetime(rows["snap_ts"], utc=True, format="ISO8601")
     known = rows[stamps <= decision]
     if known.empty:
         raise LedgerRefused(f"no quote is stamped at or before {_minute(decision)}")
-    known_stamps = pd.to_datetime(known["snap_ts"], utc=True)
+    known_stamps = stamps[stamps <= decision]
     latest = known_stamps.max()
     chosen = known[known_stamps == latest]
     if len(chosen) > 1:
@@ -187,7 +166,7 @@ def decision_quote(rows: pd.DataFrame, decision: pd.Timestamp) -> Quote:
     bid, ask = float(row["bid"]), float(row["ask"])
     if not (np.isfinite(bid) and np.isfinite(ask) and bid > 0 and ask >= bid):
         raise LedgerRefused(f"the quote at {_minute(latest)} reads bid {bid} and ask {ask}")
-    vendor = pd.to_datetime(row["vendor_quote_ts"], utc=True)
+    vendor = pd.to_datetime(row["vendor_quote_ts"], utc=True, format="ISO8601")
     return Quote(snap_ts=latest, vendor_ts=vendor, bid=bid, ask=ask, last=float(row["last"]))
 
 
@@ -258,13 +237,15 @@ class LakeRead:
     """What a run read from the lake, before anything is computed.
 
     ``closes`` has one row per calendar session, the first two before the
-    range, and NaN where no bar was read. ``quotes`` maps a session and ticker
-    to the quote its decision reads, or to why there is none.
+    range, and NaN where no bar was read. ``close_refusals`` says why a bar
+    the lake holds could not be read. ``quotes`` maps a session and ticker to
+    the quote its decision reads, or to why there is none.
     """
 
     closes: pd.DataFrame
     quotes: Mapping[tuple[date, str], Quote | str]
     decisions: Mapping[date, pd.Timestamp]
+    close_refusals: Mapping[tuple[date, str], str] = field(default_factory=dict)
 
 
 class Lake(Protocol):
@@ -274,7 +255,7 @@ class Lake(Protocol):
 
     def session_close(self, day: date) -> pd.Timestamp: ...
 
-    def closes(self, ticker: str, start: date, end: date) -> dict[date, float]: ...
+    def closes(self, ticker: str, start: date, end: date) -> dict[date, float | str]: ...
 
     def quote_rows(self, ticker: str, day: date, snap: str) -> pd.DataFrame: ...
 
@@ -283,26 +264,33 @@ def decision_minute(session_close: pd.Timestamp) -> pd.Timestamp:
     return session_close - timedelta(minutes=MINUTES_BEFORE_CLOSE)
 
 
-def read_lake(lake: Lake, first: date, last: date, tickers: Sequence[str] = TICKERS) -> LakeRead:
+def read_lake(lake: Lake, first: date, last: date) -> LakeRead:
     """Read every close and decision quote the sessions from ``first`` to ``last`` need."""
     days = lake.sessions(first, last)
-    closes = pd.DataFrame(np.nan, index=days, columns=list(tickers))
-    for ticker in tickers:
+    closes = pd.DataFrame(np.nan, index=days, columns=list(TICKERS))
+    close_refusals: dict[tuple[date, str], str] = {}
+    for ticker in TICKERS:
         for day, close in lake.closes(ticker, days[0], days[-1]).items():
-            if day in closes.index:
+            if day not in closes.index:
+                continue
+            if isinstance(close, str):
+                close_refusals[(day, ticker)] = close
+            else:
                 closes.loc[day, ticker] = close
     quotes: dict[tuple[date, str], Quote | str] = {}
     decisions: dict[date, pd.Timestamp] = {}
     for day in days[SESSIONS_BEFORE - 1 :]:
         decision = decision_minute(lake.session_close(day))
         decisions[day] = decision
-        for ticker in tickers:
+        for ticker in TICKERS:
             try:
                 rows = lake.quote_rows(ticker, day, _minute(decision))
                 quotes[(day, ticker)] = decision_quote(rows, decision)
             except LedgerRefused as refused:
                 quotes[(day, ticker)] = str(refused)
-    return LakeRead(closes=closes, quotes=quotes, decisions=decisions)
+    return LakeRead(
+        closes=closes, quotes=quotes, decisions=decisions, close_refusals=close_refusals
+    )
 
 
 def ledger(read: LakeRead) -> tuple[list[Session], list[tuple[date, str]]]:
@@ -425,28 +413,41 @@ class MarketLake:
                 before.insert(0, day)
                 if len(before) == SESSIONS_BEFORE:
                     break
-        inside = [
-            first + timedelta(days=n)
-            for n in range((last - first).days + 1)
-            if self._calendar.is_session(first + timedelta(days=n))
-        ]
-        return before + inside
+        return before + self._sessions_between(first, last)
 
     def session_close(self, day: date) -> pd.Timestamp:
         return pd.Timestamp(self._calendar.session_close(day))
 
-    def closes(self, ticker: str, start: date, end: date) -> dict[date, float]:
-        try:
-            table = self._loader.load_bars(ticker, "1d", start, end, lake_root=self._root)
-        except self._loader.BarsAbsent:
-            return {}
-        except self._loader.LoadError as refused:
-            raise LakeUnavailable(f"{ticker} daily bars: {_named(refused)}") from refused
-        bars = table.to_pandas()
-        days = pd.to_datetime(bars["bar_ts"], utc=True).dt.tz_convert(MARKET_TZ).dt.date
-        for day in days:
-            self._check(self._paths.bars_partition_path(ticker, "1d", day))
-        return {day: float(close) for day, close in zip(days, bars["close"], strict=True)}
+    def closes(self, ticker: str, start: date, end: date) -> dict[date, float | str]:
+        """Each session's official close, or why it has none, one session at a time.
+
+        One read per session rather than one over the range, because
+        ``load_bars`` refuses a whole range for one quarantined day, and
+        because each partition is then checked before it is read. A session
+        with no partition is left out, which the ledger reports as no bar.
+        """
+        found: dict[date, float | str] = {}
+        for day in self._sessions_between(start, end):
+            path = self._paths.bars_partition_path(ticker, "1d", day)
+            if not path.is_file():
+                continue
+            self._check(path)
+            try:
+                bars = self._loader.load_bars(ticker, "1d", day, day, lake_root=self._root)
+            except self._loader.LoadError as refused:
+                found[day] = _named(refused)
+                continue
+            except self._manifest.ManifestError as damaged:
+                raise LakeUnavailable(f"marketlake's ledgers cannot be read: {damaged}") from (
+                    damaged
+                )
+            except (ValueError, OSError) as unreadable:
+                # pyarrow's errors for bytes it cannot decode subclass these two.
+                found[day] = f"its partition cannot be decoded: {_named(unreadable)}"
+                continue
+            close = bars.column("close").to_pylist()
+            found[day] = float(close[0]) if len(close) == 1 else f"{len(close)} daily bars"
+        return found
 
     def quote_rows(self, ticker: str, day: date, snap: str) -> pd.DataFrame:
         path = self._paths.quotes_partition_path(ticker, day)
@@ -458,7 +459,15 @@ class MarketLake:
             raise LedgerRefused(f"{ticker} quote: {_named(refused)}") from refused
         except self._manifest.ManifestError as damaged:
             raise LakeUnavailable(f"marketlake's ledgers cannot be read: {damaged}") from damaged
+        except (ValueError, OSError) as unreadable:
+            raise LedgerRefused(
+                f"{ticker} quote: its partition cannot be decoded: {_named(unreadable)}"
+            ) from unreadable
         return table.select(list(QUOTE_COLUMNS)).to_pandas()
+
+    def _sessions_between(self, start: date, end: date) -> list[date]:
+        days = (start + timedelta(days=n) for n in range((end - start).days + 1))
+        return [day for day in days if self._calendar.is_session(day)]
 
     def _check(self, path: Path) -> None:
         name, found = check_partition(self._root, path, self._entries, self._manifest.sha256_file)
@@ -519,7 +528,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
     parser.add_argument("--from", dest="first", required=True, type=date.fromisoformat)
     parser.add_argument("--to", dest="last", required=True, type=date.fromisoformat)
-    parser.add_argument("--lake-root", help=f"the lake to read, else {LAKE_ROOT_ENV}")
+    parser.add_argument(
+        "--lake-root", help=f"the lake to read, else {LAKE_ROOT_ENV}, else {LAKE_ROOT_CONFIG}"
+    )
     args = parser.parse_args(argv)
     if args.last < args.first:
         parser.error("--to is before --from")
@@ -539,7 +550,12 @@ def _missing(read: LakeRead, days: list[date], closes: np.ndarray, i: int) -> li
     for k in (i - 2, i - 1, i):
         for j, ticker in enumerate(read.closes.columns):
             if not np.isfinite(closes[k, j]):
-                reasons.append(f"no {ticker} daily bar on {days[k]}")
+                why = read.close_refusals.get((days[k], ticker))
+                reasons.append(
+                    f"{ticker} daily bar on {days[k]}: {why}"
+                    if why
+                    else f"no {ticker} daily bar on {days[k]}"
+                )
     for k in (i - 1, i):
         for ticker in read.closes.columns:
             quote = read.quotes.get((days[k], ticker), "no quote was read")
