@@ -2097,7 +2097,7 @@ class TestTheFillTwoSketch:
         """Each May dot clears the grey June arrow by 5 pixels, edge to edge, so
         no May price reads as part of June's path. A straight arrow put April
         10's dot on the line."""
-        scene = every[7]
+        scene = every[8]
         grey, may = _stroke(scene, "june-rise"), _stroke(scene, "may")
         dot_radius, half_line = 6.0 * 100 / 72 / 2, grey.width * 100 / 72 / 2
         for x, y in zip(may.x, may.y, strict=True):
