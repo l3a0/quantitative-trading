@@ -173,6 +173,21 @@ class TestTheVintage:
         ), VINTAGE
 
 
+def _rolls(schedule: pd.DataFrame) -> pd.Series:
+    """The days from :data:`START` on which the held pair changes from one pair to the next."""
+    short = schedule.eq(-1)
+    near = short.idxmax(axis=1).where(short.any(axis=1))
+    before = near.shift()
+    return ((near != before) & near.notna() & before.notna()).loc[START:]
+
+
+def _leaves(schedule: pd.DataFrame) -> pd.Series:
+    """The days from :data:`START` on which a pair is let go and none follows it."""
+    short = schedule.eq(-1)
+    near = short.idxmax(axis=1).where(short.any(axis=1))
+    return (near.isna() & near.shift().notna()).loc[START:]
+
+
 class TestTheSignalsOnVx:
     def test_ss_signal_is_missing_only_on_its_first_148_rows(self, strip) -> None:
         """The nearest two priced columns skip a contract only before 2006-10-23, so the
@@ -254,11 +269,7 @@ class TestTheSignalsOnVx:
         schedule = calendar_schedule(
             strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
         )
-        short = schedule.eq(-1)
-        near = short.idxmax(axis=1).where(short.any(axis=1))
-        before = near.shift()
-        roll = ((near != before) & near.notna() & before.notna()).loc[START:]
-        leaves = (near.isna() & before.notna()).loc[START:]
+        roll, leaves = _rolls(schedule), _leaves(schedule)
         positions = result.rows["B3"].positions
         traded = positions.diff().abs().sum(axis=1).loc[START:]
         reversal = (traded > 0) & ~roll & ~leaves
@@ -460,7 +471,7 @@ class TestWhichPairTheSignalReads:
 
     def test_under_holddays_0_the_near_leg_is_the_front_or_the_second(self, strip) -> None:
         """Each pair starts the row after the last one ended, 10 rows before the old near
-        contract's expiry, so for those rows the old near contract is still the front."""
+        contract's last priced row, so for those rows the old near contract is still the front."""
         schedule = calendar_schedule(
             strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN
         )
@@ -502,14 +513,6 @@ def _month(contract: str) -> str:
 def _reading(key: str) -> str:
     """A reading's name as :func:`tables` reads its cell, so ``B1`` as ``1`` and ``S`` as ``S``."""
     return (CELL.findall(key) or [key])[0]
-
-
-def _rolls(schedule: pd.DataFrame) -> pd.Series:
-    """The days from :data:`START` on which the held pair changes from one pair to the next."""
-    short = schedule.eq(-1)
-    near = short.idxmax(axis=1).where(short.any(axis=1))
-    before = near.shift()
-    return ((near != before) & near.notna() & before.notna()).loc[START:]
 
 
 class TestWhatThePostQuotes:
@@ -714,10 +717,7 @@ class TestWhatThePostQuotes:
         each = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN)
         near = each.columns[(each.loc[START:] == -1).any(axis=0).to_numpy()]
         entered = sum(each.index[(each[c] == -1).to_numpy()][0] >= START for c in near)
-        short = each.eq(-1)
-        held = short.idxmax(axis=1).where(short.any(axis=1))
-        leaves = (held.isna() & held.shift().notna()).loc[START:]
-        rolls = _rolls(each)
+        rolls, leaves = _rolls(each), _leaves(each)
         traded = result.rows["B3"].positions.diff().abs().sum(axis=1).loc[START:]
         reversals = int(((traded > 0) & ~rolls & ~leaves).sum())
         low, high = sorted(int(n) for n in traded[rolls].unique())

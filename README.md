@@ -1220,8 +1220,12 @@ too: the specification's near leg is the front contract on 126 of its 847
 held rows from 2008-10-27, and under `holddays=0` on 459 of 879. On synthetic
 frames it holds the two signals' rules and the near leg's place: a row whose
 nearest two contracts skip one, the held pair across a roll, and the fill
-across days nothing is held. The blog post about it is the exception, and what
-it says that nothing here asserts is listed below.
+across days nothing is held. It holds the counts of what B3's rolls and
+reversals trade from 2008-10-27, measured after the run as well.
+`TestWhatThePostQuotes` reads at least one copy in the post of each run figure
+the post quotes outside the chart's and the sketches' alt texts, so editing a
+copy it reads fails. What the post says that nothing here asserts is listed
+below.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) does it for TU's
 momentum on the roll return. It pins the three figures at six decimals and
@@ -6471,8 +6475,8 @@ replication log.
 3. B3 lands the book's figures on its window and alone does worse before
    October 2008, but it was picked out among five rows after the run, and the
    book's end date does not single it out.
-4. The script as shipped runs on VX without complaint while holding the near
-   leg alone on 1,183 of 1,284 held days.
+4. The script as shipped runs on VX without complaint while its schedule
+   leaves the far leg unpriced on 1,183 of the 1,284 days it holds a pair.
 
 Six groups of what it says are not pinned here.
 

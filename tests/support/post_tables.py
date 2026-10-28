@@ -10,8 +10,6 @@ table passes whichever way the post sets it.
 The three functions and :data:`CELL` came out of
 ``tests/test_calendar_spread_reversion.py``'s class unchanged, so that the
 crude oil and VX calendar spread posts read their tables the same way.
-``tests/test_cl_reversal_momentum.py`` keeps its own reader, which compares
-each table's number cells as a sorted list rather than as a grid.
 """
 
 from __future__ import annotations
