@@ -405,7 +405,7 @@ class TestTheMeasurementsAfterTheRun:
     def test_each_row_before_october_2008(self, result, key, first, rows, apr, sharpe) -> None:
         found = result.before[key]
         days = found.returns.index
-        spec = f"{SPECS[key]}, from its first held row to 2008-10-24, {AFTER_THE_RUN}"
+        spec = f"{SPECS[key]}, from its first row with a position to 2008-10-24, {AFTER_THE_RUN}"
         assert (str(days[0].date()), str(days[-1].date()), len(days)) == (
             first,
             "2008-10-24",
@@ -440,8 +440,8 @@ class TestWhichPairTheSignalReads:
     exploratory as the rest."""
 
     def test_ss_near_leg_is_the_front_contract_on_126_of_its_847_held_rows(self, strip) -> None:
-        """S holds each pair from at least 73 rows before its near contract's expiry, and VX
-        expires monthly, so its near leg is usually two to five contracts out while its
+        """S holds each pair from at least 73 rows before its near contract's last priced row,
+        and VX expires monthly, so its near leg is usually two to five contracts out while its
         signal reads the front two."""
         schedule = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH)
         rank = near_leg_rank(strip.contracts, schedule).loc[START:].dropna()

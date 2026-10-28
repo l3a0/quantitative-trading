@@ -7833,7 +7833,7 @@ Rationale*, Wiley, 2013, Chapter 5, Kindle location 2502. Shipped under
 [issue 349](https://github.com/l3a0/quantitative-trading/issues/349). No script
 ships under the experiment's own name. Example 5.4's
 `calendarSpdsMeanReversion.m`, in ericnberwick/EpchanPreview at `e4bc46f`
-under `public/img/book2/`, opens with a commented-out load of this strip above
+under `public/img/book2/`, has a commented-out load of this strip just above
 its live CL line, so Chan most likely ran that script on VX. Every location in this entry
 is in
 [research/book-notes/algorithmic-trading.md](../research/book-notes/algorithmic-trading.md).
@@ -7993,7 +7993,7 @@ Three things.
    registered test of B3 on VX data after 2012-05-07 is what would confirm it.
 3. **The specification's signal mostly reads a pair it does not hold.** Each
    pair is held for at least 63 rows and let go 10 rows before its near
-   contract's expiry, and VX expires monthly, so S's near leg is the front
+   contract's last priced row, and VX expires monthly, so S's near leg is the front
    contract on 126 of its 847 held rows from 2008-10-27, and the second to the
    fifth on the rest. Under `holddays=0` it is the front on 459 of 879 and the
    second on the other 420. B1 and B3, which read the held pair's own ratio,

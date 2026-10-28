@@ -15,7 +15,7 @@ explains why, so the evidence is empirical alone. He makes three claims.
 **No script ships under its own name, and Example 5.4's is the evidence.**
 ``calendarSpdsMeanReversion.m``, read under ``public/img/book2/`` in the mirror
 [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) at
-``e4bc46f``, opens with a commented-out load of this strip above its live CL
+``e4bc46f``, has a commented-out load of this strip just above its live CL
 line::
 
     % load('inputDataDaily_VX_20120507', 'tday', 'contracts', 'cl');
@@ -52,8 +52,8 @@ sign-of-z flip and the return divided by 2.
    the pair the schedule holds that day, which the script's own comment calls
    the back and the front.
 2. B2 sets ``holddays=0``, so each pair is held from the day after the
-   previous pair's last day to 10 rows before its own expiry. The first pair
-   is never held, and a pair whose near contract still trades on the file's
+   previous pair's last day to 10 rows before its own last priced row. The first
+   pair is never held, and a pair whose near contract still trades on the file's
    last row is skipped once an earlier such pair has ended on the row where
    its own would end, 10 rows before the file's last, so VX holds 64 of its
    71 pairs.
@@ -71,7 +71,7 @@ the first row its flipped positions hold anything to 2008-10-24.
 ``tests/test_vx_calendar_spread.py`` pins every figure.
 
 The post on these lessons found a third thing, which :func:`near_leg_rank`
-measures. S holds each pair from at least 73 rows before its near contract's expiry, so
+measures. S holds each pair from at least 73 rows before its near contract's last priced row, so
 on most of its held rows the pair it trades is not the front pair its signal
 reads. :mod:`chan.vx_calendar_spread_figures` draws the post's figure, since
 the run prints its figures and draws nothing.
@@ -167,7 +167,7 @@ def held_pair_ratio(contracts: pd.DataFrame, schedule: pd.DataFrame) -> pd.Serie
     :func:`chan.calendar_spread_reversion.calendar_schedule` returns, −1 on the
     near contract and +1 on the far one, and it holds at most one pair a row.
     The ratio is filled forward across the rows where nothing is held, so it is
-    NaN only before the first held row.
+    NaN only before the first held row on which both legs are priced.
 
     The check below refuses a schedule built on other days or columns. It
     cannot catch the flipped positions
@@ -323,7 +323,7 @@ def report(strip: Strip, result: VxCalendarSpread) -> None:
         f"  B3 on the book's window, {_days(b3)}: APR {b3.apr:.6f}, Sharpe {b3.sharpe:.6f}, "
         f"last held {b3.last_held.date()}"
     )
-    print("  Before October 2008, from each row's first held day to 2008-10-24:")
+    print("  Before October 2008, from each row's first day with a position to 2008-10-24:")
     for key in ROWS_BEFORE:
         found = result.before[key]
         print(f"    {key:<4} {_days(found)}: APR {found.apr:.6f}, Sharpe {found.sharpe:.6f}")

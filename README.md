@@ -6493,7 +6493,7 @@ Six groups of what it says are not pinned here.
    z-score bets on the two moving together.
 4. Figures the post states in words rather than from the run: three or four
    months between pairs, three earlier contracts still trading 73 days before
-   an expiry so that the near leg is the fourth, and four when most of S's
+   a contract's last priced day so that the near leg is the fourth, and four when most of S's
    pairs open so that it is the fifth, two contracts traded to switch the
    shared contract's side, and that B2 reads its held pair on more of its days
    than S does. The counts of the post's own lists, such as five readings and

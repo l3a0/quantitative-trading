@@ -14,7 +14,7 @@ The model of futures prices Chan uses for crude oil “works only for a future w
 
 ### What the reproduction found
 
-Chan’s published code has no script for the VX calendar spread. The script for crude oil’s calendar spread, `calendarSpdsMeanReversion.m`, opens with a line loading Chan’s VX file. That line is commented out, meaning turned into a note the script skips, and the line below it loads crude oil. That VX line suggests he ran the script on VX, with the line switched on. This repository ran it the same way, on that file.
+Chan’s published code has no script for the VX calendar spread. The script for crude oil’s calendar spread, `calendarSpdsMeanReversion.m`, loads crude oil, and just above that load sits a line loading Chan’s VX file. The VX line is commented out, meaning turned into a note the script skips. That VX line suggests he ran the script on VX, with the line switched on. This repository ran it the same way, on that file.
 
 The results fall into four groups. Each result rests on a reading, meaning one way of filling in what the book’s text leaves open.
 
