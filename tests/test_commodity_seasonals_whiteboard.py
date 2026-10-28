@@ -5,10 +5,10 @@ each won in the book's years and after, and the fall inside 2002's natural
 gas trade. Two draw Lesson 1, its natural gas streaks
 and gasoline's two claims.
 Nine draw Lesson 2: the range the missing rows leave, a guessed price, what
-Chan's 19 needs, how fill 2 carries June's move, which April days can test a
-fill, how its misses lean and spread, how the lean looks April by April, why
-a miss subtracts at an entry and adds at an exit, and each fill's miss
-against each year's move. One draws Lesson 3, a fall measured from a raised
+Chan's 19 needs, how fill 2 carries June's move, each fill's miss against
+each year's move, which April days can test a fill, how its misses lean and
+spread, how the lean looks April by April, and why a miss subtracts at an
+entry and adds at an exit. One draws Lesson 3, a fall measured from a raised
 start. Eight draw Lesson 4: how far each Sharpe ratio can
 stray, why fewer results widen a range, where natural gas's ±12% comes from,
 which later range holds its earlier mean, what the Mann-Whitney test counts,
@@ -73,26 +73,26 @@ as test_the_run_gives_these_dates_and_files.
    both arrows rise by June's change, that the guess is fill 2's, that the
    band spans fill 2's typical miss and splits at the exit price, and that
    May and June differ by mark as well as by ink.
-10. The test-day sketch draws the April trading days narrowing to 1997's test
+10. The fill-miss sketch draws each missing year's move with fill 2's guess
+   corrected by its average miss, and a bar of the spread of its misses. What
+   is pinned is that each dot, bar and σ sit at the run's figures on one scale,
+   and that a bar crosses zero exactly when its move is under one spread.
+11. The test-day sketch draws the April trading days narrowing to 1997's test
    days. What is pinned is that each bar is drawn to scale at the run's count,
    that each drop is the difference between two bars, and that the last bar is
    the number of test days behind fill 2's figures.
-11. The three-numbers sketch draws fill 2's misses on every test day of 1997's
+12. The three-numbers sketch draws fill 2's misses on every test day of 1997's
    pattern. What is pinned is one dot per test day, each in its stack, and
    that the average, the spread and the typical miss it draws equal the
    run's ``june_bias``, ``june_spread`` and ``june_error``.
-12. The Aprils sketch draws each April's average miss. What is pinned is one
+13. The Aprils sketch draws each April's average miss. What is pinned is one
    bar per April at its average, the test-day counts, and a title that counts
    the Aprils and those leaning low from the run.
-13. The miss-sign sketch draws 1997's missing entry and 1998's missing exit,
+14. The miss-sign sketch draws 1997's missing entry and 1998's missing exit,
    each guess lifted by fill 2's average miss. What is pinned is that each
    bracket spans its two prices on one scale, that the lift is the run's
    average miss, and that the lifted bracket is shorter for the entry and
    longer for the exit by exactly that miss.
-14. The fill-miss sketch draws each missing year's move with fill 2's guess
-   corrected by its average miss, and a bar of the spread of its misses. What
-   is pinned is that each dot, bar and σ sit at the run's figures on one scale,
-   and that a bar crosses zero exactly when its move is under one spread.
 15. The raised-start sketch is schematic and draws no figures. It draws one
    trade's mean return on a vertical scale, with a dot for the book's years
    above a dashed line for the trade's real edge and a dot for the years after
@@ -342,11 +342,11 @@ GIFS = [
     "commodity_sketch_chan_needs_gaps.gif",
     "commodity_sketch_interpolation_guess.gif",
     "commodity_sketch_june_move_fill.gif",
+    "commodity_sketch_fill_misses.gif",
     "commodity_sketch_test_days.gif",
     "commodity_sketch_three_numbers.gif",
     "commodity_sketch_april_leans.gif",
     "commodity_sketch_miss_sign.gif",
-    "commodity_sketch_fill_misses.gif",
     "commodity_sketch_raised_start.gif",
     "commodity_sketch_sharpe_ranges.gif",
     "commodity_sketch_t_multiplier.gif",
@@ -376,11 +376,11 @@ FOLLOWS = (
     "The losses say more than the gaps.",
     "Fill 1 draws a straight line",
     "Fill 2 takes May’s price on the last day before the gap",
+    "Neither fill can call the three years.",
     "A pattern that reaches back fewer days",
     "Fill 2’s misses also lean one way.",
     "Test days close together read some of the same prices, though,",
     "```math\n\\begin{aligned}\n\\text{true move} &= (\\text{guess} + e) - \\text{entry}",
-    "That product is the 42% this section opened with.",
     "Chan picked each rule because it did well in years the book covers",
     "For the four Sharpe ratios in the returns table",
     "```math\n\\bar r \\pm t_{n-1}",
@@ -1116,11 +1116,11 @@ class TestTheGifs:
             "chan_needs_gaps",
             "interpolation_guess",
             "june_move_fill",
+            "fill_misses",
             "test_days",
             "three_numbers",
             "april_leans",
             "miss_sign",
-            "fill_misses",
             "raised_start",
             "sharpe_ranges",
             "t_multiplier",
@@ -2246,8 +2246,8 @@ class TestTheFillTwoSketch:
 
 class TestTheTestDaysSketch:
     def test_its_words(self, every) -> None:
-        assert every[9].title == "Which April days can test a fill"
-        assert every[9].labels == NARROW_LABELS
+        assert every[10].title == "Which April days can test a fill"
+        assert every[10].labels == NARROW_LABELS
 
     def test_it_counts_the_runs_test_days(self, narrowing) -> None:
         fill = seasonals.gap_fills()[0]
@@ -2256,7 +2256,7 @@ class TestTheTestDaysSketch:
         assert narrowing.counts[-1] == fill.tested
 
     def test_each_bar_is_drawn_to_scale(self, every, narrowing) -> None:
-        scene = every[9]
+        scene = every[10]
         for k, count in enumerate(narrowing.counts):
             bar = _stroke(scene, f"stage-{k}")
             assert bar.x.max() == pytest.approx(_narrow_end(count, narrowing)), k
@@ -2265,14 +2265,14 @@ class TestTheTestDaysSketch:
         assert lengths == sorted(lengths, reverse=True)
 
     def test_each_drop_is_the_gap_between_two_bars(self, every, narrowing) -> None:
-        drops = [label for label in every[9].labels if label.startswith("−")]
+        drops = [label for label in every[10].labels if label.startswith("−")]
         counts = narrowing.counts
         assert [int(d.split(":")[0][1:]) for d in drops] == [
             counts[k - 1] - counts[k] for k in range(1, len(counts))
         ]
 
     def test_its_inks(self, every) -> None:
-        scene = every[9]
+        scene = every[10]
         assert [_stroke(scene, f"stage-{k}").color for k in range(4)] == [INK, INK, INK, ACCENT]
         assert _label(scene, "80").color == ACCENT
 
@@ -2281,18 +2281,18 @@ class TestTheTestDaysSketch:
         assert {"200", "150", "100", "50", "−50: fall outside April"} <= set(scene.labels)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[9])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[10])
         assert "four bars drawn to scale, each shorter than the one above" in alt
         assert "Most of the days lost lack a price in EIA’s files" in alt
 
 
 class TestTheThreeNumbersSketch:
     def test_its_words(self, every) -> None:
-        assert every[10].title == "One set of misses, three numbers"
-        assert every[10].labels == THREE_LABELS
+        assert every[11].title == "One set of misses, three numbers"
+        assert every[11].labels == THREE_LABELS
 
     def test_its_inks(self, every) -> None:
-        scene = every[10]
+        scene = every[11]
         assert _stroke(scene, "misses").color == INK
         assert _stroke(scene, "average").color == ACCENT
         assert _stroke(scene, "spread").color == INK
@@ -2307,7 +2307,7 @@ class TestTheThreeNumbersSketch:
         assert [day for day, *_ in misses.misses] == sorted(day for day, *_ in misses.misses)
 
     def test_one_dot_per_test_day_in_its_stack(self, every, misses) -> None:
-        dots = _stroke(every[10], "misses")
+        dots = _stroke(every[11], "misses")
         xs, ys = _miss_stacks(misses.cents)
         assert len(dots.x) == len(misses.misses)
         assert list(dots.x) == pytest.approx(xs)
@@ -2316,7 +2316,7 @@ class TestTheThreeNumbersSketch:
     def test_its_three_numbers_are_the_runs(self, every, misses) -> None:
         """The average, spread and typical miss it draws are the ones the
         chances and the table use."""
-        scene, fill = every[10], misses.fill
+        scene, fill = every[11], misses.fill
         assert _stroke(scene, "average").x[0] == pytest.approx(_miss_x(100 * fill.june_bias))
         spread = _stroke(scene, "spread")
         assert (spread.x.min(), spread.x.max()) == pytest.approx(
@@ -2339,18 +2339,18 @@ class TestTheThreeNumbersSketch:
         assert _stroke(scene, "average").x[0] == pytest.approx(_miss_x(1.2575), abs=1e-3)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[10])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[11])
         assert "More of the dots sit right of zero than left" in alt
         assert "shifted right of zero by the lean" in alt
 
 
 class TestTheAprilsSketch:
     def test_its_words(self, every) -> None:
-        assert every[11].title == "Twelve Aprils, eight lean low"
-        assert every[11].labels == APRIL_LABELS
+        assert every[12].title == "Twelve Aprils, eight lean low"
+        assert every[12].labels == APRIL_LABELS
 
     def test_one_bar_per_april_at_its_average(self, every, misses) -> None:
-        scene = every[11]
+        scene = every[12]
         for year, cents in misses.by_april.items():
             bar = _stroke(scene, f"april-{year}")
             mean = sum(cents) / len(cents)
@@ -2373,18 +2373,18 @@ class TestTheAprilsSketch:
         assert scene.title == "Twelve Aprils, none lean low"
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[11])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[12])
         assert "Eight bars, in purple, run right of zero" in alt
         assert "for 1996, 2001 and 2003, carry most of the lean" in alt
 
 
 class TestTheMissSignSketch:
     def test_its_words(self, every) -> None:
-        assert every[12].title == "A miss at the entry subtracts, at the exit it adds"
-        assert every[12].labels == SIGN_LABELS
+        assert every[13].title == "A miss at the entry subtracts, at the exit it adds"
+        assert every[13].labels == SIGN_LABELS
 
     def test_its_inks(self, every) -> None:
-        scene = every[12]
+        scene = every[13]
         for tag in ("entry", "exit"):
             assert _stroke(scene, f"{tag}-known").color == INK
             assert _stroke(scene, f"{tag}-guess").color == ACCENT
@@ -2396,7 +2396,7 @@ class TestTheMissSignSketch:
                 assert (guide.color, guide.dashed) == (MUTED, True)
 
     def test_the_entry_panel_sits_left_of_the_divider_and_the_exit_right(self, every) -> None:
-        scene = every[12]
+        scene = every[13]
         divider = _stroke(scene, "divider").x[0]
         for gid in ("known", "guess", "lifted", "m", "c"):
             assert _stroke(scene, f"entry-{gid}").x.max() < divider, gid
@@ -2407,7 +2407,7 @@ class TestTheMissSignSketch:
         assert (entry.year, entry.leg, exit_.year, exit_.leg) == (1997, "entry", 1998, "exit")
 
     def test_each_bracket_spans_its_prices(self, every) -> None:
-        scene = every[12]
+        scene = every[13]
         for tag, f in zip(("entry", "exit"), seasonals.gap_fills()[:2], strict=True):
             known, guess, lifted = float(f.other), f.june, f.june + f.june_bias
             m, c = _stroke(scene, f"{tag}-m"), _stroke(scene, f"{tag}-c")
@@ -2421,7 +2421,7 @@ class TestTheMissSignSketch:
             assert (ring.y.min() + ring.y.max()) / 2 == pytest.approx(_sign_y(lifted, f)), tag
 
     def test_the_lift_shortens_the_entry_and_lengthens_the_exit_by_the_miss(self, every) -> None:
-        scene = every[12]
+        scene = every[13]
         for tag, f, sign in zip(("entry", "exit"), seasonals.gap_fills()[:2], (-1, 1), strict=True):
             m, c = _stroke(scene, f"{tag}-m"), _stroke(scene, f"{tag}-c")
             m_len, c_len = m.y.max() - m.y.min(), c.y.max() - c.y.min()
@@ -2431,7 +2431,7 @@ class TestTheMissSignSketch:
 
     def test_each_arrow_says_its_miss_in_cents(self, every) -> None:
         """The post quotes these two values, so the drawing has to show them."""
-        scene = every[12]
+        scene = every[13]
         for f in seasonals.gap_fills()[:2]:
             assert f"e = {100 * f.june_bias:.2f}¢" in scene.labels
         text = POST.read_text(encoding="utf-8")
@@ -2445,18 +2445,18 @@ class TestTheMissSignSketch:
         assert "guess 62.1¢" not in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[12])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[13])
         assert "a black one from the ring up to the exit, labelled “m − e”, which is shorter" in alt
         assert "labelled “m + e”, is longer" in alt
 
 
 class TestTheFillMissesSketch:
     def test_its_words(self, every) -> None:
-        assert every[13].title == "Each corrected move against fill 2’s spread"
-        assert every[13].labels == MISS_LABELS
+        assert every[9].title == "Each corrected move against fill 2’s spread"
+        assert every[9].labels == MISS_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[13]
+        scene = every[9]
         zero = _stroke(scene, "zero")
         assert (zero.color, zero.dashed) == (MUTED, True)
         assert _label(scene, "loss").color == LOST
@@ -2466,7 +2466,7 @@ class TestTheFillMissesSketch:
             assert _stroke(scene, f"miss-{year}").color == INK
 
     def test_each_dot_and_bar_sit_at_the_runs_figures(self, every) -> None:
-        scene = every[13]
+        scene = every[9]
         for fill in seasonals.gap_fills():
             move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
             assert _stroke(scene, f"move-{fill.year}").x[0] == pytest.approx(_cents_x(move))
@@ -2475,7 +2475,7 @@ class TestTheFillMissesSketch:
             )
 
     def test_each_bar_carries_its_sigma_over_its_right_half(self, every) -> None:
-        scene = every[13]
+        scene = every[9]
         for fill in seasonals.gap_fills():
             move, miss = 100 * fill.move(fill.june_corrected), 100 * fill.june_spread
             label = _label(scene, f"σ = {miss:.2f}¢")
@@ -2486,7 +2486,7 @@ class TestTheFillMissesSketch:
     def test_a_bar_crosses_zero_exactly_when_its_move_is_under_one_spread(self, every) -> None:
         """Every dot is a profit. 1997's and 1998's bars cross zero and 1999's
         stops short, because only 1999's corrected move clears one spread."""
-        scene = every[13]
+        scene = every[9]
         zero = _stroke(scene, "zero").x[0]
         crossing = {}
         for fill in seasonals.gap_fills():
@@ -2505,7 +2505,7 @@ class TestTheFillMissesSketch:
         assert "100%" in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[13])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[9])
         assert (
             "a purple dot right of zero marks the year’s move with fill 2’s guess corrected" in alt
         )

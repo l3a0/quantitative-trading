@@ -8,10 +8,10 @@ fall inside a winning year, where a count of
 profitable years starts, which edition each of gasoline's two claims was written for, what
 three missing rows leave of a count, why a guessed price cannot stand in for a
 missing one, what Chan's 19 needs of the missing years, how the second fill
-carries June's move across a gap, which April days can test a fill, how its
-misses lean and spread, how the lean looks April by April, why a miss
-subtracts at an entry and adds at an exit, how far a fill misses against each
-year's move, why a fall measured from a raised start looks longer than the
+carries June's move across a gap, how far a fill misses against each year's
+move, which April days can test a fill, how its misses lean and spread, how
+the lean looks April by April, why a miss subtracts at an entry and adds at
+an exit, why a fall measured from a raised start looks longer than the
 fall a trade took, how far a Sharpe ratio from so few years can stray, why fewer
 results widen a range, where natural gas's ±12% comes from, which later range
 holds its earlier mean, what the Mann-Whitney test counts, what its chance
@@ -82,29 +82,29 @@ the paragraph it draws.
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the sentence opening
    "Fill 2 takes May’s price on the last day before the gap".
-10. Which April days can test a fill: four bars, the April trading days from
+10. Each corrected move against fill 2's spread: for each missing year, the
+   year's move with fill 2's guess corrected by its average miss, a bar of the
+   spread of its misses either side, and each year's chance of a profit. The
+   bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
+   the paragraph opening "Neither fill can call the three years."
+11. Which April days can test a fill: four bars, the April trading days from
    1994 to 2005 narrowing to 1997's test days as each check removes days,
    with how many each check removes. It sits after the sentence opening "A
    pattern that reaches back fewer days".
-11. One set of misses, three numbers: fill 2's misses on every test day of
+12. One set of misses, three numbers: fill 2's misses on every test day of
    1997's pattern, stacked as dots on a scale in cents, with the average miss
    and a bar of the spread around it, and a bar of the typical miss around
    zero. It sits after the paragraph opening "Fill 2’s misses also lean one
    way."
-12. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
+13. Twelve Aprils lean low: each April's average miss from 1994 to 2005 as a
    bar from zero, with the number of test days that April. It sits after the
    paragraph opening "Test days close together".
-13. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
+14. A miss at the entry subtracts, at the exit it adds: two panels, 1997's
    missing entry and 1998's missing exit, each with the known price, fill 2's
    guess, the guess lifted by fill 2's average miss, and brackets for the move
    with the guess and the move with the lifted guess, shorter for the entry
    and longer for the exit. It sits after the exit's derivation, which opens
    "```math".
-14. Each corrected move against fill 2's spread: for each missing year, the
-   year's move with fill 2's guess corrected by its average miss, a bar of the
-   spread of its misses either side, and each year's chance of a profit. The
-   bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
-   the paragraph opening "That product is the 42% this section opened with".
 15. A raised start makes a longer fall: one trade's mean return on a
    vertical scale, a dashed line for its real edge, a dot above it for the
    book's years and a dot below it for the years after the book, and two
@@ -4523,11 +4523,11 @@ PACED = (
     "chan_needs_gaps",
     "interpolation_guess",
     "june_move_fill",
+    "fill_misses",
     "test_days",
     "three_numbers",
     "april_leans",
     "miss_sign",
-    "fill_misses",
     "raised_start",
     "sharpe_ranges",
     "t_multiplier",
@@ -4654,11 +4654,11 @@ def scenes(
         _chan_needs_gaps(gasoline),
         _interpolation_guess(guess),
         _june_move_fill(fill_two),
+        _fill_misses(tuple(seasonals.gap_fills())),
         _test_days(narrowing),
         _three_numbers(misses),
         _april_leans(misses),
         _miss_sign(*seasonals.gap_fills()[:2]),
-        _fill_misses(tuple(seasonals.gap_fills())),
         _raised_start(),
         _sharpe_ranges(sharpe_rows()),
         *_mean_scenes(mean_rows()),

@@ -3886,21 +3886,21 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    prices around 1997's gap, June's rise across it carried onto May as fill
    2's guess, and a band of fill 2's typical miss either side that the exit
    price splits.
-10. `commodity_sketch_test_days.gif`, in Lesson 2, the April trading days from
-   1994 to 2005 narrowing to 1997's 80 test days, with how many each check
-   removes.
-11. `commodity_sketch_three_numbers.gif`, in Lesson 2, fill 2's misses on
-   the 80 test days of 1997's pattern as stacked dots, with their average,
-   the spread around it, and the typical miss around zero.
-12. `commodity_sketch_april_leans.gif`, in Lesson 2, each April's average
-   miss from 1994 to 2005, eight of twelve leaning low, with each April's
-   number of test days.
-13. `commodity_sketch_miss_sign.gif`, in Lesson 2, 1997's missing entry and
-   1998's missing exit side by side, each guess lifted by fill 2's average
-   miss, so the move shortens for the entry and lengthens for the exit.
-14. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
+10. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
    with fill 2's guess corrected by its average miss, and a bar of the spread
    of its misses either side, which 1999's move clears.
+11. `commodity_sketch_test_days.gif`, in Lesson 2, the April trading days from
+   1994 to 2005 narrowing to 1997's 80 test days, with how many each check
+   removes.
+12. `commodity_sketch_three_numbers.gif`, in Lesson 2, fill 2's misses on
+   the 80 test days of 1997's pattern as stacked dots, with their average,
+   the spread around it, and the typical miss around zero.
+13. `commodity_sketch_april_leans.gif`, in Lesson 2, each April's average
+   miss from 1994 to 2005, eight of twelve leaning low, with each April's
+   number of test days.
+14. `commodity_sketch_miss_sign.gif`, in Lesson 2, 1997's missing entry and
+   1998's missing exit side by side, each guess lifted by fill 2's average
+   miss, so the move shortens for the entry and lengthens for the exit.
 15. `commodity_sketch_raised_start.gif`, in Lesson 3, one trade's mean
    return on a vertical scale, with the book's years above a dashed line for
    its real edge and the years after the book below it, so the fall measured

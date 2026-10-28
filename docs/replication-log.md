@@ -3542,14 +3542,14 @@ thirty.
    miss either side that the exit price splits.
 9. Fill 2 for 1997: June's rise across the gap carried onto May, with a band
    of fill 2's typical miss either side that the exit price splits.
-10. The April trading days narrowing to 1997's 80 test days.
-11. Fill 2's misses on the 80 test days of 1997's pattern, with their
-   average, spread and typical miss.
-12. Each April's average miss, eight of twelve leaning low.
-13. Why a miss subtracts at an entry and adds at an exit, from 1997's missing
-   entry and 1998's missing exit.
-14. Each missing year's move with fill 2's guess corrected by its average
+10. Each missing year's move with fill 2's guess corrected by its average
    miss, against the spread of its misses either side.
+11. The April trading days narrowing to 1997's 80 test days.
+12. Fill 2's misses on the 80 test days of 1997's pattern, with their
+   average, spread and typical miss.
+13. Each April's average miss, eight of twelve leaning low.
+14. Why a miss subtracts at an entry and adds at an exit, from 1997's missing
+   entry and 1998's missing exit.
 15. A schematic raised start, one trade's mean in the book's years drawn
    above its real edge, so the fall measured from it is longer than the fall
    the trade took, with no figures from the run.

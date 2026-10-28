@@ -144,6 +144,8 @@ Fill 2 takes May’s price on the last day before the gap, counting only days bo
 
 Neither fill can call the three years. Fill 2, the closer of the two, gives 1997 a 57% chance of having been a profit, 1998 an 83% chance and 1999 a 90% chance. So 1997 is close to a coin flip, and even 1999 falls short of 95%. If the three years’ misses are independent, the chance that all three were profits, which Chan’s 19 needs, is 42%. The rest of this section shows where those chances come from: first how far each fill misses, then how a miss becomes a chance.
 
+![“Each corrected move against fill 2’s spread”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, each with its σ above its bar: “σ = 0.86¢” for “1997”, with “57%”, then “σ = 0.74¢” for “1998”, with “83%”, then “σ = 0.62¢” for “1999”, with “90%”. In each row a purple dot right of zero marks the year’s move with fill 2’s guess corrected by its average miss, and a black bar of one spread either side. The bar for 1997 reaches well across zero, the bar for 1998 only just reaches past it, and the bar for 1999 stops just short of it. A scale below reads “−1¢” and “+1¢” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal around their average. Captions read “dot: the corrected move” and “bar: σ, fill 2’s spread, either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
+
 To measure a fill, the run took April days from 1994 to 2005 whose May price the file does hold, and hid that price. It filled each hidden price and took the root mean square error, the typical size of a miss.
 
 Not every April day can serve as a test. The rows each fill reads have to sit the same numbers of trading days away as the rows around the real gap, and each missing year’s gap has its own pattern of distances:
@@ -257,8 +259,6 @@ For 1997, `m` is 0.4 cents, `b` is 0.26 and `σ` is 0.86, so `c` is 0.14. From t
 ```
 
 That product is the 42% this section opened with. The same formula with each year’s typical miss around zero, and no correction, gives 41%, so the correction barely moves the figure. It moves the years apart, though, which is why 1997 sits close to a coin flip while 1999 reaches 90%.
-
-![“Each corrected move against fill 2’s spread”, drawn slowly stroke by stroke. A dashed grey line at zero divides “loss” on the left from “profit” on the right. Three rows follow, each with its σ above its bar: “σ = 0.86¢” for “1997”, with “57%”, then “σ = 0.74¢” for “1998”, with “83%”, then “σ = 0.62¢” for “1999”, with “90%”. In each row a purple dot right of zero marks the year’s move with fill 2’s guess corrected by its average miss, and a black bar of one spread either side. The bar for 1997 reaches well across zero, the bar for 1998 only just reaches past it, and the bar for 1999 stops just short of it. A scale below reads “−1¢” and “+1¢” in “cents a gallon”, and the percentages sit under “chance of profit”, each computed as if fill 2’s misses are normal around their average. Captions read “dot: the corrected move” and “bar: σ, fill 2’s spread, either side”, and a note under the scale names the trade as “gasoline, May contract”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_fill_misses.gif)
 
 #### What the chance rests on
 
