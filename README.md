@@ -6007,8 +6007,13 @@ Five groups of what it says are not pinned here.
    p-value at 3/N, that a position nearly the same on every shuffle earns
    nearly the same mean on the same returns, and that a rule net long on most
    days collects a drift wherever its entries fall.
-4. The figure's alt text, whose readings of the histograms, such as "near
-   3e-5" and "from about 1e-5 to 4e-5", are approximate by design.
+4. The alt texts. The figure's readings of the histograms, such as "near
+   3e-5" and "from about 1e-5 to 4e-5", are approximate by design. Of the
+   sketches' alt texts,
+   [tests/test_tu_hypothesis_tests_whiteboard.py](tests/test_tu_hypothesis_tests_whiteboard.py)
+   reads the quoted labels, the pace and the phrases it quotes about each
+   drawing. It does not read every position the rest of each description
+   gives, such as the upper line rising and the lower one wandering level.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6072,7 +6077,8 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    over the first 1,000 of the second test's series, 0.804654 as drawn and
    0.502401 with the mean removed.
 
-The second sketch's two lines are schematic, and its labels say so. Both are
+The second sketch's two lines are schematic, and the upper line's label says
+so. Both are
 random walks with TU's daily standard deviation, and the upper one adds TU's
 daily mean, which keeps the drift over 250 days at about 0.87 of the noise's
 standard deviation over the same days. Neither is TU's closes or one of the

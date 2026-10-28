@@ -26,9 +26,8 @@ as scenes, and the post places each right after the paragraph it draws.
    first 1,000 of the second test's simulated series, with and without the
    mean. The upper line's label calls it schematic, a grey note says the
    shares come from those series, and a closing line says the rule collects
-   the drift. It
-   sits in Lesson 5, after the paragraph opening "**The mechanism is the rule
-   itself.**"
+   the drift. It sits in Lesson 5, after the paragraph opening "**The
+   mechanism is the rule itself.**"
 
 The second sketch's lines are schematic. Both are random walks drawn from
 :data:`WALK_SEED` with TU's daily standard deviation, and the upper one adds
@@ -36,10 +35,11 @@ TU's daily mean. That keeps the drift at its real size against the noise over
 250 days, about 0.87 of one standard deviation. Neither line is TU's own
 closes, on which the rule is long on a different share of days, and neither
 is one of the second test's series.
-Its two shares and the first sketch's observed mean, draw count and simulated
-means are not schematic. :meth:`SketchFigures.from_run` reads each of them
-from :mod:`chan.tu_hypothesis_tests` on Chan's committed file, so a sketch
-prints only what the run computes.
+
+The second sketch's two shares and the first sketch's observed mean, draw
+count and simulated means are not schematic. :meth:`SketchFigures.from_run`
+reads each of them from :mod:`chan.tu_hypothesis_tests` on Chan's committed
+file, so a sketch prints only what the run computes.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours. The

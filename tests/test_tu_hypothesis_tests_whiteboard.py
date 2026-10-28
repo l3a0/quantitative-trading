@@ -534,9 +534,12 @@ class TestTheFigures:
         assert (figures.daily_mean, figures.daily_std) == (moments.mean, moments.std)
         z = np.random.default_rng(WALK_SEED).standard_normal(LOOKBACK * WINDOWS)
         np.testing.assert_array_equal(
-            np.diff(walk(figures, drift=True)), moments.std * z + moments.mean
+            walk(figures, drift=True),
+            np.concatenate([[0.0], np.cumsum(moments.std * z + moments.mean)]),
         )
-        np.testing.assert_array_equal(np.diff(walk(figures, drift=False)), moments.std * z)
+        np.testing.assert_array_equal(
+            walk(figures, drift=False), np.concatenate([[0.0], np.cumsum(moments.std * z)])
+        )
 
     def test_over_250_days_the_drift_is_about_0_87_noise_standard_deviations(self, figures) -> None:
         """The figure the module docstring and README give for why the lines are noisy."""
@@ -600,7 +603,9 @@ class TestTheWrongArraySketch:
         ):
             stroke = _stroke(wrong_array, gid)
             x0, y0, x1, y1 = box
-            assert (stroke.x.min(), stroke.y.min(), stroke.x.max(), stroke.y.max()) == box
+            np.testing.assert_allclose(
+                (stroke.x.min(), stroke.y.min(), stroke.x.max(), stroke.y.max()), box, atol=1e-12
+            )
             label = _label(wrong_array, text)
             assert (label.names, label.x, label.y) == (gid, (x0 + x1) / 2, (y0 + y1) / 2)
 
@@ -710,13 +715,25 @@ class TestTheMostlyLongSketch:
             assert days[-1] == LOOKBACK * WINDOWS
 
     def test_each_bracket_spans_its_250_days(self, mostly_long, figures) -> None:
-        for name in ("drifting", "flat"):
+        """The bracket's level part runs from its window's first day to its last."""
+        gap = sketches.BRACKET_GAP
+        for name, level in (("drifting", DRIFTING_BRACKETS), ("flat", FLAT_BRACKETS)):
             for k, stroke in enumerate(_windows(mostly_long, name)):
-                gap = sketches.BRACKET_GAP
-                assert np.isclose(stroke.x.min(), day_x(figures, k * LOOKBACK) + gap), stroke.gid
-                assert np.isclose(stroke.x[0], day_x(figures, k * LOOKBACK) + gap), stroke.gid
+                flat = stroke.x[np.isclose(stroke.y, level)]
+                start = day_x(figures, k * LOOKBACK) + gap
                 end = day_x(figures, (k + 1) * LOOKBACK) - gap
-                assert np.isclose(stroke.x[-1], end), stroke.gid
+                assert np.isclose(flat.min(), start) and np.isclose(flat.max(), end), stroke.gid
+                assert np.isclose(stroke.x[0], start), stroke.gid
+
+    def test_each_row_of_brackets_sits_under_its_line(self, mostly_long) -> None:
+        for name, level in (("drifting", DRIFTING_BRACKETS), ("flat", FLAT_BRACKETS)):
+            line = _stroke(mostly_long, f"{name}-line")
+            assert level + ARROW_RISE < line.y.min(), name
+            for stroke in _windows(mostly_long, name):
+                assert stroke.y.max() < line.y.min(), stroke.gid
+        flat_line = _stroke(mostly_long, "flat-line")
+        tops = [s.y.min() for s in _windows(mostly_long, "drifting")]
+        assert flat_line.y.max() < min(tops)
 
     def test_each_arrow_points_the_way_its_window_moved(self, mostly_long, figures) -> None:
         """The head's tip is the point farthest from the bracket's level, at the window's end."""
