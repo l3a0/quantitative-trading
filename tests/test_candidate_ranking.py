@@ -252,14 +252,16 @@ def needed(sharpe: float, n: int = N) -> float:
     return (hurdle(n) / sharpe) ** 2
 
 
-#: Spans no search in either repository loaded, per instrument or universe.
-#: Each starts the day after the last day a search read, or on the day the
-#: instrument began trading, and ends on the day before a search's first day.
-#: Spans before a file starts have to be bought.
+#: Spans on which no search in either repository computed a statistic, per
+#: instrument or universe. A file read whole and cut before any statistic does
+#: not spend its other years, the reading Entry 51's registered holdout used.
+#: Each span starts the day after a search's last day, or on the day the
+#: instrument began trading, and ends the day before a search's first day.
+#: Spans outside every file held have to be bought.
 EWA_EWC = ((date(1996, 3, 18), date(2006, 4, 25)), (date(2012, 4, 10), SPAN_END))
 EWA_EWC_IGE = ((date(2001, 10, 22), date(2006, 4, 25)), (date(2012, 4, 10), SPAN_END))
 TU = ((date(2012, 8, 14), SPAN_END),)
-VX = ((date(2012, 5, 9), SPAN_END),)
+VX = ((date(2004, 3, 26), date(2004, 5, 31)), (date(2012, 5, 9), SPAN_END))
 FSTX = ((date(1998, 6, 22), date(2004, 7, 6)), (date(2012, 5, 18), SPAN_END))
 CL = ((date(1983, 3, 30), date(1986, 11, 2)), (date(2012, 8, 14), SPAN_END))
 AUD_CAD = ((date(1983, 12, 12), date(2007, 7, 20)),)
@@ -273,8 +275,14 @@ SP600 = ((date(1994, 10, 28), date(2004, 1, 14)),)
 #: sibling's intraday archive starts in 2016.
 SP400 = ((date(1991, 6, 19), date(2005, 11, 30)), (date(2007, 1, 1), date(2015, 12, 31)))
 MOM_SEASON = ((date(1927, 1, 1), date(1964, 12, 31)),)
-NATURAL_GAS = ((date(1990, 4, 3), date(1993, 12, 31)),)
-SPY_CHAINS = ((date(1996, 1, 4), date(2010, 5, 16)),)
+NATURAL_GAS = ((date(1990, 4, 3), date(1993, 12, 19)), (date(2024, 4, 6), SPAN_END))
+#: Gasoline before Entry 11 starts its run in 1995, in a committed EIA file.
+GASOLINE = ((date(1985, 1, 2), date(1994, 12, 31)), (date(2024, 4, 6), SPAN_END))
+#: Option chains before the sibling's store starts in 2008, to be bought.
+SPY_CHAINS = ((date(1996, 1, 4), date(2007, 12, 31)),)
+IWM_CHAINS = ((date(2000, 5, 26), date(2007, 12, 31)),)
+USD_CAD = ((date(1971, 1, 4), date(2007, 7, 21)),)
+NVDA_BARS = ((date(1999, 1, 22), date(2015, 12, 31)),)
 
 #: ``(Sharpe ratio, whether it is after costs at 5 bp a side, spans)``. A gross
 #: Sharpe ratio is an upper bound on the after-cost one, so a gross row whose
@@ -319,6 +327,10 @@ SCREEN = {
     # Entry 11, natural gas 1994 to 2008, one ratio per yearly trade,
     # tests/test_commodity_seasonals.py
     "11 natural gas seasonal": (1.0008, False, NATURAL_GAS),
+    # Entry 11, gasoline, tests/test_commodity_seasonals.py
+    "11 gasoline seasonal": (0.7764, False, GASOLINE),
+    # Entry 22, tests/test_usdcad_mean_reversion.py
+    "22 USD.CAD linear mean reversion": (0.1188463477, False, USD_CAD),
     # Entry 13, tests/test_pca_factor.py
     "13 PCA factor model": (0.5787, False, SP600),
     # Entry 30, tests/test_aud_cad_rollover.py
@@ -331,11 +343,46 @@ SCREEN = {
     "50d S&P 600 control opens": (1.6903, True, SP600),
     "10 rule A S&P 500 opens": (1.3997, True, SP500),
     "10 rule A without the fill": (1.0335, True, SP500),
+    # tests/test_khandani_lo.py, TestWhyRuleAKeepsMoreAfterCosts::test_each_step_on_the_opens
+    "10 step one from rule B to rule A": (1.0149, True, SP500),
+    "10 step two from rule B to rule A": (1.0307, True, SP500),
+    "10 step three from rule B to rule A": (1.0314, True, SP500),
     "10 rule B S&P 500 opens": (0.8293, True, SP500),
     "19 row 10 S&P 500 closes": (0.3797, True, SP500),
     "50b S&P 400 opens": (0.4884, True, SP400),
     "50c S&P 600 control closes": (0.0575, True, SP600),
 }
+
+
+#: Rows pinned as a t rather than a Sharpe ratio, as ``(t, years it was
+#: measured over, spans)``. Held exactly, a t of t over Y years reaches t* after
+#: Y (t* / t)² years.
+T_SCREEN = {
+    # Entry 7, Example 7.6 on IJR survivors, 18 Januaries, before costs
+    "7 January effect on survivors": (1.15, 18.0, SP600),
+    # Entry 7, the registered point-in-time run's high bound, before costs
+    "7 January effect, high bound": (3.70, 18.0, SP600),
+    # Entry 14, WML's plain t over 83 months
+    "14 momentum factor": (0.4505, 83 / 12, SP500),
+    # Entry 48, the two ceilings' gap over 83 months
+    "48 low beta, first ceiling": (1.0715, 83 / 12, SP500),
+    "48 low beta, second ceiling": (1.2111, 83 / 12, SP500),
+    # Entry 51, the registered holdout, before costs
+    "51 USD/CAD after 2012": (0.2670, years(date(2012, 3, 29), date(2026, 10, 12)), USD_CAD),
+    # trading-strategies docs/explorations.md:699, the daily t, no hedge cost
+    "sibling covered call in R": (1.25, years(date(2010, 5, 17), date(2026, 6, 5)), SPY_CHAINS),
+    # trading-strategies docs/explorations.md:403-410
+    "sibling Gap G combination": (1.54, years(date(2010, 12, 1), date(2026, 6, 5)), SPY_CHAINS),
+    # trading-strategies docs/vol_premium.md:278-281 and :323-326, at 0.5 bp
+    "sibling put wing on IWM": (0.91, years(date(2010, 12, 1), date(2026, 6, 5)), IWM_CHAINS),
+    "sibling straddle on IWM": (1.28, years(date(2010, 12, 1), date(2026, 6, 5)), IWM_CHAINS),
+    # trading-strategies docs/explorations.md:99-111, gross
+    "sibling NVDA continuation": (0.03, years(date(2022, 1, 1), date(2026, 6, 5)), NVDA_BARS),
+}
+
+
+def needed_from_t(t: float, measured_years: float, n: int = N) -> float:
+    return measured_years * (hurdle(n) / t) ** 2
 
 
 def reaching(n: int, after_costs: bool) -> list[str]:
@@ -356,8 +403,8 @@ class TestTheScreen:
             ("36 TU on lagged roll", 14.13, 8.31),
             ("40 FSTX opening gap", 20.41, 13.01),
             ("23 Johansen EWA/EWC/IGE", 18.98, 13.97),
-            ("35 VX calendar B3", 14.39, 12.74),
-            ("28 VX against ES", 14.39, 13.93),
+            ("35 VX calendar B3", 14.57, 12.74),
+            ("28 VX against ES", 14.57, 13.93),
             ("34 CL calendar spread", 17.72, 16.55),
             ("19 Example 4.4 opens", 32.89, 1.22),
             ("19 Example 4.3 closes", 32.89, 17.05),
@@ -369,16 +416,21 @@ class TestTheScreen:
             ("12 drift", 32.89, 12.16),
             ("31 CL reversal and momentum", 17.72, 22.33),
             ("33 TU momentum", 14.13, 24.93),
-            ("41 VX against ES on roll", 14.39, 25.44),
+            ("41 VX against ES on roll", 14.57, 25.44),
             ("52 MomSeasonShort", 38.00, 41.25),
-            ("11 natural gas seasonal", 3.75, 27.00),
+            ("11 natural gas seasonal", 6.20, 27.00),
+            ("11 gasoline seasonal", 12.48, 44.86),
+            ("22 USD.CAD linear mean reversion", 36.54, 1914.39),
             ("13 PCA factor model", 9.21, 80.74),
             ("30 AUD.CAD with rollover", 23.60, 92.11),
-            ("sibling generative 0.05 delta call", 14.36, 57.12),
+            ("sibling generative 0.05 delta call", 11.99, 57.12),
             ("44b S&P 600 opens", 9.21, 6.59),
             ("50d S&P 600 control opens", 9.21, 9.46),
             ("10 rule A S&P 500 opens", 32.89, 13.80),
             ("10 rule A without the fill", 32.89, 25.32),
+            ("10 step one from rule B to rule A", 32.89, 26.25),
+            ("10 step two from rule B to rule A", 32.89, 25.45),
+            ("10 step three from rule B to rule A", 32.89, 25.42),
             ("10 rule B S&P 500 opens", 32.89, 39.32),
             ("19 row 10 S&P 500 closes", 32.89, 187.55),
             ("50b S&P 400 opens", 23.45, 113.36),
@@ -416,8 +468,53 @@ class TestTheScreen:
 
     def test_the_rows_that_wait_only_on_whether_the_data_can_be_bought(self) -> None:
         assert reaching(N, after_costs=True) == sorted(
-            ["44b S&P 600 opens", "10 rule A S&P 500 opens", "10 rule A without the fill"]
+            [
+                "44b S&P 600 opens",
+                "10 rule A S&P 500 opens",
+                "10 rule A without the fill",
+                "10 step one from rule B to rule A",
+                "10 step two from rule B to rule A",
+                "10 step three from rule B to rule A",
+            ]
         )
+
+    @pytest.mark.parametrize(
+        ("row", "years_available", "years_needed"),
+        [
+            ("7 January effect on survivors", 9.21, 368.03),
+            ("7 January effect, high bound", 9.21, 35.55),
+            ("14 momentum factor", 32.89, 921.53),
+            ("48 low beta, first ceiling", 32.89, 162.90),
+            ("48 low beta, second ceiling", 32.89, 127.51),
+            ("51 USD/CAD after 2012", 36.54, 5514.21),
+            ("sibling covered call in R", 11.99, 277.79),
+            ("sibling Gap G combination", 11.99, 176.84),
+            ("sibling put wing on IWM", 7.60, 506.44),
+            ("sibling straddle on IWM", 7.60, 255.97),
+            ("sibling NVDA continuation", 16.94, 132926.00),
+        ],
+    )
+    def test_each_row_pinned_as_a_t(
+        self, row: str, years_available: float, years_needed: float
+    ) -> None:
+        t, measured, spans = T_SCREEN[row]
+        assert available(spans) == pytest.approx(years_available, abs=0.005)
+        assert needed_from_t(t, measured) == pytest.approx(years_needed, abs=0.005)
+
+    def test_no_row_pinned_as_a_t_has_the_years(self) -> None:
+        assert all(available(sp) < needed_from_t(t, y) for t, y, sp in T_SCREEN.values())
+
+    def test_the_s_and_p_600_row_turns_on_what_loaded_means(self) -> None:
+        """Read as any search that opened the file, the Alpha Vantage years from
+        1999-11-01 are spent, and Entry 44 falls short."""
+        opened = ((date(1994, 10, 28), date(1999, 10, 31)),)
+        assert available(opened) == pytest.approx(5.01, abs=0.005)
+        assert available(opened) < needed(2.0257) <= available(SP600)
+
+    def test_the_cl_row_turns_on_joining_spans(self) -> None:
+        """After 2012 alone falls short. Joined to the years before 1986, it does not."""
+        sharpe, _, spans = SCREEN["34 CL calendar spread"]
+        assert available(spans[1:]) < needed(sharpe) <= available(spans)
 
     def test_the_narrow_hurdle_adds_four_rows(self) -> None:
         added = set(reaching(N_NARROW, after_costs=False)) - set(reaching(N, after_costs=False))
