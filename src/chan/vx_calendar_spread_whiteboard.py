@@ -43,7 +43,9 @@ in the shared colours of :mod:`chan.regime_figure`, as the post's chart does.
 Each sketch carries more than a reader takes in at that post's pace, so both
 are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
 longer and their finished drawings for twelve seconds, as
-:mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Each GIF
+:mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The one
+exception is a box's one-letter label in the Lesson 4 sketch, which keeps the
+usual pace so the 16 letters do not hold back the ring and arrow they lead to. Each GIF
 is named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``vx_calendar_spread.png``.
 
@@ -615,8 +617,9 @@ def _twelve_apart(shipped: Shipped) -> Scene:
 # --- Drawing ------------------------------------------------------------------
 
 #: The scenes that build slowly, because each carries more than a reader takes
-#: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
-#: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
+#: in at the usual pace: a label longer than one letter shows on its own for
+#: :data:`PACED_LABEL_MS` and the finished drawing holds for
+#: :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
 PACED = ("one_hold", "twelve_apart")
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
@@ -627,12 +630,14 @@ def sketch_timeline(scene: Scene) -> list[Frame]:
     frames = timeline(scene)
     if scene.slug not in PACED:
         return frames
-    paced = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
+    paced = []
+    for f in frames:
+        step = scene.steps[f.done - 1] if f.partial == 0 and f.done else None
+        # A box's one-letter label reads at a glance, and 16 of them at the slow
+        # pace would hold back the Lesson 4 sketch's point by about nine seconds.
+        letter = isinstance(step, Label) and len(step.text) == 1
+        slow = step is not None and not isinstance(step, Stroke) and not letter
+        paced.append(Frame(f.done, f.partial, PACED_LABEL_MS) if slow else f)
     last = paced[-1]
     paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
     return paced
