@@ -51,7 +51,7 @@ Each trade happens once a year, so each of the table’s four periods, two for e
 
 ## The two trades and the files
 
-A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 184 and 185). Chan names no time of day for the natural gas exit, so the run, this post’s code, exits at the close. A year is **profitable** when the exit settlement is strictly above the entry settlement.
+A **futures contract** is an agreement to buy a fixed amount of a commodity at a set price on a delivery date. Each delivery month trades as its own contract, so the May and June gasoline contracts have different prices. Each trading day ends with a **settlement price** for every contract, the exchange’s official close, and both trades buy and sell at it. When a trade date is not a trading day, each trade enters on the next one and exits on the previous one (pp. 184 and 185). The run, this post’s code, exits the natural gas trade at the close, a choice Further work returns to. A year is **profitable** when the exit settlement is strictly above the entry settlement.
 
 Every passage quoted here is in the revised edition of 2021. The first edition matters to Lesson 1. Wiley released it in November 2008 and dated it 2009.
 
@@ -379,7 +379,7 @@ Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.
 
 ### Why the run did not try nearby dates
 
-Chan makes the point about few results too, and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a pass mark that gets stricter the more variants the search tries, and years the search never sees. Further work, at the end of this post, says what each would take here.
+Chan makes the point about few results too, and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out (p. 186). His check, trying nearby entry and exit dates, is a search across many trades, and the run did not try it. Further work, at the end of this post, says what running it fairly would take.
 
 ## Lesson 5: find a contract’s file with the exchange’s calendar
 
@@ -451,17 +451,17 @@ Seven checks would take this replication further. The first three each move a ru
 
 ### Nearby entry and exit dates
 
-Chan’s own check moves the dates and asks whether the profits hold (p. 186). Run fairly, it needs the three safeguards Lesson 4 names, and each has a concrete form here.
+Chan suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). Varying the dates until some version works is a search across many trades, and the best of many looks profitable by chance alone. So running the check fairly needs three safeguards.
 
 1. **The variants.** Every pair of entry and exit dates within a set range of Chan’s, counted in trading days so each one lands on a day the exchange is open, written down before any is computed.
-2. **The pass mark.** Neighbouring dates share most of their holding period, so their results rise and fall together. The correction for trying many pairs has to stay valid when they do.
+2. **The pass mark.** It gets stricter the more pairs the search tries. Neighbouring dates share most of their holding period, so their results rise and fall together, and the pass mark has to stay valid when they do.
 3. **The held-back years.** The New York Harbor gasoline file begins in January 1985, and nothing here has read its Aprils before 1994, so 1985 to 1993 give nine years the search would never see, though Chan may have seen them. Every natural gas year in EIA’s files is already used, so its held-back years would have to come after 2023, which the files do not reach.
 
 The check asks whether the neighbourhood of Chan’s dates holds up, not which neighbour does best.
 
 ### Other times of day
 
-Every entry and exit in the run is a settlement price, and for the natural gas exit that is the run’s own choice, as the section on the two trades says. Trading at the open or at a set hour instead needs prices from inside the day, and EIA’s files hold one price a day for each contract. The run holds no prices from inside the day for these contracts, and whether any source reaches back to the 1990s is unmeasured.
+Every entry and exit in the run is a settlement price. Chan names no time of day for the natural gas exit, so the close there is the run’s own choice. Trading at the open or at a set hour instead needs prices from inside the day, and EIA’s files hold one price a day for each contract. The run holds no prices from inside the day for these contracts, and whether any source reaches back to the 1990s is unmeasured.
 
 ### A stop that ends a trade early
 
