@@ -568,7 +568,8 @@ class TestWhatThePostQuotes:
             f"{index[-1].date()}.",
             f"The crude oil script pairs each contract with the one expiring "
             f"{SHIPPED_SPREAD_MONTH} months later.",
-            f"S keeps the script’s own minimum, which holds each pair for at least {HOLDDAYS} days,",
+            f"S keeps the script’s own minimum, which holds each pair for at least "
+            f"{HOLDDAYS} days,",
             f"The window from {s.returns.index[0].date()} to the file’s last day, "
             f"{s.returns.index[-1].date()}, which is {len(s.returns):,} days.",
             f"**B4** is S measured to {b4.returns.index[-1].date()}, the book’s end date, "
@@ -626,7 +627,8 @@ class TestWhatThePostQuotes:
         assert list(second) == after_rolls, f"{SPECS['B2']}; the first days after each roll"
         fragments = [
             f"The script holds each pair for at least {HOLDDAYS} days and lets it go "
-            f"{NUM_DAYS_END} days before its near contract’s last trading day, so it opens each "
+            f"{NUM_DAYS_END} days before its near contract’s last priced day, which the script "
+            f"takes as its expiry, so it opens each "
             f"pair at least {HOLDDAYS + NUM_DAYS_END} days before that day.",
             f"On the {len(rank):,} days from {START.date()} on which S holds a pair, its near leg "
             f"is the front contract on {front}.",
