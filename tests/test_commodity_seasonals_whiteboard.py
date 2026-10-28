@@ -380,7 +380,7 @@ FOLLOWS = (
     "Fill 2’s misses also lean one way.",
     "Test days close together read some of the same prices, though,",
     "```math\n\\begin{aligned}\n\\text{true move} &= (\\text{guess} + e) - \\text{entry}",
-    "So the chance that all three years were profits",
+    "That product is the 42% this section opened with.",
     "Chan picked each rule because it did well in years the book covers",
     "For the four Sharpe ratios in the returns table",
     "```math\n\\bar r \\pm t_{n-1}",

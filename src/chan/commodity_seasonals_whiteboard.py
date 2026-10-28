@@ -104,7 +104,7 @@ the paragraph it draws.
    year's move with fill 2's guess corrected by its average miss, a bar of the
    spread of its misses either side, and each year's chance of a profit. The
    bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
-   the paragraph opening "So the chance that all three years were profits".
+   the paragraph opening "That product is the 42% this section opened with".
 15. A raised start makes a longer fall: one trade's mean return on a
    vertical scale, a dashed line for its real edge, a dot above it for the
    book's years and a dot below it for the years after the book, and two
