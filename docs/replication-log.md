@@ -3518,10 +3518,10 @@ misses are normal and independent, all three years were profits with a chance
 of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
 was 41%.
 
-The post also carries twenty-eight whiteboard sketches, twenty-seven that draw
+The post also carries twenty-nine whiteboard sketches, twenty-eight that draw
 this entry's run and one schematic sketch, and
 `uv run python -m chan.commodity_seasonals_whiteboard` redraws all
-twenty-eight.
+twenty-nine.
 
 1. Each trade's entry and exit on one calendar, with Chan's count for it.
 2. Both trades' years won, split where the book's years end: 15 of 15 then 7 of
@@ -3570,10 +3570,14 @@ twenty-eight.
 27. A holiday row in the files, at Christmas 2018, beside none in 2016.
 28. A schematic cliff beside a plateau, the shape a search across a trade's
    parameters looks for, with no figures from the run.
+29. Gasoline's 2019 entry date, Saturday, April 13, moved forward to Monday by
+   Chan's rule and back to Friday by the outward rule and the nearest trading
+   day. A trade date falls on a closed day in 17 of 29 gasoline years and 11
+   of 30 natural gas years.
 
 [tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
-reads the first twenty-seven from the run, so a change to the streak counts, to a gasoline
-year's result or to the expiry rule moves them too.
+reads every sketch but the cliff-or-plateau from the run, so a change to the streak counts, to a gasoline
+year's result, to the expiry rule or to the trading calendar moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
 

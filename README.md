@@ -3832,7 +3832,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries twenty-eight looping whiteboard sketches, drawn by
+The post also carries twenty-nine looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3927,8 +3927,11 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 28. `commodity_sketch_plateau.gif`, in Further work, profit against one
    parameter moved either way from Chan's value, as a cliff that pays well
    only at his value beside a plateau that pays around it.
+29. `commodity_sketch_closed_date.gif`, in Further work, gasoline's 2019
+   entry date, a Saturday, which Chan's rule moves forward to Monday while the
+   outward rule and the nearest trading day move it back to Friday.
 
-All twenty-eight build more slowly than the USD.CAD post's sketches and hold their
+All twenty-nine build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in. The gasoline editions, half-width and pairs
 sketches hold their labels for 1.8 seconds. The half-width and pairs sketches
@@ -3937,8 +3940,8 @@ its strokes at the usual 100 ms and holds each finished stroke for 250 ms.
 
 One is schematic, the cliff-or-plateau sketch, whose curves are shapes
 rather than figures and which says so on the board. Each of the other
-twenty-seven reads the natural gas or gasoline run on the committed EIA
-files, so none needs the owner's archive. Redraw all twenty-eight with:
+twenty-eight reads the natural gas or gasoline run on the committed EIA
+files, so none needs the owner's archive. Redraw all twenty-nine with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard
@@ -3962,8 +3965,9 @@ how many bars its line crosses and the file the run reads, that the handover
 sketch's dots are the files' prices and its files hand over the day after the
 rule's last day, that the coverage sketch's counts are the run's, that 2018's
 entry line meets the end of March's bar, that a holiday dot stands on exactly
-the days the file holds a row, and that each GIF follows the paragraph it
-draws.
+the days the file holds a row, that each closed-date arrow ends on the day
+its rule gives and its caption counts the run's years with a trade date on a
+closed day, and that each GIF follows the paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
