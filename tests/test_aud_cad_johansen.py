@@ -673,21 +673,26 @@ class TestWhatThePostQuotes:
     it, and looked for in a short fragment holding the number and the few
     words that name one place in the post. Each fragment must occur exactly
     once, so it cannot match a second copy. A typo in a copy that is read, or
-    a re-pin that leaves the post behind, fails here, while rewording the
-    prose between two figures does not. The Lesson 1 table is read whole
-    through :func:`tests.support.post_tables.tables`, and passes either way
-    up.
+    a re-pin that leaves the post behind, fails here, while rewording prose
+    that no fragment holds does not. Some fragments run across two figures and
+    the words between them, so rewording those words fails too. The Lesson 1
+    table is read whole through :func:`tests.support.post_tables.tables`, and
+    passes either way up.
 
     Four things stay unread.
 
     1. Second copies of a figure, such as the subtitle's 612, 26 and 90, the
-       Sharpe ratio of 1.610890 in Lesson 5 and the 90 days in the closing
-       lists.
+       Sharpe ratio of 1.610890 in Lesson 5, and the 90 in Lesson 4's
+       subheading and in its sentences opening "None of the 90 days" and "The
+       same 90 days".
     2. The figure's alt text and caption, whose readings of the curves are
        approximate. ``tests/test_aud_cad_johansen_figures.py`` holds what the
        figure draws.
-    3. Chan's words, his figures as the book prints them outside the table,
-       their Kindle pages, the script's name and commit, and the references.
+    3. What comes from outside this run, such as Chan's words and his figures
+       as the book prints them outside the table, their Kindle pages, the
+       script's name, commit and 252-day year, the port's printout, the
+       confidence level the test is read at, other posts' findings and the
+       references.
     4. Ratios the post states in words from pinned figures, such as about
        three quarters and about twice as wide, which README lists.
     """

@@ -5936,8 +5936,8 @@ day. Chan reports an APR of 11 percent and a Sharpe ratio of 1.6 from
 test, the linear rule, rollover interest, the Kelly leverage, Chan's stationary
 candidates and the gold miners rather than repeating them, and the later post
 on Chapter 8's leverage for where the book's Kelly of 18.4 most likely came
-from. It draws six lessons from Entry 25 of the replication log. Lessons 3
-and 4 also rest on numbers measured for the post, which had no pin before it
+from. It draws six lessons from Entry 25 of the replication log. Lessons 1
+to 4 also rest on numbers measured for the post, which had no pin before it
 and are listed below.
 
 1. Every figure the script prints matches, because every one of the 612
@@ -5986,10 +5986,9 @@ Five groups of what it says are not pinned here.
    is arithmetic on the window length. That CAD/AUD tested stationary over
    nineteen years is the stationary-candidates post's, listed under its
    entry above.
-4. Ratios and differences the post takes from pinned figures in words: about
-   three quarters, about twice as wide, 15 percent of the days, the 586 days
-   left when 26 of 612 are taken away, and that a move of 0.01 is worth one
-   cent. The figure's alt text reads its curves approximately too, such as
+4. Ratios the post takes from pinned figures in words, about three quarters
+   and about twice as wide, and that a move of 0.01 is worth one cent. The
+   figure's alt text reads its curves approximately too, such as
    "near −0.64" and "about 0.32", and it names the dates of two one-day moves,
    2010-05-20 and 2010-07-06, read from the drawn line.
 5. Its references, cited rather than computed.
