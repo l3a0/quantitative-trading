@@ -6545,8 +6545,8 @@ regime map.
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/vx_calendar_spread_whiteboard.py](src/chan/vx_calendar_spread_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws,
-and neither is schematic. The first builds more slowly than the USD.CAD post's
-sketches and holds its finished drawing for twelve seconds.
+and neither is schematic. Both build more slowly than the USD.CAD post's
+sketches and hold their finished drawings for twelve seconds.
 
 1. `vx_calendar_spread_sketch_one_hold.gif`, in Lesson 2, draws one hold of
    the specification. It holds the pair near VX-2009K and far VX-2009M from

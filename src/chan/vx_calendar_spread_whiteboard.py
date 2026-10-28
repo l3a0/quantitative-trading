@@ -40,9 +40,9 @@ day. Every contract, place and count on the second comes from
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. They draw
 in the shared colours of :mod:`chan.regime_figure`, as the post's chart does.
-The first sketch carries more than a reader takes in at that post's pace, so
-it is in :data:`PACED`, and :func:`sketch_timeline` holds each of its labels
-longer and its finished drawing for twelve seconds, as
+Each sketch carries more than a reader takes in at that post's pace, so both
+are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
+longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Each GIF
 is named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``vx_calendar_spread.png``.
@@ -534,6 +534,18 @@ def _twelve_apart(shipped: Shipped) -> Scene:
     first = shipped.row[0]
     year, later = first[-5:-1], shipped.far[-5:-1]
     steps += [
+        # The key to the month letters comes right after the last box, so the
+        # repeated letters have it for the rest of the drawing.
+        Label(
+            f"letters are months: {_letter(first)} to {MONTH_LETTERS[-1]} run {_month(first)} "
+            f"to {_MONTHS[-1]} {year}, then {MONTH_LETTERS[0]} to {_letter(shipped.far)} run "
+            f"{_MONTHS[0]} to {_month(shipped.far)} {later}",
+            0.3,
+            0.88,
+            names=f"box-{len(shipped.row) - 1}",
+            color=MUTED,
+            size=10,
+        ),
         _stroke("priced", _span(first_x, last_x, BRACKET_Y, tick=0.08), color=MUTED, frames=6),
         Label(
             f"priced that day: {len(shipped.priced)} contracts",
@@ -580,16 +592,6 @@ def _twelve_apart(shipped: Shipped) -> Scene:
             ha="right",
         ),
         Label(
-            f"letters are months: {_letter(first)} to {MONTH_LETTERS[-1]} run {_month(first)} "
-            f"to {_MONTHS[-1]} {year}, then {MONTH_LETTERS[0]} to {_letter(shipped.far)} run "
-            f"{_MONTHS[0]} to {_month(shipped.far)} {later}",
-            0.3,
-            0.88,
-            names=f"box-{len(shipped.row) - 1}",
-            color=MUTED,
-            size=10,
-        ),
-        Label(
             f"the script adds up the legs that have a price, so it holds {shipped.near} alone",
             0.3,
             0.575,
@@ -616,7 +618,7 @@ def _twelve_apart(shipped: Shipped) -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
-PACED = ("one_hold",)
+PACED = ("one_hold", "twelve_apart")
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 

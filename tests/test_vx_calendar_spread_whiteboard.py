@@ -19,7 +19,7 @@ leaves the near leg alone. What is pinned is what a reader takes from each.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, the green edge on the pale tint, each GIF's size,
-frames, loop and timing, the first sketch's slower pace, that two draws give
+frames, loop and timing, both sketches' slower pace, that two draws give
 the same bytes, and that each committed GIF is a fresh draw, a comparison that
 runs only on macOS arm64 with Comic Sans MS, as
 ``tests/test_usdcad_tests_whiteboard.py`` explains. The check that
@@ -127,11 +127,11 @@ HOLD_LABELS = [
 
 TWELVE_LABELS = [
     *"FGHJKMNQUVXZFGHJ",
+    "letters are months: F to Z run Jan to Dec 2010, then F to J run Jan to Apr 2011",
     "priced that day: 8 contracts",
     "near: VX-2010J",
     "+12 months",
     "far: VX-2011J, no price",
-    "letters are months: F to Z run Jan to Dec 2010, then F to J run Jan to Apr 2011",
     "the script adds up the legs that have a price, so it holds VX-2010J alone",
     "near leg alone on 1,183 of 1,284 held days",
 ]
@@ -314,11 +314,12 @@ class TestTheGifs:
         for scene in every:
             assert (sketch_timeline(scene)[0].done, sketch_timeline(scene)[0].ms) == (0, TITLE_MS)
         assert sketch_timeline(one_hold)[-1].ms == sketches.PACED_HOLD_MS
-        assert sketch_timeline(twelve_apart)[-1].ms == HOLD_MS
+        assert sketch_timeline(twelve_apart)[-1].ms == sketches.PACED_HOLD_MS
+        assert sketches.PACED_HOLD_MS > HOLD_MS
 
-    def test_the_lesson_2_sketch_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
-        """Each label alone for 0.9 s and the drawing for 12 s, the equity
-        post's slow pace. The Lesson 4 sketch keeps the usual pace."""
+    def test_both_sketches_build_slowly_and_hold_twelve_seconds(self, every) -> None:
+        """Each label and tint alone for 0.9 s and the drawing for 12 s, the
+        equity post's slow pace, in both sketches."""
         from chan import equity_seasonals_whiteboard as equity
 
         assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
@@ -326,20 +327,20 @@ class TestTheGifs:
             equity.PACED_LABEL_MS,
             equity.PACED_HOLD_MS,
         )
-        assert sketches.PACED == ("one_hold",)
-        scene = every[0]
-        frames = sketch_timeline(scene)
-        labels = [
-            f
-            for f in frames[:-1]
-            if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
-        ]
-        assert labels
-        assert {f.ms for f in labels} == {sketches.PACED_LABEL_MS}
-        assert [(f.done, f.partial) for f in frames] == [
-            (f.done, f.partial) for f in timeline(scene)
-        ]
-        assert sketch_timeline(every[1]) == timeline(every[1])
+        assert sketches.PACED == ("one_hold", "twelve_apart")
+        for scene in every:
+            frames = sketch_timeline(scene)
+            labels = [
+                f
+                for f in frames[:-1]
+                if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
+            ]
+            assert labels, scene.slug
+            assert {f.ms for f in labels} == {sketches.PACED_LABEL_MS}, scene.slug
+            assert [(f.done, f.partial) for f in frames] == [
+                (f.done, f.partial) for f in timeline(scene)
+            ], scene.slug
+            assert frames != timeline(scene), scene.slug
 
     def test_an_unpaced_scene_keeps_the_usual_pace(self, every, monkeypatch) -> None:
         monkeypatch.setattr(sketches, "PACED", ())
@@ -435,14 +436,14 @@ class TestThePost:
                 assert found >= 0, (scene.slug, label)
                 at = found + len(label) + 2
 
-    def test_no_alt_text_calls_its_sketch_schematic_and_the_first_names_its_pace(
+    def test_no_alt_text_calls_its_sketch_schematic_and_each_names_its_pace(
         self, every
     ) -> None:
         one_hold, twelve_apart = (_alt(scene) for scene in every)
         for alt in (one_hold, twelve_apart):
             assert "schematic" not in alt
-        assert "drawn slowly" in one_hold and "twelve seconds" in one_hold
-        assert "drawn slowly" not in twelve_apart
+        for alt in (one_hold, twelve_apart):
+            assert "drawn slowly" in alt and "twelve seconds" in alt
 
     def test_the_module_says_neither_sketch_is_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
@@ -798,10 +799,10 @@ class TestTheTwelveApartSketch:
         colours = [s.color for s in scene.steps if isinstance(s, Label)]
         assert colours == [INK] * 8 + [MUTED] * 8 + [
             MUTED,
+            MUTED,
             ACCENT,
             ACCENT,
             LOST,
-            MUTED,
             MUTED,
             MUTED,
         ]
@@ -876,11 +877,11 @@ class TestTheTwelveApartSketch:
         assert scene.title == "On 2011-04-25 the far leg has no price"
         assert scene.labels == [
             *"KMNQUVXZFG",
+            "letters are months: K to Z run May to Dec 2011, then F to G run Jan to Feb 2012",
             "priced that day: 5 contracts",
             "near: VX-2011Q",
             "+6 months",
             "far: VX-2012G, no price",
-            "letters are months: K to Z run May to Dec 2011, then F to G run Jan to Feb 2012",
             "the script adds up the legs that have a price, so it holds VX-2011Q alone",
             "near leg alone on 1,234 of 1,500 held days",
         ]
