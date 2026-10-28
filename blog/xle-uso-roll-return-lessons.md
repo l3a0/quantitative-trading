@@ -4,16 +4,16 @@
 
 ## Why trade a fund of producers against a fund of futures
 
-A futures contract earns two things as it ages: what the commodity’s price does, and a roll return from its price converging on that price by expiry. Ernest Chan’s *Algorithmic Trading* shows one way to collect the roll return alone. When the roll return is negative, “buy the underlying asset and short the futures”, and the reverse when it is positive (Chan, 2013, location 2718). The commodity’s own moves cancel between the two legs and the roll return is left. The [post on long GLD and short gold futures](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gc-lessons.md#why-own-the-metal-and-short-the-future) runs that arbitrage on gold, where a fund does hold the metal.
+A futures contract earns two things as it ages: what the commodity’s price does, and a roll return from its price converging on that price by expiry. Ernest Chan’s *Algorithmic Trading* shows one way to collect the roll return alone. When the roll return is negative, “buy the underlying asset and short the futures”, and the reverse when it is positive (Chan, 2013, Kindle edition, p. 208). The commodity’s own moves cancel between the two legs and the roll return is left. The [post on long GLD and short gold futures](https://github.com/l3a0/quantitative-trading/blob/main/blog/gld-gc-lessons.md#why-own-the-metal-and-short-the-future) runs that arbitrage on gold, where a fund does hold the metal.
 
-That needs a way to hold the commodity itself, and for crude oil none exists. “There are no ETFs that hold other physical commodities as opposed to commodities futures”, Chan writes, because storing them costs too much (location 2734). USO, the oil fund, “doesn’t actually own oil. It invests in oil futures contracts” (location 1939). So Chan offers what he calls “a less exact form of arbitrage” (location 2734). A fund of companies that produce a commodity “usually cointegrates with the spot price of that commodity” (location 2385), meaning the two move together over time. The spot price is the price for delivery today. XLE, the energy sector fund, can then stand in for crude’s spot price.
+That needs a way to hold the commodity itself, and for crude oil none exists. “There are no ETFs that hold other physical commodities as opposed to commodities futures”, Chan writes, because storing them costs too much (p. 209). USO, the oil fund, “doesn’t actually own oil. It invests in oil futures contracts” (p. 142). So Chan offers what he calls “a less exact form of arbitrage” (p. 209). A fund of companies that produce a commodity “usually cointegrates with the spot price of that commodity” (p. 178), meaning the two move together over time. The spot price is the price for delivery today. XLE, the energy sector fund, can then stand in for crude’s spot price.
 
-The trade pairs XLE with USO rather than with crude oil futures directly, which trade as CL. The reason is a timing one: “XLE and CL have different closing times”, while USO closes with XLE and “contains nothing but front month contracts of CL” (location 2734). The rule is two sentences.
+The trade pairs XLE with USO rather than with crude oil futures directly, which trade as CL. The reason is a timing one: “XLE and CL have different closing times”, while USO closes with XLE and “contains nothing but front month contracts of CL” (p. 209). The rule is two sentences.
 
 1. “Short USO and long XLE whenever CL is in contango”, meaning later contracts are priced above earlier ones.
 2. “Long USO and short XLE whenever CL is in backwardation”, the reverse.
 
-Chan reports “a very respectable 16 percent” a year from April 26, 2006, to April 9, 2012, “with a Sharpe ratio of about 1” (location 2734). He published the script, `XLE_CL_rollReturn.m`, and this repository transcribed it line by line and ran it on the two files it loads.
+Chan reports “a very respectable 16 percent” a year from April 26, 2006, to April 9, 2012, “with a Sharpe ratio of about 1” (p. 209). He published the script, `XLE_CL_rollReturn.m`, and this repository transcribed it line by line and ran it on the two files it loads.
 
 The results fall into five groups.
 
@@ -58,7 +58,7 @@ The rules that decide each result are in [Entry 39 of the replication log](https
 
 The trade rests on two claims from the book, and this replication tests neither.
 
-1. **XLE stands in for crude’s spot price.** Location 2385 says a producers’ fund usually cointegrates with the spot. The file the script loads holds no spot price. Chan’s later save of the strip holds one over the whole window, but nothing here tests XLE against it.
+1. **XLE stands in for crude’s spot price.** Chan says a producers’ fund usually cointegrates with the spot (p. 178). The file the script loads holds no spot price. Chan’s later save of the strip holds one over the whole window, but nothing here tests XLE against it.
 2. **USO holds the front contract.** The script’s ratio reads its own front, which is not always the contract nearest expiry. On 734 of the 1,375 days with a ratio, the script’s front is the nearest contract the file prices that day. On the other 641 it is the second-nearest. The script moves to the next contract 10 rows before the current one’s last price, and for those 10 rows the old contract is still priced. So “front month” in the signal means the contract the script reads, which need not be the one USO held that day.
 
 Over the window the two funds went opposite ways. USO’s close fell from 69.54 to 38.97, or 43.9603 percent. XLE’s rose from 51.97 to 69.61, or 33.9427 percent. A trade mostly short USO and long XLE gains from both moves, whether or not either move came from the roll return. Lesson 5 splits the window by the view the trade held and measures how much of USO’s move the ratio’s roll return accounts for.
@@ -175,7 +175,7 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Figure 6.3, and Kindle locations 1939, 2385, 2718 and 2734.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Figure 6.3, with pages 142, 178, 208 and 209 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `XLE_CL_rollReturn.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code.
 
 *Not investment advice. Code: [the trade](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/xle_uso_roll_return.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/xle_uso_roll_return_figures.py), with the checks behind [the trade’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_xle_uso_roll_return.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_xle_uso_roll_return_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-39-xle-against-uso-signed-by-crude-oils-contango-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*
