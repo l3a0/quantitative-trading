@@ -25,8 +25,8 @@ unless it names another, so they are stated once here.
 - **The two earlier saves.** ``inputdataohlcdaily_20120511/fstx.csv``, saved
   2012-05-12, and ``inputdataohlcdaily_20120507/fstx.csv``, saved
   2012-05-09, both chan-mat and adjusted. ``TestTheEarlierSaves``,
-  ``TestWhatThePostMeasures``, ``TestTheGuardAndTheReads`` and
-  ``TestTheReport`` read them.
+  ``TestWhatThePostMeasures``, ``TestTheGuardAndTheReads``, ``TestTheReport``
+  and ``TestThePostQuotesTheRun`` read them.
 - **Specification.** ``gapFutures_FSTX.m``, git blob ``02db940`` at
   EpchanPreview ``e4bc46f``, as ``chan.opening_gap`` transcribes it. The
   spread is ``backshift(1, smartMovingStd(calculateReturns(cl, 1), 90))``. A
@@ -1365,6 +1365,10 @@ class TestThePostQuotesTheRun:
         assert (r"\text{Sharpe} & " + " & ".join(_tex(figs[s].sharpe) for s in order)) in (
             self.text
         )
+        (held,) = {len(frame) for frame in runs.values()}
+        assert f"three of them hold FSTX over {held:,} days, a different {held:,} in each." in (
+            self.text
+        )
 
     def test_the_two_causes(self, prices, earlier) -> None:
         older, newer = earlier["20120507"], earlier["20120511"]
@@ -1408,10 +1412,13 @@ class TestThePostQuotesTheRun:
     def test_the_chart_s_alt_text(self, result) -> None:
         """Every figure in the chart's alt text, by the arithmetic the chart draws with.
 
-        Each value is what :mod:`chan.opening_gap_figures` draws, through its own
+        Each marked value is what :mod:`chan.opening_gap_figures` draws, through
         ``cumulative_return``, ``drawdown_path``, ``by_side`` and ``signed``, picked
-        out the way that module picks it. ``tests/test_opening_gap_figures.py``
-        holds that the chart draws these values.
+        out the way that module picks it. The short side's high, which the chart
+        does not mark, is its highest point before its low, and the red line's
+        rise is dated by the year of the drawdown's trough.
+        ``tests/test_opening_gap_figures.py`` holds that the chart draws these
+        values.
         """
         alt = next(p for p in self.text.split("\n\n") if p.startswith("![Two charts on one"))
         days, lit, mom = result.days, result.literal_figures, result.momentum_figures

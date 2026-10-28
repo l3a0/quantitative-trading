@@ -7508,7 +7508,10 @@ Five groups of what it says are not pinned here.
 4. Figures the post states in words or rounds from pinned ones, such as 12
    percent a year, about three quarters, fewer than a quarter and about a
    quarter of the days, and the upward jumps reversing more strongly. The
-   figure's alt text reads its curves approximately too.
+   chart's alt text also describes the shapes of its curves in words, such as
+   a line falling almost steadily, and no test reads those words. Its two
+   approximate figures, about 18 percent in July 2008 and the rise in late
+   2008, are read by `TestThePostQuotesTheRun`.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -7565,13 +7568,14 @@ Eleven had no pin before the post.
 [tests/test_opening_gap.py](tests/test_opening_gap.py) reads the post itself
 and checks one copy of each figure it takes from the run: every computed table
 row, every figure in the chart's alt text, the days in the market, the first
-trade, the first day each of the script's and the port's standard deviations
-holds a value, the two sides, the two causes in Lesson 4 and the port's
-figures. It also checks Chan's printed figures, the three saves' names, the
-latest save's date and the comment's last digit, 0.0001, against the code's own
-record of them. A second copy of a figure, such as the first trade's date in
-the section on the rule, is not always read, and neither are the figures inside
-the sentences the post quotes from Chan, such as his GBPUSD and VIX results.
+trade, the days each of the three saves holds, the first day each of the
+script's and the port's standard deviations holds a value, the two sides, the
+two causes in Lesson 4 and the port's figures. It also checks Chan's printed
+figures, the three saves' names, the latest save's date and the comment's last
+digit, 0.0001, against the code's own record of them. A second copy of a
+figure, such as the first trade's date in the section on the rule, is not
+always read, and neither are the figures inside the sentences the post quotes
+from Chan, such as his GBPUSD and VIX results.
 
 Its one figure is drawn from the committed vintage by
 [src/chan/opening_gap_figures.py](src/chan/opening_gap_figures.py), which
