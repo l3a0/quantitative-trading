@@ -5980,7 +5980,7 @@ lessons from Entry 37 of the replication log.
    than its kurtosis as what drives the second test, which is exploratory and
    motivates a registered test rather than confirming one.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6010,7 +6010,11 @@ Five groups of what it says are not pinned here.
    days collects a drift wherever its entries fall.
 4. The figure's alt text, whose readings of the histograms, such as "near
    3e-5" and "from about 1e-5 to 4e-5", are approximate by design.
-5. Its references, and its pointers to the book's chapters and example, the
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states most figures more than once, in its subtitle, its opening list, a
+   lesson, the closing habits, the list of what it cannot say or the alt text,
+   and a typo in a copy the class does not read passes.
+6. Its references, and its pointers to the book's chapters and example, the
    log's entry and other posts' lessons, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6034,6 +6038,14 @@ them all.
    long on 0.983958 of days against 0.638. That is the reading that shuffled
    entry days cancel into a net long position of about the same size on every
    shuffle.
+
+`TestWhatThePostQuotes` in
+[tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) reads
+one copy of each run figure in the post against the run, Lesson 1's two
+equations line by line, so a typo in that copy fails a test. It reads Chan's
+printed figures through the module constants that hold them, and asserts on
+the run the comparisons the post's words draw, such as a count inside or
+outside its band and the sampler within four standard errors of its targets.
 
 Its one figure is drawn from the committed file by
 [src/chan/tu_hypothesis_tests_figures.py](src/chan/tu_hypothesis_tests_figures.py),
