@@ -817,8 +817,8 @@ class TestWhatThePostQuotes:
             f"ln {1 + those:.4f} is about two fifths of ln {1 + total:.4f}.",
             f"So {100 * n / len(test):.0f} percent of the days, {n} of the {len(test)},",
             f"the curve stood at {curve[first]:.4f} on {days[first].date()}, the day the "
-            f"first of them was set, and at {curve[last + 1]:.4f} on {days[last + 1].date()}, "
-            "the day after the last of them.",
+            f"first of their hedges was set, and at {curve[last + 1]:.4f} on "
+            f"{days[last + 1].date()}, the day the last of those hedges earned its return.",
             f"standard deviation of {test[earned].std(ddof=1):.4f}, against "
             f"{test[~earned].std(ddof=1):.4f} on the other {rest_n} days",
             f"{test[earned].mean():.4f} a day against {test[~earned].mean():.4f}.",
