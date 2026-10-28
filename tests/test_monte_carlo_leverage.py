@@ -1095,6 +1095,14 @@ class TestWhatThePostSays:
         ) in self.text
         assert f"{words[kept]} seeds qualify." in self.text
 
+        middle = f"{BAND[1] - BAND[0]:.0f}"
+        runs = len(result.ensemble.runs)
+        assert f"both of the book’s fall inside the middle {middle} percent of them" in self.text
+        assert f"fall outside the middle {middle} percent of what {runs} reruns give" in self.text
+        assert (
+            f"between the {BAND[0]:.0f}th and {BAND[1]:.0f}th percentiles of the same quantity"
+        ) in self.text
+
     def test_lesson_3_s_table_of_bands(self, result) -> None:
         def verdict(found: Band) -> str:
             lands = [found.holds(float(p)) for p in (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM)]
