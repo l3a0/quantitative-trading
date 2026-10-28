@@ -53,6 +53,12 @@ can say whether the number reproduces and nothing more. A replication that
 spends no sample is outside that label and its opposite both, which the
 coin-flip entry says in place of picking one.
 
+Whether any tested strategy is worth taking forward is a separate question.
+[docs/candidate-ranking.md](docs/candidate-ranking.md) ranks every one here and
+in the sibling repo by after-cost evidence on data no search had loaded,
+against a pass mark fixed before the ranking was filled in. Read at `6da0ee38`,
+none clears.
+
 ## Status
 
 Forty-seven replications run here, eighteen from Chan's *Quantitative Trading*
