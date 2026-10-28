@@ -8,7 +8,7 @@ module draws the two as scenes, and the post places each right after the
 paragraph it draws.
 
 1. The least of many draws goes deeper: three rows of dots on one return
-   scale, each dot a day below −0.012. The top row is Chan's 612 saved
+   scale, each dot a value below −0.012. The top row is Chan's 612 saved
    returns, whose least, −0.022031, a dashed brass line carries down through
    the rows below. The middle row is the first 612 of the declared seed's
    draws, whose least stops short of that line, and a label gives the chance
@@ -373,7 +373,7 @@ def _least_draw(figures: LeastFigures) -> Scene:
         )
     steps.append(
         Label(
-            f"each dot a day below {_signed(CUTOFF, 3)}, to scale, draws from seed {SEED}",
+            f"each dot a value below {_signed(CUTOFF, 3)}, to scale, draws from seed {SEED}",
             0.3,
             CLOSING_Y,
             names="many",
@@ -517,7 +517,7 @@ def _loop_leverage(figures: LoopFigures) -> Scene:
         )
     steps.append(
         Label(
-            f"the loop’s 1 + dd from the unlevered returns to day {figures.floor_day - 1}: "
+            f"the loop’s 1 + drawdown of the unlevered returns to day {figures.floor_day - 1}: "
             f"{figures.multiplier:.6f}",
             0.3,
             CLOSING_Y,

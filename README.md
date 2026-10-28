@@ -8131,9 +8131,12 @@ Five groups of what it says are not pinned here.
    series of returns with a Kelly near 18.4 and that the evidence cannot tell
    when or how it differed from the saved file, that trial variants of the
    saved series reached no 18.4, that at the same daily risk a path of 100,000
-   days is all but certain to reach a deeper drawdown than one of 612, and
-   that a picture built around one band rule would look like an endorsement
-   of that rule.
+   days is all but certain to reach a deeper drawdown than one of 612, that
+   moving the draws to a Kelly of 18.4 lowers every seed's ruin leverage, so
+   the rule chosen after reads 39 seeds there rather than 40, that a band read
+   without the 30 seeds at or below 19.2 would hold neither of the book's
+   figures, and that a picture built around one band rule would look like an
+   endorsement of that rule.
 4. Figures the post rounds or states in words from pinned ones: 23.8, a gap
    of 5.4 below the saved returns, within 0.52 percent, 13.9 to 14.9 percent,
    nearly twice as deep, about 163 times as many draws, about 9.2 percent,

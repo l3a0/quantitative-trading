@@ -115,7 +115,7 @@ LEAST_DRAW_LABELS = [
     "100,000 draws, about",
     "163 times as many",
     "least 1.9550 times as deep",
-    "each dot a day below −0.012, to scale, draws from seed 20261012",
+    "each dot a value below −0.012, to scale, draws from seed 20261012",
 ]
 
 LOOP_LEVERAGE_LABELS = [
@@ -128,7 +128,7 @@ LOOP_LEVERAGE_LABELS = [
     "drawdown −0.504523, past −0.5",
     "the scheme on p. 263: 3.46",
     "drawdown −0.407605, above −0.5",
-    "the loop’s 1 + dd from the unlevered returns to day 302: 0.946693",
+    "the loop’s 1 + drawdown of the unlevered returns to day 302: 0.946693",
 ]
 
 #: The counts the least-draw alt text spells out, in words.
@@ -657,7 +657,7 @@ class TestTheLeastDrawSketch:
         assert f"reach it with chance {least.chance:.6f}" in labels
         assert f"{least.many_least:.6f}".replace("-", "−") in labels
         assert f"least {least.times_as_deep:.4f} times as deep" in labels
-        assert f"each dot a day below −0.012, to scale, draws from seed {SEED}" in labels
+        assert f"each dot a value below −0.012, to scale, draws from seed {SEED}" in labels
 
     def test_its_colours(self, least_draw) -> None:
         colours = {s.gid: s.color for s in least_draw.strokes}
@@ -678,7 +678,7 @@ class TestTheLeastDrawSketch:
             "100,000 draws, about": INK,
             "163 times as many": INK,
             "least 1.9550 times as deep": LOST,
-            "each dot a day below −0.012, to scale, draws from seed 20261012": MUTED,
+            "each dot a value below −0.012, to scale, draws from seed 20261012": MUTED,
         }
 
     def test_each_dot_sits_at_its_value_on_one_scale(self, least_draw, figures) -> None:
@@ -799,7 +799,7 @@ class TestTheLoopLeverageSketch:
         assert f"drawdown {loop.loop_drawdown:.6f}, past −0.5".replace("-0", "−0") in labels
         assert f"drawdown {loop.scheme_drawdown:.6f}, above −0.5".replace("-0", "−0") in labels
         assert (
-            f"the loop’s 1 + dd from the unlevered returns to day 302: {loop.multiplier:.6f}"
+            f"the loop’s 1 + drawdown of the unlevered returns to day 302: {loop.multiplier:.6f}"
             in labels
         )
 
@@ -817,7 +817,7 @@ class TestTheLoopLeverageSketch:
             "drawdown −0.504523, past −0.5": LOST,
             "the scheme on p. 263: 3.46": GOOD,
             "drawdown −0.407605, above −0.5": GOOD,
-            "the loop’s 1 + dd from the unlevered returns to day 302: 0.946693": INK,
+            "the loop’s 1 + drawdown of the unlevered returns to day 302: 0.946693": INK,
         }
 
     def test_each_line_is_its_leverage_day_by_day_on_one_scale(
@@ -882,14 +882,16 @@ class TestTheLoopLeverageSketch:
             "drawdown −0.450000, above −0.5",
             "the scheme on p. 263: 1.25",
             "drawdown −0.600000, past −0.5",
-            "the loop’s 1 + dd from the unlevered returns to day 43: 0.750000",
+            "the loop’s 1 + drawdown of the unlevered returns to day 43: 0.750000",
         ):
             assert words in labels, words
 
     def test_its_alt_text_says_what_the_picture_shows(self, loop_leverage) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), loop_leverage)
         for words in (
-            "A grey axis is captioned",
+            "Two grey axes sit under the caption",
+            "The upright one has",
+            "The flat one runs from",
             "at its top",
             "at its foot",
             "the first day the loop’s account is below −0.5",

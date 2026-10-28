@@ -9795,7 +9795,7 @@ six decimals the book prints.
 | 9 | +0.092, outside its band | did not reproduce | −0.963 is deeper than the band's bottom of −0.922292. |
 | 10 | +0.1, outside its band | did not reproduce | −0.5 is deeper than the band's bottom of −0.468433. The declared seed's leverage of 2.857143 is the cap over 7, where the book's 2.7 is 19.2 over 7. |
 | 11 | +0.000740 and +0.000746, outside both bands | did not reproduce, and the claim holds | Both of the book's growth rates sit below their bands. The claim that the two are "very similar" holds, since CPPI falls short of the full account by 1.4 percent on the declared seed and by less than 2 percent on all 200. |
-| 12 | +0.0, and none for the claim | reproduced for the full account's 0.9 and for the claim on location 3426's CPPI. Did not reproduce for the claim on Box 8.6's loop | −0.871216 rounds to the book's −0.9 at its one decimal. It is the drawdown row 9 judges, because f·D is f / 2 when D is 0.5, and `TestRow12TheDrawdownCppiCaps::test_at_d_one_half_row_12_s_full_account_is_row_9` holds the two equal on every seed. So the −0.9 lands only because one decimal covers anything from −0.95 to −0.85. The book's −0.963 for the same quantity does not round to −0.9, so its two prints probably come from different runs. The book reports at least two, the 19 at location 3342 and the 19.2 at location 3399, and location 3438 gives its growth rates "in one simulation". The CPPI the prose describes stays above −0.5 on every seed, with a band of −0.499628 to −0.489965. The loop the book prints falls below −0.5 on every seed, so the code Chan shows does not do what the sentence before it says. |
+| 12 | +0.0, and none for the claim | reproduced for the full account's 0.9 and for the claim on location 3426's CPPI. Did not reproduce for the claim on Box 8.6's loop | −0.871216 rounds to the book's −0.9 at its one decimal. It is the drawdown row 9 judges, because f·D is f / 2 when D is 0.5, and `TestRow12TheDrawdownCppiCaps::test_at_d_one_half_row_12_s_full_account_is_row_9` holds the two equal on every seed. So the −0.9 reproduced, rather than reproducing with a gap, because one decimal covers anything from −0.95 to −0.85. The book's −0.963 for the same quantity does not round to −0.9, so its two prints probably come from different runs. The book reports at least two, the 19 at location 3342 and the 19.2 at location 3399, and location 3438 gives its growth rates "in one simulation". The CPPI the prose describes stays above −0.5 on every seed, with a band of −0.499628 to −0.489965. The loop the book prints falls below −0.5 on every seed, so the code Chan shows does not do what the sentence before it says. |
 | 13 | none | none, not a replication | No series matching Example 5.1's printed figures has a Kelly of 18.4, under any of the three compoundings. Moving the draws' mean to a Kelly of 18.4 lands rows 3, 8, 10 and 11, and lands row 3 under the declared band and the one row 3 now reads. |
 | 14 | none | none, not a replication | Moments exist only below order 5.51, so a draw's sample skewness has infinite variance. That is why the tests check the tail and the draws' mean and std rather than a draw's third and fourth moments. |
 | 15 | none | none, not a replication | The ruin leverage cut the capped search on 42 seeds. The exact chance gives 29.8. The count of 42 is 2.4 binomial standard errors above it, and a count of 42 or more has a chance of about 1.3 percent. |
@@ -9980,12 +9980,12 @@ on Chan's saved returns.
    chance of 0.091663. The least of all 100,000, −0.043071, is 1.9550 times
    as deep, with about 163 times as many draws.
 2. **Box 8.6's loop barely cuts its leverage**, in Lesson 5. Each form's
-   leverage on its account, one point a day, runs from the account's high on
-   day 169 to day 303, the loop's first day below −0.5. Both start at f·D, 10.
-   The loop ends at 9.47, 10 times one plus the unlevered returns' drawdown
-   through day 302, 0.946693, with its account's drawdown at −0.504523 on
-   day 303. The scheme on p. 263 ends at 3.46, with its account's drawdown
-   at −0.407605.
+   leverage on its account, one point a day, runs from the day after the
+   account's high on day 169 to day 303, the loop's first day below −0.5.
+   Both start at f·D, 10. The loop ends at 9.47, 10 times one plus the
+   unlevered returns' drawdown through day 302, 0.946693, with its account's
+   drawdown at −0.504523 on day 303. The scheme on p. 263 ends at 3.46, with
+   its account's drawdown at −0.407605.
 
 A change to those figures moves the sketches too, and
 `uv run python -m chan.monte_carlo_leverage_whiteboard` redraws both through

@@ -996,9 +996,9 @@ class TestWhatThePostSays:
         script = float(np.prod(1 + returns) ** (days / len(returns)) - 1)
         m, var = float(returns.mean()), float(returns.var(ddof=1))
         log_growth = math.exp(days * (m - var / 2)) - 1
+        assert f"compounded over {days} days, which on the saved file is {script:.6f}." in self.text
         assert (
-            f"On the saved file that gives {script:.6f}, and the second equation gives "
-            f"{log_growth:.6f}, so the first of the three ways below is the closest"
+            f"puts the APR at {log_growth:.6f}. So the first of the three ways below is the closest"
         ) in self.text
 
         sharpe, kelly_ = float(BOOK_SHARPE), float(BOOK_KELLY)
@@ -1178,22 +1178,20 @@ class TestWhatThePostSays:
             f"The scheme’s deepest is on day {deepest_day(described):,}, and it stays above "
             f"−0.5 on all {len(runs)}."
         ) in self.text
-        assert f"At the script’s f of {CAP:g}, D·f is {D * CAP:g}" in self.text
+        assert f"At the script’s f of {CAP:g}, f·D is {D * CAP:g}" in self.text
 
         seeded = result.declared
         quarter = 1 - seeded.described_growth / seeded.full_growth
         assert round(4 * quarter) == 1
         assert (
-            f"falls short of the full account’s at f·D by {seeded.growth_gap:.6f} of the full "
-            f"account’s, or {100 * seeded.growth_gap:.1f} percent"
+            f"the loop’s growth falls short by {seeded.growth_gap:.6f}, or "
+            f"{100 * seeded.growth_gap:.1f} percent"
         ) in self.text
-        assert (
-            f"The scheme’s falls short by {quarter:.6f} of the full account’s, about a quarter."
-        ) in self.text
+        assert (f"The scheme’s falls short by {quarter:.6f}, about a quarter.") in self.text
         book = 1 - float(BOOK_CPPI_GROWTH) / float(BOOK_FULL_GROWTH)
         assert (
-            f"The book’s two growth rates on p. 264, {BOOK_CPPI_GROWTH} and {BOOK_FULL_GROWTH}, "
-            f"differ by about {100 * book:.1f} percent"
+            f"The book’s two growth rates on p. 264, {BOOK_CPPI_GROWTH} for the loop and "
+            f"{BOOK_FULL_GROWTH} for the full account, differ by about {100 * book:.1f} percent"
         ) in self.text
 
     def test_lesson_6_s_drawdown_table(self, result) -> None:
@@ -1239,7 +1237,7 @@ class TestWhatThePostSays:
         ) in self.text
         assert all(run.growth_gap < SIMILAR_WITHIN for run in result.ensemble.runs)
         assert (
-            f"The gap stays under {100 * SIMILAR_WITHIN:.0f} percent on all "
+            f"The loop’s shortfall stays under {100 * SIMILAR_WITHIN:.0f} percent on all "
             f"{len(result.ensemble.runs)} seeds."
         ) in self.text
 
