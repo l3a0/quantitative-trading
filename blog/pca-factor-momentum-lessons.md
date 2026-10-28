@@ -171,12 +171,12 @@ A return of 186.54 percent dominates any window that holds it. Every day from 20
 
 ### What the factors read without PMC
 
-Dropping PMC and running everything again moves every factor.
+Dropping PMC and running everything again, on 578 stocks rather than 579, moves every factor.
 
 ```math
 \small
 \begin{array}{l|r|r}
-\text{Factor} & \text{With PMC, 579 stocks} & \text{Without PMC, 578 stocks} \\ \hline
+\text{Factor} & \text{With PMC} & \text{Without PMC} \\ \hline
 \text{PC1} & 0.0316 & 0.0740 \\
 \text{PC2} & 0.0778 & -0.0152 \\
 \text{PC3} & -0.0189 & 0.0139 \\

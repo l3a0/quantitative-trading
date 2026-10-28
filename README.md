@@ -8067,8 +8067,8 @@ post prints it, and checks one copy of it, in six places.
 4. Lesson 3's count of checked days and the intercept's two figures.
 5. Lesson 4's table rebuilt whole, its quartiles, its verdicts and its three
    points.
-6. Lesson 5's splice, its weights on PMC, its table rebuilt whole and the
-   paragraph after it.
+6. Lesson 5's splice, its weights on PMC, the sentence before its table, the
+   table rebuilt whole and the paragraph after it.
 
 Every factor those sentences name, and each count they spell out, comes from
 the run too. A second copy of a figure is not read, such as the 752 days t in

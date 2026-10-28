@@ -932,8 +932,8 @@ class TestWhatThePostQuotes:
       same-sign shares.
     - Lesson 3's count of checked days and its intercept figures.
     - Lesson 4's table, its quartiles, its verdicts and its three points.
-    - Lesson 5's splice, its weights on PMC, its table and the paragraph
-      after it.
+    - Lesson 5's splice, its weights on PMC, the sentence before its table,
+      the table and the paragraph after it.
 
     Other copies are not read, so a typo in one of them passes. Among them
     are the repeats of 600, 252, 251, 579, 752 and the dates elsewhere, such
@@ -1205,8 +1205,8 @@ class TestWhatThePostQuotes:
                 "l|r|r",
                 [
                     _text("Factor"),
-                    _text(f"With {SPLICED}, {len(before.comparison.stocks)} stocks"),
-                    _text(f"Without {SPLICED}, {len(after.comparison.stocks)} stocks"),
+                    _text(f"With {SPLICED}"),
+                    _text(f"Without {SPLICED}"),
                 ],
                 [[_text(n), f"{was[n].statistic:.4f}", f"{now[n].statistic:.4f}"] for n in NAMES],
                 [
@@ -1215,6 +1215,8 @@ class TestWhatThePostQuotes:
                     f"{after.comparison.median:.4f}",
                 ],
             ),
+            f"Dropping {SPLICED} and running everything again, on {len(after.comparison.stocks)} "
+            f"stocks rather than {len(before.comparison.stocks)}, moves every factor.",
             f"Without {SPLICED}, {fell} falls below 0 and {rose} rises above it, so the "
             f"criterion would miss {fell} instead of {missed}. {_listed(outside)} move outside "
             f"the band, and {back} moves back inside it. Benjamini-Hochberg still declares none. "
