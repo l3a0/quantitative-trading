@@ -7486,10 +7486,14 @@ Five groups of what it says are not pinned here.
    Figure 7.1's captions and GBPUSD's 7.2 percent and 1.3 at 2971, the stop
    orders triggered at the open at 2985, "a breakout strategy" at 3170, and
    the annualized average return and the VIX filter's threshold of 35, 2.6
-   percent and 0.16 at 3509. The threshold, 2.6 percent and 0.16 are pinned,
-   as book targets in `TestTheSpecification` in
-   [tests/test_vix_filter.py](tests/test_vix_filter.py), and its words are
-   not.
+   percent and 0.16 at 3509. The 13 percent and 1.4 are pinned as book
+   targets in `TestTheSpecification` in
+   [tests/test_opening_gap.py](tests/test_opening_gap.py), and
+   `TestThePostQuotesTheRun` reads them from Lesson 2's table and the chart's
+   alt text. The threshold, 2.6 percent and 0.16 are pinned the same way in
+   `TestTheSpecification` in
+   [tests/test_vix_filter.py](tests/test_vix_filter.py). None of the words
+   are.
 2. Facts about the scripts and the instrument rather than the data: line 23's
    text and the comment at its line 27 in `gapFutures_FSTX.m` at `e4bc46f` of
    ericnberwick/EpchanPreview, the name and source text of the Python port
@@ -7561,13 +7565,13 @@ Eleven had no pin before the post.
 [tests/test_opening_gap.py](tests/test_opening_gap.py) reads the post itself
 and checks one copy of each figure it takes from the run: every computed table
 row, every figure in the chart's alt text, the days in the market, the first
-trade, the spread's first days, the two sides, the two causes in Lesson 4 and
-the port's figures. It also checks the rows holding Chan's printed figures,
-the save names, the save's date and the comment's last digit, 0.0001, against
-the code's own record of them. A second copy of a figure, such as the first
-trade's date in the section on the rule, is not always read, and neither are
-the figures inside the sentences the post quotes from Chan, such as his GBPUSD
-and VIX results.
+trade, the first day each of the script's and the port's standard deviations
+holds a value, the two sides, the two causes in Lesson 4 and the port's
+figures. It also checks Chan's printed figures, the three saves' names, the
+latest save's date and the comment's last digit, 0.0001, against the code's own
+record of them. A second copy of a figure, such as the first trade's date in
+the section on the rule, is not always read, and neither are the figures inside
+the sentences the post quotes from Chan, such as his GBPUSD and VIX results.
 
 Its one figure is drawn from the committed vintage by
 [src/chan/opening_gap_figures.py](src/chan/opening_gap_figures.py), which

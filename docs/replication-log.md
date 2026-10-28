@@ -8997,8 +8997,8 @@ first round of its review before publishing.
    rising from 100 to 120, with the literal reading earning +10% and +20%
    and the momentum reading −10% and −20%. It is schematic and carries no
    figure from the data.
-2. **Why Chan’s Python port never holds a long**, after the paragraph on
-   the port. It draws the script's long, flat and short zones beside the
+2. **Why Chan’s Python port never holds a long**, after the first paragraph
+   under *The port and its flipped short test*. It draws the script's long, flat and short zones beside the
    port's, whose short zone runs from the lower level past the top of the
    long zone and wins because it is set last. Its levels and zones are
    schematic. Its counts come from the run: long on 0 days, short on 1,718,

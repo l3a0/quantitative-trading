@@ -1,13 +1,15 @@
 """The pins for the opening gap strategy on FSTX, *Algorithmic Trading*'s Example 7.1.
 
 This file is the single authority for every number a prose surface quotes
-about this replication, with one exception, in ``blog/opening-gap-lessons.md``.
-``TestWhatThePostMeasures`` holds that post's own numbers, the post's
-figure labels are held by ``tests/test_opening_gap_figures.py``, and its two
-sketches' labels and alt text by ``tests/test_opening_gap_whiteboard.py``.
-``TestThePostQuotesTheRun`` reads the post itself, one copy of each figure it
-takes from the run and every figure in the chart's alt text, so a typo in the
-post fails a test.
+about this replication, with two exceptions, both in
+``blog/opening-gap-lessons.md``. ``tests/test_opening_gap_figures.py`` holds
+the post's figure labels, and ``tests/test_opening_gap_whiteboard.py`` holds
+its two sketches' labels and alt text. ``TestWhatThePostMeasures`` holds that
+post's own numbers. ``TestThePostQuotesTheRun`` reads the post itself. It
+checks one copy of each figure the post takes from the run and every figure in
+the chart's alt text, and it checks what Chan printed, the three saves' names,
+the latest save's date and the comment's last digit against the code's own
+record of them. So a typo in any copy it reads fails a test.
 ``docs/replication-log.md`` Entry 40 carries the verdicts and points here row
 by row.
 
@@ -1259,9 +1261,9 @@ class TestThePostQuotesTheRun:
     check reads one copy, keyed on a short phrase or a table row, so another
     copy of the same figure elsewhere in the post, such as the first trade's
     date in the section on the rule, is not read. Every figure in the chart's
-    alt text is read, through the arithmetic the chart draws with, and the rows
-    holding what Chan printed and which save is which are checked against the
-    code's own record of them.
+    alt text is read, through the arithmetic the chart draws with. What Chan
+    printed, the three saves' names, the latest save's date and the comment's
+    last digit are checked against the code's own record of them.
     """
 
     text = POST.read_text("utf-8")
@@ -1423,7 +1425,9 @@ class TestThePostQuotesTheRun:
         short = cumulative_return(sides["short"].daily)
         low = int(np.argmin(short))
         peak = int(np.argmax(short[:low]))
+        assert momentum[trough] > momentum[high]
         for phrase in (
+            f"with a brief rise in late {days[trough]:%Y}",
             f"from {days[0]:%B %Y} to {days[-1]:%B %Y}",
             f"covers the first {SPREAD_LOOKBACK} days, to {days[SPREAD_LOOKBACK - 1].date()},",
             f"a marked high of {signed(literal[high], 6)} on {days[high].date()}",
@@ -1460,6 +1464,8 @@ class TestThePostQuotesTheRun:
         """What Chan printed, which save is which, and the comment's last digit, none computed."""
         entry, _ = sources
         assert f"`{SOURCE_FILE}`, saved {entry.obtained} and recorded" in self.text
+        older, newer = sorted(EARLIER_SAVES)
+        assert f"Two earlier saves, `{older}` and `{newer}`, also hold" in self.text
         assert rf"\text{{Comment}} & {SCRIPT_APR} & {SCRIPT_SHARPE} & \text{{none}} \\" in (
             self.text
         )
