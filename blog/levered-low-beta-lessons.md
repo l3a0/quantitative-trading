@@ -25,7 +25,7 @@ This repository tested Chan’s rule on his own S&P 500 file. Each month the tes
 5. **Registering a criterion did not cover every case.** The plan, written down before any number was seen, never said what a month losing more than the capital means, and the repository’s owner settled it after seeing the first one.
 6. **A registered result on years the claim’s source could already read is not a holdout.** A holdout is data kept back from every decision about a test, so a result on it is a fresh check. The file also holds only stocks still in the index in late 2007.
 
-**The verdict is registered, and every other figure here is exploratory.** A registered result is one whose test and criterion were written down before any number was seen. Before any beta or return was computed, the plan wrote down the test’s specification, which is the five parts below, along with the first three outcomes of its criterion. The fourth outcome, ruin, is the one that decided the verdict. The repository’s owner added it after the first ruined month was visible, so its wording is not registered, and Lesson 5 says what had been seen. Registration rules out a specification tuned on this file. It does not make 2000 to 2007 unseen data, as Lesson 6 explains.
+**The verdict is registered under a ruin outcome added after June 2001 was seen, and every other figure here is exploratory.** A registered result is one whose test and criterion were written down before any number was seen. Before any beta or return was computed, the plan wrote down the test’s specification, which is the five parts below, along with the first three outcomes of its criterion. The fourth outcome, ruin, is the one that decided the verdict. The repository’s owner added it after the first ruined month was visible, so its wording is not registered, and Lesson 5 says what had been seen. Registration rules out a specification tuned on this file. It does not make 2000 to 2007 unseen data, as Lesson 6 explains.
 
 Reproducing Chan’s figures is exploratory, because it reruns a rule Chan had already chosen, on his own files. Every other figure here is a single measurement with no statistical test behind it, and each number this write-up measured after the run says so where it appears. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -150,10 +150,10 @@ A **holdout** is data kept back from every decision about a test, so a result on
 
 The file also holds only survivors. Which side that flatters is not measured here. Leaving out high-beta stocks that fell out of the index would flatter the high side and work against the claim, and that is a hypothesis rather than a finding. The [post on factor models](https://github.com/l3a0/quantitative-trading/blob/main/blog/factor-models-lessons.md#lesson-6-every-figure-that-touches-the-stocks-is-about-survivors) walks through what survivorship does to a file built this way.
 
-The rule can be tested two more ways, and this post predicts no result for either.
+The rule can be tested two more ways, and two later posts run them.
 
-1. On later data, with the index as it stood each month.
-2. At leverage a broker would lend.
+1. On later data, with the index as it stood each month. The [post on the S&P 500 from 2009](https://github.com/l3a0/quantitative-trading/blob/main/blog/low-beta-holdout-lessons.md) runs the same test on the index’s members from December 2008 on.
+2. At leverage a broker would lend. The [post on the capped rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/capped-low-beta-lessons.md) runs it on this same file, with the leverage capped at 2 and at 5.
 
 ## What this replication cannot say
 
