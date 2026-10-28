@@ -586,8 +586,8 @@ class TestWhatThePostQuotes:
             f"The test reads all {len(ratio):,} days on which the ratio can be computed, from "
             f"{ratio.index[0].date()}.",
             f"so {_minus(s.apr, 6)} in the table below is {_minus(100 * s.apr, 1)} percent.",
-            f"It gives the lookback as {LOOKBACK} days,",
-            f"the script’s rounded half-life, which would be {round(s.half_life)}.",
+            f"The book gives the lookback as {LOOKBACK} days,",
+            f"the half-life rounded, which here would be {round(s.half_life)} days.",
             f"The APR is {_minus(100 * s.apr, 1)} percent and the Sharpe ratio is "
             f"{_minus(s.sharpe, 2)},",
             f"lowers the APR by {s.apr - b4.apr:.6f}, which is {100 * (s.apr - b4.apr):.4f} "
@@ -666,12 +666,11 @@ class TestWhatThePostQuotes:
         each = calendar_schedule(strip.contracts, spread_month=SPREAD_MONTH, holddays=EACH_IN_TURN)
         (last_near,) = each.columns[(each.loc[b3.last_held] == -1).to_numpy()]
         fragments = [
-            f"Its APR of {b3.apr:.6f}, which is {100 * b3.apr:.1f} percent, and its Sharpe "
-            f"ratio of {b3.sharpe:.6f} are measured to the file’s last day.",
-            f"Measured to {book.returns.index[-1].date()}, the book’s end date, they are "
-            f"{book.apr:.6f} and {book.sharpe:.6f}, which round to the printed "
+            f"Measured to {book.returns.index[-1].date()}, the book’s end date, its APR is "
+            f"{book.apr:.6f} and its Sharpe ratio {book.sharpe:.6f}, which round to the printed "
             f"{BOOK_APR_PERCENT} percent and {BOOK_SHARPE}.",
-            f"To the file’s end its APR misses {BOOK_APR_PERCENT} percent by "
+            f"Measured to the file’s last day, they are {b3.apr:.6f} and {b3.sharpe:.6f}.",
+            f"That APR is {100 * b3.apr:.1f} percent, which misses {BOOK_APR_PERCENT} percent by "
             f"{-gap(100 * b3.apr, BOOK_APR_PERCENT)} percentage points",
             f"From its first held day, {early.returns.index[0].date()}, to "
             f"{early.returns.index[-1].date()}, its APR is {_minus(early.apr, 6)} and its "

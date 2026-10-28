@@ -85,7 +85,7 @@ GIFS = [
 #: The paragraph each GIF follows, by its opening words.
 FOLLOWS = (
     "The script holds each pair for at least 63 days and lets it go 10 days before",
-    "Run on VX with Chan’s setting, its schedule holds a pair on 1,284 days",
+    "Run on VX with Chan’s 12-month spacing, its schedule holds a pair on 1,284 days",
 )
 
 VINTAGE = (

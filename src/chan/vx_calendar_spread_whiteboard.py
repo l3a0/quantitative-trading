@@ -20,7 +20,7 @@ right after the paragraph it draws.
    front contract's tick. The bar carries no side, because the script reverses
    both legs whenever the z-score is above 0.
 2. Twelve months apart, in Lesson 4, after the paragraph opening "Run on VX
-   with Chan’s setting, its schedule holds a pair on 1,284 days". One day,
+   with Chan’s 12-month spacing, its schedule holds a pair on 1,284 days". One day,
    2010-01-04: a box for each contract from VX-2010F to VX-2011J, inked for
    the 8 priced that day and dashed for the rest, the near leg VX-2010J
    circled, and an arrow 12 months on to the dashed VX-2011J box, which has no
