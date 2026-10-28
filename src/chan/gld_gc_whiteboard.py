@@ -7,7 +7,7 @@ when the two legs are recorded would put two moves of gold into each day's
 change in their ratio. This module draws the two as scenes, and the post
 places each right after the paragraph it draws.
 
-1. Only the roll return is left, in "Why own the metal and short the future",
+1. Spot returns cancel, leaving minus the roll return, in "Why own the metal and short the future",
    after the paragraph opening "Ernest Chan’s *Algorithmic Trading* turns the
    split into a trade." A green arrow up owns the metal and earns the spot
    return. A red arrow down shorts the future and pays back the spot return
@@ -15,15 +15,15 @@ places each right after the paragraph it draws.
    arrow points from the roll return to what is left, and a green check
    closes on why that is above 0 in contango. Its words name neither GLD nor
    GC, because the post names them only in the next paragraph.
-2. Two moves in each day's change, in Lesson 4, after the paragraph opening
+2. Two moves in a day's change, in Lesson 4, after the paragraph opening
    "Of a 24-hour day, a share of 0.001775 is about 2.6 minutes". A wiggly
    brown gold price runs across yesterday and today. Each day carries a dashed
    grey tick where GC would be recorded if it were recorded at 1:30 p.m., and
    a solid black tick where GLD is recorded at 4 p.m. A brown brace under each
-   day marks gold's move between the two ticks. Four lines of words under it
-   say what each day's log(GC / GLD) carries, what its daily change carries,
-   and what that does to the variance, and a green check closes on the run's
-   bound.
+   day marks gold's move between the two ticks. Three lines of words under it
+   say what each day's log(GC / GLD) would carry, what its daily change would
+   carry, and what that does to the variance, and a green check closes on the
+   run's bound.
 
 The first sketch is schematic and carries no figures. Its arrows and
 strikes draw the algebra of the post's sentence, which holds whatever the
@@ -89,7 +89,7 @@ def gif_name(scene: Scene) -> str:
     return f"{GIF_PREFIX}{scene.slug}.gif"
 
 
-# --- Why own the metal and short the future: only the roll return is left ------
+# --- Why own the metal and short the future: minus the roll return is left ----
 
 #: Each leg's row height, and the left edge of the words beside its arrow.
 OWN_Y, SHORT_Y = 3.55, 2.75
@@ -110,7 +110,7 @@ def _roll_left() -> Scene:
     """The opening: own the metal, short the future, and the spot returns cancel."""
     roll_mid = ROLL_X + 0.95
     return Scene(
-        "The spot returns cancel, and the roll return is left",
+        "Spot returns cancel, leaving minus the roll return",
         "roll_left",
         (
             _stroke(
@@ -184,7 +184,7 @@ def _roll_left() -> Scene:
     )
 
 
-# --- Lesson 4: a timing offset puts two moves in each day's change ------------
+# --- Lesson 4: an offset would put two moves in a day's change ---------------
 
 
 @dataclass(frozen=True)
@@ -332,7 +332,7 @@ def _two_moves(bound: Bound) -> Scene:
         )
     steps += [
         Label(
-            "each day’s log(GC / GLD) carries that day’s move over the gap",
+            "each day’s log(GC / GLD) would carry that day’s move over the offset",
             0.3,
             LINE_Y[0],
             names="move-1",
@@ -340,7 +340,7 @@ def _two_moves(bound: Bound) -> Scene:
             size=11,
         ),
         Label(
-            "each change carries two: today’s, and yesterday’s with its sign flipped",
+            "each change would carry two: today’s, and yesterday’s with its sign flipped",
             0.3,
             LINE_Y[1],
             names="move-1",
@@ -348,7 +348,7 @@ def _two_moves(bound: Bound) -> Scene:
             size=11,
         ),
         Label(
-            "each move carries the gap’s share of a day’s variance, so the change carries "
+            "each move carries the offset’s share of a day’s variance, so the change carries "
             "twice that",
             0.3,
             LINE_Y[2],
@@ -367,7 +367,7 @@ def _two_moves(bound: Bound) -> Scene:
             size=12,
         ),
     ]
-    return Scene("An offset puts two moves in each day’s change", "two_moves", tuple(steps))
+    return Scene("An offset would put two moves in a day’s change", "two_moves", tuple(steps))
 
 
 # --- Drawing ------------------------------------------------------------------

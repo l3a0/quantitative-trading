@@ -574,6 +574,23 @@ class TestWhatThePostMeasured:
         assert firsts[OHLC_SOURCE_FILE] == "2004-05-24", AFTER_THE_RUN
         assert min(firsts.values()) == "2004-05-24", (firsts, AFTER_THE_RUN)
 
+    def test_the_ohlc_series_holds_gld_s_days_and_none_of_the_9_holidays(
+        self, sources, ohlc_gc
+    ) -> None:
+        """In the window it has GLD's calendar, the one a settlement series would have.
+
+        So no row on any of the 9 holidays, and a row on each of GLD's 3 days
+        the 16:00 series lacks. Nothing here measures the hour it is recorded.
+        """
+
+        def window(series: pd.Series) -> pd.DatetimeIndex:
+            return series.index[(series.index >= WINDOW_START) & (series.index <= WINDOW_END)]
+
+        days = window(ohlc_gc)
+        assert days.equals(window(sources.gld)), f"{SPEC}; {AFTER_THE_RUN}"
+        assert len(days) == 755
+        assert not days.isin(pd.DatetimeIndex(list(GC_ONLY_HOLIDAYS))).any()
+
     def test_the_return_fell_with_the_bill_rate_year_by_year(self, result) -> None:
         """Each year's rows, less the zeroed first row, against the months they span."""
         table = [
@@ -1019,9 +1036,9 @@ class TestThePostQuotesTheRun:
         assert f"downloaded on {bill_rates.bill_vintage().obtained} from FRED" in self.text
         assert (
             f"Averaged over the {b1.months} months from August 2007 to August 2010, the bill "
-            f"rate is {100 * b1.bill_rate:.4f} percent. Subtracted before rounding, the bill "
-            f"rate leaves {100 * b1.excess:.4f} percentage points of S’s "
-            f"{100 * b1.average_annual_return:.4f} percent above it, so it takes "
+            f"rate is {100 * b1.bill_rate:.4f} percent. Subtracting it from S’s "
+            f"{100 * b1.average_annual_return:.4f} percent before either figure is rounded "
+            f"leaves {100 * b1.excess:.4f} percentage points, so the bill rate takes "
             f"{100 * b1.bill_rate / b1.average_annual_return:.2f} percent of the return"
         ) in self.text
 

@@ -60,8 +60,9 @@ financing GLD costs, because a trader borrows above it.
 p.m. settlement.** :func:`identity` measures what says so.
 
 1. GC holds 9 rows GLD lacks, and every one is a US exchange holiday, which
-   :data:`GC_ONLY_HOLIDAYS` names. A settlement series has no row on a day the
-   exchange is shut, so this is not one.
+   :data:`GC_ONLY_HOLIDAYS` names. The exchange sets no settlement price on a
+   US exchange holiday, so a settlement series has no row on one, and this is
+   not one.
 2. The daily change in log(GC / GLD) barely moves. If GC were read two and a
    half hours before GLD, that change would hold two gold returns over the
    gap, one from each day. :attr:`Identity.gap_share` solves for the most of

@@ -105,9 +105,9 @@ MOVES_LABELS = [
     "GLD recorded at 4 p.m.",
     "yesterday",
     "today",
-    "each day’s log(GC / GLD) carries that day’s move over the gap",
-    "each change carries two: today’s, and yesterday’s with its sign flipped",
-    "each move carries the gap’s share of a day’s variance, so the change carries twice that",
+    "each day’s log(GC / GLD) would carry that day’s move over the offset",
+    "each change would carry two: today’s, and yesterday’s with its sign flipped",
+    "each move carries the offset’s share of a day’s variance, so the change carries twice that",
     "at most 0.001775 of a day, about 2.6 minutes, against 150",
 ]
 
@@ -390,8 +390,8 @@ class TestThePost:
         roll_left, two_moves = (text.index(f"(../docs/figures/{name})") for name in GIFS)
         why = text.index("## Why own the metal and short the future")
         names = text.index("Owning gold bars is awkward, so the long leg is GLD")
-        bound = text.index("### A bound of about 2.6 minutes, against the caveat’s 150")
-        other = text.index("### Chan’s other GC series, for contrast")
+        bound = text.index("### The ratio bounds the difference in timing at about 2.6 minutes")
+        other = text.index("### Chan’s other GC series moves about ten times as much against GLD")
         assert why < roll_left < names
         assert bound < two_moves < other
 
@@ -421,12 +421,12 @@ class TestThePost:
         assert "The second is schematic apart from its last line." in doc
 
 
-# --- Why own the metal and short the future: the roll return is left ----------
+# --- Why own the metal and short the future: minus the roll return is left ----
 
 
 class TestTheRollLeftSketch:
     def test_its_words(self, every) -> None:
-        assert every[0].title == "The spot returns cancel, and the roll return is left"
+        assert every[0].title == "Spot returns cancel, leaving minus the roll return"
         assert every[0].labels == ROLL_LABELS
 
     def test_it_names_neither_leg_by_its_ticker(self, every) -> None:
@@ -551,7 +551,7 @@ class TestTheRollLeftSketch:
         assert heights == sorted(heights, reverse=True)
 
 
-# --- Lesson 4: an offset puts two moves in each day's change ------------------
+# --- Lesson 4: an offset would put two moves in a day's change ---------------
 
 
 class TestTheBound:
@@ -580,7 +580,7 @@ OTHER = Bound(gap_share=0.0123456, caveat_minutes=120)
 
 class TestTheTwoMovesSketch:
     def test_its_words(self, every) -> None:
-        assert every[1].title == "An offset puts two moves in each day’s change"
+        assert every[1].title == "An offset would put two moves in a day’s change"
         assert every[1].labels == MOVES_LABELS
 
     def test_its_last_line_follows_the_bound(self, bound) -> None:

@@ -7114,7 +7114,8 @@ third sketch's kept and lost returns had no pin before it.
 
 [blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
 holding GLD long and gold futures short at Kindle locations 2718 and 2730 of
-Chan's *Algorithmic Trading*, which collects gold's negative roll return.
+Chan's *Algorithmic Trading*, which profits from gold futures' negative roll
+return.
 Chan reports an annualized return of 1.9 percent and a maximum drawdown of 0.8
 percent from 2007-08-03 to 2010-08-02, and says GLD's financing cost leaves
 an excess return close to zero. The post links the spot and roll returns post,
@@ -7150,13 +7151,14 @@ Five groups of what it says are not pinned here.
    no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
 3. Readings no test asserts: that GLD pays no dividend, so its adjusted
    close is its close, that the bill rate is a floor on financing because a
-   broker lends above it, that a settlement series has no row on a day the
-   exchange is shut, that GLD's daily log return stands in for a day of gold,
+   broker lends above it, that the exchange sets no settlement price on a US
+   exchange holiday, so a settlement series has no row on one, that GLD's
+   daily log return stands in for a day of gold,
    that an offset's share of a day carries roughly that share of the day's
    variance in a market trading nearly around the clock, that whatever else
    moves log(GC / GLD) does not cancel an offset's moves, which the bound of
    0.001775 rests on, that a difference in timing between two series makes
-   the daily change in their gap reverse while a shift at a roll is a step
+   the daily change in their difference reverse while a shift at a roll is a step
    that stays and predicts no reversal, that a small reading error or an
    offset of minutes makes a daily change reverse, that GC trades on COMEX,
    that a settlement price is the one the exchange fixes once a day, that
@@ -7201,7 +7203,9 @@ the run. A second copy of the same number elsewhere in the post is not read.
    offset between the two closes read as about 2.6 minutes of a 24-hour day.
    The OHLC series' largest move falling on 2008-09-18, its minimum of
    −0.075146 on 2008-09-19, and its 8 moves past 0.02 up and 12 down. No GC
-   series here starting before 2004-05-24, the OHLC series' first day.
+   series here starting before 2004-05-24, the OHLC series' first day. The
+   OHLC series holding exactly GLD's 755 days in the window, none of them one
+   of the 9 holidays.
 6. The three curves' ends, 0.058033 for S, 0.031057 for bills and 0.061413
    for 2 percent a year, S at 0.049260 and bills at 0.028733 on 2008-12-31,
    S's high of 0.058415 on 2010-07-27, and 2010-05-21 as the last day S stands

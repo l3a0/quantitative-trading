@@ -8641,7 +8641,7 @@ trade on later data.
 | 6 | 0.0 percent on both | reproduced | Both of the script's annual returns round to 1.9 percent, so the text's figure does not have to be assigned to one of them. |
 | 7 | 0.0 percent | reproduced | The same as row 1. |
 | 8 | none | none, not a replication | Declared beside S. The bill rate takes 1.0141 percent of the 1.9014 percent, so 0.8874 percent is left above it. The book gives no bound for "not very different", so this row carries no verdict. The bill rate is a floor on financing, because a trader borrows above it, and the book's "close to zero" is a claim about the rate a trader pays. |
-| 9 | none | none, not a replication | A settlement series has no row on a day the exchange is shut, and this series has 9 such rows. So it is not the 1:30 p.m. settlement location 2730 describes. |
+| 9 | none | none, not a replication | The exchange sets no settlement price on a US exchange holiday, so a settlement series has no row on one, and this series has 9 such rows. So it is not the 1:30 p.m. settlement location 2730 describes. |
 | 10 | none | none, not a replication | The two are different series, and the OHLC save is the one shifted at each roll. A shifted series would equal no unshifted one at any hour, so never equalling this one says nothing about when this one is read. The daily change in their difference reverses the next day, at an autocorrelation of −0.559953. A gap in timing predicts that, because one day's move between the two hours comes back the day after. A shift at a roll is a step that stays, so it predicts no reversal. |
 | 11 | none | none, not a replication | This row says when the series is read. If GC were read at 1:30 p.m. and GLD at 4:00 p.m., the daily change in log(GC / GLD) would hold two gold returns over those two and a half hours, one from each day. If anything else that moves the ratio only adds to it, which nothing here tests, its standard deviation of 0.000933 against GLD's 0.015660 leaves room for at most 0.001775 of GLD's daily variance in that gap. Two and a half hours is about a tenth of a day on the clock, in a market that trades nearly around it, so the gap is not there. The OHLC save's GC moves against GLD ten times as much, which its rolls and a price read at another hour both feed. |
 
@@ -8659,7 +8659,8 @@ pins them.
    of two and a half hours between the two closes could carry at most
    0.001775 of GLD's daily variance, far below the tenth of a day those hours
    take. Row 9 adds that the series is not a settlement series, because
-   it has rows on 9 days the exchange was shut. Location 2730 warns that GC
+   it has rows on 9 US exchange holidays, days the exchange sets no
+   settlement price. Location 2730 warns that GC
    settles two and a half hours before GLD closes. That gap is not in the
    series the script reads, so the asynchronicity the book excuses is not in
    the backtest.
@@ -8694,8 +8695,10 @@ rate on a long ETF position sits above it by a spread this repo has no data
 for, so row 8 bounds the excess return from above and cannot say whether it
 is close to zero.
 
-**Whether the trade would work on the 1:30 p.m. settlement.** That needs the
-OHLC save's GC, whose returns are shifted at each roll and need their own
+**Whether the trade would work on the 1:30 p.m. settlement.** The OHLC save's
+GC has the calendar a settlement series would have, GLD's days in the window
+and none of the 9 holidays, but nothing here measures the hour it is
+recorded, and its returns are shifted at each roll and would need their own
 reading. The issue puts it out of scope.
 
 **Whether the trade works after 2010.** The window is the book's, and nothing
