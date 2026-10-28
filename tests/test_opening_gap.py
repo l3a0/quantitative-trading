@@ -5,6 +5,9 @@ about this replication, with one exception, in ``blog/opening-gap-lessons.md``.
 ``TestWhatThePostMeasures`` holds that post's own numbers, the post's
 figure labels are held by ``tests/test_opening_gap_figures.py``, and its two
 sketches' labels and alt text by ``tests/test_opening_gap_whiteboard.py``.
+``TestThePostQuotesTheRun`` reads the post itself, one copy of each figure it
+takes from the run and every figure in the chart's alt text, so a typo in the
+post fails a test.
 ``docs/replication-log.md`` Entry 40 carries the verdicts and points here row
 by row.
 
@@ -64,7 +67,7 @@ import pytest
 from chan import matlab_helpers, paths
 from chan import opening_gap as module
 from chan.khandani_lo_book_two import gap, matches
-from chan.matlab_helpers import backshift, smartstd_first_edition
+from chan.matlab_helpers import backshift, drawdown_path, smartstd_first_edition
 from chan.opening_gap import (
     BOOK_APR_PERCENT,
     BOOK_FIRST_DAY,
@@ -103,6 +106,7 @@ from chan.opening_gap import (
     run,
     spread,
 )
+from chan.opening_gap_figures import cumulative_return, signed
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
@@ -1253,8 +1257,11 @@ class TestThePostQuotesTheRun:
     this class a typo in the post passed every test. Round 1 of the post's
     review shifted 108 numbers in it at once, and none failed a test. Each
     check reads one copy, keyed on a short phrase or a table row, so another
-    copy of the same figure elsewhere in the post, such as in the alt text, is
-    not read.
+    copy of the same figure elsewhere in the post, such as the first trade's
+    date in the section on the rule, is not read. Every figure in the chart's
+    alt text is read, through the arithmetic the chart draws with, and the rows
+    holding what Chan printed and which save is which are checked against the
+    code's own record of them.
     """
 
     text = POST.read_text("utf-8")
@@ -1395,3 +1402,82 @@ class TestThePostQuotesTheRun:
         assert (
             f"among them an APR of {_f(port.figures.apr)} and a Sharpe ratio of {_f(port.sharpe)}."
         ) in self.text
+
+    def test_the_chart_s_alt_text(self, result) -> None:
+        """Every figure in the chart's alt text, by the arithmetic the chart draws with.
+
+        Each value is what :mod:`chan.opening_gap_figures` draws, through its own
+        ``cumulative_return``, ``drawdown_path``, ``by_side`` and ``signed``, picked
+        out the way that module picks it. ``tests/test_opening_gap_figures.py``
+        holds that the chart draws these values.
+        """
+        alt = next(p for p in self.text.split("\n\n") if p.startswith("![Two charts on one"))
+        days, lit, mom = result.days, result.literal_figures, result.momentum_figures
+        literal, momentum = cumulative_return(result.literal), cumulative_return(result.momentum)
+        _, drawdown, duration = drawdown_path(literal)
+        trough = int(np.argmin(drawdown))
+        high = int(np.argmax(literal[: trough + 1]))
+        last = int(np.argmax(duration))
+        sides = by_side(result)
+        long = cumulative_return(sides["long"].daily)
+        short = cumulative_return(sides["short"].daily)
+        low = int(np.argmin(short))
+        peak = int(np.argmax(short[:low]))
+        for phrase in (
+            f"from {days[0]:%B %Y} to {days[-1]:%B %Y}",
+            f"covers the first {SPREAD_LOOKBACK} days, to {days[SPREAD_LOOKBACK - 1].date()},",
+            f"a marked high of {signed(literal[high], 6)} on {days[high].date()}",
+            f"a marked trough of {signed(literal[trough], 6)} on {days[trough].date()}",
+            f"stays below that high for {duration[last]} days to {days[last].date()}",
+            f"end at its highest, {signed(100 * literal[-1])} percent",
+            f"ends at its lowest, {signed(100 * momentum[-1])} percent",
+            f"the script’s APR of {lit.apr:.6f} and Sharpe ratio of {lit.sharpe:.6f} beside the "
+            f"book’s {BOOK_APR_PERCENT} percent and {BOOK_SHARPE}, and the described sign’s "
+            f"{signed(mom.apr, 6)} and {signed(mom.sharpe, 6)}.",
+            f"on the {sides['long'].days} long days only",
+            f"on the {sides['short'].days} short days only",
+            f"climbs to end at its highest, {signed(100 * long[-1])} percent",
+            f"a high of about {100 * short[peak]:.0f} percent in {days[peak]:%B %Y}",
+            f"a marked low of {signed(short[low], 6)} on {days[low].date()}",
+            f"ends at its highest, {signed(100 * short[-1])} percent. The title",
+        ):
+            assert phrase in alt, phrase
+
+    def test_the_spread_s_first_days(self, prices, result) -> None:
+        days = result.days
+        script = int(np.argmax(~np.isnan(result.spread)))
+        port = int(np.argmax(~np.isnan(python_port_spread(prices["Close"]))))
+        assert (
+            f"the first {SPREAD_LOOKBACK} rows, from {days[0].date()} to "
+            f"{days[SPREAD_LOOKBACK - 1].date()}, hold nothing."
+        ) in self.text
+        assert (
+            f"Its first value falls on {days[port].date()}, the trading day after the script’s "
+            f"first on {days[script].date()}."
+        ) in self.text
+
+    def test_chan_s_printed_figures_and_the_save_names(self, sources, prices, earlier) -> None:
+        """What Chan printed, which save is which, and the comment's last digit, none computed."""
+        entry, _ = sources
+        assert f"`{SOURCE_FILE}`, saved {entry.obtained} and recorded" in self.text
+        assert rf"\text{{Comment}} & {SCRIPT_APR} & {SCRIPT_SHARPE} & \text{{none}} \\" in (
+            self.text
+        )
+        assert (
+            rf"\text{{Book}} & {BOOK_APR_PERCENT} \text{{ percent}} & {BOOK_SHARPE} & \text{{none}}"
+        ) in self.text
+        saved = sorted(
+            day(name.split("_")[1].removesuffix(".mat")) for name in (*EARLIER_SAVES, SOURCE_FILE)
+        )
+        assert (
+            r"\text{Save} & " + " & ".join(rf"\text{{{s.date()}}}" for s in saved) + r" \\"
+        ) in self.text
+        places = len(SCRIPT_APR.split(".")[1])
+        unit = 10.0**-places
+        assert f"one unit of the comment’s last printed digit, {unit:.{places}f}." in self.text
+        window = (
+            opening_gap(earlier["20120507"]).literal_figures.apr
+            - opening_gap(earlier["20120511"]).literal_figures.apr
+        )
+        shared = on_shared_days(prices, earlier["20120511"])
+        assert min(abs(window), abs(shared.one.apr - shared.other.apr)) > 10 * unit

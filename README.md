@@ -7558,11 +7558,16 @@ Eleven had no pin before the post.
     0.176401 on 2008-07-08 and a low of −0.038153 on 2009-02-20.
 
 `TestThePostQuotesTheRun` in
-[tests/test_opening_gap.py](tests/test_opening_gap.py) reads one copy of each
-of the post's figures from the post itself and checks it against the run:
-every table row, the days in the market, the first trade, the two sides, the
-two causes in Lesson 4 and the port's figures. A second copy of a figure, such
-as one in the alt text or the opening list, is not always read.
+[tests/test_opening_gap.py](tests/test_opening_gap.py) reads the post itself
+and checks one copy of each figure it takes from the run: every computed table
+row, every figure in the chart's alt text, the days in the market, the first
+trade, the spread's first days, the two sides, the two causes in Lesson 4 and
+the port's figures. It also checks the rows holding Chan's printed figures,
+the save names, the save's date and the comment's last digit, 0.0001, against
+the code's own record of them. A second copy of a figure, such as the first
+trade's date in the section on the rule, is not always read, and neither are
+the figures inside the sentences the post quotes from Chan, such as his GBPUSD
+and VIX results.
 
 Its one figure is drawn from the committed vintage by
 [src/chan/opening_gap_figures.py](src/chan/opening_gap_figures.py), which
