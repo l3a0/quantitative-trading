@@ -1,4 +1,4 @@
-"""The pins for the twenty-nine whiteboard GIFs in the commodity seasonals post.
+"""The pins for the thirty whiteboard GIFs in the commodity seasonals post.
 
 Three sketches draw the opening: the two trades on one calendar, the years
 each won in the book's years and after, and the fall inside 2002's natural
@@ -8,7 +8,8 @@ Nine draw Lesson 2: the range the missing rows leave, a guessed price, what
 Chan's 19 needs, how fill 2 carries June's move, which April days can test a
 fill, how its misses lean and spread, how the lean looks April by April, why
 a miss subtracts at an entry and adds at an exit, and each fill's miss
-against each year's move. Eight draw Lesson 4: how far each Sharpe ratio can
+against each year's move. One draws Lesson 3, a fall measured from a raised
+start. Eight draw Lesson 4: how far each Sharpe ratio can
 stray, why fewer results widen a range, where natural gas's ±12% comes from,
 which later range holds its earlier mean, what the Mann-Whitney test counts,
 what its chance means, the four chances against the 5% line, and how one year
@@ -92,62 +93,70 @@ as test_the_run_gives_these_dates_and_files.
    corrected by its average miss, and a bar of the spread of its misses. What
    is pinned is that each dot, bar and σ sit at the run's figures on one scale,
    and that a bar crosses zero exactly when its move is under one spread.
-15. The Sharpe sketch draws each period of the returns table as a dot at its
+15. The raised-start sketch is schematic and draws no figures. It draws one
+   trade's mean return on a vertical scale, with a dot for the book's years
+   above a dashed line for the trade's real edge and a dot for the years after
+   the book below it. What is pinned is that order, that both brackets end at
+   the later dot, that the one measured from the book's dot is longer than the
+   one from the real edge, that no label writes a number, that the board says
+   it is schematic and keeps the paragraph's hedge, and that it draws with
+   every settlement file out of reach.
+16. The Sharpe sketch draws each period of the returns table as a dot at its
    Sharpe ratio on a bar 1.96 standard errors either side. What is pinned is
    that each dot and bar sit at the run's figures on one scale, and that a
    bar crosses zero exactly for the two periods after the book.
-16. The multiplier sketch draws Student's t's 95% multiplier for the post's
+17. The multiplier sketch draws Student's t's 95% multiplier for the post's
    two counts of later years, for 30 results and for very many, against the
    normal curve's 1.96. What is pinned is that each bar's height is the
    multiplier for its count and that the post's counts come from the run.
-17. The half-width sketch builds natural gas's ±12% from its spread, divided
+18. The half-width sketch builds natural gas's ±12% from its spread, divided
    by the root of its count and times the multiplier, each bar starting on a
    dashed line at the later mean, against a dashed line at its earlier mean. What
    is pinned is that each bar is the run's figure on one scale, that every
    bar starts on that line, and that the last bar reaches past the gap.
-18. The mean-range sketch draws each period's mean and 95% range, with each
+19. The mean-range sketch draws each period's mean and 95% range, with each
    trade's earlier mean carried down past its later bar. What is pinned is
    that each dot, bar and dashed line sit at the run's figures, and that
    natural gas's line lands inside its later bar and gasoline's outside.
-19. The pairs sketch draws every pairing of an earlier natural gas year with
+20. The pairs sketch draws every pairing of an earlier natural gas year with
    a later one as a dot. What is pinned is that each dot sits in its cell,
    blue exactly where the earlier year returned more, that the blue count is
    :func:`chan.commodity_seasonals.pairs_won`'s, that the edge falls after
    each row's last blue dot, and that 2022's column is all vermilion.
-20. The luck sketch draws the exact chance of each count of pairs won, which
+21. The luck sketch draws the exact chance of each count of pairs won, which
    the Mann-Whitney p-value is counted from. What is pinned is that the
    chances add to one, that its shaded share is
    :func:`chan.commodity_seasonals.rank_p_value`'s, that the curve peaks at
    half the pairs, and that the years' count sits past the 5% line.
-21. The chances sketch draws the table's four chances on one scale. What is
+22. The chances sketch draws the table's four chances on one scale. What is
    pinned is that each dot sits at its chance from the run, and that only a
    chance past 5% is drawn in purple.
-22. The one-year sketch draws natural gas's returns after 2008 with ticks at
+23. The one-year sketch draws natural gas's returns after 2008 with ticks at
    their mean with and without 2022, and all 30 years ranked. What is pinned
    is that the ticks sit at the run's means, that each rank dot sits in its
    period's row in rank order, that the nine worst ranks are later years, and
    that shrinking 2022's gain moves the mean and leaves every rank in place.
-23. The calendar sketch draws the March to June contracts in 2008 and 2006,
+24. The calendar sketch draws the March to June contracts in 2008 and 2006,
    each bar ending at its last trading day, with a dashed line at each entry
    and exit. What is pinned is that June's number in each label is how many
    bars reach that line, that it equals the file the run reads, and that the
    March note follows the dates.
-24. The handover sketch draws the two files in February 1996. What is pinned
+25. The handover sketch draws the two files in February 1996. What is pinned
    is that the files hand over the day after the rule's last day, and that
    each dashed line sits between its two days.
-25. The coverage sketch draws which years each check reaches. What is pinned
+26. The coverage sketch draws which years each check reaches. What is pinned
    is that its counts are the run's, that the exchange's dates are the ones
    ``tests/test_commodity_seasonals.py`` pins, and that each bar spans its
    years.
-26. The edge-day sketch draws 2018's entry on March's own last day. What is
+27. The edge-day sketch draws 2018's entry on March's own last day. What is
    pinned is that the entry line meets the end of March's bar.
-27. The holiday sketch draws Christmas week of 2018 and 2016. What is pinned is
+28. The holiday sketch draws Christmas week of 2018 and 2016. What is pinned is
    that a dot stands on exactly the days the contract-1 file holds a row.
-28. The plateau sketch is schematic and draws no figures. What is pinned is
+29. The plateau sketch is schematic and draws no figures. What is pinned is
    that Chan's dot sits on each curve at its panel's centre, that the cliff
    falls back to its floor close to that dot while the plateau stays near
    its top well to either side, and that the board says it is schematic.
-29. The closed-date sketch draws the week of gasoline's 2019 entry date and
+30. The closed-date sketch draws the week of gasoline's 2019 entry date and
    an arrow for each rule. What is pinned is that a dot stands on exactly the
    trading days and a cross on the closed ones, that each arrow runs from the
    trade date to the day its rule gives, which for Chan's is the run's entry
@@ -213,6 +222,9 @@ from chan.commodity_seasonals_whiteboard import (
     PLATEAU_FLOOR,
     PLATEAU_PANELS,
     PLATEAU_RISE,
+    RAISED_BRACKET_X,
+    RAISED_DOT_X,
+    RAISED_Y,
     RANK_AFTER_Y,
     RANK_BEFORE_Y,
     RANK_X,
@@ -274,6 +286,7 @@ from chan.commodity_seasonals_whiteboard import (
     _pairs,
     _plateau,
     _plateau_profit,
+    _raised_start,
     _sharpe_ranges,
     _sharpe_x,
     _sign_y,
@@ -333,6 +346,7 @@ GIFS = [
     "commodity_sketch_april_leans.gif",
     "commodity_sketch_miss_sign.gif",
     "commodity_sketch_fill_misses.gif",
+    "commodity_sketch_raised_start.gif",
     "commodity_sketch_sharpe_ranges.gif",
     "commodity_sketch_t_multiplier.gif",
     "commodity_sketch_half_width.gif",
@@ -366,6 +380,7 @@ FOLLOWS = (
     "Test days close together read some of the same prices, though,",
     "```math\n\\begin{aligned}\n\\text{true move} &= (\\text{guess} + e) - \\text{entry}",
     "So the chance that all three years were profits",
+    "Chan picked each rule because it did well in years the book covers",
     "For the four Sharpe ratios in the returns table",
     "```math\n\\bar r \\pm t_{n-1}",
     "```math\n\\begin{aligned}\n&-0.4\\%",
@@ -780,6 +795,17 @@ ONE_YEAR_LABELS = [
     "natural gas, June contract",
 ]
 
+RAISED_LABELS = [
+    "one trade’s mean return",
+    "the trade’s real edge (unknown)",
+    "the book’s years: chosen because they did well",
+    "if the book’s years ran high",
+    "after the book",
+    "the fall as measured",
+    "the fall the trade took",
+    "schematic, drawn to no scale",
+]
+
 PLATEAU_LABELS = [
     "0",
     "Chan’s",
@@ -930,7 +956,7 @@ def _or(words: list[str]) -> str:
 
 
 class TestTheScenes:
-    def test_there_are_twenty_nine_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_thirty_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_every_label_names_a_stroke_drawn_before_it(self, every) -> None:
@@ -955,7 +981,9 @@ class TestTheScenes:
         sketch draws several natural gas contracts and names each one, and the
         Sharpe, multiplier and mean-range sketches draw both trades or neither
         and name each row's, so they are the exceptions. So are the first two
-        opening sketches, which draw both trades and name each one."""
+        opening sketches, which draw both trades and name each one. The
+        raised-start sketch draws one trade's mean as a shape, which stands
+        for either trade, so it names neither."""
         trades = {
             "drawdown_2002": ("natural gas", "June contract"),
             "streak_start": ("natural gas", "June contract"),
@@ -988,6 +1016,7 @@ class TestTheScenes:
             "check_coverage",
             "holiday_rows",
             "plateau",
+            "raised_start",
         }
         assert set(trades) | exceptions == {scene.slug for scene in every}
         for scene in every:
@@ -1091,6 +1120,7 @@ class TestTheGifs:
             "april_leans",
             "miss_sign",
             "fill_misses",
+            "raised_start",
             "sharpe_ranges",
             "t_multiplier",
             "half_width",
@@ -2481,13 +2511,118 @@ class TestTheFillMissesSketch:
         assert "the bar for 1998 only just reaches past it, and the bar for 1999 stops" in alt
 
 
-class TestTheSharpeSketch:
+# --- Lesson 3: a raised start makes a longer fall --------------------------------
+
+
+class TestTheRaisedStartSketch:
     def test_its_words(self, every) -> None:
-        assert every[14].title == "How far each Sharpe ratio can stray"
-        assert every[14].labels == SHARPE_LABELS
+        assert every[14].title == "A raised start makes a longer fall"
+        assert every[14].labels == RAISED_LABELS
 
     def test_its_colours(self, every) -> None:
+        """Grey for the scale, the real edge and the guides, black for the two
+        means and the fall as measured, and purple for the fall the trade took."""
         scene = every[14]
+        for gid in ("axis", "edge", "book-guide", "after-guide"):
+            assert _stroke(scene, gid).color == MUTED, gid
+        for gid in ("book", "after", "measured"):
+            assert _stroke(scene, gid).color == INK, gid
+        assert _stroke(scene, "real").color == ACCENT
+        inks = {
+            "one trade’s mean return": MUTED,
+            "the trade’s real edge (unknown)": MUTED,
+            "the book’s years: chosen because they did well": INK,
+            "if the book’s years ran high": MUTED,
+            "after the book": INK,
+            "the fall as measured": INK,
+            "the fall the trade took": ACCENT,
+            "schematic, drawn to no scale": MUTED,
+        }
+        assert [_label(scene, text).color for text in RAISED_LABELS] == [
+            inks[text] for text in RAISED_LABELS
+        ]
+
+    def test_the_books_dot_sits_above_the_edge_and_the_later_dot_below_it(self, every) -> None:
+        scene = every[14]
+        book, after, edge = (_stroke(scene, gid) for gid in ("book", "after", "edge"))
+        assert edge.dashed
+        assert set(edge.y) == {RAISED_Y["edge"]}
+        assert book.y[0] > edge.y[0] > after.y[0]
+        assert book.x[0] < after.x[0]
+        assert (book.x[0], after.x[0]) == (RAISED_DOT_X["book"], RAISED_DOT_X["after"])
+
+    def test_both_brackets_end_at_the_later_dot_and_the_measured_one_is_longer(self, every) -> None:
+        """The fall as measured runs from the book's dot and the fall the
+        trade took from the real edge, and both run down to the later dot."""
+        scene = every[14]
+        book, after, edge = (_stroke(scene, gid).y[0] for gid in ("book", "after", "edge"))
+        measured, real = _stroke(scene, "measured"), _stroke(scene, "real")
+        assert (measured.y.max(), measured.y.min()) == pytest.approx((book, after))
+        assert (real.y.max(), real.y.min()) == pytest.approx((edge, after))
+        assert np.ptp(measured.y) > np.ptp(real.y)
+        assert RAISED_BRACKET_X["measured"] < RAISED_BRACKET_X["real"]
+
+    def test_each_level_runs_on_to_its_bracket(self, every) -> None:
+        """The book's guide stops at the measured bracket, and the real edge
+        and the later dot's guide reach the bracket of the fall the trade took."""
+        scene = every[14]
+        book_guide, after_guide = _stroke(scene, "book-guide"), _stroke(scene, "after-guide")
+        assert set(book_guide.y) == {RAISED_Y["book"]}
+        assert set(after_guide.y) == {RAISED_Y["after"]}
+        assert RAISED_BRACKET_X["measured"] <= book_guide.x.max() < RAISED_BRACKET_X["real"]
+        assert after_guide.x.max() >= RAISED_BRACKET_X["real"]
+        assert _stroke(scene, "edge").x.max() >= RAISED_BRACKET_X["real"]
+
+    def test_it_writes_no_number_says_it_is_schematic_and_keeps_the_hedge(self, every) -> None:
+        """The paragraph gives no size for either fall, so no label writes a
+        number, and its "Where they do" stays on the board as a condition."""
+        scene = every[14]
+        assert not [label for label in scene.labels if re.search(r"\d", label)]
+        assert "schematic, drawn to no scale" in scene.labels
+        assert "if the book’s years ran high" in scene.labels
+
+    def test_it_reads_no_prices(self, monkeypatch) -> None:
+        """Schematic, so it draws with every settlement file out of reach."""
+
+        def refuse(*args, **kwargs):
+            raise AssertionError("the raised-start sketch read a settlement file")
+
+        monkeypatch.setattr(seasonals, "settlements", refuse)
+        monkeypatch.setattr(futures, "settlements", refuse)
+        assert _raised_start().labels == RAISED_LABELS
+
+    def test_it_sits_under_what_could_explain_the_fall(self) -> None:
+        """It follows the paragraph on a raised start, the first under that
+        heading in Lesson 3."""
+        paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
+        (index,) = [
+            k
+            for k, p in enumerate(paragraphs)
+            if p.startswith("Chan picked each rule because it did well in years the book covers")
+        ]
+        assert paragraphs[index - 1] == "### What could explain the fall"
+        headings = [p for p in paragraphs[:index] if p.startswith("## ")]
+        assert headings[-1].startswith("## Lesson 3:")
+        assert "(../docs/figures/commodity_sketch_raised_start.gif)" in paragraphs[index + 1]
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[14])
+        assert "schematic and to no scale" in alt
+        assert "A black dot above the line" in alt
+        assert "A black dot below the line" in alt
+        assert "A long black bracket runs from the book’s dot down to the later dot’s level" in alt
+        assert "a shorter purple bracket runs from the real edge down to the same level" in alt
+        assert "Both brackets end at the later dot" in alt
+        assert not re.search(r"\d", alt)
+
+
+class TestTheSharpeSketch:
+    def test_its_words(self, every) -> None:
+        assert every[15].title == "How far each Sharpe ratio can stray"
+        assert every[15].labels == SHARPE_LABELS
+
+    def test_its_colours(self, every) -> None:
+        scene = every[15]
         zero = _stroke(scene, "zero")
         assert (zero.color, zero.dashed) == (MUTED, True)
         assert _label(scene, "loses").color == LOST
@@ -2498,7 +2633,7 @@ class TestTheSharpeSketch:
 
     def test_each_dot_and_bar_sit_at_the_runs_figures(self, every) -> None:
         """Read from the run's own functions, not from the sketch's rows."""
-        scene = every[14]
+        scene = every[15]
         for trade, first, last in PERIODS:
             trades = (
                 seasonals.natural_gas_trades(first, last)
@@ -2514,7 +2649,7 @@ class TestTheSharpeSketch:
             )
 
     def test_only_the_bars_after_the_book_cross_zero(self, every) -> None:
-        scene = every[14]
+        scene = every[15]
         zero = _stroke(scene, "zero").x[0]
         crossing = {}
         for trade, first, _ in PERIODS:
@@ -2535,7 +2670,7 @@ class TestTheSharpeSketch:
         assert _stroke(scene, "ratio-natural gas-1994").x[0] == pytest.approx(_sharpe_x(1.5))
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[14])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[15])
         assert "The first bar runs from about 0.4 to 1.6 and the third stays right of zero" in alt
         assert "the bars of both periods after the book reach across the zero line" in alt
         first = sharpe_rows()[0]
@@ -2544,11 +2679,11 @@ class TestTheSharpeSketch:
 
 class TestTheMultiplierSketch:
     def test_its_words(self, every) -> None:
-        assert every[15].title == "Fewer results, a wider range"
-        assert every[15].labels == T_LABELS
+        assert every[16].title == "Fewer results, a wider range"
+        assert every[16].labels == T_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[15]
+        scene = every[16]
         rows = mean_rows()
         ours = (rows[3].count, rows[1].count)
         for n in (*ours, T_COMPARE, 1000):
@@ -2559,7 +2694,7 @@ class TestTheMultiplierSketch:
     def test_each_bar_is_its_multiplier_and_the_counts_are_the_runs(self, every) -> None:
         from scipy import stats
 
-        scene = every[15]
+        scene = every[16]
         rows = mean_rows()
         assert (rows[3].count, rows[1].count) == (8, 15)
         for n in (8, 15, T_COMPARE, 1000):
@@ -2574,17 +2709,17 @@ class TestTheMultiplierSketch:
         assert "5 results" in scene.labels and "8 results" not in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[15])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[16])
         assert "the fewer the results, the higher a bar stands above it" in alt
 
 
 class TestTheHalfWidthSketch:
     def test_its_words(self, every) -> None:
-        assert every[16].title == "Where ±12% comes from"
-        assert every[16].labels == HALF_LABELS
+        assert every[17].title == "Where ±12% comes from"
+        assert every[17].labels == HALF_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[16]
+        scene = every[17]
         assert [_stroke(scene, f"half-{k}").color for k in range(3)] == [INK, INK, ACCENT]
         for name in ("start", "gap"):
             line = _stroke(scene, name)
@@ -2593,7 +2728,7 @@ class TestTheHalfWidthSketch:
     def test_each_bar_is_the_runs_figure_and_the_last_passes_the_gap(self, every) -> None:
         from scipy import stats
 
-        scene = every[16]
+        scene = every[17]
         before, after = mean_rows()[0], mean_rows()[1]
         trades = seasonals.natural_gas_trades(2009, 2023)
         low, high = seasonals.mean_interval(trades)
@@ -2615,7 +2750,7 @@ class TestTheHalfWidthSketch:
         assert line.y.min() < purple.y.min() and line.y.max() > purple.y.max()
 
     def test_every_bar_starts_on_the_dashed_line_at_the_later_mean(self, every) -> None:
-        scene = every[16]
+        scene = every[17]
         start = _stroke(scene, "start")
         assert start.x == pytest.approx(np.full(len(start.x), HALF_X))
         bars = [_stroke(scene, f"half-{k}") for k in range(3)]
@@ -2629,17 +2764,17 @@ class TestTheHalfWidthSketch:
         assert _half_width(wide, before).title == "Where ±17% comes from"
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[16])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[17])
         assert "the purple bar reaches past it, so the range around the later mean holds" in alt
 
 
 class TestTheMeanRangeSketch:
     def test_its_words(self, every) -> None:
-        assert every[17].title == "One range holds the earlier mean, one does not"
-        assert every[17].labels == MEAN_LABELS
+        assert every[18].title == "One range holds the earlier mean, one does not"
+        assert every[18].labels == MEAN_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[17]
+        scene = every[18]
         for trade, first, _ in PERIODS:
             assert _stroke(scene, f"range-{trade}-{first}").color == INK
             assert _stroke(scene, f"mean-{trade}-{first}").color == ACCENT
@@ -2648,7 +2783,7 @@ class TestTheMeanRangeSketch:
             assert (carry.color, carry.dashed) == (MUTED, True)
 
     def test_each_dot_and_bar_sit_at_the_runs_figures(self, every) -> None:
-        scene = every[17]
+        scene = every[18]
         for trade, first, last in PERIODS:
             trades = (
                 seasonals.natural_gas_trades(first, last)
@@ -2664,7 +2799,7 @@ class TestTheMeanRangeSketch:
             )
 
     def test_natural_gas_s_earlier_mean_lands_inside_and_gasoline_s_outside(self, every) -> None:
-        scene = every[17]
+        scene = every[18]
         landed = {}
         for trade, later in (("natural gas", 2009), ("gasoline", 2016)):
             x = _stroke(scene, f"carry-{trade}").x[0]
@@ -2693,7 +2828,7 @@ class TestTheMeanRangeSketch:
         assert _stroke(scene, "carry-natural gas").x[0] == pytest.approx(_mean_x(5.0))
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[17])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[18])
         assert "Natural gas’s lands inside the later range, and gasoline’s lands just past" in alt
 
     def test_the_three_come_in_the_post_s_order(self) -> None:
@@ -2710,18 +2845,18 @@ def _natural_gas_periods() -> tuple[list, list]:
 
 class TestThePairsSketch:
     def test_its_words(self, every) -> None:
-        assert every[18].title == "177 of 225 pairs"
-        assert every[18].labels == PAIRS_LABELS
+        assert every[19].title == "177 of 225 pairs"
+        assert every[19].labels == PAIRS_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[18]
+        scene = every[19]
         strokes = {gid: _stroke(scene, gid).color for gid in ("won", "lost", "edge")}
         assert strokes == {"won": GOOD, "lost": LOST, "edge": INK}
         assert _label(scene, "blue: the earlier year did better").color == GOOD
         assert _label(scene, "vermilion: the later year did").color == LOST
 
     def test_each_dot_sits_in_its_cell_in_the_colour_of_who_won(self, every) -> None:
-        scene, f = every[18], OneYearFigures.from_run()
+        scene, f = every[19], OneYearFigures.from_run()
         rows = sorted(r for _, r in f.before)
         cols = sorted(r for _, r in f.after)
 
@@ -2742,11 +2877,11 @@ class TestThePairsSketch:
 
     def test_the_count_is_the_rank_test_s(self, every) -> None:
         won, pairs = seasonals.pairs_won(*_natural_gas_periods())
-        assert len(_stroke(every[18], "won").x) == won
-        assert every[18].title == f"{won:.0f} of {pairs} pairs"
+        assert len(_stroke(every[19], "won").x) == won
+        assert every[19].title == f"{won:.0f} of {pairs} pairs"
 
     def test_the_edge_follows_each_row_s_last_blue_dot(self, every) -> None:
-        scene, f = every[18], OneYearFigures.from_run()
+        scene, f = every[19], OneYearFigures.from_run()
         edge = _stroke(scene, "edge")
         for i, r in enumerate(sorted(r for _, r in f.before)):
             beaten = sum(1 for _, c in f.after if c < r)
@@ -2761,7 +2896,7 @@ class TestThePairsSketch:
         assert _pairs(worse).title != _pairs(f).title
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[18])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[19])
         for label in PAIRS_LABELS:
             assert f"“{label}”" in alt, label
         assert "The rightmost column, headed “2022”, is all vermilion" in alt
@@ -2769,11 +2904,11 @@ class TestThePairsSketch:
 
 class TestTheLuckSketch:
     def test_its_words(self, every) -> None:
-        assert every[19].title == "What 0.7% means"
-        assert every[19].labels == LUCK_LABELS
+        assert every[20].title == "What 0.7% means"
+        assert every[20].labels == LUCK_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[19]
+        scene = every[20]
         assert [_stroke(scene, g).color for g in ("ours", "tail-high", "tail-low")] == [ACCENT] * 3
         assert _stroke(scene, "bell").color == INK
         for gid in ("middle", "five"):
@@ -2781,8 +2916,8 @@ class TestTheLuckSketch:
 
     def test_its_shaded_share_is_the_rank_test_s_p_value(self, every) -> None:
         p = seasonals.rank_p_value(*_natural_gas_periods())
-        assert every[19].title == f"What {100 * p:.1f}% means"
-        assert _luck(OneYearFigures.from_run()).title == every[19].title
+        assert every[20].title == f"What {100 * p:.1f}% means"
+        assert _luck(OneYearFigures.from_run()).title == every[20].title
 
     def test_the_counts_are_the_exact_distribution(self) -> None:
         """Each count's chance is its share of every way to split the years,
@@ -2801,7 +2936,7 @@ class TestTheLuckSketch:
         assert chances == pytest.approx(chances[::-1])
 
     def test_its_curve_and_marks_sit_at_the_counts(self, every) -> None:
-        scene, f = every[19], OneYearFigures.from_run()
+        scene, f = every[20], OneYearFigures.from_run()
         n1, n2 = len(f.before), len(f.after)
         won, _ = seasonals.pairs_won(*_natural_gas_periods())
         won = int(won)
@@ -2839,7 +2974,7 @@ class TestTheLuckSketch:
         assert _luck(closer).title != _luck(f).title
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[19])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[20])
         for label in LUCK_LABELS:
             assert f"“{label}”" in alt, label
         assert "The tails are so thin that they barely rise off the axis." in alt
@@ -2847,8 +2982,8 @@ class TestTheLuckSketch:
 
 class TestTheChancesSketch:
     def test_its_words(self, every) -> None:
-        assert every[20].title == "Four chances against the 5% line"
-        assert every[20].labels == CHANCE_LABELS
+        assert every[21].title == "Four chances against the 5% line"
+        assert every[21].labels == CHANCE_LABELS
 
     def test_the_rows_are_the_run_s_chances(self) -> None:
         gas = seasonals.gasoline_trades(1995, 2015), seasonals.gasoline_trades(2016, 2023)
@@ -2863,7 +2998,7 @@ class TestTheChancesSketch:
             assert g[1:] == pytest.approx(w[1:])
 
     def test_each_dot_sits_at_its_chance(self, every) -> None:
-        scene = every[20]
+        scene = every[21]
         assert _stroke(scene, "line").x[0] == pytest.approx(CHANCE_X0 + CHANCE_LINE * CHANCE_POINT)
         for row, y in zip(chance_rows(), CHANCE_ROWS, strict=True):
             for test, pct, dy in (
@@ -2876,7 +3011,7 @@ class TestTheChancesSketch:
                 )
 
     def test_only_a_chance_past_the_line_is_purple(self, every) -> None:
-        scene = every[20]
+        scene = every[21]
         purple = [s.gid for s in scene.strokes if s.color == ACCENT]
         assert purple == ["natural gas-Welch"]
         made_up = (ChanceRow("gasoline", 6.0, 1.0), ChanceRow("natural gas", 4.0, 0.5))
@@ -2885,7 +3020,7 @@ class TestTheChancesSketch:
         assert [s.gid for s in _chances(on_line).strokes if s.color == ACCENT] == ["gasoline-Welch"]
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[20])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[21])
         for label in CHANCE_LABELS:
             assert f"“{label}”" in alt, label
         assert "a purple dot at “Welch, 9.2%”, the only one right of the line" in alt
@@ -2899,11 +3034,11 @@ class TestTheOneYearSketch:
         )
 
     def test_its_words(self, every) -> None:
-        assert every[21].title == "One year moves the mean, not the ranks"
-        assert every[21].labels == ONE_YEAR_LABELS
+        assert every[22].title == "One year moves the mean, not the ranks"
+        assert every[22].labels == ONE_YEAR_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene, f = every[21], OneYearFigures.from_run()
+        scene, f = every[22], OneYearFigures.from_run()
         for year, pct in f.after:
             assert _stroke(scene, f"year-{year}").color == (GOOD if pct > 0 else LOST), year
         assert _stroke(scene, "mean").color == INK
@@ -2924,7 +3059,7 @@ class TestTheOneYearSketch:
         assert (len(f.before), len(f.after)) == (15, 15)
 
     def test_each_tick_sits_at_its_mean(self, every) -> None:
-        scene, f = every[21], OneYearFigures.from_run()
+        scene, f = every[22], OneYearFigures.from_run()
         assert list(_stroke(scene, "mean").x) == pytest.approx(
             [_year_x(f.mean_after)] * len(_stroke(scene, "mean").x)
         )
@@ -2934,7 +3069,7 @@ class TestTheOneYearSketch:
     def test_each_return_dot_sits_at_its_true_return(self, every) -> None:
         """No rounding moves a dot, so each one sits on its true side of zero and
         of both mean ticks. 2021's −4.5% once sat left of the −5.0% tick."""
-        scene, f = every[21], OneYearFigures.from_run()
+        scene, f = every[22], OneYearFigures.from_run()
         means = (0.0, f.mean_after, f.mean_without_best)
         for year, pct in f.after:
             x = _stroke(scene, f"year-{year}").x[0]
@@ -2950,7 +3085,7 @@ class TestTheOneYearSketch:
     def test_a_note_names_each_gain_too_close_to_zero_to_show_its_side(self, every) -> None:
         """2014's +0.09% sits half a pixel right of the zero line, so its side
         cannot be seen and colour alone would mark it a gain."""
-        scene, f = every[21], OneYearFigures.from_run()
+        scene, f = every[22], OneYearFigures.from_run()
         near = sorted(y for y, pct in f.after if 0 < pct < sketches.YEAR_NEAR_ZERO)
         assert near == [2014, 2018]
         zero = _stroke(scene, "zero").x[0]
@@ -2963,7 +3098,7 @@ class TestTheOneYearSketch:
         assert not any("just above" in label for label in _one_year(others).labels)
 
     def test_each_rank_dot_sits_in_its_row_in_rank_order(self, every) -> None:
-        scene, f = every[21], OneYearFigures.from_run()
+        scene, f = every[22], OneYearFigures.from_run()
         ranked = self.ranked(f)
         xs = [_stroke(scene, f"rank-{year}").x[0] for _, _, year in ranked]
         assert xs == sorted(xs)
@@ -2991,7 +3126,7 @@ class TestTheOneYearSketch:
         assert "2022: +45%" in small.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[21])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[22])
         f = OneYearFigures.from_run()
         losses = sum(r < 0 for _, r in f.after)
         gains = len(f.after) - losses
@@ -3060,11 +3195,11 @@ class TestTheJuneYears:
 
 class TestTheJuneSketch:
     def test_its_words(self, every) -> None:
-        assert every[22].title == "Which file holds the June contract"
-        assert every[22].labels == JUNE_LABELS
+        assert every[23].title == "Which file holds the June contract"
+        assert every[23].labels == JUNE_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[22]
+        scene = every[23]
         for tag in ("2008", "2006"):
             assert _stroke(scene, f"{tag}-june").color == ACCENT
             for month in ("march", "april", "may"):
@@ -3089,7 +3224,7 @@ class TestTheJuneSketch:
         assert _day_x(date(2006, 4, 13)) == _day_x(date(2008, 4, 13))
 
     def test_each_bar_ends_at_its_last_trading_day_and_june_runs_off(self, every, years) -> None:
-        scene = every[22]
+        scene = every[23]
         for f in years:
             for month, last in zip(("march", "april", "may"), f.last_trade, strict=False):
                 bar = _stroke(scene, f"{f.year}-{month}")
@@ -3105,7 +3240,7 @@ class TestTheJuneSketch:
             assert f.last_trade[3] > CALENDAR[1].replace(year=f.year)
 
     def test_june_is_numbered_by_the_bars_each_line_crosses(self, every, years) -> None:
-        scene = every[22]
+        scene = every[23]
         for f in years:
             tag = str(f.year)
             for moment, day, number in (
@@ -3125,7 +3260,7 @@ class TestTheJuneSketch:
                 assert label.x == pytest.approx(line.x[0])
 
     def test_each_line_spans_its_years_four_bars(self, every, years) -> None:
-        scene = every[22]
+        scene = every[23]
         for f in years:
             rows = [_stroke(scene, f"{f.year}-{m}").y[0] for m in ("march", "april", "may", "june")]
             for moment in ("entry", "exit"):
@@ -3133,14 +3268,14 @@ class TestTheJuneSketch:
                 assert line.y.max() > max(rows) and line.y.min() < min(rows)
 
     def test_march_is_drawn_still_trading_in_2008_and_expired_in_2006(self, every, years) -> None:
-        scene = every[22]
+        scene = every[23]
         still, expired = years
         assert _stroke(scene, "2008-march").x.max() > _stroke(scene, "2008-entry").x[0]
         assert _stroke(scene, "2006-march").x.max() < _stroke(scene, "2006-entry").x[0]
         assert (still.march_trading, expired.march_trading) == (True, False)
 
     def test_the_years_are_stacked_and_their_rows_ordered_by_expiry(self, every) -> None:
-        scene = every[22]
+        scene = every[23]
         for tag in ("2008", "2006"):
             rows = [_stroke(scene, f"{tag}-{m}").y[0] for m in ("march", "april", "may", "june")]
             assert rows == sorted(rows, reverse=True)
@@ -3160,11 +3295,11 @@ class TestTheJuneSketch:
         assert len(_reaches(scene, "2008", _stroke(scene, "2008-entry").x[0])) == 3
 
     def test_it_closes_on_the_rule_it_draws(self, every) -> None:
-        last = every[22].steps[-1]
+        last = every[23].steps[-1]
         assert (last.text, last.color) == ("June’s number is how many bars each line crosses", INK)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every, years) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[22])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[23])
         still, expired = years
         for f in years:
             assert f"March’s bar ends on {f.last_trade[0]:%B} {f.last_trade[0].day}" in alt
@@ -3179,11 +3314,11 @@ class TestTheJuneSketch:
 
 class TestTheHandoverSketch:
     def test_its_words(self, every) -> None:
-        assert every[23].title == "A handover shows when March stopped"
-        assert every[23].labels == HANDOVER_LABELS
+        assert every[24].title == "A handover shows when March stopped"
+        assert every[24].labels == HANDOVER_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[23]
+        scene = every[24]
         assert _stroke(scene, "file-1").color == INK
         assert _stroke(scene, "file-2").color == MUTED
         assert _stroke(scene, "carry").color == ACCENT
@@ -3203,7 +3338,7 @@ class TestTheHandoverSketch:
         assert _last_trade_with_lead(HANDOVER_YEAR, 3, 3) == date(1996, 2, 27)
 
     def test_each_dot_and_the_arrow_sit_at_the_files_prices(self, every) -> None:
-        scene = every[23]
+        scene = every[24]
         one = seasonals.settlements(seasonals.NATURAL_GAS[1])[1]
         two = seasonals.settlements(seasonals.NATURAL_GAS[2])[1]
         days = [
@@ -3229,14 +3364,14 @@ class TestTheHandoverSketch:
         assert _last_trade_with_lead(1996, 4, 3) == date(1996, 3, 27)
 
     def test_the_lines_sit_between_their_days(self, every) -> None:
-        scene = every[23]
+        scene = every[24]
         dots = _stroke(scene, "file-1").x
         expiry, three = _stroke(scene, "expiry").x[0], _stroke(scene, "three").x[0]
         assert dots[6] < expiry < dots[7]
         assert dots[8] < three < dots[9]
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[23])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[24])
         assert "a grey dashed line two trading days later marks" in alt
         end, last = sketches.HANDOVER_DAYS[1], ng_last_trade(HANDOVER_YEAR, 3)
         assert f"to {end:%B} {end.day}, {end.year}, one dot a trading day" in alt
@@ -3247,8 +3382,8 @@ class TestTheHandoverSketch:
 
 class TestTheCoverageSketch:
     def test_its_words(self, every) -> None:
-        assert every[24].title == "Which years each check reaches"
-        assert every[24].labels == COVERAGE_LABELS
+        assert every[25].title == "Which years each check reaches"
+        assert every[25].labels == COVERAGE_LABELS
 
     def test_its_figures_are_the_runs(self) -> None:
         from tests.test_commodity_seasonals import TestTheNaturalGasExpiries
@@ -3263,7 +3398,7 @@ class TestTheCoverageSketch:
         } == pinned
 
     def test_each_bar_spans_its_years(self, every) -> None:
-        scene = every[24]
+        scene = every[25]
         last = max(day for days in EXCHANGE_LAST_TRADES.values() for day in days)
         assert last == date(2026, 5, 27)
         assert _span_ends(_stroke(scene, "files")) == pytest.approx(
@@ -3288,33 +3423,33 @@ class TestTheCoverageSketch:
 
 class TestTheEdgeDaySketch:
     def test_its_words(self, every) -> None:
-        assert every[25].title == "2018: entry on March’s own last day"
-        assert every[25].labels == EDGE_LABELS
+        assert every[26].title == "2018: entry on March’s own last day"
+        assert every[26].labels == EDGE_LABELS
 
     def test_the_entry_falls_on_march_s_last_day(self, every) -> None:
-        scene = every[25]
+        scene = every[26]
         f = sketches.JuneYear.from_run(EDGE_YEAR)
         assert f.entry == f.last_trade[0] and f.entry_number == 4
         assert _stroke(scene, "entry").x[0] == pytest.approx(_stroke(scene, "bar-3").x.max())
         assert len(edge_years()) == 10 and EDGE_YEAR in edge_years()
 
     def test_its_colours(self, every) -> None:
-        scene = every[25]
+        scene = every[26]
         assert _stroke(scene, "bar-6").color == ACCENT
         assert [_stroke(scene, f"bar-{m}").color for m in (3, 4, 5)] == [INK] * 3
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[25])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[26])
         assert "exactly where March’s bar ends" in alt
 
 
 class TestTheHolidaySketch:
     def test_its_words(self, every) -> None:
-        assert every[26].title == "A row in the file is not a trading day"
-        assert every[26].labels == HOLIDAY_LABELS
+        assert every[27].title == "A row in the file is not a trading day"
+        assert every[27].labels == HOLIDAY_LABELS
 
     def test_the_rows_are_the_files(self, every) -> None:
-        scene = every[26]
+        scene = every[27]
         rows = seasonals.settlements(seasonals.NATURAL_GAS[1])[1]
         christmas, boxing = date(2018, 12, 25), date(2016, 12, 26)
         assert not is_trading_day(christmas) and not is_trading_day(boxing)
@@ -3333,7 +3468,7 @@ class TestTheHolidaySketch:
                 assert bool(drawn) == (date(year, 12, day) in rows), (year, day)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[26])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[27])
         assert "so the weekend of the 22nd and 23rd has none" in alt
         assert [date(2016, 12, d).weekday() for d in (24, 25)] == [5, 6]
         assert "its weekend of the 24th and 25th and the closed 26th have no dot" in alt
@@ -3352,11 +3487,11 @@ class TestTheHolidaySketch:
 
 class TestThePlateauSketch:
     def test_its_words(self, every) -> None:
-        assert every[27].title == "A cliff or a plateau"
-        assert every[27].labels == PLATEAU_LABELS
+        assert every[28].title == "A cliff or a plateau"
+        assert every[28].labels == PLATEAU_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[27]
+        scene = every[28]
         assert _stroke(scene, "cliff").color == LOST
         assert _stroke(scene, "plateau").color == GOOD
         for kind in ("cliff", "plateau"):
@@ -3372,7 +3507,7 @@ class TestThePlateauSketch:
             assert _label(scene, text).color == MUTED, text
 
     def test_chans_dot_sits_on_each_curve_at_its_panels_centre(self, every) -> None:
-        scene = every[27]
+        scene = every[28]
         for (x0, x1), kind in zip(PLATEAU_PANELS, ("cliff", "plateau"), strict=True):
             centre = (x0 + x1) / 2
             dot, curve = _stroke(scene, f"{kind}-chan"), _stroke(scene, kind)
@@ -3401,7 +3536,7 @@ class TestThePlateauSketch:
         cliff near its floor and the plateau near its top."""
         for (x0, x1), kind in zip(PLATEAU_PANELS, ("cliff", "plateau"), strict=True):
             centre, step = (x0 + x1) / 2, (x1 - x0) / 5
-            curve = _stroke(every[27], kind)
+            curve = _stroke(every[28], kind)
             for x in (centre - step, centre + step):
                 above = np.interp(x, curve.x, curve.y) - PLATEAU_BASE - PLATEAU_FLOOR
                 if kind == "cliff":
@@ -3425,7 +3560,7 @@ class TestThePlateauSketch:
         assert _plateau().labels == PLATEAU_LABELS
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[27])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[28])
         assert "schematic and to no scale" in alt
         assert "spikes in one narrow peak at a purple dot" in alt
         assert "falls back low" in alt
@@ -3498,11 +3633,11 @@ class TestTheClosedDateFigures:
 
 class TestTheClosedDateSketch:
     def test_its_words(self, every) -> None:
-        assert every[28].title == "Three rules for a closed entry date"
-        assert every[28].labels == CLOSED_LABELS
+        assert every[29].title == "Three rules for a closed entry date"
+        assert every[29].labels == CLOSED_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[28]
+        scene = every[29]
         assert _stroke(scene, "chans").color == ACCENT
         assert _label(scene, "Chan’s: the next trading day").color == ACCENT
         for gid, text in (
@@ -3521,7 +3656,7 @@ class TestTheClosedDateSketch:
     def test_each_day_sits_on_one_scale_with_a_dot_if_open_and_a_cross_if_closed(
         self, every, closed
     ) -> None:
-        scene = every[28]
+        scene = every[29]
         for k in CLOSED_DAYS:
             day = closed.trade_date + timedelta(days=k)
             mark = _stroke(scene, f"day-{day.day}")
@@ -3537,7 +3672,7 @@ class TestTheClosedDateSketch:
         assert len(crosses) == 2
 
     def test_each_arrow_runs_from_the_trade_date_to_its_rules_day(self, every, closed) -> None:
-        scene = every[28]
+        scene = every[29]
         start = _stroke(scene, "trade-date").x[0]
         assert start == pytest.approx(_closed_x(closed.trade_date, closed))
         for gid, day in (
@@ -3567,7 +3702,7 @@ class TestTheClosedDateSketch:
         ) in _closed_date(moved).labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[28])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[29])
         assert "a vermilion cross on the Saturday and the Sunday" in alt
         assert "a purple arrow runs forward to the Monday" in alt
         assert "two black arrows run back to the Friday" in alt

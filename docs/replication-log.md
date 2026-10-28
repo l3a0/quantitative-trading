@@ -3518,10 +3518,10 @@ misses are normal and independent, all three years were profits with a chance
 of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
 was 41%.
 
-The post also carries twenty-nine whiteboard sketches, twenty-eight that draw
-this entry's run and one schematic sketch, and
+The post also carries thirty whiteboard sketches, twenty-eight that draw
+this entry's run and two schematic sketches, and
 `uv run python -m chan.commodity_seasonals_whiteboard` redraws all
-twenty-nine.
+thirty.
 
 1. Each trade's entry and exit on one calendar, with Chan's count for it.
 2. Both trades' years won, split where the book's years end: 15 of 15 then 7 of
@@ -3550,33 +3550,36 @@ twenty-nine.
    entry and 1998's missing exit.
 14. Each missing year's move with fill 2's guess corrected by its average
    miss, against the spread of its misses either side.
-15. Each period's Sharpe ratio with 1.96 standard errors either side.
-16. Student's t's 95% multiplier for few results against the normal curve's.
-17. Natural gas's ±12% half-width built from its spread, count and multiplier.
-18. Each period's mean and 95% range, with each trade's earlier mean carried
+15. A schematic raised start, one trade's mean in the book's years drawn
+   above its real edge, so the fall measured from it is longer than the fall
+   the trade took, with no figures from the run.
+16. Each period's Sharpe ratio with 1.96 standard errors either side.
+17. Student's t's 95% multiplier for few results against the normal curve's.
+18. Natural gas's ±12% half-width built from its spread, count and multiplier.
+19. Each period's mean and 95% range, with each trade's earlier mean carried
    down past its later range.
-19. Every pairing of an earlier natural gas year with a later one, 177 of 225
+20. Every pairing of an earlier natural gas year with a later one, 177 of 225
    won by the earlier year.
-20. The pair counts luck alone gives, counted exactly, with natural gas's 177
+21. The pair counts luck alone gives, counted exactly, with natural gas's 177
    in the 0.7% of splits that land that far out.
-21. The four chances against the 5% line.
-22. Natural gas's mean after 2008 with and without 2022, against all 30
+22. The four chances against the 5% line.
+23. Natural gas's mean after 2008 with and without 2022, against all 30
    years ranked.
-23. Which numbered file holds the June contract on the entry and exit days of
+24. Which numbered file holds the June contract on the entry and exit days of
    2008 and 2006.
-24. The files handing over the day after March 1996's last trading day.
-25. Which years each check of the expiry rule reaches.
-26. 2018's entry on March's own last trading day.
-27. A holiday row in the files, at Christmas 2018, beside none in 2016.
-28. A schematic cliff beside a plateau, the two shapes a search across a
+25. The files handing over the day after March 1996's last trading day.
+26. Which years each check of the expiry rule reaches.
+27. 2018's entry on March's own last trading day.
+28. A holiday row in the files, at Christmas 2018, beside none in 2016.
+29. A schematic cliff beside a plateau, the two shapes a search across a
    trade's parameters tells apart, with no figures from the run.
-29. Gasoline's 2019 entry date, Saturday, April 13, moved forward to Monday by
+30. Gasoline's 2019 entry date, Saturday, April 13, moved forward to Monday by
    Chan's rule and back to Friday by the outward rule and the nearest trading
    day. A trade date falls on a closed day in 17 of 29 gasoline years and 11
    of 30 natural gas years.
 
 [tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
-reads every sketch but the cliff-or-plateau from the run, so a change to the streak counts, to a gasoline
+reads every sketch but the raised-start and the cliff-or-plateau from the run, so a change to the streak counts, to a gasoline
 year's result, to the expiry rule or to the trading calendar moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
