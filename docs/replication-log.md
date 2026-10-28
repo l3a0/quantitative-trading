@@ -10190,8 +10190,9 @@ stated here.
 **Every figure is about survivors.** The panel is the S&P 500 as it stood on
 2007-11-23, carried backwards, so a stock that left the index before then is
 in neither portfolio. Which side that flatters is not measured here.
-High-beta stocks that fell out of the index would flatter the high side and
-work against the claim, and that is a hypothesis rather than a finding.
+Leaving out high-beta stocks that fell out of the index would flatter the high
+side and work against the claim, and that is a hypothesis rather than a
+finding.
 
 Row 1 is **registered**, under the issue's amendment of 2026-10-11. The plan
 and its criterion were written on the issue before any number was computed.
@@ -10302,9 +10303,9 @@ ruin. Whether the near-zero betas or the fat tails did more of the damage is
 not measured here.
 
 **What survivorship does to either side.** The panel lacks the stocks that
-left the index before 2007-11-23. High-beta stocks that fell out of it would
-flatter the high side, which works against the claim, and that is a
-hypothesis rather than a finding.
+left the index before 2007-11-23. Leaving out the high-beta stocks that fell
+out of it would flatter the high side, which works against the claim, and that
+is a hypothesis rather than a finding.
 
 **Whether the claim holds after the book.** The point-in-time S&P 500 that
 [issue 373](https://github.com/l3a0/quantitative-trading/issues/373) built,

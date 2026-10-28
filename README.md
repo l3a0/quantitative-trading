@@ -1381,9 +1381,9 @@ with the three helpers behind them on synthetic months.
 Lesson 1's and Lesson 3's tables row by row, Lesson 2's table of betas, and
 one prose copy of every other figure the post takes from the run, so editing a
 copy it reads fails. It does not read the italic summary, the list of six
-lessons, the chart's alt text and caption, or the sketches' alt text, which
-the figure and sketch tests hold. What the post says that nothing here asserts
-is listed below.
+lessons, the chart's caption or either alt text. The figure and sketch tests
+read the alt texts, and no test reads the caption. What the post says that
+nothing here asserts is listed below.
 
 [tests/test_vix_filter.py](tests/test_vix_filter.py) does it for the VIX
 filter. It pins both rules' figures on the days kept at six decimals against
@@ -7878,14 +7878,14 @@ Five groups of what it says are not pinned here.
    its beta by k, that the low fifth's 1.0132 and 0.4457 make the low fifth
    look better, that the numerator of k moved within a narrow band, that
    2000 to 2007 were past prices when the book printed the claim, and that
-   high-beta stocks leaving the index would flatter the high side, which is
-   a hypothesis.
-4. Figures the post states in words or rounds from pinned ones, such as
-   more than twice the high fifth's Sharpe ratio, both 2000 formations near
-   0.15, −1.44 percent for the line of −0.0144, and about one month in five
-   for 0.1931. The worked examples that gloss beta and leverage, a beta of 2
-   and a leverage of 3, are illustrations rather than figures from the file.
-   The figure's alt text reads its curves approximately too.
+   leaving out high-beta stocks that left the index would flatter the high
+   side, which is a hypothesis.
+4. Figures the post states in words or rounds from pinned ones, such as more
+   than twice the high fifth's Sharpe ratio, both 2000 formations near 0.15,
+   and −1.44 percent for the line of −0.0144. The worked examples that gloss
+   beta and leverage, a beta of 2 and a leverage of 3, are illustrations
+   rather than figures from the file. The figure's alt text reads its curves
+   approximately too.
 5. Its reference, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -7893,10 +7893,14 @@ Every other number in the post traces to an assertion in
 [tests/test_low_beta_leverage_figures.py](tests/test_low_beta_leverage_figures.py)
 for the figure's own numbers, or to
 [tests/test_levered_low_beta_whiteboard.py](tests/test_levered_low_beta_whiteboard.py)
-for the sketches'. `TestWhatThePostMeasured` holds the ones that
-had no pin before it. The write-up measured all of them after the run except
-the low fifth's betas in item 1, which the run printed in its table of
-formations.
+for the sketches', or, for the caps of 2 and 5 and the December 2008 start
+that Lesson 6 gives the two later tests, to
+[tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) and
+[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py).
+`TestWhatThePostMeasured` holds the ones that had no pin before it. The
+write-up measured all of them after the run except the ones the run prints:
+the low fifth's betas in item 1, the look-ahead Kelly leverage of 9.9884 in
+item 2, and June's k of 58.0262 in items 6 and 7.
 
 1. The low fifth's beta of 0.1443 at the 2000-12-29 formation, and the
    formations where it fell below 0.05, four from 2001-03-30 to 2001-06-29, with

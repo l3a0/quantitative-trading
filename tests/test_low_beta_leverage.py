@@ -480,7 +480,9 @@ class TestWhatThePostMeasured:
 
     def test_the_ruin_line(self, portfolios: Portfolios) -> None:
         line = ruin_line(portfolios.rf, portfolios.leverage)
-        assert round(float(portfolios.rf.loc["2001-06-29"]), 4) == 0.0029, SPEC
+        assert round(float(portfolios.rf.loc["2001-06-29"]), 4) == 0.0029, (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
         assert round(float(line.loc["2001-06-29"]), 4) == -0.0144, f"{SPEC}; {AFTER_THE_RUN}"
         assert round(float(line.loc["2001-09-28"]), 4) == -0.0296, f"{SPEC}; {AFTER_THE_RUN}"
         assert round(float(line.max()), 4) == -0.0115, f"{SPEC}; {AFTER_THE_RUN}"
@@ -552,10 +554,10 @@ class TestThePostQuotesTheRun:
     this class a typo in the post passed every test. Round 1 of the post's review
     changed eight of its numbers one at a time, and none failed a test.
 
-    The standfirst's second copy of 69.0762 and the six lessons' list are not
-    read, and neither are the chart's alt text and caption, which
-    ``tests/test_low_beta_leverage_figures.py`` holds, nor the sketches' alt text,
-    which ``tests/test_levered_low_beta_whiteboard.py`` holds. Chan's quotations
+    The italic summary and the six lessons' list are not read, and neither are
+    the chart's caption, which no test reads, and the two alt texts, which
+    ``tests/test_low_beta_leverage_figures.py`` and
+    ``tests/test_levered_low_beta_whiteboard.py`` read. Chan's quotations
     and Kindle locations, Lesson 5's account of what had been seen, and the
     illustrative beta of 2 and leverage of 3 are not figures from the run.
     """
@@ -563,7 +565,14 @@ class TestThePostQuotesTheRun:
     text = POST.read_text("utf-8")
 
     def test_the_file_and_the_test(self, sources, portfolios: Portfolios) -> None:
-        _, closes, _, spy, *_ = sources
+        members, closes, spy_entry, spy, bill_entry, _ = sources
+        stood = pd.Timestamp(members[0].path.split("/")[0].split("_")[1]).date()
+        assert (
+            f"holds {len(members)} stocks, saved {members[0].obtained}, as the S&P 500 stood on "
+            f"{stood}."
+        ) in self.text
+        assert f"saved {spy_entry.obtained} and committed here as `{spy_entry.path}`." in self.text
+        assert f"downloaded {bill_entry.obtained}" in self.text
         shared = int(closes.index.isin(spy.index).sum())
         sizes = [len(held) for held in portfolios.low_members]
         assert (f"The stock file is cut to the {shared:,} days it shares with SPY.") in self.text
@@ -616,7 +625,7 @@ class TestThePostQuotesTheRun:
             f"fresh stake in September {prose(september.levered)} at {september.leverage:.4f}."
         ) in self.text
 
-    def test_lesson_2s_betas_and_leverage(self, portfolios: Portfolios) -> None:
+    def test_lesson_2s_betas_and_leverage(self, portfolios: Portfolios, result: Verdict) -> None:
         low, high, k = portfolios.low_beta, portfolios.high_beta, portfolios.leverage
         assert (
             f"the low fifth’s mean beta ranged from {low.min():.4f} to {low.max():.4f}, while the "
@@ -637,6 +646,25 @@ class TestThePostQuotesTheRun:
             f"realised beta, its slope on SPY’s monthly return above the bill rate, came to "
             f"{realised_beta(portfolios.levered, portfolios):.4f}, against the high fifth’s "
             f"{realised_beta(portfolios.high, portfolios):.4f}."
+        ) in self.text
+        count = {4: "four", 8: "eight", 9: "nine"}
+        below_10 = dates(formed[formed < 0.10].index)
+        below_5 = dates(formed[formed < 0.05].index)
+        assert (
+            f"fell below 0.10 at {count[len(below_10)]} formations, {below_10[0]} to "
+            f"{below_10[-1]}, and below 0.05 at {count[len(below_5)]} of them."
+        ) in self.text
+        by_k = by_formation(portfolios, k)
+        above_20 = dates(by_k[by_k > 20].index)
+        assert (
+            f"It sat above 20 at {count[len(above_20)]} formations, {above_20[0]} to "
+            f"{above_20[-1]},"
+        ) in self.text
+        june = result.ruined[0]
+        assert (
+            f"The highest, {k.max():.4f}, was formed on {by_k.idxmax().date()} and applied in "
+            f"{k.idxmax():%B}. The {june.leverage:.4f} that ruined {june.held_to:%B} was formed on "
+            f"{june.formed.date()}."
         ) in self.text
 
     def test_lesson_3s_june_and_table(self, portfolios: Portfolios) -> None:

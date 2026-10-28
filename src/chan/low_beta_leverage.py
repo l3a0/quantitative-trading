@@ -94,8 +94,9 @@ rather than a growth any portfolio realised.
 **Every figure is about survivors.** ``spx_20071123/`` is the S&P 500 as it
 stood on 2007-11-23, carried backwards, so a stock that left the index before
 then is in neither portfolio. Which side that flatters is not measured here.
-High-beta stocks that fell out of the index would flatter the high side and
-work against the claim, and that is a hypothesis rather than a finding.
+Leaving out high-beta stocks that fell out of the index would flatter the high
+side and work against the claim, and that is a hypothesis rather than a
+finding.
 
 The scale-break guard is not called, as in :mod:`chan.momentum_factor`. The
 run instead reports how many stock-months in either portfolio have a flagged
