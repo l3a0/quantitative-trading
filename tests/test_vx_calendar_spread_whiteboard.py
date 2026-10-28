@@ -789,7 +789,7 @@ class TestTheShippedFigures:
 OTHER_SHIPPED = Shipped(
     day="2011-04-25",
     row=(*(f"VX-2011{m}" for m in "KMNQUVXZ"), "VX-2012F", "VX-2012G"),
-    priced=tuple(f"VX-2011{m}" for m in "KMNQU"),
+    priced=tuple(f"VX-2011{m}" for m in "KMNQ"),
     near="VX-2011Q",
     far="VX-2012G",
     held=1500,
@@ -909,7 +909,7 @@ class TestTheTwelveApartSketch:
         assert scene.labels == [
             *"KMNQUVXZFG",
             "letters are months: K to Z run May to Dec 2011, then F to G run Jan to Feb 2012",
-            "priced that day: 5 contracts",
+            "priced that day: 4 contracts",
             "near: VX-2011Q",
             "+6 months",
             "far: VX-2012G, no price",
@@ -918,8 +918,8 @@ class TestTheTwelveApartSketch:
         ]
         assert _label(scene, "near: VX-2011Q").x == pytest.approx(box_x(3))
         assert _stroke(scene, "later").x[39] == pytest.approx(box_x(9))
-        assert _stroke(scene, "priced").x.max() == pytest.approx(box_x(4) + sketches.BOX_W / 2)
-        assert [s.gid for s in scene.strokes if s.dashed] == [f"box-{k}" for k in range(5, 10)]
+        assert _stroke(scene, "priced").x.max() == pytest.approx(box_x(3) + sketches.BOX_W / 2)
+        assert [s.gid for s in scene.strokes if s.dashed] == [f"box-{k}" for k in range(4, 10)]
 
 
 class TestTheHoldAltText:

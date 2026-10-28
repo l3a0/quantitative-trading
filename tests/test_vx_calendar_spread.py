@@ -559,6 +559,13 @@ class TestWhatThePostQuotes:
     def test_the_post_holds_three_tables(self, text) -> None:
         assert len(tables(text)) == 3
 
+    def test_a_fragment_must_occur_exactly_once(self) -> None:
+        """A second copy is reported as surely as a missing one, so a fragment names one place."""
+        assert not_found_once("a copy, and a copy", ["a copy", "and", "absent"]) == [
+            "a copy",
+            "absent",
+        ]
+
     def test_the_file_and_the_readings(self, strip, result, text) -> None:
         contracts = strip.contracts
         columns, index = contracts.columns, contracts.index
@@ -684,11 +691,13 @@ class TestWhatThePostQuotes:
             f"From the first day it holds a position, {early.returns.index[0].date()}, to "
             f"{early.returns.index[-1].date()}, its APR is {_minus(early.apr, 6)} and its "
             f"Sharpe ratio {_minus(early.sharpe, 6)}.",
-            f"B3’s last held day is {b3.last_held.date()}, the book’s printed end date",
+            f"B3’s last held day is {b3.last_held.date()}, the book’s printed end date, "
+            f"and so is B2’s.",
             f"{last_near} is the {_month(last_near)} contract.",
             f"so it reads {strip.contracts.index[-1].date()} as {last_near}’s expiry and lets go "
             f"of the pair {NUM_DAYS_END} days earlier, on {b3.last_held.date()}.",
         ]
+        assert result.rows["B2"].last_held == b3.last_held, SPECS["B2"]
         assert not_found_once(text, fragments) == [], f"{SPECS['B3']}; {AFTER_THE_RUN}"
 
     def test_lesson_4(self, strip, text) -> None:
