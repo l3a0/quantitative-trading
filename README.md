@@ -3822,7 +3822,12 @@ trade dates and gasoline's holding period, the held-back gasoline years and the
 files' first months, the delivery-month check's years and the neighbours it
 cannot reach, and EIA's decimal places.
 They take the held-back years from the manifest's dates and the run's year
-ranges, never from a price.
+ranges, never from a price. The held-back years' test also reads the decade
+that Further work's time-of-day check says a source of prices from inside
+the day would have to reach back to.
+`test_each_count_in_words_matches_what_follows_it` reads each count the post
+spells out before a list, a run of headings or a table, such as Further
+work's six parameters and seven checks, against the items that follow it.
 
 Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).

@@ -1271,6 +1271,89 @@ class TestThePostQuotesThePins:
         assert max(places) == 3
         assert "at the three decimal places EIA prints" in self.text
 
+    def test_each_count_in_words_matches_what_follows_it(self) -> None:
+        """A count spelled before a list, a run of headings or a table matches what follows.
+
+        Before this test, changing any of these counts in the post failed
+        nothing. A list follows its lead's paragraph after one blank line, and
+        headings sit one level below their lead's heading. Further work's
+        seventh check is its six parameters and the stop.
+        """
+        words = "zero one two three four five six seven eight nine ten".split()
+        lines = self.text.splitlines()
+
+        def lead(pattern: str) -> tuple[int, int]:
+            """The one line ``pattern`` matches, and the count its group spells."""
+            (found,) = [
+                (at, match) for at, line in enumerate(lines) if (match := re.search(pattern, line))
+            ]
+            return found[0], words.index(found[1][1].lower())
+
+        def listed(at: int) -> list[str]:
+            """The numbered list after the paragraph at ``at``."""
+            assert lines[at + 1] == ""
+            items = []
+            for line in lines[at + 2 :]:
+                if not line:
+                    break
+                items.append(line)
+            assert [item.split(". ")[0] for item in items] == [
+                str(n) for n in range(1, len(items) + 1)
+            ]
+            return items
+
+        def subheadings(at: int) -> int:
+            """The headings one level below the heading at ``at``, up to its next sibling."""
+
+            def level(line: str) -> int:
+                match = re.match(r"(#+) ", line)
+                return len(match[1]) if match else 0
+
+            count = 0
+            for line in lines[at + 1 :]:
+                if 0 < level(line) <= level(lines[at]):
+                    break
+                count += level(line) == level(lines[at]) + 1
+            return count
+
+        for pattern in (
+            r"Chan gives (\w+) trades",
+            r"(\w+) results came out\.",
+            r"covering (\w+) products",
+            r"give (\w+) numbers",
+            r"mixes (\w+) causes",
+            r"^(\w+) questions are beyond it",
+            r"^(\w+) habits follow",
+            r"fixed by (\w+) parameters",
+            r"(\w+) more checks test the record",
+            r"needs (\w+) safeguards",
+        ):
+            at, count = lead(pattern)
+            assert len(listed(at)) == count, pattern
+        # The five files are the contract numbers the three products' items name.
+        at, files = lead(r"read (\w+) files covering")
+        named = [re.search(r"contracts? (\d(?:, \d)*(?: and \d)?)", item)[1] for item in listed(at)]
+        assert sum(len(re.findall(r"\d", numbers)) for numbers in named) == files
+        at, count = lead(r"^#### (\w+) ways to fill a gap")
+        assert subheadings(at) == count
+        at, count = lead(r"^### (\w+) checks of the expiry rule")
+        assert subheadings(at) == count == lead(r"checks the rule (\w+) ways")[1]
+        _, parameters = lead(r"fixed by (\w+) parameters")
+        ordinals = {6: "sixth", 7: "seventh", 8: "eighth"}
+        assert f"A {ordinals[parameters + 1]} check adds a parameter" in self.text
+        assert f"These {words[parameters + 1]} checks make one search" in self.text
+        # The habits come from the first lessons, not from all of them.
+        at, habits = lead(r"^(\w+) habits follow")
+        lessons = sum(line.startswith("## Lesson ") for line in lines)
+        assert f"follow from the first {words[habits]} lessons" in lines[at] and habits < lessons
+        # Each test is a column of the chances table, and each cell is one chance.
+        _, tests = lead(r"^(\w+) tests compare the periods directly")
+        at, chances = lead(r"^The (\w+) chances, as percentages:")
+        assert lines[at + 2] == "```math"
+        table = lines[at + 3 : lines.index("```", at + 3)]
+        assert table[1].count("\\text{") == tests
+        assert len(re.findall(r"\d\\%", "\n".join(table))) == chances
+
 
 def _weekend_roll(day: date, forward: bool) -> date:
     """``day`` moved past weekends alone, the calendar without NYMEX's holidays."""
