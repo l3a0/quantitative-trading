@@ -145,14 +145,18 @@ returns on a method he chose. The run says whether his numbers reproduce on his
 file, and nothing about whether any leverage is safe to trade.
 
 **What the post added.** The post on these lessons,
-``blog/monte-carlo-leverage-lessons.md``, has one figure, which
-:mod:`chan.monte_carlo_leverage_figures` draws, since the run prints its
-figures and draws nothing. The figure reads the fit through
+``blog/monte-carlo-leverage-lessons.md``, has one chart, which
+:mod:`chan.monte_carlo_leverage_figures` draws, and two whiteboard sketches,
+which :mod:`chan.monte_carlo_leverage_whiteboard` draws, since the run prints
+its figures and draws nothing. The chart reads the fit through
 :func:`pearson_fit` and the Kelly through :func:`kelly`, the same functions the
 run uses. It reads each day's drawdown through :func:`account_drawdowns`, which
 shares :func:`chan.matlab_helpers.drawdown_path` with the run's
 :func:`max_drawdown`, and a test holds its least value equal to
-:func:`max_drawdown`'s. So the figure and the run cannot drift apart.
+:func:`max_drawdown`'s. The sketches read the same :func:`pearson_fit`,
+:func:`draws`, CPPI forms and :func:`account_drawdowns`, and
+:func:`minimum_below` too. So neither the chart nor the sketches can drift
+from the run.
 """
 
 from __future__ import annotations

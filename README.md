@@ -8111,18 +8111,19 @@ Five groups of what it says are not pinned here.
    bankruptcy in backtest at 3235, Monte Carlo at 3280, the Pearson system at
    3319, the 18.4, the type, the 19, "strikingly close", the −0.0331, the
    total loss above 30.2 and Figure 8.2's caption at 3342, the historical 18.4
-   and "again the same" at 3379, the −0.999, the 19.2, the −0.963, the
+   and "again the same" at 3379, the "frightening" −0.999, the 19.2, the −0.963, the
    seventh and "not exactly reproducible" at 3399, simulated against
    historical drawdowns and serial correlation at 3417, the CPPI scheme and
-   its −D at 3426, and the two growth rates, D of 0.5, "By design" and "a
-   painful 0.9" at 3438. The book's figures are pinned as the module's
+   its −D at 3426, and the two growth rates, "very similar", D of 0.5, "By
+   design" and "a painful 0.9" at 3438. The book's figures are pinned as the module's
    constants, and its words are not.
 2. Facts about the script rather than the data: line 22's
-   `fminbnd(minusGsim, 0, 20)` and Box 8.6 scaling its order by the drawdown
-   of the unlevered returns, in `monteCarloOptimLeverage.m`, git blob
-   `fc32599` at `e4bc46f` of ericnberwick/EpchanPreview, and
-   `AUDCAD_unequal.m` compounding its APR from the daily returns themselves.
-   The 0.112410 that gives and the log growth's 0.112426 are pinned.
+   `fminbnd(minusGsim, 0, 20)`, its drawdown on the saved returns at f / 1.4,
+   and Box 8.6 scaling its order by the drawdown of the unlevered returns, in
+   `monteCarloOptimLeverage.m`, git blob `fc32599` at `e4bc46f` of
+   ericnberwick/EpchanPreview, and `AUDCAD_unequal.m` compounding its APR from
+   the daily returns themselves. The 0.112410 that gives and the log growth's
+   0.112426 are pinned.
 3. Readings no test asserts: that a bell curve's parabola is defined at every
    leverage while a sampled curve stops at its ruin leverage, that moments
    below order 5.51 mean tails far heavier than a bell curve's, that the
@@ -8137,12 +8138,11 @@ Five groups of what it says are not pinned here.
    without the 30 seeds at or below 19.2 would hold neither of the book's
    figures, and that a picture built around one band rule would look like an
    endorsement of that rule.
-4. Figures the post rounds or states in words from pinned ones: 23.8, a gap
-   of 5.4 below the saved returns, within 0.52 percent, 13.9 to 14.9 percent,
-   nearly twice as deep, about 163 times as many draws, about 9.2 percent,
-   about 29.8 seeds, 2.4 standard errors, about 1.3 percent, 1.4 percent,
-   about a quarter, the book's pair near 1.6 percent apart, and one decimal
-   covering −0.95 to −0.85. The growth rates pinned at six significant
+4. Figures the post rounds or states in words from pinned ones that no test
+   reads from the post: 23.8, the 5.4 by which the book's 18.4 sits below the
+   saved returns in the closing habits, four of the book's six drawdowns and
+   growth rates outside their bands, and one decimal covering −0.95 to −0.85.
+   The growth rates pinned at six significant
    figures are quoted at six decimals. The figure's alt text reads its curves
    approximately too, such as a peak of about 0.0048 near 22.3 and a band
    from about 21.6 to 26.8.

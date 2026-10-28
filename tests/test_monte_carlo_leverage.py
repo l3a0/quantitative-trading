@@ -1010,6 +1010,32 @@ class TestWhatThePostSays:
             f"printed {BOOK_APR_PERCENT}."
         ) in self.text
 
+        per_bar = sharpe / math.sqrt(days)
+        spread = math.sqrt(per_bar * per_bar - 2 * math.log1p(float(BOOK_APR_PERCENT) / 100) / days)
+        large = per_bar + spread
+        assert (
+            f"The larger is near {large:.1f}, a daily swing of about {100 * large:.0f} percent "
+            f"with a Kelly near {per_bar / large:.1f}, so the smaller is the one used."
+        ) in self.text
+        swing = 0.1
+        for s in SHARPE_BAND:
+            for a in APR_BAND:
+                b = s / math.sqrt(days)
+                r = math.sqrt(b * b - 2 * math.log1p(a) / days)
+                assert b - r < swing < b + r
+        assert (
+            f"Example 5.1’s own printed figures rule {BOOK_KELLY} out.** Any series with that "
+            f"example’s Sharpe ratio and APR, and a daily swing under {100 * swing:.0f} percent, "
+            f"has a Kelly of at least {min(lowest.values()):.6f}"
+        ) in self.text
+
+    def test_the_declared_seed_and_the_further_seeds(self) -> None:
+        assert (
+            f"So each simulated figure here comes from one seed, {SEED}, named in writing before "
+            f"the run and called the declared seed. It is judged against {len(ENSEMBLE_SEEDS)} "
+            f"further seeds, {ENSEMBLE_SEEDS[0]} to {ENSEMBLE_SEEDS[-1]}."
+        ) in self.text
+
     def test_lesson_2_s_shifted_draws(self, result) -> None:
         median = result.shifted.band("uncapped").median
         half = result.shifted.band("drawdown_half")
@@ -1110,6 +1136,7 @@ class TestWhatThePostSays:
             f"{signed(gap(seeded.minimum, BOOK_MINIMUM), 4)}, so both reproduced with a gap"
         ) in self.text
         worst = float(returns.min())
+        assert 1.9 < seeded.minimum / worst < 2
         assert (
             f"The worst of Chan’s {len(returns)} backtest returns is {signed(worst)}, a ruin "
             f"leverage of {ruin_leverage(returns):.6f}. The declared seed’s least draw is "

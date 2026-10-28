@@ -556,7 +556,7 @@ class TestTheLoopFigures:
         assert through[302] == pytest.approx(0.941142, abs=5e-7)
 
     def test_even_at_its_deepest_the_loop_trades_above_8_3(self, run) -> None:
-        """The post's "barely cuts its order while the account falls", over all
+        """The post's "barely cuts its leverage while the account falls", over all
         100,000 days rather than the sketch's stretch."""
         sim, f = run["sim"], run["f"]
         levers = _loop_leverage_by_hand(sim, f, D)
@@ -592,7 +592,7 @@ class TestTheLoopFigures:
 
 
 class TestTheLeastFigures:
-    def test_the_rows_are_the_values_below_minus_0_01(self, figures, run) -> None:
+    def test_the_rows_are_the_values_below_minus_0_012(self, figures, run) -> None:
         returns, sim = run["returns"], run["sim"]
         assert CUTOFF == -0.012
         for found, values in (
