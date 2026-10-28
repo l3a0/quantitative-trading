@@ -25,7 +25,7 @@ This repository transcribed the script line by line and ran it on the file it lo
 
 **FSTX** is the futures contract on the STOXX Europe 50, an index of fifty large European companies, traded on Eurex. Chan’s book calls the index by its older name, the Dow Jones STOXX 50. A futures contract expires, so years of prices are stitched from one contract after the next into a **continuous future**. Each switch to the next contract is a roll. At each roll the stitching shifts the earlier history by the gap between the two contracts’ prices, so the series has no jump. The [post on volatility against the stock index](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#the-regression-and-the-files) explains the stitching. Lesson 4 turns on it.
 
-**The rule.** Each day the script compares the open with the previous day’s range, its high and its low. It reads one more number, the standard deviation of the last 90 close-to-close returns, which the [buy on gap post](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#the-strategy-and-the-file) explains.
+**The rule.** Each day the script compares the open with the previous day’s range, its high and its low. It reads one more number, the standard deviation of close-to-close returns over the last 90 rows, which the [buy on gap post](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#the-strategy-and-the-file) explains.
 
 1. **Long** when the open is at or above the previous high times one plus a tenth of the standard deviation. That is a jump up through the range.
 2. **Short** when the open is at or below the previous low times one minus a tenth of the standard deviation.
