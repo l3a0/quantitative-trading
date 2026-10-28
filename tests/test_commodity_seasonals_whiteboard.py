@@ -2089,7 +2089,7 @@ class TestTheFillTwoSketch:
 
     def test_both_arrows_rise_by_junes_change(self, every, fill_two) -> None:
         """The purple arrow is the grey one carried onto May: same start day,
-        same end day, same rise."""
+        same end point, same rise."""
         scene = every[8]
         fill, june, may = fill_two.fill, dict(fill_two.june), dict(fill_two.may)
         grey, purple = _stroke(scene, "june-rise"), _stroke(scene, "may-rise")
@@ -2873,7 +2873,7 @@ class TestTheOneYearSketch:
 
     def test_each_return_dot_sits_at_its_true_return(self, every) -> None:
         """No rounding moves a dot, so each one sits on its true side of zero and
-        of both mean ticks. 2021's -4.5% once sat left of the -5.0% tick."""
+        of both mean ticks. 2021's −4.5% once sat left of the −5.0% tick."""
         scene, f = every[21], OneYearFigures.from_run()
         means = (0.0, f.mean_after, f.mean_without_best)
         for year, pct in f.after:

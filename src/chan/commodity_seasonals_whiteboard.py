@@ -75,7 +75,7 @@ the paragraph it draws.
    straight line".
 9. Fill 2 carries June's move across the gap: May's and June's settlements
    around April 14, 1997, May as dots and June as rings, June's rise from the
-   last day both files hold to the gap day, the same rise added to May's
+   last day both files hold toward the gap day, the same rise added to May's
    price there to give fill 2's guess, and a band of fill 2's typical miss
    either side, split at the exit price. It sits after the sentence opening
    "Fill 2 takes May’s price on the last day before the gap".
@@ -114,7 +114,7 @@ the paragraph it draws.
 17. Where ±12% comes from: natural gas's spread after 2008, divided by the
    root of its 15 years, times its multiplier, as three bars starting on a
    dashed line at its later mean, against a dashed line at its earlier mean.
-   It sits in Lesson 4, after that trade's worked range, -0.4% ± 12.0%.
+   It sits in Lesson 4, after that trade's worked range, −0.4% ± 12.0%.
 18. One range holds the earlier mean, one does not: each period's mean and
    95% range, with each trade's earlier mean carried down as a dashed line
    past its later bar. It sits after the paragraph opening "That range,
@@ -2048,7 +2048,7 @@ def _three_numbers(f: MissFigures) -> Scene:
             dots=9.0,
         ),
         Label(
-            f"average {mean:+.2f}¢, spread ±{spread:.2f}¢",
+            _minus(f"average {mean:+.2f}¢, spread ±{spread:.2f}¢"),
             _miss_x(mean + spread) + 0.2,
             MISS_SPREAD_Y - 0.05,
             names="spread",
@@ -3302,7 +3302,7 @@ def _one_year(f: OneYearFigures) -> Scene:
         )
     steps += [
         Label(
-            f"{best_year}: {best:+.0f}%",
+            _minus(f"{best_year}: {best:+.0f}%"),
             _year_x(best),
             3.16,
             names=f"year-{best_year}",

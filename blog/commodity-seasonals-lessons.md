@@ -254,7 +254,7 @@ So the chance that all three years were profits, which Chan’s 19 needs, is 42%
 
 #### What the chance rests on
 
-The run tested neither assumption of the model, that the misses are normal and that they are independent. Heavier tails than a normal curve would raise each chance rather than lower it, because a curve with heavier tails and the same spread puts more of its misses near the average. Misses that are not independent could move the figure either way. Misses that run the same way in all three years lower it, because a true price above the guess in every year would help 1998’s and 1999’s exits and hurt 1997’s entry. Misses that set 1997 against 1998 and 1999, or that tie only 1998 to 1999, raise it.
+The run tested neither the assumption that the misses are normal nor the assumption that they are independent. Heavier tails than a normal curve would raise each chance rather than lower it, because a curve with heavier tails and the same spread puts more of its misses near the average. Misses that are not independent could move the figure either way. Misses that run the same way in all three years lower it, because a true price above the guess in every year would help 1998’s and 1999’s exits and hurt 1997’s entry. Misses that set 1997 against 1998 and 1999, or that tie only 1998 to 1999, raise it.
 
 ## Lesson 3: test the trade out of sample
 

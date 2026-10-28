@@ -3943,7 +3943,7 @@ uv run python -m chan.commodity_seasonals_whiteboard
 holds that each opening bar runs from its trade's entry to its exit, that
 the opening's split falls after the last of the book's years with the table's
 years won on each side, that the drawdown sketch's marks are 2002's
-daily returns and its bracket the run's drawdown, that each natural gas bracket ends where the run's
+returns on each trading day the files hold a price and its bracket the run's drawdown, that each natural gas bracket ends where the run's
 streak reaches Chan's count, that gasoline's sidebar bracket ends before its first loss while the
 main text's covers both, that the Lesson 2 sketches draw the run's range,
 guess, typical misses and missing years, that the test-day sketch's bars are
