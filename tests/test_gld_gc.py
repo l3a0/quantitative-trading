@@ -35,7 +35,8 @@ flipped sign, an n − 1 deviation, a dropped first row or a 251 each fails.
 them moves that post too. ``TestWhatThePostMeasured`` holds the numbers the
 post added, all measured after the run, and ``TestThePostsHelpers`` holds, on
 synthetic legs, the three helpers some of them come through.
-``TestThePostQuotesTheRun`` reads one copy of each of them from the post.
+``TestThePostQuotesTheRun`` reads one copy of each figure the post takes from the run
+from the post itself, whichever class above pins it.
 ``tests/test_gld_gc_figures.py`` holds what the post's figure draws.
 
 Exploratory. The window is the book's own. It first ran here on 2026-10-10.
@@ -1066,6 +1067,11 @@ class TestThePostQuotesTheRun:
             f"{bill_rates.months_in(first, last)} months, every month from {start} on."
         ) in self.text
         assert below[-1] == last
+        under = [y.year for y in years if y.bill_rate < y.average_annual_return / 3]
+        assert len(under) == 2
+        assert f"In {under[0]} and {under[1]} the bill rate took under a third of S’s return" in (
+            self.text
+        )
 
     def test_the_caption_reads_the_three_curves(self, result, cumret) -> None:
         bills = np.cumprod(1 + bill_accrual(result.days).to_numpy()) - 1

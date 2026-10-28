@@ -1193,8 +1193,9 @@ the decision behind the shape, and the build measured what follows.
    file's name says, rather than at the 1:30 p.m. settlement *Algorithmic
    Trading*'s location 2730 describes. The daily change in log(GC / GLD) has
    a standard deviation of 0.000933, against 0.015660 for GLD's own daily
-   log return, which leaves room for at most 0.001775 of GLD's daily variance
-   in any gap between the two closes. The series also holds 9 US exchange
+   log return. If nothing else that moves the ratio cancels a gap's moves,
+   that leaves room for at most 0.001775 of GLD's daily variance in any gap
+   between the two closes. The series also holds 9 US exchange
    holidays that GLD lacks, so it is not a settlement series. It never equals
    the GC close of `inputDataOHLCDaily_20120507.mat` on the 752 days the two
    share, which says only that the two differ, because that save is shifted

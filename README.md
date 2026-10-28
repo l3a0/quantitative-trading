@@ -7151,8 +7151,10 @@ Five groups of what it says are not pinned here.
    no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
 3. Readings no test asserts: that GLD pays no dividend, so its adjusted
    close is its close, that the bill rate is a floor on financing because a
-   broker lends above it, that the exchange sets no settlement price on a US
-   exchange holiday, so a settlement series has no row on one, that GLD's
+   broker lends above it and cash put into GLD gives up at least that rate, that the exchange sets no settlement price on a US
+   exchange holiday, so a settlement series has no row on one, that a
+   settlement series would hold a row on each of GLD's days in the window,
+   so the OHLC series has the calendar one would have, that GLD's
    daily log return stands in for a day of gold,
    that an offset's share of a day carries roughly that share of the day's
    variance in a market trading nearly around the clock, that whatever else
@@ -7178,9 +7180,9 @@ Every other number in the post traces to an assertion in
 [tests/test_gld_gc.py](tests/test_gld_gc.py), or to
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) for the
 figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run. `TestThePostQuotesTheRun` reads one copy of each
-of those numbers from the post itself, and fails when that copy drifts from
-the run. A second copy of the same number elsewhere in the post is not read.
+before it, all measured after the run. `TestThePostQuotesTheRun` reads one
+copy of each number the post takes from the run, whichever test pins it, from
+the post itself, and fails when that copy drifts from the run. A second copy of the same number elsewhere in the post is not read.
 
 1. The Sharpe ratio of 1.284060 with no rate subtracted and 0.599257 at the
    window's bill rate over 252, the break-even rate at the mean return of
@@ -7192,20 +7194,23 @@ the run. A second copy of the same number elsewhere in the post is not read.
    0.013650, 0.005822 against 0.001500 and 0.004458 against 0.001350, a margin
    shrinking from 1.57 percentage points to 0.31, and the 22 of 37 months
    below 0.5 percent, from 2008-11 to 2010-08. The bill rate's share of
-   each year's return, 0.6991, 0.4997, 0.2576 and 0.3028, so under a third in
-   2009 and 2010.
+   each year's return, 0.6991, 0.4997, 0.2576 and 0.3028, which the post does
+   not print and states only as under a third in 2009 and 2010.
 4. The deepest drawdown's high on 2007-10-12, trough on 2007-11-12 and
    recovery on 2007-11-14, that day's −0.6771 percent for the trade, −4.7213
    for GLD and −4.0442 for GC, and the longest stretch from 2009-08-28 to
    2010-01-08 at worst −0.40907 percent.
-5. The 16:00 series' largest move falling on 2007-11-12, its minimum of
-   −0.006626 and its lag-1 autocorrelation of −0.437059. The bound on an
+5. The 16:00 series' largest move falling on 2007-11-12 and its lag-1
+   autocorrelation of −0.437059. The bound on an
    offset between the two closes read as about 2.6 minutes of a 24-hour day.
    The OHLC series' largest move falling on 2008-09-18, its minimum of
    −0.075146 on 2008-09-19, and its 8 moves past 0.02 up and 12 down. No GC
    series here starting before 2004-05-24, the OHLC series' first day. The
-   OHLC series holding exactly GLD's 755 days in the window, none of them one
-   of the 9 holidays.
+   OHLC series holding exactly GLD's days in the window, none of them one of
+   the 9 holidays. The suite pins two more that the post does not print: the
+   16:00 series' minimum of −0.006626, one of the most negative moves the
+   caption says were measured after the run, and the OHLC series' 755 days in
+   the window.
 6. The three curves' ends, 0.058033 for S, 0.031057 for bills and 0.061413
    for 2 percent a year, S at 0.049260 and bills at 0.028733 on 2008-12-31,
    S's high of 0.058415 on 2010-07-27, and 2010-05-21 as the last day S stands
