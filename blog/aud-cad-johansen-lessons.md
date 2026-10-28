@@ -17,7 +17,7 @@ Chan expects the two currencies to move together because the stock index funds o
 This repository transcribed Chan’s MATLAB script, `AUDCAD_unequal.m`, line by line and ran it on the daily closes from his 2018 Python port of the book’s code. The port is his rewrite of that code in Python, and it comes with its own data files. The results fall into five groups.
 
 1. **Every figure the script prints matches**, because every one of the 612 daily returns matches the return Chan’s own script saved.
-2. **The match shows that the closes used here are the ones Chan’s MATLAB script read**, except that each currency’s closes could all be multiplied by a constant of its own without changing the match. It shows nothing more.
+2. **The match shows that the closes traded here are the ones Chan’s MATLAB script traded**, except that each currency’s closes could all be multiplied by a constant of its own without changing the match. It shows nothing more.
 3. **The test rarely found a relation behind the hedge it supplied.** A relation is a weighted combination of the two prices that stays near a fixed level. Each day’s weights come from the 250 days before it, called that day’s window. The test found a relation in 26 of the 612 windows.
 4. **The hedge sometimes stopped being a spread.** On 90 days the weights held both currencies long or both short.
 5. **The Python port’s version of the example is a different strategy**, so its printout is no check on the data.
@@ -54,7 +54,7 @@ The APR is the annual percentage rate, the return compounded to a year of 252 da
 \end{array}
 ```
 
-All three match at the six decimals the script prints.
+All three match at the six decimals the script prints. The book prints no Kelly leverage with the example itself. Chapter 8 quotes one for the same strategy, 18.4, and the subsection below takes it up.
 
 Three figures that agree this closely could still come from different returns. The stronger check is the returns themselves. Chan’s script saved its 612 daily returns, and each one computed here matches his to within one billionth, 1e-9, a criterion written down before any return was computed, as [Entry 25 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-25-audusd-against-cadusd-chans-algorithmic-trading) records. Computing the three figures from his saved returns, rather than from the ones computed here, gives the same printed values. So the returns decide the figures, and matching them is the whole reproduction.
 
