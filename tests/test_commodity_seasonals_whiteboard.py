@@ -155,7 +155,8 @@ as test_the_run_gives_these_dates_and_files.
 29. The plateau sketch is schematic and draws no figures. What is pinned is
    that Chan's dot sits on each curve at its panel's centre, that the cliff
    falls back to its floor close to that dot while the plateau stays near
-   its top well to either side, and that the board says it is schematic.
+   its top well to either side, that the board says it is schematic, and
+   that it draws with every settlement file out of reach.
 30. The closed-date sketch draws the week of gasoline's 2019 entry date and
    an arrow for each rule. What is pinned is that a dot stands on exactly the
    trading days and a cross on the closed ones, that each arrow runs from the

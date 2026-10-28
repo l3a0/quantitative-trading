@@ -1169,7 +1169,7 @@ class TestThePostQuotesThePins:
         """The gasoline Aprils Further work holds back, and why natural gas has none.
 
         Everything here comes from the manifest's first and last dates, the
-        run's year ranges and the exchange's expiry rule, never from a price,
+        run's year ranges and the exchange's expiry rule, never from a gasoline price,
         because a search is meant to test on those Aprils.
         """
         words = "zero one two three four five six seven eight nine ten eleven twelve".split()
@@ -1209,7 +1209,10 @@ class TestThePostQuotesThePins:
             f"so its held-back years would have to come after {NG_YEARS[1]}, which the files "
             "do not reach"
         ) in self.text
-        assert f"reaches back to the {NG_YEARS[0] // 10 * 10}s" in self.text
+        assert (
+            f"reaches back to the {NG_YEARS[0] // 10 * 10}s, or to {held_back[0]} for the "
+            "held-back gasoline years."
+        ) in self.text
 
     def test_further_work_s_neighbouring_delivery_months(self) -> None:
         """The June gasoline and May natural gas contracts are among EIA's four on every date.
@@ -1258,8 +1261,9 @@ class TestThePostQuotesThePins:
     def test_further_work_s_decimal_places(self) -> None:
         """EIA prints every settlement the run reads to at most three decimal places.
 
-        It drops trailing zeros, so some rows show fewer. The harbor file is
-        read from 1994 only, leaving its earlier Aprils untouched.
+        It drops trailing zeros, so some rows show fewer. Only rows from 1994
+        on enter the count, so no price from the harbor file's earlier Aprils
+        is used.
         """
         symbols = (HARBOR_GASOLINE, HARBOR_GASOLINE_2, RBOB_GASOLINE, *NATURAL_GAS.values())
         places = {

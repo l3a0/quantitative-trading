@@ -43,7 +43,7 @@ Both trades ran on the free settlement prices that the US Energy Information Adm
 
 #### How to read the table
 
-A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by the standard deviation of the yearly returns. The drawdown is the largest fall from a peak in the running total of yearly returns. The post’s code marks that total on every trading day the files hold a price, adding the open trade’s return so far. So the drawdown counts every fall inside a trade, not only falls from one year’s end to the next. A fall inside a winning year counts too. Natural gas’s 22% before 2009 is one: it came inside 2002’s trade, which rose 48%, gave back 22 points, then recovered to end 40% up. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake.
+A year’s return is the change in the contract’s price over its entry price, before costs. The Sharpe ratio divides the mean yearly return by the standard deviation of the yearly returns. The drawdown is the largest fall from a peak in the running total of yearly returns. The post’s code marks that total on every trading day the files hold a price, adding the open trade’s return so far. So the drawdown counts falls inside a trade, not only falls from one year’s end to the next. A fall inside a winning year counts too. Natural gas’s 22% before 2009 is one: it came inside 2002’s trade, which rose 48%, gave back 22 points, then recovered to end 40% up. Each year stakes one contract’s entry value, so returns and drawdowns are shares of one stake.
 
 ![“A 22-point fall inside a winning year”, drawn slowly stroke by stroke. A dashed grey line marks “0%”. A black line traces natural gas’s 2002 trade as its return over its entry price on each day the files hold a price from “Feb 25” to “Apr 15”, every trading day but April 9, and a caption reads “return over the entry price, marked each day the files hold a price”. The line dips just below zero in its first week, climbs to a black dot at its high, “peak: +48%”, then falls. Dashed grey guides run right from the peak and from the lowest point after it to a purple bracket between them, labelled “drawdown:” and “22 points”. The line then climbs again to a black dot at the exit, “exit: +40%” and “a profitable year”, which sits between the two guides, so the year ended ahead after falling 22 points inside it. A note right of the dates names the trade as “natural gas, June contract, 2002”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_drawdown_2002.gif)
 
@@ -492,7 +492,7 @@ Each date moves up to a set number of trading days either side of Chan’s, so e
 
 #### Time of day
 
-Every entry and exit in the run is a settlement price. Chan names no time of day for the natural gas exit, so the close there is the run’s own choice. Trading at the open or at a set hour instead needs prices from inside the day. EIA’s files hold only one price a day for each contract, and the run holds no other prices for these contracts. This post has not checked whether any vendor’s record of prices from inside the day reaches back to the 1990s.
+Every entry and exit in the run is a settlement price. Chan names no time of day for the natural gas exit, so the close there is the run’s own choice. Trading at the open or at a set hour instead needs prices from inside the day. EIA’s files hold only one price a day for each contract, and the run holds no other prices for these contracts. This post has not checked whether any vendor’s record of prices from inside the day reaches back to the 1990s, or to 1985 for the held-back gasoline years.
 
 #### Delivery month
 
@@ -518,7 +518,7 @@ Every return in the run is before costs. A commission is small next to a futures
 
 ### The three missing gasoline rows
 
-Lesson 2 leaves Chan’s gasoline count between 16 and 19 because EIA’s file holds no row on three dates. A second vendor with settlements on those dates would decide the count without guessing a price. Settlement prices come from the exchange, so the vendor should agree with EIA, at the three decimal places EIA prints, on every day both hold. That agreement checks the vendor before the count relies on its three prices.
+Lesson 2 leaves Chan’s gasoline count between 16 and 19 because EIA’s file holds no row on three dates. A second vendor with settlements on those dates would decide the count without guessing a price. Settlement prices come from the exchange, so the vendor should agree with EIA, at the three decimal places EIA prints, on every day both hold. Comparing the two from 1994 on tests the vendor before the count relies on its three prices, and leaves the held-back years unseen.
 
 ### The demand behind each trade
 

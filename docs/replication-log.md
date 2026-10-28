@@ -3359,8 +3359,8 @@ the gasoline count agrees with the book on every year the file can read.**
 Chan says commodity seasonal trades still pay where much of the equity
 seasonality has weakened or disappeared, and gives two. Gasoline buys the May
 contract at the close of April 13 and sells at the close of April 25. Natural
-gas buys the June contract at the close of February 25 and sells at the close
-of April 15.
+gas buys the June contract at the close of February 25 and sells on April 15,
+at a time Chan does not name, which the run takes as the close.
 
 1. **Natural gas.** Every year from 1994 to 2008 is profitable. Counted from
    1995, the run is 13 years ending in 2007 and 14 ending in 2008, the main

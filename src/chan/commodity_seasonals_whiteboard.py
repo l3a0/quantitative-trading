@@ -2455,10 +2455,11 @@ RAISED_BRACKET_X = {"measured": 6.3, "real": 7.0}
 
 
 def _raised_start() -> Scene:
-    """Lesson 3: a rule chosen because it did well in the book's years can
-    start higher than its real edge, so the drop after the book, measured
-    from that raised start, is longer than the fall the trade took.
-    Schematic, so it draws no figures from the run."""
+    """Lesson 3: a rule chosen because it did well in the book's years tends
+    to have a mean return over those years above its real edge. Where it
+    does, the drop after the book is measured from a raised start, so it is
+    longer than the fall the trade took. Schematic, so it draws no figures
+    from the run."""
     y, dot_x, bracket_x = RAISED_Y, RAISED_DOT_X, RAISED_BRACKET_X
     steps: list[Stroke | Label] = [
         _stroke(

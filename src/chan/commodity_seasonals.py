@@ -343,7 +343,7 @@ def max_drawdown(trades: list[Trade], *, data_dir: Path | None = None) -> float:
 
     Each year stakes one contract's value at entry, so the years' returns add
     rather than compound, and the fall is a fraction of one stake. Marking each
-    day the files hold a price catches every fall inside a trade, including one
+    day the files hold a price catches a fall inside a trade, including one
     in a trade that ended the year with a profit.
     """
     total = peak = drawdown = 0.0

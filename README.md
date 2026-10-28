@@ -3775,6 +3775,7 @@ not pinned here.
    holiday moves to the next trading day at the entry and to the previous one
    at the exit is in both sidebars, on pp. 184 and 185. The warning about
    data-snooping and the suggestion to try nearby dates are on p. 186.
+   Buying one contract a trade is in both sidebars too, on pp. 184 and 185.
 2. Facts outside the committed data. RBOB beginning to trade in October 2005,
    the first edition's release in November 2008 and its 2009 date, RB as the
    symbol RBOB trades under, a natural gas contract stopping three trading days
@@ -3784,7 +3785,8 @@ not pinned here.
    publishing the nearest four contracts numbered by expiry, with one
    settlement a day for each contract, EIA's statement
    that its source is NYMEX, EIA publishing the natural gas and gasoline stock
-   levels Further work names, and the contract numbers of the two extra files
+   levels Further work names, a commission being small next to a futures
+   contract's value, and the contract numbers of the two extra files
    Lesson 2 and Lesson 5 read.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
@@ -3819,11 +3821,12 @@ two periods, the Mann-Whitney p-values and the pairs each earlier period
 won, and natural gas without 2022, and
 `test_lesson_4_works_the_sample_size_out` reads Lesson 4's worked equations
 and its table of tests against them. The tests named for Further work read its
-trade dates and gasoline's holding period, the held-back gasoline years and the
-files' first months, the delivery-month check's years and the neighbours it
-cannot reach, and EIA's decimal places.
-They take the held-back years from the manifest's dates and the run's year
-ranges, never from a price. The held-back years' test also reads the decade
+trade dates and gasoline's holding period, the held-back gasoline years, why
+natural gas has none, the files' first months, the delivery-month check's
+years and the neighbours it cannot reach, and EIA's decimal places.
+They take the held-back years from the manifest's dates, the run's year
+ranges and the expiry rule, never from a gasoline price. The held-back years'
+test also reads the decade, and the held-back gasoline years' first year,
 that Further work's time-of-day check says a source of prices from inside
 the day would have to reach back to.
 `test_each_count_in_words_matches_what_follows_it` reads each count the post
