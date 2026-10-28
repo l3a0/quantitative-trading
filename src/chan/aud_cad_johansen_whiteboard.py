@@ -6,8 +6,9 @@ top panel of its chart plots. This module draws two scenes, and the post places
 each right after the text it draws.
 
 1. Doubling a price changes no return, after Lesson 2's paragraph opening
-   "Multiplying every close of one currency by the same constant." Yesterday's and today's AUD.USD closes as two
-   bars, an arrow times 2, and the same two bars doubled. Then three checked
+   "Multiplying every close of one currency by the same constant."
+   Yesterday's and today's AUD.USD closes as two bars, an arrow times 2, and
+   the same two bars doubled. Then three checked
    steps: today over yesterday is the same percent change; the weight w
    halves, so w times the close equals w over 2 times twice the close, the
    same dollars held; and so every return is identical. A closing line says

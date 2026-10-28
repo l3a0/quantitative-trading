@@ -756,6 +756,8 @@ class TestWhatThePostQuotes:
         assert len(stretches) == 3
         (a, b, c) = [(len(s), days[s[0]].date(), days[s[-1]].date()) for s in stretches]
         on_eigen = days[result.eigen_relations > 0]
+        assert on_eigen[0] == days[stretches[1][0]]
+        assert on_eigen[-1] == days[stretches[1][-1] + 1]
         trace = counts[1] + counts[2]
         fragments = [
             f"**The trace test finds at least one relation in {trace} windows.** It finds one "
@@ -765,10 +767,12 @@ class TestWhatThePostQuotes:
             f"The {trace} windows bunch into three stretches. {WORDS[a[0]].capitalize()} fall "
             f"from {a[1]} to {a[2]}, {WORDS[b[0]]} from {b[1]} to {b[2]}, and {WORDS[c[0]]} "
             f"from {c[1]} to {c[2]}.",
-            f"the eigen test’s {eigen[1]} all fall from {on_eigen[0].date()} to "
-            f"{on_eigen[-1].date()}.",
+            f"The eigen test’s {eigen[1]} all fall from {on_eigen[0].date()} to "
+            f"{on_eigen[-1].date()}, from the second stretch’s first day to the day after "
+            "its last.",
             f"Each window shares {SCRIPT_TRAINING_DAYS - 1} of its {SCRIPT_TRAINING_DAYS} days",
-            f"what the rule did on the remaining {counts[0]} days.",
+            f"so {trace} days took them from a window where the trace test found a relation.",
+            f"The other {counts[0]} took them from a window where it found none.",
         ]
         assert not_found_once(text, fragments) == []
 
