@@ -25,16 +25,20 @@ each right after the text it draws.
    to 1. Then a dashed mark at −0.5, with two equal bars standing on it,
    AUD.USD long above and CAD.USD short below, where the legs hold equal
    dollars against each other, which is a spread. Then a red band on the line
-   from 0 to 1, where both legs are held the same way, and above it a short
-   AUD.USD bar and a tall CAD.USD bar hanging from one baseline, both short.
-   The words say long both, or short both, a bet on the US dollar, because the
-   90 days the hedge held both legs the same way were long both on 28 and
-   short both on 62, so the bars draw the more common of the two. The last
-   day's bars, its dot and its four figures are the run's, from
+   from 0 to 1, where both legs are held the same way, and above it a tall
+   CAD.USD bar and a short AUD.USD bar side by side on one baseline, both
+   long. Every pair draws the line's own convention, AUD.USD held long, which
+   flips a day's whole hedge when AUD.USD's position is short. So the words
+   say long both, or short both, a bet on the US dollar: the 90 days the hedge
+   held both legs the same way were long both on 28 and short both on 62. The
+   last day's bars, its dot and its four figures are the run's, from
    :attr:`chan.aud_cad_johansen.AudCad.dollar_split` and
-   :attr:`chan.aud_cad_johansen.AudCad.last_hedge`. The equal bars and the
-   band's bars are schematic: their heights stand for no day's hedge, and the
-   band's bars stand above the band rather than at a share.
+   :attr:`chan.aud_cad_johansen.AudCad.last_hedge`, and the sketch refuses a
+   run whose last day was not long AUD.USD and short CAD.USD, which its words
+   say. The equal bars and the band's bars are schematic: their heights stand
+   for no day's hedge, and the band's pair stands at no particular share.
+   Each bar's ends are pulled in by its round cap, so its ink runs exactly
+   from end to end and two bars meeting at one base show equal lengths.
 
 Every figure comes from :class:`RunFigures`, which :meth:`RunFigures.from_run`
 reads from :func:`chan.aud_cad_johansen.aud_cad` on Chan's committed files.
@@ -71,7 +75,12 @@ from chan.aud_cad_johansen import SCALE_CHECK, AudCad, aud_cad, cross_rates, rea
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.usdcad_tests_whiteboard import (
+    DPI,
+    HEIGHT,
     REJECT_TINT,
+    WIDTH,
+    XLIM,
+    YLIM,
     Fill,
     Frame,
     Label,
@@ -114,6 +123,8 @@ class RunFigures:
     ``cad_dollars`` the same hedge in dollars at that day's closes, and
     ``share`` CAD.USD's signed share of the dollars with AUD.USD held long.
     ``scales`` is the constant scale Lesson 2 puts on AUD.USD and on CAD.USD.
+    ``sides`` is the sign of each leg's position on the last day, AUD.USD then
+    CAD.USD, which the words beside the last day's bars name as long or short.
     """
 
     last_day: pd.Timestamp
@@ -122,6 +133,7 @@ class RunFigures:
     share: float
     test_days: int
     scales: tuple[float, float]
+    sides: tuple[int, int] = (1, -1)
 
     @classmethod
     def from_run(cls, result: AudCad, scales: tuple[float, float] = SCALE_CHECK) -> RunFigures:
@@ -133,6 +145,7 @@ class RunFigures:
             share=float(result.dollar_split[-1]),
             test_days=len(result.test),
             scales=scales,
+            sides=(int(np.sign(result.positions[-1, 0])), int(np.sign(result.positions[-1, 1]))),
         )
 
 
@@ -147,11 +160,27 @@ BAR_WIDTH = 9.0
 TINT_EDGE = 1.2
 
 
+def cap(width: float, across: bool) -> float:
+    """How far a line's round cap reaches past its end, in board units.
+
+    The cap is half the line's width, in points, out from the end. ``across``
+    measures it along the board's width and otherwise along its height. A bar
+    drawn from its true ends would reach this far past each, so two bars
+    meeting at one base would overlap and look unequal, and a bar's ink would
+    not be to scale. :func:`_bar` and :func:`_horizontal` pull each end in by it.
+    """
+    pixels = width * DPI / 72 / 2
+    if across:
+        return pixels * (XLIM[1] - XLIM[0]) / WIDTH
+    return pixels * (YLIM[1] - YLIM[0]) / HEIGHT
+
+
 def _bar(gid: str, x: float, base: float, top: float, color: str) -> Stroke:
-    """An upright bar from ``base`` to ``top``, drawn from the base outward."""
-    return _stroke(
-        gid, _line([(x, base), (x, top)], per_unit=12), color=color, width=BAR_WIDTH, frames=4
-    )
+    """An upright bar whose ink, caps included, runs from ``base`` to ``top``,
+    drawn from the base outward."""
+    reach = cap(BAR_WIDTH, across=False) * np.sign(top - base)
+    xy = _line([(x, base + reach), (x, top - reach)], per_unit=40)
+    return _stroke(gid, xy, color=color, width=BAR_WIDTH, frames=4)
 
 
 # --- Lesson 2: doubling a price changes no return -----------------------------
@@ -275,11 +304,12 @@ AUD_Y, CAD_Y, LAST_Y = 3.7, 3.3, 2.9
 DOLLARS_WORDS_X = 1.9
 #: The equal pair stands on the dashed mark at −0.5, from this baseline.
 SPREAD_BASE, SPREAD_HALF = 1.75, 0.45
-#: The band above 0, and the pair held the same way, hanging from a baseline.
+#: The band above 0, and the pair held the same way, standing side by side on
+#: one baseline above it, CAD.USD then AUD.USD, at no particular share.
 BAND_TOP = 1.3
-SAME_BASE = 2.35
-SAME_X = (6.2, 7.85)
-SAME_DEPTH = (0.8, 0.3)
+SAME_BASE = 1.6
+SAME_X = (7.55, 7.95)
+SAME_HEIGHT = (0.8, 0.3)
 
 
 def share_x(share: float) -> float:
@@ -289,8 +319,9 @@ def share_x(share: float) -> float:
 
 
 def _horizontal(gid: str, y: float, length: float, color: str) -> Stroke:
-    """A bar lying from :data:`DOLLARS_X` to ``length`` past it."""
-    xy = _line([(DOLLARS_X, y), (DOLLARS_X + length, y)], per_unit=10)
+    """A bar whose ink, caps included, lies from :data:`DOLLARS_X` to ``length`` past it."""
+    reach = cap(BAR_WIDTH, across=True)
+    xy = _line([(DOLLARS_X + reach, y), (DOLLARS_X + length - reach, y)], per_unit=10)
     return _stroke(gid, xy, color=color, width=BAR_WIDTH, frames=4)
 
 
@@ -298,6 +329,10 @@ def _share(f: RunFigures) -> Scene:
     """Lesson 4: the last day's hedge as a share, a spread at −0.5, and the band above 0."""
     if not -1 < f.share < 0:
         raise ValueError(f"the last day's share is {f.share}, and the sketch draws it below 0")
+    if f.sides != (1, -1):
+        raise ValueError(
+            f"the last day's sides are {f.sides}, and the sketch says long AUD.USD, short CAD.USD"
+        )
     left, right = SHARE_X
     zero, equal = share_x(0.0), share_x(-0.5)
     words_x = equal + 0.25
@@ -400,26 +435,27 @@ def _share(f: RunFigures) -> Scene:
             ),
             _stroke(
                 "same-base",
-                _line([(cad_x - 0.3, SAME_BASE), (aud_x + 0.15, SAME_BASE)]),
+                _line([(cad_x - 0.2, SAME_BASE), (aud_x + 0.2, SAME_BASE)]),
                 color=MUTED,
                 frames=3,
             ),
-            _bar("same-cad", cad_x, SAME_BASE, SAME_BASE - SAME_DEPTH[0], LOST),
+            _bar("same-cad", cad_x, SAME_BASE, SAME_BASE + SAME_HEIGHT[0], GOOD),
             Label(
-                "CAD.USD short",
-                cad_x + 0.32,
-                SAME_BASE - SAME_DEPTH[0] + 0.1,
+                "CAD.USD long",
+                cad_x - 0.25,
+                SAME_BASE + SAME_HEIGHT[0] - 0.15,
                 names="same-cad",
-                color=LOST,
+                color=GOOD,
+                ha="right",
                 size=11,
             ),
-            _bar("same-aud", aud_x, SAME_BASE, SAME_BASE - SAME_DEPTH[1], LOST),
+            _bar("same-aud", aud_x, SAME_BASE, SAME_BASE + SAME_HEIGHT[1], GOOD),
             Label(
-                "AUD.USD short",
-                aud_x + 0.25,
-                SAME_BASE - SAME_DEPTH[1],
+                "AUD.USD long",
+                aud_x + 0.35,
+                SAME_BASE + SAME_HEIGHT[1] / 2 + 0.1,
                 names="same-aud",
-                color=LOST,
+                color=GOOD,
                 size=11,
             ),
             Label(

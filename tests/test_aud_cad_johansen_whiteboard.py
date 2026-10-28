@@ -9,7 +9,8 @@ re-pin there moves the figures pinned in :class:`TestTheFigures`.
 
 The scale sketch is schematic apart from its two scales and its count of
 returns. The share sketch draws the last day's hedge from the run and the two
-other cases, a spread and a hedge held both ways, as schematic bars.
+other cases, a spread and a hedge holding both legs the same way, as
+schematic bars.
 
 What is pinned for each sketch:
 
@@ -59,6 +60,7 @@ from chan.aud_cad_johansen_whiteboard import (
     PLAIN_X,
     SHARE_X,
     RunFigures,
+    cap,
     gif_name,
     main,
     make_aud_cad_johansen_whiteboards,
@@ -119,8 +121,8 @@ LABELS = [
         "against each other:",
         "a spread",
         "held the same way",
-        "CAD.USD short",
-        "AUD.USD short",
+        "CAD.USD long",
+        "AUD.USD long",
         "long both, or short both:",
         "a bet on the US dollar",
     ],
@@ -131,7 +133,7 @@ LABELS = [
 LABEL_INKS = [
     [MUTED, MUTED, INK, ACCENT, MUTED, MUTED, INK, INK, GOOD, INK, INK, GOOD, GOOD, ACCENT],
     [GOOD, LOST, ACCENT, MUTED, MUTED, MUTED, ACCENT, GOOD, LOST, INK, INK, INK]
-    + [LOST, LOST, LOST, LOST, LOST],
+    + [LOST, GOOD, GOOD, LOST, LOST],
 ]
 STROKE_INKS = [
     {
@@ -154,8 +156,8 @@ STROKE_INKS = [
         "spread-cad": LOST,
         "same-way-edge": LOST,
         "same-base": MUTED,
-        "same-cad": LOST,
-        "same-aud": LOST,
+        "same-cad": GOOD,
+        "same-aud": GOOD,
     },
 ]
 STROKES = [
@@ -187,8 +189,8 @@ STROKES = [
 BARS = {
     "spread-aud": ("AUD.USD long", GOOD),
     "spread-cad": ("CAD.USD short", LOST),
-    "same-cad": ("CAD.USD short", LOST),
-    "same-aud": ("AUD.USD short", LOST),
+    "same-cad": ("CAD.USD long", GOOD),
+    "same-aud": ("AUD.USD long", GOOD),
 }
 
 #: Made-up figures, a last day nearer a spread and a smaller scale on CAD.USD,
@@ -277,6 +279,12 @@ def _length(stroke) -> float:
     return float(math.hypot(stroke.x[-1] - stroke.x[0], stroke.y[-1] - stroke.y[0]))
 
 
+def _ink(stroke) -> float:
+    """A bar's inked length, its line plus the round cap at each end."""
+    across = stroke.y[0] == stroke.y[-1]
+    return _length(stroke) + 2 * cap(stroke.width, across=across)
+
+
 class TestTheFigures:
     """The run's figures the sketches print, at the values the run's own pins hold."""
 
@@ -290,6 +298,11 @@ class TestTheFigures:
         """1 to −0.7622 in dollars is a share of −0.7622 over 1.7622."""
         ratio = figures.cad_dollars
         assert figures.share == pytest.approx(ratio / (1 + abs(ratio)), abs=1e-12)
+
+    def test_the_last_day_was_long_aud_usd_and_short_cad_usd(self, figures, result) -> None:
+        """What the words beside the last day's bars say, read from its positions."""
+        assert figures.sides == (1, -1)
+        assert result.positions[-1, 0] > 0 > result.positions[-1, 1]
 
     def test_the_scales_are_the_ones_the_runs_test_puts_on_the_legs(self, figures) -> None:
         assert figures.scales == johansen.SCALE_CHECK == (2.0, 0.37)
@@ -334,9 +347,10 @@ class TestTheScenes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
     def test_every_pale_tint_has_an_edge_in_its_own_ink(self, drawn) -> None:
-        """The tint alone stands 1.29 to 1 against the white board, under WCAG
-        2.1's 3 to 1 for a graphical object, so each tint gets a box round it in
-        the ink it is a blend of: green round the green tint, red round the red."""
+        """The red tint alone stands 1.34 to 1 against the white board, and the
+        green 1.29, both under WCAG 2.1's 3 to 1 for a graphical object, so each
+        tint gets a box round it in the ink it is a blend of: green round the
+        green tint, red round the red."""
         own = {TINT: GOOD, REJECT_TINT: LOST}
         fills = [(scene, fill) for scene in drawn for fill in scene.fills]
         assert [fill.color for _, fill in fills] == [REJECT_TINT]
@@ -365,10 +379,12 @@ class TestNoReturnMoves:
         scene = drawn[0]
         for day, plain_x, doubled_x in zip(("yesterday", "today"), PLAIN_X, DOUBLED_X, strict=True):
             plain, doubled = _stroke(scene, f"plain-{day}"), _stroke(scene, f"doubled-{day}")
-            assert plain.y[0] == doubled.y[0] == CLOSES_BASE
+            assert plain.y[0] == doubled.y[0]
+            assert plain.y[0] - cap(plain.width, across=False) == pytest.approx(CLOSES_BASE)
+            assert doubled.y[0] - cap(doubled.width, across=False) == pytest.approx(CLOSES_BASE)
             assert set(plain.x) == {plain_x} and set(doubled.x) == {doubled_x}
-            assert _length(doubled) == pytest.approx(2 * _length(plain), rel=1e-12)
-        assert _length(_stroke(scene, "plain-today")) > _length(_stroke(scene, "plain-yesterday"))
+            assert _ink(doubled) == pytest.approx(2 * _ink(plain), rel=1e-12)
+        assert _ink(_stroke(scene, "plain-today")) > _ink(_stroke(scene, "plain-yesterday"))
 
     def test_the_closing_words_follow_the_figures(self) -> None:
         labels = scenes(MOVED)[0].labels
@@ -401,9 +417,10 @@ class TestTheShare:
 
     def test_the_last_days_bars_are_its_dollars_to_scale(self, drawn, figures) -> None:
         aud, cad = _stroke(drawn[1], "aud-dollars"), _stroke(drawn[1], "cad-dollars")
-        assert aud.x[0] == cad.x[0] == DOLLARS_X
-        assert _length(aud) == pytest.approx(DOLLARS_LENGTH)
-        assert _length(cad) / _length(aud) == pytest.approx(-figures.cad_dollars, rel=1e-12)
+        reach = cap(aud.width, across=True)
+        assert aud.x[0] - reach == cad.x[0] - reach == pytest.approx(DOLLARS_X)
+        assert _ink(aud) == pytest.approx(DOLLARS_LENGTH)
+        assert _ink(cad) / _ink(aud) == pytest.approx(-figures.cad_dollars, rel=1e-12)
 
     def test_the_equal_pair_stands_on_the_dashed_mark_at_minus_half(self, drawn) -> None:
         scene = drawn[1]
@@ -412,32 +429,38 @@ class TestTheShare:
         assert equal.y[0] == AXIS_Y
         aud, cad = _stroke(scene, "spread-aud"), _stroke(scene, "spread-cad")
         assert set(aud.x) == set(cad.x) == {share_x(-0.5)}
-        assert aud.y[0] == cad.y[0]
-        assert aud.y[-1] > aud.y[0] > cad.y[-1] > equal.y[-1]
-        assert _length(aud) == pytest.approx(_length(cad))
+        reach = cap(aud.width, across=False)
+        # The two inks meet at one base rather than overlapping there.
+        assert aud.y[0] - reach == pytest.approx(cad.y[0] + reach)
+        assert aud.y[-1] > aud.y[0] > cad.y[0] > cad.y[-1] > equal.y[-1]
+        assert _ink(aud) == pytest.approx(_ink(cad))
 
     def test_the_band_runs_from_0_to_1_on_the_line(self, drawn) -> None:
         (band,) = drawn[1].fills
         assert (band.x0, band.x1, band.y0) == (share_x(0.0), share_x(1.0), AXIS_Y)
         assert band.color == REJECT_TINT
 
-    def test_the_pair_held_the_same_way_hangs_short_on_one_side(self, drawn) -> None:
-        """A short AUD.USD bar and a tall CAD.USD bar, both below their baseline,
-        drawn above the band."""
+    def test_the_pair_held_the_same_way_stands_long_side_by_side(self, drawn) -> None:
+        """A tall CAD.USD bar and a short AUD.USD bar, both rising from one
+        baseline above the band, as the line's convention of AUD.USD held long
+        draws a day held the same way, and close enough to read as one day."""
         scene = drawn[1]
         base = _stroke(scene, "same-base")
         (band,) = scene.fills
         cad, aud = _stroke(scene, "same-cad"), _stroke(scene, "same-aud")
+        reach = cap(cad.width, across=False)
         for bar in (cad, aud):
-            assert bar.y[0] == base.y[0]
-            assert bar.y[-1] < bar.y[0]
-            assert band.x0 < bar.x[0] < band.x1 and bar.y[-1] > band.y1
+            assert bar.y[0] - reach == pytest.approx(base.y[0])
+            assert bar.y[-1] > bar.y[0]
+            assert band.x0 < bar.x[0] < band.x1 and base.y[0] > band.y1
             assert base.x.min() < bar.x[0] < base.x.max()
-        assert _length(cad) > 2 * _length(aud)
+        assert 0 < aud.x[0] - cad.x[0] <= 0.5
+        assert _ink(cad) > 2 * _ink(aud)
 
     def test_the_band_says_long_both_or_short_both(self, drawn) -> None:
         """On the 90 days the hedge held both legs one way it was long both on 28
-        and short both on 62, so the words name both and the bars draw the 62."""
+        and short both on 62. The bars draw the line's convention, AUD.USD held
+        long, so the words name both."""
         words = [s.text for s in _labels(drawn[1], "same-way")]
         assert words == ["held the same way", "long both, or short both:", "a bet on the US dollar"]
 
@@ -457,7 +480,13 @@ class TestTheShare:
         assert scene.labels[6] == "CAD.USD’s share, −0.4671"
         assert _stroke(scene, "last-day").x[0] == pytest.approx(share_x(MOVED.share))
         cad = _stroke(scene, "cad-dollars")
-        assert _length(cad) == pytest.approx(DOLLARS_LENGTH * 0.8765432)
+        assert _ink(cad) == pytest.approx(DOLLARS_LENGTH * 0.8765432)
+
+    @pytest.mark.parametrize("sides", [(-1, 1), (1, 1), (-1, -1)])
+    def test_a_last_day_not_long_aud_usd_and_short_cad_usd_is_refused(self, figures, sides) -> None:
+        """The words beside the last day's bars say long AUD.USD and short CAD.USD."""
+        with pytest.raises(ValueError, match="long AUD.USD, short CAD.USD"):
+            scenes(dataclasses.replace(figures, sides=sides))
 
     @pytest.mark.parametrize("share", [0.0, 0.3, -1.0])
     def test_a_last_day_held_the_same_way_or_all_in_one_leg_is_refused(
@@ -618,14 +647,17 @@ class TestThePost:
                     "The bars are schematic",
                 ],
                 [
-                    "a green bar",
+                    "a green bar is labelled “AUD.USD: 1 unit",
                     "a red bar about three quarters as long",
                     "a brass dot",
                     "a dashed grey mark",
                     "a green bar above and a red bar below",
                     "A pale red band with a red edge",
-                    "both hanging below a grey baseline",
+                    "side by side on a grey baseline",
+                    "a tall green bar labelled “CAD.USD long”",
+                    "a short green bar labelled “AUD.USD long”",
                     "The equal bars and the band’s bars are schematic",
+                    "stands at no particular share",
                 ],
             ),
             strict=True,
@@ -633,6 +665,12 @@ class TestThePost:
             alt = _alt(scene)
             for phrase in phrases:
                 assert phrase in alt, (scene.slug, phrase)
+
+    def test_the_share_alt_text_puts_the_dot_on_the_right_side_of_minus_half(
+        self, drawn, figures
+    ) -> None:
+        side = "right" if figures.share > -0.5 else "left"
+        assert f"sits just {side} of −0.5" in _alt(drawn[1])
 
 
 class TestTheCommand:
