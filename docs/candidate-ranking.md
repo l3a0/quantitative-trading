@@ -188,7 +188,7 @@ Ranked by t after costs. Every Sharpe ratio converts to t over its span in
 | Entry 50, Khandani-Lo at the open, S&P 400 | 3.4533, t 3.4464. Then 0.4884, t 0.4874 | no, 2006 | in Entry 50's 6 | the S&P 400 from its 1991 launch, outside 2006 and 2016 on | as Entry 44 | no estimate | one day, daily | needs 113.36 of 23.45 years |
 | Entry 50, the rebuilt S&P 600 at the close | 3.5194, t 3.5124. Then 0.0575, t 0.0574 | no, 2006 | in Entry 50's 6 | as Entry 44 | as Entry 44 | no estimate | one day, daily | far short |
 | Entry 44, Chan's S&P 600 file at the close | 3.4086, t 3.4018. Then −0.3255 | no, 2006 | in Entry 44's 2 | as Entry 44 | as Entry 44 | no estimate | one day, daily | negative after costs |
-| Sibling, volatility premium, SPY 0.25Δ short call, delta-hedged | Sharpe 0.52 (`docs/vol_premium.md:209`) and Newey-West t +2.54 gross. t −0.35 at 5 bp (`docs/vol_premium.md:147-148`) | no, exploratory | in the 20 | SPY chains from their 2005-01-10 listing to 2010-05-16, if bought | the doc names an index correlation risk premium (`docs/vol_premium.md:178-180`). Why not a fund: not stated | not stated. t falls below zero between 2 bp and 5 bp | 30 days to expiry, about 11 cycles a year | negative after costs |
+| Sibling, volatility premium, SPY 0.25Δ short call, delta-hedged | Sharpe 0.52 (`docs/vol_premium.md:209`) and Newey-West t +2.54 gross. t −0.35 at 5 bp (`docs/vol_premium.md:147-148`) | no, exploratory | in the 20 | SPY chains from their 2005-01-10 listing to 2007-12-31, if bought. The sibling's early walk-forwards trained on 2008 on | the doc names an index correlation risk premium (`docs/vol_premium.md:178-180`). Why not a fund: not stated | not stated. t falls below zero between 2 bp and 5 bp | 30 days to expiry, about 11 cycles a year | negative after costs |
 | Entry 50, S&P 400 at the close | 2.0338, t 2.0298. Then −1.4524 | no, 2006 | in Entry 50's 6 | as Entry 50 | as Entry 44 | no estimate | one day, daily | negative after costs |
 | Entry 8, Khandani-Lo at the close, S&P 500 | 0.2510, t 0.2505. Then −3.2337 | no, the book's 2006 | 1 | as Entry 10 | as Entry 10 | no estimate | one day, daily | negative after costs |
 
@@ -202,7 +202,7 @@ figure at 5 bp.
 
 | Row | 1. Sharpe and t, before and after the cost shown | 2. Out of sample? | 3. Variants | 4. Span no search loaded | 5. Who pays, and why a fund cannot take it | 6. Capacity | 7. Holding and trades | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Sibling, generative search, SPY 0.05Δ short call, 30 days | Sharpe 0.688, Newey-West t +3.35 at a 1 bp hedge (`data/gen_ledger.jsonl:62`). The doc reads it as the best of about 131 noise draws (`docs/generative_search.md:57-61`) | no | 56 of its 70 cells, the ones that traded | as above | not stated | not stated | 30 days, about 12 a year | needs 57.12 of 5.34 years |
+| Sibling, generative search, SPY 0.05Δ short call, 30 days | Sharpe 0.688, Newey-West t +3.35 at a 1 bp hedge (`data/gen_ledger.jsonl:62`). The doc reads it as the best of about 131 noise draws (`docs/generative_search.md:57-61`) | no | 56 of its 70 cells, the ones that traded | as above | not stated | not stated | 30 days, about 12 a year | needs 57.12 of 2.97 years |
 | Sibling, structure campaign, SPY 0.25Δ short call | t +2.17 (`data/idea_ledger.jsonl:26`) and Sharpe 0.436 (the regenerable `data/edge_ledger.jsonl:5`), at the 1 bp hedge cost the `short_vol` structure defaults to in `realchains/vol_premium.py`. e-LOND, the sibling's false-discovery control, flags 0 of 63 (`docs/edge_search.md:589-590`) | no | 82 with the proposer's 19 | as above | not stated | not stated | 30 days, about 12 a year | lower than the cell above |
 | Sibling, LLM proposer, SPY short calls | t +2.17 at 21 days and 0.15Δ, +2.03 at 45 days and the money (`data/idea_ledger.jsonl:67`, `:60`), at the same 1 bp | no | inside the 82 | as above | not stated | not stated | 21 and 45 days | lower than the cell above |
 | Entry 41, VX against ES on VX's roll return | 1.030894 before any cost, 1.002020 under the script's 1 bp | no, the book's 2010 to 2012 | 3 | VX from its 2004-03-26 launch to 2004-05-31, and VX and ES from 2012-05-09 | not stated | no estimate | one day a signal, 224 of 448 test days held | needs 25.44 of 14.57 years |
@@ -221,8 +221,8 @@ search had loaded when they ran. Each span is loaded now, so column 4 is
 | Row | 1. The registered statistic | 2. Span | 3. Variants | 5. Who pays, and why a fund cannot take it | 6. Capacity | 7. Holding and trades | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Entry 7, Example 7.6, the January effect on IJR's point-in-time members | mean January return after costs between −0.1057 and 0.0869, as the missing members are read low or high. iid t between −4.96 and 3.70 before costs | Januaries of 2009 to 2026 | in Entry 7's 32 | not stated | no estimate | one month a year | the bounds disagree, and the high one needs 35.55 of 9.21 years |
-| Sibling, straddle secondary on IWM | t +1.42 gross, +1.28 at 0.5 bp. SPY +0.90 and +0.72 (`docs/vol_premium.md:323-326`) | 2010-12-01 to 2026-06-05 | in the 20 | not stated | not stated | 30 days | needs 255.97 of 10.51 years |
-| Sibling, registered put wing | IWM t +1.00 gross, +0.91 at 0.5 bp. SPY +0.20 and +0.09 (`docs/vol_premium.md:278-281`) | 2010-12-01 to 2026-06-05 | in the 20 | the registration's prior is a skew premium (`docs/prereg_vol_premium.md:112-118`) | not stated | 30 days | needs 506.44 of 10.51 years |
+| Sibling, straddle secondary on IWM | t +1.42 gross, +1.28 at 0.5 bp. SPY +0.90 and +0.72 (`docs/vol_premium.md:323-326`) | 2010-12-01 to 2026-06-05 | in the 20 | not stated | not stated | 30 days | needs 255.97 of at most 10.51 years |
+| Sibling, registered put wing | IWM t +1.00 gross, +0.91 at 0.5 bp. SPY +0.20 and +0.09 (`docs/vol_premium.md:278-281`) | 2010-12-01 to 2026-06-05 | in the 20 | the registration's prior is a skew premium (`docs/prereg_vol_premium.md:112-118`) | not stated | 30 days | needs 506.44 of at most 10.51 years |
 | Entry 51, Example 2.5 on USD/CAD after 2012 | Newey-West t 0.2670 before costs, Sharpe 0.0715 on raw P&L | 2012-03-29 to 2026-10-12 | 1 | not stated | no estimate | a position every day | needs 5,514.21 of 36.54 years before costs |
 | Sibling, volume profile, NVDA continuation | t +0.03 gross on 2022 to 2026 (`docs/explorations.md:99-111`) | 2022 to 2026 | in the 20 | not stated | not stated | intraday | far short |
 | Entry 7, Example 7.7 on IVV's members | Newey-West t −0.11 before costs | 2009-01 to 2026-09 | in Entry 7's 32 | not stated | no estimate | one month, 12 a year | negative |
@@ -282,8 +282,8 @@ arithmetic, and count no variants.
 
 | Search | 1. The best figure | 2. Out of sample? | 3. Variants | 4. Span no search loaded | 5. Who pays | 6. Capacity | 7. Holding | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Covered call in R-multiples | daily t +1.25 at most, with no hedge cost (`docs/explorations.md:680`, `:699`) | no | 42 with the coda | as the volatility premium | not stated | not stated | 30 days | needs 268.41 of 5.34 years |
-| Gap G, portfolio combinations | t 1.54 against its better leg's 2.47, and 1.01 against 2.56 (`docs/explorations.md:403-410`) | no | inside Gap E, G and the exits' 16 | as above | not stated | not stated | 30 days | needs 176.84 of 5.34 years |
+| Covered call in R-multiples | daily t +1.25 at most, with no hedge cost (`docs/explorations.md:680`, `:699`) | no | 42 with the coda | as the volatility premium | not stated | not stated | 30 days | needs 268.41 of 2.97 years |
+| Gap G, portfolio combinations | t 1.54 against its better leg's 2.47, and 1.01 against 2.56 (`docs/explorations.md:403-410`) | no | inside Gap E, G and the exits' 16 | as above | not stated | not stated | 30 days | needs 176.84 of 2.97 years |
 | QQQ one-day wheel | negative on all 48 cells. The hedged companion's +2.40 charges the hedge nothing (`docs/explorations.md:922-933`, `:978-988`) | no | 30 | not worked out | not stated | not stated | one day, about 124 sales a year | negative, and the companion is not screened |
 | Factor panel, 63 information coefficients | Newey-West \|t\| 1.52, with no cost and on a coefficient rather than a return (`docs/factor_real_panel.md:44-45`) | no | 63 | not assessed | not stated | not stated | one day | below t\* before costs |
 | Proxy covered call | Newey-West t +0.46 on simulated chains (`README.md:50-52`) | walk-forward only | 36 | not applicable | not stated | not stated | about 18 calls a year | below t\* |
@@ -297,7 +297,7 @@ A holdout can pass only if the years it covers are enough for the row's Sharpe
 ratio to reach t\*. Held exactly, a Sharpe ratio S reaches t\* after
 (t\* / S)² years, and a t of t measured over Y years reaches it after
 Y × (t\* / t)² years. `TestTheScreen` screens every positive row this way
-except four kinds.
+except six kinds.
 
 1. A row another row of the same search dominates, with a lower figure on the
    same span. That covers the structure campaign and the LLM proposer under the
@@ -305,9 +305,15 @@ except four kinds.
    put wing under their IWM legs, and Gap G's 1.01 under its 1.54.
 2. A figure that is not a return, the factor panel's coefficient.
 3. A figure from simulated rather than traded prices, the proxy covered call.
-4. A row that fails on cost by arithmetic, the volume-profile reversal, and
-   the QQQ wheel's hedged companion, whose hedge is charged nothing and whose
+4. A row that fails on cost by arithmetic, the volume-profile reversal.
+5. The QQQ wheel's hedged companion, whose hedge is charged nothing and whose
    unloaded span has not been worked out.
+6. A row with no unloaded span, which the tables mark "none" or "not
+   applicable": Entries 3, 4, 9, 21, 24, 26 and 39, and the sibling's
+   real-chain covered call.
+
+Entry 46's eight middle runs are not listed either. Each lies between its
+lowest and highest runs on the same span, and the lowest already reaches t\*.
 
 Each Sharpe ratio is after 5 bp a side where one is pinned, and before costs
 otherwise.
@@ -346,7 +352,7 @@ otherwise.
 | Entry 11, natural gas | 1.0008 | no | 6.20 | 27.00 | short |
 | Entry 11, gasoline | 0.7764 | no | 11.72 | 44.86 | short |
 | Entry 52, `MomSeasonShort` | 0.8096 | no | 38.00 | 41.25 | short |
-| Sibling, generative 0.05Δ call | 0.688 | no | 5.34 | 57.12 | short |
+| Sibling, generative 0.05Δ call | 0.688 | no | 2.97 | 57.12 | short |
 | Entry 13, PCA factor model | 0.5787 | no | 9.21 | 80.74 | short |
 | Entry 30, AUD.CAD | 0.5418018005 | no | 23.60 | 92.11 | short |
 | Entry 22, USD.CAD | 0.1188463477 | no | 36.54 | 1,914.39 | short |
@@ -372,9 +378,11 @@ Four things bound the "years available" column.
    on 1983-03-30, and whether contracts a year apart traded before 1986 is not
    checked.
 4. **Several start dates come from outside this repository.** No file here
-   records the launches of EWA, EWC, IGE, IWM, FSTX, CL, VX, NVDA's listing,
-   SPY's options, the S&P 600 or the S&P 400, nor FRED's 1971 start for daily
-   US dollar rates.
+   records the launches of EWA, EWC, IGE, IWM, FSTX, CL, VX, natural gas
+   futures, NVDA's listing, SPY's options, the S&P 600 or the S&P 400, nor the
+   Australian dollar's float on 1983-12-12 or FRED's 1971 start for daily US
+   dollar rates. IWM's span starts at the fund's launch, so its options' years
+   are an upper bound.
 
 ### What the owner rules on
 

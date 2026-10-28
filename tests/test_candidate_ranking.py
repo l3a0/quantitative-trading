@@ -279,10 +279,11 @@ NATURAL_GAS = ((date(1990, 4, 3), date(1993, 12, 19)), (date(2024, 4, 6), SPAN_E
 #: Gasoline before Entry 11's fill test reads April 1994, in a committed EIA file.
 GASOLINE = ((date(1985, 1, 2), date(1994, 3, 31)), (date(2024, 4, 6), SPAN_END))
 #: Option chains before the sibling's first search day, to be bought. SPY's
-#: options listed in January 2005. The sibling drops SPY's 2008 to 2010-05-16
-#: chains at load time, before any statistic, and fetched IWM's from 2010-12-01.
-#: IWM's span starts at the fund's launch, an upper bound for its options.
-SPY_CHAINS = ((date(2005, 1, 10), date(2010, 5, 16)),)
+#: options listed in January 2005. The sibling's early SPY walk-forwards, at
+#: b440deb and 71a372c, trained on chains from 2008-01-02, before the era clip
+#: arrived. It fetched IWM's from 2010-12-01. IWM's span starts at the fund's
+#: launch, an upper bound for its options.
+SPY_CHAINS = ((date(2005, 1, 10), date(2007, 12, 31)),)
 IWM_CHAINS = ((date(2000, 5, 26), date(2010, 11, 30)),)
 USD_CAD = ((date(1971, 1, 4), date(2007, 7, 21)),)
 NVDA_BARS = ((date(1999, 1, 22), date(2015, 12, 31)),)
@@ -427,7 +428,7 @@ class TestTheScreen:
             ("22 USD.CAD linear mean reversion", 36.54, 1914.39),
             ("13 PCA factor model", 9.21, 80.74),
             ("30 AUD.CAD with rollover", 23.60, 92.11),
-            ("sibling generative 0.05 delta call", 5.34, 57.12),
+            ("sibling generative 0.05 delta call", 2.97, 57.12),
             ("44b S&P 600 opens", 9.21, 6.59),
             ("50d S&P 600 control opens", 9.21, 9.46),
             ("10 rule A S&P 500 opens", 32.89, 13.80),
@@ -491,8 +492,8 @@ class TestTheScreen:
             ("48 low beta, first ceiling", 32.89, 162.90),
             ("48 low beta, second ceiling", 32.89, 127.51),
             ("51 USD/CAD after 2012", 36.54, 5514.21),
-            ("sibling covered call in R", 5.34, 268.41),
-            ("sibling Gap G combination", 5.34, 176.84),
+            ("sibling covered call in R", 2.97, 268.41),
+            ("sibling Gap G combination", 2.97, 176.84),
             ("sibling put wing on IWM", 10.51, 506.44),
             ("sibling straddle on IWM", 10.51, 255.97),
             ("sibling NVDA continuation", 16.94, 132926.00),
