@@ -6516,9 +6516,10 @@ copy it reads fails. Crude oil's spread mostly falling as γ rises,
 which the post cites from the crude oil post, is `TestTheTradesDirection` in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py),
 and γ's fit across the five nearest contracts, which it cites from the spot
-and roll returns post, is
-`test_only_the_nearest_five_are_read_when_more_are_priced` in
-[tests/test_roll_returns.py](tests/test_roll_returns.py).
+and roll returns post, is `test_a_row_with_four_priced_contracts_has_no_gamma`
+and `test_only_the_nearest_five_are_read_when_more_are_priced` in
+[tests/test_roll_returns.py](tests/test_roll_returns.py), which hold that a row
+needs five priced contracts and that a sixth is not read.
 Five had no pin before the post.
 
 1. The specification's near leg is the front contract on 126 of its 847 held
