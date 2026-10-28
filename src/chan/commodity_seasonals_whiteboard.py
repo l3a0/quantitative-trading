@@ -258,9 +258,9 @@ all thirty are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
 gasoline editions, half-width and pairs sketches are in :data:`SLOWER` too,
-so their labels hold 1.8 seconds. The half-width and pairs sketches draw their
-strokes at 250 ms a frame. The gasoline editions sketch draws its strokes at
-the usual 100 ms a frame and holds each finished stroke for 250 ms, which
+so their labels hold 1.8 seconds. The pairs sketch draws its strokes at 250 ms
+a frame. The gasoline editions and half-width sketches draw their strokes at
+the usual 100 ms a frame and hold each finished stroke for 250 ms, which
 :data:`DRAW_MS` sets. Only
 the scenes, the pacing and the file names are this module's. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
@@ -4558,8 +4558,9 @@ SLOWER = {
 #: frame of a part-drawn stroke showing for this many milliseconds. Each
 #: finished stroke and label still holds for its :data:`SLOWER` time, so the
 #: waits between the drawing's parts stay as long. The owner found gasoline's
-#: editions drawn too slowly at 250 ms a frame, and its waits right.
-DRAW_MS = {"gasoline_editions": FRAME_MS}
+#: editions and the half-width sketch drawn too slowly at 250 ms a frame, and
+#: their waits right.
+DRAW_MS = {"gasoline_editions": FRAME_MS, "half_width": FRAME_MS}
 
 
 def edge_years(first: int = 1994, last: int = 2023) -> tuple[int, ...]:

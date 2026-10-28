@@ -1143,7 +1143,10 @@ class TestTheGifs:
             "half_width": (250, 1800),
             "rank_pairs": (250, 1800),
         }
-        assert sketches.DRAW_MS == {"gasoline_editions": whiteboard.FRAME_MS}
+        assert sketches.DRAW_MS == {
+            "gasoline_editions": whiteboard.FRAME_MS,
+            "half_width": whiteboard.FRAME_MS,
+        }
         for scene in every:
             frames = sketch_timeline(scene)
             paced = scene.slug in sketches.PACED

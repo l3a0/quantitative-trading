@@ -3953,9 +3953,9 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 All thirty build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in. The gasoline editions, half-width and pairs
-sketches hold their labels for 1.8 seconds. The half-width and pairs sketches
-draw their strokes at 250 ms a frame, and the gasoline editions sketch draws
-its strokes at the usual 100 ms and holds each finished stroke for 250 ms.
+sketches hold their labels for 1.8 seconds. The pairs sketch draws its strokes
+at 250 ms a frame, and the gasoline editions and half-width sketches draw their
+strokes at the usual 100 ms and hold each finished stroke for 250 ms.
 
 Two are schematic, the raised-start and cliff-or-plateau sketches, whose
 dots, brackets and curves are shapes rather than figures and which say so on
