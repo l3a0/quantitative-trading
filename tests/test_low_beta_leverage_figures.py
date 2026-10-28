@@ -458,6 +458,12 @@ class TestThePostsAltText:
             k = "k " if label.startswith("ruined") else ""
             assert f"{month:%B %Y} at {k}{first}" in alt, label
 
+    def test_it_quotes_the_month_of_the_highest_k(self, axes, portfolios) -> None:
+        text = POST.read_text("utf-8")
+        alt = re.search(r"!\[([^\]]+)\]\(\.\./docs/figures/low_beta_leverage\.png\)", text)[1]
+        (label,) = [t.get_text() for t in axes["leverage"].texts if t.get_gid() == "highest-label"]
+        assert f"labelled {label}, in {portfolios.leverage.idxmax():%B %Y}" in alt, label
+
 
 class TestTheHelpers:
     def test_signed_prints_a_true_minus_sign(self) -> None:
