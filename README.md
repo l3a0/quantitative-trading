@@ -8126,9 +8126,8 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that a bell curve's parabola is defined at every
    leverage while a sampled curve stops at its ruin leverage, that moments
    below order 5.51 mean tails far heavier than a bell curve's, that the
-   account at the script's f moves ten times the unlevered returns so the
-   loop barely cuts its order, that the book's −0.9 and −0.963 most likely
-   come from different runs, that Chapter 8 most likely ran on a different
+   book's −0.9 and −0.963 most likely come from different runs, that
+   Chapter 8 most likely ran on a different
    series of returns with a Kelly near 18.4 and that the evidence cannot tell
    when or how it differed from the saved file, that trial variants of the
    saved series reached no 18.4, that at the same daily risk a path of 100,000
@@ -8147,15 +8146,21 @@ Five groups of what it says are not pinned here.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py), or
-to
+[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py), to
 [tests/test_monte_carlo_leverage_figures.py](tests/test_monte_carlo_leverage_figures.py)
-for the figure's own numbers. `TestWhatThePostSays` in the first file reads
-one copy of each figure the post takes from the run, its five tables by row
-label and its prose by the words around each number, and fails when that copy
-drifts from the run. A second copy of the same figure elsewhere in the post is
-not always read, and neither is the figure's alt text. The 612 returns'
-dates, from 2009-12-18 to 2012-04-26, trace to
+for the figure's own numbers, or to
+[tests/test_monte_carlo_leverage_whiteboard.py](tests/test_monte_carlo_leverage_whiteboard.py)
+for the sketches'. `TestWhatThePostSays` in the first file reads one copy of
+each figure the post takes from the run, its five tables by row label and its
+prose by the words around each number, and fails when that copy drifts from
+the run. A second copy of the same figure elsewhere in the post is not always
+read, and neither is the figure's alt text. The sketches' file also holds the
+reading that the account at the script's f moves about ten times the
+unlevered returns, so the loop barely cuts its leverage while the account
+falls. Its leverage on the account is f·D = 10 at the account's high on day
+169 and stays above 9.45 to day 303, when the account is first below −0.5. It
+is still 8.34 on day 37,071, when the account is deepest at −0.848088. The
+612 returns' dates, from 2009-12-18 to 2012-04-26, trace to
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py). Twelve of
 the post's numbers had no pin before the post, all measured after the run.
 
@@ -8205,6 +8210,43 @@ uv run python -m chan.monte_carlo_leverage_figures
 [tests/test_monte_carlo_leverage_figures.py](tests/test_monte_carlo_leverage_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/monte_carlo_leverage_whiteboard.py](src/chan/monte_carlo_leverage_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `monte_carlo_leverage_sketch_least_draw.gif`, in Lesson 4, three rows of
+   dots on one return scale, each dot a value below −0.012: Chan's 612 saved
+   returns, the first 612 of the declared seed's draws and all 100,000. A
+   dashed line at the saved returns' least, −0.022031, runs through all
+   three. The middle row stops short of it, and the label gives the chance of
+   0.091663 that the least of 612 draws from the fit reaches it. The bottom
+   row's least, −0.043071, is 1.9550 times as deep, with about 163 times as
+   many draws. The cutoff of −0.012 sits where the fit's tail turns thinner
+   than the history's: the first 612 draws and the 612 returns each hold 3
+   values below it, and only the returns reach past −0.015.
+2. `monte_carlo_leverage_sketch_loop_leverage.gif`, in Lesson 5, each CPPI
+   form's leverage on its account, one point a day, from the day after the
+   account's high on day 169 to day 303, the loop's first day below −0.5.
+   Both start at f·D, 10. Box 8.6's loop ends at 9.47, since it scales 10 by
+   one plus the unlevered returns' drawdown through day 302, 0.946693, with
+   its account's drawdown at −0.504523 on day 303. The scheme on p. 263 ends
+   at 3.46, with its account's drawdown at −0.407605.
+
+Neither sketch is schematic. Every dot and every point on a line is a value
+the run computes, drawn to scale. Both use the shared colours, as the post's
+chart does. Both build more slowly than the USD.CAD post's sketches and hold
+their finished drawings for twelve seconds, because each carries more than
+that pace lets a reader take in. Redraw both with:
+
+```bash
+uv run python -m chan.monte_carlo_leverage_whiteboard
+```
+
+[tests/test_monte_carlo_leverage_whiteboard.py](tests/test_monte_carlo_leverage_whiteboard.py)
+holds what each draws, the figures it reads from the run, each day's leverage
+recomputed by a loop written out in the test, and that each GIF follows its
+paragraph in the post.
 
 [blog/levered-low-beta-lessons.md](blog/levered-low-beta-lessons.md) is a
 forty-third post, about Chan's rule at Kindle location 4709 of *Quantitative

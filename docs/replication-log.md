@@ -9968,6 +9968,30 @@ figure, which `uv run python -m chan.monte_carlo_leverage_figures` redraws.
 with it too, since its Lesson 1 states what
 `TestRowGroup13TheEighteenPointFourGap` found.
 
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing. Both draw on the declared seed, and the first also
+on Chan's saved returns.
+
+1. **The least of many draws goes deeper**, in Lesson 4. Three rows of dots on
+   one return scale show every value below −0.012 among Chan's 612 saved
+   returns, the first 612 draws and all 100,000. The saved returns' least,
+   −0.022031, is a dashed line through the rows. The first 612 draws stop
+   short of it, and the least of 612 draws from the fit reaches it with a
+   chance of 0.091663. The least of all 100,000, −0.043071, is 1.9550 times
+   as deep, with about 163 times as many draws.
+2. **Box 8.6's loop barely cuts its leverage**, in Lesson 5. Each form's
+   leverage on its account, one point a day, runs from the account's high on
+   day 169 to day 303, the loop's first day below −0.5. Both start at f·D, 10.
+   The loop ends at 9.47, 10 times one plus the unlevered returns' drawdown
+   through day 302, 0.946693, with its account's drawdown at −0.504523 on
+   day 303. The scheme on p. 263 ends at 3.46, with its account's drawdown
+   at −0.407605.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.monte_carlo_leverage_whiteboard` redraws both through
+the same `read_returns`, `pearson_fit`, `draws`, `optimal_leverage`, CPPI
+functions, `account_drawdowns` and `minimum_below`.
+
 ## Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
