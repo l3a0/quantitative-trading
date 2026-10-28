@@ -2145,7 +2145,11 @@ class TestTheFillTwoSketch:
         may = {day for day, _ in fill_two.may}
         no_dot = [str(d.day) for d in trading if d not in may and d != fill_two.fill.day]
         assert f"nor on April {_or(no_dot)}." in alt
-        assert "a purple arrow of the same rise starts at May’s April 8 price" in alt
+        base = fill_two.fill.base
+        assert base == max(d for d in may if d in june and d < fill_two.fill.day)
+        assert f"carries June from April {base.day}, the last day both files hold," in alt
+        assert f"toward April {fill_two.fill.day.day}, labelled" in alt
+        assert f"a purple arrow of the same rise starts at May’s April {base.day} price" in alt
         assert "The guess sits in the blue part just under the line" in alt
 
 
@@ -3174,6 +3178,11 @@ class TestTheHandoverSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[23])
         assert "a grey dashed line two trading days later marks" in alt
+        end, last = sketches.HANDOVER_DAYS[1], ng_last_trade(HANDOVER_YEAR, 3)
+        assert f"to {end:%B} {end.day}, {end.year}, one dot a trading day" in alt
+        assert f"the contract-2 file’s {last:%b} {last.day} price" in alt
+        after = min(d for d in seasonals.settlements(seasonals.NATURAL_GAS[1])[1] if d > last)
+        assert f"between {last:%b} {last.day} and {after:%b} {after.day} marks" in alt
 
 
 class TestTheCoverageSketch:
