@@ -379,7 +379,7 @@ Without 2022 the average after 2008 is −5.0%, and Welch’s chance falls to 0.
 
 ### Why the run did not try nearby dates
 
-Chan makes the point about few results too, and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a pass mark that gets stricter the more variants the search tries, and years the search never sees.
+Chan makes the point about few results too, and offers a check. A trade that happens once a year produces few results, he writes, so data-snooping bias is hard to rule out. He suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The run did not try it. Varying the dates until some version works is a search across many trades, and a fair search needs a list of variants fixed in advance, a pass mark that gets stricter the more variants the search tries, and years the search never sees. Further work, at the end of this post, says what each would take here.
 
 ## Lesson 5: find a contract’s file with the exchange’s calendar
 
@@ -431,11 +431,10 @@ The same map from dates to contracts serves Chan’s calendar spreads, which [th
 
 ## What this replication cannot say
 
-Three questions are beyond it, besides the gaps, the start year and edition, and the nearby entry and exit dates the run did not try.
+Two questions are beyond it, besides the gaps, the start year and edition, and the checks under Further work below.
 
 1. **Whether Chan read the same contracts.** His sidebar names RB, the symbol RBOB trades under. Before RBOB began trading in October 2005, his series presumably held the older contract, as the run assumes. Chan does not name his data vendor.
-2. **Whether either trade pays after costs.** The run charges no commission and no slippage, the gap between the settlement price and the price an order would actually get.
-3. **Any year after 2023.** EIA’s RBOB and natural gas files end on 5 April 2024, before either trade’s 2024 exit date.
+2. **Any year after 2023.** EIA’s RBOB and natural gas files end on 5 April 2024, before either trade’s 2024 exit date.
 
 ## What this means for a trader
 
@@ -448,7 +447,7 @@ Four habits follow from the first four lessons.
 
 ## Further work
 
-The run fixed two choices a trader could make differently: the days each trade enters and exits, and the time of day it trades. Whether either trade’s record holds when those choices move is the question this post leaves open.
+Seven checks would take this replication further. The first three each move a rule the run fixed, so they belong to one search, under one written list of variants and one pass mark. The other four test the record from other sides.
 
 ### Nearby entry and exit dates
 
@@ -456,13 +455,33 @@ Chan’s own check moves the dates and asks whether the profits hold (p. 186). R
 
 1. **The variants.** Every pair of entry and exit dates within a set range of Chan’s, counted in trading days so each one lands on a day the exchange is open, written down before any is computed.
 2. **The pass mark.** Neighbouring dates share most of their holding period, so their results rise and fall together. The correction for trying many pairs has to stay valid when they do.
-3. **The held-back years.** The New York Harbor gasoline file begins in January 1985, and nothing here has read its Aprils before 1994, so 1985 to 1993 give nine years the search would never see, though Chan may have seen them. Every natural gas year in EIA’s files is already used, so its held-back years would have to come after the files end in April 2024.
+3. **The held-back years.** The New York Harbor gasoline file begins in January 1985, and nothing here has read its Aprils before 1994, so 1985 to 1993 give nine years the search would never see, though Chan may have seen them. Every natural gas year in EIA’s files is already used, so its held-back years would have to come after 2023, which the files do not reach.
 
 The check asks whether the neighbourhood of Chan’s dates holds up, not which neighbour does best.
 
 ### Other times of day
 
-Every entry and exit in the run is a settlement price. Chan names the close for both gasoline dates and for the natural gas entry, but no time for the natural gas exit, so the close there is the run’s choice. Trading at the open or at a set hour instead needs prices from inside the day, and EIA’s files hold one price a day for each contract. The run holds no prices from inside the day for these contracts, and whether any source reaches back to the 1990s is unmeasured. Each time tried is one more variant, so it belongs in the same written list as the dates, under the same pass mark.
+Every entry and exit in the run is a settlement price, and for the natural gas exit that is the run’s own choice, as the section on the two trades says. Trading at the open or at a set hour instead needs prices from inside the day, and EIA’s files hold one price a day for each contract. The run holds no prices from inside the day for these contracts, and whether any source reaches back to the 1990s is unmeasured.
+
+### A stop that ends a trade early
+
+Natural gas’s 2002 trade, the drawdown example under the record, fell 22 points from its peak and still ended the year ahead. A rule that sells once a trade falls a set amount from its peak caps a fall like that. The price is selling some trades that would have recovered, as 2002’s did. Each level of stop tried is one more variant on the same list as the dates and times.
+
+### Costs
+
+Every return in the run is before costs. A commission is small next to a futures contract’s value, so the larger unknown is slippage, the gap between the settlement price and the price an order actually gets. Measuring it needs the same prices from inside the day that other times of day need. Costs only lower a return, so they cannot rescue either trade after the book. What they could change is how much the book’s years paid.
+
+### The three missing gasoline rows
+
+Lesson 2 leaves Chan’s gasoline count between 16 and 19 because EIA’s file holds no row on three dates. A second vendor with settlements on those dates would settle the count without guessing a price. Settlement prices come from the exchange, so the vendor should agree with EIA on every day both hold, which checks the vendor before its three prices are trusted.
+
+### Neighbouring delivery months
+
+Each trade names one contract, May for gasoline and June for natural gas. If seasonal demand drives the gain, a neighbouring delivery month bought and sold on the same dates should share it. If only Chan’s month shows the gain, chance is the likelier cause. EIA’s files hold four contracts at a time, which reach the June gasoline contract and the May natural gas contract on every entry and exit date from 1994 to 2023, so this check needs no new data.
+
+### The demand behind each trade
+
+Chan explains both trades by seasonal demand (p. 183). A test of that explanation would ask whether natural gas gains more in the spring when less gas sits in storage at the end of winter, and whether gasoline gains more when its stocks are low ahead of the driving season. EIA publishes both stock levels. A confirmed explanation would make the trades more believable, but only years after a rule was chosen can show that it still pays.
 
 ## References
 
