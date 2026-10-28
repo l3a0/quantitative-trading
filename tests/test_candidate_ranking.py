@@ -22,6 +22,7 @@ span is one the ranking names as never loaded by a search.
 from __future__ import annotations
 
 import math
+import sys
 from datetime import date
 from statistics import NormalDist
 
@@ -528,6 +529,14 @@ class TestTheScreen:
         """After 2012 alone falls short. Joined to the years before 1986, it does not."""
         sharpe, _, spans = SCREEN["34 CL calendar spread"]
         assert available(spans[1:]) < needed(sharpe) <= available(spans)
+
+    def test_a_negative_sharpe_ratio_never_reaches(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Squaring hides the sign, so a losing rule with years enough would
+        otherwise read as one a holdout could pass."""
+        losing = {"losing rule": (-4.0, True, SP500)}
+        monkeypatch.setattr(sys.modules[__name__], "SCREEN", losing)
+        assert available(SP500) >= needed(-4.0)
+        assert reaching(N, after_costs=True) == []
 
     def test_the_narrow_hurdle_adds_four_rows(self) -> None:
         added = set(reaching(N_NARROW, after_costs=False)) - set(reaching(N, after_costs=False))
