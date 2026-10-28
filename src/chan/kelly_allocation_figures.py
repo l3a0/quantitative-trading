@@ -201,7 +201,8 @@ def make_allocation_figure(out: Path | None = None) -> Figure:
     _title(
         fig,
         "Under a cap of 2, the growth rate rises all the way to everything on strategy 2",
-        "Algorithmic Trading, Example 8.2, location 3287. Means 0.30 and 0.60, volatilities "
+        "Algorithmic Trading, Kindle edition, Example 8.2, pp. 255 to 256. Means 0.30 and 0.60, "
+        "volatilities "
         "0.26 and 0.35, no correlation, risk-free rate 0.\n"
         "g = F′M − F′CF / 2 along F1 + F2 = 2. The solid curve redraws the book's Figure 8.1. "
         "The dashed part past the cap is added.",

@@ -292,7 +292,8 @@ def make_vx_es_roll_return_figure(
     _title(
         fig,
         "Exploratory: VX against ES on VX's roll return",
-        f"Algorithmic Trading, location 2754. VX contracts from inputDataDaily_VX_20120507.mat, "
+        "Algorithmic Trading, Kindle edition, pp. 211 to 213. VX contracts from "
+        "inputDataDaily_VX_20120507.mat, "
         f"saved {', '.join(strip_saved)}.\nVIX from VIX.csv, saved {sources.vix_member.obtained}. "
         f"ES from inputDataOHLCDaily_20120507.mat, saved {sources.es_member.obtained}.\nOne "
         "basis point of each day's change in market value is charged, and nothing on an entry "

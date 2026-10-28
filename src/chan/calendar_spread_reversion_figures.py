@@ -198,7 +198,8 @@ def make_calendar_spread_reversion_figure(
     _title(
         fig,
         "Exploratory: Example 5.4's calendar spread on crude oil, and the direction it trades",
-        f"Algorithmic Trading, locations 2461 and 2471. Contracts from {SOURCE_FILES[ROOT]}, "
+        "Algorithmic Trading, Kindle edition, pp. 182 to 186. Contracts from "
+        f"{SOURCE_FILES[ROOT]}, "
         f"saved {', '.join(saved)}.\nThe 2008 to 2012 window is the one Chan chose, and no "
         "cost is charged.",
     )

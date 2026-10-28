@@ -280,7 +280,7 @@ def make_vx_es_figure(
     _title(
         fig,
         "Exploratory: VX against ES from August 2008, on Chan's 2012-05-07 save",
-        f"Algorithmic Trading, locations 2546 to 2559. Closes from {SOURCE_FILE}, saved "
+        f"Algorithmic Trading, Kindle edition, pp. 191 to 194. Closes from {SOURCE_FILE}, saved "
         f"{', '.join(saved)}.\nThe save and the exit were chosen because they land the printed "
         "figures, so the match is partly built in.",
     )

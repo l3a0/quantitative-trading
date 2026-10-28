@@ -286,7 +286,7 @@ def _cppi_panel(ax, d: Drawn) -> None:
     rows = (
         ("full", d.full, MUTED, f"the full account at f·D = {d.capped * D:.6f}"),
         ("scripted", d.scripted, LOST, "Box 8.6's loop"),
-        ("described", d.described, GOOD, "location 3426's scheme"),
+        ("described", d.described, GOOD, "the scheme on p. 263"),
     )
     for gid, series, color, name in rows:
         start = first_below(series)
@@ -321,7 +321,7 @@ def _cppi_panel(ax, d: Drawn) -> None:
     _heading(
         ax,
         f"Two CPPI forms on the same draws, at the script's f of {d.capped:.6f} and D = {D:g}."
-        f"\nLocation 3438 says CPPI's drawdown is less than {-FLOOR:g} by design. The dashed "
+        f"\nChan says on p. 264 that CPPI's drawdown is less than {-FLOOR:g} by design. The dashed "
         f"line is {signed(FLOOR, 1)}.",
     )
 
@@ -344,7 +344,7 @@ def make_monte_carlo_leverage_figure(
     _title(
         fig,
         "Exploratory: Chapter 8's leverage on Example 5.1's returns, one declared seed",
-        f"Algorithmic Trading, Figure 8.2 and locations 3342 to 3438. Returns from "
+        f"Algorithmic Trading, Kindle edition, Figure 8.2 and pp. 258 to 265. Returns from "
         f"{d.entry.path}, saved {d.entry.obtained}.\nDraws: {DRAWS:,} from the Pearson type "
         f"IV with the returns' four moments, on seed {SEED}. No further seed is drawn here.",
     )

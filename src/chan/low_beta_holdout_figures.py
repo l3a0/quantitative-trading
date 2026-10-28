@@ -323,7 +323,8 @@ def make_low_beta_holdout_figure(
         fig,
         "Registered verdicts, exploratory paths: the beta match on Chan's file and on IVV's "
         "members from 2009",
-        f"Quantitative Trading, locations 4684 and 4709. Left: stocks from {SOURCE_FILE}, saved "
+        f"Quantitative Trading, Kindle edition, pp. 189 to 191. Left: stocks from {SOURCE_FILE}, "
+        "saved "
         f"{members[0].obtained}, survivors only, and SPY from {spy_entry.path}. Not a holdout.\n"
         f"{_ivv_note()}\nBoth borrow at FRED's TB3MS, downloaded {bill_entry.obtained}. Each "
         "value sits at the month it applied to.\nEach verdict is registered under its "
