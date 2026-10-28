@@ -1,6 +1,6 @@
 # Chan’s VIX calendar spread reverts on his own file, and the plainest reading of his text loses
 
-*Chan reports that the ratio of a far VIX future to a near one returns to its average, and that trading it earned 17.7 percent a year. On his own file the ratio passes the test, the trade read most plainly from his text loses 4.0 percent a year, and one of five readings written down before the run matches his figures, which makes the match the result of a search.*
+*Chan reports that the ratio of a far VIX future to a near one returns to its average, and that trading it earned 17.7 percent a year. On his own file the ratio passes the test, the trade read most plainly from his text loses 4.0 percent a year, and one of five readings of his text, written down before the run, matches his figures, which makes the match the result of a search.*
 
 ## Why trade the ratio of two VIX futures
 
@@ -14,14 +14,14 @@ The model of futures prices Chan uses for crude oil “works only for a future w
 
 ### What the reproduction found
 
-Chan’s published code has no script for the VX calendar spread. The script for crude oil’s calendar spread, `calendarSpdsMeanReversion.m`, opens with a commented-out line loading Chan’s VX file above the line loading crude oil, so he most likely ran that script on VX. This repository ran it the same way, on that file.
+Chan’s published code has no script for the VX calendar spread. The script for crude oil’s calendar spread, `calendarSpdsMeanReversion.m`, opens with a line loading Chan’s VX file. That line is commented out, meaning turned into a note the script skips, and the line below it loads crude oil. So he most likely ran that script on VX. This repository ran it the same way, on that file.
 
 The results fall into four groups. Each result rests on a reading, meaning one way of filling in what the book’s text leaves open.
 
 1. **The ratio passes the stationarity test, and the plainest reading of the text loses.** The trade that reading describes returns −4.0 percent a year where the book prints 17.7 percent.
-2. **The signal reads one pair of contracts while the trade holds another.** The near contract of the pair the script holds is usually the second to the fifth contract still trading, while the ratio its signal reads is that of the front pair, the two nearest contracts.
+2. **The signal reads one pair of contracts while the trade holds another.** The script usually holds a pair whose near contract is the second to the fifth contract still trading. Its signal reads the ratio of the front pair, the two nearest contracts.
 3. **One of five readings written down before the run matches the book’s figures.** This repository picked it out after seeing all five, so the match is the result of a search and confirms nothing.
-4. **The script runs on VX without complaint while rarely trading a spread.** Run as Chan published it, the script holds the near contract alone on most of the days it holds anything.
+4. **The script runs on VX without complaint while rarely trading a spread.** Run with Chan’s published spacing, which pairs each contract with the one 12 months later, the script holds the near contract alone on most of the days it holds anything.
 
 **Every result here is exploratory.** Chan chose the instrument, the signal, the rule and the dates, and the reproduction runs them on his own file. It can say whether his numbers follow from that file under some reading of his text, and nothing about whether the trade would pay after 2012. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
@@ -33,14 +33,14 @@ Two more posts build up the tools used here. The [post on the price spread, the 
 
 Each pair has two legs. The near leg is the contract that expires first and the far leg the one that expires later. The front contract is the nearest one still trading. The script holds each pair for a stretch of days, then switches to the next pair, which is called a roll. Four things change from crude oil.
 
-1. **The signal is a ratio of prices.** On crude oil the script trades γ, the roll return. That is the part of a contract’s return that comes from its price converging on the spot price as it nears expiry, a separate idea from the roll between pairs. A model fits γ across the five nearest contracts each day, and the [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#the-model-and-the-files) builds that model up. VIX has no such model, so the signal is the price of the back contract divided by the price of the front one. Its log is log(back) − log(front), the gap between the two log prices. A spread long the back contract and short the front, meaning it owns the back and has sold the front, earns, as the script counts its returns, on exactly the days that gap widens. So the ratio rises when that spread earns and falls when it loses.
-2. **Reversing the position when the signal is high can now bet on reversion.** The script starts every day long the far contract and short the near one, and reverses both legs wherever the z-score is above 0. The crude oil post’s [second lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-calendar-spread-lessons.md#lesson-2-the-trade-bets-the-spread-moves-further-from-its-average) measures that on crude oil the spread mostly falls as γ rises. So when γ sits above its average the spread usually sits below its own, and the flip sells it then, a bet that the spread moves further from its average. Here, when the signal is the ratio of the pair the script holds, the flip sells that spread when the ratio is above its 15-day average. That is the bet on reversion the book describes. Lesson 2 measures how often the signal is that ratio.
-3. **The pair is one month apart.** The crude oil script pairs each contract with the one expiring 12 months later. Chan’s VX file prices only 2 to 10 contracts on any day, so 12 months apart rarely finds both legs priced. Lesson 4 measures what pairing 12 months apart does on VX.
+1. **The signal is a ratio of prices.** On crude oil the script’s signal is γ, the roll return. That is the part of a contract’s return that comes from its price converging on the spot price as it nears expiry, a separate idea from the roll between pairs. A model fits γ across the five nearest contracts each day, and the [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#the-model-and-the-files) builds that model up. VIX has no such model, so the signal is the ratio of a pair’s back contract to its front one, the later-expiring price over the earlier. Its log is log(back) − log(front), the gap between the two log prices. Take a spread that owns the back contract and has sold the front one, which traders call long the back and short the front. As the script counts returns, that spread earns on exactly the days that gap widens. So the ratio rises when that spread earns and falls when it loses.
+2. **Reversing the position when the signal is high can now bet on reversion.** The script starts every day long the far contract and short the near one, and reverses both legs wherever the z-score is above 0. The crude oil post’s [second lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-calendar-spread-lessons.md#lesson-2-the-trade-bets-the-spread-moves-further-from-its-average) measures that on crude oil the spread mostly falls as γ rises. So when γ sits above its average, the spread usually sits below its own. The reversal sells the spread on those days, which bets that it moves further from its average. Here, when the signal is the ratio of the pair the script holds, the reversal sells that spread when the ratio is above its 15-day average. That is the bet on reversion the book describes. Lesson 2 measures how often the signal is that ratio.
+3. **The pair is one month apart.** The crude oil script pairs each contract with the one expiring 12 months later. Chan’s VX file prices only 2 to 10 contracts on any day, so a pair 12 months apart rarely has both legs priced. Lesson 4 measures what pairing 12 months apart does on VX.
 4. **The file holds single contracts and no price for the VIX index itself.** It is `inputDataDaily_VX_20120507.mat`, the file the commented-out line names, saved 2012-05-08 and recorded in the repository’s [data README](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md). It holds 72 contracts, one for each month from January 2007 to December 2012, over 1,543 days from 2006-03-23 to 2012-05-07. Each contract keeps its own prices. The VX against E-mini post read a different kind of file, a [continuous future](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#the-regression-and-the-files) stitched from one contract after another.
 
 ## Five readings of the book’s text
 
-The book names VX, the ratio, the 15-day lookback and the window, and leaves the rest to the reader. So before any APR, Sharpe ratio or ADF statistic on VX was computed, this repository wrote down one reading of the text, called S, and four more beside it. Writing all five down first means none could have been tuned to match. Picking the one that matches is still a choice made after the run, and Lesson 3 weighs it.
+The book names VX, the ratio, the 15-day lookback and the window, and leaves the rest to the reader. So before computing any APR, Sharpe ratio or ADF statistic on VX, this repository wrote down one reading of the text, called S, and four more beside it. Writing all five down first means none could have been tuned to match. Picking the one that matches is still a choice made after the run, and Lesson 3 weighs it.
 
 1. **S, the plainest reading.** The script holds each pair for at least 63 days, its own minimum, and S makes five edits to it.
    1. The VX file.
@@ -49,11 +49,11 @@ The book names VX, the ratio, the 15-day lookback and the window, and leaves the
    4. The 15-day lookback.
    5. The window from 2008-10-27 to the file’s last day, 2012-05-07, which is 889 days.
 2. **B1** trades the ratio of the pair the script holds that day, the far contract over the near one, instead of the ratio of the nearest two. The script’s own comment calls the held pair’s far and near contracts the back and the front.
-3. **B2** sets the minimum holding period to 0, so each pair is held from the day after the previous pair ends to 10 days before its own near contract expires.
+3. **B2** sets the minimum holding period to 0, so B2 holds each pair from the day after the previous pair ends to 10 days before its own near contract expires.
 4. **B3** is B1’s signal with B2’s holding period.
 5. **B4** is S measured to 2012-04-23, the book’s end date, 879 days.
 
-When a reading matches the book’s figures and S does not, the replication reports that reading and keeps S as the reading the results are judged on. The rules that decide each result are in [Entry 35 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-35-vix-futures-calendar-spreads-on-the-ratio-of-back-to-front-chans-algorithmic-trading), which records each figure beside the code check that computes it.
+When a reading matches the book’s figures and S does not, the replication reports that reading and keeps S as the reading it judges the results by. The rules that decide each result are in [Entry 35 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-35-vix-futures-calendar-spreads-on-the-ratio-of-back-to-front-chans-algorithmic-trading), which records each figure beside the code check that computes it.
 
 ## Lesson 1: the ratio is stationary, and the plainest reading of the text loses
 
@@ -80,7 +80,7 @@ The ADF test says the ratio returns to a long-run level. The trade earns only if
 
 ## Lesson 2: the signal reads one pair and the trade holds another
 
-The script holds each pair for at least 63 days and lets it go 10 days before its near contract’s last trading day, so it opens each pair at least 73 days before that day. VX contracts expire every month, so 73 trading days before a contract expires, three earlier contracts are still trading. S opens most of its pairs earlier than that, when four are. The pair the script holds is therefore usually not the front pair. S’s signal reads the front pair all the same, because that is what the book’s “ratio back/front” most plainly means.
+The script holds each pair for at least 63 days and lets it go 10 days before its near contract’s last trading day, so it opens each pair at least 73 days before that day. VX contracts expire every month, so 73 trading days before a contract expires, three earlier contracts are still trading and that contract is the fourth nearest. S opens most of its pairs earlier still, when four earlier contracts are trading and the near leg is the fifth. So the pair the script holds is usually not the front pair. S’s signal reads the front pair all the same, because that is what the book’s “ratio back/front” most plainly means.
 
 ![A whiteboard sketch titled “S holds one pair while its signal reads four”, drawn slowly and holding its finished drawing for twelve seconds. A grey trading-day axis runs along the bottom from early February to late May 2009, with a grey tick below it at each front contract’s last priced day, named and dated under it: “VX-2009G” and “Feb, 02-18”, “VX-2009H” and “Mar, 03-18”, “VX-2009J” and “Apr, 04-15”, and “VX-2009K” and “May, 05-20”. A grey note at the bottom reads “each tick: a contract’s last priced day, which the script takes as its expiry”. A thick black bar near the top, with “S holds” on its left and “near VX-2009K, far VX-2009M: 02-04 to 05-06, 64 days” above it, ends before the VX-2009K tick, and a thin grey bracket runs from its end to that tick, labelled “10 days to its” and “last priced day”. Under the bar a row of four thin black spans gives the near leg’s place among the contracts priced each day: “4th” above the first, with “near leg’s place” on its left and “10 days” below it, then “3rd” with “20 days”, “2nd” with “19 days”, and “front” above the last, which sits in a pale green box with a green edge labelled “same pair: 15 days” in green. Under that a row of four brown spans gives the front pair the signal reads, each ending at its front contract’s tick: “G and H”, with “signal reads” on its left, then “H and J”, “J and K” and “K and M”, the last running past the end of the black bar to the VX-2009K tick.](../docs/figures/vx_calendar_spread_sketch_one_hold.gif)
 
@@ -97,7 +97,7 @@ On the 847 days from 2008-10-27 on which S holds a pair, its near leg is the fro
 \end{array}
 ```
 
-S holds 11 pairs in that time. The near leg of the first is VX-2009G, the February 2009 contract, and of the last VX-2012H, the March 2012 one, and each pair starts three or four months after the one before.
+S holds 11 pairs in that time. The near leg of the first is VX-2009G, the February 2009 contract. The near leg of the last is VX-2012H, the March 2012 one. Each pair starts three or four months after the one before.
 
 ### What the readings beside S earn
 
@@ -117,7 +117,7 @@ Three of the four readings beside S change which pair the signal reads, how each
 \end{array}
 ```
 
-The two readings whose signal reads the pair they hold are the two that earn. That is a pattern across four readings written down in advance, and four cannot establish a cause. B2 also argues against treating the pattern as a cause. Its signal reads the pair it holds on 459 of its 879 days, against S’s 126 of 847, and it loses more than S does. So the logic of the bets suggests a reason, without settling it. A rule that sells a spread when its own z-score is high bets on that spread reverting. A rule that sells one spread when another spread’s z-score is high bets on the two moving together, which nothing here tested.
+The two readings whose signal reads the pair they hold are the two that earn. The logic of the bets suggests why, without settling it. A rule that sells a spread when its own z-score is high bets on that spread reverting. A rule that sells one spread when another spread’s z-score is high bets on the two moving together, which nothing here tested. Four readings written down in advance cannot establish a cause, and B2 argues against treating the pattern as one. Its signal reads the pair it holds on 459 of its 879 days, against S’s 126 of 847, and it loses more than S does.
 
 ## Lesson 3: one reading of five matches the book, and that is a search
 
@@ -138,7 +138,7 @@ This repository picked B3 out after seeing all five readings, and measured it on
 
 ## Lesson 4: a script runs on a file it was not written for
 
-The script as Chan published it pairs each contract with the one expiring 12 months later, which suits crude oil. Uncommenting the VX load line and commenting out the crude oil one loads a file that prices at most 10 contracts on any day. The script raises no error. It builds its schedule, holds positions, and prints an APR.
+The script as Chan published it pairs each contract with the one expiring 12 months later, which suits crude oil. Turning the VX load line back on and commenting out the crude oil one loads a file that prices at most 10 contracts on any day. The script raises no error. It builds its schedule, holds positions, and prints an APR.
 
 Run on VX with Chan’s 12-month spacing, its schedule holds a pair on 1,284 days. Both legs have a price on 84 of them. On 1,183 only the near leg is priced, and on 17 neither is. The script sums the returns of the legs that have one and skips the rest, so on those 1,183 days any position it takes is one VX contract outright, which is not a calendar spread at all. The number it prints at the end looks like any other APR.
 
@@ -148,19 +148,19 @@ That is why S changes the spacing to one month. The book’s text does not say s
 
 ## What this replication cannot say
 
-Every result here is exploratory. The reproduction shows that Chan’s file supports his stationarity claim, that the plainest reading of his text misses his trade with the wrong sign, and that one of five readings matches his figures. Four questions are beyond it.
+Every result here is exploratory. The reproduction shows that Chan’s file supports his stationarity claim, that the plainest reading of his text misses his trade’s figures with the wrong sign, and that one of five readings matches his figures. Four questions are beyond it.
 
 1. **Which rule Chan ran.** The book names VX, the ratio, the 15-day lookback and the window. The rest of S is this repository’s reading, and B3 is a different reading that happens to match the book’s figures.
-2. **Whether B3 is more than the best of five.** It was found by looking at five readings, and only a test written down in advance and run on later data could say more.
+2. **Whether B3 is more than the best of five.** This repository found it by looking at five readings, and only a test written down in advance and run on later data could say more.
 3. **The ADF statistic Chan saw.** The book prints none, so the replication checks the “99 percent” and not a number.
-4. **Anything about costs.** None is charged. From 2008-10-27, B3 holds 43 pairs and enters 42 of them, since the first was already open on that day. Each new pair’s near contract is the old pair’s far one. A roll closes the old near contract, opens the new far one, and trades the shared contract only if it changes side, from long to short or back. So a roll trades two contracts when that contract keeps its side and four when it switches. B3 also reverses both legs on 109 days between rolls, each one a day its z-score crosses 0, and those reversals are most of the contracts it trades.
+4. **Anything about costs.** The runs charge none. From 2008-10-27, B3 holds 43 pairs and enters 42 of them, since the first was already open on that day. Each new pair’s near contract is the old pair’s far one. A roll closes the old near contract, opens the new far one, and trades the shared contract only if it changes side, from long to short or back. Switching it trades two contracts, one to close the old position and one to open the new one. So a roll trades two contracts when that contract keeps its side and four when it switches. B3 also reverses both legs on 109 days between rolls, each one a day its z-score crosses 0, and those reversals are most of the contracts it trades.
 
 ## What this means for a trader
 
 Each lesson leaves one habit.
 
 1. **Test the trade, not just the signal.** A stationary signal says the series comes back. Only the trade’s returns say whether the position taken on each day pays.
-2. **Check that the signal reads what the trade holds.** When a rule picks its pair by one schedule and its signal by another, measure how often the two agree. Here they agreed on 126 of 847 held days.
+2. **Check that the signal reads what the trade holds.** When a rule picks the pair it holds by one schedule and the pair its signal reads by another, measure how often the two agree. Here they agreed on 126 of 847 held days.
 3. **Write the readings down before the run, and report all of them.** When one of several matches, say how many were tried, and treat the one that matched as the next thing to test rather than as the answer.
 4. **Check the data a script runs on against the data it was written for.** A script that runs without error on a new instrument can still be computing something else. Count how often each leg has a price before reading any figure it prints.
 
@@ -169,4 +169,4 @@ Each lesson leaves one habit.
 1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.4, Figure 5.8, and Kindle location 2502.
 2. `calendarSpdsMeanReversion.m`, at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview), a public copy of Chan’s code.
 
-*Not investment advice. Code: [the trade](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread.py), [the script it runs](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/calendar_spread_reversion.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread_figures.py) and [the whiteboard sketches](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread_whiteboard.py), with the checks behind [the trade’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread.py), [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread_figures.py) and [what the sketches draw](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread_whiteboard.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-35-vix-futures-calendar-spreads-on-the-ratio-of-back-to-front-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*
+*Not investment advice. Code: [the trade](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread.py), [the script it runs](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/calendar_spread_reversion.py), [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread_figures.py) and [the whiteboard sketches](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/vx_calendar_spread_whiteboard.py), with the checks behind [the trade’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread.py), [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread_figures.py) and [what the sketches draw](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_vx_calendar_spread_whiteboard.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-35-vix-futures-calendar-spreads-on-the-ratio-of-back-to-front-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*

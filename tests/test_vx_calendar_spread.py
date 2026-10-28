@@ -630,8 +630,8 @@ class TestWhatThePostQuotes:
             f"On the {len(rank):,} days from {START.date()} on which S holds a pair, its near leg "
             f"is the front contract on {front}.",
             f"S holds {len(near)} pairs in that time. The near leg of the first is {near[0]}, "
-            f"the {_month(near[0])} contract, and of the last {near[-1]}, the "
-            f"{_month(near[-1])} one,",
+            f"the {_month(near[0])} contract. The near leg of the last is {near[-1]}, the "
+            f"{_month(near[-1])} one.",
             f"So on {_WORDS[sevenths]} days in seven,",
             f"Its near leg is the front contract on {int((each_rank == 1).sum())} of its "
             f"{len(each_rank):,} held days and the second on the other {len(second)}.",
