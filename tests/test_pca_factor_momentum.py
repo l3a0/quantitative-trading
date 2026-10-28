@@ -535,9 +535,10 @@ class TestWhatThePostMeasured:
     ) -> None:
         """94.61 percent of PC1's squared products, on the days PC2 carries them with PMC.
 
-        On both days, the factor in PC2's place with PMC is the one in PC1's
-        place without it, to an overlap of 0.98 or more in size on the stocks
-        both runs keep.
+        On every day PMC carries PC1, 2007-08-02 to 2007-08-10, the factor in
+        PC2's place with PMC is the one in PC1's place without it, to an overlap
+        of 0.98 or more in size on the stocks both runs keep. The post says so
+        for the two large days, and the rank shift sketch draws it for all seven.
         """
         pairs = results.unspliced.pairs
         share, days = share_of_largest(pairs.today[:, 0] * pairs.tomorrow[:, 0], 2)
@@ -546,7 +547,15 @@ class TestWhatThePostMeasured:
         _, closes = panel
         without = closes.drop(columns=[SPLICED])
         returns_without = file_returns(without)
-        for day in ("2007-08-09", "2007-08-10"):
+        for day in (
+            "2007-08-02",
+            "2007-08-03",
+            "2007-08-06",
+            "2007-08-07",
+            "2007-08-08",
+            "2007-08-09",
+            "2007-08-10",
+        ):
             t = closes.index.get_loc(pd.Timestamp(day))
             spliced = decompose(returns, t)
             unspliced = decompose(returns_without, t)
