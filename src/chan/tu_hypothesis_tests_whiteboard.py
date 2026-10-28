@@ -441,7 +441,7 @@ def _mostly_long(figures: SketchFigures) -> Scene:
         )
     )
     for text, y in zip(
-        (f"long on {share(figures.drifting_share)}", "of the days it trades"),
+        (f"long on {share(figures.drifting_share)}", "of its entry days"),
         DRIFTING_WORDS_YS[1:],
         strict=True,
     ):

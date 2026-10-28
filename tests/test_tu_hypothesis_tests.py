@@ -987,6 +987,7 @@ class TestWhatThePostQuotes:
             f"from {returns.mean_zero.std(ddof=1):.6e} to {returns.declared.std(ddof=1):.6e}.",
             f"On the first {LONG_SHARE_DRAWS:,} simulated series, long entry days make up on "
             f"average {with_drift:.6f} of all entry days, and {without:.6f} once the mean is "
-            f"removed. TU did drift upward, at a mean daily return of {moments.mean:.6e}.",
+            "removed.",
+            f"TU did drift upward, at a mean daily return of {moments.mean:.6e}.",
         ]
         assert self.missing(text, fragments) == []
