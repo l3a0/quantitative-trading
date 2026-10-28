@@ -118,8 +118,8 @@ MONTHS_LABELS = [
     "June’s line, −0.0144",
     "0.1931 of the curve",
     "about one month in five",
-    "the low fifth’s 83 monthly returns",
     "13 of 83 at or below",
+    "the low fifth’s 83 monthly returns",
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -643,9 +643,9 @@ class TestTheMonthsSketch:
         for gid in ("line", "tail", "past"):
             assert _stroke(scene, gid).color == LOST, gid
         assert _stroke(scene, "months").color == INK
-        for text in MONTHS_LABELS[1:4] + MONTHS_LABELS[5:]:
+        for text in MONTHS_LABELS[1:5]:
             assert _label(scene, text).color == LOST, text
-        for text in (MONTHS_LABELS[0], MONTHS_LABELS[4]):
+        for text in (MONTHS_LABELS[0], MONTHS_LABELS[5]):
             assert _label(scene, text).color == INK, text
 
     def test_the_curve_is_the_bell_curve_of_the_months(self, every, figures) -> None:
@@ -744,7 +744,7 @@ class TestTheMonthsSketch:
         assert tail_x(figures.line) < tail_x(figures.mean)
         assert "The part of the curve left of it is shaded with red upright strokes" in alt
         assert "Under the axis sit dots, one for each month, in order of return" in alt
-        assert "The dots right of the red line are black" in alt
+        assert "The dots right of the red line come first, in black" in alt
         assert "Then the dots at or left of it appear in red" in alt
         steps = [s for s in scene.steps if not isinstance(s, Label)]
         gids = [s.gid for s in steps]

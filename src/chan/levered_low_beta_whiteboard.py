@@ -463,14 +463,6 @@ def _months_past(f: RuinFigures) -> Scene:
             size=11,
         ),
         _dots("months", xs[~past], rows[~past], INK),
-        Label(
-            f"the low fifth’s {len(returns)} monthly returns",
-            TAIL_X[1],
-            0.3,
-            names="months",
-            size=11,
-            ha="right",
-        ),
         _dots("past", xs[past], rows[past], LOST),
         Label(
             f"{f.reached} of {len(returns)} at or below",
@@ -479,6 +471,14 @@ def _months_past(f: RuinFigures) -> Scene:
             names="past",
             color=LOST,
             size=11,
+        ),
+        Label(
+            f"the low fifth’s {len(returns)} monthly returns",
+            TAIL_X[1],
+            0.3,
+            names="months",
+            size=11,
+            ha="right",
         ),
     ]
     title = f"{spelled(f.reached)} of {len(returns)} months past {name}’s line"
