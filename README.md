@@ -6001,13 +6001,11 @@ Six groups of what it says are not pinned here.
 3. Readings and arithmetic no test asserts: that if the true chance equals the
    printed proportion, two standard errors either side cover about 95 percent
    of counts, that a rerun lands inside less often because Chan's own count is
-   one random draw, that a normal distribution's kurtosis is 3, that 1,166 of
-   10,000 is 0.1166, that 20 million is 10,000 series of 2,000 days, that 2,000
-   trading days from 2004-06-01 to 2012-05-11 run about eight years, that 49 is
-   seven lookbacks against seven holds, that the rule of three bounds a
-   p-value at 3/N, that a position nearly the same on every shuffle earns
-   nearly the same mean on the same returns, and that a rule net long on most
-   days collects a drift wherever its entries fall.
+   one random draw, that a normal distribution's kurtosis is 3, that 2,000
+   trading days from 2004-06-01 to 2012-05-11 run about eight years, that the
+   rule of three bounds a p-value at 3/N, that a position nearly the same on
+   every shuffle earns nearly the same mean on the same returns, and that a
+   rule net long on most days collects a drift wherever its entries fall.
 4. The alt texts. The figure's readings of the histograms, such as "near
    3e-5" and "from about 1e-5 to 4e-5", are approximate by design. Of the
    sketches' alt texts,
