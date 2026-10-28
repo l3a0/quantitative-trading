@@ -14,3 +14,17 @@ dist/
 
 # Editors / OS
 .DS_Store
+
+# Secrets. The repo is public, so a credential file that lands in a checkout
+# must never be one `git add` away from being published. Nothing here holds a
+# credential: the paper ledger reads marketlake's lake and no broker.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*token*.json
+*credentials*.json
+secrets.*
+.netrc
