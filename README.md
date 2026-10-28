@@ -6474,7 +6474,7 @@ replication log.
 4. The script as shipped runs on VX without complaint while holding the near
    leg alone on 1,183 of 1,284 held days.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, each cited by its Kindle location in *Algorithmic Trading*
    through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6487,17 +6487,17 @@ Five groups of what it says are not pinned here.
    script's 12-month pairs and S's never do, all at `e4bc46f` of
    ericnberwick/EpchanPreview.
 3. Readings no test asserts: that the ratio rises on exactly the days a spread
-   long the back contract and short the front earns,
-   that B2's 420 days are the 10 after each roll, that four readings show a pattern rather than a cause, and
-   that a rule selling one spread on another's z-score bets on the two moving
-   together.
-4. Figures the post states in words or rounded from pinned ones, such as 4.0
-   percent, −0.56, six days in seven, three or four months between pairs,
-   three or four earlier contracts still trading, at least 73 days, B2's
-   share of days reading its held pair against S's, B3's 17.3 percent, the
-   0.0451 percentage points B4 moves the APR, and the rounded half-life of 13. The figure's alt text
-   reads its curves approximately too.
-5. Its references, cited rather than computed.
+   long the back contract and short the front earns, that four readings show a
+   pattern rather than a cause, and that a rule selling one spread on another's
+   z-score bets on the two moving together.
+4. Figures the post states in words rather than from the run: three or four
+   months between pairs, three or four earlier contracts still trading, and
+   that B2 reads its held pair on more of its days than S does. The figure's
+   alt text reads its curves approximately too.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in its opening, a lesson, a table or
+   the closing list, and a typo in a copy the class does not read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_vx_calendar_spread.py](tests/test_vx_calendar_spread.py), or to
