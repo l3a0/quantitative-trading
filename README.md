@@ -7123,7 +7123,7 @@ factor models post, the Kelly leverage on SPY post and the GLD/GDX post rather
 than repeating them, and draws four lessons from Entry 38 of the replication
 log.
 
-1. Every figure lands, and the 0.8 percent and the 91 days are two
+1. Every figure reproduces, and the 0.8 percent and the 91 days are two
    drawdowns. The deepest is mostly 2007-11-12, and the longest runs from
    2009-08-28 to 2010-01-08 and reaches only −0.40907 percent.
 2. The negative Sharpe ratio comes from the script's constant 2 percent,
@@ -7143,7 +7143,8 @@ Five groups of what it says are not pinned here.
    return from 1982 to 2004, the leverage of 5 or 6, the financing claim and
    "close to zero" are at 2718. The 1:30 p.m. and 4:00 p.m. times and the
    reason about signals are at 2730, the settlement price as a vendor's usual
-   close at 561, and the spread between a future and an ETF at 583.
+   close at 561, and the spread between a future and an ETF and GC's
+   settlement at 1:30 p.m. at 583.
 2. Facts about the script rather than the data: its five steps, its
    `riskFreeRate=0.02/252` line, and that it holds the pair every day with
    no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
@@ -7153,10 +7154,12 @@ Five groups of what it says are not pinned here.
    around the clock, that whatever else moves log(GC / GLD) does not cancel
    an offset's moves, which the bound of 0.001775 rests on, that a small
    reading error or an offset of minutes makes a daily change reverse, that
-   GC trades on COMEX, and the cost of carry, cited from Hull as the usual
-   explanation and not tested.
+   GC trades on COMEX, that a settlement price is the one the exchange
+   fixes once a day, that FRED is the St. Louis Fed's data service, and the
+   cost of carry, cited from Hull as the usual explanation and not tested.
 4. Figures the post states in words or rounded from pinned ones, such as
-   about half, ten times as large, the 150 minutes in two and a half hours,
+   about half, about ten times, the 150 minutes in two and a half hours, the
+   backtest's three years,
    the 91-day stretch about half as deep as the November 2007 fall, the OHLC
    series moving most of the way back on 2008-09-19, and S rising by less
    than a percentage point from 2008-12-31 to its high. The prose writes
@@ -7179,7 +7182,9 @@ before it, all measured after the run.
    253, 251 and 146 rows, 0.052235 against 0.036520, 0.027315 against
    0.013650, 0.005822 against 0.001500 and 0.004458 against 0.001350, a margin
    shrinking from 1.57 percentage points to 0.31, and the 22 of 37 months
-   below 0.5 percent, from 2008-11 to 2010-08.
+   below 0.5 percent, from 2008-11 to 2010-08. The bill rate's share of
+   each year's return, 0.6991, 0.4997, 0.2576 and 0.3028, so under a third in
+   2009 and 2010.
 4. The deepest drawdown's high on 2007-10-12, trough on 2007-11-12 and
    recovery on 2007-11-14, that day's −0.6771 percent for the trade, −4.7213
    for GLD and −4.0442 for GC, and the longest stretch from 2009-08-28 to

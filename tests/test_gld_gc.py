@@ -591,6 +591,14 @@ class TestWhatThePostMeasured:
         excess = [f"{100 * y.excess:.2f}" for y in by_year(result)]
         assert (excess[0], excess[-1]) == ("1.57", "0.31"), f"{SPEC}; {AFTER_THE_RUN}"
 
+    def test_the_bill_rate_took_under_a_third_of_the_return_in_2009_and_2010(self, result) -> None:
+        """The return fell with the rate, and the rate's share of it fell too."""
+        shares = {y.year: f"{y.bill_rate / y.average_annual_return:.4f}" for y in by_year(result)}
+        assert shares == {2007: "0.6991", 2008: "0.4997", 2009: "0.2576", 2010: "0.3028"}, (
+            f"{SPEC}, against {B1_SPEC} by calendar year; {AFTER_THE_RUN}"
+        )
+        assert all(float(shares[year]) < 1 / 3 for year in (2009, 2010))
+
     def test_the_bill_rate_sat_below_half_a_percent_in_22_of_37_months(self) -> None:
         first, last = FINANCING_MONTHS
         assert bill_rates.months_below(0.005, first, last) == 22, B1_SPEC

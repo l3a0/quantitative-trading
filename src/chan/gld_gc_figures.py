@@ -17,9 +17,10 @@ asked for the post, and its plan set the two panels.
    minus :data:`chan.gld_gc.STEP`. Both come through
    :func:`chan.gld_gc.log_ratio_changes`, and their labels through
    :func:`chan.gld_gc.ratio_steps`, which :func:`chan.gld_gc.identity` uses
-   for the same two summaries. Only the first panel was measured after the
-   run. Entry 38 declared the second panel's spreads, largest moves and
-   counts in advance.
+   for the same two summaries. The first panel was measured after the run.
+   The run itself computed the second panel's spreads, largest moves and
+   counts, which Entry 38 records, and only that panel's dates and minimums
+   were measured afterwards.
 
 Every value comes from :func:`chan.gld_gc.read_sources`,
 :func:`chan.gld_gc.read_ohlc_gc` and :func:`chan.gld_gc.gld_gc`, the run's
