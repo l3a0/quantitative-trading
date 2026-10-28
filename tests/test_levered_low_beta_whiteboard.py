@@ -680,7 +680,10 @@ class TestTheMonthsSketch:
         r = sketches.TAIL_R[0] + (tail.x - sketches.TAIL_X[0]) * (
             sketches.TAIL_R[1] - sketches.TAIL_R[0]
         ) / (sketches.TAIL_X[1] - sketches.TAIL_X[0])
-        assert np.all(tail.y[tops] <= sketches.curve_y(figures, r[tops]) + 1e-9)
+        # The pen joins two hatch tops with a straight chord, and the tail is
+        # convex, so the chord rides above the curve by under a pixel.
+        pixel = 10 / 680  # the board is 10 units across, drawn 680 pixels wide
+        assert np.all(tail.y[tops] <= sketches.curve_y(figures, r[tops]) + pixel)
         assert tail.x.max() > tail_x(figures.line) - 0.1
 
     def test_one_dot_for_each_month_at_its_return(self, every, figures) -> None:
