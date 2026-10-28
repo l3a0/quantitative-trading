@@ -114,8 +114,8 @@ LOOKBACK = 15
 #: One column apart, which on this strip is one month.
 SPREAD_MONTH = 1
 #: B2's and B3's holding period. Each pair is then held in turn, apart from the
-#: strip's first pair and the pairs whose near contract still trades on the
-#: file's last row. Neither changes what is held from 2008-10-27, which is
+#: strip's first pair and the six pairs after VX-2012K's, whose near contract
+#: also still trades on the file's last row. Neither changes what is held from 2008-10-27, which is
 #: each pair from VX-2008X's to VX-2012K's in order.
 EACH_IN_TURN = 0
 
@@ -285,7 +285,7 @@ def report(strip: Strip, result: VxCalendarSpread) -> None:
     print(f"  window   {_days(s)}")
     print(
         f"  rule     z-score of the ratio over {LOOKBACK} rows, contract c against c + "
-        f"{SPREAD_MONTH} held {HOLDDAYS} days, reversed when z > 0"
+        f"{SPREAD_MONTH} held at least {HOLDDAYS} days, reversed when z > 0"
     )
     print()
     one_percent = s.adf.critical[0]

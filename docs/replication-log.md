@@ -7907,10 +7907,10 @@ is reported and not promoted to the specification.
    front.
 2. **B2** sets `holddays=0`, so each pair is held from the day after the
    previous pair's last day to 10 rows before its own expiry. The first pair
-   is never held, because its window is one row, and pairs whose near
-   contract still trades on the file's last row are skipped, because
-   VX-2012K's pair already ends on 2012-04-23, the row where each of theirs
-   would end. VX holds 64 of its 71 pairs.
+   is never held, because its window is one row, and the six pairs after
+   VX-2012K's, whose near contract also still trades on the file's last row,
+   are skipped, because VX-2012K's pair already ends on 2012-04-23, the row
+   where each of theirs would end. VX holds 64 of its 71 pairs.
 3. **B3** is B1's signal built on B2's schedule, run with `holddays=0`.
 4. **B4** is S measured to 2012-04-23, the book's end date, 879 rows.
 
