@@ -228,7 +228,7 @@ class TestTheRowsBeforeOctober2008:
             "0.173462",
         ], SPEC
 
-    def test_only_b3s_bar_falls_before_october_2008(self, axes) -> None:
+    def test_only_b3_does_worse_before_october_2008(self, axes) -> None:
         before = _bars(axes["before"], "before")
         after = _bars(axes["before"], "after")
         worse = [key for key, b, a in zip(ROWS_BEFORE, before, after, strict=True) if b < a]

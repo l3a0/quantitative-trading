@@ -16,7 +16,7 @@ the post, and its plan set the two panels.
    2008, from the first row its flipped positions hold anything to
    2008-10-24, beside its APR from 2008-10-27. The book says its rule
    "performed much more poorly prior to October 2008", and only B3's bar
-   falls.
+   before October 2008 is lower than its bar after.
 
 Every value comes from :func:`chan.roll_returns.load_strip` and
 :func:`chan.vx_calendar_spread.vx_calendar_spread`, the run's own path, so
