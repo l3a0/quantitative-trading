@@ -86,10 +86,10 @@ The levered low's Sharpe ratio and realised beta read all 83 months of
 the portfolio were freshly funded at its start. That is how the plan defines
 the series, and it is not what an investor ruined in June 2001 would have
 held. The Kelly reading is look-ahead, because the Kelly leverage it reads is
-computed from the whole sample, and at the full-sample Kelly leverage any
-portfolio's growth is at least its own unlevered growth by construction. Its
-growth is the Gaussian growth r + S² / 2, a formula on the sample's moments
-rather than a growth any portfolio realised.
+computed from the whole sample, and at the full-sample Kelly leverage the
+Gaussian growth formula gives any portfolio at least the growth it gives the
+same portfolio unlevered. Its growth is the Gaussian growth r + S² / 2, a
+formula on the sample's moments rather than a growth any portfolio realised.
 
 **Every figure drawn from the stocks is about survivors.** ``spx_20071123/``
 is the S&P 500 as it stood on 2007-11-23, carried backwards, so a stock that
