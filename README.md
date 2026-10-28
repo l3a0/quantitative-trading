@@ -6008,8 +6008,13 @@ Six groups of what it says are not pinned here.
    p-value at 3/N, that a position nearly the same on every shuffle earns
    nearly the same mean on the same returns, and that a rule net long on most
    days collects a drift wherever its entries fall.
-4. The figure's alt text, whose readings of the histograms, such as "near
-   3e-5" and "from about 1e-5 to 4e-5", are approximate by design.
+4. The alt texts. The figure's readings of the histograms, such as "near
+   3e-5" and "from about 1e-5 to 4e-5", are approximate by design. Of the
+   sketches' alt texts,
+   [tests/test_tu_hypothesis_tests_whiteboard.py](tests/test_tu_hypothesis_tests_whiteboard.py)
+   reads the quoted labels, the pace and the phrases it quotes about each
+   drawing. It does not read every position the rest of each description
+   gives, such as the upper line rising and the lower one wandering level.
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states most figures more than once, in its subtitle, its opening list, a
    lesson, the closing habits, the list of what it cannot say or the alt text,
@@ -6022,9 +6027,11 @@ Every other number in the post traces to an assertion in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) for the seven periods
 behind the 49 pairs, to
 [tests/test_index_arbitrage.py](tests/test_index_arbitrage.py) for the index
-arbitrage post's screen of 480 stocks, or to
+arbitrage post's screen of 480 stocks, to
 [tests/test_tu_hypothesis_tests_figures.py](tests/test_tu_hypothesis_tests_figures.py)
-for the figure's own numbers. Four groups of them had no pin before it, and
+for the figure's own numbers, or to
+[tests/test_tu_hypothesis_tests_whiteboard.py](tests/test_tu_hypothesis_tests_whiteboard.py)
+for the sketches'. Four groups of them had no pin before it, and
 [tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) now pins
 them all.
 
@@ -6066,6 +6073,44 @@ uv run python -m chan.tu_hypothesis_tests_figures
 [tests/test_tu_hypothesis_tests_figures.py](tests/test_tu_hypothesis_tests_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/tu_hypothesis_tests_whiteboard.py](src/chan/tu_hypothesis_tests_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `tu_hypothesis_tests_sketch_wrong_array.gif`, in Lesson 4, the script's
+   third test as written. The shuffled trades are added to `pos`, the real
+   positions, and never reach `pos_sim`, which starts as zeros. So `ret_sim`
+   is built from a `pos_sim` of 0, and every simulated mean is 0 against the
+   observed mean of 6.626644e-05. It closes on the 10 draws the run executes
+   as written, each returning 0.
+2. `tu_hypothesis_tests_sketch_mostly_long.gif`, in Lesson 5, a noisy line
+   with TU's drift above one with the same noise and no drift. Under each, ten
+   brackets 250 days long end in an arrow, up where the line ends higher and
+   the rule is long, down where it ends lower and the rule is short. Eight of
+   the ten point up with the drift and five without it. It prints the share
+   of days with a long or short signal on which the rule is long, averaged
+   over the first 1,000 of the second test's series, 0.804654 as drawn and
+   0.502401 with the mean removed.
+
+The second sketch's two lines are schematic, and the upper line's label says
+so. Both are
+random walks with TU's daily standard deviation, and the upper one adds TU's
+daily mean, which keeps the drift over 250 days at about 0.87 of the noise's
+standard deviation over the same days. Neither is TU's closes or one of the
+run's series. Every figure either sketch prints
+comes from the run. Both build more slowly than the USD.CAD post's sketches
+and hold their finished drawings for twelve seconds, because each carries
+more than that pace lets a reader take in. Redraw both with:
+
+```bash
+uv run python -m chan.tu_hypothesis_tests_whiteboard
+```
+
+[tests/test_tu_hypothesis_tests_whiteboard.py](tests/test_tu_hypothesis_tests_whiteboard.py)
+holds what each draws, the figures it reads from the run, the drift and noise
+the schematic lines are drawn with, and that each GIF follows its paragraph in
+the post.
 
 [blog/crude-oil-calendar-spread-lessons.md](blog/crude-oil-calendar-spread-lessons.md)
 is a twenty-ninth post, about Example 5.4 of Chan's *Algorithmic Trading*,
