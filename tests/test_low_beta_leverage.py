@@ -589,6 +589,8 @@ class TestThePostQuotesTheRun:
             in (self.text)
         )
         assert f"with a t of at least {CRITICAL}, the one-sided 5 percent line" in self.text
+        ruin = f"{RUIN:.0f}".replace("-", "−")
+        assert f"is ruin: a levered month at {ruin} or below" in self.text
 
     def test_lesson_1s_table_and_verdict(self, portfolios: Portfolios, result: Verdict) -> None:
         first = result.ruined[0]
@@ -668,8 +670,9 @@ class TestThePostQuotesTheRun:
             f"{june.formed.date()}."
         ) in self.text
 
-    def test_lesson_3s_june_and_table(self, portfolios: Portfolios) -> None:
-        june, sep = pd.Timestamp("2001-06-29"), pd.Timestamp("2001-09-28")
+    def test_lesson_3s_june_and_table(self, portfolios: Portfolios, result: Verdict) -> None:
+        june, sep = (month.held_to for month in result.ruined)
+        assert f" & \\text{{{june:%B %Y}}} & \\text{{{sep:%B %Y}}} \\\\ \\hline" in self.text
         line = ruin_line(portfolios.rf, portfolios.leverage)
         needed = ruinous_leverage(portfolios.low, portfolios.rf)
         k = portfolios.leverage

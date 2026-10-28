@@ -7873,7 +7873,7 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the Fama-French model ties return to beta,
    size and book-to-price ratio, that growth at the Kelly leverage is the
    cash rate plus half the Sharpe ratio squared, which the Kelly post
-   derives, that in-sample Kelly leverage gives a portfolio the highest
+   derives, that full-sample Kelly leverage gives a portfolio the highest
    growth the formula allows, that levering a portfolio k times multiplies
    its beta by k, that the low fifth's 1.0132 and 0.4457 make the low fifth
    look better, that the numerator of k moved within a narrow band, that
