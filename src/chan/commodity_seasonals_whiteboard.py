@@ -108,7 +108,7 @@ the paragraph it draws.
 15. A raised start makes a longer fall: one trade's mean return on a
    vertical scale, a dashed line for its real edge, a dot above it for the
    book's years and a dot below it for the years after the book, and two
-   brackets ending at the later dot, a long black one from the book's dot for
+   brackets ending at the later dot's level, a long black one from the book's dot for
    the fall as measured and a shorter purple one from the real edge for the
    fall the trade took. It is schematic and marked so on the board. It sits
    in Lesson 3, after the paragraph opening "Chan picked each rule because it
@@ -2485,7 +2485,7 @@ def _raised_start() -> Scene:
         ),
         _dot("book", dot_x["book"], y["book"], color=INK),
         Label(
-            "the book’s years: chosen because they did well",
+            "the book’s years, where the chosen rule did well",
             dot_x["book"] - 0.5,
             y["book"] + 0.4,
             names="book",

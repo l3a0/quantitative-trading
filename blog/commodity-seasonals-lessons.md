@@ -200,6 +200,8 @@ e \sim N(b,\ \sigma^{2})
 \end{gathered}
 ```
 
+##### Which way the correction goes
+
 A year’s move is its exit price minus its entry price:
 
 ```math
@@ -238,7 +240,9 @@ So a true price above the guess, a positive `e`, lowers an entry’s move and ra
 \end{array}
 ```
 
-Both cases give the chance of a profit by the same formula. `Φ(z)` is the share of a standard normal curve that lies below `z`:
+##### The chance that all three years were profits
+
+The entry and exit cases give the chance of a profit by the same formula. `Φ(z)` is the share of a standard normal curve that lies below `z`:
 
 ```math
 P(\text{profit}) = \Phi\left(\frac{c}{\sigma}\right)
@@ -256,7 +260,11 @@ So the chance that all three years were profits, which Chan’s 19 needs, is 42%
 
 #### What the chance rests on
 
-The run tested neither the assumption that the misses are normal nor the assumption that they are independent. The common heavier-tailed curves, such as Student’s t, would raise each chance rather than lower it, because at the same spread they put more of their misses near the average. Misses that are not independent could move the figure either way. Misses that run the same way in all three years lower it, because a true price above the guess in every year would help 1998’s and 1999’s exits and hurt 1997’s entry. Misses that set 1997 against 1998 and 1999, or that tie only 1998 to 1999, raise it.
+The run tested neither the assumption that the misses are normal nor the assumption that they are independent.
+
+A curve with heavier tails than the normal curve puts more of its misses far from the average. The common ones, such as Student’s t, which Lesson 4 uses for the range of a mean return, would still raise each chance rather than lower it, because at the same spread they also put more of their misses near the average.
+
+Misses that are not independent could move the figure either way. Misses that run the same way in all three years lower it, because a true price above the guess in every year would help 1998’s and 1999’s exits and hurt 1997’s entry. Misses that set 1997 against 1998 and 1999, or that tie only 1998 to 1999, raise it.
 
 ## Lesson 3: test the trade out of sample
 
@@ -272,9 +280,9 @@ For gasoline, Chan himself treats part of the book’s years as out of sample: t
 
 ### What could explain the fall
 
-Chan picked each rule because it did well in years the book covers, so those years tend to start it higher than its real edge. Where they do, the drop after the book is measured from a raised start, so it looks like a longer fall than the trade really took.
+Chan picked each rule because it did well in years the book covers, so its mean return over those years tends to sit above its real edge. Where it does, the drop after the book is measured from a raised start, so it looks like a longer fall than the trade really took.
 
-![“A raised start makes a longer fall”, drawn slowly stroke by stroke, schematic and to no scale. A grey arrow rises on the left as a scale of “one trade’s mean return”. A dashed grey line crosses it, labelled “the trade’s real edge (unknown)”. A black dot above the line marks “the book’s years: chosen because they did well”, and a grey note on the right reads “if the book’s years ran high”. A black dot below the line marks “after the book”. Dashed grey guides run right from both dots. A long black bracket runs from the book’s dot down to the later dot’s level, “the fall as measured”, and a shorter purple bracket runs from the real edge down to the same level, “the fall the trade took”. Both brackets end at the later dot, and the one measured from the raised dot is the longer. A grey note reads “schematic, drawn to no scale”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_raised_start.gif)
+![“A raised start makes a longer fall”, drawn slowly stroke by stroke, schematic and to no scale. A grey arrow rises on the left as a scale of “one trade’s mean return”. A dashed grey line crosses it, labelled “the trade’s real edge (unknown)”. A black dot above the line marks “the book’s years, where the chosen rule did well”, and a grey note on the right reads “if the book’s years ran high”. A black dot below the line marks “after the book”. Dashed grey guides run right from both dots. A long black bracket runs from the book’s dot down to the later dot’s level, “the fall as measured”, and a shorter purple bracket runs from the real edge down to the same level, “the fall the trade took”. Both brackets end at the later dot’s level, and the one measured from the raised dot is the longer. A grey note reads “schematic, drawn to no scale”. The finished drawing holds for twelve seconds.](../docs/figures/commodity_sketch_raised_start.gif)
 
 Publishing a trade can also fade its edge. Once a rule is in print, traders who read it can act before its dates, so the price move it relies on comes sooner and leaves less for anyone who waits for the date. McLean and Pontiff (2016) measured this for 97 published predictors of stock returns. Returns were 26% lower in the years after each study’s data ended but before it was published, and 58% lower after publication. They attribute the 32-percentage-point difference to traders acting on what was published. Their predictors are stock anomalies rather than commodity trades, so their sizes do not carry over to these two trades.
 
@@ -435,7 +443,7 @@ The same map from dates to contracts serves Chan’s calendar spreads, which [th
 
 ## What this replication cannot say
 
-Two questions are beyond it, on top of the checks under Further work below and what Lessons 1 and 2 leave open. Those lessons leave open where Chan’s counts start, which edition wrote them and the three missing gasoline rows.
+Two questions are beyond it, on top of the checks under Further work below and what Lessons 1 and 2 leave open. Those lessons leave open where Chan’s natural gas counts start, which sets the year each streak ends in, and whether the three gasoline years with a missing row were profits.
 
 1. **Whether Chan read the same contracts.** His sidebar names RB, the symbol RBOB trades under. Before RBOB began trading in October 2005, his series presumably held the older contract, as the run assumes. Chan does not name his data vendor.
 2. **Any year after 2023.** EIA’s RBOB and natural gas files end on 5 April 2024, before either trade’s 2024 exit date.
@@ -468,11 +476,11 @@ Varying each parameter is a check. A seventh check adds a parameter the rules la
 
 ### One search across every parameter
 
-Chan suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The same question applies to every parameter above. Changing any of them gives a variant of the trade. Trying variants until one works is a search, and the best of many variants can look profitable through chance alone. So the search needs three safeguards, which apply to every parameter below.
+Chan suggests trying somewhat different entry and exit dates to see whether the profits hold (p. 186). The same question applies to every parameter above. Changing any of them gives a variant of the trade. Trying variants until one works is a search, and the best of many variants can look profitable through chance alone. So the search needs three safeguards, which apply to every parameter.
 
 1. **The variants.** Every value of every parameter to be tried is written down before any is computed.
 2. **The pass mark.** It gets stricter the more variants the search tries. Neighbouring variants overlap. For example, two pairs of dates that share most of their holding period give results that rise and fall together. The pass mark has to stay valid when results move together like that.
-3. **The held-back years.** The New York Harbor gasoline contract-1 file begins in January 1985, and none of the run’s results comes from its Aprils before 1994. So 1985 to 1993 give nine years the search would never see. Chan may have seen them when he chose his dates, though, so they may not be new to the dates the search starts from. The contract-2 file begins only in January 1994, so those years cannot test a variant that reads it, such as the June contract in April or the May contract in March. Every natural gas year in EIA’s files is already used, so its held-back years would have to come after 2023, which the files do not reach.
+3. **The held-back years.** The New York Harbor gasoline contract-1 file begins in January 1985, and none of the run’s results comes from its Aprils before 1994. So 1985 to 1993 give nine years the search would never see. Chan may have seen those years when he chose his dates, though. If he did, he chose the dates the search starts from with them in view, so for those dates they are not out of sample. The contract-2 file begins only in January 1994, so those years cannot test a variant that reads it, such as the June contract in April or the May contract in March. Every natural gas year in EIA’s files is already used, so its held-back years would have to come after 2023, which the files do not reach.
 
 The search asks whether the neighbourhood of Chan’s rules holds up, not which neighbour does best.
 
@@ -484,11 +492,11 @@ Each date moves up to a set number of trading days either side of Chan’s, so e
 
 #### Time of day
 
-Every entry and exit in the run is a settlement price. Chan names no time of day for the natural gas exit, so the close there is the run’s own choice. Trading at the open or at a set hour instead needs prices from inside the day. EIA’s files hold only one price a day for each contract, and the run holds no other prices for these contracts. This post has not checked whether any vendor’s record of such prices reaches back to the 1990s.
+Every entry and exit in the run is a settlement price. Chan names no time of day for the natural gas exit, so the close there is the run’s own choice. Trading at the open or at a set hour instead needs prices from inside the day. EIA’s files hold only one price a day for each contract, and the run holds no other prices for these contracts. This post has not checked whether any vendor’s record of prices from inside the day reaches back to the 1990s.
 
 #### Delivery month
 
-If seasonal demand drives the gain, a neighbouring delivery month bought and sold on the same dates should share it. If only Chan’s month shows the gain, chance is the likelier cause. EIA’s files hold the nearest four contracts at a time. On every entry and exit date from 1994 to 2023, those include the June gasoline contract and the May natural gas contract, so this check needs no new data on those years. Neither trade’s other neighbour is in the files on every date. The April gasoline contract stops trading at the end of March, before the entry date, and the July natural gas contract is contract 5, one beyond EIA’s four, on most entry dates.
+If seasonal demand drives the gain, a neighbouring delivery month bought and sold on the same dates should share it. If only Chan’s month shows the gain, chance is the likelier cause. EIA’s files hold the nearest four contracts at a time. On every entry and exit date from 1994 to 2023, those include the June gasoline contract and the May natural gas contract, so this check needs no new data on those years. The June gasoline contract is one neighbour of Chan’s May, and the May natural gas contract is one neighbour of his June. Neither trade’s other neighbour is in the files on every trade date. The April gasoline contract stops trading at the end of March, before the entry date, and the July natural gas contract is contract 5, one beyond EIA’s four, on most entry dates.
 
 #### The rule for a closed date
 
@@ -502,7 +510,7 @@ Each year stakes one contract’s entry value, so every year counts equally in t
 
 #### A stop that ends a trade early
 
-Natural gas’s 2002 trade, the drawdown example near the top of the post, fell 22 points from its peak and still ended the year ahead. A stop limits a fall like that. Checked only at each day’s settlement, though, it sells after the fall has already passed the stop’s level. The drawback is that a stop also sells some trades that would have recovered, as 2002’s did. Each level of stop tried is one more variant.
+Natural gas’s 2002 trade, the drawdown example near the top of the post, fell 22 points from its peak and still ended the year ahead. A stop limits a fall like that. Checked only at each day’s settlement, though, it sells after the fall has already passed the stop’s level. The drawback is that a stop also sells some trades that would have recovered. 2002’s trade recovered after its fall, so a stop set at any smaller fall would have sold it before the recovery. Each level of stop tried is one more variant.
 
 ### Costs
 

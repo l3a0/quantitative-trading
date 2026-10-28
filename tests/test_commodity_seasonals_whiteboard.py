@@ -798,7 +798,7 @@ ONE_YEAR_LABELS = [
 RAISED_LABELS = [
     "one trade’s mean return",
     "the trade’s real edge (unknown)",
-    "the book’s years: chosen because they did well",
+    "the book’s years, where the chosen rule did well",
     "if the book’s years ran high",
     "after the book",
     "the fall as measured",
@@ -2531,7 +2531,7 @@ class TestTheRaisedStartSketch:
         inks = {
             "one trade’s mean return": MUTED,
             "the trade’s real edge (unknown)": MUTED,
-            "the book’s years: chosen because they did well": INK,
+            "the book’s years, where the chosen rule did well": INK,
             "if the book’s years ran high": MUTED,
             "after the book": INK,
             "the fall as measured": INK,
