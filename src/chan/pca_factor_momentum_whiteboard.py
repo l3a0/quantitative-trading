@@ -10,7 +10,7 @@ it draws.
 1. Tomorrow's own weights have already seen today's return, in Lesson 1: a day
    axis from t − 252 to t + 1 with today's and tomorrow's returns as dots, and
    three brackets over it. Day t's weights, black, cover the 252 days to
-   t − 1. Day t+1's weights, red, cover the 252 days to t, so their right end
+   t − 1. Day t + 1's weights, red, cover the 252 days to t, so their right end
    sits on today's return. Tomorrow's weights fitted on 251 days that leave
    today out, brass, run from the red bracket's left end to the black
    bracket's right end. Its foot prints PC2's statistic on tomorrow's own
@@ -144,7 +144,7 @@ class Window:
 
 #: Each bracket's window as the rows it covers, counted from day t, first and
 #: last. :func:`chan.pca_factor_momentum.decompose` fits day t's weights on the
-#: ``LOOKBACK`` rows before row t, so day t+1's own weights cover the rows to
+#: ``LOOKBACK`` rows before row t, so day t + 1's own weights cover the rows to
 #: t, and ``weight_statistics`` fits the weights that leave today out on the
 #: ``LOOKBACK - 1`` rows before row t.
 BRACKETS = {
@@ -169,8 +169,11 @@ WORDS_ABOVE, BRACKET_TICK = 0.38, 0.08
 #: print "≈" between them. The post calls the largest gap on that row, 0.0039,
 #: close.
 CLOSE = 0.005
-#: Where the foot's two columns start, and the heights of its two rows.
-WINDOW_FOOT_X, WINDOW_FOOT_Y = (0.3, 6.0), (0.85, 0.45)
+#: Where the foot's two columns start, and the heights of its three rows. The
+#: red and brass words share the first, the pair sits under the brass, and the
+#: grey words sit alone on the third, so no row reads across from them to the
+#: pair.
+WINDOW_FOOT_X, WINDOW_FOOT_Y = (0.3, 6.0), (0.88, 0.55, 0.22)
 
 
 def _day(offset: int) -> str:
@@ -241,7 +244,7 @@ def _window(w: Window) -> Scene:
     ]
     words = {
         "today": (f"day t’s weights: {LOOKBACK} days to t − 1", INK),
-        "tomorrow": (f"day t+1’s weights: {LOOKBACK} days to t", LOST),
+        "tomorrow": (f"day t + 1’s weights: {LOOKBACK} days to t", LOST),
         "left-out": (f"tomorrow’s weights, {LOOKBACK - 1} days, today left out", ACCENT),
     }
     for gid, (first, last) in BRACKETS.items():
@@ -283,7 +286,7 @@ def _window(w: Window) -> Scene:
         Label(
             f"{LOOKBACK - 1} days that hold today: {_signed(w.shortened)}",
             WINDOW_FOOT_X[0],
-            WINDOW_FOOT_Y[1],
+            WINDOW_FOOT_Y[2],
             names="tomorrow",
             color=MUTED,
             size=10,
@@ -392,7 +395,7 @@ BOX_HALF, PMC_LINES = 0.48, (0.16, -0.17)
 #: :attr:`RankShift.days`. Each bar's name sits under the baseline.
 BARS_BASE, SHARE_SCALE = 1.5, 2.4
 BAR_X = (7.15, 8.4, 9.3)
-BAR_WIDTH, NAMES_BELOW = 9.0, 0.36
+BAR_HALF, NAMES_BELOW = 0.13, 0.36
 #: Where the share's two lines start, and their heights.
 SHARE_X, SHARE_Y = 6.55, (3.3, 2.98)
 #: The heights of the sketch's two closing lines.
@@ -518,9 +521,8 @@ def _rank_shift(r: RankShift) -> Scene:
         steps.append(
             _stroke(
                 f"bar-{k}",
-                _line([(x, BARS_BASE), (x, BARS_BASE + SHARE_SCALE * height)], per_unit=40),
+                _box(x - BAR_HALF, BARS_BASE, x + BAR_HALF, BARS_BASE + SHARE_SCALE * height),
                 color=color,
-                width=BAR_WIDTH,
                 frames=3,
             )
         )
