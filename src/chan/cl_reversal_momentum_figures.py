@@ -139,7 +139,7 @@ def make_join_figure(
     _title(
         fig,
         "Exploratory: Chan's crude oil join against each of the two rules it joins",
-        "Algorithmic Trading, location 2701. CL_rev.m's rules compounded daily on Chan's "
+        "Algorithmic Trading, Kindle edition, p. 207. CL_rev.m's rules compounded daily on Chan's "
         "back-adjusted CL, with no cost.\n"
         f"The book's window reads {SOURCE_FILE}, the save the script loads, and the rows "
         f"before it\nread {EARLIER_SOURCE_FILE}. Those closes sit far above the traded "

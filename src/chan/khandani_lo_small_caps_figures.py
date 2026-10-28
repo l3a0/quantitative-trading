@@ -160,7 +160,7 @@ def make_khandani_lo_small_caps_figure(
     _title(
         fig,
         "Exploratory: Khandani and Lo's reversal on Chan's S&P 600 and S&P 500 files",
-        f"Quantitative Trading, locations 2137 and 2236, over {days[0].date()} to "
+        f"Quantitative Trading, Kindle edition, pp. 74 and 78, over {days[0].date()} to "
         f"{days[-1].date()}. The S&P 600 from {SOURCE_FILE},\nsaved {saved(SOURCE_FILE)}, and "
         f"the S&P 500 from {LARGE_CAP_FILE}, saved {saved(LARGE_CAP_FILE)}. Each line sums the "
         "day's profit over\nits own book's mean gross position for the year. The cost lines "

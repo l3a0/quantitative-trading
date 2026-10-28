@@ -125,7 +125,8 @@ class TestThePanels:
             "Exploratory: Chan's crude oil join against each of the two rules it joins"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, location 2701. CL_rev.m's rules compounded daily on Chan's "
+            "Algorithmic Trading, Kindle edition, p. 207. CL_rev.m's rules compounded daily on "
+            "Chan's "
             "back-adjusted CL, with no cost.\nThe book's window reads "
             "inputDataOHLCDaily_20120504.mat, the save the script loads, and the rows before "
             "it\nread inputDataOHLCDaily_20120507.mat. Those closes sit far above the traded "

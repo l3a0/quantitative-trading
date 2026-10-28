@@ -159,7 +159,7 @@ class TestTheFigure:
     ) -> None:
         assert figure._suptitle.get_text() == "Exploratory: VX against ES on VX's roll return"
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, location 2754. VX contracts from "
+            "Algorithmic Trading, Kindle edition, pp. 211 to 213. VX contracts from "
             "inputDataDaily_VX_20120507.mat, saved 2012-05-08.\nVIX from VIX.csv, saved "
             "2012-05-09. ES from inputDataOHLCDaily_20120507.mat, saved 2012-05-09.\nOne basis "
             "point of each day's change in market value is charged, and nothing on an entry "

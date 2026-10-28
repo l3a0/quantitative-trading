@@ -4,9 +4,9 @@
 
 ## Why test a claim that prints no number
 
-Ernest Chan’s *Quantitative Trading* names calendar spreads as “the simplest examples of cointegrating futures pairs” (Chan, 2021, location 3951). A calendar spread is a long position in one commodity’s futures for one delivery month and a short position in the same commodity for another. Two prices **cointegrate** when some combination of them keeps returning to a fixed average, which is what a trade on the spread between them needs. Chan prints no figure for the claim and works no example.
+Ernest Chan’s *Quantitative Trading* names calendar spreads as “the simplest examples of cointegrating futures pairs” (Chan, 2021, Kindle edition, p. 158). A calendar spread is a long position in one commodity’s futures for one delivery month and a short position in the same commodity for another. Two prices **cointegrate** when some combination of them keeps returning to a fixed average, which is what a trade on the spread between them needs. Chan prints no figure for the claim and works no example.
 
-His other book, *Algorithmic Trading*, published in 2013 between the two editions of *Quantitative Trading*, qualifies it. Calendar spreads “do not generally mean-revert”, he writes there (Chan, 2013, location 2321). A few pages on he finds one that does. The 12-month calendar spread of crude oil, taken in logs, keeps returning to its average at 99% confidence, with a **half-life** of 36 days, the time a gap from the average takes to close halfway (locations 2461 and 2471). So *Algorithmic Trading* doubts the claim in general and then finds an exception. This repository wrote that doubt down before computing any statistic, so neither verdict below can be presented afterwards as a surprise.
+His other book, *Algorithmic Trading*, published in 2013 between the two editions of *Quantitative Trading*, qualifies it. Calendar spreads “do not generally mean-revert”, he writes there (Chan, 2013, Kindle edition, p. 173). A few pages on he finds one that does. The 12-month calendar spread of crude oil, taken in logs, keeps returning to its average at 99% confidence, with a **half-life** of 36 days, the time a gap from the average takes to close halfway (pp. 182 and 184). So *Algorithmic Trading* doubts the claim in general and then finds an exception. This repository wrote that doubt down before computing any statistic, so neither verdict below can be presented afterwards as a surprise.
 
 A sentence with no number is still a claim a reader might act on, so it is worth checking. This repository tested every pair of neighbouring contracts in the free settlement prices the US Energy Information Administration (EIA) publishes for natural gas and RBOB gasoline futures, both traded on the New York Mercantile Exchange (NYMEX). In short:
 
@@ -145,8 +145,8 @@ In *Algorithmic Trading* Chan said calendar spreads do not generally mean-revert
 
 ## References
 
-- Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Kindle locations 2321, 2461 and 2471.
-- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Kindle location 3951.
+- Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 173, 182 and 184 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
+- Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Page 158 cited. The page number is the Kindle edition’s.
 - Engle, R. F., & Granger, C. W. J. (1987). Co-integration and error correction: Representation, estimation, and testing. *Econometrica*, 55(2), 251–276.
 - US Energy Information Administration. NYMEX futures settlement prices, daily, for Henry Hub natural gas and RBOB gasoline, contracts 1 to 4. Downloaded 2 October 2026.
 

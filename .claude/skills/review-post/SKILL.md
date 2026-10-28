@@ -232,7 +232,10 @@ comment reports that too.
    precision printed. Recompute what can be recomputed, by calling the post's
    module on the committed data rather than reading a number off a test.
    Check a quotation against `research/book-notes/`, which holds the book's
-   highlights by Kindle location, and name any the repository cannot check. A
+   highlights by Kindle location, and name any the repository cannot check.
+   Posts cite the Kindle edition's page numbers, so check a page citation
+   against the `*-kindle-pages.csv` beside each note, which maps every
+   highlight's location to the pages it starts and ends on. A
    claim about what this repository did or did not do is checked against the
    repository, including the open issues collected above. A claim of logic,
    such as "only if", is checked as logic.

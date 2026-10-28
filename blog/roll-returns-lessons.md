@@ -4,13 +4,13 @@
 
 ## Why split a future’s return in two
 
-On the day a futures contract expires, its price has to equal the spot price, the price of the thing it is written on. So a future can earn or lose money while the spot price stands still. If the contract trades above the spot today, it must drift down to meet the spot, and if it trades below, it must drift up. Ernest Chan calls that drift the **roll return**, and in *Algorithmic Trading* he writes that it is “an intrinsic part of its total return” (Chan, 2013, Kindle location 2326). The rest of the total return is the **spot return**, the move of the spot price itself.
+On the day a futures contract expires, its price has to equal the spot price, the price of the thing it is written on. So a future can earn or lose money while the spot price stands still. If the contract trades above the spot today, it must drift down to meet the spot, and if it trades below, it must drift up. Ernest Chan calls that drift the **roll return**, and in *Algorithmic Trading* he writes that it is “an intrinsic part of its total return” (Chan, 2013, Kindle edition, p. 173). The rest of the total return is the **spot return**, the move of the spot price itself.
 
-The direction of the drift has a name. When the contracts nearest to expiry trade above the later ones, the market is in **backwardation**, and a holder earns a positive roll return as each contract climbs toward the spot. When the near contracts trade below the later ones, the market is in **contango**, and the roll return is negative (location 2326).
+The direction of the drift has a name. When the contracts nearest to expiry trade above the later ones, the market is in **backwardation**, and a holder earns a positive roll return as each contract climbs toward the spot. When the near contracts trade below the later ones, the market is in **contango**, and the roll return is negative (p. 173).
 
-The split matters because it decides what a trader earns. Chan’s example is an ETF of commodity producers. Such an ETF usually **cointegrates** with the commodity’s spot price, meaning the two keep a stable long-run relation. It may still not cointegrate with the commodity’s futures price, because the roll return separates the future from the spot. Chan writes that misjudging this “cost me more than \$100,000 in trading loss” in 2006, his first year trading on his own (location 2385).
+The split matters because it decides what a trader earns. Chan’s example is an ETF of commodity producers. Such an ETF usually **cointegrates** with the commodity’s spot price, meaning the two keep a stable long-run relation. It may still not cointegrate with the commodity’s futures price, because the roll return separates the future from the spot. Chan writes that misjudging this “cost me more than \$100,000 in trading loss” in 2006, his first year trading on his own (p. 178).
 
-Chapter 6 then leans on the split to explain why some futures trend. Their roll returns keep one sign for long stretches and outweigh their spot returns (location 2683).
+Chapter 6 then leans on the split to explain why some futures trend. Their roll returns keep one sign for long stretches and outweigh their spot returns (p. 206).
 
 ### What the reproduction found
 
@@ -31,7 +31,7 @@ The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/q
 
 ## The model and the files
 
-Chan’s model assumes both returns are constant (location 2364). On a log scale a steady percentage return draws a straight line, so the model works with log prices, the natural logarithm of each price. Take a contract that expires at time T, priced on day t. Its log price is a constant, plus the spot return α times the date t, minus the roll return γ times the time left to expiry. The book calls that time the time to maturity. In symbols:
+Chan’s model assumes both returns are constant (pp. 176 to 177). On a log scale a steady percentage return draws a straight line, so the model works with log prices, the natural logarithm of each price. Take a contract that expires at time T, priced on day t. Its log price is a constant, plus the spot return α times the date t, minus the roll return γ times the time left to expiry. The book calls that time the time to maturity. In symbols:
 
 ```math
 \ln F(t, T) = c + \alpha\, t - \gamma\, (T - t)
@@ -39,7 +39,7 @@ Chan’s model assumes both returns are constant (location 2364). On a log scale
 
 Two readings of that one equation give the two returns.
 
-1. **Hold one contract.** T is fixed, so as t moves forward a year the log price rises by α from the spot and by γ from the shrinking time to expiry. The contract’s total return is α + γ, which is the sentence “total return = spot return + roll return” in symbols (location 2364).
+1. **Hold one contract.** T is fixed, so as t moves forward a year the log price rises by α from the spot and by γ from the shrinking time to expiry. The contract’s total return is α + γ, which is the sentence “total return = spot return + roll return” in symbols (p. 177).
 2. **Hold one day.** Every contract trading that day shares t, so that day’s log prices lie on a straight line against each contract’s time to expiry, with slope −γ. Positive γ means the later contracts are cheaper, which is backwardation.
 
 ![An animated whiteboard sketch titled “One line, read two ways”, drawn slowly stroke by stroke. It is schematic and carries no figures from the run. A grey axis across is labelled “date t” and a grey axis up is labelled “log price”. A black line rising gently from left to right is labelled “spot: rises at the spot return”. Three grey lines start lower at the left edge, each below the one before. Each climbs more steeply than the spot line until it meets the spot line and ends in a grey dot. The first meets it about a third of the way across, the second past the middle and the third near the right end. A grey label reads “each contract ends at the spot”. The lowest grey line is then retraced in brown with an arrowhead where it meets the spot line, labelled “hold one contract: spot return + roll return”. A dashed black vertical line near the left edge crosses all four lines, with a black dot at each crossing, the spot highest and each later contract lower. A black label beneath reads “hold one day: one roll return lower per year to expiry”, and a last green label reads “roll return above 0: backwardation”. The finished drawing holds for twelve seconds.](../docs/figures/roll_returns_sketch_one_line.gif)
@@ -49,7 +49,7 @@ Two readings of that one equation give the two returns.
 Two kinds of regression estimate the two returns. Each fits a straight line through points and reads off its slope.
 
 1. **The spot return α** is the slope of the log spot price against the day number, which counts the trading days 1, 2, 3 and on. That slope is a return per trading day, and multiplying it by 252 trading days a year turns it into a return per year.
-2. **The roll return γ** comes from one day at a time. On each day, the script takes from the file the five contracts nearest to expiry that have prices that day, provided no contract between them lacks a price. Their prices that day trace the day’s **forward curve**, which location 2399 glosses as “the future price as a function of maturity date”. The book says to fit that curve against time to maturity, measured in months. The script fits the log prices, since the model says they lie on a straight line, and multiplies the fitted slope by −12. The 12 turns a slope per month into a return per year, and the minus sign turns the slope, which is −γ, into γ. The figure the table reports is the mean of γ over every day the fit runs. Lesson 2 shows that the script fits against something simpler than months.
+2. **The roll return γ** comes from one day at a time. On each day, the script takes from the file the five contracts nearest to expiry that have prices that day, provided no contract between them lacks a price. Their prices that day trace the day’s **forward curve**, which Chan glosses on p. 179 as “the future price as a function of maturity date”. The book says to fit that curve against time to maturity, measured in months. The script fits the log prices, since the model says they lie on a straight line, and multiplies the fitted slope by −12. The 12 turns a slope per month into a return per year, and the minus sign turns the slope, which is −γ, into γ. The figure the table reports is the mean of γ over every day the fit runs. Lesson 2 shows that the script fits against something simpler than months.
 
 ### The data files
 
@@ -107,7 +107,7 @@ Neither miss changes what the book uses the table to argue, which is the two cla
 
 ## Lesson 2: the script counts contracts, not months
 
-Location 2399 says the fit runs against each contract’s time to maturity, “measured in months”. The script does something simpler. It numbers the five contracts 1 to 5 in order of expiry, regresses their log prices on those numbers, and multiplies the slope by −12. That treats neighbouring contracts as one month apart. For a future with a contract every month, the script’s fit and the fit in months agree. For one without, they do not.
+On p. 179 Chan says the fit runs against each contract’s time to maturity, “measured in months”. The script does something simpler. It numbers the five contracts 1 to 5 in order of expiry, regresses their log prices on those numbers, and multiplies the slope by −12. That treats neighbouring contracts as one month apart. For a future with a contract every month, the script’s fit and the fit in months agree. For one without, they do not.
 
 A made-up example shows how large the difference is. Build a forward curve with a roll return of exactly 0.03 a year on quarterly contracts, March, June, September, December and the next March. Neighbouring contracts are three months apart, so the price falls three months’ worth from one to the next. The fit in months recovers 0.03. The script’s fit reads that three-month step as one month’s and returns 0.09, three times too large.
 
@@ -137,14 +137,14 @@ The fit in months gives this, beside the script’s fit.
 
 BR’s and CL’s agree to within 10⁻¹³, as monthly contracts must. Table 5.1 overstates C’s roll return by 2.4 times, HG’s by 2.0 and TU’s by 3.0.
 
-Nothing here scores the figures from the fit in months as a pass or a fail. Chan printed none for them, and they are this repository’s reading of his sentence at location 2399. The script’s figures are the ones that match, so the script is what printed Table 5.1.
+Nothing here scores the figures from the fit in months as a pass or a fail. Chan printed none for them, and they are this repository’s reading of his sentence on p. 179. The script’s figures are the ones that match, so the script is what printed Table 5.1.
 
 ## Lesson 3: with maturity measured in months, each of the book’s two claims fails for one future
 
 The book draws two claims from the table.
 
-1. **Location 2399** says that for BR, C and TU, the magnitude of the roll return is “much larger than that of the spot returns”. The replication read “much larger” as at least twice. It [wrote that pass mark down](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-27-spot-and-roll-returns-of-five-futures-chans-algorithmic-trading) before its code existed, though after a first rough run had already measured the figures.
-2. **Location 2683** says BR, HG and TU have roll returns “bigger in magnitude than their spot returns”, which is how Chapter 6 explains why they trend.
+1. **On p. 181** Chan says that for BR, C and TU, the magnitude of the roll return is “much larger than that of the spot returns”. The replication read “much larger” as at least twice. It [wrote that pass mark down](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-27-spot-and-roll-returns-of-five-futures-chans-algorithmic-trading) before its code existed, though after a first rough run had already measured the figures.
+2. **On p. 206** Chan says BR, HG and TU have roll returns “bigger in magnitude than their spot returns”, which is how Chapter 6 explains why they trend.
 
 Under the script’s γ, both hold. BR is the narrowest case for the first claim, with a roll return 4.02 times its spot return, so the pass does not depend on exactly where the pass mark of twice sits. CL is the one future whose roll return is smaller than its spot return, and neither claim names it.
 
@@ -164,11 +164,11 @@ The figure below sets out Lessons 2 and 3 in its upper panel, each future’s sp
 
 ![Two charts stacked. The upper chart is a bar chart with five groups, BR, C, CL, HG and TU, each holding three bars in percent per year. A grey bar shows the size of the spot return, a brown bar the script’s roll return, and a green bar the roll return with maturity in months. For BR the brown and green bars are equal at about 10.8, well above a dashed red tick at twice the grey bar. For C the brown bar reaches about 12.8 while the green bar, about 5.3, sits just under the dashed tick at twice the 2.8 spot return. For CL all three bars are near 7. For HG the brown bar is about 7.7, above the grey bar of about 5.1, while the green bar of about 3.9 falls below it. For TU the grey bar and its dashed tick both sit at almost zero, the brown bar is about 3.2 and the green about 1.1. The lower chart plots CL’s daily roll return from late 2004 to August 2012 as a thin black line around a horizontal zero line. Areas above zero are shaded green and areas below shaded red. The line sits just above zero, shaded green, until December 2005 and near zero into early 2006, then dips below zero from mid-2006 to about −0.3 in the first half of 2007, rises above zero to about 0.15 from mid-2007 to mid-2008, spikes briefly to about 0.26 in September 2008, then plunges to about −1.1 in January 2009. It stays below zero, with dips to between −0.2 and −0.5, until late 2011, and ends just below zero. A dashed brown line marks the mean of −0.070592. The title calls the redraw exploratory.](../docs/figures/roll_returns.png)
 
-*Each future’s spot return and two roll returns, with a tick at twice the spot return where location 2399’s claim applies, and CL’s roll return day by day, redrawn on Chan’s files saved 2012-08-14. The upper panel redraws Table 5.1 with the roll return from the fit in months beside it, and the lower panel redraws the book’s Figure 5.5, CL’s roll return from November 22, 2004, to August 13, 2012.*
+*Each future’s spot return and two roll returns, with a tick at twice the spot return where Chan’s claim on p. 181 applies, and CL’s roll return day by day, redrawn on Chan’s files saved 2012-08-14. The upper panel redraws Table 5.1 with the roll return from the fit in months beside it, and the lower panel redraws the book’s Figure 5.5, CL’s roll return from November 22, 2004, to August 13, 2012.*
 
 ## Lesson 4: the average hides a roll return that drifts and changes sign
 
-Table 5.1 prints one number per future, and the model behind it says γ is constant. Chan himself says the estimate will not be constant: the fit depends on the day and the contracts trading then, so “we will still end up with a slowly varying estimated γ” (location 2399). The lower panel of the figure shows how far it varies for CL.
+Table 5.1 prints one number per future, and the model behind it says γ is constant. Chan himself says the estimate will not be constant: the fit depends on the day and the contracts trading then, so “we will still end up with a slowly varying estimated γ” (p. 179). The lower panel of the figure shows how far it varies for CL.
 
 1. **Mostly contango.** CL’s γ is negative on 1,388 of its 1,941 days and positive on 552. On the remaining day, 2006-01-05, the five prices rise and fall back evenly, from 65.38 to 65.41 and back to 65.38, so the fitted slope and γ are zero apart from rounding.
 2. **Long runs, with many breaks.** It changes sign 29 times. Its longest run of one sign is contango, from 2008-10-09 to 2011-10-21, 766 trading days.
@@ -176,7 +176,7 @@ Table 5.1 prints one number per future, and the model behind it says γ is const
 
 CL’s file holds no contract earlier than January 2007. So until that contract expired on 2006-12-19, the five nearest in the file were always the January to May 2007 contracts, more than two years out when the panel starts and about a year out on 2006-01-05. For most of the time before 2006-12-19, the market’s nearest contracts, the ones a holder sells and replaces as each nears expiry, are not in the file.
 
-Chapter 6’s explanation needs the sign to stay put. Location 2683 says “the sign of roll returns does not vary very often”, so holding a future for a long time collects a roll return of one sign. BR and HG, both named there, differ sharply on that.
+Chapter 6’s explanation needs the sign to stay put. On p. 206 Chan says “the sign of roll returns does not vary very often”, so holding a future for a long time collects a roll return of one sign. BR and HG, both named there, differ sharply on that.
 
 1. **BR’s γ** is negative on 3 of its 4,210 days.
 2. **HG’s γ** is positive on 3,139 of its 6,028 days, a little over half, and changes sign 198 times, against CL’s 29.
@@ -202,8 +202,8 @@ One habit for each lesson.
 
 ## References
 
-1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.3, Table 5.1, Figure 5.5 and Kindle locations 2326, 2364, 2385, 2399 and 2683.
+1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Example 5.3, Table 5.1 and Figure 5.5, with pages 173, 176 to 179, 181 and 206 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. `estimateFuturesReturns.m`, at commit `e4bc46f` of ericnberwick/EpchanPreview, a public copy of Chan’s code, and `estimateFuturesReturns.py` in `PythonCodesAndData.zip` at the same commit, his 2018 Python port.
-3. Hull, J. C. (1997). *Options, Futures, and Other Derivatives*. Prentice Hall. Location 2364 cites it for the model of a futures price.
+3. Hull, J. C. (1997). *Options, Futures, and Other Derivatives*. Prentice Hall. Chan cites it on p. 176 for the model of a futures price.
 
 *Not investment advice. Code: [the spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/roll_returns.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/roll_returns_figures.py), with the checks behind [the example’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_roll_returns.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_roll_returns_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-27-spot-and-roll-returns-of-five-futures-chans-algorithmic-trading) that sets each of Chan’s figures beside the one reproduced here.*

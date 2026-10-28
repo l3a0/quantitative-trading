@@ -97,7 +97,7 @@ class TestTheFigure:
             "Exploratory: VX against ES from August 2008, on Chan's 2012-05-07 save"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, locations 2546 to 2559. Closes from "
+            "Algorithmic Trading, Kindle edition, pp. 191 to 194. Closes from "
             "inputDataOHLCDaily_20120507.mat, saved 2012-05-09.\nThe save and the exit were "
             "chosen because they land the printed figures, so the match is partly built in."
         ]

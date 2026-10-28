@@ -191,7 +191,8 @@ class TestTheFigure:
             "members from 2009"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Quantitative Trading, locations 4684 and 4709. Left: stocks from SPX_20071123.mat, "
+            "Quantitative Trading, Kindle edition, pp. 189 and 191. Left: stocks from "
+            "SPX_20071123.mat, "
             "saved 2007-11-24, survivors only, and SPY from spy_chan.csv. Not a holdout.\n"
             "Right: IVV's members at each month-end, Alpha Vantage adjusted closes downloaded "
             "2026-10-05, and SPY's downloaded 2026-10-11, in a private archive. A holdout.\n"

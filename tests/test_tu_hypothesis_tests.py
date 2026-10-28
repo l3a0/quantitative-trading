@@ -804,8 +804,8 @@ class TestWhatThePostQuotes:
     explains. The figure's own labels are read by
     ``tests/test_tu_hypothesis_tests_figures.py``.
 
-    Also unread are Chan's words and the Kindle locations, the book's chapter
-    and example numbers, location 2923's 12 percent, TU's two-year term, the
+    Also unread are Chan's words and the Kindle pages, the book's chapter
+    and example numbers, the 12 percent on pages 226 to 227, TU's two-year term, the
     first section's eight years, the replication log's entry number, the
     post's counts of its own results, lessons, tests,
     assumptions, moments and questions, the normal distribution's kurtosis of

@@ -268,8 +268,8 @@ def make_xle_uso_roll_return_figure(
     _title(
         fig,
         "Exploratory: XLE against USO signed by crude oil's contango",
-        f"Algorithmic Trading, location 2734. USO and XLE from {ETF_FILE}, saved "
-        f"{', '.join(etf_saved)}, which subtracts dividends in dollars.\nContracts from "
+        f"Algorithmic Trading, Kindle edition, p. 209. USO and XLE from {ETF_FILE}, saved "
+        f"{', '.join(etf_saved)},\nwhich subtracts dividends in dollars. Contracts from "
         f"{STRIP_FILE}, saved {', '.join(strip_saved)}. No cost is charged.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.09)
