@@ -1229,3 +1229,164 @@ class TestChansPythonPort:
             "long on 1 days, short on 1, flat on 1, both tests passed on 1"
         )
         assert lines[-1] == "  Exploratory. docs/replication-log.md carries the verdicts."
+
+
+POST = paths.REPO_ROOT / "blog" / "opening-gap-lessons.md"
+
+
+def _f(value: float) -> str:
+    """A figure at six decimals, with the true minus sign the post's prose uses."""
+    printed = f"{abs(value):.6f}"
+    return f"−{printed}" if value < 0 else printed
+
+
+def _tex(value: float) -> str:
+    """A figure at six decimals as a table cell writes it, with an ASCII minus."""
+    return f"{value:.6f}"
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure in ``blog/opening-gap-lessons.md``, read from the post itself.
+
+    The tests above derive these numbers and the post states them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review shifted 108 numbers in it at once, and none failed a test. Each
+    check reads one copy, keyed on a short phrase or a table row, so another
+    copy of the same figure elsewhere in the post, such as in the alt text, is
+    not read.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_two_readings_table(self, result) -> None:
+        lit, mom = result.literal_figures, result.momentum_figures
+        end_lit = float(np.prod(1 + result.literal) - 1)
+        end_mom = float(np.prod(1 + result.momentum) - 1)
+        for row in (
+            rf"\text{{APR}} & {_tex(lit.apr)} & {_tex(mom.apr)} \\",
+            rf"\text{{Sharpe ratio}} & {_tex(lit.sharpe)} & {_tex(mom.sharpe)} \\",
+            rf"\text{{Cumulative return}} & {_tex(end_lit)} & {_tex(end_mom)} \\",
+            rf"\text{{Maximum drawdown}} & {_tex(lit.max_drawdown)} & {_tex(mom.max_drawdown)} \\",
+            rf"\text{{Longest drawdown}} & {lit.max_drawdown_days} \text{{ days}} & "
+            rf"{mom.max_drawdown_days:,}".replace(",", "{,}") + r" \text{ days}",
+        ):
+            assert row in self.text, row
+
+    def test_the_printed_figures_table_and_the_opening_list(self, result) -> None:
+        lit, mom = result.literal_figures, result.momentum_figures
+        assert (
+            rf"\text{{Computed}} & {_tex(lit.apr)} & {_tex(lit.sharpe)} & "
+            rf"{_tex(lit.average_annual_return)} \\"
+        ) in self.text
+        assert f"The APR is {_f(lit.apr)} and the Sharpe ratio {_f(lit.sharpe)}," in self.text
+        assert f"earn an APR of {_f(mom.apr)} and a Sharpe ratio of {_f(mom.sharpe)}." in self.text
+        assert f"and 252 times the mean daily return, {_f(lit.average_annual_return)}." in self.text
+
+    def test_the_days_in_the_market(self, result) -> None:
+        held = result.positions != 0
+        long, short = int((result.positions == 1).sum()), int((result.positions == -1).sum())
+        flat = int((result.positions == 0).sum())
+        n = len(result.positions)
+        assert f"It holds a position on {int(held.sum())} of {n:,} days." in self.text
+        assert f"long on {long}, short on {short} and flat on {flat:,}." in self.text
+        assert (
+            f"The mean return on a day holding a position is {_f(result.literal[held].mean())}."
+        ) in self.text
+
+    def test_the_first_trade_and_the_days_after_it(self, result) -> None:
+        first = int(np.argmax(result.positions != 0))
+        assert f"On {result.days[first].date()}, the first day holding a position" in self.text
+        assert f"the literal reading gains {_f(result.literal[first])}" in self.text
+        assert f"Over the {len(result.days) - first:,} days from then" in self.text
+
+    def test_the_sides_table_and_its_prose(self, prices, result) -> None:
+        sides, moves = by_side(result), open_to_close(prices, result)
+        long, short = sides["long"], sides["short"]
+        for row in (
+            rf"\text{{Days}} & {long.days} & {short.days} \\",
+            rf"\text{{Daily returns, summed}} & {_tex(long.summed)} & {_tex(short.summed)} \\",
+            rf"\text{{Compounded}} & {_tex(long.compounded)} & {_tex(short.compounded)} \\",
+            rf"\text{{APR}} & {_tex(long.figures.apr)} & {_tex(short.figures.apr)} \\",
+            rf"\text{{Sharpe ratio}} & {_tex(long.figures.sharpe)} & "
+            rf"{_tex(short.figures.sharpe)} \\",
+            rf"\text{{FSTX’s mean move}} & {_tex(moves['long'].mean)} & "
+            rf"{_tex(moves['short'].mean)} \\",
+            rf"\text{{Closes against the jump}} & {moves['long'].below} & {moves['short'].above}",
+        ):
+            assert row in self.text, row
+        total = float(result.literal.sum())
+        assert f"they earn {_f(long.summed)} of the {_f(total)} that all" in self.text
+        assert (
+            f"One plus the long side’s {_f(long.compounded)}, times one plus the short side’s "
+            f"{_f(short.compounded)}, gives one plus the whole curve’s "
+            f"{_f(float(np.prod(1 + result.literal) - 1))}."
+        ) in self.text
+        assert f"closed below the open on {moves['long'].below} of the {long.days} days" in (
+            self.text
+        )
+        assert f"closed above the open on {moves['short'].above} of the {short.days}." in self.text
+        assert (
+            f"On the {moves['flat'].days:,} flat days after the first 90, its mean move from "
+            f"the open is {_f(moves['flat'].mean)}."
+        ) in self.text
+
+    def test_the_saves_table(self, prices, earlier) -> None:
+        runs = {"20120507": earlier["20120507"], "20120511": earlier["20120511"], "20120517": prices}
+        figs = {save: opening_gap(frame).literal_figures for save, frame in runs.items()}
+        order = ("20120507", "20120511", "20120517")
+        assert (
+            r"\text{From} & "
+            + " & ".join(rf"\text{{{runs[s].index[0].date()}}}" for s in order)
+            + r" \\"
+        ) in self.text
+        assert (
+            r"\text{To} & "
+            + " & ".join(rf"\text{{{runs[s].index[-1].date()}}}" for s in order)
+            + r" \\"
+        ) in self.text
+        assert (r"\text{APR} & " + " & ".join(_tex(figs[s].apr) for s in order) + r" \\") in (
+            self.text
+        )
+        assert (r"\text{Sharpe} & " + " & ".join(_tex(figs[s].sharpe) for s in order)) in (
+            self.text
+        )
+
+    def test_the_two_causes(self, prices, earlier) -> None:
+        older, newer = earlier["20120507"], earlier["20120511"]
+        window = opening_gap(older).literal_figures.apr - opening_gap(newer).literal_figures.apr
+        alike = older.index.intersection(newer.index)
+        assert f"identically on all {len(alike):,} days they share" in self.text
+        assert f"the window moves the APR by {_f(window)}." in self.text
+        restated = newer.index.intersection(prices.index)
+        moved = (prices.loc[restated, "Close"] - newer.loc[restated, "Close"]).to_numpy()
+        agree = restated[moved == 0]
+        nonzero = len(set(np.round(moved, 6)) - {0.0})
+        assert f"saves share {len(restated):,} days. On all but {len(agree)} of them" in self.text
+        assert f"the differences take {nonzero} distinct values" in self.text
+        assert f"the last {len(agree)} shared days, from {agree[0].date()}, do not move" in (
+            self.text
+        )
+        shared = on_shared_days(prices, newer)
+        assert (
+            f"a different position on {shared.differ} days, and the APR moves from "
+            f"{_f(shared.other.apr)} to {_f(shared.one.apr)}, by "
+            f"{_f(shared.one.apr - shared.other.apr)}."
+        ) in self.text
+
+    def test_the_port(self, result, port) -> None:
+        up = result.positions == SIDES["long"]
+        short = port.positions == SIDES["short"]
+        n = len(port.positions)
+        assert (
+            f"It is short on {int(short.sum()):,} of the {n:,} days, every one of the "
+            f"{int(up.sum())} upward jumps among them."
+        ) in self.text
+        other = short & ~up
+        assert (
+            f"They sum to {_f(float(port.returns[up].sum()))}, and the port’s other "
+            f"{int(other.sum()):,} short days sum to {_f(float(port.returns[other].sum()))}."
+        ) in self.text
+        assert (
+            f"among them an APR of {_f(port.figures.apr)} and a Sharpe ratio of "
+            f"{_f(port.sharpe)}."
+        ) in self.text

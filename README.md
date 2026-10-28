@@ -7461,8 +7461,8 @@ pins.
 
 1. The script's return line pays a long when the price falls from the open,
    so it sells an upward jump and buys a downward one, against the text's
-   description. Chan's Python port takes the text's sign, and a flipped short
-   test has it sell every upward jump all the same.
+   description. Chan's Python port takes the text's sign, but it also flips
+   the script's short test, so it still sells every upward jump.
 2. Both printed figures land on the script as written, 252 times the mean
    also rounds to 13 percent, and the first edition's `smartstd` changes no
    position.
@@ -7503,9 +7503,8 @@ Five groups of what it says are not pinned here.
    would erase the mean, and that a split by year was measured and left out.
 4. Figures the post states in words or rounds from pinned ones, such as 12
    percent a year, about three quarters, fewer than a quarter and about a
-   quarter of the days, the upward jumps reversing more strongly, and Chan
-   saving at least three dated versions of the file. The figure's alt text
-   reads its curves approximately too.
+   quarter of the days, and the upward jumps reversing more strongly. The
+   figure's alt text reads its curves approximately too.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -7529,7 +7528,9 @@ Eleven had no pin before the post.
 3. The 2012-05-07 and 2012-05-11 saves price all four fields alike on the
    1,997 days they share, and the window alone moves the APR by 0.002017.
 4. The 2012-05-11 save differs from the 2012-05-17 save on each of the four
-   fields on all but 45 of 1,996 days, by 24 distinct amounts.
+   fields on all but 45 of 1,996 days, by 24 distinct amounts, and the 45
+   are the last 45, from 2012-03-07. The post's review added that last
+   date.
 5. With the 2012-05-11 save run from 2004-07-16, the 2012-05-17 save's first
    day, the two runs hold a different position on 6 of those 1,996 days,
    with an APR of 0.133016 and a Sharpe ratio of 1.443075 against 0.130360
@@ -7553,6 +7554,13 @@ Eleven had no pin before the post.
     2004-11-18, the long days' end of 1.084422 first reached on 2012-05-02,
     and the short days' end of 0.290022 on 2012-05-07 after a high of
     0.176401 on 2008-07-08 and a low of −0.038153 on 2009-02-20.
+
+`TestThePostQuotesTheRun` in
+[tests/test_opening_gap.py](tests/test_opening_gap.py) reads one copy of each
+of the post's figures from the post itself and checks it against the run:
+every table row, the days in the market, the first trade, the two sides, the
+two causes in Lesson 4 and the port's figures. A second copy of a figure, such
+as one in the alt text or the opening list, is not always read.
 
 Its one figure is drawn from the committed vintage by
 [src/chan/opening_gap_figures.py](src/chan/opening_gap_figures.py), which
