@@ -1299,8 +1299,10 @@ the mean return on a held day, each side's returns and FSTX's move from the
 open on long, short and flat days, and the port earning the script's returns
 on every upward jump. On synthetic days it holds the split by side, the move
 from the open, and two saves run from the same first day so their windows
-cannot differ. The blog post about it is the exception, and what it says
-that nothing here asserts is listed below.
+cannot differ. `TestThePostQuotesTheRun` reads one copy in the post of each
+figure the post takes from the run, so editing a copy it reads fails. The
+section on the post below says which copies it leaves unread, and what the
+post says that nothing here asserts.
 
 [tests/test_vx_es_roll_return.py](tests/test_vx_es_roll_return.py) does it
 for VX against ES on VX's roll return. It pins the eight figures of both

@@ -470,7 +470,7 @@ class TestWhatThePostMeasures:
         assert apr["20120507"] - apr["20120511"] == pytest.approx(0.002017, abs=5e-7)
 
     def test_each_move_is_over_ten_times_the_comment_s_last_digit(self, prices, earlier) -> None:
-        """The comment prints four decimals, so its last digit is 0.0001."""
+        """The comment records four decimals, so its last digit is 0.0001."""
         last_digit = 10.0 ** -len(SCRIPT_APR.split(".")[1])
         assert last_digit == pytest.approx(0.0001)
         shared = on_shared_days(prices, earlier["20120511"])
@@ -1375,6 +1375,11 @@ class TestThePostQuotesTheRun:
         window = opening_gap(older).literal_figures.apr - opening_gap(newer).literal_figures.apr
         alike = older.index.intersection(newer.index)
         assert f"identically on all {len(alike):,} days they share" in self.text
+        assert "1. **The window alone.** The 2012-05-07 and 2012-05-11 saves price" in self.text
+        assert (
+            "2. **The restated prices alone.** The 2012-05-11 and 2012-05-17 saves share"
+            in self.text
+        )
         assert f"the window moves the APR by {_f(window)}." in self.text
         restated = newer.index.intersection(prices.index)
         moved = (prices.loc[restated, "Close"] - newer.loc[restated, "Close"]).to_numpy()
@@ -1434,6 +1439,9 @@ class TestThePostQuotesTheRun:
         peak = int(np.argmax(short[:low]))
         assert momentum[trough] > momentum[high]
         for phrase in (
+            "as a solid black line, beside the same trades with the sign the text describes "
+            "as a red line",
+            "The title calls the figure exploratory.",
             f"with a brief rise in late {days[trough]:%Y}",
             f"from {days[0]:%B %Y} to {days[-1]:%B %Y}",
             f"covers the first {SPREAD_LOOKBACK} days, to {days[SPREAD_LOOKBACK - 1].date()},",
@@ -1488,6 +1496,7 @@ class TestThePostQuotesTheRun:
         places = len(SCRIPT_APR.split(".")[1])
         unit = 10.0**-places
         assert f"one unit of the comment’s last printed digit, {unit:.{places}f}." in self.text
+        assert "Each move is more than ten times one unit" in self.text
         window = (
             opening_gap(earlier["20120507"]).literal_figures.apr
             - opening_gap(earlier["20120511"]).literal_figures.apr

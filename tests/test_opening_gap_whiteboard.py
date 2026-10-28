@@ -76,6 +76,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from chan.vintage import VintageUnavailable
 
 POST = REPO_ROOT / "blog" / "opening-gap-lessons.md"
 
@@ -491,6 +492,21 @@ class TestTheWorkedDaySketch:
         ):
             assert text in labels, text
 
+    def test_a_made_up_day_keeps_its_open_level_and_its_scale(self) -> None:
+        """An open other than 100 still sits at the board's open height, and
+        each arrow is as long as its move on the shared scale."""
+        made_up = worked_days(open_=50.0, long_close=40.0, short_close=65.0)
+        scene = sketches._two_signs(made_up)
+        for day in made_up:
+            assert set(np.round(_stroke(scene, f"{day.side}-open").y, 12)) == {
+                round(sketches.OPEN_Y, 12)
+            }
+            move = _stroke(scene, f"{day.side}-move")
+            tip = move.y[np.argmax(np.abs(move.y - sketches.OPEN_Y))]
+            assert tip - sketches.OPEN_Y == pytest.approx(
+                sketches.PER_POINT * (day.close - day.open)
+            )
+
     def test_its_colours(self, every) -> None:
         scene = every[0]
         for side in ("long", "short"):
@@ -589,6 +605,12 @@ class TestThePortCounts:
         assert PortCounts.from_port(made_up) == PortCounts(long=1, short=2, upward=2, sold=1)
         with pytest.raises(ValueError, match="never long"):
             scenes(PortCounts.from_port(made_up))
+
+    def test_from_run_reads_the_folder_it_is_given(self, tmp_path) -> None:
+        """An empty folder holds no vintage, so a read of it must fail rather
+        than fall back to the committed file."""
+        with pytest.raises(VintageUnavailable):
+            PortCounts.from_run(tmp_path)
 
     def test_the_port_is_never_long_and_sells_every_upward_jump(self, counts, port) -> None:
         assert counts.long == 0
