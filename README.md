@@ -7148,15 +7148,20 @@ Five groups of what it says are not pinned here.
 2. Facts about the script rather than the data: its five steps, its
    `riskFreeRate=0.02/252` line, and that it holds the pair every day with
    no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
-3. Readings no test asserts: that the bill rate is a floor on financing
-   because a broker lends above it, that an offset's share of a day carries
-   roughly that share of the day's variance in a market trading nearly
-   around the clock, that whatever else moves log(GC / GLD) does not cancel
-   an offset's moves, which the bound of 0.001775 rests on, that a small
-   reading error or an offset of minutes makes a daily change reverse, that
-   GC trades on COMEX, that a settlement price is the one the exchange
-   fixes once a day, that FRED is the St. Louis Fed's data service, and the
-   cost of carry, cited from Hull as the usual explanation and not tested.
+3. Readings no test asserts: that GLD pays no dividend, so its adjusted
+   close is its close, that the bill rate is a floor on financing because a
+   broker lends above it, that a settlement series has no row on a day the
+   exchange is shut, that GLD's daily log return stands in for a day of gold,
+   that an offset's share of a day carries roughly that share of the day's
+   variance in a market trading nearly around the clock, that whatever else
+   moves log(GC / GLD) does not cancel an offset's moves, which the bound of
+   0.001775 rests on, that a difference in timing between two series makes
+   the daily change in their gap reverse while a shift at a roll is a step
+   that stays and predicts no reversal, that a small reading error or an
+   offset of minutes makes a daily change reverse, that GC trades on COMEX,
+   that a settlement price is the one the exchange fixes once a day, that
+   FRED is the St. Louis Fed's data service, and the cost of carry, cited
+   from Hull as the usual explanation and not tested.
 4. Figures the post states in words or rounded from pinned ones, such as
    about half, about ten times, the 150 minutes in two and a half hours, the
    backtest's three years,
@@ -7171,7 +7176,9 @@ Every other number in the post traces to an assertion in
 [tests/test_gld_gc.py](tests/test_gld_gc.py), or to
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) for the
 figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run.
+before it, all measured after the run. `TestThePostQuotesTheRun` reads one copy of each
+of those numbers from the post itself, and fails when that copy drifts from
+the run. A second copy of the same number elsewhere in the post is not read.
 
 1. The Sharpe ratio of 1.284060 with no rate subtracted and 0.599257 at the
    window's bill rate over 252, the break-even rate at the mean return of

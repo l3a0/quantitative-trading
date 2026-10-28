@@ -192,7 +192,8 @@ class Bound:
     """What the Lesson 4 sketch reads off the run.
 
     ``gap_share`` is :attr:`chan.gld_gc.Identity.gap_share`, the most of GLD's
-    daily variance an offset between the two closes can carry, which the post
+    daily variance an offset between the two closes can carry if nothing else
+    cancels the offset's moves, which the post
     reads as a share of a 24-hour day. ``caveat_minutes`` is the offset the
     book's caveat describes, from 1:30 to 4:00 p.m.
     """

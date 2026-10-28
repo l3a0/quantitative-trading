@@ -43,7 +43,7 @@ A **drawdown** is the fall from the highest point the cumulative return has reac
 
 ### The GC and ETF files, and the days each holds
 
-The data comes from two of Chan’s saved files.
+The script reads two of Chan’s saved files.
 
 1. **The GC file**, `inputData_GC_1600_20100802.mat`, saved 2012-05-07. It holds 761 rows from 2007-08-03 to 2010-08-02, the book’s window exactly. Its name carries 1600, and this post calls its series **the 16:00 series**. Lesson 4 measures when it is recorded.
 2. **The ETF file**, `inputData_ETF.mat`, saved 2012-04-10. GLD pays no dividend, so its adjusted close is its close.

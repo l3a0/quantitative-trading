@@ -44,6 +44,7 @@ from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.gld_gc import (
     GC_SOURCE_FILE,
     GLD_SOURCE_FILE,
+    OHLC_SOURCE_FILE,
     RISK_FREE_RATE,
     STEP,
     GldGc,
@@ -236,7 +237,7 @@ def make_gld_gc_figure(out: Path | None = None, sources: Sources | None = None) 
     """The return beside its financing, and the daily change in log(GC / GLD) on both series."""
     sources = sources if sources is not None else read_sources()
     result = gld_gc(sources)
-    _, ohlc = read_ohlc_gc()
+    ohlc_entry, ohlc = read_ohlc_gc()
 
     fig = Figure(figsize=(10, 11), dpi=130)
     fig.patch.set_facecolor(SURFACE)
@@ -251,8 +252,9 @@ def make_gld_gc_figure(out: Path | None = None, sources: Sources | None = None) 
         "Exploratory: long GLD and short gold futures",
         f"Algorithmic Trading, Kindle edition, pp. 208 to 209. GC from {GC_SOURCE_FILE}, saved "
         f"{sources.gc_entry.obtained},\nGLD from {GLD_SOURCE_FILE}, saved "
-        f"{sources.gld_entry.obtained}, and FRED's TB3MS, downloaded "
-        f"{bill_rates.bill_vintage().obtained}.\nThe top panel was measured after the run, on "
+        f"{sources.gld_entry.obtained}, the OHLC series from {OHLC_SOURCE_FILE}, saved "
+        f"{ohlc_entry.obtained},\nand FRED's TB3MS, downloaded "
+        f"{bill_rates.bill_vintage().obtained}. The top panel was measured after the run, on "
         "the book's window, and no cost is charged.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.11)

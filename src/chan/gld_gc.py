@@ -65,7 +65,8 @@ p.m. settlement.** :func:`identity` measures what says so.
 2. The daily change in log(GC / GLD) barely moves. If GC were read two and a
    half hours before GLD, that change would hold two gold returns over the
    gap, one from each day. :attr:`Identity.gap_share` solves for the most of
-   GLD's daily variance such a gap could carry. It comes out far below the
+   GLD's daily variance such a gap could carry, if nothing else moving the
+   ratio cancels the gap's moves. It comes out far below the
    tenth of a day those hours take on the clock, in a market that trades
    nearly around it.
 
@@ -86,8 +87,9 @@ guarded by :func:`chan.series.refuse_window_crossing_a_break` over the
 window, on its own calendar.
 
 **What the post added.** The post on these lessons,
-``blog/gld-gc-lessons.md``, measured three things after the run, through three
-helpers. :func:`log_ratio_changes` is the daily change in log(GC / GLD) that
+``blog/gld-gc-lessons.md``, measured more numbers after the run, which
+``TestWhatThePostMeasured`` pins, and added three helpers that some of them
+come through. :func:`log_ratio_changes` is the daily change in log(GC / GLD) that
 :func:`ratio_steps` summarises, so the post's figure and the pins read one
 computation. :func:`bill_accrual` is what three-month bills earn on each kept
 day. :func:`by_year` sets S's return against the bill rate one calendar year at
@@ -414,14 +416,15 @@ class Identity:
 
     @property
     def gap_share(self) -> float:
-        """The most of GLD's daily variance a gap between the two closes can carry.
+        """The most of GLD's daily variance a gap can carry, if nothing else cancels its moves.
 
         If GC were read hours before GLD, the daily change in log(GC / GLD)
         would hold the difference of two gold returns over that gap, one from
-        each day, so its variance would be at least twice the gap's share of
-        the daily variance. Anything else that moves the ratio only adds to
-        it, so solving for the share from the measured spread bounds it from
-        above.
+        each day, so the gap would add about twice its share of the daily
+        variance. Solving for the share from the measured spread bounds it
+        from above if anything else that moves the ratio only adds to that
+        variance, as it does when it moves independently of gold over the
+        gap. No test here measures that.
         """
         return (self.sampled_at_1600.spread / self.gld_spread) ** 2 / 2
 
@@ -532,7 +535,8 @@ def report(sources: Sources, result: GldGc, b1: Financing, found: Identity) -> N
         )
     print(
         f"  GLD's daily log return, standard deviation {found.gld_spread:.6f}, so a gap between "
-        f"the two closes carries at most {found.gap_share:.6f} of its daily variance"
+        f"the two closes carries at most {found.gap_share:.6f} of its daily variance, "
+        "if nothing else cancels its moves"
     )
     print()
     print("  Annualised over 252 days, with no cost and no financing beyond B1.")
