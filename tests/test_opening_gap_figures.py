@@ -124,7 +124,7 @@ class TestTheFigure:
             "Exploratory: the opening gap strategy on STOXX Europe 50 futures, both signs"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Algorithmic Trading, Example 7.1 and location 2965. FSTX from "
+            "Algorithmic Trading, Kindle edition, Example 7.1 and p. 229. FSTX from "
             "inputDataOHLCDaily_20120517.mat, saved 2012-05-18.\n2,000 days from 2004-07-16 "
             "to 2012-05-17, each held from the open to the close, with no cost charged."
         ]

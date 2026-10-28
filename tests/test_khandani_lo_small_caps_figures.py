@@ -99,7 +99,8 @@ class TestTheFigure:
             "Exploratory: Khandani and Lo's reversal on Chan's S&P 600 and S&P 500 files"
         )
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
-            "Quantitative Trading, locations 2137 and 2236, over 2006-01-03 to 2006-12-29. The "
+            "Quantitative Trading, Kindle edition, pp. 74 and 78, over 2006-01-03 to 2006-12-29. "
+            "The "
             "S&P 600 from IJR_20080114.mat,\nsaved 2008-01-15, and the S&P 500 from "
             "SPX_20071123.mat, saved 2007-11-24. Each line sums the day's profit over\nits own "
             "book's mean gross position for the year. The cost lines charge the first day too, "
