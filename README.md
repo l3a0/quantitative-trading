@@ -6480,10 +6480,13 @@ Six groups of what it says are not pinned here.
    through [its committed notes](research/book-notes/algorithmic-trading.md).
    All of them, and Figure 5.8's caption, are at 2502.
 2. Facts about the script rather than the data: its commented-out load of the
-   VX file, its pairs 12 months apart, its flip where the z-score is above 0,
-   its return summed over the legs that have one and halved, its roll 10 days
-   before expiry, and its expiry marked on a contract's last priced day, all
-   at `e4bc46f` of ericnberwick/EpchanPreview.
+   VX file, its comment calling the held pair's far and near contracts the back
+   and the front, its pairs 12 months apart, its lookback set to the half-life
+   rounded, its start each day long the far contract and short the near one,
+   its flip where the z-score is above 0, its return summed over the legs that
+   have one and halved, its roll 10 days before expiry, and its expiry marked
+   on a contract's last priced day, all at `e4bc46f` of
+   ericnberwick/EpchanPreview.
 3. Readings no test asserts: that the ratio rises on exactly the days a spread
    long the back contract and short the front earns, that four readings show a
    pattern rather than a cause, and that a rule selling one spread on another's
@@ -6509,7 +6512,7 @@ the post quotes outside the chart's and the sketches' alt texts, so editing a
 copy it reads fails. Crude oil's spread mostly falling as γ rises,
 which the post cites from the crude oil post, is `TestTheTradesDirection` in
 [tests/test_calendar_spread_reversion.py](tests/test_calendar_spread_reversion.py).
-Five had no pin before it.
+Five had no pin before the post.
 
 1. The specification's near leg is the front contract on 126 of its 847 held
    rows from 2008-10-27, and the second to the fifth on 229, 221, 201 and 70,

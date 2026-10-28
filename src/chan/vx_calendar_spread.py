@@ -34,7 +34,7 @@ VX was computed. S is the script with five edits and no others.
    reads it with its spot set to ``None``.
 2. ``spreadMonth=1``. The strip lists 2 to 10 contracts a day, so the shipped
    12 pairs contracts that are rarely priced together, and on most held days
-   the script would hold the front contract alone.
+   the script would hold the near contract alone.
 3. The signal is :func:`nearest_two_ratio`, the second-nearest priced
    contract over the nearest, NaN where the two are not adjacent columns, and
    then ``fillMissingData`` as the script does for γ.

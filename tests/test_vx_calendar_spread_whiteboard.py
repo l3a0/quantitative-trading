@@ -932,6 +932,6 @@ class TestTheHoldAltText:
             "thick black bar",
             "grey bracket",
             "pale green box with a green edge",
-            "brown spans",
+            f"a row of {COUNTS[len(hold.stretches)]} brown spans",
         ):
             assert phrase in alt, phrase

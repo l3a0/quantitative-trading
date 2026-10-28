@@ -272,7 +272,7 @@ class TestTheSignalsOnVx:
             f"{SPECS['B3']}; {AFTER_THE_RUN}"
         )
 
-    def test_the_shipped_spread_month_of_12_holds_the_front_contract_alone(self, strip) -> None:
+    def test_the_shipped_spread_month_of_12_holds_the_near_contract_alone(self, strip) -> None:
         """Why S edits ``spreadMonth``. The strip lists 2 to 10 contracts a day, so pairing
         contract c with c + 12 leaves the far leg unpriced on most held days, and the
         script's ``smartsum`` then holds the near contract alone."""
