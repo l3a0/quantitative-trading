@@ -3,7 +3,7 @@
 A future's total return is its spot return plus its roll return, the part
 that comes from converging on the spot as it nears expiry. Gold futures carry
 a negative roll return, so holding the metal and shorting the future should
-collect it. GLD owns physical gold, which makes it the long leg. At Kindle
+profit from it. GLD owns physical gold, which makes it the long leg. At Kindle
 location 2718 Chan reports that "holding a long position in GLD and a short
 position in GC yields an annualized return of 1.9 percent and a maximum
 drawdown of 0.8 percent from August 3, 2007, to August 2, 2010". He then
@@ -72,10 +72,11 @@ p.m. settlement.** :func:`identity` measures what says so.
    nearly around it.
 
 The GC close of ``inputDataOHLCDaily_20120507`` sits beside it for contrast.
-That save is a continuous series shifted at each roll, so it would equal no
-unshifted series at any hour, and its never equalling this one says only that
-the two differ. Its large moves against this one reverse the next day, which a
-gap in timing predicts and a shift at a roll does not.
+That save is another continuous series, and nothing here measured how either
+one crosses a roll. Two series that cross rolls differently would not be equal
+at any hour, so its never equalling this one says only that the two differ. Its
+large moves against this one reverse the next day, which a gap in timing
+predicts and a step at a roll does not.
 
 So location 2730's caveat does not reach the series the script reads.
 

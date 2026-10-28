@@ -195,7 +195,7 @@ def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
         alpha=0.8,
         zorder=2,
         gid="ohlc",
-        label=f"the OHLC series, shifted at each roll, {steps_ohlc.steps} moves past ±{STEP:g}",
+        label=f"the OHLC series, {steps_ohlc.steps} moves past ±{STEP:g}",
     )
     ax.plot(
         at_1600.index,

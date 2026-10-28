@@ -348,7 +348,7 @@ def _two_moves(bound: Bound) -> Scene:
             size=11,
         ),
         Label(
-            "each move carries the offset’s share of a day’s variance, so the change carries "
+            "each move carries roughly the offset’s share of a day’s variance, and the change "
             "twice that",
             0.3,
             LINE_Y[2],

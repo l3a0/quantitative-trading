@@ -268,7 +268,7 @@ class TestTheDailyChangeInTheRatio:
     def test_the_legend_counts_each_series_moves_past_0_02(self, axes) -> None:
         legend = [t.get_text() for t in axes["ratio"].get_legend().get_texts()]
         assert legend == [
-            "the OHLC series, shifted at each roll, 20 moves past ±0.02",
+            "the OHLC series, 20 moves past ±0.02",
             "the 16:00 series the script reads, 0 moves past ±0.02",
         ], SPEC
 

@@ -7160,8 +7160,8 @@ Five groups of what it says are not pinned here.
    variance in a market trading nearly around the clock, that whatever else
    moves log(GC / GLD) does not cancel an offset's moves, which the bound of
    0.001775 rests on, that a difference in timing between two series makes
-   the daily change in their difference reverse while a shift at a roll is a step
-   that stays and predicts no reversal, that a small reading error or an
+   the daily change in their difference reverse while a step at a roll that
+   one series takes and the other does not stays and predicts no reversal, that a small reading error or an
    offset of minutes makes a daily change reverse, that GC trades on COMEX,
    that a settlement price is the one the exchange fixes once a day, that
    FRED is the St. Louis Fed's data service, and the cost of carry, cited

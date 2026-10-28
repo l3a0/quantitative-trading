@@ -1,9 +1,10 @@
 """The pins for the two whiteboard GIFs in the long GLD, short gold futures post.
 
 One sketches the opening's claim that owning the metal and shorting its
-future leaves only the roll return, and one Lesson 4's claim that an offset
-between the two legs' recording times would put two moves of gold into each
-day's change in log(GC / GLD). What is pinned is what a reader takes from each.
+future cancels the spot returns and leaves minus the roll return, and one
+Lesson 4's claim that an offset between the two legs' recording times would
+put two moves of gold into each day's change in log(GC / GLD). What is pinned
+is what a reader takes from each.
 
 1. The opening's sketch is schematic and carries no figures. Its words name
    neither GLD nor GC, because the post names them only in the next
@@ -107,7 +108,7 @@ MOVES_LABELS = [
     "today",
     "each day’s log(GC / GLD) would carry that day’s move over the offset",
     "each change would carry two: today’s, and yesterday’s with its sign flipped",
-    "each move carries the offset’s share of a day’s variance, so the change carries twice that",
+    "each move carries roughly the offset’s share of a day’s variance, and the change twice that",
     "at most 0.001775 of a day, about 2.6 minutes, against 150",
 ]
 
