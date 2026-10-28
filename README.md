@@ -3838,7 +3838,7 @@ uv run python -m chan.commodity_seasonals_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
-The post also carries twenty-nine looping whiteboard sketches, drawn by
+The post also carries thirty looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -3892,62 +3892,67 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 14. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
    with fill 2's guess corrected by its average miss, and a bar of the spread
    of its misses either side, which 1999's move clears.
-15. `commodity_sketch_sharpe_ranges.gif`, in Lesson 4, each period of the
+15. `commodity_sketch_raised_start.gif`, in Lesson 3, one trade's mean
+   return on a vertical scale, with the book's years above a dashed line for
+   its real edge and the years after the book below it, so the fall measured
+   from the book's years is longer than the fall from the real edge.
+16. `commodity_sketch_sharpe_ranges.gif`, in Lesson 4, each period of the
    returns table as a dot at its Sharpe ratio on a bar 1.96 standard errors
    either side, where only the two periods after the book reach across zero.
-16. `commodity_sketch_t_multiplier.gif`, in Lesson 4, Student's t's 95%
+17. `commodity_sketch_t_multiplier.gif`, in Lesson 4, Student's t's 95%
    multiplier for 8, 15 and 30 results and for very many, against the normal
    curve's 1.96.
-17. `commodity_sketch_half_width.gif`, in Lesson 4, natural gas's ±12% built
+18. `commodity_sketch_half_width.gif`, in Lesson 4, natural gas's ±12% built
    from its spread, its count and its multiplier, each bar starting on a
    dashed line at its later mean and the last reaching past the gap to its
    earlier mean.
-18. `commodity_sketch_mean_ranges.gif`, in Lesson 4, each period's mean and
+19. `commodity_sketch_mean_ranges.gif`, in Lesson 4, each period's mean and
    95% range, where natural gas's later range holds its earlier mean and
    gasoline's does not.
-19. `commodity_sketch_rank_pairs.gif`, in Lesson 4, every pairing of an
+20. `commodity_sketch_rank_pairs.gif`, in Lesson 4, every pairing of an
    earlier natural gas year with a later one as a dot, blue where the earlier
    year did better, so the earlier years win 177 of 225 pairs.
-20. `commodity_sketch_luck_curve.gif`, in Lesson 4, the pair counts luck alone
+21. `commodity_sketch_luck_curve.gif`, in Lesson 4, the pair counts luck alone
    gives, counted exactly, with natural gas's 177 beyond the 5% line and the
    0.7% of splits that land that far out shaded.
-21. `commodity_sketch_four_chances.gif`, in Lesson 4, the table's four
+22. `commodity_sketch_four_chances.gif`, in Lesson 4, the table's four
    chances on one percentage scale, where only natural gas's Welch chance
    sits past the 5% line.
-22. `commodity_sketch_one_year.gif`, in Lesson 4, natural gas's returns after
+23. `commodity_sketch_one_year.gif`, in Lesson 4, natural gas's returns after
    2008 with their mean with and without 2022, above all 30 years ranked
    worst to best, where 2022 is one top rank however large its gain.
-23. `commodity_sketch_june_file.gif`, in Lesson 5, the March to June natural
+24. `commodity_sketch_june_file.gif`, in Lesson 5, the March to June natural
    gas contracts as bars ending at their last trading days in 2008 and 2006,
    with a dashed line at each entry and exit, so June's number is how many
    bars each line crosses.
-24. `commodity_sketch_handover.gif`, in Lesson 5, the contract-1 and contract-2
+25. `commodity_sketch_handover.gif`, in Lesson 5, the contract-1 and contract-2
    files in February 1996, where file 1 picks up file 2's price the day after
    March's last trading day.
-25. `commodity_sketch_check_coverage.gif`, in Lesson 5, which years each check
+26. `commodity_sketch_check_coverage.gif`, in Lesson 5, which years each check
    of the expiry rule reaches: the files from 1994, the exchange from 2017.
-26. `commodity_sketch_edge_day.gif`, in Lesson 5, 2018's entry on March's own
+27. `commodity_sketch_edge_day.gif`, in Lesson 5, 2018's entry on March's own
    last trading day, so June is contract 4.
-27. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
+28. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
    where the file holds a row on the closed 25th, beside 2016.
-28. `commodity_sketch_plateau.gif`, in Further work, profit against one
+29. `commodity_sketch_plateau.gif`, in Further work, profit against one
    parameter moved either way from Chan's value, as a cliff that pays well
    only at his value beside a plateau that pays around it.
-29. `commodity_sketch_closed_date.gif`, in Further work, gasoline's 2019
+30. `commodity_sketch_closed_date.gif`, in Further work, gasoline's 2019
    entry date, a Saturday, which Chan's rule moves forward to Monday while the
    outward rule and the nearest trading day move it back to Friday.
 
-All twenty-nine build more slowly than the USD.CAD post's sketches and hold their
+All thirty build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds, because each carries more than that
 pace lets a reader take in. The gasoline editions, half-width and pairs
 sketches hold their labels for 1.8 seconds. The half-width and pairs sketches
 draw their strokes at 250 ms a frame, and the gasoline editions sketch draws
 its strokes at the usual 100 ms and holds each finished stroke for 250 ms.
 
-One is schematic, the cliff-or-plateau sketch, whose curves are shapes
-rather than figures and which says so on the board. Each of the other
-twenty-eight reads the natural gas or gasoline run on the committed EIA
-files, so none needs the owner's archive. Redraw all twenty-nine with:
+Two are schematic, the raised-start and cliff-or-plateau sketches, whose
+dots, brackets and curves are shapes rather than figures and which say so on
+the board. Each of the other twenty-eight reads the natural gas or gasoline
+run on the committed EIA files, so none needs the owner's archive. Redraw all
+thirty with:
 
 ```bash
 uv run python -m chan.commodity_seasonals_whiteboard
@@ -3962,7 +3967,10 @@ streak reaches Chan's count, that gasoline's sidebar bracket ends before its fir
 main text's covers both, that the Lesson 2 sketches draw the run's range,
 guess, typical misses and missing years, that the test-day sketch's bars are
 the run's counts of April days, that the miss-sign sketch's lifted brackets
-change by fill 2's average miss, that the Sharpe sketch's dots and bars are
+change by fill 2's average miss, that the raised-start sketch's book's-years
+dot sits above the real edge and the later dot below it, with the bracket
+measured from the book's years the longer and no number on the board, that the
+Sharpe sketch's dots and bars are
 the run's ratios and standard errors, that the multiplier, half-width and
 mean-range sketches draw Student's t's multipliers and the run's means and
 ranges, that the one-year sketch's ranks stay

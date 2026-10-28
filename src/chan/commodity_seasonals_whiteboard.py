@@ -1,7 +1,7 @@
 """Whiteboard sketches for the commodity seasonals post, from its opening to Further work.
 
 ``blog/commodity-seasonals-lessons.md`` checks Chan's two commodity seasonal
-trades against EIA's settlements. Twenty-nine of its passages turn on a picture a
+trades against EIA's settlements. Thirty of its passages turn on a picture a
 sentence has to build in the reader's head: when each trade buys and sells,
 how many years each won in the book's years and after, how a drawdown can
 fall inside a winning year, where a count of
@@ -11,7 +11,8 @@ missing one, what Chan's 19 needs of the missing years, how the second fill
 carries June's move across a gap, which April days can test a fill, how its
 misses lean and spread, how the lean looks April by April, why a miss
 subtracts at an entry and adds at an exit, how far a fill misses against each
-year's move, how far a Sharpe ratio from so few years can stray, why fewer
+year's move, why a fall measured from a raised start looks longer than the
+fall a trade took, how far a Sharpe ratio from so few years can stray, why fewer
 results widen a range, where natural gas's ±12% comes from, which later range
 holds its earlier mean, what the Mann-Whitney test counts, what its chance
 means, how the four chances sit against the 5% line, how one year moves
@@ -19,7 +20,7 @@ natural gas's mean but not its ranks, which numbered file holds the June
 contract on a given day, how the expiry rule behind it is checked, what
 shape a search across a trade's parameters looks for, and where each rule
 for a closed date moves a trade date. This
-module draws those twenty-nine as scenes, and the post places each right after
+module draws those thirty as scenes, and the post places each right after
 the paragraph it draws.
 
 1. Two trades on one calendar: natural gas's June contract from February 25
@@ -104,46 +105,54 @@ the paragraph it draws.
    spread of its misses either side, and each year's chance of a profit. The
    bars for 1997 and 1998 cross zero and 1999's stops short. It sits after
    the paragraph opening "So the chance that all three years were profits".
-15. How far each Sharpe ratio can stray: the four periods of the post's
+15. A raised start makes a longer fall: one trade's mean return on a
+   vertical scale, a dashed line for its real edge, a dot above it for the
+   book's years and a dot below it for the years after the book, and two
+   brackets ending at the later dot, a long black one from the book's dot for
+   the fall as measured and a shorter purple one from the real edge for the
+   fall the trade took. It is schematic and marked so on the board. It sits
+   in Lesson 3, after the paragraph opening "Chan picked each rule because it
+   did well in years the book covers".
+16. How far each Sharpe ratio can stray: the four periods of the post's
    returns table, each trade before and after the book, as a dot at its
    Sharpe ratio and a bar 1.96 standard errors either side, against a dashed
    zero line. Both periods after the book reach across zero. It sits in
    Lesson 4, after the paragraph opening "For the four Sharpe ratios".
-16. Fewer results, a wider range: Student's t's 95% multiplier as a bar for
+17. Fewer results, a wider range: Student's t's 95% multiplier as a bar for
    the post's 8 and 15 later years, for 30 results and for very many, against
    a dashed line at the normal curve's 1.96. It sits in Lesson 4, after the
    general range formula, r̄ ± t × s / √n.
-17. Where ±12% comes from: natural gas's spread after 2008, divided by the
+18. Where ±12% comes from: natural gas's spread after 2008, divided by the
    root of its 15 years, times its multiplier, as three bars starting on a
    dashed line at its later mean, against a dashed line at its earlier mean.
    It sits in Lesson 4, after that trade's worked range, −0.4% ± 12.0%.
-18. One range holds the earlier mean, one does not: each period's mean and
+19. One range holds the earlier mean, one does not: each period's mean and
    95% range, with each trade's earlier mean carried down as a dashed line
    past its later bar. It sits after the paragraph opening "That range,
    −6% to +2%, leaves out".
-19. The earlier year won 177 of 225 pairs: every pairing of a natural gas
+20. The earlier year won 177 of 225 pairs: every pairing of a natural gas
    year from 1994 to 2008 with one from 2009 to 2023 as a dot in a grid,
    rows and columns sorted worst to best, blue where the earlier year did
    better and vermilion where the later year did, with a staircase along the
    edge between them. 2022's column is all vermilion. It sits after the
    paragraph opening "The Mann-Whitney test ignores".
-20. What 0.7% means: the exact chance of each count of pairs won when luck
+21. What 0.7% means: the exact chance of each count of pairs won when luck
    alone splits the years, which is what the Mann-Whitney p-value is counted
    from, with dashed lines at its middle and at the 5% line, natural gas's
    177 marked beyond them, and both tails from it shaded. It sits after the
    paragraph opening "Each test gives the chance".
-21. Four chances against the 5% line: the table's Welch and Mann-Whitney
+22. Four chances against the 5% line: the table's Welch and Mann-Whitney
    chances for both trades as dots on a percentage scale, against a dashed
    line at 5%. Only natural gas's Welch chance sits past it. It sits after
    the table of the four chances.
-22. One year moves the mean, not the ranks: natural gas's returns from 2009
+23. One year moves the mean, not the ranks: natural gas's returns from 2009
    to 2023 as dots on a percentage axis, with ticks at their mean and at
    their mean without the best year, 2022, and below them all 30 years from
    1994 to 2023 ranked worst to best, the earlier ones above a line and the
    later ones below it. A note names the two gains too close to zero for
    their side to show. It sits in Lesson 4, after the paragraph opening
    "Without 2022 the average after 2008 is −5.0%".
-23. Which file holds the June contract: the March, April, May and June natural
+24. Which file holds the June contract: the March, April, May and June natural
    gas contracts as bars on a calendar from late February to the start of
    May, each ending at its last trading day, for one year in which March is
    still trading on the entry date and one in which it has expired. A dashed
@@ -151,28 +160,28 @@ the paragraph it draws.
    and June's number is how many it crosses, which its closing label says. It
    sits in Lesson 5, after the paragraph opening "For gasoline that is always
    contract 1."
-24. A handover shows when March stopped: the contract-1 and contract-2 files'
+25. A handover shows when March stopped: the contract-1 and contract-2 files'
    settlements in late February 1996, where file 1 picks up file 2's price the
    day after March's last trading day, five days before delivery, against
    where a three-day rule would put it. It sits under "Against the files’ own
    handovers", after the paragraph opening "When a contract expires".
-25. Which years each check reaches: a year axis with the files' handover fit
+26. Which years each check reaches: a year axis with the files' handover fit
    from 1994 to 2024 and the exchange's dates from 2017, where Massive's
    records begin, to 2026. It sits after the paragraph opening "Over every
    natural gas contract delivered".
-26. An entry on March's own last day: 2018's March to June contracts on a
+27. An entry on March's own last day: 2018's March to June contracts on a
    calendar of late February, where the entry line meets the end of March's
    bar, so June is contract 4. It sits under "Against the edge cases".
-27. A row in the file is not a trading day: Christmas week of 2018, where the
+28. A row in the file is not a trading day: Christmas week of 2018, where the
    contract-1 file repeats Dec 24's price on the 25th, beside 2016, where the
    closed 26th has no row. It sits after the paragraph opening "The run
    computes its own calendar".
-28. A cliff or a plateau: profit against one parameter moved either way from
+29. A cliff or a plateau: profit against one parameter moved either way from
    Chan's value, spiking only at his value on the left and staying high
    around it on the right. It sits under "One search across every
    parameter", after the paragraph opening "The search asks whether the
    neighbourhood".
-29. Three rules for a closed entry date: the week of gasoline's 2019 entry
+30. Three rules for a closed entry date: the week of gasoline's 2019 entry
    date, Saturday, April 13, with a dot on each trading day and a cross on
    each day of the weekend, and an arrow for each rule. Chan's moves the
    entry forward to Monday, and the outward rule and the nearest trading day
@@ -180,9 +189,10 @@ the paragraph it draws.
    date falls on a closed day. It sits under "The rule for a closed date",
    after the paragraph opening "Chan’s rule keeps a trade inside his dates".
 
-Every sketch but the cliff-or-plateau carries data, and none needs the owner's
-archive. The cliff-or-plateau sketch is schematic: its curves are shapes, not
-figures from the run, and it says so on the board.
+Every sketch but two carries data, and none needs the owner's archive. The
+raised-start and cliff-or-plateau sketches are schematic: their dots, brackets
+and curves are shapes, not figures from the run, and each says so on the
+board.
 The two-trades sketch reads its dates from the run's trade dates,
 :data:`chan.commodity_seasonals.NG_ENTRY` and the three beside it, and
 :meth:`SplitFigures.from_run` reads every year of both trades from
@@ -244,7 +254,7 @@ The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. Their
 colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
-all twenty-nine are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+all thirty are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
 labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. The
 gasoline editions, half-width and pairs sketches are in :data:`SLOWER` too,
@@ -257,7 +267,7 @@ named :data:`GIF_PREFIX` plus the scene's slug, a prefix chosen so no GIF
 name starts like the post's chart, ``commodity_seasonals_years.png``.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Redraw all twenty-nine with::
+with no change is a no-op diff. Redraw all thirty with::
 
     uv run python -m chan.commodity_seasonals_whiteboard
 """
@@ -2430,6 +2440,124 @@ def _fill_misses(fills: tuple[seasonals.GapFill, ...]) -> Scene:
     return Scene("Each corrected move against fill 2’s spread", "fill_misses", tuple(steps))
 
 
+# --- Lesson 3: a raised start makes a longer fall ---------------------------
+
+#: Where the raised-start sketch's scale of mean return stands, and how high
+#: it draws the book's years' mean, the trade's real edge and the mean after
+#: the book. The heights are shapes rather than figures from the run, so the
+#: sketch claims no size for either fall.
+RAISED_AXIS_X = 0.9
+RAISED_Y = {"book": 3.2, "edge": 2.3, "after": 1.0}
+#: Where each mean's dot sits across the board, the book's years on the left.
+RAISED_DOT_X = {"book": 1.8, "after": 4.6}
+#: Where each bracket stands: the fall as measured, then the fall the trade took.
+RAISED_BRACKET_X = {"measured": 6.3, "real": 7.0}
+
+
+def _raised_start() -> Scene:
+    """Lesson 3: a rule chosen because it did well in the book's years can
+    start higher than its real edge, so the drop after the book, measured
+    from that raised start, is longer than the fall the trade took.
+    Schematic, so it draws no figures from the run."""
+    y, dot_x, bracket_x = RAISED_Y, RAISED_DOT_X, RAISED_BRACKET_X
+    steps: list[Stroke | Label] = [
+        _stroke(
+            "axis",
+            _arrow(RAISED_AXIS_X, 0.7, RAISED_AXIS_X, 3.85),
+            color=MUTED,
+            frames=6,
+        ),
+        Label("one trade’s mean return", 0.3, 0.35, names="axis", color=MUTED, size=10),
+        _stroke(
+            "edge",
+            _line([(RAISED_AXIS_X, y["edge"]), (bracket_x["real"] + 0.1, y["edge"])]),
+            color=MUTED,
+            dashed=True,
+            frames=6,
+        ),
+        Label(
+            "the trade’s real edge (unknown)",
+            RAISED_AXIS_X + 0.2,
+            y["edge"] - 0.3,
+            names="edge",
+            color=MUTED,
+            size=10,
+        ),
+        _dot("book", dot_x["book"], y["book"], color=INK),
+        Label(
+            "the book’s years: chosen because they did well",
+            dot_x["book"] - 0.5,
+            y["book"] + 0.4,
+            names="book",
+            color=INK,
+            size=11,
+        ),
+        Label(
+            "if the book’s years ran high", 9.7, 3.6, names="book", color=MUTED, size=10, ha="right"
+        ),
+        _dot("after", dot_x["after"], y["after"], color=INK),
+        Label(
+            "after the book",
+            dot_x["after"] - 0.25,
+            y["after"],
+            names="after",
+            color=INK,
+            size=11,
+            ha="right",
+        ),
+        _stroke(
+            "book-guide",
+            _line([(dot_x["book"] + 0.15, y["book"]), (bracket_x["measured"] + 0.1, y["book"])]),
+            color=MUTED,
+            dashed=True,
+            width=1.0,
+            frames=4,
+        ),
+        _stroke(
+            "after-guide",
+            _line([(dot_x["after"] + 0.15, y["after"]), (bracket_x["real"] + 0.1, y["after"])]),
+            color=MUTED,
+            dashed=True,
+            width=1.0,
+            frames=4,
+        ),
+        _stroke(
+            "measured",
+            _vspan(bracket_x["measured"], y["book"], y["after"]),
+            color=INK,
+            frames=5,
+        ),
+        Label(
+            "the fall as measured",
+            bracket_x["measured"] - 0.25,
+            (y["book"] + y["edge"]) / 2,
+            names="measured",
+            color=INK,
+            size=11,
+            ha="right",
+        ),
+        _stroke("real", _vspan(bracket_x["real"], y["edge"], y["after"]), color=ACCENT, frames=4),
+        Label(
+            "the fall the trade took",
+            bracket_x["real"] + 0.25,
+            (y["edge"] + y["after"]) / 2,
+            names="real",
+            color=ACCENT,
+            size=11,
+        ),
+        Label(
+            "schematic, drawn to no scale",
+            9.7,
+            0.35,
+            names="axis",
+            color=MUTED,
+            size=10,
+            ha="right",
+        ),
+    ]
+    return Scene("A raised start makes a longer fall", "raised_start", tuple(steps))
+
+
 # --- Lesson 4: how far each Sharpe ratio can stray -------------------------
 
 #: The returns table's four periods, each trade before and after the book.
@@ -4399,6 +4527,7 @@ PACED = (
     "april_leans",
     "miss_sign",
     "fill_misses",
+    "raised_start",
     "sharpe_ranges",
     "t_multiplier",
     "half_width",
@@ -4503,7 +4632,7 @@ def scenes(
     split: SplitFigures | None = None,
     drawdown: DrawdownFigures | None = None,
 ) -> tuple[Scene, ...]:
-    """The twenty-nine scenes in the order the post reads them, from the opening
+    """The thirty scenes in the order the post reads them, from the opening
     to Further work."""
     streaks = streaks if streaks is not None else StreakFigures.from_run()
     years = years if years is not None else june_years()
@@ -4529,6 +4658,7 @@ def scenes(
         _april_leans(misses),
         _miss_sign(*seasonals.gap_fills()[:2]),
         _fill_misses(tuple(seasonals.gap_fills())),
+        _raised_start(),
         _sharpe_ranges(sharpe_rows()),
         *_mean_scenes(mean_rows()),
         *_typical_scenes(OneYearFigures.from_run()),
