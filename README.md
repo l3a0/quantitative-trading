@@ -2608,6 +2608,46 @@ that the picture shows them rather than its bytes:
 uv run python -m chan.lag_residual_figure
 ```
 
+## The paper ledger
+
+The paper ledger turns a strategy into a position ten minutes before each
+session's close, records the fill it would have got, and sets that position
+beside what the backtest held once the close is known. It reads one-minute
+SPY and QQQ quotes and daily bars that the sibling
+[marketlake](https://github.com/l3a0/marketlake) repo captured, and it places
+no order and holds no broker credential.
+
+**Its strategy is a placeholder and claims no edge.** It is Khandani and Lo's
+reversal from Example 3.7, `chan.khandani_lo.reversal_weights`, on two tickers.
+It is there because it trades every session and shares the backtest's own
+function, so its positions test whether this path and the backtest agree.
+Nothing it prints is evidence that the rule pays, and it prints no profit.
+
+```bash
+uv sync --extra lake
+uv run python -m chan.paper_ledger --from 2026-09-15 --to 2026-10-12 --lake-root <lake>
+```
+
+`<lake>` is any directory `marketlake`'s loader can read, such as a copy its
+`restore-for-reading` command brought down. `QT_LAKE_ROOT` or
+`~/.config/quantitative-trading/lake_root` can name it instead, and
+`marketlake`'s own config is never read. For each session the report prints
+the bid, ask and last at the decision minute, the official close, the
+ledger's weight beside the replay's, and three measures.
+
+1. Position mismatch, the number of tickers whose side differs from the
+   replay.
+2. The decision price against the close, in basis points.
+3. The spread paid at the assumed fill, in basis points, beside the 5 a side
+   the backtest charges.
+
+It ends with every partition it read and the sha256 that `marketlake`'s
+`manifest.jsonl` recorded for it. The command exits 1 when any session could not be
+computed, after one line saying why, and 2 when the lake or the environment is
+wrong. [docs/design.md](docs/design.md) carries the reasoning, and
+[issue 775](https://github.com/l3a0/quantitative-trading/issues/775) records
+the first twenty sessions it ran.
+
 ## The write-up
 
 [blog/gld-gdx-cointegration-lessons.md](blog/gld-gdx-cointegration-lessons.md)

@@ -44,6 +44,22 @@ dependencies = [
     "scikit-learn>=1.9.1",
 ]
 
+# The paper ledger, chan.paper_ledger, reads the sibling marketlake repo's lake
+# through that repo's own package rather than a second reader of its Parquet
+# layout, so the quarantine guard, the minute resolution and the overflow
+# projection keep one implementation. It is an extra rather than a dependency
+# because nothing else here reads the lake: CI runs `uv sync --dev --locked`,
+# which installs no extra, so the suite never imports it, and
+# `uv sync --extra lake` brings it in where the command runs. The price is that
+# marketlake's own dependencies come with it, schwab-py among them, so the
+# environment the ledger runs in holds a broker client library. Nothing here
+# calls it and no credential is read. Named by a direct URL at an exact commit,
+# for the reasons given above for ithildincore.
+[project.optional-dependencies]
+lake = [
+    "marketlake @ git+https://github.com/l3a0/marketlake@16666cb6dc99cf8051a7a675d0753999a371ab3b",
+]
+
 [dependency-groups]
 dev = [
     "matplotlib>=3.9",

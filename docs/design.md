@@ -16,6 +16,7 @@ issue's own statement of what it waits on.
   - [The first time the fallback clause fires](#the-first-time-the-fallback-clause-fires)
   - [A record that reads a fund's filings](#a-record-that-reads-a-funds-filings)
   - [A record that reads a company's earnings filings](#a-record-that-reads-a-companys-earnings-filings)
+  - [A paper ledger that reads another repo's lake](#a-paper-ledger-that-reads-another-repos-lake)
 - [How work is cut and ordered](#how-work-is-cut-and-ordered)
 - [Vocabulary](#vocabulary)
 - [Configuration](#configuration)
@@ -830,6 +831,84 @@ the calendar for reasons of their own.
 
 The test file names all nine.
 
+### A paper ledger that reads another repo's lake
+
+Every other result here is a backtest over closes already known. The paper
+ledger, `chan.paper_ledger` from
+[issue 775](https://github.com/l3a0/quantitative-trading/issues/775), is the
+first path that decides a position before the close it will be judged by, and
+then sets that position beside what the backtest held. The owner ruled on
+2026-10-28 to build it now as a pipeline test, with no order capability and no
+broker credential, while
+[issue 774](https://github.com/l3a0/quantitative-trading/issues/774) ranks the
+candidates that will replace its strategy.
+
+**The strategy claims no edge.** It is `chan.khandani_lo.reversal_weights` on
+SPY and QQQ, chosen because it rebalances every session and because the
+backtests of Entries 8 and 19 call the same function, so the ledger and the
+backtest share code by construction. Its positions answer whether the two
+agree. The ledger computes no paper profit, because that is the figure a reader
+would mistake for evidence that the rule pays, and none of its three measures
+needs it.
+
+**Why the decision price matters.** `chan.khandani_lo.daily_pnl` holds
+yesterday's weights from the close they were computed on, so the backtest
+enters at the same close its signal read. No order can do that. So the ledger
+decides ten minutes before each session's close, on the mid of that minute's
+quote, fills a buy at the ask and a sell at the bid, and reports three measures
+per session.
+
+1. **Position mismatch**, the number of tickers whose side differs from the
+   replay on the official closes. A weight from a mid never equals one from a
+   close, so the side is what can agree.
+2. **The decision-price difference**, the mid against the official close in
+   basis points.
+3. **The spread paid**, half the quoted spread at the assumed fill, beside the
+   5 basis points a side the backtest charges.
+
+The issue calls these three gaps, and the code does not, because **gap** is
+pinned below for a published figure against a replication's number.
+
+**It reads the lake through `marketlake`'s own package.** The sibling
+[marketlake](https://github.com/l3a0/marketlake) repo captures one-minute SPY
+and QQQ quotes and official daily bars on an always-on VM. Its read layer
+already holds the quarantine guard, the comparison of minutes as instants
+rather than as text, and the projection of overflow columns written under older
+schemas. A second reader of its Parquet layout here would be a second copy of
+all three, which is what the sharing rule in `CLAUDE.md` exists to prevent. So
+`pyproject.toml` names `marketlake` as the optional `lake` extra, at an exact
+commit. CI installs no extra, so the suite never imports it.
+
+The price is what comes with it. `marketlake`'s dependencies include
+`schwab-py`, a broker client library, so the environment the ledger runs in
+holds one. Nothing here calls it, and no credential is read: every read passes
+the lake root explicitly, because `marketlake`'s loader would otherwise read
+its own config file, which holds a broker secret. The lake root is this repo's
+own setting, in the Configuration table below.
+
+**Its inputs are pinned by checksum, not committed.** A ledger row regenerates
+from the lake and the code, so none is committed. Each partition the run reads
+is checked against the sha256 that `marketlake`'s `manifest.jsonl` records for
+it before it is read, and the report prints every one. A partition that does
+not match stops the run. That is the premise applied to another repository's
+data: the run names the exact bytes it read, and refuses bytes nobody
+recorded.
+
+**Two choices that a session list and a clock would get wrong.** The sessions
+come from the exchange calendar rather than from whichever daily bars exist,
+because `marketlake`'s bar read returns a range around a missing day without
+raising, and a session list built from the bars would quietly take the
+previous session two days back. The decision minute is ten minutes before
+that session's close by the same calendar, which is 12:50 on a half day, when a
+fixed 15:50 would read a quote after the bell.
+
+**One limitation, stated rather than fixed.** The closes are as-traded. SPY
+went ex-dividend on 2026-09-18, inside the twenty sessions the issue records,
+and on that session the signal reads the dividend as a fall. The ledger and the
+replay read the same closes, so it causes no mismatch, and the two price
+measures are same-day figures it cannot touch. A strategy that claims an edge
+has to adjust.
+
 ## How work is cut and ordered
 
 The tracker carries the plan. Issues say what each deliverable is, milestones
@@ -1002,6 +1081,7 @@ only committed vintages runs with no configuration at all.
 | The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records, `chan.fetch_alphavantage`, which writes the equity daily closes there, and `chan.sp600_panel`, `chan.sp500_panel` and `chan.sp400_panel`, whose `fetch` and `check` read it |
 | `ALPHAVANTAGE_API_KEY` | yes | the environment of one fetch run, never a file | `chan.fetch_alphavantage`, and `chan.sp600_panel fetch`, `chan.sp500_panel fetch`, `chan.sp400_panel fetch` and `chan.usdcad_holdout fetch`, which hand it on |
 | `QT_ARCHIVE_RUN=1` | no | `.claude/settings.json`, for every Claude Code session here, or the environment of one test run | `tests/conftest.py`, whose run of Example 7.1 the archive pins in `tests/test_cpo.py` and `tests/test_cpo_figures.py` share on one test worker, and which runs only when it is set and an archive is configured. `-n 0` runs the suite in one process, so the run is built once. The owner set it for every Claude Code session on 2026-10-05, so the pins run in every Claude Code session where the archive is, and `QT_ARCHIVE_RUN=0` skips them for one run. The price, measured that day at `530997f` in parallel at a load average of 6 to 10: the three archive test files took 398 seconds, as each pin file built the run in about 360, against 30 seconds with the pins skipped. Since [issue 692](https://github.com/l3a0/quantitative-trading/issues/692) the two pin files run in one work unit, so a parallel run builds it once, and the register row on `--dist loadgroup` gives what that saved. A clone with no archive skips the pins with a reason, and so does CI, which has no archive. The same switch gates the 18 archive pins of the Example 7.2 rerun in `tests/test_pead_rerun.py` and `tests/test_earnings_filings.py`, which read the archive's daily files and take under a minute, and the 35 archive pins of [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s holdout in `tests/test_low_beta_holdout.py`, the 7 of its figure in `tests/test_low_beta_holdout_figures.py` and the comparison of that figure with its committed file in `tests/test_figures_match_code.py`, which read 817 member series' adjusted closes and volumes plus SPY's line. `tests/test_low_beta_holdout.py` took 284 seconds serially with its pins and 149 without them, measured once at `6da2c3e9`. It also gates the 46 archive pins of [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)'s run in `tests/test_khandani_lo_mid_caps.py`, which read the `sp400` and `sp600` cross-sections beside Chan's two files. Five runs of that file on one 10-core machine, at `f5806ff7` and two later commits that run the same code, took between 30 and 145 seconds serially with its pins and between 6 and 24 without them. The fastest ran at a load average near 11, and the slowest with its pins at 60 to 109. |
+| The lake the paper ledger reads | no | `--lake-root` for one run, else `QT_LAKE_ROOT`, else `~/.config/quantitative-trading/lake_root`, one line | `chan.paper_ledger`, which reads `marketlake`'s lake through that repo's package and passes this root to every read. Never `marketlake`'s own config, which holds a broker secret. `tests/test_paper_ledger.py`'s lake pins run only where this is set and the `lake` extra is installed |
 | SEC's User-Agent contact | no | `~/.config/quantitative-trading/sec_user_agent`, one line, or `QT_SEC_USER_AGENT` for one run | `chan.fund_holdings`, whose fetch SEC asks to name a contact. A contact identifies a person, which is why it is read from the machine rather than from this repo |
 
 ## Considered and rejected
@@ -1089,4 +1169,6 @@ change that cuts it.
 | `--dist loadgroup`, to keep every test reading `cpo_result` on one worker | Each xdist worker has its own session, so the session-scoped run of Example 7.1 in `tests/conftest.py` is built in every worker that draws a reader. A collection hook marking the readers into one group was built and then cut. `loadgroup` hands out every test outside a group one at a time, so each module-scoped fixture gets rebuilt on more workers, and every run would pay that to save CPU on an archive run that happened by hand and had never run in parallel. Since the owner's decision of 2026-10-05 the archive run happens in every Claude Code session where the archive is, which makes one build per run worth more. Moving the 16 pins into one file would give it under `loadfile` without `loadgroup`'s cost. `-n 0` builds the run once, and `tests/conftest.py` says so. CI's 4-core runner hit the job's 15-minute ceiling on the one commit that ran it, after reaching 65 percent of the suite in under three minutes. A third way exists since [issue 685](https://github.com/l3a0/quantitative-trading/issues/685), and unlike `loadgroup` it keeps every other file in a work unit of its own. `tests/conftest.py` schedules `loadfile` through a subclass that puts a named file in another file's unit. It joins the two files reading `pca_factor_momentum_run`, a run of about 100 seconds on CI. [Issue 692](https://github.com/l3a0/quantitative-trading/issues/692) joined the two readers of `cpo_result` the same way, once a measurement showed that one worker carrying both files' archive pins and a single build is faster than two workers each building the run. Four full runs with `QT_ARCHIVE_RUN=1` at `29af3c73` on the owner's 10-core Mac, alternating without and with the join, took 609 and 613 seconds without it and 484 and 437 with it. Without the join, two workers built the run, in 419 and 369 seconds on the first run and 414 and 381 on the second, and the busiest worker was busy for 570 and 583 seconds. With it, one worker built the run once, in 389 and 382 seconds, and was the busiest at 422 and 412. Other sessions shared the machine, and its five-minute load average rose from 6 to 42 across the four runs. A run without the join came first and last, so the rise fell on both, and each run with the join beat both runs without it. The price is an override of `_split_scope`, a method xdist marks private, so `tests/test_conftest.py` runs xdist's own `schedule` through it. |
 | Collecting the slowest files first in the parallel suite | One run with the five slowest files named first took 172 seconds against 185 in the order pytest collects. One run each cannot resolve a 13-second gap, and keeping it would take a hook that reorders collection. The floor is the module fixture in `tests/test_pca_factor.py`, which took 128 to 131 seconds to build in that run once ten workers shared the cores. |
 | Keeping `chan.matlab_helpers`' list of callers and adding a test that compares it with the real imports | Ruled out by the owner on 2026-10-10, on [issue 443](https://github.com/l3a0/quantitative-trading/issues/443). The module docstring named which modules call which helper, and six modules had drifted out of it by `b44f751`, five missing outright and one named for only some of its helpers. A test would stop the drift, at the price of a test to maintain for something that is only documentation. [PR 446](https://github.com/l3a0/quantitative-trading/pull/446) replaced the list with a `grep` command that names every importing module. Later that day, on [issue 445](https://github.com/l3a0/quantitative-trading/issues/445), the owner ruled that a sentence about who uses something names the set by what its members share, or names one member as an example, and that no command replaces a list. The docstring now names one caller as an example, so nothing has to be kept current by hand. The price is that no surface names every caller, so a reader who needs them all searches the imports. |
+| A second reader of `marketlake`'s Parquet layout, for the paper ledger | Decided on [issue 775](https://github.com/l3a0/quantitative-trading/issues/775). `marketlake`'s loader already holds the quarantine guard, the comparison of minutes as instants and the projection of overflow columns, and a reader here would be a second copy of all three that drifts without either looking wrong. The ledger depends on `marketlake`'s package as an optional extra instead, at the price of the broker client library that comes with it. |
+| A paper profit column in the paper ledger | Decided on [issue 775](https://github.com/l3a0/quantitative-trading/issues/775). The strategy is a placeholder that claims no edge, and a profit column is the figure a reader would take as evidence that it pays. None of the three measures the ledger reports needs it. |
 | Rerunning Example 7.2 on yfinance prices | Measured on [issue 251](https://github.com/l3a0/quantitative-trading/issues/251) in [the plan audit's comment](https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515), with yfinance 1.7.0 over 2010-08-01 to 2012-05-01. It serves 338 of Chan's 497 stocks, renamed tickers included, after leaving out six tickers that answer with another company's history. The 159 it cannot serve carry 0.048618 of the 0.066743 arithmetic return on Chan's own files, so a yfinance rerun would mostly measure losing them. The owner's archive already holds the `sp500` cross-section under the premise's exception for licensed bars, with 399 same-company series under Chan's own tickers by the audit's count, of which the committed check passes 398, and committing yfinance prices would also run `data/` past its 205 MB cap. The price of the archive instead is the one the premise names for it: the rerun's figures on those prices never run in CI. The audit measured the yfinance figures and the 399, and no test holds them. |
