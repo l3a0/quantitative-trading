@@ -179,15 +179,17 @@ where they were first built. The other forty-five were built here.
     121.5 on the closes and 127.65 on the opens, and on Example 3.7 it prints
     0.9578 rather than the book's 0.25. Every figure is exploratory and about
     survivors.
-11. Chan's two commodity seasonal trades, which he says still pay where the
-    equity ones have died: the May gasoline contract from April 13 to April 25,
-    and the June natural gas contract from February 25 to April 15. On EIA's
+11. Chan's two commodity seasonal trades, which he says still pay where
+    much of the equity seasonality has weakened or disappeared: the May
+    gasoline contract from April 13 to April 25, and the June natural gas
+    contract from February 25 to April 15. On EIA's
     NYMEX settlements, natural gas is profitable in every year from 1995 to
     2008, which reproduces both the main text's 13 consecutive years and the
     sidebar's 14, read as first-edition figures counted from 1995. Gasoline from 1995 to 2015 holds the 2 losing years that
     Chan's 19 of 21 allows, and shows 16 profitable rather than 19, because
     EIA's file has no row on the trade date in 1997, 1998 or 1999. Both trades
-    win fewer years after the years he read. Every figure is exploratory.
+    win a smaller share of years after the years he counted. Every figure is
+    exploratory.
 12. Post-earnings announcement drift, Example 7.2 of *Algorithmic Trading*,
     which buys or shorts a stock at the open after an earnings announcement
     when the overnight gap is large, and sells at the close. On Chan's own
@@ -1585,8 +1587,9 @@ pins what it gives.
 Twelve vintages hold NYMEX futures settlement prices as the US Energy
 Information Administration publishes them: contracts 1 to 4 of RBOB gasoline,
 of the New York Harbor gasoline contract it replaced, and of Henry Hub natural
-gas. `src/chan/commodity_seasonals.py` reads five of them for
-[issue 19](https://github.com/l3a0/quantitative-trading/issues/19), and the
+gas. `src/chan/commodity_seasonals.py` reads six of them for
+[issue 19](https://github.com/l3a0/quantitative-trading/issues/19), five for
+the trades and New York Harbor's contract 2 for Lesson 2's second fill, and the
 issue records the owner's decision to commit all twelve.
 `src/chan/stationary_candidates.py` reads eight, every natural gas and RBOB
 file, for [issue 137](https://github.com/l3a0/quantitative-trading/issues/137).
@@ -3746,58 +3749,105 @@ byte for byte on the owner's machine.
 [blog/commodity-seasonals-lessons.md](blog/commodity-seasonals-lessons.md) is
 an eleventh post, about the commodity seasonals, the gasoline and natural gas
 trades Chan says still pay where the equity ones weakened. It is the companion to
-the equity seasonals post, and draws four lessons from Entry 11 of the
+the equity seasonals post, and draws five lessons from Entry 11 of the
 replication log.
 
-1. A count of consecutive years needs its start year and its edition, and the
+1. Ask a consecutive count where it starts and which edition wrote it. The
    natural gas counts reproduce only under the reading pinned on
    [issue 19](https://github.com/l3a0/quantitative-trading/issues/19).
-2. A missing row is not a losing year, so three gaps in EIA's file bound the
-   gasoline count between 16 and 19 rather than settling it.
-3. A trade chosen after looking at the history is tested by the years after
-   the book, and both trades win fewer of them.
-4. Reading one named contract from files numbered by expiry needs a calendar
-   checked against something the files do not supply.
+2. Read a missing row as missing, not as a loss. Three gaps in EIA's file
+   bound the gasoline count between 16 and 19 rather than settling it.
+3. Test the trade out of sample. Both trades win a smaller share of the years
+   after the book. Under Lesson 1's reading both rules were in print from the
+   first edition of November 2008, so all of those years come after
+   publication. Natural gas's fall after 2008 mixes chance patterns in the
+   years its rule was chosen from, a changed market and traders acting on the
+   rule once it was in print, and 15 yearly trades cannot separate them.
+4. Count the results before grading a split. One trade a year leaves too few
+   results to grade the split between the book's years and the years after.
+   It works the Sharpe ratio's standard error and the 95% range of each mean
+   through. Welch's test and the Mann-Whitney rank test both find gasoline's
+   fall, and split on natural gas, whose average after 2008 only 2022 holds
+   up.
+5. Find a contract's file with the exchange's calendar. Reading one named
+   contract from files numbered by expiry needs a calendar checked against
+   something the files do not supply.
 
 It cites the revised edition by page, while the replication log cites the
-same passages by Kindle location. Four groups of its figures are not pinned
-here.
+passages on pp. 183 to 185 by Kindle location. Five groups of its figures are
+not pinned here.
 
 1. Chan's words, each cited by its page in the revised edition. The pairing
    of equity and commodity seasonals is on p. 175. "Alive and well", the
    demand from real economic need rather than speculation, and 19 profitable
    years of the last 21 "as of 2015" with the last 9 out of sample are on
-   p. 183, as are the summer driving season and the scan of the literature.
+   p. 183, as is the summer driving season.
    The gasoline rule's April dates and the profit every year since 1995 are
    on p. 184. 13 consecutive years and the demand from power generators, 14
    consecutive years and the exit on April 15, and "didn't hold up as well
-   out-of-sample" are on p. 185. The warning about data-snooping and the
-   suggestion to try nearby dates are on p. 186.
+   out-of-sample" are on p. 185. The rule that a trade date falling on a
+   holiday moves to the next trading day at the entry and to the previous one
+   at the exit is in both sidebars, on pp. 184 and 185. The warning about
+   data-snooping and the suggestion to try nearby dates are on p. 186.
+   Buying one contract a trade is in both sidebars too, on pp. 184 and 185.
 2. Facts outside the committed data. RBOB beginning to trade in October 2005,
    the first edition's release in November 2008 and its 2009 date, RB as the
    symbol RBOB trades under, a natural gas contract stopping three trading days
-   before delivery and the May gasoline contract trading until the last
-   business day of April as the exchange's rules, Good Friday as the only NYMEX
-   holiday that can land on a trade date, EIA publishing the nearest four
-   contracts numbered by expiry, EIA's statement that its source is NYMEX, and
-   the Massive futures data service returning April 2025 gasoline prices, which
-   [issue 19](https://github.com/l3a0/quantitative-trading/issues/19) records.
+   before delivery and the April and May gasoline contracts trading until the
+   last trading day of the month before delivery as the exchange's rules, Good
+   Friday as the only NYMEX holiday that can land on a trade date, EIA
+   publishing the nearest four contracts numbered by expiry, with one
+   settlement a day for each contract, EIA's statement
+   that its source is NYMEX, EIA publishing the natural gas and gasoline stock
+   levels Further work names, a commission being small next to a futures
+   contract's value, and the contract numbers of the two extra files
+   Lesson 2 and Lesson 5 read.
 3. Arithmetic no test asserts: that 21 less 19 is 2, that 16 profitable years
    and 3 unreadable ones bound the count between 16 and 19, that 19 then needs
-   all three unreadable years profitable, that four contracts in four years
-   are 16, that 1994 to 2023 is 30 years, that the last 9 of 1995 to 2015 are
-   2007 to 2015, that 7 of 15 is fewer than half, and that 2016 to 2023 is
-   eight years.
-4. Its references. The three citations are cited rather than computed.
+   all three unreadable years profitable, that 21 less the 3 unreadable years
+   is 18, that the last 9 of 1995 to 2015 are 2007 to 2015, that 15 trading
+   days are three weeks, that 1994 is one year before 1995, that 21 years ending
+   in 2015 start in 1995, and that 2008 is more than a decade before 2021.
+4. Its references. The five citations are cited rather than computed, and so
+   are McLean and Pontiff's figures in Lesson 3: 97 predictors, returns 26%
+   lower after each study's data ended but before publication and 58% lower
+   after publication, and the 32-percentage-point difference they attribute
+   to traders acting on what was published.
+5. One date no test asserts: the files' last row on 5 April 2024, which
+   their file names record.
 
 Every other number in the post traces to an assertion in
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py), or to
 [tests/test_commodity_seasonals_figures.py](tests/test_commodity_seasonals_figures.py)
-for the figure's own labels. One had no pin before it, and
+for the figure's own labels, or to
+[tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
+for the sketches' labels and the dates their alt text gives. One had no pin before it, and
 `TestNaturalGas::test_the_runs_counted_from_the_files_first_year` now pins it:
 counted from 1994, the run of 13 profitable years ends in 2006.
+`TestThePostQuotesThePins` reads one copy of each count, streak, gap date and
+split in the post, and fails when that copy drifts from the run. A second copy
+of the same figure elsewhere in the post is not always read. `TestTheReturns`
+pins each split's mean yearly return, Sharpe ratio and drawdown, and
+`TestThePostQuotesThePins::test_the_returns_table` reads them from the post's
+first table at the precision it prints. The same class pins each split's 95% range for
+the mean and the Sharpe ratio's standard error, and Welch's p-values for the
+two periods, the Mann-Whitney p-values and the pairs each earlier period
+won, and natural gas without 2022, and
+`test_lesson_4_works_the_sample_size_out` reads Lesson 4's worked equations
+and its table of tests against them. The tests named for Further work read its
+trade dates and gasoline's holding period, the held-back gasoline years, why
+natural gas has none, the files' first months, the delivery-month check's
+years and the neighbours it cannot reach, and EIA's decimal places.
+They take the held-back years from the manifest's dates, the run's year
+ranges and the expiry rule, never from a gasoline price. The held-back years'
+test also reads the decade, and the held-back gasoline years' first year,
+that Further work's time-of-day check says a source of prices from inside
+the day would have to reach back to.
+`test_each_count_in_words_matches_what_follows_it` reads each count the post
+spells out before a list, a run of headings or a table, such as Further
+work's six parameters and seven checks, against the items that follow it.
 
-Its one figure is drawn from the committed EIA files by
+Its chart is drawn from the committed EIA files by
 [src/chan/commodity_seasonals_figures.py](src/chan/commodity_seasonals_figures.py).
 It draws every year of both trades as a bar at its settlement change, with the
 three unreadable gasoline years as labelled empty slots, a mark giving each
@@ -3810,6 +3860,153 @@ uv run python -m chan.commodity_seasonals_figures
 [tests/test_commodity_seasonals_figures.py](tests/test_commodity_seasonals_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries thirty looping whiteboard sketches, drawn by
+[src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `commodity_sketch_two_trades.gif`, in the opening, each trade's entry and
+   exit as a bar on a calendar from February to May, with the demand behind
+   it and Chan's count for it.
+2. `commodity_sketch_after_book.gif`, in the opening, both trades' years on
+   one axis from 1994 to 2023, a dot for each profitable year and a cross for
+   each loss, each row split where the book's years end, with the years won on
+   each side.
+3. `commodity_sketch_drawdown_2002.gif`, in the opening, natural gas's 2002
+   trade as its return over its entry price on every trading day the files
+   hold a price. The return rose to 48%, fell 22 points, the drawdown, and
+   ended the year 40% up.
+4. `commodity_sketch_streak_start.gif`, in Lesson 1, a year axis from 1994 to
+   the 2009 loss with a dot for each profitable year of the natural gas
+   trade, a note naming it, a dashed mark for the first edition's release in
+   November 2008, and brackets for the streaks of 13 and 14, counted from 1995
+   above the axis and from 1994 below it.
+5. `commodity_sketch_gasoline_editions.gif`, in Lesson 1, a year axis from
+   1995 to 2015 with a dot for each profitable gasoline year, a cross for each
+   loss, a span under the years with no row, a dashed mark for the first
+   edition's release, and brackets for the sidebar's profit every year since
+   1995, ending in 2008, and the main text's 19 of 21, ending in 2015.
+6. `commodity_sketch_gap_range.gif`, in Lesson 2, gasoline's years with the
+   three missing ones marked, and a scale of counts on which the files allow
+   16 to 19 profitable years, with Chan's 19 at the top.
+7. `commodity_sketch_chan_needs_gaps.gif`, in Lesson 2, Chan's 21 years and
+   the files' as two bars, the missing years filling the gap between the
+   files' 16 profits and Chan's 19.
+8. `commodity_sketch_interpolation_guess.gif`, in Lesson 2, the May contract
+   around 1997's missing entry, the straight-line guess across the gap, and a
+   band of one typical miss either side that the exit price splits into a
+   loss part and a profit part.
+9. `commodity_sketch_june_move_fill.gif`, in Lesson 2, May's and June's
+   prices around 1997's gap, June's rise across it carried onto May as fill
+   2's guess, and a band of fill 2's typical miss either side that the exit
+   price splits.
+10. `commodity_sketch_fill_misses.gif`, in Lesson 2, each missing year's move
+   with fill 2's guess corrected by its average miss, and a bar of the spread
+   of its misses either side, which 1999's move clears.
+11. `commodity_sketch_test_days.gif`, in Lesson 2, the April trading days from
+   1994 to 2005 narrowing to 1997's 80 test days, with how many each check
+   removes.
+12. `commodity_sketch_three_numbers.gif`, in Lesson 2, fill 2's misses on
+   the 80 test days of 1997's pattern as stacked dots, with their average,
+   the spread around it, and the typical miss around zero.
+13. `commodity_sketch_april_leans.gif`, in Lesson 2, each April's average
+   miss from 1994 to 2005, eight of twelve leaning low, with each April's
+   number of test days.
+14. `commodity_sketch_miss_sign.gif`, in Lesson 2, 1997's missing entry and
+   1998's missing exit side by side, each guess lifted by fill 2's average
+   miss, so the move shortens for the entry and lengthens for the exit.
+15. `commodity_sketch_raised_start.gif`, in Lesson 3, one trade's mean
+   return on a vertical scale, with the book's years above a dashed line for
+   its real edge and the years after the book below it, so the fall measured
+   from the book's years is longer than the fall from the real edge.
+16. `commodity_sketch_sharpe_ranges.gif`, in Lesson 4, each period of the
+   returns table as a dot at its Sharpe ratio on a bar 1.96 standard errors
+   either side, where only the two periods after the book reach across zero.
+17. `commodity_sketch_t_multiplier.gif`, in Lesson 4, Student's t's 95%
+   multiplier for 8, 15 and 30 results and for very many, against the normal
+   curve's 1.96.
+18. `commodity_sketch_half_width.gif`, in Lesson 4, natural gas's ±12% built
+   from its spread, its count and its multiplier, each bar starting on a
+   dashed line at its later mean and the last reaching past the gap to its
+   earlier mean.
+19. `commodity_sketch_mean_ranges.gif`, in Lesson 4, each period's mean and
+   95% range, where natural gas's later range holds its earlier mean and
+   gasoline's does not.
+20. `commodity_sketch_rank_pairs.gif`, in Lesson 4, every pairing of an
+   earlier natural gas year with a later one as a dot, blue where the earlier
+   year did better, so the earlier years win 177 of 225 pairs.
+21. `commodity_sketch_luck_curve.gif`, in Lesson 4, the pair counts luck alone
+   gives, counted exactly, with natural gas's 177 beyond the 5% line and the
+   0.7% of splits that land that far out shaded.
+22. `commodity_sketch_four_chances.gif`, in Lesson 4, the table's four
+   chances on one percentage scale, where only natural gas's Welch chance
+   sits past the 5% line.
+23. `commodity_sketch_one_year.gif`, in Lesson 4, natural gas's returns after
+   2008 with their mean with and without 2022, above all 30 years ranked
+   worst to best, where 2022 is one top rank however large its gain.
+24. `commodity_sketch_june_file.gif`, in Lesson 5, the March to June natural
+   gas contracts as bars ending at their last trading days in 2008 and 2006,
+   with a dashed line at each entry and exit, so June's number is how many
+   bars each line crosses.
+25. `commodity_sketch_handover.gif`, in Lesson 5, the contract-1 and contract-2
+   files in February 1996, where file 1 picks up file 2's price the day after
+   March's last trading day.
+26. `commodity_sketch_check_coverage.gif`, in Lesson 5, which years each check
+   of the expiry rule reaches: the files from 1994, the exchange from 2017.
+27. `commodity_sketch_edge_day.gif`, in Lesson 5, 2018's entry on March's own
+   last trading day, so June is contract 4.
+28. `commodity_sketch_holiday_rows.gif`, in Lesson 5, Christmas week of 2018,
+   where the file holds a row on the closed 25th, beside 2016.
+29. `commodity_sketch_plateau.gif`, in Further work, profit against one
+   parameter moved either way from Chan's value, as a cliff that pays well
+   only at his value beside a plateau that pays around it.
+30. `commodity_sketch_closed_date.gif`, in Further work, gasoline's 2019
+   entry date, a Saturday, which Chan's rule moves forward to Monday while the
+   outward rule and the nearest trading day move it back to Friday.
+
+All thirty build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, because each carries more than that
+pace lets a reader take in. The gasoline editions, half-width and pairs
+sketches hold their labels for 1.8 seconds. The pairs sketch draws its strokes
+at 250 ms a frame, and the gasoline editions and half-width sketches draw their
+strokes at the usual 100 ms and hold each finished stroke for 250 ms.
+
+Two are schematic, the raised-start and cliff-or-plateau sketches, whose
+dots, brackets and curves are shapes rather than figures and which say so on
+the board. Each of the other twenty-eight reads the natural gas or gasoline
+run on the committed EIA files, so none needs the owner's archive. Redraw all
+thirty with:
+
+```bash
+uv run python -m chan.commodity_seasonals_whiteboard
+```
+
+[tests/test_commodity_seasonals_whiteboard.py](tests/test_commodity_seasonals_whiteboard.py)
+holds that each opening bar runs from its trade's entry to its exit, that
+the opening's split falls after the last of the book's years with the table's
+years won on each side, that the drawdown sketch's marks are 2002's
+returns on each trading day the files hold a price and its bracket the run's drawdown, that each natural gas bracket ends where the run's
+streak reaches Chan's count, that gasoline's sidebar bracket ends before its first loss while the
+main text's covers both, that the Lesson 2 sketches draw the run's range,
+guess, typical misses and missing years, that the test-day sketch's bars are
+the run's counts of April days, that the miss-sign sketch's lifted brackets
+change by fill 2's average miss, that the raised-start sketch's book's-years
+dot sits above the real edge and the later dot below it, with the bracket
+measured from the book's years the longer and no number on the board, that the
+Sharpe sketch's dots and bars are
+the run's ratios and standard errors, that the multiplier, half-width and
+mean-range sketches draw Student's t's multipliers and the run's means and
+ranges, that the one-year sketch's ranks stay
+put when 2022's gain shrinks, that June's number in each label is
+how many bars its line crosses and the file the run reads, that the handover
+sketch's dots are the files' prices and its files hand over the day after the
+rule's last day, that the coverage sketch's counts are the run's, that 2018's
+entry line meets the end of March's bar, that a holiday dot stands on exactly
+the days the file holds a row, that the plateau sketch's dot sits on each curve
+at its panel's centre, with the cliff back near its floor a fifth of a panel
+away and the plateau still near its top, that each closed-date arrow ends on
+the day its rule gives and its caption counts the run's years with a trade
+date on a closed day, and that each GIF follows the paragraph it draws.
 
 [blog/buy-on-gap-lessons.md](blog/buy-on-gap-lessons.md) is a twelfth post,
 about buy on gap, Example 4.1 of Chan's *Algorithmic Trading*. Each day the
@@ -4010,7 +4207,7 @@ each orientation, null sets reaching each verdict, slow-reversion means,
 handover tallies and the months they span, and what a rule two days off would
 misread, to
 [tests/test_commodity_seasonals.py](tests/test_commodity_seasonals.py) for the
-16 contracts whose exchange dates check the expiry rule, to
+40 contracts whose exchange dates check the expiry rule, to
 [tests/test_calendar_spread_figures.py](tests/test_calendar_spread_figures.py)
 for the figure's own labels, or to
 [tests/test_calendar_spreads_whiteboard.py](tests/test_calendar_spreads_whiteboard.py)

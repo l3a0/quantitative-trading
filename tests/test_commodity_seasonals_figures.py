@@ -1,4 +1,4 @@
-"""The pins for the commodity-seasonals post's one figure.
+"""The pins for the commodity-seasonals post's chart.
 
 ``tests/test_commodity_seasonals.py`` holds what the two trades compute. This
 file holds that the figure draws those numbers, so a generator that drew a
@@ -30,8 +30,8 @@ from chan.commodity_seasonals_figures import (
     make_years_figure,
     year_trades,
 )
+from chan.palette import GOOD, LOST
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import GOOD, LOST
 from chan.vintage import VintageUnavailable
 
 
@@ -247,10 +247,9 @@ class TestTheWords:
             f"EIA's NYMEX settlements, downloaded 2026-10-02: {', '.join(symbols)}. "
             "One contract a year with no costs, so a bar above zero is a profitable year, "
             "and the marks along each foot point up for a profit and down for a loss. "
-            "Chan chose both trades after looking at these years' history. "
             "The dashed line is where the book's years end: 2015 for gasoline, and 2008 for "
             "natural gas under the reading that both of its counts were written for the "
-            "first edition."
+            "first edition. Chan chose both trades after looking at years before the line."
         )
 
     def test_no_label_is_parsed_as_math(self, figure) -> None:
@@ -311,3 +310,14 @@ def test_any_other_failure_still_ends_in_a_traceback(monkeypatch) -> None:
     monkeypatch.setattr(figures, "year_trades", broken)
     with pytest.raises(ValueError, match="a bug, not a refusal"):
         figures.main()
+
+
+def test_the_post_draws_in_the_shared_palette() -> None:
+    """The colours are measured once, in ``tests/test_palette.py``. Here it is
+    enough that the chart's and the sketches' inks are that module's."""
+    from chan import commodity_seasonals_whiteboard as sketches
+    from chan import palette
+
+    assert figures.ACCENT == palette.ACCENT
+    assert sketches.INKS == palette.INKS
+    assert (sketches.GOOD, sketches.LOST) == (palette.GOOD, palette.LOST)

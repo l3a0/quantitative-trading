@@ -3355,10 +3355,12 @@ Ten rows, all derivable from
 [tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py).
 
 **Both natural gas figures reproduce under the reading the issue pinned, and
-the gasoline count agrees with the book on every year the file can read.** Chan says commodity seasonal trades still pay where
-the equity ones have died, and gives two. Gasoline buys the May contract at the
-close of April 13 and sells at the close of April 25. Natural gas buys the June
-contract at the close of February 25 and sells at the close of April 15.
+the gasoline count agrees with the book on every year the file can read.**
+Chan says commodity seasonal trades still pay where much of the equity
+seasonality has weakened or disappeared, and gives two. Gasoline buys the May
+contract at the close of April 13 and sells at the close of April 25. Natural
+gas buys the June contract at the close of February 25 and sells on April 15,
+at a time Chan does not name, which the run takes as the close.
 
 1. **Natural gas.** Every year from 1994 to 2008 is profitable. Counted from
    1995, the run is 13 years ending in 2007 and 14 ending in 2008, the main
@@ -3379,13 +3381,15 @@ no count. Three of the rules carry the result, so they are stated here.
    York Harbor regular gasoline, through 2005,
    `eia_eer-epmrr-pe1-y35ny-dpg_raw_2005-10-03_2024-04-05_dl2026-10-02.csv`,
    RBOB gasoline, from 2006, and `eia_rngc2`, `eia_rngc3` and `eia_rngc4` for
-   natural gas. [data/README.md](../data/README.md) says what each holds. Each
+   natural gas. Lesson 2's second fill also reads New York Harbor's contract 2,
+   `eia_eer-epmr-pe2-y35ny-dpg`, and Lesson 5's handover check and holiday
+   count read natural gas's contract 1, `eia_rngc1`. [data/README.md](../data/README.md) says what each holds. Each
    file numbers contracts by expiry, so the run maps a date to the file that
    holds the May or June contract. The expiry rule behind that map gives the
-   last trading day the Massive futures API recorded for all 16 contracts
-   checked, March to June of 2017, 2018, 2021 and 2024. Those 16 dates were read
-   from the API on 2026-10-03 and are pinned as a measurement, because nothing
-   in this repo can read them again. Before mid-1997 contracts stopped trading
+   last trading day the Massive futures API recorded for all 40 March to June
+   contracts it holds from 2017, where its records begin, to 2026. Those 40 dates were read from the API on 2026-10-26, after a first
+   read of 16 on 2026-10-03 that agreed, and are pinned as a measurement,
+   because nothing in this repo can read them again. Before mid-1997 contracts stopped trading
    five or six days before delivery rather than three, which the files'
    handovers show, and the rule follows them. That moves the 1996 and 1997
    entries to contract 3 and changes neither year's sign.
@@ -3395,8 +3399,10 @@ no count. Three of the rules carry the result, so they are stated here.
    file counts neither way, rather than moving to another day.
 
 Every result here is **exploratory**. Chan chose both trades after looking at
-the history the run reads, so the entry says whether his counts reproduce and
-nothing about whether either trade pays today.
+years before his book, which the run also reads, so on those years the entry
+says whether his counts reproduce. Nobody wrote down a test for the years after
+the book before the run computed them, so the entry says nothing about whether
+either trade pays today.
 
 ### What the book printed
 
@@ -3435,9 +3441,9 @@ nothing about whether either trade pays today.
 | 4 | 0 | reproduced | Under the reading pinned on the issue, both figures written for the 2008 first edition and counted from 1995. |
 | 5 | 0 | reproduced | The same reading. The two figures differ by the one year between the main text and the sidebar. |
 | 6 | none | none, not a replication | A claim with no figure, and the issue declared no criterion for it. The halves are 15 of 15 and 7 of 15. |
-| 7 | none | none, not a replication | 1994 is profitable too, so counting from the first year the files hold a whole trade makes both runs one longer. With runs ending in 2007 and 2008, only a count from 1995 matches, the year the gasoline sidebar names as its start. Counted from 1994, runs of 13 and 14 end in 2006 and 2007 instead. |
+| 7 | none | none, not a replication | 1994 is profitable too, so counting from the first year the files hold a whole trade makes both runs one longer. With runs ending in 2007 and 2008, only a count from 1995 matches, the year both gasoline counts start from: the sidebar names it, and the main text's 21 years to 2015 begin there. Counted from 1994, runs of 13 and 14 end in 2006 and 2007 instead. |
 | 8 | none | none, not a replication | The older contract's file has no row on 2006's entry day, so the side row cannot say whether the switch to RBOB decides 2006. |
-| 9 | none | none, not a replication | In 10 years the entry falls on the March contract's last trading day, so the file read depends on contract 1 keeping an expiring contract on its last day. The files show that convention in 2014 and 2019. Reading contract 3 instead flips no year, so the convention cannot move a verdict. |
+| 9 | none | none, not a replication | In 10 years the entry falls on the March contract's last trading day, so the file read depends on contract 1 keeping an expiring contract on its last day. The files show that convention in 2014 and 2019. Reading the contract-3 file instead turns no year from a profit to a loss or from a loss to a profit, so the convention cannot move a verdict. |
 | 10 | none | none, not a replication | After the book, gasoline profits in 3 of 8 years and natural gas in 4 of 8, its 2016 to 2023 share of row 6. |
 
 ### What the entry concludes
@@ -3451,11 +3457,12 @@ Three things.
 2. **Gasoline agrees with the book on every year the file can read.** 1995 to
    2015 holds the 2 losing years 19 of 21 allows and no third. The three
    unreadable years are gaps in EIA's file, not losses.
-3. **In this exploratory record, both trades win fewer years after the years
-   Chan read.** Natural gas wins 15 of 15 through 2008 and 7 of 15 after, which
-   agrees with his remark at location 4632. Gasoline wins 3 of 8 from 2016 to
-   2023. Eight years with no costs charged can show the change and cannot
-   measure it.
+3. **In this exploratory record, both trades win a smaller share of years
+   after the years Chan counted.** Natural gas wins 15 of 15 through 2008 and 7
+   of 15 after, which agrees with his remark at location 4632. Gasoline wins 3
+   of 8 from 2016 to 2023. Each trade's earlier years include the years Chan
+   chose its rule on, so the drop can overstate how much it weakened. No costs
+   are charged on either side of the split.
 
 ### What this entry cannot say
 
@@ -3485,6 +3492,95 @@ change to any assertion named above moves this entry in the same commit, and
 moves with it, since that post quotes most of these figures. So does its
 figure of every year of both trades, which
 `uv run python -m chan.commodity_seasonals_figures` redraws.
+
+A fill of the three missing gasoline prices was tried on 2026-10-25 and cannot
+decide any of the three years, a null result
+`chan.commodity_seasonals.gap_fills` keeps and
+[tests/test_commodity_seasonals.py](../tests/test_commodity_seasonals.py)
+pins. EIA's contract-2 file, which holds June while May is contract 1, has a
+row on all three days, so the run filled each gap two ways.
+
+1. A straight line between the contract-1 rows on either side.
+2. May's price on the last day before the gap, counting only days both files hold, moved by June's change since that day.
+
+Each fill's typical miss was measured as a root mean square error on hidden
+April days from 1994 to 2005 in the gap's own pattern of trading days. June's
+move misses by 0.65 to 0.89 cents a gallon, and the straight line by 1.8 to
+2.0. Both fills guess a profit every year, but every move lies inside one
+typical miss.
+
+Fill 2's misses also average 0.20 to 0.26 cents above zero, so it guesses May
+low, by 2.7 to 3.2 standard errors that understate the truth, because test days
+close together read some of the same prices.
+Corrected by that average and set against the spread around it, the three
+years' chances of a profit are 57%, 83% and 90%, none reaching 95%. If the
+misses are normal and independent, all three years were profits with a chance
+of 42%, which is what Chan's 19 of 21 needs. Before the correction the figure
+was 41%.
+
+The post also carries thirty whiteboard sketches, twenty-eight that draw
+this entry's run and two schematic sketches, and
+`uv run python -m chan.commodity_seasonals_whiteboard` redraws all
+thirty.
+
+1. Each trade's entry and exit on one calendar, with Chan's count for it.
+2. Both trades' years won, split where the book's years end: 15 of 15 then 7 of
+   15 for natural gas, and 16 of 18 then 3 of 8 for gasoline.
+3. Natural gas's 2002 trade on every trading day the files hold a price. Its
+   22-point fall from its 48% peak is the drawdown before 2009, inside a year
+   that ended 40% up.
+4. The natural gas streaks of 13 and 14, counted from 1995 and from 1994,
+   against the 2009 loss and the first edition's release.
+5. Gasoline's two claims, the sidebar's profit every year since 1995 ending
+   in 2008 before the first loss, and the main text's 19 of 21 ending in 2015
+   past both losses.
+6. The range of 16 to 19 profitable gasoline years the three missing rows
+   leave, with Chan's 19 at its top.
+7. Chan's years and the files' as two bars, the missing years filling the
+   gap between the files' 16 profits and Chan's 19.
+8. A straight-line guess for 1997's missing entry, with a band of one typical
+   miss either side that the exit price splits.
+9. Fill 2 for 1997: June's rise across the gap carried onto May, with a band
+   of fill 2's typical miss either side that the exit price splits.
+10. Each missing year's move with fill 2's guess corrected by its average
+   miss, against the spread of its misses either side.
+11. The April trading days narrowing to 1997's 80 test days.
+12. Fill 2's misses on the 80 test days of 1997's pattern, with their
+   average, spread and typical miss.
+13. Each April's average miss, eight of twelve leaning low.
+14. Why a miss subtracts at an entry and adds at an exit, from 1997's missing
+   entry and 1998's missing exit.
+15. A schematic raised start, one trade's mean in the book's years drawn
+   above its real edge, so the fall measured from it is longer than the fall
+   the trade took, with no figures from the run.
+16. Each period's Sharpe ratio with 1.96 standard errors either side.
+17. Student's t's 95% multiplier for few results against the normal curve's.
+18. Natural gas's ±12% half-width built from its spread, count and multiplier.
+19. Each period's mean and 95% range, with each trade's earlier mean carried
+   down past its later range.
+20. Every pairing of an earlier natural gas year with a later one, 177 of 225
+   won by the earlier year.
+21. The pair counts luck alone gives, counted exactly, with natural gas's 177
+   in the 0.7% of splits that land that far out.
+22. The four chances against the 5% line.
+23. Natural gas's mean after 2008 with and without 2022, against all 30
+   years ranked.
+24. Which numbered file holds the June contract on the entry and exit days of
+   2008 and 2006.
+25. The files handing over the day after March 1996's last trading day.
+26. Which years each check of the expiry rule reaches.
+27. 2018's entry on March's own last trading day.
+28. A holiday row in the files, at Christmas 2018, beside none in 2016.
+29. A schematic cliff beside a plateau, the two shapes a search across a
+   trade's parameters tells apart, with no figures from the run.
+30. Gasoline's 2019 entry date, Saturday, April 13, moved forward to Monday by
+   Chan's rule and back to Friday by the outward rule and the nearest trading
+   day. A trade date falls on a closed day in 17 of 29 gasoline years and 11
+   of 30 natural gas years.
+
+[tests/test_commodity_seasonals_whiteboard.py](../tests/test_commodity_seasonals_whiteboard.py)
+reads every sketch but the raised-start and the cliff-or-plateau from the run, so a change to the streak counts, to a gasoline
+year's result, to the expiry rule or to the trading calendar moves them too.
 
 ## Entry 12: post-earnings drift, Chan's *Algorithmic Trading*
 
