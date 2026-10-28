@@ -446,6 +446,24 @@ Four habits follow from the first four lessons.
 3. **Judge a seasonal trade on the years after it was chosen and published.** Natural gas won every year through 2008 with a mean return of 10.6% a year, and averaged a loss of 0.4% a year after.
 4. **Count the results behind a Sharpe ratio, and ask which test a claimed change rests on.** Fifteen yearly trades leave a standard error near 0.3, and one year, 2022, decides whether the fall in natural gas’s average stands out from luck.
 
+## Further work
+
+The run fixed two choices a trader could make differently: the days each trade enters and exits, and the time of day it trades. Whether either trade’s record holds when those choices move is the question this post leaves open.
+
+### Nearby entry and exit dates
+
+Chan’s own check moves the dates and asks whether the profits hold (p. 186). Run fairly, it needs the three safeguards Lesson 4 names, and each has a concrete form here.
+
+1. **The variants.** Every pair of entry and exit dates within a set range of Chan’s, counted in trading days so each one lands on a day the exchange is open, written down before any is computed.
+2. **The pass mark.** Neighbouring dates share most of their holding period, so their results rise and fall together. The correction for trying many pairs has to stay valid when they do.
+3. **The held-back years.** The New York Harbor gasoline file begins in January 1985, and nothing here has read its Aprils before 1994, so 1985 to 1993 give nine years the search would never see, though Chan may have seen them. Every natural gas year in EIA’s files is already used, so its held-back years would have to come after the files end in April 2024.
+
+The check asks whether the neighbourhood of Chan’s dates holds up, not which neighbour does best.
+
+### Other times of day
+
+Every entry and exit in the run is a settlement price. Chan names the close for both gasoline dates and for the natural gas entry, but no time for the natural gas exit, so the close there is the run’s choice. Trading at the open or at a set hour instead needs prices from inside the day, and EIA’s files hold one price a day for each contract. The run holds no prices from inside the day for these contracts, and whether any source reaches back to the 1990s is unmeasured. Each time tried is one more variant, so it belongs in the same written list as the dates, under the same pass mark.
+
 ## References
 
 - Chan, E. P. (2009). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business*. Wiley. Released in November 2008.
