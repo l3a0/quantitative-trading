@@ -927,8 +927,8 @@ class TestWhatThePostQuotes:
             f"{gap(proportion, SCRIPT_RANDOMIZED_RETURNS_P_VALUE):+.6f} from the script’s.",
             f"Over all {n // 1_000_000} million simulated daily returns, the average is "
             f"{returns.draw_mean:.6e} against TU’s mean daily return of {moments.mean:.6e}, and "
-            f"the standard deviation is {returns.draw_std:.6e} against {moments.std:.6e}. Both "
-            f"sit within {SPELLED[4]} standard errors of their targets.",
+            f"the standard deviation is {returns.draw_std:.6e} against TU’s {moments.std:.6e}. "
+            f"Both sit within {SPELLED[4]} standard errors of their targets.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -953,16 +953,16 @@ class TestWhatThePostQuotes:
         fragments = [
             f"The run here executes that loop as written for {AS_WRITTEN_DRAWS} draws, and every "
             "simulated return is zero.",
-            "**Corrected.** Building each draw’s positions from its own shuffled signals gives "
+            "**Corrected.** Building each draw’s positions from its own shuffled entry days gives "
             f"{count} of {TRADES_DRAWS:,} on seed {TRADES_SEED}.",
             f"so here below {3 / TRADES_DRAWS:.0e}.",
             f"The largest shuffled mean is {trades.max():.6e} and their average is "
-            f"{trades.mean():.6e}. The observed mean sits {z:.6f} standard deviations above that "
-            "average.",
+            f"{trades.mean():.6e}. The observed mean sits {z:.6f} standard deviations of the "
+            "shuffled means above that average.",
             f"Over the first {len(net_positions)} of those shuffles the net position averages "
             f"{np.abs(net_positions).mean():.6f} units in absolute size and is long on "
-            f"{(net_positions > 0).mean():.6f} of all days, against {np.abs(held).mean():.2f} "
-            f"units and {(held > 0).mean():.3f} of its {len(held):,} days for the real rule.",
+            f"{(net_positions > 0).mean():.6f} of the {len(held):,} days, against "
+            f"{np.abs(held).mean():.2f} units and {(held > 0).mean():.3f} for the real rule.",
             f"The shuffled means’ standard deviation is {trades.std(ddof=1):.6e}, against "
             f"{result.returns.declared.std(ddof=1):.6e} for the second test’s means on new "
             "returns.",
@@ -976,14 +976,15 @@ class TestWhatThePostQuotes:
         spread = float(result.daily.std(ddof=1)) / math.sqrt(len(result.daily))
         with_drift, without = long_shares
         fragments = [
-            f"which has no skewness and a kurtosis of 3 against TU’s {moments.kurtosis:.6f}, "
-            f"gives {normal:,} of {RETURNS_DRAWS:,}, against {declared:,} for type IV.",
+            f"has no skewness and a kurtosis of 3, against TU’s {moments.kurtosis:.6f}. It gives "
+            f"{normal:,} of {RETURNS_DRAWS:,}, against {declared:,} for type IV.",
             f"Type IV with TU’s mean set to zero gives {mean_zero} of {RETURNS_DRAWS:,}, or "
             f"{mean_zero / RETURNS_DRAWS:.6f}, close to the Gaussian test’s one-sided "
             f"{float(ndtr(-result.statistic)):.6f}. The average simulated mean falls from "
             f"{returns.declared.mean():.6e} to {returns.mean_zero.mean():.6e}.",
             f"Those {RETURNS_DRAWS:,} means spread with a standard deviation of "
-            f"{returns.mean_zero.std(ddof=1):.6e}, close to the Gaussian null’s {spread:.6e}",
+            f"{returns.mean_zero.std(ddof=1):.6e}, close to the Gaussian null’s standard error of "
+            f"{spread:.6e}",
             f"from {returns.mean_zero.std(ddof=1):.6e} to {returns.declared.std(ddof=1):.6e}.",
             f"On the first {LONG_SHARE_DRAWS:,} simulated series, long entry days make up on "
             f"average {with_drift:.6f} of all entry days, and {without:.6f} once the mean is "
