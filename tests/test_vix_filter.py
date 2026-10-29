@@ -787,7 +787,9 @@ class TestWhatThePostMeasured:
 
         Of the 20 held days, 8 gained and 12 lost. Without that one day, the
         other 189 kept days give 0.048032 and a Sharpe ratio of 0.855003,
-        which print as 4.8 percent and 0.86.
+        which print as 4.8 percent and 0.86. That is below the 0.069600 that
+        252 · mean gives over every day but 2009-04-21, so without that day
+        the kept days earn less than every day, not more.
         """
         long = result.buy_on_gap
         kept, days = long.filtered, long.kept_days
@@ -805,6 +807,14 @@ class TestWhatThePostMeasured:
         assert rest.sharpe == pytest.approx(0.855003, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
         assert matches(100 * rest.average_annual_return, "4.8")
         assert matches(rest.sharpe, "0.86")
+        others = np.delete(long.daily, long.days.get_loc(days[best]))
+        every = reading(others, np.ones(len(others), dtype=bool))
+        assert every.kept == 1499
+        assert every.average_annual_return == pytest.approx(0.069600, abs=SIX), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert rest.average_annual_return < every.average_annual_return, f"{SPEC}; {AFTER_THE_RUN}"
+        assert rest.average_annual_return < long.unfiltered.average_annual_return, SPEC
 
     @pytest.mark.parametrize(
         ("rule", "counts"), [("buy_on_gap", [151, 9, 30]), ("literal", [146, 9, 30])]
@@ -897,8 +907,8 @@ class TestWhatThePostMeasured:
         the book's 2.6 percent, as Lesson 3 says.
         """
         entry, fstx = opening_gap.read_sources(source_file="inputDataOHLCDaily_20120504.mat")
-        assert len(fstx) == 1000
         read = _earlier_save_spec(entry)
+        assert len(fstx) == 1000, read
         rule = opening_gap.opening_gap(fstx)
         filtered = module.vix_filter(
             "FSTX", rule.days, rule.literal, rule.positions != 0, sources.vix
@@ -913,7 +923,9 @@ class TestWhatThePostMeasured:
 
         It flags 30 closes in 17 stocks, as ``tests/test_buy_on_gap.py`` pins,
         and 20 of them fall on buy on gap's kept days. Buy on gap held none of
-        the 17 stocks on a flagged day or the day after.
+        the 17 stocks from a flagged day through the 91 rows after it. A close
+        on row r enters the 20-row average through row r + 20 and, through the
+        return on row r + 1, the 90-row spread through row r + 91.
         """
         closes = sources.stocks["Close"]
         flags = [
@@ -928,7 +940,34 @@ class TestWhatThePostMeasured:
         held = long_rule.positions != 0
         for symbol, flagged in flags:
             row, column = long_rule.days.get_loc(flagged), closes.columns.get_loc(symbol)
-            assert not held[row : row + 2, column].any(), f"{symbol} {flagged.date()}; {SPEC}"
+            reach = row + buy_on_gap.SPREAD_LOOKBACK + 2
+            assert not held[row:reach, column].any(), f"{symbol} {flagged.date()}; {SPEC}"
+
+    def test_rescaling_the_stocks_from_each_flagged_close_moves_no_position(
+        self, sources, result, long_rule
+    ) -> None:
+        """Each flagged stock's prices from its flagged day on, divided by the size of its move.
+
+        Every position stays where it was, so both filtered figures stay at
+        0.171924 and 1.417425.
+        """
+        stocks = sources.stocks
+        frames = {field: stocks[field].copy() for field in ("Open", "Low", "Close")}
+        closes = stocks["Close"]
+        for symbol in closes.columns:
+            prices = closes[symbol].loc[closes[symbol].first_valid_index() :]
+            for flagged in scale_breaks(prices):
+                move = prices.loc[flagged] / prices.loc[:flagged].iloc[:-1].dropna().iloc[-1]
+                for frame in frames.values():
+                    frame.loc[flagged:, symbol] = frame.loc[flagged:, symbol] / move
+        read = f"the stock panel divided by each flagged move from its day on; {SPEC}"
+        side = buy_on_gap.buy_on_gap(frames["Open"], frames["Low"], frames["Close"])
+        assert np.array_equal(side.positions, long_rule.positions), read
+        held = np.count_nonzero(side.positions, axis=1) > 0
+        filtered = vix_filter("Buy on gap", side.days, side.daily, held, sources.vix)
+        assert filtered.kept_days.equals(result.buy_on_gap.kept_days), read
+        assert filtered.average_annual_return == pytest.approx(0.171924, abs=SIX), read
+        assert filtered.sharpe == pytest.approx(1.417425, abs=SIX), read
 
     def test_vix_read_as_rescaled_from_its_flagged_day(self, sources, long_rule) -> None:
         """Every close from 2007-02-27 on divided by 18.31 / 11.15.
@@ -943,12 +982,52 @@ class TestWhatThePostMeasured:
         assert (after.min(), after.idxmin()) == (11.98, day("2007-04-16")), SPEC
         assert round(after.min() / ratio, 1) == 7.3, f"{SPEC}; {AFTER_THE_RUN}"
         assert (earlier.min(), earlier.idxmin()) == (9.31, day("1993-12-22")), SPEC
-        assert after.min() / ratio < earlier.min()
+        assert after.min() / ratio < earlier.min(), SPEC
         rescaled = vix.copy()
         rescaled.loc[FLAGGED_DAY:] = after / ratio
         held = np.count_nonzero(long_rule.positions, axis=1) > 0
         filtered = vix_filter("Buy on gap", long_rule.days, long_rule.daily, held, rescaled)
-        assert filtered.kept == 34, f"{SPEC}; {AFTER_THE_RUN}"
+        read = f"vix/vix.csv divided by 18.31 / 11.15 from 2007-02-27 on; {SPEC}; {AFTER_THE_RUN}"
+        assert filtered.kept == 34, read
+
+    def test_vix_read_with_every_earlier_close_rescaled(self, sources, result, long_rule) -> None:
+        """Every close before 2007-02-27 multiplied by 18.31 / 11.15, the other reading.
+
+        The earlier closes then run from 15.29 to 75.11, inside the later
+        closes' 11.98 to 80.86, so the file's range cannot rule it out. 23.81
+        on 2006-06-13 becomes 39.1, and each rule keeps 2006-06-14 and
+        2006-06-15 too. Buy on gap gives 0.170133 on 192 days and FSTX
+        0.025455 on 187, which print as 17.0 and 2.5, not the book's 17.2 and
+        2.6. Neither rule held a position on either added day.
+        """
+        vix = sources.vix
+        ratio = vix.loc[FLAGGED_DAY] / vix.loc[BEFORE_FLAG]
+        after = vix.loc[FLAGGED_DAY:]
+        rescaled = vix.copy()
+        rescaled.loc[:BEFORE_FLAG] = vix.loc[:BEFORE_FLAG] * ratio
+        earlier = rescaled.loc[:BEFORE_FLAG]
+        read = f"vix/vix.csv times 18.31 / 11.15 before 2007-02-27; {SPEC}; {AFTER_THE_RUN}"
+        assert (round(earlier.min(), 2), round(earlier.max(), 2)) == (15.29, 75.11), read
+        assert (after.min(), after.max()) == (11.98, 80.86), SPEC
+        assert after.min() < earlier.min(), read
+        assert earlier.max() < after.max(), read
+        assert round(rescaled.loc[day("2006-06-13")], 1) == 39.1, read
+        added = [day("2006-06-14"), day("2006-06-15")]
+        held = np.count_nonzero(long_rule.positions, axis=1) > 0
+        long = vix_filter("Buy on gap", long_rule.days, long_rule.daily, held, rescaled)
+        rule = opening_gap.opening_gap(sources.fstx)
+        fstx = vix_filter("FSTX", rule.days, rule.literal, rule.positions != 0, rescaled)
+        for filtered, base, kept, value, book in (
+            (long, result.buy_on_gap, 192, 0.170133, BOOK_BUY_ON_GAP_PERCENT),
+            (fstx, result.literal, 187, 0.025455, BOOK_FSTX_PERCENT),
+        ):
+            assert list(filtered.kept_days.difference(base.kept_days)) == added, read
+            assert base.kept_days.difference(filtered.kept_days).empty, read
+            assert filtered.kept == kept, read
+            assert filtered.average_annual_return == pytest.approx(value, abs=SIX), read
+            assert not matches(100 * filtered.average_annual_return, book), read
+            on_added = filtered.kept_days.get_indexer(added)
+            assert not filtered.held[filtered.qualifies][on_added].any(), read
 
 
 POST = paths.REPO_ROOT / "blog" / "vix-filter-lessons.md"
@@ -1058,6 +1137,8 @@ class TestThePostQuotesTheRun:
         kept = long.filtered
         best = int(np.argmax(kept))
         rest = reading(np.delete(kept, best), np.ones(len(kept) - 1, dtype=bool))
+        others = np.delete(long.daily, long.days.get_loc(long.kept_days[best]))
+        every = reading(others, np.ones(len(others), dtype=bool))
         assert (
             f"{long.kept_days[best].date()}, returned {_f(kept[best])}, which is "
             f"{_f(kept[best] / kept.sum())}, or 72.2 percent, of the {_f(kept.sum())}"
@@ -1073,6 +1154,9 @@ class TestThePostQuotesTheRun:
         for sentence in (
             f"It gained on {int((held > 0).sum())} and lost on {int((held < 0).sum())}.",
             f"which print as {100 * rest.average_annual_return:.1f} percent and {rest.sharpe:.2f}.",
+            f"Over every day but {long.kept_days[best].date()}, 252 times the mean is "
+            f"{_f(every.average_annual_return)}, so without that day the rise Lesson 1 measures "
+            "becomes a fall.",
             f"FSTX held a position on {lit.held_days} of its {lit.kept} kept days, long on "
             f"{int((side == 1).sum())} and short on {int((side == -1).sum())}.",
         ):
@@ -1113,14 +1197,14 @@ class TestThePostQuotesTheRun:
 
     def test_lesson_4_s_runs_and_spells(self, result) -> None:
         long, lit = result.buy_on_gap, result.literal
-        assert lit.kept_days[[0, -1]].equals(long.kept_days[[0, -1]])
+        assert lit.kept_days[[0, -1]].equals(long.kept_days[[0, -1]]), SPEC
         crisis = [int((f.kept_days.year <= 2009).sum()) for f in (long, lit)]
         found = [runs(f.qualifies) for f in (long, lit)]
         assert len(found[0]) == len(found[1])
         first, last = max(found[0], key=lambda run: run[1] - run[0])
         longest = [max(b - a + 1 for a, b in r) for r in found]
         spells = [_spells(f) for f in (long, lit)]
-        assert len(spells[0]) == len(spells[1]) == 3
+        assert len(spells[0]) == len(spells[1]) == 3, SPEC
         (a0, b0), (a1, b1), (a2, b2) = (
             (long.days[s[0][0]], long.days[s[-1][1]]) for s in spells[0]
         )
@@ -1158,17 +1242,43 @@ class TestThePostQuotesTheRun:
         best = long.kept_days[int(np.argmax(long.filtered))]
         row = long_rule.days.get_loc(best)
         held = closes.columns[long_rule.positions[row] != 0]
-        assert len(held) == 3
+        assert len(held) == 3, SPEC
         drop = 1 - stocks["Open"].iloc[row][held] / closes.iloc[row - 1][held]
+        ratio = vix.loc[flagged] / vix.loc[before]
+        mirror = vix.copy()
+        mirror.loc[:before] = vix.loc[:before] * ratio
+        peak = vix.loc[day("2004-07-16") : before]
+        added = [day("2006-06-14"), day("2006-06-15")]
+        mirrored = vix_filter(
+            "Buy on gap",
+            long_rule.days,
+            long_rule.daily,
+            np.count_nonzero(long_rule.positions, axis=1) > 0,
+            mirror,
+        )
+        assert list(mirrored.kept_days.difference(long.kept_days)) == added, SPEC
+        fstx = opening_gap.opening_gap(sources.fstx)
+        mirrored_fstx = vix_filter("FSTX", fstx.days, fstx.literal, fstx.positions != 0, mirror)
         for sentence in (
             f"flags one VIX day, {flagged.date()}, a move from {vix.loc[before]} to "
             f"{vix.loc[flagged]} that reads as real,",
+            f"undone by dividing each by {vix.loc[flagged]} over {vix.loc[before]}, "
             f"it would make the lowest close after it, {after.min()} on "
             f"{after.idxmin().date()}, a true {rescaled_low:.1f}, below every earlier close",
-            f"the check sees only a move of more than {bound:.1f} times, so a rescale of "
-            f"{bound:.1f} times or less",
+            f"That reading would make {peak.max()} on {peak.idxmax().date()} a true "
+            f"{mirror.loc[peak.idxmax()]:.1f} and add {added[0].date()} and {added[1].date()} "
+            f"to each rule’s kept days, so buy on gap would print "
+            f"{100 * mirrored.average_annual_return:.1f} percent rather than "
+            f"{BOOK_BUY_ON_GAP_PERCENT}, and FSTX {100 * mirrored_fstx.average_annual_return:.1f} "
+            f"rather than {BOOK_FSTX_PERCENT}.",
+            f"There the check catches only a move of more than {bound:.1f} times, so a rescale "
+            f"of {bound:.1f} times or less",
             f"the same check flags {len(flags)} closes in {len({s for s, _ in flags})} stocks, "
-            f"{on_kept} of them on kept days,",
+            f"{on_kept} of them on kept days.",
+            f"Buy on gap held none of those stocks from the flagged day through the "
+            f"{buy_on_gap.SPREAD_LOOKBACK + 1} trading days after it, which covers every day "
+            f"whose {buy_on_gap.SPREAD_LOOKBACK}-day standard deviation of daily returns or "
+            f"{buy_on_gap.AVERAGE_LOOKBACK}-day moving average reads that close.",
             f"The day that earns most of the {BOOK_BUY_ON_GAP_PERCENT} percent, {best.date()}, "
             f"rests on three opening prices in Chan’s file that sit "
             f"{math.floor(100 * drop.min())} to {math.ceil(100 * drop.max())} percent below "
@@ -1191,8 +1301,8 @@ class TestThePostQuotesTheRun:
         inside = vix.loc[day("2004-07-16") : VIX_LAST]
         near = inside[inside <= THRESHOLD]
         both = vix.loc[day("2006-05-11") : day("2012-04-24")]
-        assert both[both > THRESHOLD].min() == above.min()
-        assert both[both <= THRESHOLD].max() == near.max()
+        assert both[both > THRESHOLD].min() == above.min(), SPEC
+        assert both[both <= THRESHOLD].max() == near.max(), SPEC
         assert (
             f"The nearest closes are {above.min()} on {above.idxmin().date()}, just above, and "
             f"{below.max()} on {below.idxmax().date()}, just below. The {above.min()} falls "
@@ -1302,7 +1412,12 @@ class TestTheGuard:
 
     @pytest.mark.parametrize("rule", ["buy_on_gap", "literal"])
     def test_the_two_spans_leave_out_only_the_flagged_move(self, sources, result, rule) -> None:
-        """Every day-over-day pair of VIX closes the window reads is guarded, but one."""
+        """Every day-over-day pair of VIX closes the window reads is guarded, but one.
+
+        The pairs run from the window's first joined day. FSTX's latest-close
+        reading also reads 2004-07-15, the close before that day, and no span
+        guards the move from it.
+        """
         vix, days = sources.vix, getattr(result, rule).days
 
         def pairs(start, end):

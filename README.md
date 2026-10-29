@@ -8864,7 +8864,8 @@ no pin before it, all measured after the run.
    gap and 0.018889 and −0.018889 for FSTX under the two signs.
 6. Buy on gap's largest kept day, 2009-04-21, which returned 0.093601, or
    0.722090 of the sum, its 8 gaining and 12 losing held days, and the other
-   189 kept days' 0.048032 and Sharpe ratio of 0.855003.
+   189 kept days' 0.048032 and Sharpe ratio of 0.855003, below the 0.069600
+   of every day but that one.
 7. The three spells the 15 runs group into, from 2008-09-18 to 2009-05-04,
    2010-05-10 to 2010-06-08 and 2011-08-09 to 2011-11-10, holding 151, 9
    and 30 of buy on gap's kept days and 146, 9 and 30 of FSTX's.
@@ -8880,11 +8881,17 @@ no pin before it, all measured after the run.
     misses the book's 2.6 percent.
 13. The scale check run on the stocks, which flags 30 closes in 17 of them,
     20 of those closes on buy on gap's kept days, with none of those stocks
-    held on the flagged day or the day after.
+    held from the flagged day through the 91 days after it, and dividing
+    each one's prices from each flagged day on by its move leaves every
+    position and both filtered figures where they were.
 14. VIX divided by 18.31 / 11.15 from 2007-02-27 on, which puts its lowest
     close after that day, 11.98 on 2007-04-16, at 7.3, below every earlier
     close, the lowest of which is 9.31 on 1993-12-22, and leaves buy on gap
     34 kept days.
+15. VIX multiplied by 18.31 / 11.15 before 2007-02-27, which keeps its
+    earlier closes inside the later ones' range, puts 23.81 at 39.1, and
+    adds 2006-06-14 and 2006-06-15 to each rule's kept days, so buy on gap
+    gives 0.170133 on 192 days and FSTX 0.025455 on 187.
 
 `TestThePostQuotesTheRun` reads the post itself against the run, so editing a
 copy it reads fails. It reads the five tables row by row, the book's rows

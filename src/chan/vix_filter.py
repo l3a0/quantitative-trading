@@ -119,7 +119,8 @@ a guard over either whole window would refuse. :func:`read_sources` guards VIX
 over two spans in each window instead, from the window's first joined day to
 :data:`BEFORE_FLAG` and from :data:`FLAGGED_DAY` to its last joined day.
 Together they leave out only the ratio from 2007-02-26 to 2007-02-27, so every
-day-over-day move the run reads is guarded except the one real move.
+day-over-day move the run reads from the window's first joined day on is
+guarded except the one real move.
 :mod:`chan.vx_es_roll_return` met the same day and guarded VIX only from an
 anchor after it. That is a different case, because no figure there reads VIX
 before the anchor, while here every close before the flag feeds the filter.

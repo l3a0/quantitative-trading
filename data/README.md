@@ -1402,8 +1402,8 @@ joins each calendar to VIX's. VIX ends on 2012-05-08, so the join drops the 7
 FSTX days after it. VIX's one flagged day, 2007-02-27, falls inside both
 windows, so it guards VIX over two spans in each, from the window's first
 joined day to 2007-02-26 and from 2007-02-27 to its last joined day. Together
-they guard every day-over-day move the run reads except that one real move,
-which `tests/test_scale_breaks.py` pins. The guard flags only a move of more
+they guard every day-over-day move the run reads from that first joined day
+on, except that one real move, which `tests/test_scale_breaks.py` pins. The guard flags only a move of more
 than 1.6 times, so a rescale of 1.6 times or less passes it on any span. VIX's largest
 close from 2004-07-16, FSTX's first joined day, to 2007-02-26 is 23.81, on
 2006-06-13, which a rescale of 1.47 times would carry past the threshold of
