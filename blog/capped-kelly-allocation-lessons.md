@@ -1,6 +1,6 @@
-# Under a cap of 2, Chan’s fastest-growing Kelly allocation holds one strategy, and every figure in his text reproduces
+# Under a cap of 2, Chan’s fastest-growing Kelly allocation holds one strategy, and every figure in his examples’ text reproduces
 
-*Chapter 8 of Algorithmic Trading shows that shrinking every Kelly leverage to fit a broker’s cap is not the allocation that grows fastest. Every figure in his text lands, his 0.96 is a tie rounded up, and on his inputs the answer changes once the cap passes 2.45.*
+*Chapter 8 of Algorithmic Trading shows that shrinking every Kelly leverage to fit a broker’s cap is not the allocation that grows fastest. Every figure in Chan’s examples’ text lands, his 0.96 is a tie rounded up, and on his inputs the answer changes once the cap passes 2.45.*
 
 ## Why a leverage cap changes the answer
 
@@ -22,7 +22,7 @@ The six lessons below say what the reproduction teaches. The code is open source
 
 ## Two strategies and a cap of 2
 
-Example 8.2’s two strategies have annual mean excess returns of 30 and 60 percent, meaning returns above the risk-free rate, and annual volatilities of 26 and 35 percent. Their returns are uncorrelated, the risk-free rate is 0 and the broker allows a leverage of 2 (Chan, 2013, p. 255). Where the post writes a mean or a volatility as a decimal, 0.30 is 30 percent a year.
+Example 8.2’s two strategies have annual mean excess returns of 30 and 60 percent, meaning returns above the risk-free rate, and annual volatilities of 26 and 35 percent. Their returns are uncorrelated, the risk-free rate is 0 and the broker allows a leverage of 2 (Chan, 2013, p. 255). Where the post writes a mean or a volatility as a decimal, 0.30 is 30 percent a year. A growth rate reads differently. It is the natural log of the factor capital grows by in a year, so over many years a growth rate of 0.955 multiplies capital by about 2.6 a year, not by 1.955.
 
 The cap is on **gross leverage**. Chan defines it on p. 253 as “the absolute sum of the long and short market values divided by our equity”. A trader with \$1 of equity, \$1.50 long in one strategy and \$0.50 short in another, has a gross leverage of 2 and a net leverage, long less short, of 1. Because the cap is on the gross, a short uses it up as much as a long does.
 
@@ -51,13 +51,13 @@ Here r is 0, as the example assumes. F′ is F written as a row instead of a col
 1. **The return**, F′M, what the leverages earn on average.
 2. **The drag**, F′CF / 2, half the variance of the levered portfolio, which compounding takes back.
 
-The growth rate is the return less the drag. With one strategy at its Kelly leverage, the formula gives the SPY post’s r + S² / 2. With two uncorrelated strategies at their Kelly leverages, it gives half the sum of their squared Sharpe ratios. The Sharpe ratios are 1.153846 and 1.714286, so the uncapped Kelly leverages grow at 2.135068 a year. Their return is 4.270136 and their drag is 2.135068, exactly half the return, the same split the SPY post finds for one strategy. A growth rate here is the natural log of the factor capital grows by in a year, so over many years a growth rate of 0.955 multiplies capital by about 2.6 a year, not by 1.955.
+The growth rate is the return less the drag. With one strategy at its Kelly leverage, the formula gives the SPY post’s r + S² / 2. With two uncorrelated strategies at their Kelly leverages, it gives half the sum of their squared Sharpe ratios. The Sharpe ratios are 1.153846 and 1.714286, so the uncapped Kelly leverages grow at 2.135068 a year. Their return is 4.270136 and their drag is 2.135068, exactly half the return, the same ratio the SPY post finds for one strategy.
 
 Chan prints Equation 8.3 as an image, and the Kindle highlights behind this repository’s book notes did not capture it. So 2.135068 is quoted as computed, with no published figure beside it.
 
 ## Lesson 1: every figure in the examples’ text lands, and nothing about the data could have moved them
 
-Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position, through a \$10,000 loss and then a \$20,000 gain. Here are the figures Chan prints for the two examples, computed beside printed, with Example 8.1’s in dollars. The positions Example 8.1’s two trades leave follow the tables, and the part headed “Selling into a loss to hold a leverage of 5” works through both trades.
+Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position, through a \$10,000 loss and then a \$20,000 gain. Here are the figures Chan prints for the two examples, computed beside printed, with Example 8.1’s in dollars. The positions Example 8.1’s two trades leave come in a paragraph below the tables, and the part headed “Selling into a loss to hold a leverage of 5” works through both trades.
 
 ```math
 \begin{array}{l|r|r}
@@ -84,7 +84,7 @@ g \text{, all on } F_2 & 0.955 & 0.96
 
 Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
 
-Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s optimum at F2 = 2. Each of those lands too. This leaves out any figure printed only inside an equation’s image, as Equation 8.3’s may be.
+Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s optimum under the cap, at F2 = 2. Each of those lands too. The tables and this list leave out any figure printed only inside an equation’s image, as Equation 8.3’s may be.
 
 No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is five things the tables do not show.
 
@@ -145,7 +145,7 @@ So the printed digit lands under two rules and cannot say which one Chan used. T
 
 ## Lesson 4: drop the bound and the best allocation shorts a winning strategy
 
-The slope in Lesson 2 is a straight line in F2, so the growth rate along F1 = 2 − F2 is a parabola, and a parabola has a top. Solving for it without keeping F2 between 0 and 2 finds it at F2 = 2.289321 and F1 = −0.289321, growing at 0.962956. That is higher than the corner’s 0.955, and it is the hollow marker on the dashed part of the figure. This post calls it the **unbounded peak**.
+The slope in Lesson 2 is a straight line in F2, so the growth rate along F1 = 2 − F2 is a parabola, and a parabola has a top. Solving for it without keeping F2 between 0 and 2 finds it at F2 = 2.289321 and F1 = −0.289321, growing at 0.962956. That is higher than the corner’s 0.955, and it is the hollow marker on the dashed part of the chart. This post calls it the **unbounded peak**.
 
 The allocation is not allowed. F1 is negative, a short position in strategy 1, so the gross leverage, the short plus the long, is 2.578643, over the cap of 2. The line F1 + F2 = 2 fixes the net leverage, and only between F2 = 0 and 2 does it also fix the gross. Chan is explicit on p. 253 that the cap is on gross leverage, “not the net leverage”.
 
@@ -172,7 +172,7 @@ F_{\max} = \frac{m_2 - m_1}{c_{22} - c_{12}}
 
 where m1 and m2 are the means, c22 is strategy 2’s variance and c12 is the covariance, which is 0 here. That cap is 2.448980. Below it, everything on strategy 2 is best. Above it, the best allocation holds both strategies. At a cap equal to the total Kelly leverage of 9.335829, the best allocation is the Kelly pair itself, 4.437870 and 4.897959.
 
-Above a cap of 2.448980, strategy 2 still gets most of the cap, so the “most” in Chan’s advice holds at every cap up to the total Kelly leverage. Among long-only allocations, those that hold no short position, the best one gives strategy 2 the whole cap at 2.448980, 0.882 of it at a cap of 3, 0.750 at 4 and 0.525 at the total of 9.335829. Only below a cap of 2.448980 does the “all” hold. That is the word Chan uses on pp. 255 to 256: “apply all of our buying power” on one strategy.
+Above a cap of 2.448980, strategy 2 still gets most of the cap, so the “most” in Chan’s advice holds at every cap up to the total Kelly leverage. Among long-only allocations, those that hold no short position, the best one gives strategy 2 all of a cap of 2.448980, 0.882 of a cap of 3, 0.750 of a cap of 4 and 0.525 of a cap equal to the total of 9.335829. Only below a cap of 2.448980 does the “all” hold. That is the word Chan uses on pp. 255 to 256: “apply all of our buying power” on one strategy.
 
 So on Chan’s inputs, everything on strategy 2 is best only while the cap is below 0.262321 of the total, about a quarter. The threshold is a formula in the means and the covariance, so a trader can compute it rather than guess. Two conditions limit it.
 
@@ -190,21 +190,23 @@ On Chan’s means and volatilities at a cap of 2, no correlation lets a short be
 
 ### Why the hedge wins
 
-Set the hedge against the whole cap on strategy 2, the long-only allocation that spends the same gross of 4. That allocation earns a return of 1.2 and pays a drag of 0.72. The hedge earns 0.849003 and pays 0.192501. It gives up 0.350997 of return in two parts.
+Set the hedge against the whole cap on strategy 2 rather than the best long-only allocation, because the hedge also spends a gross of 4. The whole cap on strategy 2 earns a return of 1.2 and pays a drag of 0.72. The hedge earns 0.849003 and pays 0.192501. It gives up 0.350997 of return in two parts.
 
 1. **The short itself** loses strategy 1’s mean on 1.002849 of leverage, 0.050142.
 2. **The displaced long** loses 0.300855, strategy 2’s mean on the 1.002849 of the gross cap that the short now uses.
 
 Because the two strategies move together so closely, the short cancels most of strategy 2’s variance, and the drag falls by 0.527499. That saving is larger than all the return given up, so the hedge grows faster. Lesson 4’s short broke the gross cap. This one stays inside it.
 
-So the corner’s win in Example 8.2 is a property of its inputs. Two uncorrelated strategies with positive means leave a short nothing to gain. Chan’s own means and variances then keep the corner best under a cap below 2.45. This repository’s capped search keeps to long positions, the range Chan plots. Its code calls that a restriction of the search rather than a rule that always holds, because the case above shows the restriction can cost growth, and its tests check that case.
+So the corner’s win in Example 8.2 is a property of its inputs. Two uncorrelated strategies with positive means leave a short nothing to gain. Chan’s own means and variances then keep the corner best under a cap below 2.45.
+
+This repository’s capped search keeps to long positions, the range Chan plots. Its code calls that a restriction of the search rather than a rule that always holds, because the case above shows the restriction can cost growth. The code’s tests check that case.
 
 ## What this replication cannot say
 
 Two questions are beyond it.
 
 1. **Whether Equation 8.3 prints a number.** The Kindle highlights behind this repository’s book notes do not capture the equation, so the 2.135068 growth rate at the uncapped Kelly leverages has no published figure to compare with. Settling it needs the equation read from the book itself.
-2. **Anything about a real pair of strategies.** Every input is hypothetical, and the growth formula assumes returns follow a bell curve, as Chan’s Example 8.2 does. Whether a cap makes a real second strategy worth dropping depends on means and variances estimated from data. Chan warns on p. 252 that “we will inevitably suffer estimation errors” in those estimates, and the SPY post shows how far the choice of years alone can move a Kelly leverage.
+2. **Anything about a real pair of strategies.** Every input is hypothetical, and the growth formula assumes returns follow a bell curve, and Chan’s Example 8.2 assumes the same. Whether a cap makes a real second strategy worth dropping depends on means and variances estimated from data. Chan warns on p. 252 that “we will inevitably suffer estimation errors” in those estimates, and the SPY post shows how far the choice of years alone can move a Kelly leverage.
 
 ## What this means for a trader
 
@@ -214,7 +216,7 @@ One habit for each lesson.
 2. **Compare allocations by growth rate.** Under a tight cap, diversifying saves little drag and can give up much more return.
 3. **Print one more decimal when a figure sits on a tie.** At the tie’s own precision, the rounding rule decides the digit, and a figure that lands can read as a miss.
 4. **Check a solver’s answer against its constraint.** With uncorrelated strategies, a short in one with a positive mean is the sign the solver broke the cap.
-5. **Compute the threshold instead of trusting “much smaller”, and treat it as no surer than the means behind it.** It holds when the higher-mean strategy’s variance exceeds the covariance, and it says only where everything on that strategy stops beating the other long-only ways to spend the whole cap.
+5. **Compute the threshold instead of trusting “much smaller”, and treat it as no surer than the mean returns behind it.** It holds when the higher-mean strategy’s variance exceeds the covariance, and it says only where everything on that strategy stops beating the other long-only ways to spend the whole cap.
 6. **Treat long-only as an assumption.** With strongly correlated strategies, a short hedge inside the cap can beat every long-only allocation.
 
 ## References

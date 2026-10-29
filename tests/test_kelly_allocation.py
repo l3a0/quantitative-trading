@@ -954,7 +954,8 @@ class TestWhatThePostSays:
             f"the examples’ text prints only Example 8.1’s {_dollars(loss.position_before)} "
             f"starting position, its {_dollars(loss.equity_after)} of equity after the loss, the "
             f"{_dollars(loss.target)} and {_dollars(gain.target)} positions its trades leave, and "
-            f"Example 8.2’s optimum at F2 = {best_allocation_at_cap(MEANS, cov).leverages[1]:g}.",
+            f"Example 8.2’s optimum under the cap, at F2 = "
+            f"{best_allocation_at_cap(MEANS, cov).leverages[1]:g}.",
             f"A {_dollars(loss.pnl)} loss leaves {_dollars(loss.equity_after)} of equity and a "
             f"{_dollars(loss.position_after_move)} position, so getting back to "
             f"{EX81_LEVERAGE:g} means selling {_dollars(loss.trade)}, which leaves a "
@@ -1106,9 +1107,9 @@ class TestWhatThePostSays:
             f"c12 is the covariance, which is {cov[0, 1]:g} here. That cap is {_six(threshold)}.",
             f"At a cap equal to the total Kelly leverage of {_six(total)}, the best allocation "
             f"is the Kelly pair itself, {_six(kelly[0])} and {_six(kelly[1])}.",
-            f"the best one gives strategy 2 the whole cap at {_six(threshold)}, "
-            f"{share(3.0):.3f} of it at a cap of 3, {share(4.0):.3f} at 4 and "
-            f"{share(total):.3f} at the total of {_six(total)}.",
+            f"the best one gives strategy 2 all of a cap of {_six(threshold)}, "
+            f"{share(3.0):.3f} of a cap of 3, {share(4.0):.3f} of a cap of 4 and "
+            f"{share(total):.3f} of a cap equal to the total of {_six(total)}.",
             f"is best only while the cap is below {_six(threshold / total)} of the total, "
             "about a quarter.",
         )
@@ -1141,9 +1142,9 @@ class TestWhatThePostSays:
             f"holds {_six(-hedge[0])} of strategy 1 short against {_six(hedge[1])} of strategy "
             f"2 long, a gross of {abs(hedge[0]) + abs(hedge[1]):g}, and grows at "
             f"{_six(growth_rate(hedge, case.MEANS, case.COV))}.",
-            f"the long-only allocation that spends the same gross of {cap:g}. That allocation "
-            f"earns a return of {_short(whole_ret)} and pays a drag of "
-            f"{_short(whole_drag)}. The hedge earns {_six(hedge_ret)} and pays "
+            f"rather than the best long-only allocation, because the hedge also spends a gross "
+            f"of {cap:g}. The whole cap on strategy 2 earns a return of {_short(whole_ret)} and "
+            f"pays a drag of {_short(whole_drag)}. The hedge earns {_six(hedge_ret)} and pays "
             f"{_six(hedge_drag)}. It gives up {_six(whole_ret - hedge_ret)} of return",
             f"loses strategy 1’s mean on {_six(-hedge[0])} of leverage, {_six(-hedge[0] * m1)}.",
             f"**The displaced long** loses {_six((cap - hedge[1]) * m2)}, strategy 2’s mean on "
