@@ -8733,8 +8733,9 @@ Five groups of what it says are not pinned here.
    rather than a figure from the file. The chart's alt text gives the axis as
    −0.4 to 0.8, the outer tick labels that
    [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
-   pins on the chart. `TestThePostQuotesTheRun` holds the post's −0.4 and 0.8
-   to those two values as written, not to the chart. No test reads a second
+   pins on the chart. `TestThePostQuotesTheRun` reads the post's −0.4 and 0.8
+   where the alt text gives the axis, and holds them to those two values as
+   written, not to the chart. No test reads a second
    copy of a figure written as a whole number or in words, such as the
    subtitle's 83 months, Lesson 3's eighty-three months and its 20 and 63
    months, Lesson 5's borrowing of 1 at a ceiling of 2, and the alt text's 20
@@ -8762,13 +8763,15 @@ sorts whose returns Entry 45 had shown. No test reads a second copy of a date,
 such as the subtitle's June 2001 or the July 2002 in the trader's second habit.
 A fifth reads every figure in the post written with a decimal point, every
 copy. It holds that each is one the run computes or one of a few constants the
-test names. So a copy that matches none of them fails a test. That includes a
-copy that gains or drops a digit, and a copy that a re-pin leaves behind. That
-fifth test does not check where a figure sits, and it reads no figure written
-as a whole number or in words. The constants it accepts come from no run. They
-are 0.8416 and 1.645 on the bell curve, 0.05 with its half, 0.025, and 1 minus
-it, 0.95, the 0.0975 that is 1 − 0.95², the margin of 0.20, Lesson 4's example
-p-value of 0.04, and the chart's outer tick labels, −0.4 and 0.8.
+test names. The constants come from no run. It accepts 0.8416 and 1.645, on
+the bell curve, anywhere. It accepts each of the others only in the phrases
+where the post uses it, and fails when one of those phrases is missing or the
+constant appears anywhere else. The others are 0.05 with its half, 0.025, and
+1 minus it, 0.95, the 0.0975 that is 1 − 0.95², the margin of 0.20, Lesson 4's
+example p-value of 0.04, and the chart's outer tick labels, −0.4 and 0.8. So a
+copy that gains or drops a digit fails a test, and so does a copy that a re-pin
+leaves behind. That fifth test does not check where a figure from the run sits,
+and it reads no figure written as a whole number or in words.
 
 1. The yearly standard error of the gap, 0.0872 at a ceiling of 2 and 0.1370
    at 5, and the one-sided 5 percent line at 1.645 times it, 0.1434 and

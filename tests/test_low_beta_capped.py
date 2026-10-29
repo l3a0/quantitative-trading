@@ -427,23 +427,26 @@ class TestThePostQuotesTheRun:
     and holds that each is one the run computes or one of the constants listed
     below. That covers the subtitle, the lessons' list, the trader's habits
     and both alt texts, and it catches a copy that gains or drops a digit. It
-    does not hold where a figure sits, and it does not read a figure written
-    as a whole number or in words, such as the 20 capped months in the chart's
-    alt text.
+    does not hold where a figure from the run sits, and it does not read a
+    figure written as a whole number or in words, such as the 20 capped months
+    in the chart's alt text.
 
     Chan's quotations and Kindle pages and the plan's date are not figures from
     the run. The last test also accepts these decimal figures from outside the
-    run.
+    run. It accepts 0.8416 and 1.645 anywhere. It accepts each of the others
+    only in the phrases where the post uses it, and fails when one of those
+    phrases is missing or the constant appears anywhere else.
 
     - 0.8416 and 1.645, which :data:`chan.low_beta_leverage.POWER` and
       :data:`chan.low_beta_leverage.CRITICAL` name.
     - 0.05, which :data:`chan.low_beta_capped.FALSE_DISCOVERY` names, with
       half of it, 0.025, and 1 minus it, 0.95. The post also uses 0.05 as an
       example of a month's return.
-    - 0.0975, which is 1 − 0.95².
+    - 0.0975, which is 1 − 0.95², in both its copies.
     - 0.20, the margin whose leverage is the higher ceiling, 5.
     - 0.04, Lesson 4's example p-value.
-    - 0.4 and 0.8, from the chart's outer tick labels, −0.4 and 0.8.
+    - −0.4 and 0.8, the chart's outer tick labels, where the alt text gives
+      its axis.
     """
 
     text = POST.read_text("utf-8")
@@ -556,7 +559,7 @@ class TestThePostQuotesTheRun:
         self, outcomes, portfolios: Portfolios
     ) -> None:
         june = pd.Timestamp("2001-06-29")
-        values = [POWER, 1 - 0.95**2]
+        values = [POWER]
         for c in (o.capped for o in outcomes.values()):
             values += [
                 c.gap,
@@ -592,14 +595,29 @@ class TestThePostQuotesTheRun:
             f"{yearly_standard_error(five) / yearly_standard_error(two):.2f}",
             f"{(five.mean_leverage - 1) / (two.mean_leverage - 1):.2f}",
             f"{CRITICAL}",
-            f"{FALSE_DISCOVERY}",
-            f"{FALSE_DISCOVERY / 2}",
-            f"{1 - FALSE_DISCOVERY}",
-            f"{1 / max(CEILINGS):.2f}",
         }
-        # Lesson 4's illustrative p-value and the chart's outer tick labels.
-        computed |= {"0.04", "0.4", "0.8"}
-        quoted = re.findall(r"(?<![\d.])\d+\.\d+(?!\d)", self.text)
+        # The constants from outside the run, each accepted only where the post uses it.
+        rate, half, ceiling = FALSE_DISCOVERY, FALSE_DISCOVERY / 2, max(CEILINGS)
+        constants = [
+            "a month returning 0.05 gained 5 percent",
+            f"a leverage of 1 / {1 / ceiling:.2f}, or {ceiling:.0f}.",
+            f"the chance is 1 − {1 - rate}², or {1 - (1 - rate) ** 2:.4f}.",
+            f"their chance sits below {1 - (1 - rate) ** 2:.4f}.",
+            f"at most i/m × {rate}.",
+            f"both pass when both p-values are at most {rate}.",
+            f"only if it is at most {half}.",
+            f"Both are above {rate}, and the smaller is above {half},",
+            f"Both p-values are above {rate}, so",
+            "come in at a p-value of 0.04 beside",
+            f"If the other ceiling’s p-value is above {rate},",
+            f"must then be at most {half}.",
+            "running from −0.4 to 0.8.",
+        ]
+        rest = self.text
+        for fragment in constants:
+            assert fragment in rest, fragment
+            rest = rest.replace(fragment, " ")
+        quoted = re.findall(r"(?<![\d.])\d+\.\d+(?!\d)", rest)
         assert quoted, POST
         assert [q for q in quoted if q not in computed] == [], SPEC
 
