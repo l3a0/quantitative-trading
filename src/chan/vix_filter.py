@@ -20,8 +20,9 @@ earned on them.
 **No script ships for location 3509, and the FSTX alignment was found by
 search.** None of the three public copies of Chan's code this repository has
 read, ivanliu1989/algorithmic_trading, ericnberwick/EpchanPreview and
-burakbayramli/books, holds a file that applies the filter, so the specification below is inferred from the four printed
-figures rather than read from code. The plan on
+burakbayramli/books, holds a file that applies the filter, so the
+specification below is inferred from the four printed figures rather than
+read from code. The plan on
 [issue 359](https://github.com/l3a0/quantitative-trading/issues/359) tried six
 ways of aligning VIX with FSTX's calendar and two ways of averaging before
 choosing one. All six alignments and both averages are pinned in
