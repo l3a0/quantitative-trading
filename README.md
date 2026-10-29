@@ -8831,9 +8831,10 @@ Five groups of what it says are not pinned here.
    of the return.
 4. Readings the post rounds from pinned figures, most of the 17.2 and about
    half the time for p near one half. The figure's alt text reads its curves
-   approximately too. The 8.5 percent it quotes from the buy on gap post is
-   pinned in [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) rather than
-   in this post's tests. The compounded APR of 0.132733 it quotes from the
+   approximately too. The 8.5 percent Lesson 1 quotes from the buy on gap post
+   is pinned in [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py), and
+   `TestThePostQuotesTheRun` derives the fifth open question's copy of it from
+   this run. The compounded APR of 0.132733 it quotes from the
    opening gap post is pinned in
    [tests/test_opening_gap.py](tests/test_opening_gap.py), and
    `TestThePostQuotesTheRun` reads the post's copy against this run's

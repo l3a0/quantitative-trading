@@ -11163,7 +11163,7 @@ rules and the windows are Chan's, and every qualifying day falls between
 choices in writing first and then run on data after 2012: the threshold, the
 alignment, `252 · mean`, each rule's own settings, the sign of FSTX's return
 line, the stocks buy on gap may choose from, the costs, the direction each
-rule's return should move, and the test that compares the qualifying days
+rule's mean return should move on the qualifying days, and the test that compares the qualifying days
 with the rest, with the p below which it counts chosen for the two rules
 together.
 
