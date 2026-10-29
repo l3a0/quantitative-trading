@@ -11301,7 +11301,16 @@ Five of the rules carry the result, so they are stated here.
    compares with Entry 45's.
 
 **Every figure is about survivors.** The panel is the S&P 500 as it stood on
-2007-11-23, carried backwards, as in Entry 45.
+2007-11-23, carried backwards, as in Entry 45. Three symbols, WYN, DFS and SE,
+also carry an earlier company's prices, which sit in one of the fifths in 36 of
+the 83 holding months. [data/README.md](../data/README.md) names the first two.
+SE's closes stop on 2005-11-09 and start again on 2007-01-03, the day Spectra
+Energy began regular-way trading after Duke Energy spun it off, by
+[Spectra Energy's release of 2007-01-02](https://www.sec.gov/Archives/edgar/data/0001373835/000134100407000091/spectra_ex99-1.htm).
+So the closes before that gap belong to another company. Their ratio across
+the gap, 0.7638, is closer to 1 than the scale-break check's bound of 1.6
+either way, so that check does not catch it. The write-up counted those months after the run, and
+`TestWhatThePostMeasured` pins the count, the ratio and that the check misses it.
 
 ### What the book stated
 
@@ -11375,7 +11384,8 @@ write-up measured after the run, which `TestWhatThePostMeasured` in
 
 ### What this entry cannot say
 
-Five things, the plan's five limits.
+Five things, the plan's five limits, with the second widened and the third
+and fifth corrected since the plan.
 
 1. **Anything confirmed.** The ceilings were chosen after Entry 45's
    calendar, its leverage path, the ruin, eight months of both groups' returns
@@ -11385,11 +11395,14 @@ Five things, the plan's five limits.
    a run registered before any number on a holdout could confirm a ceiling.
    The plan sends both ceilings to
    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
-   panel only if one of them holds here, and neither did.
-2. **What survivorship does to either side.** The panel lacks the stocks that
-   left the index before 2007-11-23, as in Entry 45.
-3. **Whether the rule holds outside the literature's sample.** The low-beta
-   literature's own samples cover 1999 to 2007, so this span is not a
+   panel, unchanged, if either one holds here. Neither did.
+2. **What the panel's makeup does to either side.** The panel lacks the
+   stocks that left the index before 2007-11-23, as in Entry 45. It also
+   counts each stock that joined the index after November 1999 for the years
+   it traded before it joined, and carries earlier companies' prices under
+   WYN, DFS and SE.
+3. **Whether the rule holds in later years.** The years 2000 to 2007 were
+   past prices by the time the book printed the claim, so this span is not a
    holdout.
 4. **What borrowing really cost.** The run borrows at the bill rate, which
    flatters the levered side. Row 7's break-even spread says how far the cost
@@ -11405,6 +11418,18 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/capped-low-beta-lessons.md](../blog/capped-low-beta-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.low_beta_capped_figures` redraws.
+
+The post also carries one whiteboard sketch in Lesson 5, added in a review
+round before publishing. **Who breaks even first** draws each ceiling's yearly
+gap falling to 0 as a borrowing spread is charged. The line at a ceiling of 2
+falls from 0.0934 to 0 at row 7's 0.0946 and borrows 1 for each unit of
+capital. The line at 5 starts higher at 0.1659, borrows 2.5134, falls about
+two and a half times as steeply and reaches 0 first, at 0.0661. Each line is
+drawn straight between those endpoints, because the charged gap departs from a
+straight line by at most about 0.00034 a year over the span drawn. A change to
+those figures moves the sketch too, and
+`uv run python -m chan.capped_low_beta_whiteboard` redraws it through the same
+`read_sources` and `build_portfolios`.
 
 ## Entry 49: the levered low-beta rule after the book, on IVV's S&P 500
 
