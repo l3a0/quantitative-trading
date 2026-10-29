@@ -121,9 +121,10 @@ PY
 # 1. `python` was detected, and it is most of the code.
 # 2. `actions` is chosen, because the workflows are part of the attack
 #    surface, not only the Python.
-# 3. `javascript-typescript` was detected, from
-#    .claude/skills/update-build-board/dom-stub.js and the build board's page,
-#    board.html, which is JavaScript.
+# 3. `javascript-typescript` was detected, from the build board's page and its
+#    test stub, which have since moved to l3a0/repo-template under issue 785.
+#    The sync-substack skill's .js files and the HTML copy of the first post
+#    still carry JavaScript here.
 #
 # GitHub reports the live setup with `javascript` and `typescript` as well,
 # which are its aliases for the third. A run on 2026-10-11 sent these three and
@@ -146,7 +147,8 @@ fi
 
 # --- Pages -------------------------------------------------------------------
 # .github/workflows/board.yml publishes the build board on GitHub Pages through
-# the github-pages environment, and its deploy job has nowhere to go until
+# l3a0/repo-template's reusable workflow and the github-pages environment, and
+# that workflow's deploy job has nowhere to go until
 # Pages is on with GitHub Actions as its source rather than a branch. The site
 # is read first, so a repository already set that way is left alone and one
 # publishing from a branch is switched.
