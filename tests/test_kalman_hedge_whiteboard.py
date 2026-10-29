@@ -796,7 +796,12 @@ class TestTheZeroStartSketch:
         assert dollar_y(three.close) - dollar_y(three.forecast) < 0.1
         heights = [_label(scene, text).y for text in ZERO_LABELS[14:18]]
         assert heights == sorted(heights, reverse=True)
-        assert ZERO_LABELS[14:18] == ["close 22.94", "error 0.85", "band ±0.167334", "forecast 22.09"]
+        assert ZERO_LABELS[14:18] == [
+            "close 22.94",
+            "error 0.85",
+            "band ±0.167334",
+            "forecast 22.09",
+        ]
         assert _stroke(scene, "forecast-2").x[0] < COLUMN_X[2] < _stroke(scene, "close-2").x[0]
 
     def test_its_words_follow_the_rows(self) -> None:
