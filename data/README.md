@@ -1405,8 +1405,9 @@ joined day to 2007-02-26 and from 2007-02-27 to its last joined day. Together
 they guard every day-over-day move the run reads except that one real move,
 which `tests/test_scale_breaks.py` pins. The guard flags only a move of more
 than 1.6 times, so a rescale of 1.6 times or less passes it on any span. VIX's largest
-close before the flagged day is 23.81, which a rescale of 1.47 times would
-carry past the threshold of 35.
+close from 2004-07-16, FSTX's first joined day, to 2007-02-26 is 23.81, on
+2006-06-13, which a rescale of 1.47 times would carry past the threshold of
+35.
 
 [Issue 313](https://github.com/l3a0/quantitative-trading/issues/313) carries
 the measurements below.

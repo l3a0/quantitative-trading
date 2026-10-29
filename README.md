@@ -1424,7 +1424,8 @@ VIX's closes above 35 inside FSTX's window and before it, its highest close,
 each rule's returns summed over its kept days, buy on gap's largest kept
 day and the three opens behind it, the three spells the runs group into, the
 nearest close below 35 inside the windows, buy on gap's compounded APR over
-every day and FSTX's figures on the two earlier saves, with the two helpers
+every day, FSTX's figures on the three earlier saves, the scale check run on
+the stocks and VIX read as rescaled from its flagged day, with the two helpers
 behind them on synthetic series. `TestThePostQuotesTheRun` reads one copy in
 the post of most figures the post takes from the run, so editing a copy it
 reads fails. The section on the post below says which copies it leaves
@@ -8772,6 +8773,7 @@ Trading*, which keeps only the days after VIX closed above 35 and reruns
 Example 4.1's buy on gap and Example 7.1's opening gap rule on FSTX on them.
 The post links the buy on gap post and the opening gap post rather than
 repeating them, and draws five lessons from Entry 47 of the replication log.
+Every result in it is exploratory.
 
 1. The filtered figure is 252 times the mean, 0.171924 and a Sharpe ratio of
    1.417425 on buy on gap's 190 kept days, while the 8.7 percent set beside
@@ -8870,6 +8872,15 @@ no pin before it, all measured after the run.
     opened 10 to 23 percent below their previous closes.
 11. FSTX's filtered figures on the two earlier saves that hold 2,000 days,
     0.024899 and 0.162148 on the same 185 kept days.
+12. FSTX's filtered return on the save of 1,000 days, 0.070235, which
+    misses the book's 2.6 percent.
+13. The scale check run on the stocks, which flags 30 closes in 17 of them,
+    20 of those closes on buy on gap's kept days, with none of those stocks
+    held on the flagged day or the day after.
+14. VIX divided by 18.31 / 11.15 from 2007-02-27 on, which puts its lowest
+    close after that day, 11.98 on 2007-04-16, at 7.3, below every earlier
+    close, the lowest of which is 9.31 on 1993-12-22, and leaves buy on gap
+    34 kept days.
 
 `TestThePostQuotesTheRun` reads the post itself against the run, so editing a
 copy it reads fails. It reads the five tables row by row, the book's rows

@@ -11100,7 +11100,7 @@ rule today.
 | 15 | none | none, not a replication | The join leaves buy on gap's calendar unchanged, so its unfiltered figures are Entry 18's. It moves FSTX's to figures that print as 14 percent and 1.6, so location 3509's "around 13 percent and 1.4" is Example 7.1's full calendar, which Entry 40's rows 3 and 4 reproduce. The filtered and unfiltered FSTX figures therefore come from different calendars. |
 | 16 | none | none, not a replication | The two spans guard every day-over-day move the run reads except the one real move, which `tests/test_scale_breaks.py` pins. The guard sees only a move of more than 1.6 times, on any span. A rescale of 1.47 times would carry 23.81 past 35, so a rescale inside that blind band could move a day into the filter unseen, and a planted rescale of 1.48 times does. |
 | 17 | none | none, not a replication | Dropping the 48 days the CBOE did not trade moves the position on 11 joined days and on none of the qualifying days. On ten of them the open is set against the high or low of the joined day before, two sessions back, and that alone moves them. 2005-09-20 moves through the 90-day spread alone. The 7 days after 2012-05-08 come after every joined day, so dropping them moves nothing. So rows 3 and 4 cannot tell whether Chan filtered before or after running the rule. |
-| 18 | none | none, not a replication | Neither p is below 0.4, so on neither rule are the qualifying days' returns distinguishable from the other days' by this test. Chan prints no test, and the figures he prints are point estimates. |
+| 18 | none | none, not a replication | Neither p is below 0.4, so on neither rule is the qualifying days' mean return distinguishable from the other days' by this test. Chan prints no test, and the figures he prints are point estimates. |
 
 ### What the entry concludes
 
@@ -11120,7 +11120,8 @@ which `TestWhatThePostMeasured` in
    describes earns each day's return negated. On the joined calendar it gives
    −0.139950 as `252 · mean` over all 1,945 days and −0.025730 over the 185
    kept, so for it the kept days are the less bad ones, the reverse of the
-   fade. Row 18 tests the difference and finds none. Welch's t is −0.684181
+   fade. Row 18 tests the difference in mean return and finds it no larger
+   than chance would often produce. Welch's t is −0.684181
    for the fade, with p = 0.494679, treating each day as independent. So
    Chan's reading, that VIX above 35 tells the gap trader to stay out, rests
    on point estimates this test cannot tell from noise for either sign. It is
@@ -11165,7 +11166,12 @@ days too.
 **Whether VIX's 2007-02-27 print is clean.** The guard flags it, the move
 reads as real, and nothing here checks it against a second source. A wrong
 print would move a figure only if the true close were above 35, more than
-three times the 11.15 of the day before.
+three times the 11.15 of the day before. That answer covers one wrong close.
+A change of scale starting that day would move every later close instead,
+and the two spans leave that ratio out. Divided by 18.31 / 11.15 from that
+day on, the lowest close after it, 11.98 on 2007-04-16, would be 7.3, below
+every earlier close in the file, the lowest of which is 9.31 on 1993-12-22.
+Buy on gap would then keep 34 days rather than 190.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

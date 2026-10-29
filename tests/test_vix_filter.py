@@ -112,6 +112,15 @@ SPEC = (
 AFTER_THE_RUN = "measured by the write-up after the run, so exploratory, and it decides nothing"
 
 
+def _earlier_save_spec(entry) -> str:
+    """The failure message for a test that reads an FSTX save other than ``SPEC``'s."""
+    return (
+        f"vix/vix.csv chan-csv raw saved 2012-05-09, {entry.path} {entry.vendor} "
+        f"{entry.price_basis} saved {entry.saved_date}; backshift(1, vix) > 35 on the joined "
+        f"calendar; {AFTER_THE_RUN}"
+    )
+
+
 @pytest.fixture(scope="module")
 def sources() -> module.Sources:
     return read_sources()
@@ -842,9 +851,9 @@ class TestWhatThePostMeasured:
     ) -> None:
         """On 2009-04-21 buy on gap held ETFC, HBAN and RF.
 
-        Each opened 10.3, 13.7 and 22.7 percent below its previous close in
-        Chan's file, whose prices are adjusted, and nothing compares them with
-        a second source.
+        ETFC opened 10.3 percent below its previous close, RF 13.7 percent and
+        HBAN 22.7 percent, in Chan's file, whose prices are adjusted, and
+        nothing compares them with a second source.
         """
         stocks, long = sources.stocks, long_rule
         row = long.days.get_loc(day("2009-04-21"))
@@ -863,20 +872,80 @@ class TestWhatThePostMeasured:
         """The join keeps the same 185 days and gives 0.024899 and 0.162148.
 
         Only the 2012-05-17 save, the one ``gapFutures_FSTX.m`` loads, lands
-        the book's 2.6 percent.
+        the book's 2.6 percent. Each message names the save the test reads,
+        since ``SPEC`` names the 2012-05-17 one.
         """
-        _, fstx = opening_gap.read_sources(source_file=save)
+        entry, fstx = opening_gap.read_sources(source_file=save)
         assert len(fstx) == 2000
+        read = _earlier_save_spec(entry)
         rule = opening_gap.opening_gap(fstx)
         filtered = module.vix_filter(
             "FSTX", rule.days, rule.literal, rule.positions != 0, sources.vix
         )
-        assert filtered.kept_days.equals(result.literal.kept_days), f"{SPEC}; {AFTER_THE_RUN}"
-        assert filtered.average_annual_return == pytest.approx(0.024899, abs=SIX), (
-            f"{SPEC}; {AFTER_THE_RUN}"
-        )
-        assert filtered.sharpe == pytest.approx(0.162148, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
+        assert filtered.kept_days.equals(result.literal.kept_days), read
+        assert filtered.average_annual_return == pytest.approx(0.024899, abs=SIX), read
+        assert filtered.sharpe == pytest.approx(0.162148, abs=SIX), read
         assert matches(100 * filtered.average_annual_return, "2.5")
+
+    def test_the_1000_day_save_misses_2_6_percent(self, sources) -> None:
+        """``inputDataOHLCDaily_20120504.mat`` holds FSTX too, and gives 0.070235.
+
+        So of the four saves that hold FSTX, only the 2012-05-17 one lands
+        the book's 2.6 percent, as Lesson 3 says.
+        """
+        entry, fstx = opening_gap.read_sources(source_file="inputDataOHLCDaily_20120504.mat")
+        assert len(fstx) == 1000
+        read = _earlier_save_spec(entry)
+        rule = opening_gap.opening_gap(fstx)
+        filtered = module.vix_filter(
+            "FSTX", rule.days, rule.literal, rule.positions != 0, sources.vix
+        )
+        assert filtered.average_annual_return == pytest.approx(0.070235, abs=SIX), read
+        assert not matches(100 * filtered.average_annual_return, BOOK_FSTX_PERCENT), read
+
+    def test_the_scale_check_on_the_stocks_flags_30_closes_20_on_kept_days(
+        self, sources, result, long_rule
+    ) -> None:
+        """The check the run leaves off the stocks, run on each from its first price.
+
+        It flags 30 closes in 17 stocks, as ``tests/test_buy_on_gap.py`` pins,
+        and 20 of them fall on buy on gap's kept days. Buy on gap held none of
+        the 17 stocks on a flagged day or the day after.
+        """
+        closes = sources.stocks["Close"]
+        flags = [
+            (symbol, flagged)
+            for symbol in closes.columns
+            for flagged in scale_breaks(closes[symbol].loc[closes[symbol].first_valid_index() :])
+        ]
+        assert len(flags) == 30, f"{SPEC}; {AFTER_THE_RUN}"
+        assert len({symbol for symbol, _ in flags}) == 17, f"{SPEC}; {AFTER_THE_RUN}"
+        kept = result.buy_on_gap.kept_days
+        assert sum(flagged in kept for _, flagged in flags) == 20, f"{SPEC}; {AFTER_THE_RUN}"
+        held = long_rule.positions != 0
+        for symbol, flagged in flags:
+            row, column = long_rule.days.get_loc(flagged), closes.columns.get_loc(symbol)
+            assert not held[row : row + 2, column].any(), f"{symbol} {flagged.date()}; {SPEC}"
+
+    def test_vix_read_as_rescaled_from_its_flagged_day(self, sources, long_rule) -> None:
+        """Every close from 2007-02-27 on divided by 18.31 / 11.15.
+
+        The lowest close after the flag, 11.98 on 2007-04-16, becomes 7.3,
+        below every earlier close, the lowest of which is 9.31 on 1993-12-22.
+        Buy on gap then keeps 34 days rather than 190.
+        """
+        vix = sources.vix
+        ratio = vix.loc[FLAGGED_DAY] / vix.loc[BEFORE_FLAG]
+        after, earlier = vix.loc[FLAGGED_DAY:], vix.loc[:BEFORE_FLAG]
+        assert (after.min(), after.idxmin()) == (11.98, day("2007-04-16")), SPEC
+        assert round(after.min() / ratio, 1) == 7.3, f"{SPEC}; {AFTER_THE_RUN}"
+        assert (earlier.min(), earlier.idxmin()) == (9.31, day("1993-12-22")), SPEC
+        assert after.min() / ratio < earlier.min()
+        rescaled = vix.copy()
+        rescaled.loc[FLAGGED_DAY:] = after / ratio
+        held = np.count_nonzero(long_rule.positions, axis=1) > 0
+        filtered = vix_filter("Buy on gap", long_rule.days, long_rule.daily, held, rescaled)
+        assert filtered.kept == 34, f"{SPEC}; {AFTER_THE_RUN}"
 
 
 POST = paths.REPO_ROOT / "blog" / "vix-filter-lessons.md"
@@ -1072,20 +1141,33 @@ class TestThePostQuotesTheRun:
         vix, stocks = sources.vix, sources.stocks
         (flagged,) = scale_breaks(vix)
         before = vix.index[vix.index.get_loc(flagged) - 1]
+        after = vix.loc[flagged:]
+        rescaled_low = after.min() / (vix.loc[flagged] / vix.loc[before])
         bound = math.exp(SCALE_BREAK_BOUND)
+        closes = stocks["Close"]
+        flags = [
+            (symbol, day_)
+            for symbol in closes.columns
+            for day_ in scale_breaks(closes[symbol].loc[closes[symbol].first_valid_index() :])
+        ]
+        on_kept = sum(day_ in result.buy_on_gap.kept_days for _, day_ in flags)
         long = result.buy_on_gap
         best = long.kept_days[int(np.argmax(long.filtered))]
         row = long_rule.days.get_loc(best)
-        held = stocks["Close"].columns[long_rule.positions[row] != 0]
+        held = closes.columns[long_rule.positions[row] != 0]
         assert len(held) == 3
-        drop = 1 - stocks["Open"].iloc[row][held] / stocks["Close"].iloc[row - 1][held]
+        drop = 1 - stocks["Open"].iloc[row][held] / closes.iloc[row - 1][held]
         for sentence in (
             f"flags one VIX day, {flagged.date()}, a move from {vix.loc[before]} to "
             f"{vix.loc[flagged]} that reads as real,",
-            f"The check sees only a move of more than {bound:.1f} times, so a rescale of "
+            f"it would make the lowest close after it, {after.min()} on "
+            f"{after.idxmin().date()}, a true {rescaled_low:.1f}, below every earlier close",
+            f"the check sees only a move of more than {bound:.1f} times, so a rescale of "
             f"{bound:.1f} times or less",
-            f"and {best.date()}, the day that earns most of the {BOOK_BUY_ON_GAP_PERCENT} "
-            f"percent, rests on three opening prices in Chan’s file that sit "
+            f"the same check flags {len(flags)} closes in {len({s for s, _ in flags})} stocks, "
+            f"{on_kept} of them on kept days,",
+            f"The day that earns most of the {BOOK_BUY_ON_GAP_PERCENT} percent, {best.date()}, "
+            f"rests on three opening prices in Chan’s file that sit "
             f"{math.floor(100 * drop.min())} to {math.ceil(100 * drop.max())} percent below "
             f"the previous close.",
         ):
