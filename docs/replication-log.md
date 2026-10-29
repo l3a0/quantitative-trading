@@ -11175,6 +11175,30 @@ since that post quotes most of these figures. So does its one figure, which
 question of [blog/opening-gap-lessons.md](../blog/opening-gap-lessons.md),
 which points at the post.
 
+The post also carries two whiteboard sketches, one in Lesson 3 and one in
+Lesson 4, added in the first round of its review before publishing.
+
+1. **One US holiday, four readings**, after the paragraph on which readings
+   land the book's figures. It draws 2008-11-26 to 2008-11-28, with VIX's
+   closes of 54.92 and 55.28 either side of a US holiday with no close. The
+   join leaves the holiday off its calendar and keeps the Friday on the
+   Wednesday's close. The latest close and the forward fill keep both days
+   on that close. A row back keeps the holiday and drops the Friday.
+2. **What buy on gap’s kept days earned**, after the paragraph on how few
+   kept days were traded. It draws the 190 kept days, the 170 that held
+   nothing, and the 20 held days as bars to one scale, 8 gaining and 12
+   losing, with 2009-04-21's 0.093601 struck out and its share, 0.722090 of
+   the 0.129625 summed, beside the other 189 days' 0.048032 and Sharpe ratio
+   of 0.855003.
+
+Both read their figures from the committed files, and only their layouts are
+schematic. The second takes its figures from `vix_filters`. The first takes
+each day's read from `common_days`, `latest_close_before` and `qualifies`,
+which the run's readings are built on, since the run keeps only each
+reading's totals. A change to those figures moves the sketches too, and
+`uv run python -m chan.vix_filter_whiteboard` redraws both through the same
+`read_sources`.
+
 ## Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
