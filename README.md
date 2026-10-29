@@ -8158,13 +8158,13 @@ each figure the post takes from the run, its five tables by row label and its
 prose by the words around each number, and fails when that copy drifts from
 the run by any digit. An optimum, a band of optima or a table cell computed at
 an optimum fails only past 1.5e-6. A second copy of the same figure elsewhere
-in the post is not always read, and neither is the figure's alt text. The sketches' file also holds the
-reading that the account at the script's f moves about ten times the
-unlevered returns, so the loop barely cuts its leverage while the account
-falls. Its leverage on the account is f·D = 10 at the account's high on day
-169 and stays above 9.45 to day 303, when the account is first below −0.5. It
-is still 8.34 on day 37,071, when the account is deepest at −0.848088. The
-612 returns' dates, from 2009-12-18 to 2012-04-26, trace to
+in the post is not always read, and neither is the figure's alt text. The
+sketches' file also holds the reading that the account at the script's f
+moves about ten times the unlevered returns, so the loop barely cuts its
+leverage while the account falls. Its leverage on the account is f·D = 10 at
+the account's high on day 169 and stays above 9.45 to day 303, when the
+account is first below −0.5. It is still 8.34 on day 37,071, when the account
+is deepest at −0.848088. The 612 returns' dates, from 2009-12-18 to 2012-04-26, trace to
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py). Twelve of
 the post's numbers had no pin before the post, all measured after the run.
 
