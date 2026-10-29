@@ -11259,9 +11259,16 @@ Five of the rules carry the result, so they are stated here.
    compares with Entry 45's.
 
 **Every figure is about survivors.** The panel is the S&P 500 as it stood on
-2007-11-23, carried backwards, as in Entry 45. Two symbols, WYN and DFS, also
-carry an earlier company's prices, which sit in one of the fifths in 31 of the
-83 holding months.
+2007-11-23, carried backwards, as in Entry 45. Three symbols, WYN, DFS and SE,
+also carry an earlier company's prices, which sit in one of the fifths in 36 of
+the 83 holding months. [data/README.md](../data/README.md) names the first two.
+SE's closes stop on 2005-11-09 and start again on 2007-01-03, the day Spectra
+Energy began regular-way trading after Duke Energy spun it off, by
+[Spectra Energy's release of 2007-01-02](https://www.sec.gov/Archives/edgar/data/0001373835/000134100407000091/spectra_ex99-1.htm).
+So the closes before that gap belong to another company. Their ratio across
+the gap, 0.7638, is closer to 1 than the scale-break check's bound of 1.6
+either way, so that check does not catch it. The write-up counted those months after the run, and
+`TestWhatThePostMeasured` pins the count.
 
 ### What the book stated
 
@@ -11335,7 +11342,8 @@ write-up measured after the run, which `TestWhatThePostMeasured` in
 
 ### What this entry cannot say
 
-Five things, the plan's five limits.
+Five things, the plan's five limits, with the second widened and the third
+and fifth corrected since the plan.
 
 1. **Anything confirmed.** The ceilings were chosen after Entry 45's
    calendar, its leverage path, the ruin, eight months of both groups' returns
@@ -11348,8 +11356,8 @@ Five things, the plan's five limits.
    panel only if one of them holds here, and neither did.
 2. **What the panel's makeup does to either side.** The panel lacks the
    stocks that left the index before 2007-11-23, as in Entry 45. It also
-   counts later members for years before they joined, and carries two
-   earlier companies under WYN and DFS.
+   counts later members for years before they joined, and carries three
+   earlier companies under WYN, DFS and SE.
 3. **Whether the rule holds in later years.** The years 2000 to 2007 were
    past prices by the time the book printed the claim, so this span is not a
    holdout.
@@ -11371,7 +11379,7 @@ figure, which `uv run python -m chan.low_beta_capped_figures` redraws.
 The post also carries one whiteboard sketch in Lesson 5, added in a review
 round before publishing. **Who breaks even first** draws each ceiling's yearly
 gap falling to 0 as a borrowing spread is charged. The line at a ceiling of 2
-falls from 0.0934 to 0 at Row 7's 0.0946 and borrows 1 for each unit of
+falls from 0.0934 to 0 at row 7's 0.0946 and borrows 1 for each unit of
 capital. The line at 5 starts higher at 0.1659, borrows 2.5134, falls about
 two and a half times as steeply and reaches 0 first, at 0.0661. Each line is
 drawn straight between those endpoints, because the charged gap departs from a

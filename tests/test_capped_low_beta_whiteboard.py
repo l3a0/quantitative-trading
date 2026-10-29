@@ -23,11 +23,12 @@ the sketch prints four.
 - **Specification.** Entry 48's, as ``tests/test_low_beta_capped.py`` states
   it: Entry 45's portfolios unchanged, the low fifth levered by min(k, C) at
   the bill rate for C of 2 and 5, and d against the unlevered high fifth from
-  December 2000 to October 2007. Every figure is exploratory and about
-  survivors only. The lines are drawn
-straight between the run's endpoints, and one test holds that the run's own
-charged gap at each line's midpoint departs from the straight line by under
-half a pixel.
+  December 2000 to October 2007. Every figure is exploratory and comes from a
+  file built from survivors.
+
+The lines are drawn straight between the run's endpoints, and one test holds
+that the run's own charged gap departs from each straight line by under half a
+pixel.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, the GIF's size, frames, loop and timing, its
@@ -691,7 +692,7 @@ class TestTheBreakEvenSketch:
         assert g_y(0.0) > GAP_Y[0]
         assert "A black line starts on the upright axis" in alt
         assert "falls gently to the zero line" in alt
-        assert "A dashed grey drop carries the point where it reaches zero down" in alt
+        assert "a dashed grey drop falls to the bottom axis" in alt
         assert "a second dashed drop" in alt
         for gid in ("low-drop", "high-drop"):
             assert _stroke(scene, gid).dashed and _stroke(scene, gid).color == MUTED, gid

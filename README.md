@@ -8703,29 +8703,32 @@ Five groups of what it says are not pinned here.
    portfolio levered (1 + rf) / (rf − r_low) times or more loses all its
    capital in a month when the low fifth trailed the bill rate, which solves
    the capped return for −1, and that t is the gap divided by its standard
-   error. Also that if d were only the low fifth's excess return, leverage
-   would multiply the gap and its standard error by the same L and leave t
-   alone, while d also subtracts the high fifth's log return and log growth
-   loses more to swings as leverage rises, so t can move either way as
-   leverage changes. Also that a second one-sided test raises the chance
-   of a false gap to as much as twice as high, the general Benjamini-Hochberg
-   rule, and that the corrected test needs a gap at least as large as Y, and a
+   error. Also that if d were only the low fifth's excess return and the
+   leverage one number in every month, leverage would multiply the gap and its
+   standard error by the same L and leave t alone, while d also subtracts the
+   high fifth's log return, log growth loses more to swings as leverage rises,
+   and at a ceiling of 5 the leverage changes from month to month, so t can
+   move either way as leverage changes. Also that a second one-sided test
+   raises the chance of a false gap to as much as twice as high, the general
+   Benjamini-Hochberg rule, and that the corrected test needs a gap at least
+   as large as Y, and a
    larger one unless the other ceiling also clears 5 percent. Last, that a
    higher mean leverage borrows more and so breaks even at a smaller spread,
-   that a position levered 2 opens at Regulation T's 50 percent and falls to
-   FINRA Rule 4210's maintenance margin of 25 percent after a fall of a third,
-   and that a leverage of 5 starts at the 20 percent portfolio margin requires,
-   so any fall leaves it below that margin. Also that a leverage just under
-   13.4118 still loses almost all the capital in July 2002, and that losses
-   within a month can only lower that figure.
-4. Figures the post states in words or derives from pinned ones. The ratios
-   of about 1.78 and 1.57 divide ceiling 5's gap and standard error by ceiling
-   2's. The 2.5134 borrowed for each unit of capital is ceiling 5's mean
-   leverage of 3.5134 less 1, and 2.51 is that against ceiling 2's 1. The
-   0.0975 is 1 − 0.95², the chance that two independent 5 percent tests find
-   at least one false gap. The p-value of 0.04 in Lesson 4 is an illustration
-   rather than a figure from the file. The figure's alt text reads its curves
-   approximately too.
+   that a position levered 2 opens at Regulation T's 50 percent and that its
+   margin falls to FINRA Rule 4210's maintenance margin of 25 percent after a
+   fall of a third in the stocks, and that a leverage of 5 starts at the 20
+   percent Chan gives for portfolio margin, so any fall leaves it below that
+   margin. Also that a leverage just under 13.4118 would lose almost all the
+   capital in July 2002, and that losses within a month can only lower that
+   figure.
+4. Figures the post states in words or derives from pinned ones. The 0.0975
+   is 1 − 0.95², the chance that two independent 5 percent tests find at
+   least one false gap. The p-value of 0.04 in Lesson 4 is an illustration
+   rather than a figure from the file. The chart's alt text gives the axis as
+   −0.4 to 0.8, the outer tick labels that
+   [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
+   pins on the chart. No test reads that range, or the alt text's 20 capped
+   months of 83, from the post.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8736,9 +8739,16 @@ Every other number in the post traces to an assertion in
 for the figure's own numbers, or to
 [tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
 for the sketch's. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run. `TestThePostQuotesTheRun` reads one
-copy of each of those figures from the post itself, so a typo in the post, or
-a re-pin that leaves it behind, fails a test.
+before it, all measured after the run. `TestThePostQuotesTheRun` reads the
+post itself. Three of its tests read one copy of each of those figures in the
+place it sits, along with the holding calendar, the Newey-West lag of three
+months and the ratios of about 1.78, 1.57 and 2.51 that divide ceiling 5's
+gap, standard error and borrowing by ceiling 2's. A fourth holds that every
+four-decimal figure in the post, every copy, is one the run computes, so a
+typo in any copy, or a re-pin that leaves the post behind, fails a test. That
+fourth test does not check where a figure sits, and it reads no copy written
+with fewer decimals. It also accepts 0.8416 and 0.0975, the two four-decimal
+figures that come from no run.
 
 1. The yearly standard error of the gap, 0.0872 at a ceiling of 2 and 0.1370
    at 5, and the one-sided 5 percent line at 1.645 times it, 0.1434 and
@@ -8747,7 +8757,7 @@ a re-pin that leaves it behind, fails a test.
 3. June 2001's capped return, −0.0835 at a ceiling of 2 and −0.2132 at 5.
 4. The smallest leverage that would have ruined any of the 83 months,
    13.4118, for July 2002, above both ceilings.
-5. The 31 of the 83 holding months in which WYN or DFS put an earlier
+5. The 36 of the 83 holding months in which WYN, DFS or SE put an earlier
    company's prices into one of the two fifths.
 
 Its one figure is drawn from the committed vintages by
@@ -8790,8 +8800,8 @@ comes from the run, through the same `read_sources` and `build_portfolios`,
 with each gap from `capped`, each break-even spread from `break_even_spread`,
 and each line's borrowing from `cap`'s mean leverage. Each line is drawn
 straight between the run's endpoints, and `charged_gap` departs from those
-lines by under half a pixel. It builds more slowly than the USD.CAD post's sketches and holds its finished
-drawing for twelve seconds. Redraw it with:
+lines by under half a pixel. It builds more slowly than the USD.CAD post's
+sketches and holds its finished drawing for twelve seconds. Redraw it with:
 
 ```bash
 uv run python -m chan.capped_low_beta_whiteboard

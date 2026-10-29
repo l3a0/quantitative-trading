@@ -28,8 +28,8 @@ gap is :attr:`chan.low_beta_capped.Capped.gap`, each break-even spread is
 :func:`chan.low_beta_capped.break_even_spread` on
 :func:`chan.low_beta_capped.cap`'s portfolios, and each line's borrowing is
 the mean of that capped leverage less 1. Like every figure Entry 48 reports,
-they are exploratory point estimates about survivors only, and a spread below
-a break-even does not make a gap real, which the post's next paragraph says.
+they are exploratory point estimates on a file built from survivors, and a
+spread below a break-even does not make a gap real, which the post's next paragraph says.
 
 Each line is drawn straight between the run's two endpoints, its gap at no
 spread and 0 at its break-even spread. The charged gap,
@@ -38,7 +38,8 @@ spread, because each month's log growth bends as the charge rises. Over the
 span drawn it departs from the straight line by at most about 0.00034 a year,
 at a ceiling of 5 near the middle of its span, which is under half a pixel on
 this board. So the straight lines are faithful to the run, and the test
-module checks that midpoint against the run's own ``charged_gap``.
+module checks the run's own ``charged_gap`` against each line at 21 evenly
+spaced spreads.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so this GIF shares that post's look, frame rate and colours. This

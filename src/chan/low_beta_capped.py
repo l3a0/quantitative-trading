@@ -111,9 +111,9 @@ quite wary of using too much leverage on normally low-beta stocks".
 
 1. **Exploratory**, for the reasons above.
 2. **Survivor-only.** The file is the S&P 500 as it stood on 2007-11-23,
-   carried backwards, as in Entry 45. WYN and DFS also carry an earlier
-   company's prices, which sit in one of the fifths in 31 of the 83 holding
-   months.
+   carried backwards, as in Entry 45. WYN, DFS and SE also carry an earlier
+   company's prices. The write-up counted after the run that those prices sit
+   in one of the fifths in 36 of the 83 holding months.
 3. **Not a holdout.** The years 2000 to 2007 were past prices by the time the
    book printed the claim.
 4. **Borrowing at the bill rate flatters the levered side.** The break-even
@@ -612,7 +612,7 @@ def report(
     )
     print(
         "  2. Survivor-only. The panel holds the stocks in the index on 2007-11-23, carried "
-        "backwards, and WYN and DFS also carry an earlier company's prices."
+        "backwards, and WYN, DFS and SE also carry an earlier company's prices."
     )
     print(
         "  3. Not a holdout. The years 2000 to 2007 were past prices by the time the book "
