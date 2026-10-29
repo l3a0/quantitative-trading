@@ -112,8 +112,8 @@ quite wary of using too much leverage on normally low-beta stocks".
 1. **Exploratory**, for the reasons above.
 2. **Survivor-only.** The file is the S&P 500 as it stood on 2007-11-23, as
    in Entry 45.
-3. **Not a holdout.** The low-beta literature's own samples cover 1999 to
-   2007.
+3. **Not a holdout.** The years 2000 to 2007 were past prices by the time the
+   book printed the claim.
 4. **Borrowing at the bill rate flatters the levered side.** The break-even
    spread measures by how much.
 5. **No margin call inside a month is modelled.** Under FINRA Rule 4210's 25
@@ -607,7 +607,10 @@ def report(
         "were seen before either ceiling was chosen."
     )
     print("  2. Survivor-only. The panel holds only the stocks still in the index on 2007-11-23.")
-    print("  3. Not a holdout. The low-beta literature's own samples cover 1999 to 2007.")
+    print(
+        "  3. Not a holdout. The years 2000 to 2007 were past prices by the time the book "
+        "printed the claim."
+    )
     print("  4. Borrowing at the bill rate flatters the levered side, by the spread above.")
     print(
         "  5. No margin call inside a month is modelled. Under FINRA Rule 4210's 25 percent "

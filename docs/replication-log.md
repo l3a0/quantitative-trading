@@ -11346,8 +11346,8 @@ Five things, the plan's five limits.
    panel only if one of them holds here, and neither did.
 2. **What survivorship does to either side.** The panel lacks the stocks that
    left the index before 2007-11-23, as in Entry 45.
-3. **Whether the rule holds outside the literature's sample.** The low-beta
-   literature's own samples cover 1999 to 2007, so this span is not a
+3. **Whether the rule holds in later years.** The years 2000 to 2007 were
+   past prices by the time the book printed the claim, so this span is not a
    holdout.
 4. **What borrowing really cost.** The run borrows at the bill rate, which
    flatters the levered side. Row 7's break-even spread says how far the cost
