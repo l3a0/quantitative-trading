@@ -8002,7 +8002,8 @@ Four groups of what it says are not pinned here.
    depends on the library, that a principal component's rank can change from
    day to day in general, the closed form of the slope and intercept written
    out in Lesson 3, that the positions chosen on day t earn day t + 1's return,
-   the same-sign shares called close to a coin toss, that PC2's −0.1105 on
+   the same-sign shares called close to a coin toss, that the sum of squared
+   products measures how widely the products scatter, that PC2's −0.1105 on
    tomorrow's own weights would fail outright, that of the sign, the rank and
    the window only leaving today's return out moves a factor across 0, putting
    PC2 and PC4 above it, that PC2's two large products also widen the products'
@@ -8050,7 +8051,7 @@ measured after the run.
 5. No stock tying any factor, the nearest 1.06e-04 away with PMC and 3.85e-05
    without.
 6. The two days, 2007-08-09 and 2007-08-10, holding 0.9704 of the sum of
-   PC2's squared products.
+   PC2's squared products and 0.8910 of the sum of its products.
 
 `TestTheRules` holds Lesson 2's two worked series, the pair 1, 2, 3 and 2, 0, 1
 at 5/√70 uncentred against −0.5 centred, and the steady series 1, 1.2, 0.9,
@@ -8064,8 +8065,8 @@ post prints it, and checks one copy of it, in six places.
    day, the pair count, the criterion and the comparison set.
 2. Lesson 1's counts of flips and swaps, the 251-day window listed before its
    table, the table rebuilt whole, and the two paragraphs after it.
-3. Lesson 2's two worked series, PC2's two days and their share, and the
-   same-sign shares.
+3. Lesson 2's two worked series, PC2's two days and their two shares, and
+   the same-sign shares.
 4. Lesson 3's count of checked days and the intercept's two figures.
 5. Lesson 4's table rebuilt whole, its quartiles, its verdicts and its three
    points.

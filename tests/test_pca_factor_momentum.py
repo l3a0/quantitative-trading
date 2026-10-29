@@ -602,11 +602,18 @@ class TestWhatThePostMeasured:
                     assert value == pytest.approx(expected, abs=1e-12), field.name
 
     def test_two_days_carry_97_percent_of_pc2s_squared_products(self, results: Results) -> None:
-        """2007-08-09 and 2007-08-10, which is how PC2 clears the band and not the t-test."""
+        """2007-08-09 and 2007-08-10, which put PC2 outside the band and widen its scatter.
+
+        They hold 0.9704 of the sum of PC2's squared products, which is what
+        widens the t's measure, and 0.8910 of the sum of its products, the
+        statistic's numerator, which is what carries PC2 past the band.
+        """
         pairs = results.spliced.pairs
-        share, days = share_of_largest(pairs.today[:, 1] * pairs.tomorrow[:, 1], 2)
+        products = pairs.today[:, 1] * pairs.tomorrow[:, 1]
+        share, days = share_of_largest(products, 2)
         assert round(share, 4) == 0.9704, f"{SPEC}; {AFTER_THE_RUN}"
         assert [str(pairs.days[i].date()) for i in days] == ["2007-08-09", "2007-08-10"]
+        assert round(products[days].sum() / products.sum(), 4) == 0.8910, f"{SPEC}; {AFTER_THE_RUN}"
 
 
 class TestTheReport:
@@ -937,8 +944,8 @@ class TestWhatThePostQuotes:
       first day and the pair count, the criterion, and the comparison set.
     - Lesson 1's counts of flips and swaps, the 251-day window in the list
       before its table, the table, and the two paragraphs after it.
-    - Lesson 2's two worked series, PC2's two days and their share, and the
-      same-sign shares.
+    - Lesson 2's two worked series, PC2's two days and their two shares, and
+      the same-sign shares.
     - Lesson 3's count of checked days and its intercept figures.
     - Lesson 4's table, its quartiles, its verdicts and its three points.
     - Lesson 5's splice, its weights on PMC, the two sentences before its table,
@@ -1070,7 +1077,9 @@ class TestWhatThePostQuotes:
             f"Two days, {first} and {second}, hold {100 * share:.2f} percent of the sum of "
             f"{NAMES[k]}’s squared products.",
             f"On {s.pairs.days[reversed_].date()} {NAMES[k]}’s return reversed the next day, and "
-            f"on {s.pairs.days[kept].date()} it kept its sign, with the larger product.",
+            f"on {s.pairs.days[kept].date()} it kept its sign, with the larger product. Together "
+            f"they still supply {100 * products[days].sum() / products.sum():.2f} percent of the "
+            "statistic’s numerator, the sum of the products themselves.",
             f"It is {_listed(shares)}, all close to a coin toss.",
         ]
         assert self.missing(text, fragments) == []

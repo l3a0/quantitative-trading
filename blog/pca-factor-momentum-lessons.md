@@ -20,7 +20,7 @@ Five lessons follow.
 
 ## How the test works
 
-**The file.** Chan’s `IJR_20080114.mat` holds the 600 members of the S&P 600 as he saved them on 2008-01-15, with 1,006 trading days of closes from 2004-01-15 to 2008-01-14. The test downloads nothing.
+**The file.** Chan’s `IJR_20080114.mat` holds the 600 members of the S&P 600 as he saved them on 2008-01-15, with 1,006 trading days of closes from 2004-01-15 to 2008-01-14. He saved it the day after the last close. The test downloads nothing.
 
 **The decomposition.** The revised edition’s MATLAB program, the one that prints Chan’s 2 percent a year before costs, does the same thing every day t.
 
@@ -34,7 +34,7 @@ The first day with a full window is 2005-01-18. Every day from then to the secon
 
 **The statistic** is the correlation of the 752 pairs without subtracting their means, defined in Lesson 2.
 
-**The criterion.** The claim holds for a factor when its statistic is above 0 and above the median stock’s. The comparison set is the 579 stocks priced on every day the pairs read, each given the same statistic on its own pairs of one day’s return and the next. Each factor carries its own verdict, and no combined verdict is drawn. The project wrote down the criterion, the pairs and the statistic before it computed any factor return, as [the replication log’s entry](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-42-whether-example-74s-own-factor-returns-have-momentum-chans-quantitative-trading) records.
+**The criterion.** The claim holds for a factor when its statistic is above 0 and above the median stock’s. The comparison set is the 579 stocks priced on every day the pairs read, each given the same statistic on its own pairs of one day’s return and the next. Each factor carries its own verdict, and no verdict combines the five. Lesson 4’s test across all five sits beside the verdicts and changes none of them. The project wrote down the criterion, the pairs and the statistic before it computed any factor return, as [the replication log’s entry](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-42-whether-example-74s-own-factor-returns-have-momentum-chans-quantitative-trading) records.
 
 ## Lesson 1: a factor re-estimated every day has no fixed sign, and tomorrow’s weights have already seen today’s return
 
@@ -50,7 +50,7 @@ The code measured all three on Chan’s file after the verdicts were in. **These
 
 The library’s signs are not even reproducible. On the two machines that ran the project’s tests, they flipped between consecutive days on about half the days, and the two machines disagreed about which days.
 
-So before measuring anything, the code sets each day’s vectors by a rule that reads only the vector. It turns a vector over where needed so that its largest weight in size is positive. The rule settles the library’s choice, but it cannot keep a direction steady. When the largest weight in size moves to a stock the vector weighed below zero the day before, the rule can turn the whole vector over to make that weight positive.
+So before measuring anything, the code sets each day’s vectors by a rule that reads only the vector. It turns a vector over where needed so that its largest weight in size is positive. The rule makes each day’s sign the same whatever the library returns, but it cannot keep a direction steady from one day to the next. When the largest weight in size moves to a stock the vector weighed below zero the day before, the rule can turn the whole vector over to make that weight positive.
 
 Even after the rule, some vectors still flip. Comparing each day’s weights with the next day’s, on the stocks both days keep, PC1’s vector points the other way on 1 of the 752 days, PC2’s on 14, PC3’s on 6, PC4’s on 22 and PC5’s on 24, 67 flips in all. On 62 of them, the largest weight moves to a stock the earlier day weighed below zero. The other five all fall on days two or more factors swap rank. Rank swaps are rare too. On 15 of the 752 days, two or more factors trade places.
 
@@ -103,9 +103,11 @@ The statistic is the ordinary correlation with one step left out. It does not su
 
 Two series, (1, 2, 3) and (2, 0, 1), show the difference. Their products sum to 5, and their squares to 14 and 5, so the statistic is 5/√70, which is positive. Their ordinary correlation is −0.5.
 
-The reason is in Chan’s sentence. A factor return that keeps a steady value from one day to the next, positive day after day, is what “remain constant from the current time period to the next” describes. Subtracting the mean removes that steady part and keeps only the wiggles around it. The series (1, 1.2, 0.9, 1.1, 1.0), read one day apart, shows it. Its uncentred statistic is 0.9798, close to perfect persistence, while its ordinary correlation is −0.8, because each wiggle reverses. The uncentred form also survives a sign flip on any day, which Lesson 1 needs, because flipping both members of one pair leaves that pair’s product and both its squares where they were.
+The reason is in Chan’s sentence. A factor return that keeps a steady value from one day to the next, positive day after day, is what “remain constant from the current time period to the next” describes. Subtracting the mean removes that steady part and keeps only the wiggles around it. The series (1, 1.2, 0.9, 1.1, 1.0), read one day apart, shows it. Its uncentred statistic is 0.9798, close to perfect persistence, while its ordinary correlation is −0.8, because each wiggle reverses.
 
-The price is that a few large days can carry the statistic. Every product counts by its size, so one day with large factor returns outweighs many quiet ones. PC2 shows how far that goes. Squaring a daily product drops its sign, so the sum of squares counts a day by how large its product is, whatever its sign. Two days, 2007-08-09 and 2007-08-10, hold 97.04 percent of the sum of PC2’s squared products. Their two products have opposite signs. On 2007-08-09 PC2’s return reversed the next day, and on 2007-08-10 it kept its sign, with the larger product.
+The uncentred form also survives a sign flip on any day, which Lesson 1 needs, because flipping both members of one pair leaves that pair’s product and both its squares where they were.
+
+The price is that a few large days can carry the statistic. Every product counts by its size, so one day with large factor returns outweighs many quiet ones. PC2 shows how far that goes. Squaring a daily product drops its sign, so the sum of squares counts a day by how large its product is, whatever its sign. That sum measures how widely the products scatter, which Lesson 4 comes back to. Two days, 2007-08-09 and 2007-08-10, hold 97.04 percent of the sum of PC2’s squared products. Their two products have opposite signs. On 2007-08-09 PC2’s return reversed the next day, and on 2007-08-10 it kept its sign, with the larger product. Together they still supply 89.10 percent of the statistic’s numerator, the sum of the products themselves.
 
 Because a few days can carry the statistic, this post also gives a number that counts every day alike, the share of pairs whose two members have the same sign. It is 0.5226 for PC1, 0.5146 for PC2, 0.5106 for PC3, 0.5173 for PC4 and 0.5000 for PC5, all close to a coin toss.
 
@@ -169,7 +171,7 @@ PMC is one of the file’s symbols, and it holds two price histories. It closes 
 
 ### Which factor carries PMC
 
-A return of 186.54 percent dominates any window that holds it. Every day from 2007-08-02 to the end of the file fits its components on a window that holds it. That is 114 days, and 113 of them have a next day to pair with, the last being 2008-01-11. On each of those 113 days, one of the top five factors puts a weight of at least 0.5939 on PMC alone, out of a vector of length one spread across every stock in the window. PC2 carries it on 103 of the days, PC1 on 7 and PC3 on 3. From 2007-08-02 to 2007-08-10, PC1 carries PMC, with a weight between 0.9144 and 0.9223. So on 2007-08-09 and 2007-08-10 the factor that would be PC1 without PMC sits in PC2’s place. Those are the two days that put PC2 outside the band. **The code measured these counts after the run, and they decide nothing.**
+A return of 186.54 percent dominates any window that holds it. Every day from 2007-08-02 to the end of the file fits its components on a window that holds it. That is 114 days, and 113 of them have a next day to pair with, the last being 2008-01-11. On each of those 113 days, one of the top five factors puts a weight of at least 0.5939 on PMC alone, in a vector whose squared weights across every stock in the window sum to one. PC2 carries it on 103 of the days, PC1 on 7 and PC3 on 3. From 2007-08-02 to 2007-08-10, PC1 carries PMC, with a weight between 0.9144 and 0.9223. So on 2007-08-09 and 2007-08-10 the factor that would be PC1 without PMC sits in PC2’s place. Those are the two days that put PC2 outside the band. **The code measured these counts after the run, and they decide nothing.**
 
 ![A whiteboard sketch titled “PMC takes PC1, so the usual PC1 lands in PC2”, drawn slowly, that holds its finished drawing for twelve seconds. Three grey shelves mark three slots, named “PC1”, “PC2” and “PC3” from the top. In the left column, a black box marked “usual PC1” sits in the first slot, under the heading “without PMC”. In the right column, a brass box marked “mostly PMC” and “weight 0.9144 to 0.9223” takes the first slot, under the heading “with PMC: days 2007-08-02 to 08-10”. An arrow runs from the left column’s box down to a second black box marked “usual PC1” in the right column’s second slot. The third slot stays empty in both columns. To the right, three bars stand on a grey baseline, all to one scale: a short grey bar marked “750 other days” for the other days together, and two red bars marked “08-09” and “08-10”, the second more than three times as tall as the first. Red words beside them read “97.04% of PC2’s” and “squared products”. Along the foot, grey words read “without PMC: the same two days, 94.61% of PC1’s”, and black words “PC2: 0.0778 with PMC → −0.0152 without”.](../docs/figures/pca_factor_momentum_sketch_rank_shift.gif)
 
@@ -192,7 +194,7 @@ Dropping PMC and running everything again moves every factor. Each day’s windo
 
 Without PMC, PC2 falls below 0 and PC3 rises above it, so the criterion would miss PC2 instead of PC3. PC1 and PC4 move outside the band, and PC2 moves back inside it. Benjamini-Hochberg still declares none. It holds the smallest of five p-values to a fifth of 5 percent, the second smallest to two fifths, and so on up to 5 percent for the largest. The smallest is PC4’s 0.0319, over its 0.01, and the other four are all above 5 percent, so none clears its step.
 
-The verdicts themselves read the file as the program does, filling each missing close with the last one it saw, so this run without PMC moves no verdict.
+The verdicts themselves read the file as the program does, filling each missing close with the last one it saw. So they stay as Lesson 4 gives them, with PC3 the factor that misses. The run without PMC measures what one symbol does to them and replaces none.
 
 ## What this replication cannot say
 
@@ -211,8 +213,8 @@ One habit for each lesson.
 1. **Before correlating a re-estimated factor with itself, check its sign, its rank and what its weights were fitted on.** On this file the library’s signs were not even the same on two machines, and of the three fixes, only leaving today’s return out of the window moved a factor across 0, putting PC2 and PC4 above it, where the test’s own pair has them.
 2. **Pick the statistic from the sentence being tested.** “Remain constant” is about a steady value, and the uncentred correlation keeps it. Then check how many days carry the result.
 3. **Test the number the strategy actually carries forward.** Here that is the slope times the singular value, not the slope.
-4. **Read a pass against the band, and against a test across all the factors.** Four passes out of five, with none surviving a correction for testing five, is no evidence of momentum.
-5. **Look for one bad record before trusting which factor failed.** One symbol with two price histories moved the miss from PC3 to PC2.
+4. **Read a pass against the band, and against a test across all the factors.** Four passes out of five, with the test across all five declaring none, is no evidence of momentum.
+5. **Look for one bad record before trusting which factor failed.** Dropping one symbol with two price histories moves the miss from PC3 to PC2.
 
 ## References
 
