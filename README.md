@@ -7997,24 +7997,26 @@ Four groups of what it says are not pinned here.
    the week Khandani and Lo studied, and that the revised MATLAB prints
    Chan's 2 percent a year before costs.
 3. Readings and arithmetic no test asserts: that the band is right only when a
-   large return makes a large one the next day no more likely, that the
-   library's own signs flipped on about half the days on the two machines that
-   ran the checks and disagreed about which, which no test pins because it
-   depends on the library, that a principal component's rank can change from
-   day to day in general, the closed form of the slope and intercept written
-   out in Lesson 3, that the positions chosen on day t earn day t + 1's return,
-   the same-sign shares called close to a coin toss, that the fill gives PMC a
-   return of zero on each day it has no close, that the sum of squared products
-   measures how widely the products scatter, that PC2's −0.1105 on tomorrow's
-   own weights would fail outright, that of the sign, the rank and the window
-   only leaving today's return out moves a factor across 0, putting PC2 and PC4
-   above it, that PC2's two large products also widen the products' scatter,
-   that a test on the regression's printed coefficient would weight each day by
-   1/sₖ², that Newey-West's adjustment for neighbouring days widens the measure
-   when their products move together and narrows it when they move in opposite
-   directions, that 2007-08-09 and 2007-08-10 are what put PC2 outside the
-   band, and that nothing here measures why a window holding today's return
-   pushes PC2 so far. The figure's alt text reads its curve approximately too.
+   large return makes a large one the next day no more likely, that its 95
+   percent also needs every return to be no more likely to be large than any
+   other, as well as independent, that the library's own signs flipped on about
+   half the days on the two machines that ran the checks and disagreed about
+   which, which no test pins because it depends on the library, that a
+   principal component's rank can change from day to day in general, the closed
+   form of the slope and intercept written out in Lesson 3, that the positions
+   chosen on day t earn day t + 1's return, the same-sign shares called close
+   to a coin toss, that the fill gives PMC a return of zero on each day it has
+   no close, that the sum of squared products measures how widely the products
+   scatter, that PC2's −0.1105 on tomorrow's own weights would fail outright,
+   that of the sign, the rank and the window only leaving today's return out
+   moves a factor across 0, putting PC2 and PC4 above it, that PC2's two large
+   products also widen the products' scatter, that a test on the regression's
+   printed coefficient would weight each day by 1/sₖ², that Newey-West's
+   adjustment for neighbouring days widens the measure when their products move
+   together and narrows it when they move in opposite directions, that
+   2007-08-09 and 2007-08-10 are what put PC2 outside the band, and that
+   nothing here measures why a window holding today's return pushes PC2 so far.
+   The figure's alt text reads its curve approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
