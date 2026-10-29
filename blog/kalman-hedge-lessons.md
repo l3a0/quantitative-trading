@@ -141,7 +141,7 @@ The table’s last line is there so that a figure computed with rows 1 and 2 dro
 
 ### What the script’s chart leaves out, and three ways round the zero start
 
-The script plots the forecast error as `e(3:end)` and its standard deviation as `sqrt(Q(3:end))`, so its chart of the forecast error starts on row 3. The third of Lesson 1’s four charts does the same and names the two missing values in a note. The two rows the chart leaves out are the two the strategy trades on before its filter has an estimate.
+The script plots the forecast error as `e(3:end)` and its standard deviation as `sqrt(Q(3:end))`, so its chart of the forecast error starts on row 3. The third of Lesson 1’s four charts does the same and names the two missing values in a note. The two rows the chart leaves out are the two on which the filter forecasts EWC at 0, and the strategy trades on both.
 
 A filter needs a starting guess, and a start at 0 is wrong on day one. There are three ways round it.
 

@@ -558,7 +558,9 @@ class TestWhatThePostQuotes:
        and in the sentence that compares them. Row 2's 22.78 is read where
        row 2 is worked, and its 1.366666 there and in Lesson 3's count of
        crossings. Both closes are read again where the first return is
-       worked.
+       worked. The claim that the first trade moves the APR under either
+       count, and the Sharpe ratio only while all 1,500 days count, is read
+       in the subtitle and in Lesson 2.
     3. **Lesson 3.** The 57 of 1,250 and the 513 of 1,499 are read in the
        prose and in the grain table. The intercept's last value, 6.767360, is
        read where the intercept peaks. The whole-file regression's 0.9624 and
@@ -646,7 +648,19 @@ class TestWhatThePostQuotes:
         assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT), SPEC
         assert script.units[0] < 0 and script.units[1] == script.units[0], SPEC
         assert ewc[1] < ewc[0], SPEC
+        assert not matches(100 * quiet.apr, BOOK_APR_PERCENT), SPEC
+        assert not quiet.units[:QUIET_ROWS].any() and not quiet.daily[:QUIET_ROWS].any(), SPEC
+        held = int(np.flatnonzero(script.units != script.units[0])[0])
+        earns = [str(days[t].date()) for t in range(1, held + 1)]
+        assert script.units[held] == 0 and earns[:QUIET_ROWS] == differ, SPEC
+        same_from = int(np.flatnonzero(script.units != quiet.units)[-1]) + 1
+        forecast_zero = np.flatnonzero(ewc - f.error == 0)
+        assert list(forecast_zero) == list(range(QUIET_ROWS)), SPEC
+        assert script.units[:QUIET_ROWS].all(), SPEC
+        words = {2: "two", 3: "three"}
         fragments = [
+            f"That one trade changes the APR as the book rounds it, and the Sharpe ratio too when "
+            f"all {len(quiet.daily):,} trading days count",
             f"**Row 1, {days[0].date()}.**",
             f"The forecast error is EWC’s whole close of {f.error[0]:.2f}.",
             f"the band is its square root, {band[0]:.6f}.",
@@ -663,11 +677,18 @@ class TestWhatThePostQuotes:
             f"{ewc[1]:.2f}.",
             f"That is a gain of {script.daily[first]:.7f}, or {100 * script.daily[first]:.2f} "
             "percent in a day,",
+            f"From row {QUIET_ROWS + 1} on, each forecast uses a slope that has moved off 0.",
+            f"That run holds exactly the same units as the script from row {same_from + 1} on.",
             f"the returns of {differ[0]} and {differ[1]}, the two days",
             f"which annualises all {len(quiet.daily):,} days as the script does.",
             f"Its figures round to {100 * quiet.apr:.1f} percent and {quiet.sharpe:.1f}, not the "
             f"book’s {BOOK_APR_PERCENT} and {BOOK_SHARPE}.",
             f"Two days out of {len(script.daily):,} move both figures",
+            f"They are the first two of the {words[held]} days on which the opening short earns "
+            "a return.",
+            "So the APR moves whichever way the returns are counted,",
+            f"The {words[QUIET_ROWS]} rows the chart leaves out are the {words[QUIET_ROWS]} on "
+            "which the filter forecasts EWC at 0, and the strategy trades on both.",
             f"Under that reading the APR still rounds to {100 * compounded_apr(dropped):.1f} "
             f"percent, but the Sharpe ratio rounds to the book’s {plain_sharpe(dropped):.1f}.",
             f"the Sharpe ratio moves only while all {len(quiet.daily):,} days count,",

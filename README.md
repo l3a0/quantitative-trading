@@ -5441,7 +5441,9 @@ Six groups of what it says are not pinned here.
    and small when it is confident, that starting the filter from a regression
    would need data from before the file's first day, and that a filter
    started from the whole-file intercept would show how much of the rise the
-   zero start explains. `TestTheGain` measures what the post says the gain
+   zero start explains and would not be a backtest. What the post says a
+   starting uncertainty above 0 would do to row 1 and to every later day is a
+   reading too, because nothing here runs such a start. `TestTheGain` measures what the post says the gain
    does on this file after the first day, but not those words.
 4. The alt texts' readings, approximate by design. The chart's alt text reads
    its lines, such as "about 1.4" and "about 2 by the start of September
@@ -5483,11 +5485,14 @@ Two more were pinned when Lesson 3 gained them after the post first merged. A
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) reads the post
 itself. It builds each run figure the post quotes from the run, at the
 precision the post prints it, and looks for one copy of it in the post, so a
-typo in that copy fails a test. That covers the file's saved date, days and
-dates, the 252 days of the APR, the first two rows' forecast errors, bands and
-slope, the first return and its dates, the run with no signal on rows 1 and 2
-and its margin below 2.35, the two rounded figures of the reading that drops
-those rows, the slope's median, mean, share above 1 and
+typo in that copy fails a test. That covers the share of the miss a median
+day's update closes and the slope's median daily move, the file's saved date,
+days and dates, the 252 days of the APR, the first two rows' forecast errors, bands and
+slope, the first return and its dates, the three days the opening short earns
+a return, the run with no signal on rows 1 and 2, the row from which it holds
+the script's units and its margin below 2.35, the two rounded figures of the
+reading that drops those rows, which figures the first trade moves under each
+reading, the two rows the chart leaves out, the slope's median, mean, share above 1 and
 crossings, the intercept's falls at each window and its peak, the
 whole-file regression's slope and intercept, the constants, and the holdings
 and their changes. It also reads the chart's alt text's exact figures, its 513 of 1,499 and the dashed run's 0.260669 and 2.349460 among
