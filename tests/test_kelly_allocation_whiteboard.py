@@ -514,8 +514,8 @@ class TestThePost:
         drag, net = (_alt(scene) for scene in every)
         for alt in (drag, net):
             assert "drawn slowly" in alt and "twelve seconds" in alt
-        assert "every part to one scale" in drag
-        assert "to one scale in equal units" in net
+        assert "with every height drawn to one scale" in drag
+        assert "with F1 and F2 drawn to the same scale" in net
 
     def test_the_footer_links_the_sketch_code_and_its_tests(self) -> None:
         footer = _paragraphs()[-1]
@@ -693,8 +693,8 @@ class TestTheReturnAgainstDragSketch:
             "a black tick crosses the column where the drag ends, at its growth rate",
             "A dashed grey guide carries the proportional split’s top across to the corner",
             "a green bracket spans the gap between the two tops",
-            "A red bracket beside the top of the corner’s red segment spans the part of its "
-            "drag beyond the proportional split’s",
+            "A red bracket beside the top of the corner’s red segment marks how much more drag "
+            "the corner pays than the proportional split",
             "A closing green line",
         ):
             assert phrase in alt, phrase
@@ -893,8 +893,8 @@ class TestTheGrossAgainstNetSketch:
         alt = _alt(every[1])
         for phrase in (
             "A grey axis runs across",
-            "a triangle with corners at −2 and 2 on that axis and its top at F2 = 2 is shaded "
-            "pale green with a green edge",
+            "A pale green triangle with a green edge sits above it, with corners at −2 and 2 on "
+            "that axis and its top at F2 = 2",
             "the region where the gross leverage is at most 2",
             "A grey axis rises through the triangle’s top",
             "A black line",

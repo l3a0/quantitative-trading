@@ -6960,7 +6960,7 @@ Five groups of what it says are not pinned here.
    growth rate rises as leverage moves from strategy 1 to strategy 2, the drag
    growing with the square of the leverage and so staying small under a tight
    cap, the short in strategy 1 at the unbounded peak read as there only to
-   make room in F1 + F2 for more of strategy 2, the correlated short
+   let F2 rise above 2 while F1 + F2 stays at 2, the correlated short
    cancelling most of strategy 2's variance, and that the example cannot say
    whether Chan means the highest mean or the highest growth rate. The post's
    illustration of gross leverage, \$1.50 long and \$0.50 short on \$1 of
@@ -7016,8 +7016,8 @@ variances of 0.0676 and 0.1225, and
 8. The shares of the uncapped Kelly growth each keeps, 0.382563 for the
    proportional split and 0.447292 for the corner.
 9. The threshold of 2.448980 as 0.262321 of the total Kelly leverage.
-10. Strategy 2's share of the best long-only split of the cap, the whole of
-    it at 2.448980, 0.882 at 3, 0.750 at 4 and 0.525 at 9.335829, and above
+10. Strategy 2's share of the cap in the best long-only allocation, the whole
+    of it at 2.448980, 0.882 at 3, 0.750 at 4 and 0.525 at 9.335829, and above
     half at every cap up to that total.
 11. In the correlated case, strategy 2 alone at its own Kelly leverage of
     3.333333, inside the cap of 4, growing at exactly 0.5, which no long-only

@@ -267,7 +267,7 @@ class TestTheCorner:
     @pytest.mark.parametrize("correlation", (-1.0, -0.5, 0.0, 0.5, 0.95, 1.0))
     def test_no_correlation_makes_a_short_pay_at_a_cap_of_two(self, correlation) -> None:
         """Chan's means and volatilities at his cap of 2, with the correlation
-        varied. A short never beats the best long-only split, so the hedge in
+        varied. A short never beats the best long-only allocation, so the hedge in
         :class:`TestTheLongOnlyLimit` needs its other inputs too, not only the
         correlation of 0.95."""
         varied = covariance(VOLS, correlation)
@@ -920,6 +920,7 @@ class TestWhatThePostSays:
             f"Example 8.1 holds a leverage of {EX81_LEVERAGE:g} on {_dollars(EX81_EQUITY)} of "
             f"equity, a {_dollars(EX81_LEVERAGE * EX81_EQUITY)} position, through a "
             f"{_dollars(loss)} loss and then a {_dollars(gain)} gain.",
+            f"as a decimal, {MEANS[0]:.2f} is {100 * MEANS[0]:.0f} percent a year.",
         )
         assert CORRELATION == 0.0 and loss < 0 < gain
 
@@ -936,6 +937,14 @@ class TestWhatThePostSays:
             f"is {_six(ret)} and their drag is {_six(drag)}, exactly half the return",
         )
         assert drag == pytest.approx(ret / 2, abs=1e-12)
+
+    def test_what_a_growth_rate_multiplies_capital_by(self, cov) -> None:
+        """A growth rate is a log rate, so capital grows by its exponential."""
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        self._has(
+            f"so over many years a growth rate of {corner:.3f} multiplies capital by about "
+            f"{math.exp(corner):.1f} a year, not by {Decimal(f'{corner:.3f}') + 1}.",
+        )
 
     def test_the_positions_example_8_1_s_trades_leave(self, cov) -> None:
         loss, gain = constant_leverage_chain()
@@ -979,13 +988,15 @@ class TestWhatThePostSays:
             f"At F2 = 0, with everything on strategy 1, the slope is {at_zero:.4f}.",
             f"because strategy 2’s mean is {m2 - m1:.2f} higher, and because moving leverage "
             f"off strategy 1 sheds drag at {c11 * MAX_LEVERAGE:.4f}, strategy 1’s variance of "
-            f"{c11:.4f} times its leverage of {MAX_LEVERAGE:g}. Each unit of leverage moved "
-            f"lowers the slope by {per_unit:.4f}, the two variances, {c11:.4f} and {c22:.4f}, "
-            f"added together. At F2 = {MAX_LEVERAGE:g} the slope is still {at_cap:.4f}, above "
-            "zero,",
+            f"{c11:.4f} times its leverage of {MAX_LEVERAGE:g}.\n",
+            f"\nEach unit of leverage moved lowers the slope by {per_unit:.4f}, the two variances, "
+            f"{c11:.4f} and {c22:.4f}, added together. They are the volatilities, {VOLS[0]:.2f} "
+            f"and {VOLS[1]:.2f}, squared. At F2 = {MAX_LEVERAGE:g} the slope is still "
+            f"{at_cap:.4f}, above zero,",
             f"It peaks at F2 = {corner[1]:g} with F1 = {corner[0]:g}, everything on strategy 2.",
         )
         assert at_cap > 0
+        assert (c11, c22) == pytest.approx((VOLS[0] ** 2, VOLS[1] ** 2))
 
     def test_the_chart_s_alt_text(self, cov, kelly) -> None:
         capped = proportional_cap(kelly, MAX_LEVERAGE)
@@ -1064,7 +1075,12 @@ class TestWhatThePostSays:
             f"cap of {MAX_LEVERAGE:g}.",
             f"because {_six(peak.growth)} rounds to the same {_book(peak.growth, 2)} the book "
             "prints for the corner.",
+            f"3. A higher growth rate that also prints as {_book(peak.growth, 2)} but breaks the "
+            "cap, in Lesson 4.",
+            f"is to let F2 rise above {MAX_LEVERAGE:g} while F1 + F2 stays at {MAX_LEVERAGE:g}.",
         )
+        assert peak.leverages[1] > MAX_LEVERAGE
+        assert sum(peak.leverages) == pytest.approx(MAX_LEVERAGE)
         assert peak.growth > corner and peak.gross > MAX_LEVERAGE
 
     def test_lesson_5_s_threshold_and_long_only_shares(self, cov, kelly) -> None:
@@ -1079,8 +1095,8 @@ class TestWhatThePostSays:
             f"## Lesson 5: everything on one strategy stays best only below a cap of "
             f"{threshold:.2f}\n",
             f"Its mean excess return is {100 * MEANS[1]:.0f} percent against {100 * MEANS[0]:.0f}.",
-            f"strategy 2’s Sharpe ratio is {_six(sharpes[1])} against {_six(sharpes[0])}. With "
-            f"the whole cap of {MAX_LEVERAGE:g} on it alone, it grows at "
+            f"strategy 2’s Sharpe ratio is {_six(sharpes[1])} against {_six(sharpes[0])}.\n",
+            f"2. With the whole cap of {MAX_LEVERAGE:g} on it alone, strategy 2 grows at "
             f"{best_allocation_at_cap(MEANS, cov).growth:.3f} against strategy 1’s "
             f"{_short(growth_rate((MAX_LEVERAGE, 0.0), MEANS, cov))}.",
             f"c12 is the covariance, which is {cov[0, 1]:g} here. That cap is {_six(threshold)}.",
@@ -1110,7 +1126,7 @@ class TestWhatThePostSays:
         self._has(
             f"finds the same corner at {best_allocation_at_cap(MEANS, cov).growth:.3f}.",
             f"On Chan’s means and volatilities at a cap of {MAX_LEVERAGE:g}, no correlation lets "
-            "a short beat the best long-only split, even a correlation of 1.",
+            "a short beat the best long-only allocation, not even a correlation of 1.",
             f"Take two strategies with mean excess returns of {m1:.2f} and {m2:.2f}, a "
             f"volatility of {vol:.2f} each, a correlation of {correlation:.2f}, and a cap of "
             f"{cap:g}.",
@@ -1121,7 +1137,8 @@ class TestWhatThePostSays:
             f"holds {_six(-hedge[0])} of strategy 1 short against {_six(hedge[1])} of strategy "
             f"2 long, a gross of {abs(hedge[0]) + abs(hedge[1]):g}, and grows at "
             f"{_six(growth_rate(hedge, case.MEANS, case.COV))}.",
-            f"which earns a return of {_short(whole_ret)} and pays a drag of "
+            f"the long-only allocation that spends the same gross of {cap:g}. That allocation "
+            f"earns a return of {_short(whole_ret)} and pays a drag of "
             f"{_short(whole_drag)}. The hedge earns {_six(hedge_ret)} and pays "
             f"{_six(hedge_drag)}. It gives up {_six(whole_ret - hedge_ret)} of return",
             f"loses strategy 1’s mean on {_six(-hedge[0])} of leverage, {_six(-hedge[0] * m1)}.",
