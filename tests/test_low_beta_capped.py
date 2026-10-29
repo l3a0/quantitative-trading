@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import math
 import re
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -78,6 +79,7 @@ from chan.low_beta_leverage import (
     UnreadableStandardError,
     build_portfolios,
     growth,
+    kelly,
     read_sources,
     realised_beta,
     ruined_months,
@@ -85,6 +87,8 @@ from chan.low_beta_leverage import (
 )
 from chan.pca_factor_momentum import one_sided_p
 from chan.vintage import VintageUnavailable
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "capped-low-beta-lessons.md"
 
 SPEC = (
     "spx_20071123/ chan-mat adjusted saved 2007-11-24 against spy_chan.csv chan-xls adjusted "
@@ -362,6 +366,94 @@ class TestWhatThePostMeasured:
             "2002-07-31",
         ), f"{SPEC}; {AFTER_THE_RUN}"
         assert max(CEILINGS) < needed.min()
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure ``blog/capped-low-beta-lessons.md`` takes from the run.
+
+    The tests above derive these numbers and the post states them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review changed every figure in it, and none failed a test. Each assertion
+    formats the run's own value at the post's precision, so a re-pin that
+    leaves the post behind fails here too.
+
+    The subtitle, the lessons' list, the trader's habits, the caption and the
+    alt text are second copies and are not read. Chan's quotations and Kindle
+    pages, the plan's date and the figures README names as derived, such as
+    0.0975 and the ratios 1.78, 1.57 and 2.51, are not figures from the run.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_two_tables(self, outcomes) -> None:
+        two, five = outcomes[2.0].capped, outcomes[5.0].capped
+        june = pd.Timestamp("2001-06-29")
+
+        def row(label: str, a: float, b: float, digits: int = 4) -> str:
+            return f"{label} & {a:.{digits}f} & {b:.{digits}f}"
+
+        rows = [
+            row(r"\text{Mean leverage}", two.mean_leverage, five.mean_leverage),
+            row(r"\text{Months capped}", two.binds, five.binds, 0),
+            row(
+                r"\text{June 2001}",
+                float(two.portfolios.levered.loc[june]),
+                float(five.portfolios.levered.loc[june]),
+            ),
+            row(r"\text{July 2002, the worst month}", two.worst().capped, five.worst().capped),
+            row(r"\text{Growth a year}", two.realised_growth, five.realised_growth),
+            row(r"\text{Gap a year}", two.gap, five.gap),
+            row(r"\text{Newey-West } t", two.t, five.t),
+            row(r"\text{One-sided } p", two.p_claim, five.p_claim),
+            row("Y", two.detectable, five.detectable),
+        ]
+        assert [r for r in rows if r not in self.text] == [], SPEC
+
+    def test_the_prose_figures(self, outcomes) -> None:
+        two, five = outcomes[2.0].capped, outcomes[5.0].capped
+        worst = two.worst()
+        fragments = [
+            f"The match never fell below {two.k.min():.4f}",
+            f"realised betas, the slope of each one’s monthly return above the bill rate against "
+            f"SPY’s, were {two.realised_beta:.4f} at a ceiling of 2 and {five.realised_beta:.4f} "
+            f"at 5",
+            f"whose portfolios were formed on {worst.formed.date()}",
+            f"20 of the {five.months} months at 5, so the beta match set the leverage in the "
+            f"other {int((five.k <= 5.0).sum())}",
+            f"The Newey-West standard error of the yearly gap is {yearly_standard_error(two):.4f} "
+            f"at a ceiling of 2 and {yearly_standard_error(five):.4f} at 5",
+            f"puts the line at {five_percent_line(two):.4f} at a ceiling of 2 and "
+            f"{five_percent_line(five):.4f} at 5",
+            outcomes[2.0].line(),
+            f"Against the claim they are {two.p_contrary:.4f} and {five.p_contrary:.4f}",
+            f"At a ceiling of 2 it is {break_even_spread(two.portfolios):.4f} a year, and at a "
+            f"ceiling of 5 it is {break_even_spread(five.portfolios):.4f}",
+            f"It borrows a mean of {five.mean_leverage - 1:.4f} for each unit of capital, one "
+            f"less than its mean leverage of {five.mean_leverage:.4f}",
+        ]
+        assert [f for f in fragments if f not in self.text] == [], SPEC
+
+    def test_entry_45s_figures(self, portfolios: Portfolios) -> None:
+        june = pd.Timestamp("2001-06-29")
+        needed = ruinous_leverage(portfolios.low, portfolios.rf)
+        fragments = [
+            f"so the [match asked for leverages up to {portfolios.leverage.max():.4f}]",
+            f"At a leverage of {portfolios.leverage.loc[june]:.4f}, the [levered portfolio",
+            f"the low fifth compounded at {growth(portfolios.low):.4f} a year against the high "
+            f"fifth’s {growth(portfolios.high):.4f}",
+            f"was {kelly(portfolios).leverage:.4f}.",
+            f"against the high fifth’s {realised_beta(portfolios.high, portfolios):.4f}",
+            f"June 2001 returned {minus(float(portfolios.levered.loc[june]))} at a leverage of "
+            f"{portfolios.leverage.loc[june]:.4f}",
+            f"Across all {len(needed)} months the smallest is {needed.min():.4f}, for July 2002, "
+            f"when the low fifth returned {minus(float(portfolios.low.min()))}, its worst month",
+        ]
+        assert [f for f in fragments if f not in self.text] == [], SPEC
+
+
+def minus(x: float) -> str:
+    """A negative figure as the post prints it, with a typographic minus sign."""
+    return f"{x:.4f}".replace("-", "\u2212")
 
 
 # --- the rules, on portfolios built by hand ------------------------------------

@@ -8734,7 +8734,9 @@ Every other number in the post traces to an assertion in
 45's figures, or to
 [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
 for the figure's own numbers. `TestWhatThePostMeasured` holds the ones that
-had no pin before it, all measured after the run.
+had no pin before it, all measured after the run. `TestThePostQuotesTheRun`
+reads one copy of each of those figures from the post itself, so a typo in
+the post, or a re-pin that leaves it behind, fails a test.
 
 1. The yearly standard error of the gap, 0.0872 at a ceiling of 2 and 0.1370
    at 5, and the one-sided 5 percent line at 1.645 times it, 0.1434 and
