@@ -8003,21 +8003,23 @@ Four groups of what it says are not pinned here.
    half the days on the two machines that ran the checks and disagreed about
    which, which no test pins because it depends on the library, that a
    principal component's rank can change from day to day in general, the closed
-   form of the slope and intercept written out in Lesson 3, that the positions
-   chosen on day t earn day t + 1's return, that a factor's part of the
-   forecast leans them short its portfolio after it falls, and that the other
-   factors' parts can outweigh it, the same-sign shares called close to a coin
-   toss, that the sum of squared products measures how widely the products
-   scatter, that PC2's −0.1105 on tomorrow's own weights would fail outright,
-   that of the sign, the rank and the window only leaving today's return out
-   moves a factor across 0, putting PC2 and PC4 above it, that PC2's two large
-   products also widen the products' scatter, that a test on the slope the
-   regression fits would weight each day by 1/sₖ², that Newey-West's adjustment
-   for neighbouring days widens the measure when their products move together
-   and narrows it when they move in opposite directions, that 2007-08-09 and
-   2007-08-10 are what put PC2 outside the band, and that nothing here measures
-   why a window holding today's return pushes PC2 so far. The figure's alt text
-   reads its curve approximately too.
+   form of the slope and intercept written out in Lesson 3, that the Newey-West
+   t divides by a distance that comes from the products' scatter, that the
+   band's width depends only on the number of pairs, that the file was saved
+   the day after its last close, that the positions chosen on day t earn day t
+   + 1's return, that a factor's part of the forecast leans them short its
+   portfolio after it falls, and that the other factors' parts can outweigh it,
+   the same-sign shares called close to a coin toss, that the sum of squared
+   products measures how widely the products scatter, that of the sign, the
+   rank and the window only leaving today's return out moves a factor across 0,
+   putting PC2 and PC4 above it, that PC2's two large products also widen the
+   products' scatter, that a test on the slope the regression fits would weight
+   each day by 1/sₖ², that Newey-West's adjustment for neighbouring days widens
+   the measure when their products move together and narrows it when they move
+   in opposite directions, that 2007-08-09 and 2007-08-10 are what put PC2
+   outside the band, and that nothing here measures why a window holding
+   today's return pushes PC2 so far. The figure's alt text reads its curve
+   approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in

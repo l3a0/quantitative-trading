@@ -505,8 +505,8 @@ class TestWhatThePostMeasured:
         """Its first seven days with a next day, at a weight between 0.9144 and 0.9223.
 
         So on 2007-08-09 and 2007-08-10, the two days that carry PC2's
-        statistic, PC1 is PMC and PC2 is the factor that would otherwise be
-        PC1.
+        statistic, PMC takes PC1 at a weight above 0.91, and PC2 is the
+        factor that would otherwise be PC1.
         """
         _, closes = panel
         row = closes.index.get_loc(pd.Timestamp("2007-08-01"))
@@ -1005,7 +1005,8 @@ class TestWhatThePostQuotes:
             f"{NAMES[0]}’s vector points the other way on {flips[0]} of the {days} days, "
             f"{_listed(each)}, {flips.sum()} flips in all.",
             f"On {opposite.sum()} of them, the largest weight moves to a stock the earlier day "
-            f"weighed below zero. The other {WORDS[len(others)]} all fall on days two",
+            f"weighed below zero. The other {WORDS[len(others)]} all fall on days two or more "
+            "factors swap rank.",
             f"On {swap_days(components)} of the {days} days, two or more factors trade places.",
         ]
         assert self.missing(text, fragments) == []
