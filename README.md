@@ -5438,10 +5438,11 @@ Six groups of what it says are not pinned here.
    [src/chan/kalman_hedge.py](src/chan/kalman_hedge.py)'s docstring records
    the zero start and the two rows the plot leaves out, but not those words.
 3. Readings no test asserts: that the gain is large when the filter is unsure
-   and small when it is confident, that starting the filter from a regression
-   would need data from before the file's first day, and that a filter
-   started from the whole-file intercept would show how much of the rise the
-   zero start explains and would not be a backtest. What the post says a
+   and small when it is confident, that on this file a regression start would
+   read the file's own first days, so the backtest would give up trading on
+   them, that a filter started from the whole-file intercept would show how
+   much of the rise the zero start explains and would not be a backtest, and
+   that the file's dividend method could also move the intercept. What the post says a
    starting uncertainty above 0 would do to row 1 and to every later day is a
    reading too, because nothing here runs such a start. `TestTheGain` measures what the post says the gain
    does on this file after the first day, including that on a median day the
@@ -5484,6 +5485,11 @@ Two more were pinned when Lesson 3 gained them after the post first merged. A
 300-day rolling mean of the intercept falls on 25 of its 1,200 steps, and a
 350-day one on none of its 1,150.
 
+Three more were pinned when Lesson 2 gained them in the review before
+publishing. The script gains on 412 days. Setting one of those days' return
+to 0 makes the APR round below 26.2 percent on 252 of them, and on 144 of
+those the Sharpe ratio rounds below 2.4 too.
+
 `TestWhatThePostQuotes` in
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) reads the post
 itself. It builds each run figure the post quotes from the run, at the
@@ -5495,7 +5501,9 @@ slope, the first return and its dates, the three days the opening short earns
 a return, the run with no signal on rows 1 and 2, the row from which it holds
 the script's units and its margin below 2.35, the two rounded figures of the
 reading that drops those rows, which figures the first trade moves under each
-reading, the two rows the chart leaves out, the slope's median, mean, share above 1 and
+reading, how many of the days the script gains on move the same roundings,
+which fund each unit holds long and which short, row 2's sides, the two rows
+the chart leaves out, the slope's median, mean, share above 1 and
 crossings, the intercept's falls at each window and its peak, the
 whole-file regression's slope and intercept, the constants, and the holdings
 and their changes. It also reads the chart's alt text's exact figures, its 513 of 1,499 and the dashed run's 0.260669 and 2.349460 among

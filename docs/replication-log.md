@@ -7503,8 +7503,9 @@ Three things.
    saves its figures came from. This file has one candidate, because
    `data/README.md` records the `.mat` as one git blob in all three published
    copies.
-2. **At the precision the book prints, its APR rests on a trade the filter has
-   no basis for, and so does its Sharpe ratio while every day counts.** On the
+2. **At the precision the book prints, removing a trade the filter has no
+   basis for changes the APR, and the Sharpe ratio too while every day
+   counts.** On the
    file's first day the filter has seen nothing, so its forecast of EWC is 0
    and the error is EWC's whole price. The script reads that as a spread far
    above its band and shorts EWC alone. Rows 5 and 6 measure it: withholding
@@ -7517,7 +7518,7 @@ Three things.
    412 days. On 252 of them, setting that day's return to 0 also makes the APR
    round below 26.2 percent, and on 144 of those it makes the Sharpe ratio
    round below 2.4 as well.
-   `TestTheFigures::test_most_gaining_days_move_the_rounding_as_the_first_trade_does`
+   `TestTheFigures::test_252_of_412_gaining_days_move_the_apr_rounding_and_144_both`
    holds the counts.
 3. **The intercept's yearly means rise every year, and the intercept falls at
    every finer grain.** The means go from 0.1440 in 2006 to 6.7748 in 2012. At
@@ -7543,7 +7544,10 @@ it, and the script charges nothing for a trade.
 
 **Whether the intercept's rise belongs to the market or to the zero start.**
 The filter starts the intercept at 0, and the single regression over the whole
-file puts it at 6.4113. Nothing here starts the filter anywhere else.
+file puts it at 6.4113. Part of what looks like the market could also be the
+file's dividend method, because the filter reads the closes themselves and a
+subtracted dividend lowers every close before it. Nothing here starts the
+filter anywhere else.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

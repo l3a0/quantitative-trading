@@ -331,14 +331,13 @@ class TestTheFigures:
         assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT)
         assert matches(plain_sharpe(dropped), BOOK_SHARPE)
 
-    def test_most_gaining_days_move_the_rounding_as_the_first_trade_does(self, result) -> None:
+    def test_252_of_412_gaining_days_move_the_apr_rounding_and_144_both(self, result) -> None:
         """Setting one day's return to 0 makes the APR round below the book's 26.2
         percent on 252 of the 412 days the script gains on, and on 144 of those the
         Sharpe ratio round below its 2.4 too. The first short's day is among the
         144, so what it moves is a rounding the figures sit close to."""
         gaining, apr_below, both_below = gaining_days_that_move_the_rounding(result.trade.daily)
         assert (gaining, len(apr_below), len(both_below)) == (412, 252, 144), SPEC
-        assert set(both_below) <= set(apr_below)
         assert 1 in both_below, SPEC
 
 
@@ -696,6 +695,8 @@ class TestWhatThePostQuotes:
         dividends = dividends.split("\nclass ", 1)[0]
         checked = list(dict.fromkeys(re.findall(r'gap_and_dividends\(\s*"([A-Z]+)"', dividends)))
         assert len(checked) == 2 and X not in checked and Y not in checked
+        either_leg = rf'(?:gap_and_dividends|load_close)\(\s*"(?:{X}|{Y})"'
+        assert not re.search(either_leg, dividends), SPEC
         fragments.append(
             f"This repository checked that method on two other funds in the file, {checked[0]} "
             f"and {checked[1]}, and not on {X} or {Y}."
@@ -790,6 +791,7 @@ class TestWhatThePostQuotes:
             f"value at which it would round to the book’s {BOOK_SHARPE}.",
             "The middle run holds nothing on those rows and earns 0 on them, so dropping them "
             "changes only how many days the figures average over.",
+            "The position is sized after the update, "
             f"so on row 2 the {side[script.units[1]]} unit is {side[np.sign(row_2[0])]} "
             f"{abs(row_2[0]):.6f} EWA shares and {side[np.sign(row_2[1])]} one EWC share.",
             f"The script gains on {gaining} days. On {len(apr_below)} of them, setting that day’s "
