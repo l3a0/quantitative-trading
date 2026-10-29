@@ -1234,7 +1234,8 @@ class TestThePostQuotesTheRun:
             f"with VIX’s, VIX closed above 35 on {len(above)} days.",
             f"from {long.days[0].date()} to {long.days[-1].date()}, and each one keeps the next "
             f"day on buy on gap’s calendar, which is why buy on gap keeps {long.kept} days too.",
-            f"The first close above 35 was {above.iloc[0]} on {above.index[0].date()}. The "
+            f"The first of those {len(above)} closes was {above.iloc[0]} on "
+            f"{above.index[0].date()}. The "
             f"highest was {window.max()} on {window.idxmax().date()}, and the last was "
             f"{above.iloc[-1]} on {above.index[-1].date()}.",
             f"also closes above 35 on {len(earlier)} earlier days, the first of them on "

@@ -11164,7 +11164,8 @@ choices in writing first and then run on data after 2012: the threshold, the
 alignment, `252 · mean`, each rule's own settings, the sign of FSTX's return
 line, the stocks buy on gap may choose from, the costs, the direction each
 rule's return should move, and the test that compares the qualifying days
-with the rest with the p below which it counts, set for both rules at once.
+with the rest, with the p below which it counts chosen for the two rules
+together.
 
 **What buy on gap earned on the index as it stood each day.** Every stock here
 was in the S&P 500 in late 2011, so Entry 18's caveat holds for the filtered

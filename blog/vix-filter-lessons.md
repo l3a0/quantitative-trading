@@ -8,8 +8,8 @@ A risk indicator is a number read before a trade that is meant to say how risky 
 
 He makes the case with the **VIX**, an index the Chicago Board Options Exchange computes from the prices of options on the S&P 500. It measures the swings those options imply for the next month, so it rises when traders expect turmoil. Chan keeps only the days after VIX closed above 35, “a common threshold for highly risky periods” (p. 269), and reruns two rules the book already ran.
 
-1. **Buy on gap**, Example 4.1, which buys stocks that opened far below the previous day’s low and sells them at the close. Far below means a drop from that low to the open larger than the 90-day standard deviation of the stock’s daily returns, and the open must still sit above the 20-day moving average of the stock’s closes. On every day, Chan reports “an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” (p. 269). The Sharpe ratio is the return per unit of day-to-day swing, and Lesson 1 gives its formula. On the kept days he reports 17.2 percent and 1.4, and concludes that “this strategy benefits from the so-called risk!” (p. 269).
-2. **The opening gap rule on FSTX**, Example 7.1. FSTX is a futures contract on the STOXX Europe 50 index. Chan’s script goes long when FSTX opens above the previous day’s high, and short when it opens below the previous day’s low. The open must clear that high or low by at least a tenth of the 90-day standard deviation of FSTX’s daily returns, and the script holds the position from the open to the close. The line of the script that computes its return, though, credits a long position when the price falls from the open. So in effect the script bets that a price opening above the high falls by the close and one opening below the low rises, which trades against the jump at the open, as Lesson 2 explains. On every day, Chan reports “around 13 percent and a Sharpe ratio of 1.4” (p. 269). On the kept days the return drops to “2.6 percent and the Sharpe ratio to 0.16” (p. 269). He concludes that “VIX tells us to avoid trading on the following day” (p. 269).
+1. **Buy on gap**, Example 4.1, which buys stocks that opened far below the previous day’s low and sells them at the close. Far below means the return from that low to the open is a loss larger than the 90-day standard deviation of the stock’s daily returns, and the open must still sit above the 20-day moving average of the stock’s closes. On every day, Chan reports “an annualized average return of around 8.7 percent and a Sharpe ratio of 1.5” (p. 269). The Sharpe ratio is the return per unit of day-to-day swing, and Lesson 1 gives its formula. On the kept days he reports 17.2 percent and 1.4, and concludes that “this strategy benefits from the so-called risk!” (p. 269).
+2. **The opening gap rule on FSTX**, Example 7.1. FSTX is a futures contract on the STOXX Europe 50 index. Chan’s script goes long when FSTX opens above the previous day’s high, and short when it opens below the previous day’s low. The open must clear that high or low by at least a tenth of the 90-day standard deviation of FSTX’s daily returns, with that distance measured as a return from the high or low. The script holds the position from the open to the close. The line of the script that computes its return, though, credits a long position when the price falls from the open. So in effect the script bets that a price opening above the high falls by the close and one opening below the low rises, which trades against the jump at the open, as Lesson 2 explains. On every day, Chan reports “around 13 percent and a Sharpe ratio of 1.4” (p. 269). On the kept days the return drops to “2.6 percent and the Sharpe ratio to 0.16” (p. 269). He concludes that “VIX tells us to avoid trading on the following day” (p. 269).
 
 ### What the reproduction found
 
@@ -80,7 +80,7 @@ A third reading also takes 252 times the mean, but sets the return to zero on ea
 
 ### The filter’s effect with one formula throughout
 
-The comparison Chan draws survives the mismatch of formulas. Like for like, 252 times the mean rises from 0.085279 on every day to 0.171924 on the kept days. The Sharpe ratio moves the other way, from 1.537063 to 1.417425, so the kept days earned more per day and swung more for it. Lesson 5 asks whether the rise in the mean is larger than chance, and nothing here tests the Sharpe ratio’s fall.
+The comparison Chan draws survives the mismatch of formulas. Like for like, 252 times the mean rises from 0.085279 on every day to 0.171924 on the kept days. The Sharpe ratio moves the other way, from 1.537063 to 1.417425, so the kept days earned more per day, but the swing of their daily returns grew by a larger factor than the mean did. Lesson 5 asks whether the rise in the mean is larger than chance, and nothing here tests the Sharpe ratio’s fall.
 
 ## Lesson 2: FSTX’s figures belong to the script’s fading sign
 
@@ -107,7 +107,7 @@ The book’s FSTX figures without the filter and with it come from different cal
 
 ### The filter’s effect under each sign
 
-The filter moves the two signs’ mean returns in opposite directions. Under the fade, 252 times the mean falls from 0.139950 on every joined day to 0.025730 on the kept days, which is the direction Chan reports. Under momentum it rises from −0.139950 to −0.025730, so for the sign the text describes, the kept days are the less bad ones. So the script’s mean return moves the way “VIX tells us to avoid trading” (p. 269) says, and the mean return of the rule the text describes moves the opposite way. Lesson 5 tests whether either change in the mean return is larger than chance.
+The filter moves the two signs’ mean returns in opposite directions. Under the fade, 252 times the mean falls from 0.139950 on every joined day to 0.025730 on the kept days. That is the direction Chan reports, and the one his conclusion that “VIX tells us to avoid trading” (p. 269) points to. Under momentum it rises from −0.139950 to −0.025730, so for the sign the text describes, the kept days are the less bad ones, and its mean return moves against that conclusion. Lesson 5 tests whether either change in the mean return is larger than chance.
 
 ## Lesson 3: the 2.6 percent depends on which VIX close each FSTX day reads, and a search chose the join
 
@@ -116,7 +116,7 @@ FSTX trades on Eurex and the Chicago Board Options Exchange computes VIX, so the
 1. **Join.** Keep only the days both calendars share, and read VIX’s close on the previous shared day.
 2. **Latest close.** Read VIX’s latest close before each FSTX day.
 3. **Filled forward.** Copy each VIX close onto any following FSTX day that has none, and read VIX’s close on FSTX’s previous day.
-4. **Row back.** Read VIX’s close on FSTX’s previous day, and drop the day when VIX has none.
+4. **Row back.** Step back one row on FSTX’s own calendar, read VIX’s close on that day, and drop the day when VIX has none.
 5. **Same day.** Read VIX’s close on the trade’s own date, which is missing on US holidays.
 6. **Same day, filled.** Read the same, with VIX filled forward onto US holidays.
 
@@ -143,7 +143,7 @@ The join lands 2.6 percent and 0.16. The latest close lands the Sharpe ratio and
 Four facts bound what the search means.
 
 1. **Buy on gap does not move.** Every reading that takes the previous day gives it the same 190 days and the same figures, because its calendar is VIX’s. The search moved only FSTX.
-2. **The figures cannot tell joining the calendars before the rule from joining them after it.** Running FSTX’s rule on the 1,945 joined days instead of its own 2,000 changes the return on 11 joined days and on none of the 185 kept days. Ten of those 11 are the first joined day after a day the US exchanges were shut and Eurex was open. On the joined days, the rule compares the open on each of those ten with the high or low of two Eurex sessions back, because the day the US exchanges were shut is no longer there. The eleventh, 2005-09-20, moves because its 90-day standard deviation then spans a different set of days. So the figures cannot say which order Chan used.
+2. **The figures cannot tell joining the calendars before running the rule from joining them after.** Running FSTX’s rule on the 1,945 joined days, rather than on its own 2,000 days with the join after, changes the return on 11 joined days and on none of the 185 kept days. Ten of those 11 are the first joined day after a day the US exchanges were shut and Eurex was open. On the joined days, the rule compares the open on each of those ten with the high or low of two Eurex sessions back, because the day the US exchanges were shut is no longer there. The eleventh, 2005-09-20, moves because on the joined days its 90-day standard deviation spans a different set of days. So the figures cannot say which order Chan used.
 3. **Nothing here rules out a seventh reading.** Only the join lands both figures among the six, and another reading could land them too.
 4. **The save matters too.** Chan saved FSTX’s file on several dates in May 2012, and the [opening gap post’s Lesson 4](https://github.com/l3a0/quantitative-trading/blob/main/blog/opening-gap-lessons.md#lesson-4-the-save-and-its-window-both-decide-the-printed-digit) shows that the saves price it differently. On the two earlier saves that hold 2,000 days, the join keeps the same 185 days and gives 0.024899 and 0.162148, which print as 2.5 percent and 0.16. Only `inputDataOHLCDaily_20120517.mat`, the save Example 7.1’s script loads, lands 2.6.
 
@@ -151,7 +151,7 @@ So for FSTX the 2.6 percent is a fit to the printed figure rather than a test of
 
 ## Lesson 4: the kept days are few, and most fall in 2008 and 2009
 
-From 2004-07-16 to 2012-05-08, the span FSTX’s days share with VIX’s, VIX closed above 35 on 190 days. All of them fall inside buy on gap’s span, from 2006-05-11 to 2012-04-24, and each one keeps the next day on buy on gap’s calendar, which is why buy on gap keeps 190 days too. The first close above 35 was 36.22 on 2008-09-17. The highest was 80.86 on 2008-11-20, and the last was 36.16 on 2011-11-09. Chan’s `VIX.csv` also closes above 35 on 100 earlier days, the first of them on 1990-08-06, so VIX crossed the threshold long before either rule’s data begins.
+From 2004-07-16 to 2012-05-08, the span FSTX’s days share with VIX’s, VIX closed above 35 on 190 days. All of them fall inside buy on gap’s span, from 2006-05-11 to 2012-04-24, and each one keeps the next day on buy on gap’s calendar, which is why buy on gap keeps 190 days too. The first of those 190 closes was 36.22 on 2008-09-17. The highest was 80.86 on 2008-11-20, and the last was 36.16 on 2011-11-09. Chan’s `VIX.csv` also closes above 35 on 100 earlier days, the first of them on 1990-08-06, so VIX crossed the threshold long before either rule’s data begins.
 
 ### How the kept days cluster
 
@@ -226,7 +226,7 @@ Six questions are beyond it.
    6. The stocks buy on gap may choose from on each day.
    7. The costs charged on each trade.
    8. The direction each rule’s mean return should move on kept days.
-   9. The test that compares the kept days with the rest, and the p below which a difference counts as more than chance, set for both rules at once.
+   9. The test that compares the kept days with the rest, and the p below which a difference counts as more than chance, with that p chosen for the two rules together.
 4. **What buy on gap earned on the index as it stood each day.** Every stock here was in the S&P 500 in late 2011, so a company outside the index for all of late 2011 is missing, even on the days it was a member. The [buy on gap post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#lesson-6-an-exact-reproduction-checks-the-arithmetic-not-the-edge) shows that an exact reproduction checks the arithmetic, not the edge, and that holds for the kept days too.
 5. **Whether every price in the files is right.** The repository has a check for a sudden change of scale, such as a vendor multiplying every close from some day on by a constant. What it covers differs by file, and some prices need a second source that nothing here reads.
    - **FSTX.** The run applies the check to every FSTX close in the file, and it flags none.
