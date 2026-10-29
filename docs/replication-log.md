@@ -11353,11 +11353,12 @@ and fifth corrected since the plan.
    a run registered before any number on a holdout could confirm a ceiling.
    The plan sends both ceilings to
    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
-   panel only if one of them holds here, and neither did.
+   panel, unchanged, if either one holds here. Neither did.
 2. **What the panel's makeup does to either side.** The panel lacks the
    stocks that left the index before 2007-11-23, as in Entry 45. It also
-   counts later members for years before they joined, and carries three
-   earlier companies under WYN, DFS and SE.
+   counts each stock that joined the index between 1999 and 2007 for the
+   years before it joined, and carries earlier companies' prices under WYN,
+   DFS and SE.
 3. **Whether the rule holds in later years.** The years 2000 to 2007 were
    past prices by the time the book printed the claim, so this span is not a
    holdout.

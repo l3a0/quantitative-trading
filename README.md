@@ -8689,9 +8689,11 @@ Five groups of what it says are not pinned here.
    814, and a retail account's 2 at 2836.
 2. The plan's history rather than the data: that the plan was written on
    2026-10-11 before any capped number and after the five things Entry 45 had
-   shown, the four outcomes and the wording of each, and that the plan would
-   have sent both ceilings to a holdout only if one had held. Entry 48 of the
-   replication log records each.
+   shown, the four outcomes and the wording of each, and that the plan sends
+   both ceilings to a holdout if either one holds. Entry 48 of the replication
+   log records each. The post also says the previous test added its ruin
+   outcome only after its first ruined month was visible, which Entry 45
+   records.
 3. Readings no test asserts: what beta, leverage, a margin, Regulation T
    and portfolio margin are, that the post writes returns, rates and growth
    as fractions, that a margin of 20 percent is a leverage of 1 / 0.20, or 5,
