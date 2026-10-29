@@ -7520,7 +7520,7 @@ Three things.
 
 ### What this entry cannot say
 
-Three things.
+Four things.
 
 **What other values of `delta` or `Ve` give.** The script's comment invites
 tuning `delta`. Varying it is a search over a hypothesis space, which needs
