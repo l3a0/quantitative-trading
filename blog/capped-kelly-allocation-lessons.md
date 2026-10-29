@@ -96,7 +96,7 @@ No choice of data could have moved these figures. Nothing between the stated inp
 
 ### Selling into a loss to hold a leverage of 5
 
-A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000, which leaves a \$550,000 position. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on the same page why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”, because keeping it constant “is necessary to optimize the growth rate”.
+A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000, which leaves a \$550,000 position. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). Just before the example, on p. 250, he explains why he asks for it. However the leverage was chosen, “the leverage should be kept constant”, because keeping it constant “is necessary to optimize the growth rate”.
 
 The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and this repository computes Example 8.1’s trades with the same code as the SPY post’s.
 
@@ -197,7 +197,7 @@ Set the hedge against the whole cap on strategy 2, the long-only allocation that
 
 Because the two strategies move together so closely, the short cancels most of strategy 2’s variance, and the drag falls by 0.527499. That saving is larger than all the return given up, so the hedge grows faster. Lesson 4’s short broke the gross cap. This one stays inside it.
 
-So the corner’s win in Example 8.2 is a property of its inputs, two uncorrelated strategies with positive means, under a cap below 2.45. This repository’s capped search keeps to long positions, the range Chan plots. Its code calls that a restriction of the search rather than a rule that always holds, because the case above shows the restriction can cost growth, and its tests check that case.
+So the corner’s win in Example 8.2 is a property of its inputs. Two uncorrelated strategies with positive means leave a short nothing to gain. Chan’s own means and variances then keep the corner best under a cap below 2.45. This repository’s capped search keeps to long positions, the range Chan plots. Its code calls that a restriction of the search rather than a rule that always holds, because the case above shows the restriction can cost growth, and its tests check that case.
 
 ## What this replication cannot say
 
@@ -214,7 +214,7 @@ One habit for each lesson.
 2. **Compare allocations by growth rate.** Under a tight cap, diversifying saves little drag and can give up much more return.
 3. **Print one more decimal when a figure sits on a tie.** At the tie’s own precision, the rounding rule decides the digit, and a figure that lands can read as a miss.
 4. **Check a solver’s answer against its constraint.** With uncorrelated strategies, a short in one with a positive mean is the sign the solver broke the cap.
-5. **Compute the threshold instead of trusting “much smaller”.** It holds when the higher-mean strategy’s variance exceeds the covariance, and it says only where everything on that strategy stops beating the other long-only ways to spend the whole cap.
+5. **Compute the threshold instead of trusting “much smaller”, and treat it as no surer than the means behind it.** It holds when the higher-mean strategy’s variance exceeds the covariance, and it says only where everything on that strategy stops beating the other long-only ways to spend the whole cap.
 6. **Treat long-only as an assumption.** With strongly correlated strategies, a short hedge inside the cap can beat every long-only allocation.
 
 ## References

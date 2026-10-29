@@ -271,6 +271,7 @@ class TestTheCorner:
         :class:`TestTheLongOnlyLimit` needs its other inputs too, not only the
         correlation of 0.95."""
         varied = covariance(VOLS, correlation)
+        assert varied[0, 1] == pytest.approx(correlation * VOLS[0] * VOLS[1], abs=1e-15)
         g, f1, f2 = _gross_boundary_grid(MEANS, varied, MAX_LEVERAGE, points=4_001)
         assert f1 >= 0.0 and f2 >= 0.0
         assert g == pytest.approx(
@@ -345,6 +346,7 @@ class TestTheNearMisses:
         assert abs(line[0]) + abs(line[1]) == pytest.approx(2.578643, abs=5e-7)
         assert growth_rate(line, MEANS, cov) > best_allocation_at_cap(MEANS, cov).growth
         peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
+        assert unbounded_allocation_at_cap(MEANS, cov) == peak
         assert peak.leverages == line
         assert peak.growth == growth_rate(line, MEANS, cov)
         assert peak.gross == pytest.approx(2.578643, abs=5e-7)
@@ -840,7 +842,7 @@ class TestWhatThePostSays:
     The prose states these numbers and the tests above derive them, so before
     this class a typo in the post passed every test. Round 1 of the post's
     review changed 34 single numbers across its prose, tables and alt text,
-    and none failed a test.
+    one at a time in a copy of the post, and none failed a test.
     """
 
     text = POST.read_text("utf-8")
@@ -1052,6 +1054,7 @@ class TestWhatThePostSays:
         corner = best_allocation_at_cap(MEANS, cov).growth
         exact = 2 * Fraction(60, 100) - 4 * Fraction(35, 100) ** 2 / 2
         tie, cent = Decimal(f"{corner:.3f}"), Decimal("0.01")
+        places = 2
         self._has(
             f"The growth rate at the corner is exactly {exact.numerator}/{exact.denominator}, "
             f"which is {tie}. Chan prints 0.96.",
@@ -1060,8 +1063,9 @@ class TestWhatThePostSays:
             f"which sends a tie to the even last digit, gives "
             f"{tie.quantize(cent, rounding=ROUND_HALF_EVEN)}.",
             f"**Round half down** gives {tie.quantize(cent, rounding=ROUND_HALF_DOWN)}.",
-            f"both see a number below halfway and print {corner:.2f}. A report that formats the "
-            f"corner the obvious way puts {round(corner, 2)} beside the book’s 0.96",
+            f'Python’s `f"{{g:.{places}f}}"` and `round(g, {places})` on a plain float both '
+            f"see a number below halfway and print {corner:.{places}f}. A report that formats "
+            f"the corner the obvious way puts {round(corner, places)} beside the book’s 0.96",
         )
         assert float(exact) == corner
 
