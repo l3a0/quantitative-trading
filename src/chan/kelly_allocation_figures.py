@@ -46,7 +46,7 @@ from chan.kelly_allocation import (
     growth_rate,
     kelly_leverages,
     proportional_cap,
-    segment_stationary_point,
+    unbounded_allocation_at_cap,
 )
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED, SURFACE
@@ -103,13 +103,13 @@ def allocation_curve() -> AllocationCurve:
     kelly = kelly_leverages(MEANS, cov)
     capped = proportional_cap(kelly, MAX_LEVERAGE)
     best = best_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
-    raw = segment_stationary_point(MEANS, cov, MAX_LEVERAGE)
+    peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
     return AllocationCurve(
         inside=_line(np.linspace(0.0, MAX_LEVERAGE, CURVE_POINTS), cov),
         beyond=_line(np.linspace(MAX_LEVERAGE, BEYOND_CAP, BEYOND_POINTS), cov),
         proportional=Point(float(capped[1]), growth_rate(capped, MEANS, cov)),
         corner=Point(best.leverages[1], best.growth),
-        peak=Point(raw, growth_rate((MAX_LEVERAGE - raw, raw), MEANS, cov)),
+        peak=Point(peak.leverages[1], peak.growth),
     )
 
 

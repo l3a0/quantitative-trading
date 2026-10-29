@@ -48,11 +48,13 @@ from chan.kelly_allocation import (
     corner_threshold,
     covariance,
     growth_rate,
+    growth_terms,
     kelly_leverages,
     main,
     proportional_cap,
     report,
     segment_stationary_point,
+    unbounded_allocation_at_cap,
 )
 
 
@@ -335,6 +337,10 @@ class TestTheNearMisses:
         assert growth_rate(line, MEANS, cov) == pytest.approx(0.962956, abs=5e-7)
         assert abs(line[0]) + abs(line[1]) == pytest.approx(2.578643, abs=5e-7)
         assert growth_rate(line, MEANS, cov) > best_allocation_at_cap(MEANS, cov).growth
+        peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
+        assert peak.leverages == line
+        assert peak.growth == growth_rate(line, MEANS, cov)
+        assert peak.gross == pytest.approx(2.578643, abs=5e-7)
 
     def test_reading_location_3319_literally_gives_0_676(self, kelly) -> None:
         """The recovered text reads ``f2m2/2``. With the mean in place of the
@@ -439,6 +445,22 @@ class TestCorrelatedStrategies:
         expected = ((c22 * 0.30 - c12 * 0.60) / det, (c11 * 0.60 - c12 * 0.30) / det)
         assert tuple(kelly_leverages(self.MEANS, self.COV)) == pytest.approx(expected, abs=1e-12)
 
+    def test_the_two_terms_are_the_return_and_half_the_variance(self) -> None:
+        """:func:`growth_terms` is the one place the formula is written, so it is
+        held here to the arithmetic by hand, cross term included, and
+        :func:`growth_rate` to the risk-free rate plus their difference."""
+        (c11, c12), (_, c22) = self.COV
+        f1, f2 = 0.7, 1.3
+        ret, drag = growth_terms((f1, f2), self.MEANS, self.COV)
+        assert ret == pytest.approx(f1 * 0.30 + f2 * 0.60, abs=1e-15)
+        assert drag == pytest.approx(
+            (f1 * f1 * c11 + 2 * f1 * f2 * c12 + f2 * f2 * c22) / 2, abs=1e-15
+        )
+        for r in (0.0, 0.04):
+            assert growth_rate((f1, f2), self.MEANS, self.COV, r) == pytest.approx(
+                r + ret - drag, abs=1e-15
+            )
+
     def test_the_growth_rate_carries_the_cross_term(self) -> None:
         f = (1.0, 1.0)
         diagonal = covariance((0.26, 0.35), 0.0)
@@ -491,11 +513,10 @@ class TestTheLongOnlyLimit:
         return (f2 - self.CAP, f2)
 
     def _return(self, leverages) -> float:
-        return float(np.asarray(leverages, dtype=float) @ np.asarray(self.MEANS))
+        return growth_terms(leverages, self.MEANS, self.COV)[0]
 
     def _drag(self, leverages) -> float:
-        f = np.asarray(leverages, dtype=float)
-        return float(f @ self.COV @ f / 2.0)
+        return growth_terms(leverages, self.MEANS, self.COV)[1]
 
     def test_the_whole_cap_on_strategy_two(self) -> None:
         best = best_allocation_at_cap(self.MEANS, self.COV, self.CAP)
@@ -607,19 +628,19 @@ class TestBesideTheClaim:
 
     ``blog/capped-kelly-allocation-lessons.md`` splits the growth rate into
     its two terms, the return ``F'M`` and the drag ``F'CF / 2``, to say why
-    the corner beats the proportional split. Each term is computed here from
-    the run's own leverages and covariance, and each pair is held to
-    :func:`growth_rate`, so a split that stopped adding up fails too.
+    the corner beats the proportional split. Each term comes from
+    :func:`growth_terms` at the run's own leverages and covariance, and each
+    pair is held to :func:`growth_rate`, so a split that stopped adding up
+    fails too.
     """
 
     @staticmethod
     def _return(leverages) -> float:
-        return float(np.asarray(leverages, dtype=float) @ np.asarray(MEANS))
+        return growth_terms(leverages, MEANS, covariance(VOLS, CORRELATION))[0]
 
     @staticmethod
     def _drag(leverages, cov) -> float:
-        f = np.asarray(leverages, dtype=float)
-        return float(f @ cov @ f / 2.0)
+        return growth_terms(leverages, MEANS, cov)[1]
 
     def _split(self, leverages, cov) -> tuple[float, float]:
         ret, drag = self._return(leverages), self._drag(leverages, cov)

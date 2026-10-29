@@ -7016,7 +7016,7 @@ variances of 0.0676 and 0.1225, and
 Its one figure is drawn by
 [src/chan/kelly_allocation_figures.py](src/chan/kelly_allocation_figures.py)
 from the same `growth_rate`, `proportional_cap`, `best_allocation_at_cap` and
-`segment_stationary_point` as `python -m chan.kelly_allocation`, for Lesson 2
+`unbounded_allocation_at_cap` as `python -m chan.kelly_allocation`, for Lesson 2
 and Lesson 4. It draws one panel, the growth rate along `F1 = 2 - F2`.
 
 1. The solid curve from F2 = 0 to the cap, the book's Figure 8.1.
@@ -7036,8 +7036,9 @@ The post also carries two looping whiteboard sketches, drawn by
 [src/chan/kelly_allocation_whiteboard.py](src/chan/kelly_allocation_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 Both build more slowly than the USD.CAD post's sketches and hold their finished
-drawings for twelve seconds. Neither is schematic: every mark sits to scale at
-a figure the run computes.
+drawings for twelve seconds. Neither is schematic. Every bar, tick, bracket,
+line and dot sits to scale at a figure the run computes, and only the axes'
+reach, the line's end and the layout are drawing choices.
 
 1. `kelly_allocation_sketch_return_against_drag.gif`, in Lesson 2, stands the
    proportional split and the corner side by side, each a green bar up to its
@@ -7046,10 +7047,12 @@ a figure the run computes.
    up, a red bracket the 0.147014 of drag it saves, and a closing line gives
    the corner's lead of 0.138202.
 2. `kelly_allocation_sketch_gross_against_net.gif`, in Lesson 4, draws F1
-   across and F2 up in equal units. A green-edged tint shades the triangle
-   where the gross leverage is at most 2, and the line `F1 + F2 = 2` runs
-   green along its edge to the corner at 0.955, then red past it to the
-   unbounded peak at 0.962956, whose gross leverage of 2.578643 is outside.
+   across and F2 up in equal units. A green-edged tint shades the upper half
+   of the diamond where the gross leverage is at most 2, the triangle where F2
+   is at least 0. The line `F1 + F2 = 2` runs green along the triangle's edge
+   to the corner at (0, 2), whose growth rate is 0.955. It runs red past the
+   corner, through the unbounded peak, whose growth rate is 0.962956 and whose
+   gross leverage of 2.578643 is outside.
 
 Redraw both with:
 

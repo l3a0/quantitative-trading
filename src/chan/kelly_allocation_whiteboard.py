@@ -33,27 +33,31 @@ scale at its figure, and :meth:`SketchFigures.from_run` reads each figure from
 :func:`~chan.kelly_allocation.kelly_leverages`,
 :func:`~chan.kelly_allocation.proportional_cap`,
 :func:`~chan.kelly_allocation.best_allocation_at_cap`,
-:func:`~chan.kelly_allocation.segment_stationary_point` and
+:func:`~chan.kelly_allocation.unbounded_allocation_at_cap`,
+:func:`~chan.kelly_allocation.growth_terms` and
 :func:`~chan.kelly_allocation.growth_rate` the run uses, so a sketch prints
 only what the run computes. The return is ``F'M`` and the drag ``F'CF / 2``,
-the two terms :func:`~chan.kelly_allocation.growth_rate` subtracts. The
-axes' reach, the line's end at (−0.5, 2.5) and the board's layout are
-drawing choices and carry no figure.
+the two terms :func:`~chan.kelly_allocation.growth_terms` returns and
+:func:`~chan.kelly_allocation.growth_rate` subtracts. The axes' reach, the
+line's end at (−0.5, 2.5) and the board's layout are drawing choices and carry
+no figure.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. The post's
 chart, :mod:`chan.kelly_allocation_figures`, still draws in
 :mod:`chan.regime_figure`'s shared colours, so the sketches do too. The corner
 is green and the unbounded peak red in both, and the proportional split's name
-is brass, as its marker is in the chart. The machinery's tints are rectangles,
-so the triangle's tint is a stroke instead: rows of the pale green, close
-enough to overlap, kept inside the triangle's edge. Each sketch carries more
-than a reader takes in at that post's pace, so both are in :data:`PACED`, and
-:func:`sketch_timeline` holds each of their labels longer and their finished
-drawings for twelve seconds, as :mod:`chan.equity_seasonals_whiteboard` does
-for its slow sketches. Each GIF is named :data:`GIF_PREFIX` plus the scene's
-slug. The post's chart, ``kelly_allocation.png``, does not start with that
-prefix, so nothing that looks for the sketches by prefix finds the chart.
+is brass, as its marker is in the chart. The post's alt texts call that colour
+brown, as the ``sketch-notes`` skill's table of inks says posts do. The
+machinery's tints are rectangles, so the triangle's tint is a stroke instead:
+rows of the pale green, close enough to overlap, kept inside the triangle's
+edge. Each sketch carries more than a reader takes in at that post's pace, so
+both are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
+labels longer and their finished drawings for twelve seconds, as
+:mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Each GIF is
+named :data:`GIF_PREFIX` plus the scene's slug. The post's chart,
+``kelly_allocation.png``, does not start with that prefix, so nothing that
+looks for the sketches by prefix finds the chart.
 
 The sketches are deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. Redraw both with::
@@ -78,9 +82,10 @@ from chan.kelly_allocation import (
     best_allocation_at_cap,
     covariance,
     growth_rate,
+    growth_terms,
     kelly_leverages,
     proportional_cap,
-    segment_stationary_point,
+    unbounded_allocation_at_cap,
 )
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
@@ -122,25 +127,24 @@ def figure(value: float) -> str:
 
 @dataclass(frozen=True)
 class Terms:
-    """One allocation's growth rate as its two terms, the return less the drag."""
+    """One allocation's growth rate and its two terms, the return and the drag."""
 
     leverages: tuple[float, float]
     ret: float
     drag: float
-
-    @property
-    def growth(self) -> float:
-        return self.ret - self.drag
+    growth: float
 
     @classmethod
     def at(cls, leverages, means, cov) -> Terms:
-        """``F'M`` and ``F'CF / 2`` at ``leverages``, the two terms
-        :func:`~chan.kelly_allocation.growth_rate` subtracts at a risk-free rate of 0."""
-        f = np.asarray(leverages, dtype=float)
+        """:func:`~chan.kelly_allocation.growth_terms` and
+        :func:`~chan.kelly_allocation.growth_rate` at ``leverages``, so the
+        sketch holds no copy of the formula."""
+        ret, drag = growth_terms(leverages, means, cov)
         return cls(
-            (float(f[0]), float(f[1])),
-            float(f @ np.asarray(means, dtype=float)),
-            float(f @ np.asarray(cov, dtype=float) @ f / 2.0),
+            (float(leverages[0]), float(leverages[1])),
+            ret,
+            drag,
+            growth_rate(leverages, means, cov),
         )
 
 
@@ -180,14 +184,12 @@ class SketchFigures:
         cov = covariance(VOLS, CORRELATION)
         capped = proportional_cap(kelly_leverages(MEANS, cov), MAX_LEVERAGE)
         best = best_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
-        raw = segment_stationary_point(MEANS, cov, MAX_LEVERAGE)
-        line = (MAX_LEVERAGE - raw, raw)
         return cls(
             cap=MAX_LEVERAGE,
             split=Terms.at(capped, MEANS, cov),
             corner=Terms.at(best.leverages, MEANS, cov),
             corner_growth=best.growth,
-            peak=Allocation(line, growth_rate(line, MEANS, cov)),
+            peak=unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE),
         )
 
 

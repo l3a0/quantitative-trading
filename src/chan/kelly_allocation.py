@@ -90,7 +90,9 @@ holding its own copy of the growth rate.
 :mod:`chan.kelly_allocation_whiteboard` draws the post's two whiteboard
 sketches from the same functions: Lesson 2's return against drag at the
 proportional split and the corner, and Lesson 4's line ``F1 + F2 = 2``
-against the gross cap.
+against the gross cap. Its return and drag come from :func:`growth_terms`,
+the same two terms :func:`growth_rate` subtracts, and its unbounded peak from
+:func:`unbounded_allocation_at_cap`, which the report and the figure call too.
 
 Usage::
 
@@ -218,6 +220,21 @@ def kelly_leverages(means: Sequence[float], cov: NDArray[np.float64]) -> NDArray
     return np.linalg.solve(np.asarray(cov, dtype=float), np.asarray(means, dtype=float))
 
 
+def growth_terms(
+    leverages: Sequence[float], means: Sequence[float], cov: NDArray[np.float64]
+) -> tuple[float, float]:
+    """The return ``F'M`` and the drag ``F'CF / 2`` at any leverages.
+
+    These are the two terms :func:`growth_rate` subtracts, and the one place
+    the Gaussian formula is written. The blog post splits each growth rate it
+    compares into them, and its whiteboard sketch draws them.
+    """
+    f = np.asarray(leverages, dtype=float)
+    m = np.asarray(means, dtype=float)
+    c = np.asarray(cov, dtype=float)
+    return float(f @ m), float(f @ c @ f / 2.0)
+
+
 def growth_rate(
     leverages: Sequence[float],
     means: Sequence[float],
@@ -232,10 +249,8 @@ def growth_rate(
     and the arithmetic settles which: with ``m^2`` the proportional allocation
     grows at 0.676, which matches nothing the book prints.
     """
-    f = np.asarray(leverages, dtype=float)
-    m = np.asarray(means, dtype=float)
-    c = np.asarray(cov, dtype=float)
-    return float(risk_free + f @ m - f @ c @ f / 2.0)
+    ret, drag = growth_terms(leverages, means, cov)
+    return float(risk_free + ret - drag)
 
 
 def proportional_cap(leverages: Sequence[float], max_leverage: float) -> NDArray[np.float64]:
@@ -308,6 +323,22 @@ def best_allocation_at_cap(
     raw = segment_stationary_point(means, cov, max_leverage)
     f2 = min(max(raw, 0.0), max_leverage)
     leverages = (max_leverage - f2, f2)
+    return Allocation(leverages, growth_rate(leverages, means, cov))
+
+
+def unbounded_allocation_at_cap(
+    means: Sequence[float],
+    cov: NDArray[np.float64],
+    max_leverage: float = MAX_LEVERAGE,
+) -> Allocation:
+    """The line's stationary point with F2 unbounded, and the growth rate there.
+
+    This is :func:`best_allocation_at_cap` without its clamp, the near miss
+    the module docstring's second point names. Its ``gross`` can break the
+    cap, which is what the report, the figure and the sketch each show.
+    """
+    raw = segment_stationary_point(means, cov, max_leverage)
+    leverages = (max_leverage - raw, raw)
     return Allocation(leverages, growth_rate(leverages, means, cov))
 
 
@@ -398,15 +429,14 @@ def report() -> None:
     print(f"  rises the whole way and peaks at F2 = {best.leverages[1]:g}.")
     print()
 
-    raw = segment_stationary_point(MEANS, cov, MAX_LEVERAGE)
-    line = (MAX_LEVERAGE - raw, raw)
+    peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
     print("Two things the book's figures do not show:")
     print(
-        f"  Unbounded, the line peaks at F2 = {raw:.6f} with g = "
-        f"{growth_rate(line, MEANS, cov):.6f}, by holding F1 = {line[0]:.6f}."
+        f"  Unbounded, the line peaks at F2 = {peak.leverages[1]:.6f} with g = "
+        f"{peak.growth:.6f}, by holding F1 = {peak.leverages[0]:.6f}."
     )
     print(
-        f"  Its gross leverage is {abs(line[0]) + abs(line[1]):.6f}, over the cap of "
+        f"  Its gross leverage is {peak.gross:.6f}, over the cap of "
         f"{MAX_LEVERAGE:g}, so it is not allowed."
     )
     print(

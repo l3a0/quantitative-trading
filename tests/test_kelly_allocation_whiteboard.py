@@ -93,6 +93,7 @@ from chan.usdcad_tests_whiteboard import (
     TINT,
     TITLE_MS,
     WIDTH,
+    Fill,
     Frame,
     Label,
     clearances,
@@ -388,7 +389,8 @@ class TestTheGifs:
 
     def test_both_sketches_build_slowly_and_hold_twelve_seconds(self, every) -> None:
         """Each label and tint alone for 0.9 s and the drawing for 12 s, the
-        equity post's slow pace, in both sketches."""
+        equity post's slow pace, in both sketches. A tint here is a fill, which
+        only Lesson 2's sketch has, since Lesson 4's triangle is a stroke."""
         from chan import equity_seasonals_whiteboard as equity
 
         assert (sketches.PACED_LABEL_MS, sketches.PACED_HOLD_MS) == (900, 12000)
@@ -399,13 +401,20 @@ class TestTheGifs:
         assert sketches.PACED == ("return_against_drag", "gross_against_net")
         for scene in every:
             frames = sketch_timeline(scene)
-            labels = [
+            shown_whole = [
                 f
                 for f in frames[:-1]
-                if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label)
+                if f.partial == 0 and f.done and isinstance(scene.steps[f.done - 1], Label | Fill)
             ]
-            assert labels, scene.slug
-            assert {f.ms for f in labels} == {sketches.PACED_LABEL_MS}, scene.slug
+            # Every label and tint but the last step, which the hold covers.
+            expected = {
+                k + 1 for k, step in enumerate(scene.steps) if isinstance(step, Label | Fill)
+            } - {len(scene.steps)}
+            assert {f.done for f in shown_whole} == expected, scene.slug
+            assert any(isinstance(scene.steps[k - 1], Fill) for k in expected) == bool(
+                scene.fills
+            ), scene.slug
+            assert {f.ms for f in shown_whole} == {sketches.PACED_LABEL_MS}, scene.slug
             assert [(f.done, f.partial) for f in frames] == [
                 (f.done, f.partial) for f in timeline(scene)
             ], scene.slug
@@ -520,8 +529,8 @@ class TestThePost:
 #: line and its colour should all turn round.
 SPREAD_WINS = replace(
     SketchFigures.from_run(),
-    split=Terms((1.0, 1.0), 0.9, 0.1),
-    corner=Terms((0.0, 2.0), 1.0, 0.3),
+    split=Terms((1.0, 1.0), 0.9, 0.1, 0.8),
+    corner=Terms((0.0, 2.0), 1.0, 0.3, 0.7),
 )
 
 
@@ -645,10 +654,17 @@ class TestTheReturnAgainstDragSketch:
         assert bracket.y.min() < label.y < bracket.y.max()
 
     def test_each_columns_figures_sit_beside_it(self, every) -> None:
+        """Beside the split the three figures read down in the order the
+        column stacks them, return over drag over growth. Beside the corner
+        the drag sits above the growth tick and the growth below it."""
         scene = every[0]
         for text in DRAG_LABELS[2:5]:
             label = _label(scene, text)
             assert label.ha == "right" and label.x < SPLIT_X[0], text
+        ret, drag, growth = (_label(scene, text).y for text in DRAG_LABELS[2:5])
+        assert ret > drag > growth
+        tick = _stroke(scene, "corner-growth").y[0]
+        assert _label(scene, DRAG_LABELS[6]).y > tick > _label(scene, DRAG_LABELS[7]).y
         returned = _label(scene, "return 1.2")
         assert returned.ha == "center" and returned.x == pytest.approx(sum(CORNER_X) / 2)
         assert returned.y > _fill(scene, "corner-return").y1
@@ -675,6 +691,22 @@ class TestTheReturnAgainstDragSketch:
         ):
             assert phrase in alt, phrase
 
+    def test_its_alt_text_places_each_figure_where_the_picture_does(self, every, figures) -> None:
+        """Each position word is read from the scene: which column is taller,
+        and which side of its column each column's figures sit."""
+        alt, scene = _alt(every[0]), every[0]
+        taller = "taller" if figures.corner.ret > figures.split.ret else "shorter"
+        returned = _label(scene, "return 1.2")
+        above = "above" if returned.y > _fill(scene, "corner-return").y1 else "below"
+        left = "Left" if _label(scene, DRAG_LABELS[2]).x < SPLIT_X[0] else "Right"
+        right = "right" if _label(scene, DRAG_LABELS[7]).x > CORNER_X[1] else "left"
+        for phrase in (
+            f"The corner’s column stands {taller}, with “return 1.2” {above} it",
+            f"{left} of the proportional split’s column the words read",
+            f"and “growth 0.955” to its {right}",
+        ):
+            assert phrase in alt, phrase
+
 
 # --- Lesson 4: gross against net ------------------------------------------------
 
@@ -687,7 +719,24 @@ PEAK_INSIDE = replace(
 )
 
 
+#: Made-up figures with a cap of 3, so every figure and tint that reads the
+#: cap should follow it.
+CAP_THREE = replace(SketchFigures.from_run(), cap=3.0)
+
+
 class TestTheGrossAgainstNetSketch:
+    def test_its_words_and_tint_follow_the_cap(self) -> None:
+        scene = scenes(CAP_THREE)[1]
+        assert scene.title == "F1 + F2 = 3 leaves the gross cap past the corner"
+        assert scene.labels[1:4] == ["−3", "3", "gross ≤ 3, allowed"]
+        assert "net = 3" in scene.labels
+        f1, f2 = _leverage(_stroke(scene, "allowed"))
+        assert (np.abs(f1) + f2).max() < 3.0 and (np.abs(f1) + f2).max() > 2.9
+        edge = _leverage(_stroke(scene, "allowed-edge"))
+        assert (edge[0].min(), edge[0].max(), edge[1].max()) == pytest.approx((-3.0, 3.0, 3.0))
+        ticks = [_label(scene, text).x for text in ("−3", "3")]
+        assert ticks == pytest.approx([at(-3.0, 0.0)[0], at(3.0, 0.0)[0]])
+
     def test_its_words(self, every) -> None:
         assert every[1].title == "F1 + F2 = 2 leaves the gross cap past the corner"
         assert every[1].labels == NET_LABELS
@@ -817,6 +866,17 @@ class TestTheGrossAgainstNetSketch:
         assert first.x < x and second.x < x
         assert first.y == pytest.approx(y) and second.y < first.y
 
+    def test_each_axis_is_named_at_its_arrow_tip(self, every) -> None:
+        """F1 sits just past the right end of the axis across, and F2 level
+        with the top of the axis up, beside it."""
+        scene = every[1]
+        f1_axis, f2_axis = _stroke(scene, "f1-axis"), _stroke(scene, "f2-axis")
+        f1, f2 = _label(scene, "F1"), _label(scene, "F2")
+        assert f1.x > f1_axis.x.max() and f1.x - f1_axis.x.max() < 0.5
+        assert f1.y == pytest.approx(at(0.0, 0.0)[1])
+        assert f2.y == pytest.approx(f2_axis.y.max())
+        assert f2.x > f2_axis.x.max() and f2.x - f2_axis.x.max() < 0.5
+
     def test_the_line_runs_past_the_peak_and_stops_short_of_the_axis_tip(self, figures) -> None:
         assert LINE_END_F1 < figures.peak.leverages[0]
         assert figures.cap - LINE_END_F1 < sketches.F2_REACH
@@ -834,5 +894,29 @@ class TestTheGrossAgainstNetSketch:
             "a green dot marks the triangle’s top",
             "The stretch past the corner is redrawn red",
             "a hollow red circle on it, outside the triangle, marks the unbounded peak",
+        ):
+            assert phrase in alt, phrase
+
+    def test_its_alt_text_places_each_mark_where_the_picture_does(self, every, figures) -> None:
+        """Each position word is read from the scene: where the black line
+        ends and its label sits, which edge the green stretch runs along,
+        which half of the diamond is tinted, and where the tint's label sits."""
+        alt, scene = _alt(every[1]), every[1]
+        net = _leverage(_stroke(scene, "net"))
+        end = "upper left" if net[0][-1] < 0 < net[1][-1] - net[1][0] else "upper right"
+        net_label = _label(scene, "net = 2")
+        upper = "upper" if net_label.y > at(0.0, figures.cap)[1] else "lower"
+        equal = _leverage(_stroke(scene, "equal"))
+        edge = "right" if equal[0].min() >= 0 else "left"
+        tint = _leverage(_stroke(scene, "allowed"))
+        half = "upper" if tint[1].min() > 0 else "lower"
+        allowed = _label(scene, "gross ≤ 2, allowed")
+        under = "under" if allowed.y < at(0.0, 0.0)[1] else "above"
+        for phrase in (
+            f"labelled “net = 2” at its {upper} end",
+            f"on past it to the {end}",
+            f"Its stretch along the triangle’s {edge} edge",
+            f"It is the {half} half of the region where the gross leverage is at most 2",
+            f"labelled “gross ≤ 2, allowed” {under} the axis",
         ):
             assert phrase in alt, phrase
