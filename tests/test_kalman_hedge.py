@@ -268,6 +268,27 @@ class TestTheFirstRows:
         ], SPEC
 
 
+def gaining_days_that_move_the_rounding(daily) -> tuple[int, list[int], list[int]]:
+    """The days the script gains on, those whose return set to 0 takes the APR
+    below the book's rounding, and those that take the Sharpe ratio below it too.
+
+    Every one of the 1,500 returns stays in the count, as the script counts them.
+    """
+    gaining = np.flatnonzero(daily > 0)
+    apr_below, both_below = [], []
+    for t in gaining:
+        zeroed = daily.copy()
+        zeroed[t] = 0
+        apr = round(100 * compounded_apr(zeroed), 1) < float(BOOK_APR_PERCENT)
+        sharpe = round(plain_sharpe(zeroed), 1) < float(BOOK_SHARPE)
+        assert apr or not sharpe, SPEC
+        if apr:
+            apr_below.append(int(t))
+        if apr and sharpe:
+            both_below.append(int(t))
+    return len(gaining), apr_below, both_below
+
+
 class TestTheFigures:
     """The APR and the Sharpe ratio, beside the script's comment and location 1726."""
 
@@ -308,6 +329,16 @@ class TestTheFigures:
         assert round(100 * compounded_apr(dropped), 1) == 26.1
         assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT)
         assert matches(plain_sharpe(dropped), BOOK_SHARPE)
+
+    def test_most_gaining_days_move_the_rounding_as_the_first_trade_does(self, result) -> None:
+        """Setting one day's return to 0 takes the APR below the book's 26.2 percent
+        on 252 of the 412 days the script gains on, and on 144 of those the Sharpe
+        ratio below its 2.4 too. The first short's day is among the 144, so what it
+        moves is a rounding the figures sit close to."""
+        gaining, apr_below, both_below = gaining_days_that_move_the_rounding(result.trade.daily)
+        assert (gaining, len(apr_below), len(both_below)) == (412, 252, 144), SPEC
+        assert set(both_below) <= set(apr_below)
+        assert 1 in both_below, SPEC
 
 
 class TestTheHoldings:
@@ -575,14 +606,19 @@ class TestWhatThePostQuotes:
     check. Where a figure repeats, the copies read are these.
 
     1. **The file.** The saved date and the two ends of its 1,500 days are read
-       in the section on the prices and the script.
+       in the section on the prices and the script, and so are the two funds
+       the dividend method was checked on. Both definitions of a unit are read
+       for which leg is long and which is short.
     2. **Lesson 2.** Row 1's 22.95 and 0.031623 are read where row 1 is worked
        and in the sentence that compares them. Row 2's 22.78 is read where
        row 2 is worked, and its 1.366666 there and in Lesson 3's count of
        crossings. Both closes are read again where the first return is
-       worked. The claim that the first trade moves the APR under either
+       worked. Row 1's 22.95 is read again in the third way round the zero
+       start, and row 2's sides and its 1.366666 where its position is
+       sized. The claim that the first trade moves the APR under either
        count, and the Sharpe ratio only while all 1,500 days count, is read
-       in the subtitle and in Lesson 2.
+       in the subtitle and in Lesson 2, and so are the counts of gaining
+       days that move the same rounding.
     3. **Lesson 3.** The 57 of 1,250 and the 513 of 1,499 are read in the
        prose and in the grain table. The intercept's last value, 6.767360, is
        read where the intercept peaks. The whole-file regression's 0.9624 and
@@ -650,6 +686,18 @@ class TestWhatThePostQuotes:
             f"A short unit is {side[-ewa]} a number of EWA shares equal to the slope and "
             f"{side[-ewc]} one share of EWC.",
         ]
+        # The funds the file's dividend method was checked on are the ones
+        # ``tests/test_series.py``'s ``TestTheETFFileSubtractsEachDividend`` measures,
+        # so a fund measured there and named nowhere here fails.
+        series_tests = (paths.REPO_ROOT / "tests" / "test_series.py").read_text(encoding="utf-8")
+        dividends = series_tests.split("class TestTheETFFileSubtractsEachDividend", 1)[1]
+        dividends = dividends.split("\nclass ", 1)[0]
+        checked = list(dict.fromkeys(re.findall(r'gap_and_dividends\(\s*"([A-Z]+)"', dividends)))
+        assert len(checked) == 2 and X not in checked and Y not in checked
+        fragments.append(
+            f"This repository checked that method on two other funds in the file, {checked[0]} "
+            f"and {checked[1]}, and not on {X} or {Y}."
+        )
         assert not_found_once(text, fragments) == []
 
     def test_lesson_1(self, result, text) -> None:
@@ -694,6 +742,9 @@ class TestWhatThePostQuotes:
         assert list(forecast_zero) == list(range(QUIET_ROWS)), SPEC
         assert script.units[:QUIET_ROWS].all(), SPEC
         words = {2: "two", 3: "three"}
+        side = {1.0: "long", -1.0: "short"}
+        row_2 = script.units[1] * np.array([-f.slope[1], 1.0])
+        gaining, apr_below, both_below = gaining_days_that_move_the_rounding(script.daily)
         fragments = [
             f"That one trade changes the APR as the book rounds it, and the Sharpe ratio too when "
             f"all {len(quiet.daily):,} trading days count",
@@ -733,6 +784,13 @@ class TestWhatThePostQuotes:
             f"{len(quiet.daily):,} days count,",
             f"The Sharpe ratio lands {threshold - quiet.sharpe:.5f} below {threshold:.2f}, the "
             f"value at which it would round to the book’s {BOOK_SHARPE}.",
+            "The middle run holds nothing on those rows and earns 0 on them, so dropping them "
+            "changes only how many days the figures average over.",
+            f"so on row 2 the {side[script.units[1]]} unit is {side[np.sign(row_2[0])]} "
+            f"{abs(row_2[0]):.6f} EWA shares and {side[np.sign(row_2[1])]} one EWC share.",
+            f"The script gains on {gaining} days. On {len(apr_below)} of them, setting that day’s "
+            f"return to 0 also takes the APR below the book’s {BOOK_APR_PERCENT} percent, and on "
+            f"{len(both_below)} of those it takes the Sharpe ratio below {BOOK_SHARPE} as well.",
         ]
         assert not_found_once(text, fragments) == []
         quiet_rows = f"No signal on rows 1 and {QUIET_ROWS},"

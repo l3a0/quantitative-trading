@@ -7503,8 +7503,8 @@ Three things.
    saves its figures came from. This file has one candidate, because
    `data/README.md` records the `.mat` as one git blob in all three published
    copies.
-2. **The book's APR rests on a trade the filter has no basis for, and so does
-   its Sharpe ratio while every day counts.** On the
+2. **At the precision the book prints, its APR rests on a trade the filter has
+   no basis for, and so does its Sharpe ratio while every day counts.** On the
    file's first day the filter has seen nothing, so its forecast of EWC is 0
    and the error is EWC's whole price. The script reads that as a spread far
    above its band and shorts EWC alone. Rows 5 and 6 measure it: withholding
@@ -7513,7 +7513,12 @@ Three things.
    and 2.3 rather than the book's 26.2 and 2.4. Dropping the two rows from the
    returns as well gives 0.261059 and 2.351062, which round to 26.1 percent and
    2.4, so the Sharpe ratio's move rests on counting all 1,500 days, as the
-   script does.
+   script does. Many other days decide the same rounding. The script gains on
+   412 days. On 252 of them, setting that day's return to 0 also takes the APR
+   below 26.2 percent, and on 144 of those it takes the Sharpe ratio below 2.4
+   as well.
+   `TestTheFigures::test_most_gaining_days_move_the_rounding_as_the_first_trade_does`
+   holds the counts.
 3. **The intercept's yearly means rise every year, and the intercept falls at
    every finer grain.** The means go from 0.1440 in 2006 to 6.7748 in 2012. At
    a quarter, a month, a 250-day window and a day, it falls, and 513 of its

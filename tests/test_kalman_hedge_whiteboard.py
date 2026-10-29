@@ -507,6 +507,12 @@ class TestTheDay:
         _, _, f, _ = run
         median = np.median(np.abs(np.diff(f.slope)[1:]))
         assert day.slope_after - day.slope_before > median
+        paragraphs = _paragraphs()
+        (at,) = [k for k, p in enumerate(paragraphs) if f"(../docs/figures/{GIFS[0]})" in p]
+        rise = day.slope_after - day.slope_before
+        word = "larger" if abs(rise) > median else "smaller"
+        moved = "rise" if rise > 0 else "fall"
+        assert f"a {moved} in the slope, {word} than a median day’s" in paragraphs[at + 1]
 
     def test_the_day_is_a_typical_one(self, run) -> None:
         """Its share sits within half a point of the median over rows 3 to

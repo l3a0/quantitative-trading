@@ -5464,9 +5464,11 @@ for the sketches' numbers, to
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) and
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 for the slope of 0.9624 and the intercept of 6.4113 of one regression over the
-whole file, or to [tests/test_price_spread.py](tests/test_price_spread.py) for
-the 20-day window of the earlier post's rolling slope. Four had no pin before
-it.
+whole file, to [tests/test_price_spread.py](tests/test_price_spread.py) for
+the 20-day window of the earlier post's rolling slope, or to
+`TestTheETFFileSubtractsEachDividend` in [tests/test_series.py](tests/test_series.py)
+for the two funds the dividend method was checked on, which
+`TestWhatThePostQuotes` reads from it. Four had no pin before it.
 
 1. Row 1's forecast error is EWC's whole close of 22.95, exactly.
 2. The short on EWC alone earns 0.0074074 on 2006-04-27, and the run with no

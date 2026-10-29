@@ -135,7 +135,7 @@ One way to remove the first day’s short is to give the rule no signal on rows 
 \end{array}
 ```
 
-This post quotes the middle run, which annualises all 1,500 days as the script does. Its figures round to 26.1 percent and 2.3, not the book’s 26.2 and 2.4. The Sharpe ratio lands 0.00054 below 2.35, the value at which it would round to the book’s 2.4. Two days out of 1,500 move both figures at the precision the book prints. They are the first two of the three days on which the opening short, held on rows 1 to 3, earns a return.
+This post quotes the middle run, which annualises all 1,500 days as the script does. Its figures round to 26.1 percent and 2.3, not the book’s 26.2 and 2.4. The Sharpe ratio lands 0.00054 below 2.35, the value at which it would round to the book’s 2.4. Two days out of 1,500 move both figures at the precision the book prints. They are the first two of the three days on which the opening short, held on rows 1 to 3, earns a return. That says more about how close the script’s figures sit to the book’s rounding than about how large the trade is. The script gains on 412 days. On 252 of them, setting that day’s return to 0 also takes the APR below the book’s 26.2 percent, and on 144 of those it takes the Sharpe ratio below 2.4 as well.
 
 The table’s last line is there so that a figure computed with rows 1 and 2 dropped is not mistaken for the one this post quotes. The middle run holds nothing on those rows and earns 0 on them, so dropping them changes only how many days the figures average over. Under that reading the APR still rounds to 26.1 percent, but the Sharpe ratio rounds to the book’s 2.4. So without the first trade, the APR rounds below the book’s 26.2 percent whichever way the returns are counted, and the Sharpe ratio rounds below the book’s 2.4 only while all 1,500 days count, as they do in the script.
 
@@ -146,7 +146,7 @@ The script plots the forecast error as `e(3:end)` and its standard deviation as 
 A filter needs a starting guess, and a start at 0 is wrong on day one. There are three ways round it.
 
 1. **Withhold the signal for the first days.** The middle run above does that for the first two, and it removes the trade.
-2. **Start the filter from a regression’s slope and intercept.** In a backtest that regression has to end before the first day traded, or the starting guess would use prices a trader could not yet have seen. So it needs data from before the file’s first day, and this file holds none.
+2. **Start the filter from a regression’s slope and intercept.** In a backtest that regression has to end before the first day traded, or the starting guess would use prices a trader could not yet have seen. This file holds no data from before its first day. So here the regression would have to read the file’s own first days, and the backtest would give up trading on them.
 3. **Start the filter unsure of its guess.** A starting uncertainty above 0 gives row 1 a gain above 0, so the update moves the slope off 0 before the first position is sized. A large enough one also widens row 1’s band past the error of 22.95, so row 1 enters no trade. Such a start changes what the filter estimates on every later day too, and nothing in this replication runs it.
 
 The script does none of the three, and it gives a reader of the backtest no warning of that first trade.
@@ -205,7 +205,7 @@ So “around 1” holds or fails depending on whether the median or the mean is 
 
 Write the grain and the threshold before running anything. For the intercept, that means naming the period to average and how many falls are allowed. For the slope, it means naming the statistic, the precision and how many crossings count. For the APR and the Sharpe ratio, Chan’s printed digits fixed the test before any run. For these two claims nothing did.
 
-On this file it is too late to do that. Every grain above, and the slope’s median, mean and crossings, has already been measured here, so a criterion written now would be chosen knowing its answer. Testing such a criterion would need closes after April 2012.
+On this file it is too late to do that. Every grain above has already been measured here, and so have the slope’s median, mean and crossings, so a criterion written now would be chosen knowing its answer. Testing such a criterion would need closes after April 2012.
 
 ## Lesson 4: an exact reproduction checks the arithmetic, not the edge
 
@@ -215,7 +215,7 @@ Matching Chan’s figures to the digit says the code here does what his code doe
 2. **The rule trades often, and pays nothing to do so.** Over the 1,500 days the script holds a long on 358, a short on 350 and nothing on 792. Its units change from one day to the next 875 times. Every change is a trade in two funds, and on the days between, the EWA side is resized to each day’s slope. The script charges nothing for either kind of trade. A cost per trade would come straight off the APR, and nothing here measures how much.
 3. **The sample is one stretch of history.** A filter that adapts as it goes still adapts only to the six years it is run on, and those are the years its figures are measured on.
 
-The result is exploratory however closely it matches. It shows that Chan’s numbers follow from his file and his script. A test that could say more would fix in writing `delta`, `Ve`, the filter’s starting guess and its starting uncertainty, how many of the first days give no signal, and a cost per trade. It would then run the filter on EWA and EWC after April 2012.
+The result is exploratory however closely it matches. It shows that Chan’s numbers follow from his file and his script. A test that could say more would fix in writing `delta`, `Ve`, the filter’s starting guess and its starting uncertainty, how many of the first days give no signal, a cost per trade, and the result after costs that counts as a pass. It would then run the filter on EWA and EWC after April 2012.
 
 ## What this replication cannot say
 
