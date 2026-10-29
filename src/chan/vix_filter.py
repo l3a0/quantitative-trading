@@ -54,11 +54,12 @@ exploratory.
    days' returns are the same whether the rule runs before or after the join,
    which the tests hold.
 
-**The phrase "annualized average return" names two formulas in one
-sentence.** Entry 18 of ``docs/replication-log.md`` found that the unfiltered
-8.7 percent is buy on gap's compounded APR, which the arithmetic figure
-misses. The filtered 17.2 percent is the arithmetic figure, and the
-compounded APR over the same 190 days prints as 17.9 percent.
+**The phrase "annualized average return" names two formulas in two
+consecutive sentences.** Entry 18 of ``docs/replication-log.md`` found that
+the unfiltered 8.7 percent is buy on gap's compounded APR, which the
+arithmetic figure misses. The filtered 17.2 percent is the arithmetic
+figure, and the compounded APR over the same 190 days prints as 17.9
+percent.
 
 **Zeroing the other days and averaging over the whole sample** misses. It
 gives buy on gap a figure of 2.2 percent, nowhere near 17.2, so the average

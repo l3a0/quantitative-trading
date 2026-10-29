@@ -1421,10 +1421,14 @@ its flagged day, a planted doubling before that day refused, and a planted
 rescale under 1.6 times passing the guard and moving a figure. It holds what
 the write-up measured after the run too: the kept days by year and in runs,
 VIX's closes above 35 inside FSTX's window and before it, its highest close,
-each rule's returns summed over its kept days, and buy on gap's largest kept
-day, with the two helpers behind them on synthetic series. The blog post
-about it is the exception, and what it says that nothing here asserts is
-listed below.
+each rule's returns summed over its kept days, buy on gap's largest kept
+day and the three opens behind it, the three spells the runs group into, the
+nearest close below 35 inside the windows, buy on gap's compounded APR over
+every day and FSTX's figures on the two earlier saves, with the two helpers
+behind them on synthetic series. `TestThePostQuotesTheRun` reads one copy in
+the post of most figures the post takes from the run, so editing a copy it
+reads fails. The section on the post below says which copies it leaves
+unread, and what the post says that nothing here asserts.
 
 [tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) does it for
 the same rule at leverage a broker would lend. It pins each ceiling's
@@ -7244,11 +7248,7 @@ Every other number in the post traces to an assertion in
 [tests/test_gld_gc.py](tests/test_gld_gc.py), or to
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) for the
 figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run. `TestThePostQuotesTheRun` reads the post's
-five tables row by row and one prose copy of each figure Lesson 4 and the
-open questions take from the run, so editing a copy it reads fails. It does
-not read the italic summary, the five-lesson list, the caption or the alt
-text. `TestThePostQuotesTheRun` reads one
+before it, all measured after the run. `TestThePostQuotesTheRun` reads one
 copy of each number the post takes from the run, whichever test pins it, from
 the post itself, and fails when that copy drifts from the run. A second copy of the same number elsewhere in the post is not read.
 
@@ -8810,9 +8810,13 @@ Five groups of what it says are not pinned here.
 2. Facts about the index and the scripts rather than the data: that the
    Chicago Board Options Exchange computes VIX from the prices of options on
    the S&P 500 and that it measures the swings they imply for the next month,
-   that it closes at 16:15 New York time, after FSTX opens, and
-   that no script in any of the three public copies of Chan's code this
-   repository has read applies the filter.
+   that it closes at 16:15 New York time, after FSTX opens, that FSTX is a
+   futures contract on the STOXX Europe 50 index that trades on Eurex, that
+   the days FSTX trades and VIX has no close are days the US exchanges were
+   shut, such as the three US holidays the latest close keeps, that
+   `gapFutures_FSTX.m` loads the 2012-05-17 save, and that no script in any
+   of the three public copies of Chan's code this repository has read applies
+   the filter.
 3. Readings no test asserts: that the kept days earned more per day and
    swung more for it, that the alignment found by search makes the 2.6 percent a
    fit rather than a test, that neighbouring days' returns can move together
@@ -8838,11 +8842,7 @@ figure's own numbers, or to
 [tests/test_vix_filter_whiteboard.py](tests/test_vix_filter_whiteboard.py)
 for the sketches' labels and the alt texts that quote them, VIX's closes of
 54.92 and 55.28 among them. `TestWhatThePostMeasured` holds the ones that had
-no pin before it, all measured after the run. `TestThePostQuotesTheRun` reads
-the post's five tables row by row and one prose copy of each figure Lesson 4
-and the open questions take from the run, so editing a copy it reads fails. It
-does not read the italic summary, the five-lesson list, the caption or the alt
-text.
+no pin before it, all measured after the run.
 
 1. Buy on gap's kept days by year, 68, 83, 9 and 30 for 2008 to 2011, and
    FSTX's, 65, 81, 9 and 30, so 151 of 190 and 146 of 185 fall in 2008 and
@@ -8871,6 +8871,16 @@ text.
     opened 10 to 23 percent below their previous closes.
 11. FSTX's filtered figures on the two earlier saves that hold 2,000 days,
     0.024899 and 0.162148 on the same 185 kept days.
+
+`TestThePostQuotesTheRun` reads the post itself against the run, so editing a
+copy it reads fails. It reads the five tables row by row, the book's rows
+against the book targets the tests pin, and one prose copy of each figure
+Lesson 4 and the fifth open question take from the run. It also reads one
+prose copy each of the zeroed reading's figures, momentum's filtered figures,
+Example 7.1's compounded APR and the closes nearest 35. It reads no other
+copy, so the vintages, the rest of the prose of Lessons 1, 2, 3 and 5, the
+italic summary, the five-lesson list, the caption and the alt texts can drift
+without this class failing. The sketch tests read the sketches' alt texts.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/vix_filter_figures.py](src/chan/vix_filter_figures.py), which reads

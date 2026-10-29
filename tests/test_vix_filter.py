@@ -809,12 +809,7 @@ class TestWhatThePostMeasured:
         found = runs(filtered.qualifies)
         gaps = [b[0] - a[1] for a, b in zip(found, found[1:], strict=False)]
         assert sorted(gaps)[-3] <= 23 < sorted(gaps)[-2], f"{SPEC}; {AFTER_THE_RUN}"
-        spells, start = [], 0
-        for i, g in enumerate(gaps, 1):
-            if g > 23:
-                spells.append(found[start:i])
-                start = i
-        spells.append(found[start:])
+        spells = _spells(filtered)
         spans = [(filtered.days[s[0][0]], filtered.days[s[-1][1]]) for s in spells]
         assert spans == [
             (day("2008-09-18"), day("2009-05-04")),
@@ -898,16 +893,32 @@ def _tex(value: float) -> str:
     return f"{value:.6f}"
 
 
+def _spells(filtered: Filtered) -> list[list[tuple[int, int]]]:
+    """A rule's runs of kept days, grouped until more than 22 joined days separate two runs."""
+    found = runs(filtered.qualifies)
+    spells, start = [], 0
+    for i, (a, b) in enumerate(zip(found, found[1:], strict=False), 1):
+        if b[0] - a[1] > 23:
+            spells.append(found[start:i])
+            start = i
+    spells.append(found[start:])
+    return spells
+
+
 class TestThePostQuotesTheRun:
-    """One copy of each figure in ``blog/vix-filter-lessons.md``, read from the post itself.
+    """Figures in ``blog/vix-filter-lessons.md``, read from the post itself.
 
     The tests above derive these numbers and the post states them, so before
     this class a typo in the post passed every test. Round 1 of the post's
     review shifted the last digit of each of 374 numbers in it one at a time,
-    and 370 passed. This reads the five tables row by row and one prose copy
-    of each figure Lesson 4 and the open questions take from the run. It does
-    not read the italic summary, the five-lesson list, the caption or the alt
-    text, so a second copy there can still drift.
+    and 370 passed. This reads the five tables row by row, the book's rows
+    against the book targets the tests pin, and one prose copy of each figure
+    Lesson 4 and the fifth open question take from the run. It also reads one
+    prose copy each of the zeroed reading's figures, momentum's filtered
+    figures, Example 7.1's compounded APR and the closes nearest 35. It reads
+    no other copy, so the vintages, the rest of the prose of Lessons 1, 2, 3
+    and 5, the italic summary, the five-lesson list, the caption and the alt
+    texts can still drift here. The sketch tests read the sketches' alt texts.
     """
 
     text = POST.read_text("utf-8")
@@ -964,7 +975,7 @@ class TestThePostQuotesTheRun:
             )
             assert row in self.text or row.removesuffix(r" \\") + "\n" in self.text, row
 
-    def test_lesson_4_s_year_table_and_figures(self, result) -> None:
+    def test_lesson_4_s_year_table_and_figures(self, result, fstx_rule) -> None:
         long, lit = result.buy_on_gap, result.literal
         for year in (2008, 2009, 2010, 2011):
             row = (
@@ -984,6 +995,101 @@ class TestThePostQuotesTheRun:
             f"{_f(rest.sharpe)}"
         ) in self.text
         assert f"held a position on only {long.held_days} of its {long.kept} kept days" in self.text
+        held = kept[long.held[long.qualifies]]
+        rows = fstx_rule.days.get_indexer(lit.days)[lit.qualifies]
+        side = fstx_rule.positions[rows]
+        for sentence in (
+            f"It gained on {int((held > 0).sum())} and lost on {int((held < 0).sum())}.",
+            f"which print as {100 * rest.average_annual_return:.1f} percent and {rest.sharpe:.2f}.",
+            f"FSTX held a position on {lit.held_days} of its {lit.kept} kept days, long on "
+            f"{int((side == 1).sum())} and short on {int((side == -1).sum())}.",
+        ):
+            assert sentence in self.text, sentence
+
+    def test_lesson_1_s_and_lesson_2_s_book_rows(self) -> None:
+        """The book's figures, against the book targets this module and both rules' modules pin."""
+        for row in (
+            rf"\text{{Book return}} & {BOOK_BUY_ON_GAP_PERCENT}\ \text{{percent}} & "
+            rf"{buy_on_gap.BOOK_APR_PERCENT}\ \text{{percent}} \\",
+            rf"\text{{Book Sharpe ratio}} & {BOOK_BUY_ON_GAP_SHARPE} & "
+            rf"{buy_on_gap.BOOK_SHARPE}" + "\n",
+            rf"\text{{Book return}} & {BOOK_FSTX_PERCENT}\% & & "
+            rf"\text{{around }} {opening_gap.BOOK_APR_PERCENT}\% \\",
+            rf"\text{{Book Sharpe}} & {BOOK_FSTX_SHARPE} & & {opening_gap.BOOK_SHARPE}" + "\n",
+        ):
+            assert row in self.text, row
+
+    def test_lesson_4_s_closes_above_35(self, sources, result) -> None:
+        long, lit = result.buy_on_gap, result.literal
+        vix = sources.vix
+        window = vix.loc[lit.days[0] : lit.days[-1]]
+        above = window[window > THRESHOLD]
+        earlier = vix[vix.index < lit.days[0]]
+        earlier = earlier[earlier > THRESHOLD]
+        for sentence in (
+            f"From {lit.days[0].date()} to {lit.days[-1].date()}, the span FSTX’s days share "
+            f"with VIX’s, VIX closed above 35 on {len(above)} days.",
+            f"from {long.days[0].date()} to {long.days[-1].date()}, and each one keeps the next "
+            f"day on buy on gap’s calendar, which is why buy on gap keeps {long.kept} days too.",
+            f"The first close above 35 was {above.iloc[0]} on {above.index[0].date()}. The "
+            f"highest was {window.max()} on {window.idxmax().date()}, and the last was "
+            f"{above.iloc[-1]} on {above.index[-1].date()}.",
+            f"also closes above 35 on {len(earlier)} earlier days, the first of them on "
+            f"{earlier.index[0].date()},",
+        ):
+            assert sentence in self.text, sentence
+
+    def test_lesson_4_s_runs_and_spells(self, result) -> None:
+        long, lit = result.buy_on_gap, result.literal
+        assert lit.kept_days[[0, -1]].equals(long.kept_days[[0, -1]])
+        crisis = [int((f.kept_days.year <= 2009).sum()) for f in (long, lit)]
+        found = [runs(f.qualifies) for f in (long, lit)]
+        assert len(found[0]) == len(found[1])
+        first, last = max(found[0], key=lambda run: run[1] - run[0])
+        longest = [max(b - a + 1 for a, b in r) for r in found]
+        spells = [_spells(f) for f in (long, lit)]
+        assert len(spells[0]) == len(spells[1]) == 3
+        (a0, b0), (a1, b1), (a2, b2) = (
+            (long.days[s[0][0]], long.days[s[-1][1]]) for s in spells[0]
+        )
+        held = [sum(b - a + 1 for a, b in s[0]) for s in spells]
+        for sentence in (
+            f"Both rules keep days from {long.kept_days[0].date()} to {long.kept_days[-1].date()},",
+            rf"\text{{Kept days}} & {long.kept} & {lit.kept}" + "\n",
+            f"So {crisis[0]} of buy on gap’s {long.kept} kept days, and {crisis[1]} of FSTX’s "
+            f"{lit.kept}, fall in 2008 and 2009.",
+            f"Each rule’s kept days form {len(found[0])} runs. The longest, from "
+            f"{long.days[first].date()} to {long.days[last].date()}, holds {longest[0]} of buy "
+            f"on gap’s days and {longest[1]} of FSTX’s,",
+            f"The {len(found[0])} runs fall in only three spells of high VIX, each a year or "
+            f"more from the next, so they are not {len(found[0])} separate episodes.",
+            f"1. {a0:%B %Y} to {b0:%B %Y}, which holds the {held[0]} and {held[1]} days above.\n"
+            f"2. {a1:%B} to {b1:%B %Y}.\n3. {a2:%B} to {b2:%B %Y}.\n",
+        ):
+            assert sentence in self.text, sentence
+
+    def test_the_fifth_open_question_s_figures(self, sources, result, long_rule) -> None:
+        vix, stocks = sources.vix, sources.stocks
+        (flagged,) = scale_breaks(vix)
+        before = vix.index[vix.index.get_loc(flagged) - 1]
+        bound = math.exp(SCALE_BREAK_BOUND)
+        long = result.buy_on_gap
+        best = long.kept_days[int(np.argmax(long.filtered))]
+        row = long_rule.days.get_loc(best)
+        held = stocks["Close"].columns[long_rule.positions[row] != 0]
+        assert len(held) == 3
+        drop = 1 - stocks["Open"].iloc[row][held] / stocks["Close"].iloc[row - 1][held]
+        for sentence in (
+            f"flags one VIX day, {flagged.date()}, a move from {vix.loc[before]} to "
+            f"{vix.loc[flagged]} that reads as real,",
+            f"The check sees only a move of more than {bound:.1f} times, so a rescale of "
+            f"{bound:.1f} times or less",
+            f"and {best.date()}, the day that earns most of the {BOOK_BUY_ON_GAP_PERCENT} "
+            f"percent, rests on three opening prices in Chan’s file that sit "
+            f"{math.floor(100 * drop.min())} to {math.ceil(100 * drop.max())} percent below "
+            f"the previous close.",
+        ):
+            assert sentence in self.text, sentence
 
     def test_lesson_5_s_table(self, result) -> None:
         for label, filtered in (

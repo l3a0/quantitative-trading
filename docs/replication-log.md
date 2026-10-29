@@ -11125,11 +11125,11 @@ which `TestWhatThePostMeasured` in
    Chan's reading, that VIX above 35 tells the gap trader to stay out, rests
    on point estimates this test cannot tell from noise for either sign. It is
    exploratory and decides nothing.
-3. **One phrase names two formulas in one sentence.** The unfiltered
-   "annualized average return" of 8.7 percent is buy on gap's compounded APR,
-   as Entry 18 found, and the filtered 17.2 percent is the arithmetic
-   `252 · mean`, as rows 1 and 6 show. Reading the label alone would pin one
-   of them against the wrong formula.
+3. **One phrase names two formulas in two consecutive sentences.** The
+   unfiltered "annualized average return" of 8.7 percent is buy on gap's
+   compounded APR, as Entry 18 found, and the filtered 17.2 percent is the
+   arithmetic `252 · mean`, as rows 1 and 6 show. Reading the label alone
+   would pin one of them against the wrong formula.
 4. **The kept days are few and bunched.** Inside FSTX's window, from
    2004-07-16 to 2012-05-08, VIX closed above 35 on 190 days in 15 runs, the
    highest 80.86 on 2008-11-20. Buy on gap's kept days number 68, 83, 9 and
