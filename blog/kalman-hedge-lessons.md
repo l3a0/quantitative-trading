@@ -1,6 +1,6 @@
 # A Kalman filter hedge on EWA and EWC: Chan’s figures to the last digit, and a trade made before the filter knew anything
 
-*Chan replaces a rolling regression with a Kalman filter that re-estimates a pair’s hedge every day. On his own file his script gives his figures exactly. It also shorts one fund alone on the first day, before the filter has any estimate. That one trade is enough to move the APR at the book’s precision, and the Sharpe ratio too when all 1,500 days count, as they do in the script.*
+*Chan replaces a rolling regression with a Kalman filter that re-estimates a pair’s hedge every day. On his own file his script gives his figures exactly. It also shorts one fund alone on the first day, before the filter has any estimate. That one trade changes the APR as the book rounds it, and the Sharpe ratio too when all 1,500 trading days count, as they do in the script.*
 
 ## Why replace the rolling window with a filter
 
@@ -39,11 +39,11 @@ In plain terms, each day runs four steps.
 3. **Measure the miss.** The **forecast error** is EWC’s actual close minus that forecast. The book calls it “the deviation of the spread EWC-EWA from its predicted mean value” (Chan, 2013, p. 127). This post says forecast error.
 4. **Update the guess.** The filter moves the slope and intercept toward values that would have explained today’s close. How far it moves is set by the **gain**. The gain is large when the filter is unsure of its guess and small when it is confident.
 
-After the first day, the filter never becomes confident on this file. Each update leaves it surer. But each new day it allows for the slope and intercept to have drifted since yesterday. On a typical day that drift takes back all the certainty the update added. So the gain stays large. The updated slope and intercept, applied to the day’s EWA close, would have forecast EWC’s close almost exactly, closing 98 percent of the miss on a median day. The slope still moves only a little each day, about 0.009 on a median day. It multiplies EWA’s close, so closing a miss of a fraction of a dollar takes only a small change in it.
+After the first day, the filter never becomes confident on this file. On the first day it is certain of a guess of 0, for a reason Lesson 2 explains. Each update leaves it surer. But each new day it allows for the slope and intercept to have drifted since yesterday. On a typical day that drift takes back all the certainty the update added. So the gain stays large. The updated slope and intercept, applied to the day’s EWA close, would have forecast EWC’s close almost exactly, closing 98 percent of the miss on a median day. The slope still moves only a little each day, about 0.009 on a median day. A change in the slope moves the line by that change times EWA’s close, so a small change is enough to close a miss of a fraction of a dollar.
 
 ![An animated whiteboard sketch titled “One day of the filter”, drawn slowly stroke by stroke. Grey axes come first, labelled “EWA close” across and “EWC close” up. They are zoomed around 2007-05-15, each axis on its own scale, and every mark is drawn to scale on them. A black line, yesterday’s slope and intercept, crosses the plot, and a numbered list of steps down the left side, each in its mark’s colour, starts with “1 hold”. Past the line’s right end its label reads “yesterday: slope 1.127974,” and “intercept 0.471207”. A grey tick on the axis is labelled “EWA 23.31”, and a thick grey tick on the black line above it is the forecast, with the list’s “2 forecast” and the label “forecast 26.76”. Two brass hairlines above and below the forecast, one forecast standard deviation either way, are labelled “band ±0.24”. A black dot higher up is EWC’s close, labelled “close 27.15”, and a red bar from the forecast up to the dot is the miss, with the list’s “3 miss” and the label “error 0.39”. Last, a green line, the slope and intercept after the update, appears above the black line. On these narrow axes it looks lifted rather than turned. Its intercept has barely changed. Its slope has risen by 0.016211, and at an EWA close of 23.31 that rise lifts the line by 0.38, so it passes almost through the black dot. The list reads “4 update”, and past the green line’s end its label reads “updated: slope 1.144185,” and “intercept 0.472220”. A line of green words at the bottom reads “slope +0.016211 × EWA 23.31 = +0.38, intercept +0.001013: line to 27.14, 98% of the miss”. The finished drawing holds for twelve seconds.](../docs/figures/kalman_hedge_sketch_one_day.gif)
 
-*One day of the filter, 2007-05-15, on axes zoomed around the day: yesterday’s line forecasts EWC, the brass band spans one forecast standard deviation either way, the close misses the forecast, and a small rise in the slope moves the line almost onto the close.*
+*One day of the filter, 2007-05-15, on axes zoomed around the day: yesterday’s line forecasts EWC, the brass band spans one forecast standard deviation either way, the close misses the forecast, and a rise in the slope, larger than a median day’s but still small, moves the line almost onto the close.*
 
 ### The filter’s constants and outputs
 
@@ -69,7 +69,9 @@ The trading rule compares the forecast error with a **band** of plus and minus o
 1. **A short** enters when the forecast error rises above the upper band, because EWC has closed further above its forecast than the filter expected. It exits when the forecast error falls back below the upper band.
 2. **A long** enters when the forecast error falls below the lower band, and exits when it rises back above the lower band.
 
-Each exit sits on its own entry band. That differs from Example 3.2, the band strategy the book trades on gold and oil just before this one. The book calls it a Bollinger band strategy, and [the post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md) covers it. There, a position enters one standard deviation from a rolling mean and exits at the mean itself (Chan, 2013, p. 114). On p. 128 the book says that once the entry and exit signals are set, the rest of the Kalman code is the same as that example’s, with the filter’s slope in place of the rolling one.
+Each exit sits on its own entry band. That differs from Example 3.2, the band strategy the book trades on gold and oil just before this one. The book calls it a Bollinger band strategy, and [the post on Bollinger bands](https://github.com/l3a0/quantitative-trading/blob/main/blog/bollinger-band-lessons.md) covers it. There, a position enters one standard deviation from a rolling mean and exits at the mean itself (Chan, 2013, p. 114).
+
+On p. 128 the book says that once the entry and exit signals are set, the rest of the Kalman code is the same as that example’s, with the filter’s slope in place of the rolling one.
 
 Each day’s return is the profit on yesterday’s positions divided by the gross dollars they held, as in the earlier posts, and no cost is charged. Each trading day is one row of the file, and all 1,500 rows count toward the figures.
 
@@ -79,7 +81,7 @@ The prices come from Chan’s own MATLAB file `inputData_ETF.mat`, saved on 2012
 
 The file adjusts each close for dividends by subtracting each dividend in dollars from every earlier close. A close from before a dividend therefore sits below the price the fund traded at that day. A return computed from these closes is not exactly what a holder earned.
 
-EWA and EWC are both priced on all 1,500 trading days from 2006-04-26 to 2012-04-09. The script is `KF_beta_EWA_EWC.m` as published with the book’s code, and the replication transcribes its loop line for line rather than using a library’s filter, because the script’s starting values are part of what is being tested. It starts the slope, the intercept and the uncertainty at 0.
+EWA and EWC are both priced on all 1,500 trading days from 2006-04-26 to 2012-04-09. The script is `KF_beta_EWA_EWC.m` as published with the book’s code, and the replication transcribes its loop line for line rather than using a library’s filter, because the script’s starting values are part of what is being tested. The script starts the slope, the intercept and the uncertainty at 0.
 
 ## Lesson 1: the script’s figures land every digit
 
@@ -106,15 +108,15 @@ The figure below redraws the book’s Figures 3.5 to 3.8 from the run. Like ever
 
 ## Lesson 2: the script trades before the filter has learned anything
 
-The script starts the slope and intercept at 0, and it starts the filter’s uncertainty at 0 too. On the file’s first day that start decides the trade.
+The script starts the slope and intercept at 0, and it starts the filter’s uncertainty at 0 too. An uncertainty of 0 tells the filter that its guess of 0 is exactly right. On the file’s first day that start decides the trade.
 
 **Row 1, 2006-04-26.** The filter has not yet updated anything, so the slope and intercept are both 0. Its forecast of EWC is therefore 0 plus 0 times EWA, which is 0. The forecast error is EWC’s whole close of 22.95. The filter’s uncertainty is also 0, so its gain is 0 and the update leaves the slope and intercept at 0. With no uncertainty, the forecast variance is just `Ve`, and the band is its square root, 0.031623.
 
 An error of 22.95 against a band of 0.031623 is far above the upper band, so the rule enters a short. A short unit is long a number of EWA shares equal to the slope and short one share of EWC. With the slope at 0, the EWA side holds no dollars. So on its first day the strategy shorts EWC alone, with no hedge at all.
 
-**Row 2, 2006-04-27.** The filter’s uncertainty now has its first day of drift added, so the gain is no longer 0, and the update moves the slope from 0 to 1.366666. That is exactly the value the filter’s equations give when worked by hand from a zero start. The forecast of EWC, though, is made before the update, from row 1’s slope and intercept of 0. So the forecast is again 0, and the forecast error is EWC’s whole close of 22.78, against a band of 0.163213. The short stays on.
+**Row 2, 2006-04-27.** The filter’s uncertainty now has its first day of drift added, so the gain is no longer 0, and the update moves the slope from 0 to 1.366666. That is exactly the value the filter’s equations give when worked by hand from a zero start. The forecast of EWC, though, is made before the update, from row 1’s slope and intercept of 0. So the forecast is again 0, and the forecast error is EWC’s whole close of 22.78, against a band of 0.163213. The short stays on. The position is sized after the update, so on row 2 the short is long 1.366666 EWA shares against the one EWC share it is short. From row 3 on, each forecast uses a slope that has moved off 0.
 
-**What that trade earns.** The first nonzero return falls on 2006-04-27. It comes from the short on EWC alone, held as EWC fell from 22.95 to 22.78. That is a gain of 0.0074074, or 0.74 percent in a day, on a position the filter had no basis for. From row 3 on, each forecast uses a slope that has moved off 0.
+**What that trade earns.** The first nonzero return falls on 2006-04-27. It comes from the short on EWC alone, held as EWC fell from 22.95 to 22.78. That is a gain of 0.0074074, or 0.74 percent in a day, on a position the filter had no basis for.
 
 ![An animated whiteboard sketch titled “Two rows on a forecast of 0”, drawn slowly stroke by stroke. Three columns, the file’s first three rows, share one dollar scale from 0 to about 23. In each, a grey dot left of a red bar is the forecast, a black dot right of it is EWC’s close, and the red bar between their heights is the forecast error. Two brass hairlines across the bar, above and below the forecast, mark the band, drawn to the same scale. In the first column the grey dot sits at the bottom, “forecast 0”, the black dot at the top, “close 22.95”, and the red bar runs the whole height, “error 22.95”. Its two hairlines merge into one short brass tick at the bottom, labelled “band ±0.031623”, and the column is dated “row 1, 2006-04-26”. Red words under it read “short EWC alone, 0 EWA shares”. The second column repeats the picture with “forecast 0”, “close 22.78”, “error 22.78” and “band ±0.163213”, dated “row 2, 2006-04-27”, and black words under it read “slope 0 → 1.366666,” and “after the forecast”. Green words then appear under the first column, “+0.74% on 2006-04-27”. In the third column the two dots sit near the top a hair apart, and the red bar between them is a few pixels tall. Its labels read “close 22.94”, “error 0.85”, “band ±0.167334” and “forecast 22.09”, top to bottom, it is dated “row 3, 2006-04-28”, and black words under it read “forecast uses” and “slope 1.366666”, the slope row 2’s update left. The finished drawing holds for twelve seconds.](../docs/figures/kalman_hedge_sketch_zero_start.gif)
 
@@ -122,7 +124,7 @@ An error of 22.95 against a band of 0.031623 is far above the upper band, so the
 
 ### The figures without the first trade
 
-One way to remove the first day’s short is to give the rule no signal on rows 1 and 2, and leave everything else alone. That run holds exactly the same units as the script from row 3 on. The whole difference between the two is the returns of 2006-04-27 and 2006-04-28, the two days on which the positions taken on rows 1 and 2 earn their returns. The table sets that run beside the script. Below them, a third row gives the same run’s figures with rows 1 and 2 left out of the returns.
+One way to remove the first day’s short is to give the rule no signal on rows 1 and 2, and leave everything else alone. That run holds exactly the same units as the script from row 3 on. The whole difference between the two is the returns of 2006-04-27 and 2006-04-28, the two days on which the positions taken on rows 1 and 2 earn their returns. The table sets that run beside the script. Below them, the table’s last line gives the same run’s figures with rows 1 and 2 dropped from the returns.
 
 ```math
 \small\begin{array}{l|r|r}
@@ -133,16 +135,18 @@ One way to remove the first day’s short is to give the rule no signal on rows 
 \end{array}
 ```
 
-This post quotes the middle run, which annualises all 1,500 days as the script does. Its figures round to 26.1 percent and 2.3, not the book’s 26.2 and 2.4. Two days out of 1,500 move both figures at the precision the book prints. They are the first two of the three days the script holds its opening short. The Sharpe ratio lands 0.00054 below 2.35, the value at which it would round to the book’s 2.4. The last row is there so that a figure computed with the two rows dropped is not mistaken for the one this post quotes. Under that reading the APR still rounds to 26.1 percent, but the Sharpe ratio rounds to the book’s 2.4. So the APR moves whichever way the returns are counted, and the Sharpe ratio moves only while all 1,500 days count, as they do in the script.
+This post quotes the middle run, which annualises all 1,500 days as the script does. Its figures round to 26.1 percent and 2.3, not the book’s 26.2 and 2.4. The Sharpe ratio lands 0.00054 below 2.35, the value at which it would round to the book’s 2.4. Two days out of 1,500 move both figures at the precision the book prints. They are the first two of the three days on which the opening short earns a return.
 
-### What the script’s chart leaves out, and how to start a filter
+The table’s last line is there so that a figure computed with rows 1 and 2 dropped is not mistaken for the one this post quotes. The middle run holds nothing on those rows and earns 0 on them, so dropping them changes only how many days the figures average over. Under that reading the APR still rounds to 26.1 percent, but the Sharpe ratio rounds to the book’s 2.4. So the APR moves whichever way the returns are counted, and the Sharpe ratio moves only while all 1,500 days count, as they do in the script.
+
+### What the script’s chart leaves out, and three ways round the zero start
 
 The script plots the forecast error as `e(3:end)` and its standard deviation as `sqrt(Q(3:end))`, so its chart of the forecast error starts on row 3. The third of Lesson 1’s four charts does the same and names the two missing values in a note. The two rows the chart leaves out are the two the strategy trades on before its filter has an estimate.
 
 A filter needs a starting guess, and a start at 0 is wrong on day one. There are three ways round it.
 
 1. **Withhold the signal for the first days.** The middle run above does that for the first two, and it removes the trade.
-2. **Start the filter from a regression’s slope and intercept.** That needs data from before the file’s first day, and this file holds none.
+2. **Start the filter from a regression’s slope and intercept.** In a backtest that regression has to end before the first day traded. So it needs data from before the file’s first day, and this file holds none.
 3. **Start the filter unsure of its guess.** A starting uncertainty above 0 gives row 1 a gain above 0, so the update moves the slope off 0 before the first position is sized. A large enough one also widens row 1’s band past the error of 22.95, so row 1 enters no trade. Such a start changes what the filter estimates on every later day too, and nothing in this replication runs it.
 
 The script does none of the three, and it gives a reader of the backtest no warning of that first trade.
@@ -189,7 +193,7 @@ The intercept also peaks at 6.803488 on 2011-09-08, above its last value of 6.76
 
 A reader who picks the yearly grain says the claim holds. A reader who picks the daily grain says it fails, on 513 of 1,499 steps. Both picks are defensible, and both can be made after looking at the chart. The second of Lesson 1’s four charts shows the two grains at once. Its brass steps never go down. The line beneath them goes down often.
 
-The single regression over the whole file in the Johansen post found a slope of 0.9624 and an intercept of 6.4113. The filter’s intercept starts at 0 and ends at 6.767360, not far from that level. Lesson 2 showed the zero start deciding a trade. Here it may be deciding a trend. Part of the rise may be the filter leaving its start of 0 rather than a change in the market. The section on what this replication cannot say returns to the question.
+The single regression over the whole file in the Johansen post found a slope of 0.9624 and an intercept of 6.4113. The filter’s intercept starts at 0 and ends at 6.767360, not far from that level. Lesson 2 showed the zero start deciding a trade. Here the same start may be deciding a trend. Part of the rise may be the filter leaving its start of 0 rather than a change in the market. The section on what this replication cannot say returns to the question.
 
 ### The slope’s median, mean and crossings
 
@@ -205,7 +209,7 @@ Write the grain and the threshold before running anything. For the intercept, th
 
 Matching Chan’s figures to the digit says the code here does what his code does. It says nothing about whether the strategy would have worked for someone who did not already know how these six years went, for three reasons.
 
-1. **The constants are Chan’s.** `delta` is 0.0001 and `Ve` is 0.001. The passages of the book that this repository’s notes record give no reason for either value. The script’s comment on `delta` describes the range from no change to fastest change, which invites tuning it. Nothing here tunes either constant. They are taken as given, and that makes every figure in-sample, measured on the same years Chan reported them from with no data held back.
+1. **The constants are Chan’s.** `delta` is 0.0001 and `Ve` is 0.001. None of the book’s passages recorded in this repository’s notes gives a reason for either value. The script’s comment on `delta` describes the range from no change to fastest change, which invites tuning it. Nothing here tunes either constant. They are taken as given, and that makes every figure in-sample, measured on the same years Chan reported them from with no data held back.
 2. **The rule trades often, and pays nothing to do so.** Over the 1,500 days the script holds a long on 358, a short on 350 and nothing on 792. Its units change from one day to the next 875 times. Every change is a trade in two funds, and on the days between, the EWA side is resized to each day’s slope. The script charges nothing for either kind of trade. A cost per trade would come straight off the APR, and nothing here measures how much.
 3. **The sample is one stretch of history.** A filter that adapts as it goes still adapts only to the six years it is run on, and those are the years its figures are measured on.
 
@@ -216,9 +220,9 @@ The result is exploratory however closely it matches. It shows that Chan’s num
 Four questions are beyond it.
 
 1. **What other values of `delta` or `Ve` give.** Trying several values and keeping the best is a search, and a search needs its own guard against finding something by luck. Nothing here runs one.
-2. **What the filter gives as a market-making model.** On pp. 129 to 131 the book describes a second use of the filter, estimating the mean price of a single asset. Crediting Euan Sinclair, it calls this “a favorite model for market makers”. It prints no figure and names no script.
+2. **What the filter gives as a market-making model.** On pp. 129 to 131 the book describes a second use of the filter, estimating the mean price of a single asset. The book calls this “a favorite model for market makers”, a point it credits to Euan Sinclair. It prints no figure and names no script.
 3. **Anything about costs.** The band changes the position whenever the forecast error crosses it, and the script charges nothing for those trades.
-4. **Whether the intercept’s rise belongs to the market or to the zero start.** The filter starts the intercept at 0. The single regression over the whole file puts it at 6.4113. A filter started from that value would show how much of the rise the zero start explains. Nothing here starts the filter anywhere else, so the question stays open.
+4. **Whether the intercept’s rise belongs to the market or to the zero start.** The filter starts the intercept at 0. The single regression over the whole file puts it at 6.4113. A filter started from that value would show how much of the rise the zero start explains. It would not be a backtest, because that regression reads every day of the file. Nothing here starts the filter anywhere else, so the question stays open.
 
 ## What this means for a trader
 

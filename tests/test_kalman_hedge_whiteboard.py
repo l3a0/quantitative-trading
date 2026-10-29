@@ -501,6 +501,13 @@ class TestTheDay:
         assert day.closed == pytest.approx(0.982276, abs=5e-7), SPEC
         assert f"{day.closed:.0%}" == "98%"
 
+    def test_its_slope_moves_more_than_a_median_days(self, day, run) -> None:
+        """The caption calls the day's rise in the slope larger than a median
+        day's, the median the post quotes over rows 3 to 1,500."""
+        _, _, f, _ = run
+        median = np.median(np.abs(np.diff(f.slope)[1:]))
+        assert day.slope_after - day.slope_before > median
+
     def test_the_day_is_a_typical_one(self, run) -> None:
         """Its share sits within half a point of the median over rows 3 to
         1,500, so the sketch does not draw an unusual day."""
