@@ -17,7 +17,7 @@ the post and chose this figure, with two panels.
    is the share strictly below, which the percentile counts.
 2. **Why each pair reads one day's vectors.** For each factor, four
    statistics side by side: on each day's own weights with each sign fixed so
-   the largest weight is positive, with sign and rank matched, with
+   the largest weight in size is positive, with sign and rank matched, with
    tomorrow's weights fitted on the 251 days that leave today's return out,
    and the paired statistic the test reads. The third is a marker rather than
    a sentence because it is what closes the gap the first two leave.

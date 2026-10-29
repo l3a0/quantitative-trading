@@ -617,7 +617,7 @@ where they were first built. The other forty-five were built here.
     PMC is one symbol whose two price histories join into one day's return.
     Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139, so which
     factor misses rests on that symbol. Measured after the run, a series rebuilt from each day's own
-    weights, with each vector's sign set so its largest weight is positive,
+    weights, with each vector's sign set so its largest weight in size is positive,
     would read PC2 at −0.1105, and −0.0161 with sign and rank matched
     to today's. Fitting tomorrow's weights on a window that leaves today's
     return out brings it to 0.0776.
@@ -1337,8 +1337,8 @@ equal to the program's fitted slope times its singular value. On synthetic
 returns it holds that a flipped vector moves no statistic, that a steady value
 counts as persistence, and the Benjamini-Hochberg step-up. It holds what the
 write-up measured after the run too. Those pins count how often each factor's
-weights flip sign once each vector's largest weight is made positive, check
-that all but five of those flips move the largest weight to a stock the
+weights flip sign once each vector's largest weight in size is made positive,
+check that all but five of those flips move the largest weight to a stock the
 earlier day weighed below zero and that the five left fall on days two or more
 factors swap rank, and count how often they swap rank. They give the
 statistic when tomorrow's return is read on tomorrow's own weights, matched,
@@ -7980,8 +7980,8 @@ lessons from Entry 42 of the replication log.
 5. One spliced symbol decides which factor misses. A top-five factor weighs
    PMC at 0.5939 or more on each of the 113 days whose window holds its one
    large return and that have a next day. PMC takes PC1 through 2007-08-10,
-   so PC2's two large days belong to the factor that is PC1 without PMC, and
-   without PMC the miss moves from PC3 to PC2.
+   so on PC2's two large days the factor that would be PC1 without PMC sits
+   in PC2's place, and without PMC the miss moves from PC3 to PC2.
 
 Four groups of what it says are not pinned here.
 
@@ -8010,8 +8010,9 @@ Four groups of what it says are not pinned here.
    each day by 1/sₖ², that Newey-West's adjustment for neighbouring days widens
    the measure when their products move together and narrows it when they move
    in opposite directions, that 2007-08-09 and 2007-08-10 are what put PC2
-   outside the band, and that the window's effect on PC2 is not explained. The
-   figure's alt text reads its curve approximately too.
+   outside the band, and that nothing here measures why a window holding
+   today's return pushes PC2 so far. The figure's alt text reads its curve
+   approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8025,8 +8026,8 @@ for the sketches' labels and the alt texts that quote them.
 `TestWhatThePostMeasured` holds the ones that had no pin before it, all
 measured after the run.
 
-1. Each factor's sign flips once every vector's largest weight is made
-   positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
+1. Each factor's sign flips once every vector's largest weight in size is
+   made positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
    factors swap rank, over 753 decompositions. The stock holding the largest
    weight moves on 1, 14, 6, 20 and 23 of those flips, and to a stock the
    earlier day weighed below zero on 1, 14, 5, 19 and 23. The five left, PC3
@@ -8054,7 +8055,8 @@ measured after the run.
 
 `TestTheRules` holds Lesson 2's two worked series, the pair 1, 2, 3 and 2, 0, 1
 at 5/√70 uncentred against −0.5 centred, and the steady series 1, 1.2, 0.9,
-1.1, 1.0 at 0.9798 uncentred against −0.8 centred.
+1.1, 1.0 at 0.9798 uncentred against −0.8 centred. It also holds Lesson 3's
+statement that each weight vector sums to zero across the stocks.
 
 `TestWhatThePostQuotes` in the same file reads the post itself. It builds
 each figure from the run, the file or a module constant at the precision the
