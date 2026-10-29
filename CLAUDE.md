@@ -468,7 +468,10 @@ The plugin's skill serves several repositories, so it splits what differs by the
 
 1. This repo runs the shared reusable workflow from [l3a0/repo-template](https://github.com/l3a0/repo-template). `.github/workflows/board.yml` calls it at a full commit SHA, so the skill's sections for the shared generator hold. The generator, the page and the tab icon all come from the template at that commit, and this repo keeps no copy of them and no tests of them. It ran its own generator until [issue 785](https://github.com/l3a0/quantitative-trading/issues/785) moved it, and until [l3a0/claude-plugins#35](https://github.com/l3a0/claude-plugins/issues/35) lands, the skill's `### l3a0/quantitative-trading` section still describes that old setup. Its band meanings hold either way.
 2. The caller passes two inputs. `title` keeps the heading "Quantitative Trading Build Board", and `data-label: blocked-on-data` keeps the "Waiting on data" column. It names no `icon`, because the icon this repo served was byte-identical to the template's.
-3. A change to the board lands in l3a0/repo-template first, and reaches this repo through a pull request that moves the pin. Before moving it, compare the template's generator between the two commits. A changed label name, marker grammar, review heading or query field needs a plugin release in the same step, under the skill's `## Generator compatibility`.
+3. A change to the board lands in l3a0/repo-template first, and reaches this repo through a pull request that moves the pin. Dependabot is told to leave that pin alone, so the move is always a deliberate pull request. Before moving it, compare three of the template's files between the two commits.
+   1. `scripts/build_board.py`. A changed label name, marker grammar, review heading or query field needs a plugin release in the same step, under the skill's `## Generator compatibility`.
+   2. `.github/workflows/build-board.yml`. A scope one of its jobs adds has to be granted here too, and `tests/test_board_caller.py` lists the scopes granted.
+   3. `.github/workflows/board.yml`, the template's caller. A change to its triggers or its permissions belongs in this repo's copy in the same pull request.
 
 Two limits are worth stating rather than leaving a reader to infer.
 

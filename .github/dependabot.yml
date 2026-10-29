@@ -33,6 +33,11 @@ updates:
 
   # Actions pinned in ci.yml. They move together and are low-risk, so one
   # grouped pull request is enough.
+  #
+  # board.yml's reusable workflow from l3a0/repo-template is left out. Its pin
+  # brings the board's generator and page with it, so moving it means reading
+  # the template between the two commits, as CLAUDE.md's "Keep the build board
+  # current" says, and a grouped bump would skip that.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -40,6 +45,8 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: chore(ci)
+    ignore:
+      - dependency-name: l3a0/repo-template
     groups:
       actions:
         patterns:

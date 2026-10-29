@@ -4,19 +4,21 @@ name: Board
 # l3a0/repo-template at commit cf2959a3e48aeec3d71a6ade5fc9641fc9e82073,
 # the merge of l3a0/repo-template#43, which follows the merge of
 # l3a0/repo-template#42 that added the data-label input. Apart from this
-# paragraph, the only changes are the ref on the `uses:` line, pinned to that
-# commit, and the `with:` block naming this board's title and the label that
-# marks a card waiting on data. In the comments below, "here" and "the
-# template itself" mean l3a0/repo-template. To take a later fix, move the ref.
-# The board's skills come from the owner's l3a0 Claude Code plugin rather than
-# from copies in this repository, and the Generator compatibility section of
-# its update-build-board skill says when a moved ref also needs a plugin
-# release.
+# paragraph and the next, the only changes are the ref on the `uses:` line,
+# pinned to that commit, and the `with:` block naming this board's title and
+# the label that marks a card waiting on data. In the comments below, "here",
+# "the template itself" and every file path, such as scripts/build_board.py,
+# mean l3a0/repo-template. To take a later fix, move the ref. The board's
+# skills come from the owner's l3a0 Claude Code plugin rather than from copies
+# in this repository, and the Generator compatibility section of its
+# update-build-board skill says when a moved ref also needs a plugin release.
 #
-# Until issue 785 this repository ran its own generator and page, which the
-# template's were ported from. Issue 532 built them, issue 533 moved the
-# board's judgement onto labels, links and lines, and issue 587 measured the
-# schedule this file's cron line keeps.
+# Until l3a0/quantitative-trading#785 this repository ran its own generator and
+# page, which the template's were ported from. This repository's issue 532
+# built them, and its issue 533 moved the board's judgement onto labels, links
+# and lines. Its issue 563 moved the cron minutes from 7 and 37 to 8 and 38,
+# and its issue 587 measured how seldom that schedule fires and made the
+# session that sets a link or sub-issue dispatch the board itself.
 #
 # Starts the build board's rebuild, which the reusable workflow
 # .github/workflows/build-board.yml in l3a0/repo-template carries out. A
