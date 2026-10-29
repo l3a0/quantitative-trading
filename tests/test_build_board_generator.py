@@ -1615,14 +1615,52 @@ def test_the_reads_no_trigger_covers_keep_the_dispatch_trigger() -> None:
     issue 587 measured. The owner ruled that the session making such a change
     dispatches the board itself, so the generator still reads both and the
     workflow keeps the trigger a dispatch needs. The moments that name the
-    dispatch are text in the l3a0 plugin's update-build-board skill, which
-    this suite cannot read, and the plugin's release rule keeps them in step
-    with what the generator reads.
+    dispatch are text in the l3a0 plugin's update-build-board skill, and this
+    suite makes no network reads, so no test here checks that they still say
+    to dispatch.
     """
     assert {"blockedBy", "subIssues"} <= set(
         re.findall(r"\b(blockedBy|subIssues)\b", bb.ISSUES_QUERY)
     )
     assert re.search(r"^  workflow_dispatch:\s*$", _workflow(), re.M)
+
+
+# What the l3a0 plugin's update-build-board skill tells sessions to write, as
+# the generator read it at d5876470, the commit the skill's "Generator
+# compatibility" table names for this repo.
+PLUGIN_FORMATS = {
+    "PART_OF": r"\bPart of #(\d+)\b",
+    "REVIEW": r"## Review\b",
+    "VERDICT": r"^[ \t]*Board verdict: (build|decide) after (\d+) pass(?:es)?\.?[ \t]*$",
+    "ORDER": r"^[ \t]*Board order: (-?\d+(?:\.\d+)?)[ \t]*$",
+    "AFTER": r"^[ \t]*Board after:(.*)$",
+    "BAND": r"^band:(\d+)$",
+}
+
+
+def test_the_formats_the_plugin_states_are_the_ones_checked_against_it() -> None:
+    """Protects sessions from a skill describing formats the generator dropped.
+
+    The skill lives in the l3a0 plugin, which this suite cannot read. Its
+    release rule says a change to what the generator reads ships with a
+    plugin release in the same step, and nothing else here would tell the
+    author of such a change. So each format is pinned at the commit the
+    plugin was checked against, and a failure names the release it owes.
+    """
+    owed = (
+        "a change to what scripts/build_board.py reads ships with an "
+        "l3a0/claude-plugins release that updates update-build-board and its "
+        "Generator compatibility table; re-pin here once that release is open"
+    )
+    for name, pattern in PLUGIN_FORMATS.items():
+        assert getattr(bb, name).pattern == pattern, f"{name}: {owed}"
+    assert bb.WORKING == {"working:build": "build", "working:decompose": "decompose"}, owed
+    assert bb.KIND_LABELS == (
+        ("blocked-on-data", "data"),
+        ("deferred", "deferred"),
+        ("decision", "decision"),
+    ), owed
+    assert bb.SCHEDULE_DELAY_ALLOWANCE == 600, owed
 
 
 def test_each_job_declares_only_the_scopes_it_uses() -> None:

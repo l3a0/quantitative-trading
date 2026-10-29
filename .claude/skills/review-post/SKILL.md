@@ -274,7 +274,7 @@ comment reports that too.
 ### The team's lenses
 
 A full round also runs `/l3a0:ask-team` in its lens mode on the post, on the
-owner's ruling of 2026-10-29 that the post review consults the engineering
+owner's ruling of 2026-10-29 UTC that the post review consults the engineering
 team. A diff round does not. Start it in the same message as the five lenses,
 and give it what a lens prompt holds: the post, the round's commit, the
 tracking issue and what is out of scope. It seats the roles a blog post
@@ -283,9 +283,9 @@ findings by executing, and returns the survivors. It posts nothing and fixes
 nothing.
 
 Its surviving findings then go to a verifier of their own, as the next section
-says for a lens, because the owner asked that they pass the same verifier step
-as the rest. A team finding counts toward the stop rule like any other. One
-that is significant under `## The loop` and sits in the post's original text
+says for a lens, so every change a round applies passes the same check. A
+team finding counts toward the stop rule like any other. One that is
+significant under `## The loop` and sits in the post's original text
 keeps the loop in full rounds. The round's comment gives the team a section of
 its own, and the run paths it returns go into the round's cost.
 
@@ -434,8 +434,9 @@ moves no card. The comment holds six things, in this order.
 
 1. **What was read.** The round number, the commit, the draft's state and the
    phone widths.
-2. **One section per lens.** What it checked, what it found, and what its
-   verifier refuted, including when it found nothing.
+2. **One section per lens, and one for the team's lenses.** What it
+   checked, what it found, and what its verifier refuted, including when it
+   found nothing.
 3. **What was applied**, with the commit for each kind and the reason in one
    line per change.
 4. **What was dropped**, with the reason for each. A later round reads this
@@ -457,8 +458,7 @@ suggestion dropped, so the owner reviews the whole loop in one place.
 Once the loop stops, review the pull request as `CLAUDE.md`'s
 `## Pull requests` says. The rounds read the post, and this review reads the
 diff, which also holds the tests, docstrings and modules the fixes touched.
-So run a completeness lens, an over-reach lens and `/l3a0:ask-team` in lens
-mode on the diff, and mutate
+So run the lenses that section names on the diff, and mutate
 every test the loop added. Post the review as a comment on the pull request,
 whose first line the board reads, and watch the checks until they settle. Then hand it over, and take `working:build` off the tracking issue, as
 the moment for a hand-over in `update-build-board` says.
@@ -471,7 +471,8 @@ Step 5 of `## Before round 1` reads it as fixed in any later run.
 ## What it cost
 
 Price the loop per `loop-cost`, counting every agent it ran: each round's
-lenses, verifiers and sketch sub-agents, and the pull request's review as a
+lenses, verifiers and sketch sub-agents, the team's role and verifier runs,
+and the pull request's review as a
 loop of its own. The main thread's applying, measuring and syncing count only
 when its transcript is passed, so say whether they are included. At hand-over,
 give one line per round and one for the review in the report to the owner, and

@@ -120,12 +120,14 @@ before any test exists.
    each new or changed GIF from the pushed commit and syncs the draft. A post
    that is published or scheduled is the exception: any change to it waits for
    the owner.
-7. **Review.** Two lenses, run as independent subagents.
+7. **Review.** Three lenses, run as independent subagents.
    - **Accuracy:** the last frame against the alt text, the code, and the run
      that gives the figures.
    - **Completeness, over-reach and test strength:** every surface that counts
      or lists the sketches, anything changed past what the sketch needed, and
      mutations of the drawing code and the post.
+   - **The team's lenses:** `/l3a0:ask-team` in lens mode, as `CLAUDE.md`'s
+     `## Pull requests` says for every pull request review.
 
    Verify each finding before acting on it. Post the review on the pull
    request under `## Review`, and the cost on the tracking issue with the
