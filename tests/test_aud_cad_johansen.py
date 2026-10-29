@@ -322,12 +322,13 @@ class TestRow5TheReturnsAreChans:
         scale = SCALE_CHECK[0]
         again = aud_cad(frame * [scale, 1.0])
         t = result.training
+        # The eigenvector solve differs across platforms by a few parts in 1e12,
+        # which Linux CI measured at 2.6e-12 on one day, so the ratios are held
+        # to 1e-9 relative. A wrong scaling moves them by a whole factor.
         np.testing.assert_allclose(
-            again.hedge[t:, 0] / result.hedge[t:, 0], 1 / scale, rtol=0, atol=1e-12
+            again.hedge[t:, 0] / result.hedge[t:, 0], 1 / scale, rtol=1e-9, atol=0
         )
-        np.testing.assert_allclose(
-            again.hedge[t:, 1] / result.hedge[t:, 1], 1.0, rtol=0, atol=1e-12
-        )
+        np.testing.assert_allclose(again.hedge[t:, 1] / result.hedge[t:, 1], 1.0, rtol=1e-9, atol=0)
         np.testing.assert_allclose(again.positions[t:], result.positions[t:], rtol=0, atol=1e-10)
         np.testing.assert_array_equal(np.sign(again.positions[t:]), np.sign(result.positions[t:]))
 
