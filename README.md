@@ -610,10 +610,10 @@ where they were first built. The other forty-five were built here.
     0.0778, −0.0189, 0.0305 and 0.0710, against a median of −0.0283 across
     the 579 stocks priced on every day the pairs read. The claim holds for
     PC1, PC2, PC4 and PC5, and does not hold for PC3, which is above the
-    median stock but below 0. PC2 alone is outside the ±0.0715 band a series
-    of independent returns centred on zero, each no more likely to be large
-    than any other day's, stays inside 95 percent of the time, and no factor
-    survives Benjamini-Hochberg at q = 0.05, a control
+    median stock but below 0. PC2 alone is outside the ±0.0715 band where the
+    statistic of a series of independent returns centred on zero, each no more
+    likely to be large than any other day's, lands 95 percent of the time, and
+    no factor survives Benjamini-Hochberg at q = 0.05, a control
     for false discoveries across the five, so any verdict could be noise.
     PMC is one symbol whose two price histories join into one day's return.
     Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139, so which
@@ -8011,7 +8011,7 @@ Four groups of what it says are not pinned here.
    −0.1105 on tomorrow's own weights would fail outright, that of the sign, the
    rank and the window only leaving today's return out moves a factor across 0,
    putting PC2 and PC4 above it, that PC2's two large products also widen the
-   products' scatter, that a test on the regression's printed coefficient would
+   products' scatter, that a test on the slope the regression fits would
    weight each day by 1/sₖ², that Newey-West's adjustment for neighbouring days
    widens the measure when their products move together and narrows it when
    they move in opposite directions, that 2007-08-09 and 2007-08-10 are what

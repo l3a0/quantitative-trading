@@ -163,11 +163,11 @@ def _verdicts_panel(ax, results: Results) -> None:
         gid="label-median",
     )
     ax.annotate(
-        f"±{c.band:.4f}, where a series of\nindependent returns centred\n"
+        f"±{c.band:.4f}, where the statistic of\nindependent returns centred\n"
         "on zero, each no more likely\nto be large than any other,\n"
         "lands 95 percent of the time",
         (c.band, 0.03),
-        xytext=(6, 0),
+        xytext=(3, 0),
         textcoords="offset points",
         ha="left",
         va="bottom",

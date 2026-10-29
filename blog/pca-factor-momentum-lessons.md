@@ -30,7 +30,7 @@ Five lessons follow.
 
 The first day with a full window is 2005-01-18. Every day from then to the second-to-last row has a next day, which gives 752 days t.
 
-**The pair.** On each of those days, the factor return of component k is the weighted sum of that day’s returns, fₜ = uₖ · rₜ, where rₜ lists day t’s return on each stock the window keeps. Its partner is the same weights applied to the next day’s returns, fₜ₊₁ = uₖ · rₜ₊₁. Lesson 1 explains why both members read day t’s weights, and Lesson 3 why the factor return is this sum rather than the number the regression prints.
+**The pair.** On each of those days, the factor return of component k is the weighted sum of that day’s returns, fₜ = uₖ · rₜ, where rₜ lists day t’s return on each stock the window keeps. Its partner is the same weights applied to the next day’s returns, fₜ₊₁ = uₖ · rₜ₊₁. Lesson 1 explains why both members read day t’s weights, and Lesson 3 why the factor return is this sum rather than the slope the regression fits.
 
 **The statistic** is the correlation of the 752 pairs without subtracting their means, defined in Lesson 2.
 
@@ -127,7 +127,7 @@ b_k = \frac{u_k \cdot r_t}{s_k}
 
 The fitted value for stock i is then a plus the sum over k of uₖᵢ (uₖ · rₜ). The singular value cancels. So the number the forecast actually carries forward for factor k is uₖ · rₜ, which is the slope times sₖ, and that is the factor return this test pairs. A check on three of the file’s days confirms that each factor return equals the program’s fitted slope times its singular value.
 
-The price is that the test does not read the coefficient the regression prints. That coefficient divides by sₖ, which changes from day to day. A test on it multiplies two slopes, so it would weight each day by 1/sₖ². Nothing in the strategy weights days that way.
+The price is that the test does not read the slope the regression fits. That coefficient divides by sₖ, which changes from day to day. A test on it multiplies two slopes, so it would weight each day by 1/sₖ². Nothing in the strategy weights days that way.
 
 The intercept is added to every stock’s forecast alike, so it cannot change which stocks rank highest. For that reason the test does not treat it as a factor, a rule the project wrote down before it computed any factor return. A check made after the run found that dropping it leaves the program’s ranking unchanged on all 752 days t. Its own figures are −0.0395 uncentred and −0.0401 as an ordinary correlation.
 

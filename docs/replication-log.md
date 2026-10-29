@@ -9402,9 +9402,9 @@ median of −0.0283 across the 579 stocks priced on every day the pairs read.
 PC1, PC2, PC4 and PC5 are above 0 and above the median stock. PC3 is above
 the median stock and below 0.
 
-The verdicts rest on little. PC2 alone sits outside the band a series of
-independent returns centred on zero, each no more likely to be large than any
-other day's, stays inside 95 percent of the time, and
+The verdicts rest on little. PC2 alone sits outside the band where the
+statistic of a series of independent returns centred on zero, each no more
+likely to be large than any other day's, lands 95 percent of the time, and
 no factor survives a control for false discoveries across the five. Which
 factor misses also rests on one symbol. Dropping PMC, whose two price
 histories the program joins into one day's return of 1.8654, moves PC2 below
@@ -9575,9 +9575,9 @@ Three things, and the first is the verdict.
    combined verdict.
 2. **The verdicts rest on little.** No factor survives a control for false
    discoveries across the five, and no p-value would pass at 5 percent even
-   alone. Four of the five sit inside the band a series of independent
-   returns centred on zero, each no more likely to be large than any other
-   day's, stays inside 95 percent of the time. PC2 sits
+   alone. Four of the five sit inside the band where the statistic of a
+   series of independent returns centred on zero, each no more likely to be
+   large than any other day's, lands 95 percent of the time. PC2 sits
    outside it and still has a one-sided p-value of 0.2046.
 3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
    0 and PC3 rises above it, so the criterion would miss PC2 instead.

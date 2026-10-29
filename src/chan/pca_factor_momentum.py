@@ -49,9 +49,9 @@ owner ruled that way on 2026-10-10, before any factor return was computed.
 **Beside the verdicts, deciding nothing.**
 
 - Each factor's share of pairs whose two members have the same sign.
-- The band ±1.96/√n that a series of independent returns centred on zero,
-  each no more likely to be large than any other day's, stays inside about
-  95 percent of the time, where n is the number of pairs.
+- The band ±1.96/√n, with n the number of pairs, where the statistic of a
+  series of independent returns centred on zero, each no more likely to be
+  large than any other day's, lands about 95 percent of the time.
 - Each factor's one-sided Newey-West t of its products f_t f_{t+1} against a
   mean of zero, from :func:`ithildincore.stats.newey_west_summary`, its normal
   p-value, and which factors survive Benjamini-Hochberg at q = 0.05 across
@@ -575,9 +575,9 @@ def _figures(result: Result) -> None:
         f"ordinary correlation {result.intercept_pearson:.4f}. Decides nothing."
     )
     print(
-        f"  Band +/-{CRITICAL}/sqrt({c.pairs}) = {c.band:.4f}, where a series of "
-        "independent returns centred on zero, each no more likely to be large than any "
-        "other day's, stays inside 95 percent of the time. Decides nothing."
+        f"  Band +/-{CRITICAL}/sqrt({c.pairs}) = {c.band:.4f}, where the statistic of a "
+        "series of independent returns centred on zero, each no more likely to be large "
+        "than any other day's, lands 95 percent of the time. Decides nothing."
     )
 
 
