@@ -1159,7 +1159,8 @@ class TestWhatThePostQuotes:
         assert s.p_values[smallest] >= FALSE_DISCOVERY, SPEC
         percent = f"{100 * FALSE_DISCOVERY:.0f}"
         fragments = [
-            f"Over {c.pairs} pairs it lands inside ±{CRITICAL}/√{c.pairs} = ±{c.band:.4f} about "
+            f"Over {c.pairs} pairs that statistic lands inside ±{CRITICAL}/√{c.pairs} = "
+            f"±{c.band:.4f} about "
             f"{100 * math.erf(CRITICAL / math.sqrt(2)):.0f} percent of the time",
             f"{NAMES[out]}’s {c.factors[out]:.4f} is outside it. {NAMES[edge]}’s "
             f"{c.factors[edge]:.4f} is just inside, and the other {WORDS[len(inside) - 1]} well "
