@@ -110,10 +110,13 @@ quite wary of using too much leverage on normally low-beta stocks".
 **Five limits** go with every figure.
 
 1. **Exploratory**, for the reasons above.
-2. **Survivor-only.** The file is the S&P 500 as it stood on 2007-11-23,
-   carried backwards, as in Entry 45. WYN, DFS and SE also carry an earlier
-   company's prices. The write-up counted after the run that those prices sit
-   in one of the fifths in 36 of the 83 holding months.
+2. **Built from survivors.** The file is the S&P 500 as it stood on
+   2007-11-23, carried backwards, as in Entry 45. So it lacks every stock that
+   left the index before then, and counts each stock that joined the index
+   after November 1999 for the years it traded before it joined. WYN, DFS and
+   SE also carry an earlier company's prices. The write-up counted after the
+   run that those prices sit in one of the fifths in 36 of the 83 holding
+   months.
 3. **Not a holdout.** The years 2000 to 2007 were past prices by the time the
    book printed the claim.
 4. **Borrowing at the bill rate flatters the levered side.** The break-even
@@ -611,8 +614,12 @@ def report(
         "were seen before either ceiling was chosen."
     )
     print(
-        "  2. Survivor-only. The panel holds the stocks in the index on 2007-11-23, carried "
-        "backwards, and WYN, DFS and SE also carry an earlier company's prices."
+        "  2. Built from survivors. The panel holds the stocks in the index on 2007-11-23, "
+        "carried backwards, so it counts each stock that joined"
+    )
+    print(
+        "  after November 1999 for the years it traded before it joined, and WYN, DFS and SE "
+        "also carry an earlier company's prices."
     )
     print(
         "  3. Not a holdout. The years 2000 to 2007 were past prices by the time the book "

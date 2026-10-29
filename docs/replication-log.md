@@ -11268,7 +11268,7 @@ Energy began regular-way trading after Duke Energy spun it off, by
 So the closes before that gap belong to another company. Their ratio across
 the gap, 0.7638, is closer to 1 than the scale-break check's bound of 1.6
 either way, so that check does not catch it. The write-up counted those months after the run, and
-`TestWhatThePostMeasured` pins the count.
+`TestWhatThePostMeasured` pins the count, the ratio and that the check misses it.
 
 ### What the book stated
 

@@ -146,11 +146,16 @@ def monkeypatch_module():
 
 
 @pytest.fixture(scope="module")
-def gifs(tmp_path_factory, figures, monkeypatch_module):
+def sketch_folder(tmp_path_factory):
+    return tmp_path_factory.mktemp("sketches")
+
+
+@pytest.fixture(scope="module")
+def gifs(sketch_folder, figures, monkeypatch_module):
     monkeypatch_module.setattr(
         BreakEvenFigures, "from_run", classmethod(lambda cls, d=None: figures)
     )
-    return make_capped_low_beta_whiteboards(out_dir=tmp_path_factory.mktemp("sketches"))
+    return make_capped_low_beta_whiteboards(out_dir=sketch_folder)
 
 
 def _stroke(scene, gid):
@@ -294,8 +299,12 @@ class TestTheLabelsStayClearOfTheLines:
 
 
 class TestTheGifs:
-    def test_there_is_one_named_for_each_scene(self, gifs) -> None:
+    def test_there_is_one_named_for_each_scene(self, gifs, sketch_folder) -> None:
+        """Each lands in the folder it was handed. A writer that ignored it
+        would overwrite the committed GIF, and the byte-for-byte check below
+        would then compare that file with itself."""
         assert [path.name for path in gifs] == GIFS
+        assert {path.parent for path in gifs} == {sketch_folder}
 
     def test_each_is_680_by_320_and_loops_forever(self, gifs, every) -> None:
         for path, scene in zip(gifs, every, strict=True):
@@ -478,10 +487,10 @@ class TestTheFigures:
 
     def test_they_agree_with_the_runs_own_helpers(self, figures, portfolios) -> None:
         for line in (figures.low, figures.high):
-            capped = lbc.cap(portfolios, line.ceiling)
-            assert line.gap == lbc.capped(portfolios, line.ceiling).gap
-            assert line.spread == lbc.break_even_spread(capped)
-            assert line.borrowed == float(capped.leverage.mean()) - 1
+            capped = lbc.capped(portfolios, line.ceiling)
+            assert line.gap == capped.gap
+            assert line.spread == lbc.break_even_spread(capped.portfolios)
+            assert line.borrowed == capped.mean_leverage - 1
 
     def test_each_spread_brings_the_charged_gap_to_0(self, figures, portfolios) -> None:
         for line in (figures.low, figures.high):

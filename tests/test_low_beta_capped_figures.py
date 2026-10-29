@@ -455,8 +455,10 @@ class TestThePost:
     ) -> None:
         """The alt text quotes the top panel's legend and labels and the figure's
         title word for word, each label's line breaks read as spaces. So a
-        relabelled chart, a reworded quotation, or ceiling 5's figure quoted for
-        ceiling 2 fails here."""
+        relabelled chart, a reworded quotation, or ceiling 5's figure quoted in
+        one of ceiling 2's labels fails here. The alt text's figures outside the
+        quoted labels, such as each panel's standard error, are read in place by
+        ``tests/test_low_beta_capped.py``'s ``test_the_prose_figures``."""
         name = re.escape(LOW_BETA_CAPPED_FIGURE)
         match = re.search(rf"!\[([^\]]+)\]\(\.\./docs/figures/{name}\)", POST.read_text("utf-8"))
         assert match, POST

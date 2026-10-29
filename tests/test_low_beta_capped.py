@@ -89,6 +89,7 @@ from chan.low_beta_leverage import (
     ruinous_leverage,
 )
 from chan.pca_factor_momentum import one_sided_p
+from chan.series import SCALE_BREAK_BOUND, scale_breaks
 from chan.vintage import VintageUnavailable
 
 POST = Path(__file__).resolve().parents[1] / "blog" / "capped-low-beta-lessons.md"
@@ -98,8 +99,8 @@ SPEC = (
     "saved 2008-01-29 and TB3MS dl 2026-09-30, Entry 45's portfolios unchanged, low fifth "
     "levered by min(k, C) at the bill, d against the unlevered high fifth December 2000 to "
     "October 2007, Newey-West default lag, Benjamini-Hochberg 0.05 across ceilings 2 and 5 in "
-    "each direction, planned 2026-10-11 before any capped number, exploratory, survivors only, "
-    "not a holdout"
+    "each direction, planned 2026-10-11 before any capped number, exploratory, built from "
+    "survivors, not a holdout"
 )
 
 
@@ -278,8 +279,18 @@ class TestTheRun:
             f"{realised_beta(portfolios.high, portfolios):.4f}"
         ) in out
         assert "quite wary of using too much leverage on normally low-beta stocks" in out
-        for label in ("Exploratory.", "Survivor-only.", "Not a holdout.", "bill rate flatters"):
+        for label in ("Exploratory.", "Not a holdout.", "bill rate flatters"):
             assert label in out
+        assert (
+            "  2. Built from survivors. The panel holds the stocks in the index on 2007-11-23, "
+            "carried backwards, so it counts each stock that joined\n"
+            "  after November 1999 for the years it traded before it joined, and WYN, DFS and SE "
+            "also carry an earlier company's prices.\n"
+        ) in out
+        assert (
+            "  3. Not a holdout. The years 2000 to 2007 were past prices by the time the book "
+            "printed the claim.\n"
+        ) in out
         assert (
             "1. Exploratory. Entry 45's calendar, its leverage path, the ruin, eight months of "
             "both groups' returns and its side figures,"
@@ -378,16 +389,24 @@ class TestWhatThePostMeasured:
         ``data/README.md`` names WYN and DFS. SE's closes stop on 2005-11-09
         and start again on 2007-01-03, the day Spectra Energy began
         regular-way trading after Duke Energy spun it off, so the closes before
-        the gap are another company's. A holding month counts when any of the
-        three sits in either fifth before its gap. None of them sits in a fifth
-        after its restart. October 2001 holds both SE and WYN, and 2002-08 and
-        2002-09 hold both WYN and DFS.
+        the gap are another company's. Their ratio across the gap, 0.7638, is
+        within the scale-break check's bound of 1.6 either way, so
+        :func:`chan.series.scale_breaks` does not catch it, as Entry 48 says.
+        A holding month counts when any of the three sits in either fifth
+        before its gap. None of them sits in a fifth after its restart. October
+        2001 holds both SE and WYN, and 2002-08 and 2002-09 hold both WYN and
+        DFS.
         """
         _, closes, _, _, _, _ = sources
         for symbol, (end, restart) in EARLIER_COMPANIES.items():
             held = closes[symbol].dropna().index
             longest = int((held[1:] - held[:-1]).argmax())
             assert (held[longest], held[longest + 1]) == (end, restart), symbol
+        se = closes["SE"].dropna()
+        end, restart = EARLIER_COMPANIES["SE"]
+        assert round(float(se[restart] / se[end]), 4) == 0.7638, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(math.exp(SCALE_BREAK_BOUND), 4) == 1.6
+        assert scale_breaks(se) == []
         later = {
             held_to
             for held_to, low, high in zip(
@@ -419,7 +438,10 @@ class TestThePostQuotesTheRun:
     so a re-pin that leaves the post behind fails here too.
 
     The first four tests read one copy of each figure in the place it sits,
-    so they also catch a figure moved to another figure's place. The fourth
+    so they also catch a figure moved to another figure's place. The second
+    also reads the subtitle's two leads and the chart alt text's figures for
+    each panel outside its quoted labels, including the 20 capped months. The
+    fourth
     reads the dates: the file's last day and first month, the years its
     earlier companies' prices end, Entry 45's two ruined months, and the first
     and last of the eight sorts whose returns Entry 45 had shown. The last
@@ -428,8 +450,8 @@ class TestThePostQuotesTheRun:
     below. That covers the subtitle, the lessons' list, the trader's habits
     and both alt texts, and it catches a copy that gains or drops a digit. It
     does not hold where a figure from the run sits, and it does not read a
-    figure written as a whole number or in words, such as the 20 capped months
-    in the chart's alt text.
+    figure written as a whole number or in words, such as Lesson 3's
+    eighty-three months.
 
     Chan's quotations and Kindle pages and the plan's date are not figures from
     the run. The last test also accepts these decimal figures from outside the
@@ -483,7 +505,17 @@ class TestThePostQuotesTheRun:
         worst = two.worst()
         se_two, se_five = yearly_standard_error(two), yearly_standard_error(five)
         words = ("no", "one", "two", "three", "four", "five", "six")
+        assert two.binds == two.months, SPEC
         fragments = [
+            f"It led by {two.gap:.4f} and {five.gap:.4f} a year in compounded growth",
+            f"The top chart is a ceiling of 2, a constant leverage of {two.mean_leverage:g}, "
+            f"with a standard error of {se_two:.4f} a year.",
+            f"The bottom chart is a ceiling of 5, a mean leverage of {five.mean_leverage:.4f} "
+            f"capped in {five.binds} of {five.months} months, with a standard error of "
+            f"{se_five:.4f} a year.",
+            f"The dashed line sits further right at {five_percent_line(five):.4f}, the black "
+            f"curve is centred on Y at {five.detectable:.4f}, and the red diamond sits at "
+            f"{five.gap:.4f} with a t of {five.t:.4f}, again left of the line.",
             f"which gives {two.months} holding months from {portfolios.held_to[0]:%B %Y} to "
             f"{portfolios.held_to[-1]:%B %Y}.",
             f"correlated with the d of the {words[two.lag]} months before it",

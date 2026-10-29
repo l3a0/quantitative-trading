@@ -114,15 +114,15 @@ class CeilingLine:
 
     @classmethod
     def from_portfolios(cls, p: llb.Portfolios, ceiling: float) -> CeilingLine:
-        capped = lbc.cap(p, ceiling)
-        spread = lbc.break_even_spread(capped)
+        capped = lbc.capped(p, ceiling)
+        spread = lbc.break_even_spread(capped.portfolios)
         if spread is None:
             raise ValueError(f"at a ceiling of {ceiling:g} the gap is 0 or below with no spread")
         return cls(
             ceiling=ceiling,
-            gap=lbc.capped(p, ceiling).gap,
+            gap=capped.gap,
             spread=spread,
-            borrowed=float(capped.leverage.mean()) - 1,
+            borrowed=capped.mean_leverage - 1,
         )
 
 

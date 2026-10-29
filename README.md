@@ -8738,8 +8738,7 @@ Five groups of what it says are not pinned here.
    written, not to the chart. No test reads a second
    copy of a figure written as a whole number or in words, such as the
    subtitle's 83 months, Lesson 3's eighty-three months and its 20 and 63
-   months, Lesson 5's borrowing of 1 at a ceiling of 2, and the alt text's 20
-   capped months of 83.
+   months, and Lesson 5's borrowing of 1 at a ceiling of 2.
    [tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) pins each
    value those words state.
 5. Its references, cited rather than computed.
