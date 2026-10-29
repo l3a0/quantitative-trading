@@ -531,6 +531,15 @@ class TestTheHolidayWeek:
                 )
             )
 
+    def test_a_week_whose_holiday_fstx_did_not_trade_is_refused(self, week) -> None:
+        """The sketch draws a check for every day, so a middle day with no
+        VIX close that FSTX did not trade either is refused."""
+        made_up = HolidayWeek(
+            week.days, week.closes, (True, False, True), week.reads, week.next_day
+        )
+        with pytest.raises(ValueError, match="middle day"):
+            sketches._one_holiday(made_up)
+
 
 class TestTheHolidaySketch:
     def test_its_words(self, every) -> None:
@@ -599,6 +608,13 @@ class TestTheHolidaySketch:
             word = next(verdicts)
             assert (word.x, word.y) == pytest.approx((arrow.x[0] + sketches.VERDICT_DX, arrow.y[0]))
 
+    def test_the_columns_stand_evenly_apart(self, every) -> None:
+        """The alt text and the docstring say the layout is schematic with
+        even columns, so the spacing is held directly, not through COLUMN_XS."""
+        scene = every[0]
+        xs = [_label(scene, d.strftime("%a %m-%d")).x for d in WEEK]
+        assert np.allclose(np.diff(xs), xs[1] - xs[0]) and xs[1] > xs[0]
+
     def test_the_closes_sit_in_their_columns(self, every) -> None:
         scene = every[0]
         for text, x in zip(("54.92", "none: US holiday", "55.28"), COLUMN_XS, strict=True):
@@ -610,6 +626,21 @@ class TestTheHolidaySketch:
             HolidayRead(r.reading, r.day, day("2008-11-25"), 60.9, True)
             if (r.reading, r.day) == ("Latest close", THU)
             else r
+            for r in week.reads
+        )
+        made_up = HolidayWeek(week.days, week.closes, week.traded, reads, week.next_day)
+        with pytest.raises(ValueError, match="not drawn"):
+            sketches._one_holiday(made_up)
+
+    @pytest.mark.parametrize("source", [FRI, THU], ids=["itself", "a later day"])
+    def test_a_read_of_its_own_day_or_a_later_one_is_refused(self, week, source) -> None:
+        """A drawn column is not enough: a day reads an earlier close, so an
+        arrow from the Friday to itself or from the Thursday to the Friday
+        would draw a look-ahead no reading makes."""
+        target = ("Row back", FRI) if source == FRI else ("Latest close", THU)
+        later = FRI if source == THU else source
+        reads = tuple(
+            HolidayRead(r.reading, r.day, later, 55.28, True) if (r.reading, r.day) == target else r
             for r in week.reads
         )
         made_up = HolidayWeek(week.days, week.closes, week.traded, reads, week.next_day)
@@ -677,12 +708,14 @@ class TestTheKeptDays:
         assert kept.held_days[smallest] == day("2008-11-06"), SPEC
         assert abs(kept.held[smallest]) == pytest.approx(0.000025, abs=SIX), SPEC
 
-    def test_a_kept_day_without_a_position_that_earned_is_refused(self) -> None:
+    @pytest.mark.parametrize("earned", [0.002, -0.002], ids=["gained", "lost"])
+    def test_a_kept_day_without_a_position_that_earned_is_refused(self, earned) -> None:
+        """Either sign: "each earns 0" is false whether the day gained or lost."""
         days = pd.date_range("2020-01-01", periods=4)
         made_up = vf.Filtered(
             name="made up",
             days=days,
-            daily=np.array([0.0, 0.01, 0.002, -0.01]),
+            daily=np.array([0.0, 0.01, earned, -0.01]),
             held=np.array([False, True, False, True]),
             qualifies=np.array([False, True, True, True]),
             calendar_days=4,
@@ -722,14 +755,36 @@ class TestTheKeptDaysSketch:
             "the other 11: 252 × mean −0.315000, Sharpe −1.250000",
         ]
 
-    def test_a_rule_whose_largest_held_day_lost_is_refused(self) -> None:
-        losing = KeptDays(3, (0,), (day("2020-01-02"),), (-0.01,), -0.01, 0.0, 0.0)
+    @pytest.mark.parametrize(
+        ("places", "held"),
+        [((0,), (-0.01,)), ((0,), (0.0,)), ((), ())],
+        ids=["lost", "flat", "none held"],
+    )
+    def test_a_rule_whose_largest_held_day_did_not_gain_is_refused(self, places, held) -> None:
+        """The struck bar's share of the sum needs a day that gained, so a
+        largest held day that lost, earned exactly 0, or does not exist is refused."""
+        days = tuple(day("2020-01-02") for _ in held)
+        made_up = KeptDays(3, places, days, held, sum(held), 0.0, 0.0)
         with pytest.raises(ValueError, match="gained"):
-            sketches._kept_days(losing)
+            sketches._kept_days(made_up)
 
-    @pytest.mark.parametrize("which", ["run", "made up"])
+    @pytest.mark.parametrize("which", ["run", "made up", "loss largest"])
     def test_each_bar_stands_at_an_affine_function_of_its_return(self, every, kept, which) -> None:
-        days = kept if which == "run" else _made_up()
+        """The third case's largest bar is a loss, so the scale has to come
+        from the largest bar either way, not the largest gain."""
+        days = {
+            "run": kept,
+            "made up": _made_up(),
+            "loss largest": KeptDays(
+                kept=5,
+                places=(1, 3),
+                held_days=(day("2020-01-02"), day("2020-01-06")),
+                held=(0.01, -0.05),
+                total=-0.04,
+                rest_return=-12.6,
+                rest_sharpe=-1.0,
+            ),
+        }[which]
         scene = every[1] if which == "run" else sketches._kept_days(days)
         scale = bar_scale(days)
         assert max(abs(v) for v in days.held) * scale == pytest.approx(sketches.TALLEST)
@@ -777,6 +832,27 @@ class TestTheKeptDaysSketch:
         for text, colour in colours.items():
             assert _label(scene, text).color == colour, text
 
+    @pytest.mark.parametrize("which", ["run", "made up"])
+    def test_the_gained_and_lost_words_point_at_a_bar_of_their_sign(
+        self, every, kept, which
+    ) -> None:
+        days = kept if which == "run" else _made_up()
+        scene = every[1] if which == "run" else sketches._kept_days(days)
+        pairs = list(zip(days.held_days, days.held, strict=True))
+        first_gain = next(d for d, v in pairs if v > 0)
+        first_loss = next(d for d, v in pairs if v < 0)
+        assert _label(scene, f"{days.gained} gained, above 0").names == f"bar-{first_gain.date()}"
+        assert _label(scene, f"{days.lost} lost, below 0").names == f"bar-{first_loss.date()}"
+
+    def test_the_ticks_stand_evenly_apart(self, every, kept) -> None:
+        """Read from the drawn tick tops rather than from ``tick_xs``, so a
+        row that bunches its ticks fails."""
+        ticks = _stroke(every[1], "kept")
+        tops = np.unique(ticks.x[ticks.y == sketches.TICKS_Y + sketches.TICK_HIGH])
+        assert len(tops) == kept.kept
+        gaps = np.diff(tops)
+        assert np.allclose(gaps, gaps[0]) and gaps[0] > 0
+
     def test_the_grey_ticks_are_the_days_that_held_nothing(self, every, kept) -> None:
         """One black tick per kept day, then a grey tick over each of the 170
         that held nothing, so the 20 held days stay black in date order."""
@@ -803,15 +879,34 @@ class TestTheKeptDaysSketch:
         steps = list(scene.steps)
         assert steps.index(top) < steps.index(strike) < steps.index(_label(scene, KEPT_LABELS[-1]))
 
-    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+    def test_its_alt_text_says_what_the_picture_shows(self, every, kept) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
-        assert "A row of 190 thin black ticks" in alt
-        assert "170 of them turn grey" in alt
+        assert f"A row of {kept.kept} thin black ticks" in alt
+        assert f"{kept.unheld} of them turn grey" in alt
         assert "A black dot then appears over each of the other ticks" in alt
-        assert "20 bars stand evenly spaced in date order on it" in alt
+        assert f"{len(kept.held)} bars stand evenly spaced in date order on it" in alt
         assert "with green bars above it and short red bars below" in alt
+        assert "Several are so short they show only as dashes on the line" in alt
         assert "One brass bar stands far above the rest" in alt
         assert "A black line then strikes through the brass bar" in alt
+
+    def test_the_bar_shapes_the_alt_text_names(self, kept) -> None:
+        """Three claims the alt text makes about the bars' sizes, measured on
+        the run's bars at the board's scale.
+
+        1. Several are dashes: at least two bars are shorter than the
+           outline's own width.
+        2. The red bars are short: every loss is under a tenth of the tallest.
+        3. The brass bar stands far above the rest: at least twice the next.
+        """
+        px_per_unit = HEIGHT / (whiteboard.YLIM[1] - whiteboard.YLIM[0])
+        outline_px = sketches.BAR_LINE * whiteboard.DPI / 72
+        heights = np.abs(np.array(kept.held)) * bar_scale(kept) * px_per_unit
+        assert int((heights < outline_px).sum()) >= 2, SPEC
+        losses = [abs(v) for v in kept.held if v < 0]
+        assert max(losses) * bar_scale(kept) < 0.1 * sketches.TALLEST, SPEC
+        ordered = sorted(kept.held, reverse=True)
+        assert ordered[0] == kept.held[kept.top] and ordered[0] >= 2 * ordered[1], SPEC
 
     def test_a_dot_marks_each_held_day_in_the_row(self, every, kept) -> None:
         """One black dot over the tick of each kept day that held a position,
