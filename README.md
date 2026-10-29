@@ -459,7 +459,10 @@ where they were first built. The other forty-five were built here.
     percent and 2.4. The script shorts EWC alone on the file's first day,
     while the filter's slope is still 0, and withholding the signal on the
     first two days gives 0.260669 and 2.349460, which round to 26.1 percent
-    and 2.3 rather than the book's figures. The book's two claims about
+    and 2.3 rather than the book's figures while all 1,500 days count, as
+    they do in the script. With those two days dropped from the returns, the
+    APR still rounds to 26.1 percent and the Sharpe ratio to the book's 2.4.
+    The book's two claims about
     the filter, a slope that "oscillates around 1" and an intercept that
     "increases monotonically", are carried as findings with no verdict,
     because the only criteria for them were written after a run. The slope's
@@ -1173,7 +1176,9 @@ and every figure the two findings quote: the slope's median, mean, share above
 1 and crossings, and the intercept's yearly means, its falls at each finer
 grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
-planted break in either is refused. `TestWhatThePostQuotes` reads one copy in
+planted break in either is refused. It holds the share of each miss the
+update closes after row 1, and how many of the days the script gains on move
+the book's roundings. `TestWhatThePostQuotes` reads at least one copy in
 the post of each run figure the post quotes, and the chart's alt text's exact
 figures, so editing a copy it reads fails. What the post says that nothing here asserts
 is listed below.
@@ -5411,7 +5416,8 @@ The post draws four lessons from Entry 32 of the replication log.
    book rounds them correctly.
 2. The script shorts EWC alone on the file's first day, before the filter has
    any estimate, and with no signal on the first two days the figures round
-   to 26.1 percent and 2.3.
+   to 26.1 percent and 2.3 while all 1,500 days count. With those two days
+   dropped from the returns, the Sharpe ratio rounds to the book's 2.4.
 3. Location 1726's two claims carry no verdict, because their only criteria
    were written after a first run, and the grain chosen decides whether the
    intercept rises "monotonically".
@@ -5441,8 +5447,9 @@ Six groups of what it says are not pinned here.
    and small when it is confident, that on this file a regression start would
    read the file's own first days, so the backtest would give up trading on
    them, that a filter started from the whole-file intercept would show how
-   much of the rise the zero start explains and would not be a backtest, and
-   that the file's dividend method could also move the intercept. What the post says a
+   much of the rise the zero start explains and would not be a backtest,
+   that the file's dividend method could also move the intercept, and that a
+   return computed from its closes is not exactly what a holder earned. What the post says a
    starting uncertainty above 0 would do to row 1 and to every later day is a
    reading too, because nothing here runs such a start. `TestTheGain` measures what the post says the gain
    does on this file after the first day, including that on a median day the
@@ -5451,7 +5458,7 @@ Six groups of what it says are not pinned here.
    its lines, such as "about 1.4" and "about 2 by the start of September
    2008", and the sketches' alt texts read a scale "from 0 to about 23" and a
    bar "a few pixels tall".
-5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+5. Every copy of a figure that `TestWhatThePostQuotes` does not read. The post
    states several figures more than once, in a lesson, a table or the alt
    text, and a typo in a copy the class does not read passes. The file's span
    is one. Its two dates are read in the section on the prices and the
@@ -5491,13 +5498,17 @@ Two more were pinned when Lesson 3 gained them after the post first merged. A
 Three more were pinned when Lesson 2 gained them in the review before
 publishing. The script gains on 412 days. Setting one of those days' return
 to 0 makes the APR round below 26.2 percent on 252 of them, and on 144 of
-those the Sharpe ratio rounds below 2.4 too.
+those the Sharpe ratio rounds below 2.4 too. The same review gave three
+other figures their first pin. `TestTheGain` measures the 98 percent of the
+miss a median day's update closes and the slope's move of about 0.009 on a
+median day, and `TestTheFigures` holds the 0.00054 by which the run with no
+signal on rows 1 and 2 lands below 2.35.
 
 `TestWhatThePostQuotes` in
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) reads the post
 itself. It builds each run figure the post quotes from the run, at the
-precision the post prints it, and looks for one copy of it in the post, so a
-typo in that copy fails a test. That covers the share of the miss a median
+precision the post prints it, and looks for at least one copy of it in the
+post, so a typo in a copy it reads fails a test. That covers the share of the miss a median
 day's update closes and the slope's median daily move, the file's saved date,
 days and dates, the 252 days of the APR, the first two rows' forecast errors, bands and
 slope, the first return and its dates, the three days the opening short earns

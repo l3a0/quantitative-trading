@@ -503,20 +503,27 @@ class TestTheDay:
 
     def test_its_slope_moves_more_than_a_median_days(self, day, run) -> None:
         """The caption calls the day's rise in the slope larger than a median
-        day's, the median the post quotes over rows 3 to 1,500."""
+        day's, the median the post quotes over rows 3 to 1,500. The module's
+        docstring puts the day's error 1.62 forecast standard deviations from
+        the forecast, outside the band, and its rise at about 1.7 times that
+        median, so both ratios are pinned here."""
         _, _, f, _ = run
         median = np.median(np.abs(np.diff(f.slope)[1:]))
-        assert day.slope_after - day.slope_before > median
+        rise = day.slope_after - day.slope_before
+        assert rise > median
+        assert day.error > day.sd, SPEC
+        assert f"{day.error / day.sd:.2f}" == "1.62", SPEC
+        assert f"{rise / median:.1f}" == "1.7", SPEC
         paragraphs = _paragraphs()
         (at,) = [k for k, p in enumerate(paragraphs) if f"(../docs/figures/{GIFS[0]})" in p]
-        rise = day.slope_after - day.slope_before
         word = "larger" if abs(rise) > median else "smaller"
         moved = "rise" if rise > 0 else "fall"
         assert f"a {moved} in the slope, {word} than a median day’s" in paragraphs[at + 1]
 
     def test_the_day_is_a_typical_one(self, run) -> None:
         """Its share sits within half a point of the median over rows 3 to
-        1,500, so the sketch does not draw an unusual day."""
+        1,500, so the share of the miss its update closes is a typical day's.
+        Its slope's move is not, as the test above pins."""
         _, _, f, _ = run
         shares = 1 - kalman_hedge.VE / f.variance[2:]
         (t,) = np.flatnonzero(f.days == "2007-05-15")
@@ -581,19 +588,31 @@ class TestTheOneDaySketch:
     def test_every_mark_sits_at_its_figure(self, every, day) -> None:
         """One affine map per axis: the forecast tick and the bar's foot at the
         forecast, the dot and the bar's top at the close, the hairlines one
-        standard deviation either side, all at today's EWA."""
-        scene, s = every[0], scale(day)
-        today = s.x(day.ewa)
+        standard deviation either side, all at today's EWA. The heights are
+        worked out here from the plot's corners and the zoom's reach rather
+        than through :func:`scale`, so a bent map fails."""
+        scene = every[0]
+        lo = day.forecast - day.sd - sketches.EWC_BELOW
+        hi = day.close + sketches.EWC_ABOVE
+        bottom, top = sketches.PLOT_Y
+
+        def height(ewc: float) -> float:
+            return bottom + (ewc - lo) / (hi - lo) * (top - bottom)
+
+        today = sum(sketches.PLOT_X) / 2
         tick, close, bar = (_stroke(scene, gid) for gid in ("forecast", "close", "error"))
         high, low = _stroke(scene, "band-high"), _stroke(scene, "band-low")
-        assert tick.y == pytest.approx(np.full(tick.points, s.y(day.forecast)))
+        assert tick.y == pytest.approx(np.full(tick.points, height(day.forecast)))
         assert tick.x.mean() == pytest.approx(today)
-        assert (close.x[0], close.y[0]) == pytest.approx((today, s.y(day.close)))
+        assert (close.x[0], close.y[0]) == pytest.approx((today, height(day.close)))
         assert bar.x == pytest.approx(np.full(bar.points, today))
-        assert (bar.y[0], bar.y[-1]) == pytest.approx((s.y(day.forecast), s.y(day.close)))
-        assert high.y == pytest.approx(np.full(high.points, s.y(day.forecast + day.sd)))
-        assert low.y == pytest.approx(np.full(low.points, s.y(day.forecast - day.sd)))
-        assert (low.x.min(), low.x.max()) == pytest.approx((today - HAIR_HALF, today + HAIR_HALF))
+        assert (bar.y[0], bar.y[-1]) == pytest.approx((height(day.forecast), height(day.close)))
+        assert high.y == pytest.approx(np.full(high.points, height(day.forecast + day.sd)))
+        assert low.y == pytest.approx(np.full(low.points, height(day.forecast - day.sd)))
+        for hair in (high, low):
+            assert (hair.x.min(), hair.x.max()) == pytest.approx(
+                (today - HAIR_HALF, today + HAIR_HALF)
+            ), hair.gid
         axis = _stroke(scene, "today")
         assert axis.x == pytest.approx(np.full(axis.points, today))
 
@@ -777,26 +796,29 @@ class TestTheZeroStartSketch:
             assert _label(scene, text).color == INK, text
 
     def test_every_column_is_drawn_on_one_dollar_scale(self, every, zero) -> None:
-        """Each dot, bar end and hairline sits at :func:`dollar_y` of its
-        figure, one affine map for all three columns."""
+        """Each dot, bar end and hairline sits at its figure on one affine map
+        for all three columns, a dollar of 0 at the floor and each dollar the
+        same height. The heights are worked out here from those two constants
+        rather than through :func:`dollar_y`, so a bent scale fails."""
         scene = every[1]
-        assert dollar_y(1) - dollar_y(0) == pytest.approx(sketches.PER_DOLLAR)
+
+        def height(value: float) -> float:
+            return sketches.FLOOR_Y + value * sketches.PER_DOLLAR
+
         for k, row in enumerate(zero.rows):
             x = COLUMN_X[k]
             forecast, close = _stroke(scene, f"forecast-{k}"), _stroke(scene, f"close-{k}")
             bar = _stroke(scene, f"error-{k}")
             assert (forecast.x[0], forecast.y[0]) == pytest.approx(
-                (x - DOT_OFFSET, dollar_y(row.forecast))
+                (x - DOT_OFFSET, height(row.forecast))
             )
-            assert (close.x[0], close.y[0]) == pytest.approx((x + DOT_OFFSET, dollar_y(row.close)))
+            assert (close.x[0], close.y[0]) == pytest.approx((x + DOT_OFFSET, height(row.close)))
             assert bar.x == pytest.approx(np.full(bar.points, x))
-            assert (bar.y[0], bar.y[-1]) == pytest.approx(
-                (dollar_y(row.forecast), dollar_y(row.close))
-            )
+            assert (bar.y[0], bar.y[-1]) == pytest.approx((height(row.forecast), height(row.close)))
             for gid, sign in ((f"band-high-{k}", 1), (f"band-low-{k}", -1)):
                 hair = _stroke(scene, gid)
                 assert hair.y == pytest.approx(
-                    np.full(hair.points, dollar_y(row.forecast + sign * row.band))
+                    np.full(hair.points, height(row.forecast + sign * row.band))
                 )
 
     def test_the_band_is_nearly_invisible_beside_rows_1_and_2s_errors(self, every, zero) -> None:
@@ -819,6 +841,30 @@ class TestTheZeroStartSketch:
         ]
         assert _stroke(scene, "forecast-2").x[0] < COLUMN_X[2] < _stroke(scene, "close-2").x[0]
 
+    def test_each_long_bar_keeps_its_labels_by_the_marks_they_name(self, every, zero) -> None:
+        """On rows 1 and 2 the close's label sits by the close's dot, the
+        error's by the bar's middle, and the band's and the forecast's just
+        above and below the forecast's dot, as the alt text reads them."""
+        scene = every[1]
+        for k in range(2):
+            f = _stroke(scene, f"forecast-{k}").y[0]
+            c = _stroke(scene, f"close-{k}").y[0]
+            assert c - f > sketches.LONG_BAR, k
+            for word, gid, mark in (
+                ("close", "close", c),
+                ("error", "error", (f + c) / 2),
+                ("band", "band-low", f),
+                ("forecast", "forecast", f),
+            ):
+                (label,) = [
+                    s
+                    for s in scene.steps
+                    if isinstance(s, Label)
+                    and s.names == f"{gid}-{k}"
+                    and s.text.startswith(f"{word} ")
+                ]
+                assert abs(label.y - mark) < 0.3, label.text
+
     def test_its_words_follow_the_rows(self) -> None:
         rows = (
             Row("2001-01-02", 0.0, 10.0, 10.0, 0.05, 0.0),
@@ -832,6 +878,10 @@ class TestTheZeroStartSketch:
         assert "slope 0 → 0.800000," in scene.labels
         assert scene.labels[-2:] == ["forecast uses", "slope 0.800000"]
         assert "forecast 8.00" in scene.labels and "band ±0.200000" in scene.labels
+        gaining = ZeroStart(rows, units=1.0, first_return=0.012, first_return_day="2001-01-03")
+        scene = scenes(OneDay.from_run(), gaining)[1]
+        assert _label(scene, "long EWC alone, 0 EWA shares").color == GOOD
+        assert _label(scene, "+1.20% on 2001-01-03").color == GOOD
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(every[1])

@@ -7552,8 +7552,10 @@ here starts the filter anywhere else or puts the subtracted dividends back.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/kalman-hedge-lessons.md](../blog/kalman-hedge-lessons.md), this entry's
-write-up, moves with it, since that post quotes most of these figures. The
-post's one figure moves too, and `uv run python -m chan.kalman_hedge_figures`
+write-up, moves with it, since that post quotes most of these figures and
+`TestWhatThePostQuotes` in
+[tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py) fails until it
+does. The post's one figure moves too, and `uv run python -m chan.kalman_hedge_figures`
 redraws it.
 
 The post also carries two whiteboard sketches, added in the first round of its

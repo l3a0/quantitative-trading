@@ -8,7 +8,7 @@ both in ``blog/kalman-hedge-lessons.md``. The post's figure has its own pins
 in ``tests/test_kalman_hedge_figures.py``. Its two sketches' figures, the day
 of 2007-05-15 among them, have theirs in
 ``tests/test_kalman_hedge_whiteboard.py``. ``TestWhatThePostQuotes`` reads
-one copy in the post of each run figure it quotes against the run. README
+at least one copy in the post of each run figure it quotes against the run. README
 lists what the post says that nothing pins. ``docs/replication-log.md``
 Entry 32 carries the verdicts and points here row by row.
 
@@ -313,11 +313,11 @@ class TestTheFigures:
         assert len(quiet.daily) == 1500
         assert quiet.apr == pytest.approx(0.26066891, abs=5e-9), SPEC
         assert quiet.sharpe == pytest.approx(2.34946035, abs=5e-9), SPEC
-        assert round(100 * quiet.apr, 1) == 26.1
-        assert round(quiet.sharpe, 1) == 2.3
+        assert round(100 * quiet.apr, 1) == 26.1, SPEC
+        assert round(quiet.sharpe, 1) == 2.3, SPEC
         assert 2.35 - quiet.sharpe == pytest.approx(0.00054, abs=5e-6), SPEC
-        assert not matches(100 * quiet.apr, BOOK_APR_PERCENT)
-        assert not matches(quiet.sharpe, BOOK_SHARPE)
+        assert not matches(100 * quiet.apr, BOOK_APR_PERCENT), SPEC
+        assert not matches(quiet.sharpe, BOOK_SHARPE), SPEC
         assert (quiet.daily[:2] == 0).all()
 
     def test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading(self, result) -> None:
@@ -325,11 +325,11 @@ class TestTheFigures:
         gives 0.261059 and 2.351062, which round to 26.1 percent and the book's
         2.4, so only the reading that keeps every row moves the Sharpe ratio."""
         dropped = result.quiet_start.daily[2:]
-        assert compounded_apr(dropped) == pytest.approx(0.26105886, abs=5e-9)
-        assert plain_sharpe(dropped) == pytest.approx(2.35106158, abs=5e-9)
-        assert round(100 * compounded_apr(dropped), 1) == 26.1
-        assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT)
-        assert matches(plain_sharpe(dropped), BOOK_SHARPE)
+        assert compounded_apr(dropped) == pytest.approx(0.26105886, abs=5e-9), SPEC
+        assert plain_sharpe(dropped) == pytest.approx(2.35106158, abs=5e-9), SPEC
+        assert round(100 * compounded_apr(dropped), 1) == 26.1, SPEC
+        assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT), SPEC
+        assert matches(plain_sharpe(dropped), BOOK_SHARPE), SPEC
 
     def test_252_of_412_gaining_days_move_the_apr_rounding_and_144_both(self, result) -> None:
         """Setting one day's return to 0 makes the APR round below the book's 26.2
@@ -585,7 +585,7 @@ LONGER, LONGEST = 300, 350
 
 
 class TestWhatThePostQuotes:
-    """One copy of each run figure ``blog/kalman-hedge-lessons.md`` quotes.
+    """At least one copy of each run figure ``blog/kalman-hedge-lessons.md`` quotes.
 
     The classes above pin each figure once, and the post copies it by hand.
     Here each figure is built from the run at the precision the post prints
@@ -593,7 +593,10 @@ class TestWhatThePostQuotes:
     words that name one place in the post. Each fragment must occur exactly
     once, so it cannot match a second copy. A typo in a copy that is read, or
     a re-pin that leaves the post behind, fails here, while rewording the
-    prose between two figures does not. The post's four tables are each read
+    prose between two figures does not. A few sentences that hold no number
+    are read whole too, where a word in them states a fact the run decides,
+    such as the side of the first trade, or where a round of the review
+    fixed their wording, so rewording one of those fails. The post's four tables are each read
     whole, as the grid of its cells with its row labels and column heads.
     They are Lesson 1's figures, Lesson 2's three runs, and Lesson 3's yearly
     means and grains. So a cell changed, added, dropped or moved fails, and so
@@ -603,22 +606,22 @@ class TestWhatThePostQuotes:
 
     The post states several figures more than once. The class reads at least
     one copy of each, and a few in more than one sentence that needs its own
-    check. Where a figure repeats, the copies read are these.
+    check. Where a figure repeats, the copies read include these.
 
     1. **The file.** The saved date and the two ends of its 1,500 days are read
        in the section on the prices and the script, and so are the two funds
        the dividend method was checked on. Both definitions of a unit are read
        for which leg is long and which is short.
-    2. **Lesson 2.** Row 1's 22.95 and 0.031623 are read where row 1 is worked
-       and in the sentence that compares them. Row 2's 22.78 is read where
+    2. **Lesson 2.** Row 1's date, 2006-04-26, is read again where row 1 is
+       worked, and its 22.95 and 0.031623 there and in the sentence that
+       compares them. Row 2's 22.78 is read where
        row 2 is worked, and its 1.366666 there and in Lesson 3's count of
        crossings. Both closes are read again where the first return is
        worked. Row 1's 22.95 is read again in the third way round the zero
        start, and row 2's sides and its 1.366666 where its position is
        sized. The claim that the first trade moves the APR under either
        count, and the Sharpe ratio only while all 1,500 days count, is read
-       in the subtitle and in Lesson 2, and so are the counts of gaining
-       days that move the same rounding. The two days the runs differ on,
+       in the subtitle and in Lesson 2. The two days the runs differ on,
        2006-04-27 and 2006-04-28, are read where the run with no signal is
        set beside the script and again where the post names them as the
        opening short's first two returns, and 2006-04-27 twice more, where
@@ -627,8 +630,8 @@ class TestWhatThePostQuotes:
        prose and in the grain table. The intercept's last value, 6.767360, is
        read where the intercept peaks. The whole-file regression's 0.9624 and
        6.4113 are rebuilt from the closes as ``tests/test_etf_cointegration.py``
-       builds them, and read in Lesson 3's prose and in the section on what
-       this replication cannot say.
+       builds them. Both are read in Lesson 3's prose, and the 6.4113 again
+       in the section on what this replication cannot say.
     4. **Lesson 4.** The constants 0.0001 and 0.001 are read in Lesson 4's
        first reason.
 
