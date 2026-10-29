@@ -341,14 +341,17 @@ helpers they call from `src/chan/matlab_helpers.py` went with them, and the
 other twelve stayed, for the reason the register below gives.
 
 A planned second consumer was enough here, where the register's row on the
-growth arithmetic turned one down, because the alternatives differ. For the
-growth arithmetic, waiting cost nothing. For the reversal weights, waiting
-meant ithildin-runtime either installing this repo or keeping a second copy,
-which is the duplication the shared package exists to end.
+growth arithmetic turned one down, because the two plans differ. The growth
+arithmetic's second consumer was a possibility, and the price of waiting was a
+second implementation only if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14)
+came to need it. The reversal weights' second consumer is a scheduled run in
+ithildin-runtime, so waiting meant that repository either installing this one
+or keeping a second copy now, which is the duplication the shared package
+exists to end.
 
-Both modules import the moved functions under their old names, so no import
-line changed, and the bodies there parse to the same tree as the ones that
-were here at `0237abf2`. What did change is where a name resolves. A test that
+Both modules import the moved functions under their old names, so no module
+that imports these names from `chan` changed its imports, and the bodies there
+parse to the same tree as the ones that were here at `0237abf2`. What did change is where a name resolves. A test that
 patches `chan.khandani_lo.daily_returns` no longer reaches `reversal_weights`,
 which calls `ithildincore.reversal`'s own copy, and the one counterfactual
 that did so now patches both modules.

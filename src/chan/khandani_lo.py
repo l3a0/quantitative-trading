@@ -35,7 +35,7 @@ Example 3.8 puts the open in its place:
 
 Steps 1 to 4 are :func:`daily_returns` and :func:`reversal_weights`. Both live
 in the shared ``ithildincore`` package, as ``ithildincore.reversal`` from
-v0.4.0, because ithildin-runtime's first shadow run will run the same weights.
+v0.4.0, because ithildin-runtime's first shadow run will use the same weights.
 This module imports them under the same names, and their bodies are the ones
 that were here at ``0237abf2``. :func:`reversal_weights` calls that module's
 own :func:`daily_returns`, so a counterfactual that patches

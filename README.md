@@ -1736,9 +1736,9 @@ and the Newey-West significance block live in
 [ithildincore](https://github.com/l3a0/ithildin-core), shared with
 the sibling repo because both had the same copy. Khandani and Lo's reversal
 weights and the six MATLAB helpers they call live there too, because
-ithildin-runtime's first shadow run will run the same weights. The dependency is a direct URL
-at an exact commit, `uv.lock` records it, and CI syncs with `--locked` so the
-two cannot drift apart unnoticed. All three parts earn their place, and
+ithildin-runtime's first shadow run will use the same weights. The dependency
+is a direct URL at an exact commit, `uv.lock` records it, and CI syncs with
+`--locked` so the two cannot drift apart unnoticed. All three parts earn their place, and
 [docs/design.md](docs/design.md) says which failure each one closes. Two
 toolbox forms of the Dickey-Fuller test are the exception and live in
 `src/chan`, because each reproduces a figure the shared one cannot. So do the
