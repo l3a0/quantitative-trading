@@ -8781,7 +8781,8 @@ repeating them, and draws five lessons from Entry 47 of the replication log.
    both figures, and buy on gap's figures do not move under any reading of
    the previous day.
 4. The kept days are few and bunched: 151 of buy on gap's 190 and 146 of
-   FSTX's 185 fall in 2008 and 2009, in 15 runs, and buy on gap held a
+   FSTX's 185 fall in 2008 and 2009, in 15 runs that group into three
+   spells a year or more apart, and buy on gap held a
    position on 20 of its kept days, one of which, 2009-04-21, returned
    0.093601 of the 0.129625 its kept days sum to.
 5. Welch's t on mean daily return cannot tell the kept days from the rest,
@@ -8803,19 +8804,24 @@ Five groups of what it says are not pinned here.
    Chicago Board Options Exchange computes VIX from the prices of options on
    the S&P 500 and that it measures the swings they imply for the next month,
    that it closes at 16:15 New York time, after FSTX opens, and
-   that no script in either public copy of Chan's code applies the filter.
+   that no script in any of the three public copies of Chan's code this
+   repository has read applies the filter.
 3. Readings no test asserts: that the kept days earned more per day and
-   swung more for it, that 15 runs are fewer separate episodes than 190 days
-   suggest, that the alignment found by search makes the 2.6 percent a
+   swung more for it, that the alignment found by search makes the 2.6 percent a
    fit rather than a test, that neighbouring days' returns can move together
-   and the test then counts more independent days than the sample holds,
+   and the test then counts more independent days than the sample holds
+   and gives too small a p, that a p near one half says the sample cannot
+   tell rather than that the filter does nothing,
    and that a filter keeping few traded days leaves each cost a larger share
    of the return.
 4. Readings the post rounds from pinned figures, most of the 17.2 and about
    half the time for p near one half. The figure's alt text reads its curves
    approximately too. The 8.5 percent it quotes from the buy on gap post is
    pinned in [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) rather than
-   in this post's tests.
+   in this post's tests, and the compounded APR of 0.132733 it quotes from
+   the opening gap post is pinned in
+   [tests/test_opening_gap.py](tests/test_opening_gap.py). The 72.2 percent
+   is 0.722090 rounded.
 5. Its reference, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8840,6 +8846,17 @@ before it, all measured after the run.
 6. Buy on gap's largest kept day, 2009-04-21, which returned 0.093601, or
    0.722090 of the sum, its 8 gaining and 12 losing held days, and the other
    189 kept days' 0.048032 and Sharpe ratio of 0.855003.
+7. The three spells the 15 runs group into, from 2008-09-18 to 2009-05-04,
+   2010-05-10 to 2010-06-08 and 2011-08-09 to 2011-11-10, holding 151, 9
+   and 30 of buy on gap's kept days and 146, 9 and 30 of FSTX's.
+8. Buy on gap's compounded APR over every day, 0.087385, which prints as the
+   book's 8.7 percent.
+9. VIX's nearest close below 35 inside the windows, 34.78 on 2011-10-20,
+   against 34.95 on 2001-10-18 across the whole file.
+10. The three stocks buy on gap held on 2009-04-21, ETFC, HBAN and RF, which
+    opened 10 to 23 percent below their previous closes.
+11. FSTX's filtered figures on the two earlier saves that hold 2,000 days,
+    0.024899 and 0.162148 on the same 185 kept days.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/vix_filter_figures.py](src/chan/vix_filter_figures.py), which reads

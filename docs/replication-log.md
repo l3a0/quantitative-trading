@@ -10962,8 +10962,9 @@ which fades the jump, as Entry 40 found for the unfiltered figures. The
 momentum sign the text describes gives the same numbers negated.
 
 **No script ships for location 3509, and the FSTX alignment was found by
-search.** Neither public mirror of Chan's code holds a file that applies the
-filter, so the specification is inferred from the printed figures rather than
+search.** None of the three public copies of Chan's code this repository has
+read, ivanliu1989/algorithmic_trading, ericnberwick/EpchanPreview and
+burakbayramli/books at `43c0bb4`, holds a file that applies the filter, so the specification is inferred from the printed figures rather than
 read from code. The plan on
 [issue 359](https://github.com/l3a0/quantitative-trading/issues/359) tried six
 ways of aligning VIX with FSTX's calendar and two ways of averaging, and saw
@@ -11097,7 +11098,7 @@ rule today.
 | 13 | none | none, not a replication | The 7 FSTX days after 2012-05-08 have no VIX close, so the join drops them. Under row 8's reading they would read 2012-05-08's close of 19.05, below 35, so none of them could qualify either way. |
 | 14 | none | none, not a replication | Buy on gap held nothing on 170 of its 190 qualifying days, so its filtered figures rest on 20 days of trading. No VIX close sits exactly on 35, so the strict test decides no day here, and `TestTheRules` holds it on synthetic closes. |
 | 15 | none | none, not a replication | The join leaves buy on gap's calendar unchanged, so its unfiltered figures are Entry 18's. It moves FSTX's to figures that print as 14 percent and 1.6, so location 3509's "around 13 percent and 1.4" is Example 7.1's full calendar, which Entry 40's rows 3 and 4 reproduce. The filtered and unfiltered FSTX figures therefore come from different calendars. |
-| 16 | none | none, not a replication | The two spans guard every day-over-day move the run reads except the one real move, which `tests/test_scale_breaks.py` pins. The guard sees only a move of 1.6 times or more, on any span. A rescale of 1.47 times would carry 23.81 past 35, so a rescale inside that blind band could move a day into the filter unseen, and a planted rescale of 1.48 times does. |
+| 16 | none | none, not a replication | The two spans guard every day-over-day move the run reads except the one real move, which `tests/test_scale_breaks.py` pins. The guard sees only a move of more than 1.6 times, on any span. A rescale of 1.47 times would carry 23.81 past 35, so a rescale inside that blind band could move a day into the filter unseen, and a planted rescale of 1.48 times does. |
 | 17 | none | none, not a replication | Dropping the 48 days the CBOE did not trade moves the position on 11 joined days and on none of the qualifying days. On ten of them the open is set against the high or low of the joined day before, two sessions back, and that alone moves them. 2005-09-20 moves through the 90-day spread alone. The 7 days after 2012-05-08 come after every joined day, so dropping them moves nothing. So rows 3 and 4 cannot tell whether Chan filtered before or after running the rule. |
 | 18 | none | none, not a replication | Neither p is below 0.4, so on neither rule are the qualifying days' returns distinguishable from the other days' by this test. Chan prints no test, and the figures he prints are point estimates. |
 

@@ -18,8 +18,9 @@ earned on them.
    filtered ones "2.6 percent and the Sharpe ratio to 0.16".
 
 **No script ships for location 3509, and the FSTX alignment was found by
-search.** Neither public mirror of Chan's code holds a file that applies the
-filter, so the specification below is inferred from the four printed
+search.** None of the three public copies of Chan's code this repository has
+read, ivanliu1989/algorithmic_trading, ericnberwick/EpchanPreview and
+burakbayramli/books, holds a file that applies the filter, so the specification below is inferred from the four printed
 figures rather than read from code. The plan on
 [issue 359](https://github.com/l3a0/quantitative-trading/issues/359) tried six
 ways of aligning VIX with FSTX's calendar and two ways of averaging before
@@ -139,7 +140,7 @@ daily return, the kept days against the other joined days, is 0.705402 for
 buy on gap, with p of 0.481405, and −0.684181 for FSTX under the script's
 sign, with p of 0.494679. The momentum sign gives the same t negated. The test
 treats each day as independent, and neither difference is distinguishable from
-noise, so neither rule's figures say which way the filter points.
+noise, so neither rule's mean return says which way the filter points.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
 to 2012 and 2004 to 2012 samples on two rules and a threshold he chose, and

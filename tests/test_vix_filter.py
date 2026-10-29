@@ -781,6 +781,95 @@ class TestWhatThePostMeasured:
         assert matches(100 * rest.average_annual_return, "4.8")
         assert matches(rest.sharpe, "0.86")
 
+    @pytest.mark.parametrize(
+        ("rule", "counts"), [("buy_on_gap", [151, 9, 30]), ("literal", [146, 9, 30])]
+    )
+    def test_the_15_runs_fall_in_three_spells_a_year_or_more_apart(
+        self, result, rule, counts
+    ) -> None:
+        """Runs at most 22 joined days apart group into three spells.
+
+        The spells run from 2008-09-18 to 2009-05-04, 2010-05-10 to 2010-06-08
+        and 2011-08-09 to 2011-11-10, each a year or more from the next.
+        """
+        filtered = getattr(result, rule)
+        found = runs(filtered.qualifies)
+        gaps = [b[0] - a[1] for a, b in zip(found, found[1:], strict=False)]
+        assert sorted(gaps)[-3] <= 23 < sorted(gaps)[-2], f"{SPEC}; {AFTER_THE_RUN}"
+        spells, start = [], 0
+        for i, g in enumerate(gaps, 1):
+            if g > 23:
+                spells.append(found[start:i])
+                start = i
+        spells.append(found[start:])
+        spans = [(filtered.days[s[0][0]], filtered.days[s[-1][1]]) for s in spells]
+        assert spans == [
+            (day("2008-09-18"), day("2009-05-04")),
+            (day("2010-05-10"), day("2010-06-08")),
+            (day("2011-08-09"), day("2011-11-10")),
+        ], f"{SPEC}; {AFTER_THE_RUN}"
+        assert [sum(b - a + 1 for a, b in s) for s in spells] == counts, f"{SPEC}; {AFTER_THE_RUN}"
+        later = [spans[1][0] - spans[0][1], spans[2][0] - spans[1][1]]
+        assert all(g >= pd.Timedelta(days=365) for g in later), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_buy_on_gap_s_compounded_apr_over_every_day_is_0_087385(self, result) -> None:
+        """Lesson 1's table sets it beside 252 · mean, 0.085279, and the book's 8.7."""
+        long = result.buy_on_gap
+        assert len(long.daily) == 1500
+        apr = module.compounded_apr(long.daily)
+        assert apr == pytest.approx(0.087385, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
+        assert matches(100 * apr, "8.7")
+
+    def test_inside_the_windows_the_nearest_close_below_35_is_34_78(self, sources) -> None:
+        """On 2011-10-20, against 34.95 on 2001-10-18 across the whole file."""
+        vix = sources.vix.loc[day("2004-07-16") : VIX_LAST]
+        below = vix[vix <= THRESHOLD]
+        assert (below.max(), below.idxmax()) == (34.78, day("2011-10-20")), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert sources.vix[sources.vix <= THRESHOLD].idxmax() == day("2001-10-18")
+
+    def test_the_best_kept_day_rests_on_three_opens_10_to_23_percent_down(
+        self, sources, long_rule
+    ) -> None:
+        """On 2009-04-21 buy on gap held ETFC, HBAN and RF.
+
+        Each opened 10.3, 13.7 and 22.7 percent below its previous close in
+        Chan's file, whose prices are adjusted, and nothing compares them with
+        a second source.
+        """
+        stocks, long = sources.stocks, long_rule
+        row = long.days.get_loc(day("2009-04-21"))
+        held = stocks["Close"].columns[long.positions[row] != 0]
+        assert sorted(held) == ["ETFC", "HBAN", "RF"], f"{SPEC}; {AFTER_THE_RUN}"
+        drop = 1 - stocks["Open"].iloc[row][held] / stocks["Close"].iloc[row - 1][held]
+        assert drop.round(3).to_dict() == {"ETFC": 0.103, "HBAN": 0.227, "RF": 0.137}, (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert 0.10 <= drop.min() and drop.max() <= 0.23
+
+    @pytest.mark.parametrize(
+        "save", ["inputDataOHLCDaily_20120511.mat", "inputDataOHLCDaily_20120507.mat"]
+    )
+    def test_the_two_earlier_2000_day_saves_print_2_5_percent(self, sources, result, save) -> None:
+        """The join keeps the same 185 days and gives 0.024899 and 0.162148.
+
+        Only the 2012-05-17 save, the one ``gapFutures_FSTX.m`` loads, lands
+        the book's 2.6 percent.
+        """
+        _, fstx = opening_gap.read_sources(source_file=save)
+        assert len(fstx) == 2000
+        rule = opening_gap.opening_gap(fstx)
+        filtered = module.vix_filter(
+            "FSTX", rule.days, rule.literal, rule.positions != 0, sources.vix
+        )
+        assert filtered.kept_days.equals(result.literal.kept_days), f"{SPEC}; {AFTER_THE_RUN}"
+        assert filtered.average_annual_return == pytest.approx(0.024899, abs=SIX), (
+            f"{SPEC}; {AFTER_THE_RUN}"
+        )
+        assert filtered.sharpe == pytest.approx(0.162148, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
+        assert matches(100 * filtered.average_annual_return, "2.5")
+
 
 class TestThePostsSurvivorSentences:
     """``blog/vix-filter-lessons.md`` dates the stock file's list to late 2011.
@@ -793,7 +882,7 @@ class TestThePostsSurvivorSentences:
     def test_the_list_dates_from_late_2011(self) -> None:
         text = (paths.REPO_ROOT / "blog" / "vix-filter-lessons.md").read_text(encoding="utf-8")
         assert "Every stock was in the S&P 500 in late 2011, so every figure" in text
-        assert "Every stock here was in the S&P 500 in late 2011, so the" in text
+        assert "Every stock here was in the S&P 500 in late 2011, so a company" in text
         for old in ("S&P 500 on 2012-04-24", "S&P 500 on the last day"):
             assert old not in text, old
 
@@ -829,7 +918,7 @@ class TestThePostsHelpers:
 class TestTheGuard:
     """Row 16: VIX's flagged day, the spans guarded either side of it, and what the guard misses.
 
-    The guard flags a day-over-day move of 1.6 times or more, so a rescale
+    The guard flags a day-over-day move of more than 1.6 times, so a rescale
     smaller than that passes it on any span. VIX's largest close before the
     flag sits where such a rescale could carry it past 35.
     """
