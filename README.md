@@ -5453,7 +5453,10 @@ Six groups of what it says are not pinned here.
    bar "a few pixels tall".
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states several figures more than once, in a lesson, a table or the alt
-   text, and a typo in a copy the class does not read passes.
+   text, and a typo in a copy the class does not read passes. The file's span
+   is one. Its two dates are read in the section on the prices and the
+   script, and its forms in words, such as "2006 to 2012", "six years" and
+   "after April 2012", are not.
 6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in

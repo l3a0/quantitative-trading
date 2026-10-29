@@ -7542,12 +7542,12 @@ prints no figure and names no script.
 **Anything about costs.** The band changes position whenever the error crosses
 it, and the script charges nothing for a trade.
 
-**Whether the intercept's rise belongs to the market or to the zero start.**
-The filter starts the intercept at 0, and the single regression over the whole
-file puts it at 6.4113. Part of what looks like the market could also be the
-file's dividend method, because the filter reads the closes themselves and a
-subtracted dividend lowers every close before it. Nothing here starts the
-filter anywhere else.
+**Whether the intercept's rise belongs to the market, to the zero start or to
+the file's dividend method.** The filter starts the intercept at 0, and the
+single regression over the whole file puts it at 6.4113. The file's dividend
+method could also move the intercept, because the filter reads the closes
+themselves and a subtracted dividend lowers every close before it. Nothing
+here starts the filter anywhere else or puts the subtracted dividends back.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

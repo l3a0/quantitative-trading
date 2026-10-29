@@ -618,7 +618,11 @@ class TestWhatThePostQuotes:
        sized. The claim that the first trade moves the APR under either
        count, and the Sharpe ratio only while all 1,500 days count, is read
        in the subtitle and in Lesson 2, and so are the counts of gaining
-       days that move the same rounding.
+       days that move the same rounding. The two days the runs differ on,
+       2006-04-27 and 2006-04-28, are read where the run with no signal is
+       set beside the script and again where the post names them as the
+       opening short's first two returns, and 2006-04-27 once more where
+       the first return falls.
     3. **Lesson 3.** The 57 of 1,250 and the 513 of 1,499 are read in the
        prose and in the grain table. The intercept's last value, 6.767360, is
        read where the intercept peaks. The whole-file regression's 0.9624 and
@@ -689,7 +693,8 @@ class TestWhatThePostQuotes:
         ]
         # The funds the file's dividend method was checked on are the ones
         # ``tests/test_series.py``'s ``TestTheETFFileSubtractsEachDividend`` measures,
-        # so a fund measured there and named nowhere here fails.
+        # so a fund measured there and named nowhere here fails. Both reads
+        # see only a symbol written as a quoted argument inside that class.
         series_tests = (paths.REPO_ROOT / "tests" / "test_series.py").read_text(encoding="utf-8")
         dividends = series_tests.split("class TestTheETFFileSubtractsEachDividend", 1)[1]
         dividends = dividends.split("\nclass ", 1)[0]
