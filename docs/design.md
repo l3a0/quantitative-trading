@@ -287,8 +287,9 @@ MacKinnon critical values, the Newey-West significance block and Khandani and
 Lo's reversal weights are not in `src/chan`. They are in
 [ithildincore](https://github.com/l3a0/ithildin-core), a package this repo shares
 with the sibling
-[trading-strategies](https://github.com/l3a0/trading-strategies) repo and with
-[ithildin-runtime](https://github.com/l3a0/ithildin-runtime).
+[trading-strategies](https://github.com/l3a0/trading-strategies) repo, and
+which [ithildin-runtime](https://github.com/l3a0/ithildin-runtime) will install
+for its first shadow run.
 
 The first four moved because both repos had them. `src/chan/timeseries.py` and
 that repo's `common/timeseries.py` parsed to the same tree once docstrings were
@@ -330,15 +331,35 @@ of what happened rather than anything being built.
 
 The reversal weights went the opposite way, out of this repo rather than into
 it. `reversal_weights` and `daily_returns` were in `src/chan/khandani_lo.py`,
-and ithildin-runtime's first shadow run uses the same weights as a placeholder
-strategy. Depending on this repo there would have installed its whole research
-stack, so the owner moved them to `ithildincore.reversal` on 2026-10-29, in
+and ithildin-runtime's first shadow run,
+[issue 16 there](https://github.com/l3a0/ithildin-runtime/issues/16), will use
+the same weights as a placeholder strategy. Depending on this repo there would
+have installed its whole research stack, so the owner moved them to
+`ithildincore.reversal` on 2026-10-29, in
 [issue 19 there](https://github.com/l3a0/ithildin-core/issues/19). The six
 helpers they call from `src/chan/matlab_helpers.py` went with them, and the
-other twelve stayed, for the reason the register below gives. Both modules
-import the moved functions under their old names, so no importer changed, and
-the bodies there parse to the same tree as the ones that were here at
-`0237abf2`.
+other twelve stayed, for the reason the register below gives.
+
+A planned second consumer was enough here, where the register's row on the
+growth arithmetic turned one down, because the two cases differ in where the
+second consumer sits. The growth arithmetic had no consumer outside this
+repository, so it failed the two-repository bar however its plan turned out,
+and the price of waiting was a second implementation here if
+[issue 14](https://github.com/l3a0/quantitative-trading/issues/14) came to need
+it. The reversal weights' second consumer is another repository, in a run the
+owner has already decided on, in
+[issue 16 there](https://github.com/l3a0/ithildin-runtime/issues/16). Waiting
+meant that repository either installing this one or keeping a second copy now,
+which is the duplication the shared package exists to end.
+
+Both modules import the moved functions under their old names, so every line
+that imports one of them from `chan` still works as written, and the bodies
+there parse to the same tree as the ones that were here at `0237abf2`. What did
+change is where a name resolves. A test that patches
+`chan.khandani_lo.daily_returns` no longer reaches `reversal_weights`, which
+calls `ithildincore.reversal`'s own copy. The test module holding the one
+counterfactual that did so now imports `ithildincore.reversal`, and the test
+patches both modules.
 
 This cuts against the premise, and the way it is pinned is what limits the
 damage rather than what removes it. A result here has to be re-readable, and

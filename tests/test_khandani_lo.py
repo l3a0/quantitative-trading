@@ -418,6 +418,20 @@ class TestTheRuleByHand:
     def test_a_stock_priced_today_and_not_yesterday_has_weight_zero(self) -> None:
         assert reversal_weights(HAND)[1, 2] == 0.0
 
+    def test_a_stock_priced_yesterday_and_not_today_has_weight_zero(self) -> None:
+        """B leaves on day 2, so its return is NaN and its weight is 0, not NaN.
+
+        A and C are the two priced stocks that day, with returns 0 and +0.10
+        against a market of +0.05. The hand panel otherwise holds no stock
+        that leaves, so without this case only tests reading a vintage would
+        notice the exit half of step 4 going missing.
+        """
+        prices = HAND.copy()
+        prices[2, 1] = np.nan
+        weights = reversal_weights(prices)
+        assert weights[2, 1] == 0.0
+        assert weights[2] == pytest.approx([0.025, 0.0, -0.025], abs=1e-15)
+
     def test_buy_the_loser_and_short_the_winner(self) -> None:
         """The sign. A stock that beat the market is shorted."""
         weights = reversal_weights(HAND)
