@@ -4,7 +4,7 @@
 
 ## Why a statistical factor has to persist
 
-Example 7.4 of Ernest Chan’s *Quantitative Trading* trades a statistical factor model on the S&P 600. Each day it finds five factors in a year of returns, works out what each factor returned today, and buys the stocks those factor returns favour. The strategy is “based on the assumption that factor returns have momentum”, in Chan’s words, and “they remain constant from the current time period to the next” (Chan, 2021, p. 164). His general claim is that factor returns “often” show “stronger serial autocorrelations than individual stock’s returns” (p. 162).
+Example 7.4 of Ernest Chan’s *Quantitative Trading* trades a statistical factor model on the S&P 600. Each day it finds five factors in a year of returns, works out what each factor returned today, and buys the stocks those factor returns favour most and shorts the ones they favour least. The strategy is “based on the assumption that factor returns have momentum”, in Chan’s words, and “they remain constant from the current time period to the next” (Chan, 2021, p. 164). His general claim is that factor returns “often” show “stronger serial autocorrelations than individual stock’s returns” (p. 162).
 
 The [factor models post](https://github.com/l3a0/quantitative-trading/blob/main/blog/factor-models-lessons.md) explains what Example 7.4 does and reproduces its printouts. It tested Chan’s claim on two named factors, the market and momentum, on monthly returns, and gave a short account of the five statistical factors too. This post is about those five. It tests them daily, on the file the example loads, and spends most of its length on the method, because a factor that is re-estimated every day does not hand over a return series that a test can simply correlate with itself.
 
@@ -129,7 +129,7 @@ The fitted value for stock i is then a plus the sum over k of uₖᵢ (uₖ · r
 
 The price is that the test does not read the coefficient the regression prints. That coefficient divides by sₖ, which changes from day to day. A test on it multiplies two slopes, so it would weight each day by 1/sₖ². Nothing in the strategy weights days that way.
 
-The intercept is added to every stock’s forecast alike, so it cannot change which stocks rank highest. Dropping it leaves the program’s ranking unchanged on all 752 days t, a check made after the run. So the test does not treat it as a factor. Its own figures are −0.0395 uncentred and −0.0401 as an ordinary correlation.
+The intercept is added to every stock’s forecast alike, so it cannot change which stocks rank highest. For that reason the test does not treat it as a factor, a rule the project wrote down before it computed any factor return. A check made after the run found that dropping it leaves the program’s ranking unchanged on all 752 days t. Its own figures are −0.0395 uncentred and −0.0401 as an ordinary correlation.
 
 ## Lesson 4: four of five passing says little
 
@@ -158,7 +158,7 @@ Each verdict is **exploratory** and stands on its own. The claim holds for PC1, 
 Three measurements say how little the four passes rest on.
 
 1. **The band.** A series of returns that average zero, each one independent of the others and no more likely to be large than any other day’s, still gives a nonzero statistic over a finite sample. Over 752 pairs it lands inside ±1.96/√752 = ±0.0715 about 95 percent of the time, the same kind of band the factor models post [explains for the monthly factors](https://github.com/l3a0/quantitative-trading/blob/main/blog/factor-models-lessons.md#lesson-4-a-verdict-can-follow-the-declared-criterion-and-still-rest-on-almost-nothing). PC2’s 0.0778 is outside it. PC5’s 0.0710 is just inside, and the other three well inside.
-2. **The band and the t disagree about PC2.** The band is right only when a large return, up or down, makes a large one the next day no more likely. The Newey-West t measures how widely the products themselves scatter, and PC2’s statistic rests on two days, as Lesson 2 measured. Two products large enough to carry the statistic also widen that scatter. So PC2 clears the band and its t is only 0.8254. Those two days, 2007-08-09 and 2007-08-10, fall in the week quantitative equity funds suffered the losses Khandani and Lo (2007) studied. They land on PC2 because of PMC, a symbol with two price histories, as Lesson 5 explains. Run without PMC, the same two days fall on PC1 and hold 94.61 percent of its squared products. With PMC in the file, PMC takes the PC1 slot on both days and pushes the factor that would be PC1 without PMC into PC2’s place.
+2. **The band and the t disagree about PC2.** The band is right only when a large return, up or down, makes a large one the next day no more likely. The Newey-West t divides by a distance that comes from how widely the products themselves scatter, and PC2’s statistic rests on two days, as Lesson 2 measured. Two products large enough to carry the statistic also widen that scatter. So PC2 clears the band and its t is only 0.8254. Those two days, 2007-08-09 and 2007-08-10, fall in the week quantitative equity funds suffered the losses Khandani and Lo (2007) studied. They land on PC2 because of PMC, a symbol with two price histories, as Lesson 5 explains. Run without PMC, the same two days fall on PC1 and hold 94.61 percent of its squared products. With PMC in the file, PMC takes the PC1 slot on both days and pushes the factor that would be PC1 without PMC into PC2’s place.
 3. **A test across all five.** Testing five factors at once raises the chance that one looks significant by luck. The Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995) chooses which factors to declare significant, and it holds the expected share of false findings among them to 5 percent. Run across the five p-values, it declares none. The smallest p-value is PC5’s 0.1021, so none would pass at 5 percent even tested alone.
 
 ![Two charts. The top chart is a step curve of the 579 stocks’ statistics, from about −0.23 to about 0.14, rising from 0 to 1, with the height at each point giving the share of stocks at or below it. A shaded band covers −0.0715 to 0.0715, a dotted line marks the median stock at −0.0283, and a solid line marks zero. Five filled dots sit on the curve at the factors’ statistics, each joined by a thin line to a hollow dot for the same factor without PMC. A column of labels on the right reads PC2 0.0778 → −0.0152, PC5 0.0710 → 0.0536, PC1 0.0316 → 0.0740, PC4 0.0305 → 0.0975 and PC3 −0.0189 → 0.0139. The bottom chart shows four markers for each factor, PC1 to PC5, over the same shaded band: a hollow circle for tomorrow’s own weights with the sign rule, a grey square for sign and rank matched, a brass diamond for weights fitted without today, and a black dot for the pair the test reads. The diamonds sit next to the black dots for every factor. PC2’s hollow circle sits below the band, near −0.11. The title calls the test exploratory, and the note says the file holds only survivors and that the bottom panel was measured after the verdicts.](../docs/figures/pca_factor_momentum.png)
@@ -177,7 +177,7 @@ A return of 186.54 percent dominates any window that holds it. Every day from 20
 
 ### What the factors read without PMC
 
-Dropping PMC and running everything again moves every factor. Each day’s window keeps one stock fewer, and the comparison set holds 578 stocks rather than 579.
+Dropping PMC and running everything again moves every factor. Each day’s window keeps one stock fewer, and the comparison set holds 578 stocks rather than 579. PMC was in every day’s window and among the 579 because the fill gives it a return of zero on each day it has no close.
 
 ```math
 \small
@@ -213,7 +213,7 @@ One habit for each lesson.
 1. **Before correlating a re-estimated factor with itself, check its sign, its rank and what its weights were fitted on.** On this file the library’s signs were not even the same on two machines, and of the three fixes, only leaving today’s return out of the window moved a factor across 0, putting PC2 and PC4 above it, where the test’s own pair has them.
 2. **Pick the statistic from the sentence being tested.** “Remain constant” is about a steady value, and the uncentred correlation keeps it. Then check how many days carry the result.
 3. **Test the number the strategy actually carries forward.** Here that is the slope times the singular value, not the slope.
-4. **Read a pass against the band, and against a test across all the factors.** Four passes out of five, with the test across all five declaring none, is no evidence of momentum.
+4. **Read a pass against the band, and against a test across all the factors.** Four passes out of five, with the test across all five declaring none, is little evidence of momentum.
 5. **Look for one bad record before trusting which factor failed.** Dropping one symbol with two price histories moves the miss from PC3 to PC2.
 
 ## References
