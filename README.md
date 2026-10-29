@@ -8693,25 +8693,31 @@ Five groups of what it says are not pinned here.
    shown, the four outcomes and the wording of each, and that the plan would
    have sent both ceilings to a holdout only if one had held. Entry 48 of the
    replication log records each.
-3. Readings no test asserts: what Regulation T and portfolio margin are, that
-   a margin of 20 percent is a leverage of 5, that 5 is the highest leverage
-   the book puts a number on for stocks held overnight and its "or less"
-   leaves room for more, that a broker might not lend 5 to a long-only
-   portfolio, and that growth rises with leverage up to the Kelly leverage
-   under a bell curve, which the Kelly post derives. Also that leverage
-   multiplies the low fifth's excess return and its swings by the same L,
-   while d also subtracts the high fifth's log return and log growth gives up
-   more to volatility as leverage rises, so nothing fixes t as leverage
-   changes. Also that 80 percent of a bell curve lies above 0.8416 standard
+3. Readings no test asserts: what beta, leverage, a margin, Regulation T
+   and portfolio margin are, that the post writes returns, rates and growth
+   as fractions, that a margin of 20 percent is a leverage of 1 / 0.20, or 5,
+   that 5 is the highest leverage the book puts a number on for stocks held
+   overnight and a margin below 20 percent would mean more, that a broker
+   might not lend 5 to a long-only portfolio, what the Sharpe ratio and the
+   Kelly leverage are, and that growth rises with leverage up to the Kelly
+   leverage under a bell curve, which the Kelly post derives. Also that a
+   portfolio levered (1 + rf) / (rf − r_low) times or more loses all its
+   capital in a month when the low fifth trailed the bill rate, which solves
+   the capped return for −1, and that t is the gap divided by its standard
+   error. Also that if d were only the low fifth's excess return, leverage
+   would multiply the gap and its standard error by the same L and leave t
+   alone, while d also subtracts the high fifth's log return and log growth
+   loses more to swings as leverage rises, so t can move either way as
+   leverage changes. Also that 80 percent of a bell curve lies above 0.8416 standard
    deviations below its centre, that a second one-sided test raises the chance
    of a false gap to as much as twice as high, the general Benjamini-Hochberg
    rule, and that the corrected test needs a gap at least as large as Y, and a
    larger one unless the other ceiling also clears 5 percent. Last, that a
    higher mean leverage borrows more and so breaks even at a smaller spread,
-   that FINRA Rule 4210's maintenance margin of 25 percent calls a position
-   levered 2 after a fall of a third while Regulation T sets only the 50
-   percent needed to open it, and that a leverage of 5 at a margin of 20
-   percent leaves no cushion.
+   that a position levered 2 opens at Regulation T's 50 percent and falls to
+   FINRA Rule 4210's maintenance margin of 25 percent after a fall of a third,
+   and that a leverage of 5 starts at the 20 percent portfolio margin requires,
+   so any fall leaves it below that margin.
 4. Figures the post states in words or derives from pinned ones. The ratios
    of about 1.78 and 1.57 divide ceiling 5's gap and standard error by ceiling
    2's. The 2.5134 borrowed for each unit of capital is ceiling 5's mean
