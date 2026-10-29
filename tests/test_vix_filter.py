@@ -759,11 +759,11 @@ class TestWhatThePostMeasured:
     def test_vix_closes_above_35_before_either_window_too(self, sources) -> None:
         """So 2008-09-17 is the first close above 35 inside the windows, not in the file.
 
-        The file's first is 1990-08-06, and 100 closes before 2004-07-15 sit
-        above 35.
+        The file's first is 1990-08-06, and 100 closes before 2004-07-16,
+        FSTX's first joined day, sit above 35.
         """
         vix = sources.vix
-        before = vix.loc[: day("2004-07-14")]
+        before = vix[vix.index < day("2004-07-16")]
         assert int((before > THRESHOLD).sum()) == 100, f"{SPEC}; {AFTER_THE_RUN}"
         assert vix[vix > THRESHOLD].index[0] == day("1990-08-06"), f"{SPEC}; {AFTER_THE_RUN}"
 
@@ -986,7 +986,7 @@ class TestWhatThePostMeasured:
         rather than 190 and 185. Buy on gap held a position on one of them,
         2008-12-09, and lost, so it gives −0.026449, below its 0.085279 on
         every day. FSTX gives 0.419673, above its 0.139950 on every joined
-        day. Both of Chan's conclusions turn the other way.
+        day. Both of Chan's comparisons point the other way.
         """
         vix = sources.vix
         ratio = vix.loc[FLAGGED_DAY] / vix.loc[BEFORE_FLAG]
@@ -1020,24 +1020,33 @@ class TestWhatThePostMeasured:
     def test_vix_read_with_every_earlier_close_rescaled(self, sources, result, long_rule) -> None:
         """Every close before 2007-02-27 multiplied by 18.31 / 11.15, the other reading.
 
-        The earlier closes then run from 15.29 to 75.11, inside the later
-        closes' 11.98 to 80.86, so nothing in the file's range argues against
-        it. 23.81 on 2006-06-13 becomes 39.1 and 21.46 on 2006-06-14 becomes
-        35.2, so each rule keeps 2006-06-14 and 2006-06-15 too. Buy on gap
-        gives 0.170133 on 192 days and FSTX 0.025455 on 187, which print as
-        17.0 and 2.5, not the book's 17.2 and 2.6. Buy on gap still earns more
-        than on every day and FSTX less than on every joined day, so neither
-        of Chan's conclusions changes. Neither rule held a position on either
-        added day.
+        It is the divided reading times 18.31 / 11.15 on every day, so nothing
+        in ``VIX.csv`` can favour one over the other. Under both, the lowest
+        close after the flag sits below every earlier close by the same
+        proportion. Here the earlier closes run from 15.29 to 75.11, so the
+        lowest prints as 15.3, above 11.98 on 2007-04-16. 23.81 on 2006-06-13
+        becomes 39.1 and 21.46 on 2006-06-14 becomes 35.2, so each rule keeps
+        2006-06-14 and 2006-06-15 too. Buy on gap gives 0.170133 on 192 days
+        and FSTX 0.025455 on 187, which print as 17.0 and 2.5, not the book's
+        17.2 and 2.6. Buy on gap still earns more than on every day and FSTX
+        less than on every joined day, so neither of Chan's comparisons
+        changes direction. Neither rule held a position on either added day.
         """
         vix = sources.vix
         ratio = vix.loc[FLAGGED_DAY] / vix.loc[BEFORE_FLAG]
         after = vix.loc[FLAGGED_DAY:]
         rescaled = vix.copy()
         rescaled.loc[:BEFORE_FLAG] = vix.loc[:BEFORE_FLAG] * ratio
+        divided = vix.copy()
+        divided.loc[FLAGGED_DAY:] = after / ratio
         earlier = rescaled.loc[:BEFORE_FLAG]
         read = f"vix/vix.csv times 18.31 / 11.15 before 2007-02-27; {SPEC}; {AFTER_THE_RUN}"
+        both_reads = f"{read}, against vix/vix.csv divided by 18.31 / 11.15 from 2007-02-27 on"
+        assert np.allclose(rescaled / divided, ratio, rtol=1e-12, atol=0), both_reads
+        lows = [s.loc[FLAGGED_DAY:].min() / s.loc[:BEFORE_FLAG].min() for s in (rescaled, divided)]
+        assert lows[0] < 1 and math.isclose(*lows, rel_tol=1e-12), both_reads
         assert (round(earlier.min(), 2), round(earlier.max(), 2)) == (15.29, 75.11), read
+        assert round(earlier.min(), 1) == 15.3, read
         assert (after.min(), after.max()) == (11.98, 80.86), SPEC
         assert after.min() < earlier.min(), read
         assert earlier.max() < after.max(), read
@@ -1310,15 +1319,24 @@ class TestThePostQuotesTheRun:
                 fstx_rule.average_annual_return > result.literal.unfiltered.average_annual_return,
             )
 
+        def comparisons(flips: tuple[bool, bool]) -> str:
+            """How many of Chan's two comparisons a reading points the other way."""
+            if all(flips):
+                return "both of Chan’s comparisons would point the other way"
+            if any(flips):
+                return "one of Chan’s comparisons would point the other way"
+            return "neither of Chan’s comparisons would change direction"
+
         shrunk = vix.copy()
         shrunk.loc[flagged:] = after / ratio
+        shrunk_read = f"vix/vix.csv divided by 18.31 / 11.15 from 2007-02-27 on; {SPEC}"
+        shrunk_read = f"{shrunk_read}; {AFTER_THE_RUN}"
         shrunk_long, shrunk_fstx = both(shrunk)
-        assert shrunk_long.kept_days.equals(shrunk_fstx.kept_days), SPEC
+        assert shrunk_long.kept_days.equals(shrunk_fstx.kept_days), shrunk_read
         on_held = shrunk_long.filtered[shrunk_long.held[shrunk_long.qualifies]]
-        assert len(on_held) == 1, SPEC
-        unlikely = "unlikely but not impossible" if rescaled_low < earlier.min() else "plausible"
+        assert len(on_held) == 1, shrunk_read
         lost = "lose" if on_held[0] < 0 else "gain"
-        reversed_ = "turn the other way" if all(turned(shrunk_long, shrunk_fstx)) else "hold"
+        reversed_ = comparisons(turned(shrunk_long, shrunk_fstx))
         mirror = vix.copy()
         mirror.loc[:before] = earlier * ratio
         peak = vix.loc[day("2004-07-16") : before]
@@ -1326,9 +1344,19 @@ class TestThePostQuotesTheRun:
         mirrored, mirrored_fstx = both(mirror)
         read = f"vix/vix.csv times 18.31 / 11.15 before 2007-02-27; {SPEC}; {AFTER_THE_RUN}"
         assert list(mirrored.kept_days.difference(long.kept_days)) == added, read
-        inside = after.min() < mirror.loc[:before].min() and mirror.loc[:before].max() < after.max()
-        argues = "nothing in the file argues against" if inside else "the file argues against"
-        changed = "neither" if not any(turned(mirrored, mirrored_fstx)) else "one or both"
+        favour = (
+            "nothing in VIX’s file can favour one over the other"
+            if np.allclose(mirror / shrunk, ratio, rtol=1e-12, atol=0)
+            else "the file can tell them apart"
+        )
+        lows = [
+            series.loc[flagged:].min() / series.loc[:before].min() for series in (shrunk, mirror)
+        ]
+        sits = "below" if all(low < 1 for low in lows) else "not below"
+        same = ", by the same proportion" if math.isclose(*lows, rel_tol=1e-12) else ""
+        earlier_low = mirror.loc[:before].min()
+        side_ = "above" if earlier_low > after.min() else "below"
+        changed = comparisons(turned(mirrored, mirrored_fstx))
         frames = {field: stocks[field].copy() for field in ("Open", "Low", "Close")}
         for symbol, day_ in flags:
             prices = closes[symbol]
@@ -1337,41 +1365,49 @@ class TestThePostQuotesTheRun:
                 frame.loc[day_:, symbol] = frame.loc[day_:, symbol] / move
         side = buy_on_gap.buy_on_gap(frames["Open"], frames["Low"], frames["Close"])
         moved = "none" if np.array_equal(side.positions, long_rule.positions) else "some"
+        reach = max(buy_on_gap.SPREAD_LOOKBACK + 1, buy_on_gap.AVERAGE_LOOKBACK) + 1
+        held_flagged = "none"
+        for symbol, day_ in flags:
+            row_, column = long_rule.days.get_loc(day_), closes.columns.get_loc(symbol)
+            if (long_rule.positions[row_ : row_ + reach, column] != 0).any():
+                held_flagged = "some"
         fstx_flags = "none" if not scale_breaks(sources.fstx["Close"]) else "some"
+        below_every = "below every earlier close" if rescaled_low < earlier.min() else "above"
         for sentence in (
+            f"It catches only a day-over-day move of more than {bound:.1f} times, so a rescale "
+            f"of {bound:.1f} times or less passes it unseen.",
             f"The run applies the check to every FSTX close in the file, and it flags "
             f"{fstx_flags}.",
             f"flags one VIX day, {flagged.date()}, a move from {vix.loc[before]} to "
             f"{vix.loc[flagged]} that reads as real,",
             f"undoing it would mean rescaling the closes on one side of that day by "
             f"{vix.loc[flagged]} over {vix.loc[before]}, either the later ones or the earlier "
-            f"ones.",
+            f"ones. The two results differ by that one factor on every day, so {favour}. Under "
+            f"either, the lowest close after the flag sits {sits} every close before it{same}.",
             f"Dividing every close from {flagged.date()} on by that factor would make the lowest "
             f"close after it, {after.min()} on {after.idxmin().date()}, a true "
-            f"{rescaled_low:.1f}, below every earlier close in the file. That makes this reading "
-            f"{unlikely}. Each rule would keep {shrunk_long.kept} days rather than {long.kept} "
-            f"and {result.literal.kept}. Buy on gap would hold a position on one of them and "
-            f"{lost}, printing {_one(100 * shrunk_long.average_annual_return)} percent "
-            f"against {100 * long.unfiltered.average_annual_return:.1f} on every day, and FSTX "
-            f"would print {100 * shrunk_fstx.average_annual_return:.1f} percent against "
+            f"{rescaled_low:.1f}, {below_every} in the file. Each rule would keep "
+            f"{shrunk_long.kept} days rather than {long.kept} and {result.literal.kept}. Buy on "
+            f"gap would hold a position on one of them and {lost}. As 252 times the mean, it "
+            f"would print {_one(100 * shrunk_long.average_annual_return)} percent against "
+            f"{100 * long.unfiltered.average_annual_return:.1f} on every day, and FSTX would "
+            f"print {100 * shrunk_fstx.average_annual_return:.1f} percent against "
             f"{100 * result.literal.unfiltered.average_annual_return:.0f} on every joined day. "
-            f"Both of Chan’s conclusions would {reversed_}.",
+            f"{reversed_[0].upper()}{reversed_[1:]}.",
             f"Multiplying every close before {flagged.date()} by that factor would put the "
-            f"earlier closes inside the range of the later ones, so {argues} this reading. "
-            f"It would make {peak.max()} on {peak.idxmax().date()} a true "
+            f"lowest earlier close at {earlier_low:.1f}, {side_} {after.min()} on "
+            f"{after.idxmin().date()}. It would make {peak.max()} on {peak.idxmax().date()} a true "
             f"{mirror.loc[peak.idxmax()]:.1f} and {vix.loc[added[0]]} the next day a true "
             f"{mirror.loc[added[0]]:.1f}, which adds {added[0].date()} and {added[1].date()} "
             f"to each rule’s kept days. Buy on gap would print "
             f"{100 * mirrored.average_annual_return:.1f} percent rather than "
             f"{BOOK_BUY_ON_GAP_PERCENT}, and FSTX {100 * mirrored_fstx.average_annual_return:.1f} "
-            f"rather than {BOOK_FSTX_PERCENT}, so {changed} of Chan’s conclusions would change.",
+            f"rather than {BOOK_FSTX_PERCENT}, so {changed}.",
             f"Dividing each of those stocks’ prices from each flagged day on by the size of its "
             f"move changes {moved} of buy on gap’s positions.",
-            f"There the check catches only a move of more than {bound:.1f} times, so a rescale "
-            f"of {bound:.1f} times or less",
             f"the same check flags {len(flags)} closes in {len({s for s, _ in flags})} stocks, "
-            f"{on_kept} of them on kept days.",
-            f"Buy on gap held none of those stocks from the flagged day through the "
+            f"and {on_kept} of those closes fall on kept days.",
+            f"Buy on gap held {held_flagged} of those stocks from the flagged day through the "
             f"{buy_on_gap.SPREAD_LOOKBACK + 1} trading days after it, which covers every day "
             f"whose {buy_on_gap.SPREAD_LOOKBACK}-day standard deviation of daily returns or "
             f"{buy_on_gap.AVERAGE_LOOKBACK}-day moving average reads that close.",

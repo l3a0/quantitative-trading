@@ -11144,7 +11144,7 @@ which `TestWhatThePostMeasured` in
    `252 · mean` gives over every day but that one, so without it the kept
    days earn less than every day rather than more. FSTX's sum to 0.018889
    under the fade and −0.018889 under momentum. `VIX.csv` also closes above
-   35 on 100 days before 2004-07-15, the first on 1990-08-06, so 2008-09-17 is the first
+   35 on 100 days before 2004-07-16, the first on 1990-08-06, so 2008-09-17 is the first
    close above 35 inside either window and not in the file. Measured after
    the run, so exploratory, and it decides nothing.
 
@@ -11179,19 +11179,22 @@ A change of scale starting that day would move every later close instead,
 and the two spans leave that ratio out. Divided by 18.31 / 11.15 from that
 day on, the lowest close after it, 11.98 on 2007-04-16, would be 7.3, below
 every earlier close in the file, the lowest of which is 9.31 on 1993-12-22.
-That makes the reading unlikely but not impossible. Each rule would then
-keep the same 34 days, from 2008-10-09 to 2008-12-10, rather than 190 and
-185. Buy on gap would hold a position on one of them, 2008-12-09, and lose,
-giving −0.026449 against its 0.085279 on every day, and FSTX would give
-0.419673 against its 0.139950 on every joined day, so both of Chan's
-conclusions would turn the other way. Read the other way, with every close
-before that day too low by the same factor, the earlier closes would run
-from 15.29 to 75.11, inside the later closes' 11.98 to 80.86, so nothing in
-the file argues against it. Then 23.81 on 2006-06-13 would be 39.1 and 21.46
-on 2006-06-14 would be 35.2, so each rule would keep 2006-06-14 and
-2006-06-15 too, and buy on gap would give 0.170133 on 192 days and FSTX
-0.025455 on 187. Those print as 17.0 and 2.5 percent rather than the book's
-17.2 and 2.6, and neither of Chan's conclusions would change.
+Each rule would then keep the same 34 days, from 2008-10-09 to 2008-12-10,
+rather than 190 and 185. Buy on gap would hold a position on one of them,
+2008-12-09, and lose, giving −0.026449 against its 0.085279 on every day,
+and FSTX would give 0.419673 against its 0.139950 on every joined day, so
+both of Chan's comparisons would point the other way. Read the other way,
+with every close before that day too low by the same factor, the earlier
+closes would run from 15.29 to 75.11, so the lowest of them would be 15.3,
+above 11.98. Then 23.81 on 2006-06-13 would be 39.1 and 21.46 on 2006-06-14
+would be 35.2, so each rule would keep 2006-06-14 and 2006-06-15 too, and
+buy on gap would give 0.170133 on 192 days and FSTX 0.025455 on 187. Those
+print as 17.0 and 2.5 percent rather than the book's 17.2 and 2.6, and
+neither of Chan's comparisons would change direction. The two readings
+differ by 18.31 / 11.15 on every day, so nothing in `VIX.csv` can favour
+one over the other. Under either, the lowest close after the flag sits below
+every earlier close by the same proportion, and only a second source could
+say which level is right.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

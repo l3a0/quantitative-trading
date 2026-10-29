@@ -8821,8 +8821,8 @@ Five groups of what it says are not pinned here.
    `gapFutures_FSTX.m` loads the 2012-05-17 save, and that no script in any
    of the three public copies of Chan's code this repository has read applies
    the filter.
-3. Readings no test asserts: that the kept days earned more per day and
-   swung more for it, that the alignment found by search makes the 2.6 percent a
+3. Readings no test asserts: that the kept days earned more per day while
+   their swing grew by a larger factor, that the alignment found by search makes the 2.6 percent a
    fit rather than a test, that neighbouring days' returns can move together
    and the test then counts more independent days than the sample holds
    and gives too small a p, that a p near one half says the sample cannot
@@ -8839,13 +8839,15 @@ Five groups of what it says are not pinned here.
    [tests/test_opening_gap.py](tests/test_opening_gap.py), and
    `TestThePostQuotesTheRun` reads the post's copy against this run's
    Example 7.1 figures. The 72.2 percent is 0.722090 rounded, and that class
-   reads it as written rather than deriving it. The 52 futures series in
-   Chan's `inputDataOHLCDaily_20120517.mat` and the 1995 start of its row in
-   [data/README.md](data/README.md) are pinned in
-   [tests/test_continuous_futures.py](tests/test_continuous_futures.py).
+   reads it as written rather than deriving it.
 5. Its reference, cited rather than computed.
 
-Every other number in the post traces to an assertion in
+The 52 futures series in Chan's `inputDataOHLCDaily_20120517.mat` and their
+1995-10-20 start are pinned in
+[tests/test_continuous_futures.py](tests/test_continuous_futures.py), and
+[tests/test_vintage.py](tests/test_vintage.py) holds the file's row in
+[data/README.md](data/README.md) to them. Every other number in the post
+traces to an assertion in
 [tests/test_vix_filter.py](tests/test_vix_filter.py), to
 [tests/test_vix_filter_figures.py](tests/test_vix_filter_figures.py) for the
 figure's own numbers, or to
@@ -8863,7 +8865,7 @@ no pin before it, all measured after the run.
 3. VIX's 190 closes above 35 in 15 runs from 2004-07-16 to 2012-05-08, its
    highest close of 80.86 on 2008-11-20, and its last above 35, 36.16 on
    2011-11-09.
-4. The 100 closes above 35 in `VIX.csv` before 2004-07-15, the first on
+4. The 100 closes above 35 in `VIX.csv` before 2004-07-16, the first on
    1990-08-06.
 5. Each rule's daily returns summed over its kept days, 0.129625 for buy on
    gap and 0.018889 and −0.018889 for FSTX under the two signs.
@@ -8896,12 +8898,14 @@ no pin before it, all measured after the run.
     position on one of them, 2008-12-09, and lost, so it gives −0.026449,
     below its 0.085279 on every day, and FSTX gives 0.419673, above its
     0.139950 on every joined day.
-15. VIX multiplied by 18.31 / 11.15 before 2007-02-27, which keeps its
-    earlier closes inside the later ones' range, puts 23.81 at 39.1 and
-    21.46 on 2006-06-14 at 35.2, and adds 2006-06-14 and 2006-06-15 to each
-    rule's kept days, so buy on gap gives 0.170133 on 192 days and FSTX
-    0.025455 on 187, each on the same side of its unfiltered figure as
-    before.
+15. VIX multiplied by 18.31 / 11.15 before 2007-02-27, which is item 14's
+    series times 18.31 / 11.15 on every day, so under both the lowest close
+    after that day sits below every earlier close by the same proportion.
+    It puts the lowest earlier close at 15.29, which prints as 15.3, above
+    11.98, puts 23.81 at 39.1 and 21.46 on 2006-06-14 at 35.2, and adds
+    2006-06-14 and 2006-06-15 to each rule's kept days, so buy on gap gives
+    0.170133 on 192 days and FSTX 0.025455 on 187, each on the same side of
+    its unfiltered figure as before.
 
 `TestThePostQuotesTheRun` reads the post itself against the run, so editing a
 copy it reads fails. It reads the five tables row by row, the book's rows
