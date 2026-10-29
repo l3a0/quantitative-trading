@@ -9403,7 +9403,8 @@ PC1, PC2, PC4 and PC5 are above 0 and above the median stock. PC3 is above
 the median stock and below 0.
 
 The verdicts rest on little. PC2 alone sits outside the band a series of
-independent returns centred on zero stays inside 95 percent of the time, and
+independent returns centred on zero, each no more likely to be large than any
+other day's, stays inside 95 percent of the time, and
 no factor survives a control for false discoveries across the five. Which
 factor misses also rests on one symbol. Dropping PMC, whose two price
 histories the program joins into one day's return of 1.8654, moves PC2 below
@@ -9553,13 +9554,13 @@ columns have nothing to hold in any row and are dropped, under
 | 7 | none, not a replication | PC2 sits above 95.6822 percent of the stocks and PC3 above 55.0950 percent, so even the factor that misses is more persistent than the median stock on this file. |
 | 8 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. PC3 shows the other half: it is above the median stock and still below 0. That is a fact about this panel, and the criterion keeps both halves as declared. |
 | 9 | none, not a replication | Every share sits between 0.5000 and 0.5226. PC5's is exactly one half, which is the price rule 3 names: a few large days can carry the statistic. |
-| 10 | none, not a replication | Under a series of independent returns centred on zero, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
+| 10 | none, not a replication | Under a series of independent returns centred on zero, each no more likely to be large than any other day's, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
 | 11 | none, not a replication | The smallest p-value is PC5's 0.1021, so no factor would pass at 5 percent even tested alone, and Benjamini-Hochberg across the five rejects none. A sign flip moves no product, so it cannot move a t either. |
 | 12 | none, not a replication | The intercept is added to every stock's expected return alike, so it moves no position. Both of its figures are negative and inside row 10's band. |
 | 13 | none, not a replication | Without PMC the comparison set keeps the other 578 stocks, and the median is unchanged at four decimals. PC1 and PC4 rise, PC5 falls, PC2 falls below 0 and PC3 rises above it. |
 | 14 | none, not a replication | Every share stays between 0.5053 and 0.5199. The intercept's uncentred figure moves from −0.0395 to −0.0394, and its ordinary one stays at −0.0401. |
 | 15 | none, not a replication | Without PMC, PC1 and PC4 sit outside the band and PC2 returns inside it. Benjamini-Hochberg still rejects none, because no p-value clears its own threshold. The k-th smallest is held to k fifths of 0.05, so PC4's 0.0319, the smallest, is held to 0.01. |
-| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so this row moves no verdict. |
+| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so they stay as rows 1 to 5 give them, and this row replaces none. |
 
 ### What the entry concludes
 
@@ -9573,7 +9574,8 @@ Three things, and the first is the verdict.
 2. **The verdicts rest on little.** No factor survives a control for false
    discoveries across the five, and no p-value would pass at 5 percent even
    alone. Four of the five sit inside the band a series of independent
-   returns centred on zero stays inside 95 percent of the time. PC2 sits
+   returns centred on zero, each no more likely to be large than any other
+   day's, stays inside 95 percent of the time. PC2 sits
    outside it and still has a one-sided p-value of 0.2046.
 3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
    0 and PC3 rises above it, so the criterion would miss PC2 instead.

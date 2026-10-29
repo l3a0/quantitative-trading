@@ -672,7 +672,8 @@ class TestTheReport:
         assert out.count("Claim for") == 5
         band = (
             "  Band +/-1.96/sqrt(752) = 0.0715, where a series of independent returns centred on "
-            "zero stays inside 95 percent of the time. Decides nothing."
+            "zero, each no more likely to be large than any other day's, stays inside 95 percent "
+            "of the time. Decides nothing."
         )
         assert lines.count(band) == 2, "once with PMC and once without"
         for line in (
@@ -979,10 +980,13 @@ class TestWhatThePostQuotes:
             f"holds the {closes.shape[1]} members of the S&P 600 as he saved them on {saved}, "
             f"with {len(closes):,} trading days of closes from {closes.index[0].date()} to "
             f"{closes.index[-1].date()}.",
-            f"It takes the {LOOKBACK} daily returns ending the day before",
+            f"It takes the {LOOKBACK} daily returns ending the day before, t − 1, for every stock "
+            "priced on all of them.",
             f"finds the window’s {WORDS[FACTORS]} largest principal components.",
             f"These {WORDS[FACTORS]} components are the strategy’s {WORDS[FACTORS]} statistical "
             f"factors, {NAMES[0]} to {NAMES[-1]},",
+            "each stock’s fitted value is its forecast for day t + 1, and the program ranks the "
+            "stocks on that forecast.",
             f"The first day with a full window is {days[0].date()}. Every day from then to the "
             f"second-to-last row has a next day, which gives {c.pairs} days t.",
             "when its statistic is above 0 and above the median stock’s.",

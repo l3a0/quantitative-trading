@@ -207,8 +207,9 @@ class TestTheWords:
         assert drawn["label-median"].get_text() == "median stock −0.0283"
         assert drawn["label-median"].xy[0] == results.spliced.comparison.median
         assert drawn["label-band"].get_text() == (
-            "±0.0715, where a series\nof independent returns\n"
-            "centred on zero lands\n95 percent of the time"
+            "±0.0715, where a series of\nindependent returns centred\n"
+            "on zero, each no more likely\nto be large than any other,\n"
+            "lands 95 percent of the time"
         )
         assert drawn["label-band"].xy[0] == results.spliced.comparison.band
 
