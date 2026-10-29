@@ -9445,7 +9445,9 @@ and seven of the issue's rules, each as the issue fixed it.
    holds that on three of the file's days. The price is that f is not the
    coefficient the program's regression returns. That coefficient would
    weight each day by 1/s_k², and nothing in the strategy weights days that
-   way.
+   way. The intercept is not a factor. It is added to every stock's expected
+   return alike, so it moves no position, which the issue's rule 6 fixed
+   with the others.
 3. **The statistic.** For each factor, the uncentred correlation of its
    pairs: the sum of f_t f_{t+1}, over the square root of the sum of f_t²
    times the sum of f_{t+1}². It is the ordinary correlation without
@@ -9546,7 +9548,7 @@ columns have nothing to hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | The claim holds for PC1, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's, under the criterion declared on the issue before any factor return was computed. It sits at 0.0316, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
-| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return, up or down, makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t measures that scatter. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
+| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return, up or down, makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t divides by a distance that comes from that scatter, which keeps it small. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
 | 3 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for PC3. Its −0.0189 is above the median stock's −0.0283 and below 0. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 to 5. The value is forced, because the log's two other verdicts both need the claim to survive. It sits inside row 10's band, so this miss could be noise as much as row 1's pass could. Without PMC its statistic rises to 0.0139, above both, and PC2 misses in its place under row 16, so which factor misses rests on one symbol. Two more causes outside the method are open and neither is measured: the file holds only survivors, and 2005 to 2008 is one window. |
 | 4 | reproduced | The claim holds for PC4, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0305, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
 | 5 | reproduced | The claim holds for PC5, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0710, just inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. Its pairs share a sign exactly as often as not, under row 9, so the positive statistic comes from its larger pairs agreeing in sign. |

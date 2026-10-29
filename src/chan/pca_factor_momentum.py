@@ -257,7 +257,7 @@ class Comparison:
 
     @property
     def band(self) -> float:
-        """±1.96/√n, where independent returns centred on zero land 95 percent of the time.
+        """±1.96/√n, where the statistic of independent zero-mean returns lands 95% of the time.
 
         That holds only when each return is no more likely to be large than any other day's.
         """
