@@ -1193,7 +1193,7 @@ class TestThePostQuotesTheRun:
         assert (
             f"The nearest closes are {above.min()} on {above.idxmin().date()}, just above, and "
             f"{below.max()} on {below.idxmax().date()}, just below. The {above.min()} falls "
-            f"inside the dates both rules cover, and the nearest close below inside them is "
+            f"inside the dates both rules cover. Inside those dates, the nearest close below 35 is "
             f"{near.max()} on {near.idxmax().date()}."
         ) in self.text
 
