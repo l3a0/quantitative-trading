@@ -111,7 +111,7 @@ Y & 0.2168 & 0.3407
 
 Each gap is rounded from its own unrounded value, so it can differ in the last digit from the difference of the two rounded growth figures. The one-sided p-value is the chance of a gap at least this large if the true gap were zero, and Lesson 4 uses it.
 
-A lead of 0.0934 a year sounds large. Whether it means anything depends on its standard error. The Newey-West standard error of the yearly gap is 0.0872 at a ceiling of 2 and 0.1370 at 5. A one-sided 5 percent test calls a gap real when it sits at least 1.645 standard errors above zero, which puts the line at 0.1434 at a ceiling of 2 and 0.2254 at 5. Both point estimates fall short of their line. Since t is the gap divided by its standard error, that is what a t below 1.645 means.
+A lead of 0.0934 a year sounds large. Whether it means anything depends on its standard error. The Newey-West standard error of the yearly gap is 0.0872 at a ceiling of 2 and 0.1370 at 5. If the true gap were zero, the measured gap would scatter around zero in a bell curve whose standard deviation is the standard error. Only 5 percent of a bell curve lies more than 1.645 standard deviations above its centre. So a one-sided 5 percent test calls a gap real when it sits at least 1.645 standard errors above zero. That puts the line at 0.1434 at a ceiling of 2 and 0.2254 at 5. Both point estimates fall short of their line. Since t is the gap divided by its standard error, that is what a t below 1.645 means.
 
 ### The gap the test could have found
 

@@ -1441,8 +1441,10 @@ and the bisection's limit on halvings, which ends the search where the floats
 lie too far apart for its tolerance. It holds what the write-up
 measured after the run too: each ceiling's yearly standard error and 5
 percent line, that each point estimate falls short of its line and under half
-of its Y, June 2001's capped return at each ceiling, and the smallest leverage
-that would ruin any of the 83 months. It also checks the two functions that
+of its Y, June 2001's capped return at each ceiling, the smallest leverage
+that would ruin any of the 83 months, and the 36 of the 83 holding months in
+which WYN, DFS or SE put an earlier company's prices into one of the two
+fifths. It also checks the two functions that
 compute the standard error and the line against a statistic set by hand. The
 blog post about it is the exception, and what it says that nothing here
 asserts is listed below.
@@ -8705,16 +8707,18 @@ Five groups of what it says are not pinned here.
    portfolio levered (1 + rf) / (rf − r_low) times or more loses all its
    capital in a month when the low fifth trailed the bill rate, which solves
    the capped return for −1, and that t is the gap divided by its standard
-   error. Also that if d were only the low fifth's excess return and the
-   leverage one number in every month, leverage would multiply the gap and its
+   error. Also that 5 percent of a bell curve lies more than 1.645 standard
+   deviations above its centre and 80 percent lies above the point 0.8416
+   below it. Also that if d were only the levered low fifth's excess return,
+   L × (r_low − rf), and L one number in every month, leverage would multiply the gap and its
    standard error by the same L and leave t alone, while d also subtracts the
    high fifth's log return, log growth loses more to swings as leverage rises,
    and at a ceiling of 5 the leverage changes from month to month, so t can
    move either way as leverage changes. Also that a second one-sided test
    raises the chance of a false gap to as much as twice as high, the general
-   Benjamini-Hochberg rule, and that the corrected test needs a gap at least
-   as large as Y, and a
-   larger one unless the other ceiling also clears 5 percent. Last, that a
+   Benjamini-Hochberg rule, and that the corrected test needs a true gap at
+   least as large as Y, and a larger one unless the other ceiling's p-value
+   also clears 0.05, because its own must then clear 0.025. Last, that a
    higher mean leverage borrows more and so breaks even at a smaller spread,
    that a position levered 2 opens at Regulation T's 50 percent and that its
    margin falls to FINRA Rule 4210's maintenance margin of 25 percent after a
@@ -8742,13 +8746,16 @@ for the figure's own numbers, or to
 [tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
 for the sketch's. `TestWhatThePostMeasured` holds the ones that had no pin
 before it, all measured after the run. `TestThePostQuotesTheRun` reads the
-post itself. Three of its tests read one copy of each of those figures in the
+post itself. Four of its tests read one copy of each of those figures in the
 place it sits, along with the holding calendar, the Newey-West lag of three
 months and the ratios of about 1.78, 1.57 and 2.51 that divide ceiling 5's
-gap, standard error and borrowing by ceiling 2's. A fourth holds that every
-four-decimal figure in the post, every copy, is one the run computes, so a
-typo in any copy, or a re-pin that leaves the post behind, fails a test. That
-fourth test does not check where a figure sits, and it reads no copy written
+gap, standard error and borrowing by ceiling 2's. The fourth of them reads the
+dates: the file's last day and first month, the years its earlier companies'
+prices end, Entry 45's two ruined months, and the first and last of the eight
+sorts whose returns Entry 45 had shown. A fifth holds that every four-decimal
+figure in the post, every copy, is one the run computes, so a typo in any
+copy, or a re-pin that leaves the post behind, fails a test. That fifth test
+does not check where a figure sits, and it reads no copy written
 with fewer decimals. It also accepts 0.8416 and 0.0975, the two four-decimal
 figures that come from no run.
 

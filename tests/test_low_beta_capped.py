@@ -418,8 +418,11 @@ class TestThePostQuotesTheRun:
     failed. Each assertion formats the run's own value at the post's precision,
     so a re-pin that leaves the post behind fails here too.
 
-    The first three tests read one copy of each figure in the place it sits,
-    so they also catch a figure moved to another figure's place. The last
+    The first four tests read one copy of each figure in the place it sits,
+    so they also catch a figure moved to another figure's place. The fourth
+    reads the dates: the file's last day and first month, the years its
+    earlier companies' prices end, Entry 45's two ruined months, and the first
+    and last of the eight sorts whose returns Entry 45 had shown. The last
     reads every four-decimal figure in the post, every copy, and holds that
     each is one the run computes. That covers the subtitle, the lessons' list,
     the trader's habits and both alt texts. It does not hold where a figure
@@ -511,6 +514,24 @@ class TestThePostQuotesTheRun:
             f"Across all {len(needed)} months the smallest is {needed.min():.4f}, for "
             f"{needed.idxmin():%B %Y}, "
             f"when the low fifth returned {minus(float(portfolios.low.min()))}, its worst month",
+        ]
+        assert [f for f in fragments if f not in self.text] == [], SPEC
+
+    def test_the_dates(self, sources, portfolios: Portfolios) -> None:
+        """The dates the post takes from the file and from Entry 45's run."""
+        _, closes, _, _, _, _ = sources
+        ruins = ruined_months(portfolios)
+        assert len(ruins) == 2, SPEC
+        assert EARLIER_COMPANIES["DFS"][0].year == EARLIER_COMPANIES["SE"][0].year
+        fragments = [
+            f"in the S&P 500 on {closes.index[-1].date()}, with their prices back to "
+            f"{closes.index[0]:%B %Y}",
+            f"up to {EARLIER_COMPANIES['WYN'][0].year} for WYN and "
+            f"{EARLIER_COMPANIES['DFS'][0].year} for the other two",
+            f"lost more than its capital in {ruins[0].held_to:%B %Y}](",
+            f"for [{ruins[0].held_to:%B} and {ruins[1].held_to:%B %Y}](",
+            f"for the eight months held after the sorts from {portfolios.formed[0].date()} to "
+            f"{portfolios.formed[7].date()}",
         ]
         assert [f for f in fragments if f not in self.text] == [], SPEC
 
