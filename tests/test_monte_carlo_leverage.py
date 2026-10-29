@@ -43,6 +43,8 @@ change to any of them moves that post too. ``TestWhatThePostMeasured`` holds
 the numbers the post added, all measured after the run.
 ``TestWhatThePostSays`` reads one copy of each figure from the post itself
 and checks it against the run, so a typo in the post fails a test.
+``TestThePostsVerdicts`` derives each verdict the post states and reads the
+sentence, so a post that reverses a conclusion fails a test too.
 ``TestThePostsHelpers`` holds the helpers the post's figure shares with the
 run. ``tests/test_monte_carlo_leverage_figures.py`` holds what the figure
 draws, including the growth rates and the drawdown days the post quotes.
@@ -95,12 +97,14 @@ from chan.monte_carlo_leverage import (
     SEED,
     SHARPE_BAND,
     SIMILAR_WITHIN,
+    SIMULATED_ROWS,
     XATOL,
     Band,
     D,
     Ensemble,
     MonteCarloLeverage,
     account_drawdowns,
+    claim_verdict,
     cppi_as_described,
     cppi_as_described_loop,
     cppi_as_scripted,
@@ -1282,6 +1286,153 @@ class TestWhatThePostSays:
             f"The loop’s shortfall stays under {100 * SIMILAR_WITHIN:.0f} percent on all "
             f"{len(result.ensemble.runs)} seeds."
         ) in self.text
+
+
+class TestThePostsVerdicts:
+    """Each verdict ``blog/monte-carlo-leverage-lessons.md`` states, derived from the run.
+
+    The class above reads the post's numbers, and none of its tests reads a
+    verdict word, so a post that reversed every conclusion still passed it. The
+    PR review's mutation lens flipped 18 verdicts and counts, such as "Neither
+    figure reproduced" to "Both", and none failed a test. Each test here derives
+    the verdict with the functions :func:`rows` uses, then reads the sentence.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_lesson_1_s_two_figures_miss_and_agree(self, result) -> None:
+        assert not matches(result.kelly, BOOK_KELLY)
+        assert not matches(result.historical, BOOK_HISTORICAL)
+        assert BOOK_KELLY == BOOK_HISTORICAL
+        assert (
+            f"They give a Kelly of {result.kelly:.6f} and a historical optimum of "
+            f"{result.historical:.6f}, where the book prints {BOOK_KELLY} for both."
+        ) in self.text
+        assert "Neither figure reproduced. The gap is the computed figure" in self.text
+        assert f"`AUDCAD_unequal.m` prints the same {result.kelly:.6f} for them" in self.text
+        assert abs(result.historical / result.kelly - 1) < EQUAL_WITHIN
+        assert (
+            f"So on this file the two methods agree, as Chan says, at about {result.kelly:.1f} "
+            f"rather than {BOOK_KELLY}."
+        ) in self.text
+        assert f"Chan’s saved returns give a Kelly of {result.kelly:.1f}, not {BOOK_KELLY}" in (
+            self.text
+        )
+
+    def test_lesson_3_s_optima_under_each_rule(self, result) -> None:
+        books = (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM)
+        declared, chosen = result.ensemble.band("uncapped"), optimum_band(result.ensemble)
+        seeded = result.declared.uncapped
+        assert [simulated_verdict(seeded, p, declared.holds(float(p))) for p in books] == [
+            "reproduced with a gap, the seed"
+        ] * 2
+        assert [simulated_verdict(seeded, p, chosen.holds(float(p))) for p in books] == [
+            "did not reproduce"
+        ] * 2
+        assert (
+            f"Under the rule chosen afterwards, the book’s {books[0]} and {books[1]} did not "
+            "reproduce. Under the declared rule they reproduced with a gap, and the seed was "
+            "the cause."
+        ) in self.text
+        assert (
+            "Both of the book’s optima land in the declared band, and neither lands in the band "
+            "chosen afterwards."
+        ) in self.text
+        shifted = (result.shifted.band("uncapped"), optimum_band(result.shifted))
+        assert all(found.holds(float(p)) for found in shifted for p in books)
+        assert (
+            f"Under the draws moved to a Kelly of {BOOK_KELLY}, both figures land under both rules"
+        ) in self.text
+
+    def test_the_summary_s_counts_of_seeds(self, result) -> None:
+        runs = result.ensemble.runs
+        on_cap = sum(run.on_the_cap for run in runs)
+        kept = result.ensemble.ruin_above(float(BOOK_RUIN))
+        chosen = optimum_band(result.ensemble)
+        assert all(run.minimum >= float(BOOK_MINIMUM) for run in kept.runs)
+        assert not any(chosen.holds(float(p)) for p in (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM))
+        assert f"it returns the cap itself {on_cap} times." in self.text
+        assert (
+            f"keeps only the {len(kept.runs)} runs whose least draw is no deeper than the book’s "
+            f"{signed(float(BOOK_MINIMUM), 4)}, and neither falls inside the middle "
+            f"{BAND[1] - BAND[0]:.0f} percent of their optima."
+        ) in self.text
+
+    def test_lesson_4_s_least_draw_lands_and_ruins_at_the_kelly(self, result) -> None:
+        seeded = result.declared
+        ruin_chance = minimum_below(result.params, -1 / float(BOOK_RUIN))
+        assert lands_in_exact_distribution(result.minimum_at_or_below_book)
+        assert lands_in_exact_distribution(ruin_chance)
+        assert simulated_verdict(seeded.minimum, BOOK_MINIMUM, True) == (
+            "reproduced with a gap, the seed"
+        )
+        assert simulated_verdict(seeded.ruin, BOOK_RUIN, True) == "reproduced with a gap, the seed"
+        assert (
+            f"so the book’s figure lands. Its ruin leverage of {BOOK_RUIN} lands too" in self.text
+        )
+        assert "so both reproduced with a gap and the seed is the cause." in self.text
+        assert seeded.ruin < result.kelly
+        assert (
+            f"The declared seed’s ruin leverage is below the Kelly of {result.kelly:.6f}, so at "
+            "the Kelly one draw on that seed loses everything."
+        ) in self.text
+
+    def test_lesson_5_s_two_claims_and_their_price(self, result) -> None:
+        runs = result.ensemble.runs
+        assert claim_verdict(all(run.described_drawdown > -D for run in runs)) == "reproduced"
+        assert claim_verdict(all(run.cppi_drawdown > -D for run in runs)) == "did not reproduce"
+        assert (
+            "So the claim about the scheme the text describes reproduced, and the claim about "
+            "the code the book prints did not."
+        ) in self.text
+        seeded = result.declared
+        scheme_gap = 1 - seeded.described_growth / seeded.full_growth
+        assert seeded.growth_gap < SIMILAR_WITHIN < scheme_gap
+        assert seeded.cppi_drawdown < -D < seeded.described_drawdown
+        assert (
+            "So the loop keeps the book’s small cost and breaks its floor, while the scheme "
+            "keeps the floor at the larger cost."
+        ) in self.text
+
+    def test_lesson_6_s_six_figures_and_the_shift(self, result) -> None:
+        seeded, ens = result.declared, result.ensemble
+        verdicts = {
+            name: simulated_verdict(
+                getattr(seeded, name), printed, ens.band(name).holds(float(printed))
+            )
+            for _, name, _, printed in SIMULATED_ROWS
+        }
+        missed = ("drawdown_half", "drawdown_seventh", "cppi_growth", "full_growth")
+        assert verdicts == {
+            "drawdown_optimum": "reproduced with a gap, the seed",
+            **dict.fromkeys(missed, "did not reproduce"),
+            "full_drawdown": "reproduced",
+        }
+        assert all(float(p) < ens.band(n).low for _, n, _, p in SIMULATED_ROWS if n in missed)
+        words = {4: "Four", 6: "six"}
+        assert (
+            f"**{words[len(missed)]} of the book’s {words[len(verdicts)]} drawdowns and growth "
+            f"rates fall outside the middle {BAND[1] - BAND[0]:.0f} percent"
+        ) in self.text
+        assert (
+            "The drawdown at the optimum lands, and the declared seed’s value does not round to "
+            "the book’s, so it reproduced with a gap."
+        ) in self.text
+        assert (
+            "deeper in the book than anywhere in their bands, and both of the book’s growth "
+            "rates sit below theirs, so those four did not reproduce."
+        ) in self.text
+        assert f"The full account’s {signed(float(BOOK_FULL_DRAWDOWN), 1)} reproduced" in self.text
+        assert (
+            f"The {signed(float(BOOK_FULL_DRAWDOWN), 1)} lies inside its band, and it reproduced"
+        ) in self.text
+
+        landings = shifted_landings(result)
+        assert all(lands for number, _, _, lands in landings if number == "3")
+        misses = [printed for number, printed, _, lands in landings if not lands]
+        assert misses == [BOOK_DRAWDOWN_HALF]
+        assert "Only the drawdown at half the optimum still misses." in self.text
+        assert "moves all but the drawdown at half the optimum into their bands" in self.text
 
 
 class TestThePostsHelpers:

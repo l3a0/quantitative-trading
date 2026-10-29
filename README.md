@@ -8139,9 +8139,8 @@ Five groups of what it says are not pinned here.
    figures, and that a picture built around one band rule would look like an
    endorsement of that rule.
 4. Figures the post rounds or states in words from pinned ones that no test
-   reads from the post: 23.8, the 5.4 by which the book's 18.4 sits below the
-   saved returns in the closing habits, four of the book's six drawdowns and
-   growth rates outside their bands, and one decimal covering −0.95 to −0.85.
+   reads from the post: the 5.4 by which the book's 18.4 sits below the saved
+   returns in the closing habits, and one decimal covering −0.95 to −0.85.
    The growth rates pinned at six significant
    figures are quoted at six decimals. The figure's alt text reads its curves
    approximately too, such as a peak of about 0.0048 near 22.3 and a band
@@ -8158,9 +8157,12 @@ each figure the post takes from the run, its five tables by row label and its
 prose by the words around each number, and fails when that copy drifts from
 the run by any digit. An optimum, a band of optima or a table cell computed at
 an optimum fails only past 1.5e-6. A second copy of the same figure elsewhere
-in the post is not always read, and neither is the figure's alt text. The
-sketches' file also holds the reading that the account at the script's f
-moves about ten times the unlevered returns, so the loop barely cuts its
+in the post is not always read, and neither is the figure's alt text.
+`TestThePostsVerdicts` derives each verdict the post states from the run, such
+as which of the book's figures reproduced and which land in their bands, and
+reads the sentence that states it. The sketches' file also holds the reading
+that the account at the script's f moves about ten times the unlevered
+returns, so the loop barely cuts its
 leverage while the account falls. Its leverage on the account is f·D = 10 at
 the account's high on day 169 and stays above 9.45 to day 303, when the
 account is first below −0.5. It is still 8.34 on day 37,071, when the account
