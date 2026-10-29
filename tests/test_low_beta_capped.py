@@ -474,6 +474,9 @@ class TestThePostQuotesTheRun:
 
     def test_the_prose_figures(self, outcomes, portfolios: Portfolios) -> None:
         two, five = outcomes[2.0].capped, outcomes[5.0].capped
+        assert all(
+            0 < c.gap < five_percent_line(c) and 2 * c.gap < c.detectable for c in (two, five)
+        ), SPEC
         worst = two.worst()
         se_two, se_five = yearly_standard_error(two), yearly_standard_error(five)
         words = ("no", "one", "two", "three", "four", "five", "six")
@@ -491,6 +494,9 @@ class TestThePostQuotesTheRun:
             f"and {se_five:.4f} at 5",
             f"puts the 5 percent line at {five_percent_line(two):.4f} at a ceiling of 2 and "
             f"{five_percent_line(five):.4f} at 5",
+            "Both point estimates fall short of their line.",
+            "Each point estimate is under half of its own Y.",
+            "each point estimate was under half of its Y",
             outcomes[2.0].line(),
             f"the gap rose from {two.gap:.4f} to {five.gap:.4f}, about "
             f"{five.gap / two.gap:.2f} times",

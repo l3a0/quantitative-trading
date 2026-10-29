@@ -8751,23 +8751,24 @@ Every other number in the post traces to an assertion in
 for the figure's own numbers, or to
 [tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
 for the sketch's. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run. `TestThePostQuotesTheRun` reads the
-post itself. Four of its tests read one copy of each of those figures in the
-place it sits, along with the holding calendar, the Newey-West lag of three
-months and the ratios of about 1.78, 1.57 and 2.51 that divide ceiling 5's
-gap, standard error and borrowing by ceiling 2's. The fourth of them reads the
+before it, all measured after the run. `TestThePostQuotesTheRun` reads the post
+itself. Four of its tests read one copy of each of those figures in the place
+it sits, along with the holding calendar, the Newey-West lag of three months
+and the ratios of about 1.78, 1.57 and 2.51 that divide ceiling 5's gap,
+standard error and borrowing by ceiling 2's. The fourth of them reads the
 dates: the file's last day and first month, the years its earlier companies'
 prices end, Entry 45's two ruined months, and the first and last of the eight
-sorts whose returns Entry 45 had shown. A fifth reads every figure in the
-post written with a decimal point, every copy. It holds that each is one the
-run computes or one of a few constants the test names. So a copy that matches
-none of them fails a test. That includes a copy that gains or drops a digit,
-and a copy that a re-pin leaves behind. That fifth test does not check where a
-figure sits, and it reads no figure written as a whole number or in words. The
-constants it accepts come from no run. They are 0.8416 and 1.645 on the bell
-curve, 0.05 with its half, 0.025, and 1 minus it, 0.95, the 0.0975 that is
-1 − 0.95², the margin of 0.20, Lesson 4's example p-value of 0.04, and the
-chart's outer tick labels, −0.4 and 0.8.
+sorts whose returns Entry 45 had shown. No test reads a second copy of a date,
+such as the subtitle's June 2001 or the July 2002 in the trader's second habit.
+A fifth reads every figure in the post written with a decimal point, every
+copy. It holds that each is one the run computes or one of a few constants the
+test names. So a copy that matches none of them fails a test. That includes a
+copy that gains or drops a digit, and a copy that a re-pin leaves behind. That
+fifth test does not check where a figure sits, and it reads no figure written
+as a whole number or in words. The constants it accepts come from no run. They
+are 0.8416 and 1.645 on the bell curve, 0.05 with its half, 0.025, and 1 minus
+it, 0.95, the 0.0975 that is 1 − 0.95², the margin of 0.20, Lesson 4's example
+p-value of 0.04, and the chart's outer tick labels, −0.4 and 0.8.
 
 1. The yearly standard error of the gap, 0.0872 at a ceiling of 2 and 0.1370
    at 5, and the one-sided 5 percent line at 1.645 times it, 0.1434 and
@@ -8799,12 +8800,14 @@ uv run python -m chan.low_beta_capped_figures
 
 [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
-regime map. It also holds where each label's rule points, and that each
-label's text sits inside its panel, clear of the other labels, the legend and
-every line. Each panel's heading clears the title or the tick labels above it,
-and the gap axis's label clears the note below it. It also holds that the
-post's alt text for the chart quotes the top panel's legend, its three labels
-and the figure's title word for word, in the order the chart draws them.
+regime map. It also holds where each label's rule points, and that each label's
+text sits inside its panel, clear of the other labels, the legend and every
+line. Each panel's heading clears the title or the tick labels above it, and
+the gap axis's label clears the note below it. It also holds that the post's
+alt text for the chart quotes the top panel's legend, its three labels and the
+figure's title word for word, in the order the alt text walks through the
+chart: the grey curve, the dashed line, the black curve, its shaded part, the
+diamond, then the title.
 
 The post also carries one looping whiteboard sketch in Lesson 5, drawn by
 [src/chan/capped_low_beta_whiteboard.py](src/chan/capped_low_beta_whiteboard.py)

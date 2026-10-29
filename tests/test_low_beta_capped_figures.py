@@ -450,7 +450,7 @@ class TestTheLabels:
 
 
 class TestThePost:
-    def test_the_alt_text_quotes_ceiling_2s_labels_and_the_title_in_drawing_order(
+    def test_the_alt_text_quotes_ceiling_2s_labels_and_the_title_in_order(
         self, figure, axes
     ) -> None:
         """The alt text quotes the top panel's legend and labels and the figure's
