@@ -1174,8 +1174,8 @@ and every figure the two findings quote: the slope's median, mean, share above
 grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
 planted break in either is refused. `TestWhatThePostQuotes` reads one copy in
-the post of each run figure the post quotes, and the alt text's exact figures,
-so editing a copy it reads fails. What the post says that nothing here asserts
+the post of each run figure the post quotes, and the chart's alt text's exact
+figures, so editing a copy it reads fails. What the post says that nothing here asserts
 is listed below.
 
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) does it for TU's
@@ -5443,8 +5443,9 @@ Six groups of what it says are not pinned here.
    started from the whole-file intercept would show how much of the rise the
    zero start explains. `TestTheGain` measures what the post says the gain
    does on this file after the first day, but not those words.
-4. The figure's alt text, whose readings of the lines, such as "about 1.4"
-   and "about 2 by the start of September 2008", are approximate by design.
+4. The alt texts' readings of the lines and scales, such as "about 1.4",
+   "about 2 by the start of September 2008" and the zero-start sketch's
+   "about 23", are approximate by design.
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states several figures more than once, in a lesson, a table or the alt
    text, and a typo in a copy the class does not read passes.

@@ -3,12 +3,14 @@
 The script is ``KF_beta_EWA_EWC.m``, at Kindle locations 1633 to 1726.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the findings beside it, with one exception, in
-``blog/kalman-hedge-lessons.md``. The post's figure has its own pins in
-``tests/test_kalman_hedge_figures.py``. ``TestWhatThePostQuotes`` reads one
-copy in the post of each run figure it quotes against the run. README lists
-what the post says that nothing pins. ``docs/replication-log.md`` Entry 32 carries the verdicts and
-points here row by row.
+about this replication and the findings beside it, with two exceptions,
+both in ``blog/kalman-hedge-lessons.md``. The post's figure has its own pins
+in ``tests/test_kalman_hedge_figures.py``. Its two sketches' figures, the day
+of 2007-05-15 among them, have theirs in
+``tests/test_kalman_hedge_whiteboard.py``. ``TestWhatThePostQuotes`` reads
+one copy in the post of each run figure it quotes against the run. README
+lists what the post says that nothing pins. ``docs/replication-log.md``
+Entry 32 carries the verdicts and points here row by row.
 
 Every pin reads one vintage and one specification, so both are stated once
 here and carried in every figure's failure message as :data:`SPEC`.
@@ -50,6 +52,7 @@ from contextlib import redirect_stdout
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.timeseries import ols
 
 from chan import kalman_hedge as module
 from chan import paths
@@ -550,10 +553,14 @@ class TestWhatThePostQuotes:
     2. **Lesson 2.** Row 1's 22.95 and 0.031623 are read where row 1 is worked
        and in the sentence that compares them. Row 2's 22.78 is read where
        row 2 is worked, and its 1.366666 there and in Lesson 3's count of
-       crossings.
+       crossings. Both closes are read again where the first return is
+       worked.
     3. **Lesson 3.** The 57 of 1,250 and the 513 of 1,499 are read in the
        prose and in the grain table. The intercept's last value, 6.767360, is
-       read where the intercept peaks.
+       read where the intercept peaks. The whole-file regression's 0.9624 and
+       6.4113 are rebuilt from the closes as ``tests/test_etf_cointegration.py``
+       builds them, and read in Lesson 3's prose and in the section on what
+       this replication cannot say.
     4. **Lesson 4.** The constants 0.0001 and 0.001 are read in Lesson 4's
        first reason.
 
@@ -564,9 +571,8 @@ class TestWhatThePostQuotes:
     The copies left unread include the book's 26.2 percent and 2.4 in
     Lesson 1's prose, the 6.767360 in the paragraph on the whole-file
     regression, the 1,500 days in the caption, and the 0.0001 and 0.001 in
-    the section on the constants. The whole-file
-    regression's 0.9624 and 6.4113 are ``tests/test_etf_cointegration.py``'s,
-    and the earlier post's 20 days are ``tests/test_price_spread.py``'s.
+    the section on the constants. The earlier post's 20 days are
+    ``tests/test_price_spread.py``'s.
     Nothing checks Chan's words against their source, the page numbers or the
     references, and ``README.md`` lists them.
     """
@@ -612,7 +618,7 @@ class TestWhatThePostQuotes:
         ]
         assert not_found_once(text, fragments) == []
         table = [
-            ["Figure", "APR", "Sharpe ratio"],
+            ["Source", "APR", "Sharpe ratio"],
             ["Computed", f"{apr:.8f}", f"{sharpe:.8f}"],
             ["Script's comment", SCRIPT_APR, SCRIPT_SHARPE],
             ["Book", BOOK_APR_PERCENT, BOOK_SHARPE],
@@ -668,8 +674,10 @@ class TestWhatThePostQuotes:
         ]
         assert tables(text)[1] in either_way(table)
 
-    def test_lesson_3(self, result, found, text) -> None:
+    def test_lesson_3(self, closes, result, found, text) -> None:
         slope = result.filter.slope
+        x, y = closes[X].to_numpy(dtype=float), closes[Y].to_numpy(dtype=float)
+        whole_slope, whole_intercept = ols(y, np.column_stack([x, np.ones(len(x))])).beta
         s = slope_findings(slope)
         longer = rolling_falls(result.filter.intercept, LONGER)
         longest = rolling_falls(result.filter.intercept, LONGEST)
@@ -693,6 +701,8 @@ class TestWhatThePostQuotes:
             f"It crosses 1 a total of {s.crossings} times.",
             f"jumps from its zero start to {slope[1]:.6f}, so "
             f"{slope_findings(slope[1:]).crossings} crossings remain",
+            f"found a slope of {whole_slope:.4f} and an intercept of {whole_intercept:.4f}.",
+            f"The single regression over the whole file puts it at {whole_intercept:.4f}.",
         ]
         assert not_found_once(text, fragments) == []
         yearly = [["Year", "Mean intercept"]] + [

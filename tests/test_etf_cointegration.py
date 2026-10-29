@@ -17,7 +17,8 @@ by row.
 rebuilds each figure the post quotes from the run, at the post's precision,
 and fails when the post no longer says it. So a re-pin that leaves that post
 behind fails here rather than going stale. The Kalman post gets the same check
-in ``tests/test_kalman_hedge.py``, and the USD.CAD post gets none.
+in ``tests/test_kalman_hedge.py``, which also reads its copies of 0.9624 and
+6.4113, and the USD.CAD post gets none.
 
 Every pin on the committed file reads one vintage and one specification, so
 both are stated once here.

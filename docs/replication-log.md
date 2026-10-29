@@ -7510,10 +7510,10 @@ Three things.
    the signal on the first two days moves the APR from 0.262252 to 0.260669
    and the Sharpe ratio from 2.361162 to 2.349460, which round to 26.1 percent
    and 2.3 rather than the book's 26.2 and 2.4.
-3. **The intercept's yearly means rise every year, and the intercept falls at every finer grain.** The yearly means
-   rise every year, from 0.1440 in 2006 to 6.7748 in 2012. At a quarter, a
-   month, a 250-day window and a day, it falls, and 513 of its 1,499 daily
-   steps go down. Whether that is "monotonically" depends on the grain, which
+3. **The intercept's yearly means rise every year, and the intercept falls at
+   every finer grain.** The means go from 0.1440 in 2006 to 6.7748 in 2012. At
+   a quarter, a month, a 250-day window and a day, it falls, and 513 of its
+   1,499 daily steps go down. Whether that is "monotonically" depends on the grain, which
    is why row 4 reports the grains rather than choosing one. The slope sits
    above 1 on 59.6 percent of days, with a median of 1.047367 and a mean of
    1.089693.
