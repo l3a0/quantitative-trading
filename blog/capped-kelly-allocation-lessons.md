@@ -84,7 +84,7 @@ g \text{, all on } F_2 & 0.955 & 0.96
 
 Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
 
-Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s peak at F2 = 2. Each of those lands too. This leaves out any figure printed only inside an equation’s image, as Equation 8.3’s may be.
+Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s optimum at F2 = 2. Each of those lands too. This leaves out any figure printed only inside an equation’s image, as Equation 8.3’s may be.
 
 No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is five things the tables do not show.
 

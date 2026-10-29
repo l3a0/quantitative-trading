@@ -952,7 +952,7 @@ class TestWhatThePostSays:
             f"the examples’ text prints only Example 8.1’s {_dollars(loss.position_before)} "
             f"starting position, its {_dollars(loss.equity_after)} of equity after the loss, the "
             f"{_dollars(loss.target)} and {_dollars(gain.target)} positions its trades leave, and "
-            f"Example 8.2’s peak at F2 = {best_allocation_at_cap(MEANS, cov).leverages[1]:g}.",
+            f"Example 8.2’s optimum at F2 = {best_allocation_at_cap(MEANS, cov).leverages[1]:g}.",
             f"A {_dollars(loss.pnl)} loss leaves {_dollars(loss.equity_after)} of equity and a "
             f"{_dollars(loss.position_after_move)} position, so getting back to "
             f"{EX81_LEVERAGE:g} means selling {_dollars(loss.trade)}, which leaves a "
