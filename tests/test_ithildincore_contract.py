@@ -22,6 +22,11 @@ ranking on, and they arrived with it: that replication reports a measured
 difference and a robust t rather than a boolean, so a t-statistic that moved
 inside the dependency would re-pin a verdict with nothing in this repo's diff
 to explain it.
+
+The third module, `reversal`, needs no cases here. Its helpers are held by
+`tests/test_matlab_helpers.py` and its weights by the hand-worked panel in
+`tests/test_khandani_lo.py`, and neither reads a vintage, so a failure there
+already points at the pin.
 """
 
 from __future__ import annotations
