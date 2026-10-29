@@ -275,7 +275,17 @@ SP600 = ((date(1994, 10, 28), date(2004, 1, 14)),)
 #: The S&P 400 from its launch, either side of Entry 50's year, and before the
 #: sibling's intraday archive starts in 2016.
 SP400 = ((date(1991, 6, 19), date(2005, 11, 30)), (date(2007, 1, 1), date(2015, 12, 31)))
-MOM_SEASON = ((date(1927, 1, 1), date(1964, 12, 31)),)
+#: The owner ruled on 2026-10-28 that a span inside a rule's published record
+#: does not count. Lo and MacKinlay published the contrarian weighting on weekly
+#: CRSP returns from 1962-07-06 to 1987-12-31, and Khandani and Lo ran it on
+#: daily returns from 1995-01 to 2007-08. The reversal rows keep what lies
+#: outside both.
+SP500_REVERSAL = ((date(1988, 1, 1), date(1994, 12, 31)),)
+SP600_REVERSAL = ((date(1994, 10, 28), date(1994, 12, 31)),)
+SP400_REVERSAL = ((date(1991, 6, 19), date(1994, 12, 31)), (date(2007, 9, 1), date(2015, 12, 31)))
+#: Open Source Asset Pricing publishes MomSeasonShort's returns from 1927, so
+#: under the same ruling its years before 1965 lie inside a published record.
+MOM_SEASON: tuple[tuple[date, date], ...] = ()
 NATURAL_GAS = ((date(1990, 4, 3), date(1993, 12, 19)), (date(2024, 4, 6), SPAN_END))
 #: Gasoline before Entry 11's fill test reads April 1994, in a committed EIA file.
 GASOLINE = ((date(1985, 1, 2), date(1994, 3, 31)), (date(2024, 4, 6), SPAN_END))
@@ -310,8 +320,8 @@ SCREEN = {
     # Entry 34, tests/test_calendar_spread_reversion.py
     "34 CL calendar spread": (1.278216, False, CL),
     # Entry 19, tests/test_khandani_lo_book_two.py, Examples 4.4 and 4.3
-    "19 Example 4.4 opens": (4.713284, False, SP500),
-    "19 Example 4.3 closes": (1.259478, False, SP500),
+    "19 Example 4.4 opens": (4.713284, False, SP500_REVERSAL),
+    "19 Example 4.3 closes": (1.259478, False, SP500_REVERSAL),
     # Entry 18, tests/test_buy_on_gap.py
     "18 buy on gap": (1.5371, False, SP500),
     "18 short on gap": (1.7853, False, SP500),
@@ -344,18 +354,18 @@ SCREEN = {
     "sibling generative 0.05 delta call": (0.688, False, SPY_CHAINS),
     # After costs, from AFTER_COST_ROWS, and Entry 10's unfilled rule A,
     # tests/test_khandani_lo.py, TestRuleAOnTheOpens::test_without_the_forward_fill
-    "44b S&P 600 opens": (2.0257, True, SP600),
-    "50d S&P 600 control opens": (1.6903, True, SP600),
-    "10 rule A S&P 500 opens": (1.3997, True, SP500),
-    "10 rule A without the fill": (1.0335, True, SP500),
+    "44b S&P 600 opens": (2.0257, True, SP600_REVERSAL),
+    "50d S&P 600 control opens": (1.6903, True, SP600_REVERSAL),
+    "10 rule A S&P 500 opens": (1.3997, True, SP500_REVERSAL),
+    "10 rule A without the fill": (1.0335, True, SP500_REVERSAL),
     # tests/test_khandani_lo.py, TestWhyRuleAKeepsMoreAfterCosts::test_each_step_on_the_opens
-    "10 step one from rule B to rule A": (1.0149, True, SP500),
-    "10 step two from rule B to rule A": (1.0307, True, SP500),
-    "10 step three from rule B to rule A": (1.0314, True, SP500),
-    "10 rule B S&P 500 opens": (0.8293, True, SP500),
-    "19 row 10 S&P 500 closes": (0.3797, True, SP500),
-    "50b S&P 400 opens": (0.4884, True, SP400),
-    "50c S&P 600 control closes": (0.0575, True, SP600),
+    "10 step one from rule B to rule A": (1.0149, True, SP500_REVERSAL),
+    "10 step two from rule B to rule A": (1.0307, True, SP500_REVERSAL),
+    "10 step three from rule B to rule A": (1.0314, True, SP500_REVERSAL),
+    "10 rule B S&P 500 opens": (0.8293, True, SP500_REVERSAL),
+    "19 row 10 S&P 500 closes": (0.3797, True, SP500_REVERSAL),
+    "50b S&P 400 opens": (0.4884, True, SP400_REVERSAL),
+    "50c S&P 600 control closes": (0.0575, True, SP600_REVERSAL),
 }
 
 
@@ -412,8 +422,8 @@ class TestTheScreen:
             ("35 VX calendar B3", 14.57, 12.74),
             ("28 VX against ES", 14.57, 13.93),
             ("34 CL calendar spread", 17.72, 16.55),
-            ("19 Example 4.4 opens", 32.89, 1.22),
-            ("19 Example 4.3 closes", 32.89, 17.05),
+            ("19 Example 4.4 opens", 7.00, 1.22),
+            ("19 Example 4.3 closes", 7.00, 17.05),
             ("18 buy on gap", 32.89, 11.44),
             ("18 short on gap", 32.89, 8.48),
             ("47 buy on gap under the VIX filter", 32.89, 13.46),
@@ -423,24 +433,24 @@ class TestTheScreen:
             ("31 CL reversal and momentum", 17.72, 22.33),
             ("33 TU momentum", 14.13, 24.93),
             ("41 VX against ES on roll", 14.57, 25.44),
-            ("52 MomSeasonShort", 38.00, 41.25),
+            ("52 MomSeasonShort", 0.00, 41.25),
             ("11 natural gas seasonal", 6.20, 27.00),
             ("11 gasoline seasonal", 11.72, 44.86),
             ("22 USD.CAD linear mean reversion", 36.54, 1914.39),
             ("13 PCA factor model", 9.21, 80.74),
             ("30 AUD.CAD with rollover", 23.60, 92.11),
             ("sibling generative 0.05 delta call", 2.97, 57.12),
-            ("44b S&P 600 opens", 9.21, 6.59),
-            ("50d S&P 600 control opens", 9.21, 9.46),
-            ("10 rule A S&P 500 opens", 32.89, 13.80),
-            ("10 rule A without the fill", 32.89, 25.32),
-            ("10 step one from rule B to rule A", 32.89, 26.25),
-            ("10 step two from rule B to rule A", 32.89, 25.45),
-            ("10 step three from rule B to rule A", 32.89, 25.42),
-            ("10 rule B S&P 500 opens", 32.89, 39.32),
-            ("19 row 10 S&P 500 closes", 32.89, 187.55),
-            ("50b S&P 400 opens", 23.45, 113.36),
-            ("50c S&P 600 control closes", 9.21, 8178.35),
+            ("44b S&P 600 opens", 0.18, 6.59),
+            ("50d S&P 600 control opens", 0.18, 9.46),
+            ("10 rule A S&P 500 opens", 7.00, 13.80),
+            ("10 rule A without the fill", 7.00, 25.32),
+            ("10 step one from rule B to rule A", 7.00, 26.25),
+            ("10 step two from rule B to rule A", 7.00, 25.45),
+            ("10 step three from rule B to rule A", 7.00, 25.42),
+            ("10 rule B S&P 500 opens", 7.00, 39.32),
+            ("19 row 10 S&P 500 closes", 7.00, 187.55),
+            ("50b S&P 400 opens", 11.87, 113.36),
+            ("50c S&P 600 control closes", 0.18, 8178.35),
         ],
     )
     def test_each_rows_years_available_and_needed(
@@ -462,7 +472,6 @@ class TestTheScreen:
                 "28 VX against ES",
                 "34 CL calendar spread",
                 "19 Example 4.4 opens",
-                "19 Example 4.3 closes",
                 "18 buy on gap",
                 "18 short on gap",
                 "47 buy on gap under the VIX filter",
@@ -472,17 +481,8 @@ class TestTheScreen:
             ]
         )
 
-    def test_the_rows_that_wait_only_on_whether_the_data_can_be_bought(self) -> None:
-        assert reaching(N, after_costs=True) == sorted(
-            [
-                "44b S&P 600 opens",
-                "10 rule A S&P 500 opens",
-                "10 rule A without the fill",
-                "10 step one from rule B to rule A",
-                "10 step two from rule B to rule A",
-                "10 step three from rule B to rule A",
-            ]
-        )
+    def test_no_row_with_an_after_cost_figure_has_the_years(self) -> None:
+        assert reaching(N, after_costs=True) == []
 
     @pytest.mark.parametrize(
         ("row", "years_available", "years_needed"),
@@ -510,20 +510,18 @@ class TestTheScreen:
     def test_no_row_pinned_as_a_t_has_the_years(self) -> None:
         assert all(available(sp) < needed_from_t(t, y) for t, y, sp in T_SCREEN.values())
 
-    def test_the_s_and_p_600_row_turns_on_what_loaded_means(self) -> None:
-        """Read as any search that opened the file, the Alpha Vantage years from
-        1999-11-01 are spent, and Entry 44 falls short."""
-        opened = ((date(1994, 10, 28), date(1999, 10, 31)),)
-        assert available(opened) == pytest.approx(5.01, abs=0.005)
-        assert available(opened) < needed(2.0257) <= available(SP600)
-
-    def test_khandani_and_los_sample_alone_leaves_entry_10_its_years(self) -> None:
-        """Dropping 1995 on leaves the S&P 500 rows 27.99 years, which still
-        covers every reading of Entry 10, so excluding Khandani and Lo's sample
-        decides Entry 44 and leaves Entry 10 to Lo and MacKinlay's."""
-        before_1995 = ((date(1967, 1, 3), date(1994, 12, 31)),)
-        assert available(before_1995) == pytest.approx(27.99, abs=0.005)
-        assert needed(1.0149) <= available(before_1995)
+    def test_the_published_record_leaves_the_reversal_rows_too_few_years(self) -> None:
+        """Before the ruling, Entry 44 had 9.21 years and Entry 10 32.89, each
+        enough. Outside Lo and MacKinlay's and Khandani and Lo's samples, neither
+        has the years any of its readings needs."""
+        assert available(SP600) == pytest.approx(9.21, abs=0.005)
+        assert available(SP500) == pytest.approx(32.89, abs=0.005)
+        assert needed(2.0257) <= available(SP600)
+        assert needed(1.0149) <= available(SP500)
+        assert available(SP600_REVERSAL) == pytest.approx(0.18, abs=0.005)
+        assert available(SP500_REVERSAL) == pytest.approx(7.00, abs=0.005)
+        assert available(SP600_REVERSAL) < needed(2.0257)
+        assert available(SP500_REVERSAL) < needed(1.3997)
 
     def test_the_cl_row_turns_on_joining_spans(self) -> None:
         """After 2012 alone falls short. Joined to the years before 1986, it does not."""
@@ -538,11 +536,10 @@ class TestTheScreen:
         assert available(SP500) >= needed(-4.0)
         assert reaching(N, after_costs=True) == []
 
-    def test_the_narrow_hurdle_adds_four_rows(self) -> None:
+    def test_the_narrow_hurdle_adds_one_row(self) -> None:
         added = set(reaching(N_NARROW, after_costs=False)) - set(reaching(N, after_costs=False))
-        assert added == {"31 CL reversal and momentum", "52 MomSeasonShort"}
-        added = set(reaching(N_NARROW, after_costs=True)) - set(reaching(N, after_costs=True))
-        assert added == {"50d S&P 600 control opens", "10 rule B S&P 500 opens"}
+        assert added == {"31 CL reversal and momentum"}
+        assert reaching(N_NARROW, after_costs=True) == []
 
 
 class TestTheCrossSectionalMomentumRow:
@@ -568,7 +565,10 @@ class TestTheSeasonalMomentumRow:
         sharpe = loaded.mean() / loaded.std() * math.sqrt(12)
         assert sharpe == pytest.approx(0.8096, abs=5e-5)
 
-    def test_even_before_costs_1927_to_1964_falls_short(self) -> None:
-        """The screen's row uses this figure, so this pins the link between them."""
+    def test_the_ruling_leaves_it_no_unloaded_span(self) -> None:
+        """The screen's row uses this figure, so this pins the link between them.
+        Before the ruling, 1927 to 1964 gave 38.00 years, short of 41.25 even
+        before costs."""
         assert SCREEN["52 MomSeasonShort"][0] == 0.8096
-        assert available(MOM_SEASON) < needed(0.8096)
+        assert available(MOM_SEASON) == 0
+        assert years(date(1927, 1, 1), date(1964, 12, 31)) < needed(0.8096)
