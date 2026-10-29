@@ -7149,23 +7149,29 @@ Five groups of what it says are not pinned here.
 2. Facts about the script rather than the data: its five steps, its
    `riskFreeRate=0.02/252` line, and that it holds the pair every day with
    no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
-3. Readings no test asserts: that GLD pays no dividend, so its adjusted
-   close is its close, that the bill rate is a floor on financing because a
-   broker lends above it and cash put into GLD gives up at least that rate, that the exchange sets no settlement price on a US
-   exchange holiday, so a settlement series has no row on one, that a
-   settlement series would hold a row on each of GLD's days in the window,
-   so the OHLC series has the calendar one would have, that GLD's
-   daily log return stands in for a day of gold,
-   that an offset's share of a day carries roughly that share of the day's
-   variance in a market trading nearly around the clock, that whatever else
-   moves log(GC / GLD) does not cancel an offset's moves, which the bound of
-   0.001775 rests on, that a difference in timing between two series makes
-   the daily change in their difference reverse while a step at a roll that
-   one series takes and the other does not stays and predicts no reversal, that a small reading error or an
-   offset of minutes makes a daily change reverse, that GC trades on COMEX,
-   that a settlement price is the one the exchange fixes once a day, that
-   FRED is the St. Louis Fed's data service, and the cost of carry, cited
-   from Hull as the usual explanation and not tested.
+3. Readings no test asserts: that GLD pays no dividend, so its adjusted close
+   is its close, that the bill rate is a floor on financing because a broker
+   lends above it and cash put into GLD gives up at least that rate, that the
+   exchange sets no settlement price on a US exchange holiday, so a
+   settlement series has no row on one, that a settlement series would hold a
+   row on each of GLD's days in the window, so the OHLC series has the
+   calendar one would have, that GLD's daily log return stands in for a day
+   of gold, that an offset's share of a day carries roughly that share of the
+   day's variance in a market trading nearly around the clock, that whatever
+   else moves log(GC / GLD) does not cancel an offset's moves, which the
+   bound of 0.001775 rests on, that a difference in timing between two series
+   makes the daily change in their difference reverse while a step at a roll
+   that one series takes and the other does not stays and predicts no
+   reversal, that a vendor building a continuous future can shift or scale
+   the earlier prices at each roll to remove the gap between contracts or
+   leave the gap in, that what a series does at each roll decides how much of
+   the roll return shows up in its returns, that the reversal points to a
+   difference in recording hours as the main source of the OHLC series'
+   larger moves against GLD, that a small reading error or an offset of
+   minutes makes a daily change reverse, that GC trades on COMEX, that a
+   settlement price is the one the exchange fixes once a day, that FRED is
+   the St. Louis Fed's data service, and the cost of carry, cited from Hull
+   as the usual explanation and not tested.
 4. Figures the post states in words or rounded from pinned ones, such as
    about half, about ten times, the 150 minutes in two and a half hours, the
    backtest's three years,
