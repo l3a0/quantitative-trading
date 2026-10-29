@@ -7244,7 +7244,11 @@ Every other number in the post traces to an assertion in
 [tests/test_gld_gc.py](tests/test_gld_gc.py), or to
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) for the
 figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run. `TestThePostQuotesTheRun` reads one
+before it, all measured after the run. `TestThePostQuotesTheRun` reads the post's
+five tables row by row and one prose copy of each figure Lesson 4 and the
+open questions take from the run, so editing a copy it reads fails. It does
+not read the italic summary, the five-lesson list, the caption or the alt
+text. `TestThePostQuotesTheRun` reads one
 copy of each number the post takes from the run, whichever test pins it, from
 the post itself, and fails when that copy drifts from the run. A second copy of the same number elsewhere in the post is not read.
 
@@ -8828,7 +8832,11 @@ Every other number in the post traces to an assertion in
 [tests/test_vix_filter.py](tests/test_vix_filter.py), or to
 [tests/test_vix_filter_figures.py](tests/test_vix_filter_figures.py) for the
 figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run.
+before it, all measured after the run. `TestThePostQuotesTheRun` reads the post's
+five tables row by row and one prose copy of each figure Lesson 4 and the
+open questions take from the run, so editing a copy it reads fails. It does
+not read the italic summary, the five-lesson list, the caption or the alt
+text.
 
 1. Buy on gap's kept days by year, 68, 83, 9 and 30 for 2008 to 2011, and
    FSTX's, 65, 81, 9 and 30, so 151 of 190 and 146 of 185 fall in 2008 and

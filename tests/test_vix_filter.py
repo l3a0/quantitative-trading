@@ -871,6 +871,128 @@ class TestWhatThePostMeasured:
         assert matches(100 * filtered.average_annual_return, "2.5")
 
 
+POST = paths.REPO_ROOT / "blog" / "vix-filter-lessons.md"
+
+
+def _f(value: float) -> str:
+    """A figure at six decimals, with the true minus sign the post's prose uses."""
+    printed = f"{abs(value):.6f}"
+    return f"−{printed}" if value < 0 else printed
+
+
+def _tex(value: float) -> str:
+    """A figure at six decimals as a table cell writes it, with an ASCII minus."""
+    return f"{value:.6f}"
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure in ``blog/vix-filter-lessons.md``, read from the post itself.
+
+    The tests above derive these numbers and the post states them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review shifted the last digit of each of 374 numbers in it one at a time,
+    and 370 passed. This reads the five tables row by row and one prose copy
+    of each figure Lesson 4 and the open questions take from the run. It does
+    not read the italic summary, the five-lesson list, the caption or the alt
+    text, so a second copy there can still drift.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_lesson_1_s_table(self, result) -> None:
+        long = result.buy_on_gap
+        every = long.unfiltered
+        for row in (
+            rf"\text{{Days}} & {long.kept} & {len(long.daily):,} \\".replace(",", "{,}"),
+            rf"252 \times \text{{mean}} & {_tex(long.average_annual_return)} & "
+            rf"{_tex(every.average_annual_return)} \\",
+            rf"\text{{Compounded APR}} & {_tex(long.apr)} & "
+            rf"{_tex(module.compounded_apr(long.daily))} \\",
+            rf"\text{{Sharpe ratio}} & {_tex(long.sharpe)} & {_tex(every.sharpe)} \\",
+        ):
+            assert row in self.text, row
+        zeroed = long.zeroed
+        assert (
+            f"It gives {_f(zeroed.average_annual_return)}, which would print as 2.2 percent, "
+            f"and a Sharpe ratio of {_f(zeroed.sharpe)},"
+        ) in self.text
+
+    def test_lesson_2_s_table(self, result) -> None:
+        lit, full = result.literal, result.fstx_full
+        joined = lit.unfiltered
+        for row in (
+            rf"\text{{Days}} & {lit.kept} & {len(lit.daily):,} & {lit.calendar_days:,} \\".replace(
+                ",", "{,}"
+            ),
+            rf"252 \times \text{{mean}} & {_tex(lit.average_annual_return)} & "
+            rf"{_tex(joined.average_annual_return)} & {_tex(full.average_annual_return)} \\",
+            rf"\text{{Sharpe ratio}} & {_tex(lit.sharpe)} & {_tex(joined.sharpe)} & "
+            rf"{_tex(full.sharpe)} \\",
+        ):
+            assert row in self.text, row
+        mom = result.momentum
+        assert (
+            f"on the kept days it gives {_f(mom.average_annual_return)} and {_f(mom.sharpe)}."
+        ) in self.text
+        assert f"both the compounded APR, {_f(full.apr)}, and 252 times the mean" in self.text
+
+    def test_lesson_3_s_table(self, result) -> None:
+        for label, r in (
+            ("Join", result.literal),
+            ("Latest close", result.as_of),
+            ("Filled forward", result.forward_filled),
+            ("Row back", result.own_calendar),
+            ("Same day", result.same_day),
+            ("Same day, filled", result.same_day_filled),
+        ):
+            row = (
+                rf"\text{{{label}}} & {r.kept} & {_tex(r.average_annual_return)} & "
+                rf"{_tex(r.sharpe)} \\"
+            )
+            assert row in self.text or row.removesuffix(r" \\") + "\n" in self.text, row
+
+    def test_lesson_4_s_year_table_and_figures(self, result) -> None:
+        long, lit = result.buy_on_gap, result.literal
+        for year in (2008, 2009, 2010, 2011):
+            row = (
+                f"{year} & {int((long.kept_days.year == year).sum())} & "
+                f"{int((lit.kept_days.year == year).sum())}"
+            )
+            assert row in self.text, row
+        kept = long.filtered
+        best = int(np.argmax(kept))
+        rest = reading(np.delete(kept, best), np.ones(len(kept) - 1, dtype=bool))
+        assert (
+            f"{long.kept_days[best].date()}, returned {_f(kept[best])}, which is "
+            f"{_f(kept[best] / kept.sum())}, or 72.2 percent, of the {_f(kept.sum())}"
+        ) in self.text
+        assert (
+            f"the other 189 give {_f(rest.average_annual_return)} and a Sharpe ratio of "
+            f"{_f(rest.sharpe)}"
+        ) in self.text
+        assert f"held a position on only {long.held_days} of its {long.kept} kept days" in self.text
+
+    def test_lesson_5_s_table(self, result) -> None:
+        for label, filtered in (
+            ("Buy on gap", result.buy_on_gap),
+            ("FSTX, fade", result.literal),
+            ("FSTX, momentum", result.momentum),
+        ):
+            t, p = filtered.welch
+            assert rf"\text{{{label}}} & {_tex(t)} & {_tex(p)}" in self.text, label
+
+    def test_the_closes_nearest_35(self, sources) -> None:
+        vix = sources.vix
+        above, below = vix[vix > THRESHOLD], vix[vix <= THRESHOLD]
+        inside = vix.loc[day("2004-07-16") : VIX_LAST]
+        near = inside[inside <= THRESHOLD]
+        assert (
+            f"The nearest are {above.min()} on {above.idxmin().date()} and {below.max()} on "
+            f"{below.idxmax().date()}, and inside the rules’ windows the nearest below is "
+            f"{near.max()} on {near.idxmax().date()}."
+        ) in self.text
+
+
 class TestThePostsSurvivorSentences:
     """``blog/vix-filter-lessons.md`` dates the stock file's list to late 2011.
 
