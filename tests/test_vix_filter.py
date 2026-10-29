@@ -999,9 +999,13 @@ class TestThePostQuotesTheRun:
         above, below = vix[vix > THRESHOLD], vix[vix <= THRESHOLD]
         inside = vix.loc[day("2004-07-16") : VIX_LAST]
         near = inside[inside <= THRESHOLD]
+        both = vix.loc[day("2006-05-11") : day("2012-04-24")]
+        assert both[both > THRESHOLD].min() == above.min()
+        assert both[both <= THRESHOLD].max() == near.max()
         assert (
-            f"The nearest are {above.min()} on {above.idxmin().date()} and {below.max()} on "
-            f"{below.idxmax().date()}, and inside the rules’ windows the nearest below is "
+            f"The nearest closes are {above.min()} on {above.idxmin().date()}, just above, and "
+            f"{below.max()} on {below.idxmax().date()}, just below. The {above.min()} falls "
+            f"inside the dates both rules cover, and the nearest close below inside them is "
             f"{near.max()} on {near.idxmax().date()}."
         ) in self.text
 
