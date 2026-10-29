@@ -182,6 +182,7 @@ MUST_BE_SWEPT = frozenset(
         ".claude/skills/update-build-board/SKILL.md",
         "CLAUDE.md",
         "README.md",
+        "docs/candidate-ranking.md",
         "docs/design.md",
         "docs/replication-log.md",
         "data/README.md",
@@ -1135,7 +1136,12 @@ def test_every_fragment_link_resolves_to_a_heading() -> None:
 # case below builds a small suite in a temporary folder, so the index is read
 # from files whose contents the case states.
 
-CITING_DOCUMENTS = ("README.md", "docs/replication-log.md", "data/README.md")
+CITING_DOCUMENTS = (
+    "README.md",
+    "docs/replication-log.md",
+    "data/README.md",
+    "docs/candidate-ranking.md",
+)
 
 
 def _cited_findings(tmp_path: Path, prose: str, suite: dict[str, str]) -> list[str]:
