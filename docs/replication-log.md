@@ -7510,7 +7510,7 @@ Three things.
    the signal on the first two days moves the APR from 0.262252 to 0.260669
    and the Sharpe ratio from 2.361162 to 2.349460, which round to 26.1 percent
    and 2.3 rather than the book's 26.2 and 2.4.
-3. **The intercept rises as a trend, and not day by day.** The yearly means
+3. **The intercept's yearly means rise every year, and the intercept falls at every finer grain.** The yearly means
    rise every year, from 0.1440 in 2006 to 6.7748 in 2012. At a quarter, a
    month, a 250-day window and a day, it falls, and 513 of its 1,499 daily
    steps go down. Whether that is "monotonically" depends on the grain, which
@@ -7531,6 +7531,10 @@ prints no figure and names no script.
 
 **Anything about costs.** The band changes position whenever the error crosses
 it, and the script charges nothing for a trade.
+
+**Whether the intercept's rise belongs to the market or to the zero start.**
+The filter starts the intercept at 0, and the single regression over the whole
+file puts it at 6.4113. Nothing here starts the filter anywhere else.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

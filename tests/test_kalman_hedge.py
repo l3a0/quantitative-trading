@@ -163,6 +163,24 @@ class TestTheSpecification:
         assert len(result.trade.daily) == len(result.trade.units) == 1500, SPEC
 
 
+class TestTheGain:
+    def test_after_row_1_each_update_closes_most_of_the_miss(self, closes, result) -> None:
+        """At the day's EWA close, the update moves the forecast a share ``1 - Ve/Q``
+        of the way to EWC's close. After row 1 that share never falls below 87
+        percent, which is what the post means by a filter that never becomes
+        confident. The slope still moves only about 0.009 on a median day."""
+        f = result.filter
+        x = closes[X].to_numpy()
+        before = f.slope[:-1] * x[1:] + f.intercept[:-1]
+        after = f.slope[1:] * x[1:] + f.intercept[1:]
+        share = 1 - VE / f.variance[1:]
+        np.testing.assert_allclose((after - before) / f.error[1:], share, rtol=0, atol=1e-9)
+        assert share.min() == pytest.approx(0.8722, abs=5e-5), SPEC
+        assert share.max() == pytest.approx(0.9891, abs=5e-5), SPEC
+        assert np.median(share) == pytest.approx(0.9793, abs=5e-5), SPEC
+        assert np.median(np.abs(np.diff(f.slope)[1:])) == pytest.approx(0.009361, abs=5e-7), SPEC
+
+
 class TestTheFirstRows:
     def test_row_1_has_a_zero_gain_and_q_equal_to_ve(self, result) -> None:
         f = result.filter
@@ -243,6 +261,7 @@ class TestTheFigures:
         assert quiet.sharpe == pytest.approx(2.34946035, abs=5e-9), SPEC
         assert round(100 * quiet.apr, 1) == 26.1
         assert round(quiet.sharpe, 1) == 2.3
+        assert 2.35 - quiet.sharpe == pytest.approx(0.00054, abs=5e-6), SPEC
         assert not matches(100 * quiet.apr, BOOK_APR_PERCENT)
         assert not matches(quiet.sharpe, BOOK_SHARPE)
         assert (quiet.daily[:2] == 0).all()

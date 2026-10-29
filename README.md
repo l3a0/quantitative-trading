@@ -5430,7 +5430,7 @@ Five groups of what it says are not pinned here.
    percent and a Sharpe ratio of 2.4" are at 1726. The market-making use is at
    1760. The book's figures are pinned, and its words are not.
 2. Facts about the script rather than the data: its comment on `delta`, its
-   zero start, and its chart of the forecast error plotting `e(3:end)` and
+   zero start, that it gives no warning of the first trade, and its chart of the forecast error plotting `e(3:end)` and
    `sqrt(Q(3:end))`, which the script holds at `e4bc46f` of
    ericnberwick/EpchanPreview, git blob `e2f8a62`.
    [src/chan/kalman_hedge.py](src/chan/kalman_hedge.py)'s docstring records
@@ -5438,9 +5438,11 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the gain is large when the filter is unsure
    and small when it is confident, that starting the filter from a regression
    would need data from before the file's first day, and that a filter
-   started from the whole-file intercept might show no rise.
+   started from the whole-file intercept would show how much of the rise the
+   zero start explains. `TestTheGain` measures what the post says the gain
+   does on this file after the first day, but not those words.
 4. The figure's alt text, whose readings of the lines, such as "about 1.4"
-   and "about 2.9 by September 2008", are approximate by design.
+   and "about 2 by the start of September 2008", are approximate by design.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
