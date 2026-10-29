@@ -33,6 +33,11 @@ Example 3.8 puts the open in its place:
 5. The day's profit is the sum over stocks of yesterday's weight times today's
    return, skipping a product that is not finite.
 
+Steps 1 to 4 are :func:`daily_returns` and :func:`reversal_weights`. Both live
+in the shared ``ithildincore`` package, as ``ithildincore.reversal``, because
+ithildin-runtime runs the same weights. This module imports them under the
+same names, and their bodies are the ones that were here.
+
 The weights sum to zero across stocks every day and are not scaled to a unit of
 gross exposure. Multiplying every weight by one constant leaves both Sharpe
 ratios unchanged, because the profit and the cost scale together. Scaling each
@@ -121,6 +126,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from ithildincore.reversal import daily_returns, reversal_weights
 
 from chan.matlab_helpers import lag1, smartmean, smartstd_first_edition, smartsum
 from chan.series import load_panel, panel_line
@@ -179,29 +185,6 @@ ONE_YEAR_BAR = BAR_SHARPE * math.sqrt(BAR_POINTS / 251)
 #: The symbol that holds two companies across a gap ending inside 2006, on
 #: 2006-08-01. DFS holds two as well, but its gap ends in 2007.
 SPLICED_SYMBOL = "WYN"
-
-
-def daily_returns(prices: np.ndarray) -> np.ndarray:
-    """Step 1: each stock's return on each day, NaN where either price is missing."""
-    previous = lag1(prices)
-    with np.errstate(invalid="ignore", divide="ignore"):
-        return (prices - previous) / previous
-
-
-def reversal_weights(prices: np.ndarray) -> np.ndarray:
-    """Steps 2 to 4: minus each stock's return against the market, over the priced count.
-
-    ``n`` counts a stock priced today and not yesterday, which has no return
-    and so takes no part in the market's mean, and its own weight is then set
-    to 0. That is ``example3_7.m`` exactly, and it makes the weights a little
-    smaller on a day a stock enters than a count of returns would.
-    """
-    returns = daily_returns(prices)
-    market = smartmean(returns, axis=1)
-    priced = smartsum(np.isfinite(prices).astype(float), axis=1)
-    weights = -(returns - market[:, None]) / priced[:, None]
-    weights[~np.isfinite(prices) | ~np.isfinite(lag1(prices))] = 0.0
-    return weights
 
 
 def daily_pnl(weights: np.ndarray, returns: np.ndarray) -> np.ndarray:

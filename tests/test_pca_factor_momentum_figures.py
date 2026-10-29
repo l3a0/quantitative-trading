@@ -207,8 +207,9 @@ class TestTheWords:
         assert drawn["label-median"].get_text() == "median stock −0.0283"
         assert drawn["label-median"].xy[0] == results.spliced.comparison.median
         assert drawn["label-band"].get_text() == (
-            "±0.0715, where a series\nof independent returns\n"
-            "centred on zero lands\n95 percent of the time"
+            "±0.0715, where the statistic of\nindependent returns centred\n"
+            "on zero, each no more likely\nto be large than any other,\n"
+            "lands 95 percent of the time"
         )
         assert drawn["label-band"].xy[0] == results.spliced.comparison.band
 
@@ -249,7 +250,7 @@ class TestTheWords:
             assert text.get_parse_math() is False
 
     def test_nothing_wears_a_verdict_colour(self, figure) -> None:
-        """No factor clears the noise, so nothing is green or red."""
+        """No factor passes a test across all five, so nothing is green or red."""
         verdicts = {to_rgba(GOOD)[:3], to_rgba(LOST)[:3]}
         assert to_rgba(figure.patch.get_facecolor())[:3] not in verdicts
         for ax in figure.axes:

@@ -49,8 +49,9 @@ owner ruled that way on 2026-10-10, before any factor return was computed.
 **Beside the verdicts, deciding nothing.**
 
 - Each factor's share of pairs whose two members have the same sign.
-- The band ±1.96/√n that a series of independent returns centred on zero
-  stays inside about 95 percent of the time, where n is the number of pairs.
+- The band ±1.96/√n, with n the number of pairs, where the statistic of a
+  series of independent returns centred on zero, each no more likely to be
+  large than any other day's, lands about 95 percent of the time.
 - Each factor's one-sided Newey-West t of its products f_t f_{t+1} against a
   mean of zero, from :func:`ithildincore.stats.newey_west_summary`, its normal
   p-value, and which factors survive Benjamini-Hochberg at q = 0.05 across
@@ -75,10 +76,11 @@ teaches why each pair reads one day's vectors, and the functions after
 :func:`compute_both` measure what the other ways of building a factor's series
 give. A singular vector's sign is whatever the numerical library returns, and
 two machines running this suite returned different ones, so every vector's
-sign is first fixed by a rule, its largest weight positive. Then they count
-the days a vector's sign still flips and the days two factors swap rank, and
-compute the statistic on each day's own weights, with sign and rank matched,
-and with tomorrow's weights fitted on 251 days that leave today's return out.
+sign is first fixed by a rule, its largest weight in size positive. Then they count
+the days a vector's sign still flips and the days two or more factors swap
+rank, and compute the statistic on each day's own weights, with sign and rank
+matched, and with tomorrow's weights fitted on 251 days that leave today's
+return out.
 A control fits tomorrow's weights on the 251 days ending today, the same
 length with today's return kept in. They also read PMC's weight on the days
 whose window holds its one large return and which factor carries it, check
@@ -255,7 +257,10 @@ class Comparison:
 
     @property
     def band(self) -> float:
-        """±1.96/√n, where independent returns centred on zero land 95 percent of the time."""
+        """±1.96/√n, where the statistic of independent zero-mean returns lands 95% of the time.
+
+        That holds only when each return is no more likely to be large than any other day's.
+        """
         return CRITICAL / math.sqrt(self.pairs)
 
     def percentile(self, value: float) -> float:
@@ -570,9 +575,9 @@ def _figures(result: Result) -> None:
         f"ordinary correlation {result.intercept_pearson:.4f}. Decides nothing."
     )
     print(
-        f"  Band +/-{CRITICAL}/sqrt({c.pairs}) = {c.band:.4f}, where a series of "
-        "independent returns centred on zero stays inside 95 percent of the time. "
-        "Decides nothing."
+        f"  Band +/-{CRITICAL}/sqrt({c.pairs}) = {c.band:.4f}, where the statistic of a "
+        "series of independent returns centred on zero, each no more likely to be large "
+        "than any other day's, lands 95 percent of the time. Decides nothing."
     )
 
 

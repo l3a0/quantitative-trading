@@ -17,15 +17,16 @@ the post and chose this figure, with two panels.
    is the share strictly below, which the percentile counts.
 2. **Why each pair reads one day's vectors.** For each factor, four
    statistics side by side: on each day's own weights with each sign fixed so
-   the largest weight is positive, with sign and rank matched, with
+   the largest weight in size is positive, with sign and rank matched, with
    tomorrow's weights fitted on the 251 days that leave today's return out,
    and the paired statistic the test reads. The third is a marker rather than
    a sentence because it is what closes the gap the first two leave.
 
 The first panel draws the verdicts' figures, and the second figures measured
 after the run, which decide nothing. Neither uses the green or the red other
-figures here give a verdict, because no factor clears the noise. The title
-calls the test exploratory and the note says the file holds only survivors.
+figures here give a verdict, because no factor passes a test across all
+five. The title calls the test exploratory and the note says the file holds
+only survivors.
 
 Every value comes from one :class:`chan.pca_factor_momentum.Results` and one
 :class:`chan.pca_factor_momentum.WeightStatistics`, so the figure can only be
@@ -162,10 +163,11 @@ def _verdicts_panel(ax, results: Results) -> None:
         gid="label-median",
     )
     ax.annotate(
-        f"±{c.band:.4f}, where a series\nof independent returns\n"
-        "centred on zero lands\n95 percent of the time",
+        f"±{c.band:.4f}, where the statistic of\nindependent returns centred\n"
+        "on zero, each no more likely\nto be large than any other,\n"
+        "lands 95 percent of the time",
         (c.band, 0.03),
-        xytext=(6, 0),
+        xytext=(3, 0),
         textcoords="offset points",
         ha="left",
         va="bottom",
