@@ -624,29 +624,29 @@ where they were first built. The other forty-five were built here.
     Every figure is exploratory and about survivors.
 43. The leverage of Chapter 8's Boxes 8.1 to 8.6 in *Algorithmic Trading*,
     chosen three ways on Example 5.1's 612 saved returns: by the optimum of
-    100,000 returns drawn from a Pearson type IV fitted to their four
-    moments, by the optimum of the historical growth rate, and with
-    constant proportion portfolio insurance (CPPI). The simulated figures
-    run on a declared seed and are judged against 200 more. The book's Kelly
-    and historical optimum of 18.4 do not reproduce, since Chan's own returns
-    give 23.845328 and 23.721773. A series matching Example 5.1's printed
-    Sharpe ratio and APR has a Kelly of at least 21.56 when the APR compounds
-    the log growth, and at least 20.89 under the simplest compounding, so
-    none reaches 18.4. The minimum draw and the drawdown at the optimum land.
-    The simulated optimum, the drawdowns at half and a seventh of the
-    optimum, and both growth rates of location 3438 fall outside their bands.
-    The simulated optimum landed under the band the issue declared, and the
-    band chosen after the ensemble was seen excludes it, for a reason the log
-    entry gives. Moving the draws' mean so the Kelly is 18.4 lands all of
-    those but the drawdown at half the optimum.
-    Box 8.6's CPPI loop breaks the 0.5 drawdown floor on every one of the
-    200 seeds, and the CPPI location 3426 describes keeps it on every one.
-    The write-up measured after the run that the declared seed's least draw,
-    −0.043071, is 1.9550 times as deep as the worst of the 612 saved returns,
-    and that the Kelly lies at or past the ruin leverage on 78 of the 200
-    seeds. The depth comes from the count of draws rather than a fatter tail,
-    since 612 draws from the fit reach that worst return with a chance of only
-    0.091663. Every figure is exploratory.
+    100,000 returns drawn from a Pearson type IV fitted to their four moments,
+    by the optimum of the historical growth rate, and with constant proportion
+    portfolio insurance (CPPI). The simulated figures run on a declared seed
+    and are judged against 200 more. The book's Kelly and historical optimum
+    of 18.4 do not reproduce, since Chan's own returns give 23.845328 and
+    23.721773. A series matching Example 5.1's printed Sharpe ratio and APR,
+    with a daily swing under 10 percent, has a Kelly of at least 21.56 when
+    the APR compounds the log growth, and at least 20.89 under the simplest
+    compounding, so none reaches 18.4. The minimum draw and the drawdown at
+    the optimum land. The simulated optimum, the drawdowns at half and a
+    seventh of the optimum, and both growth rates of location 3438 fall
+    outside their bands. The simulated optimum landed under the band the issue
+    declared, and the band chosen after the ensemble was seen excludes it, for
+    a reason the log entry gives. Moving the draws' mean so the Kelly is 18.4
+    lands all of those but the drawdown at half the optimum. Box 8.6's CPPI
+    loop breaks the 0.5 drawdown floor on every one of the 200 seeds, and the
+    CPPI location 3426 describes keeps it on every one. The write-up measured
+    after the run that the declared seed's least draw, −0.043071, is 1.9550
+    times as deep as the worst of the 612 saved returns, and that the Kelly
+    lies at or past the ruin leverage on 78 of the 200 seeds. The depth comes
+    from the count of draws rather than a fatter tail, since 612 draws from
+    the fit reach that worst return with a chance of only 0.091663. Every
+    figure is exploratory.
 44. Chan's rule at location 4709 of *Quantitative Trading* that "a highly
     leveraged portfolio of low-beta stocks should generate higher long-term
     compounded growth than holding an unleveraged portfolio of high-beta
@@ -8078,12 +8078,12 @@ repeating them, and draws six lessons from Entry 43 of the replication log.
    saved returns give 23.845328 and 23.721773, within 0.52 percent of each
    other.
 2. Example 5.1's printed Sharpe ratio and APR allow a Kelly of 21.558894 to
-   26.757652, and the edge moves to 22.065999 or 20.891304 under the other two
-   compoundings, so none reaches 18.4. Moving the draws' mean to a Kelly of
-   18.4 puts the median uncapped optimum at 18.470198 and lands all but the
-   drawdown at half the optimum. The post labels as an inference that
-   Chapter 8 ran on a different series of returns, with a Kelly near 18.4,
-   that nobody holds.
+   26.757652 at a daily swing under 10 percent, and the edge moves to
+   22.065999 or 20.891304 under the other two compoundings, so none reaches
+   18.4. Moving the draws' mean to a Kelly of 18.4 puts the median uncapped
+   optimum at 18.470198 and lands all but the drawdown at half the optimum.
+   The post labels as an inference that Chapter 8 ran on a different series of
+   returns, with a Kelly near 18.4, that nobody holds.
 3. The script's search stops at 20, and 158 of the 200 seeds sit on that cap,
    exactly the seeds whose ruin leverage is 20 or more. The 30 seeds whose
    uncapped optimum is at or below 19.2 all ruin below 20. Under the declared band
@@ -8117,9 +8117,9 @@ Five groups of what it says are not pinned here.
    its −D at 3426, and the two growth rates, "very similar", D of 0.5, "By
    design" and "a painful 0.9" at 3438. The book's figures are pinned as the module's
    constants, and its words are not.
-2. Facts about the script rather than the data: line 22's
-   `fminbnd(minusGsim, 0, 20)`, its drawdown on the saved returns at f / 1.4,
-   and Box 8.6 scaling its order by the drawdown of the unlevered returns, in
+2. Facts about the script rather than the data: line 22's `fminbnd(minusGsim,
+   0, 20)`, its drawdown on the saved returns at f / 1.4, and Box 8.6 scaling
+   its leverage by one plus the drawdown of the unlevered returns, in
    `monteCarloOptimLeverage.m`, git blob `fc32599` at `e4bc46f` of
    ericnberwick/EpchanPreview, and `AUDCAD_unequal.m` compounding its APR from
    the daily returns themselves. The 0.112410 that gives and the log growth's

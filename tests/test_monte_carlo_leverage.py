@@ -46,6 +46,8 @@ and checks it against the run, so a typo in the post fails a test.
 ``TestThePostsHelpers`` holds the helpers the post's figure shares with the
 run. ``tests/test_monte_carlo_leverage_figures.py`` holds what the figure
 draws, including the growth rates and the drawdown days the post quotes.
+``tests/test_monte_carlo_leverage_whiteboard.py`` holds what the two sketches draw,
+with the figures they read from the run.
 
 Exploratory. Reproducing Chan's figures spends his 612 returns on a method he
 chose. The boxes first ran on the declared seeds on 2026-10-10.

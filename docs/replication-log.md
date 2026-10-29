@@ -9769,9 +9769,9 @@ on his file, and nothing about whether any leverage is safe to trade.
 | 8 | `calculateMaxDD` at f on the declared seed, and its band | −0.991276, band −0.999256 to −0.979930 | `TestRows8To10TheDrawdowns::test_seeded_and_banded` |
 | 9 | The same at f / 2 | −0.871216, band −0.922292 to −0.763269 | the same |
 | 10 | The same at f / 7 | −0.416419, band −0.468433 to −0.302281, at a leverage of 2.857143 | the same, and `::test_row_10_falls_outside_its_band` |
-| 11 | Box 8.6's growth and the full account's at f·D, their bands, and how far the first falls short | 0.003224, band 0.002913 to 0.003577, against 0.003271, band 0.002955 to 0.003623. CPPI falls short of the full account by 0.014469 of it, and by less than 0.02 on every seed. The book's own two differ by 0.016238 | `TestRow11TheGrowthRates::test_seeded_and_banded`, `::test_the_claim_holds_on_the_declared_seed_and_every_seed` and `::test_the_book_s_own_two_figures_differ_by_1_6_percent` |
+| 11 | Box 8.6's growth and the full account's at f·D, their bands, and how far the first falls short | 0.003224, band 0.002913 to 0.003577, against 0.003271, band 0.002955 to 0.003623. Box 8.6's loop falls short of the full account by 0.014469 of it, and by less than 0.02 on every seed. The book's own two differ by 0.016238 | `TestRow11TheGrowthRates::test_seeded_and_banded`, `::test_the_claim_holds_on_the_declared_seed_and_every_seed` and `::test_the_book_s_own_two_figures_differ_by_1_6_percent` |
 | 12 | The full account's drawdown at f·D, and each CPPI form's account drawdown | −0.871216, the same figure as row 9, since f·D is f / 2. Box 8.6's loop gives −0.848088, band −0.902235 to −0.742510, and stays above −0.5 on 0 of 200 seeds. Location 3426's CPPI gives −0.495638, band −0.499628 to −0.489965, and stays above −0.5 on 200 of 200 | `TestRow12TheDrawdownCppiCaps` |
-| 13 | The Kelly of any daily series with a Sharpe ratio of 1.55 to 1.65 and an APR of 10.5 to 11.5 percent, under three compoundings, and the ensemble with the draws' mean moved so the Kelly is 18.4 | Kelly 21.558894 to 26.757652 when the APR compounds the log growth m − σ²/2, 22.065999 to 27.261771 when it compounds 1 + m exactly, and 20.891304 to 25.928571 when it is the simple 252·m. At a Sharpe ratio of 1.6, a Kelly of 18.4 needs an APR of 0.139130, 0.144937 or 0.149230 under the three. With the mean moved, λ is −1.222510e-03, the median uncapped optimum is 18.470198, 8 of 200 seeds sit on the cap, and rows 3, 8, 10 and 11 land. Row 3's band runs 17.514982 to 20.017014 on the 39 seeds whose ruin leverage is above 30.2, and 16.339353 to 19.905622 on all 200. Row 9's band runs −0.953551 to −0.823942 | `TestRowGroup13TheEighteenPointFourGap` |
+| 13 | The Kelly of a daily series with a swing under 10 percent, a Sharpe ratio of 1.55 to 1.65 and an APR of 10.5 to 11.5 percent, under three compoundings, and the ensemble with the draws' mean moved so the Kelly is 18.4 | Kelly 21.558894 to 26.757652 when the APR compounds the log growth m − σ²/2, 22.065999 to 27.261771 when it compounds 1 + m exactly, and 20.891304 to 25.928571 when it is the simple 252·m. At a Sharpe ratio of 1.6, a Kelly of 18.4 needs an APR of 0.139130, 0.144937 or 0.149230 under the three. With the mean moved, λ is −1.222510e-03, the median uncapped optimum is 18.470198, 8 of 200 seeds sit on the cap, and rows 3, 8, 10 and 11 land. Row 3's band runs 17.514982 to 20.017014 on the 39 seeds whose ruin leverage is above 30.2, and 16.339353 to 19.905622 on all 200. Row 9's band runs −0.953551 to −0.823942 | `TestRowGroup13TheEighteenPointFourGap` |
 | 14 | The type IV's parameters | m 3.254731, ν −0.897242, a 7.819013e-03 and λ −1.123894e-03, so moments exist only below order 5.509462 | `TestTheSampler::test_the_parameters` and `::test_moments_exist_only_below_order_5_51` |
 | 15 | The uncapped optimum, and the seeds whose ruin leverage is below 20 | 22.295382 on the declared seed, band 16.622019 to 24.865122 across all 200. 42 of 200 seeds, against an exact chance of 0.149180, or 29.8 seeds. The 42 sit 2.414274 binomial standard errors above that, and 42 or more has an exact chance of 0.012871 | `TestRows3And4TheSimulatedOptimum::test_the_declared_seed_s_uncapped_optimum`, `TestRow5TheMinimumAndTheRuinLeverage::test_the_share_of_seeds_ruined_below_the_cap` and `TestWhatThePostMeasured::test_42_seeds_ruined_below_the_cap_sit_2_4_standard_errors_above_the_exact_chance` |
 | 16 | Location 3426's CPPI at f with D = 0.5 | growth 0.002436, band 0.002321 to 0.002814, which is 0.255285 below the full account's at f·D. Account drawdown −0.495638, band −0.499628 to −0.489965, as in row 12 | `TestBesideTheReplication::test_cppi_as_described_costs_about_a_quarter_of_the_growth` |
@@ -9794,7 +9794,7 @@ six decimals the book prints.
 | 8 | +0.008 | reproduced with a gap | −0.999 lies inside the band. The seed is the cause. |
 | 9 | +0.092, outside its band | did not reproduce | −0.963 is deeper than the band's bottom of −0.922292. |
 | 10 | +0.1, outside its band | did not reproduce | −0.5 is deeper than the band's bottom of −0.468433. The declared seed's leverage of 2.857143 is the cap over 7, where the book's 2.7 is 19.2 over 7. |
-| 11 | +0.000740 and +0.000746, outside both bands | did not reproduce, and the claim holds | Both of the book's growth rates sit below their bands. The claim that the two are "very similar" holds, since CPPI falls short of the full account by 1.4 percent on the declared seed and by less than 2 percent on all 200. |
+| 11 | +0.000740 and +0.000746, outside both bands | did not reproduce, and the claim holds | Both of the book's growth rates sit below their bands. The claim that the two are "very similar" holds, since Box 8.6's loop falls short of the full account by 1.4 percent on the declared seed and by less than 2 percent on all 200. |
 | 12 | +0.0, and none for the claim | reproduced for the full account's 0.9 and for the claim on location 3426's CPPI. Did not reproduce for the claim on Box 8.6's loop | −0.871216 rounds to the book's −0.9 at its one decimal. It is the drawdown row 9 judges, because f·D is f / 2 when D is 0.5, and `TestRow12TheDrawdownCppiCaps::test_at_d_one_half_row_12_s_full_account_is_row_9` holds the two equal on every seed. So the −0.9 reproduced, rather than reproducing with a gap, because one decimal covers anything from −0.95 to −0.85. The book's −0.963 for the same quantity does not round to −0.9, so its two prints probably come from different runs. The book reports at least two, the 19 at location 3342 and the 19.2 at location 3399, and location 3438 gives its growth rates "in one simulation". The CPPI the prose describes stays above −0.5 on every seed, with a band of −0.499628 to −0.489965. The loop the book prints falls below −0.5 on every seed, so the code Chan shows does not do what the sentence before it says. |
 | 13 | none | none, not a replication | No series matching Example 5.1's printed figures has a Kelly of 18.4, under any of the three compoundings. Moving the draws' mean to a Kelly of 18.4 lands rows 3, 8, 10 and 11, and lands row 3 under the declared band and the one row 3 now reads. |
 | 14 | none | none, not a replication | Moments exist only below order 5.51, so a draw's sample skewness has infinite variance. That is why the tests check the tail and the draws' mean and std rather than a draw's third and fourth moments. |
@@ -9860,20 +9860,22 @@ returns, with a Kelly near 18.4, that neither mirror holds. It cannot tell when
 or how that series differed from the saved file. That is an inference rather
 than a held vintage, and row 13 is what it rests on.
 
-1. **No series matching Example 5.1's printed figures reaches 18.4, under
-   any of three ways its APR compounds.** The Kelly is the Sharpe ratio per day over the daily
-   standard deviation, and an APR fixes that deviation once the Sharpe ratio
-   is given. Across the rounding of the printed 1.6 and 11 percent, the Kelly
-   runs from 21.558894 to 26.757652 when the APR compounds the log growth
-   m − σ²/2, which is what `implied_kelly` assumes. Compounding 1 + m exactly
-   moves the lower edge to 22.065999, and taking the APR as a simple 252·m
-   moves it to 20.891304. So the edge depends on the convention, and none of
-   the three reaches 18.4. Example 5.1's script, `AUDCAD_unequal.m`,
-   compounds the daily returns themselves, which on the saved file gives
-   0.112410 against the log growth's 0.112426. At a Sharpe ratio of 1.6, a
-   Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across the three. So
-   that series disagreed with Example 5.1's own printed figures as well as
-   with the saved file.
+1. **No series matching Example 5.1's printed figures reaches 18.4, under any
+   of three ways its APR compounds.** The Kelly is the Sharpe ratio per day
+   over the daily standard deviation, and an APR fixes that deviation once the
+   Sharpe ratio is given and the compounding is chosen. The log growth leaves
+   two deviations, one near 20 percent a day with a Kelly near 0.5, so the
+   smaller is the one used. Across the rounding of the printed 1.6 and 11
+   percent, the Kelly runs from 21.558894 to 26.757652 when the APR compounds
+   the log growth m − σ²/2, which is what `implied_kelly` assumes. Compounding
+   1 + m exactly moves the lower edge to 22.065999, and taking the APR as a
+   simple 252·m moves it to 20.891304. So the edge depends on the convention,
+   and none of the three reaches 18.4. Example 5.1's script,
+   `AUDCAD_unequal.m`, compounds the daily returns themselves, which on the
+   saved file gives 0.112410 against the log growth's 0.112426. At a Sharpe
+   ratio of 1.6, a Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across
+   the three. So that series disagreed with Example 5.1's own printed figures
+   as well as with the saved file.
 2. **A Kelly near 18.4 lands most of the chapter's simulated figures.** Moving
    the draws' mean so that the Kelly is 18.4 moves only λ. On the same 200
    seeds it puts the median uncapped optimum at 18.470198 and lands rows 3,
@@ -9895,14 +9897,14 @@ Four things. The last was measured by the write-up after the run, and
 [tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py)
 pins it, along with the 2.4 standard errors in row 15.
 
-1. **The book's Kelly and historical optimum of 18.4 belong to a series
-   nobody holds.** Chan's own saved returns give 23.845328 and 23.721773.
-   Any series matching Example 5.1's printed Sharpe ratio and APR gives at
-   least 21.558894 when the APR compounds the log growth, and at least
-   20.891304 under the simplest of the three compoundings row 13 tries. The
-   claims the figures were printed to support still hold: the historical
-   optimum is within 0.52 percent of the Kelly, and the Kelly lies inside the
-   simulated optimum's band under either rule.
+1. **The book's Kelly and historical optimum of 18.4 belong to a series nobody
+   holds.** Chan's own saved returns give 23.845328 and 23.721773. Any series
+   matching Example 5.1's printed Sharpe ratio and APR, with a daily swing
+   under 10 percent, gives at least 21.558894 when the APR compounds the log
+   growth, and at least 20.891304 under the simplest of the three compoundings
+   row 13 tries. The claims the figures were printed to support still hold:
+   the historical optimum is within 0.52 percent of the Kelly, and the Kelly
+   lies inside the simulated optimum's band under either rule.
 2. **The growth-optimal leverage brings a drawdown near total loss on this
    file too.** At the optimum the declared seed's drawdown is −0.991276, and
    the book's −0.999 lands in the band. At half the optimum the drawdown is
@@ -9911,14 +9913,14 @@ pins it, along with the 2.4 standard errors in row 15.
    rule chosen after the ensemble was seen. Row 13 ties all of them but row 9
    to the book's draws having a lower mean than this file's.
 3. **Box 8.6's loop is not the CPPI location 3426 describes, and only the
-   description keeps the floor.** The loop shrinks the order as the
-   unlevered returns fall rather than as the account falls, so the account
-   can fall further than D. It did on all 200 seeds, to −0.848088 on the
-   declared one. The described scheme stays above −0.5 on every seed, at a
-   cost of about a quarter of the growth, 0.255285 on the declared seed. So
-   the book's pairing of a growth cost near 1.6 percent with a drawdown "by
-   design" under 0.5 holds for neither form here. The loop gives the first and
-   not the second, and the scheme gives the second and not the first.
+   description keeps the floor.** The loop shrinks its leverage as the
+   unlevered returns fall rather than as the account falls, so the account can
+   fall further than D. It did on all 200 seeds, to −0.848088 on the declared
+   one. The described scheme stays above −0.5 on every seed, at a cost of
+   about a quarter of the growth, 0.255285 on the declared seed. So the book's
+   pairing of a growth cost near 1.6 percent with a drawdown "by design" under
+   0.5 holds for neither form here. The loop gives the first and not the
+   second, and the scheme gives the second and not the first.
 4. **The draws reach deeper than the history because there are more of
    them, and that decides where the Kelly stands.** The least of the 612
    saved returns is −0.022031, a ruin leverage of 45.390502, and the declared

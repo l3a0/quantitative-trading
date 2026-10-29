@@ -117,14 +117,14 @@ returns the Kelly is 23.845328 and the historical optimum 23.721773, so the
 vintage explanation is spent and both rows did not reproduce. Row group 13
 holds the evidence for where 18.4 came from.
 
-1. :func:`implied_kelly_band` puts the Kelly of any daily series matching
-   Example 5.1's printed Sharpe ratio of 1.6 and APR of 11 percent, across
-   their rounding, between 21.56 and 26.76, when the APR compounds the log
-   growth ``m − σ²/2``. Compounding ``1 + m`` exactly moves the lower edge to
-   22.07, and the simple ``252·m`` moves it to 20.89, so the edge depends on
-   the convention. Example 5.1's script, ``AUDCAD_unequal.m``, compounds the
-   daily returns themselves, which the log growth comes closest to. None of
-   the three reaches 18.4.
+1. :func:`implied_kelly_band` puts the Kelly of any daily series with a swing
+   under 10 percent matching Example 5.1's printed Sharpe ratio of 1.6 and APR
+   of 11 percent, across their rounding, between 21.56 and 26.76, when the APR
+   compounds the log growth ``m − σ²/2``. Compounding ``1 + m`` exactly moves
+   the lower edge to 22.07, and the simple ``252·m`` moves it to 20.89, so the
+   edge depends on the convention. Example 5.1's script, ``AUDCAD_unequal.m``,
+   compounds the daily returns themselves, which the log growth comes closest
+   to. None of the three reaches 18.4.
 2. The ensemble rerun with the draws' mean moved so that the Kelly is 18.4,
    which moves only λ, puts the median uncapped optimum at 18.470198 and
    lands four of the five simulated rows it reruns, row 3 under both its

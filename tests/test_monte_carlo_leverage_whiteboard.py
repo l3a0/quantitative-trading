@@ -548,7 +548,7 @@ class TestTheLoopFigures:
     def test_the_multiplier_is_one_plus_the_unlevered_drawdown_through_day_302(
         self, figures, run
     ) -> None:
-        """Day 303's order reads the drawdown through the day before, as the loop
+        """Day 303's leverage reads the drawdown through the day before, as the loop
         sets it before the day's return, and not day 303's own."""
         unlevered = np.cumprod(1 + run["sim"])
         through = unlevered / np.maximum.accumulate(np.maximum(unlevered, 1.0))
