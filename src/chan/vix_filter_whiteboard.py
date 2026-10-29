@@ -9,9 +9,11 @@ each right after the paragraph it draws.
 1. One US holiday, four readings: three columns, Wednesday 2008-11-26,
    Thursday 2008-11-27 and Friday 2008-11-28, with VIX's close on each, none
    on the Thursday, and a check for each day FSTX traded. Under them, one row
-   for each of the four readings the post names, the join, the latest close,
-   filled forward and a row back. In each row an arrow runs from the Thursday
-   and from the Friday to the column of the close that day reads, and a word
+   for each of the four of the post's six readings that read the previous
+   day: the join, the latest close, filled forward and a row back. The two
+   that read the same day's close are left out, since Lesson 3 rules them out
+   before any figure. In each row an arrow runs from each trade day the
+   reading holds back to the column whose close that day reads, and a word
    says whether the day is kept or dropped. The join's row says the Thursday
    is not on its calendar at all. The Friday's own close is grey, with a note
    naming the next trade day, which reads it, since no day drawn does. It
@@ -27,9 +29,13 @@ each right after the paragraph it draws.
    kept day is not a day traded."
 
 Every figure either sketch prints, and every bar's height, is read from the
-run through :func:`chan.vix_filter.read_sources` and
-:func:`chan.vix_filter.vix_filters`, into :class:`HolidayWeek` and
-:class:`KeptDays`. Each scene refuses figures that would make its words
+committed files through :func:`chan.vix_filter.read_sources`. The kept days
+come from :func:`chan.vix_filter.vix_filters` into :class:`KeptDays`. The
+holiday's reads come into :class:`HolidayWeek` from the functions the run's
+readings are built on, :func:`~chan.vix_filter.common_days`,
+:func:`~chan.vix_filter.latest_close_before` and
+:func:`~chan.vix_filter.qualifies`, because the run keeps only each reading's
+totals and not which close each day read. Each scene refuses figures that would make its words
 false rather than drawing them. Two parts of the layout are schematic.
 
 1. The first sketch's columns stand evenly apart, and its arrows show only
@@ -102,7 +108,8 @@ def six(value: float) -> str:
 #: The three days the sketch draws: the day before the holiday, the holiday,
 #: and the day after.
 WEEK = (pd.Timestamp("2008-11-26"), pd.Timestamp("2008-11-27"), pd.Timestamp("2008-11-28"))
-#: The four readings the post names, in its order, each as its row's label.
+#: The four of the post's six readings that read the previous day, in its
+#: order, each as its row's label. The two same-day readings look ahead.
 READINGS = ("Join", "Latest close", "Filled forward", "Row back")
 
 

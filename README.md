@@ -8825,10 +8825,13 @@ Five groups of what it says are not pinned here.
 5. Its reference, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_vix_filter.py](tests/test_vix_filter.py), or to
+[tests/test_vix_filter.py](tests/test_vix_filter.py), to
 [tests/test_vix_filter_figures.py](tests/test_vix_filter_figures.py) for the
-figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run.
+figure's own numbers, or to
+[tests/test_vix_filter_whiteboard.py](tests/test_vix_filter_whiteboard.py)
+for the sketches' labels and the alt texts that quote them, VIX's closes of
+54.92 and 55.28 among them. `TestWhatThePostMeasured` holds the ones that had
+no pin before it, all measured after the run.
 
 1. Buy on gap's kept days by year, 68, 83, 9 and 30 for 2008 to 2011, and
    FSTX's, 65, 81, 9 and 30, so 151 of 190 and 146 of 185 fall in 2008 and
@@ -8895,10 +8898,12 @@ USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    0.093601, is 0.722090 of the 0.129625 the kept days sum to, and without
    it the other 189 give 0.048032 and a Sharpe ratio of 0.855003.
 
-Both read every figure from the run, through `read_sources` and
-`vix_filters`, and only their layouts are schematic: the first sketch's
-columns stand evenly apart, and the second's ticks and bars stand evenly
-apart in date order rather than at their dates. Both build more slowly than
+Both read every figure from the committed files through `read_sources`. The
+second takes its figures from `vix_filters`, and the first takes each day's
+read from `common_days`, `latest_close_before` and `qualifies`, the functions
+the run's readings are built on. Only their layouts are schematic. The first
+sketch's columns stand evenly apart, and the second's ticks and bars stand
+evenly apart in date order rather than at their dates. Both build more slowly than
 the USD.CAD post's sketches and hold their finished drawings for twelve
 seconds, because each carries more than that pace lets a reader take in.
 Both draw in the shared inks, as the post's chart does. Redraw both with:

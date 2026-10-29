@@ -11191,10 +11191,13 @@ Lesson 4, added in the first round of its review before publishing.
    the 0.129625 summed, beside the other 189 days' 0.048032 and Sharpe ratio
    of 0.855003.
 
-Both read their figures from the run, and only their layouts are schematic. A
-change to those figures moves the sketches too, and
+Both read their figures from the committed files, and only their layouts are
+schematic. The second takes its figures from `vix_filters`. The first takes
+each day's read from `common_days`, `latest_close_before` and `qualifies`,
+which the run's readings are built on, since the run keeps only each
+reading's totals. A change to those figures moves the sketches too, and
 `uv run python -m chan.vix_filter_whiteboard` redraws both through the same
-`read_sources` and `vix_filters`.
+`read_sources`.
 
 ## Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*
 

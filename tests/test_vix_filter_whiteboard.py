@@ -582,6 +582,23 @@ class TestTheHolidaySketch:
         for text in ("54.92", "none: US holiday", "VIX closed", "FSTX traded", *sketches.READINGS):
             assert _label(scene, text).color == INK, text
 
+    def test_the_headings_checks_and_words_sit_with_their_columns(self, every, week) -> None:
+        """Each day's heading and check stand in its column, and each kept or
+        dropped word starts just right of its own arrow's tail, in its lane."""
+        scene = every[0]
+        for d, x in zip(WEEK, COLUMN_XS, strict=True):
+            heading = _label(scene, d.strftime("%a %m-%d"))
+            assert (heading.x, heading.ha) == (x, "center")
+            check = _stroke(scene, f"traded-{d.date()}")
+            assert (check.x.min() + check.x.max()) / 2 == pytest.approx(x)
+        verdicts = iter(
+            s for s in scene.steps if isinstance(s, Label) and s.text in ("kept", "dropped")
+        )
+        for read in (r for r in week.reads if r.kept is not None):
+            arrow = _stroke(scene, f"{read.reading}-{read.day.date()}")
+            word = next(verdicts)
+            assert (word.x, word.y) == pytest.approx((arrow.x[0] + sketches.VERDICT_DX, arrow.y[0]))
+
     def test_the_closes_sit_in_their_columns(self, every) -> None:
         scene = every[0]
         for text, x in zip(("54.92", "none: US holiday", "55.28"), COLUMN_XS, strict=True):
