@@ -1154,9 +1154,11 @@ class TestThePostQuotesTheRun:
         for sentence in (
             f"It gained on {int((held > 0).sum())} and lost on {int((held < 0).sum())}.",
             f"which print as {100 * rest.average_annual_return:.1f} percent and {rest.sharpe:.2f}.",
-            f"Over every day but {long.kept_days[best].date()}, 252 times the mean is "
-            f"{_f(every.average_annual_return)}, so without that day the rise Lesson 1 measures "
-            "becomes a fall.",
+            f"Over all {len(long.daily):,} days but {long.kept_days[best].date()}, 252 times "
+            f"the mean is {_f(every.average_annual_return)}, above the other 189 kept days’ "
+            f"{_f(rest.average_annual_return)}. So without that day the rise Lesson 1 measures, "
+            f"from {_f(long.unfiltered.average_annual_return)} to "
+            f"{_f(long.average_annual_return)}, becomes a fall.",
             f"FSTX held a position on {lit.held_days} of its {lit.kept} kept days, long on "
             f"{int((side == 1).sum())} and short on {int((side == -1).sum())}.",
         ):
