@@ -6955,13 +6955,14 @@ Five groups of what it says are not pinned here.
    image the highlights did not capture, and that Chan cites Thorp (1997) for
    Equation 8.3, the growth rate at the Kelly leverages.
 3. Readings no test asserts: the slope's first number read as how fast the
-   growth rate rises as leverage moves from strategy 1 to strategy 2, the
-   drag growing with the
-   square of the leverage and so staying small under a tight cap, the
-   correlated short cancelling most of strategy 2's variance, and that the
-   example cannot say whether Chan means the highest mean or the highest
-   growth rate. The post's illustration of gross leverage, \$1.50 long and
-   \$0.50 short on \$1 of equity, is arithmetic on its own numbers.
+   growth rate rises as leverage moves from strategy 1 to strategy 2, the drag
+   growing with the square of the leverage and so staying small under a tight
+   cap, the short in strategy 1 at the unbounded peak read as there only to
+   make room in F1 + F2 for more of strategy 2, the correlated short
+   cancelling most of strategy 2's variance, and that the example cannot say
+   whether Chan means the highest mean or the highest growth rate. The post's
+   illustration of gross leverage, \$1.50 long and \$0.50 short on \$1 of
+   equity, is arithmetic on its own numbers.
 4. Ratios and roundings the post takes from pinned figures in words: strategy
    2's mean twice strategy 1's, 0.4648 less than half the corner's rate,
    0.262321 as about a quarter, 2.448980 as 2.45 in the subtitle, a heading

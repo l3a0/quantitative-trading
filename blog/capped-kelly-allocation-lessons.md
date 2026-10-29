@@ -57,7 +57,7 @@ Chan prints Equation 8.3 as an image, and the Kindle highlights behind this repo
 
 ## Lesson 1: every figure the book prints lands, and nothing about the data could have moved them
 
-Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position, through a \$10,000 loss and then a \$20,000 gain. Here is each figure Chan prints for the two examples, computed beside printed, with Example 8.1’s in dollars.
+Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position, through a \$10,000 loss and then a \$20,000 gain. Here is each figure Chan prints for the two examples, computed beside printed, with Example 8.1’s in dollars. The positions its two trades leave come in the section after.
 
 ```math
 \begin{array}{l|r|r}
@@ -82,17 +82,19 @@ g \text{, all on } F_2 & 0.955 & 0.96
 \end{array}
 ```
 
-Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96. These are all the figures in the examples’ text, and a figure printed only inside an equation’s image, as Equation 8.3’s may be, is not among them.
+Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96. Beside the two positions Example 8.1’s trades leave, \$450,000 and \$550,000, these are all the figures in the examples’ text. A figure printed only inside an equation’s image, as Equation 8.3’s may be, is not among them.
 
-No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is three things the table does not show.
+No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is five things the table does not show.
 
-1. The exact value behind the printed 0.96, in Lesson 3.
-2. The near miss, in Lesson 4.
-3. Where everything on strategy 2 stops being best, in Lesson 5.
+1. Why everything on strategy 2 beats shrinking every leverage, found by splitting each growth rate into its return and its drag, in Lesson 2.
+2. The exact value behind the printed 0.96, in Lesson 3.
+3. The near miss, in Lesson 4.
+4. Where everything on strategy 2 stops being best, in Lesson 5.
+5. A case, on other inputs, where ruling out short positions costs growth, in Lesson 6.
 
 ### Selling into a loss to hold a leverage of 5
 
-A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on the same page why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”, because keeping it constant “is necessary to optimize the growth rate”.
+A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000, which leaves a \$550,000 position. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on the same page why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”, because keeping it constant “is necessary to optimize the growth rate”.
 
 The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and this repository computes Example 8.1’s trades with the same code as the SPY post’s.
 
