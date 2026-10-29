@@ -10,8 +10,9 @@ name: Board
 # A label, a body edit or a comment starts a run through `issues` and
 # `issue_comment`. A "blocked by" link and a sub-issue start none, because
 # GitHub Actions lists no trigger for either, so the session that sets one
-# dispatches this workflow on main through workflow_dispatch. The
-# update-build-board skill names the command and the moments that need it.
+# dispatches this workflow on main through workflow_dispatch. The l3a0
+# plugin's update-build-board skill names the command and the moments that
+# need it.
 #
 # Every trigger below except workflow_dispatch fires only once this file is on
 # main, and every one of them runs on the default branch, which is the only

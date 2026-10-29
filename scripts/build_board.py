@@ -29,7 +29,8 @@ It writes the six sections the page reads.
 6. ``next``, one item per issue carrying a ``band:N`` label, ordered within its
    band by a ``Board order:`` line in the body.
 
-The ``update-build-board`` skill states each format and when a session sets it.
+The l3a0 plugin's ``update-build-board`` skill states each format and when a
+session sets it.
 
 The page refuses a whole section when one item lacks a field it reads, so
 every item carries every such field. A missing milestone is an empty string

@@ -1,6 +1,6 @@
 ---
 name: review-post
-description: Review one unpublished blog/*.md post before the owner reads it for publishing, in rounds that loop until nothing significant is left. Full rounds run five independent lenses (accuracy, consistency, easy comprehension, suggested sketch notes, suggested subheadings) and a verifier per lens that tries to refute every finding, then apply what survives on the post's branch and sync its unpublished draft. Once a full round finds only errors in the loop's own edits, later rounds review just the last round's diff and stop when one is clean. Use when asked to review a post before the owner edits or publishes it, to check a post for accuracy, consistency or ease of reading, or to suggest sketch notes or subheadings for a post. Not for reviewing a pull request's code, which CLAUDE.md's `## Pull requests` covers.
+description: Review one unpublished blog/*.md post before the owner reads it for publishing, in rounds that loop until nothing significant is left. Full rounds run five independent lenses (accuracy, consistency, easy comprehension, suggested sketch notes, suggested subheadings), plus the engineering team's role lenses through /l3a0:ask-team in lens mode, and a verifier per lens that tries to refute every finding, then apply what survives on the post's branch and sync its unpublished draft. Once a full round finds only errors in the loop's own edits, later rounds review just the last round's diff and stop when one is clean. Use when asked to review a post before the owner edits or publishes it, to check a post for accuracy, consistency or ease of reading, or to suggest sketch notes or subheadings for a post. Not for reviewing a pull request's code, which CLAUDE.md's `## Pull requests` covers.
 ---
 
 # Review a post before the owner reads it
@@ -51,8 +51,8 @@ The rounds run in two phases, by the owner's ruling of 2026-10-21. A loop
 review settles the post's original text first, then checks only its own
 edits.
 
-1. **Full rounds.** All five lenses read the whole post and everything that
-   describes it. The loop leaves this phase after the first full round whose
+1. **Full rounds.** All five lenses and the team's lenses read the whole
+   post and everything that describes it. The loop leaves this phase after the first full round whose
    significant findings all sit in text the loop itself wrote. That includes
    a README list that an earlier round's rewrite made stale.
 2. **Diff rounds.** Each later round reads only the previous round's diff,
@@ -271,6 +271,24 @@ comment reports that too.
    runs several ideas together, with the text of each and the line it goes
    above. It names any anchor a renamed `##` heading would break.
 
+### The team's lenses
+
+A full round also runs `/l3a0:ask-team` in its lens mode on the post, on the
+owner's ruling of 2026-10-29 that the post review consults the engineering
+team. A diff round does not. Start it in the same message as the five lenses,
+and give it what a lens prompt holds: the post, the round's commit, the
+tracking issue and what is out of scope. It seats the roles a blog post
+touches, runs them blind to each other and to the five lenses, verifies their
+findings by executing, and returns the survivors. It posts nothing and fixes
+nothing.
+
+Its surviving findings then go to a verifier of their own, as the next section
+says for a lens, because the owner asked that they pass the same verifier step
+as the rest. A team finding counts toward the stop rule like any other. One
+that is significant under `## The loop` and sits in the post's original text
+keeps the loop in full rounds. The round's comment gives the team a section of
+its own, and the run paths it returns go into the round's cost.
+
 ## Verify each finding
 
 Each lens's findings go to a verifier of their own as soon as that lens
@@ -439,7 +457,8 @@ suggestion dropped, so the owner reviews the whole loop in one place.
 Once the loop stops, review the pull request as `CLAUDE.md`'s
 `## Pull requests` says. The rounds read the post, and this review reads the
 diff, which also holds the tests, docstrings and modules the fixes touched.
-So run a completeness lens and an over-reach lens on the diff, and mutate
+So run a completeness lens, an over-reach lens and `/l3a0:ask-team` in lens
+mode on the diff, and mutate
 every test the loop added. Post the review as a comment on the pull request,
 whose first line the board reads, and watch the checks until they settle. Then hand it over, and take `working:build` off the tracking issue, as
 the moment for a hand-over in `update-build-board` says.

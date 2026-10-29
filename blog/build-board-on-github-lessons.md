@@ -64,7 +64,7 @@ The judgement became labels, links and lines a session sets on GitHub.
 4. A native “blocked by” link and a `Board after:` line say what it waits on.
 5. A `Board verdict:` line in an owner comment says whether its plan is finished.
 
-**After.** A session no longer writes the board. It sets a label or a line when it makes a judgement call. Events GitHub already records, such as a pull request merging or CI finishing, reach the board on its next run with nothing set by anyone. Lesson 6 names the exceptions. The skill now runs 802 lines.
+**After.** A session no longer writes the board. It sets a label or a line when it makes a judgement call. Events GitHub already records, such as a pull request merging or CI finishing, reach the board on its next run with nothing set by anyone. Lesson 6 names the exceptions. Just after the change, the skill ran 802 lines.
 
 ## Lesson 1: a page written by hand costs a turn for every change, whatever the change
 
@@ -233,4 +233,4 @@ Eight limits apply.
 1. GitHub. GitHub Actions billing. <https://docs.github.com/en/billing/concepts/product-billing/github-actions>, read 2026-10-11.
 2. Anthropic. Pricing. <https://platform.claude.com/docs/en/about-claude/pricing>, read 2026-10-11.
 
-*Code: [the script that builds the board](https://github.com/l3a0/quantitative-trading/blob/main/scripts/build_board.py), [the workflow that runs it](https://github.com/l3a0/quantitative-trading/blob/main/.github/workflows/board.yml), and [the skill sessions follow](https://github.com/l3a0/quantitative-trading/blob/main/.claude/skills/update-build-board/SKILL.md).*
+*Code: [the script that builds the board](https://github.com/l3a0/quantitative-trading/blob/main/scripts/build_board.py), [the workflow that runs it](https://github.com/l3a0/quantitative-trading/blob/main/.github/workflows/board.yml), and [the skill sessions follow](https://github.com/l3a0/claude-plugins/blob/main/skills/update-build-board/SKILL.md).*
