@@ -98,7 +98,7 @@ No choice of data could have moved these figures. Nothing between the stated inp
 
 A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000, which leaves a \$550,000 position. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). Just before the example, on p. 250, he explains why he asks for it. However the leverage was chosen, “the leverage should be kept constant”, because keeping it constant “is necessary to optimize the growth rate”.
 
-The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and this repository computes Example 8.1’s trades with the same code as the SPY post’s.
+The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A long position held at a constant leverage above 1 sells after every loss and buys after every gain, and this repository computes Example 8.1’s trades with the same code as the SPY post’s.
 
 On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces the trading rule from that paper.
 
@@ -177,7 +177,7 @@ Above a cap of 2.448980, strategy 2 still gets most of the cap, so the “most�
 So on Chan’s inputs, everything on strategy 2 is best only while the cap is below 0.262321 of the total, about a quarter. The threshold is a formula in the means and the covariance, so a trader can compute it rather than guess. Two conditions limit it.
 
 1. The strategy with the higher mean must have a variance above the two strategies’ covariance. Otherwise the slope at the corner does not fall as the cap rises, and the formula names no largest cap.
-2. It marks only where everything on that strategy stops beating the other long-only ways to spend the whole cap. Lesson 6 shows a short can beat all of them.
+2. It marks only where everything on that strategy stops beating the other long-only ways to spend the whole cap. Lesson 6 shows a short can beat all of them, and so can leaving part of the cap unspent once the cap passes that strategy’s own Kelly leverage.
 
 ## Lesson 6: long-only is the answer here and not in general
 

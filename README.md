@@ -6970,10 +6970,10 @@ Five groups of what it says are not pinned here.
 5. Its references, cited rather than computed. Two results it takes from
    earlier posts are cited the same way: compound growth falling short of the
    average return by about half the variance, from the post on the coin toss,
-   and a leverage held constant above 1 selling after every loss and buying
-   after every gain, from the SPY post. The post's counts of its own parts,
-   such as the three groups of results, the five things the reproduction adds
-   and the six lessons, are not pinned either.
+   and a long position held at a constant leverage above 1 selling after every
+   loss and buying after every gain, from the SPY post. The post's counts of
+   its own parts, such as the three groups of results, the five things the
+   reproduction adds and the six lessons, are not pinned either.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) or to
