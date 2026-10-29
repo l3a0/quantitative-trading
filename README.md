@@ -8717,8 +8717,8 @@ Five groups of what it says are not pinned here.
    move either way as leverage changes. Also that a second one-sided test
    raises the chance of a false gap to as much as twice as high, the general
    Benjamini-Hochberg rule, and that the corrected test needs a true gap at
-   least as large as Y, and a larger one unless the other ceiling's p-value
-   also clears 0.05, because its own must then clear 0.025. Last, that a
+   least as large as Y, and a larger one if the other ceiling's p-value is
+   above 0.05, because its own must then be at most 0.025. Last, that a
    higher mean leverage borrows more and so breaks even at a smaller spread,
    that a position levered 2 opens at Regulation T's 50 percent and that its
    margin falls to FINRA Rule 4210's maintenance margin of 25 percent after a
@@ -8759,8 +8759,8 @@ and the ratios of about 1.78, 1.57 and 2.51 that divide ceiling 5's gap,
 standard error and borrowing by ceiling 2's. The fourth of them reads the
 dates: the file's last day and first month, the years its earlier companies'
 prices end, Entry 45's two ruined months, and the first and last of the eight
-sorts whose returns Entry 45 had shown. No test reads a second copy of a date,
-such as the subtitle's June 2001 or the July 2002 in the trader's second habit.
+sorts whose returns Entry 45 had shown. Some copies of a date go unread, such
+as the subtitle's June 2001 and the July 2002 in the trader's second habit.
 A fifth reads every figure in the post written with a decimal point, every
 copy. It holds that each is one the run computes or one of a few constants the
 test names. The constants come from no run. It accepts 0.8416 and 1.645, on
