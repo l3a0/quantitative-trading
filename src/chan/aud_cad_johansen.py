@@ -62,9 +62,10 @@ neither mirror.
 the question here, because Chan's saved returns are the one output of the
 MATLAB that can be compared. The criterion, fixed on issue 345 before any
 return was computed, is that the 612 returns agree with his to within 1e-9 on
-every row. A match says the inputs agree up to a constant scale on each leg,
-because a simple return ignores the scale and the eigenvector rescales to
-cancel it.
+every row. A match says the closes the script traded agree up to a constant
+scale on each leg, because a simple return ignores the scale and the
+eigenvector rescales to cancel it. The closes before the test period are
+checked only as far as they move a hedge.
 
 **The hedge's sign and scale move no return.** Multiplying day ``t``'s vector
 by any ``c ≠ 0`` multiplies that day's portfolio value by ``c``, so its z-score
@@ -144,6 +145,11 @@ AGREEMENT = 1e-9
 
 #: The level the two relation counts beside the replication read.
 RELATION_LEVEL = 95
+
+#: The constant scale the post's Lesson 2 puts on each leg, AUD.USD then
+#: CAD.USD, to show that the returns cannot see it. Its tests and its sketch
+#: read it from here.
+SCALE_CHECK = (2.0, 0.37)
 
 
 def cross_rates(audusd: pd.Series, usdcad: pd.Series) -> pd.DataFrame:
@@ -261,9 +267,9 @@ class AudCad:
 
         The hedge times the day's quotes is the dollars one unit holds in each
         leg. Its sign is the eigenvector's and moves no return, so the share is
-        taken with AUD.USD held long. That makes −0.5 equal dollars held against
-        each other, and a positive share a day the hedge held both legs the same
-        way, long both or short both.
+        taken with the sign set so AUD.USD is the leg held long. That makes −0.5
+        equal dollars held against each other, and a positive share a day the
+        hedge held both legs the same way, long both or short both.
         """
         dollars = self.hedge[self.training :] * self.prices[self.training :]
         dollars = dollars * np.sign(dollars[:, [0]])

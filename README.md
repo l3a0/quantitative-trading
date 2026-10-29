@@ -368,8 +368,8 @@ where they were first built. The other forty-five were built here.
     a Sharpe ratio of 1.610890, his 11 percent and 1.6, and a Kelly leverage of
     23.845328. They reproduce because all 612 daily returns match the ones the
     script saved, to within the 1e-9 declared before any return was computed,
-    which also shows the port's daily files agree with the inputs his MATLAB
-    read, up to a constant scale on each leg. The trace test finds a relation
+    which also shows the port's daily files carry the closes his MATLAB
+    traded, up to a constant scale on each leg. The trace test finds a relation
     in 26 of the 612 training windows, so on most days the rule traded a hedge
     the test did not back. Every figure is
     exploratory, and the 250-day training length was chosen in hindsight.
@@ -1098,7 +1098,8 @@ is not a finite number.
 
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py) does it for
 Example 5.1. It pins the three printed figures at the precision that is real,
-as the script printed them and as the book rounded them, and holds the 612
+as the script printed them, and the APR and Sharpe ratio as the book rounded
+them, and holds the 612
 returns against Chan's saved ones row by row. It also holds that negating or
 scaling one day's hedge moves no return, that two series on different dates
 are refused, that scaling either leg leaves the match and one digit on a close
@@ -5948,21 +5949,24 @@ day. Chan reports an APR of 11 percent and a Sharpe ratio of 1.6 from
 test, the linear rule, rollover interest, the Kelly leverage, Chan's stationary
 candidates and the gold miners rather than repeating them, and the later post
 on Chapter 8's leverage for where the book's Kelly of 18.4 most likely came
-from. It draws six lessons from Entry 25 of the replication log.
+from. It draws six lessons from Entry 25 of the replication log. Lessons 1
+to 4 also rest on numbers measured for the post, which had no pin before it
+and are listed below.
 
 1. Every figure the script prints matches, because every one of the 612
    returns matches the one Chan's script saved, within a criterion written
    before any return was computed.
-2. The match ties the traded closes to the ones Chan's MATLAB read up to a
+2. The match ties the traded closes to the ones Chan's MATLAB traded up to a
    constant scale on each leg, and no more. The closes before the test period
    are checked only as far as they move a hedge.
 3. The Johansen test rarely found a relation behind the hedge it supplied. The
    trace test finds a relation in 26 of the 612 windows, in three stretches,
    and two relations in 19 of them.
 4. The hedge is a capital weight that wandered. It held both currencies the
-   same way on 90 days, 85 of them from 2010-06-01 to 2010-10-05, and those
-   days carried about two fifths of the growth in log terms with twice the
-   volatility, though a Welch t of 1.09 cannot rule out chance.
+   same way on 90 days, 85 of them from 2010-06-01 to 2010-10-05. The returns
+   those hedges earned, each the next day's, carried about two fifths of the
+   growth in log terms with twice the volatility, though a Welch t of 1.13
+   cannot rule out chance.
 5. The Python port's version of the example is a different strategy, so its
    printout is no check on the data.
 6. An exact reproduction checks the arithmetic, not the edge.
@@ -5971,8 +5975,8 @@ Five groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
-   The point move of equal dollar value is at 2169, and the commodity
-   currencies at 2173. The base and quote currencies, the AUD.ZAR quote of
+   The point move of equal dollar value is at 2169. The stock index funds of
+   Australia and Canada, and the commodity currencies, are at 2173. The base and quote currencies, the AUD.ZAR quote of
    9.58, the capital weights and the sale of USD.CAD are at 2186. Rollover
    interest "usually not large for short-term strategies" is at 2205. "A
    classic linear mean-reverting strategy", the gross market value, "better
@@ -5987,18 +5991,17 @@ Five groups of what it says are not pinned here.
    holds at `e4bc46f`, that the script loads two minute files neither public
    copy carries, that line 57 plots against the row number, and that the
    port ends both windows a day earlier and prints a Sharpe ratio of
-   1.362926. So is that the files quote six decimals.
+   1.362926.
 3. Readings no test asserts: that the two rates are close to random walks,
-   that the test has little power against them, that a position held both
-   ways is a bet on the US dollar's direction, and that wider swings are what
-   such a bet gives. That neighbouring windows share 249 of their 250 days
+   that the test has little power against them, that a position holding both
+   currencies the same way is a bet on the US dollar's direction, and that
+   wider swings are what such a bet gives. That neighbouring windows share 249 of their 250 days
    is arithmetic on the window length. That CAD/AUD tested stationary over
    nineteen years is the stationary-candidates post's, listed under its
    entry above.
-4. Ratios and differences the post takes from pinned figures in words: about
-   three quarters, about twice as wide, 15 percent of the days, the 586 days
-   left when 26 of 612 are taken away, and that a move of 0.01 is worth one
-   cent. The figure's alt text reads its curves approximately too, such as
+4. Ratios the post takes from pinned figures in words, about three quarters
+   and about twice as wide, and that a move of 0.01 is worth one cent. The
+   figure's alt text reads its curves approximately too, such as
    "near −0.64" and "about 0.32", and it names the dates of two one-day moves,
    2010-05-20 and 2010-07-06, read from the drawn line.
 5. Its references, cited rather than computed.
@@ -6006,24 +6009,36 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py), or to
 [tests/test_aud_cad_johansen_figures.py](tests/test_aud_cad_johansen_figures.py)
-for the figure's own numbers. The post also cites the Chapter 8 post's
+for the figure's own numbers, or to
+[tests/test_aud_cad_johansen_whiteboard.py](tests/test_aud_cad_johansen_whiteboard.py)
+for the sketches'. The post also cites the Chapter 8 post's
 finding on 18.4, that no series with Example 5.1's printed Sharpe ratio and
 APR reaches it under three ways of compounding the APR, and that finding
 traces to `TestRowGroup13TheEighteenPointFourGap` in
-[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py). Six
-of the post's numbers had no pin before the post.
+[tests/test_monte_carlo_leverage.py](tests/test_monte_carlo_leverage.py). Seven
+groups of the post's numbers had no pin before the post.
 
 1. The three stretches the trace test's 26 windows fall in, which hold the 19
    two-relation windows, and the stretch the eigen test's 11 fall in.
 2. The 90 days the hedge held both currencies the same way, the 85 of them
    from 2010-06-01 to 2010-10-05, the longest run of 65 days, and that none
-   falls in a window the trace test backed.
+   took its weights from a window where the trace test found a relation.
 3. The last day's hedge as CAD.USD's share of the gross, −0.4325.
-4. The 90 days compounded alone to 0.1074 and the other 522 to 0.1696, so the
-   90 carried 0.394 of the growth in log terms.
-5. The compounded return of 0.0214 on 2010-05-31 and 0.1170 on 2010-10-05.
-6. The two groups' standard deviations of 0.0073 and 0.0035, their means, and
-   a Welch t of 1.09 with a p-value of 0.28.
+4. The returns the 90 days' hedges earned, each dated a day later,
+   compounded alone to 0.1111 and the other 522 to 0.1657, so the 90 carried
+   0.407 of the growth in log terms.
+5. The compounded return of 0.0243 on 2010-06-01 and 0.1118 on 2010-10-06.
+6. The two groups' standard deviations of 0.0074 and 0.0034, their means of
+   0.0012 and 0.0003, and a Welch t of 1.13, whose p-value of 0.26 is what the
+   post calls far short of what would rule out chance.
+7. The closes in each full year of the two files, 259, 260 and 259, against
+   the 252 days the script annualises by, and that no close carries more than
+   six decimals.
+
+`TestWhatThePostQuotes` in the same test file reads the post itself. It builds
+one copy of each run figure the post quotes from the run, at the precision the
+post prints it, and looks for it in the post's own words, and it reads the
+Lesson 1 table whole. Its docstring lists what it leaves unread.
 
 Its one figure is drawn from the committed files by
 [src/chan/aud_cad_johansen_figures.py](src/chan/aud_cad_johansen_figures.py),
@@ -6042,6 +6057,36 @@ uv run python -m chan.aud_cad_johansen_figures
 [tests/test_aud_cad_johansen_figures.py](tests/test_aud_cad_johansen_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/aud_cad_johansen_whiteboard.py](src/chan/aud_cad_johansen_whiteboard.py)
+on the USD.CAD post's sketch machinery, in the shared inks the post's chart
+draws in. Each sits after the text it draws.
+
+1. `aud_cad_johansen_no_return_moves.gif`, in Lesson 2, AUD.USD's closes
+   doubled, leaving each percent change, each leg's dollars and so every
+   return as they were. It is schematic apart from the scales of 2 and 0.37
+   and the count of 612 returns.
+2. `aud_cad_johansen_share.gif`, in Lesson 4, the last day's hedge in dollars
+   and its share of −0.4325 on a line from −1 to 1, equal dollars at −0.5,
+   and the band from 0 to 1 where both legs are held the same way. Its equal
+   bars and its band's bars are schematic, and it builds slowly and holds its
+   finished drawing for twelve seconds.
+
+```bash
+uv run python -m chan.aud_cad_johansen_whiteboard
+```
+
+[tests/test_aud_cad_johansen_whiteboard.py](tests/test_aud_cad_johansen_whiteboard.py)
+reads the run on the committed files and holds that each sketch prints the
+run's figures and puts each mark where they say, that figures its words would
+misdescribe are refused, that no label touches a line, another label or the
+frame's edge, and that each GIF follows its text in the post. It compares each
+committed GIF with a fresh draw byte for byte only on macOS arm64 in Comic
+Sans MS, as the USD.CAD sketches' test does. The halving the scale sketch
+draws, AUD.USD's weight in every day's hedge when its closes double, is held
+by `test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars` in
+[tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py).
 
 [blog/roll-returns-lessons.md](blog/roll-returns-lessons.md) is a
 twenty-seventh post, about Example 5.3 of Chan's *Algorithmic Trading*, which

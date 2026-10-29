@@ -6122,7 +6122,7 @@ the day before.
 on every one of the 612 days.** Chan's script saved the
 returns it traded, and that file is committed. The criterion for comparing
 them was written on the issue before any return was computed. So the match
-says the committed daily files agree with the inputs the MATLAB read, up to a
+says the committed daily files carry the closes the MATLAB traded, up to a
 constant scale on each leg, which
 [issue 301](https://github.com/l3a0/quantitative-trading/issues/301) could not
 check because the `.mat` files are in neither mirror.
@@ -6205,10 +6205,10 @@ entry it was 2.0e-15.
 
 ### What the entry concludes
 
-Three things.
+Four things.
 
-1. **The committed currency files agree with the ones Chan's MATLAB read,
-   up to a constant scale on each leg.** The script loaded two minute `.mat`
+1. **The committed currency files carry the closes Chan's MATLAB traded, up
+   to a constant scale on each leg.** The script loaded two minute `.mat`
    files that neither mirror carries, and this run read the Python port's daily
    copies. Every one of the 612 returns lands on the one Chan saved, inside the
    1e-9 declared before the run, and the largest difference was 2.0e-15 where
@@ -6216,9 +6216,14 @@ Three things.
    `TestRow5TheReturnsAreChans` holds both.
    1. Scaling either leg by a constant moves no return, because a simple
       return ignores the scale and the eigenvector rescales to cancel it.
-   2. A change of 1e-6, one unit in the files' last decimal, on a close in
-      the test window breaks the match, because the close enters a simple
-      return directly. The same change on the first training row does not,
+      Doubling AUD.USD halves its weight in every day's hedge, so each leg
+      holds the same dollars, and
+      `test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars`
+      holds that too.
+   2. A change of 1e-6, one unit in the sixth decimal, the most the files
+      quote, on a close in the test window breaks the match, because the
+      close enters a simple return directly. The same change on the first
+      training row does not,
       because that close reaches the returns only through the hedge.
 
    So the match answers the question
@@ -6244,6 +6249,19 @@ Three things.
    `TestTheRule::test_ending_both_windows_a_day_earlier_breaks_row_5` holds
    both. So the port's printout is no evidence about the data, and the MATLAB
    is the specification.
+4. **The 90 days the hedge held both currencies the same way show nothing
+   chance cannot explain.** On those days the hedge was long or short the US
+   dollar against both currencies rather than a spread. Each hedge earns the
+   next day's return, so the 90 returns that go with them are dated a day
+   later. They compound alone to 0.1111 and the other 522 to 0.1657. They
+   swung about twice as wide, a standard deviation of 0.0074 against 0.0034,
+   and averaged 0.0012 a day against 0.0003. A Welch t of 1.13, with p of
+   0.26, cannot rule out chance for that difference, so this is a null
+   result, and an exploratory one.
+   `TestBesideTheReplication::test_the_90_days_hedges_earned_0_1111_and_the_other_522_0_1657`
+   and
+   `::test_the_90_days_hedges_swung_twice_as_wide_and_a_welch_t_of_1_13_cannot_rule_out_chance`
+   hold it.
 
 ### What this entry cannot say
 
@@ -6254,9 +6272,10 @@ no cost is charged, as none is in the script. Location 2205 sets rollover
 interest aside for this example as small for a short-term strategy, and
 nothing here measures how small.
 
-**Whether the 250-day training length was chosen on this sample.** Location
-2237 says it gives better results in hindsight. No row runs another length, and
-any that did would be searching the sample this entry already spent.
+**What another training length would show.** Location 2237 says the 250-day
+length gives better results in hindsight, so it was chosen with this sample's
+results in view. No row runs another length, and any that did would be
+searching the sample this entry already spent.
 
 **Whether the pair trades today.** The run ends on 2012-04-26 with Chan's
 data. It says whether his numbers reproduce on his files and nothing about the
@@ -6266,7 +6285,12 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/aud-cad-johansen-lessons.md](../blog/aud-cad-johansen-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one figure,
-which `uv run python -m chan.aud_cad_johansen_figures` redraws.
+which `uv run python -m chan.aud_cad_johansen_figures` redraws. So do the
+post's two whiteboard sketches, which print the run's figures, and
+`uv run python -m chan.aud_cad_johansen_whiteboard` redraws them. The scale
+sketch is schematic apart from its scales and its count of returns. The share
+sketch draws the last day's hedge from the run, and its equal pair and its
+pair held the same way are schematic.
 
 ## Entry 26: Bollinger bands on GLD and USO, Chan's *Algorithmic Trading*
 

@@ -3,7 +3,8 @@
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it. The one exception is
 ``blog/aud-cad-johansen-lessons.md``: ``tests/test_aud_cad_johansen_figures.py``
-holds the numbers its figure draws, and README lists what it says that nothing
+holds the numbers its figure draws, ``tests/test_aud_cad_johansen_whiteboard.py``
+the ones its two sketches print, and README lists what it says that nothing
 asserts. ``docs/replication-log.md`` Entry 25 carries the
 verdicts and points here row by row.
 
@@ -56,6 +57,7 @@ from chan.aud_cad_johansen import (
     JOHANSEN_K,
     JOHANSEN_P,
     LEGS,
+    SCALE_CHECK,
     SCRIPT_APR,
     SCRIPT_KELLY,
     SCRIPT_LOOKBACK,
@@ -77,6 +79,12 @@ from chan.khandani_lo_book_two import matches
 from chan.series import WindowCrossesScaleBreak
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import PYTHON_PORT, RETURN_CALENDAR
+from tests.support.post_tables import either_way, not_found_once, tables
+
+POST = paths.REPO_ROOT / "blog" / "aud-cad-johansen-lessons.md"
+# The trace test's windows split into three stretches at any gap from 11 to 127
+# rows, so 20 sits well inside that range. It has nothing to do with the lookback.
+STRETCH_GAP = 20
 
 
 @pytest.fixture(scope="module")
@@ -114,6 +122,33 @@ def _synthetic(rows: int = 80, seed: int = 7) -> pd.DataFrame:
     return pd.DataFrame(
         {LEGS[0]: aud, LEGS[1]: cad}, index=pd.bdate_range("2020-01-01", periods=rows)
     )
+
+
+def _both_windows_a_day_earlier(frame: pd.DataFrame) -> np.ndarray:
+    """The 612 test returns with the Johansen window and the z-score both ending a day earlier."""
+    prices = frame.to_numpy()
+    hedge = np.full(prices.shape, np.nan)
+    units = np.full(len(prices), np.nan)
+    for t in range(SCRIPT_TRAINING_DAYS + 1, len(prices)):
+        hedge[t] = johansen(prices[t - SCRIPT_TRAINING_DAYS - 1 : t - 1], 0, 1).eigenvectors[:, 0]
+        units[t] = units_on(prices, hedge[t], t - 1, SCRIPT_LOOKBACK)
+    return daily_returns(units[:, None] * hedge * prices, prices)[SCRIPT_TRAINING_DAYS:]
+
+
+def _earned_by(hedge_days: np.ndarray) -> np.ndarray:
+    """The test days whose return those hedge days earned, each the next day's."""
+    earned = np.zeros_like(hedge_days)
+    earned[1:] = hedge_days[:-1]
+    return earned
+
+
+def _minus(value: float, places: int) -> str:
+    """A number as the post prints it, with a true minus sign."""
+    return f"{value:.{places}f}".replace("-", "\u2212")
+
+
+#: The counts the post spells out in words.
+WORDS = {5: "five", 6: "six", 15: "fifteen", 85: "eighty-five"}
 
 
 def _returns_from(prices: np.ndarray, hedge: np.ndarray, start: int, lookback: int) -> np.ndarray:
@@ -168,6 +203,28 @@ class TestTheVintages:
             assert np.isfinite(closes.to_numpy()).all()
             assert (closes > 0).all()
 
+    def test_a_full_year_holds_about_260_closes_and_no_close_more_than_six_decimals(
+        self, sources
+    ) -> None:
+        """The post says the files hold about 260 closes a year, not the 252 the
+        script annualises by, and that six decimals is the most a close carries.
+
+        2009, 2010 and 2011 are the full years. The decimals are read from the
+        file's text, because a float does not keep how many digits were written.
+        """
+        for closes in (sources.audusd[1], sources.usdcad[1]):
+            per_year = closes.groupby(closes.index.year).size()
+            assert per_year.loc[[2009, 2010, 2011]].tolist() == [259, 260, 259]
+        for name in ("inputData_AUDUSD_20120426.csv", "inputData_USDCAD_20120426.csv"):
+            text = (paths.DATA_DIR / "pythoncodesanddata" / name).read_text()
+            decimals = [
+                len(line.split(",")[1].strip().partition(".")[2])
+                for line in text.splitlines()[1:]
+                if line.strip()
+            ]
+            assert len(decimals) == 862
+            assert max(decimals) == 6
+
 
 class TestRow1TheTestWindow:
     def test_612_returns_from_the_books_first_day_to_its_last(self, result) -> None:
@@ -220,7 +277,6 @@ class TestRow5TheReturnsAreChans:
 
     def test_every_row_agrees_within_the_declared_criterion(self, result, saved) -> None:
         found = agreement(result.test, saved, result.test_days)
-        assert AGREEMENT == 1e-9
         assert found.holds
         assert found.rows_over == 0
         assert found.first_over is None
@@ -253,20 +309,47 @@ class TestRow5TheReturnsAreChans:
         assert found.first_over == result.test_days[7]
 
     def test_a_constant_scale_on_either_leg_still_matches(self, frame, saved) -> None:
-        """So row 5 says the inputs agree with Chan's up to a scale per leg, and no more."""
-        again = aud_cad(frame * [2.0, 0.37])
+        """So row 5 says the traded closes agree with Chan's up to a scale per leg, and no more."""
+        again = aud_cad(frame * list(SCALE_CHECK))
         assert agreement(again.test, saved, again.test_days).holds
 
+    def test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars(
+        self, frame, result
+    ) -> None:
+        """Lesson 2's reason a scale is invisible. Every AUD.USD close times 2
+        halves AUD.USD's weight in each day's hedge and leaves CAD.USD's, so each
+        leg holds the same dollars on every test day."""
+        scale = SCALE_CHECK[0]
+        again = aud_cad(frame * [scale, 1.0])
+        t = result.training
+        # The eigenvector solve differs across platforms by a few parts in 1e12,
+        # which Linux CI measured at 2.6e-12 on one day, so the ratios are held
+        # to 1e-9 relative. A wrong scaling moves them by a whole factor.
+        np.testing.assert_allclose(
+            again.hedge[t:, 0] / result.hedge[t:, 0], 1 / scale, rtol=1e-9, atol=0
+        )
+        np.testing.assert_allclose(again.hedge[t:, 1] / result.hedge[t:, 1], 1.0, rtol=1e-9, atol=0)
+        np.testing.assert_allclose(again.positions[t:], result.positions[t:], rtol=0, atol=1e-10)
+        np.testing.assert_array_equal(np.sign(again.positions[t:]), np.sign(result.positions[t:]))
+
     def test_one_digit_on_a_test_window_close_breaks_the_match(self, frame, saved) -> None:
-        """The files quote six decimals, so 1e-6 is one unit in the last digit.
+        """The files quote at most six decimals, so 1e-6 is one unit in the sixth.
 
         A close in the test window enters that day's or the next day's simple
-        return, and the match fails. A close in the first training row reaches
-        the returns only through the hedge, and the same change passes.
+        return, and the match fails. The two dated rows are the closes on each
+        leg whose change moves the returns least, measured over all 1,224. A close
+        in the first training row reaches the returns only through the hedge, and
+        the same change passes.
         """
-        for row, breaks in ((SCRIPT_TRAINING_DAYS + 150, True), (0, False)):
+        cases = (
+            (SCRIPT_TRAINING_DAYS + 150, 0, True),
+            (frame.index.get_loc(pd.Timestamp("2010-07-07")), 0, True),
+            (frame.index.get_loc(pd.Timestamp("2011-11-08")), 1, True),
+            (0, 0, False),
+        )
+        for row, leg, breaks in cases:
             moved = frame.copy()
-            moved.iloc[row, 0] += 1e-6
+            moved.iloc[row, leg] += 1e-6
             again = aud_cad(moved)
             assert (not agreement(again.test, saved, again.test_days).holds) is breaks
 
@@ -349,7 +432,7 @@ class TestBesideTheReplication:
             "2010-10-05",
         )
         assert np.count_nonzero(same & ~in_2010) == 5
-        # None of the 90 falls in a window the trace test backed.
+        # None of the 90 took its weights from a window where the trace test found one.
         assert np.count_nonzero(same & (result.trace_relations > 0)) == 0
         edges = np.diff(np.concatenate(([0], same.astype(int), [0])))
         starts, ends = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
@@ -379,40 +462,61 @@ class TestBesideTheReplication:
         np.testing.assert_array_equal(flipped.dollar_split, result.dollar_split)
         assert (flipped.hedge[result.training :, 0] < 0).any()
 
-    def test_the_90_days_compound_to_0_1074_and_the_other_522_to_0_1696(self, result):
-        """Together they make the run's 0.2953, so 15 percent of the days carried about two
-        fifths of the growth."""
-        same = result.dollar_split > 0
+    def test_the_90_days_hedges_earned_0_1111_and_the_other_522_0_1657(self, result):
+        """Each hedge earns the next day's return, so the 90 days' hedges earned the returns
+        dated a day later. Together they make the run's 0.2953, so 15 percent of the days
+        carried about two fifths of the growth."""
+        earned = _earned_by(result.dollar_split > 0)
         test = result.test
-        those, rest = np.prod(1 + test[same]) - 1, np.prod(1 + test[~same]) - 1
-        assert those == pytest.approx(0.1073962686, abs=1e-10)
-        assert rest == pytest.approx(0.1696463785, abs=1e-10)
+        those, rest = np.prod(1 + test[earned]) - 1, np.prod(1 + test[~earned]) - 1
+        assert np.count_nonzero(earned) == 90
+        assert those == pytest.approx(0.1111428480, abs=1e-10)
+        assert rest == pytest.approx(0.1657025354, abs=1e-10)
         assert (1 + those) * (1 + rest) - 1 == pytest.approx(0.2952620351, abs=1e-10)
-        assert np.log1p(those) / np.log1p(0.2952620351) == pytest.approx(0.394, abs=5e-4)
+        assert np.log1p(those) / np.log1p(0.2952620351) == pytest.approx(0.407, abs=5e-4)
 
-    def test_the_curve_climbed_from_0_0214_to_0_1170_across_the_2010_stretch(self, result):
-        """The compounded return on the last day before the first same-way day, and on the
-        last day of the 65-day run."""
-        curve = pd.Series(np.cumprod(1 + result.test) - 1, index=result.test_days)
-        assert str(curve.index[curve.index.get_loc(pd.Timestamp("2010-06-01")) - 1].date()) == (
-            "2010-05-31"
-        )
-        assert curve["2010-05-31"] == pytest.approx(0.0213815186, abs=1e-10)
-        assert curve["2010-10-05"] == pytest.approx(0.1170443008, abs=1e-10)
-
-    def test_the_90_days_swung_twice_as_wide_and_a_welch_t_of_1_09_cannot_rule_out_chance(
+    def test_dating_by_the_hedge_day_instead_would_credit_a_spread_with_each_runs_first_day(
         self, result
     ):
-        """The standard deviations are 0.0073 and 0.0035, and the means differ with p of 0.28."""
+        """The return dated on a same-way hedge's own day was earned by the day before's hedge.
+
+        On 2010-06-01, the first same-way day, that hedge was a spread, and the
+        pairing by hedge day gives 0.1074 rather than 0.1111.
+        """
         same = result.dollar_split > 0
+        days = result.test_days
+        first = int(np.flatnonzero(same)[0])
+        assert str(days[first].date()) == "2010-06-01"
+        assert result.dollar_split[first - 1] < 0
+        starts = np.flatnonzero(np.diff(np.concatenate(([0], same.astype(int)))) == 1)
+        assert len(starts) == 7
+        assert (result.dollar_split[starts - 1] < 0).all()
+        assert np.prod(1 + result.test[same]) - 1 == pytest.approx(0.1073962686, abs=1e-10)
+
+    def test_the_curve_climbed_from_0_0243_to_0_1118_across_the_2010_stretch(self, result):
+        """The compounded return on the day the first same-way hedge was set, before it earned,
+        and on the day after the 65-day run's last hedge, once it had earned."""
+        curve = pd.Series(np.cumprod(1 + result.test) - 1, index=result.test_days)
+        assert curve.index[curve.index.get_loc(pd.Timestamp("2010-10-05")) + 1] == pd.Timestamp(
+            "2010-10-06"
+        )
+        assert curve["2010-06-01"] == pytest.approx(0.0243291524, abs=1e-10)
+        assert curve["2010-10-06"] == pytest.approx(0.1117562924, abs=1e-10)
+
+    def test_the_90_days_hedges_swung_twice_as_wide_and_a_welch_t_of_1_13_cannot_rule_out_chance(
+        self, result
+    ):
+        """The returns they earned have standard deviations of 0.0074 and 0.0034, and the
+        means differ with p of 0.26."""
+        earned = _earned_by(result.dollar_split > 0)
         test = result.test
-        assert test[same].std(ddof=1) == pytest.approx(0.0072797972, abs=1e-10)
-        assert test[~same].std(ddof=1) == pytest.approx(0.0034753836, abs=1e-10)
-        assert test[same].mean() == pytest.approx(0.0011602616, abs=1e-10)
-        assert test[~same].mean() == pytest.approx(0.0003062562, abs=1e-10)
-        welch = stats.ttest_ind(test[same], test[~same], equal_var=False)
-        assert welch.statistic == pytest.approx(1.0916745496, abs=1e-9)
-        assert welch.pvalue == pytest.approx(0.2777053748, abs=1e-9)
+        assert test[earned].std(ddof=1) == pytest.approx(0.0074283217, abs=1e-10)
+        assert test[~earned].std(ddof=1) == pytest.approx(0.0034195643, abs=1e-10)
+        assert test[earned].mean() == pytest.approx(0.0011988934, abs=1e-10)
+        assert test[~earned].mean() == pytest.approx(0.0002995955, abs=1e-10)
+        welch = stats.ttest_ind(test[earned], test[~earned], equal_var=False)
+        assert welch.statistic == pytest.approx(1.1280848746, abs=1e-9)
+        assert welch.pvalue == pytest.approx(0.2621072094, abs=1e-9)
 
 
 class TestTheRule:
@@ -467,15 +571,7 @@ class TestTheRule:
         records the port printing, so the port differs in more than this and
         nothing here reproduces its printout.
         """
-        prices = frame.to_numpy()
-        hedge = np.full(prices.shape, np.nan)
-        units = np.full(len(prices), np.nan)
-        for t in range(SCRIPT_TRAINING_DAYS + 1, len(prices)):
-            hedge[t] = johansen(prices[t - SCRIPT_TRAINING_DAYS - 1 : t - 1], 0, 1).eigenvectors[
-                :, 0
-            ]
-            units[t] = units_on(prices, hedge[t], t - 1, SCRIPT_LOOKBACK)
-        shifted = daily_returns(units[:, None] * hedge * prices, prices)[SCRIPT_TRAINING_DAYS:]
+        shifted = _both_windows_a_day_earlier(frame)
         found = agreement(shifted, saved, result.test_days)
         assert not found.holds
         assert found.rows_over == 611
@@ -581,3 +677,193 @@ class TestTheGuardAndTheReads:
         assert "trace finds a relation in 26, one in 7 and two in 19" in out
         assert "CADUSD -0.7622" in out
         assert "Exploratory." in out
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/aud-cad-johansen-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording prose
+    that no fragment holds does not. Some fragments run across two figures and
+    the words between them, so rewording those words fails too. The Lesson 1
+    table is read whole through :func:`tests.support.post_tables.tables`, and
+    passes either way up.
+
+    Four things stay unread.
+
+    1. Second copies of a figure, such as the subtitle's 612, 26 and 90, the
+       Sharpe ratio of 1.610890 in Lesson 5, and the 90 in Lesson 4's
+       subheading and in its sentences opening "On all 90 days",
+       "Each hedge earns" and "The same 90 days".
+    2. The figure's alt text and caption. Their readings of the curves are
+       approximate, and their exact numbers, such as −0.4325 and 0.2953, are
+       second copies of figures read elsewhere.
+       ``tests/test_aud_cad_johansen_figures.py`` holds what the figure draws.
+    3. What comes from outside this run, such as Chan's words and his figures
+       as the book prints them outside the table, their Kindle pages, the
+       script's name, commit and 252-day year, the port's printout, the
+       confidence level the test is read at, other posts' findings and the
+       references.
+    4. Ratios the post states in words from pinned figures, such as about
+       three quarters and about twice as wide, which README lists.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    def test_the_post_holds_one_table(self, text) -> None:
+        assert len(tables(text)) == 1
+
+    def test_the_groups_and_the_files(self, frame, result, saved, text) -> None:
+        trace = np.count_nonzero(result.trace_relations > 0)
+        per_year = frame.groupby(frame.index.year).size().loc[[2009, 2010, 2011]]
+        fragments = [
+            f"every one of the {len(result.test)} daily returns matches",
+            f"come from the {SCRIPT_TRAINING_DAYS} days before it, called that day’s window. "
+            f"The test found a relation in {trace} of the {len(result.test)} windows.",
+            f"On {np.count_nonzero(result.dollar_split > 0)} days the weights held",
+            f"Run the Johansen test on the {SCRIPT_TRAINING_DAYS} days before today.",
+            f"on each of the {SCRIPT_LOOKBACK} days ending today",
+            f"each holding {len(frame)} daily closes from {frame.index[0].date()} to "
+            f"{frame.index[-1].date()}, saved {DAILY_SAVED}.",
+            f"A third file from the port holds the {len(saved)} returns",
+            f"these files hold about {round(per_year.mean(), -1):.0f} closes a year",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_1(self, result, text) -> None:
+        found = figures(result.test)
+        days = result.test_days
+        table = [
+            ["", "APR", "Sharpe", "Kelly"],
+            ["Computed", f"{found.apr:.6f}", f"{found.sharpe:.6f}", f"{found.kelly:.6f}"],
+            ["Script", SCRIPT_APR, SCRIPT_SHARPE, SCRIPT_KELLY],
+            ["Book", BOOK_APR_PERCENT, BOOK_SHARPE, "none"],
+        ]
+        assert tables(text)[0] in either_way(table)
+        assert AGREEMENT == 1e-9
+        fragments = [
+            f"The test period is the {len(result.test)} days after the first "
+            f"{SCRIPT_TRAINING_DAYS} days, from {days[0].date()} to {days[-1].date()}",
+            "matches his to within one billionth, 1e-9,",
+            f"Dividing by n instead gives {result.test.mean() / result.test.var():.6f}.",
+            f"so this post quotes the script’s {found.kelly:.6f}.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_2(self, text) -> None:
+        aud, cad = SCALE_CHECK
+        most = max(
+            len(line.split(",")[1].strip().partition(".")[2])
+            for name in ("inputData_AUDUSD_20120426.csv", "inputData_USDCAD_20120426.csv")
+            for line in (paths.DATA_DIR / "pythoncodesanddata" / name).read_text().splitlines()[1:]
+            if line.strip()
+        )
+        fragments = [
+            "one unit in the sixth decimal, 0.000001,",
+            f"{WORDS[most].capitalize()} decimals is the most any close in the files carries.",
+            f"Running the script with AUD.USD {'doubled' if aud == 2 else aud} and CAD.USD "
+            f"multiplied by {cad:g} still matches",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_3(self, result, text) -> None:
+        counts = np.bincount(result.trace_relations, minlength=3)
+        eigen = np.bincount(result.eigen_relations, minlength=3)
+        assert eigen[2] == 0, "the post says the eigen test never finds two"
+        days = result.test_days
+        rows = np.flatnonzero(result.trace_relations > 0)
+        stretches = np.split(rows, np.flatnonzero(np.diff(rows) > STRETCH_GAP) + 1)
+        assert len(stretches) == 3
+        with_two = [k for k, s in enumerate(stretches) if (result.trace_relations[s] == 2).any()]
+        ordinal = ["first", "second", "third"]
+        n = len(result.test)
+        assert counts[1] + counts[2] < 0.05 * n, "the post says chance gives more"
+        (a, b, c) = [(len(s), days[s[0]].date(), days[s[-1]].date()) for s in stretches]
+        on_eigen = days[result.eigen_relations > 0]
+        assert on_eigen[0] == days[stretches[1][0]]
+        assert on_eigen[-1] == days[stretches[1][-1] + 1]
+        trace = counts[1] + counts[2]
+        fragments = [
+            f"**The trace test finds at least one relation in {trace} windows.** It finds one "
+            f"in {counts[1]} of them and two in the other {counts[2]}.",
+            f"**The eigen test finds one in {eigen[1]} windows**, and never finds two.",
+            f"On {counts[2]} of its {trace} windows the trace test found two relations",
+            f"The {trace} windows bunch into three stretches. {WORDS[a[0]].capitalize()} fall "
+            f"from {a[1]} to {a[2]}, {WORDS[b[0]]} from {b[1]} to {b[2]}, and {WORDS[c[0]]} "
+            f"from {c[1]} to {c[2]}.",
+            f"The eigen test’s {eigen[1]} all fall from {on_eigen[0].date()} to "
+            f"{on_eigen[-1].date()}, from the second stretch’s first day to the day after "
+            "its last.",
+            f"Each window shares {SCRIPT_TRAINING_DAYS - 1} of its {SCRIPT_TRAINING_DAYS} days",
+            f"Every two-relation window sits in the {ordinal[with_two[0]]} stretch or the "
+            f"{ordinal[with_two[-1]]}.",
+            f"to flag about 5 percent of windows, about {round(0.05 * n)} of {n}, so the "
+            f"{trace} it flagged are no more than chance would give.",
+            f"so {trace} days took them from a window where the trace test found a relation.",
+            f"The other {counts[0]} took them from a window where it found none.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_4(self, result, text) -> None:
+        days = result.test_days
+        split = result.dollar_split
+        same = split > 0
+        n, rest_n = np.count_nonzero(same), np.count_nonzero(~same)
+        in_2010 = (days >= "2010-06-01") & (days <= "2010-10-05")
+        edges = np.diff(np.concatenate(([0], same.astype(int), [0])))
+        starts, ends = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
+        longest = int(np.argmax(ends - starts))
+        test = result.test
+        earned = _earned_by(same)
+        those, rest = np.prod(1 + test[earned]) - 1, np.prod(1 + test[~earned]) - 1
+        total = (1 + those) * (1 + rest) - 1
+        assert round(5 * np.log1p(those) / np.log1p(total)) == 2, "about two fifths"
+        curve = np.cumprod(1 + test) - 1
+        first = int(np.flatnonzero(same)[0])
+        last = int(np.flatnonzero(same & in_2010)[-1])
+        welch = stats.ttest_ind(test[earned], test[~earned], equal_var=False)
+        backed = np.count_nonzero(same & (result.trace_relations > 0))
+        dollars = result.positions[-1] / result.positions[-1, 0]
+        fragments = [
+            f"The hedge on {days[-1].date()} holds 1 unit of AUD.USD against "
+            f"{_minus(result.last_hedge[1], 4)} of CAD.USD.",
+            f"that is 1 against {_minus(dollars[1], 4)}, long the Australian dollar",
+            f"The hedge held both currencies the same way on {n} of the {len(test)} days. "
+            f"{WORDS[np.count_nonzero(same & in_2010)].capitalize()} of them fall from "
+            f"{days[first].date()} to {days[last].date()}, and the longest run is "
+            f"{ends[longest] - starts[longest]} days, from {days[starts[longest]].date()} to "
+            f"{days[ends[longest] - 1].date()}.",
+            f"Compounding those {n} alone gives a return of {those:.4f}, and compounding "
+            f"the other {rest_n} alone gives {rest:.4f}.",
+            f"the run’s {total:.4f}: {1 + those:.4f} times {1 + rest:.4f} is "
+            f"{(1 + round(those, 4)) * (1 + round(rest, 4)):.4f}, and {1 + total:.4f} before "
+            "the two factors are rounded.",
+            f"ln {1 + those:.4f} is about two fifths of ln {1 + total:.4f}.",
+            f"So {100 * n / len(test):.0f} percent of the days, {n} of the {len(test)},",
+            f"the curve stood at {curve[first]:.4f} on {days[first].date()}, the day the "
+            f"first of their hedges was set, and at {curve[last + 1]:.4f} on "
+            f"{days[last + 1].date()}, the day the last of those hedges earned its return.",
+            f"standard deviation of {test[earned].std(ddof=1):.4f}, against "
+            f"{test[~earned].std(ddof=1):.4f} for the other {rest_n} returns",
+            f"{test[earned].mean():.4f} a day against {test[~earned].mean():.4f}.",
+            f"gives {welch.statistic:.2f} for that difference",
+            f"{'None' if backed == 0 else backed} of the {n} days took its weights from a "
+            "window where the trace test found a relation.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_5(self, frame, result, saved, text) -> None:
+        shifted = _both_windows_a_day_earlier(frame)
+        found = agreement(shifted, saved, result.test_days)
+        fragments = [
+            f"puts {found.rows_over} of the {len(shifted)} returns more than one billionth away",
+            f"Its Sharpe ratio comes out at {figures(shifted).sharpe:.6f},",
+        ]
+        assert not_found_once(text, fragments) == []
