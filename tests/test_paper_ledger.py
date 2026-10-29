@@ -158,12 +158,14 @@ class TestTheRowGuard:
         with pytest.raises(pl.LedgerRefused, match="2 quote rows share the minute 15:50"):
             self._quote(_row(day, "15:50", 1.0, 1.1), _row(day, "15:50", 1.0, 1.1))
 
-    @pytest.mark.parametrize("realtime", [False, None])
+    @pytest.mark.parametrize("realtime", [False, None, np.nan])
     def test_a_quote_that_is_not_real_time_refuses(self, realtime) -> None:
         with pytest.raises(pl.LedgerRefused, match="not real-time"):
             self._quote(_row(DAYS[2], "15:50", 1.0, 1.1, realtime=realtime))
 
-    @pytest.mark.parametrize(("bid", "ask"), [(1.2, 1.1), (0.0, 1.1), (-1.0, 1.1), (np.nan, 1.1)])
+    @pytest.mark.parametrize(
+        ("bid", "ask"), [(1.2, 1.1), (0.0, 1.1), (-1.0, 1.1), (np.nan, 1.1), (1.0, np.inf)]
+    )
     def test_a_crossed_or_non_positive_quote_refuses(self, bid, ask) -> None:
         with pytest.raises(pl.LedgerRefused, match="reads bid"):
             self._quote(_row(DAYS[2], "15:50", bid, ask))
@@ -171,6 +173,9 @@ class TestTheRowGuard:
     def test_a_locked_quote_is_read(self) -> None:
         quote = self._quote(_row(DAYS[2], "15:50", 1.1, 1.1))
         assert quote.mid == 1.1
+
+    def test_the_lag_is_how_long_after_its_minute_the_vendor_stamped_it(self) -> None:
+        assert self._quote(_row(DAYS[2], "15:50", 1.0, 1.1)).lag_seconds == 18.0
 
 
 class TestTheWeights:
@@ -264,6 +269,12 @@ class TestThePositionMismatch:
         spy = flipped.legs[0]
         assert spy.decision_return > 0 > spy.close_return
 
+    def test_each_return_is_taken_against_the_mean_of_its_session(self) -> None:
+        sessions, _ = _run()
+        for session in sessions:
+            assert sum(leg.decision_return for leg in session.legs) == pytest.approx(0, abs=1e-15)
+            assert sum(leg.close_return for leg in session.legs) == pytest.approx(0, abs=1e-15)
+
 
 class TestRefusals:
     def test_a_missing_bar_refuses_the_session_rather_than_skipping_it(self) -> None:
@@ -273,6 +284,21 @@ class TestRefusals:
         assert [s.day for s in sessions] == [DAYS[2]]
         assert [d for d, _ in refused] == [DAYS[3], DAYS[4]]
         assert "no QQQ daily bar on 2026-09-17" in refused[0][1]
+
+    def test_a_missing_bar_two_sessions_back_refuses_the_session(self) -> None:
+        # The position held coming into a session rests on the close two before it.
+        closes = {t: list(v) for t, v in CLOSES.items()}
+        closes["SPY"][0] = np.nan
+        sessions, refused = _run(FakeLake(closes=closes))
+        assert [s.day for s in sessions] == [DAYS[3], DAYS[4]]
+        assert refused == [(DAYS[2], "no SPY daily bar on 2026-09-14")]
+
+    def test_a_close_outside_the_sessions_is_not_read(self) -> None:
+        class Wider(FakeLake):
+            def closes(self, ticker, start, end):
+                return {**super().closes(ticker, start, end), date(2026, 9, 19): 1.0}
+
+        assert list(pl.read_lake(Wider(), DAYS[2], DAYS[4]).closes.index) == DAYS
 
     def test_a_missing_quote_refuses_its_session_and_the_next(self) -> None:
         sessions, refused = _run(FakeLake(absent={("SPY", DAYS[3])}))
@@ -366,6 +392,35 @@ class TestTheCommand:
             "Refused 2026-09-18: SPY on 2026-09-18: SPY quote: SnapAbsent: no cycle at 15:50"
         ]
 
+    def test_the_report_counts_refused_sessions_and_lists_each_partition(self) -> None:
+        sessions, refused = _run(FakeLake(absent={("SPY", DAYS[4])}))
+        out = io.StringIO()
+        pl.report(sessions, refused, {"part.parquet": "abc123"}, DAYS[2], DAYS[4], out=out)
+        text = out.getvalue()
+        assert "Sessions computed: 2 of 3." in text
+        assert "manifest.jsonl: 1" in text
+        assert "  abc123  part.parquet" in text.splitlines()
+
+    def test_the_report_names_each_side_that_differs(self) -> None:
+        quotes = {t: list(v) for t, v in QUOTES.items()}
+        quotes["SPY"][3] = (768.0, 768.02)
+        quotes["QQQ"][3] = (705.0, 705.02)
+        sessions, refused = _run(FakeLake(quotes=quotes))
+        out = io.StringIO()
+        pl.report(sessions, refused, {}, DAYS[2], DAYS[4], out=out)
+        text = out.getvalue()
+        assert text.count("DIFFERS") == 2
+        flips = [line for line in text.splitlines() if line.startswith("  2026-09-17 ")]
+        assert [line.split(":")[0] for line in flips] == ["  2026-09-17 SPY", "  2026-09-17 QQQ"]
+        spy = [leg.against_close_bp for s in sessions for leg in s.legs if leg.ticker == "SPY"]
+        assert f"  SPY {np.mean(spy):+.2f} and " in text
+
+    def test_a_range_that_ends_before_it_starts_stops(self, tmp_path, capsys) -> None:
+        with pytest.raises(SystemExit) as stopped:
+            pl.main(["--from", "2026-09-16", "--to", "2026-09-15", "--lake-root", str(tmp_path)])
+        assert stopped.value.code == 2
+        assert "--to is before --from" in capsys.readouterr().err
+
     def test_no_lake_package_stops_with_one_line(self, monkeypatch, tmp_path, capsys) -> None:
         monkeypatch.setitem(sys.modules, "lake", None)
         with pytest.raises(SystemExit) as stopped:
@@ -424,10 +479,14 @@ def fake_marketlake(monkeypatch, tmp_path):
     class PartitionQuarantined(LoadError):
         pass
 
+    class SnapAbsent(LoadError):
+        pass
+
     class ManifestError(Exception):
         pass
 
     loader.LoadError, loader.PartitionQuarantined = LoadError, PartitionQuarantined
+    loader.SnapAbsent = SnapAbsent
     manifest.ManifestError = ManifestError
     state = {"bar_errors": {}, "quote_errors": {}, "read_unchecked": [], "lake": None}
 
@@ -551,6 +610,18 @@ class TestMarketLake:
         code, out = self._main(fake_marketlake, capsys)
         assert code == 1
         assert "its partition cannot be decoded: ValueError: Parquet magic bytes" in out.out
+
+    def test_a_minute_the_lake_did_not_capture_refuses_its_session(
+        self, fake_marketlake, capsys
+    ) -> None:
+        absent = fake_marketlake["loader"].SnapAbsent("no cycle at 15:50")
+        fake_marketlake["quote_errors"][("QQQ", DAYS[4])] = absent
+        code, out = self._main(fake_marketlake, capsys)
+        assert code == 1
+        assert (
+            "Refused 2026-09-18: QQQ on 2026-09-18: QQQ quote: SnapAbsent: no cycle at 15:50"
+            in (out.out)
+        )
 
     def test_an_undecodable_quote_refuses_its_session(self, fake_marketlake, capsys) -> None:
         fake_marketlake["quote_errors"][("SPY", DAYS[4])] = OSError("truncated")
