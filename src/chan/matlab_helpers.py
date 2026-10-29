@@ -70,6 +70,16 @@ What each one does:
 They are a module of their own rather than private to one replication,
 because Examples 3.7 and 3.8 call the same helpers on the same file.
 
+Six of them live in the shared ``ithildincore`` package rather than in this
+file: :func:`smartsum`, :func:`smartmean`, :func:`backshift` and :func:`lag1`,
+and the private ``_finite`` and ``_within`` that two helpers here still call.
+They moved to ``ithildincore.reversal`` for
+[issue 19 there](https://github.com/l3a0/ithildin-core/issues/19), because
+ithildin-runtime runs the reversal weights that call them. This module imports
+them under the same names, so no module that imports them from here changed,
+and their bodies are the ones that were here at ``0237abf2``. A change to one
+of them is now a release of that package and a re-pin here.
+
 **Book two's helpers.** Seven come from Chan's *Algorithmic Trading* code
 rather than his first edition's. The revised edition of
 *Quantitative Trading* reposted at pinhaocheng/epchan-quant_trading_MATLAB_codes
@@ -180,28 +190,21 @@ drawdown standing, where numpy's ``min`` would return NaN.
 from __future__ import annotations
 
 import numpy as np
+
+# Six of these helpers live in ithildincore, because ithildin-runtime runs the
+# reversal weights that call them too. Importing them here keeps every module
+# that imports them from chan.matlab_helpers unchanged. smartsum and lag1 are
+# only re-exported, which is what the noqa is for. _finite and _within are
+# private there and still called by smartstd_first_edition and fwdshift here.
+from ithildincore.reversal import (  # noqa: F401
+    _finite,
+    _within,
+    backshift,
+    lag1,
+    smartmean,
+    smartsum,
+)
 from numpy.typing import ArrayLike, NDArray
-
-
-def _finite(x: ArrayLike) -> tuple[NDArray[np.float64], NDArray[np.bool_]]:
-    values = np.asarray(x, dtype=float)
-    return values, np.isfinite(values)
-
-
-def smartsum(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] | np.float64:
-    """The sum of the finite entries along ``axis``, NaN where none is finite."""
-    values, has = _finite(x)
-    total = np.where(has, values, 0.0).sum(axis=axis)
-    return np.where(has.any(axis=axis), total, np.nan)[()]
-
-
-def smartmean(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] | np.float64:
-    """The mean of the finite entries along ``axis``, NaN where none is finite."""
-    values, has = _finite(x)
-    count = has.sum(axis=axis)
-    total = np.where(has, values, 0.0).sum(axis=axis)
-    with np.errstate(invalid="ignore", divide="ignore"):
-        return np.where(count > 0, total / count, np.nan)[()]
 
 
 def smartstd_first_edition(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] | np.float64:
@@ -219,32 +222,6 @@ def smartstd_first_edition(x: ArrayLike, axis: int = 0) -> NDArray[np.float64] |
     else:
         spread = filled.std(axis=axis, ddof=1)
     return np.where(has.any(axis=axis), spread, np.nan)[()]
-
-
-def _within(periods: int, x: ArrayLike, name: str) -> NDArray[np.float64]:
-    values = np.asarray(x, dtype=float)
-    if periods > len(values):
-        # MATLAB would hand back more rows than it was given, and nothing here
-        # shifts that far, so this refuses rather than copying that.
-        raise ValueError(f"{name} by {periods} rows is longer than the {len(values)} given")
-    return values
-
-
-def backshift(periods: int, x: ArrayLike) -> NDArray[np.float64]:
-    """Each row moved ``periods`` rows later, with NaN in the rows it vacates."""
-    if periods < 0:
-        raise ValueError(
-            f"backshift moves rows later, so periods must be at least 0, not {periods}"
-        )
-    values = _within(periods, x, "backshift")
-    shifted = np.full_like(values, np.nan)
-    shifted[periods:] = values[: len(values) - periods]
-    return shifted
-
-
-def lag1(x: ArrayLike) -> NDArray[np.float64]:
-    """Each row moved one row later, which is ``backshift(1, x)``."""
-    return backshift(1, x)
 
 
 def fwdshift(periods: int, x: ArrayLike) -> NDArray[np.float64]:

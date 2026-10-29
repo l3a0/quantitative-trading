@@ -69,6 +69,7 @@ import hashlib
 import io
 import math
 
+import ithildincore.reversal
 import numpy as np
 import pandas as pd
 import pytest
@@ -668,6 +669,11 @@ class TestTheControl:
         than 0, so the cost charges no close and no reopening. Before costs
         the two treatments agree, and after costs this one sits above the
         primary figures.
+
+        ``reversal_weights`` lives in ``ithildincore.reversal`` and calls that
+        module's own ``daily_returns``, so the patch goes on both modules. On
+        ``chan.khandani_lo`` alone it would reach the profit and not the
+        weights.
         """
         raw = getattr(frames, f"control_{price}")
         primary = reversal(exclude(raw))
@@ -684,6 +690,7 @@ class TestTheControl:
             return returns
 
         monkeypatch.setattr(khandani_lo, "daily_returns", with_nan_returns)
+        monkeypatch.setattr(ithildincore.reversal, "daily_returns", with_nan_returns)
         run = khandani_lo.reversal(frame)
         assert (run.before_costs, run.after_costs, run.after_costs_charged) == tuple(
             approx(f) for f in figures
