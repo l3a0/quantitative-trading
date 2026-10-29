@@ -248,7 +248,7 @@ after-cost figure.
 | Entry 33 and Entry 37, TU momentum, 250-day lookback and 25-day hold | 1.041462, and an iid t of 2.933253 on holds that overlap | no, the book's 2004 to 2012 | 52 and 1 | as Entry 36 | not stated | no estimate | 25 days in daily tranches | needs 24.93 of 14.13 years |
 | Entry 11, commodity seasonals | one ratio per yearly trade: natural gas 1.0008 over 1994 to 2008, gasoline 0.7764 | no | 2 | natural gas from its 1990 launch to 1993-12-19, gasoline from 1985 to 1994-03-31, before the fill test's April 1994, and both from 2024-04-06 | not stated | no estimate | one trade a year | natural gas needs 27.00 of 6.20 years, gasoline 44.86 of 11.72 |
 | Entry 52, `MomSeasonShort` from Open Source Asset Pricing | 0.8096 over 1965 to 2024. Monthly t 8.63 over 1965 to 2002 and 0.50 over 2002 to 2024 | 2002 on is after the book | 7 | none, since Open Source Asset Pricing publishes its returns from 1927 | not stated | no estimate | one month, 12 a year | no unloaded span |
-| Entry 13, the PCA factor model | 0.5787 | no, the book's S&P 600 file | 11 | as Entry 44 | not stated | no estimate | one day | needs 80.74 of 9.21 years |
+| Entry 13, the PCA factor model | 0.5787 | no, the book's S&P 600 file | 11 | the S&P 600 from its 1994-10-28 launch to 2004-01-14 | not stated | no estimate | one day | needs 80.74 of 9.21 years |
 | Entry 30, AUD.CAD with rollover | 0.5418018005 | no | 3 | as Entry 25 | not stated | no estimate | daily sign | needs 92.11 of 23.60 years |
 | Entry 17, cross-sectional momentum | −0.4800 over every day of its three windows, 2007-05-15 to 2012-04-24 | no | 16 | S&P 500 members before 1999-11-24 | not stated | no estimate | 25 days in daily cohorts | negative |
 | Entry 24, SPY against a 98-stock basket | 1.3193972970 | no, the book's 2008 to 2012 | 1 | none, Entries 3 and 4 load SPY from 1993 to 2026 | not stated | no estimate | re-set daily | no unloaded span |
@@ -259,7 +259,7 @@ after-cost figure.
 | Entry 48 and Entry 45, low beta at a broker's leverage | Newey-West t 1.0715 and 1.2111 on the gap, before costs | no, the book's 2000 to 2007 | 5 | S&P 500 members before 1999-11-24 | not stated. The book's premise is that low beta earns a higher Sharpe ratio | no estimate | one month, 12 a year | needs 127.51 of 32.89 years at the higher t |
 | Entry 4, risk parity against 60/40 | 60/40 at 0.4111, levered risk parity at 0.1942 | mostly after Qian's 1983 to 2004 sample | 13 | none, Entries 3 and 4 load SPY and AGG starts in 2003 | not stated | no estimate | constant weights, daily | no unloaded span |
 | Entry 14, the momentum factor | plain t 0.4505 | no | 2 | S&P 500 members before 1999-11-24 | not stated | no estimate | one month | needs 921.53 of 32.89 years |
-| Entry 7, Example 7.6 on IJR survivors | mean January 0.0098 after costs, t 1.15 before costs over 18 Januaries | after the book, but survivor-only | in Entry 7's 32 | as Entry 44 | not stated | no estimate | one month a year | needs 368.03 of 9.21 years |
+| Entry 7, Example 7.6 on IJR survivors | mean January 0.0098 after costs, t 1.15 before costs over 18 Januaries | after the book, but survivor-only | in Entry 7's 32 | the S&P 600 from its 1994-10-28 launch to 2004-01-14 | not stated | no estimate | one month a year | needs 368.03 of 9.21 years |
 | Entry 7, Example 7.7 on Chan's file | −0.1243 | no | in Entry 7's 32 | S&P 500 members before 1999-11-24 | not stated | no estimate | one month | negative |
 | Entry 35, VX calendar spread S | −0.563912 | no | in Entry 35's 10 | as Entry 35 B3 | not stated | no estimate | pairs held at least 63 days | negative |
 | Entry 38, long GLD and short gold futures | −0.066564 over a 2 percent bill | no | 5 | none, as Entry 26 | the book: the roll return less GLD's financing, "close to zero" | no estimate | held through the window | negative |
@@ -302,7 +302,7 @@ except six kinds.
 5. The QQQ wheel's hedged companion, whose hedge is charged nothing and whose
    unloaded span has not been worked out.
 6. A row with no unloaded span, which the tables mark "none" or "not
-   applicable": Entries 3, 4, 9, 21, 24, 26 and 39, and the sibling's
+   applicable": Entries 3, 4, 9, 21, 24, 26, 39 and 52, and the sibling's
    real-chain covered call.
 
 Entry 46's eight middle runs are not listed either. Each lies between its
@@ -344,7 +344,6 @@ otherwise.
 | Entry 41, VX on the roll | 1.030894 | no | 14.57 | 25.44 | short |
 | Entry 11, natural gas | 1.0008 | no | 6.20 | 27.00 | short |
 | Entry 11, gasoline | 0.7764 | no | 11.72 | 44.86 | short |
-| Entry 52, `MomSeasonShort` | 0.8096 | no | 0.00 | 41.25 | short |
 | Sibling, generative 0.05Δ call | 0.688 | no | 2.97 | 57.12 | short |
 | Entry 13, PCA factor model | 0.5787 | no | 9.21 | 80.74 | short |
 | Entry 30, AUD.CAD | 0.5418018005 | no | 23.60 | 92.11 | short |
@@ -399,8 +398,9 @@ method's text did not settle it.
    Before the ruling, Entry 44 had 9.21 years and Entry 10 had 32.89, each
    enough. Now none of the six rows has the years it needs, which
    `TestTheScreen::test_the_published_record_leaves_the_reversal_rows_too_few_years`
-   pins. The ruling also leaves Entry 52 no span, because Open Source Asset
-   Pricing publishes `MomSeasonShort`'s returns from 1927. It applies to every
+   pins. This ranking reads the ruling as also covering Open Source Asset
+   Pricing's published series, which leaves Entry 52 no span, because the
+   project publishes `MomSeasonShort`'s returns from 1927. It applies to every
    rule, and this ranking checked the published samples of these two only. A
    row the screen fails anyway was not checked, and
    [issue 777](https://github.com/l3a0/quantitative-trading/issues/777) checks

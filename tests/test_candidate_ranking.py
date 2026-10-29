@@ -14,9 +14,10 @@ does not fail here. The ranking is a dated document read at ``6da0ee38``, so
 a re-pin upstream means re-deriving the ranking rather than editing a cell.
 
 Only one input is read from data. Entry 52's seasonal-momentum series is
-measured over 1965 to 2024, the span Entry 52 already read, and the months
-from 1927 to 1964 are dropped before any statistic is taken, because that
-span is one the ranking names as never loaded by a search.
+measured over 1965 to 2024, the span Entry 52 already read. The months from
+1927 to 1964 are dropped before any statistic is taken. Under the owner's
+ruling of 2026-10-28 that span lies inside a published record, so no holdout
+rests on it, and the cut keeps the row's figure to the span Entry 52 reported.
 """
 
 from __future__ import annotations
@@ -283,8 +284,9 @@ SP400 = ((date(1991, 6, 19), date(2005, 11, 30)), (date(2007, 1, 1), date(2015, 
 SP500_REVERSAL = ((date(1988, 1, 1), date(1994, 12, 31)),)
 SP600_REVERSAL = ((date(1994, 10, 28), date(1994, 12, 31)),)
 SP400_REVERSAL = ((date(1991, 6, 19), date(1994, 12, 31)), (date(2007, 9, 1), date(2015, 12, 31)))
-#: Open Source Asset Pricing publishes MomSeasonShort's returns from 1927, so
-#: under the same ruling its years before 1965 lie inside a published record.
+#: Open Source Asset Pricing publishes MomSeasonShort's returns from 1927. The
+#: ranking reads the same ruling as covering that series, so its years before
+#: 1965 lie inside a published record.
 MOM_SEASON: tuple[tuple[date, date], ...] = ()
 NATURAL_GAS = ((date(1990, 4, 3), date(1993, 12, 19)), (date(2024, 4, 6), SPAN_END))
 #: Gasoline before Entry 11's fill test reads April 1994, in a committed EIA file.
