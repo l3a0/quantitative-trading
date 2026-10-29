@@ -45,7 +45,7 @@ Here r is 0, as the example assumes, and F′ is F laid on its side, so each pro
 1. **The return**, F′M, what the leverages earn on average.
 2. **The drag**, F′CF / 2, half the variance of the levered portfolio, which compounding takes back.
 
-The growth rate is the return less the drag. With one strategy, the formula gives the SPY post’s r + S² / 2 at the Kelly leverage. With two uncorrelated strategies it gives half the sum of their squared Sharpe ratios, which are 1.153846 and 1.714286, so the uncapped Kelly leverages grow at 2.135068 a year. Their return is 4.270136 and their drag 2.135068, exactly half of it, the same split the SPY post finds for one strategy.
+The growth rate is the return less the drag. With one strategy at its Kelly leverage, the formula gives the SPY post’s r + S² / 2. With two uncorrelated strategies at their Kelly leverages, it gives half the sum of their squared Sharpe ratios. The Sharpe ratios are 1.153846 and 1.714286, so the uncapped Kelly leverages grow at 2.135068 a year. Their return is 4.270136 and their drag is 2.135068, exactly half the return, the same split the SPY post finds for one strategy.
 
 Chan gives this growth rate as Equation 8.3, an image the highlights this repository works from did not capture. So 2.135068 is quoted as computed, with no published figure beside it.
 
@@ -71,7 +71,7 @@ Here is each figure Chan prints for the two examples, computed beside printed.
 
 Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
 
-Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position. A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on the same page why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”. The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and Example 8.1’s trades run through the same function as the SPY post’s.
+Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position. A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting back to 5 means selling \$40,000, which leaves a \$450,000 position. A \$20,000 gain the next day leaves \$110,000 of equity and a \$470,000 position, and getting back to 5 means buying \$80,000. Chan concedes the discomfort in the example itself: “This selling into the loss may make some people uncomfortable” (Chan, 2013, p. 250). He explains on the same page why he asks for it anyway. However the leverage was chosen, “the leverage should be kept constant”, because keeping it constant “is necessary to optimize the growth rate”. The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A leverage held constant above 1 sells after every loss and buys after every gain, and Example 8.1’s trades run through the same function as the SPY post’s.
 
 On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces the trading rule from that paper.
 
@@ -159,7 +159,7 @@ Set the hedge against the whole cap on strategy 2, which earns a return of 1.2 a
 
 Because the two strategies move together so closely, the short cancels most of strategy 2’s variance, and the drag falls by 0.527499. That saving is larger than all the return given up, so the hedge grows faster. Lesson 4’s short broke the gross cap. This one stays inside it.
 
-So the corner’s win in Example 8.2 is a property of its inputs, two uncorrelated strategies with positive means, under a cap below 2.45. This repository’s capped search says it is long-only for that reason, and its tests hold a case where the long-only restriction costs growth.
+So the corner’s win in Example 8.2 is a property of its inputs, two uncorrelated strategies with positive means, under a cap below 2.45. This repository’s capped search keeps to long positions, the range Chan plots, and its code names that as a limit rather than a rule that always holds, because its tests hold a case where the long-only restriction costs growth.
 
 ## What this replication cannot say
 

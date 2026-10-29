@@ -6941,7 +6941,8 @@ Five groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
-   "The leverage should be kept constant" is at 3210, the discomfort of
+   "The leverage should be kept constant" and that keeping it constant "is
+   necessary to optimize the growth rate" are at 3210, the discomfort of
    selling into the loss at 3216, "a vicious cycle" and the August 2007
    meltdown at 3228, the upper bound, the broker's limit and the estimation
    errors at 3235, allocating buying power at 3259, the definition of gross
