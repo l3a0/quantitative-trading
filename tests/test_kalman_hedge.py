@@ -683,6 +683,8 @@ class TestWhatThePostQuotes:
         assert script.units[0] < 0 and script.units[1] == script.units[0], SPEC
         assert ewc[1] < ewc[0], SPEC
         assert not matches(100 * quiet.apr, BOOK_APR_PERCENT), SPEC
+        below = max(round(100 * quiet.apr, 1), round(100 * compounded_apr(dropped), 1))
+        assert below < float(BOOK_APR_PERCENT), SPEC
         assert not quiet.units[:QUIET_ROWS].any() and not quiet.daily[:QUIET_ROWS].any(), SPEC
         held = int(np.flatnonzero(script.units != script.units[0])[0])
         earns = [str(days[t].date()) for t in range(1, held + 1)]
@@ -718,15 +720,17 @@ class TestWhatThePostQuotes:
             f"Its figures round to {100 * quiet.apr:.1f} percent and {quiet.sharpe:.1f}, not the "
             f"book’s {BOOK_APR_PERCENT} and {BOOK_SHARPE}.",
             f"Two days out of {len(script.daily):,} move both figures",
-            f"They are the first two of the {words[held]} days on which the opening short earns "
-            "a return.",
-            "So the APR moves whichever way the returns are counted,",
+            f"They are the first two of the {words[held]} days on which the opening short, held on "
+            f"rows 1 to {held}, earns a return.",
+            "So without the first trade, the APR rounds below the book’s "
+            f"{BOOK_APR_PERCENT} percent whichever way the returns are counted,",
             f"The {words[QUIET_ROWS]} rows the chart leaves out are the {words[QUIET_ROWS]} on "
             "which the filter forecasts EWC at 0, and the strategy trades on both.",
             f"widens row 1’s band past the error of {f.error[0]:.2f}, so row 1 enters no trade.",
             f"Under that reading the APR still rounds to {100 * compounded_apr(dropped):.1f} "
             f"percent, but the Sharpe ratio rounds to the book’s {plain_sharpe(dropped):.1f}.",
-            f"the Sharpe ratio moves only while all {len(quiet.daily):,} days count,",
+            f"the Sharpe ratio rounds below the book’s {BOOK_SHARPE} only while all "
+            f"{len(quiet.daily):,} days count,",
             f"The Sharpe ratio lands {threshold - quiet.sharpe:.5f} below {threshold:.2f}, the "
             f"value at which it would round to the book’s {BOOK_SHARPE}.",
         ]
