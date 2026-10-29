@@ -39,7 +39,8 @@ Exploratory. Reproducing Chan's figures spends his samples on his rules and
 his threshold. The run first ran here on 2026-10-11.
 
 ``TestWhatThePostMeasured`` holds what ``blog/vix-filter-lessons.md``
-measured after the run, on the same vintages and specification, and
+measured after the run, on the same vintages and specification unless a
+test names another save or rescales VIX, and
 ``TestThePostsHelpers`` holds the two helpers it added on synthetic series.
 """
 
@@ -670,9 +671,11 @@ class TestBesideTheReplication:
 class TestWhatThePostMeasured:
     """Pins added with ``blog/vix-filter-lessons.md``, measured after the run.
 
-    Same vintages and specification as the module docstring states. Each
-    describes how the kept days fall in time and what each rule earned on
-    them, and none tests anything.
+    Same vintages and specification as the module docstring states, except
+    where a test names another. Three read earlier FSTX saves, and one reads
+    VIX rescaled from its flagged day. Each describes the kept days, VIX's
+    closes, the prices in Chan's files or what each rule earned, and none
+    tests anything.
     """
 
     @pytest.mark.parametrize(
@@ -984,10 +987,10 @@ class TestThePostQuotesTheRun:
     against the book targets the tests pin, and one prose copy of each figure
     Lesson 4 and the fifth open question take from the run. It also reads one
     prose copy each of the zeroed reading's figures, momentum's filtered
-    figures, Example 7.1's compounded APR and the closes nearest 35. It reads
-    no other copy, so the vintages, the rest of the prose of Lessons 1, 2, 3
-    and 5, the italic summary, the five-lesson list, the caption and the alt
-    texts can still drift here. The sketch tests read the sketches' alt texts.
+    figures, Example 7.1's compounded APR, the closes nearest 35 and the join's
+    day counts. It reads no other copy, so every other copy in the post can
+    still drift here, including those in the caption and the alt texts. The
+    sketch tests read the sketches' alt texts.
     """
 
     text = POST.read_text("utf-8")
@@ -1196,6 +1199,17 @@ class TestThePostQuotesTheRun:
             f"inside the dates both rules cover. Inside those dates, the nearest close below 35 is "
             f"{near.max()} on {near.idxmax().date()}."
         ) in self.text
+
+    def test_the_join_paragraph(self, sources, result) -> None:
+        long, lit = result.buy_on_gap, result.literal
+        lost = sources.fstx.index.difference(sources.vix.index)
+        after = int((lost > sources.vix.index[-1]).sum())
+        for sentence in (
+            f"Buy on gap loses none of its {len(long.daily):,} days,",
+            f"FSTX is left with {len(lit.daily):,} of its {lit.calendar_days:,}. It loses the "
+            f"{after} days after VIX’s last close and {len(lost) - after} days on which Eurex,",
+        ):
+            assert sentence in self.text, sentence
 
 
 class TestThePostsSurvivorSentences:

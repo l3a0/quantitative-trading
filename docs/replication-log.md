@@ -11156,8 +11156,11 @@ them, which cannot rule out a seventh alignment that also lands both.
 
 **Whether the filter guards either rule out of sample.** The threshold, the
 rules and the windows are Chan's, and every qualifying day falls between
-2008-09-18 and 2011-11-10. A registered test would fix the threshold and the
-alignment first and run them on data after 2012.
+2008-09-18 and 2011-11-10. A registered test would fix every choice in
+writing first and then run on data after 2012. The choices are the
+threshold, the alignment, `252 · mean`, the sign of FSTX's return line, the
+direction each rule's return should move and the test that compares the
+qualifying days with the rest.
 
 **What buy on gap earned on the index as it stood each day.** Every stock here
 was in the S&P 500 in late 2011, so Entry 18's caveat holds for the filtered

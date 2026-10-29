@@ -8799,7 +8799,8 @@ Five groups of what it says are not pinned here.
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md):
    the momentum rule at 2965, the sentence that no one risk indicator suits
    every strategy, the threshold of 35, "a common threshold for highly risky
-   periods", the four unfiltered and four filtered figures and both of
+   periods", the phrases "annualized average return" and "the preceding
+   day's VIX", the four unfiltered and four filtered figures and both of
    Chan's conclusions at 3509, and the warning about data snooping at 3541.
    The threshold and the four filtered figures are pinned, as book targets
    in `TestTheSpecification` in
@@ -8831,10 +8832,12 @@ Five groups of what it says are not pinned here.
    half the time for p near one half. The figure's alt text reads its curves
    approximately too. The 8.5 percent it quotes from the buy on gap post is
    pinned in [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) rather than
-   in this post's tests, and the compounded APR of 0.132733 it quotes from
-   the opening gap post is pinned in
-   [tests/test_opening_gap.py](tests/test_opening_gap.py). The 72.2 percent
-   is 0.722090 rounded.
+   in this post's tests. The compounded APR of 0.132733 it quotes from the
+   opening gap post is pinned in
+   [tests/test_opening_gap.py](tests/test_opening_gap.py), and
+   `TestThePostQuotesTheRun` reads the post's copy against this run's
+   Example 7.1 figures. The 72.2 percent is 0.722090 rounded, and that class
+   reads it as written rather than deriving it.
 5. Its reference, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8888,10 +8891,10 @@ copy it reads fails. It reads the five tables row by row, the book's rows
 against the book targets the tests pin, and one prose copy of each figure
 Lesson 4 and the fifth open question take from the run. It also reads one
 prose copy each of the zeroed reading's figures, momentum's filtered figures,
-Example 7.1's compounded APR and the closes nearest 35. It reads no other
-copy, so the vintages, the rest of the prose of Lessons 1, 2, 3 and 5, the
-italic summary, the five-lesson list, the caption and the alt texts can drift
-without this class failing. The sketch tests read the sketches' alt texts.
+Example 7.1's compounded APR, the closes nearest 35 and the join's day
+counts. It reads no other copy, so every other copy in the post can drift
+without this class failing, including those in the caption and the alt
+texts. The sketch tests read the sketches' alt texts.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/vix_filter_figures.py](src/chan/vix_filter_figures.py), which reads
