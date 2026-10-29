@@ -1739,8 +1739,8 @@ weights and the six MATLAB helpers they call live there too, because
 ithildin-runtime's first shadow run will use the same weights. The dependency
 is a direct URL at an exact commit, `uv.lock` records it, and CI syncs with
 `--locked` so the two cannot drift apart unnoticed. All three parts earn their
-place, and [docs/design.md](docs/design.md) says which failure each one closes. Two
-toolbox forms of the Dickey-Fuller test are the exception and live in
+place, and [docs/design.md](docs/design.md) says which failure each one closes.
+Two toolbox forms of the Dickey-Fuller test are the exception and live in
 `src/chan`, because each reproduces a figure the shared one cannot. So do the
 Hurst exponent and the variance ratio test Chan's scripts call, which the
 shared package does not carry. The design doc says why none of them moved.
