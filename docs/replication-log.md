@@ -7514,9 +7514,9 @@ Three things.
    returns as well gives 0.261059 and 2.351062, which round to 26.1 percent and
    2.4, so the Sharpe ratio's move rests on counting all 1,500 days, as the
    script does. Many other days decide the same rounding. The script gains on
-   412 days. On 252 of them, setting that day's return to 0 also takes the APR
-   below 26.2 percent, and on 144 of those it takes the Sharpe ratio below 2.4
-   as well.
+   412 days. On 252 of them, setting that day's return to 0 also makes the APR
+   round below 26.2 percent, and on 144 of those it makes the Sharpe ratio
+   round below 2.4 as well.
    `TestTheFigures::test_most_gaining_days_move_the_rounding_as_the_first_trade_does`
    holds the counts.
 3. **The intercept's yearly means rise every year, and the intercept falls at

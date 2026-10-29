@@ -269,8 +269,9 @@ class TestTheFirstRows:
 
 
 def gaining_days_that_move_the_rounding(daily) -> tuple[int, list[int], list[int]]:
-    """The days the script gains on, those whose return set to 0 takes the APR
-    below the book's rounding, and those that take the Sharpe ratio below it too.
+    """The days the script gains on, those whose return set to 0 makes the APR
+    round below the book's figure, and those that make the Sharpe ratio round below
+    the book's figure too.
 
     Every one of the 1,500 returns stays in the count, as the script counts them.
     """
@@ -331,10 +332,10 @@ class TestTheFigures:
         assert matches(plain_sharpe(dropped), BOOK_SHARPE)
 
     def test_most_gaining_days_move_the_rounding_as_the_first_trade_does(self, result) -> None:
-        """Setting one day's return to 0 takes the APR below the book's 26.2 percent
-        on 252 of the 412 days the script gains on, and on 144 of those the Sharpe
-        ratio below its 2.4 too. The first short's day is among the 144, so what it
-        moves is a rounding the figures sit close to."""
+        """Setting one day's return to 0 makes the APR round below the book's 26.2
+        percent on 252 of the 412 days the script gains on, and on 144 of those the
+        Sharpe ratio round below its 2.4 too. The first short's day is among the
+        144, so what it moves is a rounding the figures sit close to."""
         gaining, apr_below, both_below = gaining_days_that_move_the_rounding(result.trade.daily)
         assert (gaining, len(apr_below), len(both_below)) == (412, 252, 144), SPEC
         assert set(both_below) <= set(apr_below)
@@ -673,6 +674,7 @@ class TestWhatThePostQuotes:
             f"and all {len(result.trade.daily):,} rows count toward the figures.",
             f"closing {100 * np.median(share):.0f} percent of the miss on a median day.",
             f"about {np.median(np.abs(np.diff(result.filter.slope)[1:])):.3f} on a median day.",
+            "A change in the slope moves the updated forecast by that change times EWA’s close,",
         ]
         # A unit holds ``units * [-slope, 1]`` of EWA and EWC, which
         # ``test_the_positions_hold_minus_the_slope_of_ewa_against_one_ewc`` holds
@@ -771,8 +773,10 @@ class TestWhatThePostQuotes:
             f"Its figures round to {100 * quiet.apr:.1f} percent and {quiet.sharpe:.1f}, not the "
             f"book’s {BOOK_APR_PERCENT} and {BOOK_SHARPE}.",
             f"Two days out of {len(script.daily):,} move both figures",
-            f"They are the first two of the {words[held]} days on which the opening short, held on "
-            f"rows 1 to {held}, earns a return.",
+            f"They are {differ[0]} and {differ[1]}, the first two of the {words[held]} days on "
+            f"which the opening short, held on rows 1 to {held}, earns a return.",
+            "That so few days move both figures says more about how close the script’s figures "
+            "sit to the book’s rounding than about how large the trade is.",
             "So without the first trade, the APR rounds below the book’s "
             f"{BOOK_APR_PERCENT} percent whichever way the returns are counted,",
             f"The {words[QUIET_ROWS]} rows the chart leaves out are the {words[QUIET_ROWS]} on "
@@ -789,8 +793,9 @@ class TestWhatThePostQuotes:
             f"so on row 2 the {side[script.units[1]]} unit is {side[np.sign(row_2[0])]} "
             f"{abs(row_2[0]):.6f} EWA shares and {side[np.sign(row_2[1])]} one EWC share.",
             f"The script gains on {gaining} days. On {len(apr_below)} of them, setting that day’s "
-            f"return to 0 also takes the APR below the book’s {BOOK_APR_PERCENT} percent, and on "
-            f"{len(both_below)} of those it takes the Sharpe ratio below {BOOK_SHARPE} as well.",
+            f"return to 0 also makes the APR round below the book’s {BOOK_APR_PERCENT} percent, "
+            f"and on {len(both_below)} of those it makes the Sharpe ratio round below "
+            f"{BOOK_SHARPE} as well.",
         ]
         assert not_found_once(text, fragments) == []
         quiet_rows = f"No signal on rows 1 and {QUIET_ROWS},"
