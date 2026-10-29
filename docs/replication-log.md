@@ -7539,6 +7539,28 @@ write-up, moves with it, since that post quotes most of these figures. The
 post's one figure moves too, and `uv run python -m chan.kalman_hedge_figures`
 redraws it.
 
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **One day of the filter**, under "The filter and the file". It draws
+   2007-05-15 on axes zoomed around the day, every mark to scale. Yesterday's
+   slope of 1.127974 and intercept of 0.471207 forecast EWC at 26.764272, the
+   close of 27.15 misses by 0.385728 against a forecast standard deviation of
+   0.237529, and the update to a slope of 1.144185 and an intercept of
+   0.472220 gives 27.143163 at that day's EWA. That closes 98 percent of the
+   miss, which is 1 − Ve / Q. The change in the slope and intercept is small,
+   and the move in the forecast is not.
+2. **Two rows on a forecast of 0**, in Lesson 2. It draws rows 1 to 3 on one
+   dollar scale. Rows 1 and 2 forecast 0, so their errors are the whole closes
+   of 22.95 and 22.78, beside bands of 0.031623 and 0.163213. Row 1's short
+   holds EWC alone and earns 0.0074074 on 2006-04-27. Row 2's short is already
+   hedged, because its update moves the slope to 1.366666 before its position
+   is set. Row 3 forecasts 22.088850 and misses by 0.851150.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.kalman_hedge_whiteboard` redraws both through the same
+`read_sources` and `kalman_hedge`.
+
 ## Entry 33: time-series momentum on TU, Chan's *Algorithmic Trading*
 
 Source: Ernest P. Chan, *Algorithmic Trading: Winning Strategies and Their
