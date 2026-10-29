@@ -923,11 +923,13 @@ class TestWhatThePostSays:
         )
         assert drag == pytest.approx(ret / 2, abs=1e-12)
 
-    def test_the_positions_example_8_1_s_trades_leave(self) -> None:
+    def test_the_positions_example_8_1_s_trades_leave(self, cov) -> None:
         loss, gain = constant_leverage_chain()
         self._has(
-            f"Beside the two positions Example 8.1’s trades leave, {_dollars(loss.target)} and "
-            f"{_dollars(gain.target)}, these are all the figures",
+            f"the examples’ text prints only Example 8.1’s {_dollars(loss.position_before)} "
+            f"starting position, its {_dollars(loss.equity_after)} of equity after the loss, the "
+            f"{_dollars(loss.target)} and {_dollars(gain.target)} positions its trades leave, and "
+            f"Example 8.2’s peak at F2 = {best_allocation_at_cap(MEANS, cov).leverages[1]:g}.",
             f"A {_dollars(loss.pnl)} loss leaves {_dollars(loss.equity_after)} of equity and a "
             f"{_dollars(loss.position_after_move)} position, so getting back to "
             f"{EX81_LEVERAGE:g} means selling {_dollars(loss.trade)}, which leaves a "

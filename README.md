@@ -305,8 +305,8 @@ where they were first built. The other forty-five were built here.
     \$20K gain, exactly as printed. Under a cap of 2 on two strategies whose
     Kelly leverages are 4.4 and 4.9, scaling both down to 0.95 and 1.05 grows
     at 0.82, and putting the whole cap on the second grows at 0.955, which the
-    book prints as 0.96. Every printed figure lands. The 0.96 lands only by
-    rounding an exact tie up, so the run prints three decimals.
+    book prints as 0.96. Every figure in the examples' text lands. The 0.96
+    lands only by rounding an exact tie up, so the run prints three decimals.
 21. Price spread, log price spread and ratio, Example 3.1 of *Algorithmic
     Trading*, which trades GLD against USO by holding minus the 20-day
     z-score of a signal in units of the pair, with the hedge ratio refitted
@@ -6921,8 +6921,8 @@ earlier posts on the Kelly leverage on SPY and on the coin toss for the
 one-strategy formula and the variance drag rather than deriving them again,
 and draws six lessons from Entry 20 of the replication log.
 
-1. Every figure the book prints lands, and nothing about the data could have
-   moved them, since the inputs are numbers the book states.
+1. Every figure in the examples' text lands, and nothing about the data could
+   have moved them, since the inputs are numbers the book states.
 2. Scaling every Kelly leverage down to the cap is the recommendation the
    example refutes, and everything on strategy 2 wins because the drag the
    split saves is smaller than the return it gives up.
@@ -6952,8 +6952,10 @@ Five groups of what it says are not pinned here.
    rate" and "apply all of our buying power" at 3287. The book's figures are
    pinned, and its words are not.
 2. Facts about the book rather than the arithmetic: that Equation 8.3 is an
-   image the highlights did not capture, and that Chan cites Thorp (1997) for
-   Equation 8.3, the growth rate at the Kelly leverages.
+   image the highlights did not capture, that Chan cites Thorp (1997) for
+   Equation 8.3, the growth rate at the Kelly leverages, and that the book's
+   Figure 8.1, an image the highlights did not capture, draws none of the
+   dashed part, the shading and the markers the post's chart adds.
 3. Readings no test asserts: the slope's first number read as how fast the
    growth rate rises as leverage moves from strategy 1 to strategy 2, the drag
    growing with the square of the leverage and so staying small under a tight

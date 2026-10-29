@@ -1,6 +1,6 @@
-# Under a cap of 2, Chan’s fastest-growing Kelly allocation holds one strategy, and every figure he prints reproduces
+# Under a cap of 2, Chan’s fastest-growing Kelly allocation holds one strategy, and every figure in his text reproduces
 
-*Chapter 8 of Algorithmic Trading shows that shrinking every Kelly leverage to fit a broker’s cap is not the allocation that grows fastest. Every printed figure lands, his 0.96 is a tie rounded up, and on his inputs the answer changes once the cap passes 2.45.*
+*Chapter 8 of Algorithmic Trading shows that shrinking every Kelly leverage to fit a broker’s cap is not the allocation that grows fastest. Every figure in his text lands, his 0.96 is a tie rounded up, and on his inputs the answer changes once the cap passes 2.45.*
 
 ## Why a leverage cap changes the answer
 
@@ -12,7 +12,7 @@ Chan answers it with Example 8.2, two strategies under a broker’s cap of 2. Th
 
 This repository reproduced both examples in code. The results fall into three groups.
 
-1. **Every figure the book prints lands.** The trades of Example 8.1 match to the dollar, and the leverages and growth rates of Example 8.2 match at the precision Chan prints them.
+1. **Every figure in the examples’ text lands.** The trades of Example 8.1 match to the dollar, and the leverages and growth rates of Example 8.2 match at the precision Chan prints them.
 2. **Shrinking every leverage loses to putting everything on one strategy.** Both leverages shrunk to the cap grow at 0.816798 a year. The whole cap on strategy 2 grows at 0.955 a year.
 3. **The book’s 0.96 is a tie rounded up.** The exact growth rate with everything on strategy 2 is 0.955, halfway between 0.95 and 0.96, and the usual way to print a number at two decimals in code gives 0.95, because the computer stores 0.955 as a number just below it.
 
@@ -55,9 +55,9 @@ The growth rate is the return less the drag. With one strategy at its Kelly leve
 
 Chan prints Equation 8.3 as an image, and the Kindle highlights behind this repository’s book notes did not capture it. So 2.135068 is quoted as computed, with no published figure beside it.
 
-## Lesson 1: every figure the book prints lands, and nothing about the data could have moved them
+## Lesson 1: every figure in the examples’ text lands, and nothing about the data could have moved them
 
-Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position, through a \$10,000 loss and then a \$20,000 gain. Here is each figure Chan prints for the two examples, computed beside printed, with Example 8.1’s in dollars. The positions its two trades leave come in the section after.
+Example 8.1 holds a leverage of 5 on \$100,000 of equity, a \$500,000 position, through a \$10,000 loss and then a \$20,000 gain. Here are the figures Chan prints for the two examples, computed beside printed, with Example 8.1’s in dollars. The positions its two trades leave come in the section after.
 
 ```math
 \begin{array}{l|r|r}
@@ -82,7 +82,7 @@ g \text{, all on } F_2 & 0.955 & 0.96
 \end{array}
 ```
 
-Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96. Beside the two positions Example 8.1’s trades leave, \$450,000 and \$550,000, these are all the figures in the examples’ text. A figure printed only inside an equation’s image, as Equation 8.3’s may be, is not among them.
+Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96. Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s peak at F2 = 2. Each of those lands too. This leaves out any figure printed only inside an equation’s image, as Equation 8.3’s may be.
 
 No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is five things the table does not show.
 
