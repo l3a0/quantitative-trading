@@ -190,6 +190,28 @@ class TestTheGain:
         assert np.median(share) == pytest.approx(0.9793, abs=5e-5), SPEC
         assert np.median(np.abs(np.diff(f.slope)[1:])) == pytest.approx(0.009361, abs=5e-7), SPEC
 
+    def test_on_a_median_day_the_drift_takes_back_what_the_update_added(
+        self, closes, result
+    ) -> None:
+        """Along the next day's EWA row, the drift adds back the variance the
+        day's update took off, to four digits on a median day. That is the post's
+        "On a typical day that drift takes back all the certainty the update
+        added". The loop rebuilds the state covariance, and each forecast
+        variance it gives must equal the run's ``Q``."""
+        rows = np.column_stack([closes[X].to_numpy(dtype=float), np.ones(len(closes))])
+        drift = DELTA / (1 - DELTA) * np.eye(2)
+        state = np.zeros((2, 2))
+        ratios = []
+        for t in range(1, len(rows) - 1):
+            predicted = state + drift
+            variance = rows[t] @ predicted @ rows[t] + VE
+            assert variance == pytest.approx(result.filter.variance[t], rel=1e-12)
+            gain = predicted @ rows[t] / variance
+            state = predicted - np.outer(gain, rows[t]) @ predicted
+            ahead = rows[t + 1]
+            ratios.append(ahead @ drift @ ahead / (ahead @ (predicted - state) @ ahead))
+        assert np.median(ratios) == pytest.approx(0.9999, abs=5e-5), SPEC
+
 
 class TestTheFirstRows:
     def test_row_1_has_a_zero_gain_and_q_equal_to_ve(self, result) -> None:
@@ -616,6 +638,18 @@ class TestWhatThePostQuotes:
             f"closing {100 * np.median(share):.0f} percent of the miss on a median day.",
             f"about {np.median(np.abs(np.diff(result.filter.slope)[1:])):.3f} on a median day.",
         ]
+        # A unit holds ``units * [-slope, 1]`` of EWA and EWC, which
+        # ``test_the_positions_hold_minus_the_slope_of_ewa_against_one_ewc`` holds
+        # the run to. Reading both definitions catches a swap of long and short,
+        # which no figure check sees.
+        side = {1.0: "long", -1.0: "short"}
+        ewa, ewc = np.sign([-result.filter.slope[1], 1.0])
+        fragments += [
+            f"One long unit is {side[ewa]} a number of EWA shares equal to the slope and "
+            f"{side[ewc]} one share of EWC.",
+            f"A short unit is {side[-ewa]} a number of EWA shares equal to the slope and "
+            f"{side[-ewc]} one share of EWC.",
+        ]
         assert not_found_once(text, fragments) == []
 
     def test_lesson_1(self, result, text) -> None:
@@ -689,6 +723,7 @@ class TestWhatThePostQuotes:
             "So the APR moves whichever way the returns are counted,",
             f"The {words[QUIET_ROWS]} rows the chart leaves out are the {words[QUIET_ROWS]} on "
             "which the filter forecasts EWC at 0, and the strategy trades on both.",
+            f"widens row 1’s band past the error of {f.error[0]:.2f}, so row 1 enters no trade.",
             f"Under that reading the APR still rounds to {100 * compounded_apr(dropped):.1f} "
             f"percent, but the Sharpe ratio rounds to the book’s {plain_sharpe(dropped):.1f}.",
             f"the Sharpe ratio moves only while all {len(quiet.daily):,} days count,",

@@ -531,8 +531,10 @@ class TestTheOneDaySketch:
         assert heights == sorted(heights, reverse=True)
         assert [label.names for label in steps] == ["yesterday", "forecast", "error", "updated"]
         post = POST.read_text(encoding="utf-8")
-        for title in ("**Hold a guess.**", "**Forecast.**", "**Measure the miss.**", "**Update"):
-            assert title in post
+        titles = ("**Hold a guess.**", "**Forecast.**", "**Measure the miss.**", "**Update")
+        assert [post.count(title) for title in titles] == [1, 1, 1, 1]
+        at = [post.index(title) for title in titles]
+        assert at == sorted(at)
 
     def test_its_colours(self, every) -> None:
         scene = every[0]

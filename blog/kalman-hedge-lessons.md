@@ -79,7 +79,7 @@ Each day’s return is the profit on yesterday’s positions divided by the gros
 
 The prices come from Chan’s own MATLAB file `inputData_ETF.mat`, saved on 2012-04-10 and [converted here](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) to one file per fund. It is the same file the Johansen post read.
 
-The file adjusts each close for dividends by subtracting each dividend in dollars from every earlier close. A close from before a dividend therefore sits below the price the fund traded at that day. A return computed from these closes is not exactly what a holder earned.
+The file adjusts its closes for dividends by subtracting each dividend in dollars from every earlier close. This repository measured that method on two other funds in the file, SPY and GDX, and not on EWA or EWC. Where a dividend was subtracted, a close from before it sits below the price the fund traded at that day. A return computed from these closes is not exactly what a holder earned.
 
 EWA and EWC are both priced on all 1,500 trading days from 2006-04-26 to 2012-04-09. The script is `KF_beta_EWA_EWC.m` as published with the book’s code, and the replication transcribes its loop line for line rather than using a library’s filter, because the script’s starting values are part of what is being tested. The script starts the slope, the intercept and the uncertainty at 0.
 
@@ -204,6 +204,8 @@ So “around 1” holds or fails depending on whether the median or the mean is 
 ### What would settle the two claims
 
 Write the grain and the threshold before running anything. For the intercept, that means naming the period to average and how many falls are allowed. For the slope, it means naming the statistic, the precision and how many crossings count. For the APR and the Sharpe ratio, Chan’s printed digits fixed the test before any run. For these two claims nothing did.
+
+On this file it is too late to do that. Every grain above, and the slope’s median, mean and crossings, has already been measured here, so a criterion written now would be chosen knowing its answer. Testing one would need closes after April 2012.
 
 ## Lesson 4: an exact reproduction checks the arithmetic, not the edge
 

@@ -5444,7 +5444,8 @@ Six groups of what it says are not pinned here.
    zero start explains and would not be a backtest. What the post says a
    starting uncertainty above 0 would do to row 1 and to every later day is a
    reading too, because nothing here runs such a start. `TestTheGain` measures what the post says the gain
-   does on this file after the first day, but not those words.
+   does on this file after the first day, including that on a median day the
+   drift takes back what the update added, but not those words.
 4. The alt texts' readings, approximate by design. The chart's alt text reads
    its lines, such as "about 1.4" and "about 2 by the start of September
    2008", and the sketches' alt texts read a scale "from 0 to about 23" and a
