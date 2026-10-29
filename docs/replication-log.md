@@ -11164,7 +11164,7 @@ choices in writing first and then run on data after 2012: the threshold, the
 alignment, `252 · mean`, each rule's own settings, the sign of FSTX's return
 line, the stocks buy on gap may choose from, the costs, the direction each
 rule's return should move, and the test that compares the qualifying days
-with the rest with the p below which it counts.
+with the rest with the p below which it counts, set for both rules at once.
 
 **What buy on gap earned on the index as it stood each day.** Every stock here
 was in the S&P 500 in late 2011, so Entry 18's caveat holds for the filtered
@@ -11178,13 +11178,19 @@ A change of scale starting that day would move every later close instead,
 and the two spans leave that ratio out. Divided by 18.31 / 11.15 from that
 day on, the lowest close after it, 11.98 on 2007-04-16, would be 7.3, below
 every earlier close in the file, the lowest of which is 9.31 on 1993-12-22.
-Buy on gap would then keep 34 days rather than 190. Read the other way, with
-every close before that day too low by the same factor, the earlier closes
-would run from 15.29 to 75.11, inside the later closes' 11.98 to 80.86, so
-the file alone cannot rule it out. Then 23.81 on 2006-06-13 would be 39.1,
-each rule would keep 2006-06-14 and 2006-06-15 too, and buy on gap would
-give 0.170133 on 192 days and FSTX 0.025455 on 187, which print as 17.0
-and 2.5 percent rather than the book's 17.2 and 2.6.
+That makes the reading unlikely but not impossible. Each rule would then
+keep the same 34 days, from 2008-10-09 to 2008-12-10, rather than 190 and
+185. Buy on gap would hold a position on one of them, 2008-12-09, and lose,
+giving −0.026449 against its 0.085279 on every day, and FSTX would give
+0.419673 against its 0.139950 on every joined day, so both of Chan's
+conclusions would turn the other way. Read the other way, with every close
+before that day too low by the same factor, the earlier closes would run
+from 15.29 to 75.11, inside the later closes' 11.98 to 80.86, so nothing in
+the file argues against it. Then 23.81 on 2006-06-13 would be 39.1 and 21.46
+on 2006-06-14 would be 35.2, so each rule would keep 2006-06-14 and
+2006-06-15 too, and buy on gap would give 0.170133 on 192 days and FSTX
+0.025455 on 187. Those print as 17.0 and 2.5 percent rather than the book's
+17.2 and 2.6, and neither of Chan's conclusions would change.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

@@ -1425,7 +1425,8 @@ each rule's returns summed over its kept days, buy on gap's largest kept
 day and the three opens behind it, the three spells the runs group into, the
 nearest close below 35 inside the windows, buy on gap's compounded APR over
 every day, FSTX's figures on the three earlier saves, the scale check run on
-the stocks and VIX read as rescaled from its flagged day, with the two helpers
+the stocks, the stocks with each flagged move divided out, and VIX read as
+rescaled either way across its flagged day, with the two helpers
 behind them on synthetic series. `TestThePostQuotesTheRun` reads one copy in
 the post of most figures the post takes from the run, so editing a copy it
 reads fails. The section on the post below says which copies it leaves
@@ -8837,7 +8838,10 @@ Five groups of what it says are not pinned here.
    [tests/test_opening_gap.py](tests/test_opening_gap.py), and
    `TestThePostQuotesTheRun` reads the post's copy against this run's
    Example 7.1 figures. The 72.2 percent is 0.722090 rounded, and that class
-   reads it as written rather than deriving it.
+   reads it as written rather than deriving it. The 52 futures series in
+   Chan's `inputDataOHLCDaily_20120517.mat` and the 1995 start of its row in
+   [data/README.md](data/README.md) are pinned in
+   [tests/test_continuous_futures.py](tests/test_continuous_futures.py).
 5. Its reference, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8886,17 +8890,23 @@ no pin before it, all measured after the run.
     position and both filtered figures where they were.
 14. VIX divided by 18.31 / 11.15 from 2007-02-27 on, which puts its lowest
     close after that day, 11.98 on 2007-04-16, at 7.3, below every earlier
-    close, the lowest of which is 9.31 on 1993-12-22, and leaves buy on gap
-    34 kept days.
+    close, the lowest of which is 9.31 on 1993-12-22. It leaves each rule the
+    same 34 kept days, from 2008-10-09 to 2008-12-10. Buy on gap held a
+    position on one of them, 2008-12-09, and lost, so it gives −0.026449,
+    below its 0.085279 on every day, and FSTX gives 0.419673, above its
+    0.139950 on every joined day.
 15. VIX multiplied by 18.31 / 11.15 before 2007-02-27, which keeps its
-    earlier closes inside the later ones' range, puts 23.81 at 39.1, and
-    adds 2006-06-14 and 2006-06-15 to each rule's kept days, so buy on gap
-    gives 0.170133 on 192 days and FSTX 0.025455 on 187.
+    earlier closes inside the later ones' range, puts 23.81 at 39.1 and
+    21.46 on 2006-06-14 at 35.2, and adds 2006-06-14 and 2006-06-15 to each
+    rule's kept days, so buy on gap gives 0.170133 on 192 days and FSTX
+    0.025455 on 187, each on the same side of its unfiltered figure as
+    before.
 
 `TestThePostQuotesTheRun` reads the post itself against the run, so editing a
 copy it reads fails. It reads the five tables row by row, the book's rows
 against the book targets the tests pin, and one prose copy of each figure
-Lesson 4 and the fifth open question take from the run. It also reads one
+Lesson 4 and the fifth open question take from the run, with each verdict
+the fifth open question draws chosen by the measurement behind it. It also reads one
 prose copy each of the zeroed reading's figures, momentum's filtered figures,
 Example 7.1's compounded APR, the closes nearest 35 and the join's day
 counts. It reads no other copy, so every other copy in the post can drift
