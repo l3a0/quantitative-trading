@@ -593,6 +593,39 @@ class TestTheLongOnlyLimit:
         assert on_the_short + displaced == pytest.approx(given_up, abs=1e-12)
         assert saved > given_up
 
+    def test_the_drag_falls_in_two_steps_and_the_short_earns_most_of_the_lead(self) -> None:
+        """The two changes one at a time, the displaced long first, so the gross
+        never passes the cap. Cutting the long nets almost nothing, and the
+        short, through the correlation, earns most of the hedge's lead over the
+        whole cap. Taking the short first passes through a gross of 5, and there
+        the short earns more than the whole lead, so "most" holds in either order.
+        """
+        hedge, corner = self._hedge(), (0.0, self.CAP)
+        cut = (0.0, hedge[1])
+        long_saves = self._drag(corner) - self._drag(cut)
+        long_gives_up = self._return(corner) - self._return(cut)
+        short_saves = self._drag(cut) - self._drag(hedge)
+        short_gives_up = self._return(cut) - self._return(hedge)
+        assert long_saves == pytest.approx(0.315769, abs=5e-7)
+        assert short_saves == pytest.approx(0.211730, abs=5e-7)
+        assert long_gives_up == pytest.approx(0.300855, abs=5e-7)
+        assert short_gives_up == pytest.approx(0.050142, abs=5e-7)
+        assert 0.0 < long_saves - long_gives_up < 0.05 * long_gives_up
+
+        def g(leverages) -> float:
+            return growth_rate(leverages, self.MEANS, self.COV)
+
+        lead = g(hedge) - g(corner)
+        short_first = (hedge[0], self.CAP)
+        assert g(hedge) - g(cut) > lead / 2
+        assert g(short_first) - g(corner) > lead / 2
+        h, f2 = np.asarray(hedge), hedge[1]
+        cancelled = 1.0 - (h @ self.COV @ h) / (f2 * f2 * self.COV[1, 1])
+        assert abs(cancelled - 0.5) < 0.05
+        uncorrelated = covariance((0.30, 0.30), 0.0)
+        no_hedge = growth_terms(cut, self.MEANS, uncorrelated)[1]
+        assert growth_terms(hedge, self.MEANS, uncorrelated)[1] > no_hedge
+
 
 class TestTheInputsAreChecked:
     def test_the_capped_search_takes_two_strategies(self) -> None:
@@ -1137,6 +1170,7 @@ class TestWhatThePostSays:
         _, f1, f2 = _gross_boundary_grid(MEANS, covariance(VOLS, 1.0), MAX_LEVERAGE, points=4_001)
         assert f1 >= 0.0 and f2 >= 0.0
         whole_ret, whole_drag = growth_terms(whole.leverages, case.MEANS, case.COV)
+        cut_ret, cut_drag = growth_terms((0.0, hedge[1]), case.MEANS, case.COV)
         self._has(
             f"finds the same corner at {best_allocation_at_cap(MEANS, cov).growth:.3f}.",
             f"On Chan’s means and volatilities at a cap of {MAX_LEVERAGE:g}, no correlation lets "
@@ -1158,7 +1192,13 @@ class TestWhatThePostSays:
             f"loses strategy 1’s mean on {_six(-hedge[0])} of leverage, {_six(-hedge[0] * m1)}.",
             f"**The displaced long** loses {_six((cap - hedge[1]) * m2)}, strategy 2’s mean on "
             f"the {_six(-hedge[0])} of the gross cap that the short now uses.",
-            f"the drag falls by {_six(whole_drag - hedge_drag)}.",
+            f"The drag falls by {_six(whole_drag - hedge_drag)}, more than all the return "
+            "given up, so the hedge grows faster.",
+            f"Cutting the long saves {_six(whole_drag - cut_drag)} of drag, barely more than "
+            f"the {_six(whole_ret - cut_ret)} of return it gives up.",
+            "the short then cancels about half of the remaining long’s variance, and saves "
+            f"the other {_six(cut_drag - hedge_drag)} of drag at a cost of only "
+            f"{_six(cut_ret - hedge_ret)}. So the short earns most of the hedge’s lead.",
             f"under a cap below {corner_threshold(MEANS, cov):.2f}.",
         )
         assert alone < cap

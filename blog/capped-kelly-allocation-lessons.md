@@ -195,7 +195,7 @@ Set the hedge against the whole cap on strategy 2 rather than the best long-only
 1. **The short itself** loses strategy 1’s mean on 1.002849 of leverage, 0.050142.
 2. **The displaced long** loses 0.300855, strategy 2’s mean on the 1.002849 of the gross cap that the short now uses.
 
-Because the two strategies move together so closely, the short cancels most of strategy 2’s variance, and the drag falls by 0.527499. That saving is larger than all the return given up, so the hedge grows faster. Lesson 4’s short broke the gross cap. This one stays inside it.
+The drag falls by 0.527499, more than all the return given up, so the hedge grows faster. Take the two changes one at a time, the displaced long first, so the gross never passes the cap. Cutting the long saves 0.315769 of drag, barely more than the 0.300855 of return it gives up. Because the two strategies move together so closely, the short then cancels about half of the remaining long’s variance, and saves the other 0.211730 of drag at a cost of only 0.050142. So the short earns most of the hedge’s lead. Lesson 4’s short broke the gross cap. This one stays inside it.
 
 So the corner’s win in Example 8.2 is a property of its inputs. Two uncorrelated strategies with positive means leave a short nothing to gain. Chan’s own means and variances then keep the corner best under a cap below 2.45.
 

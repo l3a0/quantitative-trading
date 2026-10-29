@@ -517,13 +517,22 @@ class TestThePost:
         assert "with every height drawn to one scale" in drag
         assert "with F1 and F2 drawn to the same scale" in net
 
-    def test_the_footer_links_the_sketch_code_and_its_tests(self) -> None:
+    def test_the_footer_links_each_piece_of_code_and_its_tests(self) -> None:
+        """Each link's words with its own target, so swapping two targets or
+        misspelling one fails, and each target names a file that exists."""
         footer = _paragraphs()[-1]
-        for path in (
-            "src/chan/kelly_allocation_whiteboard.py",
-            "tests/test_kelly_allocation_whiteboard.py",
-        ):
-            assert f"/blob/main/{path})" in footer
+        base = "https://github.com/l3a0/quantitative-trading/blob/main"
+        links = {
+            "the two examples": "src/chan/kelly_allocation.py",
+            "the chart": "src/chan/kelly_allocation_figures.py",
+            "the whiteboard sketches": "src/chan/kelly_allocation_whiteboard.py",
+            "the examples’ numbers": "tests/test_kelly_allocation.py",
+            "what the chart draws": "tests/test_kelly_allocation_figures.py",
+            "what the sketches draw": "tests/test_kelly_allocation_whiteboard.py",
+        }
+        for words, path in links.items():
+            assert f"[{words}]({base}/{path})" in footer, words
+            assert (REPO_ROOT / path).is_file(), path
 
     def test_the_module_says_neither_sketch_is_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())

@@ -6960,9 +6960,8 @@ Six groups of what it says are not pinned here.
    growth rate rises as leverage moves from strategy 1 to strategy 2, the drag
    growing with the square of the leverage and so staying small under a tight
    cap, the short in strategy 1 at the unbounded peak read as there only to
-   let F2 rise above 2 while F1 + F2 stays at 2, the correlated short
-   cancelling most of strategy 2's variance, and that the example cannot say
-   whether Chan means the highest mean or the highest growth rate. The post's
+   let F2 rise above 2 while F1 + F2 stays at 2, and that the example cannot
+   say whether Chan means the highest mean or the highest growth rate. The post's
    illustration of gross leverage, \$1.50 long and \$0.50 short on \$1 of
    equity, is arithmetic on its own numbers.
 4. Two words in the figure's alt text, which reads the dashed curve as rising
