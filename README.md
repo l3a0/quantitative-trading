@@ -8878,6 +8878,40 @@ uv run python -m chan.vix_filter_figures
 what it draws rather than its bytes, for the reason given above for the regime
 map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/vix_filter_whiteboard.py](src/chan/vix_filter_whiteboard.py) on the
+USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `vix_filter_sketch_one_holiday.gif`, in Lesson 3, one US holiday read four
+   ways. VIX closed 54.92 on 2008-11-26, had no close on 2008-11-27, and
+   closed 55.28 on 2008-11-28, while FSTX traded all three days. Under the
+   join the holiday is not on the calendar and the Friday is kept on the
+   Wednesday's close. The latest close and the forward fill keep both days
+   on it. A row back keeps the holiday and drops the Friday, which reads the
+   holiday's missing close.
+2. `vix_filter_sketch_kept_days.gif`, in Lesson 4, buy on gap's 190 kept
+   days, the 170 that held nothing, and the 20 that held a position as bars
+   to one scale, 8 above zero and 12 below. The tallest, 2009-04-21 at
+   0.093601, is 0.722090 of the 0.129625 the kept days sum to, and without
+   it the other 189 give 0.048032 and a Sharpe ratio of 0.855003.
+
+Both read every figure from the run, through `read_sources` and
+`vix_filters`, and only their layouts are schematic: the first sketch's
+columns stand evenly apart, and the second's ticks and bars stand evenly
+apart in date order rather than at their dates. Both build more slowly than
+the USD.CAD post's sketches and hold their finished drawings for twelve
+seconds, because each carries more than that pace lets a reader take in.
+Both draw in the shared inks, as the post's chart does. Redraw both with:
+
+```bash
+uv run python -m chan.vix_filter_whiteboard
+```
+
+[tests/test_vix_filter_whiteboard.py](tests/test_vix_filter_whiteboard.py)
+holds what each draws, that each read of the holiday and each kept-day figure
+is the run's, that each bar stands to one scale, and that each GIF follows
+its paragraph in the post.
+
 [blog/low-beta-holdout-lessons.md](blog/low-beta-holdout-lessons.md) is a
 forty-seventh post, about the same rule at location 4709 tested on IVV's S&P
 500 members at each month-end from 2008-12, every holding month after the
