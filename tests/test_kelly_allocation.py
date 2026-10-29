@@ -256,7 +256,12 @@ class TestTheCorner:
     def test_the_slope_along_the_line_is_positive_up_to_the_cap(self, cov) -> None:
         """Along ``F1 = 2 - F2`` the growth rate is a parabola, so its slope is a
         line in F2: 0.4352 at F2 = 0, falling by 0.1901 per unit. It is still
-        positive at F2 = 2, which is why the peak is the corner."""
+        positive at F2 = 2, which is why the peak is the corner.
+
+        ``blog/capped-kelly-allocation-lessons.md`` names the parts. The 0.4352
+        is strategy 2's extra mean of 0.30 plus the drag shed off strategy 1,
+        0.1352, its variance of 0.0676 times its leverage of 2. The 0.1901 is
+        the two variances, 0.0676 and 0.1225, added together."""
 
         def slope(f2: float, h: float = 1e-6) -> float:
             up = growth_rate((MAX_LEVERAGE - f2 - h, f2 + h), MEANS, cov)
@@ -266,6 +271,11 @@ class TestTheCorner:
         assert slope(0.0) == pytest.approx(0.4352, abs=1e-8)
         assert slope(1.0) - slope(0.0) == pytest.approx(-0.1901, abs=1e-8)
         assert slope(MAX_LEVERAGE) == pytest.approx(0.0550, abs=1e-8)
+        c11, c22 = cov[0, 0], cov[1, 1]
+        assert (round(MEANS[1] - MEANS[0], 6), round(c11, 6), round(c22, 6)) == (0.30, 0.0676, 0.1225)
+        assert round(c11 * MAX_LEVERAGE, 6) == 0.1352
+        assert slope(0.0) == pytest.approx(MEANS[1] - MEANS[0] + c11 * MAX_LEVERAGE, abs=1e-8)
+        assert slope(1.0) - slope(0.0) == pytest.approx(-(c11 + c22), abs=1e-8)
 
     def test_the_growth_rate_is_exactly_a_tie(self, cov) -> None:
         g = best_allocation_at_cap(MEANS, cov).growth

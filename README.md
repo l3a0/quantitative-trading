@@ -6955,9 +6955,8 @@ Five groups of what it says are not pinned here.
    image the highlights did not capture, and that Chan cites Thorp (1997) for
    Equation 8.3, the growth rate at the Kelly leverages.
 3. Readings no test asserts: the slope's first number read as how fast the
-   growth rate rises as leverage moves from strategy 1 to strategy 2,
-   positive because strategy 2 earns more and strategy 1 sheds drag, and its
-   second as the two variances added together, the drag growing with the
+   growth rate rises as leverage moves from strategy 1 to strategy 2, the
+   drag growing with the
    square of the leverage and so staying small under a tight cap, the
    correlated short cancelling most of strategy 2's variance, and that the
    example cannot say whether Chan means the highest mean or the highest
@@ -6979,7 +6978,10 @@ precision it quotes, and
 all. `TestBesideTheClaim` holds the first nine, splitting each growth rate
 into its return and its drag from the run's own leverages.
 `TestWhereTheCornerStopsWinning` holds the tenth, and `TestTheLongOnlyLimit`
-the last four.
+the last four. A later edit split the slope into its parts, strategy 2's
+extra mean of 0.30, the drag of 0.1352 shed off strategy 1, and the two
+variances of 0.0676 and 0.1225, and
+`test_the_slope_along_the_line_is_positive_up_to_the_cap` holds each of them.
 
 1. The Sharpe ratios 1.153846 and 1.714286, half the sum of whose squares is
    the growth rate at Kelly.
