@@ -27,7 +27,9 @@ draws a line at, comes from :class:`BreakEvenFigures`, which
 gap is :attr:`chan.low_beta_capped.Capped.gap`, each break-even spread is
 :func:`chan.low_beta_capped.break_even_spread` on
 :func:`chan.low_beta_capped.cap`'s portfolios, and each line's borrowing is
-the mean of that capped leverage less 1.
+the mean of that capped leverage less 1. Like every figure Entry 48 reports,
+they are exploratory point estimates about survivors only, and a spread below
+a break-even does not make a gap real, which the post's next paragraph says.
 
 Each line is drawn straight between the run's two endpoints, its gap at no
 spread and 0 at its break-even spread. The charged gap,

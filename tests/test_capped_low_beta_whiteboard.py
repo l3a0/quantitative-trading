@@ -13,8 +13,18 @@
 The sketch is not schematic. The run reads committed vintages, so the tests
 read it directly rather than a frozen copy of its figures, and a made-up set
 of figures checks that the words follow the data. Every figure the sketch
-prints is already pinned by ``tests/test_low_beta_capped.py``, and these tests
-pin it again at the precision the sketch draws it. The lines are drawn
+prints is already pinned by ``tests/test_low_beta_capped.py`` at four places.
+These tests pin it again at six, so a re-pin says which figure moved, though
+the sketch prints four.
+
+- **Vintages.** ``spx_20071123/``, the 500 stocks lifted from Chan's
+  ``SPX_20071123.mat``, chan-mat adjusted, saved 2007-11-24. ``spy_chan.csv``,
+  chan-xls adjusted, saved 2008-01-29. FRED's TB3MS, downloaded 2026-09-30.
+- **Specification.** Entry 48's, as ``tests/test_low_beta_capped.py`` states
+  it: Entry 45's portfolios unchanged, the low fifth levered by min(k, C) at
+  the bill rate for C of 2 and 5, and d against the unlevered high fifth from
+  December 2000 to October 2007. Every figure is exploratory and about
+  survivors only. The lines are drawn
 straight between the run's endpoints, and one test holds that the run's own
 charged gap at each line's midpoint departs from the straight line by under
 half a pixel.
@@ -76,6 +86,7 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from chan.vintage import VintageUnavailable
 
 POST = REPO_ROOT / "blog" / "capped-low-beta-lessons.md"
 
@@ -99,11 +110,15 @@ BREAK_EVEN_LABELS = [
     "steeper line: smaller spread erases it",
 ]
 
+#: The unpatched read, kept before the ``gifs`` fixture and the command's test
+#: patch :meth:`BreakEvenFigures.from_run` for speed, so a test can still run it.
+FROM_RUN = BreakEvenFigures.from_run
+
 #: The same limits the USD.CAD sketches hold, in pixels.
 CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
 
-#: Board units up to pixels: the board is 4.7 units tall, drawn 320 pixels high.
-PX_PER_UNIT = HEIGHT / 4.7
+#: Board units up to pixels, the board's height in pixels over its height in units.
+PX_PER_UNIT = HEIGHT / (whiteboard.YLIM[1] - whiteboard.YLIM[0])
 
 
 @pytest.fixture(scope="module")
@@ -323,6 +338,10 @@ class TestTheGifs:
             assert [(f.done, f.partial) for f in frames] == [
                 (f.done, f.partial) for f in timeline(scene)
             ]
+            plain = timeline(scene)
+            for k, frame in enumerate(frames[:-1]):
+                if frame not in labels:
+                    assert frame.ms == plain[k].ms, (scene.slug, k)
 
     def test_each_is_under_1_mb(self, gifs) -> None:
         for path in gifs:
@@ -435,6 +454,15 @@ class TestThePost:
 
 
 class TestTheFigures:
+    def test_the_redraw_reads_the_same_figures_from_the_committed_vintages(
+        self, figures, tmp_path
+    ) -> None:
+        """The path ``main`` and :func:`scenes` take by default, run unpatched,
+        and the data folder it is handed reaches the read."""
+        assert FROM_RUN() == figures
+        with pytest.raises(VintageUnavailable):
+            FROM_RUN(tmp_path)
+
     def test_they_are_the_two_ceilings_in_order(self, figures) -> None:
         assert (figures.low.ceiling, figures.high.ceiling) == lbc.CEILINGS == (2.0, 5.0)
 
@@ -461,20 +489,28 @@ class TestTheFigures:
             assert lbc.charged_gap(capped, line.spread) == pytest.approx(0.0, abs=1e-9)
 
     def test_a_straight_line_is_faithful_to_the_charged_gap(self, figures, portfolios) -> None:
-        """At each line's midpoint the run's charged gap sits within 0.0005 a
+        """Across each line's span the run's charged gap sits within 0.0005 a
         year of the straight line, under half a pixel on the board, which is
-        what lets the sketch draw each line straight between its endpoints."""
+        what lets the sketch draw each line straight between its endpoints.
+        The largest departure is about 0.00034, at a ceiling of 5 near the
+        middle of its span, as the module docstring says."""
         pixel = (GAP[1] - GAP[0]) / ((GAP_Y[1] - GAP_Y[0]) * PX_PER_UNIT)
+        worst = {}
         for line in (figures.low, figures.high):
             capped = lbc.cap(portfolios, line.ceiling)
-            middle = line.spread / 2
-            departure = abs(lbc.charged_gap(capped, middle) - line.gap / 2)
-            assert departure < 0.0005, line.ceiling
-            assert departure < pixel / 2, line.ceiling
-        assert 0.0003 < abs(
-            lbc.charged_gap(lbc.cap(portfolios, 5.0), figures.high.spread / 2)
-            - figures.high.gap / 2
-        )
+            spreads = np.linspace(0.0, line.spread, 21)
+            departures = np.array(
+                [
+                    abs(lbc.charged_gap(capped, s) - line.gap * (1 - s / line.spread))
+                    for s in spreads
+                ]
+            )
+            assert departures.max() < 0.0005, line.ceiling
+            assert departures.max() < pixel / 2, line.ceiling
+            worst[line.ceiling] = (departures.max(), spreads[departures.argmax()] / line.spread)
+        assert round(worst[5.0][0], 5) == 0.00034
+        assert worst[5.0][1] == pytest.approx(0.5)
+        assert worst[2.0][0] < worst[5.0][0]
 
     def test_the_brass_line_falls_about_two_and_a_half_times_as_steeply(self, figures) -> None:
         assert round(figures.high.slope / figures.low.slope, 1) == 2.5
@@ -506,6 +542,21 @@ class TestTheBreakEvenSketch:
     def test_its_words(self, every) -> None:
         assert every[0].title == "Who breaks even first"
         assert every[0].labels == BREAK_EVEN_LABELS
+
+    def test_each_label_names_the_stroke_it_describes(self, every) -> None:
+        named = [(s.text, s.names) for s in every[0].steps if isinstance(s, Label)]
+        assert [names for _, names in named] == [
+            "gap-axis",
+            "spread-axis",
+            "zero",
+            "low",
+            "low",
+            "low-drop",
+            "high",
+            "high",
+            "high-drop",
+            "high",
+        ]
 
     def test_its_colours(self, every) -> None:
         scene = every[0]
@@ -624,11 +675,11 @@ class TestTheBreakEvenSketch:
     def test_made_up_figures_move_the_words(self, figures) -> None:
         made_up = replace(
             figures,
-            low=replace(figures.low, gap=0.0712, spread=0.0583, borrowed=1.5),
-            high=replace(figures.high, gap=0.1204, spread=0.0412, borrowed=3.0),
+            low=replace(figures.low, ceiling=1.5, gap=0.0712, spread=0.0583, borrowed=1.5),
+            high=replace(figures.high, ceiling=4.0, gap=0.1204, spread=0.0412, borrowed=3.0),
         )
         labels = scenes(made_up)[0].labels
-        assert "ceiling 2: 0.0712" in labels and "ceiling 5: 0.1204" in labels
+        assert "ceiling 1.5: 0.0712" in labels and "ceiling 4: 0.1204" in labels
         assert "borrows 1.5000 per unit of capital" in labels
         assert "borrows 3" in labels
         assert "0.0583" in labels and "0.0412" in labels
@@ -640,6 +691,10 @@ class TestTheBreakEvenSketch:
         assert g_y(0.0) > GAP_Y[0]
         assert "A black line starts on the upright axis" in alt
         assert "falls gently to the zero line" in alt
+        assert "A dashed grey drop carries the point where it reaches zero down" in alt
+        assert "a second dashed drop" in alt
+        for gid in ("low-drop", "high-drop"):
+            assert _stroke(scene, gid).dashed and _stroke(scene, gid).color == MUTED, gid
         assert "A brass line starts higher" in alt
         assert figures.high.gap > figures.low.gap
         assert "about two and a half times as steeply" in alt

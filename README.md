@@ -8775,12 +8775,12 @@ borrowing spread is charged. The black line, at a ceiling of 2, falls from
 brass line, at 5, starts higher at 0.1659, borrows 2.5134, falls about two and
 a half times as steeply and reaches 0 first, at 0.0661.
 
-It is not schematic: every figure and every position comes from the run,
-through the same `read_sources` and `build_portfolios`, with each gap from
-`capped`, each break-even spread from `break_even_spread`, and each line's
-borrowing from `cap`'s mean leverage. Each line is drawn straight between
-the run's endpoints, which departs from `charged_gap` by under half a pixel.
-It builds more slowly than the USD.CAD post's sketches and holds its finished
+It is not schematic: every figure, and every position a line is drawn at,
+comes from the run, through the same `read_sources` and `build_portfolios`,
+with each gap from `capped`, each break-even spread from `break_even_spread`,
+and each line's borrowing from `cap`'s mean leverage. Each line is drawn
+straight between the run's endpoints, and `charged_gap` departs from those
+lines by under half a pixel. It builds more slowly than the USD.CAD post's sketches and holds its finished
 drawing for twelve seconds. Redraw it with:
 
 ```bash
@@ -8789,7 +8789,7 @@ uv run python -m chan.capped_low_beta_whiteboard
 
 [tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
 holds what it draws, the figures it reads from the run, where each mark sits on
-its axes, that a straight line stays within half a pixel of the charged gap,
+its axes, that the charged gap stays within half a pixel of each straight line,
 and that the GIF follows its paragraph in the post.
 
 [blog/vix-filter-lessons.md](blog/vix-filter-lessons.md) is a forty-sixth
