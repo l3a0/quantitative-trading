@@ -15,8 +15,8 @@ a re-pin upstream means re-deriving the ranking rather than editing a cell.
 
 Only one input is read from data. Entry 52's seasonal-momentum series is
 measured over 1965 to 2024, the span Entry 52 already read. The months from
-1927 to 1964 are dropped before any statistic is taken. Under the owner's
-ruling of 2026-10-28 that span lies inside a published record, so no holdout
+1927 to 1964 are dropped before any statistic is taken. Under the ranking's
+reading of the owner's ruling of 2026-10-28 that span lies inside a published record, so no holdout
 rests on it, and the cut keeps the row's figure to the span Entry 52 reported.
 """
 

@@ -399,9 +399,9 @@ method's text did not settle it.
    enough. Now none of the six rows has the years it needs, which
    `TestTheScreen::test_the_published_record_leaves_the_reversal_rows_too_few_years`
    pins. This ranking reads the ruling as also covering Open Source Asset
-   Pricing's published series, which leaves Entry 52 no span, because the
-   project publishes `MomSeasonShort`'s returns from 1927. It applies to every
-   rule, and this ranking checked the published samples of these two only. A
+   Pricing's published series, which leaves Entry 52 no span, because Open
+   Source Asset Pricing publishes `MomSeasonShort`'s returns from 1927. The
+   ruling applies to every rule, and this ranking checked the published samples of these two only. A
    row the screen fails anyway was not checked, and
    [issue 777](https://github.com/l3a0/quantitative-trading/issues/777) checks
    each row it measures before registering it.
