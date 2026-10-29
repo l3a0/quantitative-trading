@@ -6963,11 +6963,8 @@ Five groups of what it says are not pinned here.
    whether Chan means the highest mean or the highest growth rate. The post's
    illustration of gross leverage, \$1.50 long and \$0.50 short on \$1 of
    equity, is arithmetic on its own numbers.
-4. Ratios and roundings the post takes from pinned figures in words: strategy
-   2's mean twice strategy 1's, 0.4648 less than half the corner's rate,
-   0.262321 as about a quarter, 2.448980 as 2.45 in the subtitle, a heading
-   and Lesson 6, and 0.962956 rounding to 0.96. The figure's alt text reads
-   the dashed curve as rising "a little further" and falling "slightly".
+4. Two words in the figure's alt text, which reads the dashed curve as rising
+   "a little further" and falling "slightly".
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6975,7 +6972,16 @@ Every other number in the post traces to an assertion in
 [tests/test_kelly_allocation_figures.py](tests/test_kelly_allocation_figures.py)
 for the figure's own numbers, or to
 [tests/test_kelly_allocation_whiteboard.py](tests/test_kelly_allocation_whiteboard.py)
-for the words the two sketches print and their alt texts quote. Before the post, fourteen had no pin at the
+for the words the two sketches print and their alt texts quote.
+`TestWhatThePostSays` in
+[tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) reads one
+copy of each of those numbers from the post itself, outside the sketches' alt
+texts, and checks it against the run at the precision the post prints. That
+covers both of Lesson 1's tables, the inputs, and the ratios and roundings the
+post states in words: strategy 2's mean twice strategy 1's, 0.4648 less than
+half the corner's rate, 0.262321 as about a quarter, 2.448980 as 2.45 in the
+subtitle, Lesson 5's heading and Lesson 6, and 0.962956 rounding to 0.96. So a
+typo in any of them fails a test. Before the post, fourteen had no pin at the
 precision it quotes, and
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) now pins them
 all. `TestBesideTheClaim` holds the first nine, splitting each growth rate
