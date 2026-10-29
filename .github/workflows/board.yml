@@ -1,11 +1,36 @@
 name: Board
 
-# Rebuilds the build board from GitHub and publishes it on GitHub Pages, so no
-# session has to measure and write it by hand. scripts/build_board.py reads
-# every figure through the API and writes board.json, and the page is
-# .claude/skills/update-build-board/board.html. Issue 532 built it, and issue
-# 533 moved the rest of the board's judgement onto labels, links and lines the
-# generator reads.
+# Copied into l3a0/quantitative-trading from .github/workflows/board.yml in
+# l3a0/repo-template at commit cf2959a3e48aeec3d71a6ade5fc9641fc9e82073,
+# the merge of l3a0/repo-template#43, which follows the merge of
+# l3a0/repo-template#42 that added the data-label input. Apart from this
+# paragraph, the only changes are the ref on the `uses:` line, pinned to that
+# commit, and the `with:` block naming this board's title and the label that
+# marks a card waiting on data. In the comments below, "here" and "the
+# template itself" mean l3a0/repo-template. To take a later fix, move the ref.
+# The board's skills come from the owner's l3a0 Claude Code plugin rather than
+# from copies in this repository, and the Generator compatibility section of
+# its update-build-board skill says when a moved ref also needs a plugin
+# release.
+#
+# Until issue 785 this repository ran its own generator and page, which the
+# template's were ported from. Issue 532 built them, issue 533 moved the
+# board's judgement onto labels, links and lines, and issue 587 measured the
+# schedule this file's cron line keeps.
+#
+# Starts the build board's rebuild, which the reusable workflow
+# .github/workflows/build-board.yml in l3a0/repo-template carries out. A
+# repository seeded from the template copies this file unchanged except for the
+# ref on the `uses:` line, which it pins to a full commit SHA of
+# l3a0/repo-template, and a `with:` block for the inputs it sets, such as
+# `title` or `icon`. The template itself calls `main`, so its own board runs
+# the shared path before any seeded repository pins it.
+#
+# Provenance: the triggers, permissions and concurrency group of
+# .github/workflows/board.yml in l3a0/quantitative-trading at commit 6da0ee3,
+# landed here by the pull request that closes l3a0/repo-template#24. The jobs
+# moved into the reusable workflow, and the job here grants the scopes both of
+# them need, because a called workflow can only narrow what its caller grants.
 #
 # A label, a body edit or a comment starts a run through `issues` and
 # `issue_comment`. A "blocked by" link and a sub-issue start none, because
@@ -16,23 +41,18 @@ name: Board
 #
 # Every trigger below except workflow_dispatch fires only once this file is on
 # main, and every one of them runs on the default branch, which is the only
-# branch the github-pages environment lets deploy. pull_request_target runs on
-# a pull request's base branch rather than the default one, so its filter
-# admits only pull requests into main. A run for one into another base would
-# have its deploy refused and go red. pull_request and
+# branch the github-pages environment lets deploy. Since 2025-12-08 that holds
+# for pull_request_target too, whatever a pull request's base, as GitHub's
+# changelog of 2025-11-07 states. Its filter admits only pull requests into
+# main, because GitHub registers a closing link only on a pull request into
+# the default branch. One into another base still reaches the board, through
+# its Part of line, on the next run of any kind. pull_request and
 # pull_request_review run on a merge ref instead, and check_suite never fires
 # for a suite GitHub Actions created, so neither is here.
 #
-# Two rules keep this workflow inside the ruleset, which refuses a merge while
-# CodeQL reports a high or critical alert, and keep strangers out of it.
-#
-# 1. No step reads the event payload. Anyone can file an issue on a public
-#    repository, so an issue title expanded into a run step would run as
-#    shell. The generator reads everything through gh, which also makes a
-#    run's output independent of the event that started it.
-# 2. pull_request_target runs with a write token on the default branch, so
-#    nothing here checks out a pull request's code. The checkout takes the
-#    default ref.
+# The reusable workflow checks out no pull request's code, no step reads the
+# event payload, and every action it runs is named by a commit SHA, which its
+# own header explains.
 on:
   issues:
   issue_comment:
@@ -50,23 +70,13 @@ on:
     types: [completed]
   # Catches a change made with a workflow's own token, which starts no run,
   # and a dispatch a session forgot. Nothing can rely on it, because GitHub
-  # delays or drops a scheduled run under load. Issue 587 measured
-  # about 11% of the 8,38 slots firing over 185 hours, with up to 603 minutes
-  # between two runs. The generator reads this line, and the page calls the
-  # board stale once it is older than the longest gap between two runs plus
-  # SCHEDULE_DELAY_ALLOWANCE in scripts/build_board.py. That allowance covers
-  # the longest gap issue 587 measured, a delay GitHub's docs neither confirm
-  # nor bound. Changing the line here moves the threshold too.
-  # Off the hour, because the top of the hour is when GitHub is busiest.
-  #
-  # The minutes were 7 and 37 until issue 563. That schedule fired once in the
-  # five and a half hours after it reached main, out of about 11 slots due.
-  # Pushes to main had not made GitHub pick it up again, so the minutes moved
-  # by one in the hope that a changed cron line makes GitHub register the
-  # schedule anew, as reported in
-  # https://github.com/orgs/community/discussions/185355. It did not help
-  # enough, so issue 587 made the session that sets a link or sub-issue
-  # dispatch the board itself.
+  # delays or drops a scheduled run under load: one measurement of this
+  # schedule saw about 11% of its slots fire over 185 hours, with up to 603
+  # minutes between two runs. The generator reads this line, and the page
+  # calls the board stale once it is older than the longest gap between two
+  # runs plus SCHEDULE_DELAY_ALLOWANCE in scripts/build_board.py, so changing
+  # the line here moves the threshold too. Off the hour, because the top of
+  # the hour is when GitHub is busiest.
   schedule:
     - cron: "8,38 * * * *"
   workflow_dispatch:
@@ -75,86 +85,26 @@ permissions: {}
 
 # Runs deploy one at a time, so an older snapshot never replaces a newer one.
 # GitHub keeps only the newest waiting run, which is the one worth deploying.
+# The group lives here beside the triggers, so every run of the caller shares
+# it whichever event started it.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # Declaring any scope sets every unlisted one to none, so each scope the
-    # generator reads is named.
+  board:
+    # The union of the scopes the reusable workflow's two jobs declare. Each
+    # of its jobs narrows this to what it uses.
     permissions:
       contents: read
       issues: read
       pull-requests: read
       checks: read
       statuses: read
-    outputs:
-      updated_at: ${{ steps.board.outputs.updated_at }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Build board.json from GitHub
-        id: board
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: >-
-          python3 scripts/build_board.py build
-          --repo "$GITHUB_REPOSITORY"
-          --workflow .github/workflows/board.yml
-          --out _site
-
-      # Pages serves index.html at the site's root. The page links its icon
-      # as favicon.ico beside it, so the icon goes in the same folder.
-      - name: Add the page
-        run: >-
-          cp .claude/skills/update-build-board/board.html _site/index.html &&
-          cp .claude/skills/update-build-board/favicon.ico _site/favicon.ico
-
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: _site
-
-  # Every successful run deploys, including one whose board matches the last
-  # apart from its stamp. Skipping that deploy would freeze the stamp, and the
-  # page would then call a current board stale.
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
       pages: write
       id-token: write
-      contents: read
       actions: read
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v5
-
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      # Records how long the board took to be served and whether a plain fetch
-      # gets past Pages' ten-minute cache. It never fails the run. The run holds
-      # the pages concurrency group while it measures, so the next run waits on
-      # it, and --wait caps that at a minute of polling.
-      - name: Measure delivery
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-          UPDATED_AT: ${{ needs.build.outputs.updated_at }}
-        run: >-
-          python3 scripts/build_board.py measure
-          --repo "$GITHUB_REPOSITORY"
-          --run-id "$GITHUB_RUN_ID"
-          --page-url "$PAGE_URL"
-          --updated-at "$UPDATED_AT"
-          --wait 60
+    uses: l3a0/repo-template/.github/workflows/build-board.yml@cf2959a3e48aeec3d71a6ade5fc9641fc9e82073
+    with:
+      title: Quantitative Trading Build Board
+      data-label: blocked-on-data
