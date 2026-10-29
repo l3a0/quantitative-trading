@@ -11364,6 +11364,18 @@ change to any assertion named above moves this entry in the same commit, and
 with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.low_beta_capped_figures` redraws.
 
+The post also carries one whiteboard sketch in Lesson 5, added in a review
+round before publishing. **Who breaks even first** draws each ceiling's yearly
+gap falling to 0 as a borrowing spread is charged. The line at a ceiling of 2
+falls from 0.0934 to 0 at Row 7's 0.0946 and borrows 1 for each unit of
+capital. The line at 5 starts higher at 0.1659, borrows 2.5134, falls about
+two and a half times as steeply and reaches 0 first, at 0.0661. Each line is
+drawn straight between those endpoints, because the charged gap departs from a
+straight line by at most about 0.00034 a year over the span drawn. A change to
+those figures moves the sketch too, and
+`uv run python -m chan.capped_low_beta_whiteboard` redraws it through the same
+`read_sources` and `build_portfolios`.
+
 ## Entry 49: the levered low-beta rule after the book, on IVV's S&P 500
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own

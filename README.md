@@ -8727,8 +8727,10 @@ Every other number in the post traces to an assertion in
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) for Entry
 45's figures, or to
 [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
-for the figure's own numbers. `TestWhatThePostMeasured` holds the ones that
-had no pin before it, all measured after the run.
+for the figure's own numbers, or to
+[tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
+for the sketch's. `TestWhatThePostMeasured` holds the ones that had no pin
+before it, all measured after the run.
 
 1. The yearly standard error of the gap, 0.0872 at a ceiling of 2 and 0.1370
    at 5, and the one-sided 5 percent line at 1.645 times it, 0.1434 and
@@ -8762,6 +8764,33 @@ regime map. It also holds where each label's rule points, and that each
 label's text sits inside its panel, clear of the other labels, the legend and
 every line. Each panel's heading clears the title or the tick labels above it,
 and the gap axis's label clears the note below it.
+
+The post also carries one looping whiteboard sketch in Lesson 5, drawn by
+[src/chan/capped_low_beta_whiteboard.py](src/chan/capped_low_beta_whiteboard.py)
+on the USD.CAD post's sketch machinery.
+`capped_low_beta_sketch_break_even.gif` sits after the paragraph giving the
+break-even spreads. It draws each ceiling's yearly gap falling to 0 as a
+borrowing spread is charged. The black line, at a ceiling of 2, falls from
+0.0934 to 0 at a spread of 0.0946 and borrows 1 for each unit of capital. The
+brass line, at 5, starts higher at 0.1659, borrows 2.5134, falls about two and
+a half times as steeply and reaches 0 first, at 0.0661.
+
+It is not schematic: every figure and every position comes from the run,
+through the same `read_sources` and `build_portfolios`, with each gap from
+`capped`, each break-even spread from `break_even_spread`, and each line's
+borrowing from `cap`'s mean leverage. Each line is drawn straight between
+the run's endpoints, which departs from `charged_gap` by under half a pixel.
+It builds more slowly than the USD.CAD post's sketches and holds its finished
+drawing for twelve seconds. Redraw it with:
+
+```bash
+uv run python -m chan.capped_low_beta_whiteboard
+```
+
+[tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
+holds what it draws, the figures it reads from the run, where each mark sits on
+its axes, that a straight line stays within half a pixel of the charged gap,
+and that the GIF follows its paragraph in the post.
 
 [blog/vix-filter-lessons.md](blog/vix-filter-lessons.md) is a forty-sixth
 post, about the VIX filter at Kindle location 3509 of Chan's *Algorithmic
