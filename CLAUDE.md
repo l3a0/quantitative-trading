@@ -466,9 +466,12 @@ These skills need the `l3a0` plugin at 0.5.0 or later, which is what this repo w
 
 The plugin's skill serves several repositories, so it splits what differs by the board each one runs. Three facts decide which parts hold here.
 
-1. This repo runs its own generator, `scripts/build_board.py`, rather than the shared reusable workflow, so the skill's sections for "the shared and l3a0/quantitative-trading generators" hold, and so does each section headed `### l3a0/quantitative-trading`.
-2. The page, its test stub and its tab icon stay in `.claude/skills/update-build-board/`, where `.github/workflows/board.yml` publishes them and the tests run them. That folder holds no skill any more.
-3. A change to what `scripts/build_board.py` reads ships with a plugin release in the same step, under the skill's `## Generator compatibility`. That means a label name, a marker line's grammar, the review heading or a field the query reads. Its table names the generator commit the plugin's formats were checked against. This suite makes no network reads, so it cannot check the plugin's text. What it does check is `test_the_formats_the_plugin_states_are_the_ones_checked_against_it`, which fails on any change to those formats and names the release in its message.
+1. This repo runs the shared reusable workflow from [l3a0/repo-template](https://github.com/l3a0/repo-template). `.github/workflows/board.yml` calls it at a full commit SHA, so the skill's sections for the shared generator hold. The generator, the page and the tab icon all come from the template at that commit, and this repo keeps no copy of them and no tests of them. It ran its own generator until [issue 785](https://github.com/l3a0/quantitative-trading/issues/785) moved it, and until [l3a0/claude-plugins#35](https://github.com/l3a0/claude-plugins/issues/35) lands, the skill's `### l3a0/quantitative-trading` section still describes that old setup. Its band meanings hold either way.
+2. The caller passes two inputs. `title` keeps the heading "Quantitative Trading Build Board", and `data-label: blocked-on-data` keeps the "Waiting on data" column. It names no `icon`, because the icon this repo served was byte-identical to the template's.
+3. A change to the board lands in l3a0/repo-template first, and reaches this repo through a pull request that moves the pin. Dependabot is told to leave that pin alone, so the move is always a deliberate pull request. Before moving it, compare three of the template's files between the two commits.
+   1. `scripts/build_board.py`. A changed label name, marker grammar, review heading or query field needs a plugin release in the same step, under the skill's `## Generator compatibility`.
+   2. `.github/workflows/build-board.yml`. A scope one of its jobs adds has to be granted here too, and `tests/test_board_caller.py` lists the scopes granted.
+   3. `.github/workflows/board.yml`, the template's caller. A change to its triggers or its permissions belongs in this repo's copy in the same pull request.
 
 Two limits are worth stating rather than leaving a reader to infer.
 

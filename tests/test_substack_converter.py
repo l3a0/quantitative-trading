@@ -28,8 +28,7 @@ Three layers check it.
 The JavaScript runs under ``node`` where it is installed, which it is on
 GitHub's runners, and under ``osascript -l JavaScript`` otherwise, which is
 JavaScriptCore and ships with macOS. With neither, the third layer skips
-rather than passes. ``tests/test_build_board.py`` picks its engine the same
-way.
+rather than passes.
 """
 
 from __future__ import annotations
