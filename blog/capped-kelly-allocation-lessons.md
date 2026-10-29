@@ -100,7 +100,7 @@ A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting b
 
 The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A long position held at a constant leverage above 1 sells after every loss and buys after every gain, and this repository computes Example 8.1’s trades with the same code as the SPY post’s.
 
-On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces the trading rule from that paper.
+On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces Chan’s version of the trading rule from that paper.
 
 ## Lesson 2: scaling every leverage down is the recommendation the example refutes
 

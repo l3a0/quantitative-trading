@@ -6978,8 +6978,8 @@ Six groups of what it says are not pinned here.
       from the SPY post.
    4. How far the choice of years alone can move a Kelly leverage, from the
       SPY post.
-   5. The trading rule of Khandani and Lo (2007), which the post on Chan's
-      rerun of their reversal reproduces.
+   5. Chan's version of the trading rule of Khandani and Lo (2007), which the
+      post on his rerun of their reversal reproduces.
 6. Three of its four displayed formulas, those for the Kelly leverages, the
    growth rate at any leverages and the largest cap. The tests in
    `TestCorrelatedStrategies` hold the code to each of them, and no test reads
