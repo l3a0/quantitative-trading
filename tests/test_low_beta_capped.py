@@ -423,16 +423,27 @@ class TestThePostQuotesTheRun:
     reads the dates: the file's last day and first month, the years its
     earlier companies' prices end, Entry 45's two ruined months, and the first
     and last of the eight sorts whose returns Entry 45 had shown. The last
-    reads every four-decimal figure in the post, every copy, and holds that
-    each is one the run computes. That covers the subtitle, the lessons' list,
-    the trader's habits and both alt texts. It does not hold where a figure
-    sits, and it does not read a second copy written with fewer decimals, such
-    as the 20 capped months in the chart's alt text.
+    reads every figure in the post written with a decimal point, every copy,
+    and holds that each is one the run computes or one of the constants listed
+    below. That covers the subtitle, the lessons' list, the trader's habits
+    and both alt texts, and it catches a copy that gains or drops a digit. It
+    does not hold where a figure sits, and it does not read a figure written
+    as a whole number or in words, such as the 20 capped months in the chart's
+    alt text.
 
     Chan's quotations and Kindle pages and the plan's date are not figures from
-    the run. Two four-decimal figures are not from the run either. One is
-    0.8416, which :data:`chan.low_beta_leverage.POWER` names. The other is
-    0.0975, which is 1 − 0.95².
+    the run. The last test also accepts these decimal figures from outside the
+    run.
+
+    - 0.8416 and 1.645, which :data:`chan.low_beta_leverage.POWER` and
+      :data:`chan.low_beta_leverage.CRITICAL` name.
+    - 0.05, which :data:`chan.low_beta_capped.FALSE_DISCOVERY` names, with
+      half of it, 0.025, and 1 minus it, 0.95. The post also uses 0.05 as an
+      example of a month's return.
+    - 0.0975, which is 1 − 0.95².
+    - 0.20, the margin whose leverage is the higher ceiling, 5.
+    - 0.04, Lesson 4's example p-value.
+    - 0.4 and 0.8, from the chart's outer tick labels, −0.4 and 0.8.
     """
 
     text = POST.read_text("utf-8")
@@ -535,7 +546,7 @@ class TestThePostQuotesTheRun:
         ]
         assert [f for f in fragments if f not in self.text] == [], SPEC
 
-    def test_every_four_decimal_figure_is_one_the_run_computes(
+    def test_every_decimal_figure_is_one_the_run_computes(
         self, outcomes, portfolios: Portfolios
     ) -> None:
         june = pd.Timestamp("2001-06-29")
@@ -569,8 +580,20 @@ class TestThePostQuotesTheRun:
             float(portfolios.low.min()),
             outcomes[2.0].capped.k.min(),
         ]
-        computed = {f"{abs(v):.4f}" for v in values}
-        quoted = re.findall(r"(?<![\d.])\d+\.\d{4}(?!\d)", self.text)
+        two, five = outcomes[2.0].capped, outcomes[5.0].capped
+        computed = {f"{abs(v):.4f}" for v in values} | {
+            f"{five.gap / two.gap:.2f}",
+            f"{yearly_standard_error(five) / yearly_standard_error(two):.2f}",
+            f"{(five.mean_leverage - 1) / (two.mean_leverage - 1):.2f}",
+            f"{CRITICAL}",
+            f"{FALSE_DISCOVERY}",
+            f"{FALSE_DISCOVERY / 2}",
+            f"{1 - FALSE_DISCOVERY}",
+            f"{1 / max(CEILINGS):.2f}",
+        }
+        # Lesson 4's illustrative p-value and the chart's outer tick labels.
+        computed |= {"0.04", "0.4", "0.8"}
+        quoted = re.findall(r"(?<![\d.])\d+\.\d+(?!\d)", self.text)
         assert quoted, POST
         assert [q for q in quoted if q not in computed] == [], SPEC
 

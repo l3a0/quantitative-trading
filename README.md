@@ -8733,8 +8733,14 @@ Five groups of what it says are not pinned here.
    rather than a figure from the file. The chart's alt text gives the axis as
    −0.4 to 0.8, the outer tick labels that
    [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
-   pins on the chart. No test reads that range, or the alt text's 20 capped
-   months of 83, from the post.
+   pins on the chart. `TestThePostQuotesTheRun` holds the post's −0.4 and 0.8
+   to those two values as written, not to the chart. No test reads a second
+   copy of a figure written as a whole number or in words, such as the
+   subtitle's 83 months, Lesson 3's eighty-three months and its 20 and 63
+   months, Lesson 5's borrowing of 1 at a ceiling of 2, and the alt text's 20
+   capped months of 83.
+   [tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) pins each
+   value those words state.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8752,12 +8758,16 @@ months and the ratios of about 1.78, 1.57 and 2.51 that divide ceiling 5's
 gap, standard error and borrowing by ceiling 2's. The fourth of them reads the
 dates: the file's last day and first month, the years its earlier companies'
 prices end, Entry 45's two ruined months, and the first and last of the eight
-sorts whose returns Entry 45 had shown. A fifth holds that every four-decimal
-figure in the post, every copy, is one the run computes, so a typo in any
-copy, or a re-pin that leaves the post behind, fails a test. That fifth test
-does not check where a figure sits, and it reads no copy written
-with fewer decimals. It also accepts 0.8416 and 0.0975, the two four-decimal
-figures that come from no run.
+sorts whose returns Entry 45 had shown. A fifth reads every figure in the
+post written with a decimal point, every copy. It holds that each is one the
+run computes or one of a few constants the test names. So a copy that matches
+none of them fails a test. That includes a copy that gains or drops a digit,
+and a copy that a re-pin leaves behind. That fifth test does not check where a
+figure sits, and it reads no figure written as a whole number or in words. The
+constants it accepts come from no run. They are 0.8416 and 1.645 on the bell
+curve, 0.05 with its half, 0.025, and 1 minus it, 0.95, the 0.0975 that is
+1 − 0.95², the margin of 0.20, Lesson 4's example p-value of 0.04, and the
+chart's outer tick labels, −0.4 and 0.8.
 
 1. The yearly standard error of the gap, 0.0872 at a ceiling of 2 and 0.1370
    at 5, and the one-sided 5 percent line at 1.645 times it, 0.1434 and
@@ -8792,7 +8802,9 @@ holds what it draws rather than its bytes, for the reason given above for the
 regime map. It also holds where each label's rule points, and that each
 label's text sits inside its panel, clear of the other labels, the legend and
 every line. Each panel's heading clears the title or the tick labels above it,
-and the gap axis's label clears the note below it.
+and the gap axis's label clears the note below it. It also holds that the
+post's alt text for the chart quotes the top panel's legend, its three labels
+and the figure's title word for word, in the order the chart draws them.
 
 The post also carries one looping whiteboard sketch in Lesson 5, drawn by
 [src/chan/capped_low_beta_whiteboard.py](src/chan/capped_low_beta_whiteboard.py)
