@@ -1181,10 +1181,10 @@ the decision behind the shape, and the build measured what follows.
 9. **The gold series is one vintage, `GC`.** It is recorded under `chan-mat`
    and `raw`, the close alone, and its root comes from its name the way a
    strip's does. The GC column of `inputDataOHLCDaily_20120504.mat`, sha256
-   `b69f8b8c…`, is a continuous series, shifted at each switch of contract.
+   `b69f8b8c…`, is a continuous series, and how it crosses a switch of contract
+   was not measured.
    On all 555 days the two share, the 16:00 close sits between 15.4 dollars
-   below it and 84.7 dollars above it, a measurement nothing pins because
-   that file is not committed. Both carry the saved date 2012-05-07, so the
+   below it and 84.7 dollars above it, a measurement nothing pins. Both carry the saved date 2012-05-07, so the
    basis is also what keeps them apart. The file also holds `hhmm`, 18,326
    times of day taking 27 values, against 761 closes, so it does not index
    them. `GLD_GC.m` loads `hhmm` but never uses it, so the lift drops it.
@@ -1193,12 +1193,13 @@ the decision behind the shape, and the build measured what follows.
    file's name says, rather than at the 1:30 p.m. settlement *Algorithmic
    Trading*'s location 2730 describes. The daily change in log(GC / GLD) has
    a standard deviation of 0.000933, against 0.015660 for GLD's own daily
-   log return, which leaves room for at most 0.001775 of GLD's daily variance
-   in any gap between the two closes. The series also holds 9 US exchange
+   log return. If nothing else that moves the ratio cancels a gap's moves,
+   that leaves room for at most 0.001775 of GLD's daily variance in any gap
+   between the two closes. The series also holds 9 US exchange
    holidays that GLD lacks, so it is not a settlement series. It never equals
    the GC close of `inputDataOHLCDaily_20120507.mat` on the 752 days the two
-   share, which says only that the two differ, because that save is shifted
-   at each roll. `tests/test_gld_gc.py` pins all three, and the replication
+   share, which says only that the two differ, because both are continuous
+   series and nothing here tests how either crosses a roll. `tests/test_gld_gc.py` pins all three, and the replication
    log's Entry 38 gives the reasoning.
 10. **The scale-break guard flags nothing.** It reads all 1,232 members as
     prices, because their basis is `raw`, and no close in any of them sits
