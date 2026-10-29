@@ -611,8 +611,9 @@ where they were first built. The other forty-five were built here.
     the 579 stocks priced on every day the pairs read. The claim holds for
     PC1, PC2, PC4 and PC5, and does not hold for PC3, which is above the
     median stock but below 0. PC2 alone is outside the ±0.0715 band a series
-    of independent returns centred on zero stays inside 95 percent of the
-    time, and no factor survives Benjamini-Hochberg at q = 0.05, a control
+    of independent returns centred on zero, each no more likely to be large
+    than any other day's, stays inside 95 percent of the time, and no factor
+    survives Benjamini-Hochberg at q = 0.05, a control
     for false discoveries across the five, so any verdict could be noise.
     PMC is one symbol whose two price histories join into one day's return.
     Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139, so which
@@ -8046,8 +8047,9 @@ measured after the run.
    0.5939 on each, and PC2 carrying it on 103, PC1 on 7 and PC3 on 3. PC1
    carries it on the first seven, through 2007-08-10, at a weight between
    0.9144 and 0.9223, and PC2 from 2007-08-13. Without PMC, 2007-08-09 and
-   2007-08-10 hold 0.9461 of the sum of PC1's squared products, and on both
-   days PC2 with PMC overlaps PC1 without it at 0.98 or more in size.
+   2007-08-10 hold 0.9461 of the sum of PC1's squared products, and on each
+   of the seven days PMC carries PC1, from 2007-08-02 to 2007-08-10, PC2 with
+   PMC overlaps PC1 without it at 0.98 or more in size.
 4. The ranking without the intercept agreeing on all 752 days t.
 5. No stock tying any factor, the nearest 1.06e-04 away with PMC and 3.85e-05
    without.
