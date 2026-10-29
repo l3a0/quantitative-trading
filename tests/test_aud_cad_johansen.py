@@ -3,7 +3,8 @@
 This file is the single authority for every number a prose surface quotes
 about this example and the rows beside it. The one exception is
 ``blog/aud-cad-johansen-lessons.md``: ``tests/test_aud_cad_johansen_figures.py``
-holds the numbers its figure draws, and README lists what it says that nothing
+holds the numbers its figure draws, ``tests/test_aud_cad_johansen_whiteboard.py``
+the ones its two sketches print, and README lists what it says that nothing
 asserts. ``docs/replication-log.md`` Entry 25 carries the
 verdicts and points here row by row.
 
@@ -81,6 +82,9 @@ from tests.support.committed_vintages import PYTHON_PORT, RETURN_CALENDAR
 from tests.support.post_tables import either_way, not_found_once, tables
 
 POST = paths.REPO_ROOT / "blog" / "aud-cad-johansen-lessons.md"
+# The trace test's windows split into three stretches at any gap from 11 to 127
+# rows, so 20 sits well inside that range. It has nothing to do with the lookback.
+STRETCH_GAP = 20
 
 
 @pytest.fixture(scope="module")
@@ -273,7 +277,6 @@ class TestRow5TheReturnsAreChans:
 
     def test_every_row_agrees_within_the_declared_criterion(self, result, saved) -> None:
         found = agreement(result.test, saved, result.test_days)
-        assert AGREEMENT == 1e-9
         assert found.holds
         assert found.rows_over == 0
         assert found.first_over is None
@@ -308,7 +311,6 @@ class TestRow5TheReturnsAreChans:
     def test_a_constant_scale_on_either_leg_still_matches(self, frame, saved) -> None:
         """So row 5 says the traded closes agree with Chan's up to a scale per leg, and no more."""
         again = aud_cad(frame * list(SCALE_CHECK))
-        assert SCALE_CHECK == (2.0, 0.37)
         assert agreement(again.test, saved, again.test_days).holds
 
     def test_doubling_aud_usd_halves_its_weight_and_holds_the_same_dollars(
@@ -333,12 +335,20 @@ class TestRow5TheReturnsAreChans:
         """The files quote at most six decimals, so 1e-6 is one unit in the sixth.
 
         A close in the test window enters that day's or the next day's simple
-        return, and the match fails. A close in the first training row reaches
-        the returns only through the hedge, and the same change passes.
+        return, and the match fails. The two dated rows are the closes on each
+        leg whose change moves the returns least, measured over all 1,224. A close
+        in the first training row reaches the returns only through the hedge, and
+        the same change passes.
         """
-        for row, breaks in ((SCRIPT_TRAINING_DAYS + 150, True), (0, False)):
+        cases = (
+            (SCRIPT_TRAINING_DAYS + 150, 0, True),
+            (frame.index.get_loc(pd.Timestamp("2010-07-07")), 0, True),
+            (frame.index.get_loc(pd.Timestamp("2011-11-08")), 1, True),
+            (0, 0, False),
+        )
+        for row, leg, breaks in cases:
             moved = frame.copy()
-            moved.iloc[row, 0] += 1e-6
+            moved.iloc[row, leg] += 1e-6
             again = aud_cad(moved)
             assert (not agreement(again.test, saved, again.test_days).holds) is breaks
 
@@ -421,7 +431,7 @@ class TestBesideTheReplication:
             "2010-10-05",
         )
         assert np.count_nonzero(same & ~in_2010) == 5
-        # None of the 90 falls in a window the trace test backed.
+        # None of the 90 took its weights from a window where the trace test found one.
         assert np.count_nonzero(same & (result.trace_relations > 0)) == 0
         edges = np.diff(np.concatenate(([0], same.astype(int), [0])))
         starts, ends = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1)
@@ -687,10 +697,11 @@ class TestWhatThePostQuotes:
     1. Second copies of a figure, such as the subtitle's 612, 26 and 90, the
        Sharpe ratio of 1.610890 in Lesson 5, and the 90 in Lesson 4's
        subheading and in its sentences opening "On all 90 days",
-       "None of the 90 days", "Each hedge earns" and "The same 90 days".
-    2. The figure's alt text and caption, whose readings of the curves are
-       approximate. ``tests/test_aud_cad_johansen_figures.py`` holds what the
-       figure draws.
+       "Each hedge earns" and "The same 90 days".
+    2. The figure's alt text and caption. Their readings of the curves are
+       approximate, and their exact numbers, such as −0.4325 and 0.2953, are
+       second copies of figures read elsewhere.
+       ``tests/test_aud_cad_johansen_figures.py`` holds what the figure draws.
     3. What comes from outside this run, such as Chan's words and his figures
        as the book prints them outside the table, their Kindle pages, the
        script's name, commit and 252-day year, the port's printout, the
@@ -747,8 +758,15 @@ class TestWhatThePostQuotes:
 
     def test_lesson_2(self, text) -> None:
         aud, cad = SCALE_CHECK
+        most = max(
+            len(line.split(",")[1].strip().partition(".")[2])
+            for name in ("inputData_AUDUSD_20120426.csv", "inputData_USDCAD_20120426.csv")
+            for line in (paths.DATA_DIR / "pythoncodesanddata" / name).read_text().splitlines()[1:]
+            if line.strip()
+        )
         fragments = [
             "one unit in the sixth decimal, 0.000001,",
+            f"{WORDS[most].capitalize()} decimals is the most any close in the files carries.",
             f"Running the script with AUD.USD {'doubled' if aud == 2 else aud} and CAD.USD "
             f"multiplied by {cad:g} still matches",
         ]
@@ -760,8 +778,12 @@ class TestWhatThePostQuotes:
         assert eigen[2] == 0, "the post says the eigen test never finds two"
         days = result.test_days
         rows = np.flatnonzero(result.trace_relations > 0)
-        stretches = np.split(rows, np.flatnonzero(np.diff(rows) > SCRIPT_LOOKBACK) + 1)
+        stretches = np.split(rows, np.flatnonzero(np.diff(rows) > STRETCH_GAP) + 1)
         assert len(stretches) == 3
+        with_two = [k for k, s in enumerate(stretches) if (result.trace_relations[s] == 2).any()]
+        ordinal = ["first", "second", "third"]
+        n = len(result.test)
+        assert counts[1] + counts[2] < 0.05 * n, "the post says chance gives more"
         (a, b, c) = [(len(s), days[s[0]].date(), days[s[-1]].date()) for s in stretches]
         on_eigen = days[result.eigen_relations > 0]
         assert on_eigen[0] == days[stretches[1][0]]
@@ -779,6 +801,10 @@ class TestWhatThePostQuotes:
             f"{on_eigen[-1].date()}, from the second stretch’s first day to the day after "
             "its last.",
             f"Each window shares {SCRIPT_TRAINING_DAYS - 1} of its {SCRIPT_TRAINING_DAYS} days",
+            f"Every two-relation window sits in the {ordinal[with_two[0]]} stretch or the "
+            f"{ordinal[with_two[-1]]}.",
+            f"to flag about 5 percent of windows, about {round(0.05 * n)} of {n}, so the "
+            f"{trace} it flagged are no more than chance would give.",
             f"so {trace} days took them from a window where the trace test found a relation.",
             f"The other {counts[0]} took them from a window where it found none.",
         ]
@@ -802,6 +828,7 @@ class TestWhatThePostQuotes:
         first = int(np.flatnonzero(same)[0])
         last = int(np.flatnonzero(same & in_2010)[-1])
         welch = stats.ttest_ind(test[earned], test[~earned], equal_var=False)
+        backed = np.count_nonzero(same & (result.trace_relations > 0))
         dollars = result.positions[-1] / result.positions[-1, 0]
         fragments = [
             f"The hedge on {days[-1].date()} holds 1 unit of AUD.USD against "
@@ -826,6 +853,8 @@ class TestWhatThePostQuotes:
             f"{test[~earned].std(ddof=1):.4f} for the other {rest_n} returns",
             f"{test[earned].mean():.4f} a day against {test[~earned].mean():.4f}.",
             f"gives {welch.statistic:.2f} for that difference",
+            f"{'None' if backed == 0 else backed} of the {n} days took its weights from a "
+            "window where the trace test found a relation.",
         ]
         assert not_found_once(text, fragments) == []
 

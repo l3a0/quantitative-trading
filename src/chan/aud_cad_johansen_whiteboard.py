@@ -122,7 +122,8 @@ class RunFigures:
 
     ``cad_units`` is the last day's CAD.USD weight with AUD.USD's scaled to 1,
     ``cad_dollars`` the same hedge in dollars at that day's closes, and
-    ``share`` CAD.USD's signed share of the dollars with AUD.USD held long.
+    ``share`` CAD.USD's signed share of the dollars, with the sign set so AUD.USD
+    is the leg held long.
     ``scales`` is the constant scale Lesson 2 puts on AUD.USD and on CAD.USD.
     ``sides`` is the sign of each leg's position on the last day, AUD.USD then
     CAD.USD, which the words beside the last day's bars name as long or short.

@@ -1020,8 +1020,9 @@ the measurements below.
       instead. Example 5.1 run as the MATLAB
       runs it, on the AUD.USD and USD.CAD daily files, returns all 612 of the
       returns `AUDCAD_unequal_ret.mat` saved, within the 1e-9 declared before
-      any was computed. So those two files agree with the MATLAB's inputs up to
-      a constant scale on each leg, which no return can see. That is Entry 25
+      any was computed. So those two files carry the 16:59 closes the MATLAB
+      traded, up to a constant scale on each leg, which no return can see. That
+      is Entry 25
       of the
       [replication log](../docs/replication-log.md), which
       [tests/test_aud_cad_johansen.py](../tests/test_aud_cad_johansen.py)

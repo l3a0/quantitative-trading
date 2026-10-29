@@ -1089,7 +1089,8 @@ is not a finite number.
 
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py) does it for
 Example 5.1. It pins the three printed figures at the precision that is real,
-as the script printed them and as the book rounded them, and holds the 612
+as the script printed them, and the APR and Sharpe ratio as the book rounded
+them, and holds the 612
 returns against Chan's saved ones row by row. It also holds that negating or
 scaling one day's hedge moves no return, that two series on different dates
 are refused, that scaling either leg leaves the match and one digit on a close
@@ -5943,9 +5944,10 @@ and are listed below.
 1. Every figure the script prints matches, because every one of the 612
    returns matches the one Chan's script saved, within a criterion written
    before any return was computed.
-2. The match ties the traded closes to the ones Chan's MATLAB read up to a
+2. The match ties the traded closes to the ones Chan's MATLAB traded up to a
    constant scale on each leg, and no more. The closes before the test period
-   are checked only as far as they move a hedge.
+   are checked only through the weights and z-scores they feed into the test
+   period.
 3. The Johansen test rarely found a relation behind the hedge it supplied. The
    trace test finds a relation in 26 of the 612 windows, in three stretches,
    and two relations in 19 of them.
@@ -5996,7 +5998,9 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_aud_cad_johansen.py](tests/test_aud_cad_johansen.py), or to
 [tests/test_aud_cad_johansen_figures.py](tests/test_aud_cad_johansen_figures.py)
-for the figure's own numbers. The post also cites the Chapter 8 post's
+for the figure's own numbers, or to
+[tests/test_aud_cad_johansen_whiteboard.py](tests/test_aud_cad_johansen_whiteboard.py)
+for the sketches'. The post also cites the Chapter 8 post's
 finding on 18.4, that no series with Example 5.1's printed Sharpe ratio and
 APR reaches it under three ways of compounding the APR, and that finding
 traces to `TestRowGroup13TheEighteenPointFourGap` in
@@ -6007,7 +6011,7 @@ groups of the post's numbers had no pin before the post.
    two-relation windows, and the stretch the eigen test's 11 fall in.
 2. The 90 days the hedge held both currencies the same way, the 85 of them
    from 2010-06-01 to 2010-10-05, the longest run of 65 days, and that none
-   falls in a window the trace test backed.
+   took its weights from a window where the trace test found a relation.
 3. The last day's hedge as CAD.USD's share of the gross, −0.4325.
 4. The returns the 90 days' hedges earned, each dated a day later,
    compounded alone to 0.1111 and the other 522 to 0.1657, so the 90 carried

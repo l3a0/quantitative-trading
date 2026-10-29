@@ -685,6 +685,19 @@ class TestTheCommand:
         for name in GIFS:
             assert _gif_palette(tmp_path / name) == _ink_palette(whiteboard.INKS), name
 
+    def test_it_draws_the_runs_figures(self, monkeypatch, tmp_path, gifs) -> None:
+        """``main`` reads its own figures, so its GIFs are the ones the run's figures draw."""
+        monkeypatch.setattr(sketches, "FIGURES_DIR", tmp_path)
+        main()
+        for path in gifs:
+            assert (tmp_path / path.name).read_bytes() == path.read_bytes(), path.name
+
+    def test_the_writer_draws_the_figures_it_is_given(self, tmp_path, gifs) -> None:
+        """Other figures give other GIFs, so the writer does not redraw the run itself."""
+        moved = make_aud_cad_johansen_whiteboards(out_dir=tmp_path, figures=MOVED)
+        for mine, run in zip(moved, gifs, strict=True):
+            assert mine.read_bytes() != run.read_bytes(), mine.name
+
 
 def _ink_palette(inks) -> list[int]:
     """The leading entries of the renderer's palette for ``inks``: white, then each ink's blends."""

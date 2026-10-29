@@ -6205,7 +6205,7 @@ entry it was 2.0e-15.
 
 ### What the entry concludes
 
-Three things.
+Four things.
 
 1. **The committed currency files carry the closes Chan's MATLAB traded, up
    to a constant scale on each leg.** The script loaded two minute `.mat`
@@ -6249,6 +6249,19 @@ Three things.
    `TestTheRule::test_ending_both_windows_a_day_earlier_breaks_row_5` holds
    both. So the port's printout is no evidence about the data, and the MATLAB
    is the specification.
+4. **The 90 days the hedge held both currencies the same way show nothing
+   chance cannot explain.** On those days the hedge was long or short the US
+   dollar against both currencies rather than a spread. Each hedge earns the
+   next day's return, so the 90 returns that go with them are dated a day
+   later. They compound alone to 0.1111 and the other 522 to 0.1657. They
+   swung about twice as wide, a standard deviation of 0.0074 against 0.0034,
+   and averaged 0.0012 a day against 0.0003. A Welch t of 1.13, with p of
+   0.26, cannot rule out chance for that difference, so this is a null
+   result, and an exploratory one.
+   `TestBesideTheReplication::test_the_90_days_hedges_earned_0_1111_and_the_other_522_0_1657`
+   and
+   `::test_the_90_days_hedges_swung_twice_as_wide_and_a_welch_t_of_1_13_cannot_rule_out_chance`
+   hold it.
 
 ### What this entry cannot say
 
