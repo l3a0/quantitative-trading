@@ -5264,7 +5264,12 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/capped-kelly-allocation-lessons.md](../blog/capped-kelly-allocation-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
-figure, which `uv run python -m chan.kelly_allocation_figures` redraws.
+figure, which `uv run python -m chan.kelly_allocation_figures` redraws. So do
+its two whiteboard sketches, neither of them schematic. The one in Lesson 2
+draws row 9's proportional split and row 10's corner as a return less a drag,
+and the one in Lesson 4 draws row 10's corner and row 12's stationary point
+on the line `F1 + F2 = 2`. `uv run python -m chan.kelly_allocation_whiteboard`
+redraws them.
 
 ## Entry 21: price spread, log price spread and ratio, Chan's *Algorithmic Trading*
 

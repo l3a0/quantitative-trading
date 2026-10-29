@@ -6972,7 +6972,9 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) or to
 [tests/test_kelly_allocation_figures.py](tests/test_kelly_allocation_figures.py)
-for the figure's own numbers. Before the post, fourteen had no pin at the
+for the figure's own numbers, or to
+[tests/test_kelly_allocation_whiteboard.py](tests/test_kelly_allocation_whiteboard.py)
+for the words the two sketches print and their alt texts quote. Before the post, fourteen had no pin at the
 precision it quotes, and
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) now pins them
 all. `TestBesideTheClaim` holds the first nine, splitting each growth rate
@@ -7025,6 +7027,36 @@ uv run python -m chan.kelly_allocation_figures
 [tests/test_kelly_allocation_figures.py](tests/test_kelly_allocation_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/kelly_allocation_whiteboard.py](src/chan/kelly_allocation_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+Both build more slowly than the USD.CAD post's sketches and hold their finished
+drawings for twelve seconds. Neither is schematic: every mark sits to scale at
+a figure the run computes.
+
+1. `kelly_allocation_sketch_return_against_drag.gif`, in Lesson 2, stands the
+   proportional split and the corner side by side, each a green bar up to its
+   return, a red segment down from the top by its drag and a black tick at its
+   growth rate. A green bracket spans the 0.285215 of return the split gives
+   up, a red bracket the 0.147014 of drag it saves, and a closing line gives
+   the corner's lead of 0.138202.
+2. `kelly_allocation_sketch_gross_against_net.gif`, in Lesson 4, draws F1
+   across and F2 up in equal units. A green-edged tint shades the triangle
+   where the gross leverage is at most 2, and the line `F1 + F2 = 2` runs
+   green along its edge to the corner at 0.955, then red past it to the
+   unbounded peak at 0.962956, whose gross leverage of 2.578643 is outside.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.kelly_allocation_whiteboard
+```
+
+[tests/test_kelly_allocation_whiteboard.py](tests/test_kelly_allocation_whiteboard.py)
+computes every figure both sketches print from the run again, holds that each
+mark sits at its figure on one scale, and holds that each GIF follows its
+paragraph in the post.
 
 [blog/crude-oil-reversal-momentum-lessons.md](blog/crude-oil-reversal-momentum-lessons.md)
 is a thirty-fourth post, about the crude oil rule at Kindle location 2701 of
