@@ -184,12 +184,12 @@ def _financing_panel(ax, result: GldGc, curves: dict[str, pd.Series]) -> None:
 
 def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
     at_1600 = log_ratio_changes(sources.gc, sources.gld, result.days)
-    shifted = log_ratio_changes(ohlc, sources.gld, result.days)
+    ohlc_changes = log_ratio_changes(ohlc, sources.gld, result.days)
     steps_1600 = ratio_steps(sources.gc, sources.gld, result.days)
     steps_ohlc = ratio_steps(ohlc, sources.gld, result.days)
     ax.plot(
-        shifted.index,
-        shifted,
+        ohlc_changes.index,
+        ohlc_changes,
         color=MUTED,
         lw=0.8,
         alpha=0.8,
@@ -228,7 +228,7 @@ def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
         f"The daily change in log(GC / GLD) over {len(at_1600)} days on each GC series. Its "
         f"standard deviation is {steps_1600.spread:.6f}\non the 16:00 series and "
         f"{steps_ohlc.spread:.6f} on the OHLC series, whose largest move, "
-        f"{steps_ohlc.largest:.6f}, falls on {shifted.abs().idxmax().date()}.",
+        f"{steps_ohlc.largest:.6f}, falls on {ohlc_changes.abs().idxmax().date()}.",
     )
 
 

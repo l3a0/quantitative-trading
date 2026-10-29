@@ -1199,7 +1199,7 @@ the decision behind the shape, and the build measured what follows.
    holidays that GLD lacks, so it is not a settlement series. It never equals
    the GC close of `inputDataOHLCDaily_20120507.mat` on the 752 days the two
    share, which says only that the two differ, because both are continuous
-   series and nothing here measured how either crosses a roll. `tests/test_gld_gc.py` pins all three, and the replication
+   series and nothing here tests how either crosses a roll. `tests/test_gld_gc.py` pins all three, and the replication
    log's Entry 38 gives the reasoning.
 10. **The scale-break guard flags nothing.** It reads all 1,232 members as
     prices, because their basis is `raw`, and no close in any of them sits

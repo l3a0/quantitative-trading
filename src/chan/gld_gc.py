@@ -72,8 +72,8 @@ p.m. settlement.** :func:`identity` measures what says so.
    nearly around it.
 
 The GC close of ``inputDataOHLCDaily_20120507`` sits beside it for contrast.
-That save is another continuous series, and nothing here measured how either
-one crosses a roll. Two series that cross rolls differently need not be equal
+That save is another continuous series, and nothing here tests how either one
+crosses a roll. Two series that cross rolls differently need not be equal
 at any hour, so its never equalling this one says only that the two differ. Its
 large moves against this one reverse the next day, which a gap in timing
 predicts and a step at a roll does not.
@@ -538,7 +538,7 @@ def report(sources: Sources, result: GldGc, b1: Financing, found: Identity) -> N
     print(
         f"  GLD's daily log return, standard deviation {found.gld_spread:.6f}, so a gap between "
         f"the two closes carries at most {found.gap_share:.6f} of its daily variance, "
-        "if nothing else cancels its moves"
+        "if nothing else cancels the gap's moves"
     )
     print()
     print("  Annualised over 252 days, with no cost and no financing beyond B1.")

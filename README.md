@@ -7165,10 +7165,11 @@ Five groups of what it says are not pinned here.
    reversal, that a vendor building a continuous future can shift or scale
    the earlier prices at each roll to remove the gap between contracts or
    leave the gap in, that what a series does at each roll decides how much of
-   the roll return shows up in its returns, that the reversal points to a
-   difference in recording hours as the main source of the OHLC series'
-   larger moves against GLD, that a small reading error or an offset of
-   minutes makes a daily change reverse, that GC trades on COMEX, that a
+   the roll return shows up in its returns, that the reversal points away
+   from steps at rolls, to a difference in recording hours or to errors in
+   the recorded prices, either of which would account for most of the OHLC
+   series' larger moves against GLD, that a small reading error or an offset
+   of minutes makes a daily change reverse, that GC trades on COMEX, that a
    settlement price is the one the exchange fixes once a day, that FRED is
    the St. Louis Fed's data service, and the cost of carry, cited from Hull
    as the usual explanation and not tested.

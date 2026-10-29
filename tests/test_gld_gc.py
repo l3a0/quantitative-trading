@@ -2,9 +2,12 @@
 
 This file is the single authority for every number a prose surface quotes
 about this experiment and the rows beside it. ``docs/replication-log.md``
-Entry 38 carries the verdicts and points here row by row. The rows are the ones
-[issue 355](https://github.com/l3a0/quantitative-trading/issues/355) declared
-under "The specification, declared before any figure".
+Entry 38 carries the verdicts and points here row by row. Rows 1 to 8 are the
+ones [issue 355](https://github.com/l3a0/quantitative-trading/issues/355)
+declared under "The specification, declared before any figure". Rows 9 to 11
+measure the series itself. The issue's Data section made most of those
+measurements before that section, and the build added row 10's reversal and
+row 11's bound.
 
 Every pin on the committed files reads the same two vintages and one
 specification unless it names another vintage, so they are stated once here
@@ -381,7 +384,7 @@ class TestTheBooksFigures:
         assert gap(found, BOOK_TEXT_MAX_DRAWDOWN_PERCENT) == 0.0
 
     def test_the_sharpe_ratio_rounds_to_the_book_only_with_the_risk_free_rate(self, result) -> None:
-        """Without ``rf`` it is positive, so the book's −0.07 holds the subtraction."""
+        """Without ``rf`` it is positive, so the script's −0.07 holds the subtraction."""
         assert figures(result.daily, risk_free=0.0).sharpe > 0
 
     def test_a_miss_is_reported_as_one(self) -> None:
@@ -517,7 +520,7 @@ def _on(days: pd.DatetimeIndex, row: int) -> str:
 
 
 class TestWhatThePostMeasured:
-    """Numbers ``blog/gld-gc-lessons.md`` quotes that no row of Entry 38 declared.
+    """Numbers ``blog/gld-gc-lessons.md`` quotes that no row of Entry 38 holds.
 
     The write-up measured every one of them after the run, on the same
     vintages and specification as the rows above, so each is exploratory and
@@ -1107,19 +1110,21 @@ class TestThePostQuotesTheRun:
     def test_the_ohlc_series_beside_the_16_00_series(self, sources, result, found, ohlc_gc):
         ohlc_entry, _ = read_ohlc_gc()
         assert f"`inputDataOHLCDaily_20120507.mat`, saved {ohlc_entry.obtained}," in self.text
-        shifted = log_ratio_changes(ohlc_gc, sources.gld, result.days)
+        ohlc_changes = log_ratio_changes(ohlc_gc, sources.gld, result.days)
+        up, down = int((ohlc_changes > STEP).sum()), int((ohlc_changes < -STEP).sum())
+        largest_on = ohlc_changes.abs().idxmax().date()
         at_1600 = log_ratio_changes(sources.gc, sources.gld, result.days)
         assert (
             f"has a standard deviation of {found.ohlc.spread:.6f}, about ten times the 16:00 "
             f"series’ {found.sampled_at_1600.spread:.6f}. It has {found.ohlc.steps} moves past "
-            f"{STEP:g}, {int((shifted > STEP).sum())} up and {int((shifted < -STEP).sum())} down. "
-            f"Its largest is {found.ohlc.largest:.6f}, on {shifted.abs().idxmax().date()}, and "
-            f"the next day it moves {_minus(f'{shifted.min():.6f}')}, most of the way back. "
+            f"{STEP:g}, {up} up and {down} down. "
+            f"Its largest is {found.ohlc.largest:.6f}, on {largest_on}, and "
+            f"the next day it moves {_minus(f'{ohlc_changes.min():.6f}')}, most of the way back. "
             f"The 16:00 series has none past {STEP:g}, and its largest move is "
             f"{found.sampled_at_1600.largest:.6f}, on {at_1600.abs().idxmax().date()}, the day "
             "of the deepest drawdown."
         ) in self.text
-        assert shifted.idxmin() == shifted.abs().idxmax() + pd.offsets.BDay(1)
+        assert ohlc_changes.idxmin() == ohlc_changes.abs().idxmax() + pd.offsets.BDay(1)
         assert found.sampled_at_1600.steps == 0
 
     def test_the_two_reversals(self, sources, result, found) -> None:
