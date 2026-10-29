@@ -8802,7 +8802,10 @@ Five groups of what it says are not pinned here.
    Chan's conclusions at 3509, and the warning about data snooping at 3541.
    The threshold and the four filtered figures are pinned, as book targets
    in `TestTheSpecification` in
-   [tests/test_vix_filter.py](tests/test_vix_filter.py), and Chan's words are
+   [tests/test_vix_filter.py](tests/test_vix_filter.py). The four unfiltered
+   figures are pinned as book targets too, 8.7 and 1.5 in
+   [tests/test_buy_on_gap.py](tests/test_buy_on_gap.py) and 13 and 1.4 in
+   [tests/test_opening_gap.py](tests/test_opening_gap.py). Chan's words are
    not.
 2. Facts about the index and the scripts rather than the data: that the
    Chicago Board Options Exchange computes VIX from the prices of options on

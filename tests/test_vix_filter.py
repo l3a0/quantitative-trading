@@ -247,6 +247,7 @@ class TestTheJoin:
         flat = long.days[long.held & (long.daily == 0)]
         assert list(flat) == [day("2010-03-19")]
         assert not long.qualifies[long.days.get_loc(flat[0])]
+        assert np.count_nonzero(long_rule.positions[long_rule.days.get_loc(flat[0])]) == 10
 
 
 class TestTheSpecification:
@@ -689,7 +690,8 @@ class TestWhatThePostMeasured:
         """A run is kept days with no other joined day between them.
 
         The longest runs from 2008-09-30 to 2009-04-17 for both rules. FSTX's
-        is four days shorter because Eurex traded on days the CBOE did not.
+        is four days shorter because the CBOE traded on four days inside it
+        that Eurex did not, 2008-12-24, 2008-12-26, 2008-12-31 and 2009-04-13.
         """
         filtered = getattr(result, rule)
         found = runs(filtered.qualifies)
@@ -708,6 +710,17 @@ class TestWhatThePostMeasured:
         long, literal = result.buy_on_gap, result.literal
         spans = [[(f.days[a], f.days[b]) for a, b in runs(f.qualifies)] for f in (long, literal)]
         assert spans[0] == spans[1], f"{SPEC}; {AFTER_THE_RUN}"
+        longest = []
+        for f in (long, literal):
+            a, b = max(runs(f.qualifies), key=lambda run: run[1] - run[0])
+            longest.append(f.days[a : b + 1])
+        assert list(longest[0].difference(longest[1])) == [
+            day("2008-12-24"),
+            day("2008-12-26"),
+            day("2008-12-31"),
+            day("2009-04-13"),
+        ], f"{SPEC}; {AFTER_THE_RUN}"
+        assert longest[1].difference(longest[0]).empty
 
     def test_vix_closed_above_35_on_190_days_in_15_runs_inside_fstx_s_window(self, sources) -> None:
         """On VIX's own calendar from 2004-07-16 to 2012-05-08, the last day FSTX joins."""
