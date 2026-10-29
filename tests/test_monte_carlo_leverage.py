@@ -40,10 +40,16 @@ uncapped ones are also held to the root of the growth rate's derivative.
 
 ``blog/monte-carlo-leverage-lessons.md`` quotes most of these figures, so a
 change to any of them moves that post too. ``TestWhatThePostMeasured`` holds
-the numbers the post added, all measured after the run, and
+the numbers the post added, all measured after the run.
+``TestWhatThePostSays`` reads one copy of each figure from the post itself
+and checks it against the run, so a typo in the post fails a test.
+``TestThePostsVerdicts`` derives each verdict the post states and reads the
+sentence, so a post that reverses a conclusion fails a test too.
 ``TestThePostsHelpers`` holds the helpers the post's figure shares with the
 run. ``tests/test_monte_carlo_leverage_figures.py`` holds what the figure
 draws, including the growth rates and the drawdown days the post quotes.
+``tests/test_monte_carlo_leverage_whiteboard.py`` holds what the two sketches draw,
+with the figures they read from the run.
 
 Exploratory. Reproducing Chan's figures spends his 612 returns on a method he
 chose. The boxes first ran on the declared seeds on 2026-10-10.
@@ -56,6 +62,7 @@ import math
 import re
 from contextlib import redirect_stdout
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -67,6 +74,7 @@ from chan.khandani_lo_book_two import gap, matches
 from chan.monte_carlo_leverage import (
     APR_BAND,
     BAND,
+    BOOK_APR_PERCENT,
     BOOK_CPPI_GROWTH,
     BOOK_DRAWDOWN_HALF,
     BOOK_DRAWDOWN_OPTIMUM,
@@ -80,6 +88,7 @@ from chan.monte_carlo_leverage import (
     BOOK_OPTIMUM_FMINBND,
     BOOK_RUIN,
     BOOK_SEVENTH_LEVERAGE,
+    BOOK_SHARPE,
     BOOK_TYPE,
     CAP,
     DRAWS,
@@ -88,12 +97,14 @@ from chan.monte_carlo_leverage import (
     SEED,
     SHARPE_BAND,
     SIMILAR_WITHIN,
+    SIMULATED_ROWS,
     XATOL,
     Band,
     D,
     Ensemble,
     MonteCarloLeverage,
     account_drawdowns,
+    claim_verdict,
     cppi_as_described,
     cppi_as_described_loop,
     cppi_as_scripted,
@@ -118,6 +129,7 @@ from chan.monte_carlo_leverage import (
     shifted_parameters,
     simulated_verdict,
 )
+from chan.monte_carlo_leverage_figures import days_below, deepest_day, first_below, signed
 from chan.tu_hypothesis_tests import GRID_POINTS, pearson_iv_draws, script_moments
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import PYTHON_PORT
@@ -739,6 +751,42 @@ class TestWhatThePostMeasured:
         assert ruin_leverage(returns) == pytest.approx(45.390502, abs=5e-7)
         assert result.declared.minimum / returns.min() == pytest.approx(1.9550, abs=5e-5)
 
+    def test_the_script_s_apr_is_closest_to_the_log_growth_compounding(self, returns) -> None:
+        """Lesson 2: ``AUDCAD_unequal.m`` compounds the daily returns themselves.
+
+        On the saved file that APR is 0.112410, and compounding the log growth
+        ``m − σ²/2``, with σ divided by n − 1, gives 0.112426. The other two
+        compoundings land further off.
+        """
+        days = module.TRADING_DAYS
+        script = float(np.prod(1 + returns) ** (days / len(returns)) - 1)
+        m, var = float(returns.mean()), float(returns.var(ddof=1))
+        log_growth = math.exp(days * (m - var / 2)) - 1
+        assert script == pytest.approx(0.112410, abs=5e-7)
+        assert log_growth == pytest.approx(0.112426, abs=5e-7)
+        others = ((1 + m) ** days - 1, days * m)
+        assert all(abs(o - script) > abs(log_growth - script) for o in others)
+
+    def test_the_log_growth_apr_allows_a_second_sigma_near_0_2(self) -> None:
+        """Lesson 2: the quadratic in σ has a second root, a daily swing near 20 percent.
+
+        At every corner of the printed figures' rounding the smaller root is
+        under 10 percent a day, and the larger sits near 0.2 with a Kelly
+        near 0.5, so the smaller is the one :func:`implied_kelly` keeps.
+        """
+        days = module.TRADING_DAYS
+        for sharpe in (1.55, 1.65):
+            for apr in (0.105, 0.115):
+                per_bar = sharpe / math.sqrt(days)
+                spread = math.sqrt(per_bar * per_bar - 2 * math.log1p(apr) / days)
+                small, large = per_bar - spread, per_bar + spread
+                assert small < 0.1
+                assert sharpe / (math.sqrt(days) * small) == pytest.approx(
+                    implied_kelly(sharpe, apr), rel=1e-12
+                )
+                assert 0.19 < large < 0.21
+                assert 0.50 < sharpe / (math.sqrt(days) * large) < 0.52
+
     def test_612_draws_from_the_fit_rarely_reach_the_saved_returns_least_day(
         self, result, returns
     ) -> None:
@@ -765,7 +813,7 @@ class TestWhatThePostMeasured:
     def test_the_seeds_at_or_below_the_book_s_optima_are_all_held_down_by_ruin(
         self, result
     ) -> None:
-        """Lesson 3: every seed whose uncapped optimum reaches 19 or 19.2 ruins below 20."""
+        """Lesson 3: every seed whose uncapped optimum is at or below 19 or 19.2 ruins below 20."""
         uncapped, ruin = result.ensemble.values("uncapped"), result.ensemble.values("ruin")
         low = uncapped <= float(BOOK_OPTIMUM)
         assert (int(low.sum()), int(np.count_nonzero(uncapped <= float(BOOK_OPTIMUM_FMINBND)))) == (
@@ -812,6 +860,579 @@ class TestWhatThePostMeasured:
         """Lesson 6: ``calculateMaxDD`` on the 612 days, far from the draws' −0.99."""
         assert max_drawdown(result.historical * returns) == pytest.approx(-0.737560, abs=5e-7)
         assert max_drawdown(result.kelly * returns) == pytest.approx(-0.739733, abs=5e-7)
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "monte-carlo-leverage-lessons.md"
+
+
+def _cell(latex: str) -> str:
+    """A table cell as the reader sees it, so ``\\text{to } 24.8`` is ``to 24.8``.
+
+    ``5{,}681`` reads ``5,681`` and ``{+5.4}`` reads ``+5.4``.
+    """
+    text = re.sub(r"\\text\{([^}]*)\}", r"\1", latex).replace("{,}", ",")
+    return " ".join(text.replace("{", "").replace("}", "").split())
+
+
+def _table(text: str, header: str) -> dict[str, list[list[str]]]:
+    """The one ``array`` block holding ``header``, its rows keyed by their first cell.
+
+    A row whose first cell is empty continues the labelled row above it, as
+    Lesson 3's table writes each band on three lines, so each label maps to
+    its rows in order, the label left out. The header rows sit under ``""``.
+    """
+    bodies = re.findall(r"\\begin\{array\}\{[^}]*\}(.*?)\\end\{array\}", text, re.S)
+    (body,) = [found for found in bodies if header in found]
+    table: dict[str, list[list[str]]] = {}
+    label = ""
+    for line in body.split("\\\\"):
+        cells = [_cell(cell) for cell in line.replace("\\hline", "").split("&")]
+        label = cells[0] or label
+        table.setdefault(label, []).append(cells[1:])
+    return table
+
+
+def _fixed(value: float, places: int = 6) -> str:
+    """``value`` as a table prints it, with an ASCII minus."""
+    return f"{value:.{places}f}"
+
+
+# A search stops within about 3e-7 of an optimum, so a figure that rests on one
+# can print a different sixth decimal on another machine. CI's runner printed
+# the Lesson 3 band's 22.969856 as 22.969857. An optimum, a band of optima and
+# a table cell computed at an optimum are compared as numbers within this
+# tolerance instead of as printed digits.
+NEAR = 1.5e-6
+
+
+def _near(cells: list[str], values, prefix: str = "") -> bool:
+    """Whether each cell, less ``prefix``, is within ``NEAR`` of its value."""
+    return len(cells) == len(values) and all(
+        cell.startswith(prefix) and abs(float(cell.removeprefix(prefix)) - value) <= NEAR
+        for cell, value in zip(cells, values, strict=True)
+    )
+
+
+def _says(text: str, before: str, value: float, after: str = "") -> bool:
+    """Whether ``text`` holds ``before``, a number within ``NEAR`` of ``value``, then ``after``."""
+    pattern = re.escape(before) + r"(−?\d+\.\d+)" + re.escape(after)
+    return any(
+        abs(float(found.replace("−", "-")) - value) <= NEAR for found in re.findall(pattern, text)
+    )
+
+
+def _lowest_kelly(compounding: str) -> float:
+    """The least Kelly over the corners of Example 5.1's rounding, under one compounding."""
+
+    def one(sharpe: float, apr: float) -> float:
+        if compounding == "log":
+            return implied_kelly(sharpe, apr)
+        days = module.TRADING_DAYS
+        m = math.expm1(math.log1p(apr) / days) if compounding == "exact" else apr / days
+        return sharpe * sharpe / (days * m)
+
+    return min(one(sharpe, apr) for sharpe in SHARPE_BAND for apr in APR_BAND)
+
+
+class TestWhatThePostSays:
+    """One copy of each figure ``blog/monte-carlo-leverage-lessons.md`` quotes, read from the post.
+
+    Other copies of the same figure elsewhere in the post are not always read.
+    Each expected value comes from the run, or from the book's printed figures
+    the module holds as constants, and is compared at the precision the post
+    prints it. Two kinds are compared within ``NEAR`` instead: an optimum or a
+    band of optima, and a table cell computed at an optimum. A figure derived
+    from an optimum in a sentence, such as a growth gap, is still compared at
+    its printed digits. A table is read by its row labels, and a sentence by
+    the words around its number.
+
+    The prose states these numbers and the tests above derive them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review changed 62 single digits across its prose, tables and alt text, and
+    none failed a test.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_lesson_1_s_table_and_the_two_methods_agreement(self, result) -> None:
+        table = _table(self.text, "\\text{Historical}")
+        assert table["Computed"][0][0] == _fixed(result.kelly)
+        assert _near(table["Computed"][0][1:], [result.historical])
+        assert table["Book"] == [[BOOK_KELLY, BOOK_HISTORICAL]]
+        gaps = (gap(result.kelly, BOOK_KELLY), gap(result.historical, BOOK_HISTORICAL))
+        assert table["Gap"] == [[f"{value:+.1f}" for value in gaps]]
+        below = 1 - result.historical / result.kelly
+        assert (
+            f"The historical optimum sits {below:.6f} below the Kelly in relative terms, "
+            f"or {100 * below:.2f} percent, inside the {100 * EQUAL_WITHIN:.0f} percent"
+        ) in self.text
+
+    def test_the_fit_s_kappa_kurtosis_and_moment_order(self, result, returns) -> None:
+        words = {5: "five", 6: "sixth"}
+        order = 2 * result.params.m - 1
+        assert f"Here κ is {result.kappa:.6f}, which puts the returns in type IV" in self.text
+        assert BOOK_TYPE == 4
+        assert f"The kurtosis is {result.moments.kurtosis:.6f}, where a bell curve’s is 3" in (
+            self.text
+        )
+        assert (
+            f"finite moments only below order {order:.2f}, so its first "
+            f"{words[math.floor(order)]} moments exist and its {words[math.ceil(order)]} does not"
+        ) in self.text
+        assert f"draws {DRAWS:,} returns from it" in self.text
+        assert f"His script saved its {len(returns)} daily returns" in self.text
+
+    def test_lesson_2_s_kelly_range_and_its_three_compoundings(self, result, returns) -> None:
+        low, high = result.kelly_band
+        assert (
+            f"a Sharpe ratio from {SHARPE_BAND[0]:.2f} to {SHARPE_BAND[1]:.2f} and an APR from "
+            f"{100 * APR_BAND[0]:.1f} to {100 * APR_BAND[1]:.1f} percent, the Kelly runs from "
+            f"{low:.6f} to {high:.6f} under that compounding"
+        ) in self.text
+        lowest = {name: _lowest_kelly(name) for name in ("log", "exact", "simple")}
+        assert lowest["log"] == low
+        assert (
+            f"**Compounding the log growth**, as above, puts the lowest Kelly at "
+            f"{lowest['log']:.6f}."
+        ) in self.text
+        assert f"**Compounding 1 + m exactly** each day puts it at {lowest['exact']:.6f}." in (
+            self.text
+        )
+        assert f"with no compounding, puts it at {lowest['simple']:.6f}." in self.text
+        assert min(lowest.values()) > float(BOOK_KELLY)
+        assert f"None reaches {BOOK_KELLY}." in self.text
+
+        days = module.TRADING_DAYS
+        script = float(np.prod(1 + returns) ** (days / len(returns)) - 1)
+        m, var = float(returns.mean()), float(returns.var(ddof=1))
+        log_growth = math.exp(days * (m - var / 2)) - 1
+        assert f"compounded over {days} days, which on the saved file is {script:.6f}." in self.text
+        assert (
+            f"puts the APR at {log_growth:.6f}. So compounding the log growth, the first of the "
+            "three ways below, is the closest"
+        ) in self.text
+
+        sharpe, kelly_ = float(BOOK_SHARPE), float(BOOK_KELLY)
+        needed = sharpe * sharpe / (days * kelly_)
+        simple, exact = days * needed, math.expm1(days * math.log1p(needed))
+        assert (
+            f"At a Sharpe ratio of {BOOK_SHARPE}, a Kelly of {BOOK_KELLY} needs an APR of "
+            f"{100 * simple:.1f} to {100 * exact:.1f} percent across the three, well above the "
+            f"printed {BOOK_APR_PERCENT}."
+        ) in self.text
+
+        per_bar = sharpe / math.sqrt(days)
+        spread = math.sqrt(per_bar * per_bar - 2 * math.log1p(float(BOOK_APR_PERCENT) / 100) / days)
+        large = per_bar + spread
+        assert (
+            f"The larger is near {large:.1f}, a daily swing of about {100 * large:.0f} percent "
+            f"with a Kelly near {per_bar / large:.1f}, so the smaller is the one used."
+        ) in self.text
+        swing = 0.1
+        for s in SHARPE_BAND:
+            for a in APR_BAND:
+                b = s / math.sqrt(days)
+                r = math.sqrt(b * b - 2 * math.log1p(a) / days)
+                assert b - r < swing < b + r
+        assert (
+            f"Example 5.1’s own printed figures rule {BOOK_KELLY} out.** Any series with that "
+            f"example’s Sharpe ratio and APR, and a daily swing under {100 * swing:.0f} percent, "
+            f"has a Kelly of at least {min(lowest.values()):.6f}"
+        ) in self.text
+
+    def test_the_declared_seed_and_the_further_seeds(self) -> None:
+        assert (
+            f"Each simulated figure here comes from one seed, {SEED}, named in writing before "
+            f"the run and called the declared seed. It is judged against {len(ENSEMBLE_SEEDS)} "
+            f"further seeds, {ENSEMBLE_SEEDS[0]} to {ENSEMBLE_SEEDS[-1]}."
+        ) in self.text
+
+    def test_lesson_2_s_shifted_draws(self, result) -> None:
+        median = result.shifted.band("uncapped").median
+        half = result.shifted.band("drawdown_half")
+        assert _says(self.text, "the median uncapped optimum becomes ", median, ", close")
+        assert float(BOOK_DRAWDOWN_HALF) < half.low
+        assert (
+            f"Its {signed(float(BOOK_DRAWDOWN_HALF), 3)} sits just past a band that runs to "
+            f"{signed(half.low)}."
+        ) in self.text
+
+    def test_lesson_3_s_cap_and_the_seeds_held_down_by_ruin(self, result) -> None:
+        words = {30: "Thirty", 40: "Forty"}
+        runs = result.ensemble.runs
+        on_cap = sum(run.on_the_cap for run in runs)
+        assert (
+            f"On the declared seed the script returns its cap of {CAP:g}, the most it can "
+            f"return, and so it does on {on_cap} of the {len(runs)} further seeds."
+        ) in self.text
+        assert result.declared.on_the_cap
+        assert _says(
+            self.text,
+            "Searched without the cap, the declared seed’s optimum is ",
+            result.declared.uncapped,
+            f".\n\nThe {on_cap} seeds split cleanly from the rest.",
+        )
+        free = result.ensemble.values("uncapped")[result.ensemble.values("ruin") >= CAP]
+        assert _says(self.text, "has an uncapped optimum above 20, the lowest at ", free.min(), ".")
+
+        declared = result.ensemble.band("uncapped")
+        assert _says(self.text, "Its band runs from ", declared.low, " to ")
+        assert _says(
+            self.text,
+            " to ",
+            declared.high,
+            f", and both {BOOK_OPTIMUM_FMINBND} and {BOOK_OPTIMUM} land inside it.",
+        )
+        uncapped, ruin = result.ensemble.values("uncapped"), result.ensemble.values("ruin")
+        low = uncapped <= float(BOOK_OPTIMUM)
+        at_19 = int(np.count_nonzero(uncapped <= float(BOOK_OPTIMUM_FMINBND)))
+        assert np.all(ruin[low] < CAP)
+        assert (
+            f"{words[int(low.sum())]} seeds have an uncapped optimum at or below {BOOK_OPTIMUM}, "
+            f"and {at_19} at or below {BOOK_OPTIMUM_FMINBND}. All {int(low.sum())} have a ruin "
+            f"leverage below 20, the largest {ruin[low].max():.6f}."
+        ) in self.text
+        assert _says(
+            self.text,
+            "The capped band’s 5th percentile is the same ",
+            result.ensemble.band("optimum").low,
+            f", a point between the optima of two of those {int(low.sum())} seeds",
+        )
+        kept = len(result.ensemble.ruin_above(float(BOOK_RUIN)).runs)
+        assert (
+            f"seeds whose ruin leverage is above {BOOK_RUIN}, the ruin leverage the book prints "
+            f"from its least draw of {signed(float(BOOK_MINIMUM), 4)}."
+        ) in self.text
+        assert f"{words[kept]} seeds qualify." in self.text
+
+        middle = f"{BAND[1] - BAND[0]:.0f}"
+        runs = len(result.ensemble.runs)
+        assert f"both of the book’s fall inside the middle {middle} percent of them" in self.text
+        assert f"fall outside the middle {middle} percent of what {runs} reruns give" in self.text
+        assert (
+            f"between the {BAND[0]:.0f}th and {BAND[1]:.0f}th percentiles of the same quantity"
+        ) in self.text
+
+    def test_lesson_3_s_table_of_bands(self, result) -> None:
+        def verdict(found: Band) -> str:
+            lands = [found.holds(float(p)) for p in (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM)]
+            return {(True, True): "both land", (False, False): "neither lands"}[tuple(lands)]
+
+        table = _table(self.text, "\\text{As fitted}")
+        assert table[""] == [["As fitted", f"Moved to {BOOK_KELLY}"]]
+        runs = len(result.ensemble.runs)
+        declared = (result.ensemble.band("uncapped"), result.shifted.band("uncapped"))
+        chosen = (optimum_band(result.ensemble), optimum_band(result.shifted))
+        assert _near(table["Declared rule"][0], [found.low for found in declared])
+        upper, verdicts = table[f"all {runs} seeds"]
+        assert _near(upper, [found.high for found in declared], prefix="to ")
+        assert verdicts == [verdict(found) for found in declared]
+        assert _near(table["Rule chosen after"][0], [found.low for found in chosen])
+        kept = [len(e.ruin_above(float(BOOK_RUIN)).runs) for e in (result.ensemble, result.shifted)]
+        upper, counts, verdicts = table[f"ruin above {BOOK_RUIN}"]
+        assert _near(upper, [found.high for found in chosen], prefix="to ")
+        assert counts == [f"{count} seeds" for count in kept]
+        assert verdicts == [verdict(found) for found in chosen]
+        assert all(found.holds(result.kelly) for found in (declared[0], chosen[0]))
+        assert f"The Kelly of {result.kelly:.6f} lies inside both bands" in self.text
+
+    def test_lesson_4_s_least_draw_and_ruin_leverage(self, result, returns) -> None:
+        seeded = result.declared
+        assert (
+            f"draws hold a worse day than Chan’s backtest because there are about "
+            f"{round(DRAWS / len(returns))} times as many"
+        ) in self.text
+        assert (
+            f"At {signed(float(BOOK_MINIMUM), 4)} that chance is "
+            f"{result.minimum_at_or_below_book:.6f}, inside the 5 to 95 percent range"
+        ) in self.text
+        ruin_chance = minimum_below(result.params, -1 / float(BOOK_RUIN))
+        assert (
+            f"the chance of a ruin leverage at or below {BOOK_RUIN} is {ruin_chance:.6f}."
+        ) in self.text
+        assert (
+            f"The declared seed’s least draw is {signed(seeded.minimum)}, a gap of "
+            f"{signed(gap(seeded.minimum, BOOK_MINIMUM), 4)}, so both reproduced with a gap"
+        ) in self.text
+        worst = float(returns.min())
+        assert 1.9 < seeded.minimum / worst < 2
+        assert (
+            f"The worst of Chan’s {len(returns)} backtest returns is {signed(worst)}, a ruin "
+            f"leverage of {ruin_leverage(returns):.6f}. The declared seed’s least draw is "
+            f"{seeded.minimum / worst:.4f} times as deep, nearly twice, and its ruin leverage "
+            f"is {seeded.ruin:.6f}."
+        ) in self.text
+        short = minimum_below(result.params, worst, len(returns))
+        assert (
+            f"With {len(returns)} draws in place of {DRAWS:,}, the same formula gives a chance "
+            f"of {short:.6f}, about {100 * short:.1f} percent, that the least is at or below "
+            f"{signed(worst)}."
+        ) in self.text
+
+    def test_lesson_4_s_seeds_ruined_at_the_kelly_and_below_the_cap(self, result) -> None:
+        runs = result.ensemble.runs
+        at_kelly = int(np.count_nonzero(result.ensemble.values("ruin") <= result.kelly))
+        assert result.declared.ruin <= result.kelly
+        assert f"The same holds on {at_kelly} of the {len(runs)} further seeds." in self.text
+        below = sum(run.ruin_below_cap for run in runs)
+        assert below == len(runs) - sum(run.on_the_cap for run in runs)
+        assert (
+            f"Across the {len(runs)} seeds, {below} have a ruin leverage below the script’s cap "
+            f"of {CAP:g}, which means a least draw deeper than {signed(-1 / CAP, 2)}. They are the "
+            f"{below} seeds of Lesson 3 that do not sit on the cap."
+        ) in self.text
+        p = result.ruin_below_cap_exact
+        z = (below - len(runs) * p) / math.sqrt(len(runs) * p * (1 - p))
+        tail = stats.binom.sf(below - 1, len(runs), p)
+        assert (
+            f"The formula above gives a chance of {p:.6f} that a seed has such a draw, or about "
+            f"{len(runs) * p:.1f} seeds of {len(runs)}. So {below} is more than the fit "
+            f"predicts, by {z:.1f} standard deviations of a binomial count, and the chance of "
+            f"{below} or more is about {100 * tail:.1f} percent."
+        ) in self.text
+
+    def test_lesson_5_s_table(self, result, declared_draws) -> None:
+        f = result.declared.optimum
+        accounts = (
+            account_drawdowns(cppi_as_scripted(declared_draws, f)),
+            account_drawdowns(cppi_as_described(declared_draws, f)),
+            account_drawdowns(f * D * declared_draws),
+        )
+        names = ("cppi_drawdown", "described_drawdown", "full_drawdown")
+        bands = [result.ensemble.band(name) for name in names]
+        table = _table(self.text, "\\text{Box 8.6's}")
+        assert _near(table["Deepest"][0], [getattr(result.declared, n) for n in names])
+        assert _near(table["5th"][0], [found.low for found in bands])
+        assert _near(table["95th"][0], [found.high for found in bands])
+        assert table["Days"] == [[f"{days_below(account):,}" for account in accounts]]
+
+    def test_lesson_5_s_days_and_growth(self, result, declared_draws) -> None:
+        f = result.declared.optimum
+        scripted = account_drawdowns(cppi_as_scripted(declared_draws, f))
+        described = account_drawdowns(cppi_as_described(declared_draws, f))
+        full = account_drawdowns(f * D * declared_draws)
+        assert deepest_day(scripted) == deepest_day(full)
+        assert (
+            f"The loop first falls below −0.5 on day {first_below(scripted)} and reaches its "
+            f"deepest on day {deepest_day(scripted):,}, the same day as the full account."
+        ) in self.text
+        runs = result.ensemble.runs
+        assert all(run.cppi_drawdown < -D for run in runs)
+        assert all(run.described_drawdown > -D for run in runs)
+        assert f"It breaks the floor on all {len(runs)} further seeds." in self.text
+        assert (
+            f"The scheme’s deepest is on day {deepest_day(described):,}, and it stays above "
+            f"−0.5 on all {len(runs)}."
+        ) in self.text
+        assert f"At the script’s f of {CAP:g}, f·D is {D * CAP:g}" in self.text
+
+        seeded = result.declared
+        quarter = 1 - seeded.described_growth / seeded.full_growth
+        assert round(4 * quarter) == 1
+        assert (
+            f"the loop’s growth falls short by {seeded.growth_gap:.6f}, or "
+            f"{100 * seeded.growth_gap:.1f} percent"
+        ) in self.text
+        assert (f"The scheme’s falls short by {quarter:.6f}, about a quarter.") in self.text
+        book = 1 - float(BOOK_CPPI_GROWTH) / float(BOOK_FULL_GROWTH)
+        assert (
+            f"The book’s two growth rates on p. 264, {BOOK_CPPI_GROWTH} for the loop and "
+            f"{BOOK_FULL_GROWTH} for the full account, differ by about {100 * book:.1f} percent"
+        ) in self.text
+
+    def test_lesson_6_s_drawdown_table(self, result) -> None:
+        names = ("drawdown_optimum", "drawdown_half", "drawdown_seventh")
+        bands = [result.ensemble.band(name) for name in names]
+        table = _table(self.text, "f/7")
+        assert table["Book"] == [
+            [BOOK_DRAWDOWN_OPTIMUM, BOOK_DRAWDOWN_HALF, f"about {BOOK_DRAWDOWN_SEVENTH}"]
+        ]
+        assert _near(table["Seed"][0], [getattr(result.declared, n) for n in names])
+        assert _near(table["5th"][0], [found.low for found in bands])
+        assert _near(table["95th"][0], [found.high for found in bands])
+
+    def test_lesson_6_s_growth_table(self, result) -> None:
+        names = ("cppi_growth", "full_growth", "full_drawdown")
+        bands = [result.ensemble.band(name) for name in names]
+        table = _table(self.text, "\\text{Growth,}")
+        assert table["Book"] == [[BOOK_CPPI_GROWTH, BOOK_FULL_GROWTH, BOOK_FULL_DRAWDOWN]]
+        assert _near(table["Seed"][0], [getattr(result.declared, n) for n in names])
+        assert _near(table["5th"][0], [found.low for found in bands])
+        assert _near(table["95th"][0], [found.high for found in bands])
+
+    def test_lesson_6_s_seventh_and_the_saved_returns_drawdowns(self, result, returns) -> None:
+        assert (
+            f"The declared seed’s f / 7 is {result.declared.optimum / 7:.6f}, since its f is the "
+            "cap."
+        ) in self.text
+        assert f"{float(BOOK_OPTIMUM) / 7:.1f}" == BOOK_SEVENTH_LEVERAGE
+        assert (
+            f"The book’s leverage at a seventh, {BOOK_SEVENTH_LEVERAGE}, is {BOOK_OPTIMUM} over 7."
+        ) in self.text
+        assert (
+            f"At the historical optimum the deepest is "
+            f"{signed(max_drawdown(result.historical * returns))}, and at the Kelly "
+            f"{signed(max_drawdown(result.kelly * returns))}."
+        ) in self.text
+        lines = result.lines
+        assert lines.leverage == pytest.approx(CAP, abs=1e-6)
+        assert (
+            f"with f its capped optimum of {CAP:g}, and there the deepest is "
+            f"{signed(lines.drawdown_over_1_4)}. The draws at the optimum reach "
+            f"{signed(result.declared.drawdown_optimum)}."
+        ) in self.text
+        assert all(run.growth_gap < SIMILAR_WITHIN for run in result.ensemble.runs)
+        assert (
+            f"The loop’s shortfall stays under {100 * SIMILAR_WITHIN:.0f} percent on all "
+            f"{len(result.ensemble.runs)} seeds."
+        ) in self.text
+
+
+class TestThePostsVerdicts:
+    """Each verdict ``blog/monte-carlo-leverage-lessons.md`` states, derived from the run.
+
+    The class above reads the post's numbers, and none of its tests reads a
+    verdict word, so a post that reversed every conclusion still passed it. The
+    PR review's mutation lens flipped 18 verdicts and counts, such as "Neither
+    figure reproduced" to "Both", and none failed a test. Each test here derives
+    the verdict with the functions :func:`rows` uses, then reads the sentence.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_lesson_1_s_two_figures_miss_and_agree(self, result) -> None:
+        assert not matches(result.kelly, BOOK_KELLY)
+        assert not matches(result.historical, BOOK_HISTORICAL)
+        assert BOOK_KELLY == BOOK_HISTORICAL
+        assert (
+            f"They give a Kelly of {result.kelly:.6f} and a historical optimum of "
+            f"{result.historical:.6f}, where the book prints {BOOK_KELLY} for both."
+        ) in self.text
+        assert "Neither figure reproduced. The gap is the computed figure" in self.text
+        assert f"`AUDCAD_unequal.m` prints the same {result.kelly:.6f} for them" in self.text
+        assert abs(result.historical / result.kelly - 1) < EQUAL_WITHIN
+        assert (
+            f"So on this file the two methods agree, as Chan says, at about {result.kelly:.1f} "
+            f"rather than {BOOK_KELLY}."
+        ) in self.text
+        assert f"Chan’s saved returns give a Kelly of {result.kelly:.1f}, not {BOOK_KELLY}" in (
+            self.text
+        )
+
+    def test_lesson_3_s_optima_under_each_rule(self, result) -> None:
+        books = (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM)
+        declared, chosen = result.ensemble.band("uncapped"), optimum_band(result.ensemble)
+        seeded = result.declared.uncapped
+        assert [simulated_verdict(seeded, p, declared.holds(float(p))) for p in books] == [
+            "reproduced with a gap, the seed"
+        ] * 2
+        assert [simulated_verdict(seeded, p, chosen.holds(float(p))) for p in books] == [
+            "did not reproduce"
+        ] * 2
+        assert (
+            f"Under the rule chosen afterwards, the book’s {books[0]} and {books[1]} did not "
+            "reproduce. Under the declared rule they reproduced with a gap, and the seed was "
+            "the cause."
+        ) in self.text
+        assert (
+            "Both of the book’s optima land in the declared band, and neither lands in the band "
+            "chosen afterwards."
+        ) in self.text
+        shifted = (result.shifted.band("uncapped"), optimum_band(result.shifted))
+        assert all(found.holds(float(p)) for found in shifted for p in books)
+        assert (
+            f"Under the draws moved to a Kelly of {BOOK_KELLY}, both figures land under both rules"
+        ) in self.text
+
+    def test_the_summary_s_counts_of_seeds(self, result) -> None:
+        runs = result.ensemble.runs
+        on_cap = sum(run.on_the_cap for run in runs)
+        kept = result.ensemble.ruin_above(float(BOOK_RUIN))
+        chosen = optimum_band(result.ensemble)
+        assert all(run.minimum >= float(BOOK_MINIMUM) for run in kept.runs)
+        assert not any(chosen.holds(float(p)) for p in (BOOK_OPTIMUM_FMINBND, BOOK_OPTIMUM))
+        assert f"it returns the cap itself {on_cap} times." in self.text
+        assert (
+            f"keeps only the {len(kept.runs)} runs whose least draw is no deeper than the book’s "
+            f"{signed(float(BOOK_MINIMUM), 4)}, and neither falls inside the middle "
+            f"{BAND[1] - BAND[0]:.0f} percent of their optima."
+        ) in self.text
+
+    def test_lesson_4_s_least_draw_lands_and_ruins_at_the_kelly(self, result) -> None:
+        seeded = result.declared
+        ruin_chance = minimum_below(result.params, -1 / float(BOOK_RUIN))
+        assert lands_in_exact_distribution(result.minimum_at_or_below_book)
+        assert lands_in_exact_distribution(ruin_chance)
+        assert simulated_verdict(seeded.minimum, BOOK_MINIMUM, True) == (
+            "reproduced with a gap, the seed"
+        )
+        assert simulated_verdict(seeded.ruin, BOOK_RUIN, True) == "reproduced with a gap, the seed"
+        assert (
+            f"so the book’s figure lands. Its ruin leverage of {BOOK_RUIN} lands too" in self.text
+        )
+        assert "so both reproduced with a gap and the seed is the cause." in self.text
+        assert seeded.ruin < result.kelly
+        assert (
+            f"The declared seed’s ruin leverage is below the Kelly of {result.kelly:.6f}, so at "
+            "the Kelly one draw on that seed loses everything."
+        ) in self.text
+
+    def test_lesson_5_s_two_claims_and_their_price(self, result) -> None:
+        runs = result.ensemble.runs
+        assert claim_verdict(all(run.described_drawdown > -D for run in runs)) == "reproduced"
+        assert claim_verdict(all(run.cppi_drawdown > -D for run in runs)) == "did not reproduce"
+        assert (
+            "So the claim about the scheme the text describes reproduced, and the claim about "
+            "the code the book prints did not."
+        ) in self.text
+        seeded = result.declared
+        scheme_gap = 1 - seeded.described_growth / seeded.full_growth
+        assert seeded.growth_gap < SIMILAR_WITHIN < scheme_gap
+        assert seeded.cppi_drawdown < -D < seeded.described_drawdown
+        assert (
+            "So the loop keeps the book’s small cost and breaks its floor, while the scheme "
+            "keeps the floor at the larger cost."
+        ) in self.text
+
+    def test_lesson_6_s_six_figures_and_the_shift(self, result) -> None:
+        seeded, ens = result.declared, result.ensemble
+        verdicts = {
+            name: simulated_verdict(
+                getattr(seeded, name), printed, ens.band(name).holds(float(printed))
+            )
+            for _, name, _, printed in SIMULATED_ROWS
+        }
+        missed = ("drawdown_half", "drawdown_seventh", "cppi_growth", "full_growth")
+        assert verdicts == {
+            "drawdown_optimum": "reproduced with a gap, the seed",
+            **dict.fromkeys(missed, "did not reproduce"),
+            "full_drawdown": "reproduced",
+        }
+        assert all(float(p) < ens.band(n).low for _, n, _, p in SIMULATED_ROWS if n in missed)
+        words = {4: "Four", 6: "six"}
+        assert (
+            f"**{words[len(missed)]} of the book’s {words[len(verdicts)]} drawdowns and growth "
+            f"rates fall outside the middle {BAND[1] - BAND[0]:.0f} percent"
+        ) in self.text
+        assert (
+            "The drawdown at the optimum lands, and the declared seed’s value does not round to "
+            "the book’s, so it reproduced with a gap."
+        ) in self.text
+        assert (
+            "deeper in the book than anywhere in their bands, and both of the book’s growth "
+            "rates sit below theirs, so those four did not reproduce."
+        ) in self.text
+        assert f"The full account’s {signed(float(BOOK_FULL_DRAWDOWN), 1)} reproduced" in self.text
+        assert (
+            f"The {signed(float(BOOK_FULL_DRAWDOWN), 1)} lies inside its band, and it reproduced"
+        ) in self.text
+
+        landings = shifted_landings(result)
+        assert all(lands for number, _, _, lands in landings if number == "3")
+        misses = [printed for number, printed, _, lands in landings if not lands]
+        assert misses == [BOOK_DRAWDOWN_HALF]
+        assert "Only the drawdown at half the optimum still misses." in self.text
+        assert "moves all but the drawdown at half the optimum into their bands" in self.text
 
 
 class TestThePostsHelpers:

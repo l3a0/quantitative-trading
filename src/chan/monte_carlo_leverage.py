@@ -5,9 +5,10 @@ Chapter 8, at Kindle locations 3319 to 3438, makes that case on Example 5.1's
 AUD.CAD returns three ways. It fits a Pearson distribution to their first four
 moments, draws 100,000 returns from it and finds the leverage that maximizes
 the simulated growth rate. It finds the same leverage on the historical
-returns. And it shows that constant proportion portfolio insurance (CPPI),
+returns. And it claims that constant proportion portfolio insurance (CPPI),
 which trades only a slice of the account and refills that slice at each new
 high, keeps the drawdown above a set floor at almost no cost in growth.
+Neither of the two CPPI forms run here does both.
 
 **The transcription.** ``monteCarloOptimLeverage.m`` was read in the mirror
 [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview) at
@@ -116,12 +117,14 @@ returns the Kelly is 23.845328 and the historical optimum 23.721773, so the
 vintage explanation is spent and both rows did not reproduce. Row group 13
 holds the evidence for where 18.4 came from.
 
-1. :func:`implied_kelly_band` puts the Kelly of any daily series matching
-   Example 5.1's printed Sharpe ratio of 1.6 and APR of 11 percent, across
-   their rounding, between 21.56 and 26.76, when the APR compounds the log
-   growth ``m − σ²/2``. Compounding ``1 + m`` exactly moves the lower edge to
-   22.07, and the simple ``252·m`` moves it to 20.89, so the edge depends on
-   how the book annualized. None of the three reaches 18.4.
+1. :func:`implied_kelly_band` puts the Kelly of any daily series with a swing
+   under 10 percent matching Example 5.1's printed Sharpe ratio of 1.6 and APR
+   of 11 percent, across their rounding, between 21.56 and 26.76, when the APR
+   compounds the log growth ``m − σ²/2``. Compounding ``1 + m`` exactly moves
+   the lower edge to 22.07, and the simple ``252·m`` moves it to 20.89, so the
+   edge depends on the convention. Example 5.1's script, ``AUDCAD_unequal.m``,
+   compounds the daily returns themselves, which the log growth comes closest
+   to. None of the three reaches 18.4.
 2. The ensemble rerun with the draws' mean moved so that the Kelly is 18.4,
    which moves only λ, puts the median uncapped optimum at 18.470198 and
    lands four of the five simulated rows it reruns, row 3 under both its
@@ -142,14 +145,18 @@ returns on a method he chose. The run says whether his numbers reproduce on his
 file, and nothing about whether any leverage is safe to trade.
 
 **What the post added.** The post on these lessons,
-``blog/monte-carlo-leverage-lessons.md``, has one figure, which
-:mod:`chan.monte_carlo_leverage_figures` draws, since the run prints its
-figures and draws nothing. The figure reads the fit through
+``blog/monte-carlo-leverage-lessons.md``, has one chart, which
+:mod:`chan.monte_carlo_leverage_figures` draws, and two whiteboard sketches,
+which :mod:`chan.monte_carlo_leverage_whiteboard` draws, since the run prints
+its figures and draws nothing. The chart reads the fit through
 :func:`pearson_fit` and the Kelly through :func:`kelly`, the same functions the
 run uses. It reads each day's drawdown through :func:`account_drawdowns`, which
 shares :func:`chan.matlab_helpers.drawdown_path` with the run's
 :func:`max_drawdown`, and a test holds its least value equal to
-:func:`max_drawdown`'s. So the figure and the run cannot drift apart.
+:func:`max_drawdown`'s. The sketches read the same :func:`pearson_fit`,
+:func:`draws`, CPPI forms and :func:`account_drawdowns`, and
+:func:`minimum_below` too. So neither the chart nor the sketches can drift
+from the run.
 """
 
 from __future__ import annotations
@@ -418,8 +425,9 @@ def implied_kelly(sharpe: float, apr: float, days: int = TRADING_DAYS) -> float:
     moments. Together they give a quadratic in σ, whose smaller root is the
     daily σ of a strategy like Example 5.1's, and the Kelly is then ``S / (√days·σ)``.
 
-    The compounding is a choice the book does not state, and it moves the
-    result. Compounding ``1 + m`` exactly, or taking the simple ``days·m``,
+    The compounding is a choice, and it moves the result. Example 5.1's
+    script compounds the daily returns themselves, which this form comes
+    closest to on the saved file. Compounding ``1 + m`` exactly, or taking the simple ``days·m``,
     gives the Kelly ``S² / (days·m)`` with a different ``m``, and the tests
     measure how far each moves :func:`implied_kelly_band`.
     """

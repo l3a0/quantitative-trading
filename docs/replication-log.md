@@ -9411,8 +9411,9 @@ median of −0.0283 across the 579 stocks priced on every day the pairs read.
 PC1, PC2, PC4 and PC5 are above 0 and above the median stock. PC3 is above
 the median stock and below 0.
 
-The verdicts rest on little. PC2 alone sits outside the band a series of
-independent returns centred on zero stays inside 95 percent of the time, and
+The verdicts rest on little. PC2 alone sits outside the band where the
+statistic of a series of independent returns centred on zero, each no more
+likely to be large than any other day's, lands 95 percent of the time, and
 no factor survives a control for false discoveries across the five. Which
 factor misses also rests on one symbol. Dropping PMC, whose two price
 histories the program joins into one day's return of 1.8654, moves PC2 below
@@ -9453,7 +9454,9 @@ and seven of the issue's rules, each as the issue fixed it.
    holds that on three of the file's days. The price is that f is not the
    coefficient the program's regression returns. That coefficient would
    weight each day by 1/s_k², and nothing in the strategy weights days that
-   way.
+   way. The intercept is not a factor. It is added to every stock's expected
+   return alike, so it moves no position, which the issue's rule 6 fixed
+   with the others.
 3. **The statistic.** For each factor, the uncentred correlation of its
    pairs: the sum of f_t f_{t+1}, over the square root of the sum of f_t²
    times the sum of f_{t+1}². It is the ordinary correlation without
@@ -9554,7 +9557,7 @@ columns have nothing to hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | The claim holds for PC1, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's, under the criterion declared on the issue before any factor return was computed. It sits at 0.0316, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
-| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return, up or down, makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t measures that scatter. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
+| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return, up or down, makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t divides by a distance that comes from that scatter, which keeps it small. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
 | 3 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for PC3. Its −0.0189 is above the median stock's −0.0283 and below 0. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 to 5. The value is forced, because the log's two other verdicts both need the claim to survive. It sits inside row 10's band, so this miss could be noise as much as row 1's pass could. Without PMC its statistic rises to 0.0139, above both, and PC2 misses in its place under row 16, so which factor misses rests on one symbol. Two more causes outside the method are open and neither is measured: the file holds only survivors, and 2005 to 2008 is one window. |
 | 4 | reproduced | The claim holds for PC4, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0305, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
 | 5 | reproduced | The claim holds for PC5, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0710, just inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. Its pairs share a sign exactly as often as not, under row 9, so the positive statistic comes from its larger pairs agreeing in sign. |
@@ -9562,13 +9565,13 @@ columns have nothing to hold in any row and are dropped, under
 | 7 | none, not a replication | PC2 sits above 95.6822 percent of the stocks and PC3 above 55.0950 percent, so even the factor that misses is more persistent than the median stock on this file. |
 | 8 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. PC3 shows the other half: it is above the median stock and still below 0. That is a fact about this panel, and the criterion keeps both halves as declared. |
 | 9 | none, not a replication | Every share sits between 0.5000 and 0.5226. PC5's is exactly one half, which is the price rule 3 names: a few large days can carry the statistic. |
-| 10 | none, not a replication | Under a series of independent returns centred on zero, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
+| 10 | none, not a replication | Under a series of independent returns centred on zero, each no more likely to be large than any other day's, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
 | 11 | none, not a replication | The smallest p-value is PC5's 0.1021, so no factor would pass at 5 percent even tested alone, and Benjamini-Hochberg across the five rejects none. A sign flip moves no product, so it cannot move a t either. |
 | 12 | none, not a replication | The intercept is added to every stock's expected return alike, so it moves no position. Both of its figures are negative and inside row 10's band. |
 | 13 | none, not a replication | Without PMC the comparison set keeps the other 578 stocks, and the median is unchanged at four decimals. PC1 and PC4 rise, PC5 falls, PC2 falls below 0 and PC3 rises above it. |
 | 14 | none, not a replication | Every share stays between 0.5053 and 0.5199. The intercept's uncentred figure moves from −0.0395 to −0.0394, and its ordinary one stays at −0.0401. |
 | 15 | none, not a replication | Without PMC, PC1 and PC4 sit outside the band and PC2 returns inside it. Benjamini-Hochberg still rejects none, because no p-value clears its own threshold. The k-th smallest is held to k fifths of 0.05, so PC4's 0.0319, the smallest, is held to 0.01. |
-| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so this row moves no verdict. |
+| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so they stay as rows 1 to 5 give them, and this row replaces none. |
 
 ### What the entry concludes
 
@@ -9581,8 +9584,9 @@ Three things, and the first is the verdict.
    combined verdict.
 2. **The verdicts rest on little.** No factor survives a control for false
    discoveries across the five, and no p-value would pass at 5 percent even
-   alone. Four of the five sit inside the band a series of independent
-   returns centred on zero stays inside 95 percent of the time. PC2 sits
+   alone. Four of the five sit inside the band where the statistic of a
+   series of independent returns centred on zero, each no more likely to be
+   large than any other day's, lands 95 percent of the time. PC2 sits
    outside it and still has a one-sided p-value of 0.2046.
 3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
    0 and PC3 rises above it, so the criterion would miss PC2 instead.
@@ -9623,9 +9627,10 @@ moves with it too, since that post quotes most of them. It also quotes what
 the write-up measured after the run, which `TestWhatThePostMeasured` in
 [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
 pins and which decides nothing. It quotes how often each factor's weights
-flip sign once each vector's largest weight is made positive, and that every
-flip left falls on a day the largest weight moves to another stock or two
-factors swap rank. Those pins also count how often they swap rank from day to
+flip sign once each vector's largest weight in size is made positive, and that all but
+five of those flips move the largest weight to a stock the earlier day weighed
+below zero. The five left fall on days two or more factors swap rank. Those
+pins also count how often they swap rank from day to
 day, and give the statistic on three other ways of reading tomorrow's factor return and on
 a 251-day window that still holds today's return. They read PMC's weight on
 the 113 days from 2007-08-02 to 2008-01-11 whose window holds its one large
@@ -9635,7 +9640,14 @@ statistic, which carry PC1's without PMC. Its one figure, which
 redraws, moves with them. The factor models post's Lesson 3 whiteboard
 sketch, which draws a sign flip in one day's weights changing both members of
 a pair, is schematic and draws none of these figures, and
-`uv run python -m chan.factor_models_whiteboard` redraws it.
+`uv run python -m chan.factor_models_whiteboard` redraws it. The PCA factor
+momentum post's two whiteboard sketches draw some of them. The window sketch draws PC2's statistic
+four ways: on tomorrow's own weights matched, with today left out, on the 251
+days that still hold today, and as the pair reads it. The rank shift sketch
+draws PMC's weight on PC1, the days PMC carries PC1, the two days' shares of
+PC2's squared products and of PC1's without PMC, and PC2's statistic with PMC
+and without. They move with a re-pin of any of those, and
+`uv run python -m chan.pca_factor_momentum_whiteboard` redraws them.
 
 ## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
 
@@ -9778,9 +9790,9 @@ on his file, and nothing about whether any leverage is safe to trade.
 | 8 | `calculateMaxDD` at f on the declared seed, and its band | −0.991276, band −0.999256 to −0.979930 | `TestRows8To10TheDrawdowns::test_seeded_and_banded` |
 | 9 | The same at f / 2 | −0.871216, band −0.922292 to −0.763269 | the same |
 | 10 | The same at f / 7 | −0.416419, band −0.468433 to −0.302281, at a leverage of 2.857143 | the same, and `::test_row_10_falls_outside_its_band` |
-| 11 | Box 8.6's growth and the full account's at f·D, their bands, and how far the first falls short | 0.003224, band 0.002913 to 0.003577, against 0.003271, band 0.002955 to 0.003623. CPPI falls short of the full account by 0.014469 of it, and by less than 0.02 on every seed. The book's own two differ by 0.016238 | `TestRow11TheGrowthRates::test_seeded_and_banded`, `::test_the_claim_holds_on_the_declared_seed_and_every_seed` and `::test_the_book_s_own_two_figures_differ_by_1_6_percent` |
+| 11 | Box 8.6's growth and the full account's at f·D, their bands, and how far the first falls short | 0.003224, band 0.002913 to 0.003577, against 0.003271, band 0.002955 to 0.003623. Box 8.6's loop falls short of the full account by 0.014469 of it, and by less than 0.02 on every seed. The book's own two differ by 0.016238 | `TestRow11TheGrowthRates::test_seeded_and_banded`, `::test_the_claim_holds_on_the_declared_seed_and_every_seed` and `::test_the_book_s_own_two_figures_differ_by_1_6_percent` |
 | 12 | The full account's drawdown at f·D, and each CPPI form's account drawdown | −0.871216, the same figure as row 9, since f·D is f / 2. Box 8.6's loop gives −0.848088, band −0.902235 to −0.742510, and stays above −0.5 on 0 of 200 seeds. Location 3426's CPPI gives −0.495638, band −0.499628 to −0.489965, and stays above −0.5 on 200 of 200 | `TestRow12TheDrawdownCppiCaps` |
-| 13 | The Kelly of any daily series with a Sharpe ratio of 1.55 to 1.65 and an APR of 10.5 to 11.5 percent, under three compoundings, and the ensemble with the draws' mean moved so the Kelly is 18.4 | Kelly 21.558894 to 26.757652 when the APR compounds the log growth m − σ²/2, 22.065999 to 27.261771 when it compounds 1 + m exactly, and 20.891304 to 25.928571 when it is the simple 252·m. At a Sharpe ratio of 1.6, a Kelly of 18.4 needs an APR of 0.139130, 0.144937 or 0.149230 under the three. With the mean moved, λ is −1.222510e-03, the median uncapped optimum is 18.470198, 8 of 200 seeds sit on the cap, and rows 3, 8, 10 and 11 land. Row 3's band runs 17.514982 to 20.017014 on the 39 seeds whose ruin leverage is above 30.2, and 16.339353 to 19.905622 on all 200. Row 9's band runs −0.953551 to −0.823942 | `TestRowGroup13TheEighteenPointFourGap` |
+| 13 | The Kelly of a daily series with a swing under 10 percent, a Sharpe ratio of 1.55 to 1.65 and an APR of 10.5 to 11.5 percent, under three compoundings, and the ensemble with the draws' mean moved so the Kelly is 18.4 | Kelly 21.558894 to 26.757652 when the APR compounds the log growth m − σ²/2, 22.065999 to 27.261771 when it compounds 1 + m exactly, and 20.891304 to 25.928571 when it is the simple 252·m. At a Sharpe ratio of 1.6, a Kelly of 18.4 needs an APR of 0.139130, 0.144937 or 0.149230 under the three. With the mean moved, λ is −1.222510e-03, the median uncapped optimum is 18.470198, 8 of 200 seeds sit on the cap, and rows 3, 8, 10 and 11 land. Row 3's band runs 17.514982 to 20.017014 on the 39 seeds whose ruin leverage is above 30.2, and 16.339353 to 19.905622 on all 200. Row 9's band runs −0.953551 to −0.823942 | `TestRowGroup13TheEighteenPointFourGap` |
 | 14 | The type IV's parameters | m 3.254731, ν −0.897242, a 7.819013e-03 and λ −1.123894e-03, so moments exist only below order 5.509462 | `TestTheSampler::test_the_parameters` and `::test_moments_exist_only_below_order_5_51` |
 | 15 | The uncapped optimum, and the seeds whose ruin leverage is below 20 | 22.295382 on the declared seed, band 16.622019 to 24.865122 across all 200. 42 of 200 seeds, against an exact chance of 0.149180, or 29.8 seeds. The 42 sit 2.414274 binomial standard errors above that, and 42 or more has an exact chance of 0.012871 | `TestRows3And4TheSimulatedOptimum::test_the_declared_seed_s_uncapped_optimum`, `TestRow5TheMinimumAndTheRuinLeverage::test_the_share_of_seeds_ruined_below_the_cap` and `TestWhatThePostMeasured::test_42_seeds_ruined_below_the_cap_sit_2_4_standard_errors_above_the_exact_chance` |
 | 16 | Location 3426's CPPI at f with D = 0.5 | growth 0.002436, band 0.002321 to 0.002814, which is 0.255285 below the full account's at f·D. Account drawdown −0.495638, band −0.499628 to −0.489965, as in row 12 | `TestBesideTheReplication::test_cppi_as_described_costs_about_a_quarter_of_the_growth` |
@@ -9803,8 +9815,8 @@ six decimals the book prints.
 | 8 | +0.008 | reproduced with a gap | −0.999 lies inside the band. The seed is the cause. |
 | 9 | +0.092, outside its band | did not reproduce | −0.963 is deeper than the band's bottom of −0.922292. |
 | 10 | +0.1, outside its band | did not reproduce | −0.5 is deeper than the band's bottom of −0.468433. The declared seed's leverage of 2.857143 is the cap over 7, where the book's 2.7 is 19.2 over 7. |
-| 11 | +0.000740 and +0.000746, outside both bands | did not reproduce, and the claim holds | Both of the book's growth rates sit below their bands. The claim that the two are "very similar" holds, since CPPI falls short of the full account by 1.4 percent on the declared seed and by less than 2 percent on all 200. |
-| 12 | +0.0, and none for the claim | reproduced for the full account's 0.9 and for the claim on location 3426's CPPI. Did not reproduce for the claim on Box 8.6's loop | −0.871216 rounds to the book's −0.9 at its one decimal. It is the drawdown row 9 judges, because f·D is f / 2 when D is 0.5, and `TestRow12TheDrawdownCppiCaps::test_at_d_one_half_row_12_s_full_account_is_row_9` holds the two equal on every seed. So the −0.9 lands only because one decimal covers anything from −0.95 to −0.85. The book's −0.963 for the same quantity does not round to −0.9, so its two prints probably come from different runs. The book reports at least two, the 19 at location 3342 and the 19.2 at location 3399, and location 3438 gives its growth rates "in one simulation". The CPPI the prose describes stays above −0.5 on every seed, with a band of −0.499628 to −0.489965. The loop the book prints falls below −0.5 on every seed, so the code Chan shows does not do what the sentence before it says. |
+| 11 | +0.000740 and +0.000746, outside both bands | did not reproduce, and the claim holds | Both of the book's growth rates sit below their bands. The claim that the two are "very similar" holds, since Box 8.6's loop falls short of the full account by 1.4 percent on the declared seed and by less than 2 percent on all 200. |
+| 12 | +0.0, and none for the claim | reproduced for the full account's 0.9 and for the claim on location 3426's CPPI. Did not reproduce for the claim on Box 8.6's loop | −0.871216 rounds to the book's −0.9 at its one decimal. It is the drawdown row 9 judges, because f·D is f / 2 when D is 0.5, and `TestRow12TheDrawdownCppiCaps::test_at_d_one_half_row_12_s_full_account_is_row_9` holds the two equal on every seed. So the −0.9 reproduced, rather than reproducing with a gap, because one decimal covers anything from −0.95 to −0.85. The book's −0.963 for the same quantity does not round to −0.9, so its two prints probably come from different runs. The book reports at least two, the 19 at location 3342 and the 19.2 at location 3399, and location 3438 gives its growth rates "in one simulation". The CPPI the prose describes stays above −0.5 on every seed, with a band of −0.499628 to −0.489965. The loop the book prints falls below −0.5 on every seed, so the code Chan shows does not do what the sentence before it says. |
 | 13 | none | none, not a replication | No series matching Example 5.1's printed figures has a Kelly of 18.4, under any of the three compoundings. Moving the draws' mean to a Kelly of 18.4 lands rows 3, 8, 10 and 11, and lands row 3 under the declared band and the one row 3 now reads. |
 | 14 | none | none, not a replication | Moments exist only below order 5.51, so a draw's sample skewness has infinite variance. That is why the tests check the tail and the draws' mean and std rather than a draw's third and fourth moments. |
 | 15 | none | none, not a replication | The ruin leverage cut the capped search on 42 seeds. The exact chance gives 29.8. The count of 42 is 2.4 binomial standard errors above it, and a count of 42 or more has a chance of about 1.3 percent. |
@@ -9869,18 +9881,22 @@ returns, with a Kelly near 18.4, that neither mirror holds. It cannot tell when
 or how that series differed from the saved file. That is an inference rather
 than a held vintage, and row 13 is what it rests on.
 
-1. **No series matching Example 5.1's printed figures reaches 18.4, however
-   its APR compounds.** The Kelly is the Sharpe ratio per day over the daily
-   standard deviation, and an APR fixes that deviation once the Sharpe ratio
-   is given. Across the rounding of the printed 1.6 and 11 percent, the Kelly
-   runs from 21.558894 to 26.757652 when the APR compounds the log growth
-   m − σ²/2, which is what `implied_kelly` assumes. Compounding 1 + m exactly
-   moves the lower edge to 22.065999, and taking the APR as a simple 252·m
-   moves it to 20.891304. So the edge depends on a convention the book does
-   not state, and none of the three reaches 18.4. At a Sharpe ratio of 1.6, a
-   Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across the three. So
-   that series disagreed with Example 5.1's own printed figures as well as
-   with the saved file.
+1. **No series matching Example 5.1's printed figures reaches 18.4, under any
+   of three ways its APR compounds.** The Kelly is the Sharpe ratio per day
+   over the daily standard deviation, and an APR fixes that deviation once the
+   Sharpe ratio is given and the compounding is chosen. The log growth leaves
+   two deviations, one near 20 percent a day with a Kelly near 0.5, so the
+   smaller is the one used. Across the rounding of the printed 1.6 and 11
+   percent, the Kelly runs from 21.558894 to 26.757652 when the APR compounds
+   the log growth m − σ²/2, which is what `implied_kelly` assumes. Compounding
+   1 + m exactly moves the lower edge to 22.065999, and taking the APR as a
+   simple 252·m moves it to 20.891304. So the edge depends on the convention,
+   and none of the three reaches 18.4. Example 5.1's script,
+   `AUDCAD_unequal.m`, compounds the daily returns themselves, which on the
+   saved file gives 0.112410 against the log growth's 0.112426. At a Sharpe
+   ratio of 1.6, a Kelly of 18.4 needs an APR of 13.9 to 14.9 percent across
+   the three. So that series disagreed with Example 5.1's own printed figures
+   as well as with the saved file.
 2. **A Kelly near 18.4 lands most of the chapter's simulated figures.** Moving
    the draws' mean so that the Kelly is 18.4 moves only λ. On the same 200
    seeds it puts the median uncapped optimum at 18.470198 and lands rows 3,
@@ -9902,14 +9918,14 @@ Four things. The last was measured by the write-up after the run, and
 [tests/test_monte_carlo_leverage.py](../tests/test_monte_carlo_leverage.py)
 pins it, along with the 2.4 standard errors in row 15.
 
-1. **The book's Kelly and historical optimum of 18.4 belong to a series
-   nobody holds.** Chan's own saved returns give 23.845328 and 23.721773.
-   Any series matching Example 5.1's printed Sharpe ratio and APR gives at
-   least 21.558894 when the APR compounds the log growth, and at least
-   20.891304 under the simplest of the three compoundings row 13 tries. The
-   claims the figures were printed to support still hold: the historical
-   optimum is within 0.52 percent of the Kelly, and the Kelly lies inside the
-   simulated optimum's band under either rule.
+1. **The book's Kelly and historical optimum of 18.4 belong to a series nobody
+   holds.** Chan's own saved returns give 23.845328 and 23.721773. Any series
+   matching Example 5.1's printed Sharpe ratio and APR, with a daily swing
+   under 10 percent, gives at least 21.558894 when the APR compounds the log
+   growth, and at least 20.891304 under the simplest of the three compoundings
+   row 13 tries. The claims the figures were printed to support still hold:
+   the historical optimum is within 0.52 percent of the Kelly, and the Kelly
+   lies inside the simulated optimum's band under either rule.
 2. **The growth-optimal leverage brings a drawdown near total loss on this
    file too.** At the optimum the declared seed's drawdown is −0.991276, and
    the book's −0.999 lands in the band. At half the optimum the drawdown is
@@ -9918,14 +9934,14 @@ pins it, along with the 2.4 standard errors in row 15.
    rule chosen after the ensemble was seen. Row 13 ties all of them but row 9
    to the book's draws having a lower mean than this file's.
 3. **Box 8.6's loop is not the CPPI location 3426 describes, and only the
-   description keeps the floor.** The loop shrinks the order as the
-   unlevered returns fall rather than as the account falls, so the account
-   can fall further than D. It did on all 200 seeds, to −0.848088 on the
-   declared one. The described scheme stays above −0.5 on every seed, at a
-   cost of about a quarter of the growth, 0.255285 on the declared seed. So
-   the book's pairing of a growth cost near 1.6 percent with a drawdown "by
-   design" under 0.5 holds for neither form here. The loop gives the first and
-   not the second, and the scheme gives the second and not the first.
+   description keeps the floor.** The loop shrinks its leverage as the
+   unlevered returns fall rather than as the account falls, so the account can
+   fall further than D. It did on all 200 seeds, to −0.848088 on the declared
+   one. The described scheme stays above −0.5 on every seed, at a cost of
+   about a quarter of the growth, 0.255285 on the declared seed. So the book's
+   pairing of a growth cost near 1.6 percent with a drawdown "by design" under
+   0.5 holds for neither form here. The loop gives the first and not the
+   second, and the scheme gives the second and not the first.
 4. **The draws reach deeper than the history because there are more of
    them, and that decides where the Kelly stands.** The least of the 612
    saved returns is −0.022031, a ruin leverage of 45.390502, and the declared
@@ -9974,6 +9990,30 @@ figure, which `uv run python -m chan.monte_carlo_leverage_figures` redraws.
 [blog/aud-cad-johansen-lessons.md](../blog/aud-cad-johansen-lessons.md) moves
 with it too, since its Lesson 1 states what
 `TestRowGroup13TheEighteenPointFourGap` found.
+
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing. Both draw on the declared seed, and the first also
+on Chan's saved returns.
+
+1. **The least of many draws goes deeper**, in Lesson 4. Three rows of dots on
+   one return scale show every value below −0.012 among Chan's 612 saved
+   returns, the first 612 draws and all 100,000. The saved returns' least,
+   −0.022031, is a dashed line through the rows. The first 612 draws stop
+   short of it, and the least of 612 draws from the fit reaches it with a
+   chance of 0.091663. The least of all 100,000, −0.043071, is 1.9550 times
+   as deep, with about 163 times as many draws.
+2. **Box 8.6's loop barely cuts its leverage**, in Lesson 5. Each form's
+   leverage on its account, one point a day, runs from the day after the
+   account's high on day 169 to day 303, the loop's first day below −0.5.
+   Both start at f·D, 10. The loop ends at 9.47, 10 times one plus the
+   unlevered returns' drawdown through day 302, 0.946693, with its account's
+   drawdown at −0.504523 on day 303. The scheme on p. 263 ends at 3.46, with
+   its account's drawdown at −0.407605.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.monte_carlo_leverage_whiteboard` redraws both through
+the same `read_returns`, `pearson_fit`, `draws`, `optimal_leverage`, CPPI
+functions, `account_drawdowns` and `minimum_below`.
 
 ## Entry 44: the Khandani-Lo reversal on the S&P 600, Chan's *Quantitative Trading*
 
