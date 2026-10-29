@@ -621,8 +621,8 @@ class TestWhatThePostQuotes:
        days that move the same rounding. The two days the runs differ on,
        2006-04-27 and 2006-04-28, are read where the run with no signal is
        set beside the script and again where the post names them as the
-       opening short's first two returns, and 2006-04-27 once more where
-       the first return falls.
+       opening short's first two returns, and 2006-04-27 twice more, where
+       row 2 is worked and where the first return falls.
     3. **Lesson 3.** The 57 of 1,250 and the 513 of 1,499 are read in the
        prose and in the grain table. The intercept's last value, 6.767360, is
        read where the intercept peaks. The whole-file regression's 0.9624 and
