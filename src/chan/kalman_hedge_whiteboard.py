@@ -26,8 +26,8 @@ places each right after the passage it draws.
    on rows 1 and 2 they all but vanish beside an error the size of the close.
    Words under the columns say what the rule held: a short in EWC alone on
    row 1, which earns the first nonzero return on 2006-04-27, a slope that
-   moves off 0 only after row 2's forecast, and a forecast that means
-   something from row 3.
+   moves off 0 only after row 2's forecast, and row 3's forecast made with
+   that slope, the one row 2's update left.
 
 Neither sketch is schematic. Every figure either one draws is read from
 :func:`chan.kalman_hedge.kalman_hedge` on the committed file through
@@ -549,11 +549,14 @@ def _zero_start(zero: ZeroStart) -> Scene:
         ),
     ]
     steps += _column(2, zero.rows[2]) + [
+        Label("forecast uses", COLUMN_X[2] - 0.3, WORDS_Y[0], names="error-2", color=INK, size=11),
         Label(
-            "the forecast now", COLUMN_X[2] - 0.3, WORDS_Y[0], names="error-2", color=INK, size=11
-        ),
-        Label(
-            "means something", COLUMN_X[2] - 0.3, WORDS_Y[1], names="error-2", color=INK, size=11
+            f"slope {two.slope:.6f}",
+            COLUMN_X[2] - 0.3,
+            WORDS_Y[1],
+            names="error-2",
+            color=INK,
+            size=11,
         ),
     ]
     return Scene("Two rows on a forecast of 0", "zero_start", tuple(steps))

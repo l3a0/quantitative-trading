@@ -134,8 +134,8 @@ ZERO_LABELS = [
     "error 0.85",
     "band ±0.167334",
     "row 3, 2006-04-28",
-    "the forecast now",
-    "means something",
+    "forecast uses",
+    "slope 1.366666",
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -690,6 +690,14 @@ class TestTheZeroStartSketch:
         assert every[1].title == "Two rows on a forecast of 0"
         assert every[1].labels == ZERO_LABELS
 
+    def test_row_3s_words_name_the_slope_its_forecast_uses(self, every, run) -> None:
+        """Row 3's forecast is made from the slope and intercept row 2's update
+        left, so the slope under its column is row 2's, read from the filter."""
+        x, y, f, _ = run
+        assert y[2] - f.error[2] == pytest.approx(f.slope[1] * x[2] + f.intercept[1], abs=1e-12)
+        assert every[1].labels[-2:] == ["forecast uses", f"slope {f.slope[1]:.6f}"]
+        assert f"{f.slope[1]:.6f}" == "1.366666", SPEC
+
     def test_only_row_1_says_ewc_alone(self, every) -> None:
         scene = every[1]
         alone = [s for s in scene.steps if isinstance(s, Label) and "alone" in s.text]
@@ -714,15 +722,21 @@ class TestTheZeroStartSketch:
             "band": ACCENT,
             "row": MUTED,
         }
+        strip = {
+            "slope 0 → 1.366666,",
+            "after the forecast",
+            "forecast uses",
+            "slope 1.366666",
+        }
         for text in ZERO_LABELS:
             label = _label(scene, text)
             word = text.split()[0]
-            if word in colours:
+            if word in colours and text not in strip:
                 assert label.color == colours[word], text
         assert _label(scene, "short EWC alone, 0 EWA shares").color == LOST
         assert _label(scene, "+0.74% on 2006-04-27").color == GOOD
-        for text in ("slope 0 → 1.366666,", "after the forecast", "the forecast now"):
-            assert _label(scene, text).color == INK
+        for text in strip:
+            assert _label(scene, text).color == INK, text
 
     def test_every_column_is_drawn_on_one_dollar_scale(self, every, zero) -> None:
         """Each dot, bar end and hairline sits at :func:`dollar_y` of its
@@ -772,6 +786,7 @@ class TestTheZeroStartSketch:
         assert _label(scene, "long EWC alone, 0 EWA shares").color == GOOD
         assert _label(scene, "-1.20% on 2001-01-03").color == LOST
         assert "slope 0 → 0.800000," in scene.labels
+        assert scene.labels[-2:] == ["forecast uses", "slope 0.800000"]
         assert "forecast 8.00" in scene.labels and "band ±0.200000" in scene.labels
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
