@@ -618,14 +618,15 @@ where they were first built. The other forty-five were built here.
     0.0778, −0.0189, 0.0305 and 0.0710, against a median of −0.0283 across
     the 579 stocks priced on every day the pairs read. The claim holds for
     PC1, PC2, PC4 and PC5, and does not hold for PC3, which is above the
-    median stock but below 0. PC2 alone is outside the ±0.0715 band a series
-    of independent returns centred on zero stays inside 95 percent of the
-    time, and no factor survives Benjamini-Hochberg at q = 0.05, a control
+    median stock but below 0. PC2 alone is outside the ±0.0715 band where the
+    statistic of a series of independent returns centred on zero, each no more
+    likely to be large than any other day's, lands 95 percent of the time, and
+    no factor survives Benjamini-Hochberg at q = 0.05, a control
     for false discoveries across the five, so any verdict could be noise.
     PMC is one symbol whose two price histories join into one day's return.
     Without it, PC2 falls to −0.0152 and PC3 rises to 0.0139, so which
     factor misses rests on that symbol. Measured after the run, a series rebuilt from each day's own
-    weights, with each vector's sign set so its largest weight is positive,
+    weights, with each vector's sign set so its largest weight in size is positive,
     would read PC2 at −0.1105, and −0.0161 with sign and rank matched
     to today's. Fitting tomorrow's weights on a window that leaves today's
     return out brings it to 0.0776.
@@ -1345,9 +1346,10 @@ equal to the program's fitted slope times its singular value. On synthetic
 returns it holds that a flipped vector moves no statistic, that a steady value
 counts as persistence, and the Benjamini-Hochberg step-up. It holds what the
 write-up measured after the run too. Those pins count how often each factor's
-weights flip sign once each vector's largest weight is made positive, check
-that every flip left falls on a day the largest weight moves to another stock
-or two factors swap rank, and count how often they swap rank. They give the
+weights flip sign once each vector's largest weight in size is made positive,
+check that all but five of those flips move the largest weight to a stock the
+earlier day weighed below zero and that the five left fall on days two or more
+factors swap rank, and count how often they swap rank. They give the
 statistic when tomorrow's return is read on tomorrow's own weights, matched,
 fitted on 251 days that leave today out, and fitted on the 251 days ending
 today as the control. They read PMC's weight on the days whose window holds
@@ -7970,8 +7972,9 @@ lessons from Entry 42 of the replication log.
 
 1. A factor re-estimated every day has no fixed sign, and tomorrow's weights
    have already seen today's return. With each sign fixed by a rule, signs
-   still flip on 1, 14, 6, 22 and 24 of 752 days, all but three where the
-   largest weight moves to another stock, and ranks swap on 15. On tomorrow's
+   still flip on 1, 14, 6, 22 and 24 of 752 days, all but five where the
+   largest weight moves to a stock the earlier day weighed below zero, and
+   ranks swap on 15. On tomorrow's
    own weights PC2 reads −0.1105, matched −0.0161, and on weights fitted
    without today 0.0776, beside the test's 0.0778. A 251-day window that
    still holds today reads −0.0158, like the matched row.
@@ -7986,8 +7989,8 @@ lessons from Entry 42 of the replication log.
 5. One spliced symbol decides which factor misses. A top-five factor weighs
    PMC at 0.5939 or more on each of the 113 days whose window holds its one
    large return and that have a next day. PMC takes PC1 through 2007-08-10,
-   so PC2's two large days belong to the factor that is PC1 without PMC, and
-   without PMC the miss moves from PC3 to PC2.
+   so on PC2's two large days the factor that would be PC1 without PMC sits
+   in PC2's place, and without PMC the miss moves from PC3 to PC2.
 
 Four groups of what it says are not pinned here.
 
@@ -8002,34 +8005,49 @@ Four groups of what it says are not pinned here.
    the week Khandani and Lo studied, and that the revised MATLAB prints
    Chan's 2 percent a year before costs.
 3. Readings and arithmetic no test asserts: that the band is right only when a
-   large return makes a large one the next day no more likely, that the
-   library's own signs flipped on about half the days on the two machines that
-   ran the checks and disagreed about which, which no test pins because it
-   depends on the library, that a principal component's rank can change from
-   day to day in general, the closed form of the slope and intercept written
-   out in Lesson 3, that the positions chosen on day t earn day t + 1's
-   return, 5/√70 written as positive, 1.8654 written as 186.54 percent, a
-   fifth of 5 percent written as 0.01, the same-sign shares called close to a
-   coin toss, that PC1 is the factor that moves the whole market, that
-   2007-08-09 and 2007-08-10 are what put PC2 outside the band, and that the
-   window's effect on PC2 is not explained. The figure's alt text reads its
-   curve approximately too.
+   large return makes a large one the next day no more likely, that its 95
+   percent also needs every return to be no more likely to be large than any
+   other, as well as independent, that the library's own signs flipped on about
+   half the days on the two machines that ran the checks and disagreed about
+   which, which no test pins because it depends on the library, that a
+   principal component's rank can change from day to day in general, the closed
+   form of the slope and intercept written out in Lesson 3, that the Newey-West
+   t divides by a distance that comes from the products' scatter, that the
+   band's width depends only on the number of pairs, that the file was saved
+   the day after its last close, that the positions chosen on day t earn day t
+   + 1's return, that a factor's part of the forecast leans them short its
+   portfolio after it falls, and that the other factors' parts can outweigh it,
+   the same-sign shares called close to a coin toss, that the sum of squared
+   products measures how widely the products scatter, that of the sign, the
+   rank and the window only leaving today's return out moves a factor across 0,
+   putting PC2 and PC4 above it, that PC2's two large products also widen the
+   products' scatter, that a test on the slope the regression fits would weight
+   each day by 1/sₖ², that Newey-West's adjustment for neighbouring days widens
+   the measure when their products move together and narrows it when they move
+   in opposite directions, that 2007-08-09 and 2007-08-10 are what put PC2
+   outside the band, and that nothing here measures why a window holding
+   today's return pushes PC2 so far. The figure's alt text reads its curve
+   approximately too.
 4. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py), to
 `TestTheSplice` in [tests/test_pca_factor.py](tests/test_pca_factor.py) for
-PMC's 1.8654 and its 851 days, or to
+PMC's 1.8654 and its 851 days, to
 [tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
-for the figure's own labels. `TestWhatThePostMeasured` holds the ones that had
-no pin before it, all measured after the run.
+for the figure's own labels, or to
+[tests/test_pca_factor_momentum_whiteboard.py](tests/test_pca_factor_momentum_whiteboard.py)
+for the sketches' labels and the alt texts that quote them.
+`TestWhatThePostMeasured` holds the ones that had no pin before it, all
+measured after the run.
 
-1. Each factor's sign flips once every vector's largest weight is made
-   positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
+1. Each factor's sign flips once every vector's largest weight in size is
+   made positive, 1, 14, 6, 22 and 24 of 752 days, and the 15 days two or more
    factors swap rank, over 753 decompositions. The stock holding the largest
-   weight moves on 1, 14, 6, 20 and 23 of those flips, and the three left,
-   PC4 on 2005-06-15 and 2007-06-29 and PC5 on 2007-08-01, fall on days two
-   or more factors swap rank.
+   weight moves on 1, 14, 6, 20 and 23 of those flips, and to a stock the
+   earlier day weighed below zero on 1, 14, 5, 19 and 23. The five left, PC3
+   on 2005-06-15, PC4 on 2005-06-15, 2007-06-29 and 2007-08-01, and PC5 on
+   2007-08-01, fall on days two or more factors swap rank.
 2. The statistic on tomorrow's own weights under the same rule, 0.0326,
    −0.1105, −0.0283, −0.0315 and 0.0025, matched, 0.0246, −0.0161, −0.0318,
    −0.0285 and 0.0768, and on weights fitted on the 251 days that leave today
@@ -8042,14 +8060,43 @@ no pin before it, all measured after the run.
    0.5939 on each, and PC2 carrying it on 103, PC1 on 7 and PC3 on 3. PC1
    carries it on the first seven, through 2007-08-10, at a weight between
    0.9144 and 0.9223, and PC2 from 2007-08-13. Without PMC, 2007-08-09 and
-   2007-08-10 hold 0.9461 of the sum of PC1's squared products, and on both
-   days PC2 with PMC overlaps PC1 without it at 0.98 or more in size.
+   2007-08-10 hold 0.9461 of the sum of PC1's squared products, and on each
+   of the seven days PMC carries PC1, from 2007-08-02 to 2007-08-10, PC2 with
+   PMC overlaps PC1 without it at 0.98 or more in size.
 4. The ranking without the intercept agreeing on all 752 days t.
 5. No stock tying any factor, the nearest 1.06e-04 away with PMC and 3.85e-05
    without.
 6. The two days, 2007-08-09 and 2007-08-10, holding 0.9704 of the sum of
-   PC2's squared products.
-7. The steady series' 0.9798 uncentred against −0.8 centred.
+   PC2's squared products and 0.8910 of the sum of its products.
+
+`TestTheRules` holds Lesson 2's two worked series, the pair 1, 2, 3 and 2, 0, 1
+at 5/√70 uncentred against −0.5 centred, and the steady series 1, 1.2, 0.9,
+1.1, 1.0 at 0.9798 uncentred against −0.8 centred. It also holds Lesson 3's
+statement that each weight vector sums to zero across the stocks.
+
+`TestWhatThePostQuotes` in the same file reads the post itself. It builds
+each figure from the run, the file or a module constant at the precision the
+post prints it, and checks one copy of it, in six places.
+
+1. The section on how the test works: the file, the decomposition, the first
+   day, the pair count, the criterion and the comparison set.
+2. Lesson 1's counts of flips and swaps, the 251-day window listed before its
+   table, the table rebuilt whole, and the two paragraphs after it.
+3. Lesson 2's two worked series, PC2's two days and their two shares, and
+   the same-sign shares.
+4. Lesson 3's count of checked days and the intercept's two figures.
+5. Lesson 4's table rebuilt whole, its quartiles, its verdicts and its three
+   points.
+6. Lesson 5's splice, its weights on PMC, the three sentences before its
+   table, among them that every window holds PMC, the table rebuilt whole and
+   the two paragraphs after it.
+
+Every factor those sentences name, and each count they spell out, comes from
+the run too. A second copy of a figure is not read, such as the 752 days t in
+Lesson 3 or the two dates in Lesson 4's second point, and neither are the
+"four of" five in the title, the subtitle and Lesson 4's heading, Chan's 2
+percent, the figure's alt text and caption, the closing habits, the page
+numbers and the references.
 
 Its one figure is drawn from the committed file by
 [src/chan/pca_factor_momentum_figures.py](src/chan/pca_factor_momentum_figures.py),
@@ -8071,6 +8118,50 @@ uv run python -m chan.pca_factor_momentum_figures
 [tests/test_pca_factor_momentum_figures.py](tests/test_pca_factor_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/pca_factor_momentum_whiteboard.py](src/chan/pca_factor_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+draws.
+
+1. `pca_factor_momentum_sketch_window.gif`, in Lesson 1, draws one day axis
+   from t − 252 to t + 1 and three windows over it: day t's weights on the
+   252 days to t − 1, day t + 1's on the 252 days to t, which hold today's
+   return, and tomorrow's weights on the 251 days that leave today out. Its
+   foot prints PC2's −0.0161 matched, 0.0776 with today left out and the
+   pair's 0.0778, and in grey the −0.0158 of 251 days that still hold today.
+2. `pca_factor_momentum_sketch_rank_shift.gif`, in Lesson 5, draws three
+   slots for PC1 to PC3. Without PMC the usual PC1 sits first. With PMC, from
+   2007-08-02 to 2007-08-10, a box that is mostly PMC, at a weight of 0.9144
+   to 0.9223, takes the first slot and pushes the usual PC1 into the second.
+   Beside the slots, 2007-08-09 and 2007-08-10 stand as two red bars at their
+   shares of PC2's squared products, 97.04 percent together, beside one grey
+   bar for the other 750 days. Its foot gives the 94.61 percent the same two
+   days hold of PC1's without PMC, and PC2's 0.0778 with PMC and −0.0152
+   without.
+
+Neither is schematic in its figures. Every number either prints is read from
+the run, and the rank shift's bars stand at each day's share to one scale.
+The window sketch's axis skips from t − 251 to t − 1, so it is not to scale,
+and the slots carry no figure of their own. Both build more slowly than the
+USD.CAD post's sketches and hold their finished drawings for twelve seconds,
+because each carries more than that pace lets a reader take in. Both draw in
+the shared inks, as the post's chart does. A redraw runs the decompositions
+the figures come from, about a minute:
+
+```bash
+uv run python -m chan.pca_factor_momentum_whiteboard
+```
+
+[tests/test_pca_factor_momentum_whiteboard.py](tests/test_pca_factor_momentum_whiteboard.py)
+pins both sketches' figures, so it runs without the decompositions, and
+`test_the_whiteboard_draws_this_runs_figures` in
+[tests/test_pca_factor_momentum.py](tests/test_pca_factor_momentum.py) holds
+that the run gives them. The sketch tests also hold that each bracket covers the rows
+`decompose` reads for it, that each box sits in its slot and each bar at its
+share, what each sketch says and in which colour, that figures the words would
+misdescribe are refused, that each GIF follows its paragraph in the post, and
+that each alt text quotes every label in drawing order.
 
 [blog/monte-carlo-leverage-lessons.md](blog/monte-carlo-leverage-lessons.md)
 is a forty-second post, about Chapter 8 of Chan's *Algorithmic Trading*,
