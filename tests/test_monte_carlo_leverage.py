@@ -893,8 +893,9 @@ def _fixed(value: float, places: int = 6) -> str:
 
 # A search stops within about 3e-7 of an optimum, so a figure that rests on one
 # can print a different sixth decimal on another machine. CI's runner printed
-# the Lesson 3 band's 22.969856 as 22.969857. These figures are compared as
-# numbers within this tolerance instead of as printed digits.
+# the Lesson 3 band's 22.969856 as 22.969857. An optimum, a band of optima and
+# a table cell computed at an optimum are compared as numbers within this
+# tolerance instead of as printed digits.
 NEAR = 1.5e-6
 
 
@@ -933,9 +934,11 @@ class TestWhatThePostSays:
     Other copies of the same figure elsewhere in the post are not always read.
     Each expected value comes from the run, or from the book's printed figures
     the module holds as constants, and is compared at the precision the post
-    prints it, except a figure that rests on an optimum, which is compared
-    within ``NEAR``. A table is read by its row labels, and a sentence by the words
-    around its number.
+    prints it. Two kinds are compared within ``NEAR`` instead: an optimum or a
+    band of optima, and a table cell computed at an optimum. A figure derived
+    from an optimum in a sentence, such as a growth gap, is still compared at
+    its printed digits. A table is read by its row labels, and a sentence by
+    the words around its number.
 
     The prose states these numbers and the tests above derive them, so before
     this class a typo in the post passed every test. Round 1 of the post's
