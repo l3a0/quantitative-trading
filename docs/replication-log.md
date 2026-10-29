@@ -9614,7 +9614,7 @@ moves with it too, since that post quotes most of them. It also quotes what
 the write-up measured after the run, which `TestWhatThePostMeasured` in
 [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
 pins and which decides nothing. It quotes how often each factor's weights
-flip sign once each vector's largest weight is made positive, and that all but
+flip sign once each vector's largest weight in size is made positive, and that all but
 five of those flips move the largest weight to a stock the earlier day weighed
 below zero. The five left fall on days two or more factors swap rank. Those
 pins also count how often they swap rank from day to

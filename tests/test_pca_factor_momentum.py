@@ -417,13 +417,13 @@ class TestWhatThePostMeasured:
         fixed = [with_largest_weight_positive(d) for d in components]
         assert sign_flips(fixed).tolist() == [1, 14, 6, 22, 24], f"{SPEC}; {AFTER_THE_RUN}"
 
-    def test_two_factors_swap_rank_on_15_of_752_days(self, components) -> None:
+    def test_two_or_more_factors_swap_rank_on_15_of_752_days(self, components) -> None:
         assert swap_days(components) == 15, f"{SPEC}; {AFTER_THE_RUN}"
 
-    def test_every_flip_but_five_moves_the_largest_weight_to_a_stock_weighed_the_other_way(
+    def test_every_flip_but_five_moves_the_largest_weight_to_a_stock_weighed_below_zero(
         self, panel, components
     ) -> None:
-        """Every flip but five moves the largest weight to a stock weighed the other way.
+        """All but five flips move the largest weight to a stock the earlier day weighed below zero.
 
         Of the 1, 14, 6, 22 and 24 flips, the stock holding the largest weight
         changed between the two days on 1, 14, 6, 20 and 23, and the earlier
@@ -1017,6 +1017,9 @@ class TestWhatThePostQuotes:
         matched_gap = np.abs(weights.matched - paired)
         left_out_gap = np.abs(weights.left_out - paired)
         matched, left_out = int(matched_gap.argmax()), int(left_out_gap.argmax())
+        left_out_column = next(j for j, c in enumerate(columns) if c is weights.left_out) + 1
+        # The control reads like whichever of the first three columns it sits nearest.
+        like = 1 + min(range(3), key=lambda j: np.abs(weights.shortened - columns[j]).max())
         fragments = [
             f"Weights fitted on the {LOOKBACK - 1} days before today, a window that leaves "
             "today’s return out, then matched.",
@@ -1033,8 +1036,15 @@ class TestWhatThePostQuotes:
             f"and {NAMES[low]} still reads {_minus(weights.matched[low], 4)}. The largest gap "
             f"left between a matched figure and the test’s own is {NAMES[matched]}’s, "
             f"{matched_gap[matched]:.4f}.",
+            f"leaves today’s return out, as in column {left_out_column}, the five figures land "
+            "close to the test’s.",
             f"The largest gap left is {NAMES[left_out]}’s, {left_out_gap[left_out]:.4f}.",
-            f"with {NAMES[low]} at {_minus(weights.shortened[low], 4)}.",
+            f"That window is also one day shorter, {LOOKBACK - 1} days rather than {LOOKBACK}, "
+            "so a control",
+            f"It fits tomorrow’s weights on the {LOOKBACK - 1} days ending today, "
+            f"t − {LOOKBACK - 2} to t, which still hold today’s return, and matches them. Its "
+            f"figures read like column {like} instead, with {NAMES[low]} at "
+            f"{_minus(weights.shortened[low], 4)}.",
             f"holds today’s return pushes {NAMES[matched]} so far.",
         ]
         assert self.missing(text, fragments) == []
@@ -1369,6 +1379,16 @@ class TestTheRules:
         assert vectors.shape == (len(window), FACTORS)
         np.testing.assert_allclose(vectors.T @ vectors, np.eye(FACTORS), atol=1e-14)
         assert (np.diff(singular) <= 0).all() and (singular > 0).all()
+
+    def test_each_weight_vector_sums_to_zero(self, window) -> None:
+        """Each day's average across the stocks comes off first, so no vector leans one way.
+
+        Every vector with a nonzero singular value lies at right angles to
+        equal weights on every stock, so even PC1 holds some stocks long and
+        others short. Lesson 3 of the post says each vector sums to zero.
+        """
+        vectors, _ = revised_matlab_components(window)
+        np.testing.assert_allclose(vectors.sum(axis=0), 0, atol=1e-14)
 
     def test_the_statistic_is_uncentred(self) -> None:
         """5 / √(14 · 5) by hand, where the centred correlation is −0.5."""
