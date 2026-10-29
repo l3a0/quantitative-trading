@@ -65,7 +65,7 @@ return was computed, is that the 612 returns agree with his to within 1e-9 on
 every row. A match says the closes the script traded agree up to a constant
 scale on each leg, because a simple return ignores the scale and the
 eigenvector rescales to cancel it. The closes before the test period are
-checked only through the weights and z-scores they feed into the test period.
+checked only as far as they move a hedge.
 
 **The hedge's sign and scale move no return.** Multiplying day ``t``'s vector
 by any ``c ≠ 0`` multiplies that day's portfolio value by ``c``, so its z-score

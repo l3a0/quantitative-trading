@@ -5958,8 +5958,7 @@ and are listed below.
    before any return was computed.
 2. The match ties the traded closes to the ones Chan's MATLAB traded up to a
    constant scale on each leg, and no more. The closes before the test period
-   are checked only through the weights and z-scores they feed into the test
-   period.
+   are checked only as far as they move a hedge.
 3. The Johansen test rarely found a relation behind the hedge it supplied. The
    trace test finds a relation in 26 of the 612 windows, in three stretches,
    and two relations in 19 of them.

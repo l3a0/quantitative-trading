@@ -75,7 +75,7 @@ Multiplying every close of one currency by the same constant is invisible to the
 
 A change of one unit in the sixth decimal, 0.000001, can break the match, depending on where it falls. Six decimals is the most any close in the files carries. Adding 0.000001 to one close in the test period breaks the match, because that close enters a day’s percent change directly. Adding it to the first close of the first window does not, because that close reaches the returns only through one day’s hedge, and it moves that hedge too little to change any return by more than one billionth.
 
-So the match says the files in this repository carry the closes Chan’s MATLAB script traded, up to a constant scale on each currency. The closes before the test period are checked only through the weights and z-scores they feed into the test period. The match says nothing about the port’s other files, such as its USD.CAD minute prices or its AUD.CAD closes, because this script reads none of them.
+So the match says the files in this repository carry the closes Chan’s MATLAB script traded, up to a constant scale on each currency. The closes before the test period are checked only as far as they move a hedge. The match says nothing about the port’s other files, such as its USD.CAD minute prices or its AUD.CAD closes, because this script reads none of them.
 
 ## Lesson 3: the Johansen test rarely found a relation behind the hedge it supplied
 
