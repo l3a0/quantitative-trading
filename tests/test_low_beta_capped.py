@@ -1,7 +1,9 @@
 """The pins for location 4709's low-beta rule at leverage a broker would lend. Exploratory.
 
 This file is the single authority for every number any prose surface quotes
-about [issue 516](https://github.com/l3a0/quantitative-trading/issues/516).
+about [issue 516](https://github.com/l3a0/quantitative-trading/issues/516),
+apart from the Entry 45 figures it reads unchanged, which
+``tests/test_low_beta_leverage.py`` pins.
 ``docs/replication-log.md`` Entry 48 carries the result and points here row by
 row.
 
@@ -15,7 +17,8 @@ and carried, with the ceiling, in every figure's failure message through
   ``load_panel``. ``spy_chan.csv``, the adjusted-close column of Chan's
   ``example6_2.xls``, chan-xls adjusted, saved 2008-01-29. FRED's TB3MS,
   downloaded 2026-09-30. The stock file is the S&P 500 as it stood on
-  2007-11-23, so every figure here is about survivors.
+  2007-11-23, carried backwards, so every figure here is about survivors,
+  apart from the earlier company's prices WYN and DFS also carry.
 - **Specification.** :mod:`chan.low_beta_capped` as the issue's plan fixed it
   on 2026-10-11 before any capped number. Entry 45's portfolios unchanged,
   the low fifth levered by min(k, C) at the bill rate, d against the unlevered
@@ -367,6 +370,26 @@ class TestWhatThePostMeasured:
         ), f"{SPEC}; {AFTER_THE_RUN}"
         assert max(CEILINGS) < needed.min()
 
+    def test_wyn_and_dfs_carry_an_earlier_company_into_31_holding_months(
+        self, portfolios: Portfolios
+    ) -> None:
+        """Each symbol holds two companies, as ``data/README.md`` says, split at a restart.
+
+        WYN's earlier company ends on 2002-10-18 and DFS's on 2005-11-25. A
+        holding month counts when either symbol sits in either fifth before its
+        restart, and 2002-08 and 2002-09 hold both.
+        """
+        ends = {"WYN": pd.Timestamp("2002-10-18"), "DFS": pd.Timestamp("2005-11-25")}
+        months = {
+            held_to
+            for held_to, low, high in zip(
+                portfolios.held_to, portfolios.low_members, portfolios.high_members, strict=True
+            )
+            for symbol, end in ends.items()
+            if held_to <= end and (symbol in low or symbol in high)
+        }
+        assert (len(months), len(portfolios.held_to)) == (31, 83), f"{SPEC}; {AFTER_THE_RUN}"
+
 
 class TestThePostQuotesTheRun:
     """One copy of each figure ``blog/capped-low-beta-lessons.md`` takes from the run.
@@ -430,6 +453,7 @@ class TestThePostQuotesTheRun:
             f"ceiling of 5 it is {break_even_spread(five.portfolios):.4f}",
             f"It borrows a mean of {five.mean_leverage - 1:.4f} for each unit of capital, one "
             f"less than its mean leverage of {five.mean_leverage:.4f}",
+            "Those earlier prices sit in one of the two fifths in 31 of the 83 holding months.",
         ]
         assert [f for f in fragments if f not in self.text] == [], SPEC
 

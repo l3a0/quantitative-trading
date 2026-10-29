@@ -20,7 +20,7 @@ Chan gives 20 percent for a portfolio of large-cap stocks hedged so that its lon
 This repository reran the test with the leverage capped at each ceiling and drew five lessons.
 
 1. **A plan written after the data was seen has to say what was seen.** The previous test had already shown the unlevered low fifth ahead, so a lead for the levered low fifth at either ceiling was predictable.
-2. **Capping the leverage removes the ruin.** No month at either ceiling lost all the capital, and no leverage below 13.4118 would have ruined any month in the file.
+2. **Capping the leverage removed the ruin on this file.** No month at either ceiling lost all the capital, and no leverage below 13.4118 would have ruined any month in the file.
 3. **A large point estimate can still be noise.** Both capped portfolios led the high fifth. Neither measured lead, the point estimate, was large enough for a one-sided test at 5 percent to tell it from chance.
 4. **Testing two ceilings costs a correction.** Two tests find a false gap more often than one, and the Benjamini-Hochberg correction raises the bar for each.
 5. **The borrowing rate is a hidden assumption.** The run borrows at the Treasury bill rate. A broker charging 0.0946 a year above it at a ceiling of 2, or 0.0661 at 5, would erase the measured lead.
@@ -28,7 +28,7 @@ This repository reran the test with the leverage capped at each ceiling and drew
 **Every figure here is exploratory.** An exploratory result can kill an idea or justify a closer look, and it confirms nothing however good the number. Three things make this one exploratory.
 
 1. **The plan came after the previous test’s figures.** It was written before any capped number existed, but after the previous test had shown which side was ahead. Lesson 1 lists what had been seen.
-2. **The file holds only survivors.** It is the S&P 500 as it stood on 2007-11-23, so every stock that left the index before then is missing.
+2. **The file is built from survivors.** It holds the stocks in the S&P 500 on 2007-11-23, with their prices for every earlier year. So every stock that left the index before then is missing, and a stock that joined later counts for the years it traded before it joined. Two symbols, WYN and DFS, also carry an earlier company’s prices, up to 2002 and 2005. Those earlier prices sit in one of the two fifths in 31 of the 83 holding months.
 3. **It is not a replication.** Chan prints no figure for this rule at any leverage, so there is no published number to reproduce, and nothing here tests his arithmetic.
 
 The years tested are not fresh data for the rule either. Every one of them had passed by the time the book printed the rule, as the [previous post’s sixth lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/levered-low-beta-lessons.md#lesson-6-a-registered-result-on-years-the-claims-source-could-already-read-is-not-a-holdout) explains.
@@ -62,7 +62,7 @@ The side figures nearly fixed the sign in advance. Unlevered, the low fifth comp
 
 So the result is exploratory however it came out. Even a gap that passed would have confirmed nothing, because the ceilings were chosen by someone who already knew which side was ahead. The plan said so in writing and listed the five things above, and that list is what lets a reader judge the result. What the run could still add is whether either gap could be told from noise, and whether any month at a ceiling of 5 came near ruin.
 
-## Lesson 2: capping the leverage removes the ruin
+## Lesson 2: capping the leverage removed the ruin on this file
 
 Neither capped portfolio lost all its capital in any month. The worst month at both ceilings was July 2002, whose portfolios were formed on 2002-06-28. June 2001, the month that ruined the beta match, lost far less at either ceiling than it did at the match.
 
@@ -120,7 +120,7 @@ From a ceiling of 2 to 5 the gap rose from 0.0934 to 0.1659, about 1.78 times. I
 1. d also subtracts the high fifth’s log return, which leverage leaves alone.
 2. Log growth loses more to swings in return as leverage rises.
 
-So t can move either way as leverage changes. Between these two ceilings, the ones the plan fixed, it rose only a little. The figure shows the same thing. From the top panel to the bottom one, the 5 percent line moves right along with the point estimate.
+So t can move either way as leverage changes. The figure shows how little it moved from a ceiling of 2 to 5. From the top panel to the bottom one, the 5 percent line moves right along with the point estimate.
 
 ## Lesson 4: testing two ceilings costs a correction
 
@@ -150,7 +150,7 @@ Two cautions keep that from reading as room to spare.
 Six questions are beyond it.
 
 1. **Anything confirmed.** The ceilings were chosen after the previous test’s figures had been seen, so even a gap that passed would have confirmed nothing. Only a run planned before any number, on data the plan had not seen, could confirm a ceiling. The plan would have sent both ceilings to such a run only if one had held here, and neither did.
-2. **What the missing stocks do to either side.** The file lacks every stock that left the index before 2007-11-23.
+2. **What the file’s makeup does to either side.** It lacks every stock that left the index before 2007-11-23, counts later members for years before they joined, and carries two earlier companies under WYN and DFS. Which fifth any of that flatters is not measured.
 3. **Whether the rule holds in later years.** Every year here had passed by the time the book printed the rule. A separate test of the rule on later data, with the index as it stood each month, takes up that question.
 4. **What borrowing really cost.** The break-even spread bounds the cost the point estimate could bear, and says nothing about the rate a broker charged.
 5. **Whether a margin call came inside a month.** A position levered 2 opens at a margin of 50 percent, the least Regulation T allows. FINRA Rule 4210 then requires a maintenance margin of 25 percent, and below it the broker makes a margin call, a demand for more cash. The position falls from 50 to 25 percent after a fall of a third within the month. At a leverage of 5 the account starts at the 20 percent portfolio margin requires, so any fall within the month leaves it below that margin. Month-end prices cannot see either.
@@ -161,7 +161,7 @@ Six questions are beyond it.
 One habit for each lesson.
 
 1. **List what the data had already shown before writing the plan.** A plan that comes after the data cannot test what the data already showed, and listing what was seen lets a reader judge how much the plan could still test.
-2. **Know the smallest leverage that would have ruined any month in the history.** Here it was 13.4118, and both ceilings sat below it. That figure is the most leverage a short history can show to be safe, and a longer history can only lower it, since every added month can bring a worse one.
+2. **Know the smallest leverage that would have ruined any month in the history.** Here it was 13.4118, and both ceilings sat below it. That figure is where this history first shows a month-end loss of all the capital, and a leverage just under it still lost almost all the capital in July 2002. A longer history can only lower it, since every added month can bring a worse one, and so can losses within a month, which month-end prices cannot see.
 3. **Report the gap a test could have found beside the gap it found.** A point estimate under half of Y means the test could not tell an effect that size from zero, so the miss says nothing either way about whether it exists.
 4. **Decide how many variants to test before the run, and correct for all of them.** Reporting the best of several variants quotes the best draw.
 5. **Price the borrowing before believing a levered lead.** A lead earned at the bill rate shrinks as the spread rises, and faster at higher leverage.

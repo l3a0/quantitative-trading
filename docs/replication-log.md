@@ -11259,7 +11259,9 @@ Five of the rules carry the result, so they are stated here.
    compares with Entry 45's.
 
 **Every figure is about survivors.** The panel is the S&P 500 as it stood on
-2007-11-23, carried backwards, as in Entry 45.
+2007-11-23, carried backwards, as in Entry 45. Two symbols, WYN and DFS, also
+carry an earlier company's prices, which sit in one of the fifths in 31 of the
+83 holding months.
 
 ### What the book stated
 
@@ -11344,8 +11346,10 @@ Five things, the plan's five limits.
    The plan sends both ceilings to
    [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
    panel only if one of them holds here, and neither did.
-2. **What survivorship does to either side.** The panel lacks the stocks that
-   left the index before 2007-11-23, as in Entry 45.
+2. **What the panel's makeup does to either side.** The panel lacks the
+   stocks that left the index before 2007-11-23, as in Entry 45. It also
+   counts later members for years before they joined, and carries two
+   earlier companies under WYN and DFS.
 3. **Whether the rule holds in later years.** The years 2000 to 2007 were
    past prices by the time the book printed the claim, so this span is not a
    holdout.

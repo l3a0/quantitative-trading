@@ -8658,7 +8658,7 @@ Trading* tested at the two ceilings on leverage his own text gives, 2 under
 Regulation T at location 814, which location 2836 repeats for a retail account
 held overnight, and 5 under portfolio margin at location 814. Every figure in
 it is exploratory, and it says why: the plan came after Entry 45's figures had
-been seen, the file holds only survivors, and Chan prints no figure for the
+been seen, the file is built from survivors, and Chan prints no figure for the
 rule to reproduce. The post links the
 levered low-beta post for the setup and the Kelly leverage on SPY post rather
 than repeating them, and draws five lessons from Entry 48 of the replication
@@ -8667,9 +8667,9 @@ log.
 1. A plan written after the data was seen has to say what was seen. Entry
    45's unlevered growth of 0.1254 against 0.1183 and its Kelly leverage of
    9.9884 made a positive point estimate at either ceiling predictable.
-2. Capping the leverage removes the ruin. No month lost all the capital at
-   either ceiling, the worst was July 2002 at −0.1479 and −0.3719, and no
-   leverage below 13.4118 would have ruined any of the 83 months.
+2. Capping the leverage removed the ruin on this file. No month lost all the
+   capital at either ceiling, the worst was July 2002 at −0.1479 and −0.3719,
+   and no leverage below 13.4118 would have ruined any of the 83 months.
 3. A large point estimate can still be noise. The gaps of 0.0934 and 0.1659
    a year fall short of 5 percent lines at 0.1434 and 0.2254, and each is
    under half of its detectable gap Y, 0.2168 and 0.3407.
@@ -8708,8 +8708,7 @@ Five groups of what it says are not pinned here.
    would multiply the gap and its standard error by the same L and leave t
    alone, while d also subtracts the high fifth's log return and log growth
    loses more to swings as leverage rises, so t can move either way as
-   leverage changes. Also that 80 percent of a bell curve lies above 0.8416 standard
-   deviations below its centre, that a second one-sided test raises the chance
+   leverage changes. Also that a second one-sided test raises the chance
    of a false gap to as much as twice as high, the general Benjamini-Hochberg
    rule, and that the corrected test needs a gap at least as large as Y, and a
    larger one unless the other ceiling also clears 5 percent. Last, that a
@@ -8717,7 +8716,9 @@ Five groups of what it says are not pinned here.
    that a position levered 2 opens at Regulation T's 50 percent and falls to
    FINRA Rule 4210's maintenance margin of 25 percent after a fall of a third,
    and that a leverage of 5 starts at the 20 percent portfolio margin requires,
-   so any fall leaves it below that margin.
+   so any fall leaves it below that margin. Also that a leverage just under
+   13.4118 still loses almost all the capital in July 2002, and that losses
+   within a month can only lower that figure.
 4. Figures the post states in words or derives from pinned ones. The ratios
    of about 1.78 and 1.57 divide ceiling 5's gap and standard error by ceiling
    2's. The 2.5134 borrowed for each unit of capital is ceiling 5's mean
@@ -8745,6 +8746,8 @@ the post, or a re-pin that leaves it behind, fails a test.
 3. June 2001's capped return, −0.0835 at a ceiling of 2 and −0.2132 at 5.
 4. The smallest leverage that would have ruined any of the 83 months,
    13.4118, for July 2002, above both ceilings.
+5. The 31 of the 83 holding months in which WYN or DFS put an earlier
+   company's prices into one of the two fifths.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/low_beta_capped_figures.py](src/chan/low_beta_capped_figures.py),

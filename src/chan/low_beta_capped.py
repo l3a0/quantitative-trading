@@ -110,8 +110,10 @@ quite wary of using too much leverage on normally low-beta stocks".
 **Five limits** go with every figure.
 
 1. **Exploratory**, for the reasons above.
-2. **Survivor-only.** The file is the S&P 500 as it stood on 2007-11-23, as
-   in Entry 45.
+2. **Survivor-only.** The file is the S&P 500 as it stood on 2007-11-23,
+   carried backwards, as in Entry 45. WYN and DFS also carry an earlier
+   company's prices, which sit in one of the fifths in 31 of the 83 holding
+   months.
 3. **Not a holdout.** The years 2000 to 2007 were past prices by the time the
    book printed the claim.
 4. **Borrowing at the bill rate flatters the levered side.** The break-even
@@ -126,7 +128,9 @@ If either ceiling holds, the plan's follow-up registers both, unchanged, on
 point-in-time panel from 2008 to 2026, which is a holdout.
 
 ``tests/test_low_beta_capped.py`` is the single authority for every number any
-prose surface quotes about this run. ``docs/replication-log.md`` Entry 48
+prose surface quotes about this run. The Entry 45 figures it reads unchanged,
+such as the unlevered growths and the beta match's 58.0262, are pinned in
+``tests/test_low_beta_leverage.py``. ``docs/replication-log.md`` Entry 48
 carries the result. It first ran here on 2026-10-11.
 
 :func:`yearly_standard_error` and :func:`five_percent_line` were added by the
@@ -606,7 +610,10 @@ def report(
         "  both Sharpe ratios, the growths, the realised betas and the full-sample Kelly leverage, "
         "were seen before either ceiling was chosen."
     )
-    print("  2. Survivor-only. The panel holds only the stocks still in the index on 2007-11-23.")
+    print(
+        "  2. Survivor-only. The panel holds the stocks in the index on 2007-11-23, carried "
+        "backwards, and WYN and DFS also carry an earlier company's prices."
+    )
     print(
         "  3. Not a holdout. The years 2000 to 2007 were past prices by the time the book "
         "printed the claim."
