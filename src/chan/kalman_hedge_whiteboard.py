@@ -7,17 +7,19 @@ filter forecasts EWC at 0, so its error is EWC's whole close and the rule
 shorts EWC with no hedge. This module draws the two as scenes, and the post
 places each right after the passage it draws.
 
-1. One day of the filter, under "The filter and the file", after the four
-   numbered steps that follow "In plain terms, each day runs four steps."
-   It draws 2007-05-15 on axes of EWA's close across and EWC's close up,
-   zoomed around that day. A black line is yesterday's slope and intercept, a
-   grey tick on it at today's EWA is the forecast, two brass hairlines are the
-   band of plus and minus one forecast standard deviation, a black dot is
-   EWC's close, and a red bar from the forecast to the close is the forecast
-   error. A green line is the slope and intercept after the update, and a
-   closing line of words says what share of the miss the update closed at
-   today's EWA. A numbered grey gutter on the left names the post's four
-   steps, each as its mark appears.
+1. One day of the filter, under "The filter and the file", after the
+   paragraph opening "After the first day, the filter never becomes
+   confident". It draws 2007-05-15 on axes of EWA's close across and EWC's
+   close up, zoomed around that day. A black line is yesterday's slope and
+   intercept, a grey tick on it at today's EWA is the forecast, two brass
+   hairlines are the band of plus and minus one forecast standard deviation,
+   a black dot is EWC's close, and a red bar from the forecast to the close is
+   the forecast error. A green line is the slope and intercept after the
+   update. A closing line of words splits the update's lift at today's EWA
+   into the slope's part, its rise times today's EWA, and the intercept's
+   rise, and gives the share of the miss the lift closed. A numbered list of
+   the post's four steps runs down the left side, each step appearing with its
+   mark and in its mark's colour.
 2. Two rows on a forecast of 0, in Lesson 2, after the paragraph opening
    "**What that trade earns.**". Three columns on one dollar scale draw rows
    1 to 3, 2006-04-26 to 2006-04-28. In each, a grey dot is the forecast, a
@@ -138,6 +140,16 @@ class OneDay:
         return self.slope_after * self.ewa + self.intercept_after
 
     @property
+    def slope_lift(self) -> float:
+        """How far the slope's rise alone lifts the line at today's EWA."""
+        return (self.slope_after - self.slope_before) * self.ewa
+
+    @property
+    def intercept_lift(self) -> float:
+        """How far the intercept's rise lifts the line, the same at every EWA."""
+        return self.intercept_after - self.intercept_before
+
+    @property
     def closed(self) -> float:
         """The share of the forecast error the update closes at today's EWA."""
         return (self.moved - self.forecast) / self.error
@@ -152,10 +164,19 @@ class OneDay:
 
     @classmethod
     def from_run(cls, day: str = "2007-05-15", data_dir: Path | None = None) -> OneDay:
-        """Read ``day``'s row from the run on the committed file."""
+        """Read ``day``'s row from the run on the committed file.
+
+        The file's first row has no row before it, so it has no state for its
+        forecast to use, and reading one would wrap round to the last row's.
+        """
         x, y, result = _run(data_dir)
         f = result.filter
         (t,) = np.flatnonzero(f.days == day)
+        if t == 0:
+            raise ValueError(
+                f"{day} is the file's first row, so no row before it holds the slope and "
+                "intercept its forecast uses"
+            )
         return cls(
             day=day,
             ewa=float(x[t]),
@@ -180,9 +201,9 @@ EWA_REACH = 0.2
 EWC_BELOW, EWC_ABOVE = 0.12, 0.31
 #: Half the width of the forecast tick and of the band's hairlines.
 TICK_HALF, HAIR_HALF = 0.18, 0.3
-#: The post's four steps, as the gutter numbers them.
+#: The post's four steps, as the numbered list down the left side names them.
 STEPS = ("hold", "forecast", "miss", "update")
-#: The gutter's left edge and its four rows' heights, top to bottom.
+#: The list's left edge and its four rows' heights, top to bottom.
 GUTTER_X, GUTTER_Y = 0.25, (3.2, 2.65, 2.1, 1.55)
 #: Where the labels past the lines' right ends start, and the closing line's height.
 ENDS_X, CLOSING_Y = 6.9, 0.2
@@ -224,9 +245,9 @@ def _across(s: Scale, line, gid: str, color: str) -> Stroke:
     return Stroke(gid, xs, ys, color=color, frames=10)
 
 
-def _gutter(k: int, names: str) -> Label:
-    """Step ``k + 1`` of :data:`STEPS` in the gutter, beside the mark it makes."""
-    return Label(f"{k + 1} {STEPS[k]}", GUTTER_X, GUTTER_Y[k], names=names, color=MUTED, size=12)
+def _gutter(k: int, names: str, color: str) -> Label:
+    """Step ``k + 1`` of :data:`STEPS` down the left side, in the colour of the mark it makes."""
+    return Label(f"{k + 1} {STEPS[k]}", GUTTER_X, GUTTER_Y[k], names=names, color=color, size=12)
 
 
 def _one_day(day: OneDay) -> Scene:
@@ -236,6 +257,7 @@ def _one_day(day: OneDay) -> Scene:
     f, c = s.y(day.forecast), s.y(day.close)
     low, high = s.y(day.forecast - day.sd), s.y(day.forecast + day.sd)
     old_end, new_end = s.y(day.before(s.ewa[1])), s.y(day.after(s.ewa[1]))
+    ds, di = day.slope_after - day.slope_before, day.intercept_lift
     steps: list[Stroke | Label] = [
         _stroke("ewa-axis", _arrow(AXIS_X, AXIS_Y, PLOT_X[1] + 0.1, AXIS_Y), color=MUTED, frames=6),
         _stroke(
@@ -252,7 +274,7 @@ def _one_day(day: OneDay) -> Scene:
         ),
         Label("EWC close", GUTTER_X, PLOT_Y[1] - 0.05, names="ewc-axis", color=MUTED, size=11),
         _across(s, day.before, "yesterday", INK),
-        _gutter(0, "yesterday"),
+        _gutter(0, "yesterday", INK),
         Label(
             f"yesterday: slope {day.slope_before:.6f},",
             ENDS_X,
@@ -291,7 +313,7 @@ def _one_day(day: OneDay) -> Scene:
             width=3,
             frames=2,
         ),
-        _gutter(1, "forecast"),
+        _gutter(1, "forecast", MUTED),
         Label(
             f"forecast {_dollars(day.forecast)}",
             today + 0.3,
@@ -335,7 +357,7 @@ def _one_day(day: OneDay) -> Scene:
         _stroke(
             "error", _line([(today, f), (today, c)], per_unit=12), color=LOST, width=2.6, frames=5
         ),
-        _gutter(2, "error"),
+        _gutter(2, "error", LOST),
         Label(
             f"error {day.error:.2f}",
             today - HAIR_HALF - 0.15,
@@ -346,7 +368,7 @@ def _one_day(day: OneDay) -> Scene:
             ha="right",
         ),
         _across(s, day.after, "updated", GOOD),
-        _gutter(3, "updated"),
+        _gutter(3, "updated", GOOD),
         Label(
             f"updated: slope {day.slope_after:.6f},",
             ENDS_X,
@@ -364,8 +386,8 @@ def _one_day(day: OneDay) -> Scene:
             size=10,
         ),
         Label(
-            f"the updated line gives {_dollars(day.moved)} at EWA {day.ewa:.2f}, "
-            f"{day.closed:.0%} of the way from the forecast to the close",
+            f"slope {ds:+.6f} × EWA {day.ewa:.2f} = {day.slope_lift:+.2f}, "
+            f"intercept {di:+.6f}: line to {_dollars(day.moved)}, {day.closed:.0%} of the miss",
             GUTTER_X,
             CLOSING_Y,
             names="updated",
@@ -475,21 +497,29 @@ def label_places(k: int, row: Row) -> dict[str, tuple[float, float]]:
 
 
 def _column(k: int, row: Row) -> list[Stroke | Label]:
-    """Row ``k + 1``'s forecast, close, error and band, each with its label, and its date."""
+    """Row ``k + 1``'s forecast, close, error and band, each with its label, and its date.
+
+    Beside a short bar the labels appear in the order :func:`label_places`
+    stacks them, close to forecast, rather than the forecast's first.
+    """
     x = COLUMN_X[k]
     f, c = dollar_y(row.forecast), dollar_y(row.close)
     low, high = dollar_y(row.forecast - row.band), dollar_y(row.forecast + row.band)
     bar = _line([(x, f), (x, c)], per_unit=40)
     at = label_places(k, row)
+    forecast = Label(
+        f"forecast {_dollars(row.forecast)}",
+        *at["forecast"],
+        names=f"forecast-{k}",
+        color=MUTED,
+        size=11,
+    )
+    # Beside a short bar the forecast's label sits last in the stack, so it
+    # appears after the band's rather than alone, far below its dot.
+    short = abs(c - f) <= LONG_BAR
     return [
         _dot(f"forecast-{k}", x - DOT_OFFSET, f, color=MUTED),
-        Label(
-            f"forecast {_dollars(row.forecast)}",
-            *at["forecast"],
-            names=f"forecast-{k}",
-            color=MUTED,
-            size=11,
-        ),
+        *([] if short else [forecast]),
         _dot(f"close-{k}", x + DOT_OFFSET, c, color=INK),
         Label(f"close {_dollars(row.close)}", *at["close"], names=f"close-{k}", color=INK, size=11),
         _stroke(f"error-{k}", bar, color=LOST, width=2.6, frames=min(5, len(bar[0]) - 1)),
@@ -509,6 +539,7 @@ def _column(k: int, row: Row) -> list[Stroke | Label]:
             frames=2,
         ),
         Label(f"band ±{row.band:.6f}", *at["band"], names=f"band-low-{k}", color=ACCENT, size=11),
+        *([forecast] if short else []),
         Label(f"row {k + 1}, {row.day}", x - 0.3, DATE_Y, names=f"error-{k}", color=MUTED, size=11),
     ]
 

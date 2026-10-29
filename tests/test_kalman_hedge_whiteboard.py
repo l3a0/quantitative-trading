@@ -9,8 +9,9 @@ is pinned is what a reader takes from each.
    day. Its forecast sits on yesterday's line at today's EWA, its red bar runs
    from the forecast to the close, its band is the forecast's standard
    deviation either side, and the updated line passes where the update puts
-   it. Its closing words give the share of the miss the update closed, which
-   is 1 − Ve / Q, so the test derives it both ways.
+   it. Its closing words split the line's lift at today's EWA into the
+   slope's part and the intercept's, and give the share of the miss the lift
+   closed, which is 1 − Ve / Q, so the test derives it both ways.
 2. The zero-start sketch draws rows 1 to 3 on one dollar scale. Only row 1's
    words say EWC alone, because row 2's position already holds the slope after
    row 2's update, and the test reads that position off the run.
@@ -111,7 +112,7 @@ ONE_DAY_LABELS = [
     "4 update",
     "updated: slope 1.144185,",
     "intercept 0.472220",
-    "the updated line gives 27.14 at EWA 23.31, 98% of the way from the forecast to the close",
+    "slope +0.016211 × EWA 23.31 = +0.38, intercept +0.001013: line to 27.14, 98% of the miss",
 ]
 
 ZERO_LABELS = [
@@ -129,10 +130,10 @@ ZERO_LABELS = [
     "slope 0 → 1.366666,",
     "after the forecast",
     "+0.74% on 2006-04-27",
-    "forecast 22.09",
     "close 22.94",
     "error 0.85",
     "band ±0.167334",
+    "forecast 22.09",
     "row 3, 2006-04-28",
     "forecast uses",
     "slope 1.366666",
@@ -474,6 +475,24 @@ class TestTheDay:
         assert day.slope_after == pytest.approx(1.144185, abs=5e-7), SPEC
         assert day.intercept_after == pytest.approx(0.472220, abs=5e-7), SPEC
         assert day.moved == pytest.approx(27.143163, abs=5e-7), SPEC
+        assert day.slope_lift == pytest.approx(0.377878, abs=5e-7), SPEC
+        assert day.intercept_lift == pytest.approx(0.001013, abs=5e-7), SPEC
+
+    def test_the_two_lifts_add_up_to_the_lines_move(self, day) -> None:
+        """At today's EWA the updated line sits above yesterday's by the
+        slope's lift plus the intercept's, and the slope's is nearly all of it."""
+        assert day.slope_lift + day.intercept_lift == pytest.approx(
+            day.moved - day.forecast, abs=1e-12
+        )
+        assert day.slope_lift > 300 * day.intercept_lift > 0
+
+    def test_the_files_first_row_is_refused(self, run) -> None:
+        """Row 1 has no row before it, so no slope and intercept for its
+        forecast, and reading one would wrap round to the file's last row."""
+        _, _, f, _ = run
+        with pytest.raises(ValueError, match="first row"):
+            OneDay.from_run(str(f.days[0].date()))
+        assert OneDay.from_run(str(f.days[1].date())).slope_before == f.slope[0]
 
     def test_the_share_closed_is_one_minus_ve_over_q(self, day, run) -> None:
         """The update moves the forecast at today's EWA by the gain's share of
@@ -496,17 +515,17 @@ class TestTheOneDaySketch:
         assert every[0].title == "One day of the filter"
         assert every[0].labels == ONE_DAY_LABELS
 
-    def test_the_gutter_names_the_posts_four_steps_in_order(self, every) -> None:
+    def test_the_list_names_the_posts_four_steps_in_order(self, every) -> None:
         scene = every[0]
-        gutter = [_label(scene, f"{n} {word}") for n, word in enumerate(sketches.STEPS, start=1)]
+        steps = [_label(scene, f"{n} {word}") for n, word in enumerate(sketches.STEPS, start=1)]
         assert sketches.STEPS == ("hold", "forecast", "miss", "update")
-        assert len({label.x for label in gutter}) == 1
-        heights = [label.y for label in gutter]
+        assert len({label.x for label in steps}) == 1
+        heights = [label.y for label in steps]
         assert heights == sorted(heights, reverse=True)
-        assert [label.names for label in gutter] == ["yesterday", "forecast", "error", "updated"]
-        steps = POST.read_text(encoding="utf-8")
+        assert [label.names for label in steps] == ["yesterday", "forecast", "error", "updated"]
+        post = POST.read_text(encoding="utf-8")
         for title in ("**Hold a guess.**", "**Forecast.**", "**Measure the miss.**", "**Update"):
-            assert title in steps
+            assert title in post
 
     def test_its_colours(self, every) -> None:
         scene = every[0]
@@ -525,7 +544,7 @@ class TestTheOneDaySketch:
         assert [_label(scene, text).color for text in ONE_DAY_LABELS] == [
             MUTED,
             MUTED,
-            MUTED,
+            INK,
             INK,
             INK,
             MUTED,
@@ -533,13 +552,16 @@ class TestTheOneDaySketch:
             MUTED,
             ACCENT,
             INK,
-            MUTED,
             LOST,
-            MUTED,
+            LOST,
+            GOOD,
             GOOD,
             GOOD,
             GOOD,
         ]
+        steps = [_label(scene, f"{n} {word}") for n, word in enumerate(sketches.STEPS, start=1)]
+        marks = {s.gid: s.color for s in scene.strokes}
+        assert [label.color for label in steps] == [marks[label.names] for label in steps]
 
     def test_every_mark_sits_at_its_figure(self, every, day) -> None:
         """One affine map per axis: the forecast tick and the bar's foot at the
@@ -606,8 +628,8 @@ class TestTheOneDaySketch:
         assert labels[3:5] == ["yesterday: slope 1.200000,", "intercept 0.000000"]
         assert "forecast 12.00" in labels and "close 12.50" in labels and "error 0.50" in labels
         assert labels[-1] == (
-            "the updated line gives 12.32 at EWA 10.00, 64% of the way from the forecast "
-            "to the close"
+            "slope +0.030000 × EWA 10.00 = +0.30, intercept +0.020000: line to 12.32, "
+            "64% of the miss"
         )
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
@@ -615,18 +637,19 @@ class TestTheOneDaySketch:
         for phrase in (
             "zoomed around 2007-05-15",
             "A black line, yesterday’s slope and intercept",
-            "a numbered grey gutter on the left",
+            "a numbered list of steps down the left side, each in its mark’s colour",
             "a thick grey tick on the black line above it is the forecast",
             "Two brass hairlines above and below the forecast",
             "A black dot higher up is EWC’s close",
             "a red bar from the forecast up to the dot",
             "a green line, the slope and intercept after the update",
-            "Its slope and intercept have barely changed, yet at today’s EWA it passes almost "
-            "through the black dot",
+            "Its intercept has barely changed",
+            "that rise lifts the line by 0.38",
             "The finished drawing holds for twelve seconds.",
         ):
             assert phrase in alt, phrase
         assert "a little" not in alt
+        assert "gutter" not in alt
 
 
 # --- Lesson 2: two rows on a forecast of 0 ------------------------------------
@@ -771,8 +794,9 @@ class TestTheZeroStartSketch:
         its close, and each dot sits beside the bar rather than on it."""
         scene, three = every[1], zero.rows[2]
         assert dollar_y(three.close) - dollar_y(three.forecast) < 0.1
-        heights = [_label(scene, text).y for text in ZERO_LABELS[15:18] + ZERO_LABELS[14:15]]
+        heights = [_label(scene, text).y for text in ZERO_LABELS[14:18]]
         assert heights == sorted(heights, reverse=True)
+        assert ZERO_LABELS[14:18] == ["close 22.94", "error 0.85", "band ±0.167334", "forecast 22.09"]
         assert _stroke(scene, "forecast-2").x[0] < COLUMN_X[2] < _stroke(scene, "close-2").x[0]
 
     def test_its_words_follow_the_rows(self) -> None:

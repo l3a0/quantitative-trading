@@ -5521,12 +5521,14 @@ finished drawings for twelve seconds. Neither is schematic: every figure
 either one draws is read from `kalman_hedge` on the committed file, as
 `python -m chan.kalman_hedge` reads it, and every mark sits at its figure.
 
-1. `kalman_hedge_sketch_one_day.gif`, after the four steps under "The filter
-   and the file", draws 2007-05-15 on axes zoomed around the day. Yesterday's
-   line forecasts EWC at 26.76, the close of 27.15 misses it by 0.39 against a
-   band of 0.24, and the updated line gives 27.14 at that day's EWA, 98
-   percent of the way from the forecast to the close. A numbered gutter names
-   the post's four steps.
+1. `kalman_hedge_sketch_one_day.gif`, under "The filter and the file" after
+   the paragraph on why the filter never becomes confident, draws 2007-05-15
+   on axes zoomed around the day. Yesterday's line forecasts EWC at 26.76, the
+   close of 27.15 misses it by 0.39 against a band of 0.24, and the updated
+   line gives 27.14 at that day's EWA, 98 percent of the way from the forecast
+   to the close. Nearly all of that lift is the slope's rise of 0.016211 times
+   EWA's close of 23.31, which is 0.38, while the intercept rises 0.001013. A
+   numbered list names the post's four steps.
 2. `kalman_hedge_sketch_zero_start.gif`, in Lesson 2, draws rows 1 to 3 on
    one dollar scale. Rows 1 and 2 forecast 0, so each error is EWC's whole
    close and the band all but vanishes beside it. Row 1's short holds EWC
