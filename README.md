@@ -8007,15 +8007,14 @@ Four groups of what it says are not pinned here.
    chosen on day t earn day t + 1's return, that a factor's part of the
    forecast leans them short its portfolio after it falls, and that the other
    factors' parts can outweigh it, the same-sign shares called close to a coin
-   toss, that the fill gives PMC a return of zero on each day it has no close,
-   that the sum of squared products measures how widely the products scatter,
-   that PC2's −0.1105 on tomorrow's own weights would fail outright, that of
-   the sign, the rank and the window only leaving today's return out moves a
-   factor across 0, putting PC2 and PC4 above it, that PC2's two large products
-   also widen the products' scatter, that a test on the slope the regression
-   fits would weight each day by 1/sₖ², that Newey-West's adjustment for
-   neighbouring days widens the measure when their products move together and
-   narrows it when they move in opposite directions, that 2007-08-09 and
+   toss, that the sum of squared products measures how widely the products
+   scatter, that PC2's −0.1105 on tomorrow's own weights would fail outright,
+   that of the sign, the rank and the window only leaving today's return out
+   moves a factor across 0, putting PC2 and PC4 above it, that PC2's two large
+   products also widen the products' scatter, that a test on the slope the
+   regression fits would weight each day by 1/sₖ², that Newey-West's adjustment
+   for neighbouring days widens the measure when their products move together
+   and narrows it when they move in opposite directions, that 2007-08-09 and
    2007-08-10 are what put PC2 outside the band, and that nothing here measures
    why a window holding today's return pushes PC2 so far. The figure's alt text
    reads its curve approximately too.
@@ -8078,9 +8077,9 @@ post prints it, and checks one copy of it, in six places.
 4. Lesson 3's count of checked days and the intercept's two figures.
 5. Lesson 4's table rebuilt whole, its quartiles, its verdicts and its three
    points.
-6. Lesson 5's splice, its weights on PMC, the two sentences before its table,
-   that every window holds PMC, the table rebuilt whole and the paragraph
-   after it.
+6. Lesson 5's splice, its weights on PMC, the three sentences before its
+   table, among them that every window holds PMC, the table rebuilt whole and
+   the two paragraphs after it.
 
 Every factor those sentences name, and each count they spell out, comes from
 the run too. A second copy of a figure is not read, such as the 752 days t in

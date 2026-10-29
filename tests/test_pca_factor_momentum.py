@@ -949,8 +949,8 @@ class TestWhatThePostQuotes:
       the same-sign shares.
     - Lesson 3's count of checked days and its intercept figures.
     - Lesson 4's table, its quartiles, its verdicts and its three points.
-    - Lesson 5's splice, its weights on PMC, the two sentences before its table,
-      the table and the paragraph after it.
+    - Lesson 5's splice, its weights on PMC, the three sentences before its table,
+      the table and the two paragraphs after it.
 
     Other copies are not read, so a typo in one of them passes. Among them
     are the repeats of 600, 252, 251, 579, 752 and the dates elsewhere, such
@@ -1238,6 +1238,8 @@ class TestWhatThePostQuotes:
         # dropping one column moves no other stock. A window that holds PMC
         # therefore keeps exactly one stock fewer without it.
         assert all(column in d.stocks for d in components[:-1]), SPEC
+        missing = closes[SPLICED].isna().to_numpy()
+        assert (file_returns(closes)[missing, column] == 0).all(), SPEC
         was = {v.factor: v for v in before.verdicts()}
         now = {v.factor: v for v in after.verdicts()}
         (fell,) = [n for n in NAMES if was[n].above_zero and not now[n].above_zero]
@@ -1276,6 +1278,9 @@ class TestWhatThePostQuotes:
             f"Dropping {SPLICED} and running everything again moves every factor. Each day’s "
             f"window keeps one stock fewer, and the comparison set holds "
             f"{len(after.comparison.stocks)} stocks rather than {len(before.comparison.stocks)}.",
+            f"{SPLICED} was in every day’s window and among the {len(before.comparison.stocks)} "
+            "because the fill gives it a return of zero on each day it has no close.",
+            f"So they stay as Lesson 4 gives them, with {missed} the factor that misses.",
             f"Without {SPLICED}, {fell} falls below 0 and {rose} rises above it, so the "
             f"criterion would miss {fell} instead of {missed}. {_listed(outside)} move outside "
             f"the band, and {back} moves back inside it. Benjamini-Hochberg still declares none. "
