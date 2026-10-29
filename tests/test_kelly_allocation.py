@@ -287,7 +287,8 @@ class TestTheCorner:
         assert slope(1.0) - slope(0.0) == pytest.approx(-0.1901, abs=1e-8)
         assert slope(MAX_LEVERAGE) == pytest.approx(0.0550, abs=1e-8)
         c11, c22 = cov[0, 0], cov[1, 1]
-        assert (round(MEANS[1] - MEANS[0], 6), round(c11, 6), round(c22, 6)) == (0.30, 0.0676, 0.1225)
+        assert round(MEANS[1] - MEANS[0], 6) == 0.30
+        assert (round(c11, 6), round(c22, 6)) == (0.0676, 0.1225)
         assert round(c11 * MAX_LEVERAGE, 6) == 0.1352
         assert slope(0.0) == pytest.approx(MEANS[1] - MEANS[0] + c11 * MAX_LEVERAGE, abs=1e-8)
         assert slope(1.0) - slope(0.0) == pytest.approx(-(c11 + c22), abs=1e-8)
