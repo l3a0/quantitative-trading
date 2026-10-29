@@ -8658,9 +8658,9 @@ forty-fifth post, about Chan's rule at Kindle location 4709 of *Quantitative
 Trading* tested at the two ceilings on leverage his own text gives, 2 under
 Regulation T at location 814, which location 2836 repeats for a retail account
 held overnight, and 5 under portfolio margin at location 814. Every figure in
-it is exploratory, and it says why: the plan came after Entry 45's figures had
-been seen, the file is built from survivors, and Chan prints no figure for the
-rule to reproduce. The post links the
+it is exploratory, because the plan came after Entry 45's figures had been
+seen. The post also says the file is built from survivors and that Chan prints
+no figure for the rule to reproduce. The post links the
 levered low-beta post for the setup and the Kelly leverage on SPY post rather
 than repeating them, and draws five lessons from Entry 48 of the replication
 log.

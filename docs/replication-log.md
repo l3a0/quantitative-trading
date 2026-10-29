@@ -11356,9 +11356,9 @@ and fifth corrected since the plan.
    panel, unchanged, if either one holds here. Neither did.
 2. **What the panel's makeup does to either side.** The panel lacks the
    stocks that left the index before 2007-11-23, as in Entry 45. It also
-   counts each stock that joined the index between 1999 and 2007 for the
-   years before it joined, and carries earlier companies' prices under WYN,
-   DFS and SE.
+   counts each stock that joined the index after November 1999 for the years
+   it traded before it joined, and carries earlier companies' prices under
+   WYN, DFS and SE.
 3. **Whether the rule holds in later years.** The years 2000 to 2007 were
    past prices by the time the book printed the claim, so this span is not a
    holdout.

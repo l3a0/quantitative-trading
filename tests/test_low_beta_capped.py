@@ -489,7 +489,7 @@ class TestThePostQuotesTheRun:
             f"in the other {int((five.k <= 5.0).sum())}",
             f"The Newey-West standard error of the yearly gap is {se_two:.4f} at a ceiling of 2 "
             f"and {se_five:.4f} at 5",
-            f"puts the line at {five_percent_line(two):.4f} at a ceiling of 2 and "
+            f"puts the 5 percent line at {five_percent_line(two):.4f} at a ceiling of 2 and "
             f"{five_percent_line(five):.4f} at 5",
             outcomes[2.0].line(),
             f"the gap rose from {two.gap:.4f} to {five.gap:.4f}, about "
