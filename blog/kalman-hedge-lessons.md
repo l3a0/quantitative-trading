@@ -63,7 +63,7 @@ One long unit is short the slope’s worth of EWA shares and long one share of E
 
 ## Lesson 1: the script’s figures land every digit
 
-Here is each figure as computed, beside the script’s closing comment and the book.
+The table sets each figure as computed against the script’s closing comment and the book.
 
 ```math
 \begin{array}{l|r|r|r}
@@ -187,4 +187,4 @@ One habit for each lesson.
 1. Chan, E. P. (2013). *Algorithmic Trading: Winning Strategies and Their Rationale*. Wiley. Pages 114, 119 to 121 and 125 to 131 cited. The page numbers are the Kindle edition’s, which differ from the print edition’s.
 2. Chan, E. P. `KF_beta_EWA_EWC.m`, git blob `e2f8a62`, `fillMissingData.m`, git blob `88632fc`, and the data file `inputData_ETF.mat`, git blob `261718b`, all under `public/img/book2/` at commit `e4bc46f` of [ericnberwick/EpchanPreview](https://github.com/ericnberwick/EpchanPreview), a public copy of Chan’s code and data.
 
-*Not investment advice. Code: [the replication](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/kalman_hedge.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/kalman_hedge_figures.py), with the checks behind [the replication’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_kalman_hedge.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_kalman_hedge_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every quoted sentence with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-32-a-kalman-filter-hedge-ratio-on-ewa-and-ewc-chans-algorithmic-trading) that sets each of Chan’s claims beside what was found here.*
+*Not investment advice. Code: [the replication](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/kalman_hedge.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/kalman_hedge_figures.py), with the checks behind [the replication’s numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_kalman_hedge.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_kalman_hedge_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/algorithmic-trading.md) that record every sentence quoted from the book with its location, and the [replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-32-a-kalman-filter-hedge-ratio-on-ewa-and-ewc-chans-algorithmic-trading) that sets each of Chan’s claims beside what was found here.*
