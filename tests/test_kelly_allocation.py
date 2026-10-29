@@ -902,7 +902,10 @@ class TestWhatThePostSays:
         scaled = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
         corner = best_allocation_at_cap(MEANS, cov).growth
         threshold = corner_threshold(MEANS, cov)
+        printed = Decimal(f"{corner:.3f}").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self._has(
+            f"his {printed} is a tie rounded up",
+            f"at two decimals in code gives {corner:.2f}, because",
             f"the answer changes once the cap passes {threshold:.2f}.*",
             f"Both leverages shrunk to the cap grow at {_six(scaled)} a year. "
             f"The whole cap on strategy 2 grows at {corner:.3f} a year.",
@@ -1015,6 +1018,12 @@ class TestWhatThePostSays:
             f"F2 = {MAX_LEVERAGE:g} and g = {corner:.3f}.",
             f"at the unbounded peak, F2 = {_six(peak.leverages[1])} and g = {_six(peak.growth)}, "
             f"labelled as not allowed, and falls slightly toward F2 = {BEYOND_CAP:g}.",
+            "A filled brown marker sits on it at the proportional split",
+            "rises a little further to a hollow red marker at the unbounded peak",
+            f"Past F2 = {MAX_LEVERAGE:g} the curve continues dashed over a shaded region "
+            f"labelled as over the gross cap of {MAX_LEVERAGE:g}, where strategy 1 is held "
+            "short.",
+            "The dashed part past the cap, the shading and the three markers are added here",
         )
 
     def test_why_the_corner_wins(self, cov, kelly) -> None:

@@ -5243,7 +5243,7 @@ Four things.
    On Chan's inputs a grid over every allocation the gross cap allows, short
    positions included, finds the same corner, and with his means and
    volatilities at a cap of 2 no correlation lets a short beat the best
-   long-only split. On other inputs a strong positive correlation can.
+   long-only allocation. On other inputs a strong positive correlation can.
    `TestTheLongOnlyLimit` holds a case where a short hedge inside the cap grows
    at 0.656501. The best long-only allocation there holds strategy 2 alone at
    its own Kelly leverage of 3.333333, inside the cap, and grows at 0.5. The

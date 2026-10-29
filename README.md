@@ -6937,7 +6937,7 @@ and draws six lessons from Entry 20 of the replication log.
 6. The best allocation under the cap is long-only on Chan's inputs and not in
    general.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -6967,13 +6967,25 @@ Five groups of what it says are not pinned here.
    equity, is arithmetic on its own numbers.
 4. Two words in the figure's alt text, which reads the dashed curve as rising
    "a little further" and falling "slightly".
-5. Its references, cited rather than computed. Two results it takes from
-   earlier posts are cited the same way: compound growth falling short of the
-   average return by about half the variance, from the post on the coin toss,
-   and a long position held at a constant leverage above 1 selling after every
-   loss and buying after every gain, from the SPY post. The post's counts of
-   its own parts, such as the three groups of results, the five things the
-   reproduction adds and the six lessons, are not pinned either.
+5. Its references, cited rather than computed. The post's counts of its own
+   parts, such as the three groups of results, the five things the
+   reproduction adds and the six lessons, are not pinned either. Five results
+   it takes from earlier posts are cited like its references.
+   1. Compound growth falling short of the average return by about half the
+      variance, from the post on the coin toss.
+   2. A long position held at a constant leverage above 1 selling after every
+      loss and buying after every gain, from the SPY post.
+   3. The drag at one strategy's Kelly leverage being exactly half its return,
+      from the SPY post.
+   4. How far the choice of years alone can move a Kelly leverage, from the
+      SPY post.
+   5. The trading rule of Khandani and Lo (2007), which the post on Chan's
+      rerun of their reversal reproduces.
+6. Three of its four displayed formulas, those for the Kelly leverages, the
+   growth rate at any leverages and the largest cap. The tests in
+   `TestCorrelatedStrategies` hold the code to each of them, and no test reads
+   the post's copy. The fourth, the slope along the line, is read with its
+   numbers.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) or to
@@ -6991,9 +7003,9 @@ half the corner's rate, 0.262321 as about a quarter, 2.448980 as 2.45 in the
 subtitle, Lesson 5's heading and Lesson 6, and 0.962956 rounding to 0.96. So a
 typo in a copy the class reads fails a test, and so does one in a figure the
 title or a heading quotes. A typo in another copy of the same number passes,
-such as the second 2.135068, in the paragraph saying Equation 8.3 is an image,
-or the 2.448980 that opens Lesson 5's paragraph on "most" and "all". Before the
-post, fourteen had no pin at the precision it quotes, and
+such as the 2.135068 in the paragraph that opens "Chan prints Equation 8.3 as
+an image", or the 2.448980 that opens Lesson 5's paragraph on "most" and
+"all". Before the post, fourteen had no pin at the precision it quotes, and
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) now pins them
 all. `TestBesideTheClaim` holds the first nine, splitting each growth rate
 into its return and its drag from the run's own leverages.

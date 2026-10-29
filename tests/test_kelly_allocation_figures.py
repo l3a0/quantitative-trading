@@ -166,7 +166,9 @@ class TestTheMarkers:
 
     def test_the_filled_markers_are_brown_and_green(self, ax) -> None:
         """The post's alt text names the proportional split's marker brown and
-        the corner's green, so a swap would make it describe another figure."""
+        the corner's green, so a swap would make it describe another figure.
+        ``TestWhatThePostSays`` in ``tests/test_kelly_allocation.py`` reads
+        those words from the post."""
         lines = _by_gid(ax.lines)
         for gid, colour in (("proportional", ACCENT), ("corner", GOOD)):
             assert lines[gid].get_markerfacecolor() == colour
