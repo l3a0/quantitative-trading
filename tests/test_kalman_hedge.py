@@ -5,8 +5,9 @@ The script is ``KF_beta_EWA_EWC.m``, at Kindle locations 1633 to 1726.
 This file is the single authority for every number a prose surface quotes
 about this replication and the findings beside it, with one exception, in
 ``blog/kalman-hedge-lessons.md``. The post's figure has its own pins in
-``tests/test_kalman_hedge_figures.py``. README lists what the post says that
-nothing pins. ``docs/replication-log.md`` Entry 32 carries the verdicts and
+``tests/test_kalman_hedge_figures.py``. ``TestWhatThePostQuotes`` reads one
+copy in the post of each run figure it quotes against the run. README lists
+what the post says that nothing pins. ``docs/replication-log.md`` Entry 32 carries the verdicts and
 points here row by row.
 
 Every pin reads one vintage and one specification, so both are stated once
@@ -43,6 +44,7 @@ rule he chose. It first ran here on 2026-10-06.
 from __future__ import annotations
 
 import io
+import re
 from contextlib import redirect_stdout
 
 import numpy as np
@@ -55,6 +57,8 @@ from chan.kalman_hedge import (
     BOOK_APR_PERCENT,
     BOOK_SHARPE,
     DELTA,
+    QUIET_ROWS,
+    ROLLING_DAYS,
     SCRIPT_APR,
     SCRIPT_SHARPE,
     SOURCE_FILE,
@@ -73,11 +77,14 @@ from chan.kalman_hedge import (
     slope_findings,
     trade,
 )
-from chan.khandani_lo import plain_sharpe
+from chan.khandani_lo import TRADING_DAYS, plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, matches
 from chan.series import WindowCrossesScaleBreak, load_panel
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.support.post_tables import either_way, not_found_once, tables
+
+POST = paths.REPO_ROOT / "blog" / "kalman-hedge-lessons.md"
 
 SPEC = (
     "inputdata_etf/ EWA and EWC closes over 1,500 days, KF_beta_EWA_EWC.m's Kalman filter "
@@ -511,3 +518,223 @@ class TestTheReport:
 
     def test_it_says_the_run_is_exploratory(self, printed) -> None:
         assert "Exploratory." in printed
+
+
+#: The two longer windows Lesson 3 sets beside the 250-day mean.
+LONGER, LONGEST = 300, 350
+
+
+class TestWhatThePostQuotes:
+    """One copy of each run figure ``blog/kalman-hedge-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording the
+    prose between two figures does not. The post's four tables are each read
+    whole, as the grid of its cells with its row labels and column heads.
+    They are Lesson 1's figures, Lesson 2's three runs, and Lesson 3's yearly
+    means and grains. So a cell changed, added, dropped or moved fails, and so
+    does a label or head swapped, while the same table turned on its side
+    still passes. The grain table's label for the rolling mean reads as its
+    250, because ``tables`` reads a number inside a label as the cell.
+
+    The post states several figures more than once. The class reads at least
+    one copy of each, and a few in more than one sentence that needs its own
+    check. Where a figure repeats, the copies read are these.
+
+    1. **The file.** The saved date and the two ends of its 1,500 days are read
+       in the section on the prices and the script.
+    2. **Lesson 2.** Row 1's 22.95 and 0.031623 are read where row 1 is worked
+       and in the sentence that compares them. Row 2's 22.78 is read where
+       row 2 is worked, and its 1.366666 there and in Lesson 3's count of
+       crossings.
+    3. **Lesson 3.** The 57 of 1,250 and the 513 of 1,499 are read in the
+       prose and in the grain table. The intercept's last value, 6.767360, is
+       read where the intercept peaks.
+    4. **Lesson 4.** The constants 0.0001 and 0.001 are read in Lesson 4's
+       first reason.
+
+    The figure's alt text gets its own reading. Its exact figures are read
+    there as a second copy, among them its 513 of 1,499 and its 0.260669 and
+    2.349460. Its readings of the lines, such as "about 1.4", are not.
+
+    The copies left unread include the book's 26.2 percent and 2.4 in
+    Lesson 1's prose, the 6.767360 in the paragraph on the whole-file
+    regression, the 1,500 days in the caption, and the 0.0001 and 0.001 in
+    the section on the constants. The whole-file
+    regression's 0.9624 and 6.4113 are ``tests/test_etf_cointegration.py``'s,
+    and the earlier post's 20 days are ``tests/test_price_spread.py``'s.
+    Nothing checks Chan's words against their source, the page numbers or the
+    references, and ``README.md`` lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    def test_the_post_holds_four_tables(self, text) -> None:
+        assert len(tables(text)) == 4
+
+    def test_lesson_1s_table_turned_on_its_side_still_passes(self, result, text) -> None:
+        """The class docstring's claim, made on the post's own first table.
+
+        Its rows become columns, so its labels become the head row, and the
+        rest of the post is left as it is.
+        """
+        body = re.search(r"\\begin\{array\}\{[^}]*\}\n(.*?)\n\\end\{array\}", text, flags=re.S)[1]
+        rows = [[cell.strip() for cell in row.split("&")] for row in re.split(r"\\\\.*\n", body)]
+        turned = " \\\\\n".join(" & ".join(column) for column in zip(*rows, strict=True))
+        assert turned != body
+        self.test_lesson_1(result, text.replace(body, turned, 1))
+
+    def test_the_opening_and_the_file(self, sources, closes, result, text) -> None:
+        members, _ = sources
+        (saved,) = {m.obtained for m in members}
+        fragments = [
+            f"“a reasonable APR of {BOOK_APR_PERCENT} percent and a Sharpe ratio of {BOOK_SHARPE}”",
+            f"`{SOURCE_FILE}`, saved on {saved} and",
+            f"EWA and EWC are both priced on all {len(closes):,} trading days from "
+            f"{closes.index[0].date()} to {closes.index[-1].date()}.",
+            f"and all {len(result.trade.daily):,} rows count toward the figures.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_1(self, result, text) -> None:
+        apr, sharpe = result.trade.apr, result.trade.sharpe
+        assert (f"{apr:.6f}", f"{sharpe:.6f}") == (SCRIPT_APR, SCRIPT_SHARPE)
+        assert matches(100 * apr, BOOK_APR_PERCENT) and matches(sharpe, BOOK_SHARPE)
+        fragments = [
+            f"The APR is the compounded annual return over {TRADING_DAYS} trading days a year.",
+        ]
+        assert not_found_once(text, fragments) == []
+        table = [
+            ["Figure", "APR", "Sharpe ratio"],
+            ["Computed", f"{apr:.8f}", f"{sharpe:.8f}"],
+            ["Script's comment", SCRIPT_APR, SCRIPT_SHARPE],
+            ["Book", BOOK_APR_PERCENT, BOOK_SHARPE],
+        ]
+        assert tables(text)[0] in either_way(table)
+
+    def test_lesson_2(self, closes, result, text) -> None:
+        f, script, quiet = result.filter, result.trade, result.quiet_start
+        days = f.days
+        ewc = closes[Y].to_numpy()
+        band = np.sqrt(f.variance)
+        first = int(np.flatnonzero(script.daily)[0])
+        differ = [str(days[t].date()) for t in np.flatnonzero(script.daily != quiet.daily)]
+        threshold = float(BOOK_SHARPE) - 0.05
+        assert quiet.sharpe < threshold and round(threshold + 1e-9, 1) == float(BOOK_SHARPE)
+        fragments = [
+            f"**Row 1, {days[0].date()}.**",
+            f"The forecast error is EWC’s whole close of {f.error[0]:.2f}.",
+            f"the band is its square root, {band[0]:.6f}.",
+            f"An error of {f.error[0]:.2f} against a band of {band[0]:.6f} is far above",
+            f"**Row 2, {days[1].date()}.**",
+            f"moves the slope from {f.slope[0]:.0f} to {f.slope[1]:.6f}.",
+            f"the forecast error is EWC’s whole close of {f.error[1]:.2f}, against a band of "
+            f"{band[1]:.6f}.",
+            f"The first nonzero return falls on {days[first].date()}.",
+            f"held as EWC fell from {ewc[0]:.2f} to {ewc[1]:.2f}.",
+            f"That is a gain of {script.daily[first]:.7f}, or {100 * script.daily[first]:.2f} "
+            "percent in a day,",
+            f"the returns of {differ[0]} and {differ[1]}, the two days",
+            f"which annualises all {len(quiet.daily):,} days as the script does.",
+            f"Its figures round to {100 * quiet.apr:.1f} percent and {quiet.sharpe:.1f}, not the "
+            f"book’s {BOOK_APR_PERCENT} and {BOOK_SHARPE}.",
+            f"held over two days out of {len(script.daily):,},",
+            f"The Sharpe ratio lands {threshold - quiet.sharpe:.5f} below {threshold:.2f}, the "
+            f"value at which it would round to the book’s {BOOK_SHARPE}.",
+        ]
+        assert not_found_once(text, fragments) == []
+        dropped = quiet.daily[QUIET_ROWS:]
+        quiet_rows = f"No signal on rows 1 and {QUIET_ROWS},"
+        table = [
+            ["Run", "APR", "Sharpe ratio"],
+            ["The script", f"{script.apr:.8f}", f"{script.sharpe:.8f}"],
+            [
+                f"{quiet_rows} all {len(quiet.daily):,} rows",
+                f"{quiet.apr:.8f}",
+                f"{quiet.sharpe:.8f}",
+            ],
+            [
+                f"{quiet_rows} the two rows dropped",
+                f"{compounded_apr(dropped):.8f}",
+                f"{plain_sharpe(dropped):.8f}",
+            ],
+        ]
+        assert tables(text)[1] in either_way(table)
+
+    def test_lesson_3(self, result, found, text) -> None:
+        slope = result.filter.slope
+        s = slope_findings(slope)
+        longer = rolling_falls(result.filter.intercept, LONGER)
+        longest = rolling_falls(result.filter.intercept, LONGEST)
+        assert longest.falls == 0
+        threshold = round(s.median, 1) + 0.05
+        assert round(s.median, 1) != round(s.mean, 1)
+        fragments = [
+            f"Lengthen the window from {ROLLING_DAYS} days to {LONGER} and the number of falls "
+            f"shrinks from {found.rolling.falls} of {found.rolling.steps:,} steps to "
+            f"{longer.falls} of {longer.steps:,}.",
+            f"At {LONGEST} days, none of the {longest.steps:,} steps falls.",
+            f"The intercept also peaks at {found.peak:.6f} on {found.peak_day.date()}, above its "
+            f"last value of {found.last:.6f} on the file’s final day.",
+            f"it fails, on {found.by_day.falls} of {found.by_day.steps:,} steps.",
+            f"The slope’s median is {s.median:.6f} and its mean is {s.mean:.6f}.",
+            f"At one decimal the median rounds to {s.median:.1f} and the mean to {s.mean:.1f}.",
+            f"The median sits {threshold - s.median:.6f} below {threshold:.2f}, the threshold "
+            f"where it too would round to {s.mean:.1f}.",
+            f"The slope sits above 1 on {s.rows_above_one} of the {s.rows:,} days, "
+            f"{100 * s.rows_above_one / s.rows:.1f} percent of them.",
+            f"It crosses 1 a total of {s.crossings} times.",
+            f"jumps from its zero start to {slope[1]:.6f}, so "
+            f"{slope_findings(slope[1:]).crossings} crossings remain",
+        ]
+        assert not_found_once(text, fragments) == []
+        yearly = [["Year", "Mean intercept"]] + [
+            [str(year), f"{mean:.4f}"] for year, mean in found.yearly.items()
+        ]
+        grains = [["Grain", "Steps", "Steps that fall"]] + [
+            [label, f"{falls.steps:,}", f"{falls.falls:,}"]
+            for label, falls in (
+                ("Year", found.by_year),
+                ("Quarter", found.by_quarter),
+                ("Month", found.by_month),
+                (str(ROLLING_DAYS), found.rolling),
+                ("Day", found.by_day),
+            )
+        ]
+        assert tables(text)[2] in either_way(yearly)
+        assert tables(text)[3] in either_way(grains)
+
+    def test_lesson_4(self, result, text) -> None:
+        units = result.trade.units
+        fragments = [
+            f"`delta` is {DELTA} and `Ve` is {VE}.",
+            f"Over the {len(units):,} days the script holds a long on {int((units > 0).sum())}, "
+            f"a short on {int((units < 0).sum())} and nothing on {int((units == 0).sum())}.",
+            f"Its units change from one day to the next {int((np.diff(units) != 0).sum())} times.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_the_figures_alt_text(self, result, found, text) -> None:
+        f, script, quiet = result.filter, result.trade, result.quiet_start
+        s = slope_findings(f.slope)
+        fragments = [
+            f"A red dot marks its start at {f.slope[0]:.0f} on {f.days[0].date()}.",
+            f"The heading gives a median of {s.median:.6f}, a mean of {s.mean:.6f}, and "
+            f"{s.rows_above_one} of {s.rows:,} days above 1.",
+            f"A red dot marks the highest value, {found.peak:.6f} on {found.peak_day.date()}.",
+            f"the yearly mean falls on {found.by_year.falls} of {found.by_year.steps} steps and "
+            f"the daily intercept falls on {found.by_day.falls} of {found.by_day.steps:,} steps.",
+            f"plots the forecast error from {f.days[QUIET_ROWS].date()} on,",
+            f"sit off the axis at {f.error[0]:.2f}, EWC’s whole close, and {f.error[1]:.2f},",
+            f"The legend gives an APR of {script.apr:.6f} and a Sharpe ratio of "
+            f"{script.sharpe:.6f} for the script, and {quiet.apr:.6f} and {quiet.sharpe:.6f} for "
+            "the dashed run.",
+        ]
+        assert not_found_once(text, fragments) == []

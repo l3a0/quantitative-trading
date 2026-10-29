@@ -1173,8 +1173,10 @@ and every figure the two findings quote: the slope's median, mean, share above
 1 and crossings, and the intercept's yearly means, its falls at each finer
 grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
-planted break in either is refused. The blog post about it is the exception,
-and what it says that nothing here asserts is listed below.
+planted break in either is refused. `TestWhatThePostQuotes` reads one copy in
+the post of each run figure the post quotes, and the alt text's exact figures,
+so editing a copy it reads fails. What the post says that nothing here asserts
+is listed below.
 
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) does it for TU's
 momentum. It pins the six figures of `TU_mom.m`'s comment, the 250/25
@@ -5416,7 +5418,7 @@ The post draws four lessons from Entry 32 of the replication log.
 4. An exact reproduction checks the arithmetic and not the edge, since the
    two constants are Chan's and the script charges no cost.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -5443,7 +5445,10 @@ Five groups of what it says are not pinned here.
    does on this file after the first day, but not those words.
 4. The figure's alt text, whose readings of the lines, such as "about 1.4"
    and "about 2 by the start of September 2008", are approximate by design.
-5. Its references, cited rather than computed.
+5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
+   states several figures more than once, in a lesson, a table or the alt
+   text, and a typo in a copy the class does not read passes.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py), to
@@ -5469,6 +5474,20 @@ it.
 Two more were pinned when Lesson 3 gained them after the post first merged. A
 300-day rolling mean of the intercept falls on 25 of its 1,200 steps, and a
 350-day one on none of its 1,150.
+
+`TestWhatThePostQuotes` in
+[tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) reads the post
+itself. It builds each run figure the post quotes from the run, at the
+precision the post prints it, and looks for one copy of it in the post, so a
+typo in that copy fails a test. That covers the file's saved date, days and
+dates, the 252 days of the APR, the first two rows' forecast errors, bands and
+slope, the first return and its dates, the run with no signal on rows 1 and 2
+and its margin below 2.35, the slope's median, mean, share above 1 and
+crossings, the intercept's falls at each window and its peak, the constants,
+and the holdings and their changes. It also reads the alt text's exact
+figures, its 513 of 1,499 and the dashed run's 0.260669 and 2.349460 among
+them. Its four tables are rebuilt whole, so a digit added to a cell fails as
+well as a digit changed.
 
 Its one figure is drawn from the committed file by
 [src/chan/kalman_hedge_figures.py](src/chan/kalman_hedge_figures.py), which
