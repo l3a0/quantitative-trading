@@ -525,6 +525,10 @@ class TestTheRollLeftSketch:
             "A green arrow pointing up",
             "a red arrow pointing down",
             "with the two spot returns one above the other",
+            "sits beside the green words “own the metal:”",
+            "sits beside the red words “short the future:”",
+            "to the brown words “left: − roll return”",
+            "The finished drawing holds for twelve seconds.",
             "A black slash then strikes out each spot return",
             "A brown arrow points down from the roll return",
             "a green check mark",
@@ -665,6 +669,9 @@ class TestTheTwoMovesSketch:
             assert (brace.x.min(), brace.x.max()) == pytest.approx((start, end))
             assert brace.y.max() <= _stroke(scene, f"gc-{day}").y.min()
             assert np.interp(end, x, y) > np.interp(start, x, y) + 0.2, day
+            assert brace.y[0] == brace.y[-1] == brace.y.max(), day
+            assert brace.x[np.argmin(brace.y)] == pytest.approx((start + end) / 2), day
+            assert brace.y.min() == pytest.approx(min(sketches.BRACE_Y)), day
 
     def test_the_gap_is_drawn_about_twice_its_share_of_a_day(self, bound) -> None:
         """A day runs from one day's tick to the same tick the next, so the
@@ -682,6 +689,11 @@ class TestTheTwoMovesSketch:
             "drawn about twice as wide as two and a half hours of a day would be",
             "A brown brace under each day spans the gap between its two ticks, "
             "where the price rises",
+            "Above them grey words read “if GC",
+            "and black words read “GLD",
+            "a grey label names that day “yesterday”",
+            "Three lines of black words follow",
+            "The finished drawing holds for twelve seconds.",
             "a green check mark",
         ):
             assert phrase in alt, phrase
