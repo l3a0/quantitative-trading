@@ -9402,8 +9402,9 @@ median of −0.0283 across the 579 stocks priced on every day the pairs read.
 PC1, PC2, PC4 and PC5 are above 0 and above the median stock. PC3 is above
 the median stock and below 0.
 
-The verdicts rest on little. PC2 alone sits outside the band a series of
-independent returns centred on zero stays inside 95 percent of the time, and
+The verdicts rest on little. PC2 alone sits outside the band where the
+statistic of a series of independent returns centred on zero, each no more
+likely to be large than any other day's, lands 95 percent of the time, and
 no factor survives a control for false discoveries across the five. Which
 factor misses also rests on one symbol. Dropping PMC, whose two price
 histories the program joins into one day's return of 1.8654, moves PC2 below
@@ -9444,7 +9445,9 @@ and seven of the issue's rules, each as the issue fixed it.
    holds that on three of the file's days. The price is that f is not the
    coefficient the program's regression returns. That coefficient would
    weight each day by 1/s_k², and nothing in the strategy weights days that
-   way.
+   way. The intercept is not a factor. It is added to every stock's expected
+   return alike, so it moves no position, which the issue's rule 6 fixed
+   with the others.
 3. **The statistic.** For each factor, the uncentred correlation of its
    pairs: the sum of f_t f_{t+1}, over the square root of the sum of f_t²
    times the sum of f_{t+1}². It is the ordinary correlation without
@@ -9545,7 +9548,7 @@ columns have nothing to hold in any row and are dropped, under
 | # | Verdict | Why |
 | --- | --- | --- |
 | 1 | reproduced | The claim holds for PC1, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's, under the criterion declared on the issue before any factor return was computed. It sits at 0.0316, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
-| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return, up or down, makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t measures that scatter. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
+| 2 | reproduced | The claim holds for PC2, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0778, the one factor outside row 10's band, but its Newey-West t of 0.8254 gives a one-sided p-value of 0.2046 and it survives no control for false discoveries in row 11, so this verdict could be noise too. The band is right only when a large return, up or down, makes a large one the next day no more likely. PC2's largest returns fell on neighbouring days, so its products scatter far wider than the band assumes, and the t divides by a distance that comes from that scatter, which keeps it small. Without PMC its statistic falls to −0.0152, below 0, under row 16. |
 | 3 | did not reproduce | The claim, which Chan says factors "often" show, does not hold for PC3. Its −0.0189 is above the median stock's −0.0283 and below 0. Under the owner's ruling this verdict stands on its own, and no combined verdict is drawn from rows 1 to 5. The value is forced, because the log's two other verdicts both need the claim to survive. It sits inside row 10's band, so this miss could be noise as much as row 1's pass could. Without PMC its statistic rises to 0.0139, above both, and PC2 misses in its place under row 16, so which factor misses rests on one symbol. Two more causes outside the method are open and neither is measured: the file holds only survivors, and 2005 to 2008 is one window. |
 | 4 | reproduced | The claim holds for PC4, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0305, inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. |
 | 5 | reproduced | The claim holds for PC5, which Chan says factors "often" show. Its statistic is above 0 and above the median stock's. It sits at 0.0710, just inside row 10's band, and survives no control for false discoveries in row 11, so this verdict could be noise. Its pairs share a sign exactly as often as not, under row 9, so the positive statistic comes from its larger pairs agreeing in sign. |
@@ -9553,13 +9556,13 @@ columns have nothing to hold in any row and are dropped, under
 | 7 | none, not a replication | PC2 sits above 95.6822 percent of the stocks and PC3 above 55.0950 percent, so even the factor that misses is more persistent than the median stock on this file. |
 | 8 | none, not a replication | The quartiles use pandas' default linear interpolation. The median is negative, so on this file a factor above 0 is also above the median stock. PC3 shows the other half: it is above the median stock and still below 0. That is a fact about this panel, and the criterion keeps both halves as declared. |
 | 9 | none, not a replication | Every share sits between 0.5000 and 0.5226. PC5's is exactly one half, which is the price rule 3 names: a few large days can carry the statistic. |
-| 10 | none, not a replication | Under a series of independent returns centred on zero, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
+| 10 | none, not a replication | Under a series of independent returns centred on zero, each no more likely to be large than any other day's, an estimate from 752 pairs falls outside ±0.0715 about 5 percent of the time. PC2 sits outside it, and PC5's 0.0710 sits just inside. |
 | 11 | none, not a replication | The smallest p-value is PC5's 0.1021, so no factor would pass at 5 percent even tested alone, and Benjamini-Hochberg across the five rejects none. A sign flip moves no product, so it cannot move a t either. |
 | 12 | none, not a replication | The intercept is added to every stock's expected return alike, so it moves no position. Both of its figures are negative and inside row 10's band. |
 | 13 | none, not a replication | Without PMC the comparison set keeps the other 578 stocks, and the median is unchanged at four decimals. PC1 and PC4 rise, PC5 falls, PC2 falls below 0 and PC3 rises above it. |
 | 14 | none, not a replication | Every share stays between 0.5053 and 0.5199. The intercept's uncentred figure moves from −0.0395 to −0.0394, and its ordinary one stays at −0.0401. |
 | 15 | none, not a replication | Without PMC, PC1 and PC4 sit outside the band and PC2 returns inside it. Benjamini-Hochberg still rejects none, because no p-value clears its own threshold. The k-th smallest is held to k fifths of 0.05, so PC4's 0.0319, the smallest, is held to 0.01. |
-| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so this row moves no verdict. |
+| 16 | none, not a replication | Without PMC the criterion would miss PC2 and pass the other four, PC3 among them. The verdicts read the file as the program does, which forward-fills, so they stay as rows 1 to 5 give them, and this row replaces none. |
 
 ### What the entry concludes
 
@@ -9572,8 +9575,9 @@ Three things, and the first is the verdict.
    combined verdict.
 2. **The verdicts rest on little.** No factor survives a control for false
    discoveries across the five, and no p-value would pass at 5 percent even
-   alone. Four of the five sit inside the band a series of independent
-   returns centred on zero stays inside 95 percent of the time. PC2 sits
+   alone. Four of the five sit inside the band where the statistic of a
+   series of independent returns centred on zero, each no more likely to be
+   large than any other day's, lands 95 percent of the time. PC2 sits
    outside it and still has a one-sided p-value of 0.2046.
 3. **Which factor misses rests on one symbol.** Without PMC, PC2 falls below
    0 and PC3 rises above it, so the criterion would miss PC2 instead.
@@ -9614,9 +9618,10 @@ moves with it too, since that post quotes most of them. It also quotes what
 the write-up measured after the run, which `TestWhatThePostMeasured` in
 [tests/test_pca_factor_momentum.py](../tests/test_pca_factor_momentum.py)
 pins and which decides nothing. It quotes how often each factor's weights
-flip sign once each vector's largest weight is made positive, and that every
-flip left falls on a day the largest weight moves to another stock or two
-factors swap rank. Those pins also count how often they swap rank from day to
+flip sign once each vector's largest weight in size is made positive, and that all but
+five of those flips move the largest weight to a stock the earlier day weighed
+below zero. The five left fall on days two or more factors swap rank. Those
+pins also count how often they swap rank from day to
 day, and give the statistic on three other ways of reading tomorrow's factor return and on
 a 251-day window that still holds today's return. They read PMC's weight on
 the 113 days from 2007-08-02 to 2008-01-11 whose window holds its one large
@@ -9626,7 +9631,14 @@ statistic, which carry PC1's without PMC. Its one figure, which
 redraws, moves with them. The factor models post's Lesson 3 whiteboard
 sketch, which draws a sign flip in one day's weights changing both members of
 a pair, is schematic and draws none of these figures, and
-`uv run python -m chan.factor_models_whiteboard` redraws it.
+`uv run python -m chan.factor_models_whiteboard` redraws it. The PCA factor
+momentum post's two whiteboard sketches draw some of them. The window sketch draws PC2's statistic
+four ways: on tomorrow's own weights matched, with today left out, on the 251
+days that still hold today, and as the pair reads it. The rank shift sketch
+draws PMC's weight on PC1, the days PMC carries PC1, the two days' shares of
+PC2's squared products and of PC1's without PMC, and PC2's statistic with PMC
+and without. They move with a re-pin of any of those, and
+`uv run python -m chan.pca_factor_momentum_whiteboard` redraws them.
 
 ## Entry 43: Monte Carlo leverage, historical optimization and CPPI, Chan's *Algorithmic Trading*
 
