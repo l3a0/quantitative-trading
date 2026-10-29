@@ -82,7 +82,7 @@ g \text{, all on } F_2 & 0.955 & 0.96
 \end{array}
 ```
 
-Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
+Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96. These are all the figures in the examples’ text, and a figure printed only inside an equation’s image, as Equation 8.3’s may be, is not among them.
 
 No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is three things the table does not show.
 
@@ -133,7 +133,7 @@ The growth rate at the corner is exactly 191/200, which is 0.955. Chan prints 0.
 2. **Round half to even**, which sends a tie to the even last digit, gives 0.96.
 3. **Round half down** gives 0.95.
 
-So the printed digit lands under two rules and cannot say which one Chan used. The trap is in code. A floating-point number cannot hold 0.955 exactly, and the nearest one it can hold sits just below the tie. Python’s `f"{g:.2f}"` and `round(g, 2)` both see a number below halfway and print 0.95. A report that formats the corner the obvious way puts 0.95 beside the book’s 0.96, and reads as a miss for a figure that lands. This repository’s run prints the corner at three decimals for that reason.
+So the printed digit lands under two rules and cannot say which one Chan used. The trap is in code. A floating-point number cannot hold 0.955 exactly, and the nearest one it can hold sits just below the tie. Python’s `f"{g:.2f}"` and `round(g, 2)` on a plain float both see a number below halfway and print 0.95. A report that formats the corner the obvious way puts 0.95 beside the book’s 0.96, and reads as a miss for a figure that lands. This repository’s run prints the corner at three decimals for that reason.
 
 ## Lesson 4: drop the bound and the best allocation shorts a winning strategy
 
@@ -168,7 +168,7 @@ So on Chan’s inputs, everything on strategy 2 is best only while the cap is be
 
 Up to here, every allocation compared under the cap holds long positions only, F1 and F2 both at least 0, the range Chan plots. On Chan’s inputs that loses nothing. A search over every allocation whose gross leverage is 2, short positions included, finds the same corner at 0.955.
 
-A strong positive correlation breaks that. Take two strategies with mean excess returns of 0.05 and 0.30, a volatility of 0.30 each, a correlation of 0.95, and a cap of 4. These inputs are this repository’s, built to test the limit, and are not Chan’s.
+On Chan’s means and volatilities at a cap of 2, no correlation lets a short beat the best long-only split, even a correlation of 1. A strong positive correlation can break that on other inputs. Take two strategies with mean excess returns of 0.05 and 0.30, a volatility of 0.30 each, a correlation of 0.95, and a cap of 4. These inputs are this repository’s, built to test the limit, and are not Chan’s.
 
 1. **The best long-only allocation** holds strategy 2 alone at its own Kelly leverage, 0.30 / 0.30², which is 3.333333. That sits inside the cap and grows at exactly 0.5. Spending the whole cap of 4 on strategy 2 grows at only 0.48.
 2. **A short hedge inside the same cap** holds 1.002849 of strategy 1 short against 2.997151 of strategy 2 long, a gross of 4, and grows at 0.656501.

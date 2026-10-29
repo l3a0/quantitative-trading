@@ -5,9 +5,10 @@ about these examples. The one exception is
 ``blog/capped-kelly-allocation-lessons.md``:
 ``tests/test_kelly_allocation_figures.py`` holds the numbers its figure draws,
 and README lists what it says that nothing asserts. Every other figure the post
-quotes is pinned here, and :class:`TestBesideTheClaim`,
+quotes is pinned here. :class:`TestTheCorner`, :class:`TestBesideTheClaim`,
 :class:`TestWhereTheCornerStopsWinning` and :class:`TestTheLongOnlyLimit` hold
-the ones the entry's thirteen rows do not. ``docs/replication-log.md`` Entry 20
+the ones the entry's thirteen rows do not, the slope and the corner's margin
+over the proportional split among them. ``docs/replication-log.md`` Entry 20
 states its numbers and derives none of them, and
 ``src/chan/kelly_allocation.py`` carries the reasoning.
 
@@ -66,8 +67,9 @@ def kelly(cov):
 
 
 def _book(value: float, places: int) -> str:
-    """Round half up from the true value. Only row 10 sits on a tie, and there
-    half to even gives the same digit, so the choice of rule moves nothing."""
+    """Round half up from the true value. No value this file passes in sits on
+    a tie, so half to even would give the same digits. Row 10's tie is held in
+    :class:`TestTheCorner`."""
     quantum = Decimal(1).scaleb(-places)
     return str(Decimal(repr(float(value))).quantize(quantum, rounding=ROUND_HALF_UP))
 
@@ -253,6 +255,19 @@ class TestTheCorner:
         assert (f1, f2) == pytest.approx((0.0, MAX_LEVERAGE), abs=1e-9)
         assert g == pytest.approx(0.955, abs=1e-12)
 
+    @pytest.mark.parametrize("correlation", (-1.0, -0.5, 0.0, 0.5, 0.95, 1.0))
+    def test_no_correlation_makes_a_short_pay_at_a_cap_of_two(self, correlation) -> None:
+        """Chan's means and volatilities at his cap of 2, with the correlation
+        varied. A short never beats the best long-only split, so the hedge in
+        :class:`TestTheLongOnlyLimit` needs its other inputs too, not only the
+        correlation of 0.95."""
+        varied = covariance(VOLS, correlation)
+        g, f1, f2 = _gross_boundary_grid(MEANS, varied, MAX_LEVERAGE, points=4_001)
+        assert f1 >= 0.0 and f2 >= 0.0
+        assert g == pytest.approx(
+            best_allocation_at_cap(MEANS, varied, MAX_LEVERAGE).growth, abs=1e-5
+        )
+
     def test_the_slope_along_the_line_is_positive_up_to_the_cap(self, cov) -> None:
         """Along ``F1 = 2 - F2`` the growth rate is a parabola, so its slope is a
         line in F2: 0.4352 at F2 = 0, falling by 0.1901 per unit. It is still
@@ -300,7 +315,7 @@ class TestTheCorner:
         assert f"{g:.3f}" == "0.955"
 
     def test_the_corner_beats_the_proportional_allocation(self, cov, kelly) -> None:
-        """Chan's claim, which is what row 8's verdict rests on."""
+        """Chan's claim, which is what row 10's verdict rests on."""
         corner = best_allocation_at_cap(MEANS, cov).growth
         proportional = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
         assert corner - proportional == pytest.approx(0.138202, abs=5e-7)
@@ -569,9 +584,12 @@ class TestTheInputsAreChecked:
             corner_threshold((0.3, 0.6), covariance((0.4, 0.2), 0.9))
 
     def test_a_threshold_needs_strategy_two_to_have_the_higher_mean(self) -> None:
-        """With the means swapped the formula gives -2.448980, a cap nothing can be."""
+        """With the means swapped the formula gives -2.448980, a cap nothing can be.
+        With them equal it gives 0, which is no cap either."""
         with pytest.raises(ValueError, match="not above"):
             corner_threshold((0.60, 0.30), covariance(VOLS))
+        with pytest.raises(ValueError, match="not above"):
+            corner_threshold((0.30, 0.30), covariance(VOLS))
 
     def test_a_cap_below_zero_is_refused(self) -> None:
         with pytest.raises(ValueError, match="below zero"):
@@ -708,8 +726,7 @@ class TestTheReportSaysWhatItComputed:
             for row in capsys.readouterr().out.splitlines()
             if "growth rate, everything on strategy 2" in row
         )
-        assert "0.955" in line
-        assert line.rstrip().endswith("0.96")
+        assert line.split()[-2:] == ["0.955", "0.96"]
 
     def test_the_curve_rises_to_the_corner(self, capsys) -> None:
         report()

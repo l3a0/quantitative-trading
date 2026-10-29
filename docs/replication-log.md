@@ -5241,8 +5241,9 @@ Four things.
    0.96.
 4. **The best allocation under the cap is long-only here, and not in general.**
    On Chan's inputs a grid over every allocation the gross cap allows, short
-   positions included, finds the same corner. With a strong positive
-   correlation it does not. `TestTheLongOnlyLimit` holds a case where a short
+   positions included, finds the same corner, and with his means and
+   volatilities at a cap of 2 no correlation lets a short beat the best
+   long-only split. On other inputs a strong positive correlation can. `TestTheLongOnlyLimit` holds a case where a short
    hedge inside the cap grows at 0.656501. The best long-only allocation there
    holds strategy 2 alone at its own Kelly leverage of 3.333333, inside the
    cap, and grows at 0.5. That is why the module's capped search says it is
