@@ -6967,7 +6967,13 @@ Five groups of what it says are not pinned here.
    equity, is arithmetic on its own numbers.
 4. Two words in the figure's alt text, which reads the dashed curve as rising
    "a little further" and falling "slightly".
-5. Its references, cited rather than computed.
+5. Its references, cited rather than computed. Two results it takes from
+   earlier posts are cited the same way: compound growth falling short of the
+   average return by about half the variance, from the post on the coin toss,
+   and a leverage held constant above 1 selling after every loss and buying
+   after every gain, from the SPY post. The post's counts of its own parts,
+   such as the three groups of results, the five things the reproduction adds
+   and the six lessons, are not pinned either.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) or to
@@ -6983,8 +6989,11 @@ covers both of Lesson 1's tables, the inputs, and the ratios and roundings the
 post states in words: strategy 2's mean twice strategy 1's, 0.4648 less than
 half the corner's rate, 0.262321 as about a quarter, 2.448980 as 2.45 in the
 subtitle, Lesson 5's heading and Lesson 6, and 0.962956 rounding to 0.96. So a
-typo in any of them fails a test. Before the post, fourteen had no pin at the
-precision it quotes, and
+typo in a copy the class reads fails a test, and so does one in a figure the
+title or a heading quotes. A typo in another copy of the same number passes,
+such as the second 2.135068, in the paragraph saying Equation 8.3 is an image,
+or the 2.448980 that opens Lesson 5's paragraph on "most" and "all". Before the
+post, fourteen had no pin at the precision it quotes, and
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) now pins them
 all. `TestBesideTheClaim` holds the first nine, splitting each growth rate
 into its return and its drag from the run's own leverages.

@@ -77,10 +77,11 @@ a bag of trade outcomes, as issue 14 ruled.
 
 ``tests/test_kelly_allocation.py`` is the single authority for every number
 quoted about these examples. The one exception is
-``blog/capped-kelly-allocation-lessons.md``:
+``blog/capped-kelly-allocation-lessons.md``.
 ``tests/test_kelly_allocation_figures.py`` holds the numbers its figure draws,
-and README lists what it says that nothing asserts.
-``docs/replication-log.md`` Entry 20 carries the verdicts.
+``tests/test_kelly_allocation_whiteboard.py`` holds the words its two sketches
+print and their alt texts quote, and README lists what it says that nothing
+asserts. ``docs/replication-log.md`` Entry 20 carries the verdicts.
 
 :mod:`chan.kelly_allocation_figures` draws the curve the run prints along
 ``F1 = 2 - F2``, the book's Figure 8.1, for

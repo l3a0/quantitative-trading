@@ -1,17 +1,19 @@
 """Pins for Chan's Examples 8.1 and 8.2, constant leverage and capped Kelly allocation.
 
-This file is the single authority for every number a prose surface quotes
-about these examples. The one exception is
-``blog/capped-kelly-allocation-lessons.md``:
+This file is the single authority for every number a prose surface quotes about
+these examples. The one exception is
+``blog/capped-kelly-allocation-lessons.md``.
 ``tests/test_kelly_allocation_figures.py`` holds the numbers its figure draws,
-and README lists what it says that nothing asserts. Every other figure the post
-quotes is pinned here. :class:`TestTheCorner`, :class:`TestBesideTheClaim`,
+``tests/test_kelly_allocation_whiteboard.py`` holds the words its two sketches
+print and their alt texts quote, and README lists what it says that nothing
+asserts. Every other figure the post quotes is pinned here.
+:class:`TestTheCorner`, :class:`TestBesideTheClaim`,
 :class:`TestWhereTheCornerStopsWinning` and :class:`TestTheLongOnlyLimit` hold
 the ones the entry's thirteen rows do not, the slope and the corner's margin
-over the proportional split among them. :class:`TestWhatThePostSays` reads
-one copy of each from the post itself. ``docs/replication-log.md`` Entry 20
-states its numbers and derives none of them, and
-``src/chan/kelly_allocation.py`` carries the reasoning.
+over the proportional split among them. :class:`TestWhatThePostSays` reads one
+copy of each from the post itself. ``docs/replication-log.md`` Entry 20 states
+its numbers and derives none of them, and ``src/chan/kelly_allocation.py``
+carries the reasoning.
 
 Every pin names its specification, because a number alone does not say which
 of several plausible formulas produced it. Unless a class says otherwise, that
@@ -846,6 +848,18 @@ class TestWhatThePostSays:
     def _has(self, *sentences: str) -> None:
         for sentence in sentences:
             assert sentence in self.text, sentence
+
+    def test_the_title_and_headings(self, cov) -> None:
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        printed = Decimal(f"{corner:.3f}").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self._has(
+            f"# Under a cap of {MAX_LEVERAGE:g}, Chan’s fastest-growing Kelly allocation",
+            f"## Two strategies and a cap of {MAX_LEVERAGE:g}\n",
+            f"### Selling into a loss to hold a leverage of {EX81_LEVERAGE:g}\n",
+            f"## Lesson 3: the printed {printed} depends on a rounding mode\n",
+            f"the part headed “Selling into a loss to hold a leverage of {EX81_LEVERAGE:g}” works "
+            "through both trades.",
+        )
 
     def test_lesson_1_s_table_for_example_8_1(self) -> None:
         loss, gain = constant_leverage_chain()

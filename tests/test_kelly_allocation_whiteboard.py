@@ -517,6 +517,14 @@ class TestThePost:
         assert "every part to one scale" in drag
         assert "to one scale in equal units" in net
 
+    def test_the_footer_links_the_sketch_code_and_its_tests(self) -> None:
+        footer = _paragraphs()[-1]
+        for path in (
+            "src/chan/kelly_allocation_whiteboard.py",
+            "tests/test_kelly_allocation_whiteboard.py",
+        ):
+            assert f"/blob/main/{path})" in footer
+
     def test_the_module_says_neither_sketch_is_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
         assert "Neither sketch is schematic." in doc
