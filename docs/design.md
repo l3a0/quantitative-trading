@@ -343,18 +343,21 @@ other twelve stayed, for the reason the register below gives.
 A planned second consumer was enough here, where the register's row on the
 growth arithmetic turned one down, because the two plans differ. The growth
 arithmetic's second consumer was a possibility, and the price of waiting was a
-second implementation only if [issue 14](https://github.com/l3a0/quantitative-trading/issues/14)
-came to need it. The reversal weights' second consumer is a scheduled run in
-ithildin-runtime, so waiting meant that repository either installing this one
-or keeping a second copy now, which is the duplication the shared package
-exists to end.
+second implementation only if
+[issue 14](https://github.com/l3a0/quantitative-trading/issues/14) came to need
+it. The reversal weights' second consumer is a run the owner has already
+decided on, in
+[issue 16 there](https://github.com/l3a0/ithildin-runtime/issues/16), so
+waiting meant that repository either installing this one or keeping a second
+copy now, which is the duplication the shared package exists to end.
 
-Both modules import the moved functions under their old names, so no module
-that imports these names from `chan` changed its imports, and the bodies there
-parse to the same tree as the ones that were here at `0237abf2`. What did change is where a name resolves. A test that
-patches `chan.khandani_lo.daily_returns` no longer reaches `reversal_weights`,
-which calls `ithildincore.reversal`'s own copy, and the one counterfactual
-that did so now patches both modules.
+Both modules import the moved functions under their old names, so every line
+that imports one of them from `chan` still works as written, and the bodies
+there parse to the same tree as the ones that were here at `0237abf2`. What did
+change is where a name resolves. A test that patches
+`chan.khandani_lo.daily_returns` no longer reaches `reversal_weights`, which
+calls `ithildincore.reversal`'s own copy. The one counterfactual that did so
+now also imports `ithildincore.reversal` and patches both modules.
 
 This cuts against the premise, and the way it is pinned is what limits the
 damage rather than what removes it. A result here has to be re-readable, and
