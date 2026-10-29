@@ -12,7 +12,7 @@ requires-python = ">=3.12"
 # shares with the sibling trading-strategies repo, the Newey-West
 # significance block the risk-parity ranking rests on, and Khandani and Lo's
 # reversal weights with the MATLAB helpers they call, which ithildin-runtime
-# runs too. It pulls statsmodels
+# will run too. It pulls statsmodels
 # in, which is what actually does the arithmetic. numpy and pandas load and align
 # the committed vintages. scipy supplies the t-distribution behind the
 # return-correlation significance test, and the filter chan.cpo runs Chan's

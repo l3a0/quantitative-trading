@@ -34,9 +34,13 @@ Example 3.8 puts the open in its place:
    return, skipping a product that is not finite.
 
 Steps 1 to 4 are :func:`daily_returns` and :func:`reversal_weights`. Both live
-in the shared ``ithildincore`` package, as ``ithildincore.reversal``, because
-ithildin-runtime runs the same weights. This module imports them under the
-same names, and their bodies are the ones that were here.
+in the shared ``ithildincore`` package, as ``ithildincore.reversal`` from
+v0.4.0, because ithildin-runtime's first shadow run will run the same weights.
+This module imports them under the same names, and their bodies are the ones
+that were here at ``0237abf2``. :func:`reversal_weights` calls that module's
+own :func:`daily_returns`, so a counterfactual that patches
+``chan.khandani_lo.daily_returns`` reaches the profit here and not the
+weights, and has to patch ``ithildincore.reversal`` as well.
 
 The weights sum to zero across stocks every day and are not scaled to a unit of
 gross exposure. Multiplying every weight by one constant leaves both Sharpe

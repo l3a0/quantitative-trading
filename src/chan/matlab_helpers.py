@@ -2,8 +2,9 @@
 
 Chan's cross-sectional examples lean on a handful of small MATLAB functions he
 wrote himself, and on two behaviours of MATLAB that numpy does not share. Each
-lives here once, with the case that separates it from the numpy default held by
-``tests/test_matlab_helpers.py``.
+is defined once, in this file or in ``ithildincore`` as the paragraph on the
+moved helpers below says, with the case that separates it from the numpy
+default held by ``tests/test_matlab_helpers.py``.
 
 Three of them move a figure Examples 7.6 and 7.7 print, and
 ``tests/test_equity_seasonals.py`` pins what each move gives.
@@ -75,10 +76,13 @@ file: :func:`smartsum`, :func:`smartmean`, :func:`backshift` and :func:`lag1`,
 and the private ``_finite`` and ``_within`` that two helpers here still call.
 They moved to ``ithildincore.reversal`` for
 [issue 19 there](https://github.com/l3a0/ithildin-core/issues/19), because
-ithildin-runtime runs the reversal weights that call them. This module imports
-them under the same names, so no module that imports them from here changed,
-and their bodies are the ones that were here at ``0237abf2``. A change to one
-of them is now a release of that package and a re-pin here.
+ithildin-runtime's first shadow run will run the reversal weights that call
+them. This module imports them under the same names, so no module that
+imports them from here changed, and their bodies are the ones that were here
+at ``0237abf2``, now in ``ithildincore`` v0.4.0. A change to one of them is
+now a release of that package and a re-pin here. A test that patches one of
+them here no longer reaches the moved functions that call it, so a patch meant
+to reach those goes on ``ithildincore.reversal``.
 
 **Book two's helpers.** Seven come from Chan's *Algorithmic Trading* code
 rather than his first edition's. The revised edition of
@@ -191,8 +195,8 @@ from __future__ import annotations
 
 import numpy as np
 
-# Six of these helpers live in ithildincore, because ithildin-runtime runs the
-# reversal weights that call them too. Importing them here keeps every module
+# Six of these helpers live in ithildincore, because ithildin-runtime will run
+# the reversal weights that call them too. Importing them here keeps every module
 # that imports them from chan.matlab_helpers unchanged. smartsum and lag1 are
 # only re-exported, which is what the noqa is for. _finite and _within are
 # private there and still called by smartstd_first_edition and fwdshift here.

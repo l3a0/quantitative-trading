@@ -23,10 +23,12 @@ difference and a robust t rather than a boolean, so a t-statistic that moved
 inside the dependency would re-pin a verdict with nothing in this repo's diff
 to explain it.
 
-The third module, `reversal`, needs no cases here. Its helpers are held by
-`tests/test_matlab_helpers.py` and its weights by the hand-worked panel in
-`tests/test_khandani_lo.py`, and neither reads a vintage, so a failure there
-already points at the pin.
+The third module, `reversal`, needs no cases here. The moved helpers are held
+by `tests/test_matlab_helpers.py` and the weights by `TestTheRuleByHand` in
+`tests/test_khandani_lo.py`, which holds a stock entering and a stock leaving
+the panel. Neither reads a vintage. A failure in `tests/test_matlab_helpers.py`
+can also come from the twelve helpers that stayed in `src/chan`, so it points at
+the pin only when those did not change.
 """
 
 from __future__ import annotations
