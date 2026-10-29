@@ -8685,9 +8685,8 @@ on its axes, and that each GIF follows its paragraph in the post.
 is a forty-fourth post, and the first about how the repository runs rather
 than about one of Chan's books. It reports the build board's move on
 2026-10-11 from a claude.ai artifact that every session wrote by hand to a
-GitHub Pages page that `.github/workflows/board.yml` rebuilds with
-`scripts/build_board.py`. It replicates nothing, so the replication log has no
-entry for it. It draws six lessons.
+GitHub Pages page that a GitHub Action rebuilds from GitHub. It replicates
+nothing, so the replication log has no entry for it. It draws six lessons.
 
 1. Writing the page by hand cost a turn for every change, 240 updates in
    1.887 days at about \$111 a day.
