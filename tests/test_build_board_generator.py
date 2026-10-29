@@ -1417,12 +1417,6 @@ def test_the_stale_threshold_is_the_longest_gap_plus_ten_hours_for_a_dropped_run
     assert bb.stale_after_minutes(bb.longest_gap_minutes(WORKFLOW)) == 630
 
 
-def test_the_skill_quotes_the_allowance_the_script_adds() -> None:
-    """Protects the skill's data table from a second copy of the allowance."""
-    skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
-    assert f"a {bb.SCHEDULE_DELAY_ALLOWANCE}-minute allowance" in skill
-
-
 def test_the_threshold_adds_the_named_allowance(monkeypatch: pytest.MonkeyPatch) -> None:
     """Protects the allowance from a second copy of 600 inside the formula."""
     monkeypatch.setattr(bb, "SCHEDULE_DELAY_ALLOWANCE", 7)
@@ -1613,46 +1607,60 @@ def test_the_triggers_are_the_ones_that_can_deploy() -> None:
     assert "types: [completed]" in on
 
 
-DISPATCH = "gh workflow run board.yml --repo l3a0/quantitative-trading"
-
-# What the generator reads that no trigger above covers, each with the words a
-# moment in the skill uses for the change a session makes to it.
-NO_RUN_READS = {"blockedBy": '"blocked by" link', "subIssues": "sub-issue"}
-
-# Any wording of either change, so a moment reworded away from the words above
-# still has to name the dispatch.
-NO_RUN_WORDING = re.compile(r"blocked[- ]by|dependenc|sub-?issue|child issue", re.I)
-
-
-def _moments() -> list[str]:
-    """The numbered moments under the skill's "What a session sets, and when"."""
-    skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
-    section = skill.split("\n## What a session sets, and when\n", 1)[1].split("\n## ", 1)[0]
-    listed = section.split("\nNothing else needs setting.", 1)[0]
-    return re.split(r"\n(?=\d+\. \*\*)", listed)[1:]
-
-
-def test_a_change_that_starts_no_run_names_the_dispatch() -> None:
+def test_the_reads_no_trigger_covers_keep_the_dispatch_trigger() -> None:
     """Protects the board from a link or sub-issue it would show hours late.
 
     A "blocked by" link and a sub-issue start no run, and the schedule that
     was their backstop fired in about 11% of its slots over 185 hours, which
     issue 587 measured. The owner ruled that the session making such a change
-    dispatches the board itself. So every moment in the skill that sets one
-    names the dispatch, each of the two changes has a moment that names it,
-    and the command names this workflow, which keeps its dispatch trigger.
+    dispatches the board itself, so the generator still reads both and the
+    workflow keeps the trigger a dispatch needs. The moments that name the
+    dispatch are text in the l3a0 plugin's update-build-board skill, and this
+    suite makes no network reads, so no test here checks that they still say
+    to dispatch.
     """
-    assert set(NO_RUN_READS) <= set(re.findall(r"\b(blockedBy|subIssues)\b", bb.ISSUES_QUERY))
-    moments = _moments()
-    for words in NO_RUN_READS.values():
-        assert any(words in m for m in moments), f"no moment names a {words}"
-    for moment in moments:
-        if NO_RUN_WORDING.search(moment):
-            assert "dispatch the board" in moment.lower(), moment.split("\n", 1)[0]
-    skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
-    assert f"\n{DISPATCH}\n" in skill
-    assert f"{DISPATCH} --ref" not in skill
+    assert {"blockedBy", "subIssues"} <= set(
+        re.findall(r"\b(blockedBy|subIssues)\b", bb.ISSUES_QUERY)
+    )
     assert re.search(r"^  workflow_dispatch:\s*$", _workflow(), re.M)
+
+
+# What the l3a0 plugin's update-build-board skill tells sessions to write, as
+# the generator read it at d5876470, the commit the skill's "Generator
+# compatibility" table names for this repo.
+PLUGIN_FORMATS = {
+    "PART_OF": r"\bPart of #(\d+)\b",
+    "REVIEW": r"## Review\b",
+    "VERDICT": r"^[ \t]*Board verdict: (build|decide) after (\d+) pass(?:es)?\.?[ \t]*$",
+    "ORDER": r"^[ \t]*Board order: (-?\d+(?:\.\d+)?)[ \t]*$",
+    "AFTER": r"^[ \t]*Board after:(.*)$",
+    "BAND": r"^band:(\d+)$",
+}
+
+
+def test_the_formats_the_plugin_states_are_the_ones_checked_against_it() -> None:
+    """Protects sessions from a skill describing formats the generator dropped.
+
+    The skill lives in the l3a0 plugin, which this suite cannot read. Its
+    release rule says a change to what the generator reads ships with a
+    plugin release in the same step, and nothing else here would tell the
+    author of such a change. So each format is pinned at the commit the
+    plugin was checked against, and a failure names the release it owes.
+    """
+    owed = (
+        "a change to what scripts/build_board.py reads ships with an "
+        "l3a0/claude-plugins release that updates update-build-board and its "
+        "Generator compatibility table; re-pin here once that release is open"
+    )
+    for name, pattern in PLUGIN_FORMATS.items():
+        assert getattr(bb, name).pattern == pattern, f"{name}: {owed}"
+    assert bb.WORKING == {"working:build": "build", "working:decompose": "decompose"}, owed
+    assert bb.KIND_LABELS == (
+        ("blocked-on-data", "data"),
+        ("deferred", "deferred"),
+        ("decision", "decision"),
+    ), owed
+    assert bb.SCHEDULE_DELAY_ALLOWANCE == 600, owed
 
 
 def test_each_job_declares_only_the_scopes_it_uses() -> None:

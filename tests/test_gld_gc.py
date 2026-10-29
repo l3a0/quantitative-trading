@@ -2,9 +2,12 @@
 
 This file is the single authority for every number a prose surface quotes
 about this experiment and the rows beside it. ``docs/replication-log.md``
-Entry 38 carries the verdicts and points here row by row. The rows are the ones
-[issue 355](https://github.com/l3a0/quantitative-trading/issues/355) declared
-under "The specification, declared before any figure".
+Entry 38 carries the verdicts and points here row by row. Rows 1 to 8 are the
+ones [issue 355](https://github.com/l3a0/quantitative-trading/issues/355)
+declared under "The specification, declared before any figure". Rows 9 to 11
+measure the series itself. The issue's Data section made most of those
+measurements before that section, and the build added row 10's reversal and
+row 11's bound.
 
 Every pin on the committed files reads the same two vintages and one
 specification unless it names another vintage, so they are stated once here
@@ -33,8 +36,10 @@ flipped sign, an n − 1 deviation, a dropped first row or a 251 each fails.
 
 ``blog/gld-gc-lessons.md`` quotes most of these figures, so a change to any of
 them moves that post too. ``TestWhatThePostMeasured`` holds the numbers the
-post added, all measured after the run, and ``TestThePostsHelpers`` holds the
-three helpers they come through on synthetic legs.
+post added, all measured after the run, and ``TestThePostsHelpers`` holds, on
+synthetic legs, the three helpers some of them come through.
+``TestThePostQuotesTheRun`` reads one copy of each figure the post takes from the run
+from the post itself, whichever class above pins it.
 ``tests/test_gld_gc_figures.py`` holds what the post's figure draws.
 
 Exploratory. The window is the book's own. It first ran here on 2026-10-10.
@@ -379,7 +384,7 @@ class TestTheBooksFigures:
         assert gap(found, BOOK_TEXT_MAX_DRAWDOWN_PERCENT) == 0.0
 
     def test_the_sharpe_ratio_rounds_to_the_book_only_with_the_risk_free_rate(self, result) -> None:
-        """Without ``rf`` it is positive, so the book's −0.07 holds the subtraction."""
+        """Without ``rf`` it is positive, so the script's −0.07 holds the subtraction."""
         assert figures(result.daily, risk_free=0.0).sharpe > 0
 
     def test_a_miss_is_reported_as_one(self) -> None:
@@ -515,7 +520,7 @@ def _on(days: pd.DatetimeIndex, row: int) -> str:
 
 
 class TestWhatThePostMeasured:
-    """Numbers ``blog/gld-gc-lessons.md`` quotes that no row of Entry 38 declared.
+    """Numbers ``blog/gld-gc-lessons.md`` quotes that no row of Entry 38 holds.
 
     The write-up measured every one of them after the run, on the same
     vintages and specification as the rows above, so each is exploratory and
@@ -573,6 +578,23 @@ class TestWhatThePostMeasured:
         assert firsts[OHLC_SOURCE_FILE] == "2004-05-24", AFTER_THE_RUN
         assert min(firsts.values()) == "2004-05-24", (firsts, AFTER_THE_RUN)
 
+    def test_the_ohlc_series_holds_gld_s_days_and_none_of_the_9_holidays(
+        self, sources, ohlc_gc
+    ) -> None:
+        """In the window it has GLD's calendar, the one a settlement series would have.
+
+        So no row on any of the 9 holidays, and a row on each of GLD's 3 days
+        the 16:00 series lacks. Nothing here measures the hour it is recorded.
+        """
+
+        def window(series: pd.Series) -> pd.DatetimeIndex:
+            return series.index[(series.index >= WINDOW_START) & (series.index <= WINDOW_END)]
+
+        days = window(ohlc_gc)
+        assert days.equals(window(sources.gld)), f"{SPEC}; {AFTER_THE_RUN}"
+        assert len(days) == 755
+        assert not days.isin(pd.DatetimeIndex(list(GC_ONLY_HOLIDAYS))).any()
+
     def test_the_return_fell_with_the_bill_rate_year_by_year(self, result) -> None:
         """Each year's rows, less the zeroed first row, against the months they span."""
         table = [
@@ -590,6 +612,14 @@ class TestWhatThePostMeasured:
     def test_the_excess_shrinks_from_1_57_points_to_0_31(self, result) -> None:
         excess = [f"{100 * y.excess:.2f}" for y in by_year(result)]
         assert (excess[0], excess[-1]) == ("1.57", "0.31"), f"{SPEC}; {AFTER_THE_RUN}"
+
+    def test_the_bill_rate_took_under_a_third_of_the_return_in_2009_and_2010(self, result) -> None:
+        """The return fell with the rate, and the rate's share of it fell too."""
+        shares = {y.year: f"{y.bill_rate / y.average_annual_return:.4f}" for y in by_year(result)}
+        assert shares == {2007: "0.6991", 2008: "0.4997", 2009: "0.2576", 2010: "0.3028"}, (
+            f"{SPEC}, against {B1_SPEC} by calendar year; {AFTER_THE_RUN}"
+        )
+        assert all(float(shares[year]) < 1 / 3 for year in (2009, 2010))
 
     def test_the_bill_rate_sat_below_half_a_percent_in_22_of_37_months(self) -> None:
         first, last = FINANCING_MONTHS
@@ -916,3 +946,197 @@ class TestTheReport:
         row = next(r for r in out.getvalue().splitlines() if "Maximum drawdown days" in r)
         assert row.split()[3:5] == ["93", "91"], row
         assert row.endswith("did not reproduce, gap +2"), row
+
+
+POST = paths.REPO_ROOT / "blog" / "gld-gc-lessons.md"
+
+
+def _minus(text: str) -> str:
+    """The post's prose prints a true minus sign, and its tables a hyphen."""
+    return text.replace("-", "−")
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure ``blog/gld-gc-lessons.md`` takes from the run, read from the post.
+
+    A second copy of the same figure elsewhere in the post is not read, and
+    neither are the figures README's ``blog/gld-gc-lessons.md`` section lists
+    as written in words, rounded or read approximately from the chart.
+
+    The tests above derive these numbers and the prose states them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review changed 282 of its numbers one at a time, and none failed a test.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_files_and_their_calendars(self, sources, result, found) -> None:
+        start, end = (str(day.date()) for day in sources.gc.index[[0, -1]])
+        assert (
+            f"saved {sources.gc_entry.obtained}. It holds {len(sources.gc)} rows from {start} "
+            f"to {end}, the book’s window exactly"
+        ) in self.text
+        assert f"`inputData_ETF.mat`, saved {sources.gld_entry.obtained}." in self.text
+        assert (
+            f"The two calendars share {len(result.days)} days. GC holds {len(found.gc_only)} "
+            f"rows GLD lacks, and each one is a US exchange holiday. GLD holds "
+            f"{len(found.gld_only)} days in the window that GC lacks."
+        ) in self.text
+
+    def test_the_lesson_1_table(self, result) -> None:
+        s = result.figures
+        for row in (
+            f"\\text{{Average annual return}} & {s.average_annual_return:.6f} & "
+            f"{BOOK_AVERAGE_ANNUAL_RETURN} \\\\",
+            f"\\text{{Sharpe ratio}} & {s.sharpe:.6f} & {BOOK_SHARPE} \\\\",
+            f"\\text{{APR}} & {s.apr:.6f} & {BOOK_APR} \\\\",
+            f"\\text{{Maximum drawdown}} & {s.max_drawdown:.7f} & {BOOK_MAX_DRAWDOWN} \\\\",
+            f"\\text{{Longest duration, days}} & {s.max_drawdown_days} & "
+            f"{BOOK_MAX_DRAWDOWN_DAYS} \\\\ \\hline",
+            f"\\text{{Annualized return}} & {100 * s.average_annual_return:.6f} & "
+            f"{BOOK_TEXT_RETURN_PERCENT} \\\\\n & {100 * s.apr:.6f} & \\\\",
+            f"\\text{{Maximum drawdown}} & {-100 * s.max_drawdown:.6f} & "
+            f"{BOOK_TEXT_MAX_DRAWDOWN_PERCENT}\n",
+        ):
+            assert row in self.text, row
+
+    def test_the_two_drawdowns(self, result, cumret) -> None:
+        _, drawdown, duration = drawdown_path(cumret)
+        trough = int(np.argmin(drawdown))
+        high = int(np.argmax(cumret[: trough + 1]))
+        recovered = trough + int(np.argmax(drawdown[trough:] == 0))
+        gld = result.gld[trough] / result.gld[trough - 1] - 1
+        gc = result.gc[trough] / result.gc[trough - 1] - 1
+        assert (
+            f"The deepest runs from a high on {_on(result.days, high)} to a trough on "
+            f"{_on(result.days, trough)}, and the trade is back at a new high on "
+            f"{_on(result.days, recovered)}. Most of it is one day. On "
+            f"{_on(result.days, trough)} GLD fell {-100 * gld:.4f} percent and GC fell "
+            f"{-100 * gc:.4f} percent, so the trade lost {-100 * result.daily[trough]:.4f} percent."
+        ) in self.text
+        last = int(np.argmax(duration))
+        first = last - int(duration[last]) + 1
+        assert (
+            f"The {int(duration[last])} days are the longest stretch below a high, from "
+            f"{_on(result.days, first)} to {_on(result.days, last)}. At its worst that stretch "
+            f"stood {-100 * drawdown[first : last + 1].min():.5f} percent below its high"
+        ) in self.text
+
+    def test_the_lesson_2_sharpe_ratios(self, result, b1) -> None:
+        mean = result.figures.average_annual_return
+        assert f"The trade’s average annual return is {100 * mean:.4f} percent." in self.text
+        assert f"\\text{{none}} & {figures(result.daily, risk_free=0.0).sharpe:.6f} \\\\" in (
+            self.text
+        )
+        at_bills = figures(result.daily, risk_free=b1.bill_rate / 252).sharpe
+        assert (
+            f"\\text{{the average bill rate, {100 * b1.bill_rate:.4f} percent}} & {at_bills:.6f}"
+        ) in self.text
+        assert f"\\text{{the script's 2 percent}} & {result.figures.sharpe:.6f}\n" in self.text
+        share = 100 * RISK_FREE_RATE * 252 / mean
+        assert f"The script’s 2 percent is {share:.2f} percent of the return" in self.text
+
+    def test_the_bill_rate_over_the_window(self, b1) -> None:
+        assert f"downloaded on {bill_rates.bill_vintage().obtained} from FRED" in self.text
+        assert (
+            f"Averaged over the {b1.months} months from August 2007 to August 2010, the bill "
+            f"rate is {100 * b1.bill_rate:.4f} percent. Subtracting it from S’s "
+            f"{100 * b1.average_annual_return:.4f} percent before either figure is rounded "
+            f"leaves {100 * b1.excess:.4f} percentage points, so the bill rate takes "
+            f"{100 * b1.bill_rate / b1.average_annual_return:.2f} percent of the return"
+        ) in self.text
+
+    def test_the_lesson_3_table_and_the_margins(self, result) -> None:
+        years = by_year(result)
+        labels = ("2007, Aug to Dec", "2008", "2009", "2010, Jan to Aug")
+        for label, y in zip(labels, years, strict=True):
+            row = (
+                f"\\text{{{label}}} & {y.rows} & {y.average_annual_return:.6f} & {y.bill_rate:.6f}"
+            )
+            assert row in self.text, row
+        assert (
+            f"its margin over them shrinks from {100 * years[0].excess:.2f} percentage points "
+            f"in 2007 to {100 * years[-1].excess:.2f} in 2010"
+        ) in self.text
+        first, last = FINANCING_MONTHS
+        below = [
+            month
+            for month, rate in bill_rates.monthly_rates()
+            if first <= month <= last and rate < 0.005
+        ]
+        start = pd.Timestamp(below[0]).strftime("%B %Y")
+        assert (
+            f"The bill rate sat below 0.5 percent in {len(below)} of the "
+            f"{bill_rates.months_in(first, last)} months, every month from {start} on."
+        ) in self.text
+        assert below[-1] == last
+        under = [y.year for y in years if y.bill_rate < y.average_annual_return / 3]
+        assert len(under) == 2
+        assert f"In {under[0]} and {under[1]} the bill rate took under a third of S’s return" in (
+            self.text
+        )
+
+    def test_the_caption_reads_the_three_curves(self, result, cumret) -> None:
+        bills = np.cumprod(1 + bill_accrual(result.days).to_numpy()) - 1
+        two_percent = (1 + RISK_FREE_RATE) ** np.arange(len(result.days)) - 1
+        on = result.days.get_loc(pd.Timestamp("2008-12-31"))
+        peak = int(np.argmax(cumret))
+        above = int(np.flatnonzero(cumret > two_percent)[-1])
+        assert (
+            f"On 2008-12-31 S stood at {100 * cumret[on]:.4f} percent and the bills at "
+            f"{100 * bills[on]:.4f} percent. From there S rose by less than a percentage point "
+            f"to its high of {100 * cumret[peak]:.4f} percent on {_on(result.days, peak)}, and "
+            f"it last stood above the 2 percent line on {_on(result.days, above)}. At the end S "
+            f"is at {100 * cumret[-1]:.4f} percent, the bills at {100 * bills[-1]:.4f} percent "
+            f"and 2 percent a year at {100 * two_percent[-1]:.4f} percent."
+        ) in self.text
+        assert f"over {len(result.days) - 1} days for two series" in self.text
+
+    def test_the_bound_on_an_offset(self, found) -> None:
+        spread = found.sampled_at_1600.spread
+        assert f"its standard deviation is {found.gld_spread:.6f}." in self.text
+        assert f"The daily change in log(GC / GLD) has a standard deviation of {spread:.6f}." in (
+            self.text
+        )
+        assert (
+            f"\\frac{{1}}{{2}} \\left( \\frac{{{spread:.6f}}}{{{found.gld_spread:.6f}}} "
+            f"\\right)^{{2}} = {found.gap_share:.6f}"
+        ) in self.text
+        assert (
+            f"a share of {found.gap_share:.6f} is about {found.gap_share * 24 * 60:.1f} minutes, "
+            "against the 150 minutes from 1:30 to 4:00 p.m."
+        ) in self.text
+
+    def test_the_ohlc_series_beside_the_16_00_series(self, sources, result, found, ohlc_gc):
+        ohlc_entry, _ = read_ohlc_gc()
+        assert f"`inputDataOHLCDaily_20120507.mat`, saved {ohlc_entry.obtained}," in self.text
+        ohlc_changes = log_ratio_changes(ohlc_gc, sources.gld, result.days)
+        up, down = int((ohlc_changes > STEP).sum()), int((ohlc_changes < -STEP).sum())
+        largest_on = ohlc_changes.abs().idxmax().date()
+        at_1600 = log_ratio_changes(sources.gc, sources.gld, result.days)
+        assert (
+            f"has a standard deviation of {found.ohlc.spread:.6f}, about ten times the 16:00 "
+            f"series’ {found.sampled_at_1600.spread:.6f}. It has {found.ohlc.steps} moves past "
+            f"{STEP:g}, {up} up and {down} down. "
+            f"Its largest is {found.ohlc.largest:.6f}, on {largest_on}, and "
+            f"the next day it moves {_minus(f'{ohlc_changes.min():.6f}')}, most of the way back. "
+            f"The 16:00 series has none past {STEP:g}, and its largest move is "
+            f"{found.sampled_at_1600.largest:.6f}, on {at_1600.abs().idxmax().date()}, the day "
+            "of the deepest drawdown."
+        ) in self.text
+        assert ohlc_changes.idxmin() == ohlc_changes.abs().idxmax() + pd.offsets.BDay(1)
+        assert found.sampled_at_1600.steps == 0
+
+    def test_the_two_reversals(self, sources, result, found) -> None:
+        assert (
+            f"lag-1 autocorrelation of {_minus(f'{found.difference_reversal:.6f}')}." in self.text
+        )
+        change = log_ratio_changes(sources.gc, sources.gld, result.days).to_numpy()
+        reversal = np.corrcoef(change[:-1], change[1:])[0, 1]
+        assert f"reverses too, at {_minus(f'{reversal:.6f}')}." in self.text
+
+    def test_the_first_day_of_the_ohlc_series(self, ohlc_gc) -> None:
+        first = str(ohlc_gc.dropna().index[0].date())
+        assert f"No gold futures series here starts before {first}, the OHLC series’ first day" in (
+            self.text
+        )

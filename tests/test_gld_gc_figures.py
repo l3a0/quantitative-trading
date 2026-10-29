@@ -17,8 +17,9 @@ saved 2012-05-09, FRED's TB3MS downloaded 2026-09-30, and S, ``GLD_GC.m`` as
 shipped, over the 752 days from 2007-08-03 to 2010-08-02.
 
 Exploratory, like everything Entry 38 computes here. The first panel's
-curves were measured after the run. The second panel's spreads, largest moves
-and counts past 0.02 are Entry 38's row 11, declared before any figure.
+curves were measured after the run. The run itself computes the second
+panel's spreads, largest moves and counts past 0.02, which are Entry 38's row
+11, and only that panel's dates and minimums were measured afterwards.
 """
 
 from __future__ import annotations
@@ -110,7 +111,8 @@ class TestTheFigure:
         assert [t.get_text() for t in figure.texts if t is not figure._suptitle] == [
             "Algorithmic Trading, Kindle edition, pp. 208 to 209. GC from "
             "inputData_GC_1600_20100802.mat, saved 2012-05-07,\nGLD from inputData_ETF.mat, "
-            "saved 2012-04-10, and FRED's TB3MS, downloaded 2026-09-30.\nThe top panel was "
+            "saved 2012-04-10, the OHLC series from inputDataOHLCDaily_20120507.mat, saved "
+            "2012-05-09,\nand FRED's TB3MS, downloaded 2026-09-30. The top panel was "
             "measured after the run, on the book's window, and no cost is charged."
         ]
 
@@ -266,7 +268,7 @@ class TestTheDailyChangeInTheRatio:
     def test_the_legend_counts_each_series_moves_past_0_02(self, axes) -> None:
         legend = [t.get_text() for t in axes["ratio"].get_legend().get_texts()]
         assert legend == [
-            "the OHLC series, shifted at each roll, 20 moves past ±0.02",
+            "the OHLC series, 20 moves past ±0.02",
             "the 16:00 series the script reads, 0 moves past ±0.02",
         ], SPEC
 

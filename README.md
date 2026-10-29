@@ -7171,7 +7171,8 @@ third sketch's kept and lost returns had no pin before it.
 
 [blog/gld-gc-lessons.md](blog/gld-gc-lessons.md) is a thirty-fifth post, about
 holding GLD long and gold futures short at Kindle locations 2718 and 2730 of
-Chan's *Algorithmic Trading*, which collects gold's negative roll return.
+Chan's *Algorithmic Trading*, which profits from gold futures' negative roll
+return.
 Chan reports an annualized return of 1.9 percent and a maximum drawdown of 0.8
 percent from 2007-08-03 to 2010-08-02, and says GLD's financing cost leaves
 an excess return close to zero. The post links the spot and roll returns post,
@@ -7180,7 +7181,7 @@ factor models post, the Kelly leverage on SPY post and the GLD/GDX post rather
 than repeating them, and draws four lessons from Entry 38 of the replication
 log.
 
-1. Every figure lands, and the 0.8 percent and the 91 days are two
+1. Every figure reproduces, and the 0.8 percent and the 91 days are two
    drawdowns. The deepest is mostly 2007-11-12, and the longest runs from
    2009-08-28 to 2010-01-08 and reaches only −0.40907 percent.
 2. The negative Sharpe ratio comes from the script's constant 2 percent,
@@ -7200,20 +7201,38 @@ Five groups of what it says are not pinned here.
    return from 1982 to 2004, the leverage of 5 or 6, the financing claim and
    "close to zero" are at 2718. The 1:30 p.m. and 4:00 p.m. times and the
    reason about signals are at 2730, the settlement price as a vendor's usual
-   close at 561, and the spread between a future and an ETF at 583.
+   close at 561, and the spread between a future and an ETF and GC's
+   settlement at 1:30 p.m. at 583.
 2. Facts about the script rather than the data: its five steps, its
    `riskFreeRate=0.02/252` line, and that it holds the pair every day with
    no signal, all at `e4bc46f` of ericnberwick/EpchanPreview.
-3. Readings no test asserts: that the bill rate is a floor on financing
-   because a broker lends above it, that an offset's share of a day carries
-   roughly that share of the day's variance in a market trading nearly
-   around the clock, that whatever else moves log(GC / GLD) does not cancel
-   an offset's moves, which the bound of 0.001775 rests on, that a small
-   reading error or an offset of minutes makes a daily change reverse, that
-   GC trades on COMEX, and the cost of carry, cited from Hull as the usual
-   explanation and not tested.
+3. Readings no test asserts: that GLD pays no dividend, so its adjusted close
+   is its close, that the bill rate is a floor on financing because a broker
+   lends above it and cash put into GLD gives up at least that rate, that the
+   exchange sets no settlement price on a US exchange holiday, so a
+   settlement series has no row on one, that a settlement series would hold a
+   row on each of GLD's days in the window, so the OHLC series has the
+   calendar one would have, that GLD's daily log return stands in for a day
+   of gold, that an offset's share of a day carries roughly that share of the
+   day's variance in a market trading nearly around the clock, that whatever
+   else moves log(GC / GLD) does not cancel an offset's moves, which the
+   bound of 0.001775 rests on, that a difference in timing between two series
+   makes the daily change in their difference reverse while a step at a roll
+   that one series takes and the other does not stays and predicts no
+   reversal, that a vendor building a continuous future can shift or scale
+   the earlier prices at each roll to remove the gap between contracts or
+   leave the gap in, that what a series does at each roll decides how much of
+   the roll return shows up in its returns, that the reversal points away
+   from steps at rolls, to a difference in recording hours or to errors in
+   the recorded prices, either of which would account for most of the OHLC
+   series' larger moves against GLD, that a small reading error or an offset
+   of minutes makes a daily change reverse, that GC trades on COMEX, that a
+   settlement price is the one the exchange fixes once a day, that FRED is
+   the St. Louis Fed's data service, and the cost of carry, cited from Hull
+   as the usual explanation and not tested.
 4. Figures the post states in words or rounded from pinned ones, such as
-   about half, ten times as large, the 150 minutes in two and a half hours,
+   about half, about ten times, the 150 minutes in two and a half hours, the
+   backtest's three years,
    the 91-day stretch about half as deep as the November 2007 fall, the OHLC
    series moving most of the way back on 2008-09-19, and S rising by less
    than a percentage point from 2008-12-31 to its high. The prose writes
@@ -7225,7 +7244,9 @@ Every other number in the post traces to an assertion in
 [tests/test_gld_gc.py](tests/test_gld_gc.py), or to
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) for the
 figure's own numbers. `TestWhatThePostMeasured` holds the ones that had no pin
-before it, all measured after the run.
+before it, all measured after the run. `TestThePostQuotesTheRun` reads one
+copy of each number the post takes from the run, whichever test pins it, from
+the post itself, and fails when that copy drifts from the run. A second copy of the same number elsewhere in the post is not read.
 
 1. The Sharpe ratio of 1.284060 with no rate subtracted and 0.599257 at the
    window's bill rate over 252, the break-even rate at the mean return of
@@ -7236,17 +7257,24 @@ before it, all measured after the run.
    253, 251 and 146 rows, 0.052235 against 0.036520, 0.027315 against
    0.013650, 0.005822 against 0.001500 and 0.004458 against 0.001350, a margin
    shrinking from 1.57 percentage points to 0.31, and the 22 of 37 months
-   below 0.5 percent, from 2008-11 to 2010-08.
+   below 0.5 percent, from 2008-11 to 2010-08. The bill rate's share of
+   each year's return, 0.6991, 0.4997, 0.2576 and 0.3028, which the post does
+   not print and states only as under a third in 2009 and 2010.
 4. The deepest drawdown's high on 2007-10-12, trough on 2007-11-12 and
    recovery on 2007-11-14, that day's −0.6771 percent for the trade, −4.7213
    for GLD and −4.0442 for GC, and the longest stretch from 2009-08-28 to
    2010-01-08 at worst −0.40907 percent.
-5. The 16:00 series' largest move falling on 2007-11-12, its minimum of
-   −0.006626 and its lag-1 autocorrelation of −0.437059. The bound on an
+5. The 16:00 series' largest move falling on 2007-11-12 and its lag-1
+   autocorrelation of −0.437059. The bound on an
    offset between the two closes read as about 2.6 minutes of a 24-hour day.
    The OHLC series' largest move falling on 2008-09-18, its minimum of
    −0.075146 on 2008-09-19, and its 8 moves past 0.02 up and 12 down. No GC
-   series here starting before 2004-05-24, the OHLC series' first day.
+   series here starting before 2004-05-24, the OHLC series' first day. The
+   OHLC series holding exactly GLD's days in the window, none of them one of
+   the 9 holidays. The suite pins two more that the post does not print: the
+   16:00 series' minimum of −0.006626, one of the most negative moves the
+   caption says were measured after the run, and the OHLC series' 755 days in
+   the window.
 6. The three curves' ends, 0.058033 for S, 0.031057 for bills and 0.061413
    for 2 percent a year, S at 0.049260 and bills at 0.028733 on 2008-12-31,
    S's high of 0.058415 on 2010-07-27, and 2010-05-21 as the last day S stands
@@ -7270,6 +7298,35 @@ uv run python -m chan.gld_gc_figures
 
 [tests/test_gld_gc_figures.py](tests/test_gld_gc_figures.py) holds what it
 draws rather than its bytes, for the reason given above for the regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/gld_gc_whiteboard.py](src/chan/gld_gc_whiteboard.py) on the
+USD.CAD post's sketch machinery. Each sits after the paragraph it draws. Both
+build more slowly than the USD.CAD post's sketches and hold their finished
+drawings for twelve seconds.
+
+1. `gld_gc_sketch_roll_left.gif`, under "Why own the metal and short the
+   future", draws owning the metal for the spot return and shorting the
+   future for minus the spot return and minus the roll return, strikes out
+   the two spot returns, and leaves minus the roll return, above 0 in
+   contango. It is schematic and carries no figures, and its words name
+   neither GLD nor GC, which the post names in the next paragraph.
+2. `gld_gc_sketch_two_moves.gif`, in Lesson 4, supposes GC were recorded at
+   1:30 p.m. and GLD at 4 p.m., marks gold's move between the two times on
+   two days, and says why each daily change in log(GC / GLD) would then
+   carry two such moves. It is schematic apart from its last line, which
+   reads the bound of 0.001775 from `identity`, as `python -m chan.gld_gc`
+   does, and about 2.6 minutes from that share of a 24-hour day.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.gld_gc_whiteboard
+```
+
+[tests/test_gld_gc_whiteboard.py](tests/test_gld_gc_whiteboard.py) holds
+what each draws, derives the bound again from the run, and holds that each
+GIF follows its paragraph in the post.
 
 [blog/xle-uso-roll-return-lessons.md](blog/xle-uso-roll-return-lessons.md) is
 a thirty-sixth post, about the XLE against USO trade at location 2734 of

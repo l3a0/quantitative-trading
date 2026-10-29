@@ -3,7 +3,7 @@
 A future's total return is its spot return plus its roll return, the part
 that comes from converging on the spot as it nears expiry. Gold futures carry
 a negative roll return, so holding the metal and shorting the future should
-collect it. GLD owns physical gold, which makes it the long leg. At Kindle
+profit from it. GLD owns physical gold, which makes it the long leg. At Kindle
 location 2718 Chan reports that "holding a long position in GLD and a short
 position in GC yields an annualized return of 1.9 percent and a maximum
 drawdown of 0.8 percent from August 3, 2007, to August 2, 2010". He then
@@ -60,20 +60,23 @@ financing GLD costs, because a trader borrows above it.
 p.m. settlement.** :func:`identity` measures what says so.
 
 1. GC holds 9 rows GLD lacks, and every one is a US exchange holiday, which
-   :data:`GC_ONLY_HOLIDAYS` names. A settlement series has no row on a day the
-   exchange is shut, so this is not one.
+   :data:`GC_ONLY_HOLIDAYS` names. The exchange sets no settlement price on a
+   US exchange holiday, so a settlement series has no row on one, and this is
+   not one.
 2. The daily change in log(GC / GLD) barely moves. If GC were read two and a
    half hours before GLD, that change would hold two gold returns over the
    gap, one from each day. :attr:`Identity.gap_share` solves for the most of
-   GLD's daily variance such a gap could carry. It comes out far below the
+   GLD's daily variance such a gap could carry, if nothing else moving the
+   ratio cancels the gap's moves. It comes out far below the
    tenth of a day those hours take on the clock, in a market that trades
    nearly around it.
 
 The GC close of ``inputDataOHLCDaily_20120507`` sits beside it for contrast.
-That save is a continuous series shifted at each roll, so it would equal no
-unshifted series at any hour, and its never equalling this one says only that
-the two differ. Its large moves against this one reverse the next day, which a
-gap in timing predicts and a shift at a roll does not.
+That save is another continuous series, and nothing here tests how either one
+crosses a roll. Two series that cross rolls differently need not be equal
+at any hour, so its never equalling this one says only that the two differ. Its
+large moves against this one reverse the next day, which a gap in timing
+predicts and a step at a roll does not.
 
 So location 2730's caveat does not reach the series the script reads.
 
@@ -86,8 +89,9 @@ guarded by :func:`chan.series.refuse_window_crossing_a_break` over the
 window, on its own calendar.
 
 **What the post added.** The post on these lessons,
-``blog/gld-gc-lessons.md``, measured three things after the run, through three
-helpers. :func:`log_ratio_changes` is the daily change in log(GC / GLD) that
+``blog/gld-gc-lessons.md``, measured more numbers after the run, which
+``TestWhatThePostMeasured`` pins, and added three helpers that some of them
+come through. :func:`log_ratio_changes` is the daily change in log(GC / GLD) that
 :func:`ratio_steps` summarises, so the post's figure and the pins read one
 computation. :func:`bill_accrual` is what three-month bills earn on each kept
 day. :func:`by_year` sets S's return against the bill rate one calendar year at
@@ -414,14 +418,15 @@ class Identity:
 
     @property
     def gap_share(self) -> float:
-        """The most of GLD's daily variance a gap between the two closes can carry.
+        """The most of GLD's daily variance a gap can carry, if nothing else cancels its moves.
 
         If GC were read hours before GLD, the daily change in log(GC / GLD)
         would hold the difference of two gold returns over that gap, one from
-        each day, so its variance would be at least twice the gap's share of
-        the daily variance. Anything else that moves the ratio only adds to
-        it, so solving for the share from the measured spread bounds it from
-        above.
+        each day, so the gap would add about twice its share of the daily
+        variance. Solving for the share from the measured spread bounds it
+        from above if anything else that moves the ratio only adds to that
+        variance, as it does when it moves independently of gold over the
+        gap. No test here measures that.
         """
         return (self.sampled_at_1600.spread / self.gld_spread) ** 2 / 2
 
@@ -532,7 +537,8 @@ def report(sources: Sources, result: GldGc, b1: Financing, found: Identity) -> N
         )
     print(
         f"  GLD's daily log return, standard deviation {found.gld_spread:.6f}, so a gap between "
-        f"the two closes carries at most {found.gap_share:.6f} of its daily variance"
+        f"the two closes carries at most {found.gap_share:.6f} of its daily variance, "
+        "if nothing else cancels the gap's moves"
     )
     print()
     print("  Annualised over 252 days, with no cost and no financing beyond B1.")

@@ -9,8 +9,8 @@ the failure this file exists to catch.
 
 A parse check would not catch it. A page that draws stale cards parses, and a
 banner sentence that renders perfectly can still say something false. So each
-test executes the page's script under a JavaScript engine, with the skill's
-``dom-stub.js`` standing in for the browser and a fake fetch serving
+test executes the page's script under a JavaScript engine, with
+``dom-stub.js`` from that folder standing in for the browser and a fake fetch serving
 ``board.json``, and reads what the page rendered. The driver serves one
 response per poll and fires the page's timer between them.
 

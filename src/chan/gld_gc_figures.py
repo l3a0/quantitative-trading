@@ -17,9 +17,10 @@ asked for the post, and its plan set the two panels.
    minus :data:`chan.gld_gc.STEP`. Both come through
    :func:`chan.gld_gc.log_ratio_changes`, and their labels through
    :func:`chan.gld_gc.ratio_steps`, which :func:`chan.gld_gc.identity` uses
-   for the same two summaries. Only the first panel was measured after the
-   run. Entry 38 declared the second panel's spreads, largest moves and
-   counts in advance.
+   for the same two summaries. The first panel was measured after the run.
+   The run itself computed the second panel's spreads, largest moves and
+   counts, which Entry 38 records, and only that panel's dates and minimums
+   were measured afterwards.
 
 Every value comes from :func:`chan.gld_gc.read_sources`,
 :func:`chan.gld_gc.read_ohlc_gc` and :func:`chan.gld_gc.gld_gc`, the run's
@@ -43,6 +44,7 @@ from chan.coin_flip_figures import _plain_text, _save, _style, _title
 from chan.gld_gc import (
     GC_SOURCE_FILE,
     GLD_SOURCE_FILE,
+    OHLC_SOURCE_FILE,
     RISK_FREE_RATE,
     STEP,
     GldGc,
@@ -182,18 +184,18 @@ def _financing_panel(ax, result: GldGc, curves: dict[str, pd.Series]) -> None:
 
 def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
     at_1600 = log_ratio_changes(sources.gc, sources.gld, result.days)
-    shifted = log_ratio_changes(ohlc, sources.gld, result.days)
+    ohlc_changes = log_ratio_changes(ohlc, sources.gld, result.days)
     steps_1600 = ratio_steps(sources.gc, sources.gld, result.days)
     steps_ohlc = ratio_steps(ohlc, sources.gld, result.days)
     ax.plot(
-        shifted.index,
-        shifted,
+        ohlc_changes.index,
+        ohlc_changes,
         color=MUTED,
         lw=0.8,
         alpha=0.8,
         zorder=2,
         gid="ohlc",
-        label=f"the OHLC series, shifted at each roll, {steps_ohlc.steps} moves past ±{STEP:g}",
+        label=f"the OHLC series, {steps_ohlc.steps} moves past ±{STEP:g}",
     )
     ax.plot(
         at_1600.index,
@@ -226,7 +228,7 @@ def _ratio_panel(ax, sources: Sources, result: GldGc, ohlc: pd.Series) -> None:
         f"The daily change in log(GC / GLD) over {len(at_1600)} days on each GC series. Its "
         f"standard deviation is {steps_1600.spread:.6f}\non the 16:00 series and "
         f"{steps_ohlc.spread:.6f} on the OHLC series, whose largest move, "
-        f"{steps_ohlc.largest:.6f}, falls on {shifted.abs().idxmax().date()}.",
+        f"{steps_ohlc.largest:.6f}, falls on {ohlc_changes.abs().idxmax().date()}.",
     )
 
 
@@ -235,7 +237,7 @@ def make_gld_gc_figure(out: Path | None = None, sources: Sources | None = None) 
     """The return beside its financing, and the daily change in log(GC / GLD) on both series."""
     sources = sources if sources is not None else read_sources()
     result = gld_gc(sources)
-    _, ohlc = read_ohlc_gc()
+    ohlc_entry, ohlc = read_ohlc_gc()
 
     fig = Figure(figsize=(10, 11), dpi=130)
     fig.patch.set_facecolor(SURFACE)
@@ -250,8 +252,9 @@ def make_gld_gc_figure(out: Path | None = None, sources: Sources | None = None) 
         "Exploratory: long GLD and short gold futures",
         f"Algorithmic Trading, Kindle edition, pp. 208 to 209. GC from {GC_SOURCE_FILE}, saved "
         f"{sources.gc_entry.obtained},\nGLD from {GLD_SOURCE_FILE}, saved "
-        f"{sources.gld_entry.obtained}, and FRED's TB3MS, downloaded "
-        f"{bill_rates.bill_vintage().obtained}.\nThe top panel was measured after the run, on "
+        f"{sources.gld_entry.obtained}, the OHLC series from {OHLC_SOURCE_FILE}, saved "
+        f"{ohlc_entry.obtained},\nand FRED's TB3MS, downloaded "
+        f"{bill_rates.bill_vintage().obtained}. The top panel was measured after the run, on "
         "the book's window, and no cost is charged.",
     )
     fig.subplots_adjust(left=0.1, right=0.97, top=0.9, bottom=0.11)

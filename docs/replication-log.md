@@ -8577,7 +8577,7 @@ to 11 carry no published figure.
 A future's total return is its spot return plus its roll return, the part
 that comes from converging on the spot as it nears expiry. Gold futures carry
 a negative roll return, so owning the metal and shorting the future should
-collect it. GLD owns physical gold, which makes it the long leg. Location 2718
+profit from it. GLD owns physical gold, which makes it the long leg. Location 2718
 reports that the trade "yields an annualized return of 1.9 percent and a
 maximum drawdown of 0.8 percent from August 3, 2007, to August 2, 2010". It
 then spends the result. GLD's financing cost "is not very different from 1.9
@@ -8650,8 +8650,8 @@ trade on later data.
 | 7 | row 4 in percent, in size | 0.824652 percent | `TestTheBooksFigures::test_row_7_the_text_s_0_8_percent_reproduces` |
 | 8 | B1, FRED's TB3MS, `rate`, downloaded 2026-09-30, averaged over August 2007 to August 2010 through `chan.bill_rates.average`, and row 1 less it | 0.010141 over 37 months, leaving +0.008874 | `TestTheFinancingCost::test_the_bill_rate_over_the_window` and `::test_what_is_left_above_it` |
 | 9 | the rows GC holds and GLD lacks, and the reverse inside the window | 9 GC rows, 2007-11-22, 2008-01-21, 2008-02-18, 2008-05-26, 2008-07-04, 2008-09-01, 2008-11-27, 2009-01-19 and 2009-02-16, each a US exchange holiday. 3 GLD rows, 2007-09-19, 2007-12-24 and 2009-12-24 | `TestTheSeriesIdentity::test_gc_holds_9_us_exchange_holidays_gld_lacks` and `::test_gld_holds_3_days_gc_lacks` |
-| 10 | GC against the GC close of `inputdataohlcdaily_20120507/gc.csv`, chan-mat, adjusted, saved 2012-05-09, a continuous series shifted at each roll, on the 752 kept days, and the lag-1 autocorrelation of the daily change in this GC less that one | equal on 0 of 752, the nearest 9.30 apart, daily return correlation 0.824035, autocorrelation −0.559953 | `TestTheSeriesIdentity::test_the_ohlc_save_s_gc_never_equals_it`, `::test_their_daily_returns_correlate_at_0_82` and `::test_their_difference_reverses_the_next_day` |
-| 11 | the daily change in log(GC / GLD) over the 752 kept days, for each GC series: its standard deviation over n, its largest move, and its moves past 2 percent. Then GLD's daily log return over the same days, its standard deviation over n, and half the squared ratio of this GC's figure to it, the most of GLD's daily variance a gap between the two closes can carry | 0.000933, 0.007082 and none on this GC. 0.009243, 0.097332 and 20 on the OHLC save's. GLD's 0.015660, so at most 0.001775 | `TestTheSeriesIdentity::test_the_log_ratio_moves_little_on_the_16_00_series`, `::test_the_log_ratio_moves_ten_times_as_much_on_the_ohlc_save` and `::test_a_gap_between_the_closes_carries_at_most_0_18_percent_of_gld_s_variance` |
+| 10 | GC against the GC close of `inputdataohlcdaily_20120507/gc.csv`, chan-mat, adjusted, saved 2012-05-09, a continuous series, on the 752 kept days, and the lag-1 autocorrelation of the daily change in this GC less that one | equal on 0 of 752, the nearest 9.30 apart, daily return correlation 0.824035, autocorrelation −0.559953 | `TestTheSeriesIdentity::test_the_ohlc_save_s_gc_never_equals_it`, `::test_their_daily_returns_correlate_at_0_82` and `::test_their_difference_reverses_the_next_day` |
+| 11 | the daily change in log(GC / GLD) over the 752 kept days, for each GC series: its standard deviation over n, its largest move, and its moves past 2 percent. Then GLD's daily log return over the same days, its standard deviation over n, and half the squared ratio of this GC's figure to it, the most of GLD's daily variance a gap between the two closes can carry if nothing else that moves the ratio cancels the gap's moves | 0.000933, 0.007082 and none on this GC. 0.009243, 0.097332 and 20 on the OHLC save's. GLD's 0.015660, so at most 0.001775 | `TestTheSeriesIdentity::test_the_log_ratio_moves_little_on_the_16_00_series`, `::test_the_log_ratio_moves_ten_times_as_much_on_the_ohlc_save` and `::test_a_gap_between_the_closes_carries_at_most_0_18_percent_of_gld_s_variance` |
 
 ### The verdicts
 
@@ -8665,9 +8665,9 @@ trade on later data.
 | 6 | 0.0 percent on both | reproduced | Both of the script's annual returns round to 1.9 percent, so the text's figure does not have to be assigned to one of them. |
 | 7 | 0.0 percent | reproduced | The same as row 1. |
 | 8 | none | none, not a replication | Declared beside S. The bill rate takes 1.0141 percent of the 1.9014 percent, so 0.8874 percent is left above it. The book gives no bound for "not very different", so this row carries no verdict. The bill rate is a floor on financing, because a trader borrows above it, and the book's "close to zero" is a claim about the rate a trader pays. |
-| 9 | none | none, not a replication | A settlement series has no row on a day the exchange is shut, and this series has 9 such rows. So it is not the 1:30 p.m. settlement location 2730 describes. |
-| 10 | none | none, not a replication | The two are different series, and the OHLC save is the one shifted at each roll. A shifted series would equal no unshifted one at any hour, so never equalling this one says nothing about when this one is read. The daily change in their difference reverses the next day, at an autocorrelation of −0.559953. A gap in timing predicts that, because one day's move between the two hours comes back the day after. A shift at a roll is a step that stays, so it predicts no reversal. |
-| 11 | none | none, not a replication | This row says when the series is read. If GC were read at 1:30 p.m. and GLD at 4:00 p.m., the daily change in log(GC / GLD) would hold two gold returns over those two and a half hours, one from each day, and anything else that moves the ratio only adds to it. Its standard deviation of 0.000933 against GLD's 0.015660 leaves room for at most 0.001775 of GLD's daily variance in that gap. Two and a half hours is about a tenth of a day on the clock, in a market that trades nearly around it, so the gap is not there. The OHLC save's GC moves against GLD ten times as much, which its rolls and a price read at another hour both feed. |
+| 9 | none | none, not a replication | The exchange sets no settlement price on a US exchange holiday, so a settlement series has no row on one, and this series has 9 such rows. So it is not the 1:30 p.m. settlement location 2730 describes. |
+| 10 | none | none, not a replication | The two are different continuous series, and nothing here tests how either crosses a roll. Two series that cross rolls differently differ by an amount that changes at each roll, so they need not be equal at any hour, and never equalling this one says nothing about when this one is read. The daily change in their difference reverses the next day, at an autocorrelation of −0.559953. A gap in timing predicts that, because one day's move between the two hours enters that day's change and comes back out of the next. A step at a roll that one series takes and the other does not stays, so it predicts no reversal. |
+| 11 | none | none, not a replication | This row says when the series is read. If GC were read at 1:30 p.m. and GLD at 4:00 p.m., the daily change in log(GC / GLD) would hold two gold returns over those two and a half hours, one from each day. If anything else that moves the ratio only adds to it, which nothing here tests, its standard deviation of 0.000933 against GLD's 0.015660 leaves room for at most 0.001775 of GLD's daily variance in that gap. Two and a half hours is about a tenth of a day on the clock, in a market that trades nearly around it, so the gap is not there. The OHLC save's GC moves against GLD about ten times as much, and row 10's reversal points away from steps at rolls, to a price recorded at another hour or to errors in the recorded prices, which nothing here tells apart. |
 
 ### What the entry concludes
 
@@ -8675,14 +8675,16 @@ Five things. The last two were measured by the write-up after the run, and
 `TestWhatThePostMeasured` in [tests/test_gld_gc.py](../tests/test_gld_gc.py)
 pins them.
 
-1. **Chan's saves reproduce his script exactly.** All five figures of the
+1. **Chan's saves reproduce every figure his script and his text print.** All five figures of the
    closing comment and both of the text's land on the printed digits.
 2. **The series the script reads is GC read within minutes of GLD's 4:00
    p.m. close, not the 1:30 p.m. settlement.** Row 11 is the evidence for the
-   hour. A gap of two and a half hours between the two closes could carry at
-   most 0.001775 of GLD's daily variance, far below the tenth of a day those
-   hours take. Row 9 adds that the series is not a settlement series, because
-   it has rows on 9 days the exchange was shut. Location 2730 warns that GC
+   hour. If nothing else that moves the ratio cancels the gap's moves, a gap
+   of two and a half hours between the two closes could carry at most
+   0.001775 of GLD's daily variance, far below the tenth of a day those hours
+   take. Row 9 adds that the series is not a settlement series, because
+   it has rows on 9 US exchange holidays, days the exchange sets no
+   settlement price. Location 2730 warns that GC
    settles two and a half hours before GLD closes. That gap is not in the
    series the script reads, so the asynchronicity the book excuses is not in
    the backtest.
@@ -8717,9 +8719,12 @@ rate on a long ETF position sits above it by a spread this repo has no data
 for, so row 8 bounds the excess return from above and cannot say whether it
 is close to zero.
 
-**Whether the trade would work on the 1:30 p.m. settlement.** That needs the
-OHLC save's GC, whose returns are shifted at each roll and need their own
-reading. The issue puts it out of scope.
+**Whether the trade would work on the 1:30 p.m. settlement.** The OHLC save's
+GC has the calendar a settlement series would have, GLD's days in the window
+and none of the 9 holidays, but nothing here measures the hour it is
+recorded or what it does at each roll. What it does at a roll decides how
+much of the roll return shows up in its returns, so a run of the trade on it
+would need its own analysis. The issue puts it out of scope.
 
 **Whether the trade works after 2010.** The window is the book's, and nothing
 here reads later data.
@@ -8734,7 +8739,11 @@ Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/gld-gc-lessons.md](../blog/gld-gc-lessons.md) moves with it, since that
 post quotes most of these figures. So does its one figure, which
-`uv run python -m chan.gld_gc_figures` redraws.
+`uv run python -m chan.gld_gc_figures` redraws. Of its two whiteboard
+sketches, the one in "Why own the metal and short the future" is schematic
+and draws none of these figures. The one in Lesson 4 is schematic apart from
+its last line, which reads row 11's bound of 0.001775 from the run.
+`uv run python -m chan.gld_gc_whiteboard` redraws them.
 
 ## Entry 39: XLE against USO signed by crude oil's contango, Chan's *Algorithmic Trading*
 
