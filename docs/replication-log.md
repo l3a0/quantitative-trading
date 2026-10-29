@@ -7491,7 +7491,7 @@ hedges EWA and EWC today.
 | 3 | none, a claim | none, a finding | The median rounds to 1.0 and the mean to 1.1, and the slope crosses 1 54 times, one of them the step up from the zero start on row 2. The only criterion was written after the run, and the median sits 0.002633 inside the line it would have drawn, so the owner ruled the row carries no verdict. |
 | 4 | none, a claim | none, a finding | Every yearly mean is above the year before, and the intercept falls at every finer grain, including 513 of its 1,499 daily steps. It peaks on 2011-09-08 above its last value. The only criterion was written after the run and chose the yearly grain, at which the claim holds, after the finer grains had been seen to fall, so the owner ruled the row carries no verdict. |
 | 5 | none | none, not a replication | On row 1 the state is still 0, so the forecast is 0 and `e` is EWC's whole close. The script shorts EWC alone, with no EWA leg, on the file's first day. |
-| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, and `TestTheFigures::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds that this row is not that reading. |
+| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there, with all 1,500 returns annualised as the script annualises them, moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, which round to 26.1 percent and 2.4, so under that reading the APR moves and the Sharpe ratio does not. `TestTheFigures::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds both roundings, and that this row is not that reading. |
 | 7 | none | none, not a replication | Row 2's state matches `c·y·[x 1]' / (c·(x² + 1) + Ve)` with `c = delta / (1 − delta)` to 1e-12, which is what the zero start predicts. |
 
 ### What the entry concludes
@@ -7503,13 +7503,17 @@ Three things.
    saves its figures came from. This file has one candidate, because
    `data/README.md` records the `.mat` as one git blob in all three published
    copies.
-2. **The book's figures rest on a trade the filter has no basis for.** On the
+2. **The book's APR rests on a trade the filter has no basis for, and so does
+   its Sharpe ratio while every day counts.** On the
    file's first day the filter has seen nothing, so its forecast of EWC is 0
    and the error is EWC's whole price. The script reads that as a spread far
    above its band and shorts EWC alone. Rows 5 and 6 measure it: withholding
    the signal on the first two days moves the APR from 0.262252 to 0.260669
    and the Sharpe ratio from 2.361162 to 2.349460, which round to 26.1 percent
-   and 2.3 rather than the book's 26.2 and 2.4.
+   and 2.3 rather than the book's 26.2 and 2.4. Dropping the two rows from the
+   returns as well gives 0.261059 and 2.351062, which round to 26.1 percent and
+   2.4, so the Sharpe ratio's move rests on counting all 1,500 days, as the
+   script does.
 3. **The intercept's yearly means rise every year, and the intercept falls at
    every finer grain.** The means go from 0.1440 in 2006 to 6.7748 in 2012. At
    a quarter, a month, a 250-day window and a day, it falls, and 513 of its

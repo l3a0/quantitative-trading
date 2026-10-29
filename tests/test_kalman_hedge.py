@@ -278,10 +278,14 @@ class TestTheFigures:
 
     def test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading(self, result) -> None:
         """The pin above annualises all 1,500 rows. Dropping rows 1 and 2 as well
-        gives 0.261059 and 2.351062, so the two readings cannot be confused."""
+        gives 0.261059 and 2.351062, which round to 26.1 percent and the book's
+        2.4, so only the reading that keeps every row moves the Sharpe ratio."""
         dropped = result.quiet_start.daily[2:]
         assert compounded_apr(dropped) == pytest.approx(0.26105886, abs=5e-9)
         assert plain_sharpe(dropped) == pytest.approx(2.35106158, abs=5e-9)
+        assert round(100 * compounded_apr(dropped), 1) == 26.1
+        assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT)
+        assert matches(plain_sharpe(dropped), BOOK_SHARPE)
 
 
 class TestTheHoldings:
@@ -600,12 +604,15 @@ class TestWhatThePostQuotes:
     def test_the_opening_and_the_file(self, sources, closes, result, text) -> None:
         members, _ = sources
         (saved,) = {m.obtained for m in members}
+        share = 1 - VE / result.filter.variance[1:]
         fragments = [
             f"“a reasonable APR of {BOOK_APR_PERCENT} percent and a Sharpe ratio of {BOOK_SHARPE}”",
             f"`{SOURCE_FILE}`, saved on {saved} and",
             f"EWA and EWC are both priced on all {len(closes):,} trading days from "
             f"{closes.index[0].date()} to {closes.index[-1].date()}.",
             f"and all {len(result.trade.daily):,} rows count toward the figures.",
+            f"closing {100 * np.median(share):.0f} percent of the miss on a median day.",
+            f"about {np.median(np.abs(np.diff(result.filter.slope)[1:])):.3f} on a median day.",
         ]
         assert not_found_once(text, fragments) == []
 
@@ -634,6 +641,11 @@ class TestWhatThePostQuotes:
         differ = [str(days[t].date()) for t in np.flatnonzero(script.daily != quiet.daily)]
         threshold = float(BOOK_SHARPE) - 0.05
         assert quiet.sharpe < threshold and round(threshold + 1e-9, 1) == float(BOOK_SHARPE)
+        dropped = quiet.daily[QUIET_ROWS:]
+        assert matches(plain_sharpe(dropped), BOOK_SHARPE), SPEC
+        assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT), SPEC
+        assert script.units[0] < 0 and script.units[1] == script.units[0], SPEC
+        assert ewc[1] < ewc[0], SPEC
         fragments = [
             f"**Row 1, {days[0].date()}.**",
             f"The forecast error is EWC’s whole close of {f.error[0]:.2f}.",
@@ -644,19 +656,25 @@ class TestWhatThePostQuotes:
             f"the forecast error is EWC’s whole close of {f.error[1]:.2f}, against a band of "
             f"{band[1]:.6f}.",
             f"The first nonzero return falls on {days[first].date()}.",
-            f"held as EWC fell from {ewc[0]:.2f} to {ewc[1]:.2f}.",
+            "is far above the upper band, so the rule enters a short.",
+            "So on its first day the strategy shorts EWC alone, with no hedge at all.",
+            "The short stays on.",
+            f"It comes from the short on EWC alone, held as EWC fell from {ewc[0]:.2f} to "
+            f"{ewc[1]:.2f}.",
             f"That is a gain of {script.daily[first]:.7f}, or {100 * script.daily[first]:.2f} "
             "percent in a day,",
             f"the returns of {differ[0]} and {differ[1]}, the two days",
             f"which annualises all {len(quiet.daily):,} days as the script does.",
             f"Its figures round to {100 * quiet.apr:.1f} percent and {quiet.sharpe:.1f}, not the "
             f"book’s {BOOK_APR_PERCENT} and {BOOK_SHARPE}.",
-            f"held over two days out of {len(script.daily):,},",
+            f"Two days out of {len(script.daily):,} move both figures",
+            f"Under that reading the APR still rounds to {100 * compounded_apr(dropped):.1f} "
+            f"percent, but the Sharpe ratio rounds to the book’s {plain_sharpe(dropped):.1f}.",
+            f"the Sharpe ratio moves only while all {len(quiet.daily):,} days count,",
             f"The Sharpe ratio lands {threshold - quiet.sharpe:.5f} below {threshold:.2f}, the "
             f"value at which it would round to the book’s {BOOK_SHARPE}.",
         ]
         assert not_found_once(text, fragments) == []
-        dropped = quiet.daily[QUIET_ROWS:]
         quiet_rows = f"No signal on rows 1 and {QUIET_ROWS},"
         table = [
             ["Run", "APR", "Sharpe ratio"],
@@ -684,7 +702,13 @@ class TestWhatThePostQuotes:
         assert longest.falls == 0
         threshold = round(s.median, 1) + 0.05
         assert round(s.median, 1) != round(s.mean, 1)
+        finer = (found.by_quarter, found.by_month, found.rolling, found.by_day)
+        assert found.by_year.falls == 0 and all(g.falls > 0 for g in finer), SPEC
         fragments = [
+            "The yearly means of the intercept rise every year.",
+            "At every finer grain, some steps fall.",
+            "A reader who picks the yearly grain says the claim holds.",
+            "Its brass steps never go down.",
             f"Lengthen the window from {ROLLING_DAYS} days to {LONGER} and the number of falls "
             f"shrinks from {found.rolling.falls} of {found.rolling.steps:,} steps to "
             f"{longer.falls} of {longer.steps:,}.",

@@ -1,6 +1,6 @@
 # A Kalman filter hedge on EWA and EWC: Chan’s figures to the last digit, and a trade made before the filter knew anything
 
-*Chan replaces a rolling regression with a Kalman filter that re-estimates a pair’s hedge every day. On his own file his script gives his figures exactly. It also shorts one fund alone on the first day, before the filter has any estimate, and that one trade is enough to move both figures at the book’s precision.*
+*Chan replaces a rolling regression with a Kalman filter that re-estimates a pair’s hedge every day. On his own file his script gives his figures exactly. It also shorts one fund alone on the first day, before the filter has any estimate. That one trade is enough to move the APR at the book’s precision, and the Sharpe ratio too when all 1,500 days count, as they do in the script.*
 
 ## Why replace the rolling window with a filter
 
@@ -39,7 +39,7 @@ In plain terms, each day runs four steps.
 3. **Measure the miss.** The **forecast error** is EWC’s actual close minus that forecast. The book calls it “the deviation of the spread EWC-EWA from its predicted mean value” (Chan, 2013, p. 127). This post says forecast error.
 4. **Update the guess.** The filter moves the slope and intercept toward values that would have explained today’s close. How far it moves is set by the **gain**. The gain is large when the filter is unsure of its guess and small when it is confident.
 
-After the first day, the filter never becomes confident on this file. Each update leaves it surer, but each new day it allows for the slope and intercept to have drifted since yesterday, and that takes back most of the certainty the update added. So the gain stays large, and the updated slope and intercept would have forecast the day’s close almost exactly. The slope still moves only a little each day, because the forecast errors are small.
+After the first day, the filter never becomes confident on this file. Each update leaves it surer. But each new day it allows for the slope and intercept to have drifted since yesterday. On a typical day that drift takes back all the certainty the update added. So the gain stays large. The updated slope and intercept, applied to the day’s EWA close, would have forecast EWC’s close almost exactly, closing 98 percent of the miss on a median day. The slope still moves only a little each day, about 0.009 on a median day. It multiplies EWA’s close, so closing a miss of a fraction of a dollar takes only a small change in it.
 
 ![An animated whiteboard sketch titled “One day of the filter”, drawn slowly stroke by stroke. Grey axes come first, labelled “EWA close” across and “EWC close” up. They are zoomed around 2007-05-15, each axis on its own scale, and every mark is drawn to scale on them. A black line, yesterday’s slope and intercept, crosses the plot, and a numbered list of steps down the left side, each in its mark’s colour, starts with “1 hold”. Past the line’s right end its label reads “yesterday: slope 1.127974,” and “intercept 0.471207”. A grey tick on the axis is labelled “EWA 23.31”, and a thick grey tick on the black line above it is the forecast, with the list’s “2 forecast” and the label “forecast 26.76”. Two brass hairlines above and below the forecast, one forecast standard deviation either way, are labelled “band ±0.24”. A black dot higher up is EWC’s close, labelled “close 27.15”, and a red bar from the forecast up to the dot is the miss, with the list’s “3 miss” and the label “error 0.39”. Last, a green line, the slope and intercept after the update, appears above the black line. On these narrow axes it looks lifted rather than turned. Its intercept has barely changed. Its slope has risen by 0.016211, and at an EWA close of 23.31 that rise lifts the line by 0.38, so it passes almost through the black dot. The list reads “4 update”, and past the green line’s end its label reads “updated: slope 1.144185,” and “intercept 0.472220”. A line of green words at the bottom reads “slope +0.016211 × EWA 23.31 = +0.38, intercept +0.001013: line to 27.14, 98% of the miss”. The finished drawing holds for twelve seconds.](../docs/figures/kalman_hedge_sketch_one_day.gif)
 
@@ -122,7 +122,7 @@ An error of 22.95 against a band of 0.031623 is far above the upper band, so the
 
 ### The figures without the first trade
 
-One way to remove the first day’s short is to give the rule no signal on rows 1 and 2, and leave everything else alone. That run holds exactly the same units as the script from row 3 on. The whole difference between the two is the returns of 2006-04-27 and 2006-04-28, the two days on which the positions taken on rows 1 and 2 earn their returns. The table sets that run beside the script, and beside a second reading of the same run that also leaves rows 1 and 2 out of the returns.
+One way to remove the first day’s short is to give the rule no signal on rows 1 and 2, and leave everything else alone. That run holds exactly the same units as the script from row 3 on. The whole difference between the two is the returns of 2006-04-27 and 2006-04-28, the two days on which the positions taken on rows 1 and 2 earn their returns. The table sets that run beside the script. Below them, a third row gives the same run’s figures with rows 1 and 2 left out of the returns.
 
 ```math
 \small\begin{array}{l|r|r}
@@ -133,7 +133,7 @@ One way to remove the first day’s short is to give the rule no signal on rows 
 \end{array}
 ```
 
-This post quotes the middle run, which annualises all 1,500 days as the script does. Its figures round to 26.1 percent and 2.3, not the book’s 26.2 and 2.4. One position, held over two days out of 1,500, moves both figures at the precision the book prints. The Sharpe ratio lands 0.00054 below 2.35, the value at which it would round to the book’s 2.4. The last run is a different reading, and it is shown so the two cannot be confused.
+This post quotes the middle run, which annualises all 1,500 days as the script does. Its figures round to 26.1 percent and 2.3, not the book’s 26.2 and 2.4. Two days out of 1,500 move both figures at the precision the book prints. They are the first two of the three days the script holds its opening short. The Sharpe ratio lands 0.00054 below 2.35, the value at which it would round to the book’s 2.4. The last row is there so that a figure computed with the two rows dropped is not mistaken for the one this post quotes. Under that reading the APR still rounds to 26.1 percent, but the Sharpe ratio rounds to the book’s 2.4. So the APR moves whichever way the returns are counted, and the Sharpe ratio moves only while all 1,500 days count, as they do in the script.
 
 ### What the script’s chart leaves out, and how to start a filter
 

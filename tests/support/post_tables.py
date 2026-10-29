@@ -11,7 +11,8 @@ The three functions and :data:`CELL` came out of
 ``tests/test_calendar_spread_reversion.py``'s class unchanged, so that the
 crude oil and VX calendar spread posts read their tables the same way.
 ``blog/kalman-hedge-lessons.md`` later needed two more things of
-:func:`tables`, and neither changes a grid the other posts' tables give.
+:func:`tables`, and neither changes a grid that the three other posts whose tests call
+:func:`tables` give.
 
 1. A row label stacked in an array of its own reads as one cell of words,
    even where its words hold numbers, such as "rows 1 and 2".

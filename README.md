@@ -5443,9 +5443,10 @@ Six groups of what it says are not pinned here.
    started from the whole-file intercept would show how much of the rise the
    zero start explains. `TestTheGain` measures what the post says the gain
    does on this file after the first day, but not those words.
-4. The alt texts' readings of the lines and scales, such as "about 1.4",
-   "about 2 by the start of September 2008" and the zero-start sketch's
-   "about 23", are approximate by design.
+4. The alt texts' readings, approximate by design. The chart's alt text reads
+   its lines, such as "about 1.4" and "about 2 by the start of September
+   2008", and the sketches' alt texts read a scale "from 0 to about 23" and a
+   bar "a few pixels tall".
 5. Every copy of a figure but the one `TestWhatThePostQuotes` reads. The post
    states several figures more than once, in a lesson, a table or the alt
    text, and a typo in a copy the class does not read passes.
@@ -5485,10 +5486,11 @@ precision the post prints it, and looks for one copy of it in the post, so a
 typo in that copy fails a test. That covers the file's saved date, days and
 dates, the 252 days of the APR, the first two rows' forecast errors, bands and
 slope, the first return and its dates, the run with no signal on rows 1 and 2
-and its margin below 2.35, the slope's median, mean, share above 1 and
-crossings, the intercept's falls at each window and its peak, the constants,
-and the holdings and their changes. It also reads the alt text's exact
-figures, its 513 of 1,499 and the dashed run's 0.260669 and 2.349460 among
+and its margin below 2.35, the two rounded figures of the reading that drops
+those rows, the slope's median, mean, share above 1 and
+crossings, the intercept's falls at each window and its peak, the
+whole-file regression's slope and intercept, the constants, and the holdings
+and their changes. It also reads the chart's alt text's exact figures, its 513 of 1,499 and the dashed run's 0.260669 and 2.349460 among
 them. Its four tables are rebuilt whole, so a digit added to a cell fails as
 well as a digit changed.
 

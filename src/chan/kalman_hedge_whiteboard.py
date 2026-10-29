@@ -10,7 +10,11 @@ places each right after the passage it draws.
 1. One day of the filter, under "The filter and the file", after the
    paragraph opening "After the first day, the filter never becomes
    confident". It draws 2007-05-15 on axes of EWA's close across and EWC's
-   close up, zoomed around that day. A black line is yesterday's slope and
+   close up, zoomed around that day. 2007-05-15 is not a median day. Its
+   error sits 1.62 forecast standard deviations from the forecast, outside
+   the band, and its slope moves 0.016211, about 1.7 times the median day's
+   0.009361. The share of the miss its update closes, 98 percent, is the
+   median day's to the percent. A black line is yesterday's slope and
    intercept, a grey tick on it at today's EWA is the forecast, two brass
    hairlines are the band of plus and minus one forecast standard deviation,
    a black dot is EWC's close, and a red bar from the forecast to the close is
