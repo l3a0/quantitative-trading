@@ -48,8 +48,8 @@ pins the arithmetic.
 the fifteen, checks each one's published record, and registers one that
 qualifies, naming its rule, parameters and span before any statistic on that
 span is computed. [The owner's rulings](#the-owners-rulings) gives the three
-rulings and the rows each decided. One proposal is still open there, the rule
-for choosing among rows that qualify.
+rulings and the rows each decided, and the rule the owner approved for
+choosing among rows that qualify.
 
 The owner's private economic test applies on top of this one. A row that
 passed here would be necessary rather than sufficient.
@@ -415,10 +415,12 @@ method's text did not settle it.
    narrow hurdle, the one row added to the rows to measure, Entry 31, also
    reaches only on the joined CL span.
 
-One proposal is still open. [Issue 777](https://github.com/l3a0/quantitative-trading/issues/777)
-would choose among rows that qualify by the largest ratio of years available to
-years needed. That rule was written after the rows were seen, so the owner
-approves or replaces it before anything is registered.
+The owner also approved, on 2026-10-28, how
+[issue 777](https://github.com/l3a0/quantitative-trading/issues/777) chooses
+among rows that qualify. It registers the one with the largest ratio of years
+available to years needed, which is the square of how far the row's expected t
+on its holdout clears t\*. This ranking proposed that rule after the rows were
+seen, and the owner's approval is what lets it stand.
 
 ## What paper trading can show
 
