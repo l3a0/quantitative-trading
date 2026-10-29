@@ -73,7 +73,7 @@ p.m. settlement.** :func:`identity` measures what says so.
 
 The GC close of ``inputDataOHLCDaily_20120507`` sits beside it for contrast.
 That save is another continuous series, and nothing here measured how either
-one crosses a roll. Two series that cross rolls differently would not be equal
+one crosses a roll. Two series that cross rolls differently need not be equal
 at any hour, so its never equalling this one says only that the two differ. Its
 large moves against this one reverse the next day, which a gap in timing
 predicts and a step at a roll does not.

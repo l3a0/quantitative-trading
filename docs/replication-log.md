@@ -8642,7 +8642,7 @@ trade on later data.
 | 7 | 0.0 percent | reproduced | The same as row 1. |
 | 8 | none | none, not a replication | Declared beside S. The bill rate takes 1.0141 percent of the 1.9014 percent, so 0.8874 percent is left above it. The book gives no bound for "not very different", so this row carries no verdict. The bill rate is a floor on financing, because a trader borrows above it, and the book's "close to zero" is a claim about the rate a trader pays. |
 | 9 | none | none, not a replication | The exchange sets no settlement price on a US exchange holiday, so a settlement series has no row on one, and this series has 9 such rows. So it is not the 1:30 p.m. settlement location 2730 describes. |
-| 10 | none | none, not a replication | The two are different continuous series, and nothing here measured how either crosses a roll. Two series that cross rolls differently differ by an amount that changes at each roll, so they would not be equal at any hour, and never equalling this one says nothing about when this one is read. The daily change in their difference reverses the next day, at an autocorrelation of −0.559953. A gap in timing predicts that, because one day's move between the two hours comes back the day after. A step at a roll that one series takes and the other does not stays, so it predicts no reversal. |
+| 10 | none | none, not a replication | The two are different continuous series, and nothing here measured how either crosses a roll. Two series that cross rolls differently differ by an amount that changes at each roll, so they need not be equal at any hour, and never equalling this one says nothing about when this one is read. The daily change in their difference reverses the next day, at an autocorrelation of −0.559953. A gap in timing predicts that, because one day's move between the two hours enters that day's change and comes back out of the next. A step at a roll that one series takes and the other does not stays, so it predicts no reversal. |
 | 11 | none | none, not a replication | This row says when the series is read. If GC were read at 1:30 p.m. and GLD at 4:00 p.m., the daily change in log(GC / GLD) would hold two gold returns over those two and a half hours, one from each day. If anything else that moves the ratio only adds to it, which nothing here tests, its standard deviation of 0.000933 against GLD's 0.015660 leaves room for at most 0.001775 of GLD's daily variance in that gap. Two and a half hours is about a tenth of a day on the clock, in a market that trades nearly around it, so the gap is not there. The OHLC save's GC moves against GLD ten times as much, and row 10's reversal points to a price read at another hour as the main reason. |
 
 ### What the entry concludes
@@ -8698,9 +8698,9 @@ is close to zero.
 **Whether the trade would work on the 1:30 p.m. settlement.** The OHLC save's
 GC has the calendar a settlement series would have, GLD's days in the window
 and none of the 9 holidays, but nothing here measures the hour it is
-recorded or what it does at each roll, which decides how much of the roll
-return a run collects, so a run of the trade on it would need its own
-analysis. The issue puts it out of scope.
+recorded or what it does at each roll. What it does at a roll decides how
+much of the roll return shows up in its returns, so a run of the trade on it
+would need its own analysis. The issue puts it out of scope.
 
 **Whether the trade works after 2010.** The window is the book's, and nothing
 here reads later data.
