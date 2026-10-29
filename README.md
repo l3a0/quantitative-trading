@@ -8813,8 +8813,9 @@ Five groups of what it says are not pinned here.
    the S&P 500 and that it measures the swings they imply for the next month,
    that it closes at 16:15 New York time, after FSTX opens, that FSTX is a
    futures contract on the STOXX Europe 50 index that trades on Eurex, that
-   the days FSTX trades and VIX has no close are days the US exchanges were
-   shut, such as the three US holidays the latest close keeps, that
+   the 48 days inside VIX's span on which FSTX trades and VIX has no close
+   are days the US exchanges were shut, such as the three US holidays the
+   latest close keeps, that
    `gapFutures_FSTX.m` loads the 2012-05-17 save, and that no script in any
    of the three public copies of Chan's code this repository has read applies
    the filter.
