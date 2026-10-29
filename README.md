@@ -5449,6 +5449,8 @@ Every other number in the post traces to an assertion in
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py), to
 [tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py) for
 the figure's own numbers, to
+[tests/test_kalman_hedge_whiteboard.py](tests/test_kalman_hedge_whiteboard.py)
+for the sketches' numbers, to
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) and
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 for the slope of 0.9624 and the intercept of 6.4113 of one regression over the
@@ -5491,6 +5493,37 @@ uv run python -m chan.kalman_hedge_figures
 [tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/kalman_hedge_whiteboard.py](src/chan/kalman_hedge_whiteboard.py) on
+the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds. Neither is schematic: every figure
+either one draws is read from `kalman_hedge` on the committed file, as
+`python -m chan.kalman_hedge` reads it, and every mark sits at its figure.
+
+1. `kalman_hedge_sketch_one_day.gif`, after the four steps under "The filter
+   and the file", draws 2007-05-15 on axes zoomed around the day. Yesterday's
+   line forecasts EWC at 26.76, the close of 27.15 misses it by 0.39 against a
+   band of 0.24, and the updated line gives 27.14 at that day's EWA, 98
+   percent of the way from the forecast to the close. A numbered gutter names
+   the post's four steps.
+2. `kalman_hedge_sketch_zero_start.gif`, in Lesson 2, draws rows 1 to 3 on
+   one dollar scale. Rows 1 and 2 forecast 0, so each error is EWC's whole
+   close and the band all but vanishes beside it. Row 1's short holds EWC
+   alone and earns 0.74 percent on 2006-04-27, the slope moves to 1.366666
+   only after row 2's forecast, and row 3's forecast of 22.09 misses by 0.85.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.kalman_hedge_whiteboard
+```
+
+[tests/test_kalman_hedge_whiteboard.py](tests/test_kalman_hedge_whiteboard.py)
+holds what each draws, derives every figure again from the filter, holds that
+only row 1's words say EWC alone, and holds that each GIF follows its passage
+in the post.
 
 [blog/index-arbitrage-lessons.md](blog/index-arbitrage-lessons.md) is a
 twenty-third post, about Example 4.2 of Chan's *Algorithmic Trading*, which
