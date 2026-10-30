@@ -18,9 +18,11 @@ earned on them.
    filtered ones "2.6 percent and the Sharpe ratio to 0.16".
 
 **No script ships for location 3509, and the FSTX alignment was found by
-search.** Neither public mirror of Chan's code holds a file that applies the
-filter, so the specification below is inferred from the four printed
-figures rather than read from code. The plan on
+search.** None of the three public copies of Chan's code this repository has
+read, ivanliu1989/algorithmic_trading, ericnberwick/EpchanPreview and
+burakbayramli/books, holds a file that applies the filter, so the
+specification below is inferred from the four printed figures rather than
+read from code. The plan on
 [issue 359](https://github.com/l3a0/quantitative-trading/issues/359) tried six
 ways of aligning VIX with FSTX's calendar and two ways of averaging before
 choosing one. All six alignments and both averages are pinned in
@@ -52,11 +54,12 @@ exploratory.
    days' returns are the same whether the rule runs before or after the join,
    which the tests hold.
 
-**The phrase "annualized average return" names two formulas in one
-sentence.** Entry 18 of ``docs/replication-log.md`` found that the unfiltered
-8.7 percent is buy on gap's compounded APR, which the arithmetic figure
-misses. The filtered 17.2 percent is the arithmetic figure, and the
-compounded APR over the same 190 days prints as 17.9 percent.
+**The phrase "annualized average return" names two formulas in two
+consecutive sentences.** Entry 18 of ``docs/replication-log.md`` found that
+the unfiltered 8.7 percent is buy on gap's compounded APR, which the
+arithmetic figure misses. The filtered 17.2 percent is the arithmetic
+figure, and the compounded APR over the same 190 days prints as 17.9
+percent.
 
 **Zeroing the other days and averaging over the whole sample** misses. It
 gives buy on gap a figure of 2.2 percent, nowhere near 17.2, so the average
@@ -78,8 +81,8 @@ same day.
 3. **A one-row shift on FSTX's own calendar**, with NaN where VIX has no
    close, keeps 185 days and lands neither figure. It keeps those three
    holidays and drops the day after each, which reads the holiday's NaN.
-4. **The same day's VIX close on FSTX's own calendar**, with NaN on US
-   holidays, keeps 185 days.
+4. **The same day's VIX close on FSTX's own calendar**, with NaN on days
+   the US exchanges were shut, keeps 185 days.
 5. **The same day's VIX close forward-filled onto FSTX's calendar** keeps
    188, the three holidays included.
 
@@ -116,7 +119,8 @@ a guard over either whole window would refuse. :func:`read_sources` guards VIX
 over two spans in each window instead, from the window's first joined day to
 :data:`BEFORE_FLAG` and from :data:`FLAGGED_DAY` to its last joined day.
 Together they leave out only the ratio from 2007-02-26 to 2007-02-27, so every
-day-over-day move the run reads is guarded except the one real move.
+day-over-day move the run reads from the window's first joined day on is
+guarded except the one real move.
 :mod:`chan.vx_es_roll_return` met the same day and guarded VIX only from an
 anchor after it. That is a different case, because no figure there reads VIX
 before the anchor, while here every close before the flag feeds the filter.
@@ -139,7 +143,7 @@ daily return, the kept days against the other joined days, is 0.705402 for
 buy on gap, with p of 0.481405, and −0.684181 for FSTX under the script's
 sign, with p of 0.494679. The momentum sign gives the same t negated. The test
 treats each day as independent, and neither difference is distinguishable from
-noise, so neither rule's figures say which way the filter points.
+noise, so neither rule's mean return says which way the filter points.
 
 Every result here is exploratory. Reproducing Chan's figures spends the 2006
 to 2012 and 2004 to 2012 samples on two rules and a threshold he chose, and
@@ -291,7 +295,7 @@ def same_day_reading(
 
     Both look ahead. VIX closes at 16:15 New York time, after FSTX's open on the same date, so
     a position taken at the open could not have read it. ``forward_fill``
-    gives a US holiday the close before it rather than NaN.
+    gives a day the US exchanges were shut the close before it rather than NaN.
     """
     closes = vix.reindex(days, method="ffill" if forward_fill else None)
     with np.errstate(invalid="ignore"):
