@@ -6965,26 +6965,32 @@ Six groups of what it says are not pinned here.
    let F2 rise above 2 while F1 + F2 stays at 2, and that the example cannot
    say whether Chan means the highest mean or the highest growth rate. The
    post's illustration of gross leverage, \$1.50 long and \$0.50 short on \$1
-   of equity, is arithmetic on its own numbers. Two general claims are tested
-   only in particular cases.
-   1. Leaving part of the cap unspent beats every split of the whole cap once
-      the cap passes the gross leverage of the best long-only allocation with
-      no cap. That is strategy 2's own Kelly leverage in Lesson 6 and the
-      total Kelly leverage on Chan's inputs. Tests hold it only at Lesson 6's
-      cap of 4 and on Chan's inputs at caps up to that total.
+   of equity, is arithmetic on its own numbers. Three general claims are
+   tested only in particular cases.
+   1. Leaving part of the cap unspent beats every long-only split of the
+      whole cap once the cap passes the gross leverage of the best long-only
+      allocation with no cap. That is strategy 2's own Kelly leverage in
+      Lesson 6 and the total Kelly leverage on Chan's inputs. A test holds it
+      at Lesson 6's cap of 4. Another holds that spending the whole cap stays
+      best on Chan's inputs at 60 caps up to that total.
    2. Two uncorrelated strategies with positive means leave a short nothing
       to gain. Tests hold it only with Chan's means and volatilities at a cap
-      of 2 and at Lesson 6's hedge.
-4. Two words in the figure's alt text, which reads the dashed curve as rising
-   "a little further" and falling "slightly".
+      of 2, and at the leverages of Lesson 6's hedge with the correlation set
+      to 0.
+   3. No correlation lets a short beat the best long-only allocation on
+      Chan's means and volatilities at a cap of 2. A test holds it at six
+      correlations from −1 to 1.
+4. How far the figure's alt text says the dashed curve rises, "a little
+   further", and falls, "slightly". A test reads both words, and none checks
+   either size against the curve.
 5. Its references, cited rather than computed. The post's counts of its own
    parts, such as the three groups of results, the five things the
    reproduction adds and the six lessons, are not pinned either. Nor are its
-   pointers to its own lessons, such as "Lesson 3 to explain" in Lesson 1,
-   except the "in Lesson 4" that ends item 3 of Lesson 1's list, "Lesson 4's
-   short" in Lesson 6 and "Lesson 6 shows" in Lesson 5's second condition.
-   Five results
-   it takes from earlier posts are cited like its references.
+   pointers to its own lessons and sections, such as "Lesson 3 to explain" in
+   Lesson 1 and "The next section" in the opening, except the "in Lesson 4"
+   that ends item 3 of Lesson 1's list, "Lesson 4's short" in Lesson 6 and
+   "Lesson 6 shows" in Lesson 5's second condition. Five results it takes
+   from earlier posts are cited like its references.
    1. Compound growth falling short of the average return by about half the
       variance, from the post on the coin toss.
    2. A long position held at a constant leverage above 1 selling after every

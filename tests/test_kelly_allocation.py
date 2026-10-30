@@ -1141,7 +1141,8 @@ class TestWhatThePostSays:
         corner = best_allocation_at_cap(MEANS, cov).growth
         self._has(
             f"finds it at F2 = {_six(peak.leverages[1])} and F1 = {_six(peak.leverages[0])}, "
-            f"growing at {_six(peak.growth)}. That is higher than the corner’s {corner:.3f}",
+            f"growing at {_six(peak.growth)}. That is higher than the corner’s {corner:.3f}, "
+            "and it is the hollow marker on the dashed part of the chart.",
             f"so the gross leverage, the short plus the long, is {_six(peak.gross)}, over the "
             f"cap of {MAX_LEVERAGE:g}.",
             f"because {_six(peak.growth)} rounds to the same {_book(peak.growth, 2)} the book "
@@ -1207,7 +1208,11 @@ class TestWhatThePostSays:
         whole_ret, whole_drag = growth_terms(whole.leverages, case.MEANS, case.COV)
         cut_ret, cut_drag = growth_terms((0.0, hedge[1]), case.MEANS, case.COV)
         self._has(
-            f"finds the same corner at {best_allocation_at_cap(MEANS, cov).growth:.3f}.",
+            "Up to here, every allocation compared under the cap holds long positions only, "
+            "F1 and F2 both at least 0, the range Chan plots. On Chan’s inputs that loses "
+            f"nothing. A search over every allocation whose gross leverage is {MAX_LEVERAGE:g}, "
+            "short positions included, finds the same corner at "
+            f"{best_allocation_at_cap(MEANS, cov).growth:.3f}.",
             f"On Chan’s means and volatilities at a cap of {MAX_LEVERAGE:g}, no correlation lets "
             "a short beat the best long-only allocation, not even a correlation of 1.",
             f"Take two strategies with mean excess returns of {m1:.2f} and {m2:.2f}, a "
