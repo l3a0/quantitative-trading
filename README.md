@@ -8842,8 +8842,8 @@ Five groups of what it says are not pinned here.
    reads it as written rather than deriving it.
 5. Its reference, cited rather than computed.
 
-The 52 futures series in Chan's `inputDataOHLCDaily_20120517.mat` and their
-1995-10-20 start are pinned in
+The 52 futures series in Chan's `inputDataOHLCDaily_20120517.mat` and the
+earliest of their first days, 1995-10-20, are pinned in
 [tests/test_continuous_futures.py](tests/test_continuous_futures.py), and
 [tests/test_vintage.py](tests/test_vintage.py) holds the file's row in
 [data/README.md](data/README.md) to them. Every other number in the post

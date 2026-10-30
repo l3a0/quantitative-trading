@@ -1372,12 +1372,17 @@ class TestThePostQuotesTheRun:
             if (long_rule.positions[row_ : row_ + reach, column] != 0).any():
                 held_flagged = "some"
         fstx_flags = "none" if not scale_breaks(sources.fstx["Close"]) else "some"
+        _, earlier_save = opening_gap.read_sources(source_file="inputDataOHLCDaily_20120511.mat")
+        shared = sources.fstx.index.intersection(earlier_save.index)
+        same_prices = sources.fstx.loc[shared].equals(earlier_save.loc[shared])
+        priced = "the same" if same_prices else "differently"
         below_every = "below every earlier close" if rescaled_low < earlier.min() else "above"
         for sentence in (
             f"It catches only a day-over-day move of more than {bound:.1f} times, so a rescale "
             f"of {bound:.1f} times or less passes it unseen.",
             f"The run applies the check to every FSTX close in the file, and it flags "
-            f"{fstx_flags}.",
+            f"{fstx_flags}. Chan’s saves also price FSTX {priced}, as Lesson 3’s fourth "
+            f"fact says,",
             f"flags one VIX day, {flagged.date()}, a move from {vix.loc[before]} to "
             f"{vix.loc[flagged]} that reads as real,",
             f"undoing it would mean rescaling the closes on one side of that day by "
