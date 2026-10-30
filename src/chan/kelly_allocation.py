@@ -344,7 +344,7 @@ def unbounded_allocation_at_cap(
 
 
 def corner_threshold(means: Sequence[float], cov: NDArray[np.float64]) -> float:
-    """The largest cap at which putting everything on strategy 2 is still best.
+    """The largest cap at which everything on strategy 2 beats every other long-only split of it.
 
     At the corner the slope along the line is ``(m2 - m1) - Fmax (c22 - c12)``,
     which stays positive while ``Fmax < (m2 - m1) / (c22 - c12)``. That is a
@@ -357,8 +357,8 @@ def corner_threshold(means: Sequence[float], cov: NDArray[np.float64]) -> float:
     m1, m2, _, c22, c12 = _two(means, cov)
     if m2 <= m1:
         raise ValueError(
-            f"strategy 2's mean of {m2} is not above strategy 1's {m1}, so no cap is small "
-            "enough for everything on strategy 2 to be best"
+            f"strategy 2's mean of {m2} is not above strategy 1's {m1}, so the formula names "
+            "no largest cap"
         )
     if c22 <= c12:
         raise ValueError(

@@ -6961,14 +6961,23 @@ Six groups of what it says are not pinned here.
    growing with the square of the leverage and so staying small under a tight
    cap, the short in strategy 1 at the unbounded peak read as there only to
    let F2 rise above 2 while F1 + F2 stays at 2, and that the example cannot
-   say whether Chan means the highest mean or the highest growth rate. The post's
-   illustration of gross leverage, \$1.50 long and \$0.50 short on \$1 of
-   equity, is arithmetic on its own numbers.
+   say whether Chan means the highest mean or the highest growth rate. The
+   post's illustration of gross leverage, \$1.50 long and \$0.50 short on \$1
+   of equity, is arithmetic on its own numbers. Two general claims are tested
+   only in particular cases.
+   1. Leaving part of the cap unspent can beat every split of the whole cap
+      once the cap passes strategy 2's own Kelly leverage. A test holds it
+      only at Lesson 6's cap of 4.
+   2. Two uncorrelated strategies with positive means leave a short nothing
+      to gain. Tests hold it only with Chan's means and volatilities at a cap
+      of 2 and at Lesson 6's hedge.
 4. Two words in the figure's alt text, which reads the dashed curve as rising
    "a little further" and falling "slightly".
 5. Its references, cited rather than computed. The post's counts of its own
    parts, such as the three groups of results, the five things the
-   reproduction adds and the six lessons, are not pinned either. Five results
+   reproduction adds and the six lessons, are not pinned either. Nor are its
+   pointers to its own lessons, such as "Lesson 4's short" in Lesson 6,
+   except the "in Lesson 4" that ends item 3 of Lesson 1's list. Five results
    it takes from earlier posts are cited like its references.
    1. Compound growth falling short of the average return by about half the
       variance, from the post on the coin toss.
@@ -6980,11 +6989,15 @@ Six groups of what it says are not pinned here.
       SPY post.
    5. Chan's version of the trading rule of Khandani and Lo (2007), which the
       post on his rerun of their reversal reproduces.
-6. Three of its four displayed formulas, those for the Kelly leverages, the
-   growth rate at any leverages and the largest cap. The tests in
-   `TestCorrelatedStrategies` hold the code to each of them, and no test reads
-   the post's copy. The fourth, the slope along the line, is read with its
-   numbers.
+6. Its formulas. Three of its four displayed formulas are not read, those for
+   the Kelly leverages, the growth rate at any leverages and the largest cap.
+   Neither are the formulas it writes inline, such as m / s², S = m / s,
+   r + S² / 2, F′M and F′CF / 2, or the gloss naming c22 as strategy 2's
+   variance. The tests in `TestCorrelatedStrategies`, `TestKellyLeverages`
+   and `TestTheKellyGrowthRate` hold the code to each of them, and no test
+   reads the post's copy. The fourth displayed formula, the slope along the
+   line, is read with its numbers, and so is one copy each of F1 = 2 − F2 and
+   F1 + F2 = 2.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) or to
@@ -6999,7 +7012,9 @@ texts, and checks it against the run at the precision the post prints. That
 covers both of Lesson 1's tables, the inputs, and the ratios and roundings the
 post states in words: strategy 2's mean twice strategy 1's, 0.4648 less than
 half the corner's rate, 0.262321 as about a quarter, 2.448980 as 2.45 in the
-subtitle, Lesson 5's heading and Lesson 6, and 0.962956 rounding to 0.96. So a
+subtitle, Lesson 5's heading and Lesson 6, 0.962956 rounding to 0.96, and a
+growth rate of 0.955 multiplying capital by about 2.6 a year rather than by
+1.955. So a
 typo in a copy the class reads fails a test, and so does one in a figure the
 title or a heading quotes. A typo in another copy of the same number passes,
 such as the 2.135068 in the paragraph that opens "Chan prints Equation 8.3 as
@@ -7013,12 +7028,12 @@ the last four. A later edit split the slope into its parts, strategy 2's
 extra mean of 0.30, the drag of 0.1352 shed off strategy 1, and the two
 variances of 0.0676 and 0.1225, and
 `test_the_slope_along_the_line_is_positive_up_to_the_cap` holds each of them.
-Another took the hedge's two changes one at a time.
+A second edit split the hedge's lead in Lesson 6 into two steps, and
 `test_the_drag_falls_in_two_steps_and_the_short_earns_most_of_the_lead`
-holds what each saves, 0.315769 of drag for cutting the long and 0.211730 for
-the short. It also holds the post's words for them. The long's saving is
-barely more than the return it gives up, the short cancels about half of the
-remaining long's variance, and the short earns most of the hedge's lead.
+holds them. Cutting the long first saves 0.315769 of drag, barely more than
+the 0.300855 of return it gives up. The short then saves 0.211730 of drag for
+0.050142 of return, by cancelling about half of the remaining long's
+variance, so it earns most of the hedge's lead in either order.
 
 1. The Sharpe ratios 1.153846 and 1.714286, half the sum of whose squares is
    the growth rate at Kelly.
