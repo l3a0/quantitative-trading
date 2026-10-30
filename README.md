@@ -1441,8 +1441,10 @@ and the bisection's limit on halvings, which ends the search where the floats
 lie too far apart for its tolerance. It holds what the write-up
 measured after the run too: each ceiling's yearly standard error and 5
 percent line, that each point estimate falls short of its line and under half
-of its Y, June 2001's capped return at each ceiling, and the smallest leverage
-that would ruin any of the 83 months. It also checks the two functions that
+of its Y, June 2001's capped return at each ceiling, the smallest leverage
+that would ruin any of the 83 months, and the 36 of the 83 holding months in
+which WYN, DFS or SE put an earlier company's prices into one of the two
+fifths. It also checks the two functions that
 compute the standard error and the line against a statistic set by hand. The
 blog post about it is the exception, and what it says that nothing here
 asserts is listed below.
@@ -8695,9 +8697,8 @@ on its axes, and that each GIF follows its paragraph in the post.
 is a forty-fourth post, and the first about how the repository runs rather
 than about one of Chan's books. It reports the build board's move on
 2026-10-11 from a claude.ai artifact that every session wrote by hand to a
-GitHub Pages page that `.github/workflows/board.yml` rebuilds with
-`scripts/build_board.py`. It replicates nothing, so the replication log has no
-entry for it. It draws six lessons.
+GitHub Pages page that a GitHub Action rebuilds from GitHub. It replicates
+nothing, so the replication log has no entry for it. It draws six lessons.
 
 1. Writing the page by hand cost a turn for every change, 240 updates in
    1.887 days at about \$111 a day.
@@ -8745,9 +8746,9 @@ forty-fifth post, about Chan's rule at Kindle location 4709 of *Quantitative
 Trading* tested at the two ceilings on leverage his own text gives, 2 under
 Regulation T at location 814, which location 2836 repeats for a retail account
 held overnight, and 5 under portfolio margin at location 814. Every figure in
-it is exploratory, and it says why: the plan came after Entry 45's figures had
-been seen, the file holds only survivors, and Chan prints no figure for the
-rule to reproduce. The post links the
+it is exploratory, because the plan came after Entry 45's figures had been
+seen. The post also says the file is built from survivors and that Chan prints
+no figure for the rule to reproduce. The post links the
 levered low-beta post for the setup and the Kelly leverage on SPY post rather
 than repeating them, and draws five lessons from Entry 48 of the replication
 log.
@@ -8755,9 +8756,9 @@ log.
 1. A plan written after the data was seen has to say what was seen. Entry
    45's unlevered growth of 0.1254 against 0.1183 and its Kelly leverage of
    9.9884 made a positive point estimate at either ceiling predictable.
-2. Capping the leverage removes the ruin. No month lost all the capital at
-   either ceiling, the worst was July 2002 at −0.1479 and −0.3719, and no
-   leverage below 13.4118 would have ruined any of the 83 months.
+2. Capping the leverage removed the ruin on this file. No month lost all the
+   capital at either ceiling, the worst was July 2002 at −0.1479 and −0.3719,
+   and no leverage below 13.4118 would have ruined any of the 83 months.
 3. A large point estimate can still be noise. The gaps of 0.0934 and 0.1659
    a year fall short of 5 percent lines at 0.1434 and 0.2254, and each is
    under half of its detectable gap Y, 0.2168 and 0.3407.
@@ -8778,36 +8779,56 @@ Five groups of what it says are not pinned here.
    814, and a retail account's 2 at 2836.
 2. The plan's history rather than the data: that the plan was written on
    2026-10-11 before any capped number and after the five things Entry 45 had
-   shown, the four outcomes and the wording of each, and that the plan would
-   have sent both ceilings to a holdout only if one had held. Entry 48 of the
-   replication log records each.
-3. Readings no test asserts: what Regulation T and portfolio margin are, that
-   a margin of 20 percent is a leverage of 5, that 5 is the highest leverage
-   the book puts a number on for stocks held overnight and its "or less"
-   leaves room for more, that a broker might not lend 5 to a long-only
-   portfolio, and that growth rises with leverage up to the Kelly leverage
-   under a bell curve, which the Kelly post derives. Also that leverage
-   multiplies the low fifth's excess return and its swings by the same L,
-   while d also subtracts the high fifth's log return and log growth gives up
-   more to volatility as leverage rises, so nothing fixes t as leverage
-   changes. Also that 80 percent of a bell curve lies above 0.8416 standard
-   deviations below its centre, that a second one-sided test raises the chance
-   of a false gap to as much as twice as high, the general Benjamini-Hochberg
-   rule, and that the corrected test needs a gap at least as large as Y, and a
-   larger one unless the other ceiling also clears 5 percent. Last, that a
+   shown, the four outcomes and the wording of each, and that the plan sends
+   both ceilings to a holdout if either one holds. Entry 48 of the replication
+   log records each. The post also says the previous test added its ruin
+   outcome only after its first ruined month was visible, which Entry 45
+   records.
+3. Readings no test asserts: what beta, leverage, a margin, Regulation T
+   and portfolio margin are, that the post writes returns, rates and growth
+   as fractions, that a margin of 20 percent is a leverage of 1 / 0.20, or 5,
+   that 5 is the highest leverage the book puts a number on for stocks held
+   overnight and a margin below 20 percent would mean more, that a broker
+   might not lend 5 to a long-only portfolio, what the Sharpe ratio and the
+   Kelly leverage are, and that growth rises with leverage up to the Kelly
+   leverage under a bell curve, which the Kelly post derives. Also that a
+   portfolio levered (1 + rf) / (rf − r_low) times or more loses all its
+   capital in a month when the low fifth trailed the bill rate, which solves
+   the capped return for −1, and that t is the gap divided by its standard
+   error. Also that 5 percent of a bell curve lies more than 1.645 standard
+   deviations above its centre and 80 percent lies above the point 0.8416
+   below it. Also that if d were only the levered low fifth's excess return,
+   L × (r_low − rf), and L one number in every month, leverage would multiply the gap and its
+   standard error by the same L and leave t alone, while d also subtracts the
+   high fifth's log return, log growth loses more to swings as leverage rises,
+   and at a ceiling of 5 the leverage changes from month to month, so t can
+   move either way as leverage changes. Also that a second one-sided test
+   raises the chance of a false gap to as much as twice as high, the general
+   Benjamini-Hochberg rule, and that the corrected test needs a true gap at
+   least as large as Y, and a larger one if the other ceiling's p-value is
+   above 0.05, because its own must then be at most 0.025. Last, that a
    higher mean leverage borrows more and so breaks even at a smaller spread,
-   that FINRA Rule 4210's maintenance margin of 25 percent calls a position
-   levered 2 after a fall of a third while Regulation T sets only the 50
-   percent needed to open it, and that a leverage of 5 at a margin of 20
-   percent leaves no cushion.
-4. Figures the post states in words or derives from pinned ones. The ratios
-   of about 1.78 and 1.57 divide ceiling 5's gap and standard error by ceiling
-   2's. The 2.5134 borrowed for each unit of capital is ceiling 5's mean
-   leverage of 3.5134 less 1, and 2.51 is that against ceiling 2's 1. The
-   0.0975 is 1 − 0.95², the chance that two independent 5 percent tests find
-   at least one false gap. The p-value of 0.04 in Lesson 4 is an illustration
-   rather than a figure from the file. The figure's alt text reads its curves
-   approximately too.
+   that a position levered 2 opens at Regulation T's 50 percent and that its
+   margin falls to FINRA Rule 4210's maintenance margin of 25 percent after a
+   fall of a third in the stocks, and that a leverage of 5 starts at the 20
+   percent Chan gives for portfolio margin, so any fall leaves it below that
+   margin. Also that a leverage just under 13.4118 would lose almost all the
+   capital in July 2002, and that losses within a month can only lower that
+   figure.
+4. Figures the post states in words or derives from pinned ones. The 0.0975
+   is 1 − 0.95², the chance that two independent 5 percent tests find at
+   least one false gap. The p-value of 0.04 in Lesson 4 is an illustration
+   rather than a figure from the file. The chart's alt text gives the axis as
+   −0.4 to 0.8, the outer tick labels that
+   [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
+   pins on the chart. `TestThePostQuotesTheRun` reads the post's −0.4 and 0.8
+   where the alt text gives the axis, and holds them to those two values as
+   written, not to the chart. No test reads a second
+   copy of a figure written as a whole number or in words, such as the
+   subtitle's 83 months, Lesson 3's eighty-three months and its 20 and 63
+   months, and Lesson 5's borrowing of 1 at a ceiling of 2.
+   [tests/test_low_beta_capped.py](tests/test_low_beta_capped.py) pins each
+   value those words state.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -8815,8 +8836,29 @@ Every other number in the post traces to an assertion in
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) for Entry
 45's figures, or to
 [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
-for the figure's own numbers. `TestWhatThePostMeasured` holds the ones that
-had no pin before it, all measured after the run.
+for the figure's own numbers, or to
+[tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
+for the sketch's. `TestWhatThePostMeasured` holds the ones that had no pin
+before it, all measured after the run. `TestThePostQuotesTheRun` reads the post
+itself. Four of its tests read one copy of each of those figures in the place
+it sits, along with the holding calendar, the Newey-West lag of three months
+and the ratios of about 1.78, 1.57 and 2.51 that divide ceiling 5's gap,
+standard error and borrowing by ceiling 2's. The fourth of them reads the
+dates: the file's last day and first month, the years its earlier companies'
+prices end, Entry 45's two ruined months, and the first and last of the eight
+sorts whose returns Entry 45 had shown. Some copies of a date go unread, such
+as the subtitle's June 2001 and the July 2002 in the trader's second habit.
+A fifth reads every figure in the post written with a decimal point, every
+copy. It holds that each is one the run computes or one of a few constants the
+test names. The constants come from no run. It accepts 0.8416 and 1.645, on
+the bell curve, anywhere. It accepts each of the others only in the phrases
+where the post uses it, and fails when one of those phrases is missing or the
+constant appears anywhere else. The others are 0.05 with its half, 0.025, and
+1 minus it, 0.95, the 0.0975 that is 1 − 0.95², the margin of 0.20, Lesson 4's
+example p-value of 0.04, and the chart's outer tick labels, −0.4 and 0.8. So a
+copy that gains or drops a digit fails a test, and so does a copy that a re-pin
+leaves behind. That fifth test does not check where a figure from the run sits,
+and it reads no figure written as a whole number or in words.
 
 1. The yearly standard error of the gap, 0.0872 at a ceiling of 2 and 0.1370
    at 5, and the one-sided 5 percent line at 1.645 times it, 0.1434 and
@@ -8825,6 +8867,8 @@ had no pin before it, all measured after the run.
 3. June 2001's capped return, −0.0835 at a ceiling of 2 and −0.2132 at 5.
 4. The smallest leverage that would have ruined any of the 83 months,
    13.4118, for July 2002, above both ceilings.
+5. The 36 of the 83 holding months in which WYN, DFS or SE put an earlier
+   company's prices into one of the two fifths.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/low_beta_capped_figures.py](src/chan/low_beta_capped_figures.py),
@@ -8846,10 +8890,41 @@ uv run python -m chan.low_beta_capped_figures
 
 [tests/test_low_beta_capped_figures.py](tests/test_low_beta_capped_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
-regime map. It also holds where each label's rule points, and that each
-label's text sits inside its panel, clear of the other labels, the legend and
-every line. Each panel's heading clears the title or the tick labels above it,
-and the gap axis's label clears the note below it.
+regime map. It also holds where each label's rule points, and that each label's
+text sits inside its panel, clear of the other labels, the legend and every
+line. Each panel's heading clears the title or the tick labels above it, and
+the gap axis's label clears the note below it. It also holds that the post's
+alt text for the chart quotes the top panel's legend, its three labels and the
+figure's title word for word, in the order the alt text walks through the
+chart: the grey curve, the dashed line, the black curve, its shaded part, the
+diamond, then the title.
+
+The post also carries one looping whiteboard sketch in Lesson 5, drawn by
+[src/chan/capped_low_beta_whiteboard.py](src/chan/capped_low_beta_whiteboard.py)
+on the USD.CAD post's sketch machinery.
+`capped_low_beta_sketch_break_even.gif` sits after the paragraph giving the
+break-even spreads. It draws each ceiling's yearly gap falling to 0 as a
+borrowing spread is charged. The black line, at a ceiling of 2, falls from
+0.0934 to 0 at a spread of 0.0946 and borrows 1 for each unit of capital. The
+brass line, at 5, starts higher at 0.1659, borrows 2.5134, falls about two and
+a half times as steeply and reaches 0 first, at 0.0661.
+
+It is not schematic: every figure, and every position a line is drawn at,
+comes from the run, through the same `read_sources` and `build_portfolios`,
+with each gap from `capped`, each break-even spread from `break_even_spread`,
+and each line's borrowing from `cap`'s mean leverage. Each line is drawn
+straight between the run's endpoints, and `charged_gap` departs from those
+lines by under half a pixel. It builds more slowly than the USD.CAD post's
+sketches and holds its finished drawing for twelve seconds. Redraw it with:
+
+```bash
+uv run python -m chan.capped_low_beta_whiteboard
+```
+
+[tests/test_capped_low_beta_whiteboard.py](tests/test_capped_low_beta_whiteboard.py)
+holds what it draws, the figures it reads from the run, where each mark sits on
+its axes, that the charged gap stays within half a pixel of each straight line,
+and that the GIF follows its paragraph in the post.
 
 [blog/vix-filter-lessons.md](blog/vix-filter-lessons.md) is a forty-sixth
 post, about the VIX filter at Kindle location 3509 of Chan's *Algorithmic

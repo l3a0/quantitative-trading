@@ -110,10 +110,15 @@ quite wary of using too much leverage on normally low-beta stocks".
 **Five limits** go with every figure.
 
 1. **Exploratory**, for the reasons above.
-2. **Survivor-only.** The file is the S&P 500 as it stood on 2007-11-23, as
-   in Entry 45.
-3. **Not a holdout.** The low-beta literature's own samples cover 1999 to
-   2007.
+2. **Built from survivors.** The file is the S&P 500 as it stood on
+   2007-11-23, carried backwards, as in Entry 45. So it lacks every stock that
+   left the index before then, and counts each stock that joined the index
+   after November 1999 for the years it traded before it joined. WYN, DFS and
+   SE also carry an earlier company's prices. The write-up counted after the
+   run that those prices sit in one of the fifths in 36 of the 83 holding
+   months.
+3. **Not a holdout.** The years 2000 to 2007 were past prices by the time the
+   book printed the claim.
 4. **Borrowing at the bill rate flatters the levered side.** The break-even
    spread measures by how much.
 5. **No margin call inside a month is modelled.** Under FINRA Rule 4210's 25
@@ -126,7 +131,9 @@ If either ceiling holds, the plan's follow-up registers both, unchanged, on
 point-in-time panel from 2008 to 2026, which is a holdout.
 
 ``tests/test_low_beta_capped.py`` is the single authority for every number any
-prose surface quotes about this run. ``docs/replication-log.md`` Entry 48
+prose surface quotes about this run. The Entry 45 figures it reads unchanged,
+such as the unlevered growths and the beta match's 58.0262, are pinned in
+``tests/test_low_beta_leverage.py``. ``docs/replication-log.md`` Entry 48
 carries the result. It first ran here on 2026-10-11.
 
 :func:`yearly_standard_error` and :func:`five_percent_line` were added by the
@@ -606,8 +613,18 @@ def report(
         "  both Sharpe ratios, the growths, the realised betas and the full-sample Kelly leverage, "
         "were seen before either ceiling was chosen."
     )
-    print("  2. Survivor-only. The panel holds only the stocks still in the index on 2007-11-23.")
-    print("  3. Not a holdout. The low-beta literature's own samples cover 1999 to 2007.")
+    print(
+        "  2. Built from survivors. The panel holds the stocks in the index on 2007-11-23, "
+        "carried backwards, so it counts each stock that joined"
+    )
+    print(
+        "  after November 1999 for the years it traded before it joined, and WYN, DFS and SE "
+        "also carry an earlier company's prices."
+    )
+    print(
+        "  3. Not a holdout. The years 2000 to 2007 were past prices by the time the book "
+        "printed the claim."
+    )
     print("  4. Borrowing at the bill rate flatters the levered side, by the spread above.")
     print(
         "  5. No margin call inside a month is modelled. Under FINRA Rule 4210's 25 percent "
