@@ -3,11 +3,14 @@
 The script is ``KF_beta_EWA_EWC.m``, at Kindle locations 1633 to 1726.
 
 This file is the single authority for every number a prose surface quotes
-about this replication and the findings beside it, with one exception, in
-``blog/kalman-hedge-lessons.md``. The post's figure has its own pins in
-``tests/test_kalman_hedge_figures.py``. README lists what the post says that
-nothing pins. ``docs/replication-log.md`` Entry 32 carries the verdicts and
-points here row by row.
+about this replication and the findings beside it, with two exceptions,
+both in ``blog/kalman-hedge-lessons.md``. The post's figure has its own pins
+in ``tests/test_kalman_hedge_figures.py``. Its two sketches' figures, the day
+of 2007-05-15 among them, have theirs in
+``tests/test_kalman_hedge_whiteboard.py``. ``TestWhatThePostQuotes`` reads
+at least one copy in the post of each run figure it quotes against the run. README
+lists what the post says that nothing pins. ``docs/replication-log.md``
+Entry 32 carries the verdicts and points here row by row.
 
 Every pin reads one vintage and one specification, so both are stated once
 here and carried in every figure's failure message as :data:`SPEC`.
@@ -43,11 +46,13 @@ rule he chose. It first ran here on 2026-10-06.
 from __future__ import annotations
 
 import io
+import re
 from contextlib import redirect_stdout
 
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore.timeseries import ols
 
 from chan import kalman_hedge as module
 from chan import paths
@@ -55,6 +60,8 @@ from chan.kalman_hedge import (
     BOOK_APR_PERCENT,
     BOOK_SHARPE,
     DELTA,
+    QUIET_ROWS,
+    ROLLING_DAYS,
     SCRIPT_APR,
     SCRIPT_SHARPE,
     SOURCE_FILE,
@@ -73,11 +80,14 @@ from chan.kalman_hedge import (
     slope_findings,
     trade,
 )
-from chan.khandani_lo import plain_sharpe
+from chan.khandani_lo import TRADING_DAYS, plain_sharpe
 from chan.khandani_lo_book_two import compounded_apr, matches
 from chan.series import WindowCrossesScaleBreak, load_panel
 from chan.vintage import VintageUnavailable
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.support.post_tables import either_way, not_found_once, tables
+
+POST = paths.REPO_ROOT / "blog" / "kalman-hedge-lessons.md"
 
 SPEC = (
     "inputdata_etf/ EWA and EWC closes over 1,500 days, KF_beta_EWA_EWC.m's Kalman filter "
@@ -163,6 +173,46 @@ class TestTheSpecification:
         assert len(result.trade.daily) == len(result.trade.units) == 1500, SPEC
 
 
+class TestTheGain:
+    def test_after_row_1_each_update_closes_most_of_the_miss(self, closes, result) -> None:
+        """At the day's EWA close, the update moves the forecast a share ``1 - Ve/Q``
+        of the way to EWC's close. After row 1 that share never falls below 87
+        percent, which is what the post means by a filter that never becomes
+        confident. The slope still moves only about 0.009 on a median day."""
+        f = result.filter
+        x = closes[X].to_numpy()
+        before = f.slope[:-1] * x[1:] + f.intercept[:-1]
+        after = f.slope[1:] * x[1:] + f.intercept[1:]
+        share = 1 - VE / f.variance[1:]
+        np.testing.assert_allclose((after - before) / f.error[1:], share, rtol=0, atol=1e-9)
+        assert share.min() == pytest.approx(0.8722, abs=5e-5), SPEC
+        assert share.max() == pytest.approx(0.9891, abs=5e-5), SPEC
+        assert np.median(share) == pytest.approx(0.9793, abs=5e-5), SPEC
+        assert np.median(np.abs(np.diff(f.slope)[1:])) == pytest.approx(0.009361, abs=5e-7), SPEC
+
+    def test_on_a_median_day_the_drift_takes_back_what_the_update_added(
+        self, closes, result
+    ) -> None:
+        """Along the next day's EWA row, the drift adds back the variance the
+        day's update took off, to four digits on a median day. That is the post's
+        "On a typical day that drift takes back all the certainty the update
+        added". The loop rebuilds the state covariance, and each forecast
+        variance it gives must equal the run's ``Q``."""
+        rows = np.column_stack([closes[X].to_numpy(dtype=float), np.ones(len(closes))])
+        drift = DELTA / (1 - DELTA) * np.eye(2)
+        state = np.zeros((2, 2))
+        ratios = []
+        for t in range(1, len(rows) - 1):
+            predicted = state + drift
+            variance = rows[t] @ predicted @ rows[t] + VE
+            assert variance == pytest.approx(result.filter.variance[t], rel=1e-12)
+            gain = predicted @ rows[t] / variance
+            state = predicted - np.outer(gain, rows[t]) @ predicted
+            ahead = rows[t + 1]
+            ratios.append(ahead @ drift @ ahead / (ahead @ (predicted - state) @ ahead))
+        assert np.median(ratios) == pytest.approx(0.9999, abs=5e-5), SPEC
+
+
 class TestTheFirstRows:
     def test_row_1_has_a_zero_gain_and_q_equal_to_ve(self, result) -> None:
         f = result.filter
@@ -218,6 +268,28 @@ class TestTheFirstRows:
         ], SPEC
 
 
+def gaining_days_that_move_the_rounding(daily) -> tuple[int, list[int], list[int]]:
+    """The days the script gains on, those whose return set to 0 makes the APR
+    round below the book's figure, and those that make the Sharpe ratio round below
+    the book's figure too.
+
+    Every one of the 1,500 returns stays in the count, as the script counts them.
+    """
+    gaining = np.flatnonzero(daily > 0)
+    apr_below, both_below = [], []
+    for t in gaining:
+        zeroed = daily.copy()
+        zeroed[t] = 0
+        apr = round(100 * compounded_apr(zeroed), 1) < float(BOOK_APR_PERCENT)
+        sharpe = round(plain_sharpe(zeroed), 1) < float(BOOK_SHARPE)
+        assert apr or not sharpe, SPEC
+        if apr:
+            apr_below.append(int(t))
+        if apr and sharpe:
+            both_below.append(int(t))
+    return len(gaining), apr_below, both_below
+
+
 class TestTheFigures:
     """The APR and the Sharpe ratio, beside the script's comment and location 1726."""
 
@@ -241,18 +313,32 @@ class TestTheFigures:
         assert len(quiet.daily) == 1500
         assert quiet.apr == pytest.approx(0.26066891, abs=5e-9), SPEC
         assert quiet.sharpe == pytest.approx(2.34946035, abs=5e-9), SPEC
-        assert round(100 * quiet.apr, 1) == 26.1
-        assert round(quiet.sharpe, 1) == 2.3
-        assert not matches(100 * quiet.apr, BOOK_APR_PERCENT)
-        assert not matches(quiet.sharpe, BOOK_SHARPE)
+        assert round(100 * quiet.apr, 1) == 26.1, SPEC
+        assert round(quiet.sharpe, 1) == 2.3, SPEC
+        assert 2.35 - quiet.sharpe == pytest.approx(0.00054, abs=5e-6), SPEC
+        assert not matches(100 * quiet.apr, BOOK_APR_PERCENT), SPEC
+        assert not matches(quiet.sharpe, BOOK_SHARPE), SPEC
         assert (quiet.daily[:2] == 0).all()
 
     def test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading(self, result) -> None:
         """The pin above annualises all 1,500 rows. Dropping rows 1 and 2 as well
-        gives 0.261059 and 2.351062, so the two readings cannot be confused."""
+        gives 0.261059 and 2.351062, which round to 26.1 percent and the book's
+        2.4, so only the reading that keeps every row moves the Sharpe ratio."""
         dropped = result.quiet_start.daily[2:]
-        assert compounded_apr(dropped) == pytest.approx(0.26105886, abs=5e-9)
-        assert plain_sharpe(dropped) == pytest.approx(2.35106158, abs=5e-9)
+        assert compounded_apr(dropped) == pytest.approx(0.26105886, abs=5e-9), SPEC
+        assert plain_sharpe(dropped) == pytest.approx(2.35106158, abs=5e-9), SPEC
+        assert round(100 * compounded_apr(dropped), 1) == 26.1, SPEC
+        assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT), SPEC
+        assert matches(plain_sharpe(dropped), BOOK_SHARPE), SPEC
+
+    def test_252_of_412_gaining_days_move_the_apr_rounding_and_144_both(self, result) -> None:
+        """Setting one day's return to 0 makes the APR round below the book's 26.2
+        percent on 252 of the 412 days the script gains on, and on 144 of those the
+        Sharpe ratio round below its 2.4 too. The first short's day is among the
+        144, so what it moves is a rounding the figures sit close to."""
+        gaining, apr_below, both_below = gaining_days_that_move_the_rounding(result.trade.daily)
+        assert (gaining, len(apr_below), len(both_below)) == (412, 252, 144), SPEC
+        assert 1 in both_below, SPEC
 
 
 class TestTheHoldings:
@@ -492,3 +578,330 @@ class TestTheReport:
 
     def test_it_says_the_run_is_exploratory(self, printed) -> None:
         assert "Exploratory." in printed
+
+
+#: The two longer windows Lesson 3 sets beside the 250-day mean.
+LONGER, LONGEST = 300, 350
+
+
+class TestWhatThePostQuotes:
+    """At least one copy of each run figure ``blog/kalman-hedge-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording the
+    prose between two figures does not. A few sentences that hold no number
+    are read whole too, where a word in them states a fact the run decides,
+    such as the side of the first trade, or where a round of the review
+    fixed their wording, so rewording one of those fails. The post's four tables are each read
+    whole, as the grid of its cells with its row labels and column heads.
+    They are Lesson 1's figures, Lesson 2's three runs, and Lesson 3's yearly
+    means and grains. So a cell changed, added, dropped or moved fails, and so
+    does a label or head swapped, while the same table turned on its side
+    still passes. The grain table's label for the rolling mean reads as its
+    250, because ``tables`` reads a number inside a label as the cell.
+
+    The post states several figures more than once. The class reads at least
+    one copy of each, and a few in more than one sentence that needs its own
+    check. Where a figure repeats, the copies read include these.
+
+    1. **The file.** The saved date and the two ends of its 1,500 days are read
+       in the section on the prices and the script, and so are the two funds
+       the dividend method was checked on. Both definitions of a unit are read
+       for which leg is long and which is short.
+    2. **Lesson 2.** Row 1's date, 2006-04-26, is read again where row 1 is
+       worked, and its 22.95 and 0.031623 there and in the sentence that
+       compares them. Row 2's 22.78 is read where
+       row 2 is worked, and its 1.366666 there and in Lesson 3's count of
+       crossings. Both closes are read again where the first return is
+       worked. Row 1's 22.95 is read again in the third way round the zero
+       start, and row 2's sides and its 1.366666 where its position is
+       sized. The claim that the first trade moves the APR under either
+       count, and the Sharpe ratio only while all 1,500 days count, is read
+       in the subtitle and in Lesson 2. The two days the runs differ on,
+       2006-04-27 and 2006-04-28, are read where the run with no signal is
+       set beside the script and again where the post names them as the
+       opening short's first two returns, and 2006-04-27 twice more, where
+       row 2 is worked and where the first return falls.
+    3. **Lesson 3.** The 57 of 1,250 and the 513 of 1,499 are read in the
+       prose and in the grain table. The intercept's last value, 6.767360, is
+       read where the intercept peaks. The whole-file regression's 0.9624 and
+       6.4113 are rebuilt from the closes as ``tests/test_etf_cointegration.py``
+       builds them. Both are read in Lesson 3's prose, and the 6.4113 again
+       in the section on what this replication cannot say.
+    4. **Lesson 4.** The constants 0.0001 and 0.001 are read in Lesson 4's
+       first reason.
+
+    The figure's alt text gets its own reading. Its exact figures are read
+    there as a second copy, among them its 513 of 1,499 and its 0.260669 and
+    2.349460. Its readings of the lines, such as "about 1.4", are not.
+
+    The copies left unread include the book's 26.2 percent and 2.4 in
+    Lesson 1's prose, the 6.767360 in the paragraph on the whole-file
+    regression, the 1,500 days in the caption, and the 0.0001 and 0.001 in
+    the section on the constants. The earlier post's 20 days are
+    ``tests/test_price_spread.py``'s.
+    Nothing checks Chan's words against their source, the page numbers or the
+    references, and ``README.md`` lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    def test_the_post_holds_four_tables(self, text) -> None:
+        assert len(tables(text)) == 4
+
+    def test_lesson_1s_table_turned_on_its_side_still_passes(self, result, text) -> None:
+        """The class docstring's claim, made on the post's own first table.
+
+        Its rows become columns, so its labels become the head row, and the
+        rest of the post is left as it is.
+        """
+        body = re.search(r"\\begin\{array\}\{[^}]*\}\n(.*?)\n\\end\{array\}", text, flags=re.S)[1]
+        rows = [[cell.strip() for cell in row.split("&")] for row in re.split(r"\\\\.*\n", body)]
+        turned = " \\\\\n".join(" & ".join(column) for column in zip(*rows, strict=True))
+        assert turned != body
+        self.test_lesson_1(result, text.replace(body, turned, 1))
+
+    def test_the_opening_and_the_file(self, sources, closes, result, text) -> None:
+        members, _ = sources
+        (saved,) = {m.obtained for m in members}
+        share = 1 - VE / result.filter.variance[1:]
+        fragments = [
+            f"“a reasonable APR of {BOOK_APR_PERCENT} percent and a Sharpe ratio of {BOOK_SHARPE}”",
+            f"`{SOURCE_FILE}`, saved on {saved} and",
+            f"EWA and EWC are both priced on all {len(closes):,} trading days from "
+            f"{closes.index[0].date()} to {closes.index[-1].date()}.",
+            f"and all {len(result.trade.daily):,} rows count toward the figures.",
+            f"closing {100 * np.median(share):.0f} percent of the miss on a median day.",
+            f"about {np.median(np.abs(np.diff(result.filter.slope)[1:])):.3f} on a median day.",
+            "A change in the slope moves the updated forecast by that change times EWA’s close,",
+        ]
+        # A unit holds ``units * [-slope, 1]`` of EWA and EWC, which
+        # ``test_the_positions_hold_minus_the_slope_of_ewa_against_one_ewc`` holds
+        # the run to. Reading both definitions catches a swap of long and short,
+        # which no figure check sees.
+        side = {1.0: "long", -1.0: "short"}
+        ewa, ewc = np.sign([-result.filter.slope[1], 1.0])
+        fragments += [
+            f"One long unit is {side[ewa]} a number of EWA shares equal to the slope and "
+            f"{side[ewc]} one share of EWC.",
+            f"A short unit is {side[-ewa]} a number of EWA shares equal to the slope and "
+            f"{side[-ewc]} one share of EWC.",
+        ]
+        # The funds the file's dividend method was checked on are the ones
+        # ``tests/test_series.py``'s ``TestTheETFFileSubtractsEachDividend`` measures,
+        # so a fund measured there and named nowhere here fails. Both reads
+        # see only a symbol written as a quoted argument inside that class.
+        series_tests = (paths.REPO_ROOT / "tests" / "test_series.py").read_text(encoding="utf-8")
+        dividends = series_tests.split("class TestTheETFFileSubtractsEachDividend", 1)[1]
+        dividends = dividends.split("\nclass ", 1)[0]
+        checked = list(dict.fromkeys(re.findall(r'gap_and_dividends\(\s*"([A-Z]+)"', dividends)))
+        assert len(checked) == 2 and X not in checked and Y not in checked
+        either_leg = rf'(?:gap_and_dividends|load_close)\(\s*"(?:{X}|{Y})"'
+        assert not re.search(either_leg, dividends), SPEC
+        fragments.append(
+            f"This repository checked that method on two other funds in the file, {checked[0]} "
+            f"and {checked[1]}, and not on {X} or {Y}."
+        )
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_1(self, result, text) -> None:
+        apr, sharpe = result.trade.apr, result.trade.sharpe
+        assert (f"{apr:.6f}", f"{sharpe:.6f}") == (SCRIPT_APR, SCRIPT_SHARPE)
+        assert matches(100 * apr, BOOK_APR_PERCENT) and matches(sharpe, BOOK_SHARPE)
+        fragments = [
+            f"The APR is the compounded annual return over {TRADING_DAYS} trading days a year.",
+        ]
+        assert not_found_once(text, fragments) == []
+        table = [
+            ["Source", "APR", "Sharpe ratio"],
+            ["Computed", f"{apr:.8f}", f"{sharpe:.8f}"],
+            ["Script's comment", SCRIPT_APR, SCRIPT_SHARPE],
+            ["Book", BOOK_APR_PERCENT, BOOK_SHARPE],
+        ]
+        assert tables(text)[0] in either_way(table)
+
+    def test_lesson_2(self, closes, result, text) -> None:
+        f, script, quiet = result.filter, result.trade, result.quiet_start
+        days = f.days
+        ewc = closes[Y].to_numpy()
+        band = np.sqrt(f.variance)
+        first = int(np.flatnonzero(script.daily)[0])
+        differ = [str(days[t].date()) for t in np.flatnonzero(script.daily != quiet.daily)]
+        threshold = float(BOOK_SHARPE) - 0.05
+        assert quiet.sharpe < threshold and round(threshold + 1e-9, 1) == float(BOOK_SHARPE)
+        dropped = quiet.daily[QUIET_ROWS:]
+        assert matches(plain_sharpe(dropped), BOOK_SHARPE), SPEC
+        assert not matches(100 * compounded_apr(dropped), BOOK_APR_PERCENT), SPEC
+        assert script.units[0] < 0 and script.units[1] == script.units[0], SPEC
+        assert ewc[1] < ewc[0], SPEC
+        assert not matches(100 * quiet.apr, BOOK_APR_PERCENT), SPEC
+        below = max(round(100 * quiet.apr, 1), round(100 * compounded_apr(dropped), 1))
+        assert below < float(BOOK_APR_PERCENT), SPEC
+        assert not quiet.units[:QUIET_ROWS].any() and not quiet.daily[:QUIET_ROWS].any(), SPEC
+        held = int(np.flatnonzero(script.units != script.units[0])[0])
+        earns = [str(days[t].date()) for t in range(1, held + 1)]
+        assert script.units[held] == 0 and earns[:QUIET_ROWS] == differ, SPEC
+        same_from = int(np.flatnonzero(script.units != quiet.units)[-1]) + 1
+        forecast_zero = np.flatnonzero(ewc - f.error == 0)
+        assert list(forecast_zero) == list(range(QUIET_ROWS)), SPEC
+        assert script.units[:QUIET_ROWS].all(), SPEC
+        words = {2: "two", 3: "three"}
+        side = {1.0: "long", -1.0: "short"}
+        row_2 = script.units[1] * np.array([-f.slope[1], 1.0])
+        gaining, apr_below, both_below = gaining_days_that_move_the_rounding(script.daily)
+        fragments = [
+            f"That one trade changes the APR as the book rounds it, and the Sharpe ratio too when "
+            f"all {len(quiet.daily):,} trading days count",
+            f"**Row 1, {days[0].date()}.**",
+            f"The forecast error is EWC’s whole close of {f.error[0]:.2f}.",
+            f"the band is its square root, {band[0]:.6f}.",
+            f"An error of {f.error[0]:.2f} against a band of {band[0]:.6f} is far above",
+            f"**Row 2, {days[1].date()}.**",
+            f"moves the slope from {f.slope[0]:.0f} to {f.slope[1]:.6f}.",
+            f"the forecast error is EWC’s whole close of {f.error[1]:.2f}, against a band of "
+            f"{band[1]:.6f}.",
+            f"The first nonzero return falls on {days[first].date()}.",
+            "is far above the upper band, so the rule enters a short.",
+            "So on its first day the strategy shorts EWC alone, with no hedge at all.",
+            "The short stays on.",
+            f"It comes from the short on EWC alone, held as EWC fell from {ewc[0]:.2f} to "
+            f"{ewc[1]:.2f}.",
+            f"That is a gain of {script.daily[first]:.7f}, or {100 * script.daily[first]:.2f} "
+            "percent in a day,",
+            f"From row {QUIET_ROWS + 1} on, each forecast uses a slope that has moved off 0.",
+            f"That run holds exactly the same units as the script from row {same_from + 1} on.",
+            f"the returns of {differ[0]} and {differ[1]}, the two days",
+            f"which annualises all {len(quiet.daily):,} days as the script does.",
+            f"Its figures round to {100 * quiet.apr:.1f} percent and {quiet.sharpe:.1f}, not the "
+            f"book’s {BOOK_APR_PERCENT} and {BOOK_SHARPE}.",
+            f"Two days out of {len(script.daily):,} move both figures",
+            f"They are {differ[0]} and {differ[1]}, the first two of the {words[held]} days on "
+            f"which the opening short, held on rows 1 to {held}, earns a return.",
+            "That so few days move both figures says more about how close the script’s figures "
+            "sit to the book’s rounding than about how large the trade is.",
+            "So without the first trade, the APR rounds below the book’s "
+            f"{BOOK_APR_PERCENT} percent whichever way the returns are counted,",
+            f"The {words[QUIET_ROWS]} rows the chart leaves out are the {words[QUIET_ROWS]} on "
+            "which the filter forecasts EWC at 0, and the strategy trades on both.",
+            f"widens row 1’s band past the error of {f.error[0]:.2f}, so row 1 enters no trade.",
+            f"Under that reading the APR still rounds to {100 * compounded_apr(dropped):.1f} "
+            f"percent, but the Sharpe ratio rounds to the book’s {plain_sharpe(dropped):.1f}.",
+            f"the Sharpe ratio rounds below the book’s {BOOK_SHARPE} only while all "
+            f"{len(quiet.daily):,} days count,",
+            f"The Sharpe ratio lands {threshold - quiet.sharpe:.5f} below {threshold:.2f}, the "
+            f"value at which it would round to the book’s {BOOK_SHARPE}.",
+            "The middle run holds nothing on those rows and earns 0 on them, so dropping them "
+            "changes only how many days the figures average over.",
+            "The position is sized after the update, "
+            f"so on row 2 the {side[script.units[1]]} unit is {side[np.sign(row_2[0])]} "
+            f"{abs(row_2[0]):.6f} EWA shares and {side[np.sign(row_2[1])]} one EWC share.",
+            f"The script gains on {gaining} days. On {len(apr_below)} of them, setting that day’s "
+            f"return to 0 also makes the APR round below the book’s {BOOK_APR_PERCENT} percent, "
+            f"and on {len(both_below)} of those it makes the Sharpe ratio round below "
+            f"{BOOK_SHARPE} as well.",
+        ]
+        assert not_found_once(text, fragments) == []
+        quiet_rows = f"No signal on rows 1 and {QUIET_ROWS},"
+        table = [
+            ["Run", "APR", "Sharpe ratio"],
+            ["The script", f"{script.apr:.8f}", f"{script.sharpe:.8f}"],
+            [
+                f"{quiet_rows} all {len(quiet.daily):,} rows",
+                f"{quiet.apr:.8f}",
+                f"{quiet.sharpe:.8f}",
+            ],
+            [
+                f"{quiet_rows} the two rows dropped",
+                f"{compounded_apr(dropped):.8f}",
+                f"{plain_sharpe(dropped):.8f}",
+            ],
+        ]
+        assert tables(text)[1] in either_way(table)
+
+    def test_lesson_3(self, closes, result, found, text) -> None:
+        slope = result.filter.slope
+        x, y = closes[X].to_numpy(dtype=float), closes[Y].to_numpy(dtype=float)
+        whole_slope, whole_intercept = ols(y, np.column_stack([x, np.ones(len(x))])).beta
+        s = slope_findings(slope)
+        longer = rolling_falls(result.filter.intercept, LONGER)
+        longest = rolling_falls(result.filter.intercept, LONGEST)
+        assert longest.falls == 0
+        threshold = round(s.median, 1) + 0.05
+        assert round(s.median, 1) != round(s.mean, 1)
+        finer = (found.by_quarter, found.by_month, found.rolling, found.by_day)
+        assert found.by_year.falls == 0 and all(g.falls > 0 for g in finer), SPEC
+        fragments = [
+            "The yearly means of the intercept rise every year.",
+            "At every finer grain, some steps fall.",
+            "A reader who picks the yearly grain says the claim holds.",
+            "Its brass steps never go down.",
+            f"Lengthen the window from {ROLLING_DAYS} days to {LONGER} and the number of falls "
+            f"shrinks from {found.rolling.falls} of {found.rolling.steps:,} steps to "
+            f"{longer.falls} of {longer.steps:,}.",
+            f"At {LONGEST} days, none of the {longest.steps:,} steps falls.",
+            f"The intercept also peaks at {found.peak:.6f} on {found.peak_day.date()}, above its "
+            f"last value of {found.last:.6f} on the file’s final day.",
+            f"it fails, on {found.by_day.falls} of {found.by_day.steps:,} steps.",
+            f"The slope’s median is {s.median:.6f} and its mean is {s.mean:.6f}.",
+            f"At one decimal the median rounds to {s.median:.1f} and the mean to {s.mean:.1f}.",
+            f"The median sits {threshold - s.median:.6f} below {threshold:.2f}, the threshold "
+            f"where it too would round to {s.mean:.1f}.",
+            f"The slope sits above 1 on {s.rows_above_one} of the {s.rows:,} days, "
+            f"{100 * s.rows_above_one / s.rows:.1f} percent of them.",
+            f"It crosses 1 a total of {s.crossings} times.",
+            f"jumps from its zero start to {slope[1]:.6f}, so "
+            f"{slope_findings(slope[1:]).crossings} crossings remain",
+            f"found a slope of {whole_slope:.4f} and an intercept of {whole_intercept:.4f}.",
+            f"The single regression over the whole file puts it at {whole_intercept:.4f}.",
+        ]
+        assert not_found_once(text, fragments) == []
+        yearly = [["Year", "Mean intercept"]] + [
+            [str(year), f"{mean:.4f}"] for year, mean in found.yearly.items()
+        ]
+        grains = [["Grain", "Steps", "Steps that fall"]] + [
+            [label, f"{falls.steps:,}", f"{falls.falls:,}"]
+            for label, falls in (
+                ("Year", found.by_year),
+                ("Quarter", found.by_quarter),
+                ("Month", found.by_month),
+                (str(ROLLING_DAYS), found.rolling),
+                ("Day", found.by_day),
+            )
+        ]
+        assert tables(text)[2] in either_way(yearly)
+        assert tables(text)[3] in either_way(grains)
+
+    def test_lesson_4(self, result, text) -> None:
+        units = result.trade.units
+        fragments = [
+            f"`delta` is {DELTA} and `Ve` is {VE}.",
+            f"Over the {len(units):,} days the script holds a long on {int((units > 0).sum())}, "
+            f"a short on {int((units < 0).sum())} and nothing on {int((units == 0).sum())}.",
+            f"Its units change from one day to the next {int((np.diff(units) != 0).sum())} times.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_the_figures_alt_text(self, result, found, text) -> None:
+        f, script, quiet = result.filter, result.trade, result.quiet_start
+        s = slope_findings(f.slope)
+        fragments = [
+            f"A red dot marks its start at {f.slope[0]:.0f} on {f.days[0].date()}.",
+            f"The heading gives a median of {s.median:.6f}, a mean of {s.mean:.6f}, and "
+            f"{s.rows_above_one} of {s.rows:,} days above 1.",
+            f"A red dot marks the highest value, {found.peak:.6f} on {found.peak_day.date()}.",
+            f"the yearly mean falls on {found.by_year.falls} of {found.by_year.steps} steps and "
+            f"the daily intercept falls on {found.by_day.falls} of {found.by_day.steps:,} steps.",
+            f"plots the forecast error from {f.days[QUIET_ROWS].date()} on,",
+            f"sit off the axis at {f.error[0]:.2f}, EWC’s whole close, and {f.error[1]:.2f},",
+            f"The legend gives an APR of {script.apr:.6f} and a Sharpe ratio of "
+            f"{script.sharpe:.6f} for the script, and {quiet.apr:.6f} and {quiet.sharpe:.6f} for "
+            "the dashed run.",
+        ]
+        assert not_found_once(text, fragments) == []

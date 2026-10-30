@@ -56,7 +56,9 @@ so the forecast is 0 and the error is EWC's whole close, far above
 ``sqrt(Q)``. The script enters a short on 2006-04-26 that holds EWC alone,
 with no EWA leg. :attr:`KalmanHedge.quiet_start` withholds the signal on rows 1
 and 2, which the script's own plot of ``e`` leaves out, and the APR and Sharpe
-ratio then round to 26.1 percent and 2.3 rather than the book's 26.2 and 2.4.
+ratio then round to 26.1 percent and 2.3 over all 1,500 rows, rather than the
+book's 26.2 and 2.4. With rows 1 and 2 dropped from the returns as well, the
+Sharpe ratio rounds to the book's 2.4.
 
 **What changed on the way over.** Three things, and none moves a figure.
 
