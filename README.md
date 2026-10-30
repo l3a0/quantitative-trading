@@ -7077,9 +7077,11 @@ Six groups of what it says are not pinned here.
    reproduction adds and the six lessons, are not pinned either. Nor are its
    pointers to its own lessons and sections, such as "Lesson 3 to explain" in
    Lesson 1 and "The next section" in the opening, except the "in Lesson 4"
-   that ends item 3 of Lesson 1's list, "Lesson 4's short" in Lesson 6 and
-   "Lesson 6 shows" in Lesson 5's second condition. Five results it takes
-   from earlier posts are cited like its references.
+   that ends item 3 of Lesson 1's list, "Lesson 4's short" in Lesson 6,
+   "Lesson 6 shows" and "In Lesson 6 that allocation" in Lesson 5's second
+   condition, and the "part headed" pointer in Lesson 1 to the section on
+   selling into a loss. Five results it takes from earlier posts are cited
+   like its references.
    1. Compound growth falling short of the average return by about half the
       variance, from the post on the coin toss.
    2. A long position held at a constant leverage above 1 selling after every
