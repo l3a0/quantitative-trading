@@ -6978,8 +6978,9 @@ Six groups of what it says are not pinned here.
 5. Its references, cited rather than computed. The post's counts of its own
    parts, such as the three groups of results, the five things the
    reproduction adds and the six lessons, are not pinned either. Nor are its
-   pointers to its own lessons, such as "Lesson 4's short" in Lesson 6,
-   except the "in Lesson 4" that ends item 3 of Lesson 1's list. Five results
+   pointers to its own lessons, such as "Lesson 3 to explain" in Lesson 1,
+   except the "in Lesson 4" that ends item 3 of Lesson 1's list and "Lesson
+   4's short" in Lesson 6. Five results
    it takes from earlier posts are cited like its references.
    1. Compound growth falling short of the average return by about half the
       variance, from the post on the coin toss.

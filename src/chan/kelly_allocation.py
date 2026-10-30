@@ -302,8 +302,8 @@ def segment_stationary_point(
     spread_variance = c11 + c22 - 2.0 * c12
     if spread_variance <= 0.0:
         raise ValueError(
-            "the two strategies' difference has no variance, so every split of the cap "
-            "grows at the same rate and no point on the line is the best"
+            "the two strategies' difference has no variance, so the growth rate along "
+            "the line is straight in F2 and has no single stationary point"
         )
     return (m2 - m1 + max_leverage * (c11 - c12)) / spread_variance
 
