@@ -459,7 +459,10 @@ where they were first built. The other forty-five were built here.
     percent and 2.4. The script shorts EWC alone on the file's first day,
     while the filter's slope is still 0, and withholding the signal on the
     first two days gives 0.260669 and 2.349460, which round to 26.1 percent
-    and 2.3 rather than the book's figures. The book's two claims about
+    and 2.3 rather than the book's figures while all 1,500 days count, as
+    they do in the script. With those two days dropped from the returns, the
+    APR still rounds to 26.1 percent and the Sharpe ratio to the book's 2.4.
+    The book's two claims about
     the filter, a slope that "oscillates around 1" and an intercept that
     "increases monotonically", are carried as findings with no verdict,
     because the only criteria for them were written after a run. The slope's
@@ -1173,8 +1176,12 @@ and every figure the two findings quote: the slope's median, mean, share above
 1 and crossings, and the intercept's yearly means, its falls at each finer
 grain and its peak. It also
 holds that the read calls the scale-break guard on both legs and that a
-planted break in either is refused. The blog post about it is the exception,
-and what it says that nothing here asserts is listed below.
+planted break in either is refused. It holds the share of each miss the
+update closes after row 1, and how many of the days the script gains on move
+the book's roundings. `TestWhatThePostQuotes` reads at least one copy in
+the post of each run figure the post quotes, and the chart's alt text's exact
+figures, so editing a copy it reads fails. What the post says that nothing here asserts
+is listed below.
 
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) does it for TU's
 momentum. It pins the six figures of `TU_mom.m`'s comment, the 250/25
@@ -5411,14 +5418,15 @@ The post draws four lessons from Entry 32 of the replication log.
    book rounds them correctly.
 2. The script shorts EWC alone on the file's first day, before the filter has
    any estimate, and with no signal on the first two days the figures round
-   to 26.1 percent and 2.3.
+   to 26.1 percent and 2.3 while all 1,500 days count. With those two days
+   dropped from the returns, the Sharpe ratio rounds to the book's 2.4.
 3. Location 1726's two claims carry no verdict, because their only criteria
    were written after a first run, and the grain chosen decides whether the
    intercept rises "monotonically".
 4. An exact reproduction checks the arithmetic and not the edge, since the
    two constants are Chan's and the script charges no cost.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
@@ -5432,29 +5440,48 @@ Five groups of what it says are not pinned here.
    percent and a Sharpe ratio of 2.4" are at 1726. The market-making use is at
    1760. The book's figures are pinned, and its words are not.
 2. Facts about the script rather than the data: its comment on `delta`, its
-   zero start, and its chart of the forecast error plotting `e(3:end)` and
+   zero start, that it gives no warning of the first trade, and its chart of the forecast error plotting `e(3:end)` and
    `sqrt(Q(3:end))`, which the script holds at `e4bc46f` of
    ericnberwick/EpchanPreview, git blob `e2f8a62`.
    [src/chan/kalman_hedge.py](src/chan/kalman_hedge.py)'s docstring records
    the zero start and the two rows the plot leaves out, but not those words.
 3. Readings no test asserts: that the gain is large when the filter is unsure
-   and small when it is confident, that starting the filter from a regression
-   would need data from before the file's first day, and that a filter
-   started from the whole-file intercept might show no rise.
-4. The figure's alt text, whose readings of the lines, such as "about 1.4"
-   and "about 2.9 by September 2008", are approximate by design.
-5. Its references, cited rather than computed.
+   and small when it is confident, that on this file a regression start would
+   read the file's own first days, so the backtest would give up trading on
+   them, that a filter started from the whole-file intercept would show how
+   much of the rise the zero start explains and would not be a backtest,
+   that the file's dividend method could also move the intercept, and that a
+   return computed from its closes is not exactly what a holder earned. What the post says a
+   starting uncertainty above 0 would do to row 1 and to every later day is a
+   reading too, because nothing here runs such a start. `TestTheGain` measures what the post says the gain
+   does on this file after the first day, including that on a median day the
+   drift takes back what the update added, but not those words.
+4. The alt texts' readings, approximate by design. The chart's alt text reads
+   its lines, such as "about 1.4" and "about 2 by the start of September
+   2008", and the sketches' alt texts read a scale "from 0 to about 23" and a
+   bar "a few pixels tall".
+5. Every copy of a figure that `TestWhatThePostQuotes` does not read. The post
+   states several figures more than once, in a lesson, a table or the alt
+   text, and a typo in a copy the class does not read passes. The file's span
+   is one. Its two dates are read in the section on the prices and the
+   script, and its forms in words, such as "2006 to 2012", "six years" and
+   "after April 2012", are not.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_kalman_hedge.py](tests/test_kalman_hedge.py), to
 [tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py) for
 the figure's own numbers, to
+[tests/test_kalman_hedge_whiteboard.py](tests/test_kalman_hedge_whiteboard.py)
+for the sketches' numbers, to
 [tests/test_etf_cointegration.py](tests/test_etf_cointegration.py) and
 [tests/test_etf_cointegration_figures.py](tests/test_etf_cointegration_figures.py)
 for the slope of 0.9624 and the intercept of 6.4113 of one regression over the
-whole file, or to [tests/test_price_spread.py](tests/test_price_spread.py) for
-the 20-day window of the earlier post's rolling slope. Four had no pin before
-it.
+whole file, to [tests/test_price_spread.py](tests/test_price_spread.py) for
+the 20-day window of the earlier post's rolling slope, or to
+`TestTheETFFileSubtractsEachDividend` in [tests/test_series.py](tests/test_series.py)
+for the two funds the dividend method was checked on, which
+`TestWhatThePostQuotes` reads from it. Four had no pin before it.
 
 1. Row 1's forecast error is EWC's whole close of 22.95, exactly.
 2. The short on EWC alone earns 0.0074074 on 2006-04-27, and the run with no
@@ -5469,6 +5496,35 @@ it.
 Two more were pinned when Lesson 3 gained them after the post first merged. A
 300-day rolling mean of the intercept falls on 25 of its 1,200 steps, and a
 350-day one on none of its 1,150.
+
+Three more were pinned when Lesson 2 gained them in the review before
+publishing. The script gains on 412 days. Setting one of those days' return
+to 0 makes the APR round below 26.2 percent on 252 of them, and on 144 of
+those the Sharpe ratio rounds below 2.4 too. The same review gave three
+other figures their first pin. `TestTheGain` measures the 98 percent of the
+miss a median day's update closes and the slope's move of about 0.009 on a
+median day, and `TestTheFigures` holds the 0.00054 by which the run with no
+signal on rows 1 and 2 lands below 2.35.
+
+`TestWhatThePostQuotes` in
+[tests/test_kalman_hedge.py](tests/test_kalman_hedge.py) reads the post
+itself. It builds each run figure the post quotes from the run, at the
+precision the post prints it, and looks for at least one copy of it in the
+post, so a typo in a copy it reads fails a test. That covers the share of the miss a median
+day's update closes and the slope's median daily move, the file's saved date,
+days and dates, the 252 days of the APR, the first two rows' forecast errors, bands and
+slope, the first return and its dates, the three days the opening short earns
+a return, the run with no signal on rows 1 and 2, the row from which it holds
+the script's units and its margin below 2.35, the two rounded figures of the
+reading that drops those rows, which figures the first trade moves under each
+reading, how many of the days the script gains on move the same roundings,
+which fund each unit holds long and which short, row 2's sides, the two rows
+the chart leaves out, the slope's median, mean, share above 1 and
+crossings, the intercept's falls at each window and its peak, the
+whole-file regression's slope and intercept, the constants, and the holdings
+and their changes. It also reads the chart's alt text's exact figures, its 513 of 1,499 and the dashed run's 0.260669 and 2.349460 among
+them. Its four tables are rebuilt whole, so a digit added to a cell fails as
+well as a digit changed.
 
 Its one figure is drawn from the committed file by
 [src/chan/kalman_hedge_figures.py](src/chan/kalman_hedge_figures.py), which
@@ -5491,6 +5547,39 @@ uv run python -m chan.kalman_hedge_figures
 [tests/test_kalman_hedge_figures.py](tests/test_kalman_hedge_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/kalman_hedge_whiteboard.py](src/chan/kalman_hedge_whiteboard.py) on
+the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds. Neither is schematic: every figure
+either one draws is read from `kalman_hedge` on the committed file, as
+`python -m chan.kalman_hedge` reads it, and every mark sits at its figure.
+
+1. `kalman_hedge_sketch_one_day.gif`, under "The filter and the file" after
+   the paragraph on why the filter never becomes confident, draws 2007-05-15
+   on axes zoomed around the day. Yesterday's line forecasts EWC at 26.76, the
+   close of 27.15 misses it by 0.39 against a band of 0.24, and the updated
+   line gives 27.14 at that day's EWA, 98 percent of the way from the forecast
+   to the close. Nearly all of that lift is the slope's rise of 0.016211 times
+   EWA's close of 23.31, which is 0.38, while the intercept rises 0.001013. A
+   numbered list names the post's four steps.
+2. `kalman_hedge_sketch_zero_start.gif`, in Lesson 2, draws rows 1 to 3 on
+   one dollar scale. Rows 1 and 2 forecast 0, so each error is EWC's whole
+   close and the band all but vanishes beside it. Row 1's short holds EWC
+   alone and earns 0.74 percent on 2006-04-27, the slope moves to 1.366666
+   only after row 2's forecast, and row 3's forecast of 22.09 misses by 0.85.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.kalman_hedge_whiteboard
+```
+
+[tests/test_kalman_hedge_whiteboard.py](tests/test_kalman_hedge_whiteboard.py)
+holds what each draws, derives every figure again from the filter, holds that
+only row 1's words say EWC alone, and holds that each GIF follows its passage
+in the post.
 
 [blog/index-arbitrage-lessons.md](blog/index-arbitrage-lessons.md) is a
 twenty-third post, about Example 4.2 of Chan's *Algorithmic Trading*, which

@@ -7491,7 +7491,7 @@ hedges EWA and EWC today.
 | 3 | none, a claim | none, a finding | The median rounds to 1.0 and the mean to 1.1, and the slope crosses 1 54 times, one of them the step up from the zero start on row 2. The only criterion was written after the run, and the median sits 0.002633 inside the line it would have drawn, so the owner ruled the row carries no verdict. |
 | 4 | none, a claim | none, a finding | Every yearly mean is above the year before, and the intercept falls at every finer grain, including 513 of its 1,499 daily steps. It peaks on 2011-09-08 above its last value. The only criterion was written after the run and chose the yearly grain, at which the claim holds, after the finer grains had been seen to fall, so the owner ruled the row carries no verdict. |
 | 5 | none | none, not a replication | On row 1 the state is still 0, so the forecast is 0 and `e` is EWC's whole close. The script shorts EWC alone, with no EWA leg, on the file's first day. |
-| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, and `TestTheFigures::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds that this row is not that reading. |
+| 6 | none | none, not a replication | The script's own plot of `e` starts on row 3, which leaves both rows out. Withholding the signal there, with all 1,500 returns annualised as the script annualises them, moves the APR to 26.1 percent and the Sharpe ratio to 2.3 at the book's precision, so neither of the book's figures survives it. Dropping the two rows from the returns as well gives 0.261059 and 2.351062, which round to 26.1 percent and 2.4, so under that reading the APR moves and the Sharpe ratio does not. `TestTheFigures::test_dropping_rows_1_and_2_from_the_returns_is_a_different_reading` holds both roundings, and that this row is not that reading. |
 | 7 | none | none, not a replication | Row 2's state matches `c·y·[x 1]' / (c·(x² + 1) + Ve)` with `c = delta / (1 − delta)` to 1e-12, which is what the zero start predicts. |
 
 ### What the entry concludes
@@ -7503,24 +7503,34 @@ Three things.
    saves its figures came from. This file has one candidate, because
    `data/README.md` records the `.mat` as one git blob in all three published
    copies.
-2. **The book's figures rest on a trade the filter has no basis for.** On the
+2. **At the precision the book prints, removing a trade the filter has no
+   basis for changes the APR, and the Sharpe ratio too while every day
+   counts.** On the
    file's first day the filter has seen nothing, so its forecast of EWC is 0
    and the error is EWC's whole price. The script reads that as a spread far
    above its band and shorts EWC alone. Rows 5 and 6 measure it: withholding
    the signal on the first two days moves the APR from 0.262252 to 0.260669
    and the Sharpe ratio from 2.361162 to 2.349460, which round to 26.1 percent
-   and 2.3 rather than the book's 26.2 and 2.4.
-3. **The intercept rises as a trend, and not day by day.** The yearly means
-   rise every year, from 0.1440 in 2006 to 6.7748 in 2012. At a quarter, a
-   month, a 250-day window and a day, it falls, and 513 of its 1,499 daily
-   steps go down. Whether that is "monotonically" depends on the grain, which
+   and 2.3 rather than the book's 26.2 and 2.4. Dropping the two rows from the
+   returns as well gives 0.261059 and 2.351062, which round to 26.1 percent and
+   2.4, so the Sharpe ratio's move rests on counting all 1,500 days, as the
+   script does. Many other days decide the same rounding. The script gains on
+   412 days. On 252 of them, setting that day's return to 0 also makes the APR
+   round below 26.2 percent, and on 144 of those it makes the Sharpe ratio
+   round below 2.4 as well.
+   `TestTheFigures::test_252_of_412_gaining_days_move_the_apr_rounding_and_144_both`
+   holds the counts.
+3. **The intercept's yearly means rise every year, and the intercept falls at
+   every finer grain.** The means go from 0.1440 in 2006 to 6.7748 in 2012. At
+   a quarter, a month, a 250-day window and a day, it falls, and 513 of its
+   1,499 daily steps go down. Whether that is "monotonically" depends on the grain, which
    is why row 4 reports the grains rather than choosing one. The slope sits
    above 1 on 59.6 percent of days, with a median of 1.047367 and a mean of
    1.089693.
 
 ### What this entry cannot say
 
-Three things.
+Four things.
 
 **What other values of `delta` or `Ve` give.** The script's comment invites
 tuning `delta`. Varying it is a search over a hypothesis space, which needs
@@ -7532,12 +7542,44 @@ prints no figure and names no script.
 **Anything about costs.** The band changes position whenever the error crosses
 it, and the script charges nothing for a trade.
 
+**Whether the intercept's rise belongs to the market, to the zero start or to
+the file's dividend method.** The filter starts the intercept at 0, and the
+single regression over the whole file puts it at 6.4113. The file's dividend
+method could also move the intercept, because the filter reads the closes
+themselves and a subtracted dividend lowers every close before it. Nothing
+here starts the filter anywhere else or puts the subtracted dividends back.
+
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/kalman-hedge-lessons.md](../blog/kalman-hedge-lessons.md), this entry's
-write-up, moves with it, since that post quotes most of these figures. The
-post's one figure moves too, and `uv run python -m chan.kalman_hedge_figures`
+write-up, moves with it, since that post quotes most of these figures and
+`TestWhatThePostQuotes` in
+[tests/test_kalman_hedge.py](../tests/test_kalman_hedge.py) fails until it
+does. The post's one figure moves too, and `uv run python -m chan.kalman_hedge_figures`
 redraws it.
+
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **One day of the filter**, under "The filter and the file". It draws
+   2007-05-15 on axes zoomed around the day, every mark to scale. Yesterday's
+   slope of 1.127974 and intercept of 0.471207 forecast EWC at 26.764272, the
+   close of 27.15 misses by 0.385728 against a forecast standard deviation of
+   0.237529, and the update to a slope of 1.144185 and an intercept of
+   0.472220 gives 27.143163 at that day's EWA. That closes 98 percent of the
+   miss, which is 1 − Ve / Q. Nearly all of the move from 26.764272 to
+   27.143163 is the slope's rise of 0.016211 times EWA's close of 23.31, which
+   is 0.377878, while the intercept rises 0.001013.
+2. **Two rows on a forecast of 0**, in Lesson 2. It draws rows 1 to 3 on one
+   dollar scale. Rows 1 and 2 forecast 0, so their errors are the whole closes
+   of 22.95 and 22.78, beside bands of 0.031623 and 0.163213. Row 1's short
+   holds EWC alone and earns 0.0074074 on 2006-04-27. Row 2's short is already
+   hedged, because its update moves the slope to 1.366666 before its position
+   is set. Row 3 forecasts 22.088850 and misses by 0.851150.
+
+A change to those figures moves the sketches too, and
+`uv run python -m chan.kalman_hedge_whiteboard` redraws both through the same
+`read_sources` and `kalman_hedge`.
 
 ## Entry 33: time-series momentum on TU, Chan's *Algorithmic Trading*
 
