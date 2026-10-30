@@ -467,9 +467,9 @@ class TestTheHolidayWeek:
         """VIX closed 54.92 on the Wednesday and 55.28 on the Friday and has no
         close on Thanksgiving, while FSTX traded all three days."""
         assert week.days == (day("2008-11-26"), day("2008-11-27"), day("2008-11-28"))
-        assert week.closes[0] == sources.vix[WED] == 54.92
-        assert math.isnan(week.closes[1]) and THU not in sources.vix.index
-        assert week.closes[2] == sources.vix[FRI] == 55.28
+        assert week.closes[0] == sources.vix[WED] == 54.92, SPEC
+        assert math.isnan(week.closes[1]) and THU not in sources.vix.index, SPEC
+        assert week.closes[2] == sources.vix[FRI] == 55.28, SPEC
         assert week.traded == (True, True, True)
         assert all(d in sources.fstx.index for d in WEEK)
         assert week.next_day == day("2008-12-01")
@@ -485,7 +485,7 @@ class TestTheHolidayWeek:
         assert bool(literal.qualifies[friday])
         holiday = week.read("Join", THU)
         assert (holiday.source, holiday.kept) == (None, None) and math.isnan(holiday.close)
-        assert week.read("Join", FRI) == HolidayRead("Join", FRI, WED, 54.92, True)
+        assert week.read("Join", FRI) == HolidayRead("Join", FRI, WED, 54.92, True), SPEC
 
     def test_the_latest_close_reads_the_wednesday_twice(self, week, sources) -> None:
         fstx_days = sources.fstx.index
@@ -544,7 +544,7 @@ class TestTheHolidayWeek:
 class TestTheHolidaySketch:
     def test_its_words(self, every) -> None:
         assert every[0].title == "One US holiday, four readings"
-        assert every[0].labels == HOLIDAY_LABELS
+        assert every[0].labels == HOLIDAY_LABELS, SPEC
 
     def test_each_arrow_runs_from_its_day_to_the_close_it_reads(self, every, week) -> None:
         """The tail at the day's column, the tip at the read close's column,
@@ -676,7 +676,7 @@ class TestTheKeptDays:
         long = result.buy_on_gap
         returns = pd.Series(long.daily, index=long.days)[long.qualifies]
         held = pd.Series(long.held, index=long.days)[long.qualifies]
-        assert kept.kept == len(returns) == 190
+        assert kept.kept == len(returns) == 190, SPEC
         assert kept.held_days == tuple(returns.index[held.to_numpy()])
         assert kept.held == pytest.approx(tuple(returns[held.to_numpy()]), abs=0)
         assert kept.places == tuple(int(k) for k in np.flatnonzero(held.to_numpy()))
@@ -697,7 +697,7 @@ class TestTheKeptDays:
     def test_the_rest_is_the_other_189_kept_days(self, kept, result) -> None:
         returns = result.buy_on_gap.filtered
         rest = np.delete(returns, int(np.argmax(returns)))
-        assert len(rest) == 189
+        assert len(rest) == 189, SPEC
         assert kept.rest_return == pytest.approx(252 * rest.mean(), abs=1e-15)
         assert kept.rest_sharpe == pytest.approx(plain_sharpe(rest), abs=1e-15)
 
@@ -739,7 +739,7 @@ def _made_up() -> KeptDays:
 class TestTheKeptDaysSketch:
     def test_its_words(self, every) -> None:
         assert every[1].title == "What buy on gap’s kept days earned"
-        assert every[1].labels == KEPT_LABELS
+        assert every[1].labels == KEPT_LABELS, SPEC
 
     def test_made_up_figures_move_the_words(self) -> None:
         labels = sketches._kept_days(_made_up()).labels
@@ -766,6 +766,16 @@ class TestTheKeptDaysSketch:
         days = tuple(day("2020-01-02") for _ in held)
         made_up = KeptDays(3, places, days, held, sum(held), 0.0, 0.0)
         with pytest.raises(ValueError, match="gained"):
+            sketches._kept_days(made_up)
+
+    def test_a_held_day_that_returned_exactly_0_is_refused(self) -> None:
+        """The words count each held day as gained or lost, so "1 gained" and
+        "1 lost" beside "3 held a position" would not add up. Buy on gap held
+        ten positions on 2010-03-19 and returned exactly 0, a day the filter
+        did not keep."""
+        days = (day("2020-01-02"), day("2020-01-03"), day("2020-01-06"))
+        made_up = KeptDays(5, (0, 2, 4), days, (0.01, 0.0, -0.005), 0.005, 0.0, 0.0)
+        with pytest.raises(ValueError, match="exactly 0"):
             sketches._kept_days(made_up)
 
     @pytest.mark.parametrize("which", ["run", "made up", "loss largest"])

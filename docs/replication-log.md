@@ -11071,7 +11071,7 @@ rule today.
 | 8 | Each FSTX day kept when the latest VIX close strictly before it is above 35, with no join | 188 days, 0.025319 and 0.163555 | `TestTheReadingsThatMiss::test_the_latest_close_before_each_day_prints_2_5` and `::test_the_latest_close_reading_adds_three_us_holidays` |
 | 9 | VIX placed on FSTX's 2,000 days with NaN where it has no close, then moved one row | 185 days, 0.045238 and 0.291589 | `TestTheReadingsThatMiss::test_one_row_back_on_fstx_s_own_calendar_lands_neither` and `::test_the_own_calendar_reading_swaps_the_day_after_each_holiday_for_the_holiday` |
 | 10 | VIX forward-filled onto FSTX's 2,000 days, then moved one row | 188 days, 0.025319 and 0.163555, the same days as row 8. The two read different closes on 23 days and none crosses 35 | `TestTheReadingsThatMiss::test_vix_forward_filled_one_row_back_keeps_the_latest_close_s_days` and `::test_the_forward_fill_and_the_latest_close_read_different_closes_on_23_days` |
-| 11 | Each FSTX day kept when VIX closed above 35 on the same date, NaN on US holidays | 185 days, −0.047063 and −0.297416 | `TestTheReadingsThatMiss::test_same_day_vix_with_nan_on_holidays_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
+| 11 | Each FSTX day kept when VIX closed above 35 on the same date, NaN on days the US exchanges were shut | 185 days, −0.047063 and −0.297416 | `TestTheReadingsThatMiss::test_same_day_vix_with_nan_on_holidays_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
 | 12 | Each FSTX day kept when VIX closed above 35 on the same date, forward-filled | 188 days, −0.046312 and −0.295046 | `TestTheReadingsThatMiss::test_same_day_vix_forward_filled_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
 | 13 | The joined calendars | buy on gap 1,500 of 1,500, FSTX 1,945 of 2,000, losing 7 days after 2012-05-08 and 48 the CBOE did not trade | `TestTheJoin::test_buy_on_gap_keeps_all_1500_days`, `::test_fstx_keeps_1945_of_its_2000_days` and `::test_fstx_loses_7_days_after_vix_ends_and_48_the_cboe_did_not_trade`, and for the 7 days, `TestTheReadingsThatMiss::test_the_seven_days_after_vix_ends_could_not_qualify_either_way` |
 | 14 | The qualifying days, and the days each rule held a position on them | both from 2008-09-18 to 2011-11-10, after VIX's first close above 35 inside either window on 2008-09-17. Buy on gap held on 20 of 190, FSTX on 43 of 185, long on 21 and short on 22 | `TestBesideTheReplication::test_both_rules_keep_the_days_from_2008_09_18_to_2011_11_10`, `::test_vix_first_closes_above_35_inside_either_window_on_2008_09_17`, `::test_buy_on_gap_held_a_position_on_20_of_its_190_kept_days`, `::test_fstx_held_a_position_on_43_of_its_185_kept_days` and `::test_no_vix_close_sits_exactly_on_35` |
@@ -11125,8 +11125,8 @@ which `TestWhatThePostMeasured` in
    than chance would often produce. Welch's t is −0.684181
    for the fade, with p = 0.494679, treating each day as independent. So
    Chan's reading, that VIX above 35 tells the gap trader to stay out, rests
-   on point estimates this test cannot tell from noise for either sign. It is
-   exploratory and decides nothing.
+   on mean returns this test cannot tell from noise for either sign, and on
+   Sharpe ratios nothing here tests. It is exploratory and decides nothing.
 3. **One phrase names two formulas in two consecutive sentences.** The
    unfiltered "annualized average return" of 8.7 percent is buy on gap's
    compounded APR, as Entry 18 found, and the filtered 17.2 percent is the
@@ -11165,7 +11165,8 @@ alignment, `252 · mean`, each rule's own settings, the sign of FSTX's return
 line, the stocks buy on gap may choose from, the costs, the direction each
 rule's mean return should move on the qualifying days, and the test that compares the qualifying days
 with the rest, with the p below which it counts chosen for the two rules
-together.
+together, and the later data itself, meaning its first and last day, its
+source and the date it was saved.
 
 **What buy on gap earned on the index as it stood each day.** Every stock here
 was in the S&P 500 in late 2011, so Entry 18's caveat holds for the filtered

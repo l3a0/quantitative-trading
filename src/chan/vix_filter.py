@@ -81,8 +81,8 @@ same day.
 3. **A one-row shift on FSTX's own calendar**, with NaN where VIX has no
    close, keeps 185 days and lands neither figure. It keeps those three
    holidays and drops the day after each, which reads the holiday's NaN.
-4. **The same day's VIX close on FSTX's own calendar**, with NaN on US
-   holidays, keeps 185 days.
+4. **The same day's VIX close on FSTX's own calendar**, with NaN on days
+   the US exchanges were shut, keeps 185 days.
 5. **The same day's VIX close forward-filled onto FSTX's calendar** keeps
    188, the three holidays included.
 
@@ -295,7 +295,7 @@ def same_day_reading(
 
     Both look ahead. VIX closes at 16:15 New York time, after FSTX's open on the same date, so
     a position taken at the open could not have read it. ``forward_fill``
-    gives a US holiday the close before it rather than NaN.
+    gives a day the US exchanges were shut the close before it rather than NaN.
     """
     closes = vix.reindex(days, method="ffill" if forward_fill else None)
     with np.errstate(invalid="ignore"):

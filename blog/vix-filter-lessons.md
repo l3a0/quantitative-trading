@@ -117,8 +117,8 @@ FSTX trades on Eurex and the Chicago Board Options Exchange computes VIX, so the
 2. **Latest close.** Read VIX’s latest close before each FSTX day.
 3. **Filled forward.** Copy each VIX close onto any following FSTX day that has none, and read VIX’s close on FSTX’s previous day.
 4. **Row back.** Step back one row on FSTX’s own calendar, read VIX’s close on that day, and drop the day when VIX has none.
-5. **Same day.** Read VIX’s close on the trade’s own date, which is missing on US holidays.
-6. **Same day, filled.** Read the same, with VIX filled forward onto US holidays.
+5. **Same day.** Read VIX’s close on the trade’s own date, which is missing on days the US exchanges were shut.
+6. **Same day, filled.** Read the same, with VIX filled forward onto those days.
 
 In the table, the return is 252 times the mean.
 
@@ -217,7 +217,7 @@ Six questions are beyond it.
 
 1. **What Chan’s own code for the filter did.** No script ships for the filter on p. 269, and a search chose the join for FSTX.
 2. **Whether Chan joined the calendars before or after running the rule.** Both orders give the same figures on FSTX’s kept days, as Lesson 3 says.
-3. **Whether the filter guards either rule after 2012.** Every kept day falls from 2008 to 2011. A test of the filter on later data would write down at least these nine choices before reading that data.
+3. **Whether the filter guards either rule after 2012.** Every kept day falls from 2008 to 2011. A test of the filter on later data would write down at least these ten choices before reading that data.
    1. The threshold.
    2. The join.
    3. The formula, 252 times the mean.
@@ -227,6 +227,7 @@ Six questions are beyond it.
    7. The costs charged on each trade.
    8. The direction each rule’s mean return should move on kept days.
    9. The test that compares the kept days with the rest, and the p below which a difference counts as more than chance, with that p chosen for the two rules together.
+   10. The later data: its first and last day, its source, and the date it was saved.
 4. **What buy on gap earned on the index as it stood each day.** Every stock here was in the S&P 500 in late 2011, so a company outside the index for all of late 2011 is missing, even on the days it was a member. The [buy on gap post’s Lesson 6](https://github.com/l3a0/quantitative-trading/blob/main/blog/buy-on-gap-lessons.md#lesson-6-an-exact-reproduction-checks-the-arithmetic-not-the-edge) shows that an exact reproduction checks the arithmetic, not the edge, and that holds for the kept days too.
 5. **Whether every price in the files is right.** The repository has a check for a sudden change of scale, such as a vendor multiplying every close from some day on by a constant. It catches only a day-over-day move of more than 1.6 times, so a rescale of 1.6 times or less passes it unseen. What it covers differs by file, and some prices need a second source that nothing here reads.
    - **FSTX.** The run applies the check to every FSTX close in the file, and it flags none. Chan’s saves also price FSTX differently, as Lesson 3’s fourth fact says, and nothing here says which save’s prices are right.

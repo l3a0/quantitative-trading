@@ -1,9 +1,18 @@
 """The pins for the VIX filter at location 3509 of *Algorithmic Trading*.
 
 This file is the single authority for every number a prose surface quotes
-about this replication, apart from Example 7.1's full-calendar figures, which
-``tests/test_opening_gap.py`` holds. ``docs/replication-log.md`` Entry 47
-carries the verdicts and points here row by row.
+about this replication, with these exceptions.
+
+- ``tests/test_opening_gap.py`` holds Example 7.1's full-calendar figures, and
+  ``tests/test_buy_on_gap.py`` holds buy on gap's unfiltered 8.7, 1.5 and 8.5.
+- ``tests/test_vix_filter_figures.py`` holds the post's chart, and
+  ``tests/test_vix_filter_whiteboard.py`` holds its two sketches' labels and
+  alt texts, VIX's closes of 54.92 and 55.28 among them.
+- ``tests/test_continuous_futures.py`` holds the 52 futures series in the
+  2012-05-17 save and their earliest first day, 1995-10-20.
+
+``docs/replication-log.md`` Entry 47 carries the verdicts and points here row
+by row.
 
 Every pin on the committed files reads three vintages and one specification
 unless it names another, so they are stated once here.
@@ -257,7 +266,7 @@ class TestTheJoin:
         flat = long.days[long.held & (long.daily == 0)]
         assert list(flat) == [day("2010-03-19")]
         assert not long.qualifies[long.days.get_loc(flat[0])]
-        assert np.count_nonzero(long_rule.positions[long_rule.days.get_loc(flat[0])]) == 10
+        assert np.count_nonzero(long_rule.positions[long_rule.days.get_loc(flat[0])]) == 10, SPEC
 
 
 class TestTheSpecification:
@@ -393,8 +402,8 @@ class TestTheReadingsThatMiss:
     def test_the_compounded_apr_prints_17_9_not_17_2(self, result) -> None:
         """Row 6. So location 3509's filtered figure is 252 times the mean.
 
-        Entry 18 found the same sentence's unfiltered 8.7 percent to be the
-        compounded APR, so the phrase names both formulas.
+        Entry 18 found the unfiltered 8.7 percent, in the adjacent sentence,
+        to be the compounded APR, so the phrase names both formulas.
         """
         long = result.buy_on_gap
         assert long.apr == pytest.approx(0.179297, abs=SIX)
@@ -628,7 +637,7 @@ class TestBesideTheReplication:
         """Row 18. Welch's t on mean daily return, kept days against the other joined days.
 
         The test treats each day as independent of the others. Neither p is
-        below 0.4, so neither sign's figures say which way the filter points.
+        below 0.4, so neither rule's mean return says which way the filter points.
         """
         long_t, long_p = result.buy_on_gap.welch
         assert long_t == pytest.approx(0.705402, abs=SIX)
@@ -811,7 +820,7 @@ class TestWhatThePostMeasured:
         assert matches(rest.sharpe, "0.86")
         others = np.delete(long.daily, long.days.get_loc(days[best]))
         every = reading(others, np.ones(len(others), dtype=bool))
-        assert every.kept == 1499
+        assert every.kept == 1499, SPEC
         assert every.average_annual_return == pytest.approx(0.069600, abs=SIX), (
             f"{SPEC}; {AFTER_THE_RUN}"
         )
@@ -847,10 +856,10 @@ class TestWhatThePostMeasured:
     def test_buy_on_gap_s_compounded_apr_over_every_day_is_0_087385(self, result) -> None:
         """Lesson 1's table sets it beside 252 · mean, 0.085279, and the book's 8.7."""
         long = result.buy_on_gap
-        assert len(long.daily) == 1500
+        assert len(long.daily) == 1500, SPEC
         apr = module.compounded_apr(long.daily)
         assert apr == pytest.approx(0.087385, abs=SIX), f"{SPEC}; {AFTER_THE_RUN}"
-        assert matches(100 * apr, "8.7")
+        assert matches(100 * apr, "8.7"), SPEC
 
     def test_inside_the_windows_the_nearest_close_below_35_is_34_78(self, sources) -> None:
         """On 2011-10-20, against 34.95 on 2001-10-18 across the whole file."""
@@ -859,7 +868,7 @@ class TestWhatThePostMeasured:
         assert (below.max(), below.idxmax()) == (34.78, day("2011-10-20")), (
             f"{SPEC}; {AFTER_THE_RUN}"
         )
-        assert sources.vix[sources.vix <= THRESHOLD].idxmax() == day("2001-10-18")
+        assert sources.vix[sources.vix <= THRESHOLD].idxmax() == day("2001-10-18"), SPEC
 
     def test_the_best_kept_day_rests_on_three_opens_10_to_23_percent_down(
         self, sources, long_rule
@@ -878,7 +887,7 @@ class TestWhatThePostMeasured:
         assert drop.round(3).to_dict() == {"ETFC": 0.103, "HBAN": 0.227, "RF": 0.137}, (
             f"{SPEC}; {AFTER_THE_RUN}"
         )
-        assert 0.10 <= drop.min() and drop.max() <= 0.23
+        assert 0.10 <= drop.min() and drop.max() <= 0.23, SPEC
 
     @pytest.mark.parametrize(
         "save", ["inputDataOHLCDaily_20120511.mat", "inputDataOHLCDaily_20120507.mat"]
@@ -891,8 +900,8 @@ class TestWhatThePostMeasured:
         since ``SPEC`` names the 2012-05-17 one.
         """
         entry, fstx = opening_gap.read_sources(source_file=save)
-        assert len(fstx) == 2000
         read = _earlier_save_spec(entry)
+        assert len(fstx) == 2000, read
         rule = opening_gap.opening_gap(fstx)
         filtered = module.vix_filter(
             "FSTX", rule.days, rule.literal, rule.positions != 0, sources.vix
@@ -900,7 +909,7 @@ class TestWhatThePostMeasured:
         assert filtered.kept_days.equals(result.literal.kept_days), read
         assert filtered.average_annual_return == pytest.approx(0.024899, abs=SIX), read
         assert filtered.sharpe == pytest.approx(0.162148, abs=SIX), read
-        assert matches(100 * filtered.average_annual_return, "2.5")
+        assert matches(100 * filtered.average_annual_return, "2.5"), read
 
     def test_the_1000_day_save_misses_2_6_percent(self, sources) -> None:
         """``inputDataOHLCDaily_20120504.mat`` holds FSTX too, and gives 0.070235.
@@ -1120,10 +1129,11 @@ class TestThePostQuotesTheRun:
     Lesson 4 and the fifth open question take from the run, with each verdict
     the fifth open question draws chosen by the measurement behind it. It also reads one
     prose copy each of the zeroed reading's figures, momentum's filtered
-    figures, Example 7.1's compounded APR, the closes nearest 35 and the join's
-    day counts. It reads no other copy, so every other copy in the post can
-    still drift here, including those in the caption and the alt texts. The
-    sketch tests read the sketches' alt texts.
+    figures, Example 7.1's compounded APR, the closes nearest 35, the join's
+    day counts and FSTX's figures on the earlier saves. It reads no other
+    copy, so every other copy in the post can still drift here, including
+    those in the caption and the alt texts. The sketch tests read the
+    sketches' alt texts.
     """
 
     text = POST.read_text("utf-8")
@@ -1447,6 +1457,21 @@ class TestThePostQuotesTheRun:
             f"{near.max()} on {near.idxmax().date()}."
         ) in self.text
 
+    def test_fstx_s_figures_on_the_earlier_saves(self, sources) -> None:
+        """Lesson 3's fourth fact quotes one pair of figures for both earlier 2,000-day saves."""
+        for save in ("inputDataOHLCDaily_20120511.mat", "inputDataOHLCDaily_20120507.mat"):
+            entry, fstx = opening_gap.read_sources(source_file=save)
+            rule = opening_gap.opening_gap(fstx)
+            filtered = module.vix_filter(
+                "FSTX", rule.days, rule.literal, rule.positions != 0, sources.vix
+            )
+            sentence = (
+                f"the join keeps the same {filtered.kept} days and gives "
+                f"{_f(filtered.average_annual_return)} and {_f(filtered.sharpe)}, which print as "
+                f"{100 * filtered.average_annual_return:.1f} percent and {filtered.sharpe:.2f}."
+            )
+            assert sentence in self.text, f"{_earlier_save_spec(entry)}; {sentence}"
+
     def test_the_join_paragraph(self, sources, result) -> None:
         long, lit = result.buy_on_gap, result.literal
         lost = sources.fstx.index.difference(sources.vix.index)
@@ -1507,8 +1532,9 @@ class TestTheGuard:
     """Row 16: VIX's flagged day, the spans guarded either side of it, and what the guard misses.
 
     The guard flags a day-over-day move of more than 1.6 times, so a rescale
-    smaller than that passes it on any span. VIX's largest close before the
-    flag sits where such a rescale could carry it past 35.
+    smaller than that passes it on any span. VIX's largest close from FSTX's
+    first joined day to the day before the flag sits where such a rescale
+    could carry it past 35.
     """
 
     def test_vix_flags_2007_02_27_alone(self, sources) -> None:

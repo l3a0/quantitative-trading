@@ -693,8 +693,9 @@ where they were first built. The other forty-five were built here.
     daily return, the kept days against the other joined days, is 0.705402
     for buy on gap and −0.684181 for FSTX's fade, with p of 0.481405 and
     0.494679, treating each day as independent. So the claim that VIX above
-    35 warns the gap trader off rests on point estimates this test cannot
-    tell from noise, for either sign. It is exploratory and decides nothing.
+    35 warns the gap trader off rests on mean returns this test cannot tell
+    from noise, for either sign, and on Sharpe ratios nothing here tests. It
+    is exploratory and decides nothing.
     No script ships for the filter. The FSTX alignment was chosen after six
     were tried, and all six are recorded. Only the join lands 2.6 percent. The latest VIX close
     before each day lands the Sharpe ratio but prints 2.5 percent, and the
@@ -8913,10 +8914,10 @@ against the book targets the tests pin, and one prose copy of each figure
 Lesson 4 and the fifth open question take from the run, with each verdict
 the fifth open question draws chosen by the measurement behind it. It also reads one
 prose copy each of the zeroed reading's figures, momentum's filtered figures,
-Example 7.1's compounded APR, the closes nearest 35 and the join's day
-counts. It reads no other copy, so every other copy in the post can drift
-without this class failing, including those in the caption and the alt
-texts. The sketch tests read the sketches' alt texts.
+Example 7.1's compounded APR, the closes nearest 35, the join's day counts
+and FSTX's figures on the earlier saves. It reads no other copy, so every
+other copy in the post can drift without this class failing, including those
+in the caption and the alt texts. The sketch tests read the sketches' alt texts.
 
 Its one figure is drawn from the committed vintages by
 [src/chan/vix_filter_figures.py](src/chan/vix_filter_figures.py), which reads

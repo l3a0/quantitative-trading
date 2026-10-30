@@ -446,10 +446,14 @@ def _kept_days(days: KeptDays) -> Scene:
     """Lesson 4: the kept days, the few held, and the one that earns most of the sum.
 
     The struck-out bar has to have gained, since the words give its share of
-    the sum, so a rule whose largest held day lost is refused.
+    the sum, so a rule whose largest held day lost is refused. The words count
+    each held day as gained or lost, so a held day that returned exactly 0 is
+    refused too.
     """
     if not days.held or days.held[days.top] <= 0:
         raise ValueError("the kept-days sketch draws at least one held day that gained")
+    if days.gained + days.lost != len(days.held):
+        raise ValueError("a held kept day returned exactly 0, neither gained nor lost")
     xs = tick_xs(days.kept)
     unheld = np.ones(days.kept, dtype=bool)
     unheld[list(days.places)] = False
