@@ -6954,8 +6954,8 @@ Six groups of what it says are not pinned here.
 2. Facts about the book rather than the arithmetic: that Equation 8.3 is an
    image the highlights did not capture, that Chan cites Thorp (1997) for
    Equation 8.3, the growth rate at the Kelly leverages, and that the book's
-   Figure 8.1, an image the highlights did not capture, draws none of the
-   dashed part, the shading and the markers the post's chart adds.
+   Figure 8.1, an image the highlights did not capture, is the curve from
+   F2 = 0 to the cap that the chart's solid line redraws.
 3. Readings no test asserts: the slope's first number read as how fast the
    growth rate rises as leverage moves from strategy 1 to strategy 2, the drag
    growing with the square of the leverage and so staying small under a tight
@@ -7013,6 +7013,12 @@ the last four. A later edit split the slope into its parts, strategy 2's
 extra mean of 0.30, the drag of 0.1352 shed off strategy 1, and the two
 variances of 0.0676 and 0.1225, and
 `test_the_slope_along_the_line_is_positive_up_to_the_cap` holds each of them.
+Another took the hedge's two changes one at a time.
+`test_the_drag_falls_in_two_steps_and_the_short_earns_most_of_the_lead`
+holds what each saves, 0.315769 of drag for cutting the long and 0.211730 for
+the short. It also holds the post's words for them. The long's saving is
+barely more than the return it gives up, the short cancels about half of the
+remaining long's variance, and the short earns most of the hedge's lead.
 
 1. The Sharpe ratios 1.153846 and 1.714286, half the sum of whose squares is
    the growth rate at Kelly.

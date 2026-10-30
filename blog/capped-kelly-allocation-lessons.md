@@ -84,7 +84,7 @@ g \text{, all on } F_2 & 0.955 & 0.96
 
 Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
 
-Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s optimum under the cap, at F2 = 2. Each of those lands too. The tables and this paragraph leave out any figure printed only inside an equation’s image, as Equation 8.3’s may be.
+Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s optimum under the cap, at F2 = 2. Each of those lands too. The tables and this paragraph leave out any figure printed only inside an image, an equation’s or a chart’s, as Equation 8.3’s or Figure 8.1’s may be.
 
 No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is five things the tables do not show.
 
@@ -118,7 +118,7 @@ Each unit of leverage moved lowers the slope by 0.1901, the two variances, 0.067
 
 ![A curve of the growth rate g against F2, the leverage on strategy 2, with F1 = 2 − F2 on strategy 1, for F2 from 0 to 2.6. A solid curve rises from 0.4648 at F2 = 0, with everything on strategy 1, to 0.955 at F2 = 2, with everything on strategy 2. A filled brown marker sits on it at the proportional split, F2 = 1.049282 and g = 0.816798, and a filled green marker at the corner, F2 = 2 and g = 0.955. Past F2 = 2 the curve continues dashed over a shaded region labelled as over the gross cap of 2, where strategy 1 is held short. The dashed curve rises a little further to a hollow red marker at the unbounded peak, F2 = 2.289321 and g = 0.962956, labelled as not allowed, and falls slightly toward F2 = 2.6.](../docs/figures/kelly_allocation.png)
 
-*The growth rate along the line where the whole cap of 2 is spent. The solid curve from F2 = 0 to 2 redraws the book’s Figure 8.1, “Constrained Growth Rate g as Function of F2”. The dashed part past the cap, the shading and the three markers are added here, and the book does not draw them.*
+*The growth rate along the line where the whole cap of 2 is spent. The solid curve from F2 = 0 to 2 redraws the book’s Figure 8.1, “Constrained Growth Rate g as Function of F2”. The dashed part past the cap, the shading and the three markers are added here.*
 
 At the curve’s other end, everything on strategy 1 grows at 0.4648, less than half the corner’s rate. Against the 2.135068 the uncapped Kelly leverages would earn, the proportional split keeps 0.382563 of that rate and the corner 0.447292 of it. Both fall far short, because the cap allows 2 of the 9.335829 Kelly asks for.
 

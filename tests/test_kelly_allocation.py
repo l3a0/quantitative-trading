@@ -599,6 +599,10 @@ class TestTheLongOnlyLimit:
         short, through the correlation, earns most of the hedge's lead over the
         whole cap. Taking the short first passes through a gross of 5, and there
         the short earns more than the whole lead, so "most" holds in either order.
+
+        "Barely more" is read as a net under 5 percent of the return given up,
+        and the run's net is 4.96 percent. "About half" is read as within 0.05
+        of one half, and the run cancels 0.524.
         """
         hedge, corner = self._hedge(), (0.0, self.CAP)
         cut = (0.0, hedge[1])
@@ -617,8 +621,10 @@ class TestTheLongOnlyLimit:
 
         lead = g(hedge) - g(corner)
         short_first = (hedge[0], self.CAP)
+        assert cut[1] < self.CAP
+        assert round(abs(short_first[0]) + short_first[1]) == 5
         assert g(hedge) - g(cut) > lead / 2
-        assert g(short_first) - g(corner) > lead / 2
+        assert g(short_first) - g(corner) > lead
         h, f2 = np.asarray(hedge), hedge[1]
         cancelled = 1.0 - (h @ self.COV @ h) / (f2 * f2 * self.COV[1, 1])
         assert abs(cancelled - 0.5) < 0.05
@@ -888,7 +894,8 @@ class TestWhatThePostSays:
         corner = best_allocation_at_cap(MEANS, cov).growth
         printed = Decimal(f"{corner:.3f}").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self._has(
-            f"# Under a cap of {MAX_LEVERAGE:g}, Chan’s fastest-growing Kelly allocation",
+            f"# Under a cap of {MAX_LEVERAGE:g}, Chan’s fastest-growing Kelly allocation holds "
+            "one strategy, and every figure in his examples’ text reproduces\n",
             f"## Two strategies and a cap of {MAX_LEVERAGE:g}\n",
             f"### Selling into a loss to hold a leverage of {EX81_LEVERAGE:g}\n",
             f"## Lesson 3: the printed {printed} depends on a rounding mode\n",
@@ -937,7 +944,7 @@ class TestWhatThePostSays:
         threshold = corner_threshold(MEANS, cov)
         printed = Decimal(f"{corner:.3f}").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         self._has(
-            f"his {printed} is a tie rounded up",
+            f"Every figure in Chan’s examples’ text lands, his {printed} is a tie rounded up",
             f"at two decimals in code gives {corner:.2f}, because",
             f"the answer changes once the cap passes {threshold:.2f}.*",
             f"Both leverages shrunk to the cap grow at {_six(scaled)} a year. "
@@ -1154,6 +1161,8 @@ class TestWhatThePostSays:
             f"{share(total):.3f} of a cap equal to the total of {_six(total)}.",
             f"is best only while the cap is below {_six(threshold / total)} of the total, "
             "about a quarter.",
+            "It also shows that leaving part of the cap unspent can beat them once the cap "
+            "passes that strategy’s own Kelly leverage.",
         )
         assert share(threshold) == 1.0
         assert round(4 * threshold / total) == 1
@@ -1194,11 +1203,13 @@ class TestWhatThePostSays:
             f"the {_six(-hedge[0])} of the gross cap that the short now uses.",
             f"The drag falls by {_six(whole_drag - hedge_drag)}, more than all the return "
             "given up, so the hedge grows faster.",
-            f"Cutting the long saves {_six(whole_drag - cut_drag)} of drag, barely more than "
-            f"the {_six(whole_ret - cut_ret)} of return it gives up.",
-            "the short then cancels about half of the remaining long’s variance, and saves "
-            f"the other {_six(cut_drag - hedge_drag)} of drag at a cost of only "
-            f"{_six(cut_ret - hedge_ret)}. So the short earns most of the hedge’s lead.",
+            "Take the two changes one at a time, the displaced long first, so the gross never "
+            f"passes the cap. Cutting the long saves {_six(whole_drag - cut_drag)} of drag, "
+            f"barely more than the {_six(whole_ret - cut_ret)} of return it gives up. Because "
+            "the two strategies move together so closely, the short then cancels about half "
+            f"of the remaining long’s variance, and saves the other {_six(cut_drag - hedge_drag)} "
+            f"of drag at a cost of only {_six(cut_ret - hedge_ret)}. So the short earns most of "
+            "the hedge’s lead. Lesson 4’s short broke the gross cap. This one stays inside it.",
             f"under a cap below {corner_threshold(MEANS, cov):.2f}.",
         )
         assert alone < cap
