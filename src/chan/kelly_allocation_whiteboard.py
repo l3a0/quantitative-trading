@@ -156,7 +156,6 @@ class SketchFigures:
     cap: float
     split: Terms
     corner: Terms
-    corner_growth: float
     peak: Allocation
 
     @property
@@ -188,7 +187,6 @@ class SketchFigures:
             cap=MAX_LEVERAGE,
             split=Terms.at(capped, MEANS, cov),
             corner=Terms.at(best.leverages, MEANS, cov),
-            corner_growth=best.growth,
             peak=unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE),
         )
 
@@ -537,7 +535,7 @@ def _gross_against_net(figures: SketchFigures) -> Scene:
         ),
         _dot("corner", *at(corner_f1, corner_f2), color=GOOD),
         Label(
-            f"corner, g = {figure(figures.corner_growth)}",
+            f"corner, g = {figure(figures.corner.growth)}",
             at(corner_f1, 0.0)[0] + 0.4,
             at(0.0, corner_f2)[1] + 0.12,
             names="corner",

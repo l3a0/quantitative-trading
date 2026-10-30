@@ -416,15 +416,22 @@ class TestWhereTheCornerStopsWinning:
     def test_spending_the_whole_cap_stays_best_up_to_the_kelly_gross(self, cov, kelly) -> None:
         """Leaving part of the cap unspent beats every split of the whole cap only
         once the cap passes the gross of the best long-only allocation with no cap.
-        On these inputs that is the Kelly pair. Up to its total, adding leverage to
-        either strategy at the best split still raises the growth rate, ``M - CF``
-        has no negative part, and the growth rate is concave, so no allocation
-        with less gross beats the split. Lesson 6's case is where a part turns
-        negative, at its cap of 4."""
+        On these inputs that is the Kelly pair. Up to its total, the split is the
+        best on the line, where the slope along it is zero or, at the corner, still
+        rising. Adding leverage to either strategy there still raises the growth
+        rate, ``M - CF`` has no negative part, and the growth rate is concave, so no
+        allocation with less gross beats the split. Lesson 6's case is where a part
+        turns negative, at its cap of 4."""
         total = float(np.abs(kelly).sum())
         for cap in np.linspace(0.5, total, 60):
-            leverages = np.array(best_allocation_at_cap(MEANS, cov, float(cap)).leverages)
-            assert (np.asarray(MEANS) - cov @ leverages).min() >= -1e-12
+            f1, f2 = best_allocation_at_cap(MEANS, cov, float(cap)).leverages
+            gradient = np.asarray(MEANS) - cov @ np.array([f1, f2])
+            slope = gradient[1] - gradient[0]
+            if f2 == cap:
+                assert slope >= -1e-12
+            else:
+                assert 0.0 < f2 and slope == pytest.approx(0.0, abs=1e-12)
+            assert gradient.min() >= -1e-12
         case = TestTheLongOnlyLimit()
         whole = np.array(best_allocation_at_cap(case.MEANS, case.COV, case.CAP).leverages)
         assert (np.asarray(case.MEANS) - case.COV @ whole).min() < 0.0
@@ -644,6 +651,8 @@ class TestTheLongOnlyLimit:
         h, f2 = np.asarray(hedge), hedge[1]
         cancelled = 1.0 - (h @ self.COV @ h) / (f2 * f2 * self.COV[1, 1])
         assert abs(cancelled - 0.5) < 0.05
+        assert round(100 * (long_saves - long_gives_up) / long_gives_up, 2) == 4.96
+        assert round(cancelled, 3) == 0.524
         uncorrelated = covariance((0.30, 0.30), 0.0)
         no_hedge = growth_terms(cut, self.MEANS, uncorrelated)[1]
         assert growth_terms(hedge, self.MEANS, uncorrelated)[1] > no_hedge
@@ -892,7 +901,8 @@ class TestWhatThePostSays:
     from the run, through the functions the pins above hold, and is compared at
     the precision the post prints it. The book's figures in Lesson 1's tables
     are compared with the run's at the book's precision. A table is read by its
-    row labels, and a sentence by the words around its number.
+    row labels, and a sentence by the clause around its number or around a word
+    that would make it false if reversed, so a reword elsewhere in it passes.
 
     The prose states these numbers and the tests above derive them, so before
     this class a typo in the post passed every test. Round 1 of the post's
@@ -1098,7 +1108,7 @@ class TestWhatThePostSays:
             f"{_short(corner_drag)}.",
             f"So the proportional split saves {_six(corner_drag - split_drag)} of drag by giving "
             f"up {_six(corner_ret - split_ret)} of return.",
-            "each unit of the cap earns its own strategy’s mean, twice as high on strategy 2.",
+            "twice as high on strategy 2.",
         )
         assert MEANS[1] == 2 * MEANS[0]
 
@@ -1179,17 +1189,17 @@ class TestWhatThePostSays:
             f"{share(total):.3f} of a cap equal to the total of {_six(total)}.",
             f"is best only while the cap is below {_six(threshold / total)} of the total, "
             "about a quarter.",
-            "The threshold is a formula in the two means, the higher-mean strategy’s variance "
-            "and the covariance, so a trader can compute it rather than guess.",
-            "1. The strategy with the higher mean must have a variance above the two "
-            "strategies’ covariance.",
+            "a formula in the two means, the higher-mean strategy’s variance and the covariance",
+            "1. The strategy with the higher mean",
+            "a variance above the two strategies’ covariance.",
             "2. The threshold marks only where everything on that strategy stops beating the "
-            "other long-only ways to spend the whole cap. Lesson 6 shows two ways to beat all "
-            "of them. A short is one. Leaving part of the cap unspent is the other, once the "
-            "cap passes the gross leverage of the best long-only allocation with no cap. In "
-            "Lesson 6 that allocation holds the higher-mean strategy alone, at its own Kelly "
-            "leverage. On Chan’s inputs that allocation is the Kelly pair, so spending the "
-            f"whole cap stays best up to the total of {_six(total)}.",
+            "other long-only ways to spend the whole cap. Lesson 6 shows two ways",
+            "A short is one. Leaving part of the cap unspent is the other, once the cap passes "
+            "the gross leverage of the best long-only allocation with no cap.",
+            "In Lesson 6 that allocation holds the higher-mean strategy alone, at its own Kelly "
+            "leverage.",
+            "On Chan’s inputs that allocation is the Kelly pair, so spending the whole cap stays "
+            f"best up to the total of {_six(total)}.",
         )
         assert share(threshold) == 1.0
         assert round(4 * threshold / total) == 1
@@ -1208,11 +1218,10 @@ class TestWhatThePostSays:
         whole_ret, whole_drag = growth_terms(whole.leverages, case.MEANS, case.COV)
         cut_ret, cut_drag = growth_terms((0.0, hedge[1]), case.MEANS, case.COV)
         self._has(
-            "Up to here, every allocation compared under the cap holds long positions only, "
-            "F1 and F2 both at least 0, the range Chan plots. On Chan’s inputs that loses "
-            f"nothing. A search over every allocation whose gross leverage is {MAX_LEVERAGE:g}, "
-            "short positions included, finds the same corner at "
-            f"{best_allocation_at_cap(MEANS, cov).growth:.3f}.",
+            "holds long positions only, F1 and F2 both at least 0",
+            "On Chan’s inputs that loses nothing.",
+            f"whose gross leverage is {MAX_LEVERAGE:g}, short positions included, finds the same "
+            f"corner at {best_allocation_at_cap(MEANS, cov).growth:.3f}.",
             f"On Chan’s means and volatilities at a cap of {MAX_LEVERAGE:g}, no correlation lets "
             "a short beat the best long-only allocation, not even a correlation of 1.",
             f"Take two strategies with mean excess returns of {m1:.2f} and {m2:.2f}, a "
@@ -1235,13 +1244,15 @@ class TestWhatThePostSays:
             f"the {_six(-hedge[0])} of the gross cap that the short now uses.",
             f"The drag falls by {_six(whole_drag - hedge_drag)}, more than all the return "
             "given up, so the hedge grows faster.",
-            "Take the two changes one at a time, the displaced long first, so the gross never "
-            f"passes the cap. Cutting the long saves {_six(whole_drag - cut_drag)} of drag, "
-            f"barely more than the {_six(whole_ret - cut_ret)} of return it gives up. Because "
-            "the two strategies move together so closely, the short then cancels about half "
-            f"of the remaining long’s variance, and saves the other {_six(cut_drag - hedge_drag)} "
-            f"of drag at a cost of only {_six(cut_ret - hedge_ret)}. So the short earns most of "
-            "the hedge’s lead. Lesson 4’s short broke the gross cap. This one stays inside it.",
+            "the displaced long first, so the gross never passes the cap.",
+            f"Cutting the long saves {_six(whole_drag - cut_drag)} of drag, barely more than the "
+            f"{_six(whole_ret - cut_ret)} of return it gives up.",
+            "Because the two strategies move together so closely, the short then cancels about "
+            "half of the remaining long’s variance",
+            f"saves the other {_six(cut_drag - hedge_drag)} of drag at a cost of only "
+            f"{_six(cut_ret - hedge_ret)}.",
+            "So the short earns most of the hedge’s lead.",
+            "Lesson 4’s short broke the gross cap. This one stays inside it.",
             f"under a cap below {corner_threshold(MEANS, cov):.2f}.",
         )
         assert alone < cap

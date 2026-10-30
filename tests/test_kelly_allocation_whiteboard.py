@@ -24,9 +24,10 @@ takes from each.
    0.962956 and 2.578643.
 
 Every figure a sketch prints is read from the run, so the tests compute each
-again through :mod:`chan.kelly_allocation`'s own functions rather than
-trusting :class:`SketchFigures`. Made-up figures check that the words, the
-title and the colours follow the data.
+again through :mod:`chan.kelly_allocation`'s own functions, or pin it as a
+literal at the post's precision, rather than trusting :class:`SketchFigures`.
+Made-up figures check that the words, the title and the colours follow the
+data.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both
@@ -242,9 +243,9 @@ def _leverage(stroke) -> tuple[np.ndarray, np.ndarray]:
 
 
 class TestTheFigures:
-    """Each figure computed again here from :mod:`chan.kelly_allocation`, not
-    through :class:`SketchFigures`, and pinned at the precision the post
-    prints it."""
+    """Each figure pinned at the precision the post prints it. All but the three
+    differences are also computed again here from :mod:`chan.kelly_allocation`,
+    not through :class:`SketchFigures`."""
 
     def test_the_proportional_split(self, figures, cov) -> None:
         f = proportional_cap(kelly_leverages(MEANS, cov), MAX_LEVERAGE)
@@ -260,11 +261,13 @@ class TestTheFigures:
 
     def test_the_corner(self, figures, cov) -> None:
         best = best_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
+        f = np.asarray(best.leverages)
         assert figures.corner.leverages == best.leverages == (0.0, 2.0)
-        assert figures.corner.growth == pytest.approx(best.growth, abs=1e-15)
-        assert figures.corner_growth == best.growth
+        assert figures.corner.ret == pytest.approx(float(f @ np.asarray(MEANS)), abs=1e-15)
+        assert figures.corner.drag == pytest.approx(float(f @ cov @ f / 2), abs=1e-15)
+        assert figures.corner.growth == best.growth
         assert [figure(v) for v in (figures.corner.ret, figures.corner.drag)] == ["1.2", "0.245"]
-        assert figure(figures.corner_growth) == figure(figures.corner.growth) == "0.955"
+        assert figure(figures.corner.growth) == "0.955"
 
     def test_the_differences(self, figures) -> None:
         assert figure(figures.given_up) == "0.285215", SPEC

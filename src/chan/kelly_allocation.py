@@ -37,14 +37,14 @@ percent and volatilities of 26 and 35 percent have Kelly leverages
 3268 calls scaling both by ``2 / 9.3`` "the usual recommendation", which gives
 0.95 and 1.05, and Example 8.2 exists to show it is not the best allocation.
 The growth rate is ``g = r + F'M - F'CF / 2`` at ``r = 0``, and on the line
-``F1 = 2 - F2`` it rises over the whole range from 0 to 2, so it peaks with
+``F1 = 2 - F2`` it rises over the whole range from 0 to 2, so its optimum puts
 everything on strategy 2.
 
-Three things about that peak are easy to get wrong, and each is pinned.
+Three things about that optimum are easy to get wrong, and each is pinned.
 
-1. **0.955 is a tie.** The peak is exactly 191/200. Chan prints 0.96, the tie
-   rounded up, which half-up and half-to-even rounding both give, so the
-   printed digit cannot say which he used. In float, 0.955 sits just below the
+1. **0.955 is a tie.** The optimum's growth rate is exactly 191/200. Chan
+   prints 0.96, the tie rounded up, which half-up and half-to-even rounding
+   both give, so the printed digit cannot say which he used. In float, 0.955 sits just below the
    tie, so a report
    formatting it at two decimals prints 0.95 beside the book's 0.96 and reads
    as a miss. :func:`report` prints three decimals.
@@ -319,7 +319,9 @@ def best_allocation_at_cap(
     is the range Figure 8.1 plots. That is the constrained optimum when the cap
     binds, meaning the uncapped Kelly pair is long-only and its gross is at
     least ``Fmax``. A short hedge is outside this search, and the module
-    docstring says when that matters.
+    docstring says when that matters. It refuses when the two strategies'
+    difference has no variance, as :func:`segment_stationary_point` does, even
+    where unequal means make the line straight and one end of it best.
     """
     raw = segment_stationary_point(means, cov, max_leverage)
     f2 = min(max(raw, 0.0), max_leverage)
