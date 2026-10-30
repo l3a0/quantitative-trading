@@ -177,7 +177,7 @@ Above a cap of 2.448980, strategy 2 still gets most of the cap, so the “most�
 So on Chan’s inputs, everything on strategy 2 is best only while the cap is below 0.262321 of the total, about a quarter. The threshold is a formula in the two means, the higher-mean strategy’s variance and the covariance, so a trader can compute it rather than guess. Two conditions limit it.
 
 1. The strategy with the higher mean must have a variance above the two strategies’ covariance. Otherwise the slope at the corner does not fall as the cap rises, and the formula names no largest cap.
-2. It marks only where everything on that strategy stops beating the other long-only ways to spend the whole cap. Lesson 6 shows that a short can beat all of them. It also shows that leaving part of the cap unspent can beat them once the cap passes that strategy’s own Kelly leverage.
+2. The threshold marks only where everything on that strategy stops beating the other long-only ways to spend the whole cap. Lesson 6 shows two ways to beat all of them. A short is one. Leaving part of the cap unspent is the other, once the cap passes the gross leverage of the best long-only allocation with no cap. In Lesson 6 that allocation holds the higher-mean strategy alone, at its own Kelly leverage. On Chan’s inputs that allocation is the Kelly pair, so spending the whole cap stays best up to the total of 9.335829.
 
 ## Lesson 6: long-only is the answer here and not in general
 

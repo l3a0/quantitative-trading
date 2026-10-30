@@ -413,6 +413,22 @@ class TestWhereTheCornerStopsWinning:
         assert _book(share(total), 3) == "0.525"
         assert all(share(cap) > 0.5 for cap in np.linspace(0.01, total, 1_000))
 
+    def test_spending_the_whole_cap_stays_best_up_to_the_kelly_gross(self, cov, kelly) -> None:
+        """Leaving part of the cap unspent beats every split of the whole cap only
+        once the cap passes the gross of the best long-only allocation with no cap.
+        On these inputs that is the Kelly pair. Up to its total, adding leverage to
+        either strategy at the best split still raises the growth rate, ``M - CF``
+        has no negative part, and the growth rate is concave, so no allocation
+        with less gross beats the split. Lesson 6's case is where a part turns
+        negative, at its cap of 4."""
+        total = float(np.abs(kelly).sum())
+        for cap in np.linspace(0.5, total, 60):
+            leverages = np.array(best_allocation_at_cap(MEANS, cov, float(cap)).leverages)
+            assert (np.asarray(MEANS) - cov @ leverages).min() >= -1e-12
+        case = TestTheLongOnlyLimit()
+        whole = np.array(best_allocation_at_cap(case.MEANS, case.COV, case.CAP).leverages)
+        assert (np.asarray(case.MEANS) - case.COV @ whole).min() < 0.0
+
 
 class TestTheKellyGrowthRate:
     """Equation 8.3, whose printed value the highlights did not capture."""
@@ -648,17 +664,17 @@ class TestTheInputsAreChecked:
             segment_stationary_point((0.3, 0.3), covariance((0.2, 0.2), 1.0), 2.0)
 
     def test_a_threshold_needs_strategy_two_to_carry_its_own_risk(self) -> None:
-        with pytest.raises(ValueError, match="no largest cap"):
+        with pytest.raises(ValueError, match="variance does not exceed its covariance"):
             corner_threshold((0.3, 0.6), covariance((0.2, 0.2), 1.0))
-        with pytest.raises(ValueError, match="no largest cap"):
+        with pytest.raises(ValueError, match="variance does not exceed its covariance"):
             corner_threshold((0.3, 0.6), covariance((0.4, 0.2), 0.9))
 
     def test_a_threshold_needs_strategy_two_to_have_the_higher_mean(self) -> None:
         """With the means swapped the formula gives -2.448980, a cap nothing can be.
         With them equal it gives 0, which is no cap either."""
-        with pytest.raises(ValueError, match="not above"):
+        with pytest.raises(ValueError, match="not above .* so the formula names no largest cap"):
             corner_threshold((0.60, 0.30), covariance(VOLS))
-        with pytest.raises(ValueError, match="not above"):
+        with pytest.raises(ValueError, match="not above .* so the formula names no largest cap"):
             corner_threshold((0.30, 0.30), covariance(VOLS))
 
     def test_a_cap_below_zero_is_refused(self) -> None:
@@ -948,7 +964,8 @@ class TestWhatThePostSays:
             f"at two decimals in code gives {corner:.2f}, because",
             f"the answer changes once the cap passes {threshold:.2f}.*",
             f"Both leverages shrunk to the cap grow at {_six(scaled)} a year. "
-            f"The whole cap on strategy 2 grows at {corner:.3f} a year.",
+            f"The whole cap on strategy 2 grows at {corner:.3f} a year. Neither figure is a "
+            "percentage gain in a year.",
             f"The exact growth rate with everything on strategy 2 is {corner:.3f}, halfway "
             f"between {corner - 0.005:.2f} and {corner + 0.005:.2f}",
         )
@@ -1161,8 +1178,17 @@ class TestWhatThePostSays:
             f"{share(total):.3f} of a cap equal to the total of {_six(total)}.",
             f"is best only while the cap is below {_six(threshold / total)} of the total, "
             "about a quarter.",
-            "It also shows that leaving part of the cap unspent can beat them once the cap "
-            "passes that strategy’s own Kelly leverage.",
+            "The threshold is a formula in the two means, the higher-mean strategy’s variance "
+            "and the covariance, so a trader can compute it rather than guess.",
+            "1. The strategy with the higher mean must have a variance above the two "
+            "strategies’ covariance.",
+            "2. The threshold marks only where everything on that strategy stops beating the "
+            "other long-only ways to spend the whole cap. Lesson 6 shows two ways to beat all "
+            "of them. A short is one. Leaving part of the cap unspent is the other, once the "
+            "cap passes the gross leverage of the best long-only allocation with no cap. In "
+            "Lesson 6 that allocation holds the higher-mean strategy alone, at its own Kelly "
+            "leverage. On Chan’s inputs that allocation is the Kelly pair, so spending the "
+            f"whole cap stays best up to the total of {_six(total)}.",
         )
         assert share(threshold) == 1.0
         assert round(4 * threshold / total) == 1

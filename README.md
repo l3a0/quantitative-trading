@@ -6967,9 +6967,11 @@ Six groups of what it says are not pinned here.
    post's illustration of gross leverage, \$1.50 long and \$0.50 short on \$1
    of equity, is arithmetic on its own numbers. Two general claims are tested
    only in particular cases.
-   1. Leaving part of the cap unspent can beat every split of the whole cap
-      once the cap passes strategy 2's own Kelly leverage. A test holds it
-      only at Lesson 6's cap of 4.
+   1. Leaving part of the cap unspent beats every split of the whole cap once
+      the cap passes the gross leverage of the best long-only allocation with
+      no cap. That is strategy 2's own Kelly leverage in Lesson 6 and the
+      total Kelly leverage on Chan's inputs. Tests hold it only at Lesson 6's
+      cap of 4 and on Chan's inputs at caps up to that total.
    2. Two uncorrelated strategies with positive means leave a short nothing
       to gain. Tests hold it only with Chan's means and volatilities at a cap
       of 2 and at Lesson 6's hedge.
@@ -6979,8 +6981,9 @@ Six groups of what it says are not pinned here.
    parts, such as the three groups of results, the five things the
    reproduction adds and the six lessons, are not pinned either. Nor are its
    pointers to its own lessons, such as "Lesson 3 to explain" in Lesson 1,
-   except the "in Lesson 4" that ends item 3 of Lesson 1's list and "Lesson
-   4's short" in Lesson 6. Five results
+   except the "in Lesson 4" that ends item 3 of Lesson 1's list, "Lesson 4's
+   short" in Lesson 6 and "Lesson 6 shows" in Lesson 5's second condition.
+   Five results
    it takes from earlier posts are cited like its references.
    1. Compound growth falling short of the average return by about half the
       variance, from the post on the coin toss.
